@@ -35,8 +35,8 @@ export interface TicketTier {
   id: string
   name: string
   price: number
-  fee: number
-  available: number
+  fee?: number
+  available?: number
   salesEndDate?: string
   description?: string
   maxPerOrder?: number
@@ -56,7 +56,7 @@ export interface TicketSelection {
   tierName: string
   quantity: number
   price: number
-  fee: number
+  fee?: number
 }
 
 const defaultTiers: TicketTier[] = [
@@ -82,8 +82,8 @@ const defaultTiers: TicketTier[] = [
 ]
 
 export interface TicketTierEvent {
-  title: string
-  date: string
+  title?: string
+  date?: string
   image?: string
   currency?: string
 }
@@ -181,7 +181,7 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
     if (!tier) return
 
     const currentQty = selections[tierId] || 0
-    const newQty = Math.max(0, Math.min(currentQty + delta, tier.maxPerOrder ?? 10, tier.available))
+    const newQty = Math.max(0, Math.min(currentQty + delta, tier.maxPerOrder ?? 10, tier.available ?? 100))
 
     const newSelections = { ...selections, [tierId]: newQty }
     if (newQty === 0) {
@@ -204,7 +204,7 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
           tierName: tier.name,
           quantity: qty,
           price: tier.price,
-          fee: tier.fee
+          fee: tier.fee ?? 0
         }
       })
   }
@@ -213,7 +213,7 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
   const hasSelections = selectionsList.length > 0
 
   const subtotal = selectionsList.reduce((sum, s) => sum + s.price * s.quantity, 0)
-  const totalFees = selectionsList.reduce((sum, s) => sum + s.fee * s.quantity, 0)
+  const totalFees = selectionsList.reduce((sum, s) => sum + (s.fee ?? 0) * s.quantity, 0)
   const total = subtotal + totalFees
 
   const handleCheckout = () => {
@@ -227,8 +227,8 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
         <div className="flex-1">
         {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-xl font-semibold">{event.title}</h2>
-          <p className="text-sm text-muted-foreground mt-1">{event.date}</p>
+          {event.title && <h2 className="text-xl font-semibold">{event.title}</h2>}
+          {event.date && <p className="text-sm text-muted-foreground mt-1">{event.date}</p>}
         </div>
 
         {/* Tiers */}
@@ -236,7 +236,7 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
           {tiers.map((tier) => {
             const qty = selections[tier.id] || 0
             const isSelected = qty > 0
-            const totalPrice = tier.price + tier.fee
+            const totalPrice = tier.price + (tier.fee ?? 0)
 
             return (
               <div
@@ -267,7 +267,7 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
                       size="icon"
                       className="h-8 w-8 rounded-full"
                       onClick={() => updateQuantity(tier.id, 1)}
-                      disabled={qty >= (tier.maxPerOrder ?? 10) || qty >= tier.available}
+                      disabled={qty >= (tier.maxPerOrder ?? 10) || qty >= (tier.available ?? 100)}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -278,9 +278,11 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
                 <div className="mt-3">
                   <div className="flex items-baseline gap-2">
                     <span className="font-semibold">{formatCurrency(totalPrice, currency)}</span>
-                    <span className="text-sm text-muted-foreground">
-                      incl. {formatCurrency(tier.fee, currency)} Fee
-                    </span>
+                    {(tier.fee ?? 0) > 0 && (
+                      <span className="text-sm text-muted-foreground">
+                        incl. {formatCurrency(tier.fee ?? 0, currency)} Fee
+                      </span>
+                    )}
                   </div>
                   {tier.salesEndDate && (
                     <p className="text-sm text-muted-foreground mt-1">
@@ -320,7 +322,7 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
             {event.image && (
               <img
                 src={event.image}
-                alt={event.title}
+                alt={event.title || 'Event image'}
                 className="w-full h-40 object-cover rounded-lg mb-4"
               />
             )}

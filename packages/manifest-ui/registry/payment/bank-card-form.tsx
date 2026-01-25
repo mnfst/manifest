@@ -12,9 +12,9 @@ import { useState } from 'react'
  * @property {string} cvv - Card verification value (3 digits)
  */
 export interface BankCardFormData {
-  cardNumber: string
-  expiry: string
-  cvv: string
+  cardNumber?: string
+  expiry?: string
+  cvv?: string
 }
 
 /**
@@ -76,10 +76,10 @@ export interface BankCardFormProps {
  * ```
  */
 export function BankCardForm({ data, actions, appearance }: BankCardFormProps) {
-  const amount = data?.amount ?? 279
+  const amount = data?.amount
   const onSubmit = actions?.onSubmit
   const submitLabel = appearance?.submitLabel
-  const currency = appearance?.currency ?? 'EUR'
+  const currency = appearance?.currency
   const [cardNumber, setCardNumber] = useState('')
   const [expiry, setExpiry] = useState('')
   const [cvv, setCvv] = useState('')
@@ -100,7 +100,7 @@ export function BankCardForm({ data, actions, appearance }: BankCardFormProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency
+      currency: currency || 'USD'
     }).format(value)
   }
 
@@ -108,7 +108,7 @@ export function BankCardForm({ data, actions, appearance }: BankCardFormProps) {
     onSubmit?.({ cardNumber, expiry, cvv })
   }
 
-  const label = submitLabel || `Pay ${formatCurrency(amount)}`
+  const label = submitLabel ? submitLabel : (amount !== undefined ? `Pay ${formatCurrency(amount)}` : 'Pay')
 
   return (
     <div className="w-full rounded-md sm:rounded-lg bg-card p-3 space-y-3 sm:space-y-0 sm:p-0 sm:pl-4 sm:pr-2 sm:py-2 sm:flex sm:items-center sm:gap-2">

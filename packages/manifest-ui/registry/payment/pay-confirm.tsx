@@ -26,7 +26,7 @@ export interface PayConfirmProps {
      * The amount to be charged.
      * @default 99.99
      */
-    amount: number
+    amount?: number
     /**
      * Last 4 digits of the card to display.
      * @default "4242"
@@ -90,17 +90,17 @@ export interface PayConfirmProps {
  * ```
  */
 export function PayConfirm({ data, actions, appearance, control }: PayConfirmProps) {
-  const amount = data?.amount ?? 99.99
-  const cardLast4 = data?.cardLast4 ?? "4242"
-  const cardBrand = data?.cardBrand ?? "Visa"
+  const amount = data?.amount
+  const cardLast4 = data?.cardLast4
+  const cardBrand = data?.cardBrand
   const onConfirm = actions?.onConfirm
   const onCancel = actions?.onCancel
-  const currency = appearance?.currency ?? "USD"
+  const currency = appearance?.currency
   const isLoading = control?.isLoading ?? false
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency,
+      currency: currency || "USD",
     }).format(value)
   }
 
@@ -116,27 +116,35 @@ export function PayConfirm({ data, actions, appearance, control }: PayConfirmPro
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="rounded-lg bg-muted p-4 text-center">
-          <p className="text-sm text-muted-foreground">Amount to pay</p>
-          <p className="text-2xl font-semibold">{formatCurrency(amount)}</p>
-        </div>
-        <Separator />
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-sm font-medium">{cardBrand}</p>
-              <p className="text-sm text-muted-foreground">
-                •••• {cardLast4}
-              </p>
-            </div>
+        {amount !== undefined && (
+          <div className="rounded-lg bg-muted p-4 text-center">
+            <p className="text-sm text-muted-foreground">Amount to pay</p>
+            <p className="text-2xl font-semibold">{formatCurrency(amount)}</p>
           </div>
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground">
-            <Check className="h-3 w-3 text-background" />
-          </div>
-        </div>
+        )}
+        {(cardBrand || cardLast4) && (
+          <>
+            {amount !== undefined && <Separator />}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div>
+                  {cardBrand && <p className="text-sm font-medium">{cardBrand}</p>}
+                  {cardLast4 && (
+                    <p className="text-sm text-muted-foreground">
+                      •••• {cardLast4}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground">
+                <Check className="h-3 w-3 text-background" />
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
       <CardFooter className="flex gap-3">
         <Button

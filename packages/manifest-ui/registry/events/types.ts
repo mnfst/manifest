@@ -83,11 +83,11 @@ export type VibeTag =
 export interface Event {
   title: string
   category: string // "Music", "Comedy", "Classes", "Nightlife", "Sports", "Food & Drink", "Arts", "Film", "Networking", "Festivals", "Wellness", "Social", "Games", "Gallery"
-  venue: string
+  venue?: string
   neighborhood?: string | null
-  city: string
+  city?: string
   dateTime: string // Display format: "Tonight 9:00 PM - 3:00 AM", "Tomorrow 6:00 AM", "In 2 days 8:00 PM"
-  priceRange: string // "$45 - $150", "Free", "Free - $5"
+  priceRange?: string // "$45 - $150", "Free", "Free - $5"
   image?: string // Cover image URL for the event
   coordinates?: { lat: number; lng: number } // For map display in fullscreen mode
   vibeTags?: VibeTag[]
@@ -122,8 +122,8 @@ export interface Event {
 export interface Organizer {
   name: string
   image?: string
-  rating: number
-  reviewCount: number
+  rating?: number
+  reviewCount?: number
   verified?: boolean
   followers?: number
   eventsCount?: number
@@ -157,12 +157,12 @@ export interface TicketSelection {
  */
 export interface EventBooking {
   event: Event
-  tickets: { tierName: string; quantity: number; price: number }[]
-  total: number
-  fees: number
-  confirmationCode: string
+  tickets?: { tierName: string; quantity: number; price: number }[]
+  total?: number
+  fees?: number
+  confirmationCode?: string
   qrCode?: string
-  purchaseDate: string
+  purchaseDate?: string
 }
 
 /**
@@ -173,7 +173,7 @@ export interface EventBooking {
  */
 export interface EventDetails extends Omit<Event, 'dateTime'> {
   // Override dateTime with ISO format dates for dynamic formatting
-  startDateTime: string // ISO format: "2025-01-11T21:00:00Z"
+  startDateTime?: string // ISO format: "2025-01-11T21:00:00Z"
   endDateTime?: string // ISO format: "2025-01-12T03:00:00Z"
   locationType?: 'physical' | 'online' | 'hybrid' // Event location type
   images?: string[] // Multiple images for carousel

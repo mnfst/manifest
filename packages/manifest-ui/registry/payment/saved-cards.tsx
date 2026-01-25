@@ -25,9 +25,9 @@ import { CreditCard, Plus, Check } from "lucide-react"
 export interface SavedCard {
   id: string
   brand: "visa" | "mastercard" | "amex"
-  last4: string
-  expiryMonth: string
-  expiryYear: string
+  last4?: string
+  expiryMonth?: string
+  expiryYear?: string
   isDefault?: boolean
 }
 
@@ -75,24 +75,6 @@ export interface SavedCardsProps {
   }
 }
 
-const defaultCards: SavedCard[] = [
-  {
-    id: "1",
-    brand: "visa",
-    last4: "4242",
-    expiryMonth: "12",
-    expiryYear: "26",
-    isDefault: true,
-  },
-  {
-    id: "2",
-    brand: "mastercard",
-    last4: "8888",
-    expiryMonth: "03",
-    expiryYear: "25",
-  },
-]
-
 const brandLogos: Record<string, string> = {
   visa: "VISA",
   mastercard: "MC",
@@ -139,16 +121,16 @@ const brandColors: Record<string, string> = {
  * ```
  */
 export function SavedCards({ data, actions, appearance, control }: SavedCardsProps) {
-  const cards = data?.cards ?? defaultCards
-  const amount = data?.amount ?? 279.0
+  const cards = data?.cards
+  const amount = data?.amount
   const onSelectCard = actions?.onSelectCard
   const onAddNewCard = actions?.onAddNewCard
   const onPay = actions?.onPay
-  const currency = appearance?.currency ?? "EUR"
+  const currency = appearance?.currency
   const selectedCardId = control?.selectedCardId
   const isLoading = control?.isLoading ?? false
   const [selected, setSelected] = useState(
-    selectedCardId || cards.find((c) => c.isDefault)?.id || cards[0]?.id
+    selectedCardId || cards?.find((c) => c.isDefault)?.id || cards?.[0]?.id
   )
 
   const handleSelect = (cardId: string) => {
@@ -159,7 +141,7 @@ export function SavedCards({ data, actions, appearance, control }: SavedCardsPro
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency,
+      currency: currency || "USD",
     }).format(value)
   }
 
@@ -176,7 +158,7 @@ export function SavedCards({ data, actions, appearance, control }: SavedCardsPro
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {cards.map((card) => (
+        {cards && cards.map((card) => (
           <button
             key={card.id}
             onClick={() => handleSelect(card.id)}
@@ -192,11 +174,13 @@ export function SavedCards({ data, actions, appearance, control }: SavedCardsPro
               {brandLogos[card.brand]}
             </div>
             <div className="flex-1 text-left">
-              <p className="text-sm font-medium">
-                •••• •••• •••• {card.last4}
-              </p>
+              {card.last4 && (
+                <p className="text-sm font-medium">
+                  •••• •••• •••• {card.last4}
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
-                Expires {card.expiryMonth}/{card.expiryYear}
+                {card.expiryMonth && card.expiryYear && `Expires ${card.expiryMonth}/${card.expiryYear}`}
                 {card.isDefault && (
                   <span className="ml-2 text-primary">• Default</span>
                 )}
@@ -227,7 +211,7 @@ export function SavedCards({ data, actions, appearance, control }: SavedCardsPro
           onClick={() => selected && onPay?.(selected)}
           disabled={!selected || isLoading}
         >
-          {isLoading ? "Processing..." : `Pay ${formatCurrency(amount)}`}
+          {isLoading ? "Processing..." : (amount !== undefined ? `Pay ${formatCurrency(amount)}` : "Pay")}
         </Button>
       </CardFooter>
     </Card>

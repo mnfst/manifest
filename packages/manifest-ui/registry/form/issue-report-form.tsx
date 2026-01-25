@@ -153,23 +153,23 @@ export interface IssueReportFormProps {
  * @property {string} additionalComments - Any extra information
  */
 export interface IssueFormData {
-  declarantName: string
-  email: string
-  team: string
-  location: string
-  office: string
-  workstation: string
-  category: string
-  subcategory: string
-  issueTitle: string
-  description: string
-  impact: string
-  urgency: string
-  frequency: string
-  startDate: string
-  attemptedActions: string[]
-  attachments: File[]
-  additionalComments: string
+  declarantName?: string
+  email?: string
+  team?: string
+  location?: string
+  office?: string
+  workstation?: string
+  category?: string
+  subcategory?: string
+  issueTitle?: string
+  description?: string
+  impact?: string
+  urgency?: string
+  frequency?: string
+  startDate?: string
+  attemptedActions?: string[]
+  attachments?: File[]
+  additionalComments?: string
 }
 
 /**

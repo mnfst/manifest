@@ -1,30 +1,29 @@
 'use client'
 
 import { ImageMessageBubble, MessageBubble } from './message-bubble'
-import { demoMessages } from './demo/data'
 
 /**
  * Represents a chat message.
  * @interface ChatMessage
  * @property {"text" | "image"} [type] - Message type (defaults to "text")
- * @property {string} content - Message content or image caption
+ * @property {string} [content] - Message content or image caption
  * @property {string} [image] - Image URL for image messages
  * @property {string} [author] - Sender's name
  * @property {string} [avatarUrl] - Sender's avatar image URL
  * @property {string} [avatarFallback] - Fallback letter for avatar
  * @property {string} [time] - Message timestamp
- * @property {boolean} isOwn - Whether message is from current user
+ * @property {boolean} [isOwn] - Whether message is from current user (defaults to false)
  * @property {"sent" | "delivered" | "read"} [status] - Message delivery status
  */
 export interface ChatMessage {
   type?: 'text' | 'image'
-  content: string
+  content?: string
   image?: string
   author?: string
   avatarUrl?: string
   avatarFallback?: string
   time?: string
-  isOwn: boolean
+  isOwn?: boolean
   status?: 'sent' | 'delivered' | 'read'
 }
 
@@ -68,23 +67,29 @@ export interface ChatConversationProps {
  * ```
  */
 export function ChatConversation({ data }: ChatConversationProps) {
-  const messages = data?.messages ?? demoMessages
+  const messages = data?.messages
+
+  if (!messages || messages.length === 0) {
+    return <div className="rounded-xl bg-card p-4" />
+  }
+
   return (
     <div className="rounded-xl bg-card p-4 space-y-4">
       {messages.map((message, index) => {
         const messageType = message.type ?? 'text'
+        const isOwn = message.isOwn ?? false
         return messageType === 'image' ? (
           <ImageMessageBubble
             key={index}
             data={{
-              image: message.image!,
+              image: message.image,
               content: message.content,
               avatarFallback: message.avatarFallback,
               avatarUrl: message.avatarUrl,
               author: message.author,
               time: message.time
             }}
-            appearance={{ isOwn: message.isOwn }}
+            appearance={{ isOwn }}
             control={{ status: message.status }}
           />
         ) : (
@@ -97,7 +102,7 @@ export function ChatConversation({ data }: ChatConversationProps) {
               author: message.author,
               time: message.time
             }}
-            appearance={{ isOwn: message.isOwn }}
+            appearance={{ isOwn }}
             control={{ status: message.status }}
           />
         )

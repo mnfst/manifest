@@ -23,10 +23,10 @@ import { CreditCard, Lock } from 'lucide-react'
  * @property {string} cvv - Card verification value (3-4 digits)
  */
 export interface CardFormData {
-  cardNumber: string
-  cardHolder: string
-  expiryDate: string
-  cvv: string
+  cardNumber?: string
+  cardHolder?: string
+  expiryDate?: string
+  cvv?: string
 }
 
 /**

@@ -20,9 +20,9 @@ import { demoProducts } from './demo/data'
  * @property {boolean} [inStock] - Whether the product is in stock
  */
 export interface Product {
-  name: string
+  name?: string
   description?: string
-  price: number
+  price?: number
   originalPrice?: number
   image?: string
   rating?: number
@@ -125,16 +125,18 @@ function ProductHorizontalCard({
         )}
       </div>
       <div className="flex-1 min-w-0 space-y-0.5">
-        <p className="text-sm font-medium truncate">{product.name}</p>
+        {product.name && <p className="text-sm font-medium truncate">{product.name}</p>}
         {product.description && (
           <p className="text-xs truncate text-muted-foreground">
             {product.description}
           </p>
         )}
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">
-            {formatCurrency(product.price)}
-          </span>
+          {product.price !== undefined && (
+            <span className="text-sm font-semibold">
+              {formatCurrency(product.price)}
+            </span>
+          )}
           {product.originalPrice && (
             <span className="text-xs line-through text-muted-foreground">
               {formatCurrency(product.originalPrice)}
@@ -235,9 +237,11 @@ function GridVariant({
               )}
             </div>
             <div className="p-2 sm:p-3 space-y-0.5 sm:space-y-1">
-              <p className="text-xs sm:text-sm font-medium line-clamp-1">
-                {product.name}
-              </p>
+              {product.name && (
+                <p className="text-xs sm:text-sm font-medium line-clamp-1">
+                  {product.name}
+                </p>
+              )}
               {product.description && (
                 <p className="text-[10px] sm:text-xs line-clamp-1 text-muted-foreground">
                   {product.description}
@@ -245,9 +249,11 @@ function GridVariant({
               )}
               <div className="flex items-center justify-between">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xs sm:text-sm font-semibold">
-                    {formatCurrency(product.price)}
-                  </span>
+                  {product.price !== undefined && (
+                    <span className="text-xs sm:text-sm font-semibold">
+                      {formatCurrency(product.price)}
+                    </span>
+                  )}
                   {product.originalPrice && (
                     <span className="text-[10px] sm:text-xs line-through text-muted-foreground">
                       {formatCurrency(product.originalPrice)}
@@ -336,13 +342,13 @@ function CarouselVariant({
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{product.name}</p>
+        {product.name && <p className="text-sm font-medium truncate">{product.name}</p>}
         {product.description && (
           <p className="text-xs text-muted-foreground truncate">
             {product.description}
           </p>
         )}
-        <p className="text-sm font-semibold">{formatCurrency(product.price)}</p>
+        {product.price !== undefined && <p className="text-sm font-semibold">{formatCurrency(product.price)}</p>}
       </div>
     </button>
   )
@@ -493,17 +499,21 @@ function CarouselVariant({
                       )}
                     </div>
                     <div className="p-3 space-y-1">
-                      <p className="text-sm font-medium truncate">
-                        {product.name}
-                      </p>
+                      {product.name && (
+                        <p className="text-sm font-medium truncate">
+                          {product.name}
+                        </p>
+                      )}
                       {product.description && (
                         <p className="text-xs text-muted-foreground truncate">
                           {product.description}
                         </p>
                       )}
-                      <p className="text-sm font-semibold">
-                        {formatCurrency(product.price)}
-                      </p>
+                      {product.price !== undefined && (
+                        <p className="text-sm font-semibold">
+                          {formatCurrency(product.price)}
+                        </p>
+                      )}
                     </div>
                   </button>
                 ))}
@@ -571,7 +581,7 @@ function PickerVariant({
 
   const totalPrice = products
     .filter((_, i) => selectedIndexes.has(i))
-    .reduce((sum, p) => sum + p.price, 0)
+    .reduce((sum, p) => sum + (p.price ?? 0), 0)
 
   return (
     <div className="w-full space-y-3 rounded-md sm:rounded-lg p-4 sm:p-0">
@@ -616,7 +626,7 @@ function PickerVariant({
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{product.name}</p>
+              {product.name && <p className="text-sm font-medium truncate">{product.name}</p>}
               {product.description && (
                 <p className="text-xs text-muted-foreground truncate">
                   {product.description}
@@ -626,9 +636,11 @@ function PickerVariant({
 
             {/* Price */}
             <div className="text-right flex-shrink-0">
-              <p className="text-sm font-semibold">
-                {formatCurrency(product.price)}
-              </p>
+              {product.price !== undefined && (
+                <p className="text-sm font-semibold">
+                  {formatCurrency(product.price)}
+                </p>
+              )}
               {product.originalPrice && (
                 <p className="text-xs text-muted-foreground line-through">
                   {formatCurrency(product.originalPrice)}
@@ -705,7 +717,7 @@ function PickerVariant({
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium truncate">{product.name}</p>
+                      {product.name && <p className="font-medium truncate">{product.name}</p>}
                       {product.description && (
                         <p className="text-xs text-muted-foreground truncate">
                           {product.description}
@@ -718,9 +730,11 @@ function PickerVariant({
                   </div>
                 </td>
                 <td className="px-3 py-3 text-right">
-                  <p className="font-semibold">
-                    {formatCurrency(product.price)}
-                  </p>
+                  {product.price !== undefined && (
+                    <p className="font-semibold">
+                      {formatCurrency(product.price)}
+                    </p>
+                  )}
                   {product.originalPrice && (
                     <p className="text-xs text-muted-foreground line-through">
                       {formatCurrency(product.originalPrice)}

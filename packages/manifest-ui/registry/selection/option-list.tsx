@@ -14,7 +14,7 @@ import { demoOptions } from './demo/data'
  * @property {boolean} [disabled] - Whether option is disabled
  */
 export interface Option {
-  label: string
+  label?: string
   description?: string
   icon?: React.ReactNode
   disabled?: boolean
@@ -131,7 +131,7 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
             )}
           >
             {option.icon}
-            <span>{option.label}</span>
+            {option.label && <span>{option.label}</span>}
             {option.description && (
               <span
                 className={cn(

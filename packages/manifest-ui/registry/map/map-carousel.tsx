@@ -278,30 +278,36 @@ function HotelCard({
       )}
 
       {/* Image */}
-      <div className="relative shrink-0">
-        <img
-          src={location.image}
-          alt={location.name}
-          className="w-24 h-20 rounded-lg object-cover pointer-events-none"
-          draggable={false}
-        />
-      </div>
+      {location.image && (
+        <div className="relative shrink-0">
+          <img
+            src={location.image}
+            alt={location.name || 'Location image'}
+            className="w-24 h-20 rounded-lg object-cover pointer-events-none"
+            draggable={false}
+          />
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex flex-col justify-center min-w-0 flex-1 pointer-events-none">
-        <h3 className="font-medium text-sm leading-tight truncate pr-8">
-          {location.name}
-        </h3>
+        {location.name && (
+          <h3 className="font-medium text-sm leading-tight truncate pr-8">
+            {location.name}
+          </h3>
+        )}
         {location.subtitle && (
           <p className="text-xs text-muted-foreground truncate">
             {location.subtitle}
           </p>
         )}
         <div className="mt-1.5">
-          <p className="text-sm">
-            <span className="font-semibold">${location.price} total</span>
-            <span className="text-muted-foreground"> Jan 29 - Feb 1</span>
-          </p>
+          {location.price !== undefined && (
+            <p className="text-sm">
+              <span className="font-semibold">${location.price} total</span>
+              <span className="text-muted-foreground"> Jan 29 - Feb 1</span>
+            </p>
+          )}
           {location.priceSubtext && (
             <p className="text-[10px] text-muted-foreground">
               {location.priceSubtext}
@@ -384,7 +390,7 @@ function MapWithMarkers({
                 ? 'background-color: #18181b; color: white;'
                 : 'background-color: white; color: #18181b;'
             }
-          ">$${location.price}</div>`,
+          ">${location.price !== undefined ? `$${location.price}` : location.name}</div>`,
           iconSize: [60, 24],
           iconAnchor: [30, 12]
         })

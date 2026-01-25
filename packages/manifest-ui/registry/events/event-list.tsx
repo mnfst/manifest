@@ -565,11 +565,12 @@ export function EventList({ data, actions, appearance }: EventListProps) {
       // Price filter
       if (filtersToApply.prices.length > 0) {
         const priceMatch = filtersToApply.prices.some(priceRange => {
+          const eventPriceRange = event.priceRange ?? ''
           if (priceRange === 'Free') {
-            return event.priceRange.toLowerCase().includes('free')
+            return eventPriceRange.toLowerCase().includes('free')
           }
           // Extract numeric price from event
-          const priceNum = parseInt(event.priceRange.replace(/[^0-9]/g, '')) || 0
+          const priceNum = parseInt(eventPriceRange.replace(/[^0-9]/g, '')) || 0
           if (priceRange === 'Under $25') return priceNum < 25
           if (priceRange === '$25 - $50') return priceNum >= 25 && priceNum <= 50
           if (priceRange === '$50 - $100') return priceNum >= 50 && priceNum <= 100
@@ -782,21 +783,29 @@ export function EventList({ data, actions, appearance }: EventListProps) {
                       <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
                         <img
                           src={event.image}
-                          alt={event.title}
+                          alt={event.title || 'Event image'}
                           className="h-full w-full object-cover"
                         />
                       </div>
                     )}
                     {/* Event Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm">{event.priceRange}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                        {event.dateTime} · {event.category}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                        {event.venue}, {event.city}
-                      </p>
-                      <p className="text-sm font-medium mt-1 line-clamp-1">{event.title}</p>
+                      {event.priceRange && (
+                        <p className="font-semibold text-sm">{event.priceRange}</p>
+                      )}
+                      {(event.dateTime || event.category) && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          {[event.dateTime, event.category].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
+                      {(event.venue || event.city) && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          {[event.venue, event.city].filter(Boolean).join(', ')}
+                        </p>
+                      )}
+                      {event.title && (
+                        <p className="text-sm font-medium mt-1 line-clamp-1">{event.title}</p>
+                      )}
                     </div>
                   </div>
                 </div>
