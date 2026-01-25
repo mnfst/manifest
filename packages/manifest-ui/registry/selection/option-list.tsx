@@ -3,22 +3,13 @@
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import { useState } from 'react'
-import { demoOptions } from './demo/data'
 
-/**
- * Represents a selectable option.
- * @interface Option
- * @property {string} label - Display label
- * @property {string} [description] - Optional description text
- * @property {React.ReactNode} [icon] - Optional icon element
- * @property {boolean} [disabled] - Whether option is disabled
- */
-export interface Option {
-  label?: string
-  description?: string
-  icon?: React.ReactNode
-  disabled?: boolean
-}
+// Import types from shared types file to avoid circular dependencies
+import type { Option } from './types'
+// Re-export for backward compatibility
+export type { Option } from './types'
+
+import { demoOptions } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════

@@ -1,7 +1,7 @@
 // Demo data for Payment category components
 // This file contains sample data used for component previews and documentation
 
-import type { OrderItem } from '../order-summary'
+import type { OrderItem } from '../types'
 
 // Default order items for OrderSummary
 export const demoOrderItems: OrderItem[] = [

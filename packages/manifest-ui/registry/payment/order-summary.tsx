@@ -11,22 +11,10 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Package, Percent, Truck } from "lucide-react"
 
-/**
- * Represents an item in the order.
- * @interface OrderItem
- * @property {string} id - Unique item identifier
- * @property {string} name - Item name
- * @property {number} quantity - Quantity ordered
- * @property {number} price - Price per item
- * @property {string} [image] - Product image URL
- */
-export interface OrderItem {
-  id: string
-  name?: string
-  quantity?: number
-  price?: number
-  image?: string
-}
+// Import types from shared types file to avoid circular dependencies
+import type { OrderItem } from './types'
+// Re-export for backward compatibility
+export type { OrderItem } from './types'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════

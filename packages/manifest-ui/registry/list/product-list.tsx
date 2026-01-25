@@ -4,31 +4,13 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Check, ChevronLeft, ChevronRight, ShoppingCart, Star } from 'lucide-react'
 import { useCallback, useState } from 'react'
-import { demoProducts } from './demo/data'
 
-/**
- * Represents a single product in the product list.
- * @interface Product
- * @property {string} id - Unique identifier for the product
- * @property {string} name - Display name of the product
- * @property {string} [description] - Short product description or brand
- * @property {number} price - Current price of the product
- * @property {number} [originalPrice] - Original price before discount
- * @property {string} [image] - Product image URL
- * @property {number} [rating] - Product rating (0-5)
- * @property {string} [badge] - Badge text (e.g., "New", "-10%")
- * @property {boolean} [inStock] - Whether the product is in stock
- */
-export interface Product {
-  name?: string
-  description?: string
-  price?: number
-  originalPrice?: number
-  image?: string
-  rating?: number
-  badge?: string
-  inStock?: boolean
-}
+// Import types from shared types file to avoid circular dependencies
+import type { Product } from './types'
+// Re-export for backward compatibility
+export type { Product } from './types'
+
+import { demoProducts } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
