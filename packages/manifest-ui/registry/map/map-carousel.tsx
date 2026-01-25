@@ -66,8 +66,7 @@ function useReactLeaflet(): ReactLeafletComponents | null {
 /**
  * Represents a location/hotel to display on the map.
  * @interface Location
- * @property {string} id - Unique identifier
- * @property {string} name - Location name
+ * @property {string} [name] - Location name
  * @property {string} [subtitle] - Subtitle (e.g., neighborhood)
  * @property {string} [image] - Location image URL
  * @property {number} [price] - Price value
@@ -78,8 +77,7 @@ function useReactLeaflet(): ReactLeafletComponents | null {
  * @property {string} [link] - External link URL
  */
 export interface Location {
-  id: string
-  name: string
+  name?: string
   subtitle?: string
   image?: string
   price?: number
@@ -145,7 +143,6 @@ export interface MapCarouselProps {
 // Default San Francisco hotel data
 const defaultLocations: Location[] = [
   {
-    id: '1',
     name: 'FOUND Hotel Carlton, Nob Hill',
     subtitle: 'Downtown San Francisco',
     image:
@@ -158,7 +155,6 @@ const defaultLocations: Location[] = [
     link: ''
   },
   {
-    id: '2',
     name: 'Hotel Nikko San Francisco',
     subtitle: 'Union Square',
     image:
@@ -171,7 +167,6 @@ const defaultLocations: Location[] = [
     link: ''
   },
   {
-    id: '3',
     name: 'The Ritz-Carlton',
     subtitle: 'Nob Hill',
     image:
@@ -184,7 +179,6 @@ const defaultLocations: Location[] = [
     link: ''
   },
   {
-    id: '4',
     name: 'Fairmont San Francisco',
     subtitle: 'Nob Hill',
     image:
@@ -197,7 +191,6 @@ const defaultLocations: Location[] = [
     link: ''
   },
   {
-    id: '5',
     name: 'Hotel Vitale',
     subtitle: 'Embarcadero',
     image:
@@ -210,7 +203,6 @@ const defaultLocations: Location[] = [
     link: ''
   },
   {
-    id: '6',
     name: 'Palace Hotel',
     subtitle: 'SoMa',
     image:
@@ -223,7 +215,6 @@ const defaultLocations: Location[] = [
     link: ''
   },
   {
-    id: '7',
     name: 'Omni San Francisco',
     subtitle: 'Financial District',
     image:
@@ -236,7 +227,6 @@ const defaultLocations: Location[] = [
     link: ''
   },
   {
-    id: '8',
     name: 'The Marker San Francisco',
     subtitle: 'Union Square',
     image:
@@ -337,13 +327,13 @@ function MapPlaceholder({ height }: { height: string }) {
 // Inner map component that uses Leaflet hooks
 function MapWithMarkers({
   locations,
-  selectedId,
+  selectedIndex,
   onSelectLocation,
   MarkerComponent
 }: {
   locations: Location[]
-  selectedId: string | null
-  onSelectLocation: (location: Location) => void
+  selectedIndex: number | null
+  onSelectLocation: (location: Location, index: number) => void
   MarkerComponent: ComponentType<LeafletMarkerAttrs>
 }) {
   const [L, setL] = useState<typeof import('leaflet') | null>(null)
@@ -367,8 +357,8 @@ function MapWithMarkers({
 
   return (
     <>
-      {locations.map((location) => {
-        const isSelected = selectedId === location.id
+      {locations.map((location, index) => {
+        const isSelected = selectedIndex === index
         const icon = L.divIcon({
           className: '',
           html: `<div style="
@@ -390,19 +380,19 @@ function MapWithMarkers({
                 ? 'background-color: #18181b; color: white;'
                 : 'background-color: white; color: #18181b;'
             }
-          ">${location.price !== undefined ? `$${location.price}` : location.name}</div>`,
+          ">${location.price !== undefined ? `$${location.price}` : location.name ?? 'Location'}</div>`,
           iconSize: [60, 24],
           iconAnchor: [30, 12]
         })
 
         return (
           <MarkerComponent
-            key={location.id}
+            key={index}
             position={location.coordinates}
             icon={icon}
             zIndexOffset={isSelected ? 1000 : 0}
             eventHandlers={{
-              click: () => onSelectLocation(location)
+              click: () => onSelectLocation(location, index)
             }}
           />
         )
@@ -471,7 +461,6 @@ const getTileConfig = (style: MapStyle) => {
  *   data={{
  *     locations: [
  *       {
- *         id: "1",
  *         name: "Hotel Carlton",
  *         subtitle: "Downtown",
  *         image: "/hotel.jpg",
@@ -503,25 +492,25 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   const { onSelectLocation } = actions ?? {}
   const { mapHeight = '504px' } = appearance ?? {}
 
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [startX, setStartX] = useState(0)
   const [scrollLeft, setScrollLeft] = useState(0)
   const [hasDragged, setHasDragged] = useState(false)
   const carouselRef = useRef<HTMLDivElement>(null)
-  const cardRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const cardRefs = useRef<Map<number, HTMLButtonElement>>(new Map())
 
   // Lazy load react-leaflet components (React-only, no Next.js dependency)
   const leafletComponents = useReactLeaflet()
 
   // Handle location selection
   const handleSelectLocation = useCallback(
-    (location: Location) => {
-      setSelectedId(location.id)
+    (location: Location, index: number) => {
+      setSelectedIndex(index)
       onSelectLocation?.(location)
 
       // Scroll to the selected card
-      const cardElement = cardRefs.current.get(location.id)
+      const cardElement = cardRefs.current.get(index)
       if (cardElement && carouselRef.current) {
         const container = carouselRef.current
         const cardLeft = cardElement.offsetLeft
@@ -597,9 +586,9 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
 
   // Handle card click (only if not dragging)
   const handleCardClick = useCallback(
-    (location: Location) => {
+    (location: Location, index: number) => {
       if (hasDragged) return
-      handleSelectLocation(location)
+      handleSelectLocation(location, index)
       if (location.link) {
         window.open(location.link, '_blank', 'noopener,noreferrer')
       }
@@ -627,7 +616,7 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
           />
           <MapWithMarkers
             locations={locations}
-            selectedId={selectedId}
+            selectedIndex={selectedIndex}
             onSelectLocation={handleSelectLocation}
             MarkerComponent={leafletComponents.Marker}
           />
@@ -658,21 +647,21 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
             WebkitOverflowScrolling: 'touch'
           }}
         >
-          {locations.map((location) => (
+          {locations.map((location, index) => (
             <div
-              key={location.id}
+              key={index}
               ref={(el) => {
                 if (el)
                   cardRefs.current.set(
-                    location.id,
+                    index,
                     el as unknown as HTMLButtonElement
                   )
               }}
             >
               <HotelCard
                 location={location}
-                isSelected={selectedId === location.id}
-                onClick={() => handleCardClick(location)}
+                isSelected={selectedIndex === index}
+                onClick={() => handleCardClick(location, index)}
               />
             </div>
           ))}
