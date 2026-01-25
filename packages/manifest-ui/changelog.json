@@ -298,7 +298,8 @@
       "2.0.0": "BREAKING: Refactored to use nested event object (event.title, event.date, event.image, event.currency) instead of flat props",
       "2.0.2": "Added comprehensive JSDoc documentation",
       "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "3.0.0": "BREAKING: Removed id from TicketTier interface, made name and price optional. Use array index for tier tracking."
+      "3.0.0": "BREAKING: Removed id from TicketTier interface, made name and price optional.",
+      "3.0.1": "Simplified TicketSelection interface by removing tierIndex"
     },
     "event-confirmation": {
       "1.0.0": "Initial release with success message, event details, organizer follow, and social sharing",

@@ -43,14 +43,12 @@ export interface TicketTier {
 /**
  * Represents a selected ticket with quantity.
  * @interface TicketSelection
- * @property {number} tierIndex - Selected tier index
  * @property {string} tierName - Tier name for display
  * @property {number} quantity - Number of tickets
  * @property {number} price - Base price per ticket
  * @property {number} fee - Fee per ticket
  */
 export interface TicketSelection {
-  tierIndex: number
   tierName?: string
   quantity: number
   price?: number
@@ -197,7 +195,6 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
         const tierIndex = parseInt(indexStr, 10)
         const tier = tiers[tierIndex]
         return {
-          tierIndex,
           tierName: tier?.name,
           quantity: qty,
           price: tier?.price,
@@ -333,8 +330,8 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
                 <>
                   {/* Line items */}
                   <div className="space-y-2">
-                    {selectionsList.map((selection) => (
-                      <div key={selection.tierIndex} className="flex justify-between text-sm">
+                    {selectionsList.map((selection, index) => (
+                      <div key={index} className="flex justify-between text-sm">
                         <span>{selection.quantity} x {selection.tierName ?? 'Ticket'}</span>
                         <span>{formatCurrency((selection.price ?? 0) * selection.quantity, currency)}</span>
                       </div>
