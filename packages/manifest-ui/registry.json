@@ -89,61 +89,6 @@
       ]
     },
     {
-      "name": "card-form",
-      "type": "registry:block",
-      "title": "Card Form",
-      "description": "A credit card payment form with card number, expiry date, CVV, and cardholder name fields.",
-      "author": "MNFST, Inc",
-      "categories": ["payment"],
-      "meta": {
-        "preview": "https://ui.manifest.build/previews/card-form.png",
-        "version": "1.0.4",
-        "changelog": {
-          "1.0.0": "Initial release with card number, expiry, CVV and name fields",
-          "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.4": "Fixed defensive property access to handle empty objects and null values"
-        }
-      },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["card", "input", "label", "button"],
-      "files": [
-        {
-          "path": "registry/payment/card-form.tsx",
-          "type": "registry:block",
-          "target": "components/ui/card-form.tsx"
-        }
-      ]
-    },
-    {
-      "name": "saved-cards",
-      "type": "registry:block",
-      "title": "Saved Cards",
-      "description": "A card selector for choosing a saved payment method with support for multiple card brands.",
-      "author": "MNFST, Inc",
-      "categories": ["payment"],
-      "meta": {
-        "preview": "https://ui.manifest.build/previews/saved-cards.png",
-        "version": "1.0.5",
-        "changelog": {
-          "1.0.0": "Initial release with support for multiple card brands",
-          "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.4": "Fixed defensive property access to handle empty objects and null values",
-          "1.0.5": "Additional defensive property access improvements"
-        }
-      },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["card", "button"],
-      "files": [
-        {
-          "path": "registry/payment/saved-cards.tsx",
-          "type": "registry:block",
-          "target": "components/ui/saved-cards.tsx"
-        }
-      ]
-    },
-    {
       "name": "payment-success",
       "type": "registry:block",
       "title": "Payment Success",
