@@ -25,6 +25,9 @@ pnpm-debug.log*
 *.swp
 *.swo
 
+# Claude Code local settings
+settings.local.json
+
 
 # OS
 .DS_Store

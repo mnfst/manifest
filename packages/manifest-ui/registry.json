@@ -975,6 +975,34 @@
           "target": "components/ui/event-confirmation.tsx"
         }
       ]
+    },
+    {
+      "name": "hero",
+      "type": "registry:block",
+      "title": "Hero",
+      "description": "Landing hero section with optional logos, title, subtitle, CTA buttons, and tech logos footer. Supports image or text logos with separator.",
+      "author": "MNFST, Inc",
+      "categories": ["miscellaneous"],
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/hero.png",
+        "version": "2.1.0",
+        "changelog": {
+          "1.0.0": "Initial release with logos, title, subtitle, CTA buttons, and tech logos footer",
+          "1.1.0": "Added card wrapper, text logo support, improved light/dark mode compatibility",
+          "2.0.0": "BREAKING: Changed button props from string labels to HeroButton objects with optional label and icon",
+          "2.0.1": "Image logos now display without bordered container, text logos remain in bordered square",
+          "2.1.0": "Added urlLight prop for dark mode logo variant support"
+        }
+      },
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/miscellaneous/hero.tsx",
+          "type": "registry:block",
+          "target": "components/ui/hero.tsx"
+        }
+      ]
     }
   ]
 }

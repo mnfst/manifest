@@ -1,104 +1,102 @@
-'use client'
+'use client';
 
-import { cn } from '@/lib/utils'
-import { blockCategories } from '@/lib/blocks-categories'
-import { ChevronRight, Zap } from 'lucide-react'
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { blockCategories } from '@/lib/blocks-categories';
+import { cn } from '@/lib/utils';
+import { ChevronRight, Github, Zap } from 'lucide-react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 // Form components
-import { ContactForm } from '@/registry/form/contact-form'
-import { DateTimePicker } from '@/registry/form/date-time-picker'
-import { IssueReportForm } from '@/registry/form/issue-report-form'
+import { ContactForm } from '@/registry/form/contact-form';
+import { DateTimePicker } from '@/registry/form/date-time-picker';
+import { IssueReportForm } from '@/registry/form/issue-report-form';
 
 // Blogging components
-import { PostCardDemo } from '@/components/blocks/post-card-demo'
-import { PostListDemo } from '@/components/blocks/post-list-demo'
-import { PostDetail } from '@/registry/blogging/post-detail'
-import { PostList } from '@/registry/blogging/post-list'
+import { PostCardDemo } from '@/components/blocks/post-card-demo';
+import { PostListDemo } from '@/components/blocks/post-list-demo';
+import { PostDetail } from '@/registry/blogging/post-detail';
+import { PostList } from '@/registry/blogging/post-list';
 
 // Events components
-import { EventCard } from '@/registry/events/event-card'
-import { EventConfirmation } from '@/registry/events/event-confirmation'
-import { EventDetail } from '@/registry/events/event-detail'
-import { EventList } from '@/registry/events/event-list'
-import { TicketTierSelect } from '@/registry/events/ticket-tier-select'
+import { EventCard } from '@/registry/events/event-card';
+import { EventConfirmation } from '@/registry/events/event-confirmation';
+import { EventDetail } from '@/registry/events/event-detail';
+import { EventList } from '@/registry/events/event-list';
+import { TicketTierSelect } from '@/registry/events/ticket-tier-select';
 
 // List components
-import { TableDemo } from '@/components/blocks/table-demo'
-import { ProductList } from '@/registry/list/product-list'
-import { Table } from '@/registry/list/table'
+import { TableDemo } from '@/components/blocks/table-demo';
+import { ProductList } from '@/registry/list/product-list';
+import { Table } from '@/registry/list/table';
 
 // Payment components
-import { AmountInput } from '@/registry/payment/amount-input'
-import { OrderConfirm } from '@/registry/payment/order-confirm'
-import { PaymentConfirmed } from '@/registry/payment/payment-confirmed'
+import { AmountInput } from '@/registry/payment/amount-input';
+import { OrderConfirm } from '@/registry/payment/order-confirm';
+import { PaymentConfirmed } from '@/registry/payment/payment-confirmed';
 
 // Messaging components
-import { ChatConversation } from '@/registry/messaging/chat-conversation'
+import { ChatConversation } from '@/registry/messaging/chat-conversation';
 import {
   ImageMessageBubble,
   MessageBubble,
   MessageWithReactions,
-  VoiceMessageBubble
-} from '@/registry/messaging/message-bubble'
+  VoiceMessageBubble,
+} from '@/registry/messaging/message-bubble';
 
 // Selection components
-import { OptionList } from '@/registry/selection/option-list'
-import { QuickReply } from '@/registry/selection/quick-reply'
-import { TagSelect } from '@/registry/selection/tag-select'
+import { OptionList } from '@/registry/selection/option-list';
+import { QuickReply } from '@/registry/selection/quick-reply';
+import { TagSelect } from '@/registry/selection/tag-select';
 
 // Social components
-import { InstagramPost } from '@/registry/social/instagram-post'
-import { LinkedInPost } from '@/registry/social/linkedin-post'
-import { XPost } from '@/registry/social/x-post'
-import { YouTubePost } from '@/registry/social/youtube-post'
+import { InstagramPost } from '@/registry/social/instagram-post';
+import { LinkedInPost } from '@/registry/social/linkedin-post';
+import { XPost } from '@/registry/social/x-post';
+import { YouTubePost } from '@/registry/social/youtube-post';
 
 // Map components
-import { MapCarousel } from '@/registry/map/map-carousel'
+import { MapCarousel } from '@/registry/map/map-carousel';
 
 // Status components
-import { ProgressSteps } from '@/registry/status/progress-steps'
-import { StatusBadge } from '@/registry/status/status-badge'
+import { ProgressSteps } from '@/registry/status/progress-steps';
+import { StatusBadge } from '@/registry/status/status-badge';
 
 // Miscellaneous components
-import { Stats } from '@/registry/miscellaneous/stat-card'
+import { Hero } from '@/registry/miscellaneous/hero';
+import { Stats } from '@/registry/miscellaneous/stat-card';
 
 // UI components
-import {
-  VariantSection,
-  VariantSectionHandle
-} from '@/components/blocks/variant-section'
+import { VariantSection, VariantSectionHandle } from '@/components/blocks/variant-section';
 
 // SEO components
-import { Breadcrumb } from '@/components/seo/breadcrumb'
+import { Breadcrumb } from '@/components/seo/breadcrumb';
 
 // Types for the new structure
 interface BlockVariant {
-  id: string
-  name: string
-  component: React.ReactNode
-  fullscreenComponent?: React.ReactNode
-  usageCode?: string
+  id: string;
+  name: string;
+  component: React.ReactNode;
+  fullscreenComponent?: React.ReactNode;
+  usageCode?: string;
 }
 
-type LayoutMode = 'inline' | 'fullscreen' | 'pip'
+type LayoutMode = 'inline' | 'fullscreen' | 'pip';
 
 interface BlockGroup {
-  id: string
-  name: string
-  description: string
-  registryName: string
-  layouts: LayoutMode[]
-  actionCount: number
-  variants: BlockVariant[]
+  id: string;
+  name: string;
+  description: string;
+  registryName: string;
+  layouts: LayoutMode[];
+  actionCount: number;
+  variants: BlockVariant[];
 }
 
 interface Category {
-  id: string
-  name: string
-  blocks: BlockGroup[]
+  id: string;
+  name: string;
+  blocks: BlockGroup[];
 }
 
 // Import categories data - this is the same data structure from the main page
@@ -121,9 +119,7 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <PostCardDemo />,
-            fullscreenComponent: (
-              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
-            ),
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard
   data={{
     post: {
@@ -165,15 +161,13 @@ const categories: Category[] = [
   actions={{
     onReadMore: (post) => console.log("Read more:", post.title)
   }}
-/>`
+/>`,
           },
           {
             id: 'no-image',
             name: 'Without Image',
             component: <PostCardDemo appearance={{ showImage: false }} />,
-            fullscreenComponent: (
-              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
-            ),
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard
   data={{
     post: {
@@ -208,15 +202,13 @@ const categories: Category[] = [
   actions={{
     onReadMore: (post) => console.log("Read more:", post.title)
   }}
-/>`
+/>`,
           },
           {
             id: 'compact',
             name: 'Compact',
             component: <PostCardDemo appearance={{ variant: 'compact' }} />,
-            fullscreenComponent: (
-              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
-            ),
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard
   data={{
     post: {
@@ -254,15 +246,13 @@ const categories: Category[] = [
   actions={{
     onReadMore: (post) => console.log("Read more:", post.title)
   }}
-/>`
+/>`,
           },
           {
             id: 'horizontal',
             name: 'Horizontal',
             component: <PostCardDemo appearance={{ variant: 'horizontal' }} />,
-            fullscreenComponent: (
-              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
-            ),
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard
   data={{
     post: {
@@ -302,15 +292,13 @@ const categories: Category[] = [
   actions={{
     onReadMore: (post) => console.log("Read more:", post.title)
   }}
-/>`
+/>`,
           },
           {
             id: 'covered',
             name: 'Covered',
             component: <PostCardDemo appearance={{ variant: 'covered' }} />,
-            fullscreenComponent: (
-              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
-            ),
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard
   data={{
     post: {
@@ -349,9 +337,9 @@ const categories: Category[] = [
   actions={{
     onReadMore: (post) => console.log("Read more:", post.title)
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'post-list',
@@ -370,7 +358,7 @@ const categories: Category[] = [
                 appearance={{
                   variant: 'fullwidth',
                   columns: 3,
-                  postsPerPage: 10
+                  postsPerPage: 10,
                 }}
               />
             ),
@@ -552,7 +540,7 @@ const categories: Category[] = [
   actions={{
     onReadMore: (post) => console.log("Read more:", post.title)
   }}
-/>`
+/>`,
           },
           {
             id: 'grid',
@@ -563,7 +551,7 @@ const categories: Category[] = [
                 appearance={{
                   variant: 'fullwidth',
                   columns: 3,
-                  postsPerPage: 10
+                  postsPerPage: 10,
                 }}
               />
             ),
@@ -746,7 +734,7 @@ const categories: Category[] = [
   actions={{
     onReadMore: (post) => console.log("Read more:", post.title)
   }}
-/>`
+/>`,
           },
           {
             id: 'carousel',
@@ -757,7 +745,7 @@ const categories: Category[] = [
                 appearance={{
                   variant: 'fullwidth',
                   columns: 3,
-                  postsPerPage: 10
+                  postsPerPage: 10,
                 }}
               />
             ),
@@ -939,9 +927,9 @@ const categories: Category[] = [
   actions={{
     onReadMore: (post) => console.log("Read more:", post.title)
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'post-detail',
@@ -955,9 +943,7 @@ const categories: Category[] = [
           {
             id: 'fullscreen',
             name: 'Fullscreen',
-            component: (
-              <PostDetail appearance={{ displayMode: 'fullscreen' }} />
-            ),
+            component: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostDetail
   data={{
     post: {
@@ -1017,7 +1003,7 @@ const categories: Category[] = [
     onBack: () => console.log("Back clicked"),
     onReadRelated: (post) => console.log("Read related:", post.title)
   }}
-/>`
+/>`,
           },
           {
             id: 'inline',
@@ -1047,11 +1033,11 @@ const categories: Category[] = [
   actions={{
     onReadMore: () => console.log("Read more clicked")
   }}
-/>`
-          }
-        ]
-      }
-    ]
+/>`,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'events',
@@ -1060,8 +1046,7 @@ const categories: Category[] = [
       {
         id: 'event-card',
         name: 'Event Card',
-        description:
-          'Display event information with various layouts.',
+        description: 'Display event information with various layouts.',
         registryName: 'event-card',
         layouts: ['inline'],
         actionCount: 1,
@@ -1099,7 +1084,7 @@ const categories: Category[] = [
   actions={{
     onClick: (event) => console.log("Event clicked:", event.title)
   }}
-/>`
+/>`,
           },
           {
             id: 'compact',
@@ -1131,7 +1116,7 @@ const categories: Category[] = [
   actions={{
     onClick: (event) => console.log("Event clicked:", event.title)
   }}
-/>`
+/>`,
           },
           {
             id: 'horizontal',
@@ -1163,7 +1148,7 @@ const categories: Category[] = [
   actions={{
     onClick: (event) => console.log("Event clicked:", event.title)
   }}
-/>`
+/>`,
           },
           {
             id: 'covered',
@@ -1196,9 +1181,9 @@ const categories: Category[] = [
   actions={{
     onClick: (event) => console.log("Event clicked:", event.title)
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'event-detail',
@@ -1292,9 +1277,9 @@ const categories: Category[] = [
     onFollow: (organizer) => console.log("Follow organizer:", organizer?.name),
     onContact: (organizer) => console.log("Contact organizer:", organizer?.name)
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'event-list',
@@ -1308,8 +1293,18 @@ const categories: Category[] = [
           {
             id: 'grid',
             name: 'Grid',
-            component: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'grid' }} />,
-            fullscreenComponent: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'fullwidth' }} />,
+            component: (
+              <EventList
+                data={{ title: 'Recommendations for you' }}
+                appearance={{ variant: 'grid' }}
+              />
+            ),
+            fullscreenComponent: (
+              <EventList
+                data={{ title: 'Recommendations for you' }}
+                appearance={{ variant: 'fullwidth' }}
+              />
+            ),
             usageCode: `<EventList
   data={{
     title: "Recommendations for you",
@@ -1336,13 +1331,23 @@ const categories: Category[] = [
     onEventSelect: (event) => console.log("Event selected:", event.title),
     onViewMore: () => console.log("View more events")
   }}
-/>`
+/>`,
           },
           {
             id: 'list',
             name: 'List',
-            component: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'list' }} />,
-            fullscreenComponent: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'fullwidth' }} />,
+            component: (
+              <EventList
+                data={{ title: 'Recommendations for you' }}
+                appearance={{ variant: 'list' }}
+              />
+            ),
+            fullscreenComponent: (
+              <EventList
+                data={{ title: 'Recommendations for you' }}
+                appearance={{ variant: 'fullwidth' }}
+              />
+            ),
             usageCode: `<EventList
   data={{
     title: "Recommendations for you",
@@ -1368,13 +1373,23 @@ const categories: Category[] = [
   actions={{
     onEventSelect: (event) => console.log("Event selected:", event.title)
   }}
-/>`
+/>`,
           },
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'carousel' }} />,
-            fullscreenComponent: <EventList data={{ title: 'Recommendations for you' }} appearance={{ variant: 'fullwidth' }} />,
+            component: (
+              <EventList
+                data={{ title: 'Recommendations for you' }}
+                appearance={{ variant: 'carousel' }}
+              />
+            ),
+            fullscreenComponent: (
+              <EventList
+                data={{ title: 'Recommendations for you' }}
+                appearance={{ variant: 'fullwidth' }}
+              />
+            ),
             usageCode: `<EventList
   data={{
     title: "Recommendations for you",
@@ -1400,15 +1415,14 @@ const categories: Category[] = [
   actions={{
     onEventSelect: (event) => console.log("Event selected:", event.title)
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'ticket-tier-select',
         name: 'Ticket Tier Select',
-        description:
-          'Select ticket tiers with quantity controls and order summary.',
+        description: 'Select ticket tiers with quantity controls and order summary.',
         registryName: 'ticket-tier-select',
         layouts: ['inline'],
         actionCount: 2,
@@ -1416,7 +1430,18 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <TicketTierSelect data={{ event: { title: "Player Play Date", date: "Fri, Feb 06 · 2:00 pm", image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800", currency: "USD" } }} />,
+            component: (
+              <TicketTierSelect
+                data={{
+                  event: {
+                    title: 'Player Play Date',
+                    date: 'Fri, Feb 06 · 2:00 pm',
+                    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
+                    currency: 'USD',
+                  },
+                }}
+              />
+            ),
             usageCode: `<TicketTierSelect
   data={{
     event: {
@@ -1462,15 +1487,14 @@ const categories: Category[] = [
   appearance={{
     showOrderSummary: true
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'event-confirmation',
         name: 'Event Confirmation',
-        description:
-          'Order confirmation with event details, organizer follow, and social sharing.',
+        description: 'Order confirmation with event details, organizer follow, and social sharing.',
         registryName: 'event-confirmation',
         layouts: ['inline', 'fullscreen'],
         actionCount: 4,
@@ -1498,11 +1522,11 @@ const categories: Category[] = [
     onFollowOrganizer: () => console.log("Follow organizer"),
     onShare: (platform) => console.log("Share on:", platform)
   }}
-/>`
-          }
-        ]
-      }
-    ]
+/>`,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'form',
@@ -1521,7 +1545,11 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <ContactForm />,
-            fullscreenComponent: <div className="max-w-[680px] mx-auto"><ContactForm /></div>,
+            fullscreenComponent: (
+              <div className="max-w-[680px] mx-auto">
+                <ContactForm />
+              </div>
+            ),
             usageCode: `<ContactForm
   data={{
     title: "Contact us",
@@ -1543,9 +1571,9 @@ const categories: Category[] = [
   actions={{
     onSubmit: (formData) => console.log(formData)
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'date-time-picker',
@@ -1560,7 +1588,11 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <DateTimePicker />,
-            fullscreenComponent: <div className="max-w-[680px] mx-auto"><DateTimePicker /></div>,
+            fullscreenComponent: (
+              <div className="max-w-[680px] mx-auto">
+                <DateTimePicker />
+              </div>
+            ),
             usageCode: `<DateTimePicker
   data={{
     title: "Select a Date & Time",
@@ -1579,9 +1611,9 @@ const categories: Category[] = [
     onSelect: (date, time) => console.log("Selected:", { date, time }),
     onNext: (date, time) => console.log("Confirmed:", { date, time })
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'issue-report-form',
@@ -1596,7 +1628,11 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <IssueReportForm />,
-            fullscreenComponent: <div className="max-w-[680px] mx-auto"><IssueReportForm /></div>,
+            fullscreenComponent: (
+              <div className="max-w-[680px] mx-auto">
+                <IssueReportForm />
+              </div>
+            ),
             usageCode: `<IssueReportForm
   data={{
     title: "Report an Issue",
@@ -1614,11 +1650,11 @@ const categories: Category[] = [
   actions={{
     onSubmit: (formData) => console.log("Issue reported:", formData)
   }}
-/>`
-          }
-        ]
-      }
-    ]
+/>`,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'list',
@@ -1651,7 +1687,7 @@ const categories: Category[] = [
   }}
   appearance={{ variant: "list", currency: "EUR" }}
   actions={{ onSelectProduct: (product) => console.log(product) }}
-/>`
+/>`,
           },
           {
             id: 'grid',
@@ -1661,7 +1697,7 @@ const categories: Category[] = [
   data={{ products: [...] }}
   appearance={{ variant: "grid", columns: 4, currency: "USD" }}
   actions={{ onSelectProduct: (product) => console.log(product) }}
-/>`
+/>`,
           },
           {
             id: 'carousel',
@@ -1671,7 +1707,7 @@ const categories: Category[] = [
   data={{ products: [...] }}
   appearance={{ variant: "carousel" }}
   actions={{ onSelectProduct: (product) => console.log(product) }}
-/>`
+/>`,
           },
           {
             id: 'picker',
@@ -1681,15 +1717,14 @@ const categories: Category[] = [
   data={{ products: [...] }}
   appearance={{ variant: "picker", buttonLabel: "Add to cart" }}
   actions={{ onAddToCart: (products) => console.log("Cart:", products) }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'table',
         name: 'Table',
-        description:
-          'Data table with header, footer, expand to fullscreen, and optional selection',
+        description: 'Data table with header, footer, expand to fullscreen, and optional selection',
         registryName: 'table',
         layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 6,
@@ -1699,10 +1734,7 @@ const categories: Category[] = [
             name: 'Default',
             component: <TableDemo data={{ title: 'API Usage' }} />,
             fullscreenComponent: (
-              <Table
-                data={{ title: 'API Usage' }}
-                appearance={{ displayMode: 'fullscreen' }}
-              />
+              <Table data={{ title: 'API Usage' }} appearance={{ displayMode: 'fullscreen' }} />
             ),
             usageCode: `<Table
   data={{
@@ -1725,16 +1757,13 @@ const categories: Category[] = [
     onRefresh: () => console.log("Refreshing..."),
     onExpand: () => console.log("Expanding...")
   }}
-/>`
+/>`,
           },
           {
             id: 'single-select',
             name: 'Single Select',
             component: (
-              <TableDemo
-                data={{ title: 'Models' }}
-                appearance={{ selectable: 'single' }}
-              />
+              <TableDemo data={{ title: 'Models' }} appearance={{ selectable: 'single' }} />
             ),
             fullscreenComponent: (
               <Table
@@ -1748,16 +1777,13 @@ const categories: Category[] = [
   actions={{
     onSelectionChange: (selectedRows) => console.log("Selected:", selectedRows)
   }}
-/>`
+/>`,
           },
           {
             id: 'multi-select',
             name: 'Multi Select',
             component: (
-              <TableDemo
-                data={{ title: 'Export Data' }}
-                appearance={{ selectable: 'multi' }}
-              />
+              <TableDemo data={{ title: 'Export Data' }} appearance={{ selectable: 'multi' }} />
             ),
             fullscreenComponent: (
               <Table
@@ -1773,11 +1799,11 @@ const categories: Category[] = [
     onDownload: (rows) => console.log("Downloading..."),
     onShare: (rows) => console.log("Sharing...")
   }}
-/>`
-          }
-        ]
-      }
-    ]
+/>`,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'map',
@@ -1786,8 +1812,7 @@ const categories: Category[] = [
       {
         id: 'map-carousel',
         name: 'Map Carousel',
-        description:
-          'Interactive map with location markers and a draggable carousel of cards',
+        description: 'Interactive map with location markers and a draggable carousel of cards',
         registryName: 'map-carousel',
         layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
@@ -1814,11 +1839,11 @@ const categories: Category[] = [
   actions={{
     onSelectLocation: (location) => console.log("Selected:", location.name)
   }}
-/>`
-          }
-        ]
-      }
-    ]
+/>`,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'messaging',
@@ -1842,14 +1867,14 @@ const categories: Category[] = [
                     content: 'Hey! How are you doing today?',
                     avatarUrl: 'https://i.pravatar.cc/150?u=sarah',
                     avatarFallback: 'S',
-                    time: 'Dec 8, 10:30 AM'
+                    time: 'Dec 8, 10:30 AM',
                   }}
                 />
                 <MessageBubble
                   data={{
                     content: "I'm doing great, thanks for asking!",
                     avatarFallback: 'Y',
-                    time: 'Dec 8, 10:31 AM'
+                    time: 'Dec 8, 10:31 AM',
                   }}
                   appearance={{ isOwn: true }}
                   control={{ status: 'read' }}
@@ -1871,7 +1896,7 @@ const categories: Category[] = [
   data={{ content: "I'm doing great!", avatarFallback: "Y", time: "10:31 AM" }}
   appearance={{ isOwn: true }}
   control={{ status: "read" }}
-/>`
+/>`,
           },
           {
             id: 'image',
@@ -1885,14 +1910,14 @@ const categories: Category[] = [
                     content: 'Check out this view!',
                     avatarUrl: 'https://i.pravatar.cc/150?u=alex',
                     avatarFallback: 'A',
-                    time: 'Dec 8, 2:45 PM'
+                    time: 'Dec 8, 2:45 PM',
                   }}
                 />
                 <ImageMessageBubble
                   data={{
                     image:
                       'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400&h=300&fit=crop',
-                    time: 'Dec 8, 2:46 PM'
+                    time: 'Dec 8, 2:46 PM',
                   }}
                   appearance={{ isOwn: true }}
                   control={{ status: 'delivered' }}
@@ -1908,7 +1933,7 @@ const categories: Category[] = [
     author: "Alex",
     time: "2:45 PM"
   }}
-/>`
+/>`,
           },
           {
             id: 'reactions',
@@ -1922,8 +1947,8 @@ const categories: Category[] = [
                   reactions: [
                     { emoji: '🎉', count: 5 },
                     { emoji: '❤️', count: 3 },
-                    { emoji: '👏', count: 2 }
-                  ]
+                    { emoji: '👏', count: 2 },
+                  ],
                 }}
               />
             ),
@@ -1939,7 +1964,7 @@ const categories: Category[] = [
       { emoji: "❤️", count: 3 }
     ]
   }}
-/>`
+/>`,
           },
           {
             id: 'voice',
@@ -1951,14 +1976,14 @@ const categories: Category[] = [
                     duration: '0:42',
                     avatarUrl: 'https://i.pravatar.cc/150?u=mickael',
                     avatarFallback: 'M',
-                    time: 'Dec 8, 3:15 PM'
+                    time: 'Dec 8, 3:15 PM',
                   }}
                 />
                 <VoiceMessageBubble
                   data={{
                     duration: '1:23',
                     avatarFallback: 'Y',
-                    time: 'Dec 8, 3:17 PM'
+                    time: 'Dec 8, 3:17 PM',
                   }}
                   appearance={{ isOwn: true }}
                   control={{ status: 'read' }}
@@ -1986,9 +2011,9 @@ const categories: Category[] = [
   }}
   appearance={{ isOwn: true }}
   control={{ status: "read" }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'chat-conversation',
@@ -2048,11 +2073,11 @@ const categories: Category[] = [
       }
     ]
   }}
-/>`
-          }
-        ]
-      }
-    ]
+/>`,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'miscellaneous',
@@ -2077,11 +2102,162 @@ const categories: Category[] = [
       { label: "Orders", value: "342", change: -3.2, trend: "down" }
     ]
   }}
-/>`
-          }
-        ]
-      }
+/>`,
+          },
+        ],
+      },
+      {
+        id: 'hero',
+        name: 'Hero',
+        description: 'Landing hero section with logos, title, and CTA buttons',
+        registryName: 'hero',
+        layouts: ['inline', 'fullscreen'],
+        actionCount: 2,
+        variants: [
+          {
+            id: 'default',
+            name: 'Default',
+            component: <Hero />,
+            usageCode: `<Hero
+  data={{
+    logo1: { text: "Acme", alt: "Acme" },
+    title: "Build beautiful chat experience with Manifest UI",
+    subtitle: "Create beautiful chat experiences with our comprehensive component library designed for agentic applications.",
+    primaryButton: { label: "Get Started" },
+    secondaryButton: { label: "GitHub", icon: <Github className="h-5 w-5" /> }
+  }}
+  actions={{
+    onPrimaryClick: () => console.log("Primary clicked"),
+    onSecondaryClick: () => console.log("Secondary clicked")
+  }}
+/>`,
+          },
+          {
+            id: 'two-logos',
+            name: 'Two Logos',
+            component: (
+              <Hero
+                data={{
+                  logo1: { text: 'Acme' },
+                  logo2: {
+                    url: '/logo-manifest-ui.svg',
+                    urlLight: '/logo-manifest-ui-light.svg',
+                    alt: 'Manifest',
+                  },
+                  logoSeparator: 'x',
+                  title: 'Acme x Manifest UI',
+                  subtitle:
+                    'Combining the best of both worlds to deliver exceptional user experiences.',
+                  primaryButton: { label: 'Get Started' },
+                  secondaryButton: { label: 'GitHub', icon: <Github className="h-5 w-5" /> },
+                }}
+              />
+            ),
+            usageCode: `<Hero
+  data={{
+    logo1: { text: "Acme" },
+    logo2: { url: "/logo-manifest-ui.svg", urlLight: "/logo-manifest-ui-light.svg", alt: "Manifest" },
+    logoSeparator: "x",
+    title: "Acme x Manifest UI",
+    subtitle: "Combining the best of both worlds to deliver exceptional user experiences.",
+    primaryButton: { label: "Get Started" },
+    secondaryButton: { label: "GitHub", icon: <Github className="h-5 w-5" /> }
+  }}
+  actions={{
+    onPrimaryClick: () => console.log("Primary clicked"),
+    onSecondaryClick: () => console.log("Secondary clicked")
+  }}
+/>`,
+          },
+          {
+            id: 'with-tech-logos',
+            name: 'With Tech Logos',
+            component: (
+              <Hero
+                data={{
+                  logo1: { text: 'Acme' },
+                  title: 'Build your next project with Acme',
+                  subtitle:
+                    'Create beautiful experiences with our comprehensive platform designed for modern applications.',
+                  primaryButton: { label: 'Get Started' },
+                  secondaryButton: { label: 'GitHub', icon: <Github className="h-5 w-5" /> },
+                  techLogosLabel: 'Built with open-source technologies',
+                  techLogos: [
+                    {
+                      url: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg',
+                      alt: 'Next.js',
+                      name: 'Next.js',
+                    },
+                    {
+                      url: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
+                      alt: 'TypeScript',
+                      name: 'TypeScript',
+                    },
+                    {
+                      url: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
+                      alt: 'React',
+                      name: 'React',
+                    },
+                    {
+                      url: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg',
+                      alt: 'Tailwind CSS',
+                      name: 'Tailwind CSS',
+                    },
+                  ],
+                }}
+              />
+            ),
+            usageCode: `<Hero
+  data={{
+    logo1: { text: "Acme" },
+    title: "Build your next project with Acme",
+    subtitle: "Create beautiful experiences with our comprehensive platform designed for modern applications.",
+    primaryButton: { label: "Get Started" },
+    secondaryButton: { label: "GitHub", icon: <Github className="h-5 w-5" /> },
+    techLogosLabel: "Built with open-source technologies",
+    techLogos: [
+      { url: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg", alt: "Next.js", name: "Next.js" },
+      { url: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg", alt: "TypeScript", name: "TypeScript" },
+      { url: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg", alt: "React", name: "React" },
+      { url: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg", alt: "Tailwind CSS", name: "Tailwind CSS" }
     ]
+  }}
+  actions={{
+    onPrimaryClick: () => console.log("Primary clicked"),
+    onSecondaryClick: () => console.log("Secondary clicked")
+  }}
+/>`,
+          },
+          {
+            id: 'minimal',
+            name: 'Minimal',
+            component: (
+              <Hero
+                data={{
+                  logo1: undefined,
+                  title: 'Welcome to the Future',
+                  subtitle: 'A simple, clean hero without logos or extra elements.',
+                  primaryButton: { label: 'Get Started' },
+                  secondaryButton: undefined,
+                }}
+              />
+            ),
+            usageCode: `<Hero
+  data={{
+    logo1: undefined,
+    title: "Welcome to the Future",
+    subtitle: "A simple, clean hero without logos or extra elements.",
+    primaryButton: { label: "Get Started" },
+    secondaryButton: undefined
+  }}
+  actions={{
+    onPrimaryClick: () => console.log("Primary clicked")
+  }}
+/>`,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'selection',
@@ -2110,9 +2286,9 @@ const categories: Category[] = [
   actions={{
     onSelectOption: (option) => console.log("Selected:", option.label)
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'quick-reply',
@@ -2136,9 +2312,9 @@ const categories: Category[] = [
   actions={{
     onSelectReply: (reply) => console.log("Selected:", reply.label)
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'tag-select',
@@ -2168,11 +2344,11 @@ const categories: Category[] = [
     onSelectTags: (tagIds) => console.log("Tags:", tagIds),
     onValidate: (tagIds) => console.log("Validated:", tagIds)
   }}
-/>`
-          }
-        ]
-      }
-    ]
+/>`,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'status',
@@ -2199,9 +2375,9 @@ const categories: Category[] = [
       { label: "Delivery", status: "pending" }
     ]
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'status-badge',
@@ -2227,11 +2403,11 @@ const categories: Category[] = [
             usageCode: `<StatusBadge data={{ status: "success" }} />
 <StatusBadge data={{ status: "pending" }} />
 <StatusBadge data={{ status: "processing" }} />
-<StatusBadge data={{ status: "error" }} />`
-          }
-        ]
-      }
-    ]
+<StatusBadge data={{ status: "error" }} />`,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'payment',
@@ -2249,7 +2425,11 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <OrderConfirm />,
-            fullscreenComponent: <div className="max-w-[680px] mx-auto"><OrderConfirm /></div>,
+            fullscreenComponent: (
+              <div className="max-w-[680px] mx-auto">
+                <OrderConfirm />
+              </div>
+            ),
             usageCode: `<OrderConfirm
   data={{
     productName: "MacBook Pro 14-inch",
@@ -2260,9 +2440,9 @@ const categories: Category[] = [
   }}
   appearance={{ currency: "USD" }}
   actions={{ onConfirm: () => console.log("Order confirmed!") }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'amount-input',
@@ -2276,7 +2456,11 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <AmountInput />,
-            fullscreenComponent: <div className="max-w-[680px] mx-auto"><AmountInput /></div>,
+            fullscreenComponent: (
+              <div className="max-w-[680px] mx-auto">
+                <AmountInput />
+              </div>
+            ),
             usageCode: `<AmountInput
   data={{ presets: [20, 50, 100, 200] }}
   appearance={{
@@ -2290,9 +2474,9 @@ const categories: Category[] = [
     onChange: (value) => console.log("Amount:", value),
     onConfirm: (value) => console.log("Confirmed:", value)
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'payment-confirmed',
@@ -2306,7 +2490,11 @@ const categories: Category[] = [
             id: 'default',
             name: 'Default',
             component: <PaymentConfirmed />,
-            fullscreenComponent: <div className="max-w-[680px] mx-auto"><PaymentConfirmed /></div>,
+            fullscreenComponent: (
+              <div className="max-w-[680px] mx-auto">
+                <PaymentConfirmed />
+              </div>
+            ),
             usageCode: `<PaymentConfirmed
   data={{
     orderId: "ORD-2024-7842",
@@ -2318,13 +2506,17 @@ const categories: Category[] = [
   }}
   appearance={{ variant: "default", currency: "EUR" }}
   actions={{ onTrackOrder: () => console.log("Track order") }}
-/>`
+/>`,
           },
           {
             id: 'compressed',
             name: 'Compressed',
             component: <PaymentConfirmed appearance={{ variant: 'compressed' }} />,
-            fullscreenComponent: <div className="max-w-[680px] mx-auto"><PaymentConfirmed appearance={{ variant: 'compressed' }} /></div>,
+            fullscreenComponent: (
+              <div className="max-w-[680px] mx-auto">
+                <PaymentConfirmed appearance={{ variant: 'compressed' }} />
+              </div>
+            ),
             usageCode: `<PaymentConfirmed
   data={{
     orderId: "ORD-2024-7842",
@@ -2335,11 +2527,11 @@ const categories: Category[] = [
   }}
   appearance={{ variant: "compressed", currency: "EUR" }}
   actions={{ onTrackOrder: () => console.log("Track order") }}
-/>`
-          }
-        ]
-      }
-    ]
+/>`,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'social',
@@ -2367,9 +2559,9 @@ const categories: Category[] = [
     time: "2 hours ago",
     verified: true
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'linkedin-post',
@@ -2394,9 +2586,9 @@ const categories: Category[] = [
     reposts: "45",
     time: "2h"
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'x-post',
@@ -2423,9 +2615,9 @@ const categories: Category[] = [
     views: "45.2K",
     verified: true
   }}
-/>`
-          }
-        ]
+/>`,
+          },
+        ],
       },
       {
         id: 'youtube-post',
@@ -2451,74 +2643,70 @@ const categories: Category[] = [
     verified: true,
     videoId: "GuTcle5edjk"
   }}
-/>`
-          }
-        ]
-      }
-    ]
-  }
-]
+/>`,
+          },
+        ],
+      },
+    ],
+  },
+];
 
 function BlockPageContent() {
-  const params = useParams()
-  const categorySlug = params.category as string
-  const blockSlug = params.block as string
+  const params = useParams();
+  const categorySlug = params.category as string;
+  const blockSlug = params.block as string;
 
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
     blockCategories.map((c) => c.id)
-  )
+  );
 
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    )
-  }
+      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId]
+    );
+  };
 
   // Find the selected block (from hardcoded categories for content/variants)
-  const selectedCategory = categories.find((c) => c.id === categorySlug)
-  const selectedBlock = selectedCategory?.blocks.find((b) => b.id === blockSlug)
+  const selectedCategory = categories.find((c) => c.id === categorySlug);
+  const selectedBlock = selectedCategory?.blocks.find((b) => b.id === blockSlug);
 
   // Find the category from blockCategories for sidebar and related blocks
-  const sidebarCategory = blockCategories.find((c) => c.id === categorySlug)
+  const sidebarCategory = blockCategories.find((c) => c.id === categorySlug);
 
   // Ref for the first variant section
-  const firstVariantRef = useRef<VariantSectionHandle>(null)
+  const firstVariantRef = useRef<VariantSectionHandle>(null);
 
   // Handle anchor scrolling on mount
   useEffect(() => {
-    let scrollTimeout: NodeJS.Timeout | undefined
+    let scrollTimeout: NodeJS.Timeout | undefined;
     if (window.location.hash) {
-      const id = window.location.hash.slice(1)
-      const element = document.getElementById(id)
+      const id = window.location.hash.slice(1);
+      const element = document.getElementById(id);
       if (element) {
         scrollTimeout = setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }, 100)
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
       }
     }
     return () => {
       if (scrollTimeout) {
-        clearTimeout(scrollTimeout)
+        clearTimeout(scrollTimeout);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   if (!selectedBlock) {
     return (
       <div className="flex min-h-[calc(100vh-3.5rem)] bg-card items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">Block not found</h1>
-          <p className="text-muted-foreground mb-4">
-            The requested block does not exist.
-          </p>
+          <p className="text-muted-foreground mb-4">The requested block does not exist.</p>
           <Link href="/blocks" className="text-primary hover:underline">
             Go back to blocks
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -2579,7 +2767,7 @@ function BlockPageContent() {
               items={[
                 { name: 'Blocks', href: '/blocks' },
                 { name: sidebarCategory?.name || categorySlug },
-                { name: selectedBlock.name }
+                { name: selectedBlock.name },
               ]}
             />
 
@@ -2622,8 +2810,7 @@ function BlockPageContent() {
 
           {/* Related Blocks in Same Category */}
           {sidebarCategory &&
-            sidebarCategory.blocks.filter((b) => b.id !== blockSlug).length >
-              0 && (
+            sidebarCategory.blocks.filter((b) => b.id !== blockSlug).length > 0 && (
               <div className="mt-16 pt-8 border-t border-border/50">
                 <h2 className="text-base font-medium text-muted-foreground mb-4">
                   Other blocks in the {sidebarCategory.name} category
@@ -2646,15 +2833,13 @@ function BlockPageContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function BlockPage() {
   return (
-    <Suspense
-      fallback={<div className="flex min-h-[calc(100vh-3.5rem)] bg-card" />}
-    >
+    <Suspense fallback={<div className="flex min-h-[calc(100vh-3.5rem)] bg-card" />}>
       <BlockPageContent />
     </Suspense>
-  )
+  );
 }
