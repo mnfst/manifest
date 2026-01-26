@@ -13,8 +13,8 @@ import { useState } from 'react'
  * @property {"default" | "blue" | "green" | "red" | "yellow" | "purple"} [color] - Optional color theme
  */
 export interface Tag {
-  id: string
-  label: string
+  id?: string
+  label?: string
   color?: 'default' | 'blue' | 'green' | 'red' | 'yellow' | 'purple'
 }
 
@@ -155,21 +155,24 @@ export function TagSelect({ data, actions, appearance, control }: TagSelectProps
   return (
     <div className="w-full space-y-2 bg-card rounded-lg p-4">
       <div className="flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <button
-            key={tag.id}
-            onClick={() => handleToggle(tag.id)}
-            className={cn(
-              'inline-flex items-center gap-1 sm:gap-1.5 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm transition-colors cursor-pointer',
-              isSelected(tag.id) ? tagClasses.selected : tagClasses.unselected
-            )}
-          >
-            {isSelected(tag.id) && (
-              <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-            )}
-            {tag.label}
-          </button>
-        ))}
+        {tags.map((tag, index) => {
+          const tagId = tag.id ?? `tag-${index}`
+          return (
+            <button
+              key={tagId}
+              onClick={() => handleToggle(tagId)}
+              className={cn(
+                'inline-flex items-center gap-1 sm:gap-1.5 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm transition-colors cursor-pointer',
+                isSelected(tagId) ? tagClasses.selected : tagClasses.unselected
+              )}
+            >
+              {isSelected(tagId) && (
+                <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              )}
+              {tag.label && <span>{tag.label}</span>}
+            </button>
+          )
+        })}
       </div>
 
       <div className="flex items-center justify-between">

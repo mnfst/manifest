@@ -7,7 +7,8 @@
       "1.2.0": "Added initialValues prop to pre-fill form fields",
       "1.2.1": "Added aria-label to file removal button for screen reader accessibility",
       "1.2.3": "Added comprehensive JSDoc documentation",
-      "1.2.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.2.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "1.2.5": "Fixed defensive property access to handle empty objects and null values"
     },
     "date-time-picker": {
       "1.0.0": "Initial release with calendar and time slot selection",
@@ -19,48 +20,43 @@
       "1.0.0": "Initial release with categories, impact levels and file attachments",
       "1.0.1": "Added aria-label to file removal button for screen reader accessibility",
       "1.0.3": "Added comprehensive JSDoc documentation",
-      "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "1.0.5": "Fixed defensive property access to handle empty objects and null values"
     },
     "card-form": {
       "1.0.0": "Initial release with card number, expiry, CVV and name fields",
       "1.0.2": "Added comprehensive JSDoc documentation",
-      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "1.0.4": "Fixed defensive property access to handle empty objects and null values"
     },
     "pay-confirm": {
       "1.0.0": "Initial release with amount display and confirm actions",
       "1.0.1": "Updated to show a more realistic default amount",
       "1.0.3": "Added comprehensive JSDoc documentation",
       "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.0.5": "Fixed defensive property access to handle empty objects and null values"
+      "1.0.5": "Fixed defensive property access to handle empty objects and null values",
+      "1.0.6": "Additional defensive property access improvements"
     },
     "order-summary": {
       "1.0.0": "Initial release with items, subtotal, shipping, tax and discounts",
       "1.0.1": "Moved demo data to separate file for cleaner component code",
       "1.0.2": "Added comprehensive JSDoc documentation",
-      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "1.0.4": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
     },
     "saved-cards": {
       "1.0.0": "Initial release with support for multiple card brands",
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.0.4": "Fixed defensive property access to handle empty objects and null values"
-    },
-    "payment-success": {
-      "1.0.0": "Initial release with order details and tracking options",
-      "1.0.2": "Added comprehensive JSDoc documentation",
-      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.0.4": "Fixed defensive property access to handle empty objects and null values",
+      "1.0.5": "Additional defensive property access improvements"
     },
     "bank-card-form": {
       "1.0.0": "Initial release with compact inline layout for chat",
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.0.4": "Fixed defensive property access to handle empty objects and null values"
-    },
-    "payment-methods": {
-      "1.0.0": "Initial release with card brands and Apple Pay support",
-      "1.0.2": "Added comprehensive JSDoc documentation",
-      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.0.4": "Fixed defensive property access to handle empty objects and null values"
+      "1.0.4": "Fixed defensive property access to handle empty objects and null values",
+      "1.0.5": "Additional defensive property access improvements"
     },
     "order-confirm": {
       "1.0.0": "Initial release with product image and delivery info",
@@ -70,7 +66,8 @@
     "payment-confirmed": {
       "1.0.0": "Initial release with product image and tracking button",
       "1.0.2": "Added comprehensive JSDoc documentation",
-      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "2.0.0": "Added compressed variant, merged payment-success into this component"
     },
     "product-list": {
       "1.0.0": "Initial release with list, grid, carousel and picker variants",
@@ -79,7 +76,8 @@
       "2.0.2": "Moved demo data to separate file for cleaner component code",
       "2.0.3": "Added comprehensive JSDoc documentation",
       "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "2.0.5": "Fixed defensive property access to handle empty objects and null values"
+      "2.0.5": "Fixed defensive property access to handle empty objects and null values",
+      "2.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
     },
     "option-list": {
       "1.0.0": "Initial release with single and multiple selection modes",
@@ -88,7 +86,8 @@
       "2.0.2": "Added comprehensive JSDoc documentation",
       "2.1.0": "Moved to selection category for better organization",
       "2.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "2.1.2": "Fixed defensive property access to handle empty objects and null values"
+      "2.1.2": "Fixed defensive property access to handle empty objects and null values",
+      "2.1.3": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
     },
     "amount-input": {
       "1.0.0": "Initial release with increment buttons and preset values",
@@ -101,7 +100,8 @@
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.1.0": "Moved to selection category for better organization",
       "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.1.2": "Fixed defensive property access to handle empty objects and null values"
+      "1.1.2": "Fixed defensive property access to handle empty objects and null values",
+      "1.1.3": "Additional defensive property access improvements"
     },
     "quick-reply": {
       "1.0.0": "Initial release with quick reply button options",
@@ -110,14 +110,17 @@
       "3.0.2": "Added comprehensive JSDoc documentation",
       "3.1.0": "Moved to selection category for better organization",
       "3.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "3.1.2": "Fixed defensive property access to handle empty objects and null values"
+      "3.1.2": "Fixed defensive property access to handle empty objects and null values",
+      "3.1.3": "Additional defensive property access improvements"
     },
     "progress-steps": {
       "1.0.0": "Initial release with horizontal and vertical layouts",
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.1.0": "Moved to status category for better organization",
       "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.1.2": "Fixed defensive property access to handle empty objects and null values"
+      "1.1.2": "Fixed defensive property access to handle empty objects and null values",
+      "1.1.3": "Additional defensive property access improvements",
+      "2.0.0": "BREAKING: Removed id from Step interface, use array index for key"
     },
     "status-badge": {
       "1.0.0": "Initial release with multiple status states",
@@ -130,7 +133,8 @@
       "1.0.0": "Initial release with scrollable stat cards and trends",
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.0.4": "Fixed defensive property access to handle empty objects and null values"
+      "1.0.4": "Fixed defensive property access to handle empty objects and null values",
+      "1.0.5": "Additional defensive property access improvements"
     },
     "post-card": {
       "1.0.0": "Initial release with default, compact, horizontal and covered variants",
@@ -138,7 +142,8 @@
       "2.0.1": "Moved demo data to separate file for cleaner component code",
       "2.0.2": "Added comprehensive JSDoc documentation",
       "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "2.0.4": "Fixed defensive property access to handle empty objects and null values"
+      "2.0.4": "Fixed defensive property access to handle empty objects and null values",
+      "2.0.5": "Fixed circular dependency by moving Post interface to types.ts"
     },
     "post-list": {
       "1.0.0": "Initial release with list, grid and carousel variants",
@@ -148,7 +153,9 @@
       "2.0.2": "Moved demo data to separate file for cleaner component code",
       "2.0.3": "Added comprehensive JSDoc documentation",
       "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "2.0.5": "Fixed defensive property access to handle empty objects and null values"
+      "2.0.5": "Fixed defensive property access to handle empty objects and null values",
+      "2.0.6": "Fixed circular dependency by moving Post interface to types.ts",
+      "2.0.7": "Added bg-card background and margin to list variant for better dark/light mode support"
     },
     "post-detail": {
       "1.0.0": "Initial release with cover image, author info and related posts",
@@ -156,14 +163,17 @@
       "2.0.1": "Updated post-card dependency with extracted demo data",
       "2.0.2": "Added comprehensive JSDoc documentation",
       "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "2.0.4": "Fixed defensive property access to handle empty objects and null values"
+      "2.0.4": "Fixed defensive property access to handle empty objects and null values",
+      "2.0.5": "Added missing tooltip dependency to registryDependencies",
+      "2.0.6": "Fixed circular dependency by importing Post from types.ts"
     },
     "table": {
       "1.0.0": "Initial release with single and multi-select modes",
       "1.0.1": "Added descriptive alt tags for title images",
       "1.0.2": "Added aria-label to filter removal button for screen reader accessibility",
       "1.0.4": "Added comprehensive JSDoc documentation",
-      "1.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "1.0.6": "Fixed defensive property access to handle empty objects and null values"
     },
     "message-bubble": {
       "1.0.0": "Initial release with text, image, voice and reaction variants",
@@ -189,7 +199,8 @@
       "4.0.2": "Moved demo data to separate file for cleaner component code",
       "4.0.3": "Added comprehensive JSDoc documentation",
       "4.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "4.0.5": "Fixed defensive property access to handle empty objects and null values"
+      "4.0.5": "Fixed defensive property access to handle empty objects and null values",
+      "4.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
     },
     "x-post": {
       "1.0.0": "Initial release with engagement metrics display",
@@ -223,7 +234,8 @@
       "1.1.2": "Added comprehensive JSDoc documentation",
       "1.2.0": "Moved to map category for better organization",
       "1.2.1": "Removed Next.js dependency - now uses React-only lazy loading for map components",
-      "1.2.2": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.2.2": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "1.2.3": "Fixed defensive property access to handle empty objects and null values"
     },
     "event-card": {
       "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
@@ -236,7 +248,8 @@
       "5.0.2": "Moved demo data to separate file for cleaner component code",
       "5.0.3": "Added comprehensive JSDoc documentation",
       "5.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "5.0.5": "Fixed defensive property access to handle empty objects and null values"
+      "5.0.5": "Fixed defensive property access to handle empty objects and null values",
+      "5.0.6": "Added types.ts to registry for proper installation"
     },
     "event-list": {
       "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
@@ -253,7 +266,8 @@
       "6.0.3": "Added comprehensive JSDoc documentation",
       "6.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
       "6.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "6.0.6": "Fixed defensive property access to handle empty objects and null values"
+      "6.0.6": "Fixed defensive property access to handle empty objects and null values",
+      "6.0.7": "Added types.ts to registry for proper installation"
     },
     "event-detail": {
       "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
@@ -266,21 +280,17 @@
       "3.0.3": "Added comprehensive JSDoc documentation",
       "3.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
       "3.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "3.0.6": "Fixed defensive property access to handle empty objects and null values"
+      "3.0.6": "Fixed defensive property access to handle empty objects and null values",
+      "3.0.7": "Added types.ts to registry for proper installation"
     },
     "ticket-tier-select": {
       "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",
       "1.1.0": "Added optional event image above order summary. Order summary now always visible with fixed width.",
       "2.0.0": "BREAKING: Refactored to use nested event object (event.title, event.date, event.image, event.currency) instead of flat props",
       "2.0.2": "Added comprehensive JSDoc documentation",
-      "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
-    },
-    "event-checkout": {
-      "1.0.0": "Initial release with billing form, payment methods, countdown timer, and order summary",
-      "1.1.0": "Added event image display above order summary on right side",
-      "2.0.0": "BREAKING: Refactored to use nested event and order objects. Simplified onPlaceOrder to () => void. Moved timerMinutes to appearance.",
-      "2.0.2": "Added comprehensive JSDoc documentation",
-      "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "3.0.0": "BREAKING: Removed id from TicketTier interface, made name and price optional.",
+      "3.0.1": "Simplified TicketSelection interface by removing tierIndex"
     },
     "event-confirmation": {
       "1.0.0": "Initial release with success message, event details, organizer follow, and social sharing",

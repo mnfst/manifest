@@ -84,8 +84,8 @@ interface FilterCondition {
  * @property {function} [render] - Custom render function for cell content
  */
 export interface TableColumn<T = Record<string, unknown>> {
-  header: string
-  accessor: keyof T | string
+  header?: string
+  accessor?: keyof T | string
   sortable?: boolean
   width?: string
   align?: 'left' | 'center' | 'right'
@@ -654,7 +654,7 @@ export function Table<T extends Record<string, unknown>>({
   }
 
   const filteredColumns = columns.filter((col) =>
-    col.header.toLowerCase().includes(sortSearch.toLowerCase())
+    (col.header ?? '').toLowerCase().includes(sortSearch.toLowerCase())
   )
 
   const handleRowSelect = useCallback(
@@ -729,7 +729,7 @@ export function Table<T extends Record<string, unknown>>({
     if (sortConfig?.key !== accessor) {
       return <Minus className="h-3 w-3 opacity-0 group-hover:opacity-30" />
     }
-    return sortConfig.direction === 'asc' ? (
+    return sortConfig?.direction === 'asc' ? (
       <ChevronUp className="h-3 w-3" />
     ) : (
       <ChevronDown className="h-3 w-3" />
@@ -763,7 +763,7 @@ export function Table<T extends Record<string, unknown>>({
                 className="h-5 w-5 rounded object-cover"
               />
             )}
-            <span className="font-medium">{title || 'Table'}</span>
+            {title && <span className="font-medium">{title}</span>}
           </div>
 
           {/* Action buttons and Filter/Sort */}
@@ -967,7 +967,7 @@ export function Table<T extends Record<string, unknown>>({
                         <Type className="h-4 w-4 text-muted-foreground" />
                         <span className="flex-1">{col.header}</span>
                         {sortConfig?.key === col.accessor &&
-                          (sortConfig.direction === 'asc' ? (
+                          (sortConfig?.direction === 'asc' ? (
                             <ArrowUpAZ className="h-4 w-4 text-muted-foreground" />
                           ) : (
                             <ArrowDownAZ className="h-4 w-4 text-muted-foreground" />
@@ -1006,7 +1006,7 @@ export function Table<T extends Record<string, unknown>>({
                         style={{ width: column.width }}
                         onClick={() =>
                           column.sortable &&
-                          handleSort(column.accessor as string)
+                          handleSort((column.accessor ?? '') as string)
                         }
                       >
                         <span
@@ -1015,9 +1015,9 @@ export function Table<T extends Record<string, unknown>>({
                             column.align === 'right' && 'justify-end'
                           )}
                         >
-                          {column.header}
+                          {column.header ?? ''}
                           {column.sortable &&
-                            getSortIcon(column.accessor as string)}
+                            getSortIcon((column.accessor ?? '') as string)}
                         </span>
                       </th>
                     ))}
@@ -1054,7 +1054,7 @@ export function Table<T extends Record<string, unknown>>({
                           </td>
                         )}
                         {columns.map((column, colIndex) => {
-                          const value = getValue(row, column.accessor as string)
+                          const value = getValue(row, (column.accessor ?? '') as string)
                           const displayValue = column.render
                             ? column.render(value, row, rowIndex)
                             : formatNumber(value)
@@ -1237,7 +1237,7 @@ export function Table<T extends Record<string, unknown>>({
               >
                 <div className="space-y-1.5">
                   {columns.map((column, colIndex) => {
-                    const value = getValue(row, column.accessor as string)
+                    const value = getValue(row, (column.accessor ?? '') as string)
                     const displayValue = column.render
                       ? column.render(value, row, rowIndex)
                       : formatNumber(value)
@@ -1248,7 +1248,7 @@ export function Table<T extends Record<string, unknown>>({
                         className="flex justify-between items-center"
                       >
                         <span className="text-xs text-muted-foreground">
-                          {column.header}
+                          {column.header ?? ''}
                         </span>
                         <span
                           className={cn(
@@ -1319,14 +1319,14 @@ export function Table<T extends Record<string, unknown>>({
                   )}
                   style={{ width: column.width }}
                   onClick={() =>
-                    column.sortable && handleSort(column.accessor as string)
+                    column.sortable && handleSort((column.accessor ?? '') as string)
                   }
                   role={
                     column.sortable ? 'columnheader button' : 'columnheader'
                   }
                   aria-sort={
                     sortConfig?.key === column.accessor
-                      ? sortConfig.direction === 'asc'
+                      ? sortConfig?.direction === 'asc'
                         ? 'ascending'
                         : 'descending'
                       : undefined
@@ -1338,8 +1338,8 @@ export function Table<T extends Record<string, unknown>>({
                       column.align === 'right' && 'justify-end'
                     )}
                   >
-                    {column.header}
-                    {column.sortable && getSortIcon(column.accessor as string)}
+                    {column.header ?? ''}
+                    {column.sortable && getSortIcon((column.accessor ?? '') as string)}
                   </span>
                 </th>
               ))}
@@ -1392,7 +1392,7 @@ export function Table<T extends Record<string, unknown>>({
                     </td>
                   )}
                   {columns.map((column, colIndex) => {
-                    const value = getValue(row, column.accessor as string)
+                    const value = getValue(row, (column.accessor ?? '') as string)
                     const displayValue = column.render
                       ? column.render(value, row, rowIndex)
                       : formatNumber(value)

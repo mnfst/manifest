@@ -1,7 +1,7 @@
 // Demo data for List category components
 // This file contains sample data used for component previews and documentation
 
-import type { Product } from '../product-list'
+import type { Product } from '../types'
 
 // Default products for ProductList
 export const demoProducts: Product[] = [

@@ -13,13 +13,6 @@ import { DateTimePicker } from '@/registry/form/date-time-picker'
 import { IssueReportForm } from '@/registry/form/issue-report-form'
 
 // Payment components
-import { CardForm } from '@/registry/payment/card-form'
-import { PayConfirm } from '@/registry/payment/pay-confirm'
-import { OrderSummary } from '@/registry/payment/order-summary'
-import { SavedCards } from '@/registry/payment/saved-cards'
-import { PaymentSuccess } from '@/registry/payment/payment-success'
-import { BankCardForm } from '@/registry/payment/bank-card-form'
-import { PaymentMethods } from '@/registry/payment/payment-methods'
 import { OrderConfirm } from '@/registry/payment/order-confirm'
 import { PaymentConfirmed } from '@/registry/payment/payment-confirmed'
 import { AmountInput } from '@/registry/payment/amount-input'
@@ -63,7 +56,6 @@ import { EventCard } from '@/registry/events/event-card'
 import { EventList } from '@/registry/events/event-list'
 import { EventDetail } from '@/registry/events/event-detail'
 import { TicketTierSelect } from '@/registry/events/ticket-tier-select'
-import { EventCheckout } from '@/registry/events/event-checkout'
 import { EventConfirmation } from '@/registry/events/event-confirmation'
 
 // Demo data
@@ -88,16 +80,6 @@ const demoProducts = [
   { name: 'Premium Headphones', price: 299, image: 'https://ui.manifest.build/demo/shoe-1.png' },
   { name: 'Wireless Earbuds', price: 149, image: 'https://ui.manifest.build/demo/shoe-2.png' },
   { name: 'Smart Speaker', price: 199, image: 'https://ui.manifest.build/demo/shoe-3.png' }
-]
-
-const demoOrderItems = [
-  { id: '1', name: 'Wireless Headphones', quantity: 1, price: 199.99 },
-  { id: '2', name: 'Phone Case', quantity: 2, price: 29.99 }
-]
-
-const demoSavedCards = [
-  { id: '1', brand: 'visa' as const, last4: '4242', expiryMonth: '12', expiryYear: '25', isDefault: true },
-  { id: '2', brand: 'mastercard' as const, last4: '5555', expiryMonth: '06', expiryYear: '26', isDefault: false }
 ]
 
 const demoTicketTiers = [
@@ -136,34 +118,6 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
   },
 
   // Payment components
-  'card-form': {
-    component: <CardForm />,
-    category: 'payment'
-  },
-  'pay-confirm': {
-    component: <PayConfirm data={{ amount: 259.97, cardLast4: '4242', cardBrand: 'visa' }} />,
-    category: 'payment'
-  },
-  'order-summary': {
-    component: <OrderSummary data={{ items: demoOrderItems, subtotal: 259.97, shipping: 9.99, tax: 21.60, total: 291.56 }} />,
-    category: 'payment'
-  },
-  'saved-cards': {
-    component: <SavedCards data={{ cards: demoSavedCards }} />,
-    category: 'payment'
-  },
-  'payment-success': {
-    component: <PaymentSuccess />,
-    category: 'payment'
-  },
-  'bank-card-form': {
-    component: <BankCardForm />,
-    category: 'payment'
-  },
-  'payment-methods': {
-    component: <PaymentMethods />,
-    category: 'payment'
-  },
   'order-confirm': {
     component: <OrderConfirm data={{ productName: 'Premium Headphones', productImage: 'https://ui.manifest.build/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024' }} />,
     category: 'payment'
@@ -218,7 +172,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
 
   // Status components
   'progress-steps': {
-    component: <ProgressSteps data={{ steps: [{ id: '1', label: 'Cart', status: 'completed' }, { id: '2', label: 'Shipping', status: 'current' }, { id: '3', label: 'Payment', status: 'pending' }, { id: '4', label: 'Confirm', status: 'pending' }] }} />,
+    component: <ProgressSteps data={{ steps: [{ label: 'Cart', status: 'completed' }, { label: 'Shipping', status: 'current' }, { label: 'Payment', status: 'pending' }, { label: 'Confirm', status: 'pending' }] }} />,
     category: 'status'
   },
   'status-badge': {
@@ -357,17 +311,6 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
         data={{
           event: { title: 'Summer Music Festival', date: 'Jan 20, 2024' },
           tiers: demoTicketTiers
-        }}
-      />
-    ),
-    category: 'events'
-  },
-  'event-checkout': {
-    component: (
-      <EventCheckout
-        data={{
-          event: { title: 'Summer Music Festival', date: 'Jan 20, 2024', image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800' },
-          order: { items: [{ name: 'General Admission', quantity: 2, price: 90 }], fees: 10 }
         }}
       />
     ),

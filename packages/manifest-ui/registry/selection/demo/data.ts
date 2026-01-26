@@ -1,7 +1,7 @@
 // Demo data for Selection category components
 // This file contains sample data used for component previews and documentation
 
-import type { Option } from '../option-list'
+import type { Option } from '../types'
 
 // Default options for OptionList
 export const demoOptions: Option[] = [

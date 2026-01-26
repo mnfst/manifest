@@ -153,23 +153,23 @@ export interface IssueReportFormProps {
  * @property {string} additionalComments - Any extra information
  */
 export interface IssueFormData {
-  declarantName: string
-  email: string
-  team: string
-  location: string
-  office: string
-  workstation: string
-  category: string
-  subcategory: string
-  issueTitle: string
-  description: string
-  impact: string
-  urgency: string
-  frequency: string
-  startDate: string
-  attemptedActions: string[]
-  attachments: File[]
-  additionalComments: string
+  declarantName?: string
+  email?: string
+  team?: string
+  location?: string
+  office?: string
+  workstation?: string
+  category?: string
+  subcategory?: string
+  issueTitle?: string
+  description?: string
+  impact?: string
+  urgency?: string
+  frequency?: string
+  startDate?: string
+  attemptedActions?: string[]
+  attachments?: File[]
+  additionalComments?: string
 }
 
 /**
@@ -264,19 +264,22 @@ export function IssueReportForm({
   }
 
   const toggleAttemptedAction = (action: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      attemptedActions: prev.attemptedActions.includes(action)
-        ? prev.attemptedActions.filter((a) => a !== action)
-        : [...prev.attemptedActions, action]
-    }))
+    setFormData((prev) => {
+      const currentActions = prev.attemptedActions ?? []
+      return {
+        ...prev,
+        attemptedActions: currentActions.includes(action)
+          ? currentActions.filter((a) => a !== action)
+          : [...currentActions, action]
+      }
+    })
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     setFormData((prev) => ({
       ...prev,
-      attachments: [...prev.attachments, ...files]
+      attachments: [...(prev.attachments ?? []), ...files]
     }))
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -284,7 +287,7 @@ export function IssueReportForm({
   const removeFile = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      attachments: prev.attachments.filter((_, i) => i !== index)
+      attachments: (prev.attachments ?? []).filter((_, i) => i !== index)
     }))
   }
 
@@ -571,7 +574,7 @@ export function IssueReportForm({
                       onClick={() => toggleAttemptedAction(action)}
                       className={cn(
                         'px-2 py-1 text-xs rounded-md border transition-colors',
-                        formData.attemptedActions.includes(action)
+                        (formData.attemptedActions ?? []).includes(action)
                           ? 'bg-primary text-primary-foreground border-primary'
                           : 'bg-background text-foreground border-border hover:border-primary'
                       )}
@@ -638,9 +641,9 @@ export function IssueReportForm({
             onChange={handleFileSelect}
             className="hidden"
           />
-          {formData.attachments.length > 0 && (
+          {(formData.attachments ?? []).length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-2">
-              {formData.attachments.map((file, index) => (
+              {(formData.attachments ?? []).map((file, index) => (
                 <div
                   key={index}
                   className="flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs"

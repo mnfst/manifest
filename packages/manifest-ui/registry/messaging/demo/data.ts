@@ -1,7 +1,7 @@
 // Demo data for Messaging category components
 // This file contains sample data used for component previews and documentation
 
-import type { ChatMessage } from '../chat-conversation'
+import type { ChatMessage } from '../types'
 
 // Default messages for ChatConversation
 export const demoMessages: ChatMessage[] = [

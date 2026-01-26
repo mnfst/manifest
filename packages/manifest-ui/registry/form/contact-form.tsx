@@ -1,16 +1,12 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
-import { cn } from '@/lib/utils'
-import { ChevronDown, Paperclip, Search, Send, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { ChevronDown, Paperclip, Search, Send, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * Data structure representing the contact form submission.
@@ -25,14 +21,14 @@ import { useEffect, useRef, useState } from 'react'
  * @property {File | null} [attachment] - An optional file attachment
  */
 export interface ContactFormData {
-  firstName: string
-  lastName: string
-  countryId?: string
-  countryCode?: string
-  phoneNumber?: string
-  email?: string
-  message?: string
-  attachment?: File | null
+  firstName?: string;
+  lastName?: string;
+  countryId?: string;
+  countryCode?: string;
+  phoneNumber?: string;
+  email?: string;
+  message?: string;
+  attachment?: File | null;
 }
 
 /**
@@ -46,32 +42,32 @@ export interface ContactFormData {
 export interface ContactFormProps {
   data?: {
     /** The form title displayed at the top. */
-    title?: string
+    title?: string;
     /** Descriptive text below the title. */
-    subtitle?: string
+    subtitle?: string;
     /** Custom label for the submit button. */
-    submitLabel?: string
+    submitLabel?: string;
     /** Pre-filled form values. */
-    initialValues?: Partial<ContactFormData>
-  }
+    initialValues?: Partial<ContactFormData>;
+  };
   actions?: {
     /** Called when the form is submitted with form data. */
-    onSubmit?: (data: ContactFormData) => void
-  }
+    onSubmit?: (data: ContactFormData) => void;
+  };
   appearance?: {
     /**
      * Whether to display the title section.
      * @default true
      */
-    showTitle?: boolean
-  }
+    showTitle?: boolean;
+  };
   control?: {
     /**
      * Shows loading state on submit button.
      * @default false
      */
-    isLoading?: boolean
-  }
+    isLoading?: boolean;
+  };
 }
 
 const countries = [
@@ -184,8 +180,8 @@ const countries = [
   { id: 'vn', code: '+84', name: 'Vietnam', flag: '🇻🇳' },
   { id: 'ye', code: '+967', name: 'Yemen', flag: '🇾🇪' },
   { id: 'zm', code: '+260', name: 'Zambia', flag: '🇿🇲' },
-  { id: 'zw', code: '+263', name: 'Zimbabwe', flag: '🇿🇼' }
-]
+  { id: 'zw', code: '+263', name: 'Zimbabwe', flag: '🇿🇼' },
+];
 
 /**
  * A complete contact form component with name fields, phone number with country selector,
@@ -217,24 +213,19 @@ const countries = [
  * />
  * ```
  */
-export function ContactForm({
-  data,
-  actions,
-  appearance,
-  control
-}: ContactFormProps) {
+export function ContactForm({ data, actions, appearance, control }: ContactFormProps) {
   const {
     title = 'Contact Us',
     subtitle = "Fill out the form below and we'll get back to you as soon as possible.",
     submitLabel = 'Send Message',
-    initialValues
-  } = data ?? {}
-  const { onSubmit } = actions ?? {}
-  const { showTitle = true } = appearance ?? {}
-  const { isLoading = false } = control ?? {}
+    initialValues,
+  } = data ?? {};
+  const { onSubmit } = actions ?? {};
+  const { showTitle = true } = appearance ?? {};
+  const { isLoading = false } = control ?? {};
 
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const searchInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<ContactFormData>({
     firstName: initialValues?.firstName ?? '',
     lastName: initialValues?.lastName ?? '',
@@ -243,58 +234,55 @@ export function ContactForm({
     phoneNumber: initialValues?.phoneNumber ?? '',
     email: initialValues?.email ?? '',
     message: initialValues?.message ?? '',
-    attachment: initialValues?.attachment ?? null
-  })
-  const [countrySearch, setCountrySearch] = useState('')
-  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false)
+    attachment: initialValues?.attachment ?? null,
+  });
+  const [countrySearch, setCountrySearch] = useState('');
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
 
-  const selectedCountry = countries.find((c) => c.id === formData.countryId)
+  const selectedCountry = countries.find((c) => c.id === formData.countryId);
 
   const filteredCountries = countries.filter(
     (country) =>
       country.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
       country.code.includes(countrySearch)
-  )
+  );
 
   useEffect(() => {
     if (countryDropdownOpen && searchInputRef.current) {
-      searchInputRef.current.focus()
+      searchInputRef.current.focus();
     }
-  }, [countryDropdownOpen])
+  }, [countryDropdownOpen]);
 
   const handleCountrySelect = (country: (typeof countries)[0]) => {
     setFormData((prev) => ({
       ...prev,
       countryId: country.id,
-      countryCode: country.code
-    }))
-    setCountryDropdownOpen(false)
-    setCountrySearch('')
-  }
+      countryCode: country.code,
+    }));
+    setCountryDropdownOpen(false);
+    setCountrySearch('');
+  };
 
-  const handleChange = (
-    field: keyof ContactFormData,
-    value: string | File | null
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+  const handleChange = (field: keyof ContactFormData, value: string | File | null) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
-    handleChange('attachment', file)
-  }
+    const file = e.target.files?.[0] || null;
+    handleChange('attachment', file);
+  };
 
   const handleRemoveFile = () => {
-    handleChange('attachment', null)
+    handleChange('attachment', null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = '';
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit?.(formData)
-  }
+    e.preventDefault();
+    onSubmit?.(formData);
+  };
 
   return (
     <div className="w-full bg-card rounded-xl p-6">
@@ -335,10 +323,7 @@ export function ContactForm({
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
             <div className="flex gap-2">
-              <Popover
-                open={countryDropdownOpen}
-                onOpenChange={setCountryDropdownOpen}
-              >
+              <Popover open={countryDropdownOpen} onOpenChange={setCountryDropdownOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
@@ -389,9 +374,7 @@ export function ContactForm({
                         >
                           <span>{country.flag}</span>
                           <span className="flex-1">{country.name}</span>
-                          <span className="text-muted-foreground">
-                            {country.code}
-                          </span>
+                          <span className="text-muted-foreground">{country.code}</span>
                         </button>
                       ))
                     )}
@@ -477,12 +460,7 @@ export function ContactForm({
             </Button>
           )}
 
-          <Button
-            type="submit"
-            size="sm"
-            disabled={isLoading}
-            className="w-full sm:w-auto"
-          >
+          <Button type="submit" size="sm" disabled={isLoading} className="w-full sm:w-auto">
             {isLoading ? (
               'Sending...'
             ) : (
@@ -495,5 +473,5 @@ export function ContactForm({
         </div>
       </form>
     </div>
-  )
+  );
 }

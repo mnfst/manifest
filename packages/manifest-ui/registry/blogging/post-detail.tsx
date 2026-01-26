@@ -8,7 +8,7 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { Calendar, Clock, ExternalLink } from 'lucide-react'
-import { Post } from './post-card'
+import type { Post } from './types'
 
 // Import shared OpenAI types
 import '@/lib/openai-types' // Side effect: extends Window interface
@@ -272,7 +272,7 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
           <div className="aspect-video overflow-hidden rounded-t-lg">
             <img
               src={post.coverImage}
-              alt={post.title}
+              alt={post.title || ''}
               className="h-full w-full object-cover"
             />
           </div>
@@ -285,20 +285,24 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
             </p>
           )}
 
-          <h1 className="text-xl font-bold">{post.title}</h1>
+          {post.title && <h1 className="text-xl font-bold">{post.title}</h1>}
 
-          <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {formatDate(post.publishedAt)}
-            </span>
-            {post.readTime && (
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {post.readTime}
-              </span>
-            )}
-          </div>
+          {(post.publishedAt || post.readTime) && (
+            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+              {post.publishedAt && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {formatDate(post.publishedAt)}
+                </span>
+              )}
+              {post.readTime && (
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {post.readTime}
+                </span>
+              )}
+            </div>
+          )}
 
           <p className="mt-3 text-sm text-muted-foreground">
             {truncatedContent}
@@ -328,7 +332,7 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
           <div className="aspect-video w-full overflow-hidden rounded-lg mb-8">
             <img
               src={post.coverImage}
-              alt={post.title}
+              alt={post.title || ''}
               className="h-full w-full object-cover"
             />
           </div>
@@ -339,9 +343,11 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
           </p>
         )}
 
-        <h1 className="text-[32px] font-bold leading-[1.25] tracking-tight md:text-[42px]">
-          {post.title}
-        </h1>
+        {post.title && (
+          <h1 className="text-[32px] font-bold leading-[1.25] tracking-tight md:text-[42px]">
+            {post.title}
+          </h1>
+        )}
 
         {post.tags && post.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -349,38 +355,44 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
           </div>
         )}
 
-        {showAuthor && (
+        {showAuthor && post.author && (
           <div className="mt-8 flex items-center gap-4 border-b pb-8">
             {post.author.avatar && (
               <img
                 src={post.author.avatar}
-                alt={post.author.name}
+                alt={post.author.name || ''}
                 className="h-12 w-12 rounded-full"
               />
             )}
             <div>
-              <p className="font-medium">{post.author.name}</p>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" />
-                  {formatDate(post.publishedAt)}
-                </span>
-                {post.readTime && (
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    {post.readTime}
-                  </span>
-                )}
-              </div>
+              {post.author.name && <p className="font-medium">{post.author.name}</p>}
+              {(post.publishedAt || post.readTime) && (
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  {post.publishedAt && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {formatDate(post.publishedAt)}
+                    </span>
+                  )}
+                  {post.readTime && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      {post.readTime}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {/* Medium-style content */}
         <div className="mt-10">
-          <p className="text-[21px] leading-[1.8] text-muted-foreground mb-8">
-            {post.excerpt}
-          </p>
+          {post.excerpt && (
+            <p className="text-[21px] leading-[1.8] text-muted-foreground mb-8">
+              {post.excerpt}
+            </p>
+          )}
           {content && (
             <div
               className="
@@ -413,19 +425,23 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
                     <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">
                       <img
                         src={related.coverImage}
-                        alt={related.title}
+                        alt={related.title || ''}
                         className="h-full w-full object-cover"
                       />
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium">{related.title}</p>
-                    <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
-                      {related.excerpt}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {related.readTime}
-                    </p>
+                    {related.title && <p className="font-medium">{related.title}</p>}
+                    {related.excerpt && (
+                      <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+                        {related.excerpt}
+                      </p>
+                    )}
+                    {related.readTime && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {related.readTime}
+                      </p>
+                    )}
                   </div>
                   <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </a>

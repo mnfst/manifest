@@ -6,16 +6,16 @@ import { cn } from "@/lib/utils"
 /**
  * Represents a single statistic card with trend data.
  * @interface StatCard
- * @property {string} label - Label for the stat (e.g., "Sales", "Orders")
- * @property {string | number} value - The stat value to display
+ * @property {string} [label] - Label for the stat (e.g., "Sales", "Orders")
+ * @property {string | number} [value] - The stat value to display
  * @property {number} [change] - Percentage change value
  * @property {string} [changeLabel] - Additional context for the change
  * @property {React.ReactNode} [icon] - Optional icon for the stat
  * @property {"up" | "down" | "neutral"} [trend] - Trend direction
  */
 export interface StatCard {
-  label: string
-  value: string | number
+  label?: string
+  value?: string | number
   change?: number
   changeLabel?: string
   icon?: React.ReactNode
@@ -95,36 +95,46 @@ export function Stats({ data }: StatsProps) {
   return (
     <div className="w-full">
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
-        {stats.map((stat, index) => (
-          <div
-            key={index}
-            className="rounded-md sm:rounded-lg border bg-card p-2 sm:p-3 space-y-0.5 sm:space-y-1"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] sm:text-xs text-muted-foreground">{stat.label}</span>
-              {stat.icon}
-            </div>
-            <div className="flex flex-wrap items-baseline gap-1 sm:gap-2">
-              <span className="text-base sm:text-xl font-bold">{stat.value}</span>
-              {stat.change !== undefined && (
-                <span
-                  className={cn(
-                    "flex items-center gap-0.5 text-[10px] sm:text-xs font-medium shrink-0",
-                    getTrendColor(stat.trend)
+        {stats.map((stat, index) => {
+          return (
+            <div
+              key={index}
+              className="rounded-md sm:rounded-lg border bg-card p-2 sm:p-3 space-y-0.5 sm:space-y-1"
+            >
+              {(stat.label || stat.icon) && (
+                <div className="flex items-center justify-between">
+                  {stat.label && (
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">{stat.label}</span>
                   )}
-                >
-                  {getTrendIcon(stat.trend)}
-                  {Math.abs(stat.change)}%
+                  {stat.icon}
+                </div>
+              )}
+              {(stat.value !== undefined || stat.change !== undefined) && (
+                <div className="flex flex-wrap items-baseline gap-1 sm:gap-2">
+                  {stat.value !== undefined && (
+                    <span className="text-base sm:text-xl font-bold">{stat.value}</span>
+                  )}
+                  {stat.change !== undefined && (
+                    <span
+                      className={cn(
+                        "flex items-center gap-0.5 text-[10px] sm:text-xs font-medium shrink-0",
+                        getTrendColor(stat.trend)
+                      )}
+                    >
+                      {getTrendIcon(stat.trend)}
+                      {Math.abs(stat.change)}%
+                    </span>
+                  )}
+                </div>
+              )}
+              {stat.changeLabel && (
+                <span className="text-[10px] sm:text-xs text-muted-foreground">
+                  {stat.changeLabel}
                 </span>
               )}
             </div>
-            {stat.changeLabel && (
-              <span className="text-[10px] sm:text-xs text-muted-foreground">
-                {stat.changeLabel}
-              </span>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

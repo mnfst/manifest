@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import { Post, PostCard } from './post-card'
+import type { Post } from './types'
+import { PostCard } from './post-card'
 import { demoPosts } from './demo/data'
 
 /**
@@ -113,7 +114,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
   // List variant
   if (variant === 'list') {
     return (
-      <div className="space-y-3">
+      <div className="space-y-3 m-3 bg-card rounded-lg p-3">
         {posts.slice(0, 3).map((post, index) => (
           <PostCard
             key={index}

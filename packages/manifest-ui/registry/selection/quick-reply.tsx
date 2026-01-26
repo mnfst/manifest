@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
  * @property {React.ReactNode} [icon] - Optional icon displayed before the label
  */
 export interface QuickReply {
-  label: string
+  label?: string
   icon?: React.ReactNode
 }
 
@@ -83,7 +83,7 @@ export function QuickReply({ data, actions }: QuickReplyProps) {
             )}
           >
             {reply.icon}
-            {reply.label}
+            {reply.label && <span>{reply.label}</span>}
           </button>
         ))}
       </div>

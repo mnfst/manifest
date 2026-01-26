@@ -20,7 +20,6 @@ import { PostList } from '@/registry/blogging/post-list'
 
 // Events components
 import { EventCard } from '@/registry/events/event-card'
-import { EventCheckout } from '@/registry/events/event-checkout'
 import { EventConfirmation } from '@/registry/events/event-confirmation'
 import { EventDetail } from '@/registry/events/event-detail'
 import { EventList } from '@/registry/events/event-list'
@@ -33,11 +32,8 @@ import { Table } from '@/registry/list/table'
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input'
-import { BankCardForm } from '@/registry/payment/bank-card-form'
 import { OrderConfirm } from '@/registry/payment/order-confirm'
 import { PaymentConfirmed } from '@/registry/payment/payment-confirmed'
-import { PaymentMethods } from '@/registry/payment/payment-methods'
-import { PaymentSuccess } from '@/registry/payment/payment-success'
 
 // Messaging components
 import { ChatConversation } from '@/registry/messaging/chat-conversation'
@@ -1471,56 +1467,6 @@ const categories: Category[] = [
         ]
       },
       {
-        id: 'event-checkout',
-        name: 'Event Checkout',
-        description:
-          'Checkout form with billing information, payment methods, and order summary.',
-        registryName: 'event-checkout',
-        layouts: ['inline', 'fullscreen'],
-        actionCount: 2,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <EventCheckout data={{ event: { title: "Player Play Date", date: "Fri, Feb 06 · 2:00 pm", image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800", price: "$25.05", currency: "USD" } }} actions={{ onBack: () => {}, onPlaceOrder: () => {} }} />,
-            usageCode: `<EventCheckout
-  data={{
-    event: {
-      title: "Player Play Date",
-      date: "Fri, Feb 06 · 2:00 pm",
-      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
-      price: "$25.05",
-      currency: "USD"
-    },
-    order: {
-      items: [
-        { name: "General Admission", quantity: 2, price: 21.75 },
-        { name: "VIP Upgrade", quantity: 1, price: 35.00 }
-      ],
-      fees: 8.50,
-      delivery: 0,
-      deliveryMethod: "3 x eTicket"
-    },
-    paymentMethods: [
-      { id: "card", name: "Credit or debit card", icon: "card" },
-      { id: "paypal", name: "PayPal", icon: "paypal" },
-      { id: "google", name: "Google Pay", icon: "google" }
-    ]
-  }}
-  actions={{
-    onBack: () => console.log("Navigate back"),
-    onPlaceOrder: () => console.log("Order placed")
-  }}
-  appearance={{
-    showTimer: true,
-    timerMinutes: 20,
-    showEventCard: true
-  }}
-/>`
-          }
-        ]
-      },
-      {
         id: 'event-confirmation',
         name: 'Event Confirmation',
         description:
@@ -2247,10 +2193,10 @@ const categories: Category[] = [
             usageCode: `<ProgressSteps
   data={{
     steps: [
-      { id: "1", label: "Order received", status: "completed" },
-      { id: "2", label: "Processing", status: "completed" },
-      { id: "3", label: "Shipping", status: "current" },
-      { id: "4", label: "Delivery", status: "pending" }
+      { label: "Order received", status: "completed" },
+      { label: "Processing", status: "completed" },
+      { label: "Shipping", status: "current" },
+      { label: "Delivery", status: "pending" }
     ]
   }}
 />`
@@ -2319,61 +2265,6 @@ const categories: Category[] = [
         ]
       },
       {
-        id: 'payment-methods',
-        name: 'Payment Methods',
-        description: 'Select payment method',
-        registryName: 'payment-methods',
-        layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 3,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <PaymentMethods />,
-            fullscreenComponent: <div className="max-w-[680px] mx-auto"><PaymentMethods /></div>,
-            usageCode: `<PaymentMethods
-  data={{
-    methods: [
-      { id: "1", type: "card", brand: "visa", last4: "4242" },
-      { id: "2", type: "card", brand: "mastercard", last4: "8888", isDefault: true },
-      { id: "3", type: "apple_pay" }
-    ],
-    amount: 279.00
-  }}
-  appearance={{ currency: "EUR" }}
-  actions={{
-    onSelectMethod: (methodId) => console.log("Selected:", methodId),
-    onAddCard: () => console.log("Add card"),
-    onPay: (methodId) => console.log("Pay with:", methodId)
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'card-form',
-        name: 'Bank Card Form',
-        description: 'Credit card input form',
-        registryName: 'bank-card-form',
-        layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 1,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <BankCardForm />,
-            fullscreenComponent: <div className="max-w-[680px] mx-auto"><BankCardForm /></div>,
-            usageCode: `<BankCardForm
-  data={{ amount: 149.99 }}
-  appearance={{ currency: "USD", submitLabel: "Pay $149.99" }}
-  actions={{
-    onSubmit: (data) => console.log("Card:", data.cardNumber)
-  }}
-/>`
-          }
-        ]
-      },
-      {
         id: 'amount-input',
         name: 'Amount Input',
         description: 'Input for monetary amounts',
@@ -2404,36 +2295,9 @@ const categories: Category[] = [
         ]
       },
       {
-        id: 'payment-success',
-        name: 'Payment Success',
-        description: 'Success confirmation after payment',
-        registryName: 'payment-success',
-        layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 1,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <PaymentSuccess />,
-            fullscreenComponent: <div className="max-w-[680px] mx-auto"><PaymentSuccess /></div>,
-            usageCode: `<PaymentSuccess
-  data={{
-    orderId: "ORD-2024-7842",
-    productName: "Air Force 1 '07",
-    productImage: "https://ui.manifest.build/demo/shoe-1.png",
-    price: 119,
-    deliveryDate: "Tue. Dec 10"
-  }}
-  appearance={{ currency: "EUR" }}
-  actions={{ onTrackOrder: () => console.log("Track order") }}
-/>`
-          }
-        ]
-      },
-      {
         id: 'payment-confirmed',
-        name: 'Payment Confirmation',
-        description: 'Detailed payment confirmation',
+        name: 'Payment Confirmed',
+        description: 'Payment confirmation with product details and tracking',
         registryName: 'payment-confirmed',
         layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 1,
@@ -2452,7 +2316,24 @@ const categories: Category[] = [
     price: 119,
     deliveryDate: "Tue. Dec 10"
   }}
-  appearance={{ currency: "EUR" }}
+  appearance={{ variant: "default", currency: "EUR" }}
+  actions={{ onTrackOrder: () => console.log("Track order") }}
+/>`
+          },
+          {
+            id: 'compressed',
+            name: 'Compressed',
+            component: <PaymentConfirmed appearance={{ variant: 'compressed' }} />,
+            fullscreenComponent: <div className="max-w-[680px] mx-auto"><PaymentConfirmed appearance={{ variant: 'compressed' }} /></div>,
+            usageCode: `<PaymentConfirmed
+  data={{
+    orderId: "ORD-2024-7842",
+    productName: "Air Force 1 '07",
+    productImage: "https://ui.manifest.build/demo/shoe-1.png",
+    price: 119,
+    deliveryDate: "Tue. Dec 10"
+  }}
+  appearance={{ variant: "compressed", currency: "EUR" }}
   actions={{ onTrackOrder: () => console.log("Track order") }}
 />`
           }
