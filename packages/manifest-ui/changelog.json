@@ -51,23 +51,12 @@
       "1.0.4": "Fixed defensive property access to handle empty objects and null values",
       "1.0.5": "Additional defensive property access improvements"
     },
-    "payment-success": {
-      "1.0.0": "Initial release with order details and tracking options",
-      "1.0.2": "Added comprehensive JSDoc documentation",
-      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
-    },
     "bank-card-form": {
       "1.0.0": "Initial release with compact inline layout for chat",
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "1.0.4": "Fixed defensive property access to handle empty objects and null values",
       "1.0.5": "Additional defensive property access improvements"
-    },
-    "payment-methods": {
-      "1.0.0": "Initial release with card brands and Apple Pay support",
-      "1.0.2": "Added comprehensive JSDoc documentation",
-      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.0.4": "Fixed defensive property access to handle empty objects and null values"
     },
     "order-confirm": {
       "1.0.0": "Initial release with product image and delivery info",
@@ -77,7 +66,8 @@
     "payment-confirmed": {
       "1.0.0": "Initial release with product image and tracking button",
       "1.0.2": "Added comprehensive JSDoc documentation",
-      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "2.0.0": "Added compressed variant, merged payment-success into this component"
     },
     "product-list": {
       "1.0.0": "Initial release with list, grid, carousel and picker variants",

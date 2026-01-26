@@ -13,13 +13,6 @@ import { DateTimePicker } from '@/registry/form/date-time-picker'
 import { IssueReportForm } from '@/registry/form/issue-report-form'
 
 // Payment components
-import { CardForm } from '@/registry/payment/card-form'
-import { PayConfirm } from '@/registry/payment/pay-confirm'
-import { OrderSummary } from '@/registry/payment/order-summary'
-import { SavedCards } from '@/registry/payment/saved-cards'
-import { PaymentSuccess } from '@/registry/payment/payment-success'
-import { BankCardForm } from '@/registry/payment/bank-card-form'
-import { PaymentMethods } from '@/registry/payment/payment-methods'
 import { OrderConfirm } from '@/registry/payment/order-confirm'
 import { PaymentConfirmed } from '@/registry/payment/payment-confirmed'
 import { AmountInput } from '@/registry/payment/amount-input'
@@ -89,16 +82,6 @@ const demoProducts = [
   { name: 'Smart Speaker', price: 199, image: 'https://ui.manifest.build/demo/shoe-3.png' }
 ]
 
-const demoOrderItems = [
-  { id: '1', name: 'Wireless Headphones', quantity: 1, price: 199.99 },
-  { id: '2', name: 'Phone Case', quantity: 2, price: 29.99 }
-]
-
-const demoSavedCards = [
-  { id: '1', brand: 'visa' as const, last4: '4242', expiryMonth: '12', expiryYear: '25', isDefault: true },
-  { id: '2', brand: 'mastercard' as const, last4: '5555', expiryMonth: '06', expiryYear: '26', isDefault: false }
-]
-
 const demoTicketTiers = [
   { id: '1', name: 'General Admission', price: 45, fee: 5, available: 100, maxPerOrder: 10 },
   { id: '2', name: 'VIP', price: 150, fee: 15, available: 20, maxPerOrder: 4, description: 'Includes backstage access' }
@@ -135,34 +118,6 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
   },
 
   // Payment components
-  'card-form': {
-    component: <CardForm />,
-    category: 'payment'
-  },
-  'pay-confirm': {
-    component: <PayConfirm data={{ amount: 259.97, cardLast4: '4242', cardBrand: 'visa' }} />,
-    category: 'payment'
-  },
-  'order-summary': {
-    component: <OrderSummary data={{ items: demoOrderItems, subtotal: 259.97, shipping: 9.99, tax: 21.60, total: 291.56 }} />,
-    category: 'payment'
-  },
-  'saved-cards': {
-    component: <SavedCards data={{ cards: demoSavedCards }} />,
-    category: 'payment'
-  },
-  'payment-success': {
-    component: <PaymentSuccess />,
-    category: 'payment'
-  },
-  'bank-card-form': {
-    component: <BankCardForm />,
-    category: 'payment'
-  },
-  'payment-methods': {
-    component: <PaymentMethods />,
-    category: 'payment'
-  },
   'order-confirm': {
     component: <OrderConfirm data={{ productName: 'Premium Headphones', productImage: 'https://ui.manifest.build/demo/shoe-1.png', price: 299, deliveryDate: 'Jan 20, 2024' }} />,
     category: 'payment'

@@ -89,59 +89,6 @@
       ]
     },
     {
-      "name": "payment-success",
-      "type": "registry:block",
-      "title": "Payment Success",
-      "description": "A payment confirmation screen showing order details, delivery info, and tracking options.",
-      "author": "MNFST, Inc",
-      "categories": ["payment"],
-      "meta": {
-        "preview": "https://ui.manifest.build/previews/payment-success.png",
-        "version": "1.0.3",
-        "changelog": {
-          "1.0.0": "Initial release with order details and tracking options",
-          "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
-        }
-      },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["card", "button", "separator"],
-      "files": [
-        {
-          "path": "registry/payment/payment-success.tsx",
-          "type": "registry:block",
-          "target": "components/ui/payment-success.tsx"
-        }
-      ]
-    },
-    {
-      "name": "payment-methods",
-      "type": "registry:block",
-      "title": "Payment Methods",
-      "description": "Payment method selector with card brands (Visa, Mastercard, CB, Amex) and Apple Pay.",
-      "author": "MNFST, Inc",
-      "categories": ["payment"],
-      "meta": {
-        "preview": "https://ui.manifest.build/previews/payment-methods.png",
-        "version": "1.0.4",
-        "changelog": {
-          "1.0.0": "Initial release with card brands and Apple Pay support",
-          "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.4": "Fixed defensive property access to handle empty objects and null values"
-        }
-      },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
-      "files": [
-        {
-          "path": "registry/payment/payment-methods.tsx",
-          "type": "registry:block",
-          "target": "components/ui/payment-methods.tsx"
-        }
-      ]
-    },
-    {
       "name": "order-confirm",
       "type": "registry:block",
       "title": "Order Confirm",
@@ -171,16 +118,17 @@
       "name": "payment-confirmed",
       "type": "registry:block",
       "title": "Payment Confirmed",
-      "description": "Payment confirmation card with product image, price, delivery info, and tracking button.",
+      "description": "Payment confirmation card with product image, price, delivery info, and tracking button. Supports default and compressed variants.",
       "author": "MNFST, Inc",
       "categories": ["payment"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/payment-confirmed.png",
-        "version": "1.0.3",
+        "version": "2.0.0",
         "changelog": {
           "1.0.0": "Initial release with product image and tracking button",
           "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "2.0.0": "Added compressed variant, merged payment-success into this component"
         }
       },
       "dependencies": ["lucide-react"],
