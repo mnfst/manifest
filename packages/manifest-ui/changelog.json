@@ -302,7 +302,8 @@
       "1.1.0": "Added card wrapper, text logo support, improved light/dark mode compatibility",
       "2.0.0": "BREAKING: Changed button props from string labels to HeroButton objects with optional label and icon",
       "2.0.1": "Image logos now display without bordered container, text logos remain in bordered square",
-      "2.1.0": "Added urlLight prop for dark mode logo variant support"
+      "2.1.0": "Added urlLight prop for dark mode logo variant support",
+      "2.1.1": "Reduced logo image height for better visual balance"
     }
   }
 }

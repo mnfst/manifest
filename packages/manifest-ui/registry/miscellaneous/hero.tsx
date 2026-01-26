@@ -111,7 +111,7 @@ function LogoDisplay({ logo }: { logo: HeroLogo }) {
           <img
             src={logo.url}
             alt={logo.alt || 'Logo'}
-            className="h-16 sm:h-20 w-auto object-contain dark:hidden"
+            className="h-8 sm:h-10 w-auto object-contain dark:hidden"
           />
           <img
             src={logo.urlLight}
