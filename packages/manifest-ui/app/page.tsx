@@ -1,6 +1,7 @@
 'use client'
 
 import { ChatDemo } from '@/components/chat/chat-demo'
+import { PromoBanner } from '@/components/layout/promo-banner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { WaveCanvas } from '@/components/ui/wave-canvas'
 import { PostCard } from '@/registry/blogging/post-card'
@@ -304,6 +305,7 @@ const useCases = [
 export default function Home() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a]">
+      <PromoBanner />
       {/* Hero Section with Wave Canvas Background */}
       <div className="relative min-h-[auto] py-16 md:min-h-[50vh] lg:min-h-[55vh] overflow-hidden flex items-center justify-center">
         <WaveCanvas
