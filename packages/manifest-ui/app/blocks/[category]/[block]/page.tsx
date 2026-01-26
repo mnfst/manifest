@@ -2235,7 +2235,7 @@ const categories: Category[] = [
               <Hero
                 data={{
                   logo1: undefined,
-                  title: 'Welcome to the Future',
+                  title: 'Welcome to the agentic app era',
                   subtitle: 'A simple, clean hero without logos or extra elements.',
                   primaryButton: { label: 'Get Started' },
                   secondaryButton: undefined,
@@ -2245,7 +2245,7 @@ const categories: Category[] = [
             usageCode: `<Hero
   data={{
     logo1: undefined,
-    title: "Welcome to the Future",
+    title: "Welcome to the agentic app era",
     subtitle: "A simple, clean hero without logos or extra elements.",
     primaryButton: { label: "Get Started" },
     secondaryButton: undefined
