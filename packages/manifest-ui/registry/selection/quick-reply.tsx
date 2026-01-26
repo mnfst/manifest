@@ -33,6 +33,12 @@ export interface QuickReplyProps {
   }
 }
 
+const defaultReplies: QuickReply[] = [
+  { label: 'Yes, confirm' },
+  { label: 'No thanks' },
+  { label: 'I have a question' },
+  { label: 'View details' }
+]
 
 /**
  * A quick reply button set for chat interfaces.
@@ -62,13 +68,8 @@ export interface QuickReplyProps {
  * ```
  */
 export function QuickReply({ data, actions }: QuickReplyProps) {
-  const replies = data?.replies
+  const replies = data?.replies ?? defaultReplies
   const onSelectReply = actions?.onSelectReply
-
-  if (!replies || replies.length === 0) {
-    return <div className="w-full bg-card rounded-lg p-4" />
-  }
-
   return (
     <div className="w-full bg-card rounded-lg p-4">
       <div className="flex flex-wrap gap-2">

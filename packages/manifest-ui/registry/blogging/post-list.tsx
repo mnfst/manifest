@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import type { Post } from './types'
 import { PostCard } from './post-card'
+import { demoPosts } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -96,7 +97,7 @@ export interface PostListProps {
  * ```
  */
 export function PostList({ data, actions, appearance, control }: PostListProps) {
-  const posts = data?.posts
+  const posts = data?.posts ?? demoPosts
   const onReadMore = actions?.onReadMore
   const onPageChange = actions?.onPageChange
   const variant = appearance?.variant ?? 'list'
@@ -109,10 +110,6 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
   const [internalPage, setInternalPage] = useState(1)
 
   const currentPage = controlledPage ?? internalPage
-
-  if (!posts || posts.length === 0) {
-    return <div className="rounded-lg bg-card p-3" />
-  }
 
   // List variant
   if (variant === 'list') {

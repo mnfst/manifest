@@ -10,6 +10,7 @@ import type { Product } from './types'
 // Re-export for backward compatibility
 export type { Product } from './types'
 
+import { demoProducts } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -795,7 +796,7 @@ function PickerVariant({
  * ```
  */
 export function ProductList({ data, actions, appearance, control }: ProductListProps) {
-  const products = data?.products
+  const products = data?.products ?? demoProducts
   const onSelectProduct = actions?.onSelectProduct
   const onAddToCart = actions?.onAddToCart
   const variant = appearance?.variant ?? 'list'
@@ -816,10 +817,6 @@ export function ProductList({ data, actions, appearance, control }: ProductListP
   const handleSelect = (product: Product, index: number) => {
     setSelected(index)
     onSelectProduct?.(product)
-  }
-
-  if (!products || products.length === 0) {
-    return <div className="w-full" />
   }
 
   if (variant === 'grid') {

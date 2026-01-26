@@ -21,6 +21,7 @@ import {
 import { useState, useEffect } from 'react'
 import type { ComponentType } from 'react'
 import type { EventDetails, EventSignal } from './types'
+import { demoEventDetails } from './demo/data'
 
 // Internal types for react-leaflet component attributes (not exported component props)
 type LeafletMapContainerAttrs = {
@@ -259,7 +260,7 @@ export interface EventDetailProps {
 }
 
 export function EventDetail({ data, actions, appearance }: EventDetailProps) {
-  const event = data?.event
+  const event = data?.event ?? demoEventDetails
   const onGetTickets = actions?.onGetTickets
   const onShare = actions?.onShare
   const onSave = actions?.onSave
@@ -274,10 +275,6 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
 
   // Lazy load react-leaflet components (React-only, no Next.js dependency)
   const leafletComponents = useReactLeaflet()
-
-  if (!event) {
-    return <div className="mx-auto max-w-lg bg-background" />
-  }
 
   const images = event.images?.length ? event.images : (event.image ? [event.image] : [])
 

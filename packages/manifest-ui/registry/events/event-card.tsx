@@ -14,6 +14,7 @@ import {
   XCircle
 } from 'lucide-react'
 import type { Event, EventSignal } from './types'
+import { demoEvent } from './demo/data'
 
 // Import shared OpenAI types
 import '@/lib/openai-types'
@@ -153,16 +154,12 @@ function formatNumber(num: number): string {
  * ```
  */
 export function EventCard({ data, actions, appearance }: EventCardProps) {
-  const event = data?.event
+  const event = data?.event ?? demoEvent
   const onClick = actions?.onClick
   const variant = appearance?.variant ?? 'default'
   const showSignal = appearance?.showSignal ?? true
   const showTags = appearance?.showTags ?? true
   const showRating = appearance?.showRating ?? true
-
-  if (!event) {
-    return <div className="rounded-lg border bg-card" />
-  }
 
   const handleClick = () => {
     if (onClick) {

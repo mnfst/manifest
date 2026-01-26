@@ -65,6 +65,14 @@ export interface TagSelectProps {
   }
 }
 
+const defaultTags: Tag[] = [
+  { id: '1', label: 'Electronics' },
+  { id: '2', label: 'Audio' },
+  { id: '3', label: 'Wireless' },
+  { id: '4', label: 'Apple' },
+  { id: '5', label: 'Premium' },
+  { id: '6', label: 'Sale' }
+]
 
 // ChatGPT-compliant: all tags use neutral system colors
 const tagClasses = {
@@ -108,7 +116,7 @@ const tagClasses = {
  * ```
  */
 export function TagSelect({ data, actions, appearance, control }: TagSelectProps) {
-  const tags = data?.tags
+  const tags = data?.tags ?? defaultTags
   const onSelectTags = actions?.onSelectTags
   const onValidate = actions?.onValidate
   const mode = appearance?.mode ?? 'multiple'
@@ -143,10 +151,6 @@ export function TagSelect({ data, actions, appearance, control }: TagSelectProps
   }
 
   const isSelected = (tagId: string) => selected.includes(tagId)
-
-  if (!tags || tags.length === 0) {
-    return <div className="w-full space-y-2 bg-card rounded-lg p-4" />
-  }
 
   return (
     <div className="w-full space-y-2 bg-card rounded-lg p-4">

@@ -150,7 +150,7 @@
       "categories": ["list"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/product-list.png",
-        "version": "3.0.0",
+        "version": "2.0.6",
         "changelog": {
           "1.0.0": "Initial release with list, grid, carousel and picker variants",
           "2.0.0": "BREAKING: Removed id from Product interface. Use array index for selection tracking.",
@@ -159,8 +159,7 @@
           "2.0.3": "Added comprehensive JSDoc documentation",
           "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.0.5": "Fixed defensive property access to handle empty objects and null values",
-          "2.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry",
-          "3.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "2.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
         }
       },
       "dependencies": ["lucide-react"],
@@ -192,7 +191,7 @@
       "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/option-list.png",
-        "version": "3.0.0",
+        "version": "2.1.3",
         "changelog": {
           "1.0.0": "Initial release with single and multiple selection modes",
           "2.0.0": "BREAKING: Removed id from Option interface. Use array index for selection tracking.",
@@ -201,8 +200,7 @@
           "2.1.0": "Moved to selection category for better organization",
           "2.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.1.2": "Fixed defensive property access to handle empty objects and null values",
-          "2.1.3": "Fixed circular dependency by adding types.ts and demo/data.ts to registry",
-          "3.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "2.1.3": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
         }
       },
       "dependencies": ["lucide-react"],
@@ -261,15 +259,14 @@
       "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/tag-select.png",
-        "version": "2.0.0",
+        "version": "1.1.3",
         "changelog": {
           "1.0.0": "Initial release with color variants and multi-select",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.1.0": "Moved to selection category for better organization",
           "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "1.1.2": "Fixed defensive property access to handle empty objects and null values",
-          "1.1.3": "Additional defensive property access improvements",
-          "2.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "1.1.3": "Additional defensive property access improvements"
         }
       },
       "dependencies": ["lucide-react"],
@@ -291,7 +288,7 @@
       "categories": ["selection"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/quick-reply.png",
-        "version": "4.0.0",
+        "version": "3.1.3",
         "changelog": {
           "1.0.0": "Initial release with quick reply button options",
           "2.0.0": "BREAKING: Removed unused value prop from QuickReply interface",
@@ -300,8 +297,7 @@
           "3.1.0": "Moved to selection category for better organization",
           "3.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "3.1.2": "Fixed defensive property access to handle empty objects and null values",
-          "3.1.3": "Additional defensive property access improvements",
-          "4.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "3.1.3": "Additional defensive property access improvements"
         }
       },
       "dependencies": [],
@@ -323,7 +319,7 @@
       "categories": ["status"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/progress-steps.png",
-        "version": "3.0.0",
+        "version": "2.0.0",
         "changelog": {
           "1.0.0": "Initial release with horizontal and vertical layouts",
           "1.0.2": "Added comprehensive JSDoc documentation",
@@ -331,8 +327,7 @@
           "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "1.1.2": "Fixed defensive property access to handle empty objects and null values",
           "1.1.3": "Additional defensive property access improvements",
-          "2.0.0": "BREAKING: Removed id from Step interface, use array index for key",
-          "3.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "2.0.0": "BREAKING: Removed id from Step interface, use array index for key"
         }
       },
       "dependencies": ["lucide-react"],
@@ -382,14 +377,13 @@
       "categories": ["miscellaneous"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/stats.png",
-        "version": "2.0.0",
+        "version": "1.0.5",
         "changelog": {
           "1.0.0": "Initial release with scrollable stat cards and trends",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "1.0.4": "Fixed defensive property access to handle empty objects and null values",
-          "1.0.5": "Additional defensive property access improvements",
-          "2.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "1.0.5": "Additional defensive property access improvements"
         }
       },
       "dependencies": ["lucide-react"],
@@ -411,7 +405,7 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-card.png",
-        "version": "3.0.0",
+        "version": "2.0.5",
         "changelog": {
           "1.0.0": "Initial release with default, compact, horizontal and covered variants",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
@@ -419,8 +413,7 @@
           "2.0.2": "Added comprehensive JSDoc documentation",
           "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.0.4": "Fixed defensive property access to handle empty objects and null values",
-          "2.0.5": "Fixed circular dependency by moving Post interface to types.ts",
-          "3.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "2.0.5": "Fixed circular dependency by moving Post interface to types.ts"
         }
       },
       "dependencies": ["lucide-react"],
@@ -457,7 +450,7 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-list.png",
-        "version": "3.0.0",
+        "version": "2.0.7",
         "changelog": {
           "1.0.0": "Initial release with list, grid and carousel variants",
           "1.1.0": "Added fullwidth variant with pagination for fullscreen mode",
@@ -468,8 +461,7 @@
           "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.0.5": "Fixed defensive property access to handle empty objects and null values",
           "2.0.6": "Fixed circular dependency by moving Post interface to types.ts",
-          "2.0.7": "Added bg-card background and margin to list variant for better dark/light mode support",
-          "3.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "2.0.7": "Added bg-card background and margin to list variant for better dark/light mode support"
         }
       },
       "dependencies": ["lucide-react"],
@@ -511,7 +503,7 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-detail.png",
-        "version": "3.0.0",
+        "version": "2.0.6",
         "changelog": {
           "1.0.0": "Initial release with cover image, author info and related posts",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
@@ -520,8 +512,7 @@
           "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.0.4": "Fixed defensive property access to handle empty objects and null values",
           "2.0.5": "Added missing tooltip dependency to registryDependencies",
-          "2.0.6": "Fixed circular dependency by importing Post from types.ts",
-          "3.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "2.0.6": "Fixed circular dependency by importing Post from types.ts"
         }
       },
       "dependencies": ["lucide-react"],
@@ -812,7 +803,7 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-card.png",
-        "version": "6.0.0",
+        "version": "5.0.6",
         "changelog": {
           "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
           "2.0.0": "BREAKING: Simplified Event interface - replaced startDateTime/endDateTime with display-formatted dateTime string, removed image/locationType/onlineUrl, changed ticketTiers to string array",
@@ -825,8 +816,7 @@
           "5.0.3": "Added comprehensive JSDoc documentation",
           "5.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "5.0.5": "Fixed defensive property access to handle empty objects and null values",
-          "5.0.6": "Added types.ts to registry for proper installation",
-          "6.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "5.0.6": "Added types.ts to registry for proper installation"
         }
       },
       "dependencies": ["lucide-react"],
@@ -853,7 +843,7 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-list.png",
-        "version": "7.0.0",
+        "version": "6.0.7",
         "changelog": {
           "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime",
@@ -870,8 +860,7 @@
           "6.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
           "6.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "6.0.6": "Fixed defensive property access to handle empty objects and null values",
-          "6.0.7": "Added types.ts to registry for proper installation",
-          "7.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "6.0.7": "Added types.ts to registry for proper installation"
         }
       },
       "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
@@ -899,7 +888,7 @@
       "categories": ["events"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-detail.png",
-        "version": "4.0.0",
+        "version": "3.0.7",
         "changelog": {
           "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
@@ -912,8 +901,7 @@
           "3.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
           "3.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "3.0.6": "Fixed defensive property access to handle empty objects and null values",
-          "3.0.7": "Added types.ts to registry for proper installation",
-          "4.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "3.0.7": "Added types.ts to registry for proper installation"
         }
       },
       "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
@@ -997,14 +985,13 @@
       "categories": ["miscellaneous"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/hero.png",
-        "version": "3.0.0",
+        "version": "2.1.0",
         "changelog": {
           "1.0.0": "Initial release with logos, title, subtitle, CTA buttons, and tech logos footer",
           "1.1.0": "Added card wrapper, text logo support, improved light/dark mode compatibility",
           "2.0.0": "BREAKING: Changed button props from string labels to HeroButton objects with optional label and icon",
           "2.0.1": "Image logos now display without bordered container, text logos remain in bordered square",
-          "2.1.0": "Added urlLight prop for dark mode logo variant support",
-          "3.0.0": "BREAKING: Removed default content data. Component now renders empty state when no data is passed."
+          "2.1.0": "Added urlLight prop for dark mode logo variant support"
         }
       },
       "dependencies": ["lucide-react"],

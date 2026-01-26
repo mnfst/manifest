@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Github } from 'lucide-react';
 import { ReactNode } from 'react';
 
 /**
@@ -79,6 +80,22 @@ export interface HeroProps {
   };
 }
 
+const defaultData = {
+  logo1: {
+    text: 'Acme',
+    alt: 'Acme',
+  },
+  title: 'Build beautiful chat experience with Manifest UI',
+  subtitle:
+    'Create beautiful chat experiences with our comprehensive component library designed for agentic applications.',
+  primaryButton: {
+    label: 'Get Started',
+  },
+  secondaryButton: {
+    label: 'GitHub',
+    icon: <Github className="h-5 w-5" />,
+  },
+};
 
 /**
  * Renders a logo - image logos display directly, text logos get a bordered container
@@ -155,13 +172,13 @@ function LogoDisplay({ logo }: { logo: HeroLogo }) {
  * ```
  */
 export function Hero({ data, actions }: HeroProps) {
-  const logo1 = data?.logo1;
+  const logo1 = data?.logo1 ?? defaultData.logo1;
   const logo2 = data?.logo2;
   const logoSeparator = data?.logoSeparator ?? 'x';
-  const title = data?.title;
-  const subtitle = data?.subtitle;
-  const primaryButton = data?.primaryButton;
-  const secondaryButton = data?.secondaryButton;
+  const title = data?.title ?? defaultData.title;
+  const subtitle = data?.subtitle ?? defaultData.subtitle;
+  const primaryButton = data?.primaryButton ?? defaultData.primaryButton;
+  const secondaryButton = data?.secondaryButton ?? defaultData.secondaryButton;
   const techLogosLabel = data?.techLogosLabel;
   const techLogos = data?.techLogos;
 

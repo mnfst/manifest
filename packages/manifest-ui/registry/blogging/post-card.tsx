@@ -10,6 +10,7 @@ import type { Post } from './types'
 // Re-export for backward compatibility
 export type { Post } from './types'
 
+import { demoPost } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -92,7 +93,7 @@ export interface PostCardProps {
  * ```
  */
 export function PostCard({ data, actions, appearance }: PostCardProps) {
-  const post = data?.post
+  const post = data?.post ?? demoPost
   const onReadMore = actions?.onReadMore
   const variant = appearance?.variant ?? 'default'
   const showImage = appearance?.showImage ?? true
@@ -113,10 +114,6 @@ export function PostCard({ data, actions, appearance }: PostCardProps) {
       day: 'numeric',
       year: 'numeric'
     })
-  }
-
-  if (!post) {
-    return <div className="rounded-lg border bg-card" />
   }
 
   if (variant === 'covered') {
