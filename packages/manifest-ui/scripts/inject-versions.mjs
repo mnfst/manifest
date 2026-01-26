@@ -51,7 +51,10 @@ let categoryErrors = []
 let registryNeedsUpdate = false
 
 for (const item of registry.items) {
-  const { name, version, files, category: declaredCategory, meta } = item
+  const { name, version: topLevelVersion, files, category: declaredCategory, meta } = item
+
+  // Version can be at top level or inside meta
+  const version = topLevelVersion || meta?.version
 
   if (!version) {
     console.log(`⚠ Skipping ${name}: no version defined`)
