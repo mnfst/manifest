@@ -172,7 +172,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
 
   // Status components
   'progress-steps': {
-    component: <ProgressSteps data={{ steps: [{ id: '1', label: 'Cart', status: 'completed' }, { id: '2', label: 'Shipping', status: 'current' }, { id: '3', label: 'Payment', status: 'pending' }, { id: '4', label: 'Confirm', status: 'pending' }] }} />,
+    component: <ProgressSteps data={{ steps: [{ label: 'Cart', status: 'completed' }, { label: 'Shipping', status: 'current' }, { label: 'Payment', status: 'pending' }, { label: 'Confirm', status: 'pending' }] }} />,
     category: 'status'
   },
   'status-badge': {

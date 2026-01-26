@@ -119,7 +119,8 @@
       "1.1.0": "Moved to status category for better organization",
       "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "1.1.2": "Fixed defensive property access to handle empty objects and null values",
-      "1.1.3": "Additional defensive property access improvements"
+      "1.1.3": "Additional defensive property access improvements",
+      "2.0.0": "BREAKING: Removed id from Step interface, use array index for key"
     },
     "status-badge": {
       "1.0.0": "Initial release with multiple status states",

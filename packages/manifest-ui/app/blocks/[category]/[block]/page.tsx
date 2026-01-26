@@ -2193,10 +2193,10 @@ const categories: Category[] = [
             usageCode: `<ProgressSteps
   data={{
     steps: [
-      { id: "1", label: "Order received", status: "completed" },
-      { id: "2", label: "Processing", status: "completed" },
-      { id: "3", label: "Shipping", status: "current" },
-      { id: "4", label: "Delivery", status: "pending" }
+      { label: "Order received", status: "completed" },
+      { label: "Processing", status: "completed" },
+      { label: "Shipping", status: "current" },
+      { label: "Delivery", status: "pending" }
     ]
   }}
 />`
