@@ -45,10 +45,14 @@ type LeafletMarkerAttrs = {
 }
 
 // Lazy-loaded react-leaflet components (React-only, no Next.js dependency)
+// Using any to avoid type mismatches between react-leaflet versions and @types/react
 interface ReactLeafletComponents {
-  MapContainer: ComponentType<LeafletMapContainerAttrs>
-  TileLayer: ComponentType<LeafletTileLayerAttrs>
-  Marker: ComponentType<LeafletMarkerAttrs>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  MapContainer: ComponentType<any>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TileLayer: ComponentType<any>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Marker: ComponentType<any>
 }
 
 /**
