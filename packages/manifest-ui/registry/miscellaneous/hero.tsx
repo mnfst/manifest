@@ -80,7 +80,7 @@ export interface HeroProps {
   };
 }
 
-const defaultData = {
+const defaultData: NonNullable<HeroProps['data']> = {
   logo1: {
     text: 'Acme',
     alt: 'Acme',
