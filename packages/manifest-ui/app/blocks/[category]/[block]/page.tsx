@@ -32,7 +32,6 @@ import { Table } from '@/registry/list/table'
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input'
-import { BankCardForm } from '@/registry/payment/bank-card-form'
 import { OrderConfirm } from '@/registry/payment/order-confirm'
 import { PaymentConfirmed } from '@/registry/payment/payment-confirmed'
 import { PaymentMethods } from '@/registry/payment/payment-methods'
@@ -2294,29 +2293,6 @@ const categories: Category[] = [
     onSelectMethod: (methodId) => console.log("Selected:", methodId),
     onAddCard: () => console.log("Add card"),
     onPay: (methodId) => console.log("Pay with:", methodId)
-  }}
-/>`
-          }
-        ]
-      },
-      {
-        id: 'card-form',
-        name: 'Bank Card Form',
-        description: 'Credit card input form',
-        registryName: 'bank-card-form',
-        layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 1,
-        variants: [
-          {
-            id: 'default',
-            name: 'Default',
-            component: <BankCardForm />,
-            fullscreenComponent: <div className="max-w-[680px] mx-auto"><BankCardForm /></div>,
-            usageCode: `<BankCardForm
-  data={{ amount: 149.99 }}
-  appearance={{ currency: "USD", submitLabel: "Pay $149.99" }}
-  actions={{
-    onSubmit: (data) => console.log("Card:", data.cardNumber)
   }}
 />`
           }

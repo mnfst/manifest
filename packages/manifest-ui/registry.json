@@ -116,73 +116,6 @@
       ]
     },
     {
-      "name": "pay-confirm",
-      "type": "registry:block",
-      "title": "Pay Confirm",
-      "description": "A payment confirmation block displaying amount, card details, and confirm/cancel actions.",
-      "author": "MNFST, Inc",
-      "categories": ["payment"],
-      "meta": {
-        "preview": "https://ui.manifest.build/previews/pay-confirm.png",
-        "version": "1.0.6",
-        "changelog": {
-          "1.0.0": "Initial release with amount display and confirm actions",
-          "1.0.1": "Updated to show a more realistic default amount",
-          "1.0.3": "Added comprehensive JSDoc documentation",
-          "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.5": "Fixed defensive property access to handle empty objects and null values",
-          "1.0.6": "Additional defensive property access improvements"
-        }
-      },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["card", "button", "separator"],
-      "files": [
-        {
-          "path": "registry/payment/pay-confirm.tsx",
-          "type": "registry:block",
-          "target": "components/ui/pay-confirm.tsx"
-        }
-      ]
-    },
-    {
-      "name": "order-summary",
-      "type": "registry:block",
-      "title": "Order Summary",
-      "description": "An order summary block displaying items, subtotal, shipping, tax, discounts, and total.",
-      "author": "MNFST, Inc",
-      "categories": ["payment"],
-      "meta": {
-        "preview": "https://ui.manifest.build/previews/order-summary.png",
-        "version": "1.0.4",
-        "changelog": {
-          "1.0.0": "Initial release with items, subtotal, shipping, tax and discounts",
-          "1.0.1": "Moved demo data to separate file for cleaner component code",
-          "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.4": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
-        }
-      },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["card", "badge", "separator"],
-      "files": [
-        {
-          "path": "registry/payment/order-summary.tsx",
-          "type": "registry:block",
-          "target": "components/ui/order-summary.tsx"
-        },
-        {
-          "path": "registry/payment/types.ts",
-          "type": "registry:lib",
-          "target": "components/ui/types.ts"
-        },
-        {
-          "path": "registry/payment/demo/data.ts",
-          "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
-        }
-      ]
-    },
-    {
       "name": "saved-cards",
       "type": "registry:block",
       "title": "Saved Cards",
@@ -233,34 +166,6 @@
           "path": "registry/payment/payment-success.tsx",
           "type": "registry:block",
           "target": "components/ui/payment-success.tsx"
-        }
-      ]
-    },
-    {
-      "name": "bank-card-form",
-      "type": "registry:block",
-      "title": "Bank Card Form",
-      "description": "Compact bank card payment form with inline layout for chat interfaces.",
-      "author": "MNFST, Inc",
-      "categories": ["payment"],
-      "meta": {
-        "preview": "https://ui.manifest.build/previews/bank-card-form.png",
-        "version": "1.0.5",
-        "changelog": {
-          "1.0.0": "Initial release with compact inline layout for chat",
-          "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.4": "Fixed defensive property access to handle empty objects and null values",
-          "1.0.5": "Additional defensive property access improvements"
-        }
-      },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
-      "files": [
-        {
-          "path": "registry/payment/bank-card-form.tsx",
-          "type": "registry:block",
-          "target": "components/ui/bank-card-form.tsx"
         }
       ]
     },
