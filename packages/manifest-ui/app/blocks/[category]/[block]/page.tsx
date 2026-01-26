@@ -2203,6 +2203,11 @@ const categories: Category[] = [
                       alt: 'Tailwind CSS',
                       name: 'Tailwind CSS',
                     },
+                    {
+                      url: '/demo/os-tech-mnfst.svg',
+                      alt: 'Manifest',
+                      name: 'Manifest',
+                    },
                   ],
                 }}
               />
@@ -2219,7 +2224,8 @@ const categories: Category[] = [
       { url: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg", alt: "Next.js", name: "Next.js" },
       { url: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg", alt: "TypeScript", name: "TypeScript" },
       { url: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg", alt: "React", name: "React" },
-      { url: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg", alt: "Tailwind CSS", name: "Tailwind CSS" }
+      { url: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg", alt: "Tailwind CSS", name: "Tailwind CSS" },
+      { url: "/demo/os-tech-mnfst.svg", alt: "Manifest", name: "Manifest" }
     ]
   }}
   actions={{
@@ -2235,7 +2241,7 @@ const categories: Category[] = [
               <Hero
                 data={{
                   logo1: undefined,
-                  title: 'Welcome to the agentic app era',
+                  title: 'Welcome to the Future',
                   subtitle: 'A simple, clean hero without logos or extra elements.',
                   primaryButton: { label: 'Get Started' },
                   secondaryButton: undefined,
@@ -2245,7 +2251,7 @@ const categories: Category[] = [
             usageCode: `<Hero
   data={{
     logo1: undefined,
-    title: "Welcome to the agentic app era",
+    title: "Welcome to the Future",
     subtitle: "A simple, clean hero without logos or extra elements.",
     primaryButton: { label: "Get Started" },
     secondaryButton: undefined
