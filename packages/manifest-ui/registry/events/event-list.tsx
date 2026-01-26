@@ -8,7 +8,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import type { Event } from './types'
 import { EventCard } from './event-card'
-import { demoEvents } from './demo/data'
 
 // Internal types for react-leaflet component attributes (not exported component props)
 type LeafletMapContainerAttrs = {
@@ -470,7 +469,7 @@ export interface EventListProps {
  * ```
  */
 export function EventList({ data, actions, appearance }: EventListProps) {
-  const events = data?.events ?? demoEvents
+  const events = data?.events
   const title = data?.title
   const onEventSelect = actions?.onEventSelect
   const onViewMore = actions?.onViewMore
@@ -608,6 +607,10 @@ export function EventList({ data, actions, appearance }: EventListProps) {
       return true
     })
   }, [])
+
+  if (!events || events.length === 0) {
+    return <div className="rounded-lg bg-card p-4" />
+  }
 
   // List variant
   if (variant === 'list') {

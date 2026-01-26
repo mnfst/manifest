@@ -65,87 +65,6 @@ function TagList({
   )
 }
 
-const defaultPost: Post = {
-  title: 'Getting Started with Agentic UI Components',
-  excerpt:
-    'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',
-  coverImage:
-    'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
-  author: {
-    name: 'Sarah Chen',
-    avatar: 'https://i.pravatar.cc/150?u=sarah'
-  },
-  publishedAt: '2024-01-15',
-  readTime: '5 min read',
-  tags: ['Tutorial', 'Components', 'AI', 'React', 'TypeScript'],
-  category: 'Tutorial'
-}
-
-const defaultContent = `
-  <p>Building modern AI-powered applications requires a new approach to UI design. Traditional web components don't always translate well to conversational interfaces, where context and flow are paramount.</p>
-
-  <p>Our Agentic UI component library provides a collection of purpose-built components that work seamlessly within chat interfaces. From payment flows to product displays, each component is designed with the unique constraints of conversational UIs in mind.</p>
-
-  <h2>Key Features</h2>
-  <p>Each component supports three display modes: inline (within the chat flow), fullscreen (for complex interactions), and picture-in-picture (persistent visibility). This flexibility allows you to create rich, interactive experiences without breaking the conversational flow.</p>
-
-  <p>Components are designed mobile-first and touch-friendly, ensuring a great experience across all devices. They automatically adapt to light and dark themes, and integrate seamlessly with MCP tools for backend communication.</p>
-`
-
-/**
- * Default related posts for demonstration.
- * @constant
- */
-const defaultRelatedPosts: Post[] = [
-  {
-    title: 'Designing for Conversational Interfaces',
-    excerpt:
-      'Best practices for creating intuitive UI components that work within chat environments.',
-    coverImage:
-      'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800',
-    author: {
-      name: 'Alex Rivera',
-      avatar: 'https://i.pravatar.cc/150?u=alex'
-    },
-    publishedAt: '2024-01-12',
-    readTime: '8 min read',
-    tags: ['Design', 'UX'],
-    category: 'Design',
-    url: 'https://example.com/posts/designing-conversational-interfaces'
-  },
-  {
-    title: 'MCP Integration Patterns',
-    excerpt:
-      'How to leverage Model Context Protocol for seamless backend communication in your agentic applications.',
-    coverImage:
-      'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800',
-    author: {
-      name: 'Jordan Kim',
-      avatar: 'https://i.pravatar.cc/150?u=jordan'
-    },
-    publishedAt: '2024-01-10',
-    readTime: '12 min read',
-    tags: ['MCP', 'Backend', 'Integration'],
-    category: 'Development',
-    url: 'https://example.com/posts/mcp-integration-patterns'
-  },
-  {
-    title: 'Building Payment Flows in Chat',
-    excerpt:
-      'A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.',
-    coverImage:
-      'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800',
-    author: {
-      name: 'Morgan Lee',
-      avatar: 'https://i.pravatar.cc/150?u=morgan'
-    },
-    publishedAt: '2024-01-08',
-    readTime: '10 min read',
-    tags: ['Payments', 'Security'],
-    url: 'https://example.com/posts/building-payment-flows',
-    category: 'Tutorial'
-  }
-]
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -235,9 +154,9 @@ export interface PostDetailProps {
  * ```
  */
 export function PostDetail({ data, actions, appearance }: PostDetailProps) {
-  const post = data?.post ?? defaultPost
-  const content = data?.content ?? defaultContent
-  const relatedPosts = data?.relatedPosts ?? defaultRelatedPosts
+  const post = data?.post
+  const content = data?.content
+  const relatedPosts = data?.relatedPosts
   const onReadMore = actions?.onReadMore
   const showCover = appearance?.showCover ?? true
   const showAuthor = appearance?.showAuthor ?? true
@@ -261,7 +180,11 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
     })
   }
 
-  const plainTextContent = stripHtml(content)
+  if (!post) {
+    return <div className="rounded-lg border bg-card" />
+  }
+
+  const plainTextContent = content ? stripHtml(content) : ''
   const truncatedContent = truncateText(plainTextContent, 340)
   const isInline = displayMode === 'inline'
 

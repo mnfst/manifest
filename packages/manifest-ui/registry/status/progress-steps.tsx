@@ -29,12 +29,6 @@ export interface ProgressStepsProps {
   }
 }
 
-const defaultSteps: Step[] = [
-  { label: 'Order received', status: 'completed' },
-  { label: 'Processing', status: 'completed' },
-  { label: 'Shipping', status: 'current' },
-  { label: 'Delivery', status: 'pending' }
-]
 
 /**
  * A progress stepper component showing sequential step status.
@@ -62,7 +56,12 @@ const defaultSteps: Step[] = [
  * ```
  */
 export function ProgressSteps({ data }: ProgressStepsProps) {
-  const steps = data?.steps ?? defaultSteps
+  const steps = data?.steps
+
+  if (!steps || steps.length === 0) {
+    return <div className="bg-card rounded-lg p-4" />
+  }
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 bg-card rounded-lg p-4">
       {steps.map((step, index) => {

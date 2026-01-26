@@ -9,7 +9,6 @@ import type { Option } from './types'
 // Re-export for backward compatibility
 export type { Option } from './types'
 
-import { demoOptions } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -72,7 +71,7 @@ export interface OptionListProps {
  * ```
  */
 export function OptionList({ data, actions, appearance, control }: OptionListProps) {
-  const options = data?.options ?? demoOptions
+  const options = data?.options
   const onSelectOption = actions?.onSelectOption
   const onSelectOptions = actions?.onSelectOptions
   const multiple = appearance?.multiple ?? false
@@ -103,6 +102,10 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
       return (selected as number[]).includes(index)
     }
     return selected === index
+  }
+
+  if (!options || options.length === 0) {
+    return <div className="w-full bg-card rounded-lg p-4" />
   }
 
   return (
