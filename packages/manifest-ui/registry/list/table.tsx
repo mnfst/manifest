@@ -654,7 +654,7 @@ export function Table<T extends Record<string, unknown>>({
   }
 
   const filteredColumns = columns.filter((col) =>
-    col.header.toLowerCase().includes(sortSearch.toLowerCase())
+    (col.header ?? '').toLowerCase().includes(sortSearch.toLowerCase())
   )
 
   const handleRowSelect = useCallback(
@@ -729,7 +729,7 @@ export function Table<T extends Record<string, unknown>>({
     if (sortConfig?.key !== accessor) {
       return <Minus className="h-3 w-3 opacity-0 group-hover:opacity-30" />
     }
-    return sortConfig.direction === 'asc' ? (
+    return sortConfig?.direction === 'asc' ? (
       <ChevronUp className="h-3 w-3" />
     ) : (
       <ChevronDown className="h-3 w-3" />
@@ -967,7 +967,7 @@ export function Table<T extends Record<string, unknown>>({
                         <Type className="h-4 w-4 text-muted-foreground" />
                         <span className="flex-1">{col.header}</span>
                         {sortConfig?.key === col.accessor &&
-                          (sortConfig.direction === 'asc' ? (
+                          (sortConfig?.direction === 'asc' ? (
                             <ArrowUpAZ className="h-4 w-4 text-muted-foreground" />
                           ) : (
                             <ArrowDownAZ className="h-4 w-4 text-muted-foreground" />
@@ -1326,7 +1326,7 @@ export function Table<T extends Record<string, unknown>>({
                   }
                   aria-sort={
                     sortConfig?.key === column.accessor
-                      ? sortConfig.direction === 'asc'
+                      ? sortConfig?.direction === 'asc'
                         ? 'ascending'
                         : 'descending'
                       : undefined

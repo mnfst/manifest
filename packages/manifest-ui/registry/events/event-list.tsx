@@ -511,7 +511,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
     return eventsToFilter.filter(event => {
       // Category filter
       if (filtersToApply.categories.length > 0) {
-        if (!filtersToApply.categories.includes(event.category)) return false
+        if (!event.category || !filtersToApply.categories.includes(event.category)) return false
       }
 
       // Date filter - parse dateTime string for keywords
