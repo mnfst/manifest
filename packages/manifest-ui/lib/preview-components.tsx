@@ -273,7 +273,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
       <Hero
         data={{
           logo1: { text: 'Acme', alt: 'Acme' },
-          title: 'Build beautiful chat experience with Manifest UI',
+          title: 'Build beautiful chat experiences with Manifest UI',
           subtitle:
             'Create beautiful chat experiences with our comprehensive component library designed for agentic applications.',
           primaryButton: { label: 'Get Started' },
