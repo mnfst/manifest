@@ -1,5 +1,11 @@
 # manifest
 
+## 5.0.5
+
+### Patch Changes
+
+- 8df641e: Updated default admin credentials to admin@manifest.build with simplified password, lowered minimum password length to 8 characters, and enabled default user endpoint in all environments.
+
 ## 5.0.4
 
 ### Patch Changes
