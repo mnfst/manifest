@@ -181,17 +181,11 @@ export class UserManagementController {
   /**
    * Check if default admin user exists (public - no auth required)
    * Returns credentials if the default user exists with default password.
-   * Used to pre-fill login form for development convenience.
-   *
-   * SECURITY: Only available in development mode to prevent credential exposure.
+   * Used to pre-fill login form for convenience.
    */
   @Get('users/default-user')
   @Public()
   async checkDefaultUser(): Promise<DefaultUserCheckResponse> {
-    // Security: Only expose default credentials in development mode
-    if (process.env.NODE_ENV === 'production') {
-      return { exists: false };
-    }
     return this.userManagementService.checkDefaultUserExists();
   }
 }
