@@ -36,6 +36,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    if: false # PAUSED: Release automation disabled until production ready
 
     steps:
       - name: Checkout repository
