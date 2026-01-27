@@ -35,8 +35,8 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
       return;
     }
 
-    if (password.length < 4) {
-      setError('Password must be at least 4 characters');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
       setIsLoading(false);
       return;
     }
@@ -131,8 +131,8 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          minLength={4}
-          placeholder="At least 4 characters"
+          minLength={8}
+          placeholder="At least 8 characters"
         />
       </div>
 

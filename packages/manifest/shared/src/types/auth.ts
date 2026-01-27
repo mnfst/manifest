@@ -5,7 +5,7 @@
 /**
  * Default admin user credentials for development/POC.
  * Used by seed service and can be pre-filled on login page.
- * SECURITY: Password meets 12-character minimum requirement.
+ * SECURITY: Password meets 8-character minimum requirement.
  */
 export const DEFAULT_ADMIN_USER = {
   email: 'admin@example.com',
