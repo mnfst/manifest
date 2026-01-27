@@ -142,6 +142,14 @@ export interface MapCarouselProps {
      */
     mapHeight?: string
   }
+  control?: {
+    /**
+     * When true, renders a static placeholder instead of loading the interactive map.
+     * Useful for preview generation to avoid external network requests.
+     * @default false
+     */
+    staticMode?: boolean
+  }
 }
 
 // Default San Francisco hotel data
@@ -328,6 +336,45 @@ function MapPlaceholder({ height }: { height: string }) {
   )
 }
 
+// Static map placeholder for preview mode (no external network requests)
+function StaticMapPlaceholder({ height }: { height: string }) {
+  return (
+    <div
+      className="bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center relative"
+      style={{ height }}
+    >
+      {/* Grid pattern to simulate map tiles */}
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, #94a3b8 1px, transparent 1px),
+            linear-gradient(to bottom, #94a3b8 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px'
+        }}
+      />
+      {/* Map-like visual elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Simulated roads */}
+        <div className="absolute top-1/4 left-0 right-0 h-1 bg-gray-300/50" />
+        <div className="absolute top-1/2 left-0 right-0 h-2 bg-gray-400/40" />
+        <div className="absolute top-3/4 left-0 right-0 h-1 bg-gray-300/50" />
+        <div className="absolute left-1/4 top-0 bottom-0 w-1 bg-gray-300/50" />
+        <div className="absolute left-1/2 top-0 bottom-0 w-2 bg-gray-400/40" />
+        <div className="absolute left-3/4 top-0 bottom-0 w-1 bg-gray-300/50" />
+      </div>
+      {/* Center icon */}
+      <div className="relative z-10 flex flex-col items-center gap-2 text-muted-foreground">
+        <div className="bg-white rounded-full p-3 shadow-lg">
+          <MapPin className="h-8 w-8 text-blue-500" />
+        </div>
+        <span className="text-sm font-medium bg-white/80 px-2 py-1 rounded">Interactive Map</span>
+      </div>
+    </div>
+  )
+}
+
 // Inner map component that uses Leaflet hooks
 function MapWithMarkers({
   locations,
@@ -484,13 +531,14 @@ const getTileConfig = (style: MapStyle) => {
  * />
  * ```
  */
-export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
+export function MapCarousel({ data, actions, appearance, control }: MapCarouselProps) {
   const {
     locations = defaultLocations,
     center = [37.7899, -122.4034], // San Francisco
     zoom = 14,
     mapStyle = 'voyager'
   } = data ?? {}
+  const { staticMode = false } = control ?? {}
 
   const tileConfig = getTileConfig(mapStyle)
   const { onSelectLocation } = actions ?? {}
@@ -606,7 +654,9 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
       style={{ height: mapHeight }}
     >
       {/* Map Section - Full size */}
-      {leafletComponents ? (
+      {staticMode ? (
+        <StaticMapPlaceholder height={mapHeight} />
+      ) : leafletComponents ? (
         <leafletComponents.MapContainer
           center={center}
           zoom={zoom}

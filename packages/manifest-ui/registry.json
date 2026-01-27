@@ -9,7 +9,9 @@
       "title": "Contact Form",
       "description": "A complete contact form with name fields, phone with country selector, email, message textarea, and file attachment.",
       "author": "MNFST, Inc",
-      "categories": ["form"],
+      "categories": [
+        "form"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/contact-form.png",
         "version": "1.2.5",
@@ -23,15 +25,23 @@
           "1.2.5": "Fixed defensive property access to handle empty objects and null values"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "input", "label", "select"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button",
+        "input",
+        "label",
+        "select"
+      ],
       "files": [
         {
           "path": "registry/form/contact-form.tsx",
           "type": "registry:block",
           "target": "components/ui/contact-form.tsx"
         }
-      ]
+      ],
+      "category": "form"
     },
     {
       "name": "date-time-picker",
@@ -39,7 +49,9 @@
       "title": "Date & Time Picker",
       "description": "A Calendly-style date and time picker with calendar, available time slots, and timezone display.",
       "author": "MNFST, Inc",
-      "categories": ["form"],
+      "categories": [
+        "form"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/date-time-picker.png",
         "version": "1.0.4",
@@ -50,15 +62,20 @@
           "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/form/date-time-picker.tsx",
           "type": "registry:block",
           "target": "components/ui/date-time-picker.tsx"
         }
-      ]
+      ],
+      "category": "form"
     },
     {
       "name": "issue-report-form",
@@ -66,7 +83,9 @@
       "title": "Issue Report Form",
       "description": "A compact issue reporting form for team members with categories, impact/urgency levels, and file attachments.",
       "author": "MNFST, Inc",
-      "categories": ["form"],
+      "categories": [
+        "form"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/issue-report-form.png",
         "version": "1.0.5",
@@ -78,15 +97,23 @@
           "1.0.5": "Fixed defensive property access to handle empty objects and null values"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "input", "label", "select"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button",
+        "input",
+        "label",
+        "select"
+      ],
       "files": [
         {
           "path": "registry/form/issue-report-form.tsx",
           "type": "registry:block",
           "target": "components/ui/issue-report-form.tsx"
         }
-      ]
+      ],
+      "category": "form"
     },
     {
       "name": "order-confirm",
@@ -94,7 +121,9 @@
       "title": "Order Confirm",
       "description": "Order confirmation with product image, delivery info, and confirm action.",
       "author": "MNFST, Inc",
-      "categories": ["payment"],
+      "categories": [
+        "payment"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/order-confirm.png",
         "version": "1.0.3",
@@ -104,15 +133,20 @@
           "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/payment/order-confirm.tsx",
           "type": "registry:block",
           "target": "components/ui/order-confirm.tsx"
         }
-      ]
+      ],
+      "category": "payment"
     },
     {
       "name": "payment-confirmed",
@@ -120,7 +154,9 @@
       "title": "Payment Confirmed",
       "description": "Payment confirmation card with product image, price, delivery info, and tracking button. Supports default and compressed variants.",
       "author": "MNFST, Inc",
-      "categories": ["payment"],
+      "categories": [
+        "payment"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/payment-confirmed.png",
         "version": "2.0.0",
@@ -131,15 +167,20 @@
           "2.0.0": "Added compressed variant, merged payment-success into this component"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/payment/payment-confirmed.tsx",
           "type": "registry:block",
           "target": "components/ui/payment-confirmed.tsx"
         }
-      ]
+      ],
+      "category": "payment"
     },
     {
       "name": "product-list",
@@ -147,7 +188,9 @@
       "title": "Product List",
       "description": "Product list with list, grid, carousel, and picker variants.",
       "author": "MNFST, Inc",
-      "categories": ["list"],
+      "categories": [
+        "list"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/product-list.png",
         "version": "2.0.6",
@@ -162,8 +205,12 @@
           "2.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/list/product-list.tsx",
@@ -180,7 +227,8 @@
           "type": "registry:lib",
           "target": "components/ui/demo/data.ts"
         }
-      ]
+      ],
+      "category": "list"
     },
     {
       "name": "option-list",
@@ -188,7 +236,9 @@
       "title": "Option List",
       "description": "Tag-style option selector with single or multiple selection modes.",
       "author": "MNFST, Inc",
-      "categories": ["selection"],
+      "categories": [
+        "selection"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/option-list.png",
         "version": "2.1.3",
@@ -203,7 +253,9 @@
           "2.1.3": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
         }
       },
-      "dependencies": ["lucide-react"],
+      "dependencies": [
+        "lucide-react"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -221,7 +273,8 @@
           "type": "registry:lib",
           "target": "components/ui/demo/data.ts"
         }
-      ]
+      ],
+      "category": "selection"
     },
     {
       "name": "amount-input",
@@ -229,7 +282,9 @@
       "title": "Amount Input",
       "description": "Amount input with increment/decrement buttons and preset values.",
       "author": "MNFST, Inc",
-      "categories": ["payment"],
+      "categories": [
+        "payment"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/amount-input.png",
         "version": "1.0.4",
@@ -240,15 +295,20 @@
           "1.0.4": "Fixed defensive property access to handle empty objects and null values"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/payment/amount-input.tsx",
           "type": "registry:block",
           "target": "components/ui/amount-input.tsx"
         }
-      ]
+      ],
+      "category": "payment"
     },
     {
       "name": "tag-select",
@@ -256,7 +316,9 @@
       "title": "Tag Select",
       "description": "Colored tag selector with single or multiple selection and color variants.",
       "author": "MNFST, Inc",
-      "categories": ["selection"],
+      "categories": [
+        "selection"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/tag-select.png",
         "version": "1.1.3",
@@ -269,15 +331,20 @@
           "1.1.3": "Additional defensive property access improvements"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/selection/tag-select.tsx",
           "type": "registry:block",
           "target": "components/ui/tag-select.tsx"
         }
-      ]
+      ],
+      "category": "selection"
     },
     {
       "name": "quick-reply",
@@ -285,7 +352,9 @@
       "title": "Quick Reply",
       "description": "Quick reply buttons for common chat responses.",
       "author": "MNFST, Inc",
-      "categories": ["selection"],
+      "categories": [
+        "selection"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/quick-reply.png",
         "version": "3.1.3",
@@ -308,7 +377,8 @@
           "type": "registry:block",
           "target": "components/ui/quick-reply.tsx"
         }
-      ]
+      ],
+      "category": "selection"
     },
     {
       "name": "progress-steps",
@@ -316,7 +386,9 @@
       "title": "Progress Steps",
       "description": "Progress indicator with horizontal or vertical layout and step statuses.",
       "author": "MNFST, Inc",
-      "categories": ["status"],
+      "categories": [
+        "status"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/progress-steps.png",
         "version": "2.0.0",
@@ -330,7 +402,9 @@
           "2.0.0": "BREAKING: Removed id from Step interface, use array index for key"
         }
       },
-      "dependencies": ["lucide-react"],
+      "dependencies": [
+        "lucide-react"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -338,7 +412,8 @@
           "type": "registry:block",
           "target": "components/ui/progress-steps.tsx"
         }
-      ]
+      ],
+      "category": "status"
     },
     {
       "name": "status-badge",
@@ -346,7 +421,9 @@
       "title": "Status Badge",
       "description": "Status badge with multiple states (success, pending, processing, error, shipped, delivered).",
       "author": "MNFST, Inc",
-      "categories": ["status"],
+      "categories": [
+        "status"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/status-badge.png",
         "version": "1.1.2",
@@ -358,7 +435,9 @@
           "1.1.2": "Fixed defensive property access to handle empty objects and null values"
         }
       },
-      "dependencies": ["lucide-react"],
+      "dependencies": [
+        "lucide-react"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -366,7 +445,8 @@
           "type": "registry:block",
           "target": "components/ui/status-badge.tsx"
         }
-      ]
+      ],
+      "category": "status"
     },
     {
       "name": "stats",
@@ -374,7 +454,9 @@
       "title": "Stats",
       "description": "Scrollable stat cards with values, trends, and change indicators.",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": [
+        "miscellaneous"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/stats.png",
         "version": "1.0.5",
@@ -386,7 +468,9 @@
           "1.0.5": "Additional defensive property access improvements"
         }
       },
-      "dependencies": ["lucide-react"],
+      "dependencies": [
+        "lucide-react"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -394,7 +478,8 @@
           "type": "registry:block",
           "target": "components/ui/stat-card.tsx"
         }
-      ]
+      ],
+      "category": "miscellaneous"
     },
     {
       "name": "post-card",
@@ -402,7 +487,9 @@
       "title": "Post Card",
       "description": "Post card with image, title, excerpt, author info and read more button. Supports default, compact, horizontal, and covered variants. Includes post-detail for fullscreen view.",
       "author": "MNFST, Inc",
-      "categories": ["blogging"],
+      "categories": [
+        "blogging"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-card.png",
         "version": "2.0.5",
@@ -416,8 +503,12 @@
           "2.0.5": "Fixed circular dependency by moving Post interface to types.ts"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/blogging/post-card.tsx",
@@ -439,7 +530,8 @@
           "type": "registry:lib",
           "target": "components/ui/demo/data.ts"
         }
-      ]
+      ],
+      "category": "blogging"
     },
     {
       "name": "post-list",
@@ -447,7 +539,9 @@
       "title": "Post List",
       "description": "Post list with list, grid, carousel, and fullwidth variants. Fullwidth mode shows paginated posts.",
       "author": "MNFST, Inc",
-      "categories": ["blogging"],
+      "categories": [
+        "blogging"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-list.png",
         "version": "2.0.7",
@@ -464,8 +558,12 @@
           "2.0.7": "Added bg-card background and margin to list variant for better dark/light mode support"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/blogging/post-list.tsx",
@@ -492,7 +590,8 @@
           "type": "registry:lib",
           "target": "components/ui/demo/data.ts"
         }
-      ]
+      ],
+      "category": "blogging"
     },
     {
       "name": "post-detail",
@@ -500,7 +599,9 @@
       "title": "Post Detail",
       "description": "Full post view with cover image, author info, content, tags and related posts section.",
       "author": "MNFST, Inc",
-      "categories": ["blogging"],
+      "categories": [
+        "blogging"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-detail.png",
         "version": "2.0.6",
@@ -515,8 +616,13 @@
           "2.0.6": "Fixed circular dependency by importing Post from types.ts"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "tooltip"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button",
+        "tooltip"
+      ],
       "files": [
         {
           "path": "registry/blogging/post-detail.tsx",
@@ -538,7 +644,8 @@
           "type": "registry:lib",
           "target": "components/ui/demo/data.ts"
         }
-      ]
+      ],
+      "category": "blogging"
     },
     {
       "name": "table",
@@ -546,7 +653,9 @@
       "title": "Table",
       "description": "Data table with optional single or multi-select modes for chat interfaces.",
       "author": "MNFST, Inc",
-      "categories": ["list"],
+      "categories": [
+        "list"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/table.png",
         "version": "1.0.6",
@@ -559,15 +668,24 @@
           "1.0.6": "Fixed defensive property access to handle empty objects and null values"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "checkbox", "popover", "select", "input"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button",
+        "checkbox",
+        "popover",
+        "select",
+        "input"
+      ],
       "files": [
         {
           "path": "registry/list/table.tsx",
           "type": "registry:block",
           "target": "components/ui/table.tsx"
         }
-      ]
+      ],
+      "category": "list"
     },
     {
       "name": "message-bubble",
@@ -575,7 +693,9 @@
       "title": "Message Bubble",
       "description": "Chat message bubbles with text, image, voice, and reaction variants.",
       "author": "MNFST, Inc",
-      "categories": ["messaging"],
+      "categories": [
+        "messaging"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/message-bubble.png",
         "version": "3.0.4",
@@ -591,15 +711,20 @@
           "3.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["dropdown-menu"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "dropdown-menu"
+      ],
       "files": [
         {
           "path": "registry/messaging/message-bubble.tsx",
           "type": "registry:block",
           "target": "components/ui/message-bubble.tsx"
         }
-      ]
+      ],
+      "category": "messaging"
     },
     {
       "name": "chat-conversation",
@@ -607,7 +732,9 @@
       "title": "Chat Conversation",
       "description": "Full chat conversation component with multiple message types.",
       "author": "MNFST, Inc",
-      "categories": ["messaging"],
+      "categories": [
+        "messaging"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/chat-conversation.png",
         "version": "4.0.6",
@@ -628,8 +755,12 @@
           "4.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["dropdown-menu"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "dropdown-menu"
+      ],
       "files": [
         {
           "path": "registry/messaging/chat-conversation.tsx",
@@ -651,7 +782,8 @@
           "type": "registry:lib",
           "target": "components/ui/demo/data.ts"
         }
-      ]
+      ],
+      "category": "messaging"
     },
     {
       "name": "x-post",
@@ -659,7 +791,9 @@
       "title": "X Post",
       "description": "X (Twitter) post card with engagement metrics.",
       "author": "MNFST, Inc",
-      "categories": ["social"],
+      "categories": [
+        "social"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/x-post.png",
         "version": "1.1.1",
@@ -670,7 +804,9 @@
           "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
-      "dependencies": ["lucide-react"],
+      "dependencies": [
+        "lucide-react"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -678,7 +814,8 @@
           "type": "registry:block",
           "target": "components/ui/x-post.tsx"
         }
-      ]
+      ],
+      "category": "social"
     },
     {
       "name": "instagram-post",
@@ -686,7 +823,9 @@
       "title": "Instagram Post",
       "description": "Instagram post card with image and engagement.",
       "author": "MNFST, Inc",
-      "categories": ["social"],
+      "categories": [
+        "social"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/instagram-post.png",
         "version": "1.1.1",
@@ -698,15 +837,20 @@
           "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["dropdown-menu"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "dropdown-menu"
+      ],
       "files": [
         {
           "path": "registry/social/instagram-post.tsx",
           "type": "registry:block",
           "target": "components/ui/instagram-post.tsx"
         }
-      ]
+      ],
+      "category": "social"
     },
     {
       "name": "linkedin-post",
@@ -714,7 +858,9 @@
       "title": "LinkedIn Post",
       "description": "LinkedIn post card with professional styling.",
       "author": "MNFST, Inc",
-      "categories": ["social"],
+      "categories": [
+        "social"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/linkedin-post.png",
         "version": "1.1.1",
@@ -725,15 +871,20 @@
           "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["dropdown-menu"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "dropdown-menu"
+      ],
       "files": [
         {
           "path": "registry/social/linkedin-post.tsx",
           "type": "registry:block",
           "target": "components/ui/linkedin-post.tsx"
         }
-      ]
+      ],
+      "category": "social"
     },
     {
       "name": "youtube-post",
@@ -741,7 +892,9 @@
       "title": "YouTube Post",
       "description": "YouTube video card with playable embed.",
       "author": "MNFST, Inc",
-      "categories": ["social"],
+      "categories": [
+        "social"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/youtube-post.png",
         "version": "1.1.1",
@@ -753,15 +906,20 @@
           "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["dropdown-menu"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "dropdown-menu"
+      ],
       "files": [
         {
           "path": "registry/social/youtube-post.tsx",
           "type": "registry:block",
           "target": "components/ui/youtube-post.tsx"
         }
-      ]
+      ],
+      "category": "social"
     },
     {
       "name": "map-carousel",
@@ -769,10 +927,12 @@
       "title": "Map Carousel",
       "description": "Interactive map with location markers and a draggable carousel of cards.",
       "author": "MNFST, Inc",
-      "categories": ["map"],
+      "categories": [
+        "map"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/map-carousel.png",
-        "version": "1.2.3",
+        "version": "1.2.4",
         "changelog": {
           "1.0.0": "Initial release with interactive map and location cards",
           "1.1.0": "Made image and price fields optional in Location interface",
@@ -780,11 +940,18 @@
           "1.2.0": "Moved to map category for better organization",
           "1.2.1": "Removed Next.js dependency - now uses React-only lazy loading for map components",
           "1.2.2": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.2.3": "Fixed defensive property access to handle empty objects and null values"
+          "1.2.3": "Fixed defensive property access to handle empty objects and null values",
+          "1.2.4": "Added staticMode control prop to fix preview generation timeouts"
         }
       },
-      "dependencies": ["lucide-react", "leaflet", "react-leaflet"],
-      "devDependencies": ["@types/leaflet"],
+      "dependencies": [
+        "lucide-react",
+        "leaflet",
+        "react-leaflet"
+      ],
+      "devDependencies": [
+        "@types/leaflet"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -792,7 +959,8 @@
           "type": "registry:block",
           "target": "components/ui/map-carousel.tsx"
         }
-      ]
+      ],
+      "category": "map"
     },
     {
       "name": "event-card",
@@ -800,7 +968,9 @@
       "title": "Event Card",
       "description": "Display event information with multiple layouts. Supports events with images, signals, vibe tags, and display-formatted date/time. Entire card is clickable.",
       "author": "MNFST, Inc",
-      "categories": ["events"],
+      "categories": [
+        "events"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-card.png",
         "version": "5.0.6",
@@ -819,8 +989,12 @@
           "5.0.6": "Added types.ts to registry for proper installation"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/events/event-card.tsx",
@@ -832,7 +1006,8 @@
           "type": "registry:lib",
           "target": "components/ui/event-types.ts"
         }
-      ]
+      ],
+      "category": "events"
     },
     {
       "name": "event-list",
@@ -840,7 +1015,9 @@
       "title": "Event List",
       "description": "Display events in grid, list, or carousel layouts. Fullscreen mode shows interactive split-screen map with Leaflet and animated filter panel.",
       "author": "MNFST, Inc",
-      "categories": ["events"],
+      "categories": [
+        "events"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-list.png",
         "version": "6.0.7",
@@ -863,9 +1040,19 @@
           "6.0.7": "Added types.ts to registry for proper installation"
         }
       },
-      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
-      "devDependencies": ["@types/leaflet"],
-      "registryDependencies": ["button", "checkbox", "https://ui.manifest.build/r/event-card.json"],
+      "dependencies": [
+        "lucide-react",
+        "react-leaflet",
+        "leaflet"
+      ],
+      "devDependencies": [
+        "@types/leaflet"
+      ],
+      "registryDependencies": [
+        "button",
+        "checkbox",
+        "https://ui.manifest.build/r/event-card.json"
+      ],
       "files": [
         {
           "path": "registry/events/event-list.tsx",
@@ -877,7 +1064,8 @@
           "type": "registry:lib",
           "target": "components/ui/event-types.ts"
         }
-      ]
+      ],
+      "category": "events"
     },
     {
       "name": "event-detail",
@@ -885,7 +1073,9 @@
       "title": "Event Detail",
       "description": "Full event detail view with organizer info, interactive map, policies, and ticket purchase. Fullwidth mode only.",
       "author": "MNFST, Inc",
-      "categories": ["events"],
+      "categories": [
+        "events"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-detail.png",
         "version": "3.0.7",
@@ -904,9 +1094,17 @@
           "3.0.7": "Added types.ts to registry for proper installation"
         }
       },
-      "dependencies": ["lucide-react", "react-leaflet", "leaflet"],
-      "devDependencies": ["@types/leaflet"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react",
+        "react-leaflet",
+        "leaflet"
+      ],
+      "devDependencies": [
+        "@types/leaflet"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/events/event-detail.tsx",
@@ -918,7 +1116,8 @@
           "type": "registry:lib",
           "target": "components/ui/event-types.ts"
         }
-      ]
+      ],
+      "category": "events"
     },
     {
       "name": "ticket-tier-select",
@@ -926,7 +1125,9 @@
       "title": "Ticket Tier Select",
       "description": "Ticket tier selection with quantity controls and order summary. Shows price breakdown with fees.",
       "author": "MNFST, Inc",
-      "categories": ["events"],
+      "categories": [
+        "events"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/ticket-tier-select.png",
         "version": "3.0.1",
@@ -940,15 +1141,20 @@
           "3.0.1": "Simplified TicketSelection interface by removing tierIndex"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/events/ticket-tier-select.tsx",
           "type": "registry:block",
           "target": "components/ui/ticket-tier-select.tsx"
         }
-      ]
+      ],
+      "category": "events"
     },
     {
       "name": "event-confirmation",
@@ -956,7 +1162,9 @@
       "title": "Event Confirmation",
       "description": "Order confirmation with event details, ticket delivery info, organizer follow, and social sharing.",
       "author": "MNFST, Inc",
-      "categories": ["events"],
+      "categories": [
+        "events"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-confirmation.png",
         "version": "1.0.3",
@@ -966,15 +1174,20 @@
           "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/events/event-confirmation.tsx",
           "type": "registry:block",
           "target": "components/ui/event-confirmation.tsx"
         }
-      ]
+      ],
+      "category": "events"
     },
     {
       "name": "hero",
@@ -982,7 +1195,9 @@
       "title": "Hero",
       "description": "Landing hero section with optional logos, title, subtitle, CTA buttons, and tech logos footer. Supports image or text logos with separator.",
       "author": "MNFST, Inc",
-      "categories": ["miscellaneous"],
+      "categories": [
+        "miscellaneous"
+      ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/hero.png",
         "version": "2.1.1",
@@ -995,15 +1210,20 @@
           "2.1.1": "Reduced logo image height for better visual balance"
         }
       },
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
       "files": [
         {
           "path": "registry/miscellaneous/hero.tsx",
           "type": "registry:block",
           "target": "components/ui/hero.tsx"
         }
-      ]
+      ],
+      "category": "miscellaneous"
     }
   ]
 }

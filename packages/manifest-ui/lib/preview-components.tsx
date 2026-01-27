@@ -355,7 +355,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
 
   // Map components
   'map-carousel': {
-    component: <MapCarousel data={{ locations: demoMapLocations, center: [40.7128, -74.006] }} />,
+    component: <MapCarousel data={{ locations: demoMapLocations, center: [40.7128, -74.006] }} control={{ staticMode: true }} />,
     category: 'map',
   },
 
