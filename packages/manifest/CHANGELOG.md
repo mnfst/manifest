@@ -1,5 +1,11 @@
 # manifest
 
+## 5.0.4
+
+### Patch Changes
+
+- 7f5eb45: Fixed password validation mismatch where signup form showed 4-character minimum but backend required 12 characters
+
 ## 5.0.3
 
 ### Patch Changes
