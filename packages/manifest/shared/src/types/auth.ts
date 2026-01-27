@@ -5,11 +5,10 @@
 /**
  * Default admin user credentials for development/POC.
  * Used by seed service and can be pre-filled on login page.
- * SECURITY: Password meets 8-character minimum requirement.
  */
 export const DEFAULT_ADMIN_USER = {
-  email: 'admin@example.com',
-  password: 'changeme1234',
+  email: 'admin@manifest.build',
+  password: 'manifest',
   firstName: 'Admin',
   lastName: 'User',
   name: 'Admin User',
