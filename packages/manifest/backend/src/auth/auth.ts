@@ -41,7 +41,7 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
-    minPasswordLength: 8, // Development/POC: relaxed for easier testing
+    minPasswordLength: 8, // Password minimum requirement
     requireEmailVerification: false, // Enable in production with email provider
     // Note: better-auth doesn't support complexity rules natively
     // Consider adding custom validation in signup flow if needed
