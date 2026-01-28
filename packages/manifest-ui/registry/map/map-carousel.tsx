@@ -124,22 +124,36 @@ export type MapStyle =
   | 'dark-matter'
   | 'openstreetmap'
 
-// Filter state for fullscreen variant
-interface FilterState {
-  priceRanges: string[]
-  ratings: string[]
-  neighborhoods: string[]
+// Filter configuration for fullscreen variant
+/**
+ * Configuration for a single filter section.
+ * @interface FilterSectionConfig
+ */
+export interface FilterSectionConfig {
+  /** Unique identifier for this filter (used in filter state). */
+  id: string
+  /** Display title for the filter section. */
+  title: string
+  /** Available options for this filter. */
+  options: string[]
+  /**
+   * Function to check if a location matches the selected filter values.
+   * @param location - The location to check
+   * @param selectedValues - Currently selected filter values
+   * @returns true if location matches, false otherwise
+   */
+  matchFn?: (location: Location, selectedValues: string[]) => boolean
 }
 
-const defaultFilters: FilterState = {
-  priceRanges: [],
-  ratings: [],
-  neighborhoods: []
-}
+/** State tracking selected values for each filter by id. */
+export type FilterState = Record<string, string[]>
 
-// Filter options
-const priceRangeOptions = ['Under $200', '$200 - $300', '$300 - $400', '$400 - $500', '$500+']
-const ratingOptions = ['9.0+', '8.0+', '7.0+', '6.0+']
+const createEmptyFilterState = (filters: FilterSectionConfig[]): FilterState => {
+  return filters.reduce((acc, filter) => {
+    acc[filter.id] = []
+    return acc
+  }, {} as FilterState)
+}
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -171,6 +185,12 @@ export interface MapCarouselProps {
     mapStyle?: MapStyle
     /** Optional title displayed above the list in fullscreen mode. */
     title?: string
+    /**
+     * Filter sections configuration for fullscreen mode.
+     * Each filter section has an id, title, options, and optional matchFn.
+     * If not provided, no filters will be shown.
+     */
+    filters?: FilterSectionConfig[]
   }
   actions?: {
     /** Called when a user selects a location via marker or card click. */
@@ -510,23 +530,23 @@ function FilterSection({
 function FilterPanel({
   isOpen,
   onClose,
-  filters,
+  filterConfigs,
+  filterState,
   onFiltersChange,
   onApply,
   onReset,
-  resultCount,
-  neighborhoodOptions
+  resultCount
 }: {
   isOpen: boolean
   onClose: () => void
-  filters: FilterState
+  filterConfigs: FilterSectionConfig[]
+  filterState: FilterState
   onFiltersChange: (filters: FilterState) => void
   onApply: () => void
   onReset: () => void
   resultCount: number
-  neighborhoodOptions: string[]
 }) {
-  const activeFiltersCount = Object.values(filters).flat().length
+  const activeFiltersCount = Object.values(filterState).flat().length
 
   return (
     <>
@@ -569,26 +589,17 @@ function FilterPanel({
           </Button>
         </div>
 
-        {/* Filter sections */}
+        {/* Filter sections - dynamically rendered */}
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
-          <FilterSection
-            title="Price Range"
-            options={priceRangeOptions}
-            selected={filters.priceRanges}
-            onChange={(priceRanges) => onFiltersChange({ ...filters, priceRanges })}
-          />
-          <FilterSection
-            title="Rating"
-            options={ratingOptions}
-            selected={filters.ratings}
-            onChange={(ratings) => onFiltersChange({ ...filters, ratings })}
-          />
-          <FilterSection
-            title="Neighborhood"
-            options={neighborhoodOptions}
-            selected={filters.neighborhoods}
-            onChange={(neighborhoods) => onFiltersChange({ ...filters, neighborhoods })}
-          />
+          {filterConfigs.map((config) => (
+            <FilterSection
+              key={config.id}
+              title={config.title}
+              options={config.options}
+              selected={filterState[config.id] || []}
+              onChange={(values) => onFiltersChange({ ...filterState, [config.id]: values })}
+            />
+          ))}
         </div>
 
         {/* Footer with actions */}
@@ -797,7 +808,8 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
     center = [37.7899, -122.4034], // San Francisco
     zoom = 14,
     mapStyle = 'voyager',
-    title
+    title,
+    filters: filterConfigs = []
   } = data ?? {}
 
   const tileConfig = getTileConfig(mapStyle)
@@ -820,10 +832,11 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   const carouselRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<Map<number, HTMLButtonElement>>(new Map())
 
-  // Filter state for fullscreen mode
+  // Filter state for fullscreen mode - initialized from filter configs
+  const emptyFilterState = createEmptyFilterState(filterConfigs)
   const [showFilters, setShowFilters] = useState(false)
-  const [filters, setFilters] = useState<FilterState>(defaultFilters)
-  const [appliedFilters, setAppliedFilters] = useState<FilterState>(defaultFilters)
+  const [filterState, setFilterState] = useState<FilterState>(emptyFilterState)
+  const [appliedFilterState, setAppliedFilterState] = useState<FilterState>(emptyFilterState)
 
   // Refs for fullscreen scroll functionality
   const listContainerRef = useRef<HTMLDivElement>(null)
@@ -832,49 +845,28 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   // Lazy load react-leaflet components (React-only, no Next.js dependency)
   const leafletComponents = useReactLeaflet()
 
-  // Get unique neighborhoods from locations for filter options
-  const neighborhoodOptions = [...new Set(locations.map(l => l.subtitle).filter(Boolean) as string[])]
-
-  // Filter locations based on applied filters
+  // Filter locations based on applied filters using dynamic matchFn
   const filterLocations = useCallback((locationsToFilter: Location[], filtersToApply: FilterState): Location[] => {
+    // If no filter configs, return all locations
+    if (filterConfigs.length === 0) return locationsToFilter
+
     return locationsToFilter.filter(location => {
-      // Price range filter
-      if (filtersToApply.priceRanges.length > 0) {
-        const price = location.price ?? 0
-        const priceMatch = filtersToApply.priceRanges.some(range => {
-          if (range === 'Under $200') return price < 200
-          if (range === '$200 - $300') return price >= 200 && price <= 300
-          if (range === '$300 - $400') return price >= 300 && price <= 400
-          if (range === '$400 - $500') return price >= 400 && price <= 500
-          if (range === '$500+') return price >= 500
-          return true
-        })
-        if (!priceMatch) return false
-      }
+      // Check each filter section
+      for (const config of filterConfigs) {
+        const selectedValues = filtersToApply[config.id] || []
+        // Skip if no values selected for this filter
+        if (selectedValues.length === 0) continue
 
-      // Rating filter
-      if (filtersToApply.ratings.length > 0) {
-        const rating = location.rating ?? 0
-        const ratingMatch = filtersToApply.ratings.some(ratingOption => {
-          if (ratingOption === '9.0+') return rating >= 9.0
-          if (ratingOption === '8.0+') return rating >= 8.0
-          if (ratingOption === '7.0+') return rating >= 7.0
-          if (ratingOption === '6.0+') return rating >= 6.0
-          return true
-        })
-        if (!ratingMatch) return false
-      }
-
-      // Neighborhood filter
-      if (filtersToApply.neighborhoods.length > 0) {
-        if (!location.subtitle || !filtersToApply.neighborhoods.includes(location.subtitle)) {
-          return false
+        // Use the matchFn if provided, otherwise skip this filter
+        if (config.matchFn) {
+          if (!config.matchFn(location, selectedValues)) {
+            return false
+          }
         }
       }
-
       return true
     })
-  }, [])
+  }, [filterConfigs])
 
   // Scroll to location in list when selected from map
   const scrollToLocation = useCallback((locationIndex: number) => {
@@ -1016,28 +1008,30 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
     }
 
     const handleFilterButtonClick = () => {
-      setFilters(appliedFilters)
+      setFilterState(appliedFilterState)
       setShowFilters(true)
     }
 
     const handleApplyFilters = () => {
-      setAppliedFilters(filters)
+      setAppliedFilterState(filterState)
       setShowFilters(false)
-      onFiltersApply?.(filters)
+      onFiltersApply?.(filterState)
     }
 
     const handleResetFilters = () => {
-      setFilters(defaultFilters)
-      setAppliedFilters(defaultFilters)
-      onFiltersApply?.(defaultFilters)
+      setFilterState(emptyFilterState)
+      setAppliedFilterState(emptyFilterState)
+      onFiltersApply?.(emptyFilterState)
     }
 
     // Get filtered locations
-    const filteredLocations = filterLocations(locations, appliedFilters)
+    const filteredLocations = filterLocations(locations, appliedFilterState)
     // Get preview count for filter panel
-    const previewFilteredCount = filterLocations(locations, filters).length
+    const previewFilteredCount = filterLocations(locations, filterState).length
     // Count of active filters
-    const activeFiltersCount = Object.values(appliedFilters).flat().length
+    const activeFiltersCount = Object.values(appliedFilterState).flat().length
+    // Check if filters are configured
+    const hasFilters = filterConfigs.length > 0
 
     return (
       <div className="flex w-full h-full min-h-[600px] bg-background">
@@ -1049,20 +1043,22 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
               {title && <span className="font-semibold truncate">{title}</span>}
               <span className="text-muted-foreground text-xs whitespace-nowrap">| {filteredLocations.length}</span>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 flex-shrink-0"
-              onClick={handleFilterButtonClick}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              <span className="hidden sm:inline">Filters</span>
-              {activeFiltersCount > 0 && (
-                <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
-                  {activeFiltersCount}
-                </span>
-              )}
-            </Button>
+            {hasFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 flex-shrink-0"
+                onClick={handleFilterButtonClick}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="hidden sm:inline">Filters</span>
+                {activeFiltersCount > 0 && (
+                  <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </Button>
+            )}
           </div>
 
           {/* Scrollable Location List */}
@@ -1099,16 +1095,18 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
           </div>
 
           {/* Filter Panel Overlay */}
-          <FilterPanel
-            isOpen={showFilters}
-            onClose={() => setShowFilters(false)}
-            filters={filters}
-            onFiltersChange={setFilters}
-            onApply={handleApplyFilters}
-            onReset={handleResetFilters}
-            resultCount={previewFilteredCount}
-            neighborhoodOptions={neighborhoodOptions}
-          />
+          {hasFilters && (
+            <FilterPanel
+              isOpen={showFilters}
+              onClose={() => setShowFilters(false)}
+              filterConfigs={filterConfigs}
+              filterState={filterState}
+              onFiltersChange={setFilterState}
+              onApply={handleApplyFilters}
+              onReset={handleResetFilters}
+              resultCount={previewFilteredCount}
+            />
+          )}
         </div>
 
         {/* Right Panel - Map */}

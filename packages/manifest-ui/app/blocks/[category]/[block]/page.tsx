@@ -1798,7 +1798,50 @@ const categories: Category[] = [
             component: <MapCarousel />,
             fullscreenComponent: (
               <MapCarousel
-                data={{ title: 'Hotels in San Francisco' }}
+                data={{
+                  title: 'Hotels in San Francisco',
+                  filters: [
+                    {
+                      id: 'price',
+                      title: 'Price Range',
+                      options: ['Under $200', '$200 - $300', '$300 - $400', '$400 - $500', '$500+'],
+                      matchFn: (location, selected) => {
+                        const price = location.price ?? 0;
+                        return selected.some(range => {
+                          if (range === 'Under $200') return price < 200;
+                          if (range === '$200 - $300') return price >= 200 && price <= 300;
+                          if (range === '$300 - $400') return price >= 300 && price <= 400;
+                          if (range === '$400 - $500') return price >= 400 && price <= 500;
+                          if (range === '$500+') return price >= 500;
+                          return true;
+                        });
+                      },
+                    },
+                    {
+                      id: 'rating',
+                      title: 'Rating',
+                      options: ['9.0+', '8.0+', '7.0+', '6.0+'],
+                      matchFn: (location, selected) => {
+                        const rating = location.rating ?? 0;
+                        return selected.some(r => {
+                          if (r === '9.0+') return rating >= 9.0;
+                          if (r === '8.0+') return rating >= 8.0;
+                          if (r === '7.0+') return rating >= 7.0;
+                          if (r === '6.0+') return rating >= 6.0;
+                          return true;
+                        });
+                      },
+                    },
+                    {
+                      id: 'neighborhood',
+                      title: 'Neighborhood',
+                      options: ['Downtown San Francisco', 'Union Square', 'Nob Hill', 'Embarcadero', 'SoMa', 'Financial District'],
+                      matchFn: (location, selected) => {
+                        return !location.subtitle || selected.includes(location.subtitle);
+                      },
+                    },
+                  ],
+                }}
                 appearance={{ displayMode: 'fullscreen' }}
                 actions={{
                   onSelectLocation: (location) => console.log('Selected:', location.name),
@@ -1824,7 +1867,39 @@ const categories: Category[] = [
     ],
     center: [37.7899, -122.4034],
     zoom: 14,
-    mapStyle: "voyager"
+    mapStyle: "voyager",
+    // Filters are fully configurable (for fullscreen mode)
+    filters: [
+      {
+        id: "price",
+        title: "Price Range",
+        options: ["Under $200", "$200 - $300", "$300 - $400", "$500+"],
+        matchFn: (location, selected) => {
+          const price = location.price ?? 0;
+          return selected.some(range => {
+            if (range === "Under $200") return price < 200;
+            if (range === "$200 - $300") return price >= 200 && price <= 300;
+            // ... add more price logic
+            return true;
+          });
+        }
+      },
+      {
+        id: "rating",
+        title: "Rating",
+        options: ["9.0+", "8.0+", "7.0+"],
+        matchFn: (location, selected) => {
+          const rating = location.rating ?? 0;
+          return selected.some(r => rating >= parseFloat(r));
+        }
+      },
+      {
+        id: "neighborhood",
+        title: "Neighborhood",
+        options: ["Downtown", "Union Square", "Nob Hill"],
+        matchFn: (location, selected) => selected.includes(location.subtitle)
+      }
+    ]
   }}
   actions={{
     onSelectLocation: (location) => console.log("Selected:", location.name),
