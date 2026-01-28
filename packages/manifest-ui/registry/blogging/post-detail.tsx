@@ -245,7 +245,7 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
               </div>
               <button
                 onClick={handleReadMore}
-                className="shrink-0 p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                className="shrink-0 p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground cursor-pointer"
                 aria-label="Expand to fullscreen"
               >
                 <Maximize2 className="h-4 w-4" />
