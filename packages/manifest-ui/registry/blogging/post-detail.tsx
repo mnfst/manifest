@@ -7,17 +7,15 @@ import { useSyncExternalStore } from 'react';
 import type { Post } from './types';
 
 // Import shared OpenAI types
-import type { OpenAIBridge } from '@/lib/openai-types';
 import '@/lib/openai-types'; // Side effect: extends Window interface
+import type { OpenAIBridge } from '@/lib/openai-types';
 
 // =============================================================================
 // Hook to subscribe to window.openai changes (official pattern from OpenAI)
 // This ensures React re-renders when ChatGPT/MCP host changes displayMode
 // =============================================================================
 
-function useOpenAIGlobal<K extends keyof OpenAIBridge>(
-  key: K
-): OpenAIBridge[K] | undefined {
+function useOpenAIGlobal<K extends keyof OpenAIBridge>(key: K): OpenAIBridge[K] | undefined {
   return useSyncExternalStore(
     (onChange) => {
       if (typeof window === 'undefined') return () => {};
@@ -28,15 +26,6 @@ function useOpenAIGlobal<K extends keyof OpenAIBridge>(
     () => (typeof window !== 'undefined' ? window.openai?.[key] : undefined),
     () => undefined
   );
-}
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '');
-}
-
-function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength).trim() + '...';
 }
 
 function TagList({
@@ -80,83 +69,7 @@ function TagList({
   );
 }
 
-const defaultPost: Post = {
-  title: 'Getting Started with Agentic UI Components',
-  excerpt:
-    'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',
-  coverImage: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
-  author: {
-    name: 'Sarah Chen',
-    avatar: 'https://i.pravatar.cc/150?u=sarah',
-  },
-  publishedAt: '2024-01-15',
-  readTime: '5 min read',
-  tags: ['Tutorial', 'Components', 'AI', 'React', 'TypeScript'],
-  category: 'Tutorial',
-};
-
-const defaultContent = `
-  <p>Building modern AI-powered applications requires a new approach to UI design. Traditional web components don't always translate well to conversational interfaces, where context and flow are paramount.</p>
-
-  <p>Our Agentic UI component library provides a collection of purpose-built components that work seamlessly within chat interfaces. From payment flows to product displays, each component is designed with the unique constraints of conversational UIs in mind.</p>
-
-  <h2>Key Features</h2>
-  <p>Each component supports three display modes: inline (within the chat flow), fullscreen (for complex interactions), and picture-in-picture (persistent visibility). This flexibility allows you to create rich, interactive experiences without breaking the conversational flow.</p>
-
-  <p>Components are designed mobile-first and touch-friendly, ensuring a great experience across all devices. They automatically adapt to light and dark themes, and integrate seamlessly with MCP tools for backend communication.</p>
-`;
-
-/**
- * Default related posts for demonstration.
- * @constant
- */
-const defaultRelatedPosts: Post[] = [
-  {
-    title: 'Designing for Conversational Interfaces',
-    excerpt:
-      'Best practices for creating intuitive UI components that work within chat environments.',
-    coverImage: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800',
-    author: {
-      name: 'Alex Rivera',
-      avatar: 'https://i.pravatar.cc/150?u=alex',
-    },
-    publishedAt: '2024-01-12',
-    readTime: '8 min read',
-    tags: ['Design', 'UX'],
-    category: 'Design',
-    url: 'https://example.com/posts/designing-conversational-interfaces',
-  },
-  {
-    title: 'MCP Integration Patterns',
-    excerpt:
-      'How to leverage Model Context Protocol for seamless backend communication in your agentic applications.',
-    coverImage: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800',
-    author: {
-      name: 'Jordan Kim',
-      avatar: 'https://i.pravatar.cc/150?u=jordan',
-    },
-    publishedAt: '2024-01-10',
-    readTime: '12 min read',
-    tags: ['MCP', 'Backend', 'Integration'],
-    category: 'Development',
-    url: 'https://example.com/posts/mcp-integration-patterns',
-  },
-  {
-    title: 'Building Payment Flows in Chat',
-    excerpt:
-      'A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.',
-    coverImage: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800',
-    author: {
-      name: 'Morgan Lee',
-      avatar: 'https://i.pravatar.cc/150?u=morgan',
-    },
-    publishedAt: '2024-01-08',
-    readTime: '10 min read',
-    tags: ['Payments', 'Security'],
-    url: 'https://example.com/posts/building-payment-flows',
-    category: 'Tutorial',
-  },
-];
+// No default content - component only renders what the user provides
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -249,9 +162,10 @@ export interface PostDetailProps {
  * ```
  */
 export function PostDetail({ data, actions, appearance }: PostDetailProps) {
-  const post = data?.post ?? defaultPost;
-  const content = data?.content ?? defaultContent;
-  const relatedPosts = data?.relatedPosts ?? defaultRelatedPosts;
+  // No defaults - only render what the user provides
+  const post = data?.post;
+  const content = data?.content;
+  const relatedPosts = data?.relatedPosts ?? [];
   const onReadMore = actions?.onReadMore;
   const showCover = appearance?.showCover ?? true;
   const showAuthor = appearance?.showAuthor ?? true;
@@ -266,9 +180,7 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   const getDisplayMode = (): 'inline' | 'pip' | 'fullscreen' => {
     // Check if we're in real ChatGPT/MCP (not our preview mock)
     const isRealHost =
-      typeof window !== 'undefined' &&
-      window.openai &&
-      !('_isPreviewMock' in window.openai);
+      typeof window !== 'undefined' && window.openai && !('_isPreviewMock' in window.openai);
 
     if (isRealHost && hostDisplayMode) {
       // In real ChatGPT/MCP, the host controls displayMode
@@ -303,18 +215,15 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
     });
   };
 
-  const plainTextContent = stripHtml(content);
-  const truncatedContent = truncateText(plainTextContent, 340);
-
   // Inline mode - card view with truncated content
   if (displayMode === 'inline') {
     return (
       <div className="flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3">
-        {showCover && post.coverImage && (
+        {showCover && post?.coverImage && (
           <div className="aspect-video sm:aspect-square sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-md">
             <img
               src={post.coverImage}
-              alt={post.title || ''}
+              alt={post?.title || ''}
               className="h-full w-full object-cover"
             />
           </div>
@@ -324,13 +233,13 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
           <div>
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                {post.category && (
+                {post?.category && (
                   <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                     {post.category}
                   </p>
                 )}
 
-                {post.title && (
+                {post?.title && (
                   <h1 className="line-clamp-2 text-sm font-bold leading-tight">{post.title}</h1>
                 )}
               </div>
@@ -343,11 +252,11 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
               </button>
             </div>
 
-            {post.excerpt && (
+            {post?.excerpt && (
               <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{post.excerpt}</p>
             )}
 
-            {post.tags && post.tags.length > 0 && (
+            {post?.tags && post.tags.length > 0 && (
               <div className="mt-1.5 flex flex-wrap gap-1">
                 <TagList tags={post.tags} maxVisible={2} size="small" />
               </div>
@@ -356,21 +265,21 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
 
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {showAuthor && post.author?.avatar && (
+              {showAuthor && post?.author?.avatar && (
                 <img
                   src={post.author.avatar}
-                  alt={post.author?.name || ''}
+                  alt={post?.author?.name || ''}
                   className="h-4 w-4 rounded-full"
                 />
               )}
-              {showAuthor && post.author?.name && <span>{post.author.name}</span>}
-              {post.publishedAt && (
+              {showAuthor && post?.author?.name && <span>{post.author.name}</span>}
+              {post?.publishedAt && (
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   {formatDate(post.publishedAt)}
                 </span>
               )}
-              {post.readTime && (
+              {post?.readTime && (
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   {post.readTime}
@@ -391,11 +300,11 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   if (displayMode === 'pip') {
     return (
       <div className="flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3">
-        {showCover && post.coverImage && (
+        {showCover && post?.coverImage && (
           <div className="aspect-video sm:aspect-square sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-md">
             <img
               src={post.coverImage}
-              alt={post.title || ''}
+              alt={post?.title || ''}
               className="h-full w-full object-cover"
             />
           </div>
@@ -403,21 +312,21 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
 
         <div className="flex flex-1 flex-col justify-between min-w-0">
           <div>
-            {post.category && (
+            {post?.category && (
               <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                 {post.category}
               </p>
             )}
 
-            {post.title && (
+            {post?.title && (
               <h1 className="line-clamp-2 text-sm font-bold leading-tight">{post.title}</h1>
             )}
 
-            {post.excerpt && (
+            {post?.excerpt && (
               <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{post.excerpt}</p>
             )}
 
-            {post.tags && post.tags.length > 0 && (
+            {post?.tags && post.tags.length > 0 && (
               <div className="mt-1.5 flex flex-wrap gap-1">
                 <TagList tags={post.tags} maxVisible={2} size="small" />
               </div>
@@ -426,21 +335,21 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
 
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {showAuthor && post.author?.avatar && (
+              {showAuthor && post?.author?.avatar && (
                 <img
                   src={post.author.avatar}
-                  alt={post.author?.name || ''}
+                  alt={post?.author?.name || ''}
                   className="h-4 w-4 rounded-full"
                 />
               )}
-              {showAuthor && post.author?.name && <span>{post.author.name}</span>}
-              {post.publishedAt && (
+              {showAuthor && post?.author?.name && <span>{post.author.name}</span>}
+              {post?.publishedAt && (
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   {formatDate(post.publishedAt)}
                 </span>
               )}
-              {post.readTime && (
+              {post?.readTime && (
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   {post.readTime}
@@ -460,34 +369,34 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   return (
     <div className="min-h-screen fs-mode bg-background">
       <article className="mx-auto w-full max-w-[680px] px-6 py-10">
-        {showCover && post.coverImage && (
+        {showCover && post?.coverImage && (
           <div className="aspect-video w-full overflow-hidden rounded-lg mb-8">
             <img
               src={post.coverImage}
-              alt={post.title || ''}
+              alt={post?.title || ''}
               className="h-full w-full object-cover"
             />
           </div>
         )}
-        {post.category && (
+        {post?.category && (
           <p className="mb-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
             {post.category}
           </p>
         )}
 
-        {post.title && (
+        {post?.title && (
           <h1 className="text-[32px] font-bold leading-[1.25] tracking-tight md:text-[42px]">
             {post.title}
           </h1>
         )}
 
-        {post.tags && post.tags.length > 0 && (
+        {post?.tags && post.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <TagList tags={post.tags} maxVisible={2} size="default" />
           </div>
         )}
 
-        {showAuthor && post.author && (
+        {showAuthor && post?.author && (
           <div className="mt-8 flex items-center gap-4 border-b pb-8">
             {post.author.avatar && (
               <img
@@ -498,15 +407,15 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
             )}
             <div>
               {post.author.name && <p className="font-medium">{post.author.name}</p>}
-              {(post.publishedAt || post.readTime) && (
+              {(post?.publishedAt || post?.readTime) && (
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  {post.publishedAt && (
+                  {post?.publishedAt && (
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3.5 w-3.5" />
                       {formatDate(post.publishedAt)}
                     </span>
                   )}
-                  {post.readTime && (
+                  {post?.readTime && (
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" />
                       {post.readTime}
@@ -520,7 +429,7 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
 
         {/* Medium-style content */}
         <div className="mt-10">
-          {post.excerpt && (
+          {post?.excerpt && (
             <p className="text-[21px] leading-[1.8] text-muted-foreground mb-8">{post.excerpt}</p>
           )}
           {content && (
