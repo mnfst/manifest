@@ -47,6 +47,11 @@ import { MapCarousel } from '@/registry/map/map-carousel';
 import { PostCard } from '@/registry/blogging/post-card';
 import { PostDetail } from '@/registry/blogging/post-detail';
 import { PostList } from '@/registry/blogging/post-list';
+import {
+  demoPost,
+  demoPosts,
+  demoPostDetailData,
+} from '@/registry/blogging/demo/data';
 
 // Messaging components
 import { ChatConversation } from '@/registry/messaging/chat-conversation';
@@ -60,23 +65,6 @@ import { EventList } from '@/registry/events/event-list';
 import { TicketTierSelect } from '@/registry/events/ticket-tier-select';
 
 // Demo data
-const demoPost = {
-  title: 'Getting Started with Agentic UI',
-  excerpt: 'Learn how to build conversational interfaces with our component library.',
-  coverImage: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
-  author: { name: 'Sarah Chen', avatar: 'https://i.pravatar.cc/150?u=sarah' },
-  publishedAt: '2024-01-15',
-  readTime: '5 min read',
-  tags: ['Tutorial', 'Components'],
-  category: 'Tutorial',
-};
-
-const demoPosts = Array.from({ length: 6 }, (_, i) => ({
-  ...demoPost,
-  title: `Post Title ${i + 1}`,
-  excerpt: `This is the excerpt for post ${i + 1}.`,
-}));
-
 const demoProducts = [
   { name: 'Premium Headphones', price: 299, image: 'https://ui.manifest.build/demo/shoe-1.png' },
   { name: 'Wireless Earbuds', price: 149, image: 'https://ui.manifest.build/demo/shoe-2.png' },
@@ -178,7 +166,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     component: <ProductList data={{ products: demoProducts }} appearance={{ variant: 'grid' }} />,
     category: 'list',
   },
-  'table': {
+  table: {
     component: (
       <Table
         data={{
@@ -254,7 +242,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
   },
 
   // Miscellaneous components
-  'stats': {
+  stats: {
     component: (
       <Stats
         data={{
@@ -268,7 +256,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     ),
     category: 'miscellaneous',
   },
-  'hero': {
+  hero: {
     component: (
       <Hero
         data={{
@@ -365,15 +353,11 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'blogging',
   },
   'post-list': {
-    component: <PostList data={{ posts: demoPosts }} appearance={{ variant: 'grid' }} />,
+    component: <PostList data={{ posts: demoPosts.slice(0, 6) }} appearance={{ variant: 'grid' }} />,
     category: 'blogging',
   },
   'post-detail': {
-    component: (
-      <PostDetail
-        data={{ post: demoPost, content: '<p>This is the full article content...</p>' }}
-      />
-    ),
+    component: <PostDetail data={demoPostDetailData} />,
     category: 'blogging',
   },
 
