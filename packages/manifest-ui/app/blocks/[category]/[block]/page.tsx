@@ -14,6 +14,7 @@ import { IssueReportForm } from '@/registry/form/issue-report-form';
 
 // Blogging components
 import { PostCardDemo } from '@/components/blocks/post-card-demo';
+import { PostDetailDemo } from '@/components/blocks/post-detail-demo';
 import { PostListDemo } from '@/components/blocks/post-list-demo';
 import { PostDetail } from '@/registry/blogging/post-detail';
 import { PostList } from '@/registry/blogging/post-list';
@@ -77,6 +78,7 @@ interface BlockVariant {
   id: string;
   name: string;
   component: React.ReactNode;
+  pipComponent?: React.ReactNode;
   fullscreenComponent?: React.ReactNode;
   usageCode?: string;
 }
@@ -943,7 +945,9 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            component: <PostDetailDemo />,
+            pipComponent: <PostDetail appearance={{ displayMode: 'pip' }} />,
+            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostDetail
   data={{
     post: {
@@ -2780,6 +2784,7 @@ function BlockPageContent() {
                 ref={index === 0 ? firstVariantRef : undefined}
                 name={variant.name}
                 component={variant.component}
+                pipComponent={variant.pipComponent}
                 fullscreenComponent={variant.fullscreenComponent}
                 registryName={selectedBlock.registryName}
                 usageCode={variant.usageCode}

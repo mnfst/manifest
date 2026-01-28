@@ -166,7 +166,8 @@
       "2.0.4": "Fixed defensive property access to handle empty objects and null values",
       "2.0.5": "Added missing tooltip dependency to registryDependencies",
       "2.0.6": "Fixed circular dependency by importing Post from types.ts",
-      "2.1.0": "Added pip display mode. Content is now truncated in inline and pip modes."
+      "2.1.0": "Added pip display mode. Content is now truncated in inline and pip modes.",
+      "2.1.1": "Improved pip mode with horizontal layout showing all post metadata"
     },
     "table": {
       "1.0.0": "Initial release with single and multi-select modes",

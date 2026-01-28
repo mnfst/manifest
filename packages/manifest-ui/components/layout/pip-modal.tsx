@@ -1,12 +1,13 @@
 'use client'
 
-import { X } from 'lucide-react'
+import { Maximize2, X } from 'lucide-react'
 import { ReactNode } from 'react'
 
 export interface PipModalProps {
   children: ReactNode
   appName: string
   onClose?: () => void
+  onExpand?: () => void
   /** Position and width to match the inline content */
   position?: { left: number; width: number }
 }
@@ -23,7 +24,7 @@ export interface PipModalProps {
  * Our components should NOT render this directly - they call requestDisplayMode('pip')
  * and the host wraps them in their own PiP container.
  */
-export function PipModal({ children, onClose, position }: PipModalProps) {
+export function PipModal({ children, onClose, onExpand, position }: PipModalProps) {
   return (
     <>
       {/* PiP Window - just the component with shadow and close button */}
@@ -39,6 +40,17 @@ export function PipModal({ children, onClose, position }: PipModalProps) {
         >
           <X className="h-4 w-4" />
         </button>
+
+        {/* Expand button - top right, floating over content */}
+        {onExpand && (
+          <button
+            onClick={onExpand}
+            className="absolute -top-3 -right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black text-white shadow-lg hover:bg-black/80 transition-colors cursor-pointer"
+            aria-label="Expand to fullscreen"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </button>
+        )}
 
         {/* Content - just the component with rounded corners and shadow */}
         <div className="rounded-2xl overflow-hidden shadow-lg">
