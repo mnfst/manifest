@@ -935,14 +935,14 @@ const categories: Category[] = [
         id: 'post-detail',
         name: 'Post Detail',
         description:
-          'Full post view with Medium-style typography, cover image, author info, content, and related posts.',
+          'Full post view with Medium-style typography, cover image, author info, content, and related posts. Supports inline, pip, and fullscreen display modes.',
         registryName: 'post-detail',
-        layouts: ['inline', 'fullscreen'],
-        actionCount: 2,
+        layouts: ['inline', 'pip', 'fullscreen'],
+        actionCount: 3,
         variants: [
           {
-            id: 'fullscreen',
-            name: 'Fullscreen',
+            id: 'default',
+            name: 'Default',
             component: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostDetail
   data={{
@@ -997,41 +997,16 @@ const categories: Category[] = [
   appearance={{
     showCover: true,
     showAuthor: true,
+    // displayMode: "inline" | "pip" | "fullscreen"
+    // - inline: Compact card with truncated content, "Read more" button
+    // - pip: Minimal floating view with truncated content
+    // - fullscreen: Full article view with complete content and related posts
     displayMode: "fullscreen"
   }}
   actions={{
     onBack: () => console.log("Back clicked"),
+    onReadMore: () => console.log("Read more clicked (inline/pip modes)"),
     onReadRelated: (post) => console.log("Read related:", post.title)
-  }}
-/>`,
-          },
-          {
-            id: 'inline',
-            name: 'Inline',
-            component: <PostDetail appearance={{ displayMode: 'inline' }} />,
-            usageCode: `<PostDetail
-  data={{
-    post: {
-      title: "Getting Started with Agentic UI Components",
-      excerpt: "Learn how to build conversational interfaces with our comprehensive component library.",
-      coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
-      author: {
-        name: "Sarah Chen",
-        avatar: "https://i.pravatar.cc/150?u=sarah"
-      },
-      publishedAt: "2024-01-15",
-      readTime: "5 min read",
-      tags: ["Tutorial", "Components"],
-      category: "Tutorial"
-    },
-    content: "<p>Building modern AI-powered applications requires a new approach...</p>"
-  }}
-  appearance={{
-    showCover: true,
-    displayMode: "inline"
-  }}
-  actions={{
-    onReadMore: () => console.log("Read more clicked")
   }}
 />`,
           },

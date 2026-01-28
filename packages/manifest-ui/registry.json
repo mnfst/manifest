@@ -503,7 +503,7 @@
       "categories": ["blogging"],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-detail.png",
-        "version": "2.0.6",
+        "version": "2.1.0",
         "changelog": {
           "1.0.0": "Initial release with cover image, author info and related posts",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
@@ -512,7 +512,8 @@
           "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.0.4": "Fixed defensive property access to handle empty objects and null values",
           "2.0.5": "Added missing tooltip dependency to registryDependencies",
-          "2.0.6": "Fixed circular dependency by importing Post from types.ts"
+          "2.0.6": "Fixed circular dependency by importing Post from types.ts",
+          "2.1.0": "Added pip display mode. Content is now truncated in inline and pip modes."
         }
       },
       "dependencies": ["lucide-react"],

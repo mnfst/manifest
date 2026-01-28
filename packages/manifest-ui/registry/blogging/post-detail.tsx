@@ -184,9 +184,12 @@ export interface PostDetailProps {
     showAuthor?: boolean
     /**
      * Display mode for the component.
+     * - inline: Compact card view with truncated content
+     * - pip: Picture-in-picture view with truncated content
+     * - fullscreen: Full article view with complete content
      * @default "fullscreen"
      */
-    displayMode?: 'inline' | 'fullscreen'
+    displayMode?: 'inline' | 'pip' | 'fullscreen'
   }
 }
 
@@ -263,9 +266,10 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
 
   const plainTextContent = stripHtml(content)
   const truncatedContent = truncateText(plainTextContent, 340)
-  const isInline = displayMode === 'inline'
+  const pipTruncatedContent = truncateText(plainTextContent, 150)
 
-  if (isInline) {
+  // Inline mode - card view with truncated content
+  if (displayMode === 'inline') {
     return (
       <div className="rounded-lg border bg-card">
         {showCover && post.coverImage && (
@@ -319,6 +323,48 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
               Read more
             </Button>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  // PiP mode - minimal floating view with truncated content
+  if (displayMode === 'pip') {
+    return (
+      <div className="flex gap-3 rounded-lg border bg-card p-3 shadow-lg">
+        {showCover && post.coverImage && (
+          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md">
+            <img
+              src={post.coverImage}
+              alt={post.title || ''}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
+
+        <div className="min-w-0 flex-1">
+          {post.category && (
+            <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              {post.category}
+            </p>
+          )}
+
+          {post.title && (
+            <h1 className="line-clamp-1 text-sm font-bold">{post.title}</h1>
+          )}
+
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+            {pipTruncatedContent}
+          </p>
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className="mt-2 h-7 px-2 text-xs"
+            onClick={handleReadMore}
+          >
+            Read more
+          </Button>
         </div>
       </div>
     )
