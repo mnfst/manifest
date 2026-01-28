@@ -166,7 +166,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     component: <ProductList data={{ products: demoProducts }} appearance={{ variant: 'grid' }} />,
     category: 'list',
   },
-  table: {
+  'table': {
     component: (
       <Table
         data={{
@@ -242,7 +242,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
   },
 
   // Miscellaneous components
-  stats: {
+  'stats': {
     component: (
       <Stats
         data={{
@@ -256,7 +256,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     ),
     category: 'miscellaneous',
   },
-  hero: {
+  'hero': {
     component: (
       <Hero
         data={{
