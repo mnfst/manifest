@@ -3,10 +3,32 @@
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, Clock, ExternalLink } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
 import type { Post } from './types';
 
 // Import shared OpenAI types
+import type { OpenAIBridge } from '@/lib/openai-types';
 import '@/lib/openai-types'; // Side effect: extends Window interface
+
+// =============================================================================
+// Hook to subscribe to window.openai changes (official pattern from OpenAI)
+// This ensures React re-renders when ChatGPT/MCP host changes displayMode
+// =============================================================================
+
+function useOpenAIGlobal<K extends keyof OpenAIBridge>(
+  key: K
+): OpenAIBridge[K] | undefined {
+  return useSyncExternalStore(
+    (onChange) => {
+      if (typeof window === 'undefined') return () => {};
+      const handler = () => onChange();
+      window.addEventListener('openai:set_globals', handler);
+      return () => window.removeEventListener('openai:set_globals', handler);
+    },
+    () => (typeof window !== 'undefined' ? window.openai?.[key] : undefined),
+    () => undefined
+  );
+}
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, '');
@@ -233,7 +255,33 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   const onReadMore = actions?.onReadMore;
   const showCover = appearance?.showCover ?? true;
   const showAuthor = appearance?.showAuthor ?? true;
-  const displayMode = appearance?.displayMode ?? 'fullscreen';
+
+  // Subscribe to window.openai.displayMode changes (for real ChatGPT/MCP host)
+  // This hook uses useSyncExternalStore to re-render when the host changes displayMode
+  const hostDisplayMode = useOpenAIGlobal('displayMode');
+
+  // Determine the actual displayMode to use:
+  // - In real ChatGPT/MCP: Use hostDisplayMode from window.openai (host controls display)
+  // - On preview website (mock): Use appearance.displayMode prop
+  const getDisplayMode = (): 'inline' | 'pip' | 'fullscreen' => {
+    // Check if we're in real ChatGPT/MCP (not our preview mock)
+    const isRealHost =
+      typeof window !== 'undefined' &&
+      window.openai &&
+      !('_isPreviewMock' in window.openai);
+
+    if (isRealHost && hostDisplayMode) {
+      // In real ChatGPT/MCP, the host controls displayMode
+      return hostDisplayMode;
+    }
+    // On preview website or when host doesn't set displayMode, use appearance prop
+    if (appearance?.displayMode) {
+      return appearance.displayMode;
+    }
+    // Default to inline
+    return 'inline';
+  };
+  const displayMode = getDisplayMode();
 
   // Handle "Read more" click - use callback if provided, otherwise request fullscreen from host
   const handleReadMore = () => {
@@ -397,7 +445,7 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
 
   // Fullscreen mode
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen fs-mode bg-background">
       <article className="mx-auto w-full max-w-[680px] px-6 py-10">
         {showCover && post.coverImage && (
           <div className="aspect-video w-full overflow-hidden rounded-lg mb-8">
