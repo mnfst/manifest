@@ -190,8 +190,9 @@ A block modification is NOT complete until you have updated:
 
 | Location                                 | What to Update                                                              |
 | ---------------------------------------- | --------------------------------------------------------------------------- |
-| `registry/<category>/<block>.tsx`        | Component code, interfaces, props, default values                           |
-| `app/blocks/[category]/[block]/page.tsx` | `usageCode`, component preview, block metadata, default data                |
+| `registry/<category>/<block>.tsx`        | Component code, interfaces, props (NO default data in component!)           |
+| `registry/<category>/demo/data.ts`       | Centralized demo data for previews (single source of truth)                 |
+| `app/blocks/[category]/[block]/page.tsx` | `usageCode`, component preview, block metadata (imports from demo/data.ts)  |
 | `registry.json`                          | Version bump (PATCH/MINOR/MAJOR), category field (auto-derived from folder) |
 | `changelog.json`                         | Changelog entry for the new version                                         |
 
@@ -231,10 +232,61 @@ After ANY component change:
 When creating or modifying a block, update these files:
 
 1. **Component file**: `packages/manifest-ui/registry/<category>/<block-name>.tsx`
-2. **Registry definition**: `packages/manifest-ui/registry.json`
-3. **Block demo with usage example**: `packages/manifest-ui/app/blocks/[category]/[block]/page.tsx`
-4. **Sidebar navigation** (if new block): `packages/manifest-ui/app/blocks/page.tsx`
-5. **Category navigation** (if new): `packages/manifest-ui/lib/blocks-categories.ts`
+2. **Demo data file**: `packages/manifest-ui/registry/<category>/demo/data.ts` (centralized demo data)
+3. **Registry definition**: `packages/manifest-ui/registry.json`
+4. **Block demo with usage example**: `packages/manifest-ui/app/blocks/[category]/[block]/page.tsx`
+5. **Preview components**: `packages/manifest-ui/lib/preview-components.tsx` (imports from demo/data.ts)
+6. **Sidebar navigation** (if new block): `packages/manifest-ui/app/blocks/page.tsx`
+7. **Category navigation** (if new): `packages/manifest-ui/lib/blocks-categories.ts`
+
+### Display Modes Pattern (CRITICAL)
+
+**ALL components in this registry MUST support all 3 display modes.** This is a fundamental architecture requirement, not optional:
+
+| Mode | Description | Layout |
+|------|-------------|--------|
+| `inline` | Compact view within chat flow | Horizontal card, truncated content |
+| `pip` | Picture-in-picture floating view | Similar to inline, optimized for floating |
+| `fullscreen` | Full-page expanded view | Complete content, vertical scroll |
+
+**Implementation:**
+- Accept `displayMode` in the `appearance` prop
+- Render different layouts based on the mode
+- Integrate with ChatGPT/MCP host API for real environments
+
+See `packages/manifest-ui/CLAUDE.md` for detailed implementation patterns.
+
+### No Default Data Pattern (CRITICAL)
+
+**Components MUST NOT have hardcoded default data.** They should only render what the user explicitly provides.
+
+```typescript
+// ❌ BAD - Don't use default data in components
+const post = data?.post ?? { title: 'Default Title' };
+
+// ✅ GOOD - Only render what's provided
+const post = data?.post;
+return post?.title && <h1>{post.title}</h1>;
+```
+
+**Why:**
+- Users expect empty components until they provide data
+- Default data creates confusion about required vs optional fields
+- Demo data belongs in `demo/data.ts`, not in the component
+
+### Centralized Demo Data Pattern (CRITICAL)
+
+All demo data MUST live in `registry/<category>/demo/data.ts`:
+
+```
+registry/blogging/
+├── post-detail.tsx     # Component (NO default data)
+├── types.ts            # TypeScript interfaces
+└── demo/
+    └── data.ts         # All demo data (single source of truth)
+```
+
+Both `page.tsx` and `preview-components.tsx` import from `demo/data.ts`. Never duplicate demo data.
 
 ### Avatar Pattern (IMPORTANT)
 

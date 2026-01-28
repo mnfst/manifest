@@ -148,6 +148,173 @@ These comments make documentation visible in IDE hover tooltips, improving devel
 pnpm test
 ```
 
+## Display Modes Architecture
+
+**CRITICAL**: ALL components in this registry MUST support all 3 display modes: `inline`, `pip`, and `fullscreen`. This is a fundamental architecture requirement, not optional.
+
+### Available Display Modes
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| `inline` | Compact card view within chat flow | Default view in conversational UI |
+| `pip` | Picture-in-picture floating view | Persistent visibility while chatting |
+| `fullscreen` | Full-page expanded view | Detailed content, complex interactions |
+
+### Implementation Pattern
+
+Components supporting display modes should:
+
+1. **Accept displayMode in appearance prop**:
+```typescript
+appearance?: {
+  /**
+   * Display mode for the component.
+   * @default "inline"
+   */
+  displayMode?: 'inline' | 'pip' | 'fullscreen';
+}
+```
+
+2. **Render different layouts per mode**:
+```typescript
+export function MyComponent({ data, appearance }: MyComponentProps) {
+  const displayMode = appearance?.displayMode ?? 'inline';
+
+  // Inline mode - compact card view
+  if (displayMode === 'inline') {
+    return <div className="...">{/* Compact layout */}</div>;
+  }
+
+  // PiP mode - similar to inline but optimized for floating
+  if (displayMode === 'pip') {
+    return <div className="...">{/* PiP layout */}</div>;
+  }
+
+  // Fullscreen mode - full content
+  return <div className="min-h-screen fs-mode">{/* Full layout */}</div>;
+}
+```
+
+3. **Integrate with ChatGPT/MCP host API** (for real host environments):
+```typescript
+// Subscribe to host displayMode changes
+const hostDisplayMode = useOpenAIGlobal('displayMode');
+
+// Request fullscreen from host
+const handleExpand = () => {
+  window.openai?.requestDisplayMode({ mode: 'fullscreen' });
+};
+```
+
+### Design Guidelines per Mode
+
+| Mode | Layout | Content | Actions |
+|------|--------|---------|---------|
+| **inline** | Horizontal card, image thumbnail | Truncated (2-3 lines), essential info only | "Read"/"Expand" button |
+| **pip** | Similar to inline, compact | Truncated, key metadata | Expand button |
+| **fullscreen** | Full width, vertical scroll | Complete content, all details | Back, Share, related items |
+
+## No Default Data Pattern (CRITICAL)
+
+**IMPORTANT**: Components MUST NOT render default/placeholder data when the user doesn't provide data. They should only render what is explicitly passed.
+
+### Why This Matters
+
+- Users copy components into their projects and expect them to be empty until they provide data
+- Default data creates confusion about what's required vs optional
+- Components should be "data-driven" - no data = nothing rendered
+
+### Implementation Pattern
+
+```typescript
+// ❌ BAD - Don't use default data
+export function PostDetail({ data }: PostDetailProps) {
+  const post = data?.post ?? {
+    title: 'Default Title',  // Never do this!
+    excerpt: 'Default excerpt...',
+  };
+  return <div>{post.title}</div>;
+}
+
+// ✅ GOOD - Only render what's provided
+export function PostDetail({ data }: PostDetailProps) {
+  const post = data?.post;
+
+  return (
+    <div>
+      {post?.title && <h1>{post.title}</h1>}
+      {post?.excerpt && <p>{post.excerpt}</p>}
+      {post?.author?.name && <span>{post.author.name}</span>}
+    </div>
+  );
+}
+```
+
+### Key Rules
+
+1. **No hardcoded defaults** in component files for content data
+2. **Use optional chaining** (`?.`) and conditional rendering
+3. **Defaults are OK for appearance/behavior** props (e.g., `variant ?? 'default'`)
+4. **Demo data lives separately** in `demo/data.ts` files (see below)
+
+## Centralized Demo Data
+
+**IMPORTANT**: Demo data for component previews MUST be centralized in dedicated files, not duplicated across preview components and page files.
+
+### Directory Structure
+
+```
+registry/<category>/
+├── <component>.tsx       # Component code (NO default data)
+├── types.ts              # Shared TypeScript interfaces
+└── demo/
+    └── data.ts           # All demo data for this category
+```
+
+### Demo Data File Pattern
+
+```typescript
+// registry/blogging/demo/data.ts
+
+import type { Post } from '../types';
+
+// Single item for card components
+export const demoPost: Post = {
+  title: 'Getting Started with Agentic UI Components',
+  excerpt: 'Learn how to build conversational interfaces...',
+  // ... complete data
+};
+
+// Array for list components
+export const demoPosts: Post[] = [
+  // ... 15 posts for realistic previews
+];
+
+// Combined data for detail components
+export const demoPostDetailData = {
+  post: { ...demoPost, tags: ['Tutorial', 'Components', 'AI'] },
+  content: '<p>Full article HTML content...</p>',
+  relatedPosts: [...],
+};
+```
+
+### Usage in Preview Files
+
+```typescript
+// lib/preview-components.tsx
+import { demoPost, demoPosts, demoPostDetailData } from '@/registry/blogging/demo/data';
+
+// app/blocks/[category]/[block]/page.tsx
+import { demoPostDetailData } from '@/registry/blogging/demo/data';
+```
+
+### Key Rules
+
+1. **Single source of truth**: All demo data in `registry/<category>/demo/data.ts`
+2. **No duplication**: `preview-components.tsx` and `page.tsx` import from demo/data.ts
+3. **Complete data**: Include all fields needed for realistic previews
+4. **Typed exports**: Export with proper TypeScript types
+
 ## Component Versioning (Semver)
 
 **CRITICAL**: Every component in `registry.json` MUST have a `version` field following [Semantic Versioning](https://semver.org/) conventions.

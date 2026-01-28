@@ -23,6 +23,7 @@ type LayoutMode = 'inline' | 'fullscreen' | 'pip'
 interface VariantSectionProps {
   name: string
   component: React.ReactNode
+  pipComponent?: React.ReactNode
   fullscreenComponent?: React.ReactNode
   registryName: string
   usageCode?: string
@@ -155,6 +156,7 @@ function FullwidthPlaceholder({ onOpen }: { onOpen: () => void }) {
 export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionProps>(function VariantSection({
   name,
   component,
+  pipComponent,
   fullscreenComponent,
   registryName,
   usageCode,
@@ -418,7 +420,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
           onClose={() => setIsPipOpen(false)}
           position={pipPosition}
         >
-          {component}
+          {pipComponent || component}
         </PipModal>
       )}
     </div>

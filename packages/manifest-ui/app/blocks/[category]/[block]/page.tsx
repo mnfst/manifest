@@ -14,7 +14,9 @@ import { IssueReportForm } from '@/registry/form/issue-report-form';
 
 // Blogging components
 import { PostCardDemo } from '@/components/blocks/post-card-demo';
+import { PostDetailDemo } from '@/components/blocks/post-detail-demo';
 import { PostListDemo } from '@/components/blocks/post-list-demo';
+import { demoPostDetailData } from '@/registry/blogging/demo/data';
 import { PostDetail } from '@/registry/blogging/post-detail';
 import { PostList } from '@/registry/blogging/post-list';
 
@@ -77,6 +79,7 @@ interface BlockVariant {
   id: string;
   name: string;
   component: React.ReactNode;
+  pipComponent?: React.ReactNode;
   fullscreenComponent?: React.ReactNode;
   usageCode?: string;
 }
@@ -935,16 +938,23 @@ const categories: Category[] = [
         id: 'post-detail',
         name: 'Post Detail',
         description:
-          'Full post view with Medium-style typography, cover image, author info, content, and related posts.',
+          'Full post view with Medium-style typography, cover image, author info, content, and related posts. Supports inline, pip, and fullscreen display modes.',
         registryName: 'post-detail',
-        layouts: ['inline', 'fullscreen'],
-        actionCount: 2,
-        variants: [
-          {
-            id: 'fullscreen',
-            name: 'Fullscreen',
-            component: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
-            usageCode: `<PostDetail
+        layouts: ['inline', 'pip', 'fullscreen'],
+        actionCount: 3,
+        variants: (() => {
+          return [
+            {
+              id: 'default',
+              name: 'Default',
+              component: <PostDetailDemo data={demoPostDetailData} />,
+              pipComponent: (
+                <PostDetail data={demoPostDetailData} appearance={{ displayMode: 'pip' }} />
+              ),
+              fullscreenComponent: (
+                <PostDetail data={demoPostDetailData} appearance={{ displayMode: 'fullscreen' }} />
+              ),
+              usageCode: `<PostDetail
   data={{
     post: {
       title: "Getting Started with Agentic UI Components",
@@ -997,45 +1007,21 @@ const categories: Category[] = [
   appearance={{
     showCover: true,
     showAuthor: true,
+    // displayMode: "inline" | "pip" | "fullscreen"
+    // - inline: Compact card with truncated content, "Read more" button
+    // - pip: Minimal floating view with truncated content
+    // - fullscreen: Full article view with complete content and related posts
     displayMode: "fullscreen"
   }}
   actions={{
     onBack: () => console.log("Back clicked"),
+    onReadMore: () => console.log("Read more clicked (inline/pip modes)"),
     onReadRelated: (post) => console.log("Read related:", post.title)
   }}
 />`,
-          },
-          {
-            id: 'inline',
-            name: 'Inline',
-            component: <PostDetail appearance={{ displayMode: 'inline' }} />,
-            usageCode: `<PostDetail
-  data={{
-    post: {
-      title: "Getting Started with Agentic UI Components",
-      excerpt: "Learn how to build conversational interfaces with our comprehensive component library.",
-      coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800",
-      author: {
-        name: "Sarah Chen",
-        avatar: "https://i.pravatar.cc/150?u=sarah"
-      },
-      publishedAt: "2024-01-15",
-      readTime: "5 min read",
-      tags: ["Tutorial", "Components"],
-      category: "Tutorial"
-    },
-    content: "<p>Building modern AI-powered applications requires a new approach...</p>"
-  }}
-  appearance={{
-    showCover: true,
-    displayMode: "inline"
-  }}
-  actions={{
-    onReadMore: () => console.log("Read more clicked")
-  }}
-/>`,
-          },
-        ],
+            },
+          ];
+        })(),
       },
     ],
   },
@@ -2805,6 +2791,7 @@ function BlockPageContent() {
                 ref={index === 0 ? firstVariantRef : undefined}
                 name={variant.name}
                 component={variant.component}
+                pipComponent={variant.pipComponent}
                 fullscreenComponent={variant.fullscreenComponent}
                 registryName={selectedBlock.registryName}
                 usageCode={variant.usageCode}
