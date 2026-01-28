@@ -150,9 +150,10 @@ async function generatePreviews() {
     log.debug(`  Output: ${outputPath}`)
 
     try {
-      // Navigate to preview page
+      // Navigate to preview page (use domcontentloaded instead of networkidle
+      // because some components like event-detail have maps that never go idle)
       await page.goto(previewUrl, {
-        waitUntil: 'networkidle',
+        waitUntil: 'domcontentloaded',
         timeout: 30000
       })
 

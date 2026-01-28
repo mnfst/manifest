@@ -3,21 +3,27 @@
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, Clock, ExternalLink, Maximize2 } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
 import type { Post } from './types';
 
 // =============================================================================
-// Host API Integration
-// =============================================================================
-// This component uses the HostAPI abstraction layer for host detection.
-// Currently supports: ChatGPT (OpenAI), with architecture ready for future hosts.
-//
-// FUTURE: When adding support for Claude, Gemini, or custom assistants:
-// 1. Add detection logic in lib/host-api.tsx for window.claude, window.gemini, etc.
-// 2. Implement host-specific adapters that conform to HostBridge interface
-// 3. Components using useHostAPI() will automatically work with all hosts
+// Display Mode Types & Hook (inlined for distribution)
 // =============================================================================
 
-import { useHostAPI, type DisplayMode } from '@/lib/host-api';
+type DisplayMode = 'inline' | 'pip' | 'fullscreen';
+
+function useOpenAIDisplayMode(): DisplayMode | undefined {
+  return useSyncExternalStore(
+    (onChange) => {
+      if (typeof window === 'undefined') return () => {};
+      const handler = () => onChange();
+      window.addEventListener('openai:set_globals', handler);
+      return () => window.removeEventListener('openai:set_globals', handler);
+    },
+    () => (typeof window !== 'undefined' ? window.openai?.displayMode : undefined),
+    () => undefined
+  );
+}
 
 function TagList({
   tags,
@@ -158,13 +164,19 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   const showCover = appearance?.showCover ?? true;
   const showAuthor = appearance?.showAuthor ?? true;
 
-  const hostAPI = useHostAPI();
-  const displayMode: DisplayMode = hostAPI.isRealHost
-    ? hostAPI.displayMode
+  // Get display mode from host (ChatGPT/MCP) or fall back to appearance prop
+  const hostDisplayMode = useOpenAIDisplayMode();
+  const isRealHost =
+    typeof window !== 'undefined' && window.openai && !('_isPreviewMock' in window.openai);
+  const displayMode: DisplayMode = isRealHost && hostDisplayMode
+    ? hostDisplayMode
     : (appearance?.displayMode ?? 'inline');
 
   const handleReadMore = () => {
-    hostAPI.requestDisplayMode('fullscreen');
+    // Request fullscreen from host if available
+    if (typeof window !== 'undefined' && window.openai?.requestDisplayMode) {
+      window.openai.requestDisplayMode({ mode: 'fullscreen' });
+    }
     onReadMore?.();
   };
 
