@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Calendar, Clock, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, ExternalLink, Maximize2 } from 'lucide-react';
 import { useSyncExternalStore } from 'react';
 import type { Post } from './types';
 
@@ -283,13 +283,15 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   };
   const displayMode = getDisplayMode();
 
-  // Handle "Read more" click - use callback if provided, otherwise request fullscreen from host
+  // Handle "Read more" / expand click - request fullscreen from host AND call callback if provided
   const handleReadMore = () => {
+    // Always request fullscreen from ChatGPT/MCP host if available
+    if (typeof window !== 'undefined' && window.openai) {
+      window.openai.requestDisplayMode({ mode: 'fullscreen' });
+    }
+    // Also call the callback if provided (for additional custom logic)
     if (onReadMore) {
       onReadMore();
-    } else if (typeof window !== 'undefined' && window.openai) {
-      // Request fullscreen mode from ChatGPT host
-      window.openai.requestDisplayMode({ mode: 'fullscreen' });
     }
   };
 
@@ -320,15 +322,26 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
 
         <div className="flex flex-1 flex-col justify-between min-w-0">
           <div>
-            {post.category && (
-              <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                {post.category}
-              </p>
-            )}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                {post.category && (
+                  <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    {post.category}
+                  </p>
+                )}
 
-            {post.title && (
-              <h1 className="line-clamp-2 text-sm font-bold leading-tight">{post.title}</h1>
-            )}
+                {post.title && (
+                  <h1 className="line-clamp-2 text-sm font-bold leading-tight">{post.title}</h1>
+                )}
+              </div>
+              <button
+                onClick={handleReadMore}
+                className="shrink-0 p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                aria-label="Expand to fullscreen"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+            </div>
 
             {post.excerpt && (
               <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{post.excerpt}</p>
