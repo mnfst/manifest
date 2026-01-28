@@ -3,30 +3,21 @@
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, Clock, ExternalLink, Maximize2 } from 'lucide-react';
-import { useSyncExternalStore } from 'react';
 import type { Post } from './types';
 
-// Import shared OpenAI types
-import '@/lib/openai-types'; // Side effect: extends Window interface
-import type { OpenAIBridge } from '@/lib/openai-types';
-
 // =============================================================================
-// Hook to subscribe to window.openai changes (official pattern from OpenAI)
-// This ensures React re-renders when ChatGPT/MCP host changes displayMode
+// Host API Integration
+// =============================================================================
+// This component uses the HostAPI abstraction layer for host detection.
+// Currently supports: ChatGPT (OpenAI), with architecture ready for future hosts.
+//
+// FUTURE: When adding support for Claude, Gemini, or custom assistants:
+// 1. Add detection logic in lib/host-api.tsx for window.claude, window.gemini, etc.
+// 2. Implement host-specific adapters that conform to HostBridge interface
+// 3. Components using useHostAPI() will automatically work with all hosts
 // =============================================================================
 
-function useOpenAIGlobal<K extends keyof OpenAIBridge>(key: K): OpenAIBridge[K] | undefined {
-  return useSyncExternalStore(
-    (onChange) => {
-      if (typeof window === 'undefined') return () => {};
-      const handler = () => onChange();
-      window.addEventListener('openai:set_globals', handler);
-      return () => window.removeEventListener('openai:set_globals', handler);
-    },
-    () => (typeof window !== 'undefined' ? window.openai?.[key] : undefined),
-    () => undefined
-  );
-}
+import { useHostAPI, type DisplayMode } from '@/lib/host-api';
 
 function TagList({
   tags,
@@ -68,8 +59,6 @@ function TagList({
     </>
   );
 }
-
-// No default content - component only renders what the user provides
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -162,7 +151,6 @@ export interface PostDetailProps {
  * ```
  */
 export function PostDetail({ data, actions, appearance }: PostDetailProps) {
-  // No defaults - only render what the user provides
   const post = data?.post;
   const content = data?.content;
   const relatedPosts = data?.relatedPosts ?? [];
@@ -170,41 +158,14 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   const showCover = appearance?.showCover ?? true;
   const showAuthor = appearance?.showAuthor ?? true;
 
-  // Subscribe to window.openai.displayMode changes (for real ChatGPT/MCP host)
-  // This hook uses useSyncExternalStore to re-render when the host changes displayMode
-  const hostDisplayMode = useOpenAIGlobal('displayMode');
+  const hostAPI = useHostAPI();
+  const displayMode: DisplayMode = hostAPI.isRealHost
+    ? hostAPI.displayMode
+    : (appearance?.displayMode ?? 'inline');
 
-  // Determine the actual displayMode to use:
-  // - In real ChatGPT/MCP: Use hostDisplayMode from window.openai (host controls display)
-  // - On preview website (mock): Use appearance.displayMode prop
-  const getDisplayMode = (): 'inline' | 'pip' | 'fullscreen' => {
-    // Check if we're in real ChatGPT/MCP (not our preview mock)
-    const isRealHost =
-      typeof window !== 'undefined' && window.openai && !('_isPreviewMock' in window.openai);
-
-    if (isRealHost && hostDisplayMode) {
-      // In real ChatGPT/MCP, the host controls displayMode
-      return hostDisplayMode;
-    }
-    // On preview website or when host doesn't set displayMode, use appearance prop
-    if (appearance?.displayMode) {
-      return appearance.displayMode;
-    }
-    // Default to inline
-    return 'inline';
-  };
-  const displayMode = getDisplayMode();
-
-  // Handle "Read more" / expand click - request fullscreen from host AND call callback if provided
   const handleReadMore = () => {
-    // Always request fullscreen from ChatGPT/MCP host if available
-    if (typeof window !== 'undefined' && window.openai) {
-      window.openai.requestDisplayMode({ mode: 'fullscreen' });
-    }
-    // Also call the callback if provided (for additional custom logic)
-    if (onReadMore) {
-      onReadMore();
-    }
+    hostAPI.requestDisplayMode('fullscreen');
+    onReadMore?.();
   };
 
   const formatDate = (dateStr: string) => {

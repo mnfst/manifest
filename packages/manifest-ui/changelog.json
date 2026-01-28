@@ -173,7 +173,8 @@
       "2.1.4": "Added expand icon in inline mode to quickly launch fullscreen view",
       "2.1.5": "Fixed expand button to always request fullscreen from host in ChatGPT/MCP",
       "2.1.6": "Removed default content - component only renders data explicitly provided by the user",
-      "2.1.7": "Added cursor-pointer to expand button for better UX"
+      "2.1.7": "Added cursor-pointer to expand button for better UX",
+      "2.1.8": "Refactored to use HostAPI abstraction for multi-host support"
     },
     "table": {
       "1.0.0": "Initial release with single and multi-select modes",
