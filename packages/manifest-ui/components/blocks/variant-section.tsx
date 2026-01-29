@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { Maximize2, MessageSquare, PictureInPicture2, Settings2 } from 'lucide-react'
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
   ssr: false,
@@ -359,7 +359,16 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
 
       {/* Content based on view mode */}
       <div ref={contentRef}>
-        {viewMode === 'inline' && component}
+        {viewMode === 'inline' && (
+          hasFullwidth && React.isValidElement(component)
+            ? React.cloneElement(component as React.ReactElement<{ actions?: { onExpand?: () => void } }>, {
+                actions: {
+                  ...(component as React.ReactElement<{ actions?: Record<string, unknown> }>).props?.actions,
+                  onExpand: () => setIsFullscreenOpen(true)
+                }
+              })
+            : component
+        )}
 
         {viewMode === 'fullwidth' && (
           <FullwidthPlaceholder onOpen={() => setIsFullscreenOpen(true)} />

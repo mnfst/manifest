@@ -1,9 +1,30 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
-import { MapPin } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { ChevronDown, MapPin, Maximize2, SlidersHorizontal, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { ComponentType } from 'react'
+
+// =============================================================================
+// Display Mode Types & Hook (inlined for distribution)
+// =============================================================================
+
+type DisplayMode = 'inline' | 'pip' | 'fullscreen'
+
+function useOpenAIDisplayMode(): DisplayMode | undefined {
+  return useSyncExternalStore(
+    (onChange) => {
+      if (typeof window === 'undefined') return () => {}
+      const handler = () => onChange()
+      window.addEventListener('openai:set_globals', handler)
+      return () => window.removeEventListener('openai:set_globals', handler)
+    },
+    () => (typeof window !== 'undefined' ? window.openai?.displayMode : undefined),
+    () => undefined
+  )
+}
 
 // Internal types for react-leaflet component attributes (not exported component props)
 type LeafletMapContainerAttrs = {
@@ -103,6 +124,37 @@ export type MapStyle =
   | 'dark-matter'
   | 'openstreetmap'
 
+// Filter configuration for fullscreen variant
+/**
+ * Configuration for a single filter section.
+ * @interface FilterSectionConfig
+ */
+export interface FilterSectionConfig {
+  /** Unique identifier for this filter (used in filter state). */
+  id: string
+  /** Display title for the filter section. */
+  title: string
+  /** Available options for this filter. */
+  options: string[]
+  /**
+   * Function to check if a location matches the selected filter values.
+   * @param location - The location to check
+   * @param selectedValues - Currently selected filter values
+   * @returns true if location matches, false otherwise
+   */
+  matchFn?: (location: Location, selectedValues: string[]) => boolean
+}
+
+/** State tracking selected values for each filter by id. */
+export type FilterState = Record<string, string[]>
+
+const createEmptyFilterState = (filters: FilterSectionConfig[]): FilterState => {
+  return filters.reduce((acc, filter) => {
+    acc[filter.id] = []
+    return acc
+  }, {} as FilterState)
+}
+
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  * MapCarouselProps
@@ -110,6 +162,7 @@ export type MapStyle =
  *
  * Props for configuring an interactive map with a horizontal carousel of
  * location cards. Clicking a marker or card selects that location.
+ * Supports inline (map with carousel) and fullscreen (split-screen) modes.
  */
 export interface MapCarouselProps {
   data?: {
@@ -130,17 +183,37 @@ export interface MapCarouselProps {
      * @default "voyager"
      */
     mapStyle?: MapStyle
+    /** Optional title displayed above the list in fullscreen mode. */
+    title?: string
+    /**
+     * Filter sections configuration for fullscreen mode.
+     * Each filter section has an id, title, options, and optional matchFn.
+     * If not provided, no filters will be shown.
+     */
+    filters?: FilterSectionConfig[]
   }
   actions?: {
     /** Called when a user selects a location via marker or card click. */
     onSelectLocation?: (location: Location) => void
+    /** Called when the expand button is clicked (inline mode). */
+    onExpand?: () => void
+    /** Called when filters are applied (fullscreen mode). */
+    onFiltersApply?: (filters: FilterState) => void
   }
   appearance?: {
     /**
-     * Height of the map container.
+     * Height of the map container (inline mode only).
      * @default "504px"
      */
     mapHeight?: string
+    /**
+     * Display mode for the component.
+     * - inline: Map with carousel cards at bottom
+     * - pip: Same as inline (compact view)
+     * - fullscreen: Split-screen with cards on left, filters, map on right
+     * @default "inline"
+     */
+    displayMode?: 'inline' | 'pip' | 'fullscreen'
   }
 }
 
@@ -313,12 +386,251 @@ function HotelCard({
   )
 }
 
+// Location card for fullscreen list view
+function LocationListCard({
+  location,
+  isSelected,
+  onClick,
+  onMouseEnter,
+  onMouseLeave
+}: {
+  location: Location
+  isSelected: boolean
+  onClick: () => void
+  onMouseEnter: () => void
+  onMouseLeave: () => void
+}) {
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className={cn(
+        'flex gap-3 p-3 border-b transition-colors cursor-pointer',
+        isSelected && 'bg-accent'
+      )}
+    >
+      {/* Thumbnail */}
+      {location.image && (
+        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+          <img
+            src={location.image}
+            alt={location.name || 'Location image'}
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
+      {/* Location Info */}
+      <div className="flex-1 min-w-0">
+        {location.price !== undefined && (
+          <p className="font-semibold text-sm">${location.price} total</p>
+        )}
+        {location.priceSubtext && (
+          <p className="text-xs text-muted-foreground">{location.priceSubtext}</p>
+        )}
+        {location.name && (
+          <p className="text-sm font-medium mt-1 line-clamp-1">{location.name}</p>
+        )}
+        {location.subtitle && (
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+            {location.subtitle}
+          </p>
+        )}
+        {location.rating && (
+          <div className="flex items-center gap-1 mt-1">
+            <span className="bg-green-600 text-white text-[10px] font-bold rounded-md px-1.5 py-0.5">
+              {location.rating}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Filter section component with expandable checkbox list
+function FilterSection({
+  title,
+  options,
+  selected,
+  onChange,
+  defaultExpanded = true,
+  showLimit = 5
+}: {
+  title: string
+  options: string[]
+  selected: string[]
+  onChange: (values: string[]) => void
+  defaultExpanded?: boolean
+  showLimit?: number
+}) {
+  const [expanded, setExpanded] = useState(defaultExpanded)
+  const [showAll, setShowAll] = useState(false)
+
+  const visibleOptions = showAll ? options : options.slice(0, showLimit)
+  const hasMore = options.length > showLimit
+
+  const toggleOption = (option: string) => {
+    if (selected.includes(option)) {
+      onChange(selected.filter(s => s !== option))
+    } else {
+      onChange([...selected, option])
+    }
+  }
+
+  return (
+    <div className="border-b border-border/50">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center justify-between py-4 text-sm font-medium hover:text-foreground/80 transition-colors"
+      >
+        <span>{title}</span>
+        <ChevronDown className={cn(
+          "h-4 w-4 text-muted-foreground transition-transform duration-200",
+          expanded && "rotate-180"
+        )} />
+      </button>
+      <div className={cn(
+        "grid transition-all duration-200 ease-out",
+        expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+      )}>
+        <div className="overflow-hidden">
+          <div className="space-y-2 pb-4">
+            {visibleOptions.map(option => (
+              <label
+                key={option}
+                className="flex items-center gap-3 cursor-pointer group"
+              >
+                <Checkbox
+                  checked={selected.includes(option)}
+                  onCheckedChange={() => toggleOption(option)}
+                  className="h-4 w-4"
+                />
+                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                  {option}
+                </span>
+              </label>
+            ))}
+            {hasMore && (
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="mt-1 text-xs text-primary hover:text-primary/80 transition-colors"
+              >
+                {showAll ? 'Show less' : `View ${options.length - showLimit} more`}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Filter panel that slides over the location list
+function FilterPanel({
+  isOpen,
+  onClose,
+  filterConfigs,
+  filterState,
+  onFiltersChange,
+  onApply,
+  onReset,
+  resultCount
+}: {
+  isOpen: boolean
+  onClose: () => void
+  filterConfigs: FilterSectionConfig[]
+  filterState: FilterState
+  onFiltersChange: (filters: FilterState) => void
+  onApply: () => void
+  onReset: () => void
+  resultCount: number
+}) {
+  const activeFiltersCount = Object.values(filterState).flat().length
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className={cn(
+          "absolute inset-0 bg-background/60 backdrop-blur-[2px] transition-opacity duration-300 z-10",
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={onClose}
+      />
+
+      {/* Panel */}
+      <div
+        className={cn(
+          "absolute inset-0 bg-background z-20 flex flex-col transition-all duration-300 ease-out",
+          isOpen
+            ? "opacity-100 translate-x-0"
+            : "opacity-0 -translate-x-4 pointer-events-none"
+        )}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">Filters</span>
+            {activeFiltersCount > 0 && (
+              <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                {activeFiltersCount}
+              </span>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onClose}
+            aria-label="Close filters"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Filter sections - dynamically rendered */}
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
+          {filterConfigs.map((config) => (
+            <FilterSection
+              key={config.id}
+              title={config.title}
+              options={config.options}
+              selected={filterState[config.id] || []}
+              onChange={(values) => onFiltersChange({ ...filterState, [config.id]: values })}
+            />
+          ))}
+        </div>
+
+        {/* Footer with actions */}
+        <div className="border-t px-4 py-3 space-y-2">
+          <Button
+            className="w-full"
+            onClick={onApply}
+          >
+            Show {resultCount} locations
+          </Button>
+          {activeFiltersCount > 0 && (
+            <Button
+              variant="ghost"
+              className="w-full text-muted-foreground hover:text-foreground"
+              onClick={onReset}
+            >
+              Reset all filters
+            </Button>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
 // Map placeholder shown during SSR or when Leaflet isn't loaded
-function MapPlaceholder({ height }: { height: string }) {
+function MapPlaceholder({ height }: { height?: string }) {
   return (
     <div
       className="bg-muted/30 flex items-center justify-center"
-      style={{ height }}
+      style={{ height: height || '100%' }}
     >
       <div className="flex flex-col items-center gap-2 text-muted-foreground">
         <MapPin className="h-8 w-8" />
@@ -453,10 +765,11 @@ const getTileConfig = (style: MapStyle) => {
  * Features:
  * - Leaflet map with multiple tile style options
  * - Price markers on map locations
- * - Draggable horizontal card carousel
+ * - Inline mode: Map with draggable carousel at bottom
+ * - Fullscreen mode: Split-screen with cards on left, filters, map on right
  * - Location cards with image, rating, and price
- * - Selection sync between map and carousel
- * - Mobile touch support
+ * - Selection sync between map and carousel/list
+ * - ChatGPT display mode integration
  *
  * @component
  * @example
@@ -475,12 +788,17 @@ const getTileConfig = (style: MapStyle) => {
  *     ],
  *     center: [37.7899, -122.4034],
  *     zoom: 14,
- *     mapStyle: "voyager"
+ *     mapStyle: "voyager",
+ *     title: "Hotels in San Francisco"
  *   }}
  *   actions={{
- *     onSelectLocation: (loc) => console.log("Selected:", loc.name)
+ *     onSelectLocation: (loc) => console.log("Selected:", loc.name),
+ *     onExpand: () => console.log("Expand to fullscreen")
  *   }}
- *   appearance={{ mapHeight: "504px" }}
+ *   appearance={{
+ *     mapHeight: "504px",
+ *     displayMode: "inline"
+ *   }}
  * />
  * ```
  */
@@ -489,12 +807,22 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
     locations = defaultLocations,
     center = [37.7899, -122.4034], // San Francisco
     zoom = 14,
-    mapStyle = 'voyager'
+    mapStyle = 'voyager',
+    title,
+    filters: filterConfigs = []
   } = data ?? {}
 
   const tileConfig = getTileConfig(mapStyle)
-  const { onSelectLocation } = actions ?? {}
+  const { onSelectLocation, onExpand, onFiltersApply } = actions ?? {}
   const { mapHeight = '504px' } = appearance ?? {}
+
+  // Get display mode from host (ChatGPT/MCP) or fall back to appearance prop
+  const hostDisplayMode = useOpenAIDisplayMode()
+  const isRealHost =
+    typeof window !== 'undefined' && window.openai && !('_isPreviewMock' in window.openai)
+  const displayMode: DisplayMode = isRealHost && hostDisplayMode
+    ? hostDisplayMode
+    : (appearance?.displayMode ?? 'inline')
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -504,8 +832,58 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   const carouselRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<Map<number, HTMLButtonElement>>(new Map())
 
+  // Filter state for fullscreen mode - initialized from filter configs
+  const emptyFilterState = createEmptyFilterState(filterConfigs)
+  const [showFilters, setShowFilters] = useState(false)
+  const [filterState, setFilterState] = useState<FilterState>(emptyFilterState)
+  const [appliedFilterState, setAppliedFilterState] = useState<FilterState>(emptyFilterState)
+
+  // Refs for fullscreen scroll functionality
+  const listContainerRef = useRef<HTMLDivElement>(null)
+  const locationItemRefs = useRef<Map<number, HTMLDivElement>>(new Map())
+
   // Lazy load react-leaflet components (React-only, no Next.js dependency)
   const leafletComponents = useReactLeaflet()
+
+  // Filter locations based on applied filters using dynamic matchFn
+  const filterLocations = useCallback((locationsToFilter: Location[], filtersToApply: FilterState): Location[] => {
+    // If no filter configs, return all locations
+    if (filterConfigs.length === 0) return locationsToFilter
+
+    return locationsToFilter.filter(location => {
+      // Check each filter section
+      for (const config of filterConfigs) {
+        const selectedValues = filtersToApply[config.id] || []
+        // Skip if no values selected for this filter
+        if (selectedValues.length === 0) continue
+
+        // Use the matchFn if provided, otherwise skip this filter
+        if (config.matchFn) {
+          if (!config.matchFn(location, selectedValues)) {
+            return false
+          }
+        }
+      }
+      return true
+    })
+  }, [filterConfigs])
+
+  // Scroll to location in list when selected from map
+  const scrollToLocation = useCallback((locationIndex: number) => {
+    const locationElement = locationItemRefs.current.get(locationIndex)
+    if (locationElement && listContainerRef.current) {
+      const container = listContainerRef.current
+      const elementTop = locationElement.offsetTop
+      const elementHeight = locationElement.offsetHeight
+      const containerHeight = container.offsetHeight
+      const scrollTo = elementTop - containerHeight / 2 + elementHeight / 2
+
+      container.scrollTo({
+        top: scrollTo,
+        behavior: 'smooth'
+      })
+    }
+  }, [])
 
   // Handle location selection
   const handleSelectLocation = useCallback(
@@ -513,7 +891,7 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
       setSelectedIndex(index)
       onSelectLocation?.(location)
 
-      // Scroll to the selected card
+      // Scroll to the selected card (inline mode)
       const cardElement = cardRefs.current.get(index)
       if (cardElement && carouselRef.current) {
         const container = carouselRef.current
@@ -530,6 +908,15 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
     },
     [onSelectLocation]
   )
+
+  // Handle expand button click
+  const handleExpand = () => {
+    // Request fullscreen from host if available
+    if (typeof window !== 'undefined' && window.openai?.requestDisplayMode) {
+      window.openai.requestDisplayMode({ mode: 'fullscreen' })
+    }
+    onExpand?.()
+  }
 
   // Drag handlers for carousel
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -600,11 +987,178 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
     [hasDragged, handleSelectLocation]
   )
 
+  // Fullscreen mode - split-screen with cards on left, map on right
+  if (displayMode === 'fullscreen') {
+    const handleLocationHover = (locationIndex: number | null) => {
+      setSelectedIndex(locationIndex)
+    }
+
+    const handleLocationClick = (location: Location, index: number) => {
+      setSelectedIndex(index)
+      onSelectLocation?.(location)
+      if (location.link) {
+        window.open(location.link, '_blank', 'noopener,noreferrer')
+      }
+    }
+
+    const handleMapMarkerClick = (location: Location, index: number) => {
+      setSelectedIndex(index)
+      scrollToLocation(index)
+      onSelectLocation?.(location)
+    }
+
+    const handleFilterButtonClick = () => {
+      setFilterState(appliedFilterState)
+      setShowFilters(true)
+    }
+
+    const handleApplyFilters = () => {
+      setAppliedFilterState(filterState)
+      setShowFilters(false)
+      onFiltersApply?.(filterState)
+    }
+
+    const handleResetFilters = () => {
+      setFilterState(emptyFilterState)
+      setAppliedFilterState(emptyFilterState)
+      onFiltersApply?.(emptyFilterState)
+    }
+
+    // Get filtered locations
+    const filteredLocations = filterLocations(locations, appliedFilterState)
+    // Get preview count for filter panel
+    const previewFilteredCount = filterLocations(locations, filterState).length
+    // Count of active filters
+    const activeFiltersCount = Object.values(appliedFilterState).flat().length
+    // Check if filters are configured
+    const hasFilters = filterConfigs.length > 0
+
+    return (
+      <div className="flex w-full h-full min-h-[600px] bg-background">
+        {/* Left Panel - Location List */}
+        <div className="w-[380px] flex-shrink-0 border-r flex flex-col relative">
+          {/* Header */}
+          <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+            <div className="flex items-center gap-2 min-w-0">
+              {title && <span className="font-semibold truncate">{title}</span>}
+              <span className="text-muted-foreground text-xs whitespace-nowrap">| {filteredLocations.length}</span>
+            </div>
+            {hasFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 flex-shrink-0"
+                onClick={handleFilterButtonClick}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="hidden sm:inline">Filters</span>
+                {activeFiltersCount > 0 && (
+                  <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </Button>
+            )}
+          </div>
+
+          {/* Scrollable Location List */}
+          <div ref={listContainerRef} className="flex-1 overflow-y-auto">
+            {filteredLocations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                <p className="text-muted-foreground">No locations match your filters</p>
+                <Button
+                  variant="link"
+                  className="mt-2"
+                  onClick={handleResetFilters}
+                >
+                  Reset filters
+                </Button>
+              </div>
+            ) : (
+              filteredLocations.map((location, index) => (
+                <div
+                  key={index}
+                  ref={(el) => {
+                    if (el) locationItemRefs.current.set(index, el)
+                  }}
+                >
+                  <LocationListCard
+                    location={location}
+                    isSelected={selectedIndex === index}
+                    onClick={() => handleLocationClick(location, index)}
+                    onMouseEnter={() => handleLocationHover(index)}
+                    onMouseLeave={() => handleLocationHover(null)}
+                  />
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Filter Panel Overlay */}
+          {hasFilters && (
+            <FilterPanel
+              isOpen={showFilters}
+              onClose={() => setShowFilters(false)}
+              filterConfigs={filterConfigs}
+              filterState={filterState}
+              onFiltersChange={setFilterState}
+              onApply={handleApplyFilters}
+              onReset={handleResetFilters}
+              resultCount={previewFilteredCount}
+            />
+          )}
+        </div>
+
+        {/* Right Panel - Map */}
+        <div className="flex flex-1 min-w-0 relative">
+          {leafletComponents ? (
+            <leafletComponents.MapContainer
+              center={center}
+              zoom={zoom}
+              style={{ height: '100%', width: '100%' }}
+              zoomControl={true}
+              scrollWheelZoom={true}
+            >
+              <leafletComponents.TileLayer
+                attribution={tileConfig.attribution}
+                url={tileConfig.url}
+              />
+              <MapWithMarkers
+                locations={filteredLocations}
+                selectedIndex={selectedIndex}
+                onSelectLocation={handleMapMarkerClick}
+                MarkerComponent={leafletComponents.Marker}
+              />
+            </leafletComponents.MapContainer>
+          ) : (
+            <MapPlaceholder />
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Inline and PiP modes - Map with carousel at bottom
   return (
     <div
       className="relative w-full rounded-xl border bg-card overflow-hidden"
       style={{ height: mapHeight }}
     >
+      {/* Expand button in top right */}
+      {onExpand && (
+        <div className="absolute top-3 right-3 z-[1001]">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="h-8 w-8 bg-background/90 backdrop-blur-sm shadow-md"
+            onClick={handleExpand}
+            aria-label="Expand to fullscreen"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
       {/* Map Section - Full size */}
       {leafletComponents ? (
         <leafletComponents.MapContainer
