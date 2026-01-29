@@ -873,19 +873,17 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/linkedin-post.png",
-        "version": "1.1.1",
+        "version": "2.0.0",
         "changelog": {
           "1.0.0": "Initial release with professional styling",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.1.0": "Moved to social category for better organization",
-          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "2.0.0": "BREAKING: Simplified component - removed engagement stats and action buttons, added LinkedIn icon link and optional repost button"
         }
       },
       "dependencies": [
         "lucide-react"
-      ],
-      "registryDependencies": [
-        "dropdown-menu"
       ],
       "files": [
         {

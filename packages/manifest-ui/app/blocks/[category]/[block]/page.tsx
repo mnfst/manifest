@@ -2643,25 +2643,35 @@ const categories: Category[] = [
       {
         id: 'linkedin-post',
         name: 'LinkedIn Post',
-        description: 'LinkedIn post card',
+        description: 'LinkedIn post card with optional repost action',
         registryName: 'linkedin-post',
         layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 0,
+        actionCount: 1,
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <LinkedInPost />,
+            component: (
+              <LinkedInPost
+                data={{
+                  postUrl: 'https://linkedin.com/posts/manifest-123',
+                }}
+                actions={{
+                  repostUrl: 'https://linkedin.com/shareArticle?url=...',
+                }}
+              />
+            ),
             usageCode: `<LinkedInPost
   data={{
     author: "Manifest",
     headline: "Manifest UI | 10K+ Developers",
     avatar: "M",
     content: "Excited to announce our latest milestone!",
-    likes: "1,234",
-    comments: "89",
-    reposts: "45",
-    time: "2h"
+    time: "2h",
+    postUrl: "https://linkedin.com/posts/manifest-123"
+  }}
+  actions={{
+    repostUrl: "https://linkedin.com/shareArticle?url=..."
   }}
 />`,
           },
