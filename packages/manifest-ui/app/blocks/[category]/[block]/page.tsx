@@ -2643,10 +2643,10 @@ const categories: Category[] = [
       {
         id: 'linkedin-post',
         name: 'LinkedIn Post',
-        description: 'LinkedIn post card with optional repost action',
+        description: 'LinkedIn post card with image support, engagement stats, and expandable content',
         registryName: 'linkedin-post',
         layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 1,
+        actionCount: 2,
         variants: [
           {
             id: 'default',
@@ -2654,9 +2654,18 @@ const categories: Category[] = [
             component: (
               <LinkedInPost
                 data={{
-                  postUrl: 'https://linkedin.com/posts/manifest-123',
+                  author: 'Manifest',
+                  headline: 'Manifest UI | 10K+ Developers',
+                  avatar: 'M',
+                  content: 'Excited to announce our latest milestone!\n\nWe\'ve just crossed 10,000 developers using Manifest to build agentic UIs.',
+                  time: '2h',
+                  reactions: '1,234',
+                  topReactions: ['like', 'celebrate', 'love'],
+                  comments: '56',
+                  reposts: '12',
                 }}
                 actions={{
+                  postUrl: 'https://linkedin.com/posts/manifest-123',
                   repostUrl: 'https://linkedin.com/shareArticle?url=...',
                 }}
               />
@@ -2666,12 +2675,106 @@ const categories: Category[] = [
     author: "Manifest",
     headline: "Manifest UI | 10K+ Developers",
     avatar: "M",
-    content: "Excited to announce our latest milestone!",
+    content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs.",
     time: "2h",
-    postUrl: "https://linkedin.com/posts/manifest-123"
+    reactions: "1,234",
+    topReactions: ["like", "celebrate", "love"],
+    comments: "56",
+    reposts: "12"
   }}
   actions={{
+    postUrl: "https://linkedin.com/posts/manifest-123",
     repostUrl: "https://linkedin.com/shareArticle?url=..."
+  }}
+/>`,
+          },
+          {
+            id: 'with-media',
+            name: 'With Media',
+            component: (
+              <LinkedInPost
+                data={{
+                  author: 'Manifest',
+                  headline: 'Manifest UI | 10K+ Developers',
+                  avatar: 'M',
+                  content: 'Excited to announce our latest milestone!\n\nWe\'ve just crossed 10,000 developers using Manifest to build agentic UIs.',
+                  time: '2h',
+                  image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800',
+                  reactions: '2,847',
+                  topReactions: ['like', 'celebrate', 'insightful'],
+                  comments: '124',
+                  reposts: '89',
+                }}
+                actions={{
+                  postUrl: 'https://linkedin.com/posts/manifest-123',
+                  repostUrl: 'https://linkedin.com/shareArticle?url=...',
+                }}
+              />
+            ),
+            usageCode: `<LinkedInPost
+  data={{
+    author: "Manifest",
+    headline: "Manifest UI | 10K+ Developers",
+    avatar: "M",
+    content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs.",
+    time: "2h",
+    image: "https://example.com/announcement.jpg",
+    reactions: "2,847",
+    topReactions: ["like", "celebrate", "insightful"],
+    comments: "124",
+    reposts: "89"
+  }}
+  actions={{
+    postUrl: "https://linkedin.com/posts/manifest-123",
+    repostUrl: "https://linkedin.com/shareArticle?url=..."
+  }}
+/>`,
+          },
+          {
+            id: 'truncated',
+            name: 'Truncated Content',
+            component: (
+              <LinkedInPost
+                data={{
+                  author: 'Manifest',
+                  headline: 'Manifest UI | 10K+ Developers',
+                  avatar: 'M',
+                  content: 'Excited to announce our latest milestone!\n\nWe\'ve just crossed 10,000 developers using Manifest to build agentic UIs. Thank you to everyone who believed in our vision.\n\nWhat\'s next? We\'re working on something big. Stay tuned!\n\n#AI #AgenticUI #Developer #Startup',
+                  time: '2h',
+                  reactions: '15K',
+                  topReactions: ['like', 'insightful', 'celebrate'],
+                  comments: '890',
+                  reposts: '2.1K',
+                }}
+                actions={{
+                  postUrl: 'https://linkedin.com/posts/manifest-123',
+                  repostUrl: 'https://linkedin.com/shareArticle?url=...',
+                  onExpandContent: () => console.log('Content expanded'),
+                }}
+                appearance={{
+                  maxLines: 3,
+                }}
+              />
+            ),
+            usageCode: `<LinkedInPost
+  data={{
+    author: "Manifest",
+    headline: "Manifest UI | 10K+ Developers",
+    avatar: "M",
+    content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs. Thank you to everyone who believed in our vision.\\n\\nWhat's next? We're working on something big. Stay tuned!\\n\\n#AI #AgenticUI #Developer #Startup",
+    time: "2h",
+    reactions: "15K",
+    topReactions: ["like", "insightful", "celebrate"],
+    comments: "890",
+    reposts: "2.1K"
+  }}
+  actions={{
+    postUrl: "https://linkedin.com/posts/manifest-123",
+    repostUrl: "https://linkedin.com/shareArticle?url=...",
+    onExpandContent: () => console.log("Content expanded")
+  }}
+  appearance={{
+    maxLines: 3
   }}
 />`,
           },

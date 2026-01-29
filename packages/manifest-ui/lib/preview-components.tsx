@@ -313,12 +313,17 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
         data={{
           author: 'Satya Nadella',
           headline: 'CEO at Microsoft',
-          avatar: 'https://i.pravatar.cc/150?u=satya',
+          avatar: 'S',
           content: 'Excited to announce our latest AI innovations...',
           time: '1d',
-          likes: '15K',
+          reactions: '15K',
+          topReactions: ['like', 'celebrate', 'love'],
           comments: '890',
           reposts: '2.1K',
+        }}
+        actions={{
+          postUrl: 'https://linkedin.com/posts/satya',
+          repostUrl: 'https://linkedin.com/shareArticle?url=...',
         }}
       />
     ),
