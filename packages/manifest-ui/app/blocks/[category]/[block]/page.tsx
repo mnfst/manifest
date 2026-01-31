@@ -1381,7 +1381,18 @@ const categories: Category[] = [
     title: "Recommendations for you",
     events: [
       { id: "evt-1", title: "NEON Vol. 9", category: "Music", venue: "Echoplex", neighborhood: "Echo Park", city: "Los Angeles", dateTime: "Tonight 9:00 PM - 3:00 AM", priceRange: "$45 - $150", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800", coordinates: { lat: 34.0781, lng: -118.2606 }, vibeTags: ["High energy", "Late night"], eventSignal: "going-fast", organizerRating: 4.8, reviewCount: 12453, ageRestriction: "21+" },
-     { id: "evt-13", title: "Dodgers vs Giants", category: "Sports", venue: "Dodger Stadium", neighborhood: "Elysian Park", city: "Los Angeles", dateTime: "Saturday 1:10 PM - 4:30 PM", priceRange: "$35 - $350", image: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=800", coordinates: { lat: 34.0739, lng: -118.2400 }, vibeTags: ["Family-friendly", "Social", "High energy"], eventSignal: "few-tickets-left", organizerRating: 4.7, reviewCount: 15678 },
+      { id: "evt-2", title: "The Midnight Show", category: "Comedy", venue: "The Comedy Underground", neighborhood: "Santa Monica", city: "Los Angeles", dateTime: "Tonight 10:00 PM - 12:00 AM", priceRange: "$15 - $35", image: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800", coordinates: { lat: 34.0195, lng: -118.4912 }, vibeTags: ["Social", "Late night"], eventSignal: "popular", organizerRating: 4.7, reviewCount: 3241, discount: "TONIGHT ONLY - 40% OFF" },
+      { id: "evt-3", title: "Salsa Sundays @ Echo Park", category: "Classes", venue: "Echo Park Lake", neighborhood: "Echo Park", city: "Los Angeles", dateTime: "Saturday 6:00 PM - 10:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800", coordinates: { lat: 34.0731, lng: -118.2608 }, vibeTags: ["High energy", "Social"], eventSignal: "just-added", organizerRating: 4.9, reviewCount: 8764 },
+      { id: "evt-4", title: "Dawn Flow: Griffith Park", category: "Classes", venue: "Griffith Park", neighborhood: "Los Feliz", city: "Los Angeles", dateTime: "Tomorrow 6:00 AM - 8:00 AM", priceRange: "Free", image: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800", coordinates: { lat: 34.1365, lng: -118.2943 }, vibeTags: ["Chill", "Wellness", "Outdoor"], organizerRating: 4.9, reviewCount: 8764, discount: "FREE - First 50 Only" },
+      { id: "evt-5", title: "Lakers vs Celtics", category: "Sports", venue: "Crypto.com Arena", neighborhood: "Downtown", city: "Los Angeles", dateTime: "Friday 7:30 PM - 10:30 PM", priceRange: "$125 - $850", image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800", coordinates: { lat: 34.0430, lng: -118.2673 }, vibeTags: ["High energy", "Social", "Premium"], eventSignal: "sales-end-soon", organizerRating: 4.5, reviewCount: 2341 },
+      { id: "evt-6", title: "Smorgasburg LA: Sunday Market", category: "Food & Drink", venue: "ROW DTLA", neighborhood: "Arts District", city: "Los Angeles", dateTime: "Sunday 10:00 AM - 4:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800", coordinates: { lat: 34.0341, lng: -118.2324 }, vibeTags: ["Family-friendly", "Outdoor", "Social"], organizerRating: 4.8, reviewCount: 5632 },
+      { id: "evt-7", title: "LACMA After Hours", category: "Arts", venue: "LACMA", neighborhood: "Miracle Mile", city: "Los Angeles", dateTime: "Friday 7:00 PM - 11:00 PM", priceRange: "$35 - $75", image: "https://images.unsplash.com/photo-1531243269054-5ebf6f34081e?w=800", coordinates: { lat: 34.0639, lng: -118.3592 }, vibeTags: ["Chill", "Date night", "Sophisticated"], organizerRating: 4.7, reviewCount: 1234, ageRestriction: "21+", discount: "MEMBER PRICE" },
+      { id: "evt-8", title: "Blue Note Under Stars", category: "Music", venue: "Hollywood Bowl", neighborhood: "Hollywood Hills", city: "Los Angeles", dateTime: "Saturday 8:00 PM - 11:00 PM", priceRange: "$45 - $200", image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800", coordinates: { lat: 34.1122, lng: -118.3391 }, vibeTags: ["Chill", "Date night", "Outdoor"], lineup: ["Kamasi Washington", "Thundercat", "Terrace Martin"], organizerRating: 4.8, reviewCount: 12453 },
+      { id: "evt-9", title: "Meraki: Seth Troxler", category: "Nightlife", venue: "Sound Nightclub", neighborhood: "Hollywood", city: "Los Angeles", dateTime: "Saturday 10:00 PM - 4:00 AM", priceRange: "$35 - $65", image: "https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800", coordinates: { lat: 34.0928, lng: -118.3287 }, vibeTags: ["High energy", "Late night", "Underground"], lineup: ["Amelie Lens", "I Hate Models", "FJAAK"], organizerRating: 4.6, reviewCount: 1876, ageRestriction: "21+" },
+      { id: "evt-10", title: "Whitney Cummings + Friends", category: "Comedy", venue: "The Laugh Factory", neighborhood: "Hollywood", city: "Los Angeles", dateTime: "In 2 days 8:00 PM - 11:00 PM", priceRange: "$25 - $55", image: "https://images.unsplash.com/photo-1527224538127-2104bb71c51b?w=800", coordinates: { lat: 34.0901, lng: -118.3615 }, vibeTags: ["Chill", "Social", "Date night"], organizerRating: 4.7, reviewCount: 3241, ageRestriction: "18+" },
+      { id: "evt-11", title: "Venice Beach Drum Circle", category: "Music", venue: "Venice Beach Boardwalk", neighborhood: "Venice", city: "Los Angeles", dateTime: "Sunday 4:00 PM - 8:00 PM", priceRange: "Free", image: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800", coordinates: { lat: 33.9850, lng: -118.4695 }, vibeTags: ["Outdoor", "Social", "Chill"], eventSignal: "popular", organizerRating: 4.6, reviewCount: 2145 },
+      { id: "evt-12", title: "Rooftop Cinema: Blade Runner", category: "Film", venue: "Rooftop Cinema Club", neighborhood: "DTLA", city: "Los Angeles", dateTime: "Friday 8:30 PM - 11:00 PM", priceRange: "$25 - $45", image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800", coordinates: { lat: 34.0407, lng: -118.2468 }, vibeTags: ["Date night", "Views", "Chill"], organizerRating: 4.8, reviewCount: 892 },
+      { id: "evt-13", title: "Dodgers vs Giants", category: "Sports", venue: "Dodger Stadium", neighborhood: "Elysian Park", city: "Los Angeles", dateTime: "Saturday 1:10 PM - 4:30 PM", priceRange: "$35 - $350", image: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=800", coordinates: { lat: 34.0739, lng: -118.2400 }, vibeTags: ["Family-friendly", "Social", "High energy"], eventSignal: "few-tickets-left", organizerRating: 4.7, reviewCount: 15678 },
       { id: "evt-14", title: "Natural Wine Fair", category: "Food & Drink", venue: "Grand Central Market", neighborhood: "Downtown", city: "Los Angeles", dateTime: "Sunday 12:00 PM - 6:00 PM", priceRange: "$45 - $85", image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800", coordinates: { lat: 34.0508, lng: -118.2490 }, vibeTags: ["Tasting", "Social", "Sophisticated"], eventSignal: "just-added", organizerRating: 4.5, reviewCount: 567, ageRestriction: "21+" },
       { id: "evt-15", title: "Meditation in the Gardens", category: "Wellness", venue: "The Getty Center", neighborhood: "Brentwood", city: "Los Angeles", dateTime: "Sunday 7:00 AM - 9:00 AM", priceRange: "Free", image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800", coordinates: { lat: 34.0780, lng: -118.4741 }, vibeTags: ["Wellness", "Outdoor", "Chill"], organizerRating: 4.9, reviewCount: 1234 }
     ]
@@ -1798,50 +1809,7 @@ const categories: Category[] = [
             component: <MapCarousel />,
             fullscreenComponent: (
               <MapCarousel
-                data={{
-                  title: 'Hotels in San Francisco',
-                  filters: [
-                    {
-                      id: 'price',
-                      title: 'Price Range',
-                      options: ['Under $200', '$200 - $300', '$300 - $400', '$400 - $500', '$500+'],
-                      matchFn: (location, selected) => {
-                        const price = location.price ?? 0;
-                        return selected.some(range => {
-                          if (range === 'Under $200') return price < 200;
-                          if (range === '$200 - $300') return price >= 200 && price <= 300;
-                          if (range === '$300 - $400') return price >= 300 && price <= 400;
-                          if (range === '$400 - $500') return price >= 400 && price <= 500;
-                          if (range === '$500+') return price >= 500;
-                          return true;
-                        });
-                      },
-                    },
-                    {
-                      id: 'rating',
-                      title: 'Rating',
-                      options: ['9.0+', '8.0+', '7.0+', '6.0+'],
-                      matchFn: (location, selected) => {
-                        const rating = location.rating ?? 0;
-                        return selected.some(r => {
-                          if (r === '9.0+') return rating >= 9.0;
-                          if (r === '8.0+') return rating >= 8.0;
-                          if (r === '7.0+') return rating >= 7.0;
-                          if (r === '6.0+') return rating >= 6.0;
-                          return true;
-                        });
-                      },
-                    },
-                    {
-                      id: 'neighborhood',
-                      title: 'Neighborhood',
-                      options: ['Downtown San Francisco', 'Union Square', 'Nob Hill', 'Embarcadero', 'SoMa', 'Financial District'],
-                      matchFn: (location, selected) => {
-                        return !location.subtitle || selected.includes(location.subtitle);
-                      },
-                    },
-                  ],
-                }}
+                data={{ title: 'Hotels in San Francisco' }}
                 appearance={{ displayMode: 'fullscreen' }}
                 actions={{
                   onSelectLocation: (location) => console.log('Selected:', location.name),
@@ -1867,39 +1835,7 @@ const categories: Category[] = [
     ],
     center: [37.7899, -122.4034],
     zoom: 14,
-    mapStyle: "voyager",
-    // Filters are fully configurable (for fullscreen mode)
-    filters: [
-      {
-        id: "price",
-        title: "Price Range",
-        options: ["Under $200", "$200 - $300", "$300 - $400", "$500+"],
-        matchFn: (location, selected) => {
-          const price = location.price ?? 0;
-          return selected.some(range => {
-            if (range === "Under $200") return price < 200;
-            if (range === "$200 - $300") return price >= 200 && price <= 300;
-            // ... add more price logic
-            return true;
-          });
-        }
-      },
-      {
-        id: "rating",
-        title: "Rating",
-        options: ["9.0+", "8.0+", "7.0+"],
-        matchFn: (location, selected) => {
-          const rating = location.rating ?? 0;
-          return selected.some(r => rating >= parseFloat(r));
-        }
-      },
-      {
-        id: "neighborhood",
-        title: "Neighborhood",
-        options: ["Downtown", "Union Square", "Nob Hill"],
-        matchFn: (location, selected) => selected.includes(location.subtitle)
-      }
-    ]
+    mapStyle: "voyager"
   }}
   actions={{
     onSelectLocation: (location) => console.log("Selected:", location.name),
@@ -2643,25 +2579,136 @@ const categories: Category[] = [
       {
         id: 'linkedin-post',
         name: 'LinkedIn Post',
-        description: 'LinkedIn post card',
+        description: 'LinkedIn post card with image support, engagement stats, and expandable content',
         registryName: 'linkedin-post',
         layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 0,
+        actionCount: 2,
         variants: [
           {
             id: 'default',
             name: 'Default',
-            component: <LinkedInPost />,
+            component: (
+              <LinkedInPost
+                data={{
+                  author: 'Manifest',
+                  headline: 'Manifest UI | 10K+ Developers',
+                  avatar: 'M',
+                  content: 'Excited to announce our latest milestone!\n\nWe\'ve just crossed 10,000 developers using Manifest to build agentic UIs.',
+                  time: '2h',
+                  reactions: '1,234',
+                  topReactions: ['like', 'celebrate', 'love'],
+                  comments: '56',
+                  reposts: '12',
+                }}
+                actions={{
+                  postUrl: 'https://linkedin.com/posts/manifest-123',
+                  repostUrl: 'https://linkedin.com/shareArticle?url=...',
+                }}
+              />
+            ),
             usageCode: `<LinkedInPost
   data={{
     author: "Manifest",
     headline: "Manifest UI | 10K+ Developers",
     avatar: "M",
-    content: "Excited to announce our latest milestone!",
-    likes: "1,234",
-    comments: "89",
-    reposts: "45",
-    time: "2h"
+    content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs.",
+    time: "2h",
+    reactions: "1,234",
+    topReactions: ["like", "celebrate", "love"],
+    comments: "56",
+    reposts: "12"
+  }}
+  actions={{
+    postUrl: "https://linkedin.com/posts/manifest-123",
+    repostUrl: "https://linkedin.com/shareArticle?url=..."
+  }}
+/>`,
+          },
+          {
+            id: 'with-media',
+            name: 'With Media',
+            component: (
+              <LinkedInPost
+                data={{
+                  author: 'Manifest',
+                  headline: 'Manifest UI | 10K+ Developers',
+                  avatar: 'M',
+                  content: 'Excited to announce our latest milestone!\n\nWe\'ve just crossed 10,000 developers using Manifest to build agentic UIs.',
+                  time: '2h',
+                  image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800',
+                  reactions: '2,847',
+                  topReactions: ['like', 'celebrate', 'insightful'],
+                  comments: '124',
+                  reposts: '89',
+                }}
+                actions={{
+                  postUrl: 'https://linkedin.com/posts/manifest-123',
+                  repostUrl: 'https://linkedin.com/shareArticle?url=...',
+                }}
+              />
+            ),
+            usageCode: `<LinkedInPost
+  data={{
+    author: "Manifest",
+    headline: "Manifest UI | 10K+ Developers",
+    avatar: "M",
+    content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs.",
+    time: "2h",
+    image: "https://example.com/announcement.jpg",
+    reactions: "2,847",
+    topReactions: ["like", "celebrate", "insightful"],
+    comments: "124",
+    reposts: "89"
+  }}
+  actions={{
+    postUrl: "https://linkedin.com/posts/manifest-123",
+    repostUrl: "https://linkedin.com/shareArticle?url=..."
+  }}
+/>`,
+          },
+          {
+            id: 'truncated',
+            name: 'Truncated Content',
+            component: (
+              <LinkedInPost
+                data={{
+                  author: 'Manifest',
+                  headline: 'Manifest UI | 10K+ Developers',
+                  avatar: 'M',
+                  content: 'Excited to announce our latest milestone!\n\nWe\'ve just crossed 10,000 developers using Manifest to build agentic UIs. Thank you to everyone who believed in our vision.\n\nWhat\'s next? We\'re working on something big. Stay tuned!\n\n#AI #AgenticUI #Developer #Startup',
+                  time: '2h',
+                  reactions: '15K',
+                  topReactions: ['like', 'insightful', 'celebrate'],
+                  comments: '890',
+                  reposts: '2.1K',
+                }}
+                actions={{
+                  postUrl: 'https://linkedin.com/posts/manifest-123',
+                  repostUrl: 'https://linkedin.com/shareArticle?url=...',
+                }}
+                appearance={{
+                  maxLines: 3,
+                }}
+              />
+            ),
+            usageCode: `<LinkedInPost
+  data={{
+    author: "Manifest",
+    headline: "Manifest UI | 10K+ Developers",
+    avatar: "M",
+    content: "Excited to announce our latest milestone!\\n\\nWe've just crossed 10,000 developers using Manifest to build agentic UIs. Thank you to everyone who believed in our vision.\\n\\nWhat's next? We're working on something big. Stay tuned!\\n\\n#AI #AgenticUI #Developer #Startup",
+    time: "2h",
+    reactions: "15K",
+    topReactions: ["like", "insightful", "celebrate"],
+    comments: "890",
+    reposts: "2.1K"
+  }}
+  actions={{
+    postUrl: "https://linkedin.com/posts/manifest-123",
+    repostUrl: "https://linkedin.com/shareArticle?url=..."
+  }}
+  appearance={{
+    maxLines: 3
   }}
 />`,
           },

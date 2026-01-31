@@ -248,9 +248,9 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
               {sourceCode.version && (
                 <Popover>
                   <PopoverTrigger asChild>
-                    <span className="group relative text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                    <span className="group/version inline-flex items-center gap-1 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
                       <span>V{sourceCode.version}</span>
-                      <span className="absolute left-full ml-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-xs text-primary">
+                      <span className="opacity-0 group-hover/version:opacity-100 transition-opacity whitespace-nowrap text-xs text-primary">
                         view changelog
                       </span>
                     </span>

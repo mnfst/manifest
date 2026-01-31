@@ -229,7 +229,10 @@
       "1.0.0": "Initial release with professional styling",
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.1.0": "Moved to social category for better organization",
-      "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+      "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+      "2.0.0": "BREAKING: Simplified component - removed engagement stats and action buttons, added LinkedIn icon link and optional repost button",
+      "2.1.0": "Added image support, engagement stats with reaction icons, expandable content with maxLines prop, and moved repost button to the right",
+      "2.1.1": "Fixed avatar circle visibility - now hides entirely when avatar prop is not provided"
     },
     "youtube-post": {
       "1.0.0": "Initial release with playable video embed",
