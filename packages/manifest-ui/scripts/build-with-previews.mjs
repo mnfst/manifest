@@ -7,6 +7,9 @@
  * and committed back to the repository. Now previews are generated during
  * the build and included in the build output (not tracked in Git).
  *
+ * Preview generation requires Playwright with Chromium installed. If Chromium
+ * is not available (e.g. on Vercel), preview generation is skipped gracefully.
+ *
  * Steps:
  * 1. Build the registry (shadcn build + inject versions)
  * 2. Start a temporary dev server
@@ -18,6 +21,7 @@
 /* eslint-disable no-undef */
 import { execSync, spawn } from 'child_process'
 import { dirname, join } from 'path'
+import { readdirSync, existsSync } from 'fs'
 import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -32,8 +36,35 @@ function run(cmd, label) {
   execSync(cmd, { cwd: rootDir, stdio: 'inherit' })
 }
 
+/**
+ * Check if Playwright's Chromium browser is installed by looking
+ * for a chromium directory in the Playwright cache.
+ */
+function isPlaywrightChromiumInstalled() {
+  const home = process.env.HOME || process.env.USERPROFILE || ''
+  const cacheLocations = [
+    join(home, '.cache', 'ms-playwright'),
+    join(home, 'Library', 'Caches', 'ms-playwright'),
+    join(home, 'AppData', 'Local', 'ms-playwright')
+  ]
+
+  for (const cacheDir of cacheLocations) {
+    if (!existsSync(cacheDir)) continue
+    try {
+      const entries = readdirSync(cacheDir)
+      if (entries.some((e) => e.startsWith('chromium'))) {
+        return true
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return false
+}
+
 async function waitForServer(url, maxSeconds) {
-  const { default: http } = await import('http')
+  const http = await import('http')
   for (let i = 0; i < maxSeconds; i++) {
     try {
       await new Promise((resolve, reject) => {
@@ -61,8 +92,14 @@ async function main() {
   // Step 1: Build the registry
   run('pnpm run registry:build', 'Building registry...')
 
+  // Determine whether to generate previews
+  const canGeneratePreviews = !skipPreviews && isPlaywrightChromiumInstalled()
+
   if (skipPreviews) {
     console.log('\n⏭ Skipping preview generation (--skip-previews)')
+  } else if (!canGeneratePreviews) {
+    console.log('\n⏭ Skipping preview generation (Playwright Chromium not installed)')
+    console.log('  To generate previews locally, run: npx playwright install chromium')
   } else {
     // Step 2: Start a temporary dev server on a non-conflicting port
     console.log(`\n▶ Starting temporary dev server on port ${DEV_SERVER_PORT}...`)
