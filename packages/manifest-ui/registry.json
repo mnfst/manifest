@@ -668,14 +668,15 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/table.png",
-        "version": "1.0.6",
+        "version": "1.0.7",
         "changelog": {
           "1.0.0": "Initial release with single and multi-select modes",
           "1.0.1": "Added descriptive alt tags for title images",
           "1.0.2": "Added aria-label to filter removal button for screen reader accessibility",
           "1.0.4": "Added comprehensive JSDoc documentation",
           "1.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.6": "Fixed defensive property access to handle empty objects and null values"
+          "1.0.6": "Fixed defensive property access to handle empty objects and null values",
+          "1.0.7": "Inlined OpenAI display mode types to remove external lib dependency for shadcn distribution"
         }
       },
       "dependencies": [
@@ -987,7 +988,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-card.png",
-        "version": "5.0.6",
+        "version": "5.0.7",
         "changelog": {
           "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
           "2.0.0": "BREAKING: Simplified Event interface - replaced startDateTime/endDateTime with display-formatted dateTime string, removed image/locationType/onlineUrl, changed ticketTiers to string array",
@@ -1000,7 +1001,8 @@
           "5.0.3": "Added comprehensive JSDoc documentation",
           "5.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "5.0.5": "Fixed defensive property access to handle empty objects and null values",
-          "5.0.6": "Added types.ts to registry for proper installation"
+          "5.0.6": "Added types.ts to registry for proper installation",
+          "5.0.7": "Added demo/data.ts to registry for proper installation via shadcn CLI"
         }
       },
       "dependencies": [
@@ -1019,6 +1021,11 @@
           "path": "registry/events/types.ts",
           "type": "registry:lib",
           "target": "components/ui/event-types.ts"
+        },
+        {
+          "path": "registry/events/demo/data.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/data.ts"
         }
       ],
       "category": "events"
@@ -1034,7 +1041,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-list.png",
-        "version": "6.0.7",
+        "version": "6.0.8",
         "changelog": {
           "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime",
@@ -1051,7 +1058,8 @@
           "6.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
           "6.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "6.0.6": "Fixed defensive property access to handle empty objects and null values",
-          "6.0.7": "Added types.ts to registry for proper installation"
+          "6.0.7": "Added types.ts to registry for proper installation",
+          "6.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI"
         }
       },
       "dependencies": [
@@ -1077,6 +1085,11 @@
           "path": "registry/events/types.ts",
           "type": "registry:lib",
           "target": "components/ui/event-types.ts"
+        },
+        {
+          "path": "registry/events/demo/data.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/data.ts"
         }
       ],
       "category": "events"
@@ -1092,7 +1105,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-detail.png",
-        "version": "3.0.7",
+        "version": "3.0.8",
         "changelog": {
           "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
@@ -1105,7 +1118,8 @@
           "3.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
           "3.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "3.0.6": "Fixed defensive property access to handle empty objects and null values",
-          "3.0.7": "Added types.ts to registry for proper installation"
+          "3.0.7": "Added types.ts to registry for proper installation",
+          "3.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI"
         }
       },
       "dependencies": [
@@ -1129,6 +1143,11 @@
           "path": "registry/events/types.ts",
           "type": "registry:lib",
           "target": "components/ui/event-types.ts"
+        },
+        {
+          "path": "registry/events/demo/data.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/data.ts"
         }
       ],
       "category": "events"

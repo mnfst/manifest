@@ -183,7 +183,8 @@
       "1.0.2": "Added aria-label to filter removal button for screen reader accessibility",
       "1.0.4": "Added comprehensive JSDoc documentation",
       "1.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.0.6": "Fixed defensive property access to handle empty objects and null values"
+      "1.0.6": "Fixed defensive property access to handle empty objects and null values",
+      "1.0.7": "Inlined OpenAI display mode types to remove external lib dependency for shadcn distribution"
     },
     "message-bubble": {
       "1.0.0": "Initial release with text, image, voice and reaction variants",
@@ -264,7 +265,8 @@
       "5.0.3": "Added comprehensive JSDoc documentation",
       "5.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "5.0.5": "Fixed defensive property access to handle empty objects and null values",
-      "5.0.6": "Added types.ts to registry for proper installation"
+      "5.0.6": "Added types.ts to registry for proper installation",
+      "5.0.7": "Added demo/data.ts to registry for proper installation via shadcn CLI"
     },
     "event-list": {
       "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
@@ -282,7 +284,8 @@
       "6.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
       "6.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "6.0.6": "Fixed defensive property access to handle empty objects and null values",
-      "6.0.7": "Added types.ts to registry for proper installation"
+      "6.0.7": "Added types.ts to registry for proper installation",
+      "6.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI"
     },
     "event-detail": {
       "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
@@ -296,7 +299,8 @@
       "3.0.4": "Removed Next.js dependency - now uses React-only lazy loading for map components",
       "3.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "3.0.6": "Fixed defensive property access to handle empty objects and null values",
-      "3.0.7": "Added types.ts to registry for proper installation"
+      "3.0.7": "Added types.ts to registry for proper installation",
+      "3.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI"
     },
     "ticket-tier-select": {
       "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",
