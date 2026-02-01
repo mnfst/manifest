@@ -21,7 +21,7 @@ export interface Position {
 /**
  * Classification for node types determining their role in flow execution.
  */
-export type NodeTypeCategory = 'trigger' | 'interface' | 'action' | 'return' | 'transform';
+export type NodeTypeCategory = 'trigger' | 'ui' | 'action' | 'return' | 'transform';
 
 // =============================================================================
 // Node Types

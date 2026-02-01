@@ -48,7 +48,7 @@ export interface NodeTypeDefinition {
   /** Category tags for grouping in the node picker */
   group: string[];
 
-  /** Node type category for classification (trigger, interface, action, return) */
+  /** Node type category for classification (trigger, ui, action, return) */
   category: NodeTypeCategory;
 
   /** Description of what the node does */

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/shadcn/button';
 // Map category IDs to Lucide React icons
 const categoryIconMap: Record<NodeTypeCategory, React.ElementType> = {
   trigger: Zap,
-  interface: LayoutTemplate,
+  ui: LayoutTemplate,
   action: GitBranch,
   return: CornerDownLeft,
   transform: Shuffle,

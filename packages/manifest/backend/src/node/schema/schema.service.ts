@@ -460,7 +460,7 @@ export class SchemaService {
 
       if (targetNode?.type === 'Link') {
         const sourceNodeDef = this.nodeTypeMap.get(sourceNode?.type ?? '');
-        if (sourceNodeDef && sourceNodeDef.category !== 'interface') {
+        if (sourceNodeDef && sourceNodeDef.category !== 'ui') {
           results.push({
             connectionId: connection.id,
             sourceNodeId: connection.sourceNodeId,
@@ -468,7 +468,7 @@ export class SchemaService {
             status: 'error',
             issues: [{
               type: 'type-mismatch',
-              message: `Link nodes can only be connected after UI nodes (interface category). "${sourceNodeDef.displayName}" is a ${sourceNodeDef.category} node.`,
+              message: `Link nodes can only be connected after UI nodes (ui category). "${sourceNodeDef.displayName}" is a ${sourceNodeDef.category} node.`,
               sourcePath: '',
               targetPath: '',
             }],

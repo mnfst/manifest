@@ -23,7 +23,7 @@ const iconMap: Record<string, React.ElementType> = {
  * Returns null for non-interface nodes.
  */
 function getActionLabel(node: NodeTypeInfo): string | null {
-  if (node.category !== 'interface') {
+  if (node.category !== 'ui') {
     return null;
   }
 
@@ -46,7 +46,7 @@ function getActionLabel(node: NodeTypeInfo): string | null {
 // Category-based styling
 const categoryStyles: Record<NodeTypeCategory, { color: string; bgColor: string }> = {
   trigger: { color: 'text-blue-600', bgColor: 'bg-blue-50' },
-  interface: { color: 'text-gray-600', bgColor: 'bg-gray-50' },
+  ui: { color: 'text-gray-600', bgColor: 'bg-gray-50' },
   action: { color: 'text-purple-600', bgColor: 'bg-purple-50' },
   return: { color: 'text-green-600', bgColor: 'bg-green-50' },
   transform: { color: 'text-teal-600', bgColor: 'bg-teal-50' },

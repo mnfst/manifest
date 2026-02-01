@@ -321,7 +321,7 @@ describe('SchemaService', () => {
     });
 
     it('should detect Link node constraint violations', async () => {
-      // Link nodes can only be connected after UI nodes (interface category)
+      // Link nodes can only be connected after UI nodes (ui category)
       const nodes = [
         createMockApiCallNode({ id: 'api' }), // action category
         createMockLinkNode({ id: 'link' }),
@@ -342,7 +342,7 @@ describe('SchemaService', () => {
       expect(result.summary.errors).toBe(1);
     });
 
-    it('should allow Link node from interface node', async () => {
+    it('should allow Link node from ui node', async () => {
       const nodes = [
         createMockRegistryComponentNode({ id: 'statcard' }),
         createMockLinkNode({ id: 'link' }),

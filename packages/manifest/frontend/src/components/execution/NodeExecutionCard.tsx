@@ -24,12 +24,12 @@ const nodeTypeIcons: Record<string, typeof Box> = {
 };
 
 // Node type category styles
-type NodeCategory = 'trigger' | 'interface' | 'action' | 'return' | 'transform' | 'default';
+type NodeCategory = 'trigger' | 'ui' | 'action' | 'return' | 'transform' | 'default';
 
 const nodeTypeCategories: Record<string, NodeCategory> = {
   UserIntent: 'trigger',
-  RegistryComponent: 'interface',
-  BlankComponent: 'interface',
+  RegistryComponent: 'ui',
+  BlankComponent: 'ui',
   Return: 'return',
   CallFlow: 'action',
   ApiCall: 'action',
@@ -38,7 +38,7 @@ const nodeTypeCategories: Record<string, NodeCategory> = {
 
 const categoryStyles: Record<NodeCategory, { border: string; bg: string; badge: string; icon: string }> = {
   trigger: { border: 'border-blue-200', bg: 'bg-blue-50', badge: 'bg-blue-200 text-blue-700', icon: 'text-blue-500' },
-  interface: { border: 'border-gray-200', bg: 'bg-gray-50', badge: 'bg-gray-200 text-gray-700', icon: 'text-gray-500' },
+  ui: { border: 'border-gray-200', bg: 'bg-gray-50', badge: 'bg-gray-200 text-gray-700', icon: 'text-gray-500' },
   action: { border: 'border-purple-200', bg: 'bg-purple-50', badge: 'bg-purple-200 text-purple-700', icon: 'text-purple-500' },
   return: { border: 'border-green-200', bg: 'bg-green-50', badge: 'bg-green-200 text-green-700', icon: 'text-green-500' },
   transform: { border: 'border-teal-200', bg: 'bg-teal-50', badge: 'bg-teal-200 text-teal-700', icon: 'text-teal-500' },
