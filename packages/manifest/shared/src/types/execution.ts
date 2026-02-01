@@ -2,6 +2,8 @@
  * Execution tracking types for flow invocations via MCP
  */
 
+import type { PaginatedResponse, PaginationQuery } from './pagination.js';
+
 /**
  * Execution status enum
  * - pending: Execution is in progress
@@ -80,23 +82,18 @@ export interface ExecutionListItem {
 }
 
 /**
- * Paginated execution list response
+ * Paginated execution list response.
+ * Extends the generic PaginatedResponse with execution-specific metadata.
  */
-export interface ExecutionListResponse {
-  items: ExecutionListItem[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+export interface ExecutionListResponse extends PaginatedResponse<ExecutionListItem> {
   hasPendingExecutions: boolean;
 }
 
 /**
- * Query parameters for listing executions
+ * Query parameters for listing executions.
+ * Extends the generic PaginationQuery with execution-specific filters.
  */
-export interface ExecutionListQuery {
-  page?: number;
-  limit?: number;
+export interface ExecutionListQuery extends PaginationQuery {
   status?: ExecutionStatus;
   /** Filter by preview executions (true = only preview, false = only non-preview, undefined = all) */
   isPreview?: boolean;

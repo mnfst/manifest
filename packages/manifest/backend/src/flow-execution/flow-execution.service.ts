@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
 import { FlowExecutionEntity } from './flow-execution.entity';
+import { paginate } from '../common/paginate';
 import type {
   ExecutionStatus,
   NodeExecutionData,
@@ -98,8 +99,7 @@ export class FlowExecutionService {
     flowId: string,
     options: FindByFlowOptions = {}
   ): Promise<ExecutionListResponse> {
-    const { page = 1, limit = 20, status, isPreview } = options;
-    const skip = (page - 1) * limit;
+    const { status, isPreview, ...paginationQuery } = options;
 
     const whereClause: Record<string, unknown> = { flowId };
     if (status) {
@@ -109,11 +109,10 @@ export class FlowExecutionService {
       whereClause.isPreview = isPreview;
     }
 
-    const [executions, total] = await this.executionRepository.findAndCount({
-      where: whereClause,
-      order: { startedAt: 'DESC' },
-      skip,
-      take: limit,
+    const paginatedResult = await paginate(this.executionRepository, {
+      query: paginationQuery,
+      where: whereClause as any,
+      order: { startedAt: 'DESC' } as any,
     });
 
     // Check if any pending executions exist for this flow
@@ -121,16 +120,9 @@ export class FlowExecutionService {
       where: { flowId, status: 'pending' },
     });
 
-    const items: ExecutionListItem[] = executions.map((exec) =>
-      this.toListItem(exec)
-    );
-
     return {
-      items,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      ...paginatedResult,
+      items: paginatedResult.items.map((exec) => this.toListItem(exec)),
       hasPendingExecutions: pendingCount > 0,
     };
   }
