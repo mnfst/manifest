@@ -19,7 +19,7 @@ import type { FlowExecutionEntity } from '../flow-execution.entity';
 import type {
   CreateExecutionParams,
   UpdateExecutionParams,
-} from '../flow-execution.service';
+} from '../flow-execution.types';
 
 /**
  * Creates a mock FlowExecutionEntity for repository tests

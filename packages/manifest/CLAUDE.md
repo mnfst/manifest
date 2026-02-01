@@ -83,6 +83,50 @@ export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:384
 - FlowExecution entity for execution tracking
 - ThemeVariables JSON column on AppEntity
 
+## Code Organization Guidelines (CRITICAL)
+
+### No Inline Types in Service Files
+
+**Service files (`.service.ts`, `.tool.ts`, `.controller.ts`) must NOT define interfaces, types, constants, or helper functions inline.** Extract them to dedicated files:
+
+| What to extract | Where it goes | Naming convention |
+|---|---|---|
+| Interfaces/types used only in backend | `<module>/<module>.types.ts` | e.g., `node/node.types.ts` |
+| Interfaces/types shared across packages | `shared/src/types/<domain>.ts` | Re-export from `shared/src/index.ts` |
+| Helper/utility functions | `<module>/utils/<name>.utils.ts` | e.g., `app/utils/default-icons.utils.ts` |
+| Constants | `<module>/utils/<name>.utils.ts` or `shared/src/constants/<domain>.ts` | Backend-only → utils file; shared → constants file |
+| Error classes | `<module>/errors/<name>.error.ts` | e.g., `mcp/errors/mcp-inactive-tool.error.ts` |
+| Crypto/security utilities | `<module>/crypto/<name>.utils.ts` | e.g., `secret/crypto/encryption.utils.ts` |
+
+**Examples of what NOT to do:**
+
+```typescript
+// BAD - inline interface in service file
+@Injectable()
+export class MyService {
+  interface MyParams { ... } // ❌ Extract to my.types.ts
+  private helperFn() { ... } // ❌ Extract to utils/ if pure function
+}
+```
+
+```typescript
+// GOOD - imports from dedicated files
+import type { MyParams } from './my.types';
+import { helperFn } from './utils/my.utils';
+
+@Injectable()
+export class MyService { ... }
+```
+
+### When to Use Shared vs Backend-Local Types
+
+- **Shared (`@manifest/shared`)**: Types used by both frontend and backend, or types that are part of the public API contract
+- **Backend-local (`<module>/<module>.types.ts`)**: Types only used within the backend, or types that depend on backend-only packages (e.g., `@manifest/nodes`, TypeORM entities)
+
+### Private Methods vs Standalone Functions
+
+If a private method on a service class is a **pure function** (no `this` access, no dependency injection), extract it to a standalone utility function in a `utils/` subdirectory. This improves testability and reusability.
+
 ## shadcn/ui Components (DO NOT MODIFY)
 
 **Location:** `packages/manifest/frontend/src/components/ui/shadcn/`

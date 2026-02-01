@@ -240,6 +240,7 @@ export type {
   SendEmailRequest,
   EmailResultResponse,
   EmailConfigStatus,
+  SendEmailOptions,
 } from './types/email.js';
 export { EmailTemplateType } from './types/email.js';
 
@@ -256,7 +257,8 @@ export type {
   AppAnalyticsResponse,
   AnalyticsQueryParams,
 } from './types/analytics.js';
-export { TIME_RANGE_LABELS } from './constants/analytics.js';
+export type { TimeRangeConfig } from './types/analytics.js';
+export { TIME_RANGE_LABELS, TIME_RANGE_CONFIGS } from './constants/analytics.js';
 
 // Registry types (for UI component registry)
 export type {

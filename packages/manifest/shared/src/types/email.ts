@@ -131,3 +131,13 @@ export interface EmailConfigStatus {
   /** Sending domain (if applicable) */
   domain?: string;
 }
+
+/**
+ * Options for sending an email (used by backend EmailService)
+ */
+export interface SendEmailOptions {
+  to: string;
+  template: EmailTemplateType;
+  props: Record<string, unknown>;
+  replyTo?: string;
+}

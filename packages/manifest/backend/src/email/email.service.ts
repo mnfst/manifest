@@ -2,24 +2,15 @@ import { Injectable, Inject, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config';
 import {
   EmailTemplateType,
-  EmailSendResult,
-  PasswordResetEmailProps,
-  InvitationEmailProps,
-  EmailChangeVerificationEmailProps,
+  type EmailSendResult,
+  type PasswordResetEmailProps,
+  type InvitationEmailProps,
+  type EmailChangeVerificationEmailProps,
+  type SendEmailOptions,
 } from '@manifest/shared';
 import { EmailProvider, EMAIL_PROVIDER } from './providers/email-provider.interface';
 import { TemplateEngine, TEMPLATE_ENGINE } from './templates/engine/template-engine.interface';
 import { ReactEmailEngine } from './templates/engine/react-email.engine';
-
-/**
- * Options for sending an email
- */
-interface SendEmailOptions {
-  to: string;
-  template: EmailTemplateType;
-  props: Record<string, unknown>;
-  replyTo?: string;
-}
 
 /**
  * Email service - orchestrates template rendering and email sending.

@@ -7,108 +7,11 @@ import { FlowExecutionService } from '../flow-execution/flow-execution.service';
 import { SecretService } from '../secret/secret.service';
 import type { McpToolResponse, NodeInstance, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, LinkNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest, RegistryNodeParameters } from '@manifest/shared';
 import { ApiCallNode, JavaScriptCodeTransform } from '@manifest/nodes';
+import { escapeHtml, escapeJs } from './mcp.utils';
+import { resolveTemplateVariables } from './utils/template.utils';
+import { McpInactiveToolError } from './errors/mcp-inactive-tool.error';
 
-/**
- * SECURITY: HTML escape function to prevent XSS in widget templates
- */
-function escapeHtml(str: string): string {
-  if (!str) return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-/**
- * SECURITY: Escape for JavaScript string context
- */
-function escapeJs(str: string): string {
-  if (!str) return '';
-  return str
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r')
-    .replace(/</g, '\\x3c')
-    .replace(/>/g, '\\x3e');
-}
-
-/**
- * Resolves template variables in a string using upstream node outputs.
- * Template syntax: {{ nodeSlug.path }} where path can be dot-notation like 'data.userId'
- * Supports both slug-based and ID-based lookups.
- *
- * @param template - String containing template variables
- * @param nodeOutputs - Map of nodeId to output data
- * @param allNodes - All nodes in the flow (for slug-to-id resolution)
- * @returns Resolved string with actual values
- */
-function resolveTemplateVariables(
-  template: string,
-  nodeOutputs: Map<string, unknown>,
-  allNodes: NodeInstance[]
-): string {
-  if (!template) return template;
-
-  // Build slug-to-id map
-  const slugToId = new Map<string, string>();
-  for (const node of allNodes) {
-    if (node.slug) {
-      slugToId.set(node.slug, node.id);
-    }
-  }
-
-  const templatePattern = /\{\{\s*([^}]+)\s*\}\}/g;
-
-  return template.replace(templatePattern, (_fullMatch, pathStr) => {
-    const path = pathStr.trim();
-    const parts = path.split('.');
-    const slugOrId = parts[0];
-    const pathParts = parts.slice(1);
-
-    // Try slug first, then ID
-    const nodeId = slugToId.get(slugOrId) || slugOrId;
-    let value = nodeOutputs.get(nodeId);
-
-    // Navigate nested path
-    for (const part of pathParts) {
-      if (value && typeof value === 'object' && part in value) {
-        value = (value as Record<string, unknown>)[part];
-      } else {
-        value = undefined;
-        break;
-      }
-    }
-
-    // Return the resolved value, or empty string if not found
-    if (value === undefined || value === null) {
-      return '';
-    }
-    // If it's an object or array, stringify it
-    if (typeof value === 'object') {
-      return JSON.stringify(value);
-    }
-    return String(value);
-  });
-}
-
-/**
- * MCP protocol error for inactive tools
- * Error code -32602 is "Invalid params" per JSON-RPC 2.0 specification
- */
-export class McpInactiveToolError extends BadRequestException {
-  readonly code = -32602;
-
-  constructor(toolName: string) {
-    super({
-      code: -32602,
-      message: `Tool '${toolName}' is not active and cannot be executed`,
-    });
-  }
-}
+export { McpInactiveToolError } from './errors/mcp-inactive-tool.error';
 
 /**
  * Service for handling MCP tool calls for published apps
