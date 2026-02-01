@@ -2,31 +2,27 @@
  * Unit tests for user fingerprint generation
  *
  * Tests the SHA-256 hashing logic used to generate unique user fingerprints
- * from IP address and User-Agent strings. This logic is used in UiController
+ * from IP address and User-Agent strings. This logic is used in McpController
  * to track unique users for analytics.
- *
- * Note: The actual generateUserFingerprint function is private in ui.controller.ts.
- * These tests verify the expected behavior of the fingerprinting algorithm by
- * re-implementing it here and testing against expected outputs.
  */
 
 import * as crypto from 'crypto';
+import { generateUserFingerprint as generateFromRequest } from './mcp.utils';
 
 /**
- * Reference implementation of the fingerprint generation algorithm
- * This matches the implementation in ui.controller.ts
+ * Wrapper that accepts raw IP/User-Agent strings for easier testing.
+ * The exported utility accepts a Request object, so we build a minimal mock.
  */
 function generateUserFingerprint(
   ip: string | undefined,
   userAgent: string | undefined,
 ): string {
-  const normalizedIp = ip || 'unknown';
-  const normalizedUserAgent = userAgent || 'unknown';
-  return crypto
-    .createHash('sha256')
-    .update(`${normalizedIp}:${normalizedUserAgent}`)
-    .digest('hex')
-    .substring(0, 16);
+  const req = {
+    ip: ip || undefined,
+    socket: { remoteAddress: undefined },
+    get: (header: string) => (header === 'user-agent' ? userAgent : undefined),
+  } as Parameters<typeof generateFromRequest>[0];
+  return generateFromRequest(req);
 }
 
 describe('User Fingerprint Generation', () => {
