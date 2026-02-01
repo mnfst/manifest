@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { McpToolService } from './mcp.tool';
-import { UiController } from './ui.controller';
+import { McpJsonRpcService } from './mcp-jsonrpc.service';
+import { McpTemplateService } from './mcp-template.service';
+import { McpController } from './mcp.controller';
 import { AppEntity } from '../app/app.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { AppService } from '../app/app.service';
@@ -25,8 +27,8 @@ import { SecretModule } from '../secret/secret.module';
     AuthModule,
     SecretModule,
   ],
-  controllers: [UiController],
-  providers: [McpToolService, AppService],
+  controllers: [McpController],
+  providers: [McpToolService, McpJsonRpcService, McpTemplateService, AppService],
   exports: [McpToolService],
 })
 export class McpModule {}
