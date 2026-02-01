@@ -4,32 +4,16 @@ import { Repository } from 'typeorm';
 import { FlowExecutionEntity } from '../flow-execution/flow-execution.entity';
 import { FlowEntity } from '../flow/flow.entity';
 import { AppEntity } from '../app/app.entity';
-import type {
-  AnalyticsTimeRange,
-  AppAnalyticsResponse,
-  ChartDataPoint,
-  AnalyticsMetric,
-  TrendData,
-  FlowOption,
-  FlowAnalytics,
+import {
+  TIME_RANGE_CONFIGS,
+  type AnalyticsTimeRange,
+  type AppAnalyticsResponse,
+  type ChartDataPoint,
+  type AnalyticsMetric,
+  type TrendData,
+  type FlowOption,
+  type FlowAnalytics,
 } from '@manifest/shared';
-
-/** Time range configuration for aggregation */
-interface TimeRangeConfig {
-  /** SQLite datetime modifier (e.g., '-7 days') */
-  modifier: string;
-  /** SQLite strftime format for bucketing */
-  bucketFormat: string;
-  /** Number of expected buckets */
-  expectedBuckets: number;
-}
-
-const TIME_RANGE_CONFIGS: Record<AnalyticsTimeRange, TimeRangeConfig> = {
-  '24h': { modifier: '-24 hours', bucketFormat: '%Y-%m-%d %H:00', expectedBuckets: 24 },
-  '7d': { modifier: '-7 days', bucketFormat: '%Y-%m-%d', expectedBuckets: 7 },
-  '30d': { modifier: '-30 days', bucketFormat: '%Y-%m-%d', expectedBuckets: 30 },
-  '3mo': { modifier: '-3 months', bucketFormat: '%Y-W%W', expectedBuckets: 13 },
-};
 
 @Injectable()
 export class AnalyticsService {

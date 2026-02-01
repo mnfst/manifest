@@ -28,3 +28,18 @@ export function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;')
     .replace(/\//g, '&#x2F;');
 }
+
+/**
+ * SECURITY: Escape for JavaScript string context
+ */
+export function escapeJs(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/</g, '\\x3c')
+    .replace(/>/g, '\\x3e');
+}

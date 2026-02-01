@@ -10,7 +10,6 @@ import {
   type UpdateNodeRequest,
   type UpdateNodePositionRequest,
   type CreateConnectionRequest,
-  type NodeTypeCategory,
   type UserIntentNodeParameters,
   type InsertTransformerRequest,
   type InsertTransformerResponse,
@@ -19,26 +18,12 @@ import {
 } from '@manifest/shared';
 import { generateUniqueSlug } from '@manifest/shared';
 import { v4 as uuidv4 } from 'uuid';
-import { builtInNodeList, builtInNodes, toNodeTypeInfo, type NodeTypeInfo } from '@manifest/nodes';
+import { builtInNodeList, builtInNodes, toNodeTypeInfo } from '@manifest/nodes';
 import { generateUniqueToolName } from '../utils/tool-name';
 import { VM } from 'vm2';
+import type { CategoryInfo, NodeTypesResponse } from './node.types';
 
-/**
- * Category info for grouping nodes in the UI
- */
-interface CategoryInfo {
-  id: NodeTypeCategory;
-  displayName: string;
-  order: number;
-}
-
-/**
- * Response for GET /api/node-types
- */
-export interface NodeTypesResponse {
-  nodeTypes: NodeTypeInfo[];
-  categories: CategoryInfo[];
-}
+export type { NodeTypesResponse } from './node.types';
 
 /**
  * Service for Node and Connection CRUD operations.

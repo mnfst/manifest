@@ -6,27 +6,7 @@ import { AppEntity } from './app.entity';
 import { UserAppRoleEntity } from '../auth/user-app-role.entity';
 import type { App, AppWithFlowCount, CreateAppRequest, UpdateAppRequest, PublishResult, ThemeVariables, DeleteAppResponse } from '@manifest/shared';
 import { DEFAULT_THEME_VARIABLES } from '@manifest/shared';
-
-/**
- * Default app icons - 8 distinct pixel art icons assigned randomly on app creation
- */
-const DEFAULT_ICONS = [
-  '/icons/icon-red.png',
-  '/icons/icon-orange.png',
-  '/icons/icon-yellow.png',
-  '/icons/icon-green.png',
-  '/icons/icon-blue.png',
-  '/icons/icon-purple.png',
-  '/icons/icon-pink.png',
-  '/icons/icon-gray.png',
-];
-
-/**
- * Get a random default icon for new apps
- */
-function getRandomDefaultIcon(): string {
-  return DEFAULT_ICONS[Math.floor(Math.random() * DEFAULT_ICONS.length)];
-}
+import { getRandomDefaultIcon } from './utils/default-icons.utils';
 
 /**
  * Service for App CRUD operations

@@ -101,3 +101,17 @@ export interface AnalyticsQueryParams {
   timeRange?: AnalyticsTimeRange;
   flowId?: string;
 }
+
+// =============================================================================
+// Backend Analytics Configuration
+// =============================================================================
+
+/** Time range configuration for aggregation */
+export interface TimeRangeConfig {
+  /** SQLite datetime modifier (e.g., '-7 days') */
+  modifier: string;
+  /** SQLite strftime format for bucketing */
+  bucketFormat: string;
+  /** Number of expected buckets */
+  expectedBuckets: number;
+}
