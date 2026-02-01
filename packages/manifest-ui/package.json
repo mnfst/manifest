@@ -3,7 +3,8 @@
   "version": "0.1.2",
   "scripts": {
     "dev": "pnpm run registry:build && next dev --turbopack -p 3001",
-    "build": "pnpm run registry:build && next build",
+    "build": "node scripts/build-with-previews.mjs",
+    "build:quick": "pnpm run registry:build && next build",
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",

@@ -2,8 +2,7 @@
 # Manifest UI CI Workflow
 # ============================================================================
 # Runs CI checks for the manifest-ui package:
-#   - Test: Builds and runs tests (runs first)
-#   - Previews: Generates component preview images (after tests pass)
+#   - Test: Builds (with preview generation) and runs tests
 # ============================================================================
 
 name: Manifest UI CI
@@ -38,37 +37,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build manifest-ui
-        run: pnpm run manifest-ui:build
-
-      - name: Run tests
-        run: pnpm run manifest-ui:test
-
-  generate-previews:
-    name: Generate Previews
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: write
-      statuses: write
-
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -77,72 +45,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-playwright-
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
       - name: Install Playwright browsers
         run: cd packages/manifest-ui && npx playwright install chromium
 
-      - name: Build registry
-        run: cd packages/manifest-ui && pnpm run registry:build
+      - name: Build manifest-ui
+        run: pnpm run manifest-ui:build
 
-      - name: Start dev server and generate previews
-        run: |
-          cd packages/manifest-ui
-          pnpm run dev &
-          DEV_PID=$!
-
-          echo "Waiting for dev server to start..."
-          for i in {1..60}; do
-            if curl -s http://localhost:3001 > /dev/null 2>&1; then
-              echo "Dev server is ready!"
-              break
-            fi
-            if [ $i -eq 60 ]; then
-              echo "Timeout waiting for dev server"
-              exit 1
-            fi
-            sleep 1
-          done
-
-          node scripts/generate-previews.mjs --verbose
-          kill $DEV_PID 2>/dev/null || true
-
-      - name: Check for changes
-        id: check-changes
-        run: |
-          if git diff --quiet packages/manifest-ui/public/previews/ packages/manifest-ui/registry.json; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit and push preview changes
-        id: auto-commit
-        if: steps.check-changes.outputs.has_changes == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'chore: update component previews'
-          file_pattern: |
-            packages/manifest-ui/public/previews/*.png
-            packages/manifest-ui/registry.json
-          commit_user_name: github-actions[bot]
-          commit_user_email: github-actions[bot]@users.noreply.github.com
-          commit_author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
-
-      - name: Get commit SHA for status
-        id: get-sha
-        run: |
-          if [ "${{ steps.auto-commit.outputs.commit_hash }}" != "" ]; then
-            echo "sha=${{ steps.auto-commit.outputs.commit_hash }}" >> $GITHUB_OUTPUT
-          else
-            echo "sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Set success status
-        uses: myrotvorets/set-commit-status-action@v2.0.1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          sha: ${{ steps.get-sha.outputs.sha }}
-          status: success
-          context: test
+      - name: Run tests
+        run: pnpm run manifest-ui:test
