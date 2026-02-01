@@ -6,10 +6,10 @@ import {
   type EdgeProps,
 } from '@xyflow/react';
 import { Trash2, AlertTriangle, CheckCircle, AlertCircle, HelpCircle } from 'lucide-react';
-import type { Connection, CompatibilityStatus } from '@manifest/shared';
+import { STATUS_COLORS, getStatusLabel, type Connection, type CompatibilityStatus } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import { api } from '../../lib/api';
-import { STATUS_COLORS, getStatusLabel, type ConnectionValidationState } from '../../types/schema';
+import type { ConnectionValidationState } from '../../types/schema';
 
 export interface DeletableEdgeData {
   flowId: string;

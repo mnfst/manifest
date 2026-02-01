@@ -8,9 +8,9 @@ export { VariableControlGroup } from './VariableControlGroup';
 export { ResetConfirmDialog } from './ResetConfirmDialog';
 export { useThemeEditor } from './hooks/useThemeEditor';
 export type { UseThemeEditorOptions, UseThemeEditorReturn } from './hooks/useThemeEditor';
+export type { ThemeVariableGroup } from '@manifest/shared';
+export { THEME_VARIABLE_GROUPS } from '@manifest/shared';
 export type {
-  ThemeVariableGroup,
   ThemeEditorState,
   ThemePreviewProps,
 } from './types';
-export { THEME_VARIABLE_GROUPS } from './types';
