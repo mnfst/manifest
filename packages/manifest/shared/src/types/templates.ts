@@ -293,12 +293,6 @@ export const TEMPLATE_DEFINITIONS: Record<LayoutTemplate, TemplateDefinition> = 
   },
 };
 
-// Legacy exports for backwards compatibility (kept for any code that might reference them)
-export const TABLE_SAMPLE_DATA = STAT_CARD_SAMPLE_DATA;
-export const POST_LIST_SAMPLE_DATA = STAT_CARD_SAMPLE_DATA;
-export const TABLE_DEFAULT_CODE = STAT_CARD_DEFAULT_CODE;
-export const POST_LIST_DEFAULT_CODE = STAT_CARD_DEFAULT_CODE;
-
 /**
  * Get the default code for a layout template.
  */
