@@ -2,9 +2,6 @@
 
 import { Button } from '@/components/ui/button'
 
-// Import shared OpenAI types
-import '@/lib/openai-types' // Side effect: extends Window interface
-
 // Import types from shared types file to avoid circular dependencies
 import type { Post } from './types'
 // Re-export for backward compatibility

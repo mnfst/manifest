@@ -15,10 +15,6 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-
-// Import shared OpenAI types
-import '@/lib/openai-types' // Side effect: extends Window interface
-import type { DisplayMode, OpenAIBridge } from '@/lib/openai-types'
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -40,12 +36,12 @@ import {
 import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
 
 // =============================================================================
-// Hook to subscribe to window.openai changes (official pattern)
+// Display Mode Types & Hook (inlined for distribution)
 // =============================================================================
 
-function useOpenAIGlobal<K extends keyof OpenAIBridge>(
-  key: K
-): OpenAIBridge[K] | undefined {
+type DisplayMode = 'inline' | 'pip' | 'fullscreen'
+
+function useOpenAIDisplayMode(): DisplayMode | undefined {
   return useSyncExternalStore(
     (onChange) => {
       if (typeof window === 'undefined') return () => {}
@@ -53,7 +49,7 @@ function useOpenAIGlobal<K extends keyof OpenAIBridge>(
       window.addEventListener('openai:set_globals', handler)
       return () => window.removeEventListener('openai:set_globals', handler)
     },
-    () => (typeof window !== 'undefined' ? window.openai?.[key] : undefined),
+    () => (typeof window !== 'undefined' ? window.openai?.displayMode : undefined),
     () => undefined
   )
 }
@@ -524,7 +520,7 @@ export function Table<T extends Record<string, unknown>>({
     control ?? {}
 
   // Get display mode from window.openai (ChatGPT) or use prop/default
-  const openaiDisplayMode = useOpenAIGlobal('displayMode')
+  const openaiDisplayMode = useOpenAIDisplayMode()
   const displayMode = propDisplayMode ?? openaiDisplayMode ?? 'inline'
 
   const [currentPage, setCurrentPage] = useState(1)

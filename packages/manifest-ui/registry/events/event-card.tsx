@@ -16,9 +16,6 @@ import {
 import type { Event, EventSignal } from './types'
 import { demoEvent } from './demo/data'
 
-// Import shared OpenAI types
-import '@/lib/openai-types'
-
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  * EventCardProps
