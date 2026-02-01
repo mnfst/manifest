@@ -95,6 +95,10 @@ export {
   getDefaultAppearanceConfig,
 } from './constants/appearance.js';
 
+// Pagination types
+export type { PaginatedResponse, PaginationQuery } from './types/pagination.js';
+export { PAGINATION_DEFAULTS } from './types/pagination.js';
+
 // Execution types
 export type {
   ExecutionStatus,
