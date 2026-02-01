@@ -12,7 +12,7 @@ export type {
   DeleteAppResponse,
   IconUploadResponse,
 } from './types/app.js';
-export { LAYOUT_REGISTRY } from './types/app.js';
+export { LAYOUT_REGISTRY } from './constants/app.js';
 
 // Flow types
 export type {
@@ -30,14 +30,14 @@ export type {
 
 // Theme types
 export type { ThemeVariables } from './types/theme.js';
-export { DEFAULT_THEME_VARIABLES } from './types/theme.js';
+export { DEFAULT_THEME_VARIABLES } from './constants/theme.js';
 
 // MCP types
 export type { McpToolResponse, PublishResult, ApiError, McpToolInput } from './types/mcp.js';
 
 // Platform types
 export type { PlatformStyle, ThemeMode, PreviewPreferences } from './types/platform.js';
-export { DEFAULT_PREVIEW_PREFERENCES } from './types/platform.js';
+export { DEFAULT_PREVIEW_PREFERENCES } from './constants/platform.js';
 
 // Node types (new unified node architecture)
 export type {
@@ -93,7 +93,7 @@ export {
   COMPONENT_APPEARANCE_REGISTRY,
   getAppearanceSchema,
   getDefaultAppearanceConfig,
-} from './types/appearance.js';
+} from './constants/appearance.js';
 
 // Execution types
 export type {
@@ -198,15 +198,12 @@ export {
 // Validation types (for code editor)
 export type { ValidationError, ValidationResult } from './types/validation.js';
 
-// Template types (for Interface node code editor)
-export type { TemplateDefinition } from './types/templates.js';
+// Template constants (for Interface node code editor)
 export {
-  TEMPLATE_DEFINITIONS,
   BLANK_COMPONENT_DEFAULT_CODE,
-  BLANK_COMPONENT_SAMPLE_DATA,
   getTemplateDefaultCode,
   getTemplateSampleData,
-} from './types/templates.js';
+} from './constants/templates.js';
 
 // Auth types
 export type {
@@ -230,7 +227,7 @@ export type {
   ChangePasswordResponse,
   DefaultUserCheckResponse,
 } from './types/auth.js';
-export { DEFAULT_ADMIN_USER } from './types/auth.js';
+export { DEFAULT_ADMIN_USER } from './constants/auth.js';
 
 // Email types
 export type {
@@ -259,7 +256,7 @@ export type {
   AppAnalyticsResponse,
   AnalyticsQueryParams,
 } from './types/analytics.js';
-export { TIME_RANGE_LABELS } from './types/analytics.js';
+export { TIME_RANGE_LABELS } from './constants/analytics.js';
 
 // Registry types (for UI component registry)
 export type {
@@ -283,6 +280,13 @@ export {
   SYSTEM_PARAMETER_NAMES,
 } from './constants/parameters.js';
 export type { SystemParameterName } from './constants/parameters.js';
+
+// Schema constants (for connection edge colors)
+export { STATUS_COLORS, getStatusLabel } from './constants/schema.js';
+
+// Theme editor constants (for theme variable grouping)
+export type { ThemeVariableGroup } from './constants/theme-editor.js';
+export { THEME_VARIABLE_GROUPS } from './constants/theme-editor.js';
 
 // Secret types (for app secrets vault)
 export type {

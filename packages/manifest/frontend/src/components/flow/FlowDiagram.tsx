@@ -15,12 +15,13 @@ import {
   applyNodeChanges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type {
-  Flow,
-  NodeInstance,
-  Connection,
-  CreateConnectionRequest,
-  NodeType,
+import {
+  STATUS_COLORS,
+  type Flow,
+  type NodeInstance,
+  type Connection,
+  type CreateConnectionRequest,
+  type NodeType,
 } from '@manifest/shared';
 import { X, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/shadcn/button';
@@ -38,7 +39,7 @@ import { BlankComponentNode } from './BlankComponentNode';
 import { DeletableEdge } from './DeletableEdge';
 import { CompatibilityDetailModal } from './CompatibilityDetailModal';
 import { useSchemaValidation } from '../../hooks/useSchemaValidation';
-import { STATUS_COLORS, type ConnectionValidationState } from '../../types/schema';
+import type { ConnectionValidationState } from '../../types/schema';
 
 interface FlowDiagramProps {
   flow: Flow;

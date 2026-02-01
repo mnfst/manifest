@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { AlertCircle, AlertTriangle, CheckCircle, HelpCircle, X, ChevronDown, ChevronRight } from 'lucide-react';
-import type { CompatibilityIssue, CompatibilityStatus, JSONSchema } from '@manifest/shared';
+import { getStatusLabel, type CompatibilityIssue, type CompatibilityStatus, type JSONSchema } from '@manifest/shared';
 import { Button } from '@/components/ui/shadcn/button';
 import type { ConnectionValidationState } from '../../types/schema';
-import { getStatusLabel } from '../../types/schema';
 import { SchemaViewer } from '../node/SchemaViewer';
 import { SchemaErrorBoundary } from '../common/SchemaErrorBoundary';
 

@@ -5,7 +5,8 @@ import { VariableControlGroup } from './VariableControlGroup';
 import { ThemePreview } from './ThemePreview';
 import { ThemeCodeEditor } from './ThemeCodeEditor';
 import { ResetConfirmDialog } from './ResetConfirmDialog';
-import { THEME_VARIABLE_GROUPS, type ThemePreviewProps } from './types';
+import { THEME_VARIABLE_GROUPS } from '@manifest/shared';
+import type { ThemePreviewProps } from './types';
 import { Button } from '../ui/shadcn/button';
 
 type EditorMode = 'visual' | 'code';
