@@ -202,10 +202,6 @@ export type { ValidationError, ValidationResult } from './types/validation.js';
 export type { TemplateDefinition } from './types/templates.js';
 export {
   TEMPLATE_DEFINITIONS,
-  TABLE_SAMPLE_DATA,
-  POST_LIST_SAMPLE_DATA,
-  TABLE_DEFAULT_CODE,
-  POST_LIST_DEFAULT_CODE,
   BLANK_COMPONENT_DEFAULT_CODE,
   BLANK_COMPONENT_SAMPLE_DATA,
   getTemplateDefaultCode,
