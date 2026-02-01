@@ -74,7 +74,7 @@ async function resolveTemplate(
  * Opens an external URL in the user's browser using ChatGPT's openExternal API.
  * This is a terminal node - it terminates the flow successfully.
  *
- * CONSTRAINT: Can only be placed after UI/interface category nodes.
+ * CONSTRAINT: Can only be placed after UI category nodes.
  */
 export const LinkNode: NodeTypeDefinition = {
   name: 'Link',

@@ -43,7 +43,7 @@ const CATEGORY_CONFIG: Record<NodeTypeCategory, {
     displayName: 'Triggers',
     color: { bg: 'bg-blue-100', bgHover: 'bg-blue-200', text: 'text-blue-600' },
   },
-  interface: {
+  ui: {
     displayName: 'UIs',
     color: { bg: 'bg-gray-100', bgHover: 'bg-gray-200', text: 'text-gray-600' },
   },
@@ -185,7 +185,7 @@ export function NodeLibrary({
 
   // Get built-in interface nodes (e.g., BlankComponent) to show in UIs section
   const builtInInterfaceNodes = useMemo(() =>
-    nodeTypes.filter(node => node.category === 'interface'),
+    nodeTypes.filter(node => node.category === 'ui'),
     [nodeTypes]
   );
 
@@ -228,7 +228,7 @@ export function NodeLibrary({
     });
 
     // Build results in category order: trigger, interface (with registry items), action, return, transform
-    const categoryOrder: NodeTypeCategory[] = ['trigger', 'interface', 'action', 'return', 'transform'];
+    const categoryOrder: NodeTypeCategory[] = ['trigger', 'ui', 'action', 'return', 'transform'];
     const results: Array<{
       categoryId: NodeTypeCategory;
       displayName: string;
@@ -238,7 +238,7 @@ export function NodeLibrary({
 
     categoryOrder.forEach((categoryId) => {
       const nodes = nodesByCategory.get(categoryId) || [];
-      const registryItems = categoryId === 'interface' ? filteredRegistryItems : [];
+      const registryItems = categoryId === 'ui' ? filteredRegistryItems : [];
 
       if (nodes.length > 0 || registryItems.length > 0) {
         results.push({
@@ -313,7 +313,7 @@ export function NodeLibrary({
 
   const handleGroupClick = (categoryId: NodeTypeCategory) => {
     setFolderSearchTerm(''); // Clear folder search when navigating
-    if (categoryId === 'interface') {
+    if (categoryId === 'ui') {
       // Navigate to registry categories for UIs
       setSelectedCategoryId(categoryId);
       setCurrentView('registryCategories');

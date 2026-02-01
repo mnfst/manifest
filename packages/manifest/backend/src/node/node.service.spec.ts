@@ -79,7 +79,7 @@ describe('NodeService', () => {
       const categoryIds = result.categories.map((c) => c.id);
 
       expect(categoryIds).toContain('trigger');
-      expect(categoryIds).toContain('interface');
+      expect(categoryIds).toContain('ui');
       expect(categoryIds).toContain('action');
       expect(categoryIds).toContain('transform');
       expect(categoryIds).toContain('return');

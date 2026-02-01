@@ -17,7 +17,7 @@ export const BlankComponentNode: NodeTypeDefinition = {
   displayName: 'Blank Component',
   icon: 'square',
   group: ['ui', 'custom'],
-  category: 'interface',
+  category: 'ui',
   description: 'Create your own custom UI component with the 4-argument pattern (data, appearance, control, actions)',
   inputs: ['main'],
   outputs: ['main'],

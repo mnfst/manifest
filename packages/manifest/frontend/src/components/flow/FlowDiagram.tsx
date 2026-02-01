@@ -109,7 +109,7 @@ const edgeTypes = {
   deletable: DeletableEdge,
 };
 
-// Node types that belong to the 'interface' category (UI nodes)
+// Node types that belong to the 'ui' category (UI nodes)
 // Defined outside component for stable reference in dependency arrays
 const INTERFACE_NODE_TYPES: NodeType[] = ['RegistryComponent', 'BlankComponent'];
 

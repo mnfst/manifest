@@ -32,7 +32,7 @@ const iconMap: Record<string, React.ElementType> = {
 // Category-based styling
 const categoryStyles: Record<NodeTypeCategory, { color: string; bgColor: string; borderColor: string }> = {
   'trigger': { color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200 hover:border-blue-400' },
-  'interface': { color: 'text-gray-600', bgColor: 'bg-gray-50', borderColor: 'border-gray-200 hover:border-gray-400' },
+  'ui': { color: 'text-gray-600', bgColor: 'bg-gray-50', borderColor: 'border-gray-200 hover:border-gray-400' },
   'action': { color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-200 hover:border-orange-400' },
   'return': { color: 'text-green-600', bgColor: 'bg-green-50', borderColor: 'border-green-200 hover:border-green-400' },
   'transform': { color: 'text-teal-600', bgColor: 'bg-teal-50', borderColor: 'border-teal-200 hover:border-teal-400' },

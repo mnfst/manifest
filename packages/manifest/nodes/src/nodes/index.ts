@@ -9,7 +9,7 @@
  * - action/: Action nodes (ApiCall)
  * - return/: Flow termination nodes (Return, CallFlow)
  * - transform/: Data transformation nodes (JavaScriptCodeTransform)
- * - interface/: UI components (BlankComponent)
+ * - ui/: UI components (BlankComponent)
  */
 
 // Re-export from category subfolders
@@ -17,14 +17,14 @@ export { UserIntentNode } from './trigger/index.js';
 export { ApiCallNode } from './action/index.js';
 export { ReturnNode, CallFlowNode, LinkNode } from './return/index.js';
 export { JavaScriptCodeTransform } from './transform/index.js';
-export { BlankComponentNode } from './interface/index.js';
+export { BlankComponentNode } from './ui/index.js';
 
 // Import for registry
 import { UserIntentNode } from './trigger/index.js';
 import { ApiCallNode } from './action/index.js';
 import { ReturnNode, CallFlowNode, LinkNode } from './return/index.js';
 import { JavaScriptCodeTransform } from './transform/index.js';
-import { BlankComponentNode } from './interface/index.js';
+import { BlankComponentNode } from './ui/index.js';
 import type { NodeTypeDefinition } from '../types.js';
 
 /**
