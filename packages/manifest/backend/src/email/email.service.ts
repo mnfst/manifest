@@ -2,6 +2,7 @@ import { Injectable, Inject, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config';
 import {
   EmailTemplateType,
+  isValidEmail,
   type EmailSendResult,
   type PasswordResetEmailProps,
   type InvitationEmailProps,
@@ -182,25 +183,10 @@ export class EmailService {
   }
 
   /**
-   * Validate email address format using linear-time safe algorithm.
-   * Avoids ReDoS by not using complex regex patterns.
+   * Validate email address format. Throws on invalid format.
    */
   private validateEmail(email: string): void {
-    if (!email || email.length > 254) {
-      throw new BadRequestException(`Invalid email address: ${email}`);
-    }
-
-    const atIndex = email.indexOf('@');
-    if (atIndex < 1 || atIndex !== email.lastIndexOf('@')) {
-      throw new BadRequestException(`Invalid email address: ${email}`);
-    }
-
-    const local = email.slice(0, atIndex);
-    const domain = email.slice(atIndex + 1);
-
-    if (local.length < 1 || local.length > 64 ||
-        domain.length < 1 || domain.length > 253 ||
-        domain.indexOf('.') < 1 || /\s/.test(email)) {
+    if (!isValidEmail(email)) {
       throw new BadRequestException(`Invalid email address: ${email}`);
     }
   }

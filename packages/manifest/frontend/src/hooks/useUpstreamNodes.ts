@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { NodeInstance, Connection, JSONSchema } from '@manifest/shared';
+import { findUpstreamNodeIds } from '@manifest/shared';
 import { api } from '../lib/api';
 import { flattenSchemaProperties } from '../lib/schemaUtils';
 import type { UpstreamNodeInfo } from '../types/schema';
@@ -24,38 +25,6 @@ interface UseUpstreamNodesResult {
   error: string | null;
   /** Refresh the upstream nodes */
   refresh: () => void;
-}
-
-/**
- * Find all upstream (ancestor) nodes by traversing the connection graph backward.
- * Uses BFS to find all nodes that can reach the target node.
- */
-function findUpstreamNodeIds(
-  targetNodeId: string,
-  connections: Connection[]
-): Set<string> {
-  const upstream = new Set<string>();
-  const visited = new Set<string>();
-  const queue: string[] = [targetNodeId];
-
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-    if (visited.has(current)) continue;
-    visited.add(current);
-
-    // Find all connections where current is the target
-    for (const conn of connections) {
-      if (conn.targetNodeId === current) {
-        const sourceId = conn.sourceNodeId;
-        if (!visited.has(sourceId)) {
-          upstream.add(sourceId);
-          queue.push(sourceId);
-        }
-      }
-    }
-  }
-
-  return upstream;
 }
 
 /**

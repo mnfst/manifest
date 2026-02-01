@@ -1,6 +1,7 @@
 import type { ExecutionListItem as ExecutionListItemType } from '@manifest/shared';
 import { ExecutionStatusBadge } from './ExecutionStatusBadge';
 import { AlertTriangle } from 'lucide-react';
+import { formatDuration, formatTime } from '@/lib/formatting';
 
 interface ExecutionListItemProps {
   execution: ExecutionListItemType;
@@ -8,30 +9,6 @@ interface ExecutionListItemProps {
   onClick: () => void;
   /** Optional: Name of the failed node (for error executions) */
   failedNodeName?: string;
-}
-
-function formatDuration(ms: number | undefined): string {
-  if (ms === undefined) return '-';
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-  return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
-}
-
-function formatTime(isoString: string): string {
-  const date = new Date(isoString);
-  const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
-
-  if (isToday) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-
-  return date.toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 }
 
 export function ExecutionListItem({

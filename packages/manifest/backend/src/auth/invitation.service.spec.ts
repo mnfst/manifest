@@ -10,6 +10,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { InvitationService } from './invitation.service';
+import { normalizeEmail } from '@manifest/shared';
 import { PendingInvitationEntity } from './pending-invitation.entity';
 import { UserAppRoleEntity } from './user-app-role.entity';
 import { AppEntity } from '../app/app.entity';
@@ -161,23 +162,23 @@ describe('InvitationService', () => {
   });
 
   // ============================================================
-  // Tests for normalizeEmail()
+  // Tests for normalizeEmail() (now in @manifest/shared)
   // ============================================================
   describe('normalizeEmail', () => {
     it('should convert email to lowercase', () => {
-      const result = service.normalizeEmail('USER@EXAMPLE.COM');
+      const result = normalizeEmail('USER@EXAMPLE.COM');
 
       expect(result).toBe('user@example.com');
     });
 
     it('should trim whitespace', () => {
-      const result = service.normalizeEmail('  user@example.com  ');
+      const result = normalizeEmail('  user@example.com  ');
 
       expect(result).toBe('user@example.com');
     });
 
     it('should handle mixed case and whitespace', () => {
-      const result = service.normalizeEmail('  User@Example.COM  ');
+      const result = normalizeEmail('  User@Example.COM  ');
 
       expect(result).toBe('user@example.com');
     });

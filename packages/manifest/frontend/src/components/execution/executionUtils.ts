@@ -192,18 +192,5 @@ export function extractStatusInfo(nodeExecution: NodeExecutionData): NodeExecuti
   };
 }
 
-/**
- * Format duration for display.
- *
- * @param ms - Duration in milliseconds
- * @returns Formatted string (e.g., "234ms", "1.23s", "2m 34s")
- */
-export function formatDuration(ms: number | undefined): string {
-  if (ms === undefined || ms === null) return '-';
-  if (ms < 1) return '<1ms';
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(2)}s`;
-  const minutes = Math.floor(ms / 60000);
-  const seconds = Math.floor((ms % 60000) / 1000);
-  return `${minutes}m ${seconds}s`;
-}
+// Re-export formatDuration from shared utils
+export { formatDuration } from '@manifest/shared';

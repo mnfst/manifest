@@ -16,10 +16,11 @@ import {
   type TestTransformRequest,
   type TestTransformResponse,
 } from '@manifest/shared';
-import { generateUniqueSlug } from '@manifest/shared';
+import { generateUniqueSlug, wouldCreateCycle } from '@manifest/shared';
 import { v4 as uuidv4 } from 'uuid';
 import { builtInNodeList, builtInNodes, toNodeTypeInfo } from '@manifest/nodes';
 import { generateUniqueToolName } from '../utils/tool-name';
+import { migrateTemplateReferences, updateSlugReferences } from './utils/template.utils';
 import { VM } from 'vm2';
 import type { CategoryInfo, NodeTypesResponse } from './node.types';
 
@@ -102,14 +103,14 @@ export class NodeService {
       if (node.type === 'ApiCall' && node.parameters) {
         // Migrate URL
         if (typeof node.parameters.url === 'string') {
-          node.parameters.url = this.migrateTemplateReferences(node.parameters.url, idToSlug);
+          node.parameters.url = migrateTemplateReferences(node.parameters.url, idToSlug);
         }
         // Migrate header values
         const headers = node.parameters.headers as { key: string; value: string }[] | undefined;
         if (Array.isArray(headers)) {
           for (const header of headers) {
             if (typeof header.value === 'string') {
-              header.value = this.migrateTemplateReferences(header.value, idToSlug);
+              header.value = migrateTemplateReferences(header.value, idToSlug);
             }
           }
         }
@@ -124,17 +125,6 @@ export class NodeService {
    * Migrate template variable references from UUIDs to slugs.
    * Replaces {{ uuid.path }} with {{ slug.path }} where uuid matches a known node ID.
    */
-  private migrateTemplateReferences(template: string, idToSlug: Map<string, string>): string {
-    const templatePattern = /\{\{\s*([a-f0-9-]{36})\.([^}]+)\s*\}\}/gi;
-
-    return template.replace(templatePattern, (match, nodeId, path) => {
-      const slug = idToSlug.get(nodeId);
-      if (slug) {
-        return `{{ ${slug}.${path.trim()} }}`;
-      }
-      return match; // Keep original if no slug found
-    });
-  }
 
   /**
    * T026: Add a new node to a flow.
@@ -247,7 +237,7 @@ export class NodeService {
 
     // Update references in downstream nodes if slug changed
     if (nameChanged && oldSlug && node.slug !== oldSlug) {
-      this.updateSlugReferences(nodes, oldSlug, node.slug);
+      updateSlugReferences(nodes, oldSlug, node.slug);
     }
 
     nodes[nodeIndex] = node;
@@ -257,33 +247,6 @@ export class NodeService {
     return node;
   }
 
-  /**
-   * Updates template variable references from old slug to new slug in all nodes.
-   * Finds patterns like {{ oldSlug.path }} and replaces with {{ newSlug.path }}.
-   */
-  private updateSlugReferences(nodes: NodeInstance[], oldSlug: string, newSlug: string): void {
-    const pattern = new RegExp(`\\{\\{\\s*${oldSlug}\\.`, 'g');
-    const replacement = `{{ ${newSlug}.`;
-
-    for (const node of nodes) {
-      if (node.type === 'ApiCall' && node.parameters) {
-        // Update URL
-        if (typeof node.parameters.url === 'string') {
-          node.parameters.url = node.parameters.url.replace(pattern, replacement);
-        }
-        // Update header values
-        const headers = node.parameters.headers as { key: string; value: string }[] | undefined;
-        if (Array.isArray(headers)) {
-          for (const header of headers) {
-            if (typeof header.value === 'string') {
-              header.value = header.value.replace(pattern, replacement);
-            }
-          }
-        }
-      }
-      // Add more node types here if they support template variables
-    }
-  }
 
   /**
    * T028: Optimized position-only update for a node.
@@ -382,7 +345,7 @@ export class NodeService {
     }
 
     // Check for circular reference
-    if (this.wouldCreateCycle(request.sourceNodeId, request.targetNodeId, connections)) {
+    if (wouldCreateCycle(request.sourceNodeId, request.targetNodeId, connections)) {
       throw new BadRequestException('This connection would create a circular reference');
     }
 
@@ -638,38 +601,6 @@ export class NodeService {
   // Helper Methods
   // ==========================================================================
 
-  /**
-   * Check if adding a connection would create a cycle in the graph.
-   * Uses DFS to detect if there's a path from targetNodeId back to sourceNodeId.
-   */
-  private wouldCreateCycle(
-    sourceNodeId: string,
-    targetNodeId: string,
-    connections: Connection[]
-  ): boolean {
-    // Check if there's already a path from target back to source
-    const visited = new Set<string>();
-    const stack = [targetNodeId];
-
-    while (stack.length > 0) {
-      const current = stack.pop()!;
-      if (current === sourceNodeId) {
-        return true; // Found a cycle
-      }
-      if (visited.has(current)) {
-        continue;
-      }
-      visited.add(current);
-
-      // Find all nodes this one connects to
-      for (const conn of connections) {
-        if (conn.sourceNodeId === current) {
-          stack.push(conn.targetNodeId);
-        }
-      }
-    }
-    return false;
-  }
 
   /**
    * Find a flow by ID or throw NotFoundException.

@@ -2,6 +2,7 @@ import { memo, useState, useRef, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, LinkNodeParameters } from '@manifest/shared';
+import { truncateString } from '@manifest/shared';
 import { ExternalLink, Pencil, Trash2, MoreHorizontal, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/shadcn/button';
 
@@ -49,7 +50,7 @@ export const LinkNode = memo(function LinkNode({ data }: NodeProps) {
   const isEmpty = !href.trim();
 
   // Truncate URL for display
-  const displayUrl = href.length > 35 ? href.slice(0, 35) + '...' : href;
+  const displayUrl = truncateString(href, 35);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

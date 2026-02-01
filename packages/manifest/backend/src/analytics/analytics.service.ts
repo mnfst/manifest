@@ -6,14 +6,18 @@ import { FlowEntity } from '../flow/flow.entity';
 import { AppEntity } from '../app/app.entity';
 import {
   TIME_RANGE_CONFIGS,
+  formatNumber,
   type AnalyticsTimeRange,
   type AppAnalyticsResponse,
   type ChartDataPoint,
   type AnalyticsMetric,
-  type TrendData,
   type FlowOption,
   type FlowAnalytics,
 } from '@manifest/shared';
+import {
+  calculateTrend,
+  generateAllBuckets,
+} from '../utils/analytics';
 
 @Injectable()
 export class AnalyticsService {
@@ -198,18 +202,18 @@ export class AnalyticsService {
     return {
       totalExecutions: {
         value: current.total,
-        displayValue: this.formatNumber(current.total),
-        trend: this.calculateTrend(current.total, prior.total, true),
+        displayValue: formatNumber(current.total),
+        trend: calculateTrend(current.total, prior.total, true),
       },
       successRate: {
         value: currentSuccessRate,
         displayValue: `${currentSuccessRate.toFixed(1)}%`,
-        trend: this.calculateTrend(currentSuccessRate, priorSuccessRate, true),
+        trend: calculateTrend(currentSuccessRate, priorSuccessRate, true),
       },
       avgDuration: {
         value: current.avgDuration,
         displayValue: this.formatDuration(current.avgDuration),
-        trend: this.calculateTrend(
+        trend: calculateTrend(
           current.avgDuration,
           prior.avgDuration,
           false // Lower duration is better
@@ -217,39 +221,12 @@ export class AnalyticsService {
       },
       uniqueUsers: {
         value: current.uniqueUsers,
-        displayValue: this.formatNumber(current.uniqueUsers),
-        trend: this.calculateTrend(current.uniqueUsers, prior.uniqueUsers, true),
+        displayValue: formatNumber(current.uniqueUsers),
+        trend: calculateTrend(current.uniqueUsers, prior.uniqueUsers, true),
       },
     };
   }
 
-  /**
-   * Calculate trend between current and prior values
-   */
-  private calculateTrend(
-    current: number,
-    prior: number,
-    increaseIsPositive: boolean
-  ): TrendData | null {
-    if (prior === 0) {
-      return null; // N/A - no prior data
-    }
-
-    const percentage = ((current - prior) / prior) * 100;
-    const direction: TrendData['direction'] =
-      percentage > 0 ? 'up' : percentage < 0 ? 'down' : 'unchanged';
-
-    // For some metrics like duration, decrease is positive
-    const isPositive = increaseIsPositive
-      ? percentage >= 0
-      : percentage <= 0;
-
-    return {
-      percentage: Math.abs(percentage),
-      direction,
-      isPositive,
-    };
-  }
 
   /**
    * Get time-bucketed chart data with all 4 metrics
@@ -261,7 +238,7 @@ export class AnalyticsService {
     const config = TIME_RANGE_CONFIGS[timeRange];
 
     // Generate all expected buckets with 0 values for all metrics
-    const allBuckets = this.generateAllBuckets(timeRange);
+    const allBuckets = generateAllBuckets(timeRange);
 
     if (flowIds.length === 0) {
       return allBuckets;
@@ -387,115 +364,13 @@ export class AnalyticsService {
           completionRate,
           avgDuration,
           displayValues: {
-            executions: this.formatNumber(executions),
+            executions: formatNumber(executions),
             completionRate: `${completionRate.toFixed(1)}%`,
             avgDuration: this.formatDuration(avgDuration),
           },
         };
       })
       .sort((a, b) => b.executions - a.executions);
-  }
-
-  /**
-   * Generate all expected time buckets for a time range with 0 values for all metrics
-   */
-  private generateAllBuckets(timeRange: AnalyticsTimeRange): ChartDataPoint[] {
-    const now = new Date();
-    const buckets: ChartDataPoint[] = [];
-
-    const createBucket = (timestamp: string): ChartDataPoint => ({
-      timestamp,
-      label: this.formatBucketLabel(timestamp, timeRange),
-      executions: 0,
-      uniqueUsers: 0,
-      completionRate: 0,
-      avgDuration: 0,
-    });
-
-    if (timeRange === '24h') {
-      // Generate 24 hourly buckets
-      for (let i = 23; i >= 0; i--) {
-        const date = new Date(now);
-        date.setHours(date.getHours() - i, 0, 0, 0);
-        const timestamp = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:00`;
-        buckets.push(createBucket(timestamp));
-      }
-    } else if (timeRange === '7d') {
-      // Generate 7 daily buckets
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
-        const timestamp = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        buckets.push(createBucket(timestamp));
-      }
-    } else if (timeRange === '30d') {
-      // Generate 30 daily buckets
-      for (let i = 29; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
-        const timestamp = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        buckets.push(createBucket(timestamp));
-      }
-    } else if (timeRange === '3mo') {
-      // Generate 13 weekly buckets
-      for (let i = 12; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i * 7);
-        const weekNum = this.getISOWeekNumber(date);
-        const timestamp = `${date.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
-        buckets.push(createBucket(timestamp));
-      }
-    }
-
-    return buckets;
-  }
-
-  /**
-   * Get ISO week number for a date
-   */
-  private getISOWeekNumber(date: Date): number {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-  }
-
-  /**
-   * Format bucket timestamp to display label
-   */
-  private formatBucketLabel(
-    bucket: string,
-    timeRange: AnalyticsTimeRange
-  ): string {
-    if (timeRange === '24h') {
-      // Format: "2026-01-10 14:00" -> "14:00"
-      return bucket.split(' ')[1] || bucket;
-    }
-
-    if (timeRange === '3mo') {
-      // Format: "2026-W02" -> "Week 2"
-      const weekMatch = bucket.match(/W(\d+)$/);
-      return weekMatch ? `Week ${parseInt(weekMatch[1], 10)}` : bucket;
-    }
-
-    // Format: "2026-01-10" -> "Jan 10"
-    const date = new Date(bucket);
-    if (!isNaN(date.getTime())) {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      });
-    }
-
-    return bucket;
-  }
-
-  /**
-   * Format number with comma separators
-   */
-  private formatNumber(num: number): string {
-    return num.toLocaleString('en-US');
   }
 
   /**

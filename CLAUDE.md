@@ -744,6 +744,62 @@ Before submitting a PR with block changes:
 - [ ] New category added to `blocks-categories.ts` if needed
 - [ ] **PostList block has exactly 15 posts in usageCode** (if modifying PostList)
 
+## Helper Function Organization
+
+Utility functions follow a three-tier architecture. **Never define helpers inline** in service files or components — always extract to the appropriate utility module.
+
+### Decision Tree for Placement
+
+| Condition | Place in |
+|---|---|
+| No framework dependencies (pure logic) | `@manifest/shared/src/utils/` |
+| Uses NestJS, TypeORM, or Node.js crypto | `backend/src/utils/` |
+| Uses React or browser APIs | `frontend/src/lib/` |
+
+### Existing Utility Modules
+
+**Shared (`@manifest/shared/src/utils/`)** — used by both backend and frontend:
+
+| Module | Exports |
+|---|---|
+| `escape.ts` | `escapeHtml`, `escapeJs` |
+| `formatting.ts` | `formatDuration`, `formatNumber`, `truncateString` |
+| `validation.ts` | `isValidEmail`, `normalizeEmail` |
+| `graph.ts` | `wouldCreateCycle`, `findUpstreamNodeIds`, `findDownstreamNodeIds` |
+| `string.ts` | `toSnakeCase`, `isValidToolName` |
+| `slug.ts` | `toSlug`, `isValidSlug`, `generateUniqueSlug`, `getBaseSlug` |
+| `schemaValidator.ts` | Schema validation utilities |
+| `templateParser.ts` | Template reference parsing |
+
+**Backend (`backend/src/utils/`)** — NestJS/Node-specific:
+
+| Module | Exports |
+|---|---|
+| `crypto.ts` | `getEncryptionKey`, `encryptValue`, `decryptValue` |
+| `entity-mappers.ts` | `entityToApp`, `entityToFlow`, `toExecutionListItem`, `toFlowExecution`, etc. |
+| `template.ts` | `resolveTemplateVariables`, `migrateTemplateReferences`, `updateSlugReferences` |
+| `analytics.ts` | `calculateTrend`, `generateAllBuckets`, `formatBucketLabel`, `getISOWeekNumber` |
+| `security.ts` | `parseAndValidateUrl`, `checkSsrfVulnerability`, `sanitizeMockValue` |
+| `tool-name.ts` | `generateUniqueToolName`, `toolNameExists` |
+
+**Frontend (`frontend/src/lib/`)** — React/browser-specific:
+
+| Module | Exports |
+|---|---|
+| `formatting.ts` | `formatTime`, `formatTimePrecise`, `formatFlowCount` (+ re-exports from shared) |
+| `type-guards.ts` | `hasFlowCount` |
+| `generators.ts` | `generateUniqueName` |
+| `flow-analysis.ts` | `getFlowState` |
+| `api.ts` | API client functions |
+| `schemaUtils.ts` | Schema manipulation utilities |
+
+### Rules
+
+1. **Always search existing utils** before creating a new helper
+2. **No duplicates** — if a function exists in `@manifest/shared`, import it
+3. **Max 50 lines per function**, max 300 lines per file
+4. **Add tests** for new utility functions
+
 ## Package-Specific Guidance
 
 See individual package `CLAUDE.md` files for package-specific guidance:

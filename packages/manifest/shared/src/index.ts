@@ -129,6 +129,22 @@ export {
 // String utilities
 export { toSnakeCase, isValidToolName } from './utils/string.js';
 
+// Escape utilities (XSS prevention)
+export { escapeHtml, escapeJs } from './utils/escape.js';
+
+// Formatting utilities
+export { formatDuration, formatNumber, truncateString } from './utils/formatting.js';
+
+// Validation utilities
+export { isValidEmail, normalizeEmail } from './utils/validation.js';
+
+// Graph traversal utilities
+export {
+  wouldCreateCycle,
+  findUpstreamNodeIds,
+  findDownstreamNodeIds,
+} from './utils/graph.js';
+
 // Chat types (Preview LLM Chat feature)
 export type {
   ToolCall,

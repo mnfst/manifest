@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, ApiCallNodeParameters, NodeType } from '@manifest/shared';
+import { truncateString } from '@manifest/shared';
 import { Globe } from 'lucide-react';
 import { ViewNodeDropdown } from './ViewNodeDropdown';
 import { AddNodeButton } from './AddNodeButton';
@@ -31,7 +32,7 @@ export const ApiCallNode = memo(function ApiCallNode({ data }: NodeProps) {
   const url = params?.url || '';
 
   // Truncate URL for display
-  const displayUrl = url.length > 30 ? url.substring(0, 30) + '...' : url || 'No URL configured';
+  const displayUrl = url ? truncateString(url, 30) : 'No URL configured';
 
   // Get slug for tooltip display (T034)
   const slug = node.slug || node.id;

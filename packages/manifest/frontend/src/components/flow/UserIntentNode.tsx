@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { NodeInstance, UserIntentNodeParameters, NodeType } from '@manifest/shared';
+import { truncateString } from '@manifest/shared';
 import { Zap, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/shadcn/button';
 import { Badge } from '@/components/ui/shadcn/badge';
@@ -33,13 +34,9 @@ export const UserIntentNode = memo(function UserIntentNode({ data }: NodeProps) 
 
   // Show toolDescription or whenToUse if available
   const displayDescription = params?.toolDescription
-    ? params.toolDescription.length > 60
-      ? params.toolDescription.substring(0, 60) + '...'
-      : params.toolDescription
+    ? truncateString(params.toolDescription, 60)
     : params?.whenToUse
-      ? params.whenToUse.length > 60
-        ? params.whenToUse.substring(0, 60) + '...'
-        : params.whenToUse
+      ? truncateString(params.whenToUse, 60)
       : 'Click to configure trigger';
 
   // Get slug for tooltip display (T034)

@@ -6,8 +6,8 @@ import { FlowEntity } from '../flow/flow.entity';
 import { FlowExecutionService } from '../flow-execution/flow-execution.service';
 import { SecretService } from '../secret/secret.service';
 import type { McpToolResponse, NodeInstance, ReturnNodeParameters, CallFlowNodeParameters, ApiCallNodeParameters, LinkNodeParameters, Connection, NodeExecutionData, UserIntentNodeParameters, JavaScriptCodeTransformParameters, ExecuteActionRequest, RegistryNodeParameters } from '@manifest/shared';
+import { escapeHtml, escapeJs } from '@manifest/shared';
 import { ApiCallNode, JavaScriptCodeTransform } from '@manifest/nodes';
-import { escapeHtml, escapeJs } from './mcp.utils';
 import { resolveTemplateVariables } from './utils/template.utils';
 import { McpInactiveToolError } from './errors/mcp-inactive-tool.error';
 
