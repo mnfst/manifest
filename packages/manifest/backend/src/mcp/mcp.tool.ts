@@ -527,24 +527,6 @@ export class McpToolService {
   }
 
   /**
-   * Execute Return nodes - return text content array for LLM
-   */
-  private executeReturnFlow(
-    flow: FlowEntity,
-    returnNodes: NodeInstance[]
-  ): McpToolResponse {
-    const content = returnNodes.map((node) => {
-      const params = node.parameters as ReturnNodeParameters;
-      return {
-        type: 'text' as const,
-        text: params.text || '',
-      };
-    });
-
-    return { content };
-  }
-
-  /**
    * Execute CallFlow node - trigger target flow
    */
   private async executeCallFlowNode(
