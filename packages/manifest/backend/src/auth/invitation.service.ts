@@ -6,6 +6,7 @@ import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import Database from 'better-sqlite3';
 import type { AppRole, PendingInvitation, InvitationValidation, AcceptInvitationResponse } from '@manifest/shared';
+import { normalizeEmail } from '@manifest/shared';
 import { PendingInvitationEntity } from './pending-invitation.entity';
 import { UserAppRoleEntity } from './user-app-role.entity';
 import { AppEntity } from '../app/app.entity';
@@ -56,13 +57,6 @@ export class InvitationService {
   }
 
   /**
-   * Normalize email to lowercase
-   */
-  normalizeEmail(email: string): string {
-    return email.toLowerCase().trim();
-  }
-
-  /**
    * Convert entity to DTO
    */
   toDto(entity: PendingInvitationEntity, inviterName?: string): PendingInvitation {
@@ -87,7 +81,7 @@ export class InvitationService {
     inviterId: string,
     inviterName: string,
   ): Promise<PendingInvitation> {
-    const normalizedEmail = this.normalizeEmail(email);
+    const normalizedEmail = normalizeEmail(email);
 
     // Check if user already exists
     const existingUser = await this.getUserByEmail(normalizedEmail);
@@ -266,7 +260,7 @@ export class InvitationService {
     }
 
     // Verify email matches
-    if (this.normalizeEmail(userEmail) !== matchedInvitation.email) {
+    if (normalizeEmail(userEmail) !== matchedInvitation.email) {
       throw new BadRequestException('This invitation was sent to a different email address');
     }
 

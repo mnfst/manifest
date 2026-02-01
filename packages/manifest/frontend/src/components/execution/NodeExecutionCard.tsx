@@ -6,6 +6,7 @@ import { Duration } from './Duration';
 import { extractStatusInfo, extractOutputDataForDisplay } from './executionUtils';
 import { Box, Shuffle, Globe, GitBranch, CornerDownLeft, LayoutTemplate, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/shadcn/badge';
+import { formatTimePrecise } from '@/lib/formatting';
 
 interface NodeExecutionCardProps {
   nodeExecution: NodeExecutionData;
@@ -45,15 +46,6 @@ const categoryStyles: Record<NodeCategory, { border: string; bg: string; badge: 
   default: { border: 'border-gray-200', bg: 'bg-gray-50', badge: 'bg-gray-200 text-gray-700', icon: 'text-gray-500' },
 };
 
-function formatTime(isoString: string): string {
-  const date = new Date(isoString);
-  return date.toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-}
-
 export function NodeExecutionCard({ nodeExecution, index }: NodeExecutionCardProps) {
   const Icon = nodeTypeIcons[nodeExecution.nodeType] || Box;
   const category = nodeTypeCategories[nodeExecution.nodeType] || 'default';
@@ -79,7 +71,7 @@ export function NodeExecutionCard({ nodeExecution, index }: NodeExecutionCardPro
             </Badge>
           </div>
           <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
-            <span>{formatTime(nodeExecution.executedAt)}</span>
+            <span>{formatTimePrecise(nodeExecution.executedAt)}</span>
             <Duration ms={statusInfo.durationMs} showIcon />
           </div>
         </div>

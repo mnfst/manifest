@@ -7,6 +7,7 @@ import { UserAppRoleEntity } from '../auth/user-app-role.entity';
 import type { App, AppWithFlowCount, CreateAppRequest, UpdateAppRequest, PublishResult, ThemeVariables, DeleteAppResponse } from '@manifest/shared';
 import { DEFAULT_THEME_VARIABLES } from '@manifest/shared';
 import { getRandomDefaultIcon } from './utils/default-icons.utils';
+import { entityToApp, entityToAppWithFlowCount } from '../utils/entity-mappers';
 
 /**
  * Service for App CRUD operations
@@ -75,7 +76,7 @@ export class AppService {
     });
     await this.userAppRoleRepository.save(ownerRole);
 
-    return this.entityToApp(saved);
+    return entityToApp(saved);
   }
 
   /**
@@ -87,7 +88,7 @@ export class AppService {
       .loadRelationCountAndMap('app.flowCount', 'app.flows')
       .orderBy('app.createdAt', 'DESC')
       .getMany();
-    return entities.map((e) => this.entityToAppWithFlowCount(e as AppEntity & { flowCount: number }));
+    return entities.map((e) => entityToAppWithFlowCount(e as AppEntity & { flowCount: number }));
   }
 
   /**
@@ -113,7 +114,7 @@ export class AppService {
       .orderBy('app.createdAt', 'DESC')
       .getMany();
 
-    return entities.map((e) => this.entityToAppWithFlowCount(e as AppEntity & { flowCount: number }));
+    return entities.map((e) => entityToAppWithFlowCount(e as AppEntity & { flowCount: number }));
   }
 
   /**
@@ -121,7 +122,7 @@ export class AppService {
    */
   async findById(id: string): Promise<App | null> {
     const entity = await this.appRepository.findOne({ where: { id } });
-    return entity ? this.entityToApp(entity) : null;
+    return entity ? entityToApp(entity) : null;
   }
 
   /**
@@ -129,7 +130,7 @@ export class AppService {
    */
   async findBySlug(slug: string): Promise<App | null> {
     const entity = await this.appRepository.findOne({ where: { slug } });
-    return entity ? this.entityToApp(entity) : null;
+    return entity ? entityToApp(entity) : null;
   }
 
   /**
@@ -158,7 +159,7 @@ export class AppService {
     }
 
     const saved = await this.appRepository.save(entity);
-    return this.entityToApp(saved);
+    return entityToApp(saved);
   }
 
   /**
@@ -189,7 +190,7 @@ export class AppService {
     entity.status = 'published';
 
     const saved = await this.appRepository.save(entity);
-    const app = this.entityToApp(saved);
+    const app = entityToApp(saved);
 
     return {
       endpointUrl: `/servers/${app.slug}/mcp`,
@@ -209,7 +210,7 @@ export class AppService {
 
     entity.logoUrl = iconUrl;
     const saved = await this.appRepository.save(entity);
-    return this.entityToApp(saved);
+    return entityToApp(saved);
   }
 
   /**
@@ -235,30 +236,4 @@ export class AppService {
     };
   }
 
-  /**
-   * Convert entity to App interface
-   */
-  private entityToApp(entity: AppEntity): App {
-    return {
-      id: entity.id,
-      name: entity.name,
-      description: entity.description,
-      slug: entity.slug,
-      themeVariables: entity.themeVariables,
-      status: entity.status,
-      logoUrl: entity.logoUrl,
-      createdAt: entity.createdAt?.toISOString(),
-      updatedAt: entity.updatedAt?.toISOString(),
-    };
-  }
-
-  /**
-   * Convert entity to AppWithFlowCount interface
-   */
-  private entityToAppWithFlowCount(entity: AppEntity & { flowCount: number }): AppWithFlowCount {
-    return {
-      ...this.entityToApp(entity),
-      flowCount: entity.flowCount ?? 0,
-    };
-  }
 }

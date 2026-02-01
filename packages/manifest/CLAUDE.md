@@ -127,6 +127,17 @@ export class MyService { ... }
 
 If a private method on a service class is a **pure function** (no `this` access, no dependency injection), extract it to a standalone utility function in a `utils/` subdirectory. This improves testability and reusability.
 
+## Utility Directories
+
+Helpers are organized into three tiers. See root `CLAUDE.md` "Helper Function Organization" for the full reference.
+
+- **`shared/src/utils/`** — Pure logic shared by backend and frontend (escape, formatting, validation, graph traversal)
+- **`backend/src/utils/`** — Cross-module backend helpers (entity mappers, analytics)
+- **`<module>/utils/`** — Module-local backend helpers (crypto, template, security)
+- **`frontend/src/lib/`** — React/browser-specific helpers (time formatting, type guards, name generators, flow analysis)
+
+Always check these directories before writing a new helper. Import from `@manifest/shared` when the function has no framework dependency.
+
 ## shadcn/ui Components (DO NOT MODIFY)
 
 **Location:** `packages/manifest/frontend/src/components/ui/shadcn/`

@@ -5,13 +5,13 @@ import { FlowExecutionEntity } from './flow-execution.entity';
 import type {
   ExecutionListItem,
   ExecutionListResponse,
-  FlowExecution,
 } from '@manifest/shared';
 import type {
   CreateExecutionParams,
   UpdateExecutionParams,
   FindByFlowOptions,
 } from './flow-execution.types';
+import { toExecutionListItem, toFlowExecution } from '../utils/entity-mappers';
 
 export type { CreateExecutionParams, UpdateExecutionParams, FindByFlowOptions } from './flow-execution.types';
 
@@ -100,7 +100,7 @@ export class FlowExecutionService {
     });
 
     const items: ExecutionListItem[] = executions.map((exec) =>
-      this.toListItem(exec)
+      toExecutionListItem(exec)
     );
 
     return {
@@ -123,7 +123,7 @@ export class FlowExecutionService {
       return null;
     }
 
-    return this.toFlowExecution(execution);
+    return toFlowExecution(execution);
   }
 
   /**
@@ -163,55 +163,4 @@ export class FlowExecutionService {
     return result.affected ?? 0;
   }
 
-  /**
-   * Convert entity to list item format
-   */
-  private toListItem(entity: FlowExecutionEntity): ExecutionListItem {
-    const duration =
-      entity.endedAt && entity.startedAt
-        ? new Date(entity.endedAt).getTime() -
-          new Date(entity.startedAt).getTime()
-        : undefined;
-
-    // Generate preview from first parameter
-    const params = entity.initialParams;
-    const firstKey = Object.keys(params)[0];
-    const firstValue = firstKey ? String(params[firstKey]) : '';
-    const initialParamsPreview =
-      firstValue.length > 50 ? firstValue.substring(0, 50) + '...' : firstValue;
-
-    return {
-      id: entity.id,
-      flowId: entity.flowId,
-      flowName: entity.flowName,
-      flowToolName: entity.flowToolName,
-      status: entity.status,
-      startedAt: entity.startedAt.toISOString(),
-      endedAt: entity.endedAt?.toISOString(),
-      duration,
-      initialParamsPreview,
-      isPreview: entity.isPreview,
-    };
-  }
-
-  /**
-   * Convert entity to full FlowExecution format
-   */
-  private toFlowExecution(entity: FlowExecutionEntity): FlowExecution {
-    return {
-      id: entity.id,
-      flowId: entity.flowId,
-      flowName: entity.flowName,
-      flowToolName: entity.flowToolName,
-      status: entity.status,
-      startedAt: entity.startedAt.toISOString(),
-      endedAt: entity.endedAt?.toISOString(),
-      initialParams: entity.initialParams,
-      nodeExecutions: entity.nodeExecutions,
-      errorInfo: entity.errorInfo,
-      isPreview: entity.isPreview,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
-  }
 }

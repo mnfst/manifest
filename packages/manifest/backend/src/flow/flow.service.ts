@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { FlowEntity } from './flow.entity';
 import type { Flow, FlowDeletionCheck, DeleteFlowResponse, UpdateFlowRequest } from '@manifest/shared';
 import { AppEntity } from '../app/app.entity';
+import { entityToFlow } from '../utils/entity-mappers';
 
 /**
  * Service for Flow CRUD operations.
@@ -36,7 +37,7 @@ export class FlowService {
     });
 
     const saved = await this.flowRepository.save(entity);
-    return this.entityToFlow(saved);
+    return entityToFlow(saved);
   }
 
   /**
@@ -46,7 +47,7 @@ export class FlowService {
     const entity = await this.flowRepository.findOne({
       where: { id },
     });
-    return entity ? this.entityToFlow(entity) : null;
+    return entity ? entityToFlow(entity) : null;
   }
 
   /**
@@ -57,7 +58,7 @@ export class FlowService {
       where: { appId },
       order: { createdAt: 'ASC' },
     });
-    return entities.map((entity) => this.entityToFlow(entity));
+    return entities.map((entity) => entityToFlow(entity));
   }
 
   /**
@@ -88,7 +89,7 @@ export class FlowService {
     const updated = await this.flowRepository.findOne({
       where: { id },
     });
-    return this.entityToFlow(updated!);
+    return entityToFlow(updated!);
   }
 
   /**
@@ -150,23 +151,6 @@ export class FlowService {
     };
   }
 
-  /**
-   * Convert entity to Flow interface.
-   * Tool properties are now on UserIntent trigger nodes, not the flow.
-   */
-  private entityToFlow(entity: FlowEntity): Flow {
-    return {
-      id: entity.id,
-      appId: entity.appId,
-      name: entity.name,
-      description: entity.description,
-      isActive: entity.isActive ?? true,
-      nodes: entity.nodes ?? [],
-      connections: entity.connections ?? [],
-      createdAt: entity.createdAt?.toISOString(),
-      updatedAt: entity.updatedAt?.toISOString(),
-    };
-  }
 
   /**
    * Migration: Delete all flows containing old interface nodes (StatCard, PostList).

@@ -7,7 +7,7 @@ import { FlowEntity } from '../flow/flow.entity';
 import { UserAppRoleEntity } from '../auth/user-app-role.entity';
 import { auth } from '../auth/auth';
 import { FlowExecutionEntity } from '../flow-execution/flow-execution.entity';
-import { DEFAULT_THEME_VARIABLES, DEFAULT_ADMIN_USER, USER_QUERY_PARAMETER } from '@manifest/shared';
+import { DEFAULT_THEME_VARIABLES, DEFAULT_ADMIN_USER, USER_QUERY_PARAMETER, toSnakeCase } from '@manifest/shared';
 import type { NodeInstance, UserIntentNodeParameters, Connection, ExecutionStatus } from '@manifest/shared';
 
 /**
@@ -152,7 +152,7 @@ export class SeedService implements OnModuleInit {
           const params = trigger.parameters as Record<string, unknown>;
           if (!params.toolName) {
             // Generate toolName from node name
-            params.toolName = this.toSnakeCase(trigger.name);
+            params.toolName = toSnakeCase(trigger.name);
             params.toolDescription = params.toolDescription ?? '';
             params.parameters = params.parameters ?? [];
             params.isActive = params.isActive ?? true;
@@ -188,7 +188,7 @@ export class SeedService implements OnModuleInit {
         parameters: {
           whenToUse: '',
           whenNotToUse: '',
-          toolName: this.toSnakeCase(flow.name),
+          toolName: toSnakeCase(flow.name),
           toolDescription: flow.description ?? `Execute the ${flow.name} flow`,
           parameters: [],
           isActive: true,
@@ -223,17 +223,6 @@ export class SeedService implements OnModuleInit {
     }
   }
 
-  /**
-   * Convert a string to snake_case for tool names.
-   */
-  private toSnakeCase(str: string): string {
-    return str
-      .replace(/([A-Z])/g, '_$1')
-      .replace(/[\s-]+/g, '_')
-      .replace(/^_/, '')
-      .replace(/_+/g, '_')
-      .toLowerCase();
-  }
 
   /**
    * Seed default fixtures if no apps exist.

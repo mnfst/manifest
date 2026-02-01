@@ -31,26 +31,7 @@ import { InterfaceEditor } from '../components/editor/InterfaceEditor';
 import { fetchComponentDetail, transformToNodeParameters, parseAppearanceOptions } from '../services/registry';
 import type { FlowDetailTab, TabConfig } from '../types/tabs';
 import { ShareModal } from '../components/app/ShareModal';
-
-/**
- * Generate a unique name for a node based on existing nodes.
- * If "Event List" exists, returns "Event List 2", then "Event List 3", etc.
- */
-function generateUniqueName(baseName: string, existingNodes: NodeInstance[]): string {
-  const existingNames = new Set(existingNodes.map(n => n.name));
-
-  // If base name is available, use it
-  if (!existingNames.has(baseName)) {
-    return baseName;
-  }
-
-  // Find the next available number
-  let counter = 2;
-  while (existingNames.has(`${baseName} ${counter}`)) {
-    counter++;
-  }
-  return `${baseName} ${counter}`;
-}
+import { generateUniqueName } from '../lib/generators';
 
 /**
  * Flow detail/editor page - Shows flow info and React Flow canvas

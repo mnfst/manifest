@@ -23,7 +23,9 @@ import {
   type CreateConnectionRequest,
   type NodeType,
 } from '@manifest/shared';
+import { wouldCreateCycle } from '@manifest/shared';
 import { X, AlertTriangle } from 'lucide-react';
+import { getFlowState } from '../../lib/flow-analysis';
 import { Button } from '@/components/ui/shadcn/button';
 import { api } from '../../lib/api';
 import { ViewNode } from './ViewNode';
@@ -65,31 +67,6 @@ interface FlowDiagramProps {
   onFlowUpdate?: () => void;
   /** Callback when clicking on empty canvas area */
   onPaneClick?: () => void;
-}
-
-/**
- * Determines the current state of a flow based on its data
- */
-function getFlowState(flow: Flow) {
-  const nodes = flow.nodes ?? [];
-  const userIntentNodes = nodes.filter(n => n.type === 'UserIntent');
-  const registryComponentNodes = nodes.filter(n => n.type === 'RegistryComponent');
-  const blankComponentNodes = nodes.filter(n => n.type === 'BlankComponent');
-  const returnNodes = nodes.filter(n => n.type === 'Return');
-  const callFlowNodes = nodes.filter(n => n.type === 'CallFlow');
-  const apiCallNodes = nodes.filter(n => n.type === 'ApiCall');
-  const transformNodes = nodes.filter(n => n.type === 'JavaScriptCodeTransform');
-  const linkNodes = nodes.filter(n => n.type === 'Link');
-  const hasUserIntentNodes = userIntentNodes.length > 0;
-  const hasRegistryComponentNodes = registryComponentNodes.length > 0;
-  const hasBlankComponentNodes = blankComponentNodes.length > 0;
-  const hasReturnNodes = returnNodes.length > 0;
-  const hasCallFlowNodes = callFlowNodes.length > 0;
-  const hasApiCallNodes = apiCallNodes.length > 0;
-  const hasTransformNodes = transformNodes.length > 0;
-  const hasLinkNodes = linkNodes.length > 0;
-  const hasSteps = hasRegistryComponentNodes || hasBlankComponentNodes || hasReturnNodes || hasCallFlowNodes || hasApiCallNodes || hasTransformNodes || hasLinkNodes;
-  return { hasUserIntentNodes, hasRegistryComponentNodes, hasBlankComponentNodes, hasReturnNodes, hasCallFlowNodes, hasApiCallNodes, hasTransformNodes, hasLinkNodes, hasSteps, userIntentNodes, registryComponentNodes, blankComponentNodes, returnNodes, callFlowNodes, apiCallNodes, transformNodes, linkNodes };
 }
 
 const nodeTypes = {
@@ -313,23 +290,8 @@ function FlowDiagramInner({
   }, [nodeMap, onNodeEdit, onNodeDelete, canDelete]);
 
   // Check if adding a connection would create a cycle (client-side validation)
-  const wouldCreateCycle = useCallback((sourceId: string, targetId: string): boolean => {
-    const visited = new Set<string>();
-    const stack = [targetId];
-
-    while (stack.length > 0) {
-      const current = stack.pop()!;
-      if (current === sourceId) return true;
-      if (visited.has(current)) continue;
-      visited.add(current);
-
-      for (const conn of connections) {
-        if (conn.sourceNodeId === current) {
-          stack.push(conn.targetNodeId);
-        }
-      }
-    }
-    return false;
+  const checkCycle = useCallback((sourceId: string, targetId: string): boolean => {
+    return wouldCreateCycle(sourceId, targetId, connections);
   }, [connections]);
 
   // Validate connection - allow connections between any nodes with proper handles
@@ -363,10 +325,10 @@ function FlowDiagramInner({
     }
 
     // Prevent circular connections
-    if (wouldCreateCycle(sourceId, targetId)) return false;
+    if (checkCycle(sourceId, targetId)) return false;
 
     return true;
-  }, [wouldCreateCycle, flowState.userIntentNodes, nodeMap]);
+  }, [checkCycle, flowState.userIntentNodes, nodeMap]);
 
   // Handle new connection from any source handle to any target
   const onConnect = useCallback(async (connection: RFConnection) => {

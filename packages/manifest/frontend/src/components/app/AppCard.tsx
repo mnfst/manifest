@@ -3,6 +3,8 @@ import { resolveIconUrl } from '../../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
 import { Badge } from '@/components/ui/shadcn/badge';
 import { ImageIcon, Pencil, Trash2 } from 'lucide-react';
+import { hasFlowCount } from '@/lib/type-guards';
+import { formatFlowCount } from '@/lib/formatting';
 
 interface AppCardProps {
   app: App | AppWithFlowCount;
@@ -16,17 +18,6 @@ interface AppCardProps {
  * Shows name, description, status badge, and navigates on click
  * Optional edit button when onEdit is provided
  */
-// Type guard to check if app has flowCount
-function hasFlowCount(app: App | AppWithFlowCount): app is AppWithFlowCount {
-  return 'flowCount' in app && typeof app.flowCount === 'number';
-}
-
-// Format flow count display
-function formatFlowCount(count: number): string {
-  if (count === 0) return 'No flows';
-  if (count === 1) return '1 flow';
-  return `${count} flows`;
-}
 
 export function AppCard({ app, onClick, onEdit, onDelete }: AppCardProps) {
   const handleEditClick = (e: React.MouseEvent) => {
