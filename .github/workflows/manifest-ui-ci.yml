@@ -2,7 +2,9 @@
 # Manifest UI CI Workflow
 # ============================================================================
 # Runs CI checks for the manifest-ui package:
-#   - Test: Builds (with preview generation) and runs tests
+#   - Builds the registry and generates preview images
+#   - Runs the production build (includes generated previews)
+#   - Runs tests
 # ============================================================================
 
 name: Manifest UI CI
@@ -48,8 +50,42 @@ jobs:
       - name: Install Playwright browsers
         run: cd packages/manifest-ui && npx playwright install chromium
 
+      - name: Build registry
+        working-directory: packages/manifest-ui
+        run: pnpm run registry:build
+
+      - name: Generate preview images
+        working-directory: packages/manifest-ui
+        run: |
+          # Start dev server in background
+          pnpm run dev &
+          DEV_PID=$!
+
+          # Wait for the dev server to be ready
+          echo "Waiting for dev server..."
+          for i in $(seq 1 60); do
+            if curl -s http://localhost:3001 > /dev/null 2>&1; then
+              echo "Dev server is ready!"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "Dev server failed to start within 60s"
+              kill $DEV_PID 2>/dev/null || true
+              exit 1
+            fi
+            sleep 1
+          done
+
+          # Generate previews
+          node scripts/generate-previews.mjs --verbose
+
+          # Stop the dev server
+          kill $DEV_PID 2>/dev/null || true
+          wait $DEV_PID 2>/dev/null || true
+
       - name: Build manifest-ui
-        run: pnpm run manifest-ui:build
+        working-directory: packages/manifest-ui
+        run: pnpm exec next build
 
       - name: Run tests
         run: pnpm run manifest-ui:test
