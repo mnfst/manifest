@@ -1,3 +1,4 @@
+import { blockCategories } from '@/lib/blocks-categories'
 import { ArrowRight, FolderPlus } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
@@ -59,7 +60,11 @@ export function GettingStarted() {
       <section className="space-y-4 pt-4 border-t">
         <h2 className="text-lg font-semibold">Next Step</h2>
         <Link
-          href="/blocks?block=order-confirm"
+          href={
+            blockCategories[0]?.blocks[0]
+              ? `/blocks/${blockCategories[0].id}/${blockCategories[0].blocks[0].id}`
+              : '/blocks'
+          }
           className="inline-flex items-center gap-2 text-primary hover:underline"
         >
           Explore blocks
