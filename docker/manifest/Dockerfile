@@ -42,6 +42,7 @@ COPY packages/manifest/shared/package.json ./packages/manifest/shared/
 COPY packages/manifest/nodes/package.json ./packages/manifest/nodes/
 COPY packages/manifest/backend/package.json ./packages/manifest/backend/
 COPY packages/manifest/frontend/package.json ./packages/manifest/frontend/
+COPY packages/manifest/package.json ./packages/manifest/
 
 # Install dependencies with frozen lockfile
 RUN pnpm install --frozen-lockfile
@@ -104,21 +105,21 @@ RUN addgroup -g 1001 -S nodejs && \
 # Install pnpm in production stage
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Copy package files (for runtime metadata and tooling)
-# Note: frontend package.json is intentionally not copied here. The frontend is
-# built as static assets in /packages/manifest/frontend/dist and has no Node runtime
-# dependencies in the production image.
+# Copy package files for workspace resolution and runtime metadata.
+# All workspace members declared in pnpm-workspace.yaml must be present
+# so that `pnpm prune --prod` can resolve the full workspace graph.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/manifest/shared/package.json ./packages/manifest/shared/
 COPY packages/manifest/nodes/package.json ./packages/manifest/nodes/
 COPY packages/manifest/backend/package.json ./packages/manifest/backend/
+COPY packages/manifest/package.json ./packages/manifest/
+COPY packages/manifest/frontend/package.json ./packages/manifest/frontend/
 
-# Copy node_modules from deps stage and prune devDependencies for production
+# Copy the pnpm virtual store from deps stage, then install production-only
+# dependencies. This re-creates the per-workspace symlinks that COPY loses,
+# and avoids re-downloading packages already present in .pnpm.
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/manifest/shared/node_modules ./packages/manifest/shared/node_modules
-COPY --from=deps /app/packages/manifest/nodes/node_modules ./packages/manifest/nodes/node_modules
-COPY --from=deps /app/packages/manifest/backend/node_modules ./packages/manifest/backend/node_modules
-RUN CI=true HUSKY=0 pnpm prune --prod --ignore-scripts
+RUN CI=true HUSKY=0 pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # Copy built artifacts from build stage
 COPY --chown=appuser:nodejs --from=build /app/packages/manifest/shared/dist ./packages/manifest/shared/dist

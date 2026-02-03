@@ -87,9 +87,11 @@ async function bootstrap() {
       // Allow requests with no origin (same-origin, mobile apps, curl)
       if (!origin) return callback(null, true);
 
-      // Development: allow localhost on any port
-      if (process.env.NODE_ENV !== 'production') {
-        if (origin.match(/^http:\/\/localhost:\d+$/)) {
+      // Allow localhost on any port in development
+      // Also allow in production when no explicit ALLOWED_ORIGINS is set
+      // (self-hosted Docker with port mapping, e.g. -p 3847:3001)
+      if (origin.match(/^http:\/\/localhost:\d+$/)) {
+        if (process.env.NODE_ENV !== 'production' || allowedOrigins.length === 0) {
           return callback(null, true);
         }
       }
