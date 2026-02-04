@@ -224,18 +224,14 @@
         "lucide-react"
       ],
       "registryDependencies": [
-        "button"
+        "button",
+        "manifest-types"
       ],
       "files": [
         {
           "path": "registry/list/product-list.tsx",
           "type": "registry:block",
           "target": "components/ui/product-list.tsx"
-        },
-        {
-          "path": "registry/list/types.ts",
-          "type": "registry:lib",
-          "target": "components/ui/types.ts"
         },
         {
           "path": "registry/list/demo/data.ts",
@@ -275,18 +271,14 @@
         "lucide-react"
       ],
       "registryDependencies": [
-        "button"
+        "button",
+        "manifest-types"
       ],
       "files": [
         {
           "path": "registry/selection/option-list.tsx",
           "type": "registry:block",
           "target": "components/ui/option-list.tsx"
-        },
-        {
-          "path": "registry/selection/types.ts",
-          "type": "registry:lib",
-          "target": "components/ui/types.ts"
         },
         {
           "path": "registry/selection/demo/data.ts",
@@ -545,7 +537,8 @@
       ],
       "registryDependencies": [
         "button",
-        "tooltip"
+        "tooltip",
+        "manifest-types"
       ],
       "files": [
         {
@@ -557,11 +550,6 @@
           "path": "registry/blogging/post-detail.tsx",
           "type": "registry:block",
           "target": "components/ui/post-detail.tsx"
-        },
-        {
-          "path": "registry/blogging/types.ts",
-          "type": "registry:lib",
-          "target": "components/ui/types.ts"
         },
         {
           "path": "registry/blogging/demo/data.ts",
@@ -605,7 +593,8 @@
       ],
       "registryDependencies": [
         "button",
-        "tooltip"
+        "tooltip",
+        "manifest-types"
       ],
       "files": [
         {
@@ -622,11 +611,6 @@
           "path": "registry/blogging/post-detail.tsx",
           "type": "registry:block",
           "target": "components/ui/post-detail.tsx"
-        },
-        {
-          "path": "registry/blogging/types.ts",
-          "type": "registry:lib",
-          "target": "components/ui/types.ts"
         },
         {
           "path": "registry/blogging/demo/data.ts",
@@ -677,7 +661,8 @@
       ],
       "registryDependencies": [
         "button",
-        "tooltip"
+        "tooltip",
+        "manifest-types"
       ],
       "files": [
         {
@@ -689,11 +674,6 @@
           "path": "registry/blogging/post-card.tsx",
           "type": "registry:block",
           "target": "components/ui/post-card.tsx"
-        },
-        {
-          "path": "registry/blogging/types.ts",
-          "type": "registry:lib",
-          "target": "components/ui/types.ts"
         },
         {
           "path": "registry/blogging/demo/data.ts",
@@ -823,7 +803,8 @@
         "lucide-react"
       ],
       "registryDependencies": [
-        "dropdown-menu"
+        "dropdown-menu",
+        "manifest-types"
       ],
       "files": [
         {
@@ -835,11 +816,6 @@
           "path": "registry/messaging/message-bubble.tsx",
           "type": "registry:block",
           "target": "components/ui/message-bubble.tsx"
-        },
-        {
-          "path": "registry/messaging/types.ts",
-          "type": "registry:lib",
-          "target": "components/ui/types.ts"
         },
         {
           "path": "registry/messaging/demo/data.ts",
@@ -1076,17 +1052,14 @@
       "dependencies": [
         "lucide-react"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "manifest-types"
+      ],
       "files": [
         {
           "path": "registry/events/event-card.tsx",
           "type": "registry:block",
           "target": "components/ui/event-card.tsx"
-        },
-        {
-          "path": "registry/events/types.ts",
-          "type": "registry:lib",
-          "target": "components/ui/event-types.ts"
         },
         {
           "path": "registry/events/demo/data.ts",
@@ -1142,18 +1115,14 @@
       "registryDependencies": [
         "button",
         "checkbox",
-        "https://ui.manifest.build/r/event-card.json"
+        "https://ui.manifest.build/r/event-card.json",
+        "manifest-types"
       ],
       "files": [
         {
           "path": "registry/events/event-list.tsx",
           "type": "registry:block",
           "target": "components/ui/event-list.tsx"
-        },
-        {
-          "path": "registry/events/types.ts",
-          "type": "registry:lib",
-          "target": "components/ui/event-types.ts"
         },
         {
           "path": "registry/events/demo/data.ts",
@@ -1202,18 +1171,14 @@
         "@types/leaflet"
       ],
       "registryDependencies": [
-        "button"
+        "button",
+        "manifest-types"
       ],
       "files": [
         {
           "path": "registry/events/event-detail.tsx",
           "type": "registry:block",
           "target": "components/ui/event-detail.tsx"
-        },
-        {
-          "path": "registry/events/types.ts",
-          "type": "registry:lib",
-          "target": "components/ui/event-types.ts"
         },
         {
           "path": "registry/events/demo/data.ts",
@@ -1337,6 +1302,24 @@
       ],
       "category": "miscellaneous",
       "preview": "https://ui.manifest.build/previews/hero.png"
+    },
+    {
+      "name": "manifest-types",
+      "type": "registry:lib",
+      "title": "Manifest Types",
+      "description": "Shared type definitions for Manifest UI components.",
+      "author": "MNFST, Inc",
+      "categories": [
+        "lib"
+      ],
+      "files": [
+        {
+          "path": "registry/shared-types.ts",
+          "type": "registry:lib",
+          "target": "components/ui/types.ts"
+        }
+      ],
+      "category": "lib"
     }
   ]
 }

@@ -148,10 +148,13 @@ describe('Preview Generation Configuration', () => {
     it('should have backgrounds for all registry categories', () => {
       const backgroundCategories = getPreviewBackgroundCategories()
 
-      // Get unique categories from registry
+      // Get unique categories from registry (only block items need preview backgrounds)
       const registryCategories = [
         ...new Set(
-          registry.items.map((item) => item.category).filter(Boolean)
+          registry.items
+            .filter((item: { name: string }) => item.name !== 'manifest-types')
+            .map((item: { category?: string }) => item.category)
+            .filter(Boolean)
         )
       ]
 
@@ -222,7 +225,7 @@ describe('Registry components should have preview configurations', () => {
   const previewComponentNames = getPreviewComponentNames()
 
   // Components that may be difficult to render in isolation
-  const skippedComponents: string[] = []
+  const skippedComponents: string[] = ['manifest-types']
 
   for (const item of registry.items) {
     const { name } = item

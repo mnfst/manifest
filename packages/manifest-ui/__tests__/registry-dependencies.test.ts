@@ -73,9 +73,10 @@ describe('Registry Dependencies Accuracy', () => {
           }
         }
 
-        // Filter registryDependencies to only shadcn primitives (not URLs)
+        // Filter registryDependencies to only shadcn UI primitives
+        // Exclude URLs and manifest-types (shared types provided via registry dependency)
         const declared = (item.registryDependencies ?? [])
-          .filter((dep) => !dep.includes('/'))
+          .filter((dep) => !dep.includes('/') && dep !== 'manifest-types')
           .sort()
 
         const actual = [...allImports].sort()

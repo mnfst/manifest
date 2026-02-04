@@ -58,9 +58,10 @@ function loadRegistry(): Registry {
 
 describe('Component Exports', () => {
   const registry = loadRegistry()
+  const blockItems = registry.items.filter((item) => item.type === 'registry:block')
 
   describe('Export presence', () => {
-    for (const item of registry.items) {
+    for (const item of blockItems) {
       const mainFile = item.files[0]
       if (!mainFile) continue
 
@@ -90,7 +91,7 @@ describe('Component Exports', () => {
   })
 
   describe('Component function export', () => {
-    for (const item of registry.items) {
+    for (const item of blockItems) {
       const mainFile = item.files[0]
       if (!mainFile) continue
 
@@ -139,7 +140,7 @@ describe('Component Exports', () => {
   })
 
   describe('Props interface export', () => {
-    for (const item of registry.items) {
+    for (const item of blockItems) {
       const mainFile = item.files[0]
       if (!mainFile) continue
 
@@ -174,7 +175,7 @@ describe('Component Exports', () => {
   })
 
   describe('React import or JSX usage', () => {
-    for (const item of registry.items) {
+    for (const item of blockItems) {
       const mainFile = item.files[0]
       if (!mainFile) continue
 
@@ -227,9 +228,10 @@ describe('Component Exports', () => {
 
 describe('Component Structure Standards', () => {
   const registry = loadRegistry()
+  const blockItems = registry.items.filter((item) => item.type === 'registry:block')
 
   describe('No console.log statements', () => {
-    for (const item of registry.items) {
+    for (const item of blockItems) {
       const mainFile = item.files[0]
       if (!mainFile) continue
 
@@ -259,7 +261,7 @@ describe('Component Structure Standards', () => {
   })
 
   describe('TypeScript types', () => {
-    for (const item of registry.items) {
+    for (const item of blockItems) {
       const mainFile = item.files[0]
       if (!mainFile) continue
 
@@ -296,9 +298,10 @@ describe('Component Structure Standards', () => {
 
 describe('Import Standards', () => {
   const registry = loadRegistry()
+  const blockItems = registry.items.filter((item) => item.type === 'registry:block')
 
   describe('No relative parent imports outside registry', () => {
-    for (const item of registry.items) {
+    for (const item of blockItems) {
       const mainFile = item.files[0]
       if (!mainFile) continue
 
@@ -330,7 +333,7 @@ describe('Import Standards', () => {
   })
 
   describe('Uses @/ alias for lib imports', () => {
-    for (const item of registry.items) {
+    for (const item of blockItems) {
       const mainFile = item.files[0]
       if (!mainFile) continue
 
