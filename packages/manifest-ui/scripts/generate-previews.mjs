@@ -165,6 +165,11 @@ async function generatePreviews() {
       // Small delay for any animations to settle
       await page.waitForTimeout(500)
 
+      // Hide Next.js dev overlay so it doesn't appear in screenshots
+      await page.evaluate(() => {
+        document.querySelectorAll('[data-nextjs-dev-overlay], nextjs-portal, next-route-announcer').forEach(el => el.remove())
+      })
+
       // Take screenshot
       await page.screenshot({
         path: outputPath,
