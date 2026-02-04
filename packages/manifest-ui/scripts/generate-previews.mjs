@@ -98,7 +98,8 @@ async function generatePreviews() {
   }
 
   const registry = JSON.parse(readFileSync(REGISTRY_PATH, 'utf-8'))
-  let components = registry.items
+  // Only generate previews for visual block components (skip registry:lib like manifest-types)
+  let components = registry.items.filter((c) => c.type === 'registry:block')
 
   // Filter to specific component if requested
   if (options.component) {

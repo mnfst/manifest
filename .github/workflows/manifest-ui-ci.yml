@@ -2,9 +2,9 @@
 # Manifest UI CI Workflow
 # ============================================================================
 # Runs CI checks for the manifest-ui package:
-#   - Builds the registry and generates preview images
-#   - Runs the production build (includes generated previews)
-#   - Runs tests
+#   - Lint and test (fast, no browser needed)
+#   - Generate preview images (requires Playwright + dev server)
+#   - Production build (includes generated previews)
 # ============================================================================
 
 name: Manifest UI CI
@@ -18,7 +18,36 @@ on:
 
 jobs:
   test:
-    name: test
+    name: lint & test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build registry
+        working-directory: packages/manifest-ui
+        run: pnpm run registry:build
+
+      - name: Run tests
+        run: pnpm run manifest-ui:test
+
+  previews:
+    name: previews & build
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -86,6 +115,3 @@ jobs:
       - name: Build manifest-ui
         working-directory: packages/manifest-ui
         run: pnpm exec next build
-
-      - name: Run tests
-        run: pnpm run manifest-ui:test
