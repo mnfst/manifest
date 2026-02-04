@@ -92,14 +92,14 @@ export interface AmountInputProps {
  * ```
  */
 export function AmountInput({ data, actions, appearance, control }: AmountInputProps) {
-  const presets = data?.presets ?? [20, 50, 100, 200]
+  const presets = data?.presets ?? []
   const onConfirm = actions?.onConfirm
   const min = appearance?.min ?? 0
   const max = appearance?.max ?? 10000
   const step = appearance?.step ?? 10
   const currency = appearance?.currency ?? "EUR"
   const label = appearance?.label ?? "Amount"
-  const value = control?.value ?? 50
+  const value = control?.value ?? 0
   const [amount, setAmount] = useState(value)
   const [isEditing, setIsEditing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)

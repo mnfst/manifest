@@ -6,7 +6,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import type { Post } from './types'
 import { PostCard } from './post-card'
-import { demoPosts } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -86,7 +85,7 @@ export interface PostListProps {
  * ```
  */
 export function PostList({ data, actions, appearance }: PostListProps) {
-  const posts = data?.posts ?? demoPosts
+  const posts = data?.posts ?? []
   const onReadMore = actions?.onReadMore
   const variant = appearance?.variant ?? 'list'
   const columns = appearance?.columns ?? 2

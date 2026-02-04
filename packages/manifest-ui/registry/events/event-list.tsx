@@ -8,7 +8,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import type { Event } from './types'
 import { EventCard } from './event-card'
-import { demoEvents } from './demo/data'
 
 // Internal types for react-leaflet component attributes (not exported component props)
 type LeafletMapContainerAttrs = {
@@ -454,7 +453,7 @@ export interface EventListProps {
  * ```
  */
 export function EventList({ data, actions, appearance }: EventListProps) {
-  const events = data?.events ?? demoEvents
+  const events = data?.events ?? []
   const title = data?.title
   const onEventSelect = actions?.onEventSelect
   const variant = appearance?.variant ?? 'list'

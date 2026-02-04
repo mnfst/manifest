@@ -175,96 +175,6 @@ export interface TableProps<T = Record<string, unknown>> {
   }
 }
 
-// Default demo data for the table
-const defaultColumns: TableColumn[] = [
-  { header: 'Model', accessor: 'model', sortable: true },
-  {
-    header: 'Input (w/ Cache)',
-    accessor: 'inputCache',
-    sortable: true,
-    align: 'right'
-  },
-  { header: 'Output', accessor: 'output', sortable: true, align: 'right' },
-  {
-    header: 'Total Tokens',
-    accessor: 'totalTokens',
-    sortable: true,
-    align: 'right'
-  },
-  {
-    header: 'API Cost',
-    accessor: 'apiCost',
-    sortable: true,
-    align: 'right',
-    render: (value) => `$${(value as number).toFixed(2)}`
-  }
-]
-
-const defaultData = [
-  {
-    model: 'gpt-5',
-    inputCache: 0,
-    output: 103271,
-    totalTokens: 2267482,
-    apiCost: 0.0
-  },
-  {
-    model: 'claude-3.5-sonnet',
-    inputCache: 176177,
-    output: 8326,
-    totalTokens: 647528,
-    apiCost: 1.0
-  },
-  {
-    model: 'gemini-2.0-flash-exp',
-    inputCache: 176100,
-    output: 8326,
-    totalTokens: 647528,
-    apiCost: 0.0
-  },
-  {
-    model: 'gemini-2.5-pro',
-    inputCache: 176177,
-    output: 7000,
-    totalTokens: 647528,
-    apiCost: 0.0
-  },
-  {
-    model: 'claude-4-sonnet',
-    inputCache: 68415,
-    output: 12769,
-    totalTokens: 946536,
-    apiCost: 0.71
-  },
-  {
-    model: 'gpt-4-turbo',
-    inputCache: 52000,
-    output: 15000,
-    totalTokens: 520000,
-    apiCost: 0.45
-  },
-  {
-    model: 'llama-3.1-70b',
-    inputCache: 45000,
-    output: 9500,
-    totalTokens: 380000,
-    apiCost: 0.12
-  },
-  {
-    model: 'mistral-large',
-    inputCache: 38000,
-    output: 7800,
-    totalTokens: 290000,
-    apiCost: 0.08
-  },
-  {
-    model: 'claude-3-opus',
-    inputCache: 200000,
-    output: 25000,
-    totalTokens: 1200000,
-    apiCost: 2.5
-  }
-]
 
 function SkeletonRow({
   columns,
@@ -487,11 +397,11 @@ export function Table<T extends Record<string, unknown>>({
   control
 }: TableProps<T>) {
   const {
-    columns = defaultColumns as unknown as TableColumn<T>[],
-    rows: tableData = defaultData as unknown as T[],
+    columns = [] as unknown as TableColumn<T>[],
+    rows: tableData = [] as unknown as T[],
     title,
     titleImage,
-    lastUpdated = new Date(),
+    lastUpdated,
     totalRows
   } = dataProps ?? {}
   const {

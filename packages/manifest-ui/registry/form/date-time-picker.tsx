@@ -92,33 +92,7 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
-// Default available dates (Tuesdays and Wednesdays of the current month)
-const getDefaultAvailableDates = () => {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth()
-  const dates: Date[] = []
 
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day)
-    const dayOfWeek = date.getDay()
-    // Make Tuesdays (2) and Wednesdays (3) available
-    if (dayOfWeek === 2 || dayOfWeek === 3) {
-      dates.push(date)
-    }
-  }
-  return dates
-}
-
-const defaultTimeSlots = [
-  '11:30am',
-  '12:00pm',
-  '12:30pm',
-  '4:00pm',
-  '4:30pm',
-  '5:00pm'
-]
 
 const formatDateHeader = (date: Date) => {
   const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][date.getDay()]
@@ -165,12 +139,10 @@ const isSameDay = (date1: Date, date2: Date) => {
  * ```
  */
 export function DateTimePicker({ data, actions, appearance, control }: DateTimePickerProps) {
-  const {
-    title = 'Select a Date & Time',
-    availableDates = getDefaultAvailableDates(),
-    availableTimeSlots = defaultTimeSlots,
-    timezone = 'Eastern Time - US & Canada'
-  } = data ?? {}
+  const title = data?.title
+  const availableDates = data?.availableDates ?? []
+  const availableTimeSlots = data?.availableTimeSlots ?? []
+  const timezone = data?.timezone
   const { onNext } = actions ?? {}
   const { showTitle = true, showTimezone = true } = appearance ?? {}
   const {
@@ -285,7 +257,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
 
   return (
     <div className="w-full bg-card rounded-xl p-6">
-      {showTitle && (
+      {showTitle && title && (
         <h2 className="text-xl font-semibold text-foreground mb-6">{title}</h2>
       )}
 

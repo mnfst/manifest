@@ -81,18 +81,13 @@ export interface EventConfirmationProps {
  * ```
  */
 export function EventConfirmation({ data, actions }: EventConfirmationProps) {
-  const {
-    orderNumber = '#14040333743',
-    eventTitle = "Cavity Free SF Children's Oral Health Strategic Plan Launch",
-    ticketCount = 1,
-    recipientEmail = 'user@example.com',
-    eventDate = 'Thursday, February 19 · 9am - 12pm PST',
-    eventLocation = 'San Francisco, CA',
-    organizer = {
-      name: 'CavityFree SF',
-      image: undefined
-    }
-  } = data ?? {}
+  const orderNumber = data?.orderNumber
+  const eventTitle = data?.eventTitle
+  const ticketCount = data?.ticketCount
+  const recipientEmail = data?.recipientEmail
+  const eventDate = data?.eventDate
+  const eventLocation = data?.eventLocation
+  const organizer = data?.organizer
   const { onViewTickets, onFollowOrganizer, onShare } =
     actions ?? {}
 
@@ -106,7 +101,7 @@ export function EventConfirmation({ data, actions }: EventConfirmationProps) {
           </div>
           <div>
             <h1 className="text-xl font-semibold">Thanks for your order!</h1>
-            <p className="text-sm text-muted-foreground">{orderNumber}</p>
+            {orderNumber && <p className="text-sm text-muted-foreground">{orderNumber}</p>}
           </div>
         </div>
         <Button onClick={onViewTickets} size="lg">
@@ -119,32 +114,38 @@ export function EventConfirmation({ data, actions }: EventConfirmationProps) {
         <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-2">
           You're going to
         </p>
-        <h2 className="text-2xl font-bold leading-tight mb-6">{eventTitle}</h2>
+        {eventTitle && <h2 className="text-2xl font-bold leading-tight mb-6">{eventTitle}</h2>}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {/* Ticket sent to */}
-          <div>
-            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
-              {ticketCount} Ticket sent to
-            </p>
-            <p className="text-sm">{recipientEmail}</p>
-          </div>
+          {recipientEmail && (
+            <div>
+              <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
+                {ticketCount ?? 1} Ticket sent to
+              </p>
+              <p className="text-sm">{recipientEmail}</p>
+            </div>
+          )}
 
           {/* Date */}
-          <div>
-            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
-              Date
-            </p>
-            <p className="text-sm">{eventDate}</p>
-          </div>
+          {eventDate && (
+            <div>
+              <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
+                Date
+              </p>
+              <p className="text-sm">{eventDate}</p>
+            </div>
+          )}
 
           {/* Location */}
-          <div>
-            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
-              Location
-            </p>
-            <p className="text-sm">{eventLocation}</p>
-          </div>
+          {eventLocation && (
+            <div>
+              <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
+                Location
+              </p>
+              <p className="text-sm">{eventLocation}</p>
+            </div>
+          )}
         </div>
       </div>
 

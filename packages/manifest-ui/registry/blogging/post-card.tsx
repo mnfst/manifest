@@ -7,7 +7,6 @@ import type { Post } from './types'
 // Re-export for backward compatibility
 export type { Post } from './types'
 
-import { demoPost } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -90,7 +89,10 @@ export interface PostCardProps {
  * ```
  */
 export function PostCard({ data, actions, appearance }: PostCardProps) {
-  const post = data?.post ?? demoPost
+  const post = data?.post
+  if (!post) {
+    return null
+  }
   const onReadMore = actions?.onReadMore
   const variant = appearance?.variant ?? 'default'
   const showImage = appearance?.showImage ?? true

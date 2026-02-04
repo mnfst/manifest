@@ -112,32 +112,32 @@ export function MessageBubble({
   appearance,
   control
 }: MessageBubbleProps) {
-  const {
-    content = 'Hey! How are you doing?',
-    avatarFallback = 'J',
-    avatarUrl,
-    time = '10:30 AM'
-  } = data ?? {}
+  const content = data?.content
+  const avatarFallback = data?.avatarFallback
+  const avatarUrl = data?.avatarUrl
+  const time = data?.time
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
-      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
+      {!isOwn && avatarFallback && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
-        <div
-          className={cn(
-            'rounded-2xl px-4 py-2',
-            isOwn
-              ? 'bg-primary text-primary-foreground rounded-br-md'
-              : 'bg-muted rounded-bl-md'
-          )}
-        >
-          <p className="text-sm">{content}</p>
-        </div>
+        {content && (
+          <div
+            className={cn(
+              'rounded-2xl px-4 py-2',
+              isOwn
+                ? 'bg-primary text-primary-foreground rounded-br-md'
+                : 'bg-muted rounded-bl-md'
+            )}
+          >
+            <p className="text-sm">{content}</p>
+          </div>
+        )}
         <div
           className={cn('flex items-center gap-1 mt-1', isOwn && 'justify-end')}
         >
-          <span className="text-[10px] text-muted-foreground">{time}</span>
+          {time && <span className="text-[10px] text-muted-foreground">{time}</span>}
           {isOwn && status && (
             <span className="text-muted-foreground">
               {status === 'sent' && <Check className="h-3 w-3" />}
@@ -218,45 +218,45 @@ export function ImageMessageBubble({
   appearance,
   control
 }: ImageMessageBubbleProps) {
-  const {
-    image = 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
-    content,
-    avatarFallback = 'J',
-    avatarUrl,
-    time = '10:32 AM'
-  } = data ?? {}
+  const image = data?.image
+  const content = data?.content
+  const avatarFallback = data?.avatarFallback
+  const avatarUrl = data?.avatarUrl
+  const time = data?.time
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
-      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
+      {!isOwn && avatarFallback && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
-        <div
-          className={cn(
-            'rounded-2xl overflow-hidden',
-            isOwn ? 'rounded-br-md' : 'rounded-bl-md'
-          )}
-        >
-          <img
-            src={image}
-            alt={content || 'Shared image in chat'}
-            className="w-full max-w-[280px] h-auto object-cover"
-          />
-          {content && (
-            <div
-              className={cn(
-                'px-3 py-2',
-                isOwn ? 'bg-primary text-primary-foreground' : 'bg-muted'
-              )}
-            >
-              <p className="text-sm">{content}</p>
-            </div>
-          )}
-        </div>
+        {image && (
+          <div
+            className={cn(
+              'rounded-2xl overflow-hidden',
+              isOwn ? 'rounded-br-md' : 'rounded-bl-md'
+            )}
+          >
+            <img
+              src={image}
+              alt={content || 'Shared image in chat'}
+              className="w-full max-w-[280px] h-auto object-cover"
+            />
+            {content && (
+              <div
+                className={cn(
+                  'px-3 py-2',
+                  isOwn ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                )}
+              >
+                <p className="text-sm">{content}</p>
+              </div>
+            )}
+          </div>
+        )}
         <div
           className={cn('flex items-center gap-1 mt-1', isOwn && 'justify-end')}
         >
-          <span className="text-[10px] text-muted-foreground">{time}</span>
+          {time && <span className="text-[10px] text-muted-foreground">{time}</span>}
           {isOwn && status && (
             <span className="text-muted-foreground">
               {status === 'sent' && <Check className="h-3 w-3" />}
@@ -358,16 +358,11 @@ export function MessageWithReactions({
   actions,
   appearance
 }: MessageWithReactionsProps) {
-  const {
-    content = 'This is such great news! 🎉',
-    avatarFallback = 'A',
-    avatarUrl,
-    time = '2:45 PM',
-    reactions: initialReactions = [
-      { emoji: '❤️', count: 3 },
-      { emoji: '👍', count: 2 }
-    ]
-  } = data ?? {}
+  const content = data?.content
+  const avatarFallback = data?.avatarFallback
+  const avatarUrl = data?.avatarUrl
+  const time = data?.time
+  const initialReactions = data?.reactions ?? []
   const { onReact } = actions ?? {}
   const { isOwn = false } = appearance ?? {}
   const [reactions, setReactions] = useState(initialReactions)
@@ -419,18 +414,20 @@ export function MessageWithReactions({
 
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
-      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
+      {!isOwn && avatarFallback && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
-        <div
-          className={cn(
-            'rounded-2xl px-4 py-2',
-            isOwn
-              ? 'bg-primary text-primary-foreground rounded-br-md'
-              : 'bg-muted rounded-bl-md'
-          )}
-        >
-          <p className="text-sm">{content}</p>
-        </div>
+        {content && (
+          <div
+            className={cn(
+              'rounded-2xl px-4 py-2',
+              isOwn
+                ? 'bg-primary text-primary-foreground rounded-br-md'
+                : 'bg-muted rounded-bl-md'
+            )}
+          >
+            <p className="text-sm">{content}</p>
+          </div>
+        )}
         <div
           className={cn(
             'flex items-center gap-1 mt-1.5',
@@ -493,7 +490,7 @@ export function MessageWithReactions({
         <div
           className={cn('flex items-center gap-1 mt-1', isOwn && 'justify-end')}
         >
-          <span className="text-[10px] text-muted-foreground">{time}</span>
+          {time && <span className="text-[10px] text-muted-foreground">{time}</span>}
         </div>
       </div>
     </div>
@@ -567,13 +564,11 @@ export function VoiceMessageBubble({
   appearance,
   control
 }: VoiceMessageBubbleProps) {
-  const {
-    duration = '0:42',
-    avatarFallback = 'M',
-    avatarUrl,
-    time = '3:15 PM',
-    audioSrc = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
-  } = data ?? {}
+  const duration = data?.duration
+  const avatarFallback = data?.avatarFallback
+  const avatarUrl = data?.avatarUrl
+  const time = data?.time
+  const audioSrc = data?.audioSrc
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   const [isPlaying, setIsPlaying] = useState(false)
@@ -618,7 +613,7 @@ export function VoiceMessageBubble({
         onEnded={handleEnded}
         preload="metadata"
       />
-      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
+      {!isOwn && avatarFallback && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
         <div
           className={cn(
@@ -660,14 +655,14 @@ export function VoiceMessageBubble({
               />
             </div>
             <span className="text-xs font-medium">
-              {isPlaying ? currentTime : duration}
+              {isPlaying ? currentTime : (duration ?? '0:00')}
             </span>
           </div>
         </div>
         <div
           className={cn('flex items-center gap-1 mt-1', isOwn && 'justify-end')}
         >
-          <span className="text-[10px] text-muted-foreground">{time}</span>
+          {time && <span className="text-[10px] text-muted-foreground">{time}</span>}
           {isOwn && status && (
             <span className="text-muted-foreground">
               {status === 'sent' && <Check className="h-3 w-3" />}
