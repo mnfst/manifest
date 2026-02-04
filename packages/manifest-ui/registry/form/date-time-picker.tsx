@@ -81,6 +81,14 @@ export interface DateTimePickerProps {
      * @default true
      */
     showTimezone?: boolean
+    /**
+     * First day of the week.
+     * - `'sunday'` — US, Canada, Japan (default)
+     * - `'monday'` — ISO 8601, Europe, most of the world
+     * - `'saturday'` — Middle East
+     * @default 'sunday'
+     */
+    weekStartsOn?: 'sunday' | 'monday' | 'saturday'
   }
   control?: {
     /** Controlled selected date value. */
@@ -90,7 +98,18 @@ export interface DateTimePickerProps {
   }
 }
 
-const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+const ALL_DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+
+const WEEK_START_OFFSETS: Record<'sunday' | 'monday' | 'saturday', number> = {
+  sunday: 0,
+  monday: 1,
+  saturday: 6,
+}
+
+const getOrderedDays = (weekStartsOn: 'sunday' | 'monday' | 'saturday') => {
+  const offset = WEEK_START_OFFSETS[weekStartsOn]
+  return [...ALL_DAYS.slice(offset), ...ALL_DAYS.slice(0, offset)]
+}
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
@@ -148,7 +167,9 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
   const availableTimeSlots = data?.availableTimeSlots ?? []
   const timezone = data?.timezone
   const { onNext } = actions ?? {}
-  const { showTitle = true, showTimezone = true } = appearance ?? {}
+  const { showTitle = true, showTimezone = true, weekStartsOn = 'sunday' } = appearance ?? {}
+  const orderedDays = getOrderedDays(weekStartsOn)
+  const weekStartOffset = WEEK_START_OFFSETS[weekStartsOn]
   const {
     selectedDate: controlledDate,
     selectedTime: controlledTime
@@ -193,8 +214,9 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
 
   const calendarDays: { day: number; isCurrentMonth: boolean; date: Date }[] = []
 
-  // Previous month days
-  for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+  // Previous month days (adjusted for week start)
+  const leadingDays = (firstDayOfMonth - weekStartOffset + 7) % 7
+  for (let i = leadingDays - 1; i >= 0; i--) {
     const day = daysInPrevMonth - i
     calendarDays.push({
       day,
@@ -294,7 +316,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
 
           {/* Day Headers */}
           <div className="grid grid-cols-7 mb-2">
-            {DAYS.map(day => (
+            {orderedDays.map(day => (
               <div
                 key={day}
                 className="text-center text-xs font-medium text-muted-foreground py-2"

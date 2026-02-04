@@ -1624,7 +1624,8 @@ const categories: Category[] = [
   }}
   appearance={{
     showTitle: true,
-    showTimezone: true
+    showTimezone: true,
+    weekStartsOn: "sunday" // "sunday" | "monday" | "saturday"
   }}
   actions={{
     onNext: (date, time) => console.log("Confirmed:", { date, time })
