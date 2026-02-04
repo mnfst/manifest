@@ -76,6 +76,7 @@ import { MapCarousel } from '@/registry/map/map-carousel';
 import {
   demoMapLocations,
   demoMapCenter,
+  demoMapZoom,
 } from '@/registry/map/demo/data';
 
 // Blogging components
@@ -217,7 +218,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
   // Map components
   'map-carousel': {
     component: (
-      <MapCarousel data={{ locations: demoMapLocations, center: demoMapCenter }} />
+      <MapCarousel data={{ locations: demoMapLocations, center: demoMapCenter, zoom: demoMapZoom }} />
     ),
     category: 'map',
   },

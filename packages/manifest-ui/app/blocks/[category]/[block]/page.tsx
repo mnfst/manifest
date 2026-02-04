@@ -84,7 +84,7 @@ import {
 
 // Map components
 import { MapCarousel } from '@/registry/map/map-carousel';
-import { demoMapLocations, demoMapCenter } from '@/registry/map/demo/data';
+import { demoMapLocations, demoMapCenter, demoMapZoom } from '@/registry/map/demo/data';
 
 // Status components
 import { ProgressSteps } from '@/registry/status/progress-steps';
@@ -1833,10 +1833,10 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <MapCarousel data={{ locations: demoMapLocations, center: demoMapCenter }} />,
+            component: <MapCarousel data={{ locations: demoMapLocations, center: demoMapCenter, zoom: demoMapZoom }} />,
             fullscreenComponent: (
               <MapCarousel
-                data={{ title: 'Hotels in San Francisco', locations: demoMapLocations, center: demoMapCenter }}
+                data={{ title: 'Hotels in San Francisco', locations: demoMapLocations, center: demoMapCenter, zoom: demoMapZoom }}
                 appearance={{ displayMode: 'fullscreen' }}
                 actions={{
                   onSelectLocation: (location) => console.log('Selected:', location.name),
@@ -1860,7 +1860,7 @@ const categories: Category[] = [
       // ... more locations
     ],
     center: [37.7899, -122.4034],
-    zoom: 14,
+    zoom: 12,
     mapStyle: "voyager"
   }}
   actions={{

@@ -23,3 +23,4 @@ export const demoMapLocations = [
 ]
 
 export const demoMapCenter: [number, number] = [37.7749, -122.4194]
+export const demoMapZoom = 12
