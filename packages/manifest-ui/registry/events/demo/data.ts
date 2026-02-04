@@ -354,3 +354,34 @@ export const demoEventDetails: EventDetails = {
   ],
   relatedTags: ['Houston Events', 'Texas Nightlife', 'Techno Parties']
 }
+
+// Ticket tiers for TicketTierSelect
+export const demoTicketTiers = [
+  {
+    id: '1',
+    name: 'General Admission',
+    price: 45,
+    fee: 5,
+    available: 100,
+    maxPerOrder: 10,
+  },
+  {
+    id: '2',
+    name: 'VIP',
+    price: 150,
+    fee: 15,
+    available: 20,
+    maxPerOrder: 4,
+    description: 'Includes backstage access',
+  },
+]
+
+// Event confirmation data
+export const demoEventConfirmation = {
+  orderNumber: 'EVT-12345',
+  eventTitle: 'Summer Music Festival',
+  ticketCount: 2,
+  recipientEmail: 'customer@example.com',
+  eventDate: 'Jan 20, 2024',
+  eventLocation: 'Central Park, New York',
+}
