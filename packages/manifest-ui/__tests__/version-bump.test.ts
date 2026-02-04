@@ -276,8 +276,9 @@ describe('Version Bump Enforcement', () => {
 
   describe('Changelog entries must exist for all versions', () => {
     const changelog = loadChangelog()
+    const blockItems = currentRegistry.items.filter((item) => item.type === undefined || item.type === 'registry:block')
 
-    for (const item of currentRegistry.items) {
+    for (const item of blockItems) {
       const name = item.name
       const version = getVersion(item)
       const componentChangelog = changelog.components[name]
@@ -293,8 +294,11 @@ describe('Version Bump Enforcement', () => {
   })
 
   describe('Category validation', () => {
+    // Only validate block items — registry:lib items (e.g. manifest-types) use top-level paths
+    const blockItems = currentRegistry.items.filter((item) => item.type === undefined || item.type === 'registry:block')
+
     it('should have valid categories for all components', () => {
-      for (const item of currentRegistry.items) {
+      for (const item of blockItems) {
         const { files } = item
         const category = getCategory(item)
 
@@ -311,7 +315,7 @@ describe('Version Bump Enforcement', () => {
       }
     })
 
-    for (const item of currentRegistry.items) {
+    for (const item of blockItems) {
       const { name, files } = item
       const category = getCategory(item)
       const derivedCategory = files && files.length > 0

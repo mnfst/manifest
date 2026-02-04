@@ -183,7 +183,8 @@ describe('Registry Integrity', () => {
   })
 
   describe('Component Metadata', () => {
-    for (const item of registry.items) {
+    const blockItems = registry.items.filter((item) => item.type === 'registry:block')
+    for (const item of blockItems) {
       describe(`${item.name}`, () => {
         it('should have a title', () => {
           expect(item.title).toBeDefined()
@@ -246,6 +247,7 @@ describe('Registry Integrity', () => {
         const filePath = item.files[0].path
         // Expected format: registry/<category>/<component>.tsx
         const pathParts = filePath.split('/')
+        if (pathParts.length < 3) continue // Skip top-level registry files like shared-types.ts
 
         if (pathParts.length >= 3 && pathParts[0] === 'registry') {
           const dirCategory = pathParts[1]
@@ -278,6 +280,46 @@ describe('Registry Integrity', () => {
       // Log categories for visibility
       console.log(`\nFound ${categories.size} categories: ${[...categories].sort().join(', ')}`)
     })
+  })
+})
+
+describe('Shared Types Pattern', () => {
+  const registry = loadRegistry()
+
+  it('should not include types.ts directly in any component files array', () => {
+    for (const item of registry.items) {
+      if (item.name === 'manifest-types') continue
+      for (const file of item.files) {
+        expect(
+          file.path.endsWith('/types.ts'),
+          `"${item.name}" includes ${file.path} directly in files. Use "manifest-types" in registryDependencies instead.`
+        ).toBe(false)
+      }
+    }
+  })
+
+  it('should list manifest-types in registryDependencies when importing from ./types', () => {
+    for (const item of registry.items) {
+      if (item.name === 'manifest-types') continue
+      for (const file of item.files) {
+        if (!file.path.endsWith('.tsx')) continue
+        const fullPath = resolve(ROOT_DIR, file.path)
+        if (!existsSync(fullPath)) continue
+        const content = readFileSync(fullPath, 'utf-8')
+        if (content.includes("from './types'") || content.includes('from "./types"')) {
+          expect(
+            item.registryDependencies?.includes('manifest-types'),
+            `"${item.name}" imports from './types' but doesn't list "manifest-types" in registryDependencies.`
+          ).toBe(true)
+        }
+      }
+    }
+  })
+
+  it('should have a manifest-types registry item targeting components/ui/types.ts', () => {
+    const typesItem = registry.items.find((item) => item.name === 'manifest-types')
+    expect(typesItem).toBeDefined()
+    expect(typesItem!.files.some((f) => f.target === 'components/ui/types.ts')).toBe(true)
   })
 })
 

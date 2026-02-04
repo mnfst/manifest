@@ -268,9 +268,19 @@ describe('No Broken Imports in Registry Components', () => {
             }
 
             if (!inRegistry) {
-              errors.push(
-                `Line ${imp.line}: "${imp.path}" resolves to "${resolvedFile}" which is not included in the registry files for any owning component (${ownerItems.map((i) => i.name).join(', ')})`
+              // Check if the import is for types provided by manifest-types via registryDependencies.
+              // Components import from './types' (resolving to category types.ts locally),
+              // but at install time manifest-types provides components/ui/types.ts.
+              const isTypesImport = resolvedFile.endsWith('/types.ts')
+              const hasManifestTypesDep = ownerItems.some((oi) =>
+                oi.registryDependencies?.includes('manifest-types')
               )
+
+              if (!(isTypesImport && hasManifestTypesDep)) {
+                errors.push(
+                  `Line ${imp.line}: "${imp.path}" resolves to "${resolvedFile}" which is not included in the registry files for any owning component (${ownerItems.map((i) => i.name).join(', ')})`
+                )
+              }
             }
           }
         }
