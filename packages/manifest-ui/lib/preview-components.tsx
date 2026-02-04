@@ -12,6 +12,7 @@ import { ReactNode } from 'react';
 import { ContactForm } from '@/registry/form/contact-form';
 import { DateTimePicker } from '@/registry/form/date-time-picker';
 import { IssueReportForm } from '@/registry/form/issue-report-form';
+import { demoDateTimePickerData } from '@/registry/form/demo/data';
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input';
@@ -122,7 +123,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'form',
   },
   'date-time-picker': {
-    component: <DateTimePicker />,
+    component: <DateTimePicker data={demoDateTimePickerData} />,
     category: 'form',
   },
   'issue-report-form': {

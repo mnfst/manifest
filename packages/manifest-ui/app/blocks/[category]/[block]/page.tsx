@@ -12,6 +12,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { ContactForm } from '@/registry/form/contact-form';
 import { DateTimePicker } from '@/registry/form/date-time-picker';
 import { IssueReportForm } from '@/registry/form/issue-report-form';
+import { demoDateTimePickerData } from '@/registry/form/demo/data';
 
 // Blogging components
 import { PostCardDemo } from '@/components/blocks/post-card-demo';
@@ -31,6 +32,7 @@ import {
   demoEvent,
   demoEvents,
   demoEventDetails,
+  demoTicketTiers,
   demoEventConfirmation,
 } from '@/registry/events/demo/data';
 
@@ -1457,6 +1459,7 @@ const categories: Category[] = [
                     image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
                     currency: 'USD',
                   },
+                  tiers: demoTicketTiers,
                 }}
               />
             ),
@@ -1603,10 +1606,10 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <DateTimePicker />,
+            component: <DateTimePicker data={demoDateTimePickerData} />,
             fullscreenComponent: (
               <div className="max-w-[680px] mx-auto">
-                <DateTimePicker />
+                <DateTimePicker data={demoDateTimePickerData} />
               </div>
             ),
             usageCode: `<DateTimePicker
