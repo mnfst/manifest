@@ -8,20 +8,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 
 // Internal types for react-leaflet component attributes (not exported component props)
-type LeafletMapContainerAttrs = {
-  center: [number, number]
-  zoom: number
-  style?: React.CSSProperties
-  zoomControl?: boolean
-  scrollWheelZoom?: boolean
-  children?: React.ReactNode
-}
-
-type LeafletTileLayerAttrs = {
-  attribution: string
-  url: string
-}
-
 type LeafletMarkerAttrs = {
   position: [number, number]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -249,8 +235,11 @@ function HotelCard({
         <div className="mt-1.5">
           {location.price !== undefined && (
             <p className="text-sm">
-              <span className="font-semibold">${location.price} total</span>
-              <span className="text-muted-foreground"> Jan 29 - Feb 1</span>
+              {location.priceLabel ? (
+                <span className="font-semibold">{location.priceLabel}</span>
+              ) : (
+                <span className="font-semibold">${location.price} total</span>
+              )}
             </p>
           )}
           {location.priceSubtext && (
@@ -537,13 +526,14 @@ function MapWithMarkers({
     import('leaflet').then((leaflet) => {
       setL(leaflet.default)
     })
-    // Add Leaflet CSS
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-    document.head.appendChild(link)
-    return () => {
-      document.head.removeChild(link)
+    // Inject Leaflet CSS with deduplication
+    const LEAFLET_CSS_ID = 'leaflet-css-1.9.4'
+    if (!document.getElementById(LEAFLET_CSS_ID)) {
+      const link = document.createElement('link')
+      link.id = LEAFLET_CSS_ID
+      link.rel = 'stylesheet'
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      document.head.appendChild(link)
     }
   }, [])
 

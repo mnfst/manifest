@@ -234,9 +234,9 @@ export function Hero({ data, actions }: HeroProps) {
               <p className="text-sm text-muted-foreground mb-4">{techLogosLabel}</p>
             )}
             <div className="flex items-center justify-center gap-4 flex-wrap">
-              {techLogos.map((logo, index) => (
+              {techLogos.map((logo) => (
                 <div
-                  key={index}
+                  key={logo.name || logo.url || logo.alt}
                   className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-lg border bg-background p-2"
                   title={logo.name}
                 >

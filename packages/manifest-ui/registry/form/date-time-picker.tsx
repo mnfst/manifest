@@ -10,37 +10,41 @@ import {
 import { ArrowLeft, ChevronLeft, ChevronRight, Globe, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-/** Timezone configuration with offset from UTC */
+/** Timezone configuration using IANA timezone identifiers for correct DST handling */
 const timezones = [
-  { id: 'pacific', name: 'Pacific Time - US & Canada', offset: -8 },
-  { id: 'mountain', name: 'Mountain Time - US & Canada', offset: -7 },
-  { id: 'central', name: 'Central Time - US & Canada', offset: -6 },
-  { id: 'eastern', name: 'Eastern Time - US & Canada', offset: -5 },
-  { id: 'alaska', name: 'Alaska Time', offset: -9 },
-  { id: 'arizona', name: 'Arizona, Yukon Time', offset: -7 },
-  { id: 'newfoundland', name: 'Newfoundland Time', offset: -3.5 },
-  { id: 'atlantic', name: 'Atlantic Time - Canada', offset: -4 },
-  { id: 'london', name: 'London, Dublin, Edinburgh', offset: 0 },
-  { id: 'paris', name: 'Paris, Berlin, Amsterdam', offset: 1 },
-  { id: 'athens', name: 'Athens, Helsinki, Istanbul', offset: 2 },
-  { id: 'moscow', name: 'Moscow, St. Petersburg', offset: 3 },
-  { id: 'dubai', name: 'Dubai, Abu Dhabi', offset: 4 },
-  { id: 'karachi', name: 'Karachi, Islamabad', offset: 5 },
-  { id: 'dhaka', name: 'Dhaka, Almaty', offset: 6 },
-  { id: 'bangkok', name: 'Bangkok, Hanoi, Jakarta', offset: 7 },
-  { id: 'singapore', name: 'Singapore, Hong Kong, Perth', offset: 8 },
-  { id: 'tokyo', name: 'Tokyo, Seoul, Osaka', offset: 9 },
-  { id: 'sydney', name: 'Sydney, Melbourne, Brisbane', offset: 10 },
-  { id: 'auckland', name: 'Auckland, Wellington', offset: 12 }
+  { id: 'pacific', name: 'Pacific Time - US & Canada', iana: 'America/Los_Angeles' },
+  { id: 'mountain', name: 'Mountain Time - US & Canada', iana: 'America/Denver' },
+  { id: 'central', name: 'Central Time - US & Canada', iana: 'America/Chicago' },
+  { id: 'eastern', name: 'Eastern Time - US & Canada', iana: 'America/New_York' },
+  { id: 'alaska', name: 'Alaska Time', iana: 'America/Anchorage' },
+  { id: 'arizona', name: 'Arizona, Yukon Time', iana: 'America/Phoenix' },
+  { id: 'newfoundland', name: 'Newfoundland Time', iana: 'America/St_Johns' },
+  { id: 'atlantic', name: 'Atlantic Time - Canada', iana: 'America/Halifax' },
+  { id: 'london', name: 'London, Dublin, Edinburgh', iana: 'Europe/London' },
+  { id: 'paris', name: 'Paris, Berlin, Amsterdam', iana: 'Europe/Paris' },
+  { id: 'athens', name: 'Athens, Helsinki, Istanbul', iana: 'Europe/Athens' },
+  { id: 'moscow', name: 'Moscow, St. Petersburg', iana: 'Europe/Moscow' },
+  { id: 'dubai', name: 'Dubai, Abu Dhabi', iana: 'Asia/Dubai' },
+  { id: 'karachi', name: 'Karachi, Islamabad', iana: 'Asia/Karachi' },
+  { id: 'dhaka', name: 'Dhaka, Almaty', iana: 'Asia/Dhaka' },
+  { id: 'bangkok', name: 'Bangkok, Hanoi, Jakarta', iana: 'Asia/Bangkok' },
+  { id: 'singapore', name: 'Singapore, Hong Kong, Perth', iana: 'Asia/Singapore' },
+  { id: 'tokyo', name: 'Tokyo, Seoul, Osaka', iana: 'Asia/Tokyo' },
+  { id: 'sydney', name: 'Sydney, Melbourne, Brisbane', iana: 'Australia/Sydney' },
+  { id: 'auckland', name: 'Auckland, Wellington', iana: 'Pacific/Auckland' }
 ]
 
-const getTimeForOffset = (offset: number) => {
-  const now = new Date()
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000
-  const targetTime = new Date(utc + offset * 3600000)
-  const hours = targetTime.getHours()
-  const minutes = targetTime.getMinutes()
-  return `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')}${hours >= 12 ? 'pm' : 'am'}`
+const getTimeForTimezone = (iana: string) => {
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: iana,
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    }).format(new Date()).toLowerCase()
+  } catch {
+    return ''
+  }
 }
 
 /**
@@ -341,7 +345,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
                     className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <Globe className="h-4 w-4" />
-                    <span>{selectedTimezone.name} ({getTimeForOffset(selectedTimezone.offset)})</span>
+                    <span>{selectedTimezone.name} ({getTimeForTimezone(selectedTimezone.iana)})</span>
                     <ChevronRight className={cn("h-3 w-3 transition-transform", timezoneDropdownOpen ? "rotate-90" : "rotate-0")} />
                   </button>
                 </PopoverTrigger>
@@ -370,7 +374,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
                         )}
                       >
                         <span className="text-foreground">{tz.name}</span>
-                        <span className="text-muted-foreground text-xs">{getTimeForOffset(tz.offset)}</span>
+                        <span className="text-muted-foreground text-xs">{getTimeForTimezone(tz.iana)}</span>
                       </button>
                     ))}
                     {filteredTimezones.length === 0 && (
