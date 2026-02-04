@@ -55,37 +55,11 @@ export interface TicketSelection {
   fee?: number
 }
 
-const defaultTiers: TicketTier[] = [
-  {
-    name: 'General Admission',
-    price: 21.75,
-    fee: 3.30,
-    available: 100,
-    salesEndDate: 'Feb 6, 2026',
-    maxPerOrder: 10
-  },
-  {
-    name: 'VIP',
-    price: 35.85,
-    fee: 4.25,
-    available: 50,
-    salesEndDate: 'Feb 6, 2026',
-    description: 'VIP tickets include entrance into Player Play Date for one person/ticket and a customized Player Play Date tote bag.',
-    maxPerOrder: 5
-  }
-]
-
 export interface TicketTierEvent {
   title?: string
   date?: string
   image?: string
   currency?: string
-}
-
-const defaultEvent: TicketTierEvent = {
-  title: 'Player Play Date',
-  date: 'Friday, February 6 · 2 - 5pm PST',
-  currency: 'USD'
 }
 
 /**
@@ -156,11 +130,9 @@ export interface TicketTierSelectProps {
  * ```
  */
 export function TicketTierSelect({ data, actions, appearance, control }: TicketTierSelectProps) {
-  const {
-    event = defaultEvent,
-    tiers = defaultTiers
-  } = data ?? {}
-  const currency = event.currency ?? 'USD'
+  const event = data?.event
+  const tiers = data?.tiers ?? []
+  const currency = event?.currency ?? 'USD'
   const { onCheckout } = actions ?? {}
   const { showOrderSummary = true } = appearance ?? {}
 
@@ -214,10 +186,12 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
         {/* Left side - Tier selection */}
         <div className="flex-1">
         {/* Header */}
-        <div className="text-center mb-6">
-          {event.title && <h2 className="text-xl font-semibold">{event.title}</h2>}
-          {event.date && <p className="text-sm text-muted-foreground mt-1">{event.date}</p>}
-        </div>
+        {(event?.title || event?.date) && (
+          <div className="text-center mb-6">
+            {event?.title && <h2 className="text-xl font-semibold">{event.title}</h2>}
+            {event?.date && <p className="text-sm text-muted-foreground mt-1">{event.date}</p>}
+          </div>
+        )}
 
         {/* Tiers */}
         <div className="space-y-4">
@@ -309,10 +283,10 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
         {showOrderSummary && (
           <div className="w-full lg:w-80 shrink-0">
             {/* Event image */}
-            {event.image && (
+            {event?.image && (
               <img
                 src={event.image}
-                alt={event.title || 'Event image'}
+                alt={event?.title || 'Event image'}
                 className="w-full h-40 object-cover rounded-lg mb-4"
               />
             )}

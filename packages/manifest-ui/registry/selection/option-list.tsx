@@ -10,7 +10,6 @@ import type { Option } from './types'
 // Re-export for backward compatibility
 export type { Option } from './types'
 
-import { demoOptions } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -71,7 +70,7 @@ export interface OptionListProps {
  * ```
  */
 export function OptionList({ data, actions, appearance, control }: OptionListProps) {
-  const options = data?.options ?? demoOptions
+  const options = data?.options ?? []
   const onSubmit = actions?.onSubmit
   const multiple = appearance?.multiple ?? false
   const selectedOptionIndex = control?.selectedOptionIndex

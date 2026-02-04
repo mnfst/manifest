@@ -14,77 +14,6 @@ import { cn } from '@/lib/utils'
 import { ChevronDown, ChevronUp, Paperclip, Send, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 
-const defaultTeams = [
-  'Engineering',
-  'Product',
-  'Design',
-  'Marketing',
-  'Sales',
-  'Support',
-  'HR',
-  'Finance',
-  'Operations'
-]
-
-const defaultLocations = [
-  'New York - HQ',
-  'San Francisco - Office',
-  'Chicago - Branch',
-  'Austin - Hub',
-  'Remote'
-]
-
-const defaultCategories: Record<string, string[]> = {
-  Software: [
-    'Business App',
-    'Email',
-    'Browser',
-    'VPN',
-    'Office Suite',
-    'Other Software'
-  ],
-  Hardware: [
-    'Computer',
-    'Monitor',
-    'Keyboard/Mouse',
-    'Printer',
-    'Phone',
-    'Other Hardware'
-  ],
-  Network: ['Internet Connection', 'WiFi', 'Server Access', 'File Sharing'],
-  Access: ['User Account', 'Permissions', 'Badge/Physical Access'],
-  Other: ['General Request', 'Suggestion', 'Other']
-}
-
-const defaultImpacts = [
-  { value: 'critical', label: 'Critical - Complete Blocker' },
-  { value: 'high', label: 'High - Severely Degraded' },
-  { value: 'medium', label: 'Medium - Partially Impacted' },
-  { value: 'low', label: 'Low - Minor Inconvenience' }
-]
-
-const defaultUrgencies = [
-  { value: 'immediate', label: 'Immediate' },
-  { value: 'today', label: 'Today' },
-  { value: 'week', label: 'This Week' },
-  { value: 'flexible', label: 'Flexible' }
-]
-
-const defaultFrequencies = [
-  { value: 'permanent', label: 'Permanent' },
-  { value: 'frequent', label: 'Frequent (multiple times/day)' },
-  { value: 'occasional', label: 'Occasional (few times/week)' },
-  { value: 'rare', label: 'Rare (first time)' }
-]
-
-const defaultAttemptedActions = [
-  'Restarted computer',
-  'Restarted application',
-  'Checked cables',
-  'Tested on another machine',
-  'Cleared cache',
-  'Asked a colleague'
-]
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -210,16 +139,14 @@ export function IssueReportForm({
   actions,
   appearance
 }: IssueReportFormProps) {
-  const {
-    title = 'Report an Issue',
-    teams = defaultTeams,
-    locations = defaultLocations,
-    categories = defaultCategories,
-    impacts = defaultImpacts,
-    urgencies = defaultUrgencies,
-    frequencies = defaultFrequencies,
-    attemptedActions = defaultAttemptedActions
-  } = data ?? {}
+  const title = data?.title
+  const teams = data?.teams ?? []
+  const locations = data?.locations ?? []
+  const categories = data?.categories ?? {}
+  const impacts = data?.impacts ?? []
+  const urgencies = data?.urgencies ?? []
+  const frequencies = data?.frequencies ?? []
+  const attemptedActions = data?.attemptedActions ?? []
   const { onSubmit } = actions ?? {}
   const { showTitle = true } = appearance ?? {}
 
@@ -301,7 +228,7 @@ export function IssueReportForm({
 
   return (
     <div className="w-full bg-card rounded-xl p-4">
-      {showTitle && (
+      {showTitle && title && (
         <div className="flex items-center gap-2 mb-4">
           <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         </div>

@@ -76,14 +76,12 @@ export interface PaymentConfirmedProps {
  * ```
  */
 export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmedProps) {
-  const {
-    orderId = 'ORD-2024-7842',
-    productName = "Air Force 1 '07",
-    productDescription = 'Nike · Size 42 · White',
-    productImage = 'https://ui.manifest.build/demo/shoe-1.png',
-    price = 119,
-    deliveryDate = 'Tue. Dec 10',
-  } = data ?? {}
+  const orderId = data?.orderId
+  const productName = data?.productName
+  const productDescription = data?.productDescription
+  const productImage = data?.productImage
+  const price = data?.price
+  const deliveryDate = data?.deliveryDate
   const { onTrackOrder } = actions ?? {}
   const { variant = 'default', currency = 'EUR' } = appearance ?? {}
 
@@ -114,7 +112,7 @@ export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmed
               {productImage ? (
                 <img
                   src={productImage}
-                  alt={productName}
+                  alt={productName ?? 'Product image'}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -125,21 +123,27 @@ export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmed
 
           {/* Product info stacked */}
           <div className="text-center space-y-1">
-            <p className="font-medium text-sm">{productName}</p>
-            <p className="text-xs text-muted-foreground">Order #{orderId}</p>
+            {productName && <p className="font-medium text-sm">{productName}</p>}
+            {orderId && <p className="text-xs text-muted-foreground">Order #{orderId}</p>}
           </div>
 
           {/* Price and delivery */}
-          <div className="flex items-center justify-between py-3 border-y">
-            <div>
-              <p className="text-xs text-muted-foreground">Total</p>
-              <p className="text-lg font-semibold">{formatCurrency(price)}</p>
+          {(price !== undefined || deliveryDate) && (
+            <div className="flex items-center justify-between py-3 border-y">
+              {price !== undefined && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-lg font-semibold">{formatCurrency(price)}</p>
+                </div>
+              )}
+              {deliveryDate && (
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Delivery</p>
+                  <p className="text-sm font-medium">{deliveryDate}</p>
+                </div>
+              )}
             </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Delivery</p>
-              <p className="text-sm font-medium">{deliveryDate}</p>
-            </div>
-          </div>
+          )}
 
           <Button
             variant="outline"
@@ -170,16 +174,20 @@ export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmed
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm truncate">{productName}</span>
-              <span className="text-xs text-muted-foreground">#{orderId}</span>
+              {productName && <span className="font-medium text-sm truncate">{productName}</span>}
+              {orderId && <span className="text-xs text-muted-foreground">#{orderId}</span>}
             </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>Delivery: {deliveryDate}</span>
+            {deliveryDate && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Delivery: {deliveryDate}</span>
+              </div>
+            )}
+          </div>
+          {price !== undefined && (
+            <div className="text-right flex-shrink-0">
+              <p className="font-semibold">{formatCurrency(price)}</p>
             </div>
-          </div>
-          <div className="text-right flex-shrink-0">
-            <p className="font-semibold">{formatCurrency(price)}</p>
-          </div>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -207,42 +215,48 @@ export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmed
           <span className="text-sm font-medium">
             Payment confirmed
           </span>
-          <span className="text-xs text-muted-foreground">
-            #{orderId}
-          </span>
+          {orderId && (
+            <span className="text-xs text-muted-foreground">
+              #{orderId}
+            </span>
+          )}
         </div>
         {/* Content */}
         <div className="p-4 space-y-4">
           {/* Product image centered */}
-          <div className="flex justify-center">
-            <div className="h-20 w-20 rounded-lg overflow-hidden bg-muted">
-              {productImage ? (
+          {productImage && (
+            <div className="flex justify-center">
+              <div className="h-20 w-20 rounded-lg overflow-hidden bg-muted">
                 <img
                   src={productImage}
-                  alt={productName}
+                  alt={productName ?? 'Product image'}
                   className="h-full w-full object-cover"
                 />
-              ) : (
-                <div className="h-full w-full bg-muted" />
-              )}
+              </div>
             </div>
-          </div>
+          )}
           {/* Product details stacked */}
           <div className="text-center space-y-1">
-            <p className="text-base font-medium">{productName}</p>
-            <p className="text-sm text-muted-foreground">{productDescription}</p>
+            {productName && <p className="text-base font-medium">{productName}</p>}
+            {productDescription && <p className="text-sm text-muted-foreground">{productDescription}</p>}
           </div>
           {/* Price and delivery */}
-          <div className="flex items-center justify-between py-3 border-y">
-            <div>
-              <p className="text-xs text-muted-foreground">Total</p>
-              <p className="text-lg font-semibold">{formatCurrency(price)}</p>
+          {(price !== undefined || deliveryDate) && (
+            <div className="flex items-center justify-between py-3 border-y">
+              {price !== undefined && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-lg font-semibold">{formatCurrency(price)}</p>
+                </div>
+              )}
+              {deliveryDate && (
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Delivery</p>
+                  <p className="text-sm font-medium">{deliveryDate}</p>
+                </div>
+              )}
             </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Delivery</p>
-              <p className="text-sm font-medium">{deliveryDate}</p>
-            </div>
-          </div>
+          )}
           <Button variant="outline" size="sm" className="w-full" onClick={onTrackOrder}>
             Track order
             <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
@@ -260,9 +274,11 @@ export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmed
           <span className="text-sm font-medium">
             Payment confirmed
           </span>
-          <span className="text-xs text-muted-foreground ml-auto">
-            #{orderId}
-          </span>
+          {orderId && (
+            <span className="text-xs text-muted-foreground ml-auto">
+              #{orderId}
+            </span>
+          )}
         </div>
         {/* Product info */}
         <div className="p-4">
@@ -271,7 +287,7 @@ export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmed
               {productImage ? (
                 <img
                   src={productImage}
-                  alt={productName}
+                  alt={productName ?? 'Product image'}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -279,13 +295,15 @@ export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmed
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-base font-medium truncate">{productName}</p>
-              <p className="text-sm text-muted-foreground">{productDescription}</p>
+              {productName && <p className="text-base font-medium truncate">{productName}</p>}
+              {productDescription && <p className="text-sm text-muted-foreground">{productDescription}</p>}
               <div className="flex items-center justify-between mt-2">
-                <span className="text-lg font-semibold">{formatCurrency(price)}</span>
-                <span className="text-sm text-muted-foreground">
-                  Delivery: {deliveryDate}
-                </span>
+                {price !== undefined && <span className="text-lg font-semibold">{formatCurrency(price)}</span>}
+                {deliveryDate && (
+                  <span className="text-sm text-muted-foreground">
+                    Delivery: {deliveryDate}
+                  </span>
+                )}
               </div>
             </div>
           </div>

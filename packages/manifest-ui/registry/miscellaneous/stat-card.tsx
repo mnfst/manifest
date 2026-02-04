@@ -37,11 +37,6 @@ export interface StatsProps {
   }
 }
 
-const defaultStats: StatCard[] = [
-  { label: "Sales", value: "$12,543", change: 12.5, trend: "up" },
-  { label: "Orders", value: "342", change: -3.2, trend: "down" },
-  { label: "Customers", value: "1,205", change: 0, trend: "neutral" },
-]
 
 /**
  * A statistics card grid displaying key metrics with trend indicators.
@@ -69,7 +64,7 @@ const defaultStats: StatCard[] = [
  * ```
  */
 export function Stats({ data }: StatsProps) {
-  const stats = data?.stats ?? defaultStats
+  const stats = data?.stats ?? []
   const getTrendIcon = (trend?: "up" | "down" | "neutral") => {
     switch (trend) {
       case "up":

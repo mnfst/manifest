@@ -14,7 +14,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/contact-form.png",
-        "version": "1.2.5",
+        "version": "1.2.6",
         "changelog": {
           "1.0.0": "Initial release with name, phone, email, message and file attachment fields",
           "1.1.0": "Made phone, email, and message fields optional with defaults",
@@ -22,7 +22,8 @@
           "1.2.1": "Added aria-label to file removal button for screen reader accessibility",
           "1.2.3": "Added comprehensive JSDoc documentation",
           "1.2.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.2.5": "Fixed defensive property access to handle empty objects and null values"
+          "1.2.5": "Fixed defensive property access to handle empty objects and null values",
+          "1.2.6": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -55,13 +56,14 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/date-time-picker.png",
-        "version": "2.0.0",
+        "version": "2.0.1",
         "changelog": {
           "1.0.0": "Initial release with calendar and time slot selection",
           "1.0.1": "Added aria-labels to navigation buttons for better screen reader accessibility",
           "1.0.3": "Added comprehensive JSDoc documentation",
           "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "2.0.0": "BREAKING: Removed onSelect action. Intermediate date/time selection is now internal."
+          "2.0.0": "BREAKING: Removed onSelect action. Intermediate date/time selection is now internal.",
+          "2.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -91,13 +93,14 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/issue-report-form.png",
-        "version": "1.0.5",
+        "version": "1.0.6",
         "changelog": {
           "1.0.0": "Initial release with categories, impact levels and file attachments",
           "1.0.1": "Added aria-label to file removal button for screen reader accessibility",
           "1.0.3": "Added comprehensive JSDoc documentation",
           "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "1.0.5": "Fixed defensive property access to handle empty objects and null values"
+          "1.0.5": "Fixed defensive property access to handle empty objects and null values",
+          "1.0.6": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -130,11 +133,12 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/order-confirm.png",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "changelog": {
           "1.0.0": "Initial release with product image and delivery info",
           "1.0.2": "Added comprehensive JSDoc documentation",
-          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.0.4": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -164,12 +168,13 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/payment-confirmed.png",
-        "version": "2.0.0",
+        "version": "2.0.1",
         "changelog": {
           "1.0.0": "Initial release with product image and tracking button",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "2.0.0": "Added compressed variant, merged payment-success into this component"
+          "2.0.0": "Added compressed variant, merged payment-success into this component",
+          "2.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -199,7 +204,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/product-list.png",
-        "version": "2.0.6",
+        "version": "2.0.7",
         "changelog": {
           "1.0.0": "Initial release with list, grid, carousel and picker variants",
           "2.0.0": "BREAKING: Removed id from Product interface. Use array index for selection tracking.",
@@ -208,7 +213,8 @@
           "2.0.3": "Added comprehensive JSDoc documentation",
           "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.0.5": "Fixed defensive property access to handle empty objects and null values",
-          "2.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
+          "2.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry",
+          "2.0.7": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -248,7 +254,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/option-list.png",
-        "version": "3.0.0",
+        "version": "3.0.1",
         "changelog": {
           "1.0.0": "Initial release with single and multiple selection modes",
           "2.0.0": "BREAKING: Removed id from Option interface. Use array index for selection tracking.",
@@ -258,7 +264,8 @@
           "2.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.1.2": "Fixed defensive property access to handle empty objects and null values",
           "2.1.3": "Fixed circular dependency by adding types.ts and demo/data.ts to registry",
-          "3.0.0": "BREAKING: Replaced onSelectOption and onSelectOptions with single onSubmit action. Added confirm button."
+          "3.0.0": "BREAKING: Replaced onSelectOption and onSelectOptions with single onSubmit action. Added confirm button.",
+          "3.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -298,13 +305,14 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/amount-input.png",
-        "version": "2.0.0",
+        "version": "2.0.1",
         "changelog": {
           "1.0.0": "Initial release with increment buttons and preset values",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "1.0.4": "Fixed defensive property access to handle empty objects and null values",
-          "2.0.0": "BREAKING: Removed onChange action. Value changes are now internal."
+          "2.0.0": "BREAKING: Removed onChange action. Value changes are now internal.",
+          "2.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -334,7 +342,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/tag-select.png",
-        "version": "2.0.0",
+        "version": "2.0.1",
         "changelog": {
           "1.0.0": "Initial release with color variants and multi-select",
           "1.0.2": "Added comprehensive JSDoc documentation",
@@ -342,7 +350,8 @@
           "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "1.1.2": "Fixed defensive property access to handle empty objects and null values",
           "1.1.3": "Additional defensive property access improvements",
-          "2.0.0": "BREAKING: Removed onSelectTags action. Tag toggling is now internal."
+          "2.0.0": "BREAKING: Removed onSelectTags action. Tag toggling is now internal.",
+          "2.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -372,7 +381,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/quick-reply.png",
-        "version": "3.1.3",
+        "version": "3.1.4",
         "changelog": {
           "1.0.0": "Initial release with quick reply button options",
           "2.0.0": "BREAKING: Removed unused value prop from QuickReply interface",
@@ -381,7 +390,8 @@
           "3.1.0": "Moved to selection category for better organization",
           "3.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "3.1.2": "Fixed defensive property access to handle empty objects and null values",
-          "3.1.3": "Additional defensive property access improvements"
+          "3.1.3": "Additional defensive property access improvements",
+          "3.1.4": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [],
@@ -407,7 +417,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/progress-steps.png",
-        "version": "2.0.0",
+        "version": "2.0.1",
         "changelog": {
           "1.0.0": "Initial release with horizontal and vertical layouts",
           "1.0.2": "Added comprehensive JSDoc documentation",
@@ -415,7 +425,8 @@
           "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "1.1.2": "Fixed defensive property access to handle empty objects and null values",
           "1.1.3": "Additional defensive property access improvements",
-          "2.0.0": "BREAKING: Removed id from Step interface, use array index for key"
+          "2.0.0": "BREAKING: Removed id from Step interface, use array index for key",
+          "2.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -477,13 +488,14 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/stats.png",
-        "version": "1.0.5",
+        "version": "1.0.6",
         "changelog": {
           "1.0.0": "Initial release with scrollable stat cards and trends",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "1.0.4": "Fixed defensive property access to handle empty objects and null values",
-          "1.0.5": "Additional defensive property access improvements"
+          "1.0.5": "Additional defensive property access improvements",
+          "1.0.6": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -511,7 +523,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-card.png",
-        "version": "2.0.6",
+        "version": "2.0.7",
         "changelog": {
           "1.0.0": "Initial release with default, compact, horizontal and covered variants",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
@@ -520,7 +532,8 @@
           "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.0.4": "Fixed defensive property access to handle empty objects and null values",
           "2.0.5": "Fixed circular dependency by moving Post interface to types.ts",
-          "2.0.6": "Removed unused OpenAI types side-effect import"
+          "2.0.6": "Removed unused OpenAI types side-effect import",
+          "2.0.7": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -565,7 +578,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-list.png",
-        "version": "3.0.0",
+        "version": "3.0.1",
         "changelog": {
           "1.0.0": "Initial release with list, grid and carousel variants",
           "1.1.0": "Added fullwidth variant with pagination for fullscreen mode",
@@ -577,7 +590,8 @@
           "2.0.5": "Fixed defensive property access to handle empty objects and null values",
           "2.0.6": "Fixed circular dependency by moving Post interface to types.ts",
           "2.0.7": "Added bg-card background and margin to list variant for better dark/light mode support",
-          "3.0.0": "BREAKING: Removed pagination (onPageChange, postsPerPage, control). Fullwidth variant now renders all posts."
+          "3.0.0": "BREAKING: Removed pagination (onPageChange, postsPerPage, control). Fullwidth variant now renders all posts.",
+          "3.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -627,7 +641,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-detail.png",
-        "version": "2.1.10",
+        "version": "2.1.11",
         "changelog": {
           "1.0.0": "Initial release with cover image, author info and related posts",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
@@ -647,7 +661,8 @@
           "2.1.7": "Added cursor-pointer to expand button for better UX",
           "2.1.8": "Refactored to use HostAPI abstraction for multi-host support",
           "2.1.9": "Inlined host detection to remove external lib dependency for shadcn distribution",
-          "2.1.10": "Updated post-card dependency with removed OpenAI types import"
+          "2.1.10": "Updated post-card dependency with removed OpenAI types import",
+          "2.1.11": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -693,7 +708,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/table.png",
-        "version": "2.0.0",
+        "version": "2.0.1",
         "changelog": {
           "1.0.0": "Initial release with single and multi-select modes",
           "1.0.1": "Added descriptive alt tags for title images",
@@ -702,7 +717,8 @@
           "1.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "1.0.6": "Fixed defensive property access to handle empty objects and null values",
           "1.0.7": "Inlined OpenAI display mode types to remove external lib dependency for shadcn distribution",
-          "2.0.0": "BREAKING: Removed onSelectionChange and onExpand actions. Selection and expand are now internal."
+          "2.0.0": "BREAKING: Removed onSelectionChange and onExpand actions. Selection and expand are now internal.",
+          "2.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -736,7 +752,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/message-bubble.png",
-        "version": "3.0.4",
+        "version": "3.0.5",
         "changelog": {
           "1.0.0": "Initial release with text, image, voice and reaction variants",
           "1.0.1": "Added better image captions for accessibility",
@@ -746,7 +762,8 @@
           "3.0.0": "BREAKING: Renamed caption prop to content in ImageMessageBubble",
           "3.0.1": "Added aria-labels to reaction buttons and voice message controls for accessibility",
           "3.0.3": "Added comprehensive JSDoc documentation",
-          "3.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "3.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "3.0.5": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -776,7 +793,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/chat-conversation.png",
-        "version": "4.0.6",
+        "version": "4.0.7",
         "changelog": {
           "1.0.0": "Initial release with multiple message types",
           "1.0.1": "Updated to use improved message bubble styling",
@@ -791,7 +808,8 @@
           "4.0.3": "Added comprehensive JSDoc documentation",
           "4.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "4.0.5": "Fixed defensive property access to handle empty objects and null values",
-          "4.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry"
+          "4.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry",
+          "4.0.7": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -836,12 +854,13 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/x-post.png",
-        "version": "1.1.1",
+        "version": "1.1.2",
         "changelog": {
           "1.0.0": "Initial release with engagement metrics display",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.1.0": "Moved to social category for better organization",
-          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.1.2": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -869,13 +888,14 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/instagram-post.png",
-        "version": "1.1.1",
+        "version": "1.1.2",
         "changelog": {
           "1.0.0": "Initial release with image and engagement display",
           "1.0.1": "Improved alt text to include author name",
           "1.0.3": "Added comprehensive JSDoc documentation",
           "1.1.0": "Moved to social category for better organization",
-          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.1.2": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -941,13 +961,14 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/youtube-post.png",
-        "version": "1.1.1",
+        "version": "1.1.2",
         "changelog": {
           "1.0.0": "Initial release with playable video embed",
           "1.0.1": "Improved alt text to include video title",
           "1.0.3": "Added comprehensive JSDoc documentation",
           "1.1.0": "Moved to social category for better organization",
-          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation"
+          "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
+          "1.1.2": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -977,7 +998,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/map-carousel.png",
-        "version": "2.0.0",
+        "version": "2.0.1",
         "changelog": {
           "1.0.0": "Initial release with interactive map and location cards",
           "1.1.0": "Made image and price fields optional in Location interface",
@@ -988,7 +1009,8 @@
           "1.2.3": "Fixed defensive property access to handle empty objects and null values",
           "1.3.0": "Added display modes (inline/fullscreen) with split-screen layout, filters, and ChatGPT host integration",
           "1.4.0": "Made filters fully configurable via data prop with custom filter sections and match functions",
-          "2.0.0": "BREAKING: Removed onExpand and onFiltersApply actions. Expand and filter apply are now internal."
+          "2.0.0": "BREAKING: Removed onExpand and onFiltersApply actions. Expand and filter apply are now internal.",
+          "2.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -1024,7 +1046,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-card.png",
-        "version": "5.0.8",
+        "version": "5.0.9",
         "changelog": {
           "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
           "2.0.0": "BREAKING: Simplified Event interface - replaced startDateTime/endDateTime with display-formatted dateTime string, removed image/locationType/onlineUrl, changed ticketTiers to string array",
@@ -1039,7 +1061,8 @@
           "5.0.5": "Fixed defensive property access to handle empty objects and null values",
           "5.0.6": "Added types.ts to registry for proper installation",
           "5.0.7": "Added demo/data.ts to registry for proper installation via shadcn CLI",
-          "5.0.8": "Removed unused OpenAI types side-effect import"
+          "5.0.8": "Removed unused OpenAI types side-effect import",
+          "5.0.9": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -1079,7 +1102,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-list.png",
-        "version": "7.0.0",
+        "version": "7.0.1",
         "changelog": {
           "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime",
@@ -1098,7 +1121,8 @@
           "6.0.6": "Fixed defensive property access to handle empty objects and null values",
           "6.0.7": "Added types.ts to registry for proper installation",
           "6.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI",
-          "7.0.0": "BREAKING: Removed onPageChange, onViewMore, onExpand, onFilterClick, onFiltersApply actions. Filters and expand are now internal."
+          "7.0.0": "BREAKING: Removed onPageChange, onViewMore, onExpand, onFilterClick, onFiltersApply actions. Filters and expand are now internal.",
+          "7.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -1145,7 +1169,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-detail.png",
-        "version": "3.0.8",
+        "version": "3.0.9",
         "changelog": {
           "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
@@ -1159,7 +1183,8 @@
           "3.0.5": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "3.0.6": "Fixed defensive property access to handle empty objects and null values",
           "3.0.7": "Added types.ts to registry for proper installation",
-          "3.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI"
+          "3.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI",
+          "3.0.9": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -1204,7 +1229,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/ticket-tier-select.png",
-        "version": "4.0.0",
+        "version": "4.0.1",
         "changelog": {
           "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",
           "1.1.0": "Added optional event image above order summary. Order summary now always visible with fixed width.",
@@ -1213,7 +1238,8 @@
           "2.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "3.0.0": "BREAKING: Removed id from TicketTier interface, made name and price optional.",
           "3.0.1": "Simplified TicketSelection interface by removing tierIndex",
-          "4.0.0": "BREAKING: Removed onSelectionChange action. Tier quantity changes are now internal."
+          "4.0.0": "BREAKING: Removed onSelectionChange action. Tier quantity changes are now internal.",
+          "4.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -1243,12 +1269,13 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-confirmation.png",
-        "version": "2.0.0",
+        "version": "2.0.1",
         "changelog": {
           "1.0.0": "Initial release with success message, event details, organizer follow, and social sharing",
           "1.0.2": "Added comprehensive JSDoc documentation",
           "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "2.0.0": "BREAKING: Removed onChangeEmail action and Change email link"
+          "2.0.0": "BREAKING: Removed onChangeEmail action and Change email link",
+          "2.0.1": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [
@@ -1278,14 +1305,15 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/hero.png",
-        "version": "2.1.1",
+        "version": "2.1.2",
         "changelog": {
           "1.0.0": "Initial release with logos, title, subtitle, CTA buttons, and tech logos footer",
           "1.1.0": "Added card wrapper, text logo support, improved light/dark mode compatibility",
           "2.0.0": "BREAKING: Changed button props from string labels to HeroButton objects with optional label and icon",
           "2.0.1": "Image logos now display without bordered container, text logos remain in bordered square",
           "2.1.0": "Added urlLight prop for dark mode logo variant support",
-          "2.1.1": "Reduced logo image height for better visual balance"
+          "2.1.1": "Reduced logo image height for better visual balance",
+          "2.1.2": "Removed default content data - component only renders explicitly provided data"
         }
       },
       "dependencies": [

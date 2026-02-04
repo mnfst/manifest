@@ -213,105 +213,6 @@ export interface MapCarouselProps {
   }
 }
 
-// Default San Francisco hotel data
-const defaultLocations: Location[] = [
-  {
-    name: 'FOUND Hotel Carlton, Nob Hill',
-    subtitle: 'Downtown San Francisco',
-    image:
-      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=200&fit=crop',
-    price: 284,
-    priceLabel: '$284 total Jan 29 - Feb 1',
-    priceSubtext: 'USD • Includes taxes and fees',
-    rating: 8.6,
-    coordinates: [37.7879, -122.4137],
-    link: ''
-  },
-  {
-    name: 'Hotel Nikko San Francisco',
-    subtitle: 'Union Square',
-    image:
-      'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&h=200&fit=crop',
-    price: 299,
-    priceLabel: '$299 total Jan 29 - Feb 1',
-    priceSubtext: 'USD • Includes taxes and fees',
-    rating: 9.0,
-    coordinates: [37.7856, -122.4104],
-    link: ''
-  },
-  {
-    name: 'The Ritz-Carlton',
-    subtitle: 'Nob Hill',
-    image:
-      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200&h=200&fit=crop',
-    price: 527,
-    priceLabel: '$527 total Jan 29 - Feb 1',
-    priceSubtext: 'USD • Includes taxes and fees',
-    rating: 9.4,
-    coordinates: [37.7919, -122.4081],
-    link: ''
-  },
-  {
-    name: 'Fairmont San Francisco',
-    subtitle: 'Nob Hill',
-    image:
-      'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=200&h=200&fit=crop',
-    price: 438,
-    priceLabel: '$438 total Jan 29 - Feb 1',
-    priceSubtext: 'USD • Includes taxes and fees',
-    rating: 8.9,
-    coordinates: [37.7923, -122.4102],
-    link: ''
-  },
-  {
-    name: 'Hotel Vitale',
-    subtitle: 'Embarcadero',
-    image:
-      'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=200&h=200&fit=crop',
-    price: 358,
-    priceLabel: '$358 total Jan 29 - Feb 1',
-    priceSubtext: 'USD • Includes taxes and fees',
-    rating: 8.4,
-    coordinates: [37.7935, -122.393],
-    link: ''
-  },
-  {
-    name: 'Palace Hotel',
-    subtitle: 'SoMa',
-    image:
-      'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=200&h=200&fit=crop',
-    price: 308,
-    priceLabel: '$308 total Jan 29 - Feb 1',
-    priceSubtext: 'USD • Includes taxes and fees',
-    rating: 8.7,
-    coordinates: [37.787, -122.401],
-    link: ''
-  },
-  {
-    name: 'Omni San Francisco',
-    subtitle: 'Financial District',
-    image:
-      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=200&h=200&fit=crop',
-    price: 227,
-    priceLabel: '$227 total Jan 29 - Feb 1',
-    priceSubtext: 'USD • Includes taxes and fees',
-    rating: 8.2,
-    coordinates: [37.7942, -122.4028],
-    link: ''
-  },
-  {
-    name: 'The Marker San Francisco',
-    subtitle: 'Union Square',
-    image:
-      'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=200&h=200&fit=crop',
-    price: 166,
-    priceLabel: '$166 total Jan 29 - Feb 1',
-    priceSubtext: 'USD • Includes taxes and fees',
-    rating: 7.8,
-    coordinates: [37.7875, -122.4089],
-    link: ''
-  }
-]
 
 // Hotel card component
 function HotelCard({
@@ -800,7 +701,7 @@ const getTileConfig = (style: MapStyle) => {
  */
 export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   const {
-    locations = defaultLocations,
+    locations = [],
     center = [37.7899, -122.4034], // San Francisco
     zoom = 14,
     mapStyle = 'voyager',

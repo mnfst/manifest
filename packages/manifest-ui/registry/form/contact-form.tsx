@@ -214,12 +214,10 @@ const countries = [
  * ```
  */
 export function ContactForm({ data, actions, appearance, control }: ContactFormProps) {
-  const {
-    title = 'Contact Us',
-    subtitle = "Fill out the form below and we'll get back to you as soon as possible.",
-    submitLabel = 'Send Message',
-    initialValues,
-  } = data ?? {};
+  const title = data?.title
+  const subtitle = data?.subtitle
+  const submitLabel = data?.submitLabel ?? 'Submit'
+  const initialValues = data?.initialValues
   const { onSubmit } = actions ?? {};
   const { showTitle = true } = appearance ?? {};
   const { isLoading = false } = control ?? {};
@@ -286,10 +284,10 @@ export function ContactForm({ data, actions, appearance, control }: ContactFormP
 
   return (
     <div className="w-full bg-card rounded-xl p-6">
-      {showTitle && (
+      {showTitle && (title || subtitle) && (
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-          <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
+          {title && <h2 className="text-xl font-semibold text-foreground">{title}</h2>}
+          {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
         </div>
       )}
 
