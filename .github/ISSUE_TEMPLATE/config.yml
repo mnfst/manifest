@@ -1,5 +1,1 @@
 blank_issues_enabled: true
-contact_links:
-  - name: 🆕 Feature request
-    url: https://github.com/mnfst/manifest/discussions/new?category=feature-request
-    about: Ask for new features! The most popular features will be included in the roadmap.
