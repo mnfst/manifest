@@ -12,6 +12,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { ContactForm } from '@/registry/form/contact-form';
 import { DateTimePicker } from '@/registry/form/date-time-picker';
 import { IssueReportForm } from '@/registry/form/issue-report-form';
+import { demoDateTimePickerData } from '@/registry/form/demo/data';
 
 // Blogging components
 import { PostCardDemo } from '@/components/blocks/post-card-demo';
@@ -1603,10 +1604,10 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <DateTimePicker />,
+            component: <DateTimePicker data={demoDateTimePickerData} />,
             fullscreenComponent: (
               <div className="max-w-[680px] mx-auto">
-                <DateTimePicker />
+                <DateTimePicker data={demoDateTimePickerData} />
               </div>
             ),
             usageCode: `<DateTimePicker
