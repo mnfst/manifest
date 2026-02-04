@@ -35,6 +35,7 @@ interface VariantSectionProps {
 
 export interface VariantSectionHandle {
   showActionsConfig: () => void
+  showDepsTab: () => void
 }
 
 interface ChangelogEntry {
@@ -101,7 +102,27 @@ function useSourceCode(registryName: string): SourceCodeState {
             .slice(1)
             .map((f: { content?: string }) => f.content)
             .filter(Boolean) as string[]
-          setRelatedFiles(otherFiles)
+
+          // Fetch type definitions from registry dependencies (e.g. manifest-types)
+          const registryDeps: string[] = data.registryDependencies || []
+          const typeDepFiles = await Promise.all(
+            registryDeps
+              .filter((dep: string) => dep.includes('types'))
+              .map(async (dep: string) => {
+                try {
+                  const depRes = await fetch(`/r/${dep}.json`)
+                  if (!depRes.ok) return []
+                  const depData = await depRes.json()
+                  return (depData.files || [])
+                    .map((f: { content?: string }) => f.content)
+                    .filter(Boolean) as string[]
+                } catch {
+                  return []
+                }
+              })
+          )
+
+          setRelatedFiles([...otherFiles, ...typeDepFiles.flat()])
         } else {
           setError('No source code available')
         }
@@ -218,6 +239,9 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
         setHighlightCategory(null)
       }, 2600)
       timeoutRefs.current.push(highlightTimeout)
+    },
+    showDepsTab: () => {
+      setViewMode('deps')
     }
   }), [])
 
