@@ -312,8 +312,10 @@ import { demoPostDetailData } from '@/registry/blogging/demo/data';
 
 1. **Single source of truth**: All demo data in `registry/<category>/demo/data.ts`
 2. **No duplication**: `preview-components.tsx` and `page.tsx` import from demo/data.ts
-3. **Complete data**: Include all fields needed for realistic previews
-4. **Typed exports**: Export with proper TypeScript types
+3. **No inline demo data**: `preview-components.tsx` and `page.tsx` must NOT define local demo data constants or large inline `data={{...}}` objects. All substantial data must come from imports.
+4. **Complete data**: Include all fields needed for realistic previews
+5. **Typed exports**: Export with proper TypeScript types
+6. **Enforced by tests**: `__tests__/demo-data-placement.test.ts` validates these rules automatically
 
 ## Component Versioning (Semver)
 

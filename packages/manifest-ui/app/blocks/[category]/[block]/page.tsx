@@ -17,7 +17,7 @@ import { IssueReportForm } from '@/registry/form/issue-report-form';
 import { PostCardDemo } from '@/components/blocks/post-card-demo';
 import { PostDetailDemo } from '@/components/blocks/post-detail-demo';
 import { PostListDemo } from '@/components/blocks/post-list-demo';
-import { demoPostDetailData } from '@/registry/blogging/demo/data';
+import { demoPost, demoPosts, demoPostDetailData } from '@/registry/blogging/demo/data';
 import { PostDetail } from '@/registry/blogging/post-detail';
 import { PostList } from '@/registry/blogging/post-list';
 
@@ -27,16 +27,28 @@ import { EventConfirmation } from '@/registry/events/event-confirmation';
 import { EventDetail } from '@/registry/events/event-detail';
 import { EventList } from '@/registry/events/event-list';
 import { TicketTierSelect } from '@/registry/events/ticket-tier-select';
+import {
+  demoEvent,
+  demoEvents,
+  demoEventDetails,
+  demoEventConfirmation,
+} from '@/registry/events/demo/data';
 
 // List components
 import { TableDemo } from '@/components/blocks/table-demo';
 import { ProductList } from '@/registry/list/product-list';
 import { Table } from '@/registry/list/table';
+import { demoProducts } from '@/registry/list/demo/data';
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input';
 import { OrderConfirm } from '@/registry/payment/order-confirm';
 import { PaymentConfirmed } from '@/registry/payment/payment-confirmed';
+import {
+  demoOrderConfirm,
+  demoAmountPresets,
+  demoPaymentConfirmed,
+} from '@/registry/payment/demo/data';
 
 // Messaging components
 import { ChatConversation } from '@/registry/messaging/chat-conversation';
@@ -51,23 +63,43 @@ import {
 import { OptionList } from '@/registry/selection/option-list';
 import { QuickReply } from '@/registry/selection/quick-reply';
 import { TagSelect } from '@/registry/selection/tag-select';
+import {
+  demoOptions,
+  demoQuickReplies,
+  demoTags,
+} from '@/registry/selection/demo/data';
 
 // Social components
 import { InstagramPost } from '@/registry/social/instagram-post';
 import { LinkedInPost } from '@/registry/social/linkedin-post';
 import { XPost } from '@/registry/social/x-post';
 import { YouTubePost } from '@/registry/social/youtube-post';
+import {
+  demoXPost,
+  demoInstagramPost,
+  demoYouTubePost,
+} from '@/registry/social/demo/data';
 
 // Map components
 import { MapCarousel } from '@/registry/map/map-carousel';
+import { demoMapLocations, demoMapCenter } from '@/registry/map/demo/data';
 
 // Status components
 import { ProgressSteps } from '@/registry/status/progress-steps';
 import { StatusBadge } from '@/registry/status/status-badge';
+import { demoProgressSteps } from '@/registry/status/demo/data';
 
 // Miscellaneous components
 import { Hero } from '@/registry/miscellaneous/hero';
 import { Stats } from '@/registry/miscellaneous/stat-card';
+import {
+  demoStats,
+  demoHeroDefault,
+  demoHeroTwoLogos,
+  demoHeroWithTechLogos,
+  demoHeroMinimal,
+} from '@/registry/miscellaneous/demo/data';
+import { demoMessages } from '@/registry/messaging/demo/data';
 
 // UI components
 import { VariantSection, VariantSectionHandle } from '@/components/blocks/variant-section';
@@ -122,8 +154,8 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <PostCardDemo />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            component: <PostCardDemo data={{ post: demoPost }} />,
+            fullscreenComponent: <PostDetail data={demoPostDetailData} appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard
   data={{
     post: {
@@ -170,8 +202,8 @@ const categories: Category[] = [
           {
             id: 'no-image',
             name: 'Without Image',
-            component: <PostCardDemo appearance={{ showImage: false }} />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            component: <PostCardDemo data={{ post: demoPost }} appearance={{ showImage: false }} />,
+            fullscreenComponent: <PostDetail data={demoPostDetailData} appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard
   data={{
     post: {
@@ -211,8 +243,8 @@ const categories: Category[] = [
           {
             id: 'compact',
             name: 'Compact',
-            component: <PostCardDemo appearance={{ variant: 'compact' }} />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            component: <PostCardDemo data={{ post: demoPost }} appearance={{ variant: 'compact' }} />,
+            fullscreenComponent: <PostDetail data={demoPostDetailData} appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard
   data={{
     post: {
@@ -255,8 +287,8 @@ const categories: Category[] = [
           {
             id: 'horizontal',
             name: 'Horizontal',
-            component: <PostCardDemo appearance={{ variant: 'horizontal' }} />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            component: <PostCardDemo data={{ post: demoPost }} appearance={{ variant: 'horizontal' }} />,
+            fullscreenComponent: <PostDetail data={demoPostDetailData} appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard
   data={{
     post: {
@@ -301,8 +333,8 @@ const categories: Category[] = [
           {
             id: 'covered',
             name: 'Covered',
-            component: <PostCardDemo appearance={{ variant: 'covered' }} />,
-            fullscreenComponent: <PostDetail appearance={{ displayMode: 'fullscreen' }} />,
+            component: <PostCardDemo data={{ post: demoPost }} appearance={{ variant: 'covered' }} />,
+            fullscreenComponent: <PostDetail data={demoPostDetailData} appearance={{ displayMode: 'fullscreen' }} />,
             usageCode: `<PostCard
   data={{
     post: {
@@ -356,9 +388,10 @@ const categories: Category[] = [
           {
             id: 'list',
             name: 'List',
-            component: <PostListDemo appearance={{ variant: 'list' }} />,
+            component: <PostListDemo data={{ posts: demoPosts }} appearance={{ variant: 'list' }} />,
             fullscreenComponent: (
               <PostList
+                data={{ posts: demoPosts }}
                 appearance={{
                   variant: 'fullwidth',
                   columns: 3,
@@ -548,9 +581,10 @@ const categories: Category[] = [
           {
             id: 'grid',
             name: 'Grid',
-            component: <PostListDemo appearance={{ variant: 'grid' }} />,
+            component: <PostListDemo data={{ posts: demoPosts }} appearance={{ variant: 'grid' }} />,
             fullscreenComponent: (
               <PostList
+                data={{ posts: demoPosts }}
                 appearance={{
                   variant: 'fullwidth',
                   columns: 3,
@@ -741,9 +775,10 @@ const categories: Category[] = [
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <PostListDemo appearance={{ variant: 'carousel' }} />,
+            component: <PostListDemo data={{ posts: demoPosts }} appearance={{ variant: 'carousel' }} />,
             fullscreenComponent: (
               <PostList
+                data={{ posts: demoPosts }}
                 appearance={{
                   variant: 'fullwidth',
                   columns: 3,
@@ -1038,7 +1073,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <EventCard />,
+            component: <EventCard data={{ event: demoEvent }} />,
             usageCode: `<EventCard
   data={{
     event: {
@@ -1073,7 +1108,7 @@ const categories: Category[] = [
           {
             id: 'compact',
             name: 'Compact',
-            component: <EventCard appearance={{ variant: 'compact' }} />,
+            component: <EventCard data={{ event: demoEvent }} appearance={{ variant: 'compact' }} />,
             usageCode: `<EventCard
   data={{
     event: {
@@ -1105,7 +1140,7 @@ const categories: Category[] = [
           {
             id: 'horizontal',
             name: 'Horizontal',
-            component: <EventCard appearance={{ variant: 'horizontal' }} />,
+            component: <EventCard data={{ event: demoEvent }} appearance={{ variant: 'horizontal' }} />,
             usageCode: `<EventCard
   data={{
     event: {
@@ -1137,7 +1172,7 @@ const categories: Category[] = [
           {
             id: 'covered',
             name: 'Covered',
-            component: <EventCard appearance={{ variant: 'covered' }} />,
+            component: <EventCard data={{ event: demoEvent }} appearance={{ variant: 'covered' }} />,
             usageCode: `<EventCard
   data={{
     event: {
@@ -1181,7 +1216,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <EventDetail />,
+            component: <EventDetail data={{ event: demoEventDetails }} />,
             usageCode: `<EventDetail
   data={{
     event: {
@@ -1279,13 +1314,13 @@ const categories: Category[] = [
             name: 'Grid',
             component: (
               <EventList
-                data={{ title: 'Recommendations for you' }}
+                data={{ title: 'Recommendations for you', events: demoEvents }}
                 appearance={{ variant: 'grid' }}
               />
             ),
             fullscreenComponent: (
               <EventList
-                data={{ title: 'Recommendations for you' }}
+                data={{ title: 'Recommendations for you', events: demoEvents }}
                 appearance={{ variant: 'fullwidth' }}
               />
             ),
@@ -1321,13 +1356,13 @@ const categories: Category[] = [
             name: 'List',
             component: (
               <EventList
-                data={{ title: 'Recommendations for you' }}
+                data={{ title: 'Recommendations for you', events: demoEvents }}
                 appearance={{ variant: 'list' }}
               />
             ),
             fullscreenComponent: (
               <EventList
-                data={{ title: 'Recommendations for you' }}
+                data={{ title: 'Recommendations for you', events: demoEvents }}
                 appearance={{ variant: 'fullwidth' }}
               />
             ),
@@ -1363,13 +1398,13 @@ const categories: Category[] = [
             name: 'Carousel',
             component: (
               <EventList
-                data={{ title: 'Recommendations for you' }}
+                data={{ title: 'Recommendations for you', events: demoEvents }}
                 appearance={{ variant: 'carousel' }}
               />
             ),
             fullscreenComponent: (
               <EventList
-                data={{ title: 'Recommendations for you' }}
+                data={{ title: 'Recommendations for you', events: demoEvents }}
                 appearance={{ variant: 'fullwidth' }}
               />
             ),
@@ -1484,7 +1519,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <EventConfirmation />,
+            component: <EventConfirmation data={demoEventConfirmation} />,
             usageCode: `<EventConfirmation
   data={{
     orderNumber: "#14040333743",
@@ -1651,7 +1686,7 @@ const categories: Category[] = [
           {
             id: 'list',
             name: 'List',
-            component: <ProductList appearance={{ variant: 'list' }} />,
+            component: <ProductList data={{ products: demoProducts }} appearance={{ variant: 'list' }} />,
             usageCode: `<ProductList
   data={{
     products: [
@@ -1672,7 +1707,7 @@ const categories: Category[] = [
           {
             id: 'grid',
             name: 'Grid',
-            component: <ProductList appearance={{ variant: 'grid' }} />,
+            component: <ProductList data={{ products: demoProducts }} appearance={{ variant: 'grid' }} />,
             usageCode: `<ProductList
   data={{ products: [...] }}
   appearance={{ variant: "grid", columns: 4, currency: "USD" }}
@@ -1682,7 +1717,7 @@ const categories: Category[] = [
           {
             id: 'carousel',
             name: 'Carousel',
-            component: <ProductList appearance={{ variant: 'carousel' }} />,
+            component: <ProductList data={{ products: demoProducts }} appearance={{ variant: 'carousel' }} />,
             usageCode: `<ProductList
   data={{ products: [...] }}
   appearance={{ variant: "carousel" }}
@@ -1692,7 +1727,7 @@ const categories: Category[] = [
           {
             id: 'picker',
             name: 'Picker',
-            component: <ProductList appearance={{ variant: 'picker' }} />,
+            component: <ProductList data={{ products: demoProducts }} appearance={{ variant: 'picker' }} />,
             usageCode: `<ProductList
   data={{ products: [...] }}
   appearance={{ variant: "picker", buttonLabel: "Add to cart" }}
@@ -1795,10 +1830,10 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <MapCarousel />,
+            component: <MapCarousel data={{ locations: demoMapLocations, center: demoMapCenter }} />,
             fullscreenComponent: (
               <MapCarousel
-                data={{ title: 'Hotels in San Francisco' }}
+                data={{ title: 'Hotels in San Francisco', locations: demoMapLocations, center: demoMapCenter }}
                 appearance={{ displayMode: 'fullscreen' }}
                 actions={{
                   onSelectLocation: (location) => console.log('Selected:', location.name),
@@ -2019,7 +2054,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <ChatConversation />,
+            component: <ChatConversation data={{ messages: demoMessages }} />,
             usageCode: `<ChatConversation
   data={{
     messages: [
@@ -2087,7 +2122,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <Stats />,
+            component: <Stats data={{ stats: demoStats }} />,
             usageCode: `<Stats
   data={{
     stats: [
@@ -2110,7 +2145,14 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <Hero />,
+            component: (
+              <Hero
+                data={{
+                  ...demoHeroDefault,
+                  secondaryButton: { label: 'GitHub', icon: <Github className="h-5 w-5" /> },
+                }}
+              />
+            ),
             usageCode: `<Hero
   data={{
     logo1: { text: "Acme", alt: "Acme" },
@@ -2131,17 +2173,7 @@ const categories: Category[] = [
             component: (
               <Hero
                 data={{
-                  logo1: { text: 'Acme' },
-                  logo2: {
-                    url: '/logo-manifest-ui.svg',
-                    urlLight: '/logo-manifest-ui-light.svg',
-                    alt: 'Manifest',
-                  },
-                  logoSeparator: 'x',
-                  title: 'Acme x Manifest UI',
-                  subtitle:
-                    'Combining the best of both worlds to deliver exceptional user experiences.',
-                  primaryButton: { label: 'Get Started' },
+                  ...demoHeroTwoLogos,
                   secondaryButton: { label: 'GitHub', icon: <Github className="h-5 w-5" /> },
                 }}
               />
@@ -2168,40 +2200,8 @@ const categories: Category[] = [
             component: (
               <Hero
                 data={{
-                  logo1: { text: 'Acme' },
-                  title: 'Build your next project with Acme',
-                  subtitle:
-                    'Create beautiful experiences with our comprehensive platform designed for modern applications.',
-                  primaryButton: { label: 'Get Started' },
+                  ...demoHeroWithTechLogos,
                   secondaryButton: { label: 'GitHub', icon: <Github className="h-5 w-5" /> },
-                  techLogosLabel: 'Built with open-source technologies',
-                  techLogos: [
-                    {
-                      url: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg',
-                      alt: 'Next.js',
-                      name: 'Next.js',
-                    },
-                    {
-                      url: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
-                      alt: 'TypeScript',
-                      name: 'TypeScript',
-                    },
-                    {
-                      url: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
-                      alt: 'React',
-                      name: 'React',
-                    },
-                    {
-                      url: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg',
-                      alt: 'Tailwind CSS',
-                      name: 'Tailwind CSS',
-                    },
-                    {
-                      url: '/demo/os-tech-mnfst.svg',
-                      alt: 'Manifest',
-                      name: 'Manifest',
-                    },
-                  ],
                 }}
               />
             ),
@@ -2230,17 +2230,7 @@ const categories: Category[] = [
           {
             id: 'minimal',
             name: 'Minimal',
-            component: (
-              <Hero
-                data={{
-                  logo1: undefined,
-                  title: 'Welcome to the Future',
-                  subtitle: 'A simple, clean hero without logos or extra elements.',
-                  primaryButton: { label: 'Get Started' },
-                  secondaryButton: undefined,
-                }}
-              />
-            ),
+            component: <Hero data={demoHeroMinimal} />,
             usageCode: `<Hero
   data={{
     logo1: undefined,
@@ -2273,7 +2263,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <OptionList />,
+            component: <OptionList data={{ options: demoOptions }} />,
             usageCode: `<OptionList
   data={{
     options: [
@@ -2300,7 +2290,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <QuickReply />,
+            component: <QuickReply data={{ replies: demoQuickReplies }} />,
             usageCode: `<QuickReply
   data={{
     replies: [
@@ -2326,7 +2316,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <TagSelect />,
+            component: <TagSelect data={{ tags: demoTags }} />,
             usageCode: `<TagSelect
   data={{
     tags: [
@@ -2363,7 +2353,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <ProgressSteps />,
+            component: <ProgressSteps data={{ steps: demoProgressSteps }} />,
             usageCode: `<ProgressSteps
   data={{
     steps: [
@@ -2422,10 +2412,10 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <OrderConfirm />,
+            component: <OrderConfirm data={demoOrderConfirm} />,
             fullscreenComponent: (
               <div className="max-w-[680px] mx-auto">
-                <OrderConfirm />
+                <OrderConfirm data={demoOrderConfirm} />
               </div>
             ),
             usageCode: `<OrderConfirm
@@ -2453,10 +2443,10 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <AmountInput />,
+            component: <AmountInput data={{ presets: demoAmountPresets }} />,
             fullscreenComponent: (
               <div className="max-w-[680px] mx-auto">
-                <AmountInput />
+                <AmountInput data={{ presets: demoAmountPresets }} />
               </div>
             ),
             usageCode: `<AmountInput
@@ -2486,10 +2476,10 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <PaymentConfirmed />,
+            component: <PaymentConfirmed data={demoPaymentConfirmed} />,
             fullscreenComponent: (
               <div className="max-w-[680px] mx-auto">
-                <PaymentConfirmed />
+                <PaymentConfirmed data={demoPaymentConfirmed} />
               </div>
             ),
             usageCode: `<PaymentConfirmed
@@ -2508,10 +2498,10 @@ const categories: Category[] = [
           {
             id: 'compressed',
             name: 'Compressed',
-            component: <PaymentConfirmed appearance={{ variant: 'compressed' }} />,
+            component: <PaymentConfirmed data={demoPaymentConfirmed} appearance={{ variant: 'compressed' }} />,
             fullscreenComponent: (
               <div className="max-w-[680px] mx-auto">
-                <PaymentConfirmed appearance={{ variant: 'compressed' }} />
+                <PaymentConfirmed data={demoPaymentConfirmed} appearance={{ variant: 'compressed' }} />
               </div>
             ),
             usageCode: `<PaymentConfirmed
@@ -2545,7 +2535,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <InstagramPost />,
+            component: <InstagramPost data={demoInstagramPost} />,
             usageCode: `<InstagramPost
   data={{
     author: "manifest.ai",
@@ -2697,7 +2687,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <XPost />,
+            component: <XPost data={demoXPost} />,
             usageCode: `<XPost
   data={{
     author: "Manifest",
@@ -2726,7 +2716,7 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <YouTubePost />,
+            component: <YouTubePost data={demoYouTubePost} />,
             usageCode: `<YouTubePost
   data={{
     channel: "NetworkChuck",

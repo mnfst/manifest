@@ -2,7 +2,8 @@
 
 /**
  * Component map for preview generation.
- * Maps component names to their rendered React elements with default demo data.
+ * Maps component names to their rendered React elements with demo data
+ * imported from centralized demo/data.ts files.
  */
 
 import { ReactNode } from 'react';
@@ -16,32 +17,65 @@ import { IssueReportForm } from '@/registry/form/issue-report-form';
 import { AmountInput } from '@/registry/payment/amount-input';
 import { OrderConfirm } from '@/registry/payment/order-confirm';
 import { PaymentConfirmed } from '@/registry/payment/payment-confirmed';
+import {
+  demoOrderConfirm,
+  demoAmountPresets,
+  demoPaymentConfirmed,
+} from '@/registry/payment/demo/data';
 
 // List components
 import { ProductList } from '@/registry/list/product-list';
 import { Table } from '@/registry/list/table';
+import {
+  demoProducts,
+  demoTableColumns,
+  demoTableRows,
+} from '@/registry/list/demo/data';
 
 // Selection components
 import { OptionList } from '@/registry/selection/option-list';
 import { QuickReply } from '@/registry/selection/quick-reply';
 import { TagSelect } from '@/registry/selection/tag-select';
+import {
+  demoOptions,
+  demoQuickReplies,
+  demoTags,
+} from '@/registry/selection/demo/data';
 
 // Status components
 import { ProgressSteps } from '@/registry/status/progress-steps';
 import { StatusBadge } from '@/registry/status/status-badge';
+import {
+  demoProgressSteps,
+  demoStatusBadge,
+} from '@/registry/status/demo/data';
 
 // Miscellaneous components
 import { Hero } from '@/registry/miscellaneous/hero';
 import { Stats } from '@/registry/miscellaneous/stat-card';
+import {
+  demoStats,
+  demoHeroDefault,
+} from '@/registry/miscellaneous/demo/data';
 
 // Social components
 import { InstagramPost } from '@/registry/social/instagram-post';
 import { LinkedInPost } from '@/registry/social/linkedin-post';
 import { XPost } from '@/registry/social/x-post';
 import { YouTubePost } from '@/registry/social/youtube-post';
+import {
+  demoXPost,
+  demoInstagramPost,
+  demoLinkedInPost,
+  demoYouTubePost,
+} from '@/registry/social/demo/data';
 
 // Map components
 import { MapCarousel } from '@/registry/map/map-carousel';
+import {
+  demoMapLocations,
+  demoMapCenter,
+} from '@/registry/map/demo/data';
 
 // Blogging components
 import { PostCard } from '@/registry/blogging/post-card';
@@ -56,6 +90,7 @@ import {
 // Messaging components
 import { ChatConversation } from '@/registry/messaging/chat-conversation';
 import { MessageBubble } from '@/registry/messaging/message-bubble';
+import { demoMessages } from '@/registry/messaging/demo/data';
 
 // Events components
 import { EventCard } from '@/registry/events/event-card';
@@ -63,47 +98,13 @@ import { EventConfirmation } from '@/registry/events/event-confirmation';
 import { EventDetail } from '@/registry/events/event-detail';
 import { EventList } from '@/registry/events/event-list';
 import { TicketTierSelect } from '@/registry/events/ticket-tier-select';
-
-// Demo data
-const demoProducts = [
-  { name: 'Premium Headphones', price: 299, image: 'https://ui.manifest.build/demo/shoe-1.png' },
-  { name: 'Wireless Earbuds', price: 149, image: 'https://ui.manifest.build/demo/shoe-2.png' },
-  { name: 'Smart Speaker', price: 199, image: 'https://ui.manifest.build/demo/shoe-3.png' },
-];
-
-const demoTicketTiers = [
-  { id: '1', name: 'General Admission', price: 45, fee: 5, available: 100, maxPerOrder: 10 },
-  {
-    id: '2',
-    name: 'VIP',
-    price: 150,
-    fee: 15,
-    available: 20,
-    maxPerOrder: 4,
-    description: 'Includes backstage access',
-  },
-];
-
-const demoMapLocations = [
-  {
-    id: '1',
-    name: 'Coffee Shop',
-    coordinates: [40.7128, -74.006] as [number, number],
-    description: 'Best coffee in town',
-  },
-  {
-    id: '2',
-    name: 'Book Store',
-    coordinates: [40.7138, -74.008] as [number, number],
-    description: 'Rare books collection',
-  },
-  {
-    id: '3',
-    name: 'Park',
-    coordinates: [40.7148, -74.004] as [number, number],
-    description: 'Beautiful city park',
-  },
-];
+import {
+  demoEvent,
+  demoEvents,
+  demoEventDetails,
+  demoTicketTiers,
+  demoEventConfirmation,
+} from '@/registry/events/demo/data';
 
 export interface PreviewComponentConfig {
   component: ReactNode;
@@ -131,33 +132,15 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
 
   // Payment components
   'order-confirm': {
-    component: (
-      <OrderConfirm
-        data={{
-          productName: 'Premium Headphones',
-          productImage: 'https://ui.manifest.build/demo/shoe-1.png',
-          price: 299,
-          deliveryDate: 'Jan 20, 2024',
-        }}
-      />
-    ),
+    component: <OrderConfirm data={demoOrderConfirm} />,
     category: 'payment',
   },
   'payment-confirmed': {
-    component: (
-      <PaymentConfirmed
-        data={{
-          productName: 'Premium Headphones',
-          productImage: 'https://ui.manifest.build/demo/shoe-1.png',
-          price: 299,
-          deliveryDate: 'Jan 20, 2024',
-        }}
-      />
-    ),
+    component: <PaymentConfirmed data={demoPaymentConfirmed} />,
     category: 'payment',
   },
   'amount-input': {
-    component: <AmountInput data={{ presets: [10, 25, 50, 100] }} />,
+    component: <AmountInput data={{ presets: demoAmountPresets }} />,
     category: 'payment',
   },
 
@@ -168,185 +151,73 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
   },
   'table': {
     component: (
-      <Table
-        data={{
-          columns: [
-            { header: 'Name', accessor: 'name' },
-            { header: 'Email', accessor: 'email' },
-            { header: 'Status', accessor: 'status' },
-          ],
-          rows: [
-            { name: 'John Doe', email: 'john@example.com', status: 'Active' },
-            { name: 'Jane Smith', email: 'jane@example.com', status: 'Pending' },
-            { name: 'Bob Johnson', email: 'bob@example.com', status: 'Active' },
-          ],
-        }}
-      />
+      <Table data={{ columns: demoTableColumns, rows: demoTableRows }} />
     ),
     category: 'list',
   },
 
   // Selection components
   'option-list': {
-    component: (
-      <OptionList
-        data={{ options: [{ label: 'Option A' }, { label: 'Option B' }, { label: 'Option C' }] }}
-      />
-    ),
+    component: <OptionList data={{ options: demoOptions }} />,
     category: 'selection',
   },
   'tag-select': {
-    component: (
-      <TagSelect
-        data={{
-          tags: [
-            { id: '1', label: 'Important', color: 'red' },
-            { id: '2', label: 'In Progress', color: 'yellow' },
-            { id: '3', label: 'Done', color: 'green' },
-          ],
-        }}
-      />
-    ),
+    component: <TagSelect data={{ tags: demoTags }} />,
     category: 'selection',
   },
   'quick-reply': {
-    component: (
-      <QuickReply
-        data={{
-          replies: [{ label: 'Yes, please' }, { label: 'No, thanks' }, { label: 'Tell me more' }],
-        }}
-      />
-    ),
+    component: <QuickReply data={{ replies: demoQuickReplies }} />,
     category: 'selection',
   },
 
   // Status components
   'progress-steps': {
-    component: (
-      <ProgressSteps
-        data={{
-          steps: [
-            { label: 'Cart', status: 'completed' },
-            { label: 'Shipping', status: 'current' },
-            { label: 'Payment', status: 'pending' },
-            { label: 'Confirm', status: 'pending' },
-          ],
-        }}
-      />
-    ),
+    component: <ProgressSteps data={{ steps: demoProgressSteps }} />,
     category: 'status',
   },
   'status-badge': {
-    component: <StatusBadge data={{ status: 'processing' }} appearance={{ label: 'Processing' }} />,
+    component: (
+      <StatusBadge
+        data={{ status: demoStatusBadge.status }}
+        appearance={{ label: demoStatusBadge.label }}
+      />
+    ),
     category: 'status',
   },
 
   // Miscellaneous components
   'stats': {
-    component: (
-      <Stats
-        data={{
-          stats: [
-            { label: 'Revenue', value: '$12,345', change: 12.5 },
-            { label: 'Orders', value: '1,234', change: -3.2 },
-            { label: 'Customers', value: '567', change: 8.1 },
-          ],
-        }}
-      />
-    ),
+    component: <Stats data={{ stats: demoStats }} />,
     category: 'miscellaneous',
   },
   'hero': {
-    component: (
-      <Hero
-        data={{
-          logo1: { text: 'Acme', alt: 'Acme' },
-          title: 'Build beautiful chat experiences with Manifest UI',
-          subtitle:
-            'Create beautiful chat experiences with our comprehensive component library designed for agentic applications.',
-          primaryButton: { label: 'Get Started' },
-          secondaryButton: { label: 'GitHub' },
-        }}
-      />
-    ),
+    component: <Hero data={demoHeroDefault} />,
     category: 'miscellaneous',
   },
 
   // Social components
   'x-post': {
-    component: (
-      <XPost
-        data={{
-          author: 'Elon Musk',
-          username: 'elonmusk',
-          avatar: 'https://i.pravatar.cc/150?u=elon',
-          verified: true,
-          content: 'The future of AI is here!',
-          time: '2h',
-          likes: '42K',
-          retweets: '8.5K',
-          replies: '3.2K',
-        }}
-      />
-    ),
+    component: <XPost data={demoXPost} />,
     category: 'social',
   },
   'instagram-post': {
-    component: (
-      <InstagramPost
-        data={{
-          author: 'National Geographic',
-          avatar: 'https://i.pravatar.cc/150?u=natgeo',
-          verified: true,
-          image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
-          caption: 'Nature at its finest',
-          likes: '125K',
-          time: '2h',
-        }}
-      />
-    ),
+    component: <InstagramPost data={demoInstagramPost} />,
     category: 'social',
   },
   'linkedin-post': {
-    component: (
-      <LinkedInPost
-        data={{
-          author: 'Satya Nadella',
-          headline: 'CEO at Microsoft',
-          avatar: 'S',
-          content: 'Excited to announce our latest AI innovations...',
-          time: '1d',
-          reactions: '15K',
-          topReactions: ['like', 'celebrate', 'love'],
-          comments: '890',
-          reposts: '2.1K',
-          postUrl: 'https://linkedin.com/posts/satya',
-          repostUrl: 'https://linkedin.com/shareArticle?url=...',
-        }}
-      />
-    ),
+    component: <LinkedInPost data={demoLinkedInPost} />,
     category: 'social',
   },
   'youtube-post': {
-    component: (
-      <YouTubePost
-        data={{
-          channel: 'TechTalks',
-          avatar: 'https://i.pravatar.cc/150?u=techtalks',
-          title: 'Building the Future of AI',
-          views: '1.2M',
-          time: '3 days ago',
-          thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800',
-          duration: '15:42',
-        }}
-      />
-    ),
+    component: <YouTubePost data={demoYouTubePost} />,
     category: 'social',
   },
 
   // Map components
   'map-carousel': {
-    component: <MapCarousel data={{ locations: demoMapLocations, center: [40.7128, -74.006] }} />,
+    component: (
+      <MapCarousel data={{ locations: demoMapLocations, center: demoMapCenter }} />
+    ),
     category: 'map',
   },
 
@@ -381,106 +252,23 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'messaging',
   },
   'chat-conversation': {
-    component: (
-      <ChatConversation
-        data={{
-          messages: [
-            { content: 'Hello! How can I help you today?', isOwn: false, time: '10:00 AM' },
-            { content: 'I need help with my order', isOwn: true, time: '10:01 AM' },
-            {
-              content: 'Of course! Could you please provide your order number?',
-              isOwn: false,
-              time: '10:01 AM',
-            },
-          ],
-        }}
-      />
-    ),
+    component: <ChatConversation data={{ messages: demoMessages }} />,
     category: 'messaging',
   },
 
   // Events components
   'event-card': {
-    component: (
-      <EventCard
-        data={{
-          event: {
-            title: 'Summer Music Festival',
-            category: 'Music',
-            venue: 'Central Park',
-            city: 'New York',
-            dateTime: new Date(Date.now() + 86400000 * 7).toISOString(),
-            priceRange: '$45 - $150',
-            image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800',
-            vibeTags: ['High energy', 'Outdoor', 'Social'],
-            eventSignal: 'popular',
-          },
-        }}
-      />
-    ),
+    component: <EventCard data={{ event: demoEvent }} />,
     category: 'events',
   },
   'event-list': {
     component: (
-      <EventList
-        data={{
-          events: [
-            {
-              title: 'Summer Music Festival',
-              category: 'Music',
-              venue: 'Central Park',
-              city: 'New York',
-              dateTime: new Date(Date.now() + 86400000 * 7).toISOString(),
-              priceRange: '$45 - $150',
-              image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800',
-            },
-            {
-              title: 'Jazz Night',
-              category: 'Music',
-              venue: 'Blue Note',
-              city: 'New York',
-              dateTime: new Date(Date.now() + 86400000 * 14).toISOString(),
-              priceRange: '$30 - $80',
-            },
-            {
-              title: 'Comedy Show',
-              category: 'Comedy',
-              venue: 'Comedy Cellar',
-              city: 'New York',
-              dateTime: new Date(Date.now() + 86400000 * 3).toISOString(),
-              priceRange: '$25 - $50',
-            },
-          ],
-        }}
-        appearance={{ variant: 'grid' }}
-      />
+      <EventList data={{ events: demoEvents }} appearance={{ variant: 'grid' }} />
     ),
     category: 'events',
   },
   'event-detail': {
-    component: (
-      <EventDetail
-        data={{
-          event: {
-            title: 'Summer Music Festival',
-            category: 'Music',
-            venue: 'Central Park',
-            city: 'New York',
-            startDateTime: new Date(Date.now() + 86400000 * 7).toISOString(),
-            priceRange: '$45 - $150',
-            image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800',
-            description: 'Join us for an amazing summer music festival!',
-            organizer: {
-              name: 'Live Events Co',
-              image: 'https://i.pravatar.cc/150?u=live',
-              rating: 4.8,
-              reviewCount: 120,
-              verified: true,
-            },
-          },
-        }}
-      />
-    ),
+    component: <EventDetail data={{ event: demoEventDetails }} />,
     category: 'events',
   },
   'ticket-tier-select': {
@@ -495,18 +283,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'events',
   },
   'event-confirmation': {
-    component: (
-      <EventConfirmation
-        data={{
-          orderNumber: 'EVT-12345',
-          eventTitle: 'Summer Music Festival',
-          ticketCount: 2,
-          recipientEmail: 'customer@example.com',
-          eventDate: 'Jan 20, 2024',
-          eventLocation: 'Central Park, New York',
-        }}
-      />
-    ),
+    component: <EventConfirmation data={demoEventConfirmation} />,
     category: 'events',
   },
 };

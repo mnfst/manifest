@@ -17,5 +17,24 @@ export const demoOrderData = {
   tax: 21.58,
   discount: 25.0,
   discountCode: 'SAVE10',
-  total: 266.54
+  total: 266.54,
+}
+
+// OrderConfirm component data
+export const demoOrderConfirm = {
+  productName: 'Premium Headphones',
+  productImage: 'https://ui.manifest.build/demo/shoe-1.png',
+  price: 299,
+  deliveryDate: 'Jan 20, 2024',
+}
+
+// AmountInput presets
+export const demoAmountPresets = [10, 25, 50, 100]
+
+// PaymentConfirmed component data
+export const demoPaymentConfirmed = {
+  productName: 'Premium Headphones',
+  productImage: 'https://ui.manifest.build/demo/shoe-1.png',
+  price: 299,
+  deliveryDate: 'Jan 20, 2024',
 }

@@ -55,5 +55,19 @@ export const demoProducts: Product[] = [
     image: 'https://ui.manifest.build/demo/shoe-2.png',
     rating: 4.5,
     inStock: true
-  }
+  },
+]
+
+// Table columns
+export const demoTableColumns = [
+  { header: 'Name', accessor: 'name' },
+  { header: 'Email', accessor: 'email' },
+  { header: 'Status', accessor: 'status' },
+]
+
+// Table rows
+export const demoTableRows = [
+  { name: 'John Doe', email: 'john@example.com', status: 'Active' },
+  { name: 'Jane Smith', email: 'jane@example.com', status: 'Pending' },
+  { name: 'Bob Johnson', email: 'bob@example.com', status: 'Active' },
 ]
