@@ -36,8 +36,6 @@ export interface LinkedInPostProps {
     comments?: string;
     /** Number of reposts (e.g., "12"). */
     reposts?: string;
-  };
-  actions?: {
     /** URL to the original LinkedIn post. If provided, shows the LinkedIn icon. */
     postUrl?: string;
     /** URL for the repost action. If provided, shows the repost button in footer. */
@@ -336,7 +334,7 @@ const reactionIcons: Record<ReactionType, JSX.Element> = {
  * />
  * ```
  */
-export function LinkedInPost({ data, actions, appearance }: LinkedInPostProps) {
+export function LinkedInPost({ data, appearance }: LinkedInPostProps) {
   const {
     author,
     headline,
@@ -348,9 +346,10 @@ export function LinkedInPost({ data, actions, appearance }: LinkedInPostProps) {
     topReactions,
     comments,
     reposts,
+    postUrl,
+    repostUrl,
   } = data ?? {};
 
-  const { postUrl, repostUrl } = actions ?? {};
   const { maxLines = 3 } = appearance ?? {};
 
   const hasEngagement = reactions || comments || reposts;

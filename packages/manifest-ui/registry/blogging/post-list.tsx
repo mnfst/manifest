@@ -23,8 +23,6 @@ export interface PostListProps {
   actions?: {
     /** Called when the read more button is clicked on a post. */
     onReadMore?: (post: Post) => void
-    /** Called when the page changes (fullwidth variant only). */
-    onPageChange?: (page: number) => void
   }
   appearance?: {
     /**
@@ -47,15 +45,6 @@ export interface PostListProps {
      * @default true
      */
     showCategory?: boolean
-    /**
-     * Number of posts per page (fullwidth variant only).
-     * @default 10
-     */
-    postsPerPage?: number
-  }
-  control?: {
-    /** Controlled current page number for pagination. */
-    currentPage?: number
   }
 }
 
@@ -96,20 +85,14 @@ export interface PostListProps {
  * />
  * ```
  */
-export function PostList({ data, actions, appearance, control }: PostListProps) {
+export function PostList({ data, actions, appearance }: PostListProps) {
   const posts = data?.posts ?? demoPosts
   const onReadMore = actions?.onReadMore
-  const onPageChange = actions?.onPageChange
   const variant = appearance?.variant ?? 'list'
   const columns = appearance?.columns ?? 2
   const showAuthor = appearance?.showAuthor ?? true
   const showCategory = appearance?.showCategory ?? true
-  const postsPerPage = appearance?.postsPerPage ?? 10
-  const controlledPage = control?.currentPage
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [internalPage, setInternalPage] = useState(1)
-
-  const currentPage = controlledPage ?? internalPage
 
   // List variant
   if (variant === 'list') {
@@ -148,20 +131,8 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
     )
   }
 
-  // Fullwidth variant with pagination
+  // Fullwidth variant
   if (variant === 'fullwidth') {
-    const totalPages = Math.ceil(posts.length / postsPerPage)
-    const startIndex = (currentPage - 1) * postsPerPage
-    const endIndex = startIndex + postsPerPage
-    const paginatedPosts = posts.slice(startIndex, endIndex)
-
-    const handlePageChange = (page: number) => {
-      if (page >= 1 && page <= totalPages) {
-        setInternalPage(page)
-        onPageChange?.(page)
-      }
-    }
-
     const getGridColsClass = () => {
       switch (columns) {
         case 2:
@@ -178,7 +149,7 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
     return (
       <div className="space-y-6 p-6">
         <div className={cn('grid gap-6 grid-cols-1', getGridColsClass())}>
-          {paginatedPosts.map((post, index) => (
+          {posts.map((post, index) => (
             <PostCard
               key={index}
               data={{ post }}
@@ -186,52 +157,6 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
               actions={{ onReadMore }}
             />
           ))}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage <= 1}
-              aria-label="Previous page"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={page === currentPage ? 'default' : 'outline'}
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => handlePageChange(page)}
-                >
-                  {page}
-                </Button>
-              ))}
-            </div>
-
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage >= totalPages}
-              aria-label="Next page"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-
-        {/* Page info */}
-        <div className="text-center text-sm text-muted-foreground">
-          Showing {startIndex + 1}-{Math.min(endIndex, posts.length)} of {posts.length} posts
         </div>
       </div>
     )

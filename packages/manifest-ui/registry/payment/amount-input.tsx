@@ -19,8 +19,6 @@ export interface AmountInputProps {
     presets?: number[]
   }
   actions?: {
-    /** Called when the amount changes via buttons, presets, or direct input. */
-    onChange?: (value: number) => void
     /** Called when user confirms the selected amount. */
     onConfirm?: (value: number) => void
   }
@@ -95,7 +93,6 @@ export interface AmountInputProps {
  */
 export function AmountInput({ data, actions, appearance, control }: AmountInputProps) {
   const presets = data?.presets ?? [20, 50, 100, 200]
-  const onChange = actions?.onChange
   const onConfirm = actions?.onConfirm
   const min = appearance?.min ?? 0
   const max = appearance?.max ?? 10000
@@ -120,12 +117,10 @@ export function AmountInput({ data, actions, appearance, control }: AmountInputP
   const handleChange = (newValue: number) => {
     const clamped = Math.max(min, Math.min(max, newValue))
     setAmount(clamped)
-    onChange?.(clamped)
   }
 
   const handlePreset = (preset: number) => {
     setAmount(preset)
-    onChange?.(preset)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -195,10 +195,6 @@ export interface MapCarouselProps {
   actions?: {
     /** Called when a user selects a location via marker or card click. */
     onSelectLocation?: (location: Location) => void
-    /** Called when the expand button is clicked (inline mode). */
-    onExpand?: () => void
-    /** Called when filters are applied (fullscreen mode). */
-    onFiltersApply?: (filters: FilterState) => void
   }
   appearance?: {
     /**
@@ -813,7 +809,7 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   } = data ?? {}
 
   const tileConfig = getTileConfig(mapStyle)
-  const { onSelectLocation, onExpand, onFiltersApply } = actions ?? {}
+  const { onSelectLocation } = actions ?? {}
   const { mapHeight = '504px' } = appearance ?? {}
 
   // Get display mode from host (ChatGPT/MCP) or fall back to appearance prop
@@ -911,11 +907,9 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
 
   // Handle expand button click
   const handleExpand = () => {
-    // Request fullscreen from host if available
     if (typeof window !== 'undefined' && window.openai?.requestDisplayMode) {
       window.openai.requestDisplayMode({ mode: 'fullscreen' })
     }
-    onExpand?.()
   }
 
   // Drag handlers for carousel
@@ -1015,13 +1009,11 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
     const handleApplyFilters = () => {
       setAppliedFilterState(filterState)
       setShowFilters(false)
-      onFiltersApply?.(filterState)
     }
 
     const handleResetFilters = () => {
       setFilterState(emptyFilterState)
       setAppliedFilterState(emptyFilterState)
-      onFiltersApply?.(emptyFilterState)
     }
 
     // Get filtered locations
@@ -1145,19 +1137,17 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
       style={{ height: mapHeight }}
     >
       {/* Expand button in top right */}
-      {onExpand && (
-        <div className="absolute top-3 right-3 z-[1001]">
-          <Button
-            variant="secondary"
-            size="icon"
-            className="h-8 w-8 bg-background/90 backdrop-blur-sm shadow-md"
-            onClick={handleExpand}
-            aria-label="Expand to fullscreen"
-          >
-            <Maximize2 className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      <div className="absolute top-3 right-3 z-[1001]">
+        <Button
+          variant="secondary"
+          size="icon"
+          className="h-8 w-8 bg-background/90 backdrop-blur-sm shadow-md"
+          onClick={handleExpand}
+          aria-label="Expand to fullscreen"
+        >
+          <Maximize2 className="h-4 w-4" />
+        </Button>
+      </div>
 
       {/* Map Section - Full size */}
       {leafletComponents ? (

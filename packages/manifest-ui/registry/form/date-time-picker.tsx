@@ -63,8 +63,6 @@ export interface DateTimePickerProps {
     timezone?: string
   }
   actions?: {
-    /** Called when a date and time are selected. */
-    onSelect?: (date: Date, time: string) => void
     /** Called when the user clicks the Next button. */
     onNext?: (date: Date, time: string) => void
   }
@@ -173,7 +171,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
     availableTimeSlots = defaultTimeSlots,
     timezone = 'Eastern Time - US & Canada'
   } = data ?? {}
-  const { onSelect, onNext } = actions ?? {}
+  const { onNext } = actions ?? {}
   const { showTitle = true, showTimezone = true } = appearance ?? {}
   const {
     selectedDate: controlledDate,
@@ -265,7 +263,6 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
     if (!isDateAvailable(date)) return
     setSelectedDate(date)
     setSelectedTime(null)
-    onSelect?.(date, '')
     // On mobile, switch to time view when date is selected
     setMobileView('time')
   }
@@ -276,9 +273,6 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
 
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time)
-    if (selectedDate) {
-      onSelect?.(selectedDate, time)
-    }
   }
 
   const handleNext = () => {

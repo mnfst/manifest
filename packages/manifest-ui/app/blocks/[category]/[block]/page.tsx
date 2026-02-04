@@ -361,7 +361,6 @@ const categories: Category[] = [
                 appearance={{
                   variant: 'fullwidth',
                   columns: 3,
-                  postsPerPage: 10,
                 }}
               />
             ),
@@ -554,7 +553,6 @@ const categories: Category[] = [
                 appearance={{
                   variant: 'fullwidth',
                   columns: 3,
-                  postsPerPage: 10,
                 }}
               />
             ),
@@ -748,7 +746,6 @@ const categories: Category[] = [
                 appearance={{
                   variant: 'fullwidth',
                   columns: 3,
-                  postsPerPage: 10,
                 }}
               />
             ),
@@ -1314,8 +1311,7 @@ const categories: Category[] = [
   }}
   appearance={{ variant: "grid" }}
   actions={{
-    onEventSelect: (event) => console.log("Event selected:", event.title),
-    onViewMore: () => console.log("View more events")
+    onEventSelect: (event) => console.log("Event selected:", event.title)
   }}
 />`,
           },
@@ -1467,8 +1463,7 @@ const categories: Category[] = [
     ]
   }}
   actions={{
-    onCheckout: (selections, total) => console.log("Checkout:", selections, "Total:", total),
-    onSelectionChange: (selections) => console.log("Selection changed:", selections)
+    onCheckout: (selections, total) => console.log("Checkout:", selections, "Total:", total)
   }}
   appearance={{
     showOrderSummary: true
@@ -1483,7 +1478,7 @@ const categories: Category[] = [
         description: 'Order confirmation with event details, organizer follow, and social sharing.',
         registryName: 'event-confirmation',
         layouts: ['inline', 'fullscreen'],
-        actionCount: 4,
+        actionCount: 3,
         variants: [
           {
             id: 'default',
@@ -1504,7 +1499,6 @@ const categories: Category[] = [
   }}
   actions={{
     onViewTickets: () => console.log("View tickets"),
-    onChangeEmail: () => console.log("Change email"),
     onFollowOrganizer: () => console.log("Follow organizer"),
     onShare: (platform) => console.log("Share on:", platform)
   }}
@@ -1594,7 +1588,6 @@ const categories: Category[] = [
     showTimezone: true
   }}
   actions={{
-    onSelect: (date, time) => console.log("Selected:", { date, time }),
     onNext: (date, time) => console.log("Confirmed:", { date, time })
   }}
 />`,
@@ -1740,8 +1733,7 @@ const categories: Category[] = [
     maxRows: 5
   }}
   actions={{
-    onRefresh: () => console.log("Refreshing..."),
-    onExpand: () => console.log("Expanding...")
+    onRefresh: () => console.log("Refreshing...")
   }}
 />`,
           },
@@ -1760,9 +1752,6 @@ const categories: Category[] = [
             usageCode: `<Table
   data={{ title: "Models", columns: [...], rows: [...] }}
   appearance={{ selectable: "single" }}
-  actions={{
-    onSelectionChange: (selectedRows) => console.log("Selected:", selectedRows)
-  }}
 />`,
           },
           {
@@ -1781,7 +1770,6 @@ const categories: Category[] = [
   data={{ title: "Export Data", columns: [...], rows: [...] }}
   appearance={{ selectable: "multi" }}
   actions={{
-    onSelectionChange: (rows) => console.log("Selected:", rows.length),
     onDownload: (rows) => console.log("Downloading..."),
     onShare: (rows) => console.log("Sharing...")
   }}
@@ -1801,7 +1789,7 @@ const categories: Category[] = [
         description: 'Interactive map with location markers and a draggable carousel of cards',
         registryName: 'map-carousel',
         layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 2,
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -1813,7 +1801,6 @@ const categories: Category[] = [
                 appearance={{ displayMode: 'fullscreen' }}
                 actions={{
                   onSelectLocation: (location) => console.log('Selected:', location.name),
-                  onFiltersApply: (filters) => console.log('Filters:', filters),
                 }}
               />
             ),
@@ -1838,9 +1825,7 @@ const categories: Category[] = [
     mapStyle: "voyager"
   }}
   actions={{
-    onSelectLocation: (location) => console.log("Selected:", location.name),
-    onExpand: () => console.log("Expand to fullscreen"),
-    onFiltersApply: (filters) => console.log("Filters applied:", filters)
+    onSelectLocation: (location) => console.log("Selected:", location.name)
   }}
   appearance={{
     displayMode: "inline", // or "fullscreen" for split-screen layout
@@ -2297,7 +2282,7 @@ const categories: Category[] = [
   }}
   appearance={{ multiple: false }}
   actions={{
-    onSelectOption: (option) => console.log("Selected:", option.label)
+    onSubmit: (selected) => console.log("Submitted:", selected)
   }}
 />`,
           },
@@ -2335,7 +2320,7 @@ const categories: Category[] = [
         description: 'Colored tag selector',
         registryName: 'tag-select',
         layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 2,
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -2354,7 +2339,6 @@ const categories: Category[] = [
     showValidate: true
   }}
   actions={{
-    onSelectTags: (tagIds) => console.log("Tags:", tagIds),
     onValidate: (tagIds) => console.log("Validated:", tagIds)
   }}
 />`,
@@ -2463,7 +2447,7 @@ const categories: Category[] = [
         description: 'Input for monetary amounts',
         registryName: 'amount-input',
         layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 2,
+        actionCount: 1,
         variants: [
           {
             id: 'default',
@@ -2484,7 +2468,6 @@ const categories: Category[] = [
   }}
   control={{ value: 50 }}
   actions={{
-    onChange: (value) => console.log("Amount:", value),
     onConfirm: (value) => console.log("Confirmed:", value)
   }}
 />`,
@@ -2582,7 +2565,7 @@ const categories: Category[] = [
         description: 'LinkedIn post card with image support, engagement stats, and expandable content',
         registryName: 'linkedin-post',
         layouts: ['inline', 'fullscreen', 'pip'],
-        actionCount: 2,
+        actionCount: 0,
         variants: [
           {
             id: 'default',
@@ -2599,8 +2582,6 @@ const categories: Category[] = [
                   topReactions: ['like', 'celebrate', 'love'],
                   comments: '56',
                   reposts: '12',
-                }}
-                actions={{
                   postUrl: 'https://linkedin.com/posts/manifest-123',
                   repostUrl: 'https://linkedin.com/shareArticle?url=...',
                 }}
@@ -2616,9 +2597,7 @@ const categories: Category[] = [
     reactions: "1,234",
     topReactions: ["like", "celebrate", "love"],
     comments: "56",
-    reposts: "12"
-  }}
-  actions={{
+    reposts: "12",
     postUrl: "https://linkedin.com/posts/manifest-123",
     repostUrl: "https://linkedin.com/shareArticle?url=..."
   }}
@@ -2640,8 +2619,6 @@ const categories: Category[] = [
                   topReactions: ['like', 'celebrate', 'insightful'],
                   comments: '124',
                   reposts: '89',
-                }}
-                actions={{
                   postUrl: 'https://linkedin.com/posts/manifest-123',
                   repostUrl: 'https://linkedin.com/shareArticle?url=...',
                 }}
@@ -2658,9 +2635,7 @@ const categories: Category[] = [
     reactions: "2,847",
     topReactions: ["like", "celebrate", "insightful"],
     comments: "124",
-    reposts: "89"
-  }}
-  actions={{
+    reposts: "89",
     postUrl: "https://linkedin.com/posts/manifest-123",
     repostUrl: "https://linkedin.com/shareArticle?url=..."
   }}
@@ -2681,8 +2656,6 @@ const categories: Category[] = [
                   topReactions: ['like', 'insightful', 'celebrate'],
                   comments: '890',
                   reposts: '2.1K',
-                }}
-                actions={{
                   postUrl: 'https://linkedin.com/posts/manifest-123',
                   repostUrl: 'https://linkedin.com/shareArticle?url=...',
                 }}
@@ -2701,9 +2674,7 @@ const categories: Category[] = [
     reactions: "15K",
     topReactions: ["like", "insightful", "celebrate"],
     comments: "890",
-    reposts: "2.1K"
-  }}
-  actions={{
+    reposts: "2.1K",
     postUrl: "https://linkedin.com/posts/manifest-123",
     repostUrl: "https://linkedin.com/shareArticle?url=..."
   }}

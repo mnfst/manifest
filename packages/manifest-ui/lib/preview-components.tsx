@@ -320,8 +320,6 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
           topReactions: ['like', 'celebrate', 'love'],
           comments: '890',
           reposts: '2.1K',
-        }}
-        actions={{
           postUrl: 'https://linkedin.com/posts/satya',
           repostUrl: 'https://linkedin.com/shareArticle?url=...',
         }}

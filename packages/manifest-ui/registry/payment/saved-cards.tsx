@@ -50,8 +50,6 @@ export interface SavedCardsProps {
     amount?: number
   }
   actions?: {
-    /** Called when a card is selected from the list. */
-    onSelectCard?: (cardId: string) => void
     /** Called when the user clicks the add new card option. */
     onAddNewCard?: () => void
     /** Called when the user initiates payment with the selected card. */
@@ -123,7 +121,6 @@ const brandColors: Record<string, string> = {
 export function SavedCards({ data, actions, appearance, control }: SavedCardsProps) {
   const cards = data?.cards
   const amount = data?.amount
-  const onSelectCard = actions?.onSelectCard
   const onAddNewCard = actions?.onAddNewCard
   const onPay = actions?.onPay
   const currency = appearance?.currency
@@ -135,7 +132,6 @@ export function SavedCards({ data, actions, appearance, control }: SavedCardsPro
 
   const handleSelect = (cardId: string) => {
     setSelected(cardId)
-    onSelectCard?.(cardId)
   }
 
   const formatCurrency = (value: number) => {
