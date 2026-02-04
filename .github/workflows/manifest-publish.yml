@@ -72,7 +72,8 @@ jobs:
           elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF#refs/tags/v}"
           else
-            VERSION="dev-${SHORT_SHA}"
+            PKG_VERSION=$(jq -r '.version' packages/manifest/package.json)
+            VERSION="${PKG_VERSION}-dev.${SHORT_SHA}"
           fi
 
           echo "build_date=${BUILD_DATE}" >> "$GITHUB_OUTPUT"
@@ -89,7 +90,7 @@ jobs:
           TAGS="${IMAGE}:${VERSION}"
 
           # Add semver shorthand tags only for proper versions (not dev-* builds)
-          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             MAJOR=$(echo "$VERSION" | cut -d. -f1)
             MINOR=$(echo "$VERSION" | cut -d. -f2)
             TAGS="${TAGS},${IMAGE}:${MAJOR}.${MINOR}"
