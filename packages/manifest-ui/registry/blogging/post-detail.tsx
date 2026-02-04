@@ -3,27 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, Clock, ExternalLink, Maximize2 } from 'lucide-react';
-import { useSyncExternalStore } from 'react';
 import type { Post } from './types';
-
-// =============================================================================
-// Display Mode Types & Hook (inlined for distribution)
-// =============================================================================
-
-type DisplayMode = 'inline' | 'pip' | 'fullscreen';
-
-function useOpenAIDisplayMode(): DisplayMode | undefined {
-  return useSyncExternalStore(
-    (onChange) => {
-      if (typeof window === 'undefined') return () => {};
-      const handler = () => onChange();
-      window.addEventListener('openai:set_globals', handler);
-      return () => window.removeEventListener('openai:set_globals', handler);
-    },
-    () => (typeof window !== 'undefined' ? window.openai?.displayMode : undefined),
-    () => undefined
-  );
-}
 
 function TagList({
   tags,
@@ -123,7 +103,7 @@ export interface PostDetailProps {
  * - Tag list with overflow tooltip
  * - Related posts section
  * - Inline (truncated) and fullscreen modes
- * - ChatGPT display mode integration
+ * - MCP Apps display mode integration
  *
  * @component
  * @example
@@ -164,19 +144,9 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   const showCover = appearance?.showCover ?? true;
   const showAuthor = appearance?.showAuthor ?? true;
 
-  // Get display mode from host (ChatGPT/MCP) or fall back to appearance prop
-  const hostDisplayMode = useOpenAIDisplayMode();
-  const isRealHost =
-    typeof window !== 'undefined' && window.openai && !('_isPreviewMock' in window.openai);
-  const displayMode: DisplayMode = isRealHost && hostDisplayMode
-    ? hostDisplayMode
-    : (appearance?.displayMode ?? 'inline');
+  const displayMode = appearance?.displayMode ?? 'inline';
 
   const handleReadMore = () => {
-    // Request fullscreen from host if available
-    if (typeof window !== 'undefined' && window.openai?.requestDisplayMode) {
-      window.openai.requestDisplayMode({ mode: 'fullscreen' });
-    }
     onReadMore?.();
   };
 

@@ -33,26 +33,7 @@ import {
   Trash2,
   Type
 } from 'lucide-react'
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
-
-// =============================================================================
-// Display Mode Types & Hook (inlined for distribution)
-// =============================================================================
-
-type DisplayMode = 'inline' | 'pip' | 'fullscreen'
-
-function useOpenAIDisplayMode(): DisplayMode | undefined {
-  return useSyncExternalStore(
-    (onChange) => {
-      if (typeof window === 'undefined') return () => {}
-      const handler = () => onChange()
-      window.addEventListener('openai:set_globals', handler)
-      return () => window.removeEventListener('openai:set_globals', handler)
-    },
-    () => (typeof window !== 'undefined' ? window.openai?.displayMode : undefined),
-    () => undefined
-  )
-}
+import { useCallback, useMemo, useState } from 'react'
 
 // Filter types
 interface FilterCondition {
@@ -165,7 +146,7 @@ export interface TableProps<T = Record<string, unknown>> {
      * Display mode: 'inline' (compact card) or 'fullscreen' (paginated with filters).
      * @default "inline"
      */
-    displayMode?: DisplayMode
+    displayMode?: 'inline' | 'pip' | 'fullscreen'
   }
   control?: {
     /** Whether to show loading skeleton state. */
@@ -358,7 +339,7 @@ function TableFooter({
  * - Copy, download, share actions
  * - Sticky header option
  * - Mobile card layout
- * - OpenAI/ChatGPT integration support
+ * - MCP Apps display mode support
  *
  * @component
  * @template T - The row data type
@@ -423,9 +404,7 @@ export function Table<T extends Record<string, unknown>>({
   const { loading = false, selectedRows: controlledSelectedRows } =
     control ?? {}
 
-  // Get display mode from window.openai (ChatGPT) or use prop/default
-  const openaiDisplayMode = useOpenAIDisplayMode()
-  const displayMode = propDisplayMode ?? openaiDisplayMode ?? 'inline'
+  const displayMode = propDisplayMode ?? 'inline'
 
   const [currentPage, setCurrentPage] = useState(1)
   const [sortConfig, setSortConfig] = useState<{
@@ -634,9 +613,7 @@ export function Table<T extends Record<string, unknown>>({
   }
 
   const handleExpand = () => {
-    if (typeof window !== 'undefined' && window.openai) {
-      window.openai.requestDisplayMode({ mode: 'fullscreen' })
-    }
+    // Display mode changes are handled by the host wrapper (HostAPIProvider)
   }
 
   const hasSelection = selectedRowsSet.size > 0
