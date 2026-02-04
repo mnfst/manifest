@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { CopyLinkButton } from '@/components/blocks/copy-link-button'
 import { InstallCommandInline } from '@/components/blocks/install-command-inline'
 import { ConfigurationViewer } from '@/components/blocks/configuration-viewer'
+import { DependencyViewer, hasExternalDeps } from '@/components/blocks/dependency-viewer'
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { PipModal } from '@/components/layout/pip-modal'
 import { Button } from '@/components/ui/button'
@@ -17,7 +18,7 @@ const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
   loading: () => <div className="rounded-lg bg-muted p-4 h-12 animate-pulse" />
 })
 
-type ViewMode = 'inline' | 'fullwidth' | 'pip' | 'config' | 'code'
+type ViewMode = 'inline' | 'fullwidth' | 'pip' | 'config' | 'code' | 'deps'
 type LayoutMode = 'inline' | 'fullscreen' | 'pip'
 
 interface VariantSectionProps {
@@ -46,6 +47,8 @@ interface SourceCodeState {
   relatedFiles: string[]
   version: string | null
   changelog: ChangelogEntry[]
+  dependencies: string[]
+  devDependencies: string[]
   loading: boolean
   error: string | null
 }
@@ -55,6 +58,8 @@ function useSourceCode(registryName: string): SourceCodeState {
   const [relatedFiles, setRelatedFiles] = useState<string[]>([])
   const [version, setVersion] = useState<string | null>(null)
   const [changelog, setChangelog] = useState<ChangelogEntry[]>([])
+  const [dependencies, setDependencies] = useState<string[]>([])
+  const [devDependencies, setDevDependencies] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -89,6 +94,8 @@ function useSourceCode(registryName: string): SourceCodeState {
           } else {
             setChangelog([])
           }
+          setDependencies(data.dependencies || [])
+          setDevDependencies(data.devDependencies || [])
           // Collect all other file contents for type definition extraction
           const otherFiles = files
             .slice(1)
@@ -107,7 +114,7 @@ function useSourceCode(registryName: string): SourceCodeState {
     fetchCode()
   }, [registryName])
 
-  return { code, relatedFiles, version, changelog, loading, error }
+  return { code, relatedFiles, version, changelog, dependencies, devDependencies, loading, error }
 }
 
 function CodeViewer({ sourceCode }: { sourceCode: SourceCodeState }) {
@@ -235,6 +242,8 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   const hasInline = layouts.includes('inline')
   const hasFullwidth = layouts.includes('fullscreen')
   const hasPip = layouts.includes('pip')
+  const hasDeps = !sourceCode.loading &&
+    hasExternalDeps(sourceCode.dependencies, sourceCode.devDependencies)
 
   return (
     <div className="space-y-3">
@@ -255,7 +264,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
                       </span>
                     </span>
                   </PopoverTrigger>
-                  <PopoverContent className="w-80 max-h-96 overflow-y-auto" align="start">
+                  <PopoverContent className="w-80 max-h-96 overflow-y-auto z-[1000]" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <h4 className="font-semibold text-sm">Changelog</h4>
@@ -355,6 +364,21 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
         >
           Code
         </button>
+
+        {/* Deps button: only shown when dependencies exist */}
+        {hasDeps && (
+          <button
+            onClick={() => setViewMode('deps')}
+            className={cn(
+              'px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
+              viewMode === 'deps'
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Deps
+          </button>
+        )}
       </div>
 
       {/* Content based on view mode */}
@@ -409,6 +433,14 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
               <CodeViewer sourceCode={sourceCode} />
             </div>
           </div>
+        )}
+
+        {viewMode === 'deps' && (
+          <DependencyViewer
+            dependencies={sourceCode.dependencies}
+            devDependencies={sourceCode.devDependencies}
+            loading={sourceCode.loading}
+          />
         )}
       </div>
 
