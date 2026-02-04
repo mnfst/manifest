@@ -9,7 +9,8 @@
       "1.2.3": "Added comprehensive JSDoc documentation",
       "1.2.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "1.2.5": "Fixed defensive property access to handle empty objects and null values",
-      "1.2.6": "Removed default content data - component only renders explicitly provided data"
+      "1.2.6": "Removed default content data - component only renders explicitly provided data",
+      "1.2.7": "Fixed missing popover dependency for shadcn CLI installation"
     },
     "date-time-picker": {
       "1.0.0": "Initial release with calendar and time slot selection",
@@ -17,7 +18,8 @@
       "1.0.3": "Added comprehensive JSDoc documentation",
       "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "2.0.0": "BREAKING: Removed onSelect action. Intermediate date/time selection is now internal.",
-      "2.0.1": "Removed default content data - component only renders explicitly provided data"
+      "2.0.1": "Removed default content data - component only renders explicitly provided data",
+      "2.0.2": "Fixed missing popover dependency for shadcn CLI installation"
     },
     "issue-report-form": {
       "1.0.0": "Initial release with categories, impact levels and file attachments",
@@ -162,7 +164,8 @@
       "2.0.4": "Fixed defensive property access to handle empty objects and null values",
       "2.0.5": "Fixed circular dependency by moving Post interface to types.ts",
       "2.0.6": "Removed unused OpenAI types side-effect import",
-      "2.0.7": "Removed default content data - component only renders explicitly provided data"
+      "2.0.7": "Removed default content data - component only renders explicitly provided data",
+      "2.0.8": "Fixed missing tooltip dependency for shadcn CLI installation"
     },
     "post-list": {
       "1.0.0": "Initial release with list, grid and carousel variants",
@@ -176,7 +179,8 @@
       "2.0.6": "Fixed circular dependency by moving Post interface to types.ts",
       "2.0.7": "Added bg-card background and margin to list variant for better dark/light mode support",
       "3.0.0": "BREAKING: Removed pagination (onPageChange, postsPerPage, control). Fullwidth variant now renders all posts.",
-      "3.0.1": "Removed default content data - component only renders explicitly provided data"
+      "3.0.1": "Removed default content data - component only renders explicitly provided data",
+      "3.0.2": "Fixed missing tooltip dependency for shadcn CLI installation"
     },
     "post-detail": {
       "1.0.0": "Initial release with cover image, author info and related posts",
@@ -209,7 +213,8 @@
       "1.0.6": "Fixed defensive property access to handle empty objects and null values",
       "1.0.7": "Inlined OpenAI display mode types to remove external lib dependency for shadcn distribution",
       "2.0.0": "BREAKING: Removed onSelectionChange and onExpand actions. Selection and expand are now internal.",
-      "2.0.1": "Removed default content data - component only renders explicitly provided data"
+      "2.0.1": "Removed default content data - component only renders explicitly provided data",
+      "2.0.2": "Removed unused checkbox from registry dependencies"
     },
     "message-bubble": {
       "1.0.0": "Initial release with text, image, voice and reaction variants",
@@ -301,7 +306,8 @@
       "5.0.6": "Added types.ts to registry for proper installation",
       "5.0.7": "Added demo/data.ts to registry for proper installation via shadcn CLI",
       "5.0.8": "Removed unused OpenAI types side-effect import",
-      "5.0.9": "Removed default content data - component only renders explicitly provided data"
+      "5.0.9": "Removed default content data - component only renders explicitly provided data",
+      "5.0.10": "Removed unused button from registry dependencies"
     },
     "event-list": {
       "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
