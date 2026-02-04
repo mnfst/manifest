@@ -4,27 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { ChevronDown, MapPin, Maximize2, SlidersHorizontal, X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
-
-// =============================================================================
-// Display Mode Types & Hook (inlined for distribution)
-// =============================================================================
-
-type DisplayMode = 'inline' | 'pip' | 'fullscreen'
-
-function useOpenAIDisplayMode(): DisplayMode | undefined {
-  return useSyncExternalStore(
-    (onChange) => {
-      if (typeof window === 'undefined') return () => {}
-      const handler = () => onChange()
-      window.addEventListener('openai:set_globals', handler)
-      return () => window.removeEventListener('openai:set_globals', handler)
-    },
-    () => (typeof window !== 'undefined' ? window.openai?.displayMode : undefined),
-    () => undefined
-  )
-}
 
 // Internal types for react-leaflet component attributes (not exported component props)
 type LeafletMapContainerAttrs = {
@@ -666,7 +647,7 @@ const getTileConfig = (style: MapStyle) => {
  * - Fullscreen mode: Split-screen with cards on left, filters, map on right
  * - Location cards with image, rating, and price
  * - Selection sync between map and carousel/list
- * - ChatGPT display mode integration
+ * - MCP Apps display mode integration
  *
  * @component
  * @example
@@ -713,13 +694,7 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   const { onSelectLocation } = actions ?? {}
   const { mapHeight = '504px' } = appearance ?? {}
 
-  // Get display mode from host (ChatGPT/MCP) or fall back to appearance prop
-  const hostDisplayMode = useOpenAIDisplayMode()
-  const isRealHost =
-    typeof window !== 'undefined' && window.openai && !('_isPreviewMock' in window.openai)
-  const displayMode: DisplayMode = isRealHost && hostDisplayMode
-    ? hostDisplayMode
-    : (appearance?.displayMode ?? 'inline')
+  const displayMode = appearance?.displayMode ?? 'inline'
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -806,11 +781,9 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
     [onSelectLocation]
   )
 
-  // Handle expand button click
+  // Handle expand button click — display mode changes handled by host wrapper
   const handleExpand = () => {
-    if (typeof window !== 'undefined' && window.openai?.requestDisplayMode) {
-      window.openai.requestDisplayMode({ mode: 'fullscreen' })
-    }
+    // No-op: display mode is managed by the HostAPIProvider
   }
 
   // Drag handlers for carousel
