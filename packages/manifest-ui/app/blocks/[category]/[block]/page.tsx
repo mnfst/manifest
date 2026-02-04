@@ -32,6 +32,7 @@ import {
   demoEvent,
   demoEvents,
   demoEventDetails,
+  demoTicketTiers,
   demoEventConfirmation,
 } from '@/registry/events/demo/data';
 
@@ -1458,6 +1459,7 @@ const categories: Category[] = [
                     image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
                     currency: 'USD',
                   },
+                  tiers: demoTicketTiers,
                 }}
               />
             ),
