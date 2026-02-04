@@ -41,7 +41,8 @@
           "target": "components/ui/contact-form.tsx"
         }
       ],
-      "category": "form"
+      "category": "form",
+      "preview": "https://ui.manifest.build/previews/contact-form.png"
     },
     {
       "name": "date-time-picker",
@@ -75,7 +76,8 @@
           "target": "components/ui/date-time-picker.tsx"
         }
       ],
-      "category": "form"
+      "category": "form",
+      "preview": "https://ui.manifest.build/previews/date-time-picker.png"
     },
     {
       "name": "issue-report-form",
@@ -113,7 +115,8 @@
           "target": "components/ui/issue-report-form.tsx"
         }
       ],
-      "category": "form"
+      "category": "form",
+      "preview": "https://ui.manifest.build/previews/issue-report-form.png"
     },
     {
       "name": "order-confirm",
@@ -146,7 +149,8 @@
           "target": "components/ui/order-confirm.tsx"
         }
       ],
-      "category": "payment"
+      "category": "payment",
+      "preview": "https://ui.manifest.build/previews/order-confirm.png"
     },
     {
       "name": "payment-confirmed",
@@ -180,7 +184,8 @@
           "target": "components/ui/payment-confirmed.tsx"
         }
       ],
-      "category": "payment"
+      "category": "payment",
+      "preview": "https://ui.manifest.build/previews/payment-confirmed.png"
     },
     {
       "name": "product-list",
@@ -228,7 +233,8 @@
           "target": "components/ui/demo/data.ts"
         }
       ],
-      "category": "list"
+      "category": "list",
+      "preview": "https://ui.manifest.build/previews/product-list.png"
     },
     {
       "name": "option-list",
@@ -274,7 +280,8 @@
           "target": "components/ui/demo/data.ts"
         }
       ],
-      "category": "selection"
+      "category": "selection",
+      "preview": "https://ui.manifest.build/previews/option-list.png"
     },
     {
       "name": "amount-input",
@@ -308,7 +315,8 @@
           "target": "components/ui/amount-input.tsx"
         }
       ],
-      "category": "payment"
+      "category": "payment",
+      "preview": "https://ui.manifest.build/previews/amount-input.png"
     },
     {
       "name": "tag-select",
@@ -344,7 +352,8 @@
           "target": "components/ui/tag-select.tsx"
         }
       ],
-      "category": "selection"
+      "category": "selection",
+      "preview": "https://ui.manifest.build/previews/tag-select.png"
     },
     {
       "name": "quick-reply",
@@ -378,7 +387,8 @@
           "target": "components/ui/quick-reply.tsx"
         }
       ],
-      "category": "selection"
+      "category": "selection",
+      "preview": "https://ui.manifest.build/previews/quick-reply.png"
     },
     {
       "name": "progress-steps",
@@ -413,7 +423,8 @@
           "target": "components/ui/progress-steps.tsx"
         }
       ],
-      "category": "status"
+      "category": "status",
+      "preview": "https://ui.manifest.build/previews/progress-steps.png"
     },
     {
       "name": "status-badge",
@@ -446,7 +457,8 @@
           "target": "components/ui/status-badge.tsx"
         }
       ],
-      "category": "status"
+      "category": "status",
+      "preview": "https://ui.manifest.build/previews/status-badge.png"
     },
     {
       "name": "stats",
@@ -479,7 +491,8 @@
           "target": "components/ui/stat-card.tsx"
         }
       ],
-      "category": "miscellaneous"
+      "category": "miscellaneous",
+      "preview": "https://ui.manifest.build/previews/stats.png"
     },
     {
       "name": "post-card",
@@ -531,7 +544,8 @@
           "target": "components/ui/demo/data.ts"
         }
       ],
-      "category": "blogging"
+      "category": "blogging",
+      "preview": "https://ui.manifest.build/previews/post-card.png"
     },
     {
       "name": "post-list",
@@ -591,7 +605,8 @@
           "target": "components/ui/demo/data.ts"
         }
       ],
-      "category": "blogging"
+      "category": "blogging",
+      "preview": "https://ui.manifest.build/previews/post-list.png"
     },
     {
       "name": "post-detail",
@@ -655,7 +670,8 @@
           "target": "components/ui/demo/data.ts"
         }
       ],
-      "category": "blogging"
+      "category": "blogging",
+      "preview": "https://ui.manifest.build/previews/post-detail.png"
     },
     {
       "name": "table",
@@ -696,7 +712,8 @@
           "target": "components/ui/table.tsx"
         }
       ],
-      "category": "list"
+      "category": "list",
+      "preview": "https://ui.manifest.build/previews/table.png"
     },
     {
       "name": "message-bubble",
@@ -735,7 +752,8 @@
           "target": "components/ui/message-bubble.tsx"
         }
       ],
-      "category": "messaging"
+      "category": "messaging",
+      "preview": "https://ui.manifest.build/previews/message-bubble.png"
     },
     {
       "name": "chat-conversation",
@@ -794,7 +812,8 @@
           "target": "components/ui/demo/data.ts"
         }
       ],
-      "category": "messaging"
+      "category": "messaging",
+      "preview": "https://ui.manifest.build/previews/chat-conversation.png"
     },
     {
       "name": "x-post",
@@ -826,7 +845,8 @@
           "target": "components/ui/x-post.tsx"
         }
       ],
-      "category": "social"
+      "category": "social",
+      "preview": "https://ui.manifest.build/previews/x-post.png"
     },
     {
       "name": "instagram-post",
@@ -861,7 +881,8 @@
           "target": "components/ui/instagram-post.tsx"
         }
       ],
-      "category": "social"
+      "category": "social",
+      "preview": "https://ui.manifest.build/previews/instagram-post.png"
     },
     {
       "name": "linkedin-post",
@@ -895,7 +916,8 @@
           "target": "components/ui/linkedin-post.tsx"
         }
       ],
-      "category": "social"
+      "category": "social",
+      "preview": "https://ui.manifest.build/previews/linkedin-post.png"
     },
     {
       "name": "youtube-post",
@@ -930,7 +952,8 @@
           "target": "components/ui/youtube-post.tsx"
         }
       ],
-      "category": "social"
+      "category": "social",
+      "preview": "https://ui.manifest.build/previews/youtube-post.png"
     },
     {
       "name": "map-carousel",
@@ -975,7 +998,8 @@
           "target": "components/ui/map-carousel.tsx"
         }
       ],
-      "category": "map"
+      "category": "map",
+      "preview": "https://ui.manifest.build/previews/map-carousel.png"
     },
     {
       "name": "event-card",
@@ -1028,7 +1052,8 @@
           "target": "components/ui/demo/data.ts"
         }
       ],
-      "category": "events"
+      "category": "events",
+      "preview": "https://ui.manifest.build/previews/event-card.png"
     },
     {
       "name": "event-list",
@@ -1092,7 +1117,8 @@
           "target": "components/ui/demo/data.ts"
         }
       ],
-      "category": "events"
+      "category": "events",
+      "preview": "https://ui.manifest.build/previews/event-list.png"
     },
     {
       "name": "event-detail",
@@ -1150,7 +1176,8 @@
           "target": "components/ui/demo/data.ts"
         }
       ],
-      "category": "events"
+      "category": "events",
+      "preview": "https://ui.manifest.build/previews/event-detail.png"
     },
     {
       "name": "ticket-tier-select",
@@ -1187,7 +1214,8 @@
           "target": "components/ui/ticket-tier-select.tsx"
         }
       ],
-      "category": "events"
+      "category": "events",
+      "preview": "https://ui.manifest.build/previews/ticket-tier-select.png"
     },
     {
       "name": "event-confirmation",
@@ -1220,7 +1248,8 @@
           "target": "components/ui/event-confirmation.tsx"
         }
       ],
-      "category": "events"
+      "category": "events",
+      "preview": "https://ui.manifest.build/previews/event-confirmation.png"
     },
     {
       "name": "hero",
@@ -1256,7 +1285,8 @@
           "target": "components/ui/hero.tsx"
         }
       ],
-      "category": "miscellaneous"
+      "category": "miscellaneous",
+      "preview": "https://ui.manifest.build/previews/hero.png"
     }
   ]
 }
