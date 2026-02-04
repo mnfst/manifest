@@ -604,7 +604,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-detail.png",
-        "version": "2.1.9",
+        "version": "2.1.10",
         "changelog": {
           "1.0.0": "Initial release with cover image, author info and related posts",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
@@ -623,7 +623,8 @@
           "2.1.6": "Removed default content - component only renders data explicitly provided by the user",
           "2.1.7": "Added cursor-pointer to expand button for better UX",
           "2.1.8": "Refactored to use HostAPI abstraction for multi-host support",
-          "2.1.9": "Inlined host detection to remove external lib dependency for shadcn distribution"
+          "2.1.9": "Inlined host detection to remove external lib dependency for shadcn distribution",
+          "2.1.10": "Removed unused openai-types import from post-card dependency"
         }
       },
       "dependencies": [

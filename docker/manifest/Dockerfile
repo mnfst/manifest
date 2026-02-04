@@ -26,7 +26,7 @@ ARG VERSION="unknown"
 # Stage 1: Dependencies
 # Install all pnpm dependencies (cached layer for faster rebuilds)
 # -----------------------------------------------------------------------------
-FROM node:22-alpine AS deps
+FROM node:22.22.0-alpine3.22 AS deps
 
 WORKDIR /app
 
@@ -91,7 +91,7 @@ RUN echo "Building frontend package..." && \
 # Stage 3: Production
 # Minimal runtime image with only production artifacts
 # -----------------------------------------------------------------------------
-FROM node:22-alpine AS production
+FROM node:22.22.0-alpine3.22 AS production
 
 WORKDIR /app
 

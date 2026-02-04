@@ -32,13 +32,15 @@
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.2"
   },
-  "packageManager": "pnpm@10.27.0",
+  "packageManager": "pnpm@10.28.0",
   "pnpm": {
     "overrides": {
       "tar": "^7.5.4",
       "tmp": "^0.2.4",
       "brace-expansion": "^2.0.2",
       "diff": "^5.2.2",
+      "lodash": ">=4.17.23",
+      "glob": ">=10.5.0",
       "@types/react": "18.3.17",
       "@types/react-dom": "18.3.5"
     }
