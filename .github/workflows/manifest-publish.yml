@@ -85,23 +85,23 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           IMAGE="${{ env.DOCKER_IMAGE }}"
 
-          # Parse semver components
-          MAJOR=$(echo "$VERSION" | cut -d. -f1)
-          MINOR=$(echo "$VERSION" | cut -d. -f2)
-
-          # Build tags array
+          # Build tags array — always include the version and latest
           TAGS="${IMAGE}:${VERSION}"
-          TAGS="${TAGS},${IMAGE}:${MAJOR}.${MINOR}"
 
-          # Add major tag only if not v0.x.x
-          if [[ "$MAJOR" != "0" ]]; then
-            TAGS="${TAGS},${IMAGE}:${MAJOR}"
+          # Add semver shorthand tags only for proper versions (not dev-* builds)
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            MAJOR=$(echo "$VERSION" | cut -d. -f1)
+            MINOR=$(echo "$VERSION" | cut -d. -f2)
+            TAGS="${TAGS},${IMAGE}:${MAJOR}.${MINOR}"
+
+            # Add major tag only if not v0.x.x
+            if [[ "$MAJOR" != "0" ]]; then
+              TAGS="${TAGS},${IMAGE}:${MAJOR}"
+            fi
           fi
 
-          # Add latest tag for releases (tag push or workflow_call with version)
-          if [[ "$GITHUB_REF" == refs/tags/v* ]] || [[ -n "${{ inputs.version }}" ]]; then
-            TAGS="${TAGS},${IMAGE}:latest"
-          fi
+          # Always tag the most recent image as latest
+          TAGS="${TAGS},${IMAGE}:latest"
 
           echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
           echo "Generated tags: ${TAGS}"
