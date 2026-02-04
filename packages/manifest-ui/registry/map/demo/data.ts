@@ -4,22 +4,22 @@
 export const demoMapLocations = [
   {
     id: '1',
-    name: 'Coffee Shop',
-    coordinates: [40.7128, -74.006] as [number, number],
-    description: 'Best coffee in town',
+    name: 'Blue Bottle Coffee',
+    coordinates: [37.7823, -122.4075] as [number, number],
+    description: 'Specialty coffee roaster',
   },
   {
     id: '2',
-    name: 'Book Store',
-    coordinates: [40.7138, -74.008] as [number, number],
-    description: 'Rare books collection',
+    name: 'City Lights Bookstore',
+    coordinates: [37.7976, -122.4064] as [number, number],
+    description: 'Iconic independent bookstore',
   },
   {
     id: '3',
-    name: 'Park',
-    coordinates: [40.7148, -74.004] as [number, number],
-    description: 'Beautiful city park',
+    name: 'Dolores Park',
+    coordinates: [37.7596, -122.4269] as [number, number],
+    description: 'Popular city park with skyline views',
   },
 ]
 
-export const demoMapCenter: [number, number] = [40.7128, -74.006]
+export const demoMapCenter: [number, number] = [37.7749, -122.4194]
