@@ -42,6 +42,3 @@ next-env.d.ts
 
  # Generated registry files
 /public/r/
-
-# Generated preview images (built during build, not tracked in Git)
-/public/previews/
