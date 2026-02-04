@@ -3,7 +3,62 @@
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, Clock, ExternalLink, Maximize2 } from 'lucide-react';
+import { useMemo } from 'react';
 import type { Post } from './types';
+
+// DOM-based allowlist HTML sanitizer for post content
+const ALLOWED_TAGS = new Set([
+  'p', 'br', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre',
+  'span', 'div', 'img', 'figure', 'figcaption', 'hr',
+]);
+const ALLOWED_ATTRS: Record<string, Set<string>> = {
+  a: new Set(['href', 'target', 'rel', 'title']),
+  img: new Set(['src', 'alt', 'width', 'height']),
+  '*': new Set(['class', 'id']),
+};
+const DANGEROUS_URL = /^\s*(javascript|data):/i;
+
+function sanitizeNode(node: Node, doc: Document): void {
+  const children = Array.from(node.childNodes);
+  for (const child of children) {
+    if (child.nodeType === 3 /* TEXT */) continue;
+    if (child.nodeType !== 1 /* ELEMENT */) {
+      child.remove();
+      continue;
+    }
+    const el = child as Element;
+    const tag = el.tagName.toLowerCase();
+    if (!ALLOWED_TAGS.has(tag)) {
+      // Unwrap: keep text content, discard the tag
+      while (el.firstChild) node.insertBefore(el.firstChild, el);
+      el.remove();
+      continue;
+    }
+    // Strip disallowed attributes
+    const tagAllowed = ALLOWED_ATTRS[tag];
+    const globalAllowed = ALLOWED_ATTRS['*'];
+    for (const attr of Array.from(el.attributes)) {
+      const name = attr.name.toLowerCase();
+      if (!tagAllowed?.has(name) && !globalAllowed?.has(name)) {
+        el.removeAttribute(attr.name);
+      }
+    }
+    // Block dangerous URL schemes on href/src
+    for (const urlAttr of ['href', 'src']) {
+      const val = el.getAttribute(urlAttr);
+      if (val && DANGEROUS_URL.test(val)) el.removeAttribute(urlAttr);
+    }
+    sanitizeNode(el, doc);
+  }
+}
+
+function sanitizeHtml(html: string): string {
+  if (typeof document === 'undefined') return html;
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  sanitizeNode(doc.body, doc);
+  return doc.body.innerHTML;
+}
 
 function TagList({
   tags,
@@ -138,7 +193,8 @@ export interface PostDetailProps {
  */
 export function PostDetail({ data, actions, appearance }: PostDetailProps) {
   const post = data?.post;
-  const content = data?.content;
+  const rawContent = data?.content;
+  const content = useMemo(() => rawContent ? sanitizeHtml(rawContent) : undefined, [rawContent]);
   const relatedPosts = data?.relatedPosts ?? [];
   const onReadMore = actions?.onReadMore;
   const showCover = appearance?.showCover ?? true;
@@ -395,9 +451,9 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
           <div className="mt-16 border-t pt-10">
             <h3 className="mb-6 text-lg font-semibold">Related Posts</h3>
             <div className="space-y-4">
-              {relatedPosts.map((related, index) => (
+              {relatedPosts.map((related) => (
                 <a
-                  key={index}
+                  key={related.title || related.url}
                   href={related.url || '#'}
                   target="_blank"
                   rel="noopener noreferrer"

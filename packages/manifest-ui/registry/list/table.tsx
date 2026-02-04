@@ -567,7 +567,6 @@ export function Table<T extends Record<string, unknown>>({
     [
       selectable,
       selectedRowsSet,
-      sortedData,
       isFullscreen,
       currentPage,
       rowsPerPage

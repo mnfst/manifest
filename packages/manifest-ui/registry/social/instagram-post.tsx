@@ -135,17 +135,17 @@ export function InstagramPost({ data }: InstagramPostProps) {
         <div className="p-3 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button className="hover:text-muted-foreground transition-colors cursor-pointer">
+              <button aria-label="Like" className="hover:text-muted-foreground transition-colors cursor-pointer">
                 <Heart className="h-6 w-6" />
               </button>
-              <button className="hover:text-muted-foreground transition-colors cursor-pointer">
+              <button aria-label="Comment" className="hover:text-muted-foreground transition-colors cursor-pointer">
                 <MessageCircle className="h-6 w-6" />
               </button>
-              <button className="hover:text-muted-foreground transition-colors cursor-pointer">
+              <button aria-label="Share" className="hover:text-muted-foreground transition-colors cursor-pointer">
                 <Send className="h-6 w-6" />
               </button>
             </div>
-            <button className="hover:text-muted-foreground transition-colors cursor-pointer">
+            <button aria-label="Save" className="hover:text-muted-foreground transition-colors cursor-pointer">
               <Bookmark className="h-6 w-6" />
             </button>
           </div>

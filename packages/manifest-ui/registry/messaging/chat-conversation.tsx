@@ -58,9 +58,10 @@ export function ChatConversation({ data }: ChatConversationProps) {
       {messages.map((message, index) => {
         const messageType = message.type ?? 'text'
         const isOwn = message.isOwn ?? false
+        const messageKey = message.content ? `${message.author || ''}-${message.content.slice(0, 40)}` : `msg-${index}`
         return messageType === 'image' ? (
           <ImageMessageBubble
-            key={index}
+            key={messageKey}
             data={{
               image: message.image,
               content: message.content,
@@ -74,7 +75,7 @@ export function ChatConversation({ data }: ChatConversationProps) {
           />
         ) : (
           <MessageBubble
-            key={index}
+            key={messageKey}
             data={{
               content: message.content,
               avatarFallback: message.avatarFallback,

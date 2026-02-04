@@ -10,7 +10,8 @@
       "1.2.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "1.2.5": "Fixed defensive property access to handle empty objects and null values",
       "1.2.6": "Removed default content data - component only renders explicitly provided data",
-      "1.2.7": "Fixed missing popover dependency for shadcn CLI installation"
+      "1.2.7": "Fixed missing popover dependency for shadcn CLI installation",
+      "1.2.8": "Extracted country data to separate countries.ts file"
     },
     "date-time-picker": {
       "1.0.0": "Initial release with calendar and time slot selection",
@@ -19,7 +20,8 @@
       "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "2.0.0": "BREAKING: Removed onSelect action. Intermediate date/time selection is now internal.",
       "2.0.1": "Removed default content data - component only renders explicitly provided data",
-      "2.0.2": "Fixed missing popover dependency for shadcn CLI installation"
+      "2.0.2": "Fixed missing popover dependency for shadcn CLI installation",
+      "2.0.3": "Replaced hardcoded UTC offsets with IANA timezone identifiers for correct DST handling"
     },
     "issue-report-form": {
       "1.0.0": "Initial release with categories, impact levels and file attachments",
@@ -76,7 +78,8 @@
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "2.0.0": "Added compressed variant, merged payment-success into this component",
-      "2.0.1": "Removed default content data - component only renders explicitly provided data"
+      "2.0.1": "Removed default content data - component only renders explicitly provided data",
+      "2.0.2": "Fixed missing alt fallback on product image in compressed desktop variant"
     },
     "product-list": {
       "1.0.0": "Initial release with list, grid, carousel and picker variants",
@@ -99,7 +102,8 @@
       "2.1.2": "Fixed defensive property access to handle empty objects and null values",
       "2.1.3": "Fixed circular dependency by adding types.ts and demo/data.ts to registry",
       "3.0.0": "BREAKING: Replaced onSelectOption and onSelectOptions with single onSubmit action. Added confirm button.",
-      "3.0.1": "Removed default content data - component only renders explicitly provided data"
+      "3.0.1": "Removed default content data - component only renders explicitly provided data",
+      "3.0.2": "Fixed stale controlled state and improved list item keys"
     },
     "amount-input": {
       "1.0.0": "Initial release with increment buttons and preset values",
@@ -107,7 +111,8 @@
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "1.0.4": "Fixed defensive property access to handle empty objects and null values",
       "2.0.0": "BREAKING: Removed onChange action. Value changes are now internal.",
-      "2.0.1": "Removed default content data - component only renders explicitly provided data"
+      "2.0.1": "Removed default content data - component only renders explicitly provided data",
+      "2.0.2": "Fixed stale controlled state sync and memoized currency symbol computation"
     },
     "tag-select": {
       "1.0.0": "Initial release with color variants and multi-select",
@@ -117,7 +122,8 @@
       "1.1.2": "Fixed defensive property access to handle empty objects and null values",
       "1.1.3": "Additional defensive property access improvements",
       "2.0.0": "BREAKING: Removed onSelectTags action. Tag toggling is now internal.",
-      "2.0.1": "Removed default content data - component only renders explicitly provided data"
+      "2.0.1": "Removed default content data - component only renders explicitly provided data",
+      "2.0.2": "Fixed stale controlled state sync for selectedTagIds"
     },
     "quick-reply": {
       "1.0.0": "Initial release with quick reply button options",
@@ -180,7 +186,8 @@
       "2.0.7": "Added bg-card background and margin to list variant for better dark/light mode support",
       "3.0.0": "BREAKING: Removed pagination (onPageChange, postsPerPage, control). Fullwidth variant now renders all posts.",
       "3.0.1": "Removed default content data - component only renders explicitly provided data",
-      "3.0.2": "Fixed missing tooltip dependency for shadcn CLI installation"
+      "3.0.2": "Fixed missing tooltip dependency for shadcn CLI installation",
+      "3.0.3": "Replaced key={index} with stable content-based keys"
     },
     "post-detail": {
       "1.0.0": "Initial release with cover image, author info and related posts",
@@ -203,7 +210,8 @@
       "2.1.9": "Inlined host detection to remove external lib dependency for shadcn distribution",
       "2.1.10": "Updated post-card dependency with removed OpenAI types import",
       "2.1.11": "Removed default content data - component only renders explicitly provided data",
-      "2.1.12": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication"
+      "2.1.12": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication",
+      "2.1.13": "Added XSS sanitization for HTML content and replaced key={index} with stable keys"
     },
     "table": {
       "1.0.0": "Initial release with single and multi-select modes",
@@ -216,7 +224,8 @@
       "2.0.0": "BREAKING: Removed onSelectionChange and onExpand actions. Selection and expand are now internal.",
       "2.0.1": "Removed default content data - component only renders explicitly provided data",
       "2.0.2": "Removed unused checkbox from registry dependencies",
-      "2.0.3": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication"
+      "2.0.3": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication",
+      "2.0.4": "Removed stale sortedData from handleRowSelect dependency array"
     },
     "message-bubble": {
       "1.0.0": "Initial release with text, image, voice and reaction variants",
@@ -245,14 +254,16 @@
       "4.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "4.0.5": "Fixed defensive property access to handle empty objects and null values",
       "4.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry",
-      "4.0.7": "Removed default content data - component only renders explicitly provided data"
+      "4.0.7": "Removed default content data - component only renders explicitly provided data",
+      "4.0.8": "Replaced key={index} with content-based keys for message list"
     },
     "x-post": {
       "1.0.0": "Initial release with engagement metrics display",
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.1.0": "Moved to social category for better organization",
       "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.1.2": "Removed default content data - component only renders explicitly provided data"
+      "1.1.2": "Removed default content data - component only renders explicitly provided data",
+      "1.1.3": "Added aria-labels to icon-only action buttons for accessibility"
     },
     "instagram-post": {
       "1.0.0": "Initial release with image and engagement display",
@@ -260,7 +271,8 @@
       "1.0.3": "Added comprehensive JSDoc documentation",
       "1.1.0": "Moved to social category for better organization",
       "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.1.2": "Removed default content data - component only renders explicitly provided data"
+      "1.1.2": "Removed default content data - component only renders explicitly provided data",
+      "1.1.3": "Added aria-labels to icon-only action buttons for accessibility"
     },
     "linkedin-post": {
       "1.0.0": "Initial release with professional styling",
@@ -270,7 +282,8 @@
       "2.0.0": "BREAKING: Simplified component - removed engagement stats and action buttons, added LinkedIn icon link and optional repost button",
       "2.1.0": "Added image support, engagement stats with reaction icons, expandable content with maxLines prop, and moved repost button to the right",
       "2.1.1": "Fixed avatar circle visibility - now hides entirely when avatar prop is not provided",
-      "3.0.0": "BREAKING: Moved postUrl and repostUrl from actions to data prop"
+      "3.0.0": "BREAKING: Moved postUrl and repostUrl from actions to data prop",
+      "3.0.1": "Fixed JSX namespace deprecation and removed dynamic Tailwind class"
     },
     "youtube-post": {
       "1.0.0": "Initial release with playable video embed",
@@ -292,7 +305,8 @@
       "1.4.0": "Made filters fully configurable via data prop with custom filter sections and match functions",
       "2.0.0": "BREAKING: Removed onExpand and onFiltersApply actions. Expand and filter apply are now internal.",
       "2.0.1": "Removed default content data - component only renders explicitly provided data",
-      "2.0.2": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication"
+      "2.0.2": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication",
+      "2.0.3": "Fixed Leaflet CSS injection deduplication and hardcoded date display"
     },
     "event-card": {
       "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
@@ -331,7 +345,8 @@
       "6.0.7": "Added types.ts to registry for proper installation",
       "6.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI",
       "7.0.0": "BREAKING: Removed onPageChange, onViewMore, onExpand, onFilterClick, onFiltersApply actions. Filters and expand are now internal.",
-      "7.0.1": "Removed default content data - component only renders explicitly provided data"
+      "7.0.1": "Removed default content data - component only renders explicitly provided data",
+      "7.0.2": "Extracted shared map utilities to shared.tsx and fixed Leaflet CSS deduplication"
     },
     "event-detail": {
       "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
@@ -347,7 +362,8 @@
       "3.0.6": "Fixed defensive property access to handle empty objects and null values",
       "3.0.7": "Added types.ts to registry for proper installation",
       "3.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI",
-      "3.0.9": "Removed default content data - component only renders explicitly provided data"
+      "3.0.9": "Removed default content data - component only renders explicitly provided data",
+      "3.0.10": "Extracted shared map utilities to shared.tsx and fixed Leaflet CSS deduplication"
     },
     "ticket-tier-select": {
       "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",
@@ -374,7 +390,8 @@
       "2.0.1": "Image logos now display without bordered container, text logos remain in bordered square",
       "2.1.0": "Added urlLight prop for dark mode logo variant support",
       "2.1.1": "Reduced logo image height for better visual balance",
-      "2.1.2": "Removed default content data - component only renders explicitly provided data"
+      "2.1.2": "Removed default content data - component only renders explicitly provided data",
+      "2.1.3": "Replaced key={index} with stable content-based keys for tech logos"
     }
   }
 }

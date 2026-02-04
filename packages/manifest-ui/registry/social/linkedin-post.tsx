@@ -1,6 +1,7 @@
 'use client';
 
 import { Repeat2 } from 'lucide-react';
+import type { JSX } from 'react';
 import React, { useEffect, useRef, useState } from 'react';
 
 /** Reaction type for LinkedIn posts */
@@ -403,7 +404,7 @@ export function LinkedInPost({ data, appearance }: LinkedInPostProps) {
         <div className="mt-3">
           <p
             ref={contentRef}
-            className={`text-sm whitespace-pre-wrap ${!isExpanded ? `line-clamp-${maxLines}` : ''}`}
+            className="text-sm whitespace-pre-wrap"
             style={
               !isExpanded
                 ? {

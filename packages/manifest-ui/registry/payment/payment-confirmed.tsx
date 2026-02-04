@@ -165,7 +165,7 @@ export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmed
             {productImage ? (
               <img
                 src={productImage}
-                alt={productName}
+                alt={productName ?? 'Product image'}
                 className="h-full w-full object-cover"
               />
             ) : (

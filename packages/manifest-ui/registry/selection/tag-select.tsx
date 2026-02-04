@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Check, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 /**
  * Represents an individual tag option.
@@ -114,6 +114,11 @@ export function TagSelect({ data, actions, appearance, control }: TagSelectProps
   const validateLabel = appearance?.validateLabel ?? 'Validate selection'
   const selectedTagIds = control?.selectedTagIds ?? []
   const [selected, setSelected] = useState<string[]>(selectedTagIds)
+
+  // Sync internal state when controlled prop changes
+  useEffect(() => {
+    setSelected(selectedTagIds)
+  }, [selectedTagIds])
 
   const handleToggle = (tagId: string) => {
     let newSelected: string[]

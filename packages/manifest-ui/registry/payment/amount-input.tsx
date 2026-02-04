@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -104,7 +104,12 @@ export function AmountInput({ data, actions, appearance, control }: AmountInputP
   const [isEditing, setIsEditing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const getCurrencySymbol = () => {
+  // Sync internal state when controlled value changes
+  useEffect(() => {
+    setAmount(value)
+  }, [value])
+
+  const currencySymbol = useMemo(() => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency,
@@ -112,7 +117,7 @@ export function AmountInput({ data, actions, appearance, control }: AmountInputP
     })
       .formatToParts(0)
       .find((part) => part.type === "currency")?.value || currency
-  }
+  }, [currency])
 
   const handleChange = (newValue: number) => {
     const clamped = Math.max(min, Math.min(max, newValue))
@@ -164,7 +169,7 @@ export function AmountInput({ data, actions, appearance, control }: AmountInputP
             {isEditing ? (
               <div className="flex items-center justify-center gap-1">
                 <span className="text-xl sm:text-2xl font-bold text-muted-foreground">
-                  {getCurrencySymbol()}
+                  {currencySymbol}
                 </span>
                 <input
                   ref={inputRef}
@@ -181,7 +186,7 @@ export function AmountInput({ data, actions, appearance, control }: AmountInputP
                 onClick={() => setIsEditing(true)}
                 className="text-xl sm:text-2xl font-bold hover:text-primary transition-colors cursor-pointer"
               >
-                {getCurrencySymbol()}{amount}
+                {currencySymbol}{amount}
               </button>
             )}
           </div>
@@ -209,7 +214,7 @@ export function AmountInput({ data, actions, appearance, control }: AmountInputP
                   : "border-border hover:bg-muted"
               )}
             >
-              {getCurrencySymbol()}{preset}
+              {currencySymbol}{preset}
             </button>
           ))}
         </div>

@@ -3,85 +3,13 @@
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
-import { ChevronDown, ChevronLeft, ChevronRight, MapPin, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import type { Event } from './types'
 import { EventCard } from './event-card'
-
-// Internal types for react-leaflet component attributes (not exported component props)
-type LeafletMapContainerAttrs = {
-  center: [number, number]
-  zoom: number
-  style?: React.CSSProperties
-  zoomControl?: boolean
-  scrollWheelZoom?: boolean
-  children?: React.ReactNode
-}
-
-type LeafletTileLayerAttrs = {
-  attribution: string
-  url: string
-}
-
-type LeafletMarkerAttrs = {
-  position: [number, number]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon?: any
-  zIndexOffset?: number
-  eventHandlers?: {
-    click?: () => void
-  }
-}
-
-// Lazy-loaded react-leaflet components (React-only, no Next.js dependency)
-// Using any to avoid type mismatches between react-leaflet versions and @types/react
-interface ReactLeafletComponents {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  MapContainer: ComponentType<any>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TileLayer: ComponentType<any>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Marker: ComponentType<any>
-}
-
-/**
- * Hook to lazy load react-leaflet components on client-side only.
- * This avoids SSR issues with Leaflet without requiring Next.js dynamic imports.
- */
-function useReactLeaflet(): ReactLeafletComponents | null {
-  const [components, setComponents] = useState<ReactLeafletComponents | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-    import('react-leaflet').then((mod) => {
-      if (mounted) {
-        setComponents({
-          MapContainer: mod.MapContainer,
-          TileLayer: mod.TileLayer,
-          Marker: mod.Marker,
-        })
-      }
-    })
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  return components
-}
-
-// Map placeholder shown during SSR or when Leaflet isn't loaded
-function MapPlaceholder() {
-  return (
-    <div className="h-full w-full bg-muted/30 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-2 text-muted-foreground">
-        <MapPin className="h-8 w-8" />
-        <span className="text-sm">Loading map...</span>
-      </div>
-    </div>
-  )
-}
+import { useReactLeaflet, injectLeafletCSS, MapPlaceholder } from './shared'
+import type { LeafletMarkerAttrs } from './shared'
 
 // Inner map component that uses Leaflet hooks for event markers
 function EventMapMarkers({
@@ -102,14 +30,8 @@ function EventMapMarkers({
     import('leaflet').then((leaflet) => {
       setL(leaflet.default)
     })
-    // Add Leaflet CSS
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-    document.head.appendChild(link)
-    return () => {
-      document.head.removeChild(link)
-    }
+    const cleanup = injectLeafletCSS()
+    return cleanup
   }, [])
 
   if (!L) return null

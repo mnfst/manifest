@@ -97,9 +97,9 @@ export function PostList({ data, actions, appearance }: PostListProps) {
   if (variant === 'list') {
     return (
       <div className="space-y-3 m-3 bg-card rounded-lg p-3">
-        {posts.slice(0, 3).map((post, index) => (
+        {posts.slice(0, 3).map((post) => (
           <PostCard
-            key={index}
+            key={post.title || post.url}
             data={{ post }}
             appearance={{ variant: "horizontal", showAuthor, showCategory }}
             actions={{ onReadMore }}
@@ -118,9 +118,9 @@ export function PostList({ data, actions, appearance }: PostListProps) {
           columns === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'
         )}
       >
-        {posts.slice(0, 4).map((post, index) => (
+        {posts.slice(0, 4).map((post) => (
           <PostCard
-            key={index}
+            key={post.title || post.url}
             data={{ post }}
             appearance={{ variant: "compact", showImage: false, showAuthor, showCategory }}
             actions={{ onReadMore }}
@@ -148,9 +148,9 @@ export function PostList({ data, actions, appearance }: PostListProps) {
     return (
       <div className="space-y-6 p-6">
         <div className={cn('grid gap-6 grid-cols-1', getGridColsClass())}>
-          {posts.map((post, index) => (
+          {posts.map((post) => (
             <PostCard
-              key={index}
+              key={post.title || post.url}
               data={{ post }}
               appearance={{ variant: "default", showAuthor, showCategory }}
               actions={{ onReadMore }}
@@ -187,8 +187,8 @@ export function PostList({ data, actions, appearance }: PostListProps) {
           className="flex transition-transform duration-300 ease-out md:hidden"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {posts.map((post, index) => (
-            <div key={index} className="w-full shrink-0 px-0.5">
+          {posts.map((post) => (
+            <div key={post.title || post.url} className="w-full shrink-0 px-0.5">
               <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}
@@ -203,8 +203,8 @@ export function PostList({ data, actions, appearance }: PostListProps) {
           className="hidden md:flex lg:hidden transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${currentIndex * 50}%)` }}
         >
-          {posts.map((post, index) => (
-            <div key={index} className="w-1/2 shrink-0 px-1.5">
+          {posts.map((post) => (
+            <div key={post.title || post.url} className="w-1/2 shrink-0 px-1.5">
               <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}
@@ -219,8 +219,8 @@ export function PostList({ data, actions, appearance }: PostListProps) {
           className="hidden lg:flex transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${currentIndex * (100 / 3)}%)` }}
         >
-          {posts.map((post, index) => (
-            <div key={index} className="w-1/3 shrink-0 px-1.5">
+          {posts.map((post) => (
+            <div key={post.title || post.url} className="w-1/3 shrink-0 px-1.5">
               <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}

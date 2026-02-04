@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // Import types from shared types file to avoid circular dependencies
 import type { Option } from './types'
@@ -79,6 +79,15 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
     multiple ? selectedOptionIndexes : selectedOptionIndex ?? -1
   )
 
+  // Sync internal state when controlled props change
+  useEffect(() => {
+    if (multiple) {
+      setSelected(selectedOptionIndexes)
+    } else if (selectedOptionIndex !== undefined) {
+      setSelected(selectedOptionIndex)
+    }
+  }, [multiple, selectedOptionIndex, selectedOptionIndexes])
+
   const handleSelect = (option: Option, index: number) => {
     if (option.disabled) return
 
@@ -121,7 +130,7 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
       <div className="flex flex-wrap gap-2">
         {options.map((option, index) => (
           <button
-            key={index}
+            key={option.label || index}
             onClick={() => handleSelect(option, index)}
             disabled={option.disabled}
             className={cn(
