@@ -2851,7 +2851,7 @@ function BlockPageContent() {
       <div className="w-full md:w-[calc(100vw-226px)] p-4 md:p-8 bg-muted/50">
         <div className="max-w-3xl mx-auto space-y-12">
           {/* Block Header with Breadcrumb */}
-          <div id={selectedBlock.id}>
+          <div id={selectedBlock.id} className="scroll-mt-20">
             {/* Breadcrumb Navigation */}
             <Breadcrumb
               items={[
