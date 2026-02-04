@@ -2,48 +2,48 @@
 // This file contains sample data used for component previews and documentation
 
 export const demoXPost = {
-  author: 'Elon Musk',
-  username: 'elonmusk',
-  avatar: 'https://i.pravatar.cc/150?u=elon',
+  author: 'Manifest',
+  username: 'manifest_ui',
+  avatar: 'M',
   verified: true,
-  content: 'The future of AI is here!',
+  content: 'Just shipped a new batch of agentic UI components. Build conversational interfaces faster than ever.',
   time: '2h',
-  likes: '42K',
-  retweets: '8.5K',
-  replies: '3.2K',
+  likes: '1.2K',
+  retweets: '234',
+  replies: '56',
   views: '45.2K',
 }
 
 export const demoInstagramPost = {
-  author: 'National Geographic',
-  avatar: 'https://i.pravatar.cc/150?u=natgeo',
+  author: 'manifest.ui',
+  avatar: 'M',
   verified: true,
   image:
     'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
-  caption: 'Nature at its finest',
-  likes: '125K',
+  caption: 'Building the future of agentic UIs, one component at a time.',
+  likes: '2,847',
   time: '2h',
 }
 
 export const demoLinkedInPost = {
-  author: 'Satya Nadella',
-  headline: 'CEO at Microsoft',
-  avatar: 'S',
-  content: 'Excited to announce our latest AI innovations...',
+  author: 'Manifest',
+  headline: 'Manifest UI | Open Source',
+  avatar: 'M',
+  content: 'Excited to announce our latest milestone! We\'ve just crossed 10,000 developers using Manifest to build agentic UIs.',
   time: '1d',
-  reactions: '15K',
+  reactions: '1,234',
   topReactions: ['like', 'celebrate', 'love'] as ('like' | 'celebrate' | 'support' | 'love' | 'insightful' | 'funny')[],
-  comments: '890',
-  reposts: '2.1K',
-  postUrl: 'https://linkedin.com/posts/satya',
+  comments: '56',
+  reposts: '12',
+  postUrl: 'https://linkedin.com/posts/manifest-123',
   repostUrl: 'https://linkedin.com/shareArticle?url=...',
 }
 
 export const demoYouTubePost = {
-  channel: 'TechTalks',
-  avatar: 'https://i.pravatar.cc/150?u=techtalks',
-  title: 'Building the Future of AI',
-  views: '1.2M',
+  channel: 'Manifest',
+  avatar: 'M',
+  title: 'Building Agentic UIs with Manifest',
+  views: '12K',
   time: '3 days ago',
   thumbnail:
     'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800',
