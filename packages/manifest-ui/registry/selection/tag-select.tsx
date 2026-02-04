@@ -32,8 +32,6 @@ export interface TagSelectProps {
     tags?: Tag[]
   }
   actions?: {
-    /** Called when the tag selection changes with the array of selected tag IDs. */
-    onSelectTags?: (tagIds: string[]) => void
     /** Called when the user clicks the validate button with the selected tag IDs. */
     onValidate?: (tagIds: string[]) => void
   }
@@ -117,7 +115,6 @@ const tagClasses = {
  */
 export function TagSelect({ data, actions, appearance, control }: TagSelectProps) {
   const tags = data?.tags ?? defaultTags
-  const onSelectTags = actions?.onSelectTags
   const onValidate = actions?.onValidate
   const mode = appearance?.mode ?? 'multiple'
   const showClear = appearance?.showClear ?? true
@@ -138,12 +135,10 @@ export function TagSelect({ data, actions, appearance, control }: TagSelectProps
     }
 
     setSelected(newSelected)
-    onSelectTags?.(newSelected)
   }
 
   const handleClear = () => {
     setSelected([])
-    onSelectTags?.([])
   }
 
   const handleValidate = () => {

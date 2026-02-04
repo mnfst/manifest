@@ -114,8 +114,6 @@ export interface TableProps<T = Record<string, unknown>> {
     totalRows?: number
   }
   actions?: {
-    /** Called when row selection changes with the selected rows. */
-    onSelectionChange?: (selectedRows: T[]) => void
     /** Called when the copy action is triggered with selected rows. */
     onCopy?: (selectedRows: T[]) => void
     /** Called when the download action is triggered with selected rows. */
@@ -124,8 +122,6 @@ export interface TableProps<T = Record<string, unknown>> {
     onShare?: (selectedRows: T[]) => void
     /** Called when the refresh button is clicked. */
     onRefresh?: () => void
-    /** Called when the expand to fullscreen button is clicked. */
-    onExpand?: () => void
   }
   appearance?: {
     /**
@@ -499,12 +495,10 @@ export function Table<T extends Record<string, unknown>>({
     totalRows
   } = dataProps ?? {}
   const {
-    onSelectionChange,
     onCopy,
     onDownload,
     onShare,
-    onRefresh,
-    onExpand
+    onRefresh
   } = actions ?? {}
   const {
     selectable = 'none',
@@ -680,13 +674,11 @@ export function Table<T extends Record<string, unknown>>({
       }
 
       setInternalSelectedRows(newSelected)
-      onSelectionChange?.(sortedData.filter((_, i) => newSelected.has(i)))
     },
     [
       selectable,
       selectedRowsSet,
       sortedData,
-      onSelectionChange,
       isFullscreen,
       currentPage,
       rowsPerPage
@@ -702,8 +694,7 @@ export function Table<T extends Record<string, unknown>>({
       : new Set(visibleData.map((_, i) => i))
 
     setInternalSelectedRows(newSelected)
-    onSelectionChange?.(allSelected ? [] : visibleData)
-  }, [selectable, selectedRowsSet.size, visibleData, onSelectionChange])
+  }, [selectable, selectedRowsSet.size, visibleData])
 
   const getValue = (row: T, accessor: string): unknown => {
     const keys = accessor.split('.')
@@ -733,10 +724,7 @@ export function Table<T extends Record<string, unknown>>({
   }
 
   const handleExpand = () => {
-    if (onExpand) {
-      onExpand()
-    } else if (typeof window !== 'undefined' && window.openai) {
-      // Request fullscreen mode from ChatGPT host
+    if (typeof window !== 'undefined' && window.openai) {
       window.openai.requestDisplayMode({ mode: 'fullscreen' })
     }
   }

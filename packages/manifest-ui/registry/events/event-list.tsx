@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
-import { ChevronDown, ChevronLeft, ChevronRight, MapPin, Maximize2, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, MapPin, SlidersHorizontal, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import type { Event } from './types'
@@ -408,16 +408,6 @@ export interface EventListProps {
   actions?: {
     /** Called when an event card is clicked. */
     onEventSelect?: (event: Event) => void
-    /** Called when page changes (for pagination). */
-    onPageChange?: (page: number) => void
-    /** Called when "View more events" button is clicked. */
-    onViewMore?: () => void
-    /** Called when expand/fullscreen button is clicked. */
-    onExpand?: () => void
-    /** Called when the filter button is clicked. */
-    onFilterClick?: () => void
-    /** Called when filters are applied. */
-    onFiltersApply?: (filters: FilterState) => void
   }
   appearance?: {
     /**
@@ -427,12 +417,6 @@ export interface EventListProps {
     variant?: 'list' | 'grid' | 'carousel' | 'fullwidth'
     /** Number of columns for grid layout. */
     columns?: 2 | 3 | 4
-    /** Number of events to show per page. */
-    eventsPerPage?: number
-  }
-  control?: {
-    /** Current page number for pagination. */
-    currentPage?: number
   }
 }
 
@@ -473,10 +457,6 @@ export function EventList({ data, actions, appearance }: EventListProps) {
   const events = data?.events ?? demoEvents
   const title = data?.title
   const onEventSelect = actions?.onEventSelect
-  const onViewMore = actions?.onViewMore
-  const onExpand = actions?.onExpand
-  const onFilterClick = actions?.onFilterClick
-  const onFiltersApply = actions?.onFiltersApply
   const variant = appearance?.variant ?? 'list'
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedEventIndex, setSelectedEventIndex] = useState<number | null>(null)
@@ -614,19 +594,8 @@ export function EventList({ data, actions, appearance }: EventListProps) {
     return (
       <div className="space-y-3">
         {title && (
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4">
             <h2 className="text-lg font-semibold">{title}</h2>
-            {onExpand && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={onExpand}
-                aria-label="Expand view"
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         )}
         {events.slice(0, 3).map((event, index) => (
@@ -641,24 +610,13 @@ export function EventList({ data, actions, appearance }: EventListProps) {
     )
   }
 
-  // Grid variant (inline mode - show 3 events with images and View More button)
+  // Grid variant (inline mode - show 3 events with images)
   if (variant === 'grid') {
     return (
       <div className="space-y-4">
         {title && (
-          <div className="flex items-center justify-between">
+          <div>
             <h2 className="text-lg font-semibold">{title}</h2>
-            {onExpand && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={onExpand}
-                aria-label="Expand view"
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         )}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -671,16 +629,6 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             />
           ))}
         </div>
-        {events.length > 3 && (
-          <div className="flex justify-center pt-2">
-            <Button
-              variant="outline"
-              onClick={onViewMore}
-            >
-              View more events
-            </Button>
-          </div>
-        )}
       </div>
     )
   }
@@ -703,21 +651,18 @@ export function EventList({ data, actions, appearance }: EventListProps) {
     }
 
     const handleFilterButtonClick = () => {
-      setFilters(appliedFilters) // Reset to applied filters when opening
+      setFilters(appliedFilters)
       setShowFilters(true)
-      onFilterClick?.()
     }
 
     const handleApplyFilters = () => {
       setAppliedFilters(filters)
       setShowFilters(false)
-      onFiltersApply?.(filters)
     }
 
     const handleResetFilters = () => {
       setFilters(defaultFilters)
       setAppliedFilters(defaultFilters)
-      onFiltersApply?.(defaultFilters)
     }
 
     // Get filtered events
@@ -879,18 +824,8 @@ export function EventList({ data, actions, appearance }: EventListProps) {
   return (
     <div className="relative">
       {title && (
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4">
           <h2 className="text-lg font-semibold">{title}</h2>
-          {onExpand && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={onExpand}
-            >
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-          )}
         </div>
       )}
       <div className="overflow-hidden rounded-lg">

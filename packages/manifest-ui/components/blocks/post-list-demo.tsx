@@ -56,8 +56,7 @@ export function PostListDemo({
               variant: 'fullwidth',
               columns: 3,
               showAuthor: true,
-              showCategory: true,
-              postsPerPage: 10
+              showCategory: true
             }}
           />
         </FullscreenModal>

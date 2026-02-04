@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import { useState } from 'react'
@@ -25,10 +26,8 @@ export interface OptionListProps {
     options?: Option[]
   }
   actions?: {
-    /** Called when an option is selected in single selection mode. */
-    onSelectOption?: (option: Option) => void
-    /** Called when options are selected in multiple selection mode. */
-    onSelectOptions?: (options: Option[]) => void
+    /** Called when the user confirms their selection. Returns selected option(s). */
+    onSubmit?: (selected: Option[]) => void
   }
   appearance?: {
     /**
@@ -73,8 +72,7 @@ export interface OptionListProps {
  */
 export function OptionList({ data, actions, appearance, control }: OptionListProps) {
   const options = data?.options ?? demoOptions
-  const onSelectOption = actions?.onSelectOption
-  const onSelectOptions = actions?.onSelectOptions
+  const onSubmit = actions?.onSubmit
   const multiple = appearance?.multiple ?? false
   const selectedOptionIndex = control?.selectedOptionIndex
   const selectedOptionIndexes = control?.selectedOptionIndexes ?? []
@@ -91,10 +89,20 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
         ? currentSelected.filter((i) => i !== index)
         : [...currentSelected, index]
       setSelected(newSelected)
-      onSelectOptions?.(options.filter((_, i) => newSelected.includes(i)))
     } else {
       setSelected(index)
-      onSelectOption?.(option)
+    }
+  }
+
+  const handleSubmit = () => {
+    if (multiple) {
+      const selectedIndexes = selected as number[]
+      onSubmit?.(options.filter((_, i) => selectedIndexes.includes(i)))
+    } else {
+      const selectedIndex = selected as number
+      if (selectedIndex >= 0) {
+        onSubmit?.([options[selectedIndex]])
+      }
     }
   }
 
@@ -105,8 +113,12 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
     return selected === index
   }
 
+  const hasSelection = multiple
+    ? (selected as number[]).length > 0
+    : (selected as number) >= 0
+
   return (
-    <div className="w-full bg-card rounded-lg p-4">
+    <div className="w-full bg-card rounded-lg p-4 space-y-3">
       <div className="flex flex-wrap gap-2">
         {options.map((option, index) => (
           <button
@@ -141,6 +153,17 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
           </button>
         ))}
       </div>
+      {onSubmit && (
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            onClick={handleSubmit}
+            disabled={!hasSelection}
+          >
+            Confirm
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

@@ -40,8 +40,6 @@ export interface EventConfirmationProps {
   actions?: {
     /** Called when "Take me to my tickets" button is clicked. */
     onViewTickets?: () => void
-    /** Called when "Change" email link is clicked. */
-    onChangeEmail?: () => void
     /** Called when "Follow" organizer button is clicked. */
     onFollowOrganizer?: () => void
     /** Called when a social share button is clicked. */
@@ -95,7 +93,7 @@ export function EventConfirmation({ data, actions }: EventConfirmationProps) {
       image: undefined
     }
   } = data ?? {}
-  const { onViewTickets, onChangeEmail, onFollowOrganizer, onShare } =
+  const { onViewTickets, onFollowOrganizer, onShare } =
     actions ?? {}
 
   return (
@@ -130,14 +128,6 @@ export function EventConfirmation({ data, actions }: EventConfirmationProps) {
               {ticketCount} Ticket sent to
             </p>
             <p className="text-sm">{recipientEmail}</p>
-            {onChangeEmail && (
-              <button
-                onClick={onChangeEmail}
-                className="text-sm text-primary hover:underline"
-              >
-                Change
-              </button>
-            )}
           </div>
 
           {/* Date */}

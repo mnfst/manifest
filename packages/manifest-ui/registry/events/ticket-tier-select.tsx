@@ -106,8 +106,6 @@ export interface TicketTierSelectProps {
   actions?: {
     /** Called when checkout button is clicked with selections and total. */
     onCheckout?: (selections: TicketSelection[], total: number) => void
-    /** Called when ticket selection changes. */
-    onSelectionChange?: (selections: TicketSelection[]) => void
   }
   appearance?: {
     /**
@@ -163,7 +161,7 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
     tiers = defaultTiers
   } = data ?? {}
   const currency = event.currency ?? 'USD'
-  const { onCheckout, onSelectionChange } = actions ?? {}
+  const { onCheckout } = actions ?? {}
   const { showOrderSummary = true } = appearance ?? {}
 
   const [selections, setSelections] = useState<Record<number, number>>(
@@ -182,10 +180,6 @@ export function TicketTierSelect({ data, actions, appearance, control }: TicketT
       delete newSelections[tierIndex]
     }
     setSelections(newSelections)
-
-    // Notify parent of selection change
-    const selectionsList = getSelectionsList(newSelections)
-    onSelectionChange?.(selectionsList)
   }
 
   const getSelectionsList = (sels: Record<number, number> = selections): TicketSelection[] => {
