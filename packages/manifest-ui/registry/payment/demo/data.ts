@@ -22,7 +22,7 @@ export const demoOrderData = {
 
 // OrderConfirm component data
 export const demoOrderConfirm = {
-  productName: 'Premium Headphones',
+  productName: "Air Force 1 '07",
   productImage: 'https://ui.manifest.build/demo/shoe-1.png',
   price: 299,
   deliveryDate: 'Jan 20, 2024',
@@ -33,7 +33,7 @@ export const demoAmountPresets = [10, 25, 50, 100]
 
 // PaymentConfirmed component data
 export const demoPaymentConfirmed = {
-  productName: 'Premium Headphones',
+  productName: "Air Force 1 '07",
   productImage: 'https://ui.manifest.build/demo/shoe-1.png',
   price: 299,
   deliveryDate: 'Jan 20, 2024',
