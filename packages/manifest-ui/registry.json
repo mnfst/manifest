@@ -14,7 +14,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/contact-form.png",
-        "version": "1.2.6",
+        "version": "1.2.7",
         "changelog": {
           "1.0.0": "Initial release with name, phone, email, message and file attachment fields",
           "1.1.0": "Made phone, email, and message fields optional with defaults",
@@ -23,7 +23,8 @@
           "1.2.3": "Added comprehensive JSDoc documentation",
           "1.2.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "1.2.5": "Fixed defensive property access to handle empty objects and null values",
-          "1.2.6": "Removed default content data - component only renders explicitly provided data"
+          "1.2.6": "Removed default content data - component only renders explicitly provided data",
+          "1.2.7": "Fixed missing popover dependency for shadcn CLI installation"
         }
       },
       "dependencies": [
@@ -33,7 +34,7 @@
         "button",
         "input",
         "label",
-        "select"
+        "popover"
       ],
       "files": [
         {
@@ -56,21 +57,23 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/date-time-picker.png",
-        "version": "2.0.1",
+        "version": "2.0.2",
         "changelog": {
           "1.0.0": "Initial release with calendar and time slot selection",
           "1.0.1": "Added aria-labels to navigation buttons for better screen reader accessibility",
           "1.0.3": "Added comprehensive JSDoc documentation",
           "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "2.0.0": "BREAKING: Removed onSelect action. Intermediate date/time selection is now internal.",
-          "2.0.1": "Removed default content data - component only renders explicitly provided data"
+          "2.0.1": "Removed default content data - component only renders explicitly provided data",
+          "2.0.2": "Fixed missing popover dependency for shadcn CLI installation"
         }
       },
       "dependencies": [
         "lucide-react"
       ],
       "registryDependencies": [
-        "button"
+        "button",
+        "popover"
       ],
       "files": [
         {
@@ -523,7 +526,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-card.png",
-        "version": "2.0.7",
+        "version": "2.0.8",
         "changelog": {
           "1.0.0": "Initial release with default, compact, horizontal and covered variants",
           "2.0.0": "BREAKING: Removed id from Post interface. Use array index for key.",
@@ -533,14 +536,16 @@
           "2.0.4": "Fixed defensive property access to handle empty objects and null values",
           "2.0.5": "Fixed circular dependency by moving Post interface to types.ts",
           "2.0.6": "Removed unused OpenAI types side-effect import",
-          "2.0.7": "Removed default content data - component only renders explicitly provided data"
+          "2.0.7": "Removed default content data - component only renders explicitly provided data",
+          "2.0.8": "Fixed missing tooltip dependency for shadcn CLI installation"
         }
       },
       "dependencies": [
         "lucide-react"
       ],
       "registryDependencies": [
-        "button"
+        "button",
+        "tooltip"
       ],
       "files": [
         {
@@ -578,7 +583,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/post-list.png",
-        "version": "3.0.1",
+        "version": "3.0.2",
         "changelog": {
           "1.0.0": "Initial release with list, grid and carousel variants",
           "1.1.0": "Added fullwidth variant with pagination for fullscreen mode",
@@ -591,14 +596,16 @@
           "2.0.6": "Fixed circular dependency by moving Post interface to types.ts",
           "2.0.7": "Added bg-card background and margin to list variant for better dark/light mode support",
           "3.0.0": "BREAKING: Removed pagination (onPageChange, postsPerPage, control). Fullwidth variant now renders all posts.",
-          "3.0.1": "Removed default content data - component only renders explicitly provided data"
+          "3.0.1": "Removed default content data - component only renders explicitly provided data",
+          "3.0.2": "Fixed missing tooltip dependency for shadcn CLI installation"
         }
       },
       "dependencies": [
         "lucide-react"
       ],
       "registryDependencies": [
-        "button"
+        "button",
+        "tooltip"
       ],
       "files": [
         {
@@ -708,7 +715,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/table.png",
-        "version": "2.0.1",
+        "version": "2.0.2",
         "changelog": {
           "1.0.0": "Initial release with single and multi-select modes",
           "1.0.1": "Added descriptive alt tags for title images",
@@ -718,7 +725,8 @@
           "1.0.6": "Fixed defensive property access to handle empty objects and null values",
           "1.0.7": "Inlined OpenAI display mode types to remove external lib dependency for shadcn distribution",
           "2.0.0": "BREAKING: Removed onSelectionChange and onExpand actions. Selection and expand are now internal.",
-          "2.0.1": "Removed default content data - component only renders explicitly provided data"
+          "2.0.1": "Removed default content data - component only renders explicitly provided data",
+          "2.0.2": "Removed unused checkbox from registry dependencies"
         }
       },
       "dependencies": [
@@ -726,7 +734,6 @@
       ],
       "registryDependencies": [
         "button",
-        "checkbox",
         "popover",
         "select",
         "input"
@@ -1046,7 +1053,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-card.png",
-        "version": "5.0.9",
+        "version": "5.0.10",
         "changelog": {
           "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
           "2.0.0": "BREAKING: Simplified Event interface - replaced startDateTime/endDateTime with display-formatted dateTime string, removed image/locationType/onlineUrl, changed ticketTiers to string array",
@@ -1062,15 +1069,14 @@
           "5.0.6": "Added types.ts to registry for proper installation",
           "5.0.7": "Added demo/data.ts to registry for proper installation via shadcn CLI",
           "5.0.8": "Removed unused OpenAI types side-effect import",
-          "5.0.9": "Removed default content data - component only renders explicitly provided data"
+          "5.0.9": "Removed default content data - component only renders explicitly provided data",
+          "5.0.10": "Removed unused button from registry dependencies"
         }
       },
       "dependencies": [
         "lucide-react"
       ],
-      "registryDependencies": [
-        "button"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "registry/events/event-card.tsx",
