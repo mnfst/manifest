@@ -1,5 +1,6 @@
 'use client'
 
+import { AlgoliaDocSearch } from '@/components/layout/doc-search'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { blockCategories } from '@/lib/blocks-categories'
 import { cn } from '@/lib/utils'
@@ -282,6 +283,7 @@ function HeaderContent() {
 
           {/* Desktop right side */}
           <div className="hidden md:flex items-center gap-1">
+            <AlgoliaDocSearch />
             <GitHubStars />
             <Link
               href="https://discord.com/invite/FepAked3W7"
@@ -294,8 +296,9 @@ function HeaderContent() {
             <ThemeToggle />
           </div>
 
-          {/* Mobile right side - only theme toggle */}
-          <div className="md:hidden">
+          {/* Mobile right side */}
+          <div className="md:hidden flex items-center gap-1">
+            <AlgoliaDocSearch />
             <ThemeToggle />
           </div>
         </div>
