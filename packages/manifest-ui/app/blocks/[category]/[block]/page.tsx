@@ -2,7 +2,8 @@
 
 import { blockCategories } from '@/lib/blocks-categories';
 import { cn } from '@/lib/utils';
-import { ChevronRight, Github, Zap } from 'lucide-react';
+import { useExternalDepCount } from '@/components/blocks/dependency-viewer';
+import { ChevronRight, Github, Package, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
@@ -2796,6 +2797,7 @@ function BlockPageContent() {
 
   // Find the category from blockCategories for sidebar and related blocks
   const sidebarCategory = blockCategories.find((c) => c.id === categorySlug);
+  const depCount = useExternalDepCount(selectedBlock?.registryName ?? '');
 
   // Ref for the first variant section
   const firstVariantRef = useRef<VariantSectionHandle>(null);
@@ -2910,6 +2912,12 @@ function BlockPageContent() {
                 <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1">
                   <Zap className="w-3 h-3" />
                   read only
+                </span>
+              )}
+              {depCount !== null && depCount > 0 && (
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1">
+                  <Package className="w-3 h-3" />
+                  {`${depCount} dep${depCount > 1 ? 's' : ''}`}
                 </span>
               )}
             </div>
