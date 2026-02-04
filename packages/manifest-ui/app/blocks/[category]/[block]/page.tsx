@@ -40,7 +40,15 @@ import {
 import { TableDemo } from '@/components/blocks/table-demo';
 import { ProductList } from '@/registry/list/product-list';
 import { Table } from '@/registry/list/table';
-import { demoProducts } from '@/registry/list/demo/data';
+import {
+  demoProducts,
+  demoApiUsageColumns,
+  demoApiUsageRows,
+  demoModelsColumns,
+  demoModelsRows,
+  demoExportColumns,
+  demoExportRows,
+} from '@/registry/list/demo/data';
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input';
@@ -1750,9 +1758,9 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <TableDemo data={{ title: 'API Usage' }} />,
+            component: <TableDemo data={{ title: 'API Usage', columns: demoApiUsageColumns, rows: demoApiUsageRows }} />,
             fullscreenComponent: (
-              <Table data={{ title: 'API Usage' }} appearance={{ displayMode: 'fullscreen' }} />
+              <Table data={{ title: 'API Usage', columns: demoApiUsageColumns, rows: demoApiUsageRows }} appearance={{ displayMode: 'fullscreen' }} />
             ),
             usageCode: `<Table
   data={{
@@ -1780,11 +1788,11 @@ const categories: Category[] = [
             id: 'single-select',
             name: 'Single Select',
             component: (
-              <TableDemo data={{ title: 'Models' }} appearance={{ selectable: 'single' }} />
+              <TableDemo data={{ title: 'Models', columns: demoModelsColumns, rows: demoModelsRows }} appearance={{ selectable: 'single' }} />
             ),
             fullscreenComponent: (
               <Table
-                data={{ title: 'Models' }}
+                data={{ title: 'Models', columns: demoModelsColumns, rows: demoModelsRows }}
                 appearance={{ selectable: 'single', displayMode: 'fullscreen' }}
               />
             ),
@@ -1797,11 +1805,11 @@ const categories: Category[] = [
             id: 'multi-select',
             name: 'Multi Select',
             component: (
-              <TableDemo data={{ title: 'Export Data' }} appearance={{ selectable: 'multi' }} />
+              <TableDemo data={{ title: 'Export Data', columns: demoExportColumns, rows: demoExportRows }} appearance={{ selectable: 'multi' }} />
             ),
             fullscreenComponent: (
               <Table
-                data={{ title: 'Export Data' }}
+                data={{ title: 'Export Data', columns: demoExportColumns, rows: demoExportRows }}
                 appearance={{ selectable: 'multi', displayMode: 'fullscreen' }}
               />
             ),
