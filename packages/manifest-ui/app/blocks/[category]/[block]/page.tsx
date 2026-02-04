@@ -2876,10 +2876,13 @@ function BlockPageContent() {
                 </span>
               )}
               {depCount !== null && depCount > 0 && (
-                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1">
+                <button
+                  onClick={() => firstVariantRef.current?.showDepsTab()}
+                  className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 inline-flex items-center gap-1 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                >
                   <Package className="w-3 h-3" />
                   {`${depCount} dep${depCount > 1 ? 's' : ''}`}
-                </span>
+                </button>
               )}
             </div>
             <p className="text-muted-foreground">{selectedBlock.description}</p>
