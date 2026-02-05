@@ -110,7 +110,8 @@ function useSourceCode(registryName: string): SourceCodeState {
               .filter((dep: string) => dep.includes('types'))
               .map(async (dep: string) => {
                 try {
-                  const depRes = await fetch(`/r/${dep}.json`)
+                  const depUrl = dep.startsWith('http') ? dep : `/r/${dep}.json`
+                  const depRes = await fetch(depUrl)
                   if (!depRes.ok) return []
                   const depData = await depRes.json()
                   return (depData.files || [])
