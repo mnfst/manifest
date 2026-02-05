@@ -331,7 +331,8 @@
       "2.0.3": "Fixed Leaflet CSS injection deduplication and hardcoded date display",
       "2.0.4": "Adjusted demo map zoom level to show more of the San Francisco bay area",
       "2.1.0": "Added demo data defaults - component renders demo content when no data prop is provided",
-      "2.1.1": "Fixed react-leaflet Invalid hook call errors by using React.lazy instead of useEffect dynamic imports"
+      "2.1.1": "Fixed react-leaflet Invalid hook call errors by using React.lazy instead of useEffect dynamic imports",
+      "2.1.2": "Fixed Invalid hook call errors by replacing react-leaflet with vanilla leaflet API"
     },
     "event-card": {
       "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
