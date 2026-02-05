@@ -1,7 +1,7 @@
 "use client"
 
 import { Heart, MessageCircle, Repeat2, Share, Bookmark } from "lucide-react"
-import { demoXPost } from './demo/data'
+import { demoXPost } from './demo/social'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import type { Event } from './types'
 import { EventCard } from './event-card'
-import { demoEvents } from './demo/data'
+import { demoEvents } from './demo/events'
 import { useReactLeaflet, injectLeafletCSS, MapPlaceholder } from './shared'
 import type { LeafletMarkerAttrs } from './shared'
 

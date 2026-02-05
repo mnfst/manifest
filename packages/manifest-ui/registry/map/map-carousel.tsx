@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { ChevronDown, MapPin, Maximize2, SlidersHorizontal, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
-import { demoMapLocations, demoMapCenter, demoMapZoom } from './demo/data'
+import { demoMapLocations, demoMapCenter, demoMapZoom } from './demo/map'
 
 // Internal types for react-leaflet component attributes (not exported component props)
 type LeafletMarkerAttrs = {

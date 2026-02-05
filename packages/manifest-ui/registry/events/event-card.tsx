@@ -14,7 +14,7 @@ import {
   XCircle
 } from 'lucide-react'
 import type { Event, EventSignal } from './types'
-import { demoEvent } from './demo/data'
+import { demoEvent } from './demo/events'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════

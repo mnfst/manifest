@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Calendar, Clock, ExternalLink, Maximize2 } from 'lucide-react';
 import { useMemo } from 'react';
 import type { Post } from './types';
-import { demoPostDetailData } from './demo/data';
+import { demoPostDetailData } from './demo/blogging';
 
 // DOM-based allowlist HTML sanitizer for post content
 const ALLOWED_TAGS = new Set([

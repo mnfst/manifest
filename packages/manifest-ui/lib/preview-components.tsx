@@ -3,7 +3,7 @@
 /**
  * Component map for preview generation.
  * Maps component names to their rendered React elements with demo data
- * imported from centralized demo/data.ts files.
+ * imported from centralized demo/<category>.ts files.
  */
 
 import { ReactNode } from 'react';
@@ -12,7 +12,7 @@ import { ReactNode } from 'react';
 import { ContactForm } from '@/registry/form/contact-form';
 import { DateTimePicker } from '@/registry/form/date-time-picker';
 import { IssueReportForm } from '@/registry/form/issue-report-form';
-import { demoDateTimePickerData } from '@/registry/form/demo/data';
+import { demoDateTimePickerData } from '@/registry/form/demo/form';
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input';
@@ -22,7 +22,7 @@ import {
   demoOrderConfirm,
   demoAmountPresets,
   demoPaymentConfirmed,
-} from '@/registry/payment/demo/data';
+} from '@/registry/payment/demo/payment';
 
 // List components
 import { ProductList } from '@/registry/list/product-list';
@@ -31,7 +31,7 @@ import {
   demoProducts,
   demoTableColumns,
   demoTableRows,
-} from '@/registry/list/demo/data';
+} from '@/registry/list/demo/list';
 
 // Selection components
 import { OptionList } from '@/registry/selection/option-list';
@@ -41,7 +41,7 @@ import {
   demoOptions,
   demoQuickReplies,
   demoTags,
-} from '@/registry/selection/demo/data';
+} from '@/registry/selection/demo/selection';
 
 // Status components
 import { ProgressSteps } from '@/registry/status/progress-steps';
@@ -49,7 +49,7 @@ import { StatusBadge } from '@/registry/status/status-badge';
 import {
   demoProgressSteps,
   demoStatusBadge,
-} from '@/registry/status/demo/data';
+} from '@/registry/status/demo/status';
 
 // Miscellaneous components
 import { Hero } from '@/registry/miscellaneous/hero';
@@ -57,7 +57,7 @@ import { Stats } from '@/registry/miscellaneous/stat-card';
 import {
   demoStats,
   demoHeroDefault,
-} from '@/registry/miscellaneous/demo/data';
+} from '@/registry/miscellaneous/demo/miscellaneous';
 
 // Social components
 import { InstagramPost } from '@/registry/social/instagram-post';
@@ -69,7 +69,7 @@ import {
   demoInstagramPost,
   demoLinkedInPost,
   demoYouTubePost,
-} from '@/registry/social/demo/data';
+} from '@/registry/social/demo/social';
 
 // Map components
 import { MapCarousel } from '@/registry/map/map-carousel';
@@ -77,7 +77,7 @@ import {
   demoMapLocations,
   demoMapCenter,
   demoMapZoom,
-} from '@/registry/map/demo/data';
+} from '@/registry/map/demo/map';
 
 // Blogging components
 import { PostCard } from '@/registry/blogging/post-card';
@@ -87,12 +87,12 @@ import {
   demoPost,
   demoPosts,
   demoPostDetailData,
-} from '@/registry/blogging/demo/data';
+} from '@/registry/blogging/demo/blogging';
 
 // Messaging components
 import { ChatConversation } from '@/registry/messaging/chat-conversation';
 import { MessageBubble } from '@/registry/messaging/message-bubble';
-import { demoMessages } from '@/registry/messaging/demo/data';
+import { demoMessages } from '@/registry/messaging/demo/messaging';
 
 // Events components
 import { EventCard } from '@/registry/events/event-card';
@@ -106,7 +106,7 @@ import {
   demoEventDetails,
   demoTicketTiers,
   demoEventConfirmation,
-} from '@/registry/events/demo/data';
+} from '@/registry/events/demo/events';
 
 export interface PreviewComponentConfig {
   component: ReactNode;

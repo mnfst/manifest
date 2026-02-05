@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import type { Post } from './types'
 import { PostCard } from './post-card'
-import { demoPosts } from './demo/data'
+import { demoPosts } from './demo/blogging'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════

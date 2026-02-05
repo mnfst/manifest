@@ -2,7 +2,7 @@
  * No Default Data Enforcement Test
  *
  * Validates that component files do NOT contain hardcoded inline default data.
- * Components may import from demo/data and use as ?? fallback (this is the
+ * Components may import from demo/<category> and use as ?? fallback (this is the
  * intended demo data strategy for shadcn distribution).
  *
  * Rules enforced:
@@ -203,7 +203,7 @@ describe('Registry file validation for demo data imports', () => {
   const allTsFiles = getAllTsFiles(REGISTRY_PATH)
   const filesWithDemoImport = allTsFiles.filter((f) => {
     const content = readFileSync(f, 'utf-8')
-    return /from\s+['"]\.\/demo\/data['"]/.test(content)
+    return /from\s+['"]\.\/demo\/[a-z-]+['"]/.test(content)
   })
 
   it('should validate demo data imports are in registry (if any exist)', () => {
@@ -214,7 +214,7 @@ describe('Registry file validation for demo data imports', () => {
   for (const absPath of filesWithDemoImport) {
     const relPath = relative(ROOT_PATH, absPath)
 
-    it(`${relPath} must have demo/data.ts in registry files`, () => {
+    it(`${relPath} must have demo/<category>.ts in registry files`, () => {
       const ownerItems = fileToItems.get(relPath) ?? []
       if (ownerItems.length === 0) return
 
@@ -225,10 +225,10 @@ describe('Registry file validation for demo data imports', () => {
         const categoryIndex = parts.indexOf('registry') + 1
         if (categoryIndex < parts.length) {
           const category = parts[categoryIndex]
-          const demoDataPath = `registry/${category}/demo/data.ts`
+          const demoDataPath = `registry/${category}/demo/${category}.ts`
           if (!filePaths.includes(demoDataPath)) {
             errors.push(
-              `"${item.name}" imports demo/data but ` +
+              `"${item.name}" imports demo/${category} but ` +
                 `"${demoDataPath}" is not in its registry files`
             )
           }

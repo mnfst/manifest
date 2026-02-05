@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Check, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { demoTags } from './demo/data'
+import { demoTags } from './demo/selection'
 
 /**
  * Represents an individual tag option.

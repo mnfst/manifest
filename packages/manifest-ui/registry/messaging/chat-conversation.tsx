@@ -7,7 +7,7 @@ import type { ChatMessage } from './types'
 // Re-export for backward compatibility
 export type { ChatMessage } from './types'
 
-import { demoMessages } from './demo/data'
+import { demoMessages } from './demo/messaging'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════

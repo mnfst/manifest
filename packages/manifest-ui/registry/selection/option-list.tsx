@@ -10,7 +10,7 @@ import type { Option } from './types'
 // Re-export for backward compatibility
 export type { Option } from './types'
 
-import { demoOptions } from './demo/data'
+import { demoOptions } from './demo/selection'
 
 
 /**

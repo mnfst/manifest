@@ -7,7 +7,7 @@ import type { Post } from './types'
 // Re-export for backward compatibility
 export type { Post } from './types'
 
-import { demoPost } from './demo/data'
+import { demoPost } from './demo/blogging'
 
 
 /**

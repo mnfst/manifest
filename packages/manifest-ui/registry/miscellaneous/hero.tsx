@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { ReactNode } from 'react';
-import { demoHeroDefault } from './demo/data';
+import { demoHeroDefault } from './demo/miscellaneous';
 
 /**
  * Represents a logo in the hero section.

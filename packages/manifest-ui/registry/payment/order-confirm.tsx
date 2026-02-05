@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Calendar, MapPin } from 'lucide-react'
-import { demoOrderConfirm } from './demo/data'
+import { demoOrderConfirm } from './demo/payment'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════

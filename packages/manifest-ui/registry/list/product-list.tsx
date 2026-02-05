@@ -10,7 +10,7 @@ import type { Product } from './types'
 // Re-export for backward compatibility
 export type { Product } from './types'
 
-import { demoProducts } from './demo/data'
+import { demoProducts } from './demo/list'
 
 
 /**
