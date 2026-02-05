@@ -71,3 +71,44 @@ export const demoTableRows = [
   { name: 'Jane Smith', email: 'jane@example.com', status: 'Pending' },
   { name: 'Bob Johnson', email: 'bob@example.com', status: 'Active' },
 ]
+
+// Table variant: API Usage (default)
+export const demoApiUsageColumns = [
+  { header: 'Model', accessor: 'model', sortable: true },
+  { header: 'Total Tokens', accessor: 'totalTokens', sortable: true, align: 'right' as const },
+]
+
+export const demoApiUsageRows = [
+  { model: 'gpt-5', totalTokens: 2267482 },
+  { model: 'claude-3.5-sonnet', totalTokens: 647528 },
+  { model: 'gemini-pro', totalTokens: 428190 },
+  { model: 'llama-3', totalTokens: 312475 },
+]
+
+// Table variant: Models (single select)
+export const demoModelsColumns = [
+  { header: 'Model', accessor: 'model', sortable: true },
+  { header: 'Provider', accessor: 'provider', sortable: true },
+  { header: 'Context Window', accessor: 'contextWindow', sortable: true, align: 'right' as const },
+]
+
+export const demoModelsRows = [
+  { model: 'GPT-5', provider: 'OpenAI', contextWindow: '128K' },
+  { model: 'Claude 3.5 Sonnet', provider: 'Anthropic', contextWindow: '200K' },
+  { model: 'Gemini Pro', provider: 'Google', contextWindow: '1M' },
+  { model: 'Llama 3', provider: 'Meta', contextWindow: '128K' },
+]
+
+// Table variant: Export Data (multi select)
+export const demoExportColumns = [
+  { header: 'Date', accessor: 'date', sortable: true },
+  { header: 'Event', accessor: 'event', sortable: true },
+  { header: 'Users', accessor: 'users', sortable: true, align: 'right' as const },
+]
+
+export const demoExportRows = [
+  { date: '2025-01-15', event: 'Page View', users: 1243 },
+  { date: '2025-01-15', event: 'Sign Up', users: 87 },
+  { date: '2025-01-14', event: 'Page View', users: 1105 },
+  { date: '2025-01-14', event: 'Purchase', users: 42 },
+]

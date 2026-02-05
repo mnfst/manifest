@@ -226,7 +226,8 @@
       "2.0.1": "Removed default content data - component only renders explicitly provided data",
       "2.0.2": "Removed unused checkbox from registry dependencies",
       "2.0.3": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication",
-      "2.0.4": "Removed stale sortedData from handleRowSelect dependency array"
+      "2.0.4": "Removed stale sortedData from handleRowSelect dependency array",
+      "2.0.5": "Fixed table preview not displaying data by passing demo columns and rows"
     },
     "message-bubble": {
       "1.0.0": "Initial release with text, image, voice and reaction variants",
