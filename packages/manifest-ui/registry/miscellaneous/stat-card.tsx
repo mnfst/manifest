@@ -25,13 +25,13 @@ export interface StatCard {
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * StatsProps
+ * StatCardProps
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * Props for the Stats component, which displays a grid of statistic cards
+ * Props for the StatCard component, which displays a grid of statistic cards
  * with values, trend indicators, and optional icons.
  */
-export interface StatsProps {
+export interface StatCardProps {
   data?: {
     /** Array of stat cards to display in the grid. */
     stats?: StatCard[]
@@ -53,7 +53,7 @@ export interface StatsProps {
  * @component
  * @example
  * ```tsx
- * <Stats
+ * <StatCard
  *   data={{
  *     stats: [
  *       { label: "Revenue", value: "$12,543", change: 12.5, trend: "up" },
@@ -64,8 +64,8 @@ export interface StatsProps {
  * />
  * ```
  */
-export function Stats({ data }: StatsProps) {
-  const resolved: NonNullable<StatsProps['data']> = data ?? { stats: demoStats }
+export function StatCard({ data }: StatCardProps) {
+  const resolved: NonNullable<StatCardProps['data']> = data ?? { stats: demoStats }
   const stats = resolved.stats ?? []
   const getTrendIcon = (trend?: "up" | "down" | "neutral") => {
     switch (trend) {

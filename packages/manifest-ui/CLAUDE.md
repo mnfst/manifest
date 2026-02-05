@@ -58,6 +58,63 @@ Uses shadcn style with:
 4. Run `pnpm run registry:build` to generate the distributable JSON
 5. Import in `app/page.tsx` to preview
 
+## Component Naming Convention (CRITICAL)
+
+**All component names MUST be consistent across registry name, display title, and React export.** This is enforced by tests (`__tests__/component-exports.test.ts`).
+
+### The Rule
+
+The relationship between the three names must follow this deterministic mapping:
+
+| Layer | Format | Example |
+|-------|--------|---------|
+| Registry `name` | kebab-case | `stat-card` |
+| Display `title` | Title Case | `Stat Card` |
+| React component export | PascalCase | `StatCard` |
+| Props interface export | PascalCase + `Props` | `StatCardProps` |
+
+**The React component name MUST be the PascalCase version of the registry `name`.** No abbreviations, no synonyms, no creative alternatives.
+
+### Known Exceptions
+
+Some components have brand-specific casing that cannot follow simple kebab-to-PascalCase conversion. These are tracked in the `NAMING_VARIATIONS` map in `__tests__/component-exports.test.ts`:
+
+| Registry Name | Component Export | Reason |
+|---|---|---|
+| `linkedin-post` | `LinkedInPost` | Brand name "LinkedIn" has internal capital |
+| `youtube-post` | `YouTubePost` | Brand name "YouTube" has internal capital |
+| `x-post` | `XPost` | Single-letter brand name |
+
+### Examples
+
+```typescript
+// ✅ CORRECT - Registry name "contact-form" → component "ContactForm"
+export interface ContactFormProps { ... }
+export function ContactForm(props: ContactFormProps) { ... }
+
+// ✅ CORRECT - Registry name "map-carousel" → component "MapCarousel"
+export interface MapCarouselProps { ... }
+export function MapCarousel(props: MapCarouselProps) { ... }
+
+// ❌ WRONG - Registry name "stat-card" but component "Stats" (inconsistent)
+export interface StatsProps { ... }
+export function Stats(props: StatsProps) { ... }
+
+// ✅ FIXED - Registry name "stat-card" → component "StatCard"
+export interface StatCardProps { ... }
+export function StatCard(props: StatCardProps) { ... }
+```
+
+### Checklist for New Components
+
+Before creating a component:
+
+1. Choose the kebab-case registry name (e.g., `my-component`)
+2. The display title is the Title Case version (e.g., `My Component`)
+3. The component export MUST be the PascalCase version (e.g., `MyComponent`)
+4. The props interface MUST be `{ComponentName}Props` (e.g., `MyComponentProps`)
+5. If the name contains a brand with non-standard casing, add it to `NAMING_VARIATIONS`
+
 ## Component Props Interface Convention
 
 **IMPORTANT**: All registry block components MUST follow this Props interface naming and documentation convention. Tests enforce these rules (`__tests__/props-jsdoc.test.ts`, `__tests__/component-exports.test.ts`).
