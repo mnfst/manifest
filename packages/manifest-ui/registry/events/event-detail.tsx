@@ -18,17 +18,14 @@ import {
   BadgeCheck,
   Timer
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import type { ComponentType } from 'react'
+import { Suspense, useState } from 'react'
 import type { EventDetails } from './types'
 import {
-  useReactLeaflet,
-  injectLeafletCSS,
+  LazyLeafletMap,
   formatNumber,
   MapPlaceholder,
   EventSignalBadge
 } from './shared'
-import type { LeafletMarkerAttrs } from './shared'
 
 // Format date for display
 function formatEventDateTime(startDateTime: string, endDateTime?: string): string {
@@ -60,70 +57,6 @@ function formatEventDateTime(startDateTime: string, endDateTime?: string): strin
 }
 
 
-// Venue marker component that uses Leaflet
-function VenueMapMarker({
-  coordinates,
-  venueName,
-  MarkerComponent
-}: {
-  coordinates: { lat: number; lng: number }
-  venueName: string
-  MarkerComponent: ComponentType<LeafletMarkerAttrs>
-}) {
-  const [L, setL] = useState<typeof import('leaflet') | null>(null)
-
-  useEffect(() => {
-    import('leaflet').then((leaflet) => {
-      setL(leaflet.default)
-    })
-    const cleanup = injectLeafletCSS()
-    return cleanup
-  }, [])
-
-  if (!L) return null
-
-  const icon = L.divIcon({
-    className: '',
-    html: `<div style="
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    ">
-      <div style="
-        background-color: #18181b;
-        color: white;
-        padding: 6px 10px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        font-family: system-ui, -apple-system, sans-serif;
-        white-space: nowrap;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      ">${venueName}</div>
-      <div style="
-        width: 0;
-        height: 0;
-        border-left: 8px solid transparent;
-        border-right: 8px solid transparent;
-        border-top: 8px solid #18181b;
-        margin-top: -1px;
-      "></div>
-    </div>`,
-    iconSize: [100, 40],
-    iconAnchor: [50, 40]
-  })
-
-  return (
-    <MarkerComponent
-      position={[coordinates.lat, coordinates.lng]}
-      icon={icon}
-    />
-  )
-}
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -179,9 +112,6 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isSaved, setIsSaved] = useState(false)
-
-  // Lazy load react-leaflet components (React-only, no Next.js dependency)
-  const leafletComponents = useReactLeaflet()
 
   if (!event) {
     return null
@@ -466,27 +396,55 @@ export function EventDetail({ data, actions, appearance }: EventDetailProps) {
 
             {showMap && event.venue_details.coordinates && (
               <div className="mt-4 aspect-video overflow-hidden rounded-lg bg-muted">
-                {leafletComponents ? (
-                  <leafletComponents.MapContainer
+                <Suspense fallback={<MapPlaceholder />}>
+                  <LazyLeafletMap
                     center={[event.venue_details.coordinates.lat, event.venue_details.coordinates.lng]}
                     zoom={15}
-                    style={{ height: '100%', width: '100%' }}
-                    zoomControl={true}
                     scrollWheelZoom={false}
-                  >
-                    <leafletComponents.TileLayer
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                      url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                    />
-                    <VenueMapMarker
-                      coordinates={event.venue_details.coordinates}
-                      venueName={event.venue_details.name}
-                      MarkerComponent={leafletComponents.Marker}
-                    />
-                  </leafletComponents.MapContainer>
-                ) : (
-                  <MapPlaceholder />
-                )}
+                    renderMarkers={({ Marker, L }) => {
+                      const icon = L.divIcon({
+                        className: '',
+                        html: `<div style="
+                          position: absolute;
+                          left: 50%;
+                          top: 50%;
+                          transform: translate(-50%, -100%);
+                          display: flex;
+                          flex-direction: column;
+                          align-items: center;
+                        ">
+                          <div style="
+                            background-color: #18181b;
+                            color: white;
+                            padding: 6px 10px;
+                            border-radius: 8px;
+                            font-size: 12px;
+                            font-weight: 600;
+                            font-family: system-ui, -apple-system, sans-serif;
+                            white-space: nowrap;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                          ">${event.venue_details!.name}</div>
+                          <div style="
+                            width: 0;
+                            height: 0;
+                            border-left: 8px solid transparent;
+                            border-right: 8px solid transparent;
+                            border-top: 8px solid #18181b;
+                            margin-top: -1px;
+                          "></div>
+                        </div>`,
+                        iconSize: [100, 40],
+                        iconAnchor: [50, 40]
+                      })
+                      return (
+                        <Marker
+                          position={[event.venue_details!.coordinates!.lat, event.venue_details!.coordinates!.lng]}
+                          icon={icon}
+                        />
+                      )
+                    }}
+                  />
+                </Suspense>
               </div>
             )}
 

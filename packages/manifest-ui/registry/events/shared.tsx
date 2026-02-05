@@ -2,25 +2,11 @@
 
 import { cn } from '@/lib/utils'
 import { MapPin } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { lazy } from 'react'
 import type { ComponentType } from 'react'
 import type { EventSignal } from './types'
 
 // Internal types for react-leaflet component attributes (not exported component props)
-export type LeafletMapContainerAttrs = {
-  center: [number, number]
-  zoom: number
-  style?: React.CSSProperties
-  zoomControl?: boolean
-  scrollWheelZoom?: boolean
-  children?: React.ReactNode
-}
-
-export type LeafletTileLayerAttrs = {
-  attribution: string
-  url: string
-}
-
 export type LeafletMarkerAttrs = {
   position: [number, number]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,68 +17,63 @@ export type LeafletMarkerAttrs = {
   }
 }
 
-// Lazy-loaded react-leaflet components (React-only, no Next.js dependency)
-// Using any to avoid type mismatches between react-leaflet versions and @types/react
-export interface ReactLeafletComponents {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  MapContainer: ComponentType<any>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TileLayer: ComponentType<any>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Marker: ComponentType<any>
+// Props for the lazy-loaded leaflet map component
+export interface LazyLeafletMapConfig {
+  center: [number, number]
+  zoom: number
+  style?: React.CSSProperties
+  scrollWheelZoom?: boolean
+  tileUrl?: string
+  tileAttribution?: string
+  renderMarkers: (ctx: {
+    Marker: ComponentType<LeafletMarkerAttrs>
+    L: typeof import('leaflet')
+  }) => React.ReactNode
 }
 
 /**
- * Hook to lazy load react-leaflet components on client-side only.
- * This avoids SSR issues with Leaflet without requiring Next.js dynamic imports.
+ * Lazy-loaded Leaflet map component using React.lazy.
+ * Avoids Invalid hook call errors from dynamic import module boundaries.
  */
-export function useReactLeaflet(): ReactLeafletComponents | null {
-  const [components, setComponents] = useState<ReactLeafletComponents | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-    import('react-leaflet').then((mod) => {
-      if (mounted) {
-        setComponents({
-          MapContainer: mod.MapContainer,
-          TileLayer: mod.TileLayer,
-          Marker: mod.Marker,
-        })
-      }
-    })
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  return components
-}
-
-/**
- * Injects Leaflet CSS into the document head if not already present.
- * Returns a cleanup function that is safe to call (no-op if other components still need it).
- */
-const LEAFLET_CSS_ID = 'leaflet-css-1.9.4'
-
-export function injectLeafletCSS(): () => void {
-  if (typeof document === 'undefined') return () => {}
-
-  const existing = document.getElementById(LEAFLET_CSS_ID)
-  if (existing) {
-    return () => {} // CSS already present, no-op cleanup
+export const LazyLeafletMap = lazy(async () => {
+  // Guard against SSR - react-leaflet/leaflet require window
+  if (typeof window === 'undefined') {
+    return { default: () => null }
   }
 
-  const link = document.createElement('link')
-  link.id = LEAFLET_CSS_ID
-  link.rel = 'stylesheet'
-  link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-  document.head.appendChild(link)
+  const { MapContainer, TileLayer, Marker } = await import('react-leaflet')
+  const L = (await import('leaflet')).default
 
-  return () => {
-    // Only remove if no other map components are mounted
-    // We leave the CSS in place to avoid flicker on re-mount
+  // Inject Leaflet CSS with deduplication
+  const LEAFLET_CSS_ID = 'leaflet-css-1.9.4'
+  if (typeof document !== 'undefined' && !document.getElementById(LEAFLET_CSS_ID)) {
+    const link = document.createElement('link')
+    link.id = LEAFLET_CSS_ID
+    link.rel = 'stylesheet'
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+    document.head.appendChild(link)
   }
-}
+
+  function LazyLeafletMapComponent(props: LazyLeafletMapConfig) {
+    const tileUrl = props.tileUrl ?? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+    const tileAttribution = props.tileAttribution ?? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+
+    return (
+      <MapContainer
+        center={props.center}
+        zoom={props.zoom}
+        style={props.style ?? { height: '100%', width: '100%' }}
+        zoomControl={true}
+        scrollWheelZoom={props.scrollWheelZoom ?? true}
+      >
+        <TileLayer attribution={tileAttribution} url={tileUrl} />
+        {props.renderMarkers({ Marker: Marker as ComponentType<LeafletMarkerAttrs>, L })}
+      </MapContainer>
+    )
+  }
+
+  return { default: LazyLeafletMapComponent }
+})
 
 // Format number with commas (consistent across server/client)
 export function formatNumber(num: number): string {
