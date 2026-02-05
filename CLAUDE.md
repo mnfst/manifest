@@ -274,6 +274,8 @@ return post?.title && <h1>{post.title}</h1>;
 - Default data creates confusion about required vs optional fields
 - Demo data belongs in `demo/data.ts`, not in the component
 
+**Note:** While components don't use *inline* hardcoded defaults, they DO import centralized demo data and use `data ?? demoData` so that `<Component />` renders meaningful content. See `packages/manifest-ui/CLAUDE.md` for the full "Component Demo Data Initialization" pattern.
+
 ### Centralized Demo Data Pattern (CRITICAL)
 
 All demo data MUST live in `registry/<category>/demo/data.ts`:

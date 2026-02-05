@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/popover'
 import { ArrowLeft, ChevronLeft, ChevronRight, Globe, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { demoDateTimePickerData } from './demo/form'
 
 /** Timezone configuration using IANA timezone identifiers for correct DST handling */
 const timezones = [
@@ -162,10 +163,11 @@ const isSameDay = (date1: Date, date2: Date) => {
  * ```
  */
 export function DateTimePicker({ data, actions, appearance, control }: DateTimePickerProps) {
-  const title = data?.title
-  const availableDates = data?.availableDates ?? []
-  const availableTimeSlots = data?.availableTimeSlots ?? []
-  const timezone = data?.timezone
+  const resolved: NonNullable<DateTimePickerProps['data']> = data ?? demoDateTimePickerData
+  const title = resolved.title
+  const availableDates = resolved.availableDates ?? []
+  const availableTimeSlots = resolved.availableTimeSlots ?? []
+  const timezone = resolved.timezone
   const { onNext } = actions ?? {}
   const { showTitle = true, showTimezone = true, weekStartsOn = 'sunday' } = appearance ?? {}
   const orderedDays = getOrderedDays(weekStartsOn)

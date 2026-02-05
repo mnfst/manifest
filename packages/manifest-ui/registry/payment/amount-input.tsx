@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { demoAmountPresets } from "./demo/payment"
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -92,7 +93,8 @@ export interface AmountInputProps {
  * ```
  */
 export function AmountInput({ data, actions, appearance, control }: AmountInputProps) {
-  const presets = data?.presets ?? []
+  const resolved: NonNullable<AmountInputProps['data']> = data ?? { presets: demoAmountPresets }
+  const presets = resolved.presets ?? []
   const onConfirm = actions?.onConfirm
   const min = appearance?.min ?? 0
   const max = appearance?.max ?? 10000

@@ -257,6 +257,36 @@ export function PostDetail({ data }: PostDetailProps) {
 3. **Defaults are OK for appearance/behavior** props (e.g., `variant ?? 'default'`)
 4. **Demo data lives separately** in `demo/data.ts` files (see below)
 
+## Component Demo Data Initialization (CRITICAL)
+
+**IMPORTANT**: Every component with a `data?` prop MUST import centralized demo data and use the `resolved` fallback pattern. This ensures components render meaningful content when called without arguments (`<Component />`).
+
+### Implementation Pattern
+
+```typescript
+import { demoMyComponentData } from './demo/<category>'
+
+export function MyComponent({ data, actions, appearance }: MyComponentProps) {
+  const resolved: NonNullable<MyComponentProps['data']> = data ?? demoMyComponentData
+  const title = resolved.title
+  const items = resolved.items ?? []
+  // ...
+}
+```
+
+### Key Rules
+
+1. **Import from `./demo/<category>`** — demo data is centralized per category
+2. **Use `data ?? demoData`** — fallback to demo data when no data prop is provided
+3. **Type as `NonNullable<Props['data']>`** — ensures type safety on the resolved object
+4. **Enforced by tests** — `__tests__/component-init-demo-data.test.ts` validates this for all registered blocks
+
+### Why This Matters
+
+- Components rendered without arguments in MCP Jam must show demo content
+- Users can still override with explicit `data` prop (demo data is only the fallback)
+- This is NOT the same as hardcoded inline defaults — demo data is centralized and importable
+
 ## Centralized Demo Data
 
 **IMPORTANT**: Demo data for component previews MUST be centralized in dedicated files, not duplicated across preview components and page files.
