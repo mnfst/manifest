@@ -311,3 +311,19 @@ export interface EventDetails extends Omit<Event, 'dateTime'> {
   relatedEvents?: Event[]
   relatedTags?: string[] // "Los Angeles Events", "California Nightlife"
 }
+
+// ---------------------------------------------------------------------------
+// Payment
+// ---------------------------------------------------------------------------
+
+/**
+ * Represents an item in an order.
+ * @interface OrderItem
+ */
+export interface OrderItem {
+  id: string
+  name?: string
+  quantity?: number
+  price?: number
+  image?: string
+}
