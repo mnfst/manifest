@@ -261,7 +261,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/option-list.png",
-        "version": "3.0.2",
+        "version": "3.0.3",
         "changelog": {
           "1.0.0": "Initial release with single and multiple selection modes",
           "2.0.0": "BREAKING: Removed id from Option interface. Use array index for selection tracking.",
@@ -273,7 +273,8 @@
           "2.1.3": "Fixed circular dependency by adding types.ts and demo/data.ts to registry",
           "3.0.0": "BREAKING: Replaced onSelectOption and onSelectOptions with single onSubmit action. Added confirm button.",
           "3.0.1": "Removed default content data - component only renders explicitly provided data",
-          "3.0.2": "Fixed stale controlled state and improved list item keys"
+          "3.0.2": "Fixed stale controlled state and improved list item keys",
+          "3.0.3": "Fixed infinite re-render loop when control prop is not provided"
         }
       },
       "dependencies": [
@@ -347,7 +348,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/tag-select.png",
-        "version": "2.0.2",
+        "version": "2.0.3",
         "changelog": {
           "1.0.0": "Initial release with color variants and multi-select",
           "1.0.2": "Added comprehensive JSDoc documentation",
@@ -357,7 +358,8 @@
           "1.1.3": "Additional defensive property access improvements",
           "2.0.0": "BREAKING: Removed onSelectTags action. Tag toggling is now internal.",
           "2.0.1": "Removed default content data - component only renders explicitly provided data",
-          "2.0.2": "Fixed stale controlled state sync for selectedTagIds"
+          "2.0.2": "Fixed stale controlled state sync for selectedTagIds",
+          "2.0.3": "Fixed infinite re-render loop when control prop is not provided"
         }
       },
       "dependencies": [
