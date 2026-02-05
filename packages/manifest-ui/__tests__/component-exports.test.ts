@@ -47,6 +47,7 @@ const NAMING_VARIATIONS: Record<string, string> = {
   'youtube-post': 'YouTubePost',
   'x-post': 'XPost',
   'stat-card': 'Stats',
+  'chart-block': 'Chart',
 }
 
 /**

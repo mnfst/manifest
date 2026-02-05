@@ -11,6 +11,7 @@ export interface BlockCategory {
 // Map category IDs to display names
 const categoryDisplayNames: Record<string, string> = {
   blogging: 'Blogging',
+  charts: 'Charts',
   events: 'Events',
   form: 'Forms',
   list: 'Lists & Tables',
@@ -26,6 +27,7 @@ const categoryDisplayNames: Record<string, string> = {
 // Define the order of categories in the sidebar
 const categoryOrder = [
   'blogging',
+  'charts',
   'events',
   'form',
   'list',

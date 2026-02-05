@@ -848,3 +848,10 @@ SEO requirements are enforced by tests in `__tests__/seo.test.ts`. Run `pnpm tes
 - Always include descriptive `alt` attributes
 - Use Next.js `Image` component when possible for optimization
 - Keep OG images under 100KB
+
+## Active Technologies
+- TypeScript 5.x, React 19, Next.js 15 + Recharts (new), shadcn/ui chart primitives (new), lucide-react (existing) (001-chart-component)
+- N/A (client-side component only) (001-chart-component)
+
+## Recent Changes
+- 001-chart-component: Added TypeScript 5.x, React 19, Next.js 15 + Recharts (new), shadcn/ui chart primitives (new), lucide-react (existing)

@@ -34,6 +34,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-leaflet": "^5.0.0",
+    "recharts": "2.15.4",
     "shadcn": "^3.0.0",
     "shiki": "^3.19.0",
     "simplex-noise": "^4.0.3",

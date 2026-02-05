@@ -1498,6 +1498,46 @@
         }
       ],
       "category": "lib"
+    },
+    {
+      "name": "chart-block",
+      "type": "registry:block",
+      "title": "Chart",
+      "description": "A read-only data visualization component that renders one or more chart cards with support for area, bar, line, pie, radar, and radial chart types.",
+      "author": "MNFST, Inc",
+      "categories": [
+        "charts"
+      ],
+      "meta": {
+        "preview": "https://ui.manifest.build/previews/chart-block.png",
+        "version": "1.0.0",
+        "changelog": {
+          "1.0.0": "Initial release with area, bar, line, pie, radar, and radial chart types"
+        }
+      },
+      "dependencies": [
+        "recharts",
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "card",
+        "chart",
+        "manifest-types"
+      ],
+      "files": [
+        {
+          "path": "registry/charts/chart.tsx",
+          "type": "registry:block",
+          "target": "components/ui/chart-block.tsx"
+        },
+        {
+          "path": "registry/charts/demo/charts.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/charts.ts"
+        }
+      ],
+      "category": "charts",
+      "preview": "https://ui.manifest.build/previews/chart-block.png"
     }
   ]
 }

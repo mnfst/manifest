@@ -94,6 +94,10 @@ import { ChatConversation } from '@/registry/messaging/chat-conversation';
 import { MessageBubble } from '@/registry/messaging/message-bubble';
 import { demoMessages } from '@/registry/messaging/demo/messaging';
 
+// Charts components
+import { Chart } from '@/registry/charts/chart';
+import { demoCharts } from '@/registry/charts/demo/charts';
+
 // Events components
 import { EventCard } from '@/registry/events/event-card';
 import { EventConfirmation } from '@/registry/events/event-confirmation';
@@ -256,6 +260,12 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
   'chat-conversation': {
     component: <ChatConversation data={{ messages: demoMessages }} />,
     category: 'messaging',
+  },
+
+  // Charts components
+  'chart-block': {
+    component: <Chart data={{ charts: demoCharts.slice(0, 3) }} />,
+    category: 'charts',
   },
 
   // Events components

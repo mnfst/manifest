@@ -49,6 +49,10 @@ export const categoryBackgrounds: Record<string, PreviewBackground> = {
     gradient: 'linear-gradient(135deg, #1DA1F2 0%, #0D8BD9 100%)',
     className: 'from-sky-500 to-sky-600'
   },
+  charts: {
+    gradient: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+    className: 'from-indigo-500 to-violet-500'
+  },
   map: {
     gradient: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
     className: 'from-emerald-600 to-emerald-700'

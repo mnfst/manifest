@@ -90,6 +90,15 @@ import {
   demoYouTubePost,
 } from '@/registry/social/demo/social';
 
+// Charts components
+import { Chart } from '@/registry/charts/chart';
+import {
+  demoAreaChart,
+  demoBarChart,
+  demoLineChart,
+  demoPieChart,
+} from '@/registry/charts/demo/charts';
+
 // Map components
 import { MapCarousel } from '@/registry/map/map-carousel';
 import { demoMapLocations, demoMapCenter, demoMapZoom } from '@/registry/map/demo/map';
@@ -1065,6 +1074,163 @@ const categories: Category[] = [
             },
           ];
         })(),
+      },
+    ],
+  },
+  {
+    id: 'charts',
+    name: 'Charts',
+    blocks: [
+      {
+        id: 'chart-block',
+        name: 'Chart',
+        description:
+          'Data visualization chart component supporting area, bar, line, pie, radar, and radial chart types.',
+        registryName: 'chart-block',
+        layouts: ['inline', 'fullscreen', 'pip'],
+        actionCount: 0,
+        variants: [
+          {
+            id: 'single-chart',
+            name: 'Single Chart',
+            component: <Chart data={{ charts: [demoAreaChart] }} />,
+            usageCode: `<Chart
+  data={{
+    charts: [
+      {
+        title: "Monthly Revenue",
+        bigNumber: "$45,231",
+        description: "Total revenue over the last 6 months",
+        type: "area",
+        dataKey: "month",
+        data: [
+          { month: "Jan", revenue: 4000 },
+          { month: "Feb", revenue: 3000 },
+          { month: "Mar", revenue: 5000 },
+          { month: "Apr", revenue: 4500 },
+          { month: "May", revenue: 6000 },
+          { month: "Jun", revenue: 5500 }
+        ],
+        config: {
+          revenue: { label: "Revenue", color: "#ec4899" }
+        }
+      }
+    ]
+  }}
+/>`,
+          },
+          {
+            id: 'multiple-charts',
+            name: 'Multiple Charts',
+            component: (
+              <Chart data={{ charts: [demoAreaChart, demoBarChart, demoPieChart] }} />
+            ),
+            fullscreenComponent: (
+              <Chart
+                data={{ charts: [demoAreaChart, demoBarChart, demoPieChart] }}
+                appearance={{ displayMode: 'fullscreen' }}
+              />
+            ),
+            usageCode: `<Chart
+  data={{
+    charts: [
+      {
+        title: "Monthly Revenue",
+        bigNumber: "$45,231",
+        description: "Total revenue over the last 6 months",
+        type: "area",
+        dataKey: "month",
+        data: [
+          { month: "Jan", revenue: 4000 },
+          { month: "Feb", revenue: 3000 },
+          { month: "Mar", revenue: 5000 },
+          { month: "Apr", revenue: 4500 },
+          { month: "May", revenue: 6000 },
+          { month: "Jun", revenue: 5500 }
+        ],
+        config: {
+          revenue: { label: "Revenue", color: "#ec4899" }
+        }
+      },
+      {
+        title: "Browser Usage",
+        bigNumber: "1,247",
+        description: "Visitor count by browser this month",
+        type: "bar",
+        dataKey: "browser",
+        data: [
+          { browser: "Chrome", visitors: 275 },
+          { browser: "Safari", visitors: 200 },
+          { browser: "Firefox", visitors: 187 },
+          { browser: "Edge", visitors: 173 }
+        ],
+        config: {
+          visitors: { label: "Visitors", color: "#a855f7" }
+        }
+      },
+      {
+        title: "Market Share",
+        description: "Distribution by product category",
+        type: "pie",
+        dataKey: "category",
+        data: [
+          { category: "Electronics", sales: 450 },
+          { category: "Clothing", sales: 300 },
+          { category: "Food", sales: 250 },
+          { category: "Books", sales: 150 }
+        ],
+        config: {
+          electronics: { label: "Electronics", color: "#ec4899" },
+          clothing: { label: "Clothing", color: "#a855f7" },
+          food: { label: "Food", color: "#06b6d4" },
+          books: { label: "Books", color: "#10b981" }
+        }
+      }
+    ]
+  }}
+/>`,
+          },
+          {
+            id: 'multi-series',
+            name: 'Multi-Series',
+            component: (
+              <Chart
+                data={{
+                  charts: [
+                    { ...demoLineChart, showLegend: true, stacked: false },
+                  ],
+                }}
+              />
+            ),
+            usageCode: `<Chart
+  data={{
+    charts: [
+      {
+        title: "Page Views",
+        bigNumber: "12,540",
+        description: "Desktop vs mobile traffic",
+        type: "line",
+        dataKey: "month",
+        data: [
+          { month: "Jan", desktop: 186, mobile: 80 },
+          { month: "Feb", desktop: 305, mobile: 200 },
+          { month: "Mar", desktop: 237, mobile: 120 },
+          { month: "Apr", desktop: 273, mobile: 190 },
+          { month: "May", desktop: 209, mobile: 130 },
+          { month: "Jun", desktop: 314, mobile: 140 }
+        ],
+        config: {
+          desktop: { label: "Desktop", color: "#ec4899" },
+          mobile: { label: "Mobile", color: "#06b6d4" }
+        },
+        showLegend: true,
+        stacked: false
+      }
+    ]
+  }}
+/>`,
+          },
+        ],
       },
     ],
   },
