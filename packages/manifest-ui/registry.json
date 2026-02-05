@@ -1365,7 +1365,7 @@
         {
           "path": "registry/events/shared.tsx",
           "type": "registry:lib",
-          "target": "components/ui/event-shared.tsx"
+          "target": "components/ui/shared.tsx"
         }
       ],
       "category": "events"
