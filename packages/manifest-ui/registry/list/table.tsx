@@ -15,6 +15,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { demoTableColumns, demoTableRows } from './demo/data'
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -377,6 +378,7 @@ export function Table<T extends Record<string, unknown>>({
   appearance,
   control
 }: TableProps<T>) {
+  const resolvedData: NonNullable<TableProps<T>['data']> = dataProps ?? { columns: demoTableColumns as unknown as TableColumn<T>[], rows: demoTableRows as unknown as T[] }
   const {
     columns = [] as unknown as TableColumn<T>[],
     rows: tableData = [] as unknown as T[],
@@ -384,7 +386,7 @@ export function Table<T extends Record<string, unknown>>({
     titleImage,
     lastUpdated,
     totalRows
-  } = dataProps ?? {}
+  } = resolvedData
   const {
     onCopy,
     onDownload,

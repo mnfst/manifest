@@ -72,7 +72,8 @@
       "1.0.0": "Initial release with product image and delivery info",
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.0.4": "Removed default content data - component only renders explicitly provided data"
+      "1.0.4": "Removed default content data - component only renders explicitly provided data",
+      "1.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "payment-confirmed": {
       "1.0.0": "Initial release with product image and tracking button",
@@ -80,7 +81,8 @@
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "2.0.0": "Added compressed variant, merged payment-success into this component",
       "2.0.1": "Removed default content data - component only renders explicitly provided data",
-      "2.0.2": "Fixed missing alt fallback on product image in compressed desktop variant"
+      "2.0.2": "Fixed missing alt fallback on product image in compressed desktop variant",
+      "2.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "product-list": {
       "1.0.0": "Initial release with list, grid, carousel and picker variants",
@@ -91,7 +93,8 @@
       "2.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "2.0.5": "Fixed defensive property access to handle empty objects and null values",
       "2.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry",
-      "2.0.7": "Removed default content data - component only renders explicitly provided data"
+      "2.0.7": "Removed default content data - component only renders explicitly provided data",
+      "2.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "option-list": {
       "1.0.0": "Initial release with single and multiple selection modes",
@@ -105,7 +108,8 @@
       "3.0.0": "BREAKING: Replaced onSelectOption and onSelectOptions with single onSubmit action. Added confirm button.",
       "3.0.1": "Removed default content data - component only renders explicitly provided data",
       "3.0.2": "Fixed stale controlled state and improved list item keys",
-      "3.0.3": "Fixed infinite re-render loop when control prop is not provided"
+      "3.0.3": "Fixed infinite re-render loop when control prop is not provided",
+      "3.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "amount-input": {
       "1.0.0": "Initial release with increment buttons and preset values",
@@ -126,7 +130,8 @@
       "2.0.0": "BREAKING: Removed onSelectTags action. Tag toggling is now internal.",
       "2.0.1": "Removed default content data - component only renders explicitly provided data",
       "2.0.2": "Fixed stale controlled state sync for selectedTagIds",
-      "2.0.3": "Fixed infinite re-render loop when control prop is not provided"
+      "2.0.3": "Fixed infinite re-render loop when control prop is not provided",
+      "2.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "quick-reply": {
       "1.0.0": "Initial release with quick reply button options",
@@ -137,7 +142,8 @@
       "3.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "3.1.2": "Fixed defensive property access to handle empty objects and null values",
       "3.1.3": "Additional defensive property access improvements",
-      "3.1.4": "Removed default content data - component only renders explicitly provided data"
+      "3.1.4": "Removed default content data - component only renders explicitly provided data",
+      "3.2.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "progress-steps": {
       "1.0.0": "Initial release with horizontal and vertical layouts",
@@ -147,14 +153,16 @@
       "1.1.2": "Fixed defensive property access to handle empty objects and null values",
       "1.1.3": "Additional defensive property access improvements",
       "2.0.0": "BREAKING: Removed id from Step interface, use array index for key",
-      "2.0.1": "Removed default content data - component only renders explicitly provided data"
+      "2.0.1": "Removed default content data - component only renders explicitly provided data",
+      "2.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "status-badge": {
       "1.0.0": "Initial release with multiple status states",
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.1.0": "Moved to status category for better organization",
       "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.1.2": "Fixed defensive property access to handle empty objects and null values"
+      "1.1.2": "Fixed defensive property access to handle empty objects and null values",
+      "1.2.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "stat-card": {
       "1.0.0": "Initial release with scrollable stat cards and trends",
@@ -162,7 +170,8 @@
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "1.0.4": "Fixed defensive property access to handle empty objects and null values",
       "1.0.5": "Additional defensive property access improvements",
-      "1.0.6": "Removed default content data - component only renders explicitly provided data"
+      "1.0.6": "Removed default content data - component only renders explicitly provided data",
+      "1.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "post-card": {
       "1.0.0": "Initial release with default, compact, horizontal and covered variants",
@@ -174,7 +183,8 @@
       "2.0.5": "Fixed circular dependency by moving Post interface to types.ts",
       "2.0.6": "Removed unused OpenAI types side-effect import",
       "2.0.7": "Removed default content data - component only renders explicitly provided data",
-      "2.0.8": "Fixed missing tooltip dependency for shadcn CLI installation"
+      "2.0.8": "Fixed missing tooltip dependency for shadcn CLI installation",
+      "2.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "post-list": {
       "1.0.0": "Initial release with list, grid and carousel variants",
@@ -190,7 +200,8 @@
       "3.0.0": "BREAKING: Removed pagination (onPageChange, postsPerPage, control). Fullwidth variant now renders all posts.",
       "3.0.1": "Removed default content data - component only renders explicitly provided data",
       "3.0.2": "Fixed missing tooltip dependency for shadcn CLI installation",
-      "3.0.3": "Replaced key={index} with stable content-based keys"
+      "3.0.3": "Replaced key={index} with stable content-based keys",
+      "3.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "post-detail": {
       "1.0.0": "Initial release with cover image, author info and related posts",
@@ -214,7 +225,8 @@
       "2.1.10": "Updated post-card dependency with removed OpenAI types import",
       "2.1.11": "Removed default content data - component only renders explicitly provided data",
       "2.1.12": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication",
-      "2.1.13": "Added XSS sanitization for HTML content and replaced key={index} with stable keys"
+      "2.1.13": "Added XSS sanitization for HTML content and replaced key={index} with stable keys",
+      "2.2.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "table": {
       "1.0.0": "Initial release with single and multi-select modes",
@@ -229,7 +241,8 @@
       "2.0.2": "Removed unused checkbox from registry dependencies",
       "2.0.3": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication",
       "2.0.4": "Removed stale sortedData from handleRowSelect dependency array",
-      "2.0.5": "Fixed table preview not displaying data by passing demo columns and rows"
+      "2.0.5": "Fixed table preview not displaying data by passing demo columns and rows",
+      "2.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "message-bubble": {
       "1.0.0": "Initial release with text, image, voice and reaction variants",
@@ -259,7 +272,8 @@
       "4.0.5": "Fixed defensive property access to handle empty objects and null values",
       "4.0.6": "Fixed circular dependency by adding types.ts and demo/data.ts to registry",
       "4.0.7": "Removed default content data - component only renders explicitly provided data",
-      "4.0.8": "Replaced key={index} with content-based keys for message list"
+      "4.0.8": "Replaced key={index} with content-based keys for message list",
+      "4.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "x-post": {
       "1.0.0": "Initial release with engagement metrics display",
@@ -267,7 +281,8 @@
       "1.1.0": "Moved to social category for better organization",
       "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "1.1.2": "Removed default content data - component only renders explicitly provided data",
-      "1.1.3": "Added aria-labels to icon-only action buttons for accessibility"
+      "1.1.3": "Added aria-labels to icon-only action buttons for accessibility",
+      "1.2.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "instagram-post": {
       "1.0.0": "Initial release with image and engagement display",
@@ -276,7 +291,8 @@
       "1.1.0": "Moved to social category for better organization",
       "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "1.1.2": "Removed default content data - component only renders explicitly provided data",
-      "1.1.3": "Added aria-labels to icon-only action buttons for accessibility"
+      "1.1.3": "Added aria-labels to icon-only action buttons for accessibility",
+      "1.2.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "linkedin-post": {
       "1.0.0": "Initial release with professional styling",
@@ -287,7 +303,8 @@
       "2.1.0": "Added image support, engagement stats with reaction icons, expandable content with maxLines prop, and moved repost button to the right",
       "2.1.1": "Fixed avatar circle visibility - now hides entirely when avatar prop is not provided",
       "3.0.0": "BREAKING: Moved postUrl and repostUrl from actions to data prop",
-      "3.0.1": "Fixed JSX namespace deprecation and removed dynamic Tailwind class"
+      "3.0.1": "Fixed JSX namespace deprecation and removed dynamic Tailwind class",
+      "3.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "youtube-post": {
       "1.0.0": "Initial release with playable video embed",
@@ -295,7 +312,8 @@
       "1.0.3": "Added comprehensive JSDoc documentation",
       "1.1.0": "Moved to social category for better organization",
       "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-      "1.1.2": "Removed default content data - component only renders explicitly provided data"
+      "1.1.2": "Removed default content data - component only renders explicitly provided data",
+      "1.2.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "map-carousel": {
       "1.0.0": "Initial release with interactive map and location cards",
@@ -311,7 +329,8 @@
       "2.0.1": "Removed default content data - component only renders explicitly provided data",
       "2.0.2": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication",
       "2.0.3": "Fixed Leaflet CSS injection deduplication and hardcoded date display",
-      "2.0.4": "Adjusted demo map zoom level to show more of the San Francisco bay area"
+      "2.0.4": "Adjusted demo map zoom level to show more of the San Francisco bay area",
+      "2.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "event-card": {
       "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",
@@ -329,7 +348,8 @@
       "5.0.7": "Added demo/data.ts to registry for proper installation via shadcn CLI",
       "5.0.8": "Removed unused OpenAI types side-effect import",
       "5.0.9": "Removed default content data - component only renders explicitly provided data",
-      "5.0.10": "Removed unused button from registry dependencies"
+      "5.0.10": "Removed unused button from registry dependencies",
+      "5.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "event-list": {
       "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
@@ -351,7 +371,8 @@
       "6.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI",
       "7.0.0": "BREAKING: Removed onPageChange, onViewMore, onExpand, onFilterClick, onFiltersApply actions. Filters and expand are now internal.",
       "7.0.1": "Removed default content data - component only renders explicitly provided data",
-      "7.0.2": "Extracted shared map utilities to shared.tsx and fixed Leaflet CSS deduplication"
+      "7.0.2": "Extracted shared map utilities to shared.tsx and fixed Leaflet CSS deduplication",
+      "7.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "event-detail": {
       "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
@@ -368,7 +389,8 @@
       "3.0.7": "Added types.ts to registry for proper installation",
       "3.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI",
       "3.0.9": "Removed default content data - component only renders explicitly provided data",
-      "3.0.10": "Extracted shared map utilities to shared.tsx and fixed Leaflet CSS deduplication"
+      "3.0.10": "Extracted shared map utilities to shared.tsx and fixed Leaflet CSS deduplication",
+      "3.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "ticket-tier-select": {
       "1.0.0": "Initial release with ticket tier cards, quantity controls, price breakdown, and order summary sidebar",
@@ -379,14 +401,16 @@
       "3.0.0": "BREAKING: Removed id from TicketTier interface, made name and price optional.",
       "3.0.1": "Simplified TicketSelection interface by removing tierIndex",
       "4.0.0": "BREAKING: Removed onSelectionChange action. Tier quantity changes are now internal.",
-      "4.0.1": "Removed default content data - component only renders explicitly provided data"
+      "4.0.1": "Removed default content data - component only renders explicitly provided data",
+      "4.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "event-confirmation": {
       "1.0.0": "Initial release with success message, event details, organizer follow, and social sharing",
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "2.0.0": "BREAKING: Removed onChangeEmail action and Change email link",
-      "2.0.1": "Removed default content data - component only renders explicitly provided data"
+      "2.0.1": "Removed default content data - component only renders explicitly provided data",
+      "2.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     },
     "event-shared": {
       "1.0.0": "Extracted shared map utilities and signal badges from event-list and event-detail"
@@ -399,7 +423,8 @@
       "2.1.0": "Added urlLight prop for dark mode logo variant support",
       "2.1.1": "Reduced logo image height for better visual balance",
       "2.1.2": "Removed default content data - component only renders explicitly provided data",
-      "2.1.3": "Replaced key={index} with stable content-based keys for tech logos"
+      "2.1.3": "Replaced key={index} with stable content-based keys for tech logos",
+      "2.2.0": "Added demo data defaults - component renders demo content when no data prop is provided"
     }
   }
 }

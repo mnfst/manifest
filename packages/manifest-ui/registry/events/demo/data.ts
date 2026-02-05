@@ -384,4 +384,7 @@ export const demoEventConfirmation = {
   recipientEmail: 'customer@example.com',
   eventDate: 'Jan 20, 2024',
   eventLocation: 'Central Park, New York',
+  organizer: {
+    name: 'Live Nation',
+  },
 }

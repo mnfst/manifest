@@ -1,6 +1,7 @@
 "use client"
 
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Flag, UserMinus, Link, Code } from "lucide-react"
+import { demoInstagramPost } from './demo/data'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,13 +66,14 @@ export interface InstagramPostProps {
  * ```
  */
 export function InstagramPost({ data }: InstagramPostProps) {
-  const author = data?.author
-  const avatar = data?.avatar
-  const image = data?.image
-  const likes = data?.likes
-  const caption = data?.caption
-  const time = data?.time
-  const verified = data?.verified
+  const resolved: NonNullable<InstagramPostProps['data']> = data ?? demoInstagramPost
+  const author = resolved?.author
+  const avatar = resolved?.avatar
+  const image = resolved?.image
+  const likes = resolved?.likes
+  const caption = resolved?.caption
+  const time = resolved?.time
+  const verified = resolved?.verified
 
   if (!author && !image && !caption) {
     return null

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Bookmark, MoreHorizontal, Share, EyeOff, Flag } from "lucide-react"
+import { demoYouTubePost } from './demo/data'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,15 +76,16 @@ export interface YouTubePostProps {
  * ```
  */
 export function YouTubePost({ data }: YouTubePostProps) {
-  const channel = data?.channel
-  const avatar = data?.avatar
-  const title = data?.title
-  const views = data?.views
-  const time = data?.time
-  const duration = data?.duration
-  const thumbnail = data?.thumbnail
-  const verified = data?.verified
-  const videoId = data?.videoId
+  const resolved: NonNullable<YouTubePostProps['data']> = data ?? demoYouTubePost
+  const channel = resolved?.channel
+  const avatar = resolved?.avatar
+  const title = resolved?.title
+  const views = resolved?.views
+  const time = resolved?.time
+  const duration = resolved?.duration
+  const thumbnail = resolved?.thumbnail
+  const verified = resolved?.verified
+  const videoId = resolved?.videoId
 
   const [isPlaying, setIsPlaying] = useState(false)
 

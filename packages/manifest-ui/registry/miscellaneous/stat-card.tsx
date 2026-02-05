@@ -2,6 +2,7 @@
 
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { demoStats } from './demo/data'
 
 /**
  * Represents a single statistic card with trend data.
@@ -64,7 +65,8 @@ export interface StatsProps {
  * ```
  */
 export function Stats({ data }: StatsProps) {
-  const stats = data?.stats ?? []
+  const resolved: NonNullable<StatsProps['data']> = data ?? { stats: demoStats }
+  const stats = resolved.stats ?? []
   const getTrendIcon = (trend?: "up" | "down" | "neutral") => {
     switch (trend) {
       case "up":

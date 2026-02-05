@@ -3,6 +3,7 @@
 import { Repeat2 } from 'lucide-react';
 import type { JSX } from 'react';
 import React, { useEffect, useRef, useState } from 'react';
+import { demoLinkedInPost } from './demo/data';
 
 /** Reaction type for LinkedIn posts */
 type ReactionType = 'like' | 'celebrate' | 'support' | 'love' | 'insightful' | 'funny';
@@ -336,6 +337,7 @@ const reactionIcons: Record<ReactionType, JSX.Element> = {
  * ```
  */
 export function LinkedInPost({ data, appearance }: LinkedInPostProps) {
+  const resolved: NonNullable<LinkedInPostProps['data']> = data ?? demoLinkedInPost;
   const {
     author,
     headline,
@@ -349,7 +351,7 @@ export function LinkedInPost({ data, appearance }: LinkedInPostProps) {
     reposts,
     postUrl,
     repostUrl,
-  } = data ?? {};
+  } = resolved;
 
   const { maxLines = 3 } = appearance ?? {};
 

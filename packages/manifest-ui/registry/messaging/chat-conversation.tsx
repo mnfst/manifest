@@ -7,6 +7,8 @@ import type { ChatMessage } from './types'
 // Re-export for backward compatibility
 export type { ChatMessage } from './types'
 
+import { demoMessages } from './demo/data'
+
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  * ChatConversationProps
@@ -47,7 +49,8 @@ export interface ChatConversationProps {
  * ```
  */
 export function ChatConversation({ data }: ChatConversationProps) {
-  const messages = data?.messages
+  const resolved: NonNullable<ChatConversationProps['data']> = data ?? { messages: demoMessages }
+  const messages = resolved.messages
 
   if (!messages || messages.length === 0) {
     return <div className="rounded-xl bg-card p-4" />

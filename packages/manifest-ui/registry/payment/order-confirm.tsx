@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Calendar, MapPin } from 'lucide-react'
+import { demoOrderConfirm } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -91,14 +92,15 @@ export interface OrderConfirmProps {
  * ```
  */
 export function OrderConfirm({ data, actions, appearance, control }: OrderConfirmProps) {
-  const productName = data?.productName
-  const productVariant = data?.productVariant
-  const productImage = data?.productImage
-  const quantity = data?.quantity ?? 1
-  const price = data?.price
-  const deliveryDate = data?.deliveryDate
-  const deliveryAddress = data?.deliveryAddress
-  const freeShipping = data?.freeShipping ?? true
+  const resolved: NonNullable<OrderConfirmProps['data']> = data ?? demoOrderConfirm
+  const productName = resolved?.productName
+  const productVariant = resolved?.productVariant
+  const productImage = resolved?.productImage
+  const quantity = resolved?.quantity ?? 1
+  const price = resolved?.price
+  const deliveryDate = resolved?.deliveryDate
+  const deliveryAddress = resolved?.deliveryAddress
+  const freeShipping = resolved?.freeShipping ?? true
   const { onConfirm } = actions ?? {}
   const { currency = 'USD' } = appearance ?? {}
   const { isLoading = false } = control ?? {}

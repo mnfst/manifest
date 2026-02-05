@@ -14,6 +14,7 @@ import {
   XCircle
 } from 'lucide-react'
 import type { Event, EventSignal } from './types'
+import { demoEvent } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -150,7 +151,8 @@ function formatNumber(num: number): string {
  * ```
  */
 export function EventCard({ data, actions, appearance }: EventCardProps) {
-  const event = data?.event
+  const resolved: NonNullable<EventCardProps['data']> = data ?? { event: demoEvent }
+  const event = resolved.event
   const onClick = actions?.onClick
   const variant = appearance?.variant ?? 'default'
   const showSignal = appearance?.showSignal ?? true

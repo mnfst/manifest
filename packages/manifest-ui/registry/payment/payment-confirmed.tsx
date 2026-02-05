@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Check, ExternalLink } from 'lucide-react'
+import { demoPaymentConfirmed } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -76,12 +77,13 @@ export interface PaymentConfirmedProps {
  * ```
  */
 export function PaymentConfirmed({ data, actions, appearance }: PaymentConfirmedProps) {
-  const orderId = data?.orderId
-  const productName = data?.productName
-  const productDescription = data?.productDescription
-  const productImage = data?.productImage
-  const price = data?.price
-  const deliveryDate = data?.deliveryDate
+  const resolved: NonNullable<PaymentConfirmedProps['data']> = data ?? demoPaymentConfirmed
+  const orderId = resolved?.orderId
+  const productName = resolved?.productName
+  const productDescription = resolved?.productDescription
+  const productImage = resolved?.productImage
+  const price = resolved?.price
+  const deliveryDate = resolved?.deliveryDate
   const { onTrackOrder } = actions ?? {}
   const { variant = 'default', currency = 'EUR' } = appearance ?? {}
 
