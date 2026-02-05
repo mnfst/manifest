@@ -26,7 +26,7 @@ import {
   MapPlaceholder,
   EventSignalBadge
 } from './shared'
-import { demoEventDetails } from './demo/data'
+import { demoEventDetails } from './demo/events'
 
 // Format date for display
 function formatEventDateTime(startDateTime: string, endDateTime?: string): string {

@@ -167,9 +167,9 @@
           "target": "components/ui/order-confirm.tsx"
         },
         {
-          "path": "registry/payment/demo/data.ts",
+          "path": "registry/payment/demo/payment.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/payment.ts"
         }
       ],
       "category": "payment",
@@ -211,9 +211,9 @@
           "target": "components/ui/payment-confirmed.tsx"
         },
         {
-          "path": "registry/payment/demo/data.ts",
+          "path": "registry/payment/demo/payment.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/payment.ts"
         }
       ],
       "category": "payment",
@@ -258,9 +258,9 @@
           "target": "components/ui/product-list.tsx"
         },
         {
-          "path": "registry/list/demo/data.ts",
+          "path": "registry/list/demo/list.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/list.ts"
         }
       ],
       "category": "list",
@@ -308,9 +308,9 @@
           "target": "components/ui/option-list.tsx"
         },
         {
-          "path": "registry/selection/demo/data.ts",
+          "path": "registry/selection/demo/selection.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/selection.ts"
         }
       ],
       "category": "selection",
@@ -393,9 +393,9 @@
           "target": "components/ui/tag-select.tsx"
         },
         {
-          "path": "registry/selection/demo/data.ts",
+          "path": "registry/selection/demo/selection.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/selection.ts"
         }
       ],
       "category": "selection",
@@ -435,9 +435,9 @@
           "target": "components/ui/quick-reply.tsx"
         },
         {
-          "path": "registry/selection/demo/data.ts",
+          "path": "registry/selection/demo/selection.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/selection.ts"
         }
       ],
       "category": "selection",
@@ -478,9 +478,9 @@
           "target": "components/ui/progress-steps.tsx"
         },
         {
-          "path": "registry/status/demo/data.ts",
+          "path": "registry/status/demo/status.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/status.ts"
         }
       ],
       "category": "status",
@@ -518,9 +518,9 @@
           "target": "components/ui/status-badge.tsx"
         },
         {
-          "path": "registry/status/demo/data.ts",
+          "path": "registry/status/demo/status.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/status.ts"
         }
       ],
       "category": "status",
@@ -559,9 +559,9 @@
           "target": "components/ui/stat-card.tsx"
         },
         {
-          "path": "registry/miscellaneous/demo/data.ts",
+          "path": "registry/miscellaneous/demo/miscellaneous.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/miscellaneous.ts"
         }
       ],
       "category": "miscellaneous",
@@ -613,9 +613,9 @@
           "target": "components/ui/post-detail.tsx"
         },
         {
-          "path": "registry/blogging/demo/data.ts",
+          "path": "registry/blogging/demo/blogging.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/blogging.ts"
         }
       ],
       "category": "blogging",
@@ -676,9 +676,9 @@
           "target": "components/ui/post-detail.tsx"
         },
         {
-          "path": "registry/blogging/demo/data.ts",
+          "path": "registry/blogging/demo/blogging.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/blogging.ts"
         }
       ],
       "category": "blogging",
@@ -742,9 +742,9 @@
           "target": "components/ui/post-card.tsx"
         },
         {
-          "path": "registry/blogging/demo/data.ts",
+          "path": "registry/blogging/demo/blogging.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/blogging.ts"
         }
       ],
       "category": "blogging",
@@ -795,9 +795,9 @@
           "target": "components/ui/table.tsx"
         },
         {
-          "path": "registry/list/demo/data.ts",
+          "path": "registry/list/demo/list.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/list.ts"
         }
       ],
       "category": "list",
@@ -895,9 +895,9 @@
           "target": "components/ui/message-bubble.tsx"
         },
         {
-          "path": "registry/messaging/demo/data.ts",
+          "path": "registry/messaging/demo/messaging.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/messaging.ts"
         }
       ],
       "category": "messaging",
@@ -936,9 +936,9 @@
           "target": "components/ui/x-post.tsx"
         },
         {
-          "path": "registry/social/demo/data.ts",
+          "path": "registry/social/demo/social.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/social.ts"
         }
       ],
       "category": "social",
@@ -980,9 +980,9 @@
           "target": "components/ui/instagram-post.tsx"
         },
         {
-          "path": "registry/social/demo/data.ts",
+          "path": "registry/social/demo/social.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/social.ts"
         }
       ],
       "category": "social",
@@ -1023,9 +1023,9 @@
           "target": "components/ui/linkedin-post.tsx"
         },
         {
-          "path": "registry/social/demo/data.ts",
+          "path": "registry/social/demo/social.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/social.ts"
         }
       ],
       "category": "social",
@@ -1066,9 +1066,9 @@
           "target": "components/ui/youtube-post.tsx"
         },
         {
-          "path": "registry/social/demo/data.ts",
+          "path": "registry/social/demo/social.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/social.ts"
         }
       ],
       "category": "social",
@@ -1124,9 +1124,9 @@
           "target": "components/ui/map-carousel.tsx"
         },
         {
-          "path": "registry/map/demo/data.ts",
+          "path": "registry/map/demo/map.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/map.ts"
         }
       ],
       "category": "map",
@@ -1177,9 +1177,9 @@
           "target": "components/ui/event-card.tsx"
         },
         {
-          "path": "registry/events/demo/data.ts",
+          "path": "registry/events/demo/events.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/events.ts"
         }
       ],
       "category": "events",
@@ -1244,9 +1244,9 @@
           "target": "components/ui/event-list.tsx"
         },
         {
-          "path": "registry/events/demo/data.ts",
+          "path": "registry/events/demo/events.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/events.ts"
         }
       ],
       "category": "events",
@@ -1304,9 +1304,9 @@
           "target": "components/ui/event-detail.tsx"
         },
         {
-          "path": "registry/events/demo/data.ts",
+          "path": "registry/events/demo/events.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/events.ts"
         }
       ],
       "category": "events",
@@ -1350,9 +1350,9 @@
           "target": "components/ui/ticket-tier-select.tsx"
         },
         {
-          "path": "registry/events/demo/data.ts",
+          "path": "registry/events/demo/events.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/events.ts"
         }
       ],
       "category": "events",
@@ -1392,9 +1392,9 @@
           "target": "components/ui/event-confirmation.tsx"
         },
         {
-          "path": "registry/events/demo/data.ts",
+          "path": "registry/events/demo/events.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/events.ts"
         }
       ],
       "category": "events",
@@ -1437,9 +1437,9 @@
           "target": "components/ui/hero.tsx"
         },
         {
-          "path": "registry/miscellaneous/demo/data.ts",
+          "path": "registry/miscellaneous/demo/miscellaneous.ts",
           "type": "registry:lib",
-          "target": "components/ui/demo/data.ts"
+          "target": "components/ui/demo/miscellaneous.ts"
         }
       ],
       "category": "miscellaneous",

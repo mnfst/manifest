@@ -15,7 +15,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { demoTableColumns, demoTableRows } from './demo/data'
+import { demoTableColumns, demoTableRows } from './demo/list'
 import {
   ArrowDownAZ,
   ArrowUpAZ,

@@ -94,7 +94,8 @@ function findRelativeUrls(content: string, filePath: string): string[] {
 
 describe('Absolute URL Enforcement', () => {
   describe('Registry demo data files', () => {
-    const demoDataFiles = getAllFiles(REGISTRY_DIR, 'data.ts')
+    // Find all .ts files inside demo/ directories (e.g. registry/<cat>/demo/<cat>.ts)
+    const demoDataFiles = getAllFiles(REGISTRY_DIR, '.ts').filter(f => /\/demo\/[^/]+\.ts$/.test(f))
 
     for (const filePath of demoDataFiles) {
       const relativePath = filePath.replace(ROOT_DIR + '/', '')

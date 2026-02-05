@@ -8,7 +8,7 @@ import {
   MessageCircle,
   Twitter
 } from 'lucide-react'
-import { demoEventConfirmation } from './demo/data'
+import { demoEventConfirmation } from './demo/events'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════

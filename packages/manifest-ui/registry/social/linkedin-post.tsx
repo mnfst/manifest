@@ -3,7 +3,7 @@
 import { Repeat2 } from 'lucide-react';
 import type { JSX } from 'react';
 import React, { useEffect, useRef, useState } from 'react';
-import { demoLinkedInPost } from './demo/data';
+import { demoLinkedInPost } from './demo/social';
 
 /** Reaction type for LinkedIn posts */
 type ReactionType = 'like' | 'celebrate' | 'support' | 'love' | 'insightful' | 'funny';

@@ -7,7 +7,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lu
 import { Suspense, useCallback, useRef, useState } from 'react'
 import type { Event } from './types'
 import { EventCard } from './event-card'
-import { demoEvents } from './demo/data'
+import { demoEvents } from './demo/events'
 import { LazyLeafletMap, MapPlaceholder } from './shared'
 
 // SVG pin marker - teardrop shape like Google Maps

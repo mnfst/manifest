@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { demoQuickReplies } from './demo/data'
+import { demoQuickReplies } from './demo/selection'
 
 /**
  * Represents a quick reply option.

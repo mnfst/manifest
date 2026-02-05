@@ -2,7 +2,7 @@
 
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { demoStats } from './demo/data'
+import { demoStats } from './demo/miscellaneous'
 
 /**
  * Represents a single statistic card with trend data.

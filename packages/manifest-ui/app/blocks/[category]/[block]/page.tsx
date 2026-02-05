@@ -12,13 +12,13 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { ContactForm } from '@/registry/form/contact-form';
 import { DateTimePicker } from '@/registry/form/date-time-picker';
 import { IssueReportForm } from '@/registry/form/issue-report-form';
-import { demoDateTimePickerData } from '@/registry/form/demo/data';
+import { demoDateTimePickerData } from '@/registry/form/demo/form';
 
 // Blogging components
 import { PostCardDemo } from '@/components/blocks/post-card-demo';
 import { PostDetailDemo } from '@/components/blocks/post-detail-demo';
 import { PostListDemo } from '@/components/blocks/post-list-demo';
-import { demoPost, demoPosts, demoPostDetailData } from '@/registry/blogging/demo/data';
+import { demoPost, demoPosts, demoPostDetailData } from '@/registry/blogging/demo/blogging';
 import { PostDetail } from '@/registry/blogging/post-detail';
 import { PostList } from '@/registry/blogging/post-list';
 
@@ -34,7 +34,7 @@ import {
   demoEventDetails,
   demoTicketTiers,
   demoEventConfirmation,
-} from '@/registry/events/demo/data';
+} from '@/registry/events/demo/events';
 
 // List components
 import { TableDemo } from '@/components/blocks/table-demo';
@@ -48,7 +48,7 @@ import {
   demoModelsRows,
   demoExportColumns,
   demoExportRows,
-} from '@/registry/list/demo/data';
+} from '@/registry/list/demo/list';
 
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input';
@@ -58,7 +58,7 @@ import {
   demoOrderConfirm,
   demoAmountPresets,
   demoPaymentConfirmed,
-} from '@/registry/payment/demo/data';
+} from '@/registry/payment/demo/payment';
 
 // Messaging components
 import { ChatConversation } from '@/registry/messaging/chat-conversation';
@@ -77,7 +77,7 @@ import {
   demoOptions,
   demoQuickReplies,
   demoTags,
-} from '@/registry/selection/demo/data';
+} from '@/registry/selection/demo/selection';
 
 // Social components
 import { InstagramPost } from '@/registry/social/instagram-post';
@@ -88,16 +88,16 @@ import {
   demoXPost,
   demoInstagramPost,
   demoYouTubePost,
-} from '@/registry/social/demo/data';
+} from '@/registry/social/demo/social';
 
 // Map components
 import { MapCarousel } from '@/registry/map/map-carousel';
-import { demoMapLocations, demoMapCenter, demoMapZoom } from '@/registry/map/demo/data';
+import { demoMapLocations, demoMapCenter, demoMapZoom } from '@/registry/map/demo/map';
 
 // Status components
 import { ProgressSteps } from '@/registry/status/progress-steps';
 import { StatusBadge } from '@/registry/status/status-badge';
-import { demoProgressSteps } from '@/registry/status/demo/data';
+import { demoProgressSteps } from '@/registry/status/demo/status';
 
 // Miscellaneous components
 import { Hero } from '@/registry/miscellaneous/hero';
@@ -108,8 +108,8 @@ import {
   demoHeroTwoLogos,
   demoHeroWithTechLogos,
   demoHeroMinimal,
-} from '@/registry/miscellaneous/demo/data';
-import { demoMessages } from '@/registry/messaging/demo/data';
+} from '@/registry/miscellaneous/demo/miscellaneous';
+import { demoMessages } from '@/registry/messaging/demo/messaging';
 
 // UI components
 import { VariantSection, VariantSectionHandle } from '@/components/blocks/variant-section';

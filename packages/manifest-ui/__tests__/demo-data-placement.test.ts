@@ -1,11 +1,11 @@
 /**
  * Demo Data Placement Enforcement Test
  *
- * Validates that demo data is centralized in registry/<category>/demo/data.ts files,
+ * Validates that demo data is centralized in registry/<category>/demo/<category>.ts files,
  * not inlined in preview-components.tsx or page.tsx.
  *
  * Rules enforced:
- * A) Every category directory with .tsx components must have a demo/data.ts file
+ * A) Every category directory with .tsx components must have a demo/<category>.ts file
  * B) preview-components.tsx must NOT define local demo data constants
  * C) preview-components.tsx must NOT have inline data objects with >2 properties
  */
@@ -48,14 +48,14 @@ describe('Demo Data Placement', () => {
     expect(categories.length).toBeGreaterThan(0)
   })
 
-  describe('Rule A: Every category with .tsx files must have demo/data.ts', () => {
+  describe('Rule A: Every category with .tsx files must have demo/<category>.ts', () => {
     for (const category of categories) {
-      it(`registry/${category}/ must have demo/data.ts`, () => {
-        const demoDataPath = join(REGISTRY_PATH, category, 'demo', 'data.ts')
+      it(`registry/${category}/ must have demo/${category}.ts`, () => {
+        const demoDataPath = join(REGISTRY_PATH, category, 'demo', `${category}.ts`)
         expect(
           existsSync(demoDataPath),
-          `Missing demo/data.ts for category "${category}". ` +
-            `Create registry/${category}/demo/data.ts with demo data for this category.`
+          `Missing demo/${category}.ts for category "${category}". ` +
+            `Create registry/${category}/demo/${category}.ts with demo data for this category.`
         ).toBe(true)
       })
     }
@@ -74,7 +74,7 @@ describe('Demo Data Placement', () => {
         if (/^\s*const\s+demo\w+/.test(line)) {
           issues.push(
             `Line ${i + 1}: "${line.trim()}" — ` +
-              'Demo data must be imported from registry/*/demo/data.ts, not defined locally.'
+              'Demo data must be imported from registry/*/demo/<category>.ts, not defined locally.'
           )
         }
       }
@@ -95,7 +95,7 @@ describe('Demo Data Placement', () => {
       // Find all data={{ blocks and count top-level properties.
       // This is a heuristic: we count word: patterns that are NOT inside nested objects.
       // Small inline data (2-4 simple props like message bubbles) is acceptable;
-      // large data objects (5+ props) should be extracted to demo/data.ts.
+      // large data objects (5+ props) should be extracted to demo/<category>.ts.
       const dataBlockPattern = /data=\{\{((?:(?!\}\}).|\n)*?)\}\}/g
       const issues: string[] = []
       let match
@@ -110,7 +110,7 @@ describe('Demo Data Placement', () => {
             content.substring(0, match.index).split('\n').length
           issues.push(
             `Line ~${lineNum}: Inline data={{ with ${propCount} top-level properties. ` +
-              'Extract to demo/data.ts instead.'
+              'Extract to demo/<category>.ts instead.'
           )
         }
       }

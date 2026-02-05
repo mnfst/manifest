@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { ChevronDown, MapPin, Maximize2, SlidersHorizontal, X } from 'lucide-react'
 import { lazy, Suspense, useCallback, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
-import { demoMapLocations, demoMapCenter, demoMapZoom } from './demo/data'
+import { demoMapLocations, demoMapCenter, demoMapZoom } from './demo/map'
 
 /**
  * Represents a location/hotel to display on the map.

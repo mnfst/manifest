@@ -1,7 +1,7 @@
 "use client"
 
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Flag, UserMinus, Link, Code } from "lucide-react"
-import { demoInstagramPost } from './demo/data'
+import { demoInstagramPost } from './demo/social'
 import {
   DropdownMenu,
   DropdownMenuContent,

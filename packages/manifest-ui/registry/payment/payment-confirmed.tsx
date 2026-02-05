@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Check, ExternalLink } from 'lucide-react'
-import { demoPaymentConfirmed } from './demo/data'
+import { demoPaymentConfirmed } from './demo/payment'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════

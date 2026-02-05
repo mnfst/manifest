@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Bookmark, MoreHorizontal, Share, EyeOff, Flag } from "lucide-react"
-import { demoYouTubePost } from './demo/data'
+import { demoYouTubePost } from './demo/social'
 import {
   DropdownMenu,
   DropdownMenuContent,

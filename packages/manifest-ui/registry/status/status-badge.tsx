@@ -9,7 +9,7 @@ import {
   Truck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { demoStatusBadge } from './demo/data'
+import { demoStatusBadge } from './demo/status'
 
 /**
  * Available status types for the badge.

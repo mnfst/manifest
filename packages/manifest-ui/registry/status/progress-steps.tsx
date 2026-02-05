@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
-import { demoProgressSteps } from './demo/data'
+import { demoProgressSteps } from './demo/status'
 
 /**
  * Represents an individual step in the progress tracker.
