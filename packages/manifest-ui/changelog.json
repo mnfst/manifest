@@ -21,7 +21,8 @@
       "2.0.0": "BREAKING: Removed onSelect action. Intermediate date/time selection is now internal.",
       "2.0.1": "Removed default content data - component only renders explicitly provided data",
       "2.0.2": "Fixed missing popover dependency for shadcn CLI installation",
-      "2.0.3": "Replaced hardcoded UTC offsets with IANA timezone identifiers for correct DST handling"
+      "2.0.3": "Replaced hardcoded UTC offsets with IANA timezone identifiers for correct DST handling",
+      "2.1.0": "Added weekStartsOn appearance option to configure first day of the week (Sunday, Monday, or Saturday)"
     },
     "issue-report-form": {
       "1.0.0": "Initial release with categories, impact levels and file attachments",
