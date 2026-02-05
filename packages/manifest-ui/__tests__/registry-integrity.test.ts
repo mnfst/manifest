@@ -308,7 +308,7 @@ describe('Shared Types Pattern', () => {
         const content = readFileSync(fullPath, 'utf-8')
         if (content.includes("from './types'") || content.includes('from "./types"')) {
           expect(
-            item.registryDependencies?.includes('manifest-types'),
+            item.registryDependencies?.includes('manifest-types') || item.registryDependencies?.includes('https://ui.manifest.build/r/manifest-types.json'),
             `"${item.name}" imports from './types' but doesn't list "manifest-types" in registryDependencies.`
           ).toBe(true)
         }

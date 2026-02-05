@@ -234,7 +234,7 @@
       ],
       "registryDependencies": [
         "button",
-        "manifest-types"
+        "https://ui.manifest.build/r/manifest-types.json"
       ],
       "files": [
         {
@@ -282,7 +282,7 @@
       ],
       "registryDependencies": [
         "button",
-        "manifest-types"
+        "https://ui.manifest.build/r/manifest-types.json"
       ],
       "files": [
         {
@@ -485,16 +485,16 @@
       "preview": "https://ui.manifest.build/previews/status-badge.png"
     },
     {
-      "name": "stats",
+      "name": "stat-card",
       "type": "registry:block",
-      "title": "Stats",
+      "title": "Stat Card",
       "description": "Scrollable stat cards with values, trends, and change indicators.",
       "author": "MNFST, Inc",
       "categories": [
         "miscellaneous"
       ],
       "meta": {
-        "preview": "https://ui.manifest.build/previews/stats.png",
+        "preview": "https://ui.manifest.build/previews/stat-card.png",
         "version": "1.0.6",
         "changelog": {
           "1.0.0": "Initial release with scrollable stat cards and trends",
@@ -517,7 +517,7 @@
         }
       ],
       "category": "miscellaneous",
-      "preview": "https://ui.manifest.build/previews/stats.png"
+      "preview": "https://ui.manifest.build/previews/stat-card.png"
     },
     {
       "name": "post-card",
@@ -550,7 +550,7 @@
       "registryDependencies": [
         "button",
         "tooltip",
-        "manifest-types"
+        "https://ui.manifest.build/r/manifest-types.json"
       ],
       "files": [
         {
@@ -607,7 +607,7 @@
       "registryDependencies": [
         "button",
         "tooltip",
-        "manifest-types"
+        "https://ui.manifest.build/r/manifest-types.json"
       ],
       "files": [
         {
@@ -677,7 +677,7 @@
       "registryDependencies": [
         "button",
         "tooltip",
-        "manifest-types"
+        "https://ui.manifest.build/r/manifest-types.json"
       ],
       "files": [
         {
@@ -823,7 +823,7 @@
       ],
       "registryDependencies": [
         "dropdown-menu",
-        "manifest-types"
+        "https://ui.manifest.build/r/manifest-types.json"
       ],
       "files": [
         {
@@ -1078,7 +1078,7 @@
         "lucide-react"
       ],
       "registryDependencies": [
-        "manifest-types"
+        "https://ui.manifest.build/r/manifest-types.json"
       ],
       "files": [
         {
@@ -1142,7 +1142,8 @@
         "button",
         "checkbox",
         "https://ui.manifest.build/r/event-card.json",
-        "manifest-types"
+        "https://ui.manifest.build/r/manifest-types.json",
+        "https://ui.manifest.build/r/event-shared.json"
       ],
       "files": [
         {
@@ -1154,11 +1155,6 @@
           "path": "registry/events/demo/data.ts",
           "type": "registry:lib",
           "target": "components/ui/demo/data.ts"
-        },
-        {
-          "path": "registry/events/shared.tsx",
-          "type": "registry:lib",
-          "target": "components/ui/event-shared.tsx"
         }
       ],
       "category": "events",
@@ -1204,7 +1200,8 @@
       ],
       "registryDependencies": [
         "button",
-        "manifest-types"
+        "https://ui.manifest.build/r/manifest-types.json",
+        "https://ui.manifest.build/r/event-shared.json"
       ],
       "files": [
         {
@@ -1216,11 +1213,6 @@
           "path": "registry/events/demo/data.ts",
           "type": "registry:lib",
           "target": "components/ui/demo/data.ts"
-        },
-        {
-          "path": "registry/events/shared.tsx",
-          "type": "registry:lib",
-          "target": "components/ui/event-shared.tsx"
         }
       ],
       "category": "events",
@@ -1340,6 +1332,41 @@
       ],
       "category": "miscellaneous",
       "preview": "https://ui.manifest.build/previews/hero.png"
+    },
+    {
+      "name": "event-shared",
+      "type": "registry:lib",
+      "title": "Event Shared Utilities",
+      "description": "Shared utilities for event components (Leaflet map helpers, signal badges).",
+      "author": "MNFST, Inc",
+      "categories": [
+        "events"
+      ],
+      "meta": {
+        "version": "1.0.0",
+        "changelog": {
+          "1.0.0": "Extracted shared map utilities and signal badges from event-list and event-detail"
+        }
+      },
+      "dependencies": [
+        "lucide-react",
+        "react-leaflet",
+        "leaflet"
+      ],
+      "devDependencies": [
+        "@types/leaflet"
+      ],
+      "registryDependencies": [
+        "https://ui.manifest.build/r/manifest-types.json"
+      ],
+      "files": [
+        {
+          "path": "registry/events/shared.tsx",
+          "type": "registry:lib",
+          "target": "components/ui/event-shared.tsx"
+        }
+      ],
+      "category": "events"
     },
     {
       "name": "manifest-types",
