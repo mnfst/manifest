@@ -4,85 +4,23 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ComponentType } from 'react'
+import { Suspense, useCallback, useRef, useState } from 'react'
 import type { Event } from './types'
 import { EventCard } from './event-card'
 import { demoEvents } from './demo/events'
-import { useReactLeaflet, injectLeafletCSS, MapPlaceholder } from './shared'
-import type { LeafletMarkerAttrs } from './shared'
+import { LazyLeafletMap, MapPlaceholder } from './shared'
 
-// Inner map component that uses Leaflet hooks for event markers
-function EventMapMarkers({
-  events,
-  selectedIndex,
-  onSelectEvent,
-  MarkerComponent
-}: {
-  events: Event[]
-  selectedIndex: number | null
-  onSelectEvent: (event: Event, index: number) => void
-  MarkerComponent: ComponentType<LeafletMarkerAttrs>
-}) {
-  const [L, setL] = useState<typeof import('leaflet') | null>(null)
-
-  useEffect(() => {
-    // Import Leaflet CSS and library on client side
-    import('leaflet').then((leaflet) => {
-      setL(leaflet.default)
-    })
-    const cleanup = injectLeafletCSS()
-    return cleanup
-  }, [])
-
-  if (!L) return null
-
-  // SVG pin marker - teardrop shape like Google Maps
-  const createPinSvg = (isSelected: boolean) => {
-    const color = '#374151' // slate-700
-    const ringColor = isSelected ? '#9ca3af' : 'transparent' // gray-400 ring when selected
-    return `
-      <svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-        ${isSelected ? `<circle cx="16" cy="16" r="14" fill="none" stroke="${ringColor}" stroke-width="3"/>` : ''}
-        <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 26 16 26s16-14 16-26c0-8.837-7.163-16-16-16z" fill="${color}"/>
-        <circle cx="16" cy="16" r="6" fill="white"/>
-      </svg>
-    `
-  }
-
-  return (
-    <>
-      {events.map((event, index) => {
-        if (!event.coordinates) return null
-        const isSelected = selectedIndex === index
-
-        const icon = L.divIcon({
-          className: '',
-          html: `<div style="
-            position: absolute;
-            left: 50%;
-            top: 100%;
-            transform: translate(-50%, -100%);
-            z-index: ${isSelected ? '1000' : '1'};
-          ">${createPinSvg(isSelected)}</div>`,
-          iconSize: [32, 42],
-          iconAnchor: [16, 42]
-        })
-
-        return (
-          <MarkerComponent
-            key={index}
-            position={[event.coordinates.lat, event.coordinates.lng]}
-            icon={icon}
-            zIndexOffset={isSelected ? 1000 : 0}
-            eventHandlers={{
-              click: () => onSelectEvent(event, index)
-            }}
-          />
-        )
-      })}
-    </>
-  )
+// SVG pin marker - teardrop shape like Google Maps
+function createPinSvg(isSelected: boolean) {
+  const color = '#374151' // slate-700
+  const ringColor = isSelected ? '#9ca3af' : 'transparent' // gray-400 ring when selected
+  return `
+    <svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+      ${isSelected ? `<circle cx="16" cy="16" r="14" fill="none" stroke="${ringColor}" stroke-width="3"/>` : ''}
+      <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 26 16 26s16-14 16-26c0-8.837-7.163-16-16-16z" fill="${color}"/>
+      <circle cx="16" cy="16" r="6" fill="white"/>
+    </svg>
+  `
 }
 
 // Filter options
@@ -383,9 +321,6 @@ export function EventList({ data, actions, appearance }: EventListProps) {
   const variant = appearance?.variant ?? 'list'
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedEventIndex, setSelectedEventIndex] = useState<number | null>(null)
-
-  // Lazy load react-leaflet components (React-only, no Next.js dependency)
-  const leafletComponents = useReactLeaflet()
 
   // Filter state for fullwidth variant
   const [showFilters, setShowFilters] = useState(false)
@@ -699,28 +634,43 @@ export function EventList({ data, actions, appearance }: EventListProps) {
 
         {/* Right Panel - Map */}
         <div className="hidden md:flex flex-1 relative">
-          {leafletComponents ? (
-            <leafletComponents.MapContainer
-              center={[34.0522, -118.2437]} // Los Angeles center
+          <Suspense fallback={<MapPlaceholder />}>
+            <LazyLeafletMap
+              center={[34.0522, -118.2437]}
               zoom={12}
-              style={{ height: '100%', width: '100%' }}
-              zoomControl={true}
-              scrollWheelZoom={true}
-            >
-              <leafletComponents.TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-              />
-              <EventMapMarkers
-                events={filteredEvents}
-                selectedIndex={selectedEventIndex}
-                onSelectEvent={handleMapMarkerClick}
-                MarkerComponent={leafletComponents.Marker}
-              />
-            </leafletComponents.MapContainer>
-          ) : (
-            <MapPlaceholder />
-          )}
+              renderMarkers={({ Marker, L }) => (
+                <>
+                  {filteredEvents.map((event, index) => {
+                    if (!event.coordinates) return null
+                    const isSelected = selectedEventIndex === index
+                    const icon = L.divIcon({
+                      className: '',
+                      html: `<div style="
+                        position: absolute;
+                        left: 50%;
+                        top: 100%;
+                        transform: translate(-50%, -100%);
+                        z-index: ${isSelected ? '1000' : '1'};
+                      ">${createPinSvg(isSelected)}</div>`,
+                      iconSize: [32, 42],
+                      iconAnchor: [16, 42]
+                    })
+                    return (
+                      <Marker
+                        key={index}
+                        position={[event.coordinates.lat, event.coordinates.lng]}
+                        icon={icon}
+                        zIndexOffset={isSelected ? 1000 : 0}
+                        eventHandlers={{
+                          click: () => handleMapMarkerClick(event, index)
+                        }}
+                      />
+                    )
+                  })}
+                </>
+              )}
+            />
+          </Suspense>
         </div>
       </div>
     )

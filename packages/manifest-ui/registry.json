@@ -1085,7 +1085,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/map-carousel.png",
-        "version": "2.1.0",
+        "version": "2.1.1",
         "changelog": {
           "1.0.0": "Initial release with interactive map and location cards",
           "1.1.0": "Made image and price fields optional in Location interface",
@@ -1101,7 +1101,8 @@
           "2.0.2": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication",
           "2.0.3": "Fixed Leaflet CSS injection deduplication and hardcoded date display",
           "2.0.4": "Adjusted demo map zoom level to show more of the San Francisco bay area",
-          "2.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
+          "2.1.0": "Added demo data defaults - component renders demo content when no data prop is provided",
+          "2.1.1": "Fixed react-leaflet Invalid hook call errors by using React.lazy instead of useEffect dynamic imports"
         }
       },
       "dependencies": [
@@ -1195,7 +1196,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-list.png",
-        "version": "7.1.0",
+        "version": "7.1.1",
         "changelog": {
           "1.0.0": "Initial release with grid, list and carousel layouts. Includes pagination support.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime",
@@ -1217,7 +1218,8 @@
           "7.0.0": "BREAKING: Removed onPageChange, onViewMore, onExpand, onFilterClick, onFiltersApply actions. Filters and expand are now internal.",
           "7.0.1": "Removed default content data - component only renders explicitly provided data",
           "7.0.2": "Extracted shared map utilities to shared.tsx and fixed Leaflet CSS deduplication",
-          "7.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
+          "7.1.0": "Added demo data defaults - component renders demo content when no data prop is provided",
+          "7.1.1": "Fixed react-leaflet Invalid hook call errors by using React.lazy instead of useEffect dynamic imports"
         }
       },
       "dependencies": [
@@ -1261,7 +1263,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/event-detail.png",
-        "version": "3.1.0",
+        "version": "3.1.1",
         "changelog": {
           "1.0.0": "Initial release with image carousel, organizer info, location, policies, FAQs, and ticket purchase.",
           "2.0.0": "BREAKING: Updated to use simplified Event interface with display-formatted dateTime and string ticketTiers",
@@ -1278,7 +1280,8 @@
           "3.0.8": "Added demo/data.ts to registry for proper installation via shadcn CLI",
           "3.0.9": "Removed default content data - component only renders explicitly provided data",
           "3.0.10": "Extracted shared map utilities to shared.tsx and fixed Leaflet CSS deduplication",
-          "3.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
+          "3.1.0": "Added demo data defaults - component renders demo content when no data prop is provided",
+          "3.1.1": "Fixed react-leaflet Invalid hook call errors by using React.lazy instead of useEffect dynamic imports"
         }
       },
       "dependencies": [
@@ -1452,9 +1455,10 @@
         "events"
       ],
       "meta": {
-        "version": "1.0.0",
+        "version": "1.0.1",
         "changelog": {
-          "1.0.0": "Extracted shared map utilities and signal badges from event-list and event-detail"
+          "1.0.0": "Extracted shared map utilities and signal badges from event-list and event-detail",
+          "1.0.1": "Replaced useReactLeaflet hook with React.lazy to fix Invalid hook call errors"
         }
       },
       "dependencies": [

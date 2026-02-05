@@ -4,57 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { ChevronDown, MapPin, Maximize2, SlidersHorizontal, X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import { demoMapLocations, demoMapCenter, demoMapZoom } from './demo/map'
-
-// Internal types for react-leaflet component attributes (not exported component props)
-type LeafletMarkerAttrs = {
-  position: [number, number]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon?: any
-  zIndexOffset?: number
-  eventHandlers?: {
-    click?: () => void
-  }
-}
-
-// Lazy-loaded react-leaflet components (React-only, no Next.js dependency)
-// Using any to avoid type mismatches between react-leaflet versions and @types/react
-interface ReactLeafletComponents {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  MapContainer: ComponentType<any>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TileLayer: ComponentType<any>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Marker: ComponentType<any>
-}
-
-/**
- * Hook to lazy load react-leaflet components on client-side only.
- * This avoids SSR issues with Leaflet without requiring Next.js dynamic imports.
- */
-function useReactLeaflet(): ReactLeafletComponents | null {
-  const [components, setComponents] = useState<ReactLeafletComponents | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-    import('react-leaflet').then((mod) => {
-      if (mounted) {
-        setComponents({
-          MapContainer: mod.MapContainer,
-          TileLayer: mod.TileLayer,
-          Marker: mod.Marker,
-        })
-      }
-    })
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  return components
-}
 
 /**
  * Represents a location/hotel to display on the map.
@@ -508,83 +460,97 @@ function MapPlaceholder({ height }: { height?: string }) {
   )
 }
 
-// Inner map component that uses Leaflet hooks
-function MapWithMarkers({
-  locations,
-  selectedIndex,
-  onSelectLocation,
-  MarkerComponent
-}: {
+// Lazy-loaded map component using React.lazy to ensure proper React dispatcher
+// This avoids Invalid hook call errors caused by dynamic import module boundaries
+interface LeafletMapConfig {
+  center: [number, number]
+  zoom: number
+  tileConfig: { url: string; attribution: string }
   locations: Location[]
   selectedIndex: number | null
   onSelectLocation: (location: Location, index: number) => void
-  MarkerComponent: ComponentType<LeafletMarkerAttrs>
-}) {
-  const [L, setL] = useState<typeof import('leaflet') | null>(null)
-
-  useEffect(() => {
-    // Import Leaflet CSS and library on client side
-    import('leaflet').then((leaflet) => {
-      setL(leaflet.default)
-    })
-    // Inject Leaflet CSS with deduplication
-    const LEAFLET_CSS_ID = 'leaflet-css-1.9.4'
-    if (!document.getElementById(LEAFLET_CSS_ID)) {
-      const link = document.createElement('link')
-      link.id = LEAFLET_CSS_ID
-      link.rel = 'stylesheet'
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-      document.head.appendChild(link)
-    }
-  }, [])
-
-  if (!L) return null
-
-  return (
-    <>
-      {locations.map((location, index) => {
-        const isSelected = selectedIndex === index
-        const icon = L.divIcon({
-          className: '',
-          html: `<div style="
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            font-family: system-ui, -apple-system, sans-serif;
-            white-space: nowrap;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
-            z-index: ${isSelected ? '1000' : '1'};
-            ${
-              isSelected
-                ? 'background-color: #18181b; color: white;'
-                : 'background-color: white; color: #18181b;'
-            }
-          ">${location.price !== undefined ? `$${location.price}` : location.name ?? 'Location'}</div>`,
-          iconSize: [60, 24],
-          iconAnchor: [30, 12]
-        })
-
-        return (
-          <MarkerComponent
-            key={index}
-            position={location.coordinates}
-            icon={icon}
-            zIndexOffset={isSelected ? 1000 : 0}
-            eventHandlers={{
-              click: () => onSelectLocation(location, index)
-            }}
-          />
-        )
-      })}
-    </>
-  )
+  style?: React.CSSProperties
 }
+
+const LeafletMap = lazy<ComponentType<LeafletMapConfig>>(async () => {
+  // Guard against SSR - react-leaflet/leaflet require window
+  if (typeof window === 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { default: (() => null) as any }
+  }
+
+  const { MapContainer, TileLayer, Marker } = await import('react-leaflet')
+  const L = (await import('leaflet')).default
+
+  // Inject Leaflet CSS with deduplication
+  const LEAFLET_CSS_ID = 'leaflet-css-1.9.4'
+  if (typeof document !== 'undefined' && !document.getElementById(LEAFLET_CSS_ID)) {
+    const link = document.createElement('link')
+    link.id = LEAFLET_CSS_ID
+    link.rel = 'stylesheet'
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+    document.head.appendChild(link)
+  }
+
+  function LeafletMapComponent(props: LeafletMapConfig) {
+    return (
+      <MapContainer
+        center={props.center}
+        zoom={props.zoom}
+        style={props.style ?? { height: '100%', width: '100%' }}
+        zoomControl={true}
+        scrollWheelZoom={true}
+      >
+        <TileLayer
+          attribution={props.tileConfig.attribution}
+          url={props.tileConfig.url}
+        />
+        {props.locations.map((location, index) => {
+          const isSelected = props.selectedIndex === index
+          const icon = L.divIcon({
+            className: '',
+            html: `<div style="
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              display: inline-block;
+              padding: 4px 8px;
+              border-radius: 8px;
+              font-size: 12px;
+              font-weight: 600;
+              font-family: system-ui, -apple-system, sans-serif;
+              white-space: nowrap;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
+              z-index: ${isSelected ? '1000' : '1'};
+              ${
+                isSelected
+                  ? 'background-color: #18181b; color: white;'
+                  : 'background-color: white; color: #18181b;'
+              }
+            ">${location.price !== undefined ? `$${location.price}` : location.name ?? 'Location'}</div>`,
+            iconSize: [60, 24],
+            iconAnchor: [30, 12]
+          })
+
+          return (
+            <Marker
+              key={index}
+              position={location.coordinates}
+              icon={icon}
+              zIndexOffset={isSelected ? 1000 : 0}
+              eventHandlers={{
+                click: () => props.onSelectLocation(location, index)
+              }}
+            />
+          )
+        })}
+      </MapContainer>
+    )
+  }
+
+  return { default: LeafletMapComponent }
+})
 
 /**
  * Gets the tile configuration for a given map style.
@@ -705,9 +671,6 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
   // Refs for fullscreen scroll functionality
   const listContainerRef = useRef<HTMLDivElement>(null)
   const locationItemRefs = useRef<Map<number, HTMLDivElement>>(new Map())
-
-  // Lazy load react-leaflet components (React-only, no Next.js dependency)
-  const leafletComponents = useReactLeaflet()
 
   // Filter locations based on applied filters using dynamic matchFn
   const filterLocations = useCallback((locationsToFilter: Location[], filtersToApply: FilterState): Location[] => {
@@ -969,28 +932,16 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
 
         {/* Right Panel - Map */}
         <div className="flex flex-1 min-w-0 relative">
-          {leafletComponents ? (
-            <leafletComponents.MapContainer
+          <Suspense fallback={<MapPlaceholder />}>
+            <LeafletMap
               center={center}
               zoom={zoom}
-              style={{ height: '100%', width: '100%' }}
-              zoomControl={true}
-              scrollWheelZoom={true}
-            >
-              <leafletComponents.TileLayer
-                attribution={tileConfig.attribution}
-                url={tileConfig.url}
-              />
-              <MapWithMarkers
-                locations={filteredLocations}
-                selectedIndex={selectedIndex}
-                onSelectLocation={handleMapMarkerClick}
-                MarkerComponent={leafletComponents.Marker}
-              />
-            </leafletComponents.MapContainer>
-          ) : (
-            <MapPlaceholder />
-          )}
+              tileConfig={tileConfig}
+              locations={filteredLocations}
+              selectedIndex={selectedIndex}
+              onSelectLocation={handleMapMarkerClick}
+            />
+          </Suspense>
         </div>
       </div>
     )
@@ -1016,28 +967,16 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
       </div>
 
       {/* Map Section - Full size */}
-      {leafletComponents ? (
-        <leafletComponents.MapContainer
+      <Suspense fallback={<MapPlaceholder height={mapHeight} />}>
+        <LeafletMap
           center={center}
           zoom={zoom}
-          style={{ height: '100%', width: '100%' }}
-          zoomControl={true}
-          scrollWheelZoom={true}
-        >
-          <leafletComponents.TileLayer
-            attribution={tileConfig.attribution}
-            url={tileConfig.url}
-          />
-          <MapWithMarkers
-            locations={locations}
-            selectedIndex={selectedIndex}
-            onSelectLocation={handleSelectLocation}
-            MarkerComponent={leafletComponents.Marker}
-          />
-        </leafletComponents.MapContainer>
-      ) : (
-        <MapPlaceholder height={mapHeight} />
-      )}
+          tileConfig={tileConfig}
+          locations={locations}
+          selectedIndex={selectedIndex}
+          onSelectLocation={handleSelectLocation}
+        />
+      </Suspense>
 
       {/* Carousel Section - Overlay at bottom */}
       <div className="absolute bottom-0 left-0 right-0 z-[1000]">
