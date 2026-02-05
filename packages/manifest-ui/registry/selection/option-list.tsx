@@ -74,15 +74,15 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
   const onSubmit = actions?.onSubmit
   const multiple = appearance?.multiple ?? false
   const selectedOptionIndex = control?.selectedOptionIndex
-  const selectedOptionIndexes = control?.selectedOptionIndexes ?? []
+  const selectedOptionIndexes = control?.selectedOptionIndexes
   const [selected, setSelected] = useState<number | number[]>(
-    multiple ? selectedOptionIndexes : selectedOptionIndex ?? -1
+    multiple ? (selectedOptionIndexes ?? []) : selectedOptionIndex ?? -1
   )
 
   // Sync internal state when controlled props change
   useEffect(() => {
     if (multiple) {
-      setSelected(selectedOptionIndexes)
+      setSelected(selectedOptionIndexes ?? [])
     } else if (selectedOptionIndex !== undefined) {
       setSelected(selectedOptionIndex)
     }

@@ -112,12 +112,12 @@ export function TagSelect({ data, actions, appearance, control }: TagSelectProps
   const showClear = appearance?.showClear ?? true
   const showValidate = appearance?.showValidate ?? true
   const validateLabel = appearance?.validateLabel ?? 'Validate selection'
-  const selectedTagIds = control?.selectedTagIds ?? []
-  const [selected, setSelected] = useState<string[]>(selectedTagIds)
+  const selectedTagIds = control?.selectedTagIds
+  const [selected, setSelected] = useState<string[]>(selectedTagIds ?? [])
 
   // Sync internal state when controlled prop changes
   useEffect(() => {
-    setSelected(selectedTagIds)
+    setSelected(selectedTagIds ?? [])
   }, [selectedTagIds])
 
   const handleToggle = (tagId: string) => {
