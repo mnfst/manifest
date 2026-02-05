@@ -188,7 +188,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
   },
 
   // Miscellaneous components
-  'stats': {
+  'stat-card': {
     component: <Stats data={{ stats: demoStats }} />,
     category: 'miscellaneous',
   },

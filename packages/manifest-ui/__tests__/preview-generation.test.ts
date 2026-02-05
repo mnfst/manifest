@@ -225,7 +225,7 @@ describe('Registry components should have preview configurations', () => {
   const previewComponentNames = getPreviewComponentNames()
 
   // Components that may be difficult to render in isolation
-  const skippedComponents: string[] = ['manifest-types']
+  const skippedComponents: string[] = ['manifest-types', 'event-shared']
 
   for (const item of registry.items) {
     const { name } = item

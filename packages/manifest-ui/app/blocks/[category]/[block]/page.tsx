@@ -2124,10 +2124,10 @@ const categories: Category[] = [
     name: 'Miscellaneous',
     blocks: [
       {
-        id: 'stats',
-        name: 'Stats',
+        id: 'stat-card',
+        name: 'Stat Card',
         description: 'Display statistics and metrics',
-        registryName: 'stats',
+        registryName: 'stat-card',
         layouts: ['inline', 'fullscreen', 'pip'],
         actionCount: 0,
         variants: [

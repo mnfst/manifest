@@ -156,7 +156,7 @@
       "1.1.1": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "1.1.2": "Fixed defensive property access to handle empty objects and null values"
     },
-    "stats": {
+    "stat-card": {
       "1.0.0": "Initial release with scrollable stat cards and trends",
       "1.0.2": "Added comprehensive JSDoc documentation",
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
@@ -387,6 +387,9 @@
       "1.0.3": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
       "2.0.0": "BREAKING: Removed onChangeEmail action and Change email link",
       "2.0.1": "Removed default content data - component only renders explicitly provided data"
+    },
+    "event-shared": {
+      "1.0.0": "Extracted shared map utilities and signal badges from event-list and event-detail"
     },
     "hero": {
       "1.0.0": "Initial release with logos, title, subtitle, CTA buttons, and tech logos footer",

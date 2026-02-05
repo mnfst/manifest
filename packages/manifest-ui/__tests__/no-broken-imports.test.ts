@@ -273,7 +273,8 @@ describe('No Broken Imports in Registry Components', () => {
               // but at install time manifest-types provides components/ui/types.ts.
               const isTypesImport = resolvedFile.endsWith('/types.ts')
               const hasManifestTypesDep = ownerItems.some((oi) =>
-                oi.registryDependencies?.includes('manifest-types')
+                oi.registryDependencies?.includes('manifest-types') ||
+                oi.registryDependencies?.includes('https://ui.manifest.build/r/manifest-types.json')
               )
 
               if (!(isTypesImport && hasManifestTypesDep)) {
