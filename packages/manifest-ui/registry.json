@@ -14,7 +14,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/contact-form.png",
-        "version": "1.2.8",
+        "version": "1.2.9",
         "changelog": {
           "1.0.0": "Initial release with name, phone, email, message and file attachment fields",
           "1.1.0": "Made phone, email, and message fields optional with defaults",
@@ -25,7 +25,8 @@
           "1.2.5": "Fixed defensive property access to handle empty objects and null values",
           "1.2.6": "Removed default content data - component only renders explicitly provided data",
           "1.2.7": "Fixed missing popover dependency for shadcn CLI installation",
-          "1.2.8": "Extracted country data to separate countries.ts file"
+          "1.2.8": "Extracted country data to separate countries.ts file",
+          "1.2.9": "Show demo data when rendered without props"
         }
       },
       "dependencies": [
@@ -47,6 +48,11 @@
           "path": "registry/form/countries.ts",
           "type": "registry:lib",
           "target": "components/ui/countries.ts"
+        },
+        {
+          "path": "registry/form/demo/form.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/form.ts"
         }
       ],
       "category": "form",
@@ -63,7 +69,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/date-time-picker.png",
-        "version": "2.1.0",
+        "version": "2.1.1",
         "changelog": {
           "1.0.0": "Initial release with calendar and time slot selection",
           "1.0.1": "Added aria-labels to navigation buttons for better screen reader accessibility",
@@ -73,7 +79,8 @@
           "2.0.1": "Removed default content data - component only renders explicitly provided data",
           "2.0.2": "Fixed missing popover dependency for shadcn CLI installation",
           "2.0.3": "Replaced hardcoded UTC offsets with IANA timezone identifiers for correct DST handling",
-          "2.1.0": "Added weekStartsOn appearance option to configure first day of the week (Sunday, Monday, or Saturday)"
+          "2.1.0": "Added weekStartsOn appearance option to configure first day of the week (Sunday, Monday, or Saturday)",
+          "2.1.1": "Show demo data when rendered without props"
         }
       },
       "dependencies": [
@@ -88,6 +95,11 @@
           "path": "registry/form/date-time-picker.tsx",
           "type": "registry:block",
           "target": "components/ui/date-time-picker.tsx"
+        },
+        {
+          "path": "registry/form/demo/form.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/form.ts"
         }
       ],
       "category": "form",
@@ -104,14 +116,15 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/issue-report-form.png",
-        "version": "1.0.6",
+        "version": "1.0.7",
         "changelog": {
           "1.0.0": "Initial release with categories, impact levels and file attachments",
           "1.0.1": "Added aria-label to file removal button for screen reader accessibility",
           "1.0.3": "Added comprehensive JSDoc documentation",
           "1.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
           "1.0.5": "Fixed defensive property access to handle empty objects and null values",
-          "1.0.6": "Removed default content data - component only renders explicitly provided data"
+          "1.0.6": "Removed default content data - component only renders explicitly provided data",
+          "1.0.7": "Show demo data when rendered without props"
         }
       },
       "dependencies": [
@@ -128,6 +141,11 @@
           "path": "registry/form/issue-report-form.tsx",
           "type": "registry:block",
           "target": "components/ui/issue-report-form.tsx"
+        },
+        {
+          "path": "registry/form/demo/form.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/form.ts"
         }
       ],
       "category": "form",
@@ -327,7 +345,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/amount-input.png",
-        "version": "2.0.2",
+        "version": "2.0.3",
         "changelog": {
           "1.0.0": "Initial release with increment buttons and preset values",
           "1.0.2": "Added comprehensive JSDoc documentation",
@@ -335,7 +353,8 @@
           "1.0.4": "Fixed defensive property access to handle empty objects and null values",
           "2.0.0": "BREAKING: Removed onChange action. Value changes are now internal.",
           "2.0.1": "Removed default content data - component only renders explicitly provided data",
-          "2.0.2": "Fixed stale controlled state sync and memoized currency symbol computation"
+          "2.0.2": "Fixed stale controlled state sync and memoized currency symbol computation",
+          "2.0.3": "Show demo data when rendered without props"
         }
       },
       "dependencies": [
@@ -349,6 +368,11 @@
           "path": "registry/payment/amount-input.tsx",
           "type": "registry:block",
           "target": "components/ui/amount-input.tsx"
+        },
+        {
+          "path": "registry/payment/demo/payment.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/payment.ts"
         }
       ],
       "category": "payment",
@@ -814,7 +838,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/message-bubble.png",
-        "version": "3.0.5",
+        "version": "3.0.6",
         "changelog": {
           "1.0.0": "Initial release with text, image, voice and reaction variants",
           "1.0.1": "Added better image captions for accessibility",
@@ -825,7 +849,8 @@
           "3.0.1": "Added aria-labels to reaction buttons and voice message controls for accessibility",
           "3.0.3": "Added comprehensive JSDoc documentation",
           "3.0.4": "Updated Props interface with decorative header and sub-parameter JSDoc documentation",
-          "3.0.5": "Removed default content data - component only renders explicitly provided data"
+          "3.0.5": "Removed default content data - component only renders explicitly provided data",
+          "3.0.6": "Show demo data when rendered without props"
         }
       },
       "dependencies": [
@@ -839,6 +864,11 @@
           "path": "registry/messaging/message-bubble.tsx",
           "type": "registry:block",
           "target": "components/ui/message-bubble.tsx"
+        },
+        {
+          "path": "registry/messaging/demo/messaging.ts",
+          "type": "registry:lib",
+          "target": "components/ui/demo/messaging.ts"
         }
       ],
       "category": "messaging",

@@ -12,15 +12,12 @@ import { ReactNode } from 'react';
 import { ContactForm } from '@/registry/form/contact-form';
 import { DateTimePicker } from '@/registry/form/date-time-picker';
 import { IssueReportForm } from '@/registry/form/issue-report-form';
-import { demoDateTimePickerData } from '@/registry/form/demo/form';
-
 // Payment components
 import { AmountInput } from '@/registry/payment/amount-input';
 import { OrderConfirm } from '@/registry/payment/order-confirm';
 import { PaymentConfirmed } from '@/registry/payment/payment-confirmed';
 import {
   demoOrderConfirm,
-  demoAmountPresets,
   demoPaymentConfirmed,
 } from '@/registry/payment/demo/payment';
 
@@ -124,7 +121,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'form',
   },
   'date-time-picker': {
-    component: <DateTimePicker data={demoDateTimePickerData} />,
+    component: <DateTimePicker />,
     category: 'form',
   },
   'issue-report-form': {
@@ -142,7 +139,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
     category: 'payment',
   },
   'amount-input': {
-    component: <AmountInput data={{ presets: demoAmountPresets }} />,
+    component: <AmountInput />,
     category: 'payment',
   },
 

@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { demoTextMessages, demoImageMessages, demoReactionMessage, demoVoiceMessage } from './demo/messaging'
 import { Check, CheckCheck, Smile } from 'lucide-react'
 import { useRef, useState } from 'react'
 
@@ -112,10 +113,11 @@ export function MessageBubble({
   appearance,
   control
 }: MessageBubbleProps) {
-  const content = data?.content
-  const avatarFallback = data?.avatarFallback
-  const avatarUrl = data?.avatarUrl
-  const time = data?.time
+  const resolved: NonNullable<MessageBubbleProps['data']> = data ?? demoTextMessages[0]
+  const content = resolved.content
+  const avatarFallback = resolved.avatarFallback
+  const avatarUrl = resolved.avatarUrl
+  const time = resolved.time
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   return (
@@ -218,11 +220,12 @@ export function ImageMessageBubble({
   appearance,
   control
 }: ImageMessageBubbleProps) {
-  const image = data?.image
-  const content = data?.content
-  const avatarFallback = data?.avatarFallback
-  const avatarUrl = data?.avatarUrl
-  const time = data?.time
+  const resolved: NonNullable<ImageMessageBubbleProps['data']> = data ?? demoImageMessages[0]
+  const image = resolved.image
+  const content = resolved.content
+  const avatarFallback = resolved.avatarFallback
+  const avatarUrl = resolved.avatarUrl
+  const time = resolved.time
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   return (
@@ -358,11 +361,12 @@ export function MessageWithReactions({
   actions,
   appearance
 }: MessageWithReactionsProps) {
-  const content = data?.content
-  const avatarFallback = data?.avatarFallback
-  const avatarUrl = data?.avatarUrl
-  const time = data?.time
-  const initialReactions = data?.reactions ?? []
+  const resolved: NonNullable<MessageWithReactionsProps['data']> = data ?? demoReactionMessage
+  const content = resolved.content
+  const avatarFallback = resolved.avatarFallback
+  const avatarUrl = resolved.avatarUrl
+  const time = resolved.time
+  const initialReactions = resolved.reactions ?? []
   const { onReact } = actions ?? {}
   const { isOwn = false } = appearance ?? {}
   const [reactions, setReactions] = useState(initialReactions)
@@ -564,11 +568,12 @@ export function VoiceMessageBubble({
   appearance,
   control
 }: VoiceMessageBubbleProps) {
-  const duration = data?.duration
-  const avatarFallback = data?.avatarFallback
-  const avatarUrl = data?.avatarUrl
-  const time = data?.time
-  const audioSrc = data?.audioSrc
+  const resolved: NonNullable<VoiceMessageBubbleProps['data']> = data ?? demoVoiceMessage
+  const duration = resolved.duration
+  const avatarFallback = resolved.avatarFallback
+  const avatarUrl = resolved.avatarUrl
+  const time = resolved.time
+  const audioSrc = resolved.audioSrc
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   const [isPlaying, setIsPlaying] = useState(false)

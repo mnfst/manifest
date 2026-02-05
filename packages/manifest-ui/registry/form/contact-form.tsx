@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { ChevronDown, Paperclip, Search, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { countries } from './countries';
+import { demoContactFormData } from './demo/form';
 
 /**
  * Data structure representing the contact form submission.
@@ -103,10 +104,11 @@ export interface ContactFormProps {
  * ```
  */
 export function ContactForm({ data, actions, appearance, control }: ContactFormProps) {
-  const title = data?.title
-  const subtitle = data?.subtitle
-  const submitLabel = data?.submitLabel ?? 'Submit'
-  const initialValues = data?.initialValues
+  const resolved: NonNullable<ContactFormProps['data']> = data ?? demoContactFormData
+  const title = resolved.title
+  const subtitle = resolved.subtitle
+  const submitLabel = resolved.submitLabel ?? 'Submit'
+  const initialValues = resolved.initialValues
   const { onSubmit } = actions ?? {};
   const { showTitle = true } = appearance ?? {};
   const { isLoading = false } = control ?? {};

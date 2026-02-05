@@ -11,6 +11,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { demoIssueReportFormData } from './demo/form'
 import { ChevronDown, ChevronUp, Paperclip, Send, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 
@@ -139,14 +140,15 @@ export function IssueReportForm({
   actions,
   appearance
 }: IssueReportFormProps) {
-  const title = data?.title
-  const teams = data?.teams ?? []
-  const locations = data?.locations ?? []
-  const categories = data?.categories ?? {}
-  const impacts = data?.impacts ?? []
-  const urgencies = data?.urgencies ?? []
-  const frequencies = data?.frequencies ?? []
-  const attemptedActions = data?.attemptedActions ?? []
+  const resolved: NonNullable<IssueReportFormProps['data']> = data ?? demoIssueReportFormData
+  const title = resolved.title
+  const teams = resolved.teams ?? []
+  const locations = resolved.locations ?? []
+  const categories = resolved.categories ?? {}
+  const impacts = resolved.impacts ?? []
+  const urgencies = resolved.urgencies ?? []
+  const frequencies = resolved.frequencies ?? []
+  const attemptedActions = resolved.attemptedActions ?? []
   const { onSubmit } = actions ?? {}
   const { showTitle = true } = appearance ?? {}
 

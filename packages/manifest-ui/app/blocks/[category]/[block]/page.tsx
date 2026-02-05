@@ -12,7 +12,6 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { ContactForm } from '@/registry/form/contact-form';
 import { DateTimePicker } from '@/registry/form/date-time-picker';
 import { IssueReportForm } from '@/registry/form/issue-report-form';
-import { demoDateTimePickerData } from '@/registry/form/demo/form';
 
 // Blogging components
 import { PostCardDemo } from '@/components/blocks/post-card-demo';
@@ -56,7 +55,6 @@ import { OrderConfirm } from '@/registry/payment/order-confirm';
 import { PaymentConfirmed } from '@/registry/payment/payment-confirmed';
 import {
   demoOrderConfirm,
-  demoAmountPresets,
   demoPaymentConfirmed,
 } from '@/registry/payment/demo/payment';
 
@@ -1614,10 +1612,10 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <DateTimePicker data={demoDateTimePickerData} />,
+            component: <DateTimePicker />,
             fullscreenComponent: (
               <div className="max-w-[680px] mx-auto">
-                <DateTimePicker data={demoDateTimePickerData} />
+                <DateTimePicker />
               </div>
             ),
             usageCode: `<DateTimePicker
@@ -2455,10 +2453,10 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <AmountInput data={{ presets: demoAmountPresets }} />,
+            component: <AmountInput />,
             fullscreenComponent: (
               <div className="max-w-[680px] mx-auto">
-                <AmountInput data={{ presets: demoAmountPresets }} />
+                <AmountInput />
               </div>
             ),
             usageCode: `<AmountInput
