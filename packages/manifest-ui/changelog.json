@@ -306,7 +306,8 @@
       "2.0.0": "BREAKING: Removed onExpand and onFiltersApply actions. Expand and filter apply are now internal.",
       "2.0.1": "Removed default content data - component only renders explicitly provided data",
       "2.0.2": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication",
-      "2.0.3": "Fixed Leaflet CSS injection deduplication and hardcoded date display"
+      "2.0.3": "Fixed Leaflet CSS injection deduplication and hardcoded date display",
+      "2.0.4": "Adjusted demo map zoom level to show more of the San Francisco bay area"
     },
     "event-card": {
       "1.0.0": "Initial release with default, compact, horizontal and covered variants. Supports physical, online, and hybrid events with signals and vibe tags.",

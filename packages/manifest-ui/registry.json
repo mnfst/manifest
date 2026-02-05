@@ -1001,7 +1001,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/map-carousel.png",
-        "version": "2.0.3",
+        "version": "2.0.4",
         "changelog": {
           "1.0.0": "Initial release with interactive map and location cards",
           "1.1.0": "Made image and price fields optional in Location interface",
@@ -1015,7 +1015,8 @@
           "2.0.0": "BREAKING: Removed onExpand and onFiltersApply actions. Expand and filter apply are now internal.",
           "2.0.1": "Removed default content data - component only renders explicitly provided data",
           "2.0.2": "Migrated from OpenAI Apps SDK to MCP Apps protocol for host communication",
-          "2.0.3": "Fixed Leaflet CSS injection deduplication and hardcoded date display"
+          "2.0.3": "Fixed Leaflet CSS injection deduplication and hardcoded date display",
+          "2.0.4": "Adjusted demo map zoom level to show more of the San Francisco bay area"
         }
       },
       "dependencies": [
