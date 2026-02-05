@@ -1,11 +1,11 @@
 /**
  * No Default Data Enforcement Test
  *
- * Validates that component files do NOT contain hardcoded default data.
- * Components should only render data explicitly provided by the user.
+ * Validates that component files do NOT contain hardcoded inline default data.
+ * Components may import from demo/data and use as ?? fallback (this is the
+ * intended demo data strategy for shadcn distribution).
  *
  * Rules enforced:
- * A) Components must not import from ./demo/data and use the import as a ?? fallback
  * B) Components must not destructure data props with inline string/object defaults
  * C) Components must not use ?? with string literals for content data props
  *
@@ -80,41 +80,6 @@ describe('No Default Data in Components', () => {
 
   it('should find component files to check', () => {
     expect(componentFiles.length).toBeGreaterThan(0)
-  })
-
-  describe('Rule A: No demo data imports used as ?? fallbacks', () => {
-    for (const absPath of componentFiles) {
-      const relPath = relative(ROOT_PATH, absPath)
-
-      it(`${relPath}`, () => {
-        const content = readFileSync(absPath, 'utf-8')
-
-        const importMatch = content.match(
-          /import\s+\{([^}]+)\}\s+from\s+['"]\.\/demo\/data['"]/
-        )
-        if (!importMatch) return
-
-        const importNames = importMatch[1]
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-
-        const issues: string[] = []
-        for (const name of importNames) {
-          const fallbackPattern = new RegExp(`\\?\\?\\s*${name}\\b`)
-          if (fallbackPattern.test(content)) {
-            issues.push(
-              `Uses "${name}" from demo/data as a ?? fallback. ` +
-                'Demo data should only be used in page.tsx and preview files.'
-            )
-          }
-        }
-
-        if (issues.length > 0) {
-          throw new Error(issues.join('\n'))
-        }
-      })
-    }
   })
 
   describe('Rule B: No inline content defaults in data destructuring', () => {

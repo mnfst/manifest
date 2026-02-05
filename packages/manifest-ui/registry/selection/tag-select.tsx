@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Check, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { demoTags } from './demo/data'
 
 /**
  * Represents an individual tag option.
@@ -106,7 +107,8 @@ const tagClasses = {
  * ```
  */
 export function TagSelect({ data, actions, appearance, control }: TagSelectProps) {
-  const tags = data?.tags ?? []
+  const resolved: NonNullable<TagSelectProps['data']> = data ?? { tags: demoTags }
+  const tags = resolved.tags ?? []
   const onValidate = actions?.onValidate
   const mode = appearance?.mode ?? 'multiple'
   const showClear = appearance?.showClear ?? true

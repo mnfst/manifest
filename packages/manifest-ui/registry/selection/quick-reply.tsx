@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { demoQuickReplies } from './demo/data'
 
 /**
  * Represents a quick reply option.
@@ -62,7 +63,8 @@ export interface QuickReplyProps {
  * ```
  */
 export function QuickReply({ data, actions }: QuickReplyProps) {
-  const replies = data?.replies ?? []
+  const resolved: NonNullable<QuickReplyProps['data']> = data ?? { replies: demoQuickReplies }
+  const replies = resolved.replies ?? []
   const onSelectReply = actions?.onSelectReply
   return (
     <div className="w-full bg-card rounded-lg p-4">

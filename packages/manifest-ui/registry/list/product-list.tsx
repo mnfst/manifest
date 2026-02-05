@@ -10,6 +10,8 @@ import type { Product } from './types'
 // Re-export for backward compatibility
 export type { Product } from './types'
 
+import { demoProducts } from './demo/data'
+
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -795,7 +797,8 @@ function PickerVariant({
  * ```
  */
 export function ProductList({ data, actions, appearance, control }: ProductListProps) {
-  const products = data?.products ?? []
+  const resolved: NonNullable<ProductListProps['data']> = data ?? { products: demoProducts }
+  const products = resolved.products ?? []
   const onSelectProduct = actions?.onSelectProduct
   const onAddToCart = actions?.onAddToCart
   const variant = appearance?.variant ?? 'list'

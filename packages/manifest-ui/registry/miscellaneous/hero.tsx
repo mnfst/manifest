@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { ReactNode } from 'react';
+import { demoHeroDefault } from './demo/data';
 
 /**
  * Represents a logo in the hero section.
@@ -155,15 +156,16 @@ function LogoDisplay({ logo }: { logo: HeroLogo }) {
  * ```
  */
 export function Hero({ data, actions }: HeroProps) {
-  const logo1 = data?.logo1;
-  const logo2 = data?.logo2;
-  const logoSeparator = data?.logoSeparator ?? 'x';
-  const title = data?.title;
-  const subtitle = data?.subtitle;
-  const primaryButton = data?.primaryButton;
-  const secondaryButton = data?.secondaryButton;
-  const techLogosLabel = data?.techLogosLabel;
-  const techLogos = data?.techLogos;
+  const resolved: NonNullable<HeroProps['data']> = data ?? demoHeroDefault;
+  const logo1 = resolved?.logo1;
+  const logo2 = resolved?.logo2;
+  const logoSeparator = resolved?.logoSeparator ?? 'x';
+  const title = resolved?.title;
+  const subtitle = resolved?.subtitle;
+  const primaryButton = resolved?.primaryButton;
+  const secondaryButton = resolved?.secondaryButton;
+  const techLogosLabel = resolved?.techLogosLabel;
+  const techLogos = resolved?.techLogos;
 
   const hasLogo1 = logo1?.url || logo1?.text;
   const hasLogo2 = logo2?.url || logo2?.text;

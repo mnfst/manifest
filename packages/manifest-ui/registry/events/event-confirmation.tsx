@@ -8,6 +8,7 @@ import {
   MessageCircle,
   Twitter
 } from 'lucide-react'
+import { demoEventConfirmation } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -81,13 +82,14 @@ export interface EventConfirmationProps {
  * ```
  */
 export function EventConfirmation({ data, actions }: EventConfirmationProps) {
-  const orderNumber = data?.orderNumber
-  const eventTitle = data?.eventTitle
-  const ticketCount = data?.ticketCount
-  const recipientEmail = data?.recipientEmail
-  const eventDate = data?.eventDate
-  const eventLocation = data?.eventLocation
-  const organizer = data?.organizer
+  const resolved: NonNullable<EventConfirmationProps['data']> = data ?? demoEventConfirmation
+  const orderNumber = resolved?.orderNumber
+  const eventTitle = resolved?.eventTitle
+  const ticketCount = resolved?.ticketCount
+  const recipientEmail = resolved?.recipientEmail
+  const eventDate = resolved?.eventDate
+  const eventLocation = resolved?.eventLocation
+  const organizer = resolved?.organizer
   const { onViewTickets, onFollowOrganizer, onShare } =
     actions ?? {}
 

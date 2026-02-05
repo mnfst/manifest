@@ -9,6 +9,7 @@ import {
   Truck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { demoStatusBadge } from './demo/data'
 
 /**
  * Available status types for the badge.
@@ -132,7 +133,8 @@ const iconSizes = {
  * ```
  */
 export function StatusBadge({ data, appearance }: StatusBadgeProps) {
-  const status = data?.status ?? "pending"
+  const resolved: NonNullable<StatusBadgeProps['data']> = data ?? demoStatusBadge
+  const status = resolved?.status ?? "pending"
   const label = appearance?.label
   const showIcon = appearance?.showIcon ?? true
   const size = appearance?.size ?? "md"

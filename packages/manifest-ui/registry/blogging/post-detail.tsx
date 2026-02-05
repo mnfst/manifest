@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Calendar, Clock, ExternalLink, Maximize2 } from 'lucide-react';
 import { useMemo } from 'react';
 import type { Post } from './types';
+import { demoPostDetailData } from './demo/data';
 
 // DOM-based allowlist HTML sanitizer for post content
 const ALLOWED_TAGS = new Set([
@@ -192,10 +193,11 @@ export interface PostDetailProps {
  * ```
  */
 export function PostDetail({ data, actions, appearance }: PostDetailProps) {
-  const post = data?.post;
-  const rawContent = data?.content;
+  const resolved: NonNullable<PostDetailProps['data']> = data ?? demoPostDetailData;
+  const post = resolved.post;
+  const rawContent = resolved.content;
   const content = useMemo(() => rawContent ? sanitizeHtml(rawContent) : undefined, [rawContent]);
-  const relatedPosts = data?.relatedPosts ?? [];
+  const relatedPosts = resolved.relatedPosts ?? [];
   const onReadMore = actions?.onReadMore;
   const showCover = appearance?.showCover ?? true;
   const showAuthor = appearance?.showAuthor ?? true;

@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
+import { demoProgressSteps } from './demo/data'
 
 /**
  * Represents an individual step in the progress tracker.
@@ -56,7 +57,8 @@ export interface ProgressStepsProps {
  * ```
  */
 export function ProgressSteps({ data }: ProgressStepsProps) {
-  const steps = data?.steps ?? []
+  const resolved: NonNullable<ProgressStepsProps['data']> = data ?? { steps: demoProgressSteps }
+  const steps = resolved.steps ?? []
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 bg-card rounded-lg p-4">
       {steps.map((step, index) => {

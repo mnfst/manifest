@@ -29,6 +29,7 @@ import {
   EventSignalBadge
 } from './shared'
 import type { LeafletMarkerAttrs } from './shared'
+import { demoEventDetails } from './demo/data'
 
 // Format date for display
 function formatEventDateTime(startDateTime: string, endDateTime?: string): string {
@@ -167,7 +168,8 @@ export interface EventDetailProps {
 }
 
 export function EventDetail({ data, actions, appearance }: EventDetailProps) {
-  const event = data?.event
+  const resolved: NonNullable<EventDetailProps['data']> = data ?? { event: demoEventDetails }
+  const event = resolved.event
   const onGetTickets = actions?.onGetTickets
   const onShare = actions?.onShare
   const onSave = actions?.onSave

@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import type { Event } from './types'
 import { EventCard } from './event-card'
+import { demoEvents } from './demo/data'
 import { useReactLeaflet, injectLeafletCSS, MapPlaceholder } from './shared'
 import type { LeafletMarkerAttrs } from './shared'
 
@@ -375,8 +376,9 @@ export interface EventListProps {
  * ```
  */
 export function EventList({ data, actions, appearance }: EventListProps) {
-  const events = data?.events ?? []
-  const title = data?.title
+  const resolved: NonNullable<EventListProps['data']> = data ?? { events: demoEvents }
+  const events = resolved.events ?? []
+  const title = resolved.title
   const onEventSelect = actions?.onEventSelect
   const variant = appearance?.variant ?? 'list'
   const [currentIndex, setCurrentIndex] = useState(0)

@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { ChevronDown, MapPin, Maximize2, SlidersHorizontal, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
+import { demoMapLocations, demoMapCenter, demoMapZoom } from './demo/data'
 
 // Internal types for react-leaflet component attributes (not exported component props)
 type LeafletMarkerAttrs = {
@@ -671,6 +672,7 @@ const getTileConfig = (style: MapStyle) => {
  * ```
  */
 export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
+  const resolvedData: NonNullable<MapCarouselProps['data']> = data ?? { locations: demoMapLocations, center: demoMapCenter, zoom: demoMapZoom }
   const {
     locations = [],
     center = [37.7899, -122.4034], // San Francisco
@@ -678,7 +680,7 @@ export function MapCarousel({ data, actions, appearance }: MapCarouselProps) {
     mapStyle = 'voyager',
     title,
     filters: filterConfigs = []
-  } = data ?? {}
+  } = resolvedData
 
   const tileConfig = getTileConfig(mapStyle)
   const { onSelectLocation } = actions ?? {}

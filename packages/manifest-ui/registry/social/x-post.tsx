@@ -1,6 +1,7 @@
 "use client"
 
 import { Heart, MessageCircle, Repeat2, Share, Bookmark } from "lucide-react"
+import { demoXPost } from './demo/data'
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -66,16 +67,17 @@ export interface XPostProps {
  * ```
  */
 export function XPost({ data }: XPostProps) {
-  const author = data?.author
-  const username = data?.username
-  const avatar = data?.avatar
-  const content = data?.content
-  const time = data?.time
-  const likes = data?.likes
-  const retweets = data?.retweets
-  const replies = data?.replies
-  const views = data?.views
-  const verified = data?.verified
+  const resolved: NonNullable<XPostProps['data']> = data ?? demoXPost
+  const author = resolved?.author
+  const username = resolved?.username
+  const avatar = resolved?.avatar
+  const content = resolved?.content
+  const time = resolved?.time
+  const likes = resolved?.likes
+  const retweets = resolved?.retweets
+  const replies = resolved?.replies
+  const views = resolved?.views
+  const verified = resolved?.verified
 
   if (!author && !content) {
     return null

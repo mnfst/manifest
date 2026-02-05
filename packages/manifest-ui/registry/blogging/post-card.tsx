@@ -7,6 +7,8 @@ import type { Post } from './types'
 // Re-export for backward compatibility
 export type { Post } from './types'
 
+import { demoPost } from './demo/data'
+
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -89,7 +91,8 @@ export interface PostCardProps {
  * ```
  */
 export function PostCard({ data, actions, appearance }: PostCardProps) {
-  const post = data?.post
+  const resolved: NonNullable<PostCardProps['data']> = data ?? { post: demoPost }
+  const post = resolved.post
   if (!post) {
     return null
   }

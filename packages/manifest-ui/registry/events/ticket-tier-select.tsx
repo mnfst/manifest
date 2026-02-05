@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Minus, Plus, Info } from 'lucide-react'
 import { useState } from 'react'
+import { demoTicketTiers } from './demo/data'
 
 /**
  * Formats a currency amount.
@@ -130,8 +131,9 @@ export interface TicketTierSelectProps {
  * ```
  */
 export function TicketTierSelect({ data, actions, appearance, control }: TicketTierSelectProps) {
-  const event = data?.event
-  const tiers = data?.tiers ?? []
+  const resolved: NonNullable<TicketTierSelectProps['data']> = data ?? { tiers: demoTicketTiers }
+  const event = resolved.event
+  const tiers = resolved.tiers ?? []
   const currency = event?.currency ?? 'USD'
   const { onCheckout } = actions ?? {}
   const { showOrderSummary = true } = appearance ?? {}
