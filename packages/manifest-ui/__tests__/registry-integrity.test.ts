@@ -238,6 +238,45 @@ describe('Registry Integrity', () => {
     })
   })
 
+  describe('Registry Dependency URL Handling', () => {
+    it('should not have full-URL registry dependencies that would break /r/ prefix fetch pattern', () => {
+      // This test prevents a regression where full URLs in registryDependencies
+      // (e.g., "https://ui.manifest.build/r/manifest-types.json") would be
+      // incorrectly fetched as "/r/https://ui.manifest.build/r/manifest-types.json.json"
+      // in variant-section.tsx. Either the code must handle full URLs, or deps must
+      // use short names. This test documents which components use full URLs so that
+      // the fetch logic in variant-section.tsx is kept in sync.
+      const componentsWithFullUrlDeps: string[] = []
+
+      for (const item of registry.items) {
+        if (item.registryDependencies) {
+          const fullUrlDeps = item.registryDependencies.filter((dep) => dep.startsWith('http'))
+          if (fullUrlDeps.length > 0) {
+            componentsWithFullUrlDeps.push(item.name)
+          }
+        }
+      }
+
+      // If any components use full URL deps, variant-section.tsx MUST handle them.
+      // This test serves as a reminder: if you see it, check that variant-section.tsx
+      // correctly detects full URLs and does NOT prepend "/r/" or append ".json".
+      if (componentsWithFullUrlDeps.length > 0) {
+        // Read variant-section.tsx and verify it handles full URLs
+        const variantSectionPath = resolve(ROOT_DIR, 'components/blocks/variant-section.tsx')
+        expect(existsSync(variantSectionPath)).toBe(true)
+
+        const variantSectionCode = readFileSync(variantSectionPath, 'utf-8')
+        // The code must contain logic to detect full URLs (startsWith('http'))
+        // before constructing the fetch URL
+        expect(
+          variantSectionCode.includes("startsWith('http')") || variantSectionCode.includes('startsWith("http")'),
+          'variant-section.tsx must handle full URL registry dependencies (check for startsWith("http") before prepending /r/). ' +
+          `Components with full URL deps: ${componentsWithFullUrlDeps.join(', ')}`
+        ).toBe(true)
+      }
+    })
+  })
+
   describe('Category Consistency', () => {
     it('should have categories matching directory structure', () => {
       for (const item of registry.items) {
