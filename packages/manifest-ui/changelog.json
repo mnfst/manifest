@@ -433,7 +433,12 @@
       "2.1.1": "Reduced logo image height for better visual balance",
       "2.1.2": "Removed default content data - component only renders explicitly provided data",
       "2.1.3": "Replaced key={index} with stable content-based keys for tech logos",
-      "2.2.0": "Added demo data defaults - component renders demo content when no data prop is provided"
+      "2.2.0": "Added demo data defaults - component renders demo content when no data prop is provided",
+      "2.2.1": "Fixed import type for verbatimModuleSyntax compatibility"
+    },
+    "manifest-types": {
+      "1.0.0": "Initial shared type definitions for Manifest UI components",
+      "1.0.1": "Added missing OrderItem export for payment components"
     }
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { demoHeroDefault } from './demo/miscellaneous';
 
 /**
