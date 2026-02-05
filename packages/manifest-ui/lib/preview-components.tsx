@@ -50,7 +50,7 @@ import {
 
 // Miscellaneous components
 import { Hero } from '@/registry/miscellaneous/hero';
-import { Stats } from '@/registry/miscellaneous/stat-card';
+import { StatCard } from '@/registry/miscellaneous/stat-card';
 import {
   demoStats,
   demoHeroDefault,
@@ -186,7 +186,7 @@ export const previewComponents: Record<string, PreviewComponentConfig> = {
 
   // Miscellaneous components
   'stat-card': {
-    component: <Stats data={{ stats: demoStats }} />,
+    component: <StatCard data={{ stats: demoStats }} />,
     category: 'miscellaneous',
   },
   'hero': {

@@ -99,7 +99,7 @@ import { demoProgressSteps } from '@/registry/status/demo/status';
 
 // Miscellaneous components
 import { Hero } from '@/registry/miscellaneous/hero';
-import { Stats } from '@/registry/miscellaneous/stat-card';
+import { StatCard } from '@/registry/miscellaneous/stat-card';
 import {
   demoStats,
   demoHeroDefault,
@@ -2132,8 +2132,8 @@ const categories: Category[] = [
           {
             id: 'default',
             name: 'Default',
-            component: <Stats data={{ stats: demoStats }} />,
-            usageCode: `<Stats
+            component: <StatCard data={{ stats: demoStats }} />,
+            usageCode: `<StatCard
   data={{
     stats: [
       { label: "Sales", value: "$12,543", change: 12.5, trend: "up" },

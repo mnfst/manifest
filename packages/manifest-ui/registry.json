@@ -561,7 +561,7 @@
       ],
       "meta": {
         "preview": "https://ui.manifest.build/previews/stat-card.png",
-        "version": "1.1.0",
+        "version": "2.0.0",
         "changelog": {
           "1.0.0": "Initial release with scrollable stat cards and trends",
           "1.0.2": "Added comprehensive JSDoc documentation",
@@ -569,7 +569,8 @@
           "1.0.4": "Fixed defensive property access to handle empty objects and null values",
           "1.0.5": "Additional defensive property access improvements",
           "1.0.6": "Removed default content data - component only renders explicitly provided data",
-          "1.1.0": "Added demo data defaults - component renders demo content when no data prop is provided"
+          "1.1.0": "Added demo data defaults - component renders demo content when no data prop is provided",
+          "2.0.0": "BREAKING: Renamed component export from Stats to StatCard and StatsProps to StatCardProps for naming consistency"
         }
       },
       "dependencies": [

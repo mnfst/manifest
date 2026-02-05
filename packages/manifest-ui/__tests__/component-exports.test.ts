@@ -46,7 +46,6 @@ const NAMING_VARIATIONS: Record<string, string> = {
   'linkedin-post': 'LinkedInPost',
   'youtube-post': 'YouTubePost',
   'x-post': 'XPost',
-  'stat-card': 'Stats',
 }
 
 /**

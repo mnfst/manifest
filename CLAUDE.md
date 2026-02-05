@@ -178,6 +178,28 @@ Always check that staged files do not include:
 - Any `settings.local.json` files
 - Claude settings or command files (unless they are speckit-related)
 
+## Component Naming Convention (CRITICAL)
+
+**All component names MUST be consistent across registry name, display title, and React export.**
+
+The relationship between the three names must follow this deterministic mapping:
+
+| Layer | Format | Example |
+|-------|--------|---------|
+| Registry `name` in `registry.json` | kebab-case | `stat-card` |
+| Display `title` in `registry.json` | Title Case | `Stat Card` |
+| React component export | PascalCase of registry name | `StatCard` |
+| Props interface export | PascalCase + `Props` | `StatCardProps` |
+
+**The React component name MUST be the PascalCase version of the registry `name`.** No abbreviations, no synonyms, no creative alternatives.
+
+**Known exceptions** for brand-specific casing (tracked in `NAMING_VARIATIONS` in tests):
+- `linkedin-post` → `LinkedInPost` (brand casing)
+- `youtube-post` → `YouTubePost` (brand casing)
+- `x-post` → `XPost` (single-letter brand)
+
+When creating a new component, verify: registry name → PascalCase → component export → props interface all align.
+
 ## Block Development Guidelines
 
 **CRITICAL**: When adding or editing a block, you MUST update ALL related code across the codebase.
