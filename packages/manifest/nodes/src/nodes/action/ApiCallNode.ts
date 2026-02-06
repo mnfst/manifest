@@ -146,6 +146,94 @@ async function resolveTemplate(
 }
 
 /**
+ * Determines whether a position in the text is inside a JSON string
+ * (between unescaped double quotes).
+ */
+function isInsideJsonString(text: string, pos: number): boolean {
+  let insideString = false;
+  for (let i = 0; i < pos; i++) {
+    if (text[i] === '"' && (i === 0 || text[i - 1] !== '\\')) {
+      insideString = !insideString;
+    }
+  }
+  return insideString;
+}
+
+/**
+ * Resolves template variables in a JSON body with type preservation.
+ * Bare {{ }} (outside quotes) → JSON.stringify(value) (preserves type).
+ * In-string {{ }} (inside quotes) → String(value) (string interpolation).
+ */
+async function resolveBodyTemplate(
+  body: string,
+  getNodeValue: (nodeId: string) => Promise<unknown>
+): Promise<string> {
+  const templatePattern = /\{\{([^{}]+)\}\}/g;
+  const matches = [...body.matchAll(templatePattern)];
+
+  if (matches.length === 0) return body;
+
+  let result = body;
+
+  // Process in reverse order to preserve indices
+  for (let i = matches.length - 1; i >= 0; i--) {
+    const match = matches[i];
+    const fullMatch = match[0];
+    const path = match[1].trim();
+    const [nodeId, ...pathParts] = path.split('.');
+    const matchStart = match.index!;
+
+    try {
+      let value = await getNodeValue(nodeId);
+
+      for (const part of pathParts) {
+        if (value && typeof value === 'object' && part in value) {
+          value = (value as Record<string, unknown>)[part];
+        } else {
+          value = undefined;
+          break;
+        }
+      }
+
+      const inString = isInsideJsonString(body, matchStart);
+      const replacement = inString
+        ? String(value ?? '')
+        : JSON.stringify(value ?? null);
+
+      result =
+        result.slice(0, matchStart) +
+        replacement +
+        result.slice(matchStart + fullMatch.length);
+    } catch {
+      // If node value not found, leave placeholder as-is
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Checks if a Content-Type header is already set (case-insensitive).
+ * If not and body is non-empty, adds application/json.
+ */
+function addContentTypeIfMissing(
+  headers: Record<string, string>,
+  body: string | undefined
+): Record<string, string> {
+  if (!body?.trim()) return headers;
+
+  const hasContentType = Object.keys(headers).some(
+    (key) => key.toLowerCase() === 'content-type'
+  );
+
+  if (!hasContentType) {
+    return { ...headers, 'Content-Type': 'application/json' };
+  }
+
+  return headers;
+}
+
+/**
  * Converts HeaderEntry array to a Record for fetch API.
  */
 function headersToRecord(headers: HeaderEntry[]): Record<string, string> {
@@ -185,6 +273,7 @@ export const ApiCallNode: NodeTypeDefinition = {
     method: 'GET',
     url: '',
     headers: [],
+    body: '',
     timeout: 30000,
     inputMappings: [],
   } satisfies ApiCallNodeParameters,
@@ -246,6 +335,7 @@ export const ApiCallNode: NodeTypeDefinition = {
     const method = (parameters.method as string) || 'GET';
     const rawUrl = (parameters.url as string) || '';
     const rawHeaders = (parameters.headers as HeaderEntry[]) || [];
+    const rawBody = (parameters.body as string) || '';
     const timeout = (parameters.timeout as number) || 30000;
 
     const startTime = Date.now();
@@ -298,7 +388,14 @@ export const ApiCallNode: NodeTypeDefinition = {
           value: await resolveTemplate(header.value, getNodeValue),
         });
       }
-      const headers = headersToRecord(resolvedHeaders);
+      let headers = headersToRecord(resolvedHeaders);
+
+      // Resolve template variables in body (type-aware)
+      let resolvedBody: string | undefined;
+      if (rawBody.trim()) {
+        resolvedBody = await resolveBodyTemplate(rawBody, getNodeValue);
+        headers = addContentTypeIfMissing(headers, resolvedBody);
+      }
 
       // Setup abort controller for timeout
       const controller = new AbortController();
@@ -309,6 +406,7 @@ export const ApiCallNode: NodeTypeDefinition = {
           method,
           headers,
           signal: controller.signal,
+          body: resolvedBody || undefined,
         });
 
         clearTimeout(timeoutId);

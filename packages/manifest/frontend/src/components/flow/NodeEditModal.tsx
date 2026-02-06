@@ -138,6 +138,7 @@ export function NodeEditModal({
   const [apiMethod, setApiMethod] = useState<HttpMethod>('GET');
   const [apiUrl, setApiUrl] = useState('');
   const [apiHeaders, setApiHeaders] = useState<HeaderEntry[]>([]);
+  const [apiBody, setApiBody] = useState('');
   const [apiTimeout, setApiTimeout] = useState(30000);
   const [apiResolvedOutputSchema, setApiResolvedOutputSchema] = useState<JSONSchema | null>(null);
 
@@ -251,6 +252,7 @@ export function NodeEditModal({
         setApiMethod(params?.method || 'GET');
         setApiUrl(params?.url || '');
         setApiHeaders(params?.headers || []);
+        setApiBody(params?.body || '');
         setApiTimeout(params?.timeout || 30000);
         setApiResolvedOutputSchema(params?.resolvedOutputSchema || null);
         resetApiTest();
@@ -280,6 +282,7 @@ export function NodeEditModal({
       setApiMethod('GET');
       setApiUrl('');
       setApiHeaders([]);
+      setApiBody('');
       setApiTimeout(30000);
       setApiResolvedOutputSchema(null);
       setTransformCode(DEFAULT_TRANSFORM_CODE);
@@ -320,6 +323,7 @@ export function NodeEditModal({
         method: apiMethod,
         url: apiUrl,
         headers: apiHeaders,
+        body: apiBody,
         timeout: apiTimeout,
         inputMappings: [],
         resolvedOutputSchema: finalApiOutputSchema,
@@ -979,6 +983,26 @@ export function NodeEditModal({
                   )}
                 </div>
 
+                {/* Request Body editor - only for methods that support bodies */}
+                {apiMethod !== 'GET' && (
+                  <div>
+                    <Label className="block text-sm font-medium text-gray-700 mb-1">
+                      Request Body (JSON)
+                    </Label>
+                    <JSONEditor
+                      value={apiBody}
+                      onChange={setApiBody}
+                      placeholder={'{\n  "key": "value"\n}'}
+                      height="200px"
+                      disabled={isLoading}
+                      relaxedLinting
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Use {'{{ nodeSlug.path }}'} for dynamic values. Bare variables preserve their type (number, boolean, etc.).
+                    </p>
+                  </div>
+                )}
+
                 {/* Timeout input */}
                 <div>
                   <Label htmlFor="api-timeout" className="block text-sm font-medium text-gray-700 mb-1">
@@ -1107,7 +1131,7 @@ export function NodeEditModal({
 
                 {/* Template References Display - shows input requirements from {{ }} variables */}
                 <TemplateReferencesDisplay
-                  values={[apiUrl, ...apiHeaders.map(h => h.value)]}
+                  values={[apiUrl, ...apiHeaders.map(h => h.value), apiBody]}
                   upstreamNodes={upstreamNodes}
                   isConnected={upstreamNodes.length > 0}
                 />

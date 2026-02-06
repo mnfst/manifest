@@ -76,6 +76,8 @@ export interface ApiCallNodeParameters {
   url: string;
   /** HTTP headers as key-value pairs */
   headers: HeaderEntry[];
+  /** Raw JSON request body (may contain {{}} template variables). Only sent for POST/PUT/PATCH/DELETE. */
+  body?: string;
   /** Request timeout in milliseconds (default: 30000) */
   timeout: number;
   /** Mappings from upstream node outputs (for dynamic values) */

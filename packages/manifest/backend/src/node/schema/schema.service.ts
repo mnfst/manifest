@@ -31,7 +31,7 @@ import {
   type TestApiCallRequest,
   type TestApiCallResponse,
 } from '@manifest/shared';
-import { resolveTemplateVariables } from './utils/template-resolver.utils';
+import { resolveTemplateVariables, resolveBodyTemplateVariables } from './utils/template-resolver.utils';
 import { parseAndValidateUrl } from './utils/url-validator.utils';
 
 /**
@@ -233,6 +233,7 @@ export class SchemaService {
     const method = params.method || 'GET';
     const rawUrl = params.url || '';
     const rawHeaders = (params.headers as HeaderEntry[]) || [];
+    const rawBody = params.body || '';
     const timeout = params.timeout || 30000;
 
     // Validate URL
@@ -260,8 +261,17 @@ export class SchemaService {
       }
     }
 
+    // Resolve template variables in body (type-aware)
+    let resolvedBody: string | undefined;
+    const bodyUnresolvedVars: string[] = [];
+    if (rawBody.trim()) {
+      const bodyResult = resolveBodyTemplateVariables(rawBody, request.mockValues);
+      resolvedBody = bodyResult.resolved;
+      bodyUnresolvedVars.push(...bodyResult.unresolvedVars);
+    }
+
     // Check for unresolved variables
-    const allUnresolvedVars = [...urlVars, ...headerUnresolvedVars];
+    const allUnresolvedVars = [...urlVars, ...headerUnresolvedVars, ...bodyUnresolvedVars];
     if (allUnresolvedVars.length > 0) {
       const uniqueVars = [...new Set(allUnresolvedVars)];
       return {
@@ -296,6 +306,11 @@ export class SchemaService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+      // Auto-set Content-Type if body present and not already set
+      if (resolvedBody && !Object.keys(resolvedHeaders).some(k => k.toLowerCase() === 'content-type')) {
+        resolvedHeaders['Content-Type'] = 'application/json';
+      }
+
       // Execute the HTTP request using the validated URL
       // SECURITY-REVIEWED: SSRF protection is implemented via parseAndValidateUrl()
       // which validates and blocks: localhost, private IPs (10.x, 172.16-31.x, 192.168.x),
@@ -306,6 +321,7 @@ export class SchemaService {
         method,
         headers: resolvedHeaders,
         signal: controller.signal,
+        body: resolvedBody || undefined,
       });
 
       clearTimeout(timeoutId);
