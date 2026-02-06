@@ -3,6 +3,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { json, jsonParseLinter } from '@codemirror/lang-json';
 import { linter } from '@codemirror/lint';
 import { EditorView } from '@codemirror/view';
+import { createRelaxedJsonLinter } from '@/lib/relaxed-json-linter';
 
 interface JSONEditorProps {
   /** The JSON value as a string */
@@ -15,6 +16,8 @@ interface JSONEditorProps {
   height?: string;
   /** Whether the editor is disabled */
   disabled?: boolean;
+  /** Use relaxed linting that tolerates {{ }} template variables (default: false) */
+  relaxedLinting?: boolean;
 }
 
 /**
@@ -62,6 +65,7 @@ export function JSONEditor({
   placeholder = '{"example": "data"}',
   height = '150px',
   disabled = false,
+  relaxedLinting = false,
 }: JSONEditorProps) {
   const handleChange = useCallback(
     (newValue: string) => {
@@ -77,9 +81,9 @@ export function JSONEditor({
     () => [
       json(),
       customTheme,
-      linter(jsonParseLinter()),
+      linter(relaxedLinting ? createRelaxedJsonLinter() : jsonParseLinter()),
     ],
-    []
+    [relaxedLinting]
   );
 
   return (
