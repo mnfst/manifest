@@ -15,7 +15,6 @@ import { resolve, relative, dirname, basename } from 'path'
 import { describe, it, expect } from 'vitest'
 
 const ROOT_PATH = resolve(__dirname, '..')
-const REGISTRY_PATH = resolve(ROOT_PATH, 'registry')
 
 interface RegistryFile {
   path: string

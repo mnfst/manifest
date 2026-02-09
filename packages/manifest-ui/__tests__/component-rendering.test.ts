@@ -12,7 +12,7 @@
  */
 
 import { readFileSync, existsSync } from 'fs'
-import { resolve, relative } from 'path'
+import { resolve } from 'path'
 import { describe, it, expect } from 'vitest'
 
 const ROOT_PATH = resolve(__dirname, '..')

@@ -40,22 +40,6 @@ const blockItems: RegistryItem[] = registryJson.items.filter(
 )
 
 /**
- * Known naming variations where components use different casing
- */
-const NAMING_VARIATIONS: Record<string, string> = {
-  'linkedin-post': 'LinkedInPost',
-  'youtube-post': 'YouTubePost',
-  'x-post': 'XPost',
-}
-
-function kebabToPascal(str: string): string {
-  return str
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('')
-}
-
-/**
  * Extract the top-level props categories from a component interface
  * Returns the categories like: data, actions, appearance, control
  */

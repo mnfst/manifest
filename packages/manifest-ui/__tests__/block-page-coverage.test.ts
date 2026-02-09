@@ -266,8 +266,6 @@ describe('Block Variant Completeness', () => {
    * they roughly match the number of variants.
    */
   it('should have usageCode for most variants', () => {
-    const variantCount = (pageContent.match(/\bid:\s*['"][^'"]+['"]/g) || [])
-      .length
     const usageCodeCount = (pageContent.match(/usageCode:\s*`/g) || []).length
 
     // Every variant block (id within a variants array) should have usageCode
