@@ -6,8 +6,6 @@ import ReactMarkdown from 'react-markdown';
 import { api } from '../../lib/api';
 import { useApiKey } from '../../hooks/useApiKey';
 import type { ChatMessage, ModelOption, ToolCall, ToolResult, ThemeVariables } from '@manifest/shared';
-import { ThemeProvider } from '../editor/ThemeProvider';
-import { Stats } from '../ui/stats';
 import { BACKEND_URL } from '../../lib/api';
 import { Button } from '@/components/ui/shadcn/button';
 import { Alert, AlertDescription } from '@/components/ui/shadcn/alert';
@@ -27,7 +25,7 @@ interface PreviewChatProps {
  * Displays a chat interface with model selection and tool calling support
  * Messages are managed externally to persist across tab switches
  */
-export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables }: PreviewChatProps) {
+export function PreviewChat({ flowId, messages, onMessagesChange }: PreviewChatProps) {
   const { apiKey, hasApiKey } = useApiKey();
   const [inputValue, setInputValue] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -259,7 +257,7 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
         )}
 
         {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} themeVariables={themeVariables} />
+          <MessageBubble key={message.id} message={message} />
         ))}
 
         {error && (
@@ -305,18 +303,15 @@ export function PreviewChat({ flowId, messages, onMessagesChange, themeVariables
 /**
  * Individual message bubble component
  */
-function MessageBubble({ message, themeVariables }: { message: ChatMessage; themeVariables?: ThemeVariables }) {
+function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user';
   const isTool = message.role === 'tool';
 
   if (isTool && message.toolResult) {
-    // Check if we have structured content with stats to render visually
-    const hasVisualContent = Boolean(message.toolResult.structuredContent?.stats);
-
     // Check if we have a custom widget template (RegistryComponent)
-    const meta = message.toolResult._meta as Record<string, unknown> | undefined;
-    const outputTemplate = meta?.['openai/outputTemplate'] as string | undefined;
-    const hasWidgetTemplate = Boolean(outputTemplate && outputTemplate.startsWith('ui://widget/'));
+    const meta = message.toolResult._meta as { ui?: { resourceUri?: string } } | undefined;
+    const resourceUri = meta?.ui?.resourceUri;
+    const hasWidgetTemplate = Boolean(resourceUri?.startsWith('ui://'));
 
     return (
       <div className="flex justify-start">
@@ -332,19 +327,8 @@ function MessageBubble({ message, themeVariables }: { message: ChatMessage; them
           </div>
           <div className="space-y-2">
             {/* Custom widget output via iframe */}
-            {hasWidgetTemplate && outputTemplate && (
-              <WidgetIframe
-                outputTemplate={outputTemplate}
-                structuredContent={message.toolResult.structuredContent}
-              />
-            )}
-            {/* Visual output for stat cards */}
-            {hasVisualContent && themeVariables && !hasWidgetTemplate && (
-              <div className="rounded-lg overflow-hidden border">
-                <ThemeProvider themeVariables={themeVariables}>
-                  <Stats data={message.toolResult.structuredContent} />
-                </ThemeProvider>
-              </div>
+            {hasWidgetTemplate && resourceUri && (
+              <WidgetIframe resourceUri={resourceUri} />
             )}
             {/* Text response */}
             {message.toolResult.content && !hasWidgetTemplate && (
@@ -361,15 +345,6 @@ function MessageBubble({ message, themeVariables }: { message: ChatMessage; them
                 <div className="text-xs text-muted-foreground mb-1">Error:</div>
                 <pre className="whitespace-pre-wrap text-xs bg-background p-3 rounded border overflow-x-auto max-h-64 overflow-y-auto text-red-600">
                   {message.toolResult.error}
-                </pre>
-              </div>
-            )}
-            {/* Structured content as JSON (only if no visual rendering or no theme) */}
-            {message.toolResult.structuredContent && Object.keys(message.toolResult.structuredContent).length > 0 && (!hasVisualContent || !themeVariables) && !hasWidgetTemplate && (
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Structured Content:</div>
-                <pre className="whitespace-pre-wrap text-xs bg-background p-3 rounded border overflow-x-auto max-h-40 overflow-y-auto">
-                  {JSON.stringify(message.toolResult.structuredContent, null, 2)}
                 </pre>
               </div>
             )}
@@ -478,30 +453,23 @@ function MessageBubble({ message, themeVariables }: { message: ChatMessage; them
  * Widget iframe component for rendering custom widget HTML
  * Fetches the widget HTML from the MCP server and renders it in an iframe
  */
-function WidgetIframe({
-  outputTemplate,
-  structuredContent,
-}: {
-  outputTemplate: string;
-  structuredContent?: Record<string, unknown>;
-}) {
+function WidgetIframe({ resourceUri }: { resourceUri: string }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [widgetHtml, setWidgetHtml] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Parse the outputTemplate URI to get the MCP resource path
+  // Parse the resourceUri to get the MCP resource path
   // Format: ui://widget/{appSlug}/{toolName}/{nodeId}.html
   useEffect(() => {
-    const match = outputTemplate.match(/^ui:\/\/widget\/([^/]+)\/(.+)$/);
+    const match = resourceUri.match(/^ui:\/\/widget\/([^/]+)\/(.+)$/);
     if (!match) {
-      setError('Invalid widget template URI');
+      setError('Invalid widget resource URI');
       setLoading(false);
       return;
     }
 
     const appSlug = match[1];
-    // resourcePath is match[2] but we use the full outputTemplate URI for the request
 
     // Fetch the widget HTML via MCP resources/read
     const fetchWidget = async () => {
@@ -513,7 +481,7 @@ function WidgetIframe({
             jsonrpc: '2.0',
             id: Date.now(),
             method: 'resources/read',
-            params: { uri: outputTemplate },
+            params: { uri: resourceUri },
           }),
         });
 
@@ -539,24 +507,7 @@ function WidgetIframe({
     };
 
     fetchWidget();
-  }, [outputTemplate]);
-
-  // Send data to iframe when it loads
-  useEffect(() => {
-    if (widgetHtml && iframeRef.current && structuredContent) {
-      const sendData = () => {
-        iframeRef.current?.contentWindow?.postMessage(
-          { structuredContent },
-          '*'
-        );
-      };
-
-      // Send immediately and after a short delay (for slow-loading iframes)
-      sendData();
-      const timer = setTimeout(sendData, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [widgetHtml, structuredContent]);
+  }, [resourceUri]);
 
   if (loading) {
     return (
@@ -587,15 +538,6 @@ function WidgetIframe({
         className="w-full border-0"
         style={{ minHeight: '200px', height: 'auto' }}
         sandbox="allow-scripts allow-same-origin"
-        onLoad={() => {
-          // Send data to iframe after it loads
-          if (iframeRef.current && structuredContent) {
-            iframeRef.current.contentWindow?.postMessage(
-              { structuredContent },
-              '*'
-            );
-          }
-        }}
       />
     </div>
   );

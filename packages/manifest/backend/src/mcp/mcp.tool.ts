@@ -15,7 +15,7 @@ export { McpInactiveToolError } from './errors/mcp-inactive-tool.error';
 
 /**
  * Service for handling MCP tool calls for published apps
- * Implements ChatGPT Apps SDK response format
+ * Implements MCP Apps protocol response format
  * Each flow in an app becomes an MCP tool
  *
  * Node architecture:
@@ -193,12 +193,12 @@ export class McpToolService {
 
   /**
    * Execute an MCP tool call for a published app's flow
-   * Returns ChatGPT Apps SDK formatted response
+   * Returns MCP Apps protocol formatted response
    *
    * Finds the trigger node by toolName and executes nodes reachable from it:
    * - Only nodes connected to the specific trigger are executed
    * - Execution follows topological order based on connections
-   * - Interface nodes: return structuredContent + widget metadata
+   * - RegistryComponent nodes: return text content + ui resourceUri metadata
    * - Return nodes: return text content array for LLM processing
    * - CallFlow nodes: trigger target flow
    *
@@ -326,7 +326,6 @@ export class McpToolService {
           // If this is the last node, use its output as result
           result = {
             content: [{ type: 'text', text: JSON.stringify(apiResult.output, null, 2) }],
-            structuredContent: apiResult.output,
           };
         } else if (node.type === 'Return') {
           const params = node.parameters as ReturnNodeParameters;
@@ -340,8 +339,9 @@ export class McpToolService {
           };
         } else if (node.type === 'CallFlow') {
           result = await this.executeCallFlowNode(app, toolName, trigger.name, node);
-          nodeOutputs.set(node.id, result.structuredContent);
-          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, result.structuredContent, 'completed'));
+          const callFlowOutput = result._meta ?? {};
+          nodeOutputs.set(node.id, callFlowOutput);
+          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, callFlowOutput, 'completed'));
         } else if (node.type === 'JavaScriptCodeTransform') {
           // Execute JavaScript transform node
           const transformResult = await this.executeTransformNode(flow.id, node, nodeOutputs, allNodes, connections);
@@ -363,15 +363,14 @@ export class McpToolService {
             // Transform nodes pass through - result will be set by downstream terminal node
             result = {
               content: [{ type: 'text', text: JSON.stringify(transformResult.output, null, 2) }],
-              structuredContent: transformResult.output,
             };
           }
         } else if (node.type === 'RegistryComponent') {
           // Execute RegistryComponent node - return widget with component UI
           result = this.executeRegistryComponentFlow(app, toolName, trigger.name, node, nodeInputData);
-          const structuredContent = result.structuredContent || {};
-          nodeOutputs.set(node.id, structuredContent);
-          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, structuredContent, 'completed'));
+          const componentOutput = result._meta ?? {};
+          nodeOutputs.set(node.id, componentOutput);
+          nodeExecutions.push(this.createNodeExecution(node, nodeInputData, componentOutput, 'completed'));
         }
       }
 
@@ -473,15 +472,9 @@ export class McpToolService {
     }
 
     return {
-      structuredContent: {
-        action: 'callFlow',
-        targetToolName,
-        targetFlowName: targetFlow.name,
-      },
       content: [{ type: 'text', text: `Triggering ${targetFlow.name}...` }],
       _meta: {
-        'openai/outputTemplate': `ui://widget/${app.slug}/${triggerToolName}-callflow.html`,
-        'openai/widgetPrefersBorder': false,
+        ui: { resourceUri: `ui://widget/${app.slug}/${triggerToolName}-callflow.html` },
         flowName: triggerName,
         toolName: triggerToolName,
         targetToolName,
@@ -630,20 +623,20 @@ export class McpToolService {
     // Extract available actions from the component parameters
     const availableActions = (params.actions || []).map(a => a.name);
 
+    const componentData = {
+      ...input,
+      nodeId: registryNode.id,
+      actions: availableActions,
+      registryName: params.registryName,
+      title: params.title,
+    };
+
     const responseText = `Here is the ${params.title || registryNode.name} component:`;
 
     return {
-      structuredContent: {
-        ...input,
-        nodeId: registryNode.id,
-        actions: availableActions,
-        registryName: params.registryName,
-        title: params.title,
-      },
-      content: [{ type: 'text', text: responseText }],
+      content: [{ type: 'text', text: responseText }, { type: 'text', text: JSON.stringify(componentData) }],
       _meta: {
-        'openai/outputTemplate': `ui://widget/${app.slug}/${triggerToolName}/${registryNode.id}.html`,
-        'openai/widgetPrefersBorder': true,
+        ui: { resourceUri: `ui://widget/${app.slug}/${triggerToolName}/${registryNode.id}.html` },
         flowName: triggerName,
         toolName: triggerToolName,
         nodeId: registryNode.id,
@@ -853,7 +846,6 @@ export class McpToolService {
           ));
           result = {
             content: [{ type: 'text', text: JSON.stringify(apiResult.output, null, 2) }],
-            structuredContent: apiResult.output,
           };
         } else if (node.type === 'JavaScriptCodeTransform') {
           const transformResult = await this.executeTransformNode(flow.id, node, nodeOutputs, allNodes, connections);
@@ -872,7 +864,6 @@ export class McpToolService {
           } else {
             result = {
               content: [{ type: 'text', text: JSON.stringify(transformResult.output, null, 2) }],
-              structuredContent: transformResult.output,
             };
           }
         } else if (node.type === 'Link') {
@@ -902,7 +893,6 @@ export class McpToolService {
             nodeExecutions.push(this.createNodeExecution(node, nodeInputData, linkOutput, 'completed'));
             result = {
               content: [{ type: 'text', text: `Opening: ${normalizedHref}` }],
-              structuredContent: linkOutput,
             };
           }
         }
@@ -958,13 +948,11 @@ export class McpToolService {
       where: { appId: app.id, isActive: true },
     });
 
-    const tools: { name: string; description: string; inputSchema: object; _meta?: object }[] = [];
+    const tools: { name: string; description: string; inputSchema: object }[] = [];
 
     for (const flow of flows) {
       const nodes = flow.nodes ?? [];
       const triggerNodes = nodes.filter(n => n.type === 'UserIntent');
-      const hasCallFlow = nodes.some(n => n.type === 'CallFlow');
-      const registryComponents = nodes.filter(n => n.type === 'RegistryComponent');
 
       for (const triggerNode of triggerNodes) {
         const params = triggerNode.parameters as UserIntentNodeParameters;
@@ -982,29 +970,11 @@ export class McpToolService {
         // Build input schema from trigger parameters
         const inputSchema = this.buildInputSchema(params);
 
-        const toolDef: { name: string; description: string; inputSchema: object; _meta?: object } = {
+        tools.push({
           name: params.toolName,
           description: parts.join(''),
           inputSchema,
-        };
-
-        if (hasCallFlow) {
-          toolDef._meta = {
-            'openai/outputTemplate': `ui://widget/${appSlug}/${params.toolName}-callflow.html`,
-            'openai/toolInvocation/invoking': `Triggering ${triggerNode.name}...`,
-            'openai/toolInvocation/invoked': `Triggered ${triggerNode.name}`,
-          };
-        } else if (registryComponents.length > 0) {
-          // Use the first RegistryComponent for the tool definition
-          const firstRegistry = registryComponents[0];
-          toolDef._meta = {
-            'openai/outputTemplate': `ui://widget/${appSlug}/${params.toolName}/${firstRegistry.id}.html`,
-            'openai/toolInvocation/invoking': `Loading ${triggerNode.name}...`,
-            'openai/toolInvocation/invoked': `Loaded ${triggerNode.name}`,
-          };
-        }
-
-        tools.push(toolDef);
+        });
       }
     }
 
@@ -1125,7 +1095,7 @@ export class McpToolService {
             uri: `ui://widget/${appSlug}/${toolName}-callflow.html`,
             name: `${triggerNode.name} Call Flow Widget`,
             description: `Call flow trigger widget for ${toolName}`,
-            mimeType: 'text/html+skybridge',
+            mimeType: 'text/html;profile=mcp-app',
           });
         }
 
@@ -1136,7 +1106,7 @@ export class McpToolService {
             uri: `ui://widget/${appSlug}/${toolName}/${registryNode.id}.html`,
             name: `${regParams.title || registryNode.name} Widget`,
             description: `Custom component widget: ${regParams.description || regParams.title}`,
-            mimeType: 'text/html+skybridge',
+            mimeType: 'text/html;profile=mcp-app',
           });
         }
       }
@@ -1184,7 +1154,7 @@ export class McpToolService {
       const params = registryNode.parameters as RegistryNodeParameters;
       const widgetHtml = this.generateRegistryComponentWidgetHtml(registryNode.name, params, app.themeVariables, app.slug, toolName);
 
-      return { uri, mimeType: 'text/html+skybridge', text: widgetHtml };
+      return { uri, mimeType: 'text/html;profile=mcp-app', text: widgetHtml };
     }
 
     if (callFlowMatch && callFlowMatch[1] === appSlug) {
@@ -1227,7 +1197,7 @@ export class McpToolService {
       }
 
       const widgetHtml = this.generateCallFlowWidgetHtml(trigger.name, targetToolName, targetFlowName, app.themeVariables);
-      return { uri, mimeType: 'text/html+skybridge', text: widgetHtml };
+      return { uri, mimeType: 'text/html;profile=mcp-app', text: widgetHtml };
     }
 
     throw new NotFoundException(`Invalid resource URI: ${uri}`);
@@ -1255,6 +1225,7 @@ export class McpToolService {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${safeFlowName} - Call Flow</title>
+  <script type="module" src="https://unpkg.com/@modelcontextprotocol/ext-apps@1/dist/browser/index.js"></script>
   <style>
     :root {
       ${cssVariables}
@@ -1270,18 +1241,19 @@ export class McpToolService {
 </head>
 <body>
   <div class="status"><div class="spinner"></div><span>Triggering ${safeTargetFlowName}...</span></div>
-  <script>
-    (function() {
-      var triggered = false;
-      function triggerFlow() {
-        if (triggered) return; triggered = true;
-        if (window.openai && window.openai.callTool) {
-          window.openai.callTool('${safeTargetToolName}', { message: 'Triggered from call flow' });
-        }
-      }
-      window.addEventListener('openai:set_globals', triggerFlow);
-      if (document.readyState === 'complete') triggerFlow(); else window.addEventListener('DOMContentLoaded', triggerFlow);
-    })();
+  <script type="module">
+    import { App } from 'https://unpkg.com/@modelcontextprotocol/ext-apps@1/dist/browser/index.js';
+
+    const app = new App({ name: 'ManifestCallFlow', version: '1.0.0' });
+    let triggered = false;
+
+    app.ontoolresult = () => {
+      if (triggered) return;
+      triggered = true;
+      app.callServerTool({ name: '${safeTargetToolName}', arguments: { message: 'Triggered from call flow' } });
+    };
+
+    app.connect();
   </script>
 </body>
 </html>`;
@@ -1417,6 +1389,7 @@ export class McpToolService {
       var appSlug = '${appSlug}';
       var toolName = '${toolName}';
       var actionNames = ${actionNames};
+      var mcpApp = null;
 
       // cn utility function (clsx-like)
       function cn() {
@@ -1452,18 +1425,27 @@ export class McpToolService {
         }, props.children);
       }
 
-      // Create action callback handlers
+      // Create action callback handlers using MCP Apps callServerTool
       function createActionHandler(actionName) {
         return function(data) {
           console.log('Action triggered:', actionName, data);
-          if (window.parent && window.parent !== window) {
+          var actionData = Object.assign({}, toolData, data || {});
+
+          // Use MCP Apps callServerTool if available
+          if (mcpApp && mcpApp.callServerTool) {
+            mcpApp.callServerTool({
+              name: toolName + '__action__' + actionName,
+              arguments: { data: actionData }
+            });
+          } else if (window.parent && window.parent !== window) {
+            // Fallback for preview iframe context
             window.parent.postMessage({
               type: 'mcp-action',
               appSlug: appSlug,
               toolName: toolName,
               nodeId: nodeId,
               action: actionName,
-              data: Object.assign({}, toolData, data || {})
+              data: actionData
             }, '*');
           }
         };
@@ -1537,15 +1519,6 @@ export class McpToolService {
       // Get component code
       var componentCode = ${escapedCode};
 
-      function unwrap(d) {
-        return (d && d.structuredContent) ? d.structuredContent : d;
-      }
-
-      function getToolData() {
-        if (!window.openai) return null;
-        return window.openai.toolOutput || window.openai.structuredContent || null;
-      }
-
       function renderComponent(data) {
         toolData = data || {};
         nodeId = data?.nodeId || nodeId;
@@ -1553,31 +1526,54 @@ export class McpToolService {
         compileAndRender(componentCode, data);
       }
 
-      function initWidget() {
-        var data = getToolData();
-        if (data) renderComponent(unwrap(data));
-        else compileAndRender(componentCode, {});
+      // Try to initialize MCP Apps connection
+      function initMcpApp() {
+        if (typeof McpApps !== 'undefined' && McpApps.App) {
+          mcpApp = new McpApps.App({ name: 'ManifestComponent', version: '1.0.0' });
+
+          mcpApp.ontoolresult = function(result) {
+            // Parse component data from the text content
+            var content = result.content;
+            if (content && Array.isArray(content)) {
+              for (var i = 0; i < content.length; i++) {
+                if (content[i].type === 'text') {
+                  try {
+                    var parsed = JSON.parse(content[i].text);
+                    if (parsed && (parsed.nodeId || parsed.registryName)) {
+                      renderComponent(parsed);
+                      return;
+                    }
+                  } catch (e) { /* not JSON, skip */ }
+                }
+              }
+            }
+            // Fallback: render with empty data
+            compileAndRender(componentCode, {});
+          };
+
+          mcpApp.connect();
+        }
       }
 
-      window.addEventListener('openai:set_globals', function(e) {
-        if (!e.detail) return;
-        var output = e.detail.toolOutput || e.detail.structuredContent ||
-                     (e.detail.globals && e.detail.globals.toolOutput);
-        if (output) renderComponent(unwrap(output));
-      });
-
+      // Listen for postMessage from preview iframe context
       window.addEventListener('message', function(e) {
         if (!e.data) return;
-        var d = e.data.structuredContent || e.data;
+        var d = e.data;
         if (d && (d.nodeId || d.registryName)) renderComponent(d);
       });
 
       // Wait for scripts to load then init
       if (document.readyState === 'complete') {
-        setTimeout(initWidget, 100);
+        setTimeout(function() {
+          initMcpApp();
+          if (!mcpApp) compileAndRender(componentCode, {});
+        }, 100);
       } else {
         window.addEventListener('load', function() {
-          setTimeout(initWidget, 100);
+          setTimeout(function() {
+            initMcpApp();
+            if (!mcpApp) compileAndRender(componentCode, {});
+          }, 100);
         });
       }
     })();

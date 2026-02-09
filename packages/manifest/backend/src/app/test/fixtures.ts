@@ -128,7 +128,6 @@ export function createMockPublishResult(
   const app = createMockApp({ status: 'published' });
   return {
     endpointUrl: `/servers/${app.slug}/mcp`,
-    uiUrl: `/servers/${app.slug}/ui`,
     app,
     ...overrides,
   };

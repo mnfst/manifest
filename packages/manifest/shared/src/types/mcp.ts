@@ -1,35 +1,29 @@
 import type { App } from './app.js';
 
 /**
- * MCP tool response following ChatGPT Apps SDK format
- * @see https://developers.openai.com/apps-sdk/quickstart
+ * MCP tool response following MCP Apps protocol format
+ * @see https://modelcontextprotocol.io/docs/extensions/apps
  */
 export interface McpToolResponse {
   /**
-   * Text content to display in ChatGPT conversation
+   * Text content to display in the AI conversation
    */
-  content?: Array<{ type: 'text'; text: string }>;
+  content: Array<{ type: 'text'; text: string }>;
 
   /**
-   * Structured data to pass to the UI component
-   * Optional for return value flows and call flow flows that don't display UI
+   * Whether the tool call resulted in an error
    */
-  structuredContent?: Record<string, unknown>;
+  isError?: boolean;
 
   /**
-   * Metadata for ChatGPT Apps SDK
+   * Metadata for MCP Apps protocol
    * Optional for return value flows that don't display UI
    */
   _meta?: {
     /**
-     * URL to the UI component that ChatGPT renders in an iframe
-     * Format: ui://widget/{mcpSlug}.html
+     * UI resource reference for rendering an app widget
      */
-    'openai/outputTemplate'?: string;
-    /**
-     * Whether to show border around widget
-     */
-    'openai/widgetPrefersBorder'?: boolean;
+    ui?: { resourceUri?: string };
     /**
      * Additional metadata fields
      */
@@ -46,12 +40,6 @@ export interface PublishResult {
    * Format: /servers/{mcpSlug}/mcp
    */
   endpointUrl: string;
-
-  /**
-   * UI component URL for ChatGPT Apps SDK
-   * Format: /servers/{mcpSlug}/ui/{layoutTemplate}.html
-   */
-  uiUrl: string;
 
   /**
    * The published app with updated status

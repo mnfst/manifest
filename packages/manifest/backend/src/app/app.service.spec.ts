@@ -361,7 +361,6 @@ describe('AppService', () => {
 
       expect(result.app.status).toBe('published');
       expect(result.endpointUrl).toBe('/servers/my-app/mcp');
-      expect(result.uiUrl).toBe('/servers/my-app/ui');
     });
 
     it('should throw BadRequestException when app has no flows', async () => {

@@ -194,7 +194,6 @@ export class AppService {
 
     return {
       endpointUrl: `/servers/${app.slug}/mcp`,
-      uiUrl: `/servers/${app.slug}/ui`,
       app,
     };
   }

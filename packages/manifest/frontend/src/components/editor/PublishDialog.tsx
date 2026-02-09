@@ -72,14 +72,6 @@ export function PublishDialog({ result, error, onClose }: PublishDialogProps) {
                 </code>
               </div>
 
-              <div className="bg-muted rounded-lg p-3">
-                <p className="text-xs font-medium text-muted-foreground mb-1">
-                  UI Component URL
-                </p>
-                <code className="text-sm font-mono block break-all">
-                  {window.location.origin}{result.uiUrl}
-                </code>
-              </div>
             </div>
 
             <div className="text-xs text-muted-foreground">

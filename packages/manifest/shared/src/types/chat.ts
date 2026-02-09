@@ -24,10 +24,11 @@ export interface ToolResult {
   name: string;
   /** Text content returned by tool */
   content: string;
-  /** Structured content (for UI rendering) */
-  structuredContent?: Record<string, unknown>;
-  /** MCP metadata including widget template URI */
-  _meta?: Record<string, unknown>;
+  /** MCP metadata including UI resource URI */
+  _meta?: {
+    ui?: { resourceUri?: string };
+    [key: string]: unknown;
+  };
   /** Whether execution succeeded */
   success: boolean;
   /** Error message if execution failed */

@@ -220,7 +220,7 @@ export interface JavaScriptCodeTransformParameters {
 
 /**
  * Parameters for a Link node.
- * Opens an external URL using ChatGPT's openExternal API.
+ * Opens an external URL in the user's browser.
  */
 export interface LinkNodeParameters {
   /** URL to open. Supports template variables like {{nodeSlug.path}} for dynamic URLs */
