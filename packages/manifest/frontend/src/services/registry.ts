@@ -305,7 +305,7 @@ function extractAppearanceOptions(propsBody: string): RegistryAppearanceOption[]
   if (!appearanceBody) return options;
 
   // Match each property with optional JSDoc: /** ... */ propertyName?: type
-  const propertyRegex = /(\/\*\*[\s\S]*?\*\/\s*)?(\w+)\??\s*:\s*(boolean|string|number|'[^']+(?:'\s*\|\s*'[^']+')*|\d+(?:\s*\|\s*\d+)*)/g;
+  const propertyRegex = /(\/\*\*[\s\S]*?\*\/\s*)?(\w+)\??\s*:\s*(boolean|string|number|'[^']+'(?:\s*\|\s*'[^']+')*|\d+(?:\s*\|\s*\d+)*)/g;
   let match;
 
   while ((match = propertyRegex.exec(appearanceBody)) !== null) {

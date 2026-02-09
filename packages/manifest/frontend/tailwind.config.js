@@ -1,7 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class', 'class'],
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+    // Include registry component source files so their Tailwind classes
+    // are present when components are compiled at runtime via Sucrase
+    '../../manifest-ui/registry/**/*.{ts,tsx}',
+  ],
   theme: {
   	extend: {
   		fontFamily: {
