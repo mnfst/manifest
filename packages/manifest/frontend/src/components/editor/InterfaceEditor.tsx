@@ -6,9 +6,7 @@
  * Enables live preview updates when adjusting appearance or demo data.
  */
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import React from 'react';
 import { X, Save, Code, Eye, Palette, Database } from 'lucide-react';
-import { transform } from 'sucrase';
 import { CodeEditor } from './CodeEditor';
 import { ComponentPreview } from './ComponentPreview';
 import { AppearanceTab } from './AppearanceTab';
@@ -73,68 +71,6 @@ function getLayoutTemplate(componentType: string): 'stat-card' | 'post-list' | '
 }
 
 /**
- * Extract demo data from siblingFiles by compiling the demo/data file with Sucrase.
- * Transforms export names from "demoX" to "x" to match component data prop format.
- * Returns the data object formatted for the component's data prop.
- */
-function extractDemoDataFromFiles(
-  siblingFiles?: Array<{ path: string; content: string }>
-): Record<string, unknown> | null {
-  if (!siblingFiles) return null;
-
-  // Find the demo/data file
-  const demoFile = siblingFiles.find(f => f.path.includes('/demo/'));
-  if (!demoFile) return null;
-
-  try {
-    // Strip Next.js directives
-    const processedCode = demoFile.content
-      .replace(/['"]use client['"]\s*;?/g, '')
-      .replace(/['"]use server['"]\s*;?/g, '');
-
-    // Transform with Sucrase
-    const result = transform(processedCode, {
-      transforms: ['jsx', 'typescript', 'imports'],
-      jsxRuntime: 'classic',
-      jsxPragma: 'React.createElement',
-      jsxFragmentPragma: 'React.Fragment',
-    });
-
-    // Create module wrapper
-    const moduleCode = `
-      var exports = {};
-      var module = { exports: exports };
-      ${result.code}
-      return exports;
-    `;
-
-    // Simple mock require that returns empty objects for any import
-    const mockRequire = () => ({});
-    const factory = new Function('React', 'require', moduleCode);
-    const exports = factory(React, mockRequire) as Record<string, unknown>;
-
-    // Transform exports: "demoProducts" -> "products", "demoPost" -> "post"
-    // This matches the component's data prop format
-    const dataExports: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(exports)) {
-      if (value && typeof value === 'object') {
-        // Remove "demo" prefix and lowercase first char to match prop name
-        let propKey = key;
-        if (key.startsWith('demo') && key.length > 4) {
-          propKey = key.charAt(4).toLowerCase() + key.slice(5);
-        }
-        dataExports[propKey] = value;
-      }
-    }
-
-    return Object.keys(dataExports).length > 0 ? dataExports : null;
-  } catch (err) {
-    console.warn('Failed to extract demo data:', err);
-    return null;
-  }
-}
-
-/**
  * Full-screen editor for customizing UI node configuration.
  * Split-panel layout: Preview/Code (75%) | Appearance/Demo Data (25%)
  */
@@ -179,14 +115,11 @@ export function InterfaceEditor({
 
   // Calculate initial demo data
   const initialDemoData = useMemo(() => {
-    // Registry components have siblingFiles with demo data - extract it
+    // Registry components import their own demo data and handle fallback
+    // via the `data ?? demoData` pattern in their source code.
+    // Pass undefined so the component's built-in fallback kicks in.
     if (siblingFiles && siblingFiles.length > 0) {
-      const extractedData = extractDemoDataFromFiles(siblingFiles);
-      if (extractedData) {
-        return extractedData;
-      }
-      // Fallback to empty object if extraction fails
-      return {};
+      return undefined;
     }
 
     // Built-in templates use predefined sample data
