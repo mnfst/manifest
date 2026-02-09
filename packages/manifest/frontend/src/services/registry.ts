@@ -107,7 +107,7 @@ async function fetchDemoData(category: string): Promise<string | null> {
     return cached.content;
   }
 
-  const url = `${GITHUB_RAW_BASE}/registry/${category}/demo/data.ts`;
+  const url = `${GITHUB_RAW_BASE}/registry/${category}/demo/${category}.ts`;
   try {
     const response = await fetch(url);
     if (!response.ok) return null;
@@ -132,7 +132,8 @@ export async function fetchRegistry(): Promise<RegistryItem[]> {
   }
 
   const data: RegistryResponse = await response.json();
-  return data.items;
+  // Filter out library/utility entries (e.g., manifest-types) that aren't user-facing components
+  return data.items.filter(item => item.type === 'registry:block');
 }
 
 /**
@@ -157,7 +158,7 @@ export async function fetchComponentDetail(name: string): Promise<ComponentDetai
       detail.files = [
         ...(detail.files || []),
         {
-          path: `registry/${category}/demo/data.ts`,
+          path: `registry/${category}/demo/${category}.ts`,
           type: 'registry:demo',
           content: demoDataContent,
         },

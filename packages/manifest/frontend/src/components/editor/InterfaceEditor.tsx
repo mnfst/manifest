@@ -6,9 +6,7 @@
  * Enables live preview updates when adjusting appearance or demo data.
  */
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import React from 'react';
 import { X, Save, Code, Eye, Palette, Database } from 'lucide-react';
-import { transform } from 'sucrase';
 import { CodeEditor } from './CodeEditor';
 import { ComponentPreview } from './ComponentPreview';
 import { AppearanceTab } from './AppearanceTab';
@@ -34,6 +32,7 @@ import {
 } from '@manifest/shared';
 import { validateCode } from '../../lib/codeValidator';
 import { parseAppearanceOptions } from '../../services/registry';
+import { extractComponentDemoData } from './extractComponentDemoData';
 import type { ValidationError } from '@manifest/shared';
 
 export interface InterfaceEditorProps {
@@ -69,68 +68,6 @@ function getLayoutTemplate(componentType: string): 'stat-card' | 'post-list' | '
     case 'RegistryComponent':
     default:
       return 'stat-card';
-  }
-}
-
-/**
- * Extract demo data from siblingFiles by compiling the demo/data file with Sucrase.
- * Transforms export names from "demoX" to "x" to match component data prop format.
- * Returns the data object formatted for the component's data prop.
- */
-function extractDemoDataFromFiles(
-  siblingFiles?: Array<{ path: string; content: string }>
-): Record<string, unknown> | null {
-  if (!siblingFiles) return null;
-
-  // Find the demo/data file
-  const demoFile = siblingFiles.find(f => f.path.includes('/demo/data'));
-  if (!demoFile) return null;
-
-  try {
-    // Strip Next.js directives
-    const processedCode = demoFile.content
-      .replace(/['"]use client['"]\s*;?/g, '')
-      .replace(/['"]use server['"]\s*;?/g, '');
-
-    // Transform with Sucrase
-    const result = transform(processedCode, {
-      transforms: ['jsx', 'typescript', 'imports'],
-      jsxRuntime: 'classic',
-      jsxPragma: 'React.createElement',
-      jsxFragmentPragma: 'React.Fragment',
-    });
-
-    // Create module wrapper
-    const moduleCode = `
-      var exports = {};
-      var module = { exports: exports };
-      ${result.code}
-      return exports;
-    `;
-
-    // Simple mock require that returns empty objects for any import
-    const mockRequire = () => ({});
-    const factory = new Function('React', 'require', moduleCode);
-    const exports = factory(React, mockRequire) as Record<string, unknown>;
-
-    // Transform exports: "demoProducts" -> "products", "demoPost" -> "post"
-    // This matches the component's data prop format
-    const dataExports: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(exports)) {
-      if (value && typeof value === 'object') {
-        // Remove "demo" prefix and lowercase first char to match prop name
-        let propKey = key;
-        if (key.startsWith('demo') && key.length > 4) {
-          propKey = key.charAt(4).toLowerCase() + key.slice(5);
-        }
-        dataExports[propKey] = value;
-      }
-    }
-
-    return Object.keys(dataExports).length > 0 ? dataExports : null;
-  } catch (err) {
-    console.warn('Failed to extract demo data:', err);
-    return null;
   }
 }
 
@@ -179,14 +116,10 @@ export function InterfaceEditor({
 
   // Calculate initial demo data
   const initialDemoData = useMemo(() => {
-    // Registry components have siblingFiles with demo data - extract it
-    if (siblingFiles && siblingFiles.length > 0) {
-      const extractedData = extractDemoDataFromFiles(siblingFiles);
-      if (extractedData) {
-        return extractedData;
-      }
-      // Fallback to empty object if extraction fails
-      return {};
+    // Registry components: extract the component-specific demo data
+    // by evaluating the component's `data ?? <expr>` fallback expression
+    if (files && files.length > 1) {
+      return extractComponentDemoData(files);
     }
 
     // Built-in templates use predefined sample data
@@ -196,7 +129,7 @@ export function InterfaceEditor({
     };
     const template = templateMap[componentType] || 'stat-card';
     return getTemplateSampleData(template as 'stat-card' | 'post-list');
-  }, [componentType, siblingFiles]);
+  }, [componentType, files]);
 
   // Editor state - unified for all tabs
   const [name, setName] = useState(initialNodeName);
