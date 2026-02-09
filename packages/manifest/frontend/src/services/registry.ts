@@ -132,7 +132,8 @@ export async function fetchRegistry(): Promise<RegistryItem[]> {
   }
 
   const data: RegistryResponse = await response.json();
-  return data.items;
+  // Filter out library/utility entries (e.g., manifest-types) that aren't user-facing components
+  return data.items.filter(item => item.type === 'registry:block');
 }
 
 /**
