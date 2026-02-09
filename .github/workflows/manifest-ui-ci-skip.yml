@@ -14,6 +14,8 @@
 
 name: Manifest UI CI
 
+permissions: {}
+
 on:
   pull_request:
     branches: [main]
