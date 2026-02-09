@@ -83,7 +83,7 @@ function extractDemoDataFromFiles(
   if (!siblingFiles) return null;
 
   // Find the demo/data file
-  const demoFile = siblingFiles.find(f => f.path.includes('/demo/data'));
+  const demoFile = siblingFiles.find(f => f.path.includes('/demo/'));
   if (!demoFile) return null;
 
   try {

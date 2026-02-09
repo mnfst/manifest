@@ -107,7 +107,7 @@ async function fetchDemoData(category: string): Promise<string | null> {
     return cached.content;
   }
 
-  const url = `${GITHUB_RAW_BASE}/registry/${category}/demo/data.ts`;
+  const url = `${GITHUB_RAW_BASE}/registry/${category}/demo/${category}.ts`;
   try {
     const response = await fetch(url);
     if (!response.ok) return null;
@@ -157,7 +157,7 @@ export async function fetchComponentDetail(name: string): Promise<ComponentDetai
       detail.files = [
         ...(detail.files || []),
         {
-          path: `registry/${category}/demo/data.ts`,
+          path: `registry/${category}/demo/${category}.ts`,
           type: 'registry:demo',
           content: demoDataContent,
         },
