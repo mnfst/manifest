@@ -256,6 +256,16 @@ export function UsePreviousOutputs({
       <p className="text-xs text-blue-600">
         Paste this reference in URL or text fields to use the output value.
       </p>
+
+      {/* Secrets hint */}
+      <div className="border-t border-blue-200 pt-3 mt-1">
+        <p className="text-xs text-blue-700">
+          You can also use secrets from your app settings:{' '}
+          <code className="px-1.5 py-0.5 bg-blue-100 rounded font-mono text-xs">
+            {'{{ secrets.YOUR_KEY }}'}
+          </code>
+        </p>
+      </div>
     </div>
   );
 }

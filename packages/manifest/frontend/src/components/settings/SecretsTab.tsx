@@ -116,7 +116,29 @@ export function SecretsTab({ appId }: SecretsTabProps) {
       <div>
         <h2 className="text-lg font-semibold">Secret Variables</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Manage environment variables and API keys for this app. These values are securely stored and available during flow execution.
+          Manage environment variables and API keys for this app. These values are encrypted and securely stored.
+        </p>
+      </div>
+
+      {/* Usage Guide */}
+      <div className="border border-border rounded-lg p-4 bg-muted/30 space-y-3">
+        <h3 className="text-sm font-medium">How to use secrets in your flows</h3>
+        <p className="text-sm text-muted-foreground">
+          Reference any secret in your flow nodes using the template syntax:
+        </p>
+        <code className="block px-3 py-2 bg-background border border-border rounded-md text-sm font-mono">
+          {'{{ secrets.YOUR_SECRET_KEY }}'}
+        </code>
+        <div className="text-sm text-muted-foreground space-y-1">
+          <p>Works in any text or URL field that supports template variables, such as:</p>
+          <ul className="list-disc list-inside ml-1 space-y-0.5">
+            <li>API Call headers, URLs, and request bodies</li>
+            <li>Return node text</li>
+            <li>Link node URLs</li>
+          </ul>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Secrets are decrypted at runtime and never exposed in logs or execution history.
         </p>
       </div>
 
