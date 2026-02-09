@@ -87,7 +87,7 @@ jobs:
           echo "Changeset check passed!"
 
   test:
-    name: test
+    name: lint & test
     runs-on: ubuntu-latest
     needs: changeset-check
     if: always() && (needs.changeset-check.result == 'success' || needs.changeset-check.result == 'skipped')
