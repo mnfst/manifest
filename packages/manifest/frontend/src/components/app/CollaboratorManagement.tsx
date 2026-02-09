@@ -237,6 +237,7 @@ export function CollaboratorManagement({ appId }: CollaboratorManagementProps) {
             value={newRole}
             onValueChange={(value) => setNewRole(value as AppRole)}
             options={[{ value: 'admin', label: 'Admin' }]}
+            className="w-auto"
           />
           <Button
             type="submit"
