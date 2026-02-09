@@ -71,7 +71,7 @@ async function resolveTemplate(
 /**
  * Link Node
  *
- * Opens an external URL in the user's browser using ChatGPT's openExternal API.
+ * Opens an external URL in the user's browser.
  * This is a terminal node - it terminates the flow successfully.
  *
  * CONSTRAINT: Can only be placed after UI category nodes.

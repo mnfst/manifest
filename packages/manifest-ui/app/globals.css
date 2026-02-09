@@ -4,8 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * OpenAI ChatGPT Apps SDK UI Guidelines Compliance
- * ================================================
+ * MCP Apps UI Guidelines Compliance
+ * ==================================
  * - System fonts: SF Pro (iOS) / Roboto (Android) via system-ui
  * - Neutral grayscale palette for system elements
  * - WCAG AA contrast ratios maintained
@@ -16,7 +16,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  /* System font stack for ChatGPT consistency */
+  /* System font stack for MCP Apps consistency */
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -49,7 +49,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  /* ChatGPT-aligned border radius: consistent 8px default */
+  /* Consistent 8px default border radius */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: var(--radius);
@@ -57,7 +57,7 @@
 }
 
 :root {
-  /* ChatGPT uses 8px (0.5rem) as default card radius */
+  /* Default card radius: 8px (0.5rem) */
   --radius: 0.5rem;
   /* Light mode - neutral grayscale palette */
   --background: oklch(0.985 0 0);
@@ -179,7 +179,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* System font for ChatGPT consistency */
+    /* System font for MCP Apps consistency */
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     /* Prevent text size adjustment on orientation change */
     -webkit-text-size-adjust: 100%;
@@ -359,12 +359,12 @@
 }
 
 @layer components {
-  /* ChatGPT-style card shadow - subtle and minimal */
+  /* Card shadow - subtle and minimal */
   .shadow-block {
     box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   }
 
-  /* Utility class to prevent nested scrolling (ChatGPT guideline) */
+  /* Utility class to prevent nested scrolling */
   .no-nested-scroll {
     overflow: visible;
     max-height: none;

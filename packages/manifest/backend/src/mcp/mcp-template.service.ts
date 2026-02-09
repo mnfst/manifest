@@ -72,7 +72,7 @@ export class McpTemplateService {
 
     return template
       .replace(/\{\{appName\}\}/g, app.name)
-      .replace(/\{\{appDescription\}\}/g, app.description || 'A ChatGPT App Builder MCP Server')
+      .replace(/\{\{appDescription\}\}/g, app.description || 'An MCP Server powered by Manifest')
       .replace(/\{\{mcpUrl\}\}/g, escapeHtml(mcpUrl))
       .replace(/\{\{toolsList\}\}/g, toolsListHtml)
       .replace(/\{\{themeVariables\}\}/g, cssVariables);

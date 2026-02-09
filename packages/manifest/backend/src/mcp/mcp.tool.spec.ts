@@ -295,7 +295,7 @@ describe('McpToolService', () => {
       });
     });
 
-    it('should add _meta for flows with RegistryComponent nodes', async () => {
+    it('should return tools for flows with RegistryComponent nodes', async () => {
       const mockApp = createMockAppEntity({ id: 'app-1', slug: 'my-app' });
       mockAppRepository.findOne!.mockResolvedValue(mockApp);
 
@@ -304,8 +304,8 @@ describe('McpToolService', () => {
 
       const result = await service.listTools('my-app');
 
-      expect(result[0]._meta).toBeDefined();
-      expect(result[0]._meta?.['openai/outputTemplate']).toBe('ui://widget/my-app/ui_tool/registry-1.html');
+      expect(result[0].name).toBe('ui_tool');
+      expect(result[0].inputSchema).toBeDefined();
     });
   });
 
@@ -447,7 +447,7 @@ describe('McpToolService', () => {
       expect(result.content).toBeDefined();
     });
 
-    it('should execute RegistryComponent node and return structuredContent', async () => {
+    it('should execute RegistryComponent node and return UI metadata', async () => {
       const mockApp = createMockAppEntity({ slug: 'test-app' });
       mockAppRepository.findOne!.mockResolvedValue(mockApp);
 
@@ -456,9 +456,8 @@ describe('McpToolService', () => {
 
       const result = await service.executeTool('test-app', 'ui_tool', { message: 'get ui' });
 
-      expect(result.structuredContent).toBeDefined();
       expect(result._meta).toBeDefined();
-      expect(result._meta?.['openai/outputTemplate']).toContain('ui_tool');
+      expect(result._meta?.ui?.resourceUri).toContain('ui_tool');
     });
 
     it('should record error in execution when flow fails', async () => {
@@ -1039,7 +1038,7 @@ describe('McpToolService', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].uri).toBe('ui://widget/my-app/ui_tool/registry-1.html');
-      expect(result[0].mimeType).toBe('text/html+skybridge');
+      expect(result[0].mimeType).toBe('text/html;profile=mcp-app');
     });
 
     it('should skip inactive triggers', async () => {
@@ -1125,7 +1124,7 @@ describe('McpToolService', () => {
       );
 
       expect(result.uri).toBe('ui://widget/test-app/ui_tool/registry-1.html');
-      expect(result.mimeType).toBe('text/html+skybridge');
+      expect(result.mimeType).toBe('text/html;profile=mcp-app');
       expect(result.text).toContain('<!DOCTYPE html>');
     });
 

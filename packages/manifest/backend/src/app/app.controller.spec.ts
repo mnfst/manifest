@@ -271,7 +271,6 @@ describe('AppController', () => {
       const result = await controller.publishAppById('publish-id');
 
       expect(result.endpointUrl).toBeDefined();
-      expect(result.uiUrl).toBeDefined();
       expect(result.app.status).toBe('published');
       expect(mockAppService.publish).toHaveBeenCalledWith('publish-id');
     });

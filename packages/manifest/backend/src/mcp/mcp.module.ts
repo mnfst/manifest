@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { McpToolService } from './mcp.tool';
-import { McpJsonRpcService } from './mcp-jsonrpc.service';
+import { McpServerFactory } from './mcp-server.factory';
 import { McpTemplateService } from './mcp-template.service';
 import { McpController } from './mcp.controller';
 import { AppEntity } from '../app/app.entity';
@@ -16,9 +16,8 @@ import { SecretModule } from '../secret/secret.module';
  * Exposes published apps as MCP tools that can be invoked by AI assistants
  * Each flow in an app becomes an MCP tool
  *
- * Updated to use new unified node architecture:
- * - Flow.nodes JSON column contains Interface, Return, and CallFlow nodes
- * - Flow.connections JSON column contains node connections
+ * Uses @modelcontextprotocol/sdk for protocol handling and
+ * @modelcontextprotocol/ext-apps for UI widget support
  */
 @Module({
   imports: [
@@ -28,7 +27,7 @@ import { SecretModule } from '../secret/secret.module';
     SecretModule,
   ],
   controllers: [McpController],
-  providers: [McpToolService, McpJsonRpcService, McpTemplateService, AppService],
+  providers: [McpToolService, McpServerFactory, McpTemplateService, AppService],
   exports: [McpToolService],
 })
 export class McpModule {}

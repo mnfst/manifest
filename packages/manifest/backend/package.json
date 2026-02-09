@@ -18,6 +18,8 @@
   "dependencies": {
     "@manifest/nodes": "workspace:*",
     "@manifest/shared": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "@modelcontextprotocol/ext-apps": "^1.0.1",
     "@langchain/core": "^0.3.26",
     "@langchain/openai": "^0.3.17",
     "@nestjs/common": "^10.4.15",
