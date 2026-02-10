@@ -8,43 +8,42 @@ import {
   MessageCircle,
   Twitter
 } from 'lucide-react'
+import { demoEventConfirmation } from './demo/events'
 
 /**
- * Props for the EventConfirmation component.
- * @interface EventConfirmationProps
- * @property {object} [data] - Confirmation data
- * @property {string} [data.orderNumber] - Order/confirmation number
- * @property {string} [data.eventTitle] - Event title
- * @property {number} [data.ticketCount] - Number of tickets purchased
- * @property {string} [data.recipientEmail] - Email where tickets were sent
- * @property {string} [data.eventDate] - Event date and time string
- * @property {string} [data.eventLocation] - Event location
- * @property {object} [data.organizer] - Event organizer info
- * @property {string} [data.organizer.name] - Organizer name
- * @property {string} [data.organizer.image] - Organizer image URL
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onViewTickets] - Called when view tickets is clicked
- * @property {function} [actions.onChangeEmail] - Called when change email is clicked
- * @property {function} [actions.onFollowOrganizer] - Called when follow is clicked
- * @property {function} [actions.onShare] - Called when a share button is clicked
+ * ═══════════════════════════════════════════════════════════════════════════
+ * EventConfirmationProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the EventConfirmation component. Displays booking success message,
+ * ticket delivery info, organizer follow card, and social sharing options.
  */
 export interface EventConfirmationProps {
   data?: {
+    /** Order/confirmation number. */
     orderNumber?: string
+    /** Event title. */
     eventTitle?: string
+    /** Number of tickets purchased. */
     ticketCount?: number
+    /** Email address where tickets were sent. */
     recipientEmail?: string
+    /** Event date and time string. */
     eventDate?: string
+    /** Event location. */
     eventLocation?: string
+    /** Event organizer information. */
     organizer?: {
       name: string
       image?: string
     }
   }
   actions?: {
+    /** Called when "Take me to my tickets" button is clicked. */
     onViewTickets?: () => void
-    onChangeEmail?: () => void
+    /** Called when "Follow" organizer button is clicked. */
     onFollowOrganizer?: () => void
+    /** Called when a social share button is clicked. */
     onShare?: (platform: 'facebook' | 'twitter' | 'messenger' | 'email') => void
   }
 }
@@ -83,19 +82,15 @@ export interface EventConfirmationProps {
  * ```
  */
 export function EventConfirmation({ data, actions }: EventConfirmationProps) {
-  const {
-    orderNumber = '#14040333743',
-    eventTitle = "Cavity Free SF Children's Oral Health Strategic Plan Launch",
-    ticketCount = 1,
-    recipientEmail = 'user@example.com',
-    eventDate = 'Thursday, February 19 · 9am - 12pm PST',
-    eventLocation = 'San Francisco, CA',
-    organizer = {
-      name: 'CavityFree SF',
-      image: undefined
-    }
-  } = data ?? {}
-  const { onViewTickets, onChangeEmail, onFollowOrganizer, onShare } =
+  const resolved: NonNullable<EventConfirmationProps['data']> = data ?? demoEventConfirmation
+  const orderNumber = resolved?.orderNumber
+  const eventTitle = resolved?.eventTitle
+  const ticketCount = resolved?.ticketCount
+  const recipientEmail = resolved?.recipientEmail
+  const eventDate = resolved?.eventDate
+  const eventLocation = resolved?.eventLocation
+  const organizer = resolved?.organizer
+  const { onViewTickets, onFollowOrganizer, onShare } =
     actions ?? {}
 
   return (
@@ -108,7 +103,7 @@ export function EventConfirmation({ data, actions }: EventConfirmationProps) {
           </div>
           <div>
             <h1 className="text-xl font-semibold">Thanks for your order!</h1>
-            <p className="text-sm text-muted-foreground">{orderNumber}</p>
+            {orderNumber && <p className="text-sm text-muted-foreground">{orderNumber}</p>}
           </div>
         </div>
         <Button onClick={onViewTickets} size="lg">
@@ -121,40 +116,38 @@ export function EventConfirmation({ data, actions }: EventConfirmationProps) {
         <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-2">
           You're going to
         </p>
-        <h2 className="text-2xl font-bold leading-tight mb-6">{eventTitle}</h2>
+        {eventTitle && <h2 className="text-2xl font-bold leading-tight mb-6">{eventTitle}</h2>}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {/* Ticket sent to */}
-          <div>
-            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
-              {ticketCount} Ticket sent to
-            </p>
-            <p className="text-sm">{recipientEmail}</p>
-            {onChangeEmail && (
-              <button
-                onClick={onChangeEmail}
-                className="text-sm text-primary hover:underline"
-              >
-                Change
-              </button>
-            )}
-          </div>
+          {recipientEmail && (
+            <div>
+              <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
+                {ticketCount ?? 1} Ticket sent to
+              </p>
+              <p className="text-sm">{recipientEmail}</p>
+            </div>
+          )}
 
           {/* Date */}
-          <div>
-            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
-              Date
-            </p>
-            <p className="text-sm">{eventDate}</p>
-          </div>
+          {eventDate && (
+            <div>
+              <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
+                Date
+              </p>
+              <p className="text-sm">{eventDate}</p>
+            </div>
+          )}
 
           {/* Location */}
-          <div>
-            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
-              Location
-            </p>
-            <p className="text-sm">{eventLocation}</p>
-          </div>
+          {eventLocation && (
+            <div>
+              <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-1">
+                Location
+              </p>
+              <p className="text-sm">{eventLocation}</p>
+            </div>
+          )}
         </div>
       </div>
 

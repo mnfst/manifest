@@ -1,14 +1,9 @@
 {
-  "semi": false,
+  "semi": true,
   "singleQuote": true,
-  "trailingComma": "none",
-
-  "overrides": [
-    {
-      "files": "*.yml",
-      "options": {
-        "singleQuote": false
-      }
-    }
-  ]
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "bracketSpacing": true,
+  "arrowParens": "always"
 }

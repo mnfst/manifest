@@ -9,6 +9,7 @@ import {
   Truck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { demoStatusBadge } from './demo/status'
 
 /**
  * Available status types for the badge.
@@ -25,22 +26,30 @@ export type StatusType =
   | "cancelled"
 
 /**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * StatusBadgeProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
  * Props for the StatusBadge component.
- * @interface StatusBadgeProps
- * @property {object} [data] - Status data
- * @property {StatusType} [data.status] - The status to display
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.label] - Custom label text (overrides default)
- * @property {boolean} [appearance.showIcon] - Whether to show the status icon
- * @property {"sm" | "md" | "lg"} [appearance.size] - Badge size variant
+ * Displays a status indicator with configurable appearance.
  */
 export interface StatusBadgeProps {
   data?: {
+    /** The status to display (success, pending, processing, warning, error, shipped, delivered, cancelled). */
     status?: StatusType
   }
   appearance?: {
+    /** Custom label text that overrides the default status label. */
     label?: string
+    /**
+     * Whether to show the status icon.
+     * @default true
+     */
     showIcon?: boolean
+    /**
+     * Badge size variant.
+     * @default "md"
+     */
     size?: "sm" | "md" | "lg"
   }
 }
@@ -124,8 +133,11 @@ const iconSizes = {
  * ```
  */
 export function StatusBadge({ data, appearance }: StatusBadgeProps) {
-  const { status = "pending" } = data ?? {}
-  const { label, showIcon = true, size = "md" } = appearance ?? {}
+  const resolved: NonNullable<StatusBadgeProps['data']> = data ?? demoStatusBadge
+  const status = resolved?.status ?? "pending"
+  const label = appearance?.label
+  const showIcon = appearance?.showIcon ?? true
+  const size = appearance?.size ?? "md"
   const config = statusConfig[status]
   const Icon = config.icon
   const displayLabel = label || config.defaultLabel

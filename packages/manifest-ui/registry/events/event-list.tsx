@@ -3,160 +3,24 @@
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
-import { ChevronDown, ChevronLeft, ChevronRight, MapPin, Maximize2, SlidersHorizontal, X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ComponentType } from 'react'
+import { ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react'
+import { Suspense, useCallback, useRef, useState } from 'react'
 import type { Event } from './types'
 import { EventCard } from './event-card'
-import { demoEvents } from './demo/data'
+import { demoEvents } from './demo/events'
+import { LazyLeafletMap, MapPlaceholder } from './shared'
 
-// Internal types for react-leaflet component attributes (not exported component props)
-type LeafletMapContainerAttrs = {
-  center: [number, number]
-  zoom: number
-  style?: React.CSSProperties
-  zoomControl?: boolean
-  scrollWheelZoom?: boolean
-  children?: React.ReactNode
-}
-
-type LeafletTileLayerAttrs = {
-  attribution: string
-  url: string
-}
-
-type LeafletMarkerAttrs = {
-  position: [number, number]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon?: any
-  zIndexOffset?: number
-  eventHandlers?: {
-    click?: () => void
-  }
-}
-
-// Lazy-loaded react-leaflet components (React-only, no Next.js dependency)
-interface ReactLeafletComponents {
-  MapContainer: ComponentType<LeafletMapContainerAttrs>
-  TileLayer: ComponentType<LeafletTileLayerAttrs>
-  Marker: ComponentType<LeafletMarkerAttrs>
-}
-
-/**
- * Hook to lazy load react-leaflet components on client-side only.
- * This avoids SSR issues with Leaflet without requiring Next.js dynamic imports.
- */
-function useReactLeaflet(): ReactLeafletComponents | null {
-  const [components, setComponents] = useState<ReactLeafletComponents | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-    import('react-leaflet').then((mod) => {
-      if (mounted) {
-        setComponents({
-          MapContainer: mod.MapContainer,
-          TileLayer: mod.TileLayer,
-          Marker: mod.Marker,
-        })
-      }
-    })
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  return components
-}
-
-// Map placeholder shown during SSR or when Leaflet isn't loaded
-function MapPlaceholder() {
-  return (
-    <div className="h-full w-full bg-muted/30 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-2 text-muted-foreground">
-        <MapPin className="h-8 w-8" />
-        <span className="text-sm">Loading map...</span>
-      </div>
-    </div>
-  )
-}
-
-// Inner map component that uses Leaflet hooks for event markers
-function EventMapMarkers({
-  events,
-  selectedIndex,
-  onSelectEvent,
-  MarkerComponent
-}: {
-  events: Event[]
-  selectedIndex: number | null
-  onSelectEvent: (event: Event, index: number) => void
-  MarkerComponent: ComponentType<LeafletMarkerAttrs>
-}) {
-  const [L, setL] = useState<typeof import('leaflet') | null>(null)
-
-  useEffect(() => {
-    // Import Leaflet CSS and library on client side
-    import('leaflet').then((leaflet) => {
-      setL(leaflet.default)
-    })
-    // Add Leaflet CSS
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-    document.head.appendChild(link)
-    return () => {
-      document.head.removeChild(link)
-    }
-  }, [])
-
-  if (!L) return null
-
-  // SVG pin marker - teardrop shape like Google Maps
-  const createPinSvg = (isSelected: boolean) => {
-    const color = '#374151' // slate-700
-    const ringColor = isSelected ? '#9ca3af' : 'transparent' // gray-400 ring when selected
-    return `
-      <svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-        ${isSelected ? `<circle cx="16" cy="16" r="14" fill="none" stroke="${ringColor}" stroke-width="3"/>` : ''}
-        <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 26 16 26s16-14 16-26c0-8.837-7.163-16-16-16z" fill="${color}"/>
-        <circle cx="16" cy="16" r="6" fill="white"/>
-      </svg>
-    `
-  }
-
-  return (
-    <>
-      {events.map((event, index) => {
-        if (!event.coordinates) return null
-        const isSelected = selectedIndex === index
-
-        const icon = L.divIcon({
-          className: '',
-          html: `<div style="
-            position: absolute;
-            left: 50%;
-            top: 100%;
-            transform: translate(-50%, -100%);
-            z-index: ${isSelected ? '1000' : '1'};
-          ">${createPinSvg(isSelected)}</div>`,
-          iconSize: [32, 42],
-          iconAnchor: [16, 42]
-        })
-
-        return (
-          <MarkerComponent
-            key={index}
-            position={[event.coordinates.lat, event.coordinates.lng]}
-            icon={icon}
-            zIndexOffset={isSelected ? 1000 : 0}
-            eventHandlers={{
-              click: () => onSelectEvent(event, index)
-            }}
-          />
-        )
-      })}
-    </>
-  )
+// SVG pin marker - teardrop shape like Google Maps
+function createPinSvg(isSelected: boolean) {
+  const color = '#374151' // slate-700
+  const ringColor = isSelected ? '#9ca3af' : 'transparent' // gray-400 ring when selected
+  return `
+    <svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+      ${isSelected ? `<circle cx="16" cy="16" r="14" fill="none" stroke="${ringColor}" stroke-width="3"/>` : ''}
+      <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 26 16 26s16-14 16-26c0-8.837-7.163-16-16-16z" fill="${color}"/>
+      <circle cx="16" cy="16" r="6" fill="white"/>
+    </svg>
+  `
 }
 
 // Filter options
@@ -386,26 +250,33 @@ function FilterPanel({
   )
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * EventListProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the EventList component. Supports list, grid, carousel, and
+ * fullwidth (split-screen with map) layout variants with filtering capabilities.
+ */
 export interface EventListProps {
   data?: {
+    /** Array of events to display. */
     events?: Event[]
+    /** Optional title displayed above the list. */
     title?: string
   }
   actions?: {
+    /** Called when an event card is clicked. */
     onEventSelect?: (event: Event) => void
-    onPageChange?: (page: number) => void
-    onViewMore?: () => void
-    onExpand?: () => void
-    onFilterClick?: () => void
-    onFiltersApply?: (filters: FilterState) => void
   }
   appearance?: {
+    /**
+     * Layout variant for the event list.
+     * @default "list"
+     */
     variant?: 'list' | 'grid' | 'carousel' | 'fullwidth'
+    /** Number of columns for grid layout. */
     columns?: 2 | 3 | 4
-    eventsPerPage?: number
-  }
-  control?: {
-    currentPage?: number
   }
 }
 
@@ -443,14 +314,13 @@ export interface EventListProps {
  * ```
  */
 export function EventList({ data, actions, appearance }: EventListProps) {
-  const { events = demoEvents, title } = data ?? {}
-  const { onEventSelect, onViewMore, onExpand, onFilterClick, onFiltersApply } = actions ?? {}
-  const { variant = 'list' } = appearance ?? {}
+  const resolved: NonNullable<EventListProps['data']> = data ?? { events: demoEvents }
+  const events = resolved.events ?? []
+  const title = resolved.title
+  const onEventSelect = actions?.onEventSelect
+  const variant = appearance?.variant ?? 'list'
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedEventIndex, setSelectedEventIndex] = useState<number | null>(null)
-
-  // Lazy load react-leaflet components (React-only, no Next.js dependency)
-  const leafletComponents = useReactLeaflet()
 
   // Filter state for fullwidth variant
   const [showFilters, setShowFilters] = useState(false)
@@ -483,7 +353,7 @@ export function EventList({ data, actions, appearance }: EventListProps) {
     return eventsToFilter.filter(event => {
       // Category filter
       if (filtersToApply.categories.length > 0) {
-        if (!filtersToApply.categories.includes(event.category)) return false
+        if (!event.category || !filtersToApply.categories.includes(event.category)) return false
       }
 
       // Date filter - parse dateTime string for keywords
@@ -537,11 +407,12 @@ export function EventList({ data, actions, appearance }: EventListProps) {
       // Price filter
       if (filtersToApply.prices.length > 0) {
         const priceMatch = filtersToApply.prices.some(priceRange => {
+          const eventPriceRange = event.priceRange ?? ''
           if (priceRange === 'Free') {
-            return event.priceRange.toLowerCase().includes('free')
+            return eventPriceRange.toLowerCase().includes('free')
           }
           // Extract numeric price from event
-          const priceNum = parseInt(event.priceRange.replace(/[^0-9]/g, '')) || 0
+          const priceNum = parseInt(eventPriceRange.replace(/[^0-9]/g, '')) || 0
           if (priceRange === 'Under $25') return priceNum < 25
           if (priceRange === '$25 - $50') return priceNum >= 25 && priceNum <= 50
           if (priceRange === '$50 - $100') return priceNum >= 50 && priceNum <= 100
@@ -581,19 +452,8 @@ export function EventList({ data, actions, appearance }: EventListProps) {
     return (
       <div className="space-y-3">
         {title && (
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4">
             <h2 className="text-lg font-semibold">{title}</h2>
-            {onExpand && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={onExpand}
-                aria-label="Expand view"
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         )}
         {events.slice(0, 3).map((event, index) => (
@@ -608,24 +468,13 @@ export function EventList({ data, actions, appearance }: EventListProps) {
     )
   }
 
-  // Grid variant (inline mode - show 3 events with images and View More button)
+  // Grid variant (inline mode - show 3 events with images)
   if (variant === 'grid') {
     return (
       <div className="space-y-4">
         {title && (
-          <div className="flex items-center justify-between">
+          <div>
             <h2 className="text-lg font-semibold">{title}</h2>
-            {onExpand && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={onExpand}
-                aria-label="Expand view"
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         )}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -638,16 +487,6 @@ export function EventList({ data, actions, appearance }: EventListProps) {
             />
           ))}
         </div>
-        {events.length > 3 && (
-          <div className="flex justify-center pt-2">
-            <Button
-              variant="outline"
-              onClick={onViewMore}
-            >
-              View more events
-            </Button>
-          </div>
-        )}
       </div>
     )
   }
@@ -670,21 +509,18 @@ export function EventList({ data, actions, appearance }: EventListProps) {
     }
 
     const handleFilterButtonClick = () => {
-      setFilters(appliedFilters) // Reset to applied filters when opening
+      setFilters(appliedFilters)
       setShowFilters(true)
-      onFilterClick?.()
     }
 
     const handleApplyFilters = () => {
       setAppliedFilters(filters)
       setShowFilters(false)
-      onFiltersApply?.(filters)
     }
 
     const handleResetFilters = () => {
       setFilters(defaultFilters)
       setAppliedFilters(defaultFilters)
-      onFiltersApply?.(defaultFilters)
     }
 
     // Get filtered events
@@ -754,21 +590,29 @@ export function EventList({ data, actions, appearance }: EventListProps) {
                       <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
                         <img
                           src={event.image}
-                          alt={event.title}
+                          alt={event.title || 'Event image'}
                           className="h-full w-full object-cover"
                         />
                       </div>
                     )}
                     {/* Event Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm">{event.priceRange}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                        {event.dateTime} · {event.category}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                        {event.venue}, {event.city}
-                      </p>
-                      <p className="text-sm font-medium mt-1 line-clamp-1">{event.title}</p>
+                      {event.priceRange && (
+                        <p className="font-semibold text-sm">{event.priceRange}</p>
+                      )}
+                      {(event.dateTime || event.category) && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          {[event.dateTime, event.category].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
+                      {(event.venue || event.city) && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          {[event.venue, event.city].filter(Boolean).join(', ')}
+                        </p>
+                      )}
+                      {event.title && (
+                        <p className="text-sm font-medium mt-1 line-clamp-1">{event.title}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -790,28 +634,43 @@ export function EventList({ data, actions, appearance }: EventListProps) {
 
         {/* Right Panel - Map */}
         <div className="hidden md:flex flex-1 relative">
-          {leafletComponents ? (
-            <leafletComponents.MapContainer
-              center={[34.0522, -118.2437]} // Los Angeles center
+          <Suspense fallback={<MapPlaceholder />}>
+            <LazyLeafletMap
+              center={[34.0522, -118.2437]}
               zoom={12}
-              style={{ height: '100%', width: '100%' }}
-              zoomControl={true}
-              scrollWheelZoom={true}
-            >
-              <leafletComponents.TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-              />
-              <EventMapMarkers
-                events={filteredEvents}
-                selectedIndex={selectedEventIndex}
-                onSelectEvent={handleMapMarkerClick}
-                MarkerComponent={leafletComponents.Marker}
-              />
-            </leafletComponents.MapContainer>
-          ) : (
-            <MapPlaceholder />
-          )}
+              renderMarkers={({ Marker, L }) => (
+                <>
+                  {filteredEvents.map((event, index) => {
+                    if (!event.coordinates) return null
+                    const isSelected = selectedEventIndex === index
+                    const icon = L.divIcon({
+                      className: '',
+                      html: `<div style="
+                        position: absolute;
+                        left: 50%;
+                        top: 100%;
+                        transform: translate(-50%, -100%);
+                        z-index: ${isSelected ? '1000' : '1'};
+                      ">${createPinSvg(isSelected)}</div>`,
+                      iconSize: [32, 42],
+                      iconAnchor: [16, 42]
+                    })
+                    return (
+                      <Marker
+                        key={index}
+                        position={[event.coordinates.lat, event.coordinates.lng]}
+                        icon={icon}
+                        zIndexOffset={isSelected ? 1000 : 0}
+                        eventHandlers={{
+                          click: () => handleMapMarkerClick(event, index)
+                        }}
+                      />
+                    )
+                  })}
+                </>
+              )}
+            />
+          </Suspense>
         </div>
       </div>
     )
@@ -838,18 +697,8 @@ export function EventList({ data, actions, appearance }: EventListProps) {
   return (
     <div className="relative">
       {title && (
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4">
           <h2 className="text-lg font-semibold">{title}</h2>
-          {onExpand && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={onExpand}
-            >
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-          )}
         </div>
       )}
       <div className="overflow-hidden rounded-lg">

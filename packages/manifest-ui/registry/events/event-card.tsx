@@ -14,35 +14,45 @@ import {
   XCircle
 } from 'lucide-react'
 import type { Event, EventSignal } from './types'
-import { demoEvent } from './demo/data'
-
-// Import shared OpenAI types
-import '@/lib/openai-types'
+import { demoEvent } from './demo/events'
 
 /**
- * Props for the EventCard component.
- * @interface EventCardProps
- * @property {object} [data] - Event data
- * @property {Event} [data.event] - The event to display
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onClick] - Called when the card is clicked
- * @property {object} [appearance] - Visual customization
- * @property {"default" | "compact" | "horizontal" | "covered"} [appearance.variant] - Card layout variant
- * @property {boolean} [appearance.showSignal] - Whether to show event signal badge
- * @property {boolean} [appearance.showTags] - Whether to show vibe tags
- * @property {boolean} [appearance.showRating] - Whether to show organizer rating
+ * ═══════════════════════════════════════════════════════════════════════════
+ * EventCardProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the EventCard component. Displays event information with multiple
+ * layout variants, signal badges, vibe tags, and organizer ratings.
  */
 export interface EventCardProps {
   data?: {
+    /** The event object to display. */
     event?: Event
   }
   actions?: {
+    /** Called when the card is clicked. */
     onClick?: (event: Event) => void
   }
   appearance?: {
+    /**
+     * Card layout variant.
+     * @default "default"
+     */
     variant?: 'default' | 'compact' | 'horizontal' | 'covered'
+    /**
+     * Whether to show the event signal badge.
+     * @default true
+     */
     showSignal?: boolean
+    /**
+     * Whether to show vibe tags.
+     * @default true
+     */
     showTags?: boolean
+    /**
+     * Whether to show the organizer rating.
+     * @default true
+     */
     showRating?: boolean
   }
 }
@@ -141,14 +151,17 @@ function formatNumber(num: number): string {
  * ```
  */
 export function EventCard({ data, actions, appearance }: EventCardProps) {
-  const { event = demoEvent } = data ?? {}
-  const { onClick } = actions ?? {}
-  const {
-    variant = 'default',
-    showSignal = true,
-    showTags = true,
-    showRating = true
-  } = appearance ?? {}
+  const resolved: NonNullable<EventCardProps['data']> = data ?? { event: demoEvent }
+  const event = resolved.event
+  const onClick = actions?.onClick
+  const variant = appearance?.variant ?? 'default'
+  const showSignal = appearance?.showSignal ?? true
+  const showTags = appearance?.showTags ?? true
+  const showRating = appearance?.showRating ?? true
+
+  if (!event) {
+    return null
+  }
 
   const handleClick = () => {
     if (onClick) {
@@ -163,7 +176,13 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
     }
   }
 
-  const cardAriaLabel = `${event.title}, ${event.category} event at ${event.venue || 'online'}, ${event.dateTime}, ${event.priceRange}`
+  const cardAriaLabel = [
+    event.title,
+    event.category && `${event.category} event`,
+    event.venue && `at ${event.venue}`,
+    event.dateTime,
+    event.priceRange
+  ].filter(Boolean).join(', ')
 
   if (variant === 'covered') {
     return (
@@ -187,26 +206,34 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
         <div className="absolute inset-0 flex flex-col justify-end p-4 text-white">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-[10px] font-medium uppercase tracking-wide text-white/70">
-                {event.category}
-              </p>
+              {event.category && (
+                <p className="text-[10px] font-medium uppercase tracking-wide text-white/70">
+                  {event.category}
+                </p>
+              )}
               {showSignal && event.eventSignal && (
                 <EventSignalBadge signal={event.eventSignal} />
               )}
             </div>
-            <h2 className="mt-1 text-lg font-semibold leading-tight">
-              {event.title}
-            </h2>
+            {event.title && (
+              <h2 className="mt-1 text-lg font-semibold leading-tight">
+                {event.title}
+              </h2>
+            )}
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/80">
-              <span className="flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5" />
-                {event.dateTime}
-              </span>
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
-                {event.venue}
-                {event.neighborhood && `, ${event.neighborhood}`}
-              </span>
+              {event.dateTime && (
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  {event.dateTime}
+                </span>
+              )}
+              {event.venue && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {event.venue}
+                  {event.neighborhood && `, ${event.neighborhood}`}
+                </span>
+              )}
             </div>
             {showTags && event.vibeTags && event.vibeTags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
@@ -221,7 +248,7 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
               </div>
             )}
             <div className="mt-3 flex items-center gap-3">
-              <span className="font-semibold">{event.priceRange}</span>
+              {event.priceRange && <span className="font-semibold">{event.priceRange}</span>}
               {showRating && event.organizerRating && (
                 <span className="flex items-center gap-1 text-sm text-white/70">
                   <Star className="h-3.5 w-3.5 fill-current text-yellow-400" />
@@ -250,7 +277,7 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
           <div className="h-[140px] w-[180px] flex-shrink-0 overflow-hidden rounded-lg bg-muted">
             <img
               src={event.image}
-              alt={event.title}
+              alt={event.title || 'Event image'}
               className="h-full w-full object-cover"
             />
           </div>
@@ -262,19 +289,24 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
                 <EventSignalBadge signal={event.eventSignal} />
               </div>
             )}
-            <h3 className="line-clamp-2 text-base font-semibold leading-tight">
-              {event.title}
-            </h3>
+            {event.title && (
+              <h3 className="line-clamp-2 text-base font-semibold leading-tight">
+                {event.title}
+              </h3>
+            )}
             <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-              <p>{event.dateTime}</p>
-              <p>
-                {event.city}
-                {event.venue && ` · ${event.venue}`}
-              </p>
+              {event.dateTime && <p>{event.dateTime}</p>}
+              {(event.city || event.venue) && (
+                <p>
+                  {event.city}
+                  {event.city && event.venue && ' · '}
+                  {event.venue}
+                </p>
+              )}
             </div>
           </div>
           <div className="mt-3">
-            <span className="font-semibold">{event.priceRange}</span>
+            {event.priceRange && <span className="font-semibold">{event.priceRange}</span>}
           </div>
         </div>
       </div>
@@ -296,7 +328,7 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
           <div className="aspect-[16/9] overflow-hidden bg-muted">
             <img
               src={event.image}
-              alt={event.title}
+              alt={event.title || 'Event image'}
               className="h-full w-full object-cover"
             />
           </div>
@@ -304,23 +336,31 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
         <div className="flex flex-1 flex-col justify-between p-3">
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-0.5">
-              <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                {event.category}
-              </p>
+              {event.category && (
+                <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {event.category}
+                </p>
+              )}
               {showSignal && event.eventSignal && (
                 <EventSignalBadge signal={event.eventSignal} />
               )}
             </div>
-            <h3 className="line-clamp-2 text-sm font-medium">{event.title}</h3>
+            {event.title && (
+              <h3 className="line-clamp-2 text-sm font-medium">{event.title}</h3>
+            )}
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {event.dateTime}
-              </span>
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {event.venue}
-              </span>
+              {event.dateTime && (
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {event.dateTime}
+                </span>
+              )}
+              {event.venue && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {event.venue}
+                </span>
+              )}
             </div>
             {showTags && event.vibeTags && event.vibeTags.length > 0 && (
               <div className="mt-1.5 flex flex-wrap gap-1">
@@ -336,7 +376,7 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
             )}
           </div>
           <div className="mt-3 flex items-center gap-2">
-            <span className="text-sm font-medium">{event.priceRange}</span>
+            {event.priceRange && <span className="text-sm font-medium">{event.priceRange}</span>}
             {showRating && event.organizerRating && (
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Star className="h-3 w-3 fill-current text-yellow-500" />
@@ -364,7 +404,7 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
         <div className="aspect-[16/9] overflow-hidden bg-muted">
           <img
             src={event.image}
-            alt={event.title}
+            alt={event.title || 'Event image'}
             className="h-full w-full object-cover"
           />
         </div>
@@ -372,24 +412,32 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
       <div className="flex flex-1 flex-col justify-between p-4">
         <div>
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-              {event.category}
-            </p>
+            {event.category && (
+              <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                {event.category}
+              </p>
+            )}
             {showSignal && event.eventSignal && (
               <EventSignalBadge signal={event.eventSignal} />
             )}
           </div>
-          <h3 className="line-clamp-2 font-medium">{event.title}</h3>
+          {event.title && (
+            <h3 className="line-clamp-2 font-medium">{event.title}</h3>
+          )}
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" />
-              {event.dateTime}
-            </span>
-            <span className="flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5" />
-              {event.venue}
-              {event.neighborhood && `, ${event.neighborhood}`}
-            </span>
+            {event.dateTime && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                {event.dateTime}
+              </span>
+            )}
+            {event.venue && (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" />
+                {event.venue}
+                {event.neighborhood && `, ${event.neighborhood}`}
+              </span>
+            )}
           </div>
           {showTags && event.vibeTags && event.vibeTags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
@@ -405,7 +453,7 @@ export function EventCard({ data, actions, appearance }: EventCardProps) {
           )}
         </div>
         <div className="mt-4 flex items-center gap-3">
-          <span className="font-medium">{event.priceRange}</span>
+          {event.priceRange && <span className="font-medium">{event.priceRange}</span>}
           {showRating && event.organizerRating && (
             <span className="flex items-center gap-1 text-sm text-muted-foreground">
               <Star className="h-3.5 w-3.5 fill-current text-yellow-500" />

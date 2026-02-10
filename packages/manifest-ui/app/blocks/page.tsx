@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { blockCategories } from '@/lib/blocks-categories'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -11,108 +12,9 @@ import { GettingStarted } from '@/components/blocks/getting-started'
 // SEO components
 import { Breadcrumb } from '@/components/seo/breadcrumb'
 
-// Sidebar navigation data
-interface Block {
-  id: string
-  name: string
-}
-
-interface Category {
-  id: string
-  name: string
-  blocks: Block[]
-}
-
-const categories: Category[] = [
-  {
-    id: 'blog',
-    name: 'Blogging',
-    blocks: [
-      { id: 'post-card', name: 'Post Card' },
-      { id: 'post-list', name: 'Post List' }
-    ]
-  },
-  {
-    id: 'events',
-    name: 'Events',
-    blocks: [
-      { id: 'event-card', name: 'Event Card' },
-      { id: 'event-list', name: 'Event List' },
-      { id: 'event-detail', name: 'Event Detail' },
-      { id: 'ticket-tier-select', name: 'Ticket Tier Select' },
-      { id: 'event-checkout', name: 'Event Checkout' },
-      { id: 'event-confirmation', name: 'Event Confirmation' }
-    ]
-  },
-  {
-    id: 'form',
-    name: 'Forms',
-    blocks: [
-      { id: 'contact-form', name: 'Contact Form' },
-      { id: 'date-time-picker', name: 'Date & Time Picker' },
-      { id: 'issue-report-form', name: 'Issue Report Form' }
-    ]
-  },
-  {
-    id: 'list',
-    name: 'List',
-    blocks: [
-      { id: 'product-list', name: 'Product List' },
-      { id: 'table', name: 'Table' }
-    ]
-  },
-  {
-    id: 'map',
-    name: 'Map',
-    blocks: [{ id: 'map-carousel', name: 'Map Carousel' }]
-  },
-  {
-    id: 'messaging',
-    name: 'Messaging',
-    blocks: [
-      { id: 'message-bubble', name: 'Message Bubble' },
-      { id: 'chat-conversation', name: 'Chat Conversation' }
-    ]
-  },
-  {
-    id: 'misc',
-    name: 'Miscellaneous',
-    blocks: [
-      { id: 'option-list', name: 'Option List' },
-      { id: 'progress-steps', name: 'Progress Steps' },
-      { id: 'quick-reply', name: 'Quick Reply' },
-      { id: 'stats', name: 'Stats Cards' },
-      { id: 'status-badge', name: 'Status Badge' },
-      { id: 'tag-select', name: 'Tag Select' }
-    ]
-  },
-  {
-    id: 'payment',
-    name: 'Payment',
-    blocks: [
-      { id: 'order-confirm', name: 'Order Confirmation' },
-      { id: 'payment-methods', name: 'Payment Methods' },
-      { id: 'bank-card-form', name: 'Bank Card Form' },
-      { id: 'amount-input', name: 'Amount Input' },
-      { id: 'payment-success', name: 'Payment Success' },
-      { id: 'payment-confirmed', name: 'Payment Confirmation' }
-    ]
-  },
-  {
-    id: 'social',
-    name: 'Social',
-    blocks: [
-      { id: 'instagram-post', name: 'Instagram Post' },
-      { id: 'linkedin-post', name: 'LinkedIn Post' },
-      { id: 'x-post', name: 'X Post' },
-      { id: 'youtube-post', name: 'YouTube Post' }
-    ]
-  }
-]
-
 export default function BlocksPage() {
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
-    categories.map((c) => c.id)
+    blockCategories.map((c) => c.id)
   )
 
   const toggleCategory = (categoryId: string) => {
@@ -134,7 +36,7 @@ export default function BlocksPage() {
           >
             Getting Started
           </Link>
-          {categories.map((category) => (
+          {blockCategories.map((category) => (
             <div key={category.id}>
               <button
                 onClick={() => toggleCategory(category.id)}

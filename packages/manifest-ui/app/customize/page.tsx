@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { useTokens, hexToOklch, getTokenCssVars, type DesignTokens, type ThemeMode } from '@/lib/token-context'
+import { useTokens, getTokenCssVars, type DesignTokens, type ThemeMode } from '@/lib/token-context'
 import { ArrowRight, ChevronDown, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { HexColorPicker } from 'react-colorful'
@@ -52,9 +52,9 @@ function hexToRgba(hex: string): string {
 
 function hexToHsla(hex: string): string {
   const h = hex.replace('#', '')
-  let r = parseInt(h.substring(0, 2), 16) / 255
-  let g = parseInt(h.substring(2, 4), 16) / 255
-  let b = parseInt(h.substring(4, 6), 16) / 255
+  const r = parseInt(h.substring(0, 2), 16) / 255
+  const g = parseInt(h.substring(2, 4), 16) / 255
+  const b = parseInt(h.substring(4, 6), 16) / 255
   const max = Math.max(r, g, b)
   const min = Math.min(r, g, b)
   const l = (max + min) / 2

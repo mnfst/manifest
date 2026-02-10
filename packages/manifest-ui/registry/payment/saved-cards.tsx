@@ -25,64 +25,53 @@ import { CreditCard, Plus, Check } from "lucide-react"
 export interface SavedCard {
   id: string
   brand: "visa" | "mastercard" | "amex"
-  last4: string
-  expiryMonth: string
-  expiryYear: string
+  last4?: string
+  expiryMonth?: string
+  expiryYear?: string
   isDefault?: boolean
 }
 
 /**
- * Props for the SavedCards component.
- * @interface SavedCardsProps
- * @property {object} [data] - Card and payment data
- * @property {SavedCard[]} [data.cards] - List of saved payment cards
- * @property {number} [data.amount] - Amount to charge
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onSelectCard] - Called when a card is selected
- * @property {function} [actions.onAddNewCard] - Called when user wants to add a new card
- * @property {function} [actions.onPay] - Called when user initiates payment
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.currency] - Currency code for formatting
- * @property {object} [control] - State control options
- * @property {string} [control.selectedCardId] - Currently selected card ID
- * @property {boolean} [control.isLoading] - Shows loading state on pay button
+ * ═══════════════════════════════════════════════════════════════════════════
+ * SavedCardsProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for a card selector component for choosing a saved payment method.
+ * Supports multiple card brands with visual indicators and default card marking.
  */
 export interface SavedCardsProps {
   data?: {
+    /** Array of saved payment cards to display. */
     cards?: SavedCard[]
+    /**
+     * Amount to charge, displayed in the pay button.
+     * @default 279.0
+     */
     amount?: number
   }
   actions?: {
-    onSelectCard?: (cardId: string) => void
+    /** Called when the user clicks the add new card option. */
     onAddNewCard?: () => void
+    /** Called when the user initiates payment with the selected card. */
     onPay?: (cardId: string) => void
   }
   appearance?: {
+    /**
+     * Currency code for formatting the amount.
+     * @default "EUR"
+     */
     currency?: string
   }
   control?: {
+    /** ID of the currently selected card. */
     selectedCardId?: string
+    /**
+     * Shows loading state on the pay button.
+     * @default false
+     */
     isLoading?: boolean
   }
 }
-
-const defaultCards: SavedCard[] = [
-  {
-    id: "1",
-    brand: "visa",
-    last4: "4242",
-    expiryMonth: "12",
-    expiryYear: "26",
-    isDefault: true,
-  },
-  {
-    id: "2",
-    brand: "mastercard",
-    last4: "8888",
-    expiryMonth: "03",
-    expiryYear: "25",
-  },
-]
 
 const brandLogos: Record<string, string> = {
   visa: "VISA",
@@ -130,23 +119,25 @@ const brandColors: Record<string, string> = {
  * ```
  */
 export function SavedCards({ data, actions, appearance, control }: SavedCardsProps) {
-  const { cards = defaultCards, amount = 279.0 } = data ?? {}
-  const { onSelectCard, onAddNewCard, onPay } = actions ?? {}
-  const { currency = "EUR" } = appearance ?? {}
-  const { selectedCardId, isLoading = false } = control ?? {}
+  const cards = data?.cards
+  const amount = data?.amount
+  const onAddNewCard = actions?.onAddNewCard
+  const onPay = actions?.onPay
+  const currency = appearance?.currency
+  const selectedCardId = control?.selectedCardId
+  const isLoading = control?.isLoading ?? false
   const [selected, setSelected] = useState(
-    selectedCardId || cards.find((c) => c.isDefault)?.id || cards[0]?.id
+    selectedCardId || cards?.find((c) => c.isDefault)?.id || cards?.[0]?.id
   )
 
   const handleSelect = (cardId: string) => {
     setSelected(cardId)
-    onSelectCard?.(cardId)
   }
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency,
+      currency: currency || "USD",
     }).format(value)
   }
 
@@ -163,7 +154,7 @@ export function SavedCards({ data, actions, appearance, control }: SavedCardsPro
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {cards.map((card) => (
+        {cards && cards.map((card) => (
           <button
             key={card.id}
             onClick={() => handleSelect(card.id)}
@@ -179,11 +170,13 @@ export function SavedCards({ data, actions, appearance, control }: SavedCardsPro
               {brandLogos[card.brand]}
             </div>
             <div className="flex-1 text-left">
-              <p className="text-sm font-medium">
-                •••• •••• •••• {card.last4}
-              </p>
+              {card.last4 && (
+                <p className="text-sm font-medium">
+                  •••• •••• •••• {card.last4}
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
-                Expires {card.expiryMonth}/{card.expiryYear}
+                {card.expiryMonth && card.expiryYear && `Expires ${card.expiryMonth}/${card.expiryYear}`}
                 {card.isDefault && (
                   <span className="ml-2 text-primary">• Default</span>
                 )}
@@ -214,7 +207,7 @@ export function SavedCards({ data, actions, appearance, control }: SavedCardsPro
           onClick={() => selected && onPay?.(selected)}
           disabled={!selected || isLoading}
         >
-          {isLoading ? "Processing..." : `Pay ${formatCurrency(amount)}`}
+          {isLoading ? "Processing..." : (amount !== undefined ? `Pay ${formatCurrency(amount)}` : "Pay")}
         </Button>
       </CardFooter>
     </Card>

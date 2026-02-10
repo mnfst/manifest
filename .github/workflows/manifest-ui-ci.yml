@@ -1,0 +1,117 @@
+# ============================================================================
+# Manifest UI CI Workflow
+# ============================================================================
+# Runs CI checks for the manifest-ui package:
+#   - Lint and test (fast, no browser needed)
+#   - Generate preview images (requires Playwright + dev server)
+#   - Production build (includes generated previews)
+# ============================================================================
+
+name: Manifest UI CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/manifest-ui/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: lint & test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build registry
+        working-directory: packages/manifest-ui
+        run: pnpm run registry:build
+
+      - name: Run tests
+        run: pnpm run manifest-ui:test
+
+  previews:
+    name: previews & build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browsers
+        run: cd packages/manifest-ui && npx playwright install chromium
+
+      - name: Build registry
+        working-directory: packages/manifest-ui
+        run: pnpm run registry:build
+
+      - name: Generate preview images
+        working-directory: packages/manifest-ui
+        run: |
+          # Start dev server in background
+          pnpm run dev &
+          DEV_PID=$!
+
+          # Wait for the dev server to be ready
+          echo "Waiting for dev server..."
+          for i in $(seq 1 60); do
+            if curl -s http://localhost:3001 > /dev/null 2>&1; then
+              echo "Dev server is ready!"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "Dev server failed to start within 60s"
+              kill $DEV_PID 2>/dev/null || true
+              exit 1
+            fi
+            sleep 1
+          done
+
+          # Generate previews
+          node scripts/generate-previews.mjs --verbose
+
+          # Stop the dev server
+          kill $DEV_PID 2>/dev/null || true
+          wait $DEV_PID 2>/dev/null || true
+
+      - name: Build manifest-ui
+        working-directory: packages/manifest-ui
+        run: pnpm exec next build

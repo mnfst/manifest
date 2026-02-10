@@ -4,43 +4,47 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import { Post, PostCard } from './post-card'
-import { demoPosts } from './demo/data'
+import type { Post } from './types'
+import { PostCard } from './post-card'
+import { demoPosts } from './demo/blogging'
 
 /**
- * Props for the PostList component.
- * @interface PostListProps
- * @property {object} [data] - Post data
- * @property {Post[]} [data.posts] - Array of posts to display
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onReadMore] - Called when read more is clicked
- * @property {function} [actions.onPageChange] - Called when page changes (fullwidth variant)
- * @property {object} [appearance] - Visual customization
- * @property {"list" | "grid" | "carousel" | "fullwidth"} [appearance.variant] - Layout variant
- * @property {2 | 3 | 4} [appearance.columns] - Number of columns for grid/fullwidth
- * @property {boolean} [appearance.showAuthor] - Whether to show author info
- * @property {boolean} [appearance.showCategory] - Whether to show category
- * @property {number} [appearance.postsPerPage] - Posts per page (fullwidth variant)
- * @property {object} [control] - State control
- * @property {number} [control.currentPage] - Controlled current page
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PostListProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the PostList component, a blog post list with multiple layout variants.
  */
 export interface PostListProps {
   data?: {
+    /** Array of blog posts to display. */
     posts?: Post[]
   }
   actions?: {
+    /** Called when the read more button is clicked on a post. */
     onReadMore?: (post: Post) => void
-    onPageChange?: (page: number) => void
   }
   appearance?: {
+    /**
+     * Layout variant for the post list.
+     * @default "list"
+     */
     variant?: 'list' | 'grid' | 'carousel' | 'fullwidth'
+    /**
+     * Number of columns for grid and fullwidth variants.
+     * @default 2
+     */
     columns?: 2 | 3 | 4
+    /**
+     * Whether to show author information on post cards.
+     * @default true
+     */
     showAuthor?: boolean
+    /**
+     * Whether to show category labels on post cards.
+     * @default true
+     */
     showCategory?: boolean
-    postsPerPage?: number
-  }
-  control?: {
-    currentPage?: number
   }
 }
 
@@ -81,23 +85,23 @@ export interface PostListProps {
  * />
  * ```
  */
-export function PostList({ data, actions, appearance, control }: PostListProps) {
-  const { posts = demoPosts } = data ?? {}
-  const { onReadMore, onPageChange } = actions ?? {}
-  const { variant = 'list', columns = 2, showAuthor = true, showCategory = true, postsPerPage = 10 } = appearance ?? {}
-  const { currentPage: controlledPage } = control ?? {}
+export function PostList({ data, actions, appearance }: PostListProps) {
+  const resolved: NonNullable<PostListProps['data']> = data ?? { posts: demoPosts }
+  const posts = resolved.posts ?? []
+  const onReadMore = actions?.onReadMore
+  const variant = appearance?.variant ?? 'list'
+  const columns = appearance?.columns ?? 2
+  const showAuthor = appearance?.showAuthor ?? true
+  const showCategory = appearance?.showCategory ?? true
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [internalPage, setInternalPage] = useState(1)
-
-  const currentPage = controlledPage ?? internalPage
 
   // List variant
   if (variant === 'list') {
     return (
-      <div className="space-y-3">
-        {posts.slice(0, 3).map((post, index) => (
+      <div className="space-y-3 m-3 bg-card rounded-lg p-3">
+        {posts.slice(0, 3).map((post) => (
           <PostCard
-            key={index}
+            key={post.title || post.url}
             data={{ post }}
             appearance={{ variant: "horizontal", showAuthor, showCategory }}
             actions={{ onReadMore }}
@@ -116,9 +120,9 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
           columns === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'
         )}
       >
-        {posts.slice(0, 4).map((post, index) => (
+        {posts.slice(0, 4).map((post) => (
           <PostCard
-            key={index}
+            key={post.title || post.url}
             data={{ post }}
             appearance={{ variant: "compact", showImage: false, showAuthor, showCategory }}
             actions={{ onReadMore }}
@@ -128,20 +132,8 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
     )
   }
 
-  // Fullwidth variant with pagination
+  // Fullwidth variant
   if (variant === 'fullwidth') {
-    const totalPages = Math.ceil(posts.length / postsPerPage)
-    const startIndex = (currentPage - 1) * postsPerPage
-    const endIndex = startIndex + postsPerPage
-    const paginatedPosts = posts.slice(startIndex, endIndex)
-
-    const handlePageChange = (page: number) => {
-      if (page >= 1 && page <= totalPages) {
-        setInternalPage(page)
-        onPageChange?.(page)
-      }
-    }
-
     const getGridColsClass = () => {
       switch (columns) {
         case 2:
@@ -158,60 +150,14 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
     return (
       <div className="space-y-6 p-6">
         <div className={cn('grid gap-6 grid-cols-1', getGridColsClass())}>
-          {paginatedPosts.map((post, index) => (
+          {posts.map((post) => (
             <PostCard
-              key={index}
+              key={post.title || post.url}
               data={{ post }}
               appearance={{ variant: "default", showAuthor, showCategory }}
               actions={{ onReadMore }}
             />
           ))}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage <= 1}
-              aria-label="Previous page"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={page === currentPage ? 'default' : 'outline'}
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => handlePageChange(page)}
-                >
-                  {page}
-                </Button>
-              ))}
-            </div>
-
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage >= totalPages}
-              aria-label="Next page"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-
-        {/* Page info */}
-        <div className="text-center text-sm text-muted-foreground">
-          Showing {startIndex + 1}-{Math.min(endIndex, posts.length)} of {posts.length} posts
         </div>
       </div>
     )
@@ -243,8 +189,8 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
           className="flex transition-transform duration-300 ease-out md:hidden"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {posts.map((post, index) => (
-            <div key={index} className="w-full shrink-0 px-0.5">
+          {posts.map((post) => (
+            <div key={post.title || post.url} className="w-full shrink-0 px-0.5">
               <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}
@@ -259,8 +205,8 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
           className="hidden md:flex lg:hidden transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${currentIndex * 50}%)` }}
         >
-          {posts.map((post, index) => (
-            <div key={index} className="w-1/2 shrink-0 px-1.5">
+          {posts.map((post) => (
+            <div key={post.title || post.url} className="w-1/2 shrink-0 px-1.5">
               <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}
@@ -275,8 +221,8 @@ export function PostList({ data, actions, appearance, control }: PostListProps) 
           className="hidden lg:flex transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${currentIndex * (100 / 3)}%)` }}
         >
-          {posts.map((post, index) => (
-            <div key={index} className="w-1/3 shrink-0 px-1.5">
+          {posts.map((post) => (
+            <div key={post.title || post.url} className="w-1/3 shrink-0 px-1.5">
               <PostCard
                 data={{ post }}
                 appearance={{ variant: "compact", showAuthor, showCategory }}

@@ -1,2 +1,13 @@
 packages:
   - "packages/*"
+  - "packages/manifest"
+  - "packages/manifest/*"
+onlyBuiltDependencies:
+  - "@nestjs/core"
+  - "@swc/core"
+  - bcrypt
+  - better-sqlite3
+  - esbuild
+  - msw
+  - sharp
+  - unrs-resolver

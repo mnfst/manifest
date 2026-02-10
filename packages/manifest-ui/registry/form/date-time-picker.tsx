@@ -9,112 +9,114 @@ import {
 } from '@/components/ui/popover'
 import { ArrowLeft, ChevronLeft, ChevronRight, Globe, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { demoDateTimePickerData } from './demo/form'
 
-/** Timezone configuration with offset from UTC */
+/** Timezone configuration using IANA timezone identifiers for correct DST handling */
 const timezones = [
-  { id: 'pacific', name: 'Pacific Time - US & Canada', offset: -8 },
-  { id: 'mountain', name: 'Mountain Time - US & Canada', offset: -7 },
-  { id: 'central', name: 'Central Time - US & Canada', offset: -6 },
-  { id: 'eastern', name: 'Eastern Time - US & Canada', offset: -5 },
-  { id: 'alaska', name: 'Alaska Time', offset: -9 },
-  { id: 'arizona', name: 'Arizona, Yukon Time', offset: -7 },
-  { id: 'newfoundland', name: 'Newfoundland Time', offset: -3.5 },
-  { id: 'atlantic', name: 'Atlantic Time - Canada', offset: -4 },
-  { id: 'london', name: 'London, Dublin, Edinburgh', offset: 0 },
-  { id: 'paris', name: 'Paris, Berlin, Amsterdam', offset: 1 },
-  { id: 'athens', name: 'Athens, Helsinki, Istanbul', offset: 2 },
-  { id: 'moscow', name: 'Moscow, St. Petersburg', offset: 3 },
-  { id: 'dubai', name: 'Dubai, Abu Dhabi', offset: 4 },
-  { id: 'karachi', name: 'Karachi, Islamabad', offset: 5 },
-  { id: 'dhaka', name: 'Dhaka, Almaty', offset: 6 },
-  { id: 'bangkok', name: 'Bangkok, Hanoi, Jakarta', offset: 7 },
-  { id: 'singapore', name: 'Singapore, Hong Kong, Perth', offset: 8 },
-  { id: 'tokyo', name: 'Tokyo, Seoul, Osaka', offset: 9 },
-  { id: 'sydney', name: 'Sydney, Melbourne, Brisbane', offset: 10 },
-  { id: 'auckland', name: 'Auckland, Wellington', offset: 12 }
+  { id: 'pacific', name: 'Pacific Time - US & Canada', iana: 'America/Los_Angeles' },
+  { id: 'mountain', name: 'Mountain Time - US & Canada', iana: 'America/Denver' },
+  { id: 'central', name: 'Central Time - US & Canada', iana: 'America/Chicago' },
+  { id: 'eastern', name: 'Eastern Time - US & Canada', iana: 'America/New_York' },
+  { id: 'alaska', name: 'Alaska Time', iana: 'America/Anchorage' },
+  { id: 'arizona', name: 'Arizona, Yukon Time', iana: 'America/Phoenix' },
+  { id: 'newfoundland', name: 'Newfoundland Time', iana: 'America/St_Johns' },
+  { id: 'atlantic', name: 'Atlantic Time - Canada', iana: 'America/Halifax' },
+  { id: 'london', name: 'London, Dublin, Edinburgh', iana: 'Europe/London' },
+  { id: 'paris', name: 'Paris, Berlin, Amsterdam', iana: 'Europe/Paris' },
+  { id: 'athens', name: 'Athens, Helsinki, Istanbul', iana: 'Europe/Athens' },
+  { id: 'moscow', name: 'Moscow, St. Petersburg', iana: 'Europe/Moscow' },
+  { id: 'dubai', name: 'Dubai, Abu Dhabi', iana: 'Asia/Dubai' },
+  { id: 'karachi', name: 'Karachi, Islamabad', iana: 'Asia/Karachi' },
+  { id: 'dhaka', name: 'Dhaka, Almaty', iana: 'Asia/Dhaka' },
+  { id: 'bangkok', name: 'Bangkok, Hanoi, Jakarta', iana: 'Asia/Bangkok' },
+  { id: 'singapore', name: 'Singapore, Hong Kong, Perth', iana: 'Asia/Singapore' },
+  { id: 'tokyo', name: 'Tokyo, Seoul, Osaka', iana: 'Asia/Tokyo' },
+  { id: 'sydney', name: 'Sydney, Melbourne, Brisbane', iana: 'Australia/Sydney' },
+  { id: 'auckland', name: 'Auckland, Wellington', iana: 'Pacific/Auckland' }
 ]
 
-const getTimeForOffset = (offset: number) => {
-  const now = new Date()
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000
-  const targetTime = new Date(utc + offset * 3600000)
-  const hours = targetTime.getHours()
-  const minutes = targetTime.getMinutes()
-  return `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')}${hours >= 12 ? 'pm' : 'am'}`
+const getTimeForTimezone = (iana: string) => {
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: iana,
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    }).format(new Date()).toLowerCase()
+  } catch {
+    return ''
+  }
 }
 
 /**
- * Props for the DateTimePicker component.
- * @interface DateTimePickerProps
- * @property {object} [data] - Configuration data for the picker
- * @property {string} [data.title] - Title displayed at the top of the picker
- * @property {Date[]} [data.availableDates] - Array of dates that can be selected
- * @property {string[]} [data.availableTimeSlots] - Array of time slot strings (e.g., '11:30am')
- * @property {string} [data.timezone] - Default timezone name to display
- * @property {object} [actions] - Callback functions for picker events
- * @property {function} [actions.onSelect] - Called when a date and time are selected
- * @property {function} [actions.onNext] - Called when the user clicks the Next button
- * @property {object} [appearance] - Visual customization options
- * @property {boolean} [appearance.showTitle] - Whether to display the title
- * @property {boolean} [appearance.showTimezone] - Whether to show timezone selector
- * @property {object} [control] - Controlled state options
- * @property {Date | null} [control.selectedDate] - Controlled selected date value
- * @property {string | null} [control.selectedTime] - Controlled selected time value
+ * ═══════════════════════════════════════════════════════════════════════════
+ * DateTimePickerProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the DateTimePicker component with calendar view, available time
+ * slots, and timezone selection.
  */
 export interface DateTimePickerProps {
   data?: {
+    /** Title displayed at the top of the picker. */
     title?: string
+    /** Array of dates that can be selected. */
     availableDates?: Date[]
+    /** Array of time slot strings (e.g., '11:30am'). */
     availableTimeSlots?: string[]
+    /** Default timezone name to display. */
     timezone?: string
   }
   actions?: {
-    onSelect?: (date: Date, time: string) => void
+    /** Called when the user clicks the Next button. */
     onNext?: (date: Date, time: string) => void
   }
   appearance?: {
+    /**
+     * Whether to display the title.
+     * @default true
+     */
     showTitle?: boolean
+    /**
+     * Whether to show timezone selector.
+     * @default true
+     */
     showTimezone?: boolean
+    /**
+     * First day of the week.
+     * - `'sunday'` — US, Canada, Japan (default)
+     * - `'monday'` — ISO 8601, Europe, most of the world
+     * - `'saturday'` — Middle East
+     * @default 'sunday'
+     */
+    weekStartsOn?: 'sunday' | 'monday' | 'saturday'
   }
   control?: {
+    /** Controlled selected date value. */
     selectedDate?: Date | null
+    /** Controlled selected time value. */
     selectedTime?: string | null
   }
 }
 
-const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+const ALL_DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+
+const WEEK_START_OFFSETS: Record<'sunday' | 'monday' | 'saturday', number> = {
+  sunday: 0,
+  monday: 1,
+  saturday: 6,
+}
+
+const getOrderedDays = (weekStartsOn: 'sunday' | 'monday' | 'saturday') => {
+  const offset = WEEK_START_OFFSETS[weekStartsOn]
+  return [...ALL_DAYS.slice(offset), ...ALL_DAYS.slice(0, offset)]
+}
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
-// Default available dates (Tuesdays and Wednesdays of the current month)
-const getDefaultAvailableDates = () => {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth()
-  const dates: Date[] = []
 
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day)
-    const dayOfWeek = date.getDay()
-    // Make Tuesdays (2) and Wednesdays (3) available
-    if (dayOfWeek === 2 || dayOfWeek === 3) {
-      dates.push(date)
-    }
-  }
-  return dates
-}
-
-const defaultTimeSlots = [
-  '11:30am',
-  '12:00pm',
-  '12:30pm',
-  '4:00pm',
-  '4:30pm',
-  '5:00pm'
-]
 
 const formatDateHeader = (date: Date) => {
   const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][date.getDay()]
@@ -161,14 +163,15 @@ const isSameDay = (date1: Date, date2: Date) => {
  * ```
  */
 export function DateTimePicker({ data, actions, appearance, control }: DateTimePickerProps) {
-  const {
-    title = 'Select a Date & Time',
-    availableDates = getDefaultAvailableDates(),
-    availableTimeSlots = defaultTimeSlots,
-    timezone = 'Eastern Time - US & Canada'
-  } = data ?? {}
-  const { onSelect, onNext } = actions ?? {}
-  const { showTitle = true, showTimezone = true } = appearance ?? {}
+  const resolved: NonNullable<DateTimePickerProps['data']> = data ?? demoDateTimePickerData
+  const title = resolved.title
+  const availableDates = resolved.availableDates ?? []
+  const availableTimeSlots = resolved.availableTimeSlots ?? []
+  const timezone = resolved.timezone
+  const { onNext } = actions ?? {}
+  const { showTitle = true, showTimezone = true, weekStartsOn = 'sunday' } = appearance ?? {}
+  const orderedDays = getOrderedDays(weekStartsOn)
+  const weekStartOffset = WEEK_START_OFFSETS[weekStartsOn]
   const {
     selectedDate: controlledDate,
     selectedTime: controlledTime
@@ -213,8 +216,9 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
 
   const calendarDays: { day: number; isCurrentMonth: boolean; date: Date }[] = []
 
-  // Previous month days
-  for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+  // Previous month days (adjusted for week start)
+  const leadingDays = (firstDayOfMonth - weekStartOffset + 7) % 7
+  for (let i = leadingDays - 1; i >= 0; i--) {
     const day = daysInPrevMonth - i
     calendarDays.push({
       day,
@@ -259,7 +263,6 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
     if (!isDateAvailable(date)) return
     setSelectedDate(date)
     setSelectedTime(null)
-    onSelect?.(date, '')
     // On mobile, switch to time view when date is selected
     setMobileView('time')
   }
@@ -270,9 +273,6 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
 
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time)
-    if (selectedDate) {
-      onSelect?.(selectedDate, time)
-    }
   }
 
   const handleNext = () => {
@@ -285,7 +285,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
 
   return (
     <div className="w-full bg-card rounded-xl p-6">
-      {showTitle && (
+      {showTitle && title && (
         <h2 className="text-xl font-semibold text-foreground mb-6">{title}</h2>
       )}
 
@@ -318,7 +318,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
 
           {/* Day Headers */}
           <div className="grid grid-cols-7 mb-2">
-            {DAYS.map(day => (
+            {orderedDays.map(day => (
               <div
                 key={day}
                 className="text-center text-xs font-medium text-muted-foreground py-2"
@@ -369,7 +369,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
                     className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <Globe className="h-4 w-4" />
-                    <span>{selectedTimezone.name} ({getTimeForOffset(selectedTimezone.offset)})</span>
+                    <span>{selectedTimezone.name} ({getTimeForTimezone(selectedTimezone.iana)})</span>
                     <ChevronRight className={cn("h-3 w-3 transition-transform", timezoneDropdownOpen ? "rotate-90" : "rotate-0")} />
                   </button>
                 </PopoverTrigger>
@@ -398,7 +398,7 @@ export function DateTimePicker({ data, actions, appearance, control }: DateTimeP
                         )}
                       >
                         <span className="text-foreground">{tz.name}</span>
-                        <span className="text-muted-foreground text-xs">{getTimeForOffset(tz.offset)}</span>
+                        <span className="text-muted-foreground text-xs">{getTimeForTimezone(tz.iana)}</span>
                       </button>
                     ))}
                     {filteredTimezones.length === 0 && (

@@ -15,10 +15,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-
-// Import shared OpenAI types
-import '@/lib/openai-types' // Side effect: extends Window interface
-import type { DisplayMode, OpenAIBridge } from '@/lib/openai-types'
+import { demoTableColumns, demoTableRows } from './demo/list'
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -37,26 +34,7 @@ import {
   Trash2,
   Type
 } from 'lucide-react'
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
-
-// =============================================================================
-// Hook to subscribe to window.openai changes (official pattern)
-// =============================================================================
-
-function useOpenAIGlobal<K extends keyof OpenAIBridge>(
-  key: K
-): OpenAIBridge[K] | undefined {
-  return useSyncExternalStore(
-    (onChange) => {
-      if (typeof window === 'undefined') return () => {}
-      const handler = () => onChange()
-      window.addEventListener('openai:set_globals', handler)
-      return () => window.removeEventListener('openai:set_globals', handler)
-    },
-    () => (typeof window !== 'undefined' ? window.openai?.[key] : undefined),
-    () => undefined
-  )
-}
+import { useCallback, useMemo, useState } from 'react'
 
 // Filter types
 interface FilterCondition {
@@ -84,8 +62,8 @@ interface FilterCondition {
  * @property {function} [render] - Custom render function for cell content
  */
 export interface TableColumn<T = Record<string, unknown>> {
-  header: string
-  accessor: keyof T | string
+  header?: string
+  accessor?: keyof T | string
   sortable?: boolean
   width?: string
   align?: 'left' | 'center' | 'right'
@@ -93,162 +71,92 @@ export interface TableColumn<T = Record<string, unknown>> {
 }
 
 /**
- * Props for the Table component.
- * @interface TableProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ * TableProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring a data table component with sorting, selection,
+ * pagination, and filtering capabilities.
+ *
  * @template T - The row data type
- * @property {object} [data] - Table data configuration
- * @property {TableColumn<T>[]} [data.columns] - Column definitions
- * @property {T[]} [data.rows] - Row data array
- * @property {string} [data.title] - Table title displayed in header
- * @property {string} [data.titleImage] - Icon/image URL for the title
- * @property {Date | string} [data.lastUpdated] - Last data update timestamp
- * @property {number} [data.totalRows] - Total rows for "more" indicator
- * @property {object} [actions] - Callback functions for table actions
- * @property {function} [actions.onSelectionChange] - Called when row selection changes
- * @property {function} [actions.onCopy] - Called when copy action is triggered
- * @property {function} [actions.onDownload] - Called when download action is triggered
- * @property {function} [actions.onShare] - Called when share action is triggered
- * @property {function} [actions.onRefresh] - Called when refresh is triggered
- * @property {function} [actions.onExpand] - Called when expand to fullscreen is triggered
- * @property {object} [appearance] - Visual customization options
- * @property {"none" | "single" | "multi"} [appearance.selectable] - Row selection mode
- * @property {string} [appearance.emptyMessage] - Message when table has no data
- * @property {boolean} [appearance.stickyHeader] - Whether to stick header on scroll
- * @property {boolean} [appearance.compact] - Use compact row height
- * @property {boolean} [appearance.showActions] - Show action buttons
- * @property {boolean} [appearance.showHeader] - Show table header
- * @property {boolean} [appearance.showFooter] - Show table footer
- * @property {number} [appearance.maxRows] - Maximum rows in inline mode
- * @property {DisplayMode} [appearance.displayMode] - Display mode (inline or fullscreen)
- * @property {object} [control] - State control options
- * @property {boolean} [control.loading] - Show loading skeleton
- * @property {T[]} [control.selectedRows] - Controlled selected rows
  */
 export interface TableProps<T = Record<string, unknown>> {
   data?: {
+    /** Column definitions specifying headers, accessors, and rendering. */
     columns?: TableColumn<T>[]
+    /** Array of row data objects to display. */
     rows?: T[]
+    /** Table title displayed in the header. */
     title?: string
+    /** Icon or image URL displayed next to the title. */
     titleImage?: string
+    /** Timestamp showing when the data was last updated. */
     lastUpdated?: Date | string
+    /** Total row count for displaying "+N more" indicator. */
     totalRows?: number
   }
   actions?: {
-    onSelectionChange?: (selectedRows: T[]) => void
+    /** Called when the copy action is triggered with selected rows. */
     onCopy?: (selectedRows: T[]) => void
+    /** Called when the download action is triggered with selected rows. */
     onDownload?: (selectedRows: T[]) => void
+    /** Called when the share action is triggered with selected rows. */
     onShare?: (selectedRows: T[]) => void
+    /** Called when the refresh button is clicked. */
     onRefresh?: () => void
-    onExpand?: () => void
   }
   appearance?: {
+    /**
+     * Row selection mode.
+     * @default "none"
+     */
     selectable?: 'none' | 'single' | 'multi'
+    /**
+     * Message displayed when the table has no data.
+     * @default "No data available"
+     */
     emptyMessage?: string
+    /**
+     * Whether to keep the header fixed when scrolling.
+     * @default false
+     */
     stickyHeader?: boolean
+    /**
+     * Whether to use compact row height.
+     * @default false
+     */
     compact?: boolean
+    /** Whether to show action buttons in the header. */
     showActions?: boolean
+    /**
+     * Whether to show the table header.
+     * @default true
+     */
     showHeader?: boolean
+    /**
+     * Whether to show the table footer.
+     * @default true
+     */
     showFooter?: boolean
+    /**
+     * Maximum number of rows to display in inline mode.
+     * @default 5
+     */
     maxRows?: number
-    /** Display mode: 'inline' (default) or 'fullscreen'. In fullscreen, shows pagination and filters. */
-    displayMode?: DisplayMode
+    /**
+     * Display mode: 'inline' (compact card) or 'fullscreen' (paginated with filters).
+     * @default "inline"
+     */
+    displayMode?: 'inline' | 'pip' | 'fullscreen'
   }
   control?: {
+    /** Whether to show loading skeleton state. */
     loading?: boolean
+    /** Controlled array of selected rows. */
     selectedRows?: T[]
   }
 }
 
-// Default demo data for the table
-const defaultColumns: TableColumn[] = [
-  { header: 'Model', accessor: 'model', sortable: true },
-  {
-    header: 'Input (w/ Cache)',
-    accessor: 'inputCache',
-    sortable: true,
-    align: 'right'
-  },
-  { header: 'Output', accessor: 'output', sortable: true, align: 'right' },
-  {
-    header: 'Total Tokens',
-    accessor: 'totalTokens',
-    sortable: true,
-    align: 'right'
-  },
-  {
-    header: 'API Cost',
-    accessor: 'apiCost',
-    sortable: true,
-    align: 'right',
-    render: (value) => `$${(value as number).toFixed(2)}`
-  }
-]
-
-const defaultData = [
-  {
-    model: 'gpt-5',
-    inputCache: 0,
-    output: 103271,
-    totalTokens: 2267482,
-    apiCost: 0.0
-  },
-  {
-    model: 'claude-3.5-sonnet',
-    inputCache: 176177,
-    output: 8326,
-    totalTokens: 647528,
-    apiCost: 1.0
-  },
-  {
-    model: 'gemini-2.0-flash-exp',
-    inputCache: 176100,
-    output: 8326,
-    totalTokens: 647528,
-    apiCost: 0.0
-  },
-  {
-    model: 'gemini-2.5-pro',
-    inputCache: 176177,
-    output: 7000,
-    totalTokens: 647528,
-    apiCost: 0.0
-  },
-  {
-    model: 'claude-4-sonnet',
-    inputCache: 68415,
-    output: 12769,
-    totalTokens: 946536,
-    apiCost: 0.71
-  },
-  {
-    model: 'gpt-4-turbo',
-    inputCache: 52000,
-    output: 15000,
-    totalTokens: 520000,
-    apiCost: 0.45
-  },
-  {
-    model: 'llama-3.1-70b',
-    inputCache: 45000,
-    output: 9500,
-    totalTokens: 380000,
-    apiCost: 0.12
-  },
-  {
-    model: 'mistral-large',
-    inputCache: 38000,
-    output: 7800,
-    totalTokens: 290000,
-    apiCost: 0.08
-  },
-  {
-    model: 'claude-3-opus',
-    inputCache: 200000,
-    output: 25000,
-    totalTokens: 1200000,
-    apiCost: 2.5
-  }
-]
 
 function SkeletonRow({
   columns,
@@ -432,7 +340,7 @@ function TableFooter({
  * - Copy, download, share actions
  * - Sticky header option
  * - Mobile card layout
- * - OpenAI/ChatGPT integration support
+ * - MCP Apps display mode support
  *
  * @component
  * @template T - The row data type
@@ -470,21 +378,20 @@ export function Table<T extends Record<string, unknown>>({
   appearance,
   control
 }: TableProps<T>) {
+  const resolvedData: NonNullable<TableProps<T>['data']> = dataProps ?? { columns: demoTableColumns as unknown as TableColumn<T>[], rows: demoTableRows as unknown as T[] }
   const {
-    columns = defaultColumns as unknown as TableColumn<T>[],
-    rows: tableData = defaultData as unknown as T[],
+    columns = [] as unknown as TableColumn<T>[],
+    rows: tableData = [] as unknown as T[],
     title,
     titleImage,
-    lastUpdated = new Date(),
+    lastUpdated,
     totalRows
-  } = dataProps ?? {}
+  } = resolvedData
   const {
-    onSelectionChange,
     onCopy,
     onDownload,
     onShare,
-    onRefresh,
-    onExpand
+    onRefresh
   } = actions ?? {}
   const {
     selectable = 'none',
@@ -499,9 +406,7 @@ export function Table<T extends Record<string, unknown>>({
   const { loading = false, selectedRows: controlledSelectedRows } =
     control ?? {}
 
-  // Get display mode from window.openai (ChatGPT) or use prop/default
-  const openaiDisplayMode = useOpenAIGlobal('displayMode')
-  const displayMode = propDisplayMode ?? openaiDisplayMode ?? 'inline'
+  const displayMode = propDisplayMode ?? 'inline'
 
   const [currentPage, setCurrentPage] = useState(1)
   const [sortConfig, setSortConfig] = useState<{
@@ -630,7 +535,7 @@ export function Table<T extends Record<string, unknown>>({
   }
 
   const filteredColumns = columns.filter((col) =>
-    col.header.toLowerCase().includes(sortSearch.toLowerCase())
+    (col.header ?? '').toLowerCase().includes(sortSearch.toLowerCase())
   )
 
   const handleRowSelect = useCallback(
@@ -660,13 +565,10 @@ export function Table<T extends Record<string, unknown>>({
       }
 
       setInternalSelectedRows(newSelected)
-      onSelectionChange?.(sortedData.filter((_, i) => newSelected.has(i)))
     },
     [
       selectable,
       selectedRowsSet,
-      sortedData,
-      onSelectionChange,
       isFullscreen,
       currentPage,
       rowsPerPage
@@ -682,8 +584,7 @@ export function Table<T extends Record<string, unknown>>({
       : new Set(visibleData.map((_, i) => i))
 
     setInternalSelectedRows(newSelected)
-    onSelectionChange?.(allSelected ? [] : visibleData)
-  }, [selectable, selectedRowsSet.size, visibleData, onSelectionChange])
+  }, [selectable, selectedRowsSet.size, visibleData])
 
   const getValue = (row: T, accessor: string): unknown => {
     const keys = accessor.split('.')
@@ -705,7 +606,7 @@ export function Table<T extends Record<string, unknown>>({
     if (sortConfig?.key !== accessor) {
       return <Minus className="h-3 w-3 opacity-0 group-hover:opacity-30" />
     }
-    return sortConfig.direction === 'asc' ? (
+    return sortConfig?.direction === 'asc' ? (
       <ChevronUp className="h-3 w-3" />
     ) : (
       <ChevronDown className="h-3 w-3" />
@@ -713,12 +614,7 @@ export function Table<T extends Record<string, unknown>>({
   }
 
   const handleExpand = () => {
-    if (onExpand) {
-      onExpand()
-    } else if (typeof window !== 'undefined' && window.openai) {
-      // Request fullscreen mode from ChatGPT host
-      window.openai.requestDisplayMode({ mode: 'fullscreen' })
-    }
+    // Display mode changes are handled by the host wrapper (HostAPIProvider)
   }
 
   const hasSelection = selectedRowsSet.size > 0
@@ -739,7 +635,7 @@ export function Table<T extends Record<string, unknown>>({
                 className="h-5 w-5 rounded object-cover"
               />
             )}
-            <span className="font-medium">{title || 'Table'}</span>
+            {title && <span className="font-medium">{title}</span>}
           </div>
 
           {/* Action buttons and Filter/Sort */}
@@ -943,7 +839,7 @@ export function Table<T extends Record<string, unknown>>({
                         <Type className="h-4 w-4 text-muted-foreground" />
                         <span className="flex-1">{col.header}</span>
                         {sortConfig?.key === col.accessor &&
-                          (sortConfig.direction === 'asc' ? (
+                          (sortConfig?.direction === 'asc' ? (
                             <ArrowUpAZ className="h-4 w-4 text-muted-foreground" />
                           ) : (
                             <ArrowDownAZ className="h-4 w-4 text-muted-foreground" />
@@ -982,7 +878,7 @@ export function Table<T extends Record<string, unknown>>({
                         style={{ width: column.width }}
                         onClick={() =>
                           column.sortable &&
-                          handleSort(column.accessor as string)
+                          handleSort((column.accessor ?? '') as string)
                         }
                       >
                         <span
@@ -991,9 +887,9 @@ export function Table<T extends Record<string, unknown>>({
                             column.align === 'right' && 'justify-end'
                           )}
                         >
-                          {column.header}
+                          {column.header ?? ''}
                           {column.sortable &&
-                            getSortIcon(column.accessor as string)}
+                            getSortIcon((column.accessor ?? '') as string)}
                         </span>
                       </th>
                     ))}
@@ -1030,7 +926,7 @@ export function Table<T extends Record<string, unknown>>({
                           </td>
                         )}
                         {columns.map((column, colIndex) => {
-                          const value = getValue(row, column.accessor as string)
+                          const value = getValue(row, (column.accessor ?? '') as string)
                           const displayValue = column.render
                             ? column.render(value, row, rowIndex)
                             : formatNumber(value)
@@ -1213,7 +1109,7 @@ export function Table<T extends Record<string, unknown>>({
               >
                 <div className="space-y-1.5">
                   {columns.map((column, colIndex) => {
-                    const value = getValue(row, column.accessor as string)
+                    const value = getValue(row, (column.accessor ?? '') as string)
                     const displayValue = column.render
                       ? column.render(value, row, rowIndex)
                       : formatNumber(value)
@@ -1224,7 +1120,7 @@ export function Table<T extends Record<string, unknown>>({
                         className="flex justify-between items-center"
                       >
                         <span className="text-xs text-muted-foreground">
-                          {column.header}
+                          {column.header ?? ''}
                         </span>
                         <span
                           className={cn(
@@ -1295,14 +1191,14 @@ export function Table<T extends Record<string, unknown>>({
                   )}
                   style={{ width: column.width }}
                   onClick={() =>
-                    column.sortable && handleSort(column.accessor as string)
+                    column.sortable && handleSort((column.accessor ?? '') as string)
                   }
                   role={
                     column.sortable ? 'columnheader button' : 'columnheader'
                   }
                   aria-sort={
                     sortConfig?.key === column.accessor
-                      ? sortConfig.direction === 'asc'
+                      ? sortConfig?.direction === 'asc'
                         ? 'ascending'
                         : 'descending'
                       : undefined
@@ -1314,8 +1210,8 @@ export function Table<T extends Record<string, unknown>>({
                       column.align === 'right' && 'justify-end'
                     )}
                   >
-                    {column.header}
-                    {column.sortable && getSortIcon(column.accessor as string)}
+                    {column.header ?? ''}
+                    {column.sortable && getSortIcon((column.accessor ?? '') as string)}
                   </span>
                 </th>
               ))}
@@ -1368,7 +1264,7 @@ export function Table<T extends Record<string, unknown>>({
                     </td>
                   )}
                   {columns.map((column, colIndex) => {
-                    const value = getValue(row, column.accessor as string)
+                    const value = getValue(row, (column.accessor ?? '') as string)
                     const displayValue = column.render
                       ? column.render(value, row, rowIndex)
                       : formatNumber(value)

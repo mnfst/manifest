@@ -2,50 +2,60 @@
 
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Calendar, MapPin } from 'lucide-react'
+import { demoOrderConfirm } from './demo/payment'
 
 /**
- * Props for the OrderConfirm component.
- * @interface OrderConfirmProps
- * @property {object} [data] - Product and delivery data
- * @property {string} [data.productName] - Name of the product
- * @property {string} [data.productVariant] - Product variant/color
- * @property {string} [data.productImage] - Product image URL
- * @property {number} [data.quantity] - Number of items
- * @property {number} [data.price] - Total price
- * @property {string} [data.deliveryDate] - Expected delivery date
- * @property {string} [data.deliveryAddress] - Delivery address
- * @property {boolean} [data.freeShipping] - Whether shipping is free
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onConfirm] - Called when user confirms the order
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.currency] - Currency code for formatting
- * @property {object} [control] - State control options
- * @property {boolean} [control.isLoading] - Shows loading state on confirm button
+ * ═══════════════════════════════════════════════════════════════════════════
+ * OrderConfirmProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for an order confirmation component with product image, delivery info,
+ * and confirm action. Displays responsive layouts for mobile and desktop.
  */
 export interface OrderConfirmProps {
   data?: {
+    /** Name of the product being ordered. */
     productName?: string
+    /** Product variant such as color or size. */
     productVariant?: string
+    /** URL to the product image. */
     productImage?: string
+    /**
+     * Quantity of items being ordered.
+     * @default 1
+     */
     quantity?: number
+    /** Total price for the order. */
     price?: number
+    /** Expected delivery date string (e.g., "Tue. Dec 10"). */
     deliveryDate?: string
+    /** Delivery address for the order. */
     deliveryAddress?: string
+    /**
+     * Whether shipping is free for this order.
+     * @default true
+     */
     freeShipping?: boolean
   }
   actions?: {
+    /** Called when the user confirms the order. */
     onConfirm?: () => void
   }
   appearance?: {
+    /**
+     * Currency code for formatting the price.
+     * @default "USD"
+     */
     currency?: string
   }
   control?: {
+    /**
+     * Shows loading state on the confirm button.
+     * @default false
+     */
     isLoading?: boolean
   }
 }
-
-const DEFAULT_AIRPODS_IMAGE =
-  'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MQD83?wid=400&hei=400&fmt=jpeg&qlt=95'
 
 /**
  * An order confirmation component with product image, delivery info, and confirm action.
@@ -82,16 +92,15 @@ const DEFAULT_AIRPODS_IMAGE =
  * ```
  */
 export function OrderConfirm({ data, actions, appearance, control }: OrderConfirmProps) {
-  const {
-    productName = 'Iyo Pro',
-    productVariant = 'Midnight Black',
-    productImage = DEFAULT_AIRPODS_IMAGE,
-    quantity = 1,
-    price = 299.0,
-    deliveryDate = 'Tue. Dec 10',
-    deliveryAddress = '123 Main Street, 10001',
-    freeShipping = true,
-  } = data ?? {}
+  const resolved: NonNullable<OrderConfirmProps['data']> = data ?? demoOrderConfirm
+  const productName = resolved?.productName
+  const productVariant = resolved?.productVariant
+  const productImage = resolved?.productImage
+  const quantity = resolved?.quantity ?? 1
+  const price = resolved?.price
+  const deliveryDate = resolved?.deliveryDate
+  const deliveryAddress = resolved?.deliveryAddress
+  const freeShipping = resolved?.freeShipping ?? true
   const { onConfirm } = actions ?? {}
   const { currency = 'USD' } = appearance ?? {}
   const { isLoading = false } = control ?? {}
@@ -106,22 +115,28 @@ export function OrderConfirm({ data, actions, appearance, control }: OrderConfir
     <div className="w-full rounded-md sm:rounded-lg bg-card">
       {/* Product info */}
       <div className="flex items-start gap-3 p-3 sm:gap-4 sm:p-2">
-        <img
-          src={productImage}
-          alt={productName}
-          className="h-12 w-12 sm:h-16 sm:w-16 rounded-sm sm:rounded-md object-contain bg-muted/30"
-        />
+        {productImage && (
+          <img
+            src={productImage}
+            alt={productName ?? 'Product image'}
+            className="h-12 w-12 sm:h-16 sm:w-16 rounded-sm sm:rounded-md object-contain bg-muted/30"
+          />
+        )}
         <div className="flex-1 min-w-0">
           {/* Mobile: stacked layout */}
-          <h3 className="text-sm sm:text-base font-medium truncate">
-            {productName}
-          </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            {productVariant} • Qty: {quantity}
-          </p>
+          {productName && (
+            <h3 className="text-sm sm:text-base font-medium truncate">
+              {productName}
+            </h3>
+          )}
+          {(productVariant || quantity) && (
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {productVariant}{productVariant && quantity ? ' • ' : ''}Qty: {quantity}
+            </p>
+          )}
           {/* Mobile: price below product info */}
           <div className="mt-1 sm:hidden">
-            <p className="text-sm font-semibold">{formatCurrency(price)}</p>
+            {price !== undefined && <p className="text-sm font-semibold">{formatCurrency(price)}</p>}
             {freeShipping && (
               <p className="text-xs text-green-600">Free shipping</p>
             )}
@@ -129,7 +144,7 @@ export function OrderConfirm({ data, actions, appearance, control }: OrderConfir
         </div>
         {/* Desktop: price on the right */}
         <div className="hidden sm:block text-right">
-          <p className="font-semibold">{formatCurrency(price)}</p>
+          {price !== undefined && <p className="font-semibold">{formatCurrency(price)}</p>}
           {freeShipping && (
             <p className="text-sm text-green-600">Free shipping</p>
           )}
@@ -142,15 +157,19 @@ export function OrderConfirm({ data, actions, appearance, control }: OrderConfir
       <div className="p-3 space-y-3 sm:py-2 sm:pr-2 sm:pl-4 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
         {/* Mobile: stacked, Desktop: inline */}
         <div className="space-y-1.5 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-2 text-xs sm:text-sm text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
-            <span>{deliveryDate}</span>
-          </div>
-          <span className="hidden sm:inline">•</span>
-          <div className="flex items-center gap-1.5">
-            <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
-            <span className="truncate">{deliveryAddress}</span>
-          </div>
+          {deliveryDate && (
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
+              <span>{deliveryDate}</span>
+            </div>
+          )}
+          {deliveryDate && deliveryAddress && <span className="hidden sm:inline">•</span>}
+          {deliveryAddress && (
+            <div className="flex items-center gap-1.5">
+              <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
+              <span className="truncate">{deliveryAddress}</span>
+            </div>
+          )}
         </div>
 
         <Button

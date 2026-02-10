@@ -1,13 +1,13 @@
 'use client'
 
 import { ChatDemo } from '@/components/chat/chat-demo'
+import { PromoBanner } from '@/components/layout/promo-banner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { WaveCanvas } from '@/components/ui/wave-canvas'
 import { PostCard } from '@/registry/blogging/post-card'
 import { PostList } from '@/registry/blogging/post-list'
 import { OrderConfirm } from '@/registry/payment/order-confirm'
 import { PaymentConfirmed } from '@/registry/payment/payment-confirmed'
-import { PaymentMethods } from '@/registry/payment/payment-methods'
 import { ProductList, Product } from '@/registry/list/product-list'
 import { MessageSquare, Palette, Award } from 'lucide-react'
 import Link from 'next/link'
@@ -243,20 +243,20 @@ const useCases = [
       },
       {
         role: 'assistant' as const,
-        content: 'Please select your payment method:',
-        component: <PaymentMethods />,
+        content: 'Here is your order summary:',
+        component: <OrderConfirm />,
         brand: { name: 'Stripe', logo: <StripeLogo className="h-4 w-4" /> },
         contentAfter:
-          'Your payment information is secured with end-to-end encryption. Select your preferred method to continue.'
+          'Please review your order details and confirm when ready.'
       },
       {
         role: 'user' as const,
-        content: 'Using my Visa card'
+        content: 'Looks good, please process my payment'
       },
       {
         role: 'assistant' as const,
         content: 'Payment successful!',
-        component: <PaymentConfirmed />,
+        component: <PaymentConfirmed appearance={{ variant: 'compressed' }} />,
         brand: { name: 'Stripe', logo: <StripeLogo className="h-4 w-4" /> },
         contentAfter:
           "You'll receive a confirmation email shortly. Is there anything else I can help you with?"
@@ -305,6 +305,7 @@ const useCases = [
 export default function Home() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a]">
+      <PromoBanner />
       {/* Hero Section with Wave Canvas Background */}
       <div className="relative min-h-[auto] py-16 md:min-h-[50vh] lg:min-h-[55vh] overflow-hidden flex items-center justify-center">
         <WaveCanvas

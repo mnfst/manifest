@@ -4,18 +4,17 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
-  useSyncExternalStore,
+  useState,
   type ReactNode
 } from 'react'
 
-// Import shared OpenAI types
-import type { DisplayMode, OpenAIBridge, Theme } from './openai-types'
-import './openai-types' // Side effect: extends Window interface
+import type { App, McpUiHostContext } from '@modelcontextprotocol/ext-apps'
+import { useApp, useDocumentTheme } from '@modelcontextprotocol/ext-apps/react'
 
-export type { DisplayMode, OpenAIBridge, Theme }
+import type { DisplayMode, Theme } from './mcp-types'
+export type { DisplayMode, Theme }
 
 // =============================================================================
 // Host API Context (abstraction layer for components)
@@ -36,35 +35,10 @@ export interface HostActions {
   sendFollowUpMessage: (prompt: string) => void
   openExternal: (url: string) => void
   callTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown>
-  notifyIntrinsicHeight: (height: number) => void
   setWidgetState: (state: Record<string, unknown>) => void
-  requestClose: () => void
-  uploadFile: (file: File) => Promise<{ fileId: string }>
-  getFileDownloadUrl: (fileId: string) => Promise<string>
 }
 
 export interface HostAPI extends HostContext, HostActions {}
-
-// =============================================================================
-// Utility: Subscribe to window.openai global changes
-// =============================================================================
-
-function subscribeToOpenAIGlobals(callback: () => void): () => void {
-  if (typeof window === 'undefined') return () => {}
-
-  const handler = () => callback()
-  window.addEventListener('openai:set_globals', handler)
-  return () => window.removeEventListener('openai:set_globals', handler)
-}
-
-function getOpenAISnapshot(): OpenAIBridge | undefined {
-  if (typeof window === 'undefined') return undefined
-  return window.openai
-}
-
-function getOpenAIServerSnapshot(): OpenAIBridge | undefined {
-  return undefined
-}
 
 // =============================================================================
 // Default values for preview mode
@@ -92,7 +66,6 @@ const HostAPIContext = createContext<HostAPI | null>(null)
 
 interface HostAPIProviderProps {
   children: ReactNode
-  // Preview mode overrides
   onDisplayModeRequest?: (mode: DisplayMode) => void
   displayMode?: DisplayMode
   theme?: Theme
@@ -108,79 +81,54 @@ export function HostAPIProvider({
   displayMode: overrideDisplayMode,
   theme: overrideTheme
 }: HostAPIProviderProps) {
-  // Subscribe to window.openai changes using useSyncExternalStore
-  const openai = useSyncExternalStore(
-    subscribeToOpenAIGlobals,
-    getOpenAISnapshot,
-    getOpenAIServerSnapshot
-  )
+  // Track host context changes from MCP Apps SDK
+  const [hostContext, setHostContext] = useState<McpUiHostContext | undefined>(undefined)
+  const [toolInput, setToolInput] = useState<Record<string, unknown>>({})
+  const [toolOutput, setToolOutput] = useState<unknown>(null)
 
-  const isRealHost = !!openai
+  // Widget state (local, since MCP Apps doesn't have built-in widget state)
+  const [widgetState, setWidgetStateInternal] = useState<Record<string, unknown> | null>(null)
+
+  // Connect to MCP Apps host via useApp hook
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { app, isConnected, error: _error } = useApp({
+    appInfo: { name: 'ManifestUI', version: '1.0.0' },
+    capabilities: {},
+    onAppCreated: (newApp: App) => {
+      newApp.onhostcontextchanged = (params) => {
+        setHostContext((prev) => ({ ...prev, ...params }))
+      }
+      newApp.ontoolinput = (params) => {
+        setToolInput((params.arguments as Record<string, unknown>) ?? {})
+      }
+      newApp.ontoolresult = (params) => {
+        setToolOutput(params)
+      }
+    }
+  })
+
+  // Use reactive theme from document (set by host styles)
+  const documentTheme = useDocumentTheme()
+
+  const isRealHost = isConnected && !!app
 
   // Store callback in ref to avoid re-running effect
   const onDisplayModeRequestRef = useRef(onDisplayModeRequest)
   onDisplayModeRequestRef.current = onDisplayModeRequest
 
-  // In preview mode, inject a mock window.openai so registry components work
-  // Only run once on mount (empty deps) to avoid infinite loops
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    // Don't override if real ChatGPT window.openai exists
-    if (window.openai && !('_isPreviewMock' in window.openai)) return
-
-    // Create mock window.openai for preview
-    const mockOpenAI: OpenAIBridge & { _isPreviewMock: boolean } = {
-      _isPreviewMock: true,
-      theme: overrideTheme ?? 'light',
-      displayMode: overrideDisplayMode ?? 'inline',
-      locale: 'en-US',
-      toolInput: {},
-      toolOutput: null,
-      toolResponseMetadata: {},
-      widgetState: null,
-      setWidgetState: (state) => console.log('[Preview] setWidgetState:', state),
-      callTool: async (name, args) => {
-        console.log('[Preview] callTool:', name, args)
-        return { success: true, preview: true }
-      },
-      sendFollowUpMessage: ({ prompt }) => console.log('[Preview] sendFollowUpMessage:', prompt),
-      requestDisplayMode: ({ mode }) => {
-        console.log('[Preview] requestDisplayMode:', mode)
-        onDisplayModeRequestRef.current?.(mode)
-      },
-      openExternal: ({ href }) => window.open(href, '_blank', 'noopener,noreferrer'),
-      requestClose: () => console.log('[Preview] requestClose'),
-      notifyIntrinsicHeight: () => {},
-      requestModal: () => {},
-      uploadFile: async (file) => {
-        console.log('[Preview] uploadFile:', file.name)
-        return { fileId: `preview-${Date.now()}` }
-      },
-      getFileDownloadUrl: async ({ fileId }) => `https://example.com/preview/${fileId}`
-    }
-
-    window.openai = mockOpenAI
-
-    return () => {
-      // Cleanup on unmount
-      if (window.openai && '_isPreviewMock' in window.openai) {
-        delete window.openai
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Build context from window.openai or use defaults/overrides
-  const hostContext: HostContext = useMemo(() => {
-    if (isRealHost && openai) {
+  // Build context from MCP Apps or use defaults/overrides
+  const context: HostContext = useMemo(() => {
+    if (isRealHost) {
+      const initialCtx = app.getHostContext()
+      const mergedCtx = { ...initialCtx, ...hostContext }
       return {
-        theme: openai.theme ?? 'light',
-        displayMode: openai.displayMode ?? 'inline',
-        locale: openai.locale ?? 'en-US',
+        theme: (mergedCtx?.theme as Theme) ?? documentTheme ?? 'light',
+        displayMode: (mergedCtx?.displayMode as DisplayMode) ?? 'inline',
+        locale: 'en-US',
         isRealHost: true,
-        toolInput: openai.toolInput ?? {},
-        toolOutput: openai.toolOutput ?? null,
-        widgetState: openai.widgetState ?? null
+        toolInput,
+        toolOutput,
+        widgetState
       }
     }
 
@@ -189,138 +137,91 @@ export function HostAPIProvider({
       theme: overrideTheme ?? 'light',
       displayMode: overrideDisplayMode ?? 'inline'
     }
-  }, [isRealHost, openai, overrideTheme, overrideDisplayMode])
+  }, [isRealHost, app, hostContext, documentTheme, toolInput, toolOutput, widgetState, overrideTheme, overrideDisplayMode])
 
   // Request display mode change
   const requestDisplayMode = useCallback(
     (mode: DisplayMode) => {
-      if (isRealHost && openai) {
-        openai.requestDisplayMode({ mode })
+      if (isRealHost && app) {
+        app.requestDisplayMode({ mode })
       } else {
-        onDisplayModeRequest?.(mode)
+        onDisplayModeRequestRef.current?.(mode)
       }
     },
-    [isRealHost, openai, onDisplayModeRequest]
+    [isRealHost, app]
   )
 
   // Send a follow-up message to the conversation
   const sendFollowUpMessage = useCallback(
     (prompt: string) => {
-      if (isRealHost && openai) {
-        openai.sendFollowUpMessage({ prompt })
+      if (isRealHost && app) {
+        app.sendMessage({
+          role: 'user',
+          content: [{ type: 'text', text: prompt }]
+        })
       } else {
         console.log('[Preview] sendFollowUpMessage:', prompt)
       }
     },
-    [isRealHost, openai]
+    [isRealHost, app]
   )
 
   // Open an external link
   const openExternal = useCallback(
     (url: string) => {
-      if (isRealHost && openai) {
-        openai.openExternal({ href: url })
+      if (isRealHost && app) {
+        app.openLink({ url })
       } else {
         window.open(url, '_blank', 'noopener,noreferrer')
       }
     },
-    [isRealHost, openai]
+    [isRealHost, app]
   )
 
   // Call an MCP tool
   const callTool = useCallback(
     async (toolName: string, args: Record<string, unknown>): Promise<unknown> => {
-      if (isRealHost && openai) {
-        return openai.callTool(toolName, args)
+      if (isRealHost && app) {
+        return app.callServerTool({ name: toolName, arguments: args })
       } else {
         console.log('[Preview] callTool:', toolName, args)
         return { success: true, preview: true }
       }
     },
-    [isRealHost, openai]
+    [isRealHost, app]
   )
 
-  // Notify host of intrinsic height change
-  const notifyIntrinsicHeight = useCallback(
-    (height: number) => {
-      if (isRealHost && openai) {
-        openai.notifyIntrinsicHeight(height)
-      }
-    },
-    [isRealHost, openai]
-  )
-
-  // Persist widget state
+  // Persist widget state (local only — MCP Apps has updateModelContext instead)
   const setWidgetState = useCallback(
     (state: Record<string, unknown>) => {
-      if (isRealHost && openai) {
-        openai.setWidgetState(state)
+      setWidgetStateInternal(state)
+      if (isRealHost && app) {
+        app.updateModelContext({
+          structuredContent: state
+        })
       } else {
         console.log('[Preview] setWidgetState:', state)
       }
     },
-    [isRealHost, openai]
-  )
-
-  // Request to close the widget
-  const requestClose = useCallback(() => {
-    if (isRealHost && openai) {
-      openai.requestClose()
-    } else {
-      console.log('[Preview] requestClose')
-    }
-  }, [isRealHost, openai])
-
-  // Upload a file
-  const uploadFile = useCallback(
-    async (file: File): Promise<{ fileId: string }> => {
-      if (isRealHost && openai) {
-        return openai.uploadFile(file)
-      } else {
-        console.log('[Preview] uploadFile:', file.name)
-        return { fileId: `preview-${Date.now()}` }
-      }
-    },
-    [isRealHost, openai]
-  )
-
-  // Get file download URL
-  const getFileDownloadUrl = useCallback(
-    async (fileId: string): Promise<string> => {
-      if (isRealHost && openai) {
-        return openai.getFileDownloadUrl({ fileId })
-      } else {
-        console.log('[Preview] getFileDownloadUrl:', fileId)
-        return `https://example.com/preview/${fileId}`
-      }
-    },
-    [isRealHost, openai]
+    [isRealHost, app]
   )
 
   const api: HostAPI = useMemo(
     () => ({
-      ...hostContext,
+      ...context,
       requestDisplayMode,
       sendFollowUpMessage,
       openExternal,
       callTool,
-      notifyIntrinsicHeight,
-      setWidgetState,
-      requestClose,
-      uploadFile,
-      getFileDownloadUrl
+      setWidgetState
     }),
     [
-      hostContext,
+      context,
       requestDisplayMode,
       sendFollowUpMessage,
       openExternal,
       callTool,
-      notifyIntrinsicHeight,
-      setWidgetState,
-      requestClose,
-      uploadFile,
-      getFileDownloadUrl
+      setWidgetState
     ]
   )
 
@@ -334,40 +235,13 @@ export function HostAPIProvider({
 /**
  * Hook to access the host API from any component.
  *
- * In ChatGPT: Uses the real window.openai bridge
+ * In MCP host: Uses the real MCP Apps bridge
  * In Preview: Uses mock implementations with console logging
- *
- * Usage:
- * ```tsx
- * function MyComponent() {
- *   const {
- *     theme,
- *     displayMode,
- *     toolOutput,
- *     requestDisplayMode,
- *     sendFollowUpMessage,
- *     callTool
- *   } = useHostAPI()
- *
- *   return (
- *     <div className={theme === 'dark' ? 'dark' : ''}>
- *       <p>Mode: {displayMode}</p>
- *       <button onClick={() => requestDisplayMode('fullscreen')}>
- *         Expand
- *       </button>
- *       <button onClick={() => sendFollowUpMessage('User clicked action')}>
- *         Send Message
- *       </button>
- *     </div>
- *   )
- * }
- * ```
  */
 export function useHostAPI(): HostAPI {
   const context = useContext(HostAPIContext)
 
   if (!context) {
-    // Return a default implementation if not wrapped in provider
     return {
       ...defaultHostContext,
       requestDisplayMode: (mode) => console.warn('[No HostAPIProvider] requestDisplayMode:', mode),
@@ -378,11 +252,7 @@ export function useHostAPI(): HostAPI {
         console.warn('[No HostAPIProvider] callTool:', name, args)
         return null
       },
-      notifyIntrinsicHeight: () => {},
-      setWidgetState: () => {},
-      requestClose: () => {},
-      uploadFile: async () => ({ fileId: 'mock' }),
-      getFileDownloadUrl: async () => ''
+      setWidgetState: () => {}
     }
   }
 
@@ -390,7 +260,7 @@ export function useHostAPI(): HostAPI {
 }
 
 /**
- * Hook to check if running in ChatGPT (real host) vs preview mode.
+ * Hook to check if running in a real MCP host vs preview mode.
  */
 export function useIsRealHost(): boolean {
   const { isRealHost } = useHostAPI()
@@ -398,28 +268,19 @@ export function useIsRealHost(): boolean {
 }
 
 /**
- * Hook to directly access the window.openai bridge.
- * Use this when you need low-level access to OpenAI-specific features.
- */
-export function useOpenAI(): OpenAIBridge | undefined {
-  return useSyncExternalStore(subscribeToOpenAIGlobals, getOpenAISnapshot, getOpenAIServerSnapshot)
-}
-
-/**
  * Hook to get the initial tool output (structuredContent from MCP response).
- * This is the data your MCP server returned that triggered this widget.
  */
 export function useToolOutput<T = unknown>(): T | null {
-  const openai = useOpenAI()
-  return (openai?.toolOutput as T) ?? null
+  const { toolOutput } = useHostAPI()
+  return (toolOutput as T) ?? null
 }
 
 /**
  * Hook to get the tool input (arguments passed when the tool was invoked).
  */
 export function useToolInput<T extends Record<string, unknown> = Record<string, unknown>>(): T {
-  const openai = useOpenAI()
-  return (openai?.toolInput as T) ?? ({} as T)
+  const { toolInput } = useHostAPI()
+  return (toolInput as T) ?? ({} as T)
 }
 
 /**

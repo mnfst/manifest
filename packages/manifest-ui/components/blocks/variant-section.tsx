@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { CopyLinkButton } from '@/components/blocks/copy-link-button'
 import { InstallCommandInline } from '@/components/blocks/install-command-inline'
 import { ConfigurationViewer } from '@/components/blocks/configuration-viewer'
+import { DependencyViewer, hasExternalDeps } from '@/components/blocks/dependency-viewer'
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { PipModal } from '@/components/layout/pip-modal'
 import { Button } from '@/components/ui/button'
@@ -11,19 +12,20 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { TokenScope } from '@/lib/token-context'
 import { cn } from '@/lib/utils'
 import { Maximize2, MessageSquare, PictureInPicture2, Settings2 } from 'lucide-react'
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 const CodeBlock = dynamic(() => import('./code-block').then(m => m.CodeBlock), {
   ssr: false,
   loading: () => <div className="rounded-lg bg-muted p-4 h-12 animate-pulse" />
 })
 
-type ViewMode = 'inline' | 'fullwidth' | 'pip' | 'config' | 'code'
+type ViewMode = 'inline' | 'fullwidth' | 'pip' | 'config' | 'code' | 'deps'
 type LayoutMode = 'inline' | 'fullscreen' | 'pip'
 
 interface VariantSectionProps {
   name: string
   component: React.ReactNode
+  pipComponent?: React.ReactNode
   fullscreenComponent?: React.ReactNode
   registryName: string
   usageCode?: string
@@ -34,6 +36,7 @@ interface VariantSectionProps {
 
 export interface VariantSectionHandle {
   showActionsConfig: () => void
+  showDepsTab: () => void
 }
 
 interface ChangelogEntry {
@@ -46,6 +49,8 @@ interface SourceCodeState {
   relatedFiles: string[]
   version: string | null
   changelog: ChangelogEntry[]
+  dependencies: string[]
+  devDependencies: string[]
   loading: boolean
   error: string | null
 }
@@ -55,6 +60,8 @@ function useSourceCode(registryName: string): SourceCodeState {
   const [relatedFiles, setRelatedFiles] = useState<string[]>([])
   const [version, setVersion] = useState<string | null>(null)
   const [changelog, setChangelog] = useState<ChangelogEntry[]>([])
+  const [dependencies, setDependencies] = useState<string[]>([])
+  const [devDependencies, setDevDependencies] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -89,12 +96,36 @@ function useSourceCode(registryName: string): SourceCodeState {
           } else {
             setChangelog([])
           }
+          setDependencies(data.dependencies || [])
+          setDevDependencies(data.devDependencies || [])
           // Collect all other file contents for type definition extraction
           const otherFiles = files
             .slice(1)
             .map((f: { content?: string }) => f.content)
             .filter(Boolean) as string[]
-          setRelatedFiles(otherFiles)
+
+          // Fetch type definitions from registry dependencies (e.g. manifest-types)
+          const registryDeps: string[] = data.registryDependencies || []
+          const typeDepFiles = await Promise.all(
+            registryDeps
+              .filter((dep: string) => dep.includes('types'))
+              .map(async (dep: string) => {
+                try {
+                  // Handle both full URLs and short registry names
+                  const depUrl = dep.startsWith('http') ? dep : `/r/${dep}.json`
+                  const depRes = await fetch(depUrl)
+                  if (!depRes.ok) return []
+                  const depData = await depRes.json()
+                  return (depData.files || [])
+                    .map((f: { content?: string }) => f.content)
+                    .filter(Boolean) as string[]
+                } catch {
+                  return []
+                }
+              })
+          )
+
+          setRelatedFiles([...otherFiles, ...typeDepFiles.flat()])
         } else {
           setError('No source code available')
         }
@@ -107,7 +138,7 @@ function useSourceCode(registryName: string): SourceCodeState {
     fetchCode()
   }, [registryName])
 
-  return { code, relatedFiles, version, changelog, loading, error }
+  return { code, relatedFiles, version, changelog, dependencies, devDependencies, loading, error }
 }
 
 function CodeViewer({ sourceCode }: { sourceCode: SourceCodeState }) {
@@ -156,6 +187,7 @@ function FullwidthPlaceholder({ onOpen }: { onOpen: () => void }) {
 export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionProps>(function VariantSection({
   name,
   component,
+  pipComponent,
   fullscreenComponent,
   registryName,
   usageCode,
@@ -164,12 +196,12 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   variantId
 }, ref) {
   // Determine default view mode based on available layouts
-  const getDefaultViewMode = (): ViewMode => {
+  const getDefaultViewMode = useCallback((): ViewMode => {
     if (layouts.includes('inline')) return 'inline'
     if (layouts.includes('fullscreen')) return 'fullwidth'
     if (layouts.includes('pip')) return 'pip'
     return 'inline'
-  }
+  }, [layouts])
   const [viewMode, setViewMode] = useState<ViewMode>(getDefaultViewMode)
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const [isPipOpen, setIsPipOpen] = useState(false)
@@ -210,6 +242,9 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
         setHighlightCategory(null)
       }, 2600)
       timeoutRefs.current.push(highlightTimeout)
+    },
+    showDepsTab: () => {
+      setViewMode('deps')
     }
   }), [])
 
@@ -220,7 +255,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
     setIsPipOpen(false)
     setPipPosition(undefined)
     setHighlightCategory(null)
-  }, [registryName, layouts])
+  }, [registryName, layouts, getDefaultViewMode])
 
   // Measure position and open PiP
   const openPip = () => {
@@ -234,6 +269,8 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
   const hasInline = layouts.includes('inline')
   const hasFullwidth = layouts.includes('fullscreen')
   const hasPip = layouts.includes('pip')
+  const hasDeps = !sourceCode.loading &&
+    hasExternalDeps(sourceCode.dependencies, sourceCode.devDependencies)
 
   return (
     <div className="space-y-3">
@@ -247,14 +284,14 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
               {sourceCode.version && (
                 <Popover>
                   <PopoverTrigger asChild>
-                    <span className="group relative text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                    <span className="group/version inline-flex items-center gap-1 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
                       <span>V{sourceCode.version}</span>
-                      <span className="absolute left-full ml-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-xs text-primary">
+                      <span className="opacity-0 group-hover/version:opacity-100 transition-opacity whitespace-nowrap text-xs text-primary">
                         view changelog
                       </span>
                     </span>
                   </PopoverTrigger>
-                  <PopoverContent className="w-80 max-h-96 overflow-y-auto" align="start">
+                  <PopoverContent className="w-80 max-h-96 overflow-y-auto z-[1000]" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <h4 className="font-semibold text-sm">Changelog</h4>
@@ -354,12 +391,36 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
         >
           Code
         </button>
+
+        {/* Deps button: only shown when dependencies exist */}
+        {hasDeps && (
+          <button
+            onClick={() => setViewMode('deps')}
+            className={cn(
+              'px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer',
+              viewMode === 'deps'
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Deps
+          </button>
+        )}
       </div>
 
       {/* Content based on view mode */}
       <div ref={contentRef}>
         {viewMode === 'inline' && (
-          <TokenScope>{component}</TokenScope>
+          <TokenScope>
+            {hasFullwidth && React.isValidElement(component)
+              ? React.cloneElement(component as React.ReactElement<{ actions?: { onExpand?: () => void } }>, {
+                  actions: {
+                    ...(component as React.ReactElement<{ actions?: Record<string, unknown> }>).props?.actions,
+                    onExpand: () => setIsFullscreenOpen(true)
+                  }
+                })
+              : component}
+          </TokenScope>
         )}
 
         {viewMode === 'fullwidth' && (
@@ -402,6 +463,14 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
             </div>
           </div>
         )}
+
+        {viewMode === 'deps' && (
+          <DependencyViewer
+            dependencies={sourceCode.dependencies}
+            devDependencies={sourceCode.devDependencies}
+            loading={sourceCode.loading}
+          />
+        )}
       </div>
 
       {/* Fullscreen Modal */}
@@ -424,7 +493,7 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
           position={pipPosition}
         >
           <TokenScope>
-            {component}
+            {pipComponent || component}
           </TokenScope>
         </PipModal>
       )}

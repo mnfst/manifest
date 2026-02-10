@@ -56,9 +56,9 @@ describe('Registry Component Versioning', () => {
 
   describe('Version field presence', () => {
     it('all components should have a version field', () => {
-      const componentsWithoutVersion = registry.items.filter(
-        (item) => !getVersion(item)
-      )
+      const componentsWithoutVersion = registry.items
+        .filter((item) => item.type === 'registry:block')
+        .filter((item) => !getVersion(item))
 
       if (componentsWithoutVersion.length > 0) {
         const names = componentsWithoutVersion.map((c) => c.name).join(', ')
@@ -109,7 +109,8 @@ describe('Registry Component Versioning', () => {
 
   describe('Component registry structure', () => {
     it('all components should have required fields', () => {
-      for (const item of registry.items) {
+      const blockItems = registry.items.filter((item) => item.type === 'registry:block')
+      for (const item of blockItems) {
         expect(item.name).toBeDefined()
         expect(typeof item.name).toBe('string')
         expect(item.name.length).toBeGreaterThan(0)

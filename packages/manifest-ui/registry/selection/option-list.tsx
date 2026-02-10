@@ -1,52 +1,46 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
-import { useState } from 'react'
-import { demoOptions } from './demo/data'
+import { useEffect, useState } from 'react'
+
+// Import types from shared types file to avoid circular dependencies
+import type { Option } from './types'
+// Re-export for backward compatibility
+export type { Option } from './types'
+
+import { demoOptions } from './demo/selection'
+
 
 /**
- * Represents a selectable option.
- * @interface Option
- * @property {string} label - Display label
- * @property {string} [description] - Optional description text
- * @property {React.ReactNode} [icon] - Optional icon element
- * @property {boolean} [disabled] - Whether option is disabled
- */
-export interface Option {
-  label: string
-  description?: string
-  icon?: React.ReactNode
-  disabled?: boolean
-}
-
-/**
- * Props for the OptionList component.
- * @interface OptionListProps
- * @property {object} [data] - Option data
- * @property {Option[]} [data.options] - Array of options
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onSelectOption] - Called on single selection
- * @property {function} [actions.onSelectOptions] - Called on multiple selection
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.multiple] - Enable multiple selection
- * @property {object} [control] - State control
- * @property {number} [control.selectedOptionIndex] - Controlled selected index
- * @property {number[]} [control.selectedOptionIndexes] - Controlled selected indexes
+ * ═══════════════════════════════════════════════════════════════════════════
+ * OptionListProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the OptionList component, which displays selectable options with
+ * support for single or multiple selection modes.
  */
 export interface OptionListProps {
   data?: {
+    /** Array of selectable options to display. */
     options?: Option[]
   }
   actions?: {
-    onSelectOption?: (option: Option) => void
-    onSelectOptions?: (options: Option[]) => void
+    /** Called when the user confirms their selection. Returns selected option(s). */
+    onSubmit?: (selected: Option[]) => void
   }
   appearance?: {
+    /**
+     * Enable multiple selection mode.
+     * @default false
+     */
     multiple?: boolean
   }
   control?: {
+    /** Controlled selected index for single selection mode. */
     selectedOptionIndex?: number
+    /** Controlled selected indexes for multiple selection mode. */
     selectedOptionIndexes?: number[]
   }
 }
@@ -78,13 +72,24 @@ export interface OptionListProps {
  * ```
  */
 export function OptionList({ data, actions, appearance, control }: OptionListProps) {
-  const { options = demoOptions } = data ?? {}
-  const { onSelectOption, onSelectOptions } = actions ?? {}
-  const { multiple = false } = appearance ?? {}
-  const { selectedOptionIndex, selectedOptionIndexes = [] } = control ?? {}
+  const resolved: NonNullable<OptionListProps['data']> = data ?? { options: demoOptions }
+  const options = resolved.options ?? []
+  const onSubmit = actions?.onSubmit
+  const multiple = appearance?.multiple ?? false
+  const selectedOptionIndex = control?.selectedOptionIndex
+  const selectedOptionIndexes = control?.selectedOptionIndexes
   const [selected, setSelected] = useState<number | number[]>(
-    multiple ? selectedOptionIndexes : selectedOptionIndex ?? -1
+    multiple ? (selectedOptionIndexes ?? []) : selectedOptionIndex ?? -1
   )
+
+  // Sync internal state when controlled props change
+  useEffect(() => {
+    if (multiple) {
+      setSelected(selectedOptionIndexes ?? [])
+    } else if (selectedOptionIndex !== undefined) {
+      setSelected(selectedOptionIndex)
+    }
+  }, [multiple, selectedOptionIndex, selectedOptionIndexes])
 
   const handleSelect = (option: Option, index: number) => {
     if (option.disabled) return
@@ -95,10 +100,20 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
         ? currentSelected.filter((i) => i !== index)
         : [...currentSelected, index]
       setSelected(newSelected)
-      onSelectOptions?.(options.filter((_, i) => newSelected.includes(i)))
     } else {
       setSelected(index)
-      onSelectOption?.(option)
+    }
+  }
+
+  const handleSubmit = () => {
+    if (multiple) {
+      const selectedIndexes = selected as number[]
+      onSubmit?.(options.filter((_, i) => selectedIndexes.includes(i)))
+    } else {
+      const selectedIndex = selected as number
+      if (selectedIndex >= 0) {
+        onSubmit?.([options[selectedIndex]])
+      }
     }
   }
 
@@ -109,12 +124,16 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
     return selected === index
   }
 
+  const hasSelection = multiple
+    ? (selected as number[]).length > 0
+    : (selected as number) >= 0
+
   return (
-    <div className="w-full bg-card rounded-lg p-4">
+    <div className="w-full bg-card rounded-lg p-4 space-y-3">
       <div className="flex flex-wrap gap-2">
         {options.map((option, index) => (
           <button
-            key={index}
+            key={option.label || index}
             onClick={() => handleSelect(option, index)}
             disabled={option.disabled}
             className={cn(
@@ -126,7 +145,7 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
             )}
           >
             {option.icon}
-            <span>{option.label}</span>
+            {option.label && <span>{option.label}</span>}
             {option.description && (
               <span
                 className={cn(
@@ -145,6 +164,17 @@ export function OptionList({ data, actions, appearance, control }: OptionListPro
           </button>
         ))}
       </div>
+      {onSubmit && (
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            onClick={handleSubmit}
+            disabled={!hasSelection}
+          >
+            Confirm
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

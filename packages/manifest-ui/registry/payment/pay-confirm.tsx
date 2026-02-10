@@ -13,34 +13,49 @@ import { Separator } from "@/components/ui/separator"
 import { Check, CreditCard, ShieldCheck } from "lucide-react"
 
 /**
- * Props for the PayConfirm component.
- * @interface PayConfirmProps
- * @property {object} [data] - Payment data to display
- * @property {number} data.amount - The amount to be charged
- * @property {string} [data.cardLast4] - Last 4 digits of the card
- * @property {string} [data.cardBrand] - Card brand name (e.g., 'Visa', 'Mastercard')
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onConfirm] - Called when user confirms the payment
- * @property {function} [actions.onCancel] - Called when user cancels the payment
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.currency] - Currency code for formatting (default: 'USD')
- * @property {object} [control] - State control options
- * @property {boolean} [control.isLoading] - Shows loading state on buttons
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PayConfirmProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for a payment confirmation component displaying amount, card details,
+ * and confirm/cancel actions. Follows ChatGPT UI guidelines for clear visual hierarchy.
  */
 export interface PayConfirmProps {
   data?: {
-    amount: number
+    /**
+     * The amount to be charged.
+     * @default 99.99
+     */
+    amount?: number
+    /**
+     * Last 4 digits of the card to display.
+     * @default "4242"
+     */
     cardLast4?: string
+    /**
+     * Card brand name (e.g., "Visa", "Mastercard").
+     * @default "Visa"
+     */
     cardBrand?: string
   }
   actions?: {
+    /** Called when the user confirms the payment. */
     onConfirm?: () => void
+    /** Called when the user cancels the payment. */
     onCancel?: () => void
   }
   appearance?: {
+    /**
+     * Currency code for formatting the amount.
+     * @default "USD"
+     */
     currency?: string
   }
   control?: {
+    /**
+     * Shows loading state on the confirm and cancel buttons.
+     * @default false
+     */
     isLoading?: boolean
   }
 }
@@ -75,14 +90,17 @@ export interface PayConfirmProps {
  * ```
  */
 export function PayConfirm({ data, actions, appearance, control }: PayConfirmProps) {
-  const { amount = 99.99, cardLast4 = "4242", cardBrand = "Visa" } = data ?? {}
-  const { onConfirm, onCancel } = actions ?? {}
-  const { currency = "USD" } = appearance ?? {}
-  const { isLoading = false } = control ?? {}
+  const amount = data?.amount
+  const cardLast4 = data?.cardLast4
+  const cardBrand = data?.cardBrand
+  const onConfirm = actions?.onConfirm
+  const onCancel = actions?.onCancel
+  const currency = appearance?.currency
+  const isLoading = control?.isLoading ?? false
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency,
+      currency: currency || "USD",
     }).format(value)
   }
 
@@ -98,27 +116,35 @@ export function PayConfirm({ data, actions, appearance, control }: PayConfirmPro
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="rounded-lg bg-muted p-4 text-center">
-          <p className="text-sm text-muted-foreground">Amount to pay</p>
-          <p className="text-2xl font-semibold">{formatCurrency(amount)}</p>
-        </div>
-        <Separator />
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-sm font-medium">{cardBrand}</p>
-              <p className="text-sm text-muted-foreground">
-                •••• {cardLast4}
-              </p>
-            </div>
+        {amount !== undefined && (
+          <div className="rounded-lg bg-muted p-4 text-center">
+            <p className="text-sm text-muted-foreground">Amount to pay</p>
+            <p className="text-2xl font-semibold">{formatCurrency(amount)}</p>
           </div>
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground">
-            <Check className="h-3 w-3 text-background" />
-          </div>
-        </div>
+        )}
+        {(cardBrand || cardLast4) && (
+          <>
+            {amount !== undefined && <Separator />}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div>
+                  {cardBrand && <p className="text-sm font-medium">{cardBrand}</p>}
+                  {cardLast4 && (
+                    <p className="text-sm text-muted-foreground">
+                      •••• {cardLast4}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground">
+                <Check className="h-3 w-3 text-background" />
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
       <CardFooter className="flex gap-3">
         <Button

@@ -7,13 +7,6 @@ export const blockNames: Record<string, string> = {
   'contact-form': 'Contact Form',
   'date-time-picker': 'Date & Time Picker',
   'issue-report-form': 'Issue Report Form',
-  'card-form': 'Card Form',
-  'pay-confirm': 'Payment Confirmation',
-  'order-summary': 'Order Summary',
-  'saved-cards': 'Saved Cards',
-  'payment-success': 'Payment Success',
-  'bank-card-form': 'Bank Card Form',
-  'payment-methods': 'Payment Methods',
   'order-confirm': 'Order Confirmation',
   'payment-confirmed': 'Payment Confirmed',
   'product-list': 'Product List',
@@ -24,7 +17,6 @@ export const blockNames: Record<string, string> = {
   'progress-steps': 'Progress Steps',
   'status-badge': 'Status Badge',
   stats: 'Stats Cards',
-  skeleton: 'Skeleton',
   'post-card': 'Post Card',
   'post-list': 'Post List',
   'post-detail': 'Post Detail',
@@ -40,7 +32,6 @@ export const blockNames: Record<string, string> = {
   'event-list': 'Event List',
   'event-detail': 'Event Detail',
   'ticket-tier-select': 'Ticket Selection',
-  'event-checkout': 'Event Checkout',
   'event-confirmation': 'Event Confirmation'
 }
 
@@ -68,17 +59,6 @@ export const blockDescriptions: Record<string, string> = {
     'Interactive date and time picker with calendar view and time slot selection.',
   'issue-report-form':
     'Bug report form with categories, severity levels, and file attachment support.',
-  'card-form':
-    'Credit card input form with card number, expiry, CVV validation and formatting.',
-  'pay-confirm': 'Payment confirmation dialog showing amount and action buttons.',
-  'order-summary':
-    'Order summary with line items, subtotal, shipping, tax, and discount display.',
-  'saved-cards':
-    'Display and manage saved payment cards with multiple card brand support.',
-  'payment-success': 'Payment success screen with order details and tracking options.',
-  'bank-card-form': 'Compact bank card form optimized for inline chat interfaces.',
-  'payment-methods':
-    'Payment method selector with card brands, Apple Pay, and digital wallet support.',
   'order-confirm':
     'Order confirmation with product image, details, and delivery information.',
   'payment-confirmed':
@@ -92,7 +72,6 @@ export const blockDescriptions: Record<string, string> = {
   'progress-steps': 'Progress indicator with horizontal and vertical layout options.',
   'status-badge': 'Status badges with multiple states like success, pending, error.',
   stats: 'Scrollable stat cards with trends and metric displays.',
-  skeleton: 'Skeleton loading placeholders with pulse animation.',
   'post-card':
     'Blog post card with default, compact, horizontal, and covered variants.',
   'post-list': 'Blog post list with list, grid, carousel, and fullwidth variants.',
@@ -112,8 +91,6 @@ export const blockDescriptions: Record<string, string> = {
     'Full event details with image carousel, organizer info, and ticket purchase.',
   'ticket-tier-select':
     'Ticket tier selection with quantity controls and price breakdown.',
-  'event-checkout':
-    'Event checkout with billing form, payment methods, and order summary.',
   'event-confirmation':
     'Event booking confirmation with order details and social sharing.'
 }

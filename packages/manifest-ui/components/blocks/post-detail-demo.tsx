@@ -1,6 +1,7 @@
 'use client'
 
 import { FullscreenModal } from '@/components/layout/fullscreen-modal'
+import { PipModal } from '@/components/layout/pip-modal'
 import { HostAPIProvider, DisplayMode } from '@/lib/host-api'
 import { PostDetail, PostDetailProps } from '@/registry/blogging/post-detail'
 import { useState, useCallback } from 'react'
@@ -43,6 +44,20 @@ export function PostDetailDemo({
           data={data}
           appearance={{ ...appearance, displayMode: 'inline' }}
         />
+      )}
+
+      {/* PiP mode - floating picture-in-picture view */}
+      {displayMode === 'pip' && (
+        <PipModal
+          appName={appName}
+          onClose={() => setDisplayMode('inline')}
+          onExpand={() => setDisplayMode('fullscreen')}
+        >
+          <PostDetail
+            data={data}
+            appearance={{ ...appearance, displayMode: 'pip' }}
+          />
+        </PipModal>
       )}
 
       {/* Fullscreen mode - wrapped in our preview modal */}

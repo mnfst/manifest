@@ -11,115 +11,52 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { demoIssueReportFormData } from './demo/form'
 import { ChevronDown, ChevronUp, Paperclip, Send, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 
-const defaultTeams = [
-  'Engineering',
-  'Product',
-  'Design',
-  'Marketing',
-  'Sales',
-  'Support',
-  'HR',
-  'Finance',
-  'Operations'
-]
-
-const defaultLocations = [
-  'New York - HQ',
-  'San Francisco - Office',
-  'Chicago - Branch',
-  'Austin - Hub',
-  'Remote'
-]
-
-const defaultCategories: Record<string, string[]> = {
-  Software: [
-    'Business App',
-    'Email',
-    'Browser',
-    'VPN',
-    'Office Suite',
-    'Other Software'
-  ],
-  Hardware: [
-    'Computer',
-    'Monitor',
-    'Keyboard/Mouse',
-    'Printer',
-    'Phone',
-    'Other Hardware'
-  ],
-  Network: ['Internet Connection', 'WiFi', 'Server Access', 'File Sharing'],
-  Access: ['User Account', 'Permissions', 'Badge/Physical Access'],
-  Other: ['General Request', 'Suggestion', 'Other']
-}
-
-const defaultImpacts = [
-  { value: 'critical', label: 'Critical - Complete Blocker' },
-  { value: 'high', label: 'High - Severely Degraded' },
-  { value: 'medium', label: 'Medium - Partially Impacted' },
-  { value: 'low', label: 'Low - Minor Inconvenience' }
-]
-
-const defaultUrgencies = [
-  { value: 'immediate', label: 'Immediate' },
-  { value: 'today', label: 'Today' },
-  { value: 'week', label: 'This Week' },
-  { value: 'flexible', label: 'Flexible' }
-]
-
-const defaultFrequencies = [
-  { value: 'permanent', label: 'Permanent' },
-  { value: 'frequent', label: 'Frequent (multiple times/day)' },
-  { value: 'occasional', label: 'Occasional (few times/week)' },
-  { value: 'rare', label: 'Rare (first time)' }
-]
-
-const defaultAttemptedActions = [
-  'Restarted computer',
-  'Restarted application',
-  'Checked cables',
-  'Tested on another machine',
-  'Cleared cache',
-  'Asked a colleague'
-]
 
 /**
- * Props for the IssueReportForm component.
- * @interface IssueReportFormProps
- * @property {object} [data] - Configuration data for the form
- * @property {string} [data.title] - Form title displayed at the top
- * @property {string[]} [data.teams] - List of team options for the dropdown
- * @property {string[]} [data.locations] - List of location options
- * @property {Record<string, string[]>} [data.categories] - Category to subcategory mapping
- * @property {{ value: string; label: string }[]} [data.impacts] - Impact level options
- * @property {{ value: string; label: string }[]} [data.urgencies] - Urgency level options
- * @property {{ value: string; label: string }[]} [data.frequencies] - Frequency options
- * @property {string[]} [data.attemptedActions] - Pre-defined actions user may have tried
- * @property {object} [actions] - Callback functions for form events
- * @property {function} [actions.onSubmit] - Called when the form is submitted
- * @property {object} [appearance] - Visual customization options
- * @property {boolean} [appearance.showTitle] - Whether to display the title
- * @property {boolean} [appearance.compactMode] - Use compact layout
+ * ═══════════════════════════════════════════════════════════════════════════
+ * IssueReportFormProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the IssueReportForm component for IT support, help desk, or
+ * internal ticketing systems.
  */
 export interface IssueReportFormProps {
   data?: {
+    /** Form title displayed at the top. */
     title?: string
+    /** List of team options for the dropdown. */
     teams?: string[]
+    /** List of location options. */
     locations?: string[]
+    /** Category to subcategory mapping. */
     categories?: Record<string, string[]>
+    /** Impact level options. */
     impacts?: { value: string; label: string }[]
+    /** Urgency level options. */
     urgencies?: { value: string; label: string }[]
+    /** Frequency options. */
     frequencies?: { value: string; label: string }[]
+    /** Pre-defined actions user may have tried. */
     attemptedActions?: string[]
   }
   actions?: {
+    /** Called when the form is submitted. */
     onSubmit?: (formData: IssueFormData) => void
   }
   appearance?: {
+    /**
+     * Whether to display the title.
+     * @default true
+     */
     showTitle?: boolean
+    /**
+     * Use compact layout.
+     * @default true
+     */
     compactMode?: boolean
   }
 }
@@ -146,23 +83,23 @@ export interface IssueReportFormProps {
  * @property {string} additionalComments - Any extra information
  */
 export interface IssueFormData {
-  declarantName: string
-  email: string
-  team: string
-  location: string
-  office: string
-  workstation: string
-  category: string
-  subcategory: string
-  issueTitle: string
-  description: string
-  impact: string
-  urgency: string
-  frequency: string
-  startDate: string
-  attemptedActions: string[]
-  attachments: File[]
-  additionalComments: string
+  declarantName?: string
+  email?: string
+  team?: string
+  location?: string
+  office?: string
+  workstation?: string
+  category?: string
+  subcategory?: string
+  issueTitle?: string
+  description?: string
+  impact?: string
+  urgency?: string
+  frequency?: string
+  startDate?: string
+  attemptedActions?: string[]
+  attachments?: File[]
+  additionalComments?: string
 }
 
 /**
@@ -203,18 +140,17 @@ export function IssueReportForm({
   actions,
   appearance
 }: IssueReportFormProps) {
-  const {
-    title = 'Report an Issue',
-    teams = defaultTeams,
-    locations = defaultLocations,
-    categories = defaultCategories,
-    impacts = defaultImpacts,
-    urgencies = defaultUrgencies,
-    frequencies = defaultFrequencies,
-    attemptedActions = defaultAttemptedActions
-  } = data ?? {}
+  const resolved: NonNullable<IssueReportFormProps['data']> = data ?? demoIssueReportFormData
+  const title = resolved.title
+  const teams = resolved.teams ?? []
+  const locations = resolved.locations ?? []
+  const categories = resolved.categories ?? {}
+  const impacts = resolved.impacts ?? []
+  const urgencies = resolved.urgencies ?? []
+  const frequencies = resolved.frequencies ?? []
+  const attemptedActions = resolved.attemptedActions ?? []
   const { onSubmit } = actions ?? {}
-  const { showTitle = true, compactMode: _compactMode = true } = appearance ?? {}
+  const { showTitle = true } = appearance ?? {}
 
   const [formData, setFormData] = useState<IssueFormData>({
     declarantName: '',
@@ -257,19 +193,22 @@ export function IssueReportForm({
   }
 
   const toggleAttemptedAction = (action: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      attemptedActions: prev.attemptedActions.includes(action)
-        ? prev.attemptedActions.filter((a) => a !== action)
-        : [...prev.attemptedActions, action]
-    }))
+    setFormData((prev) => {
+      const currentActions = prev.attemptedActions ?? []
+      return {
+        ...prev,
+        attemptedActions: currentActions.includes(action)
+          ? currentActions.filter((a) => a !== action)
+          : [...currentActions, action]
+      }
+    })
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     setFormData((prev) => ({
       ...prev,
-      attachments: [...prev.attachments, ...files]
+      attachments: [...(prev.attachments ?? []), ...files]
     }))
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -277,7 +216,7 @@ export function IssueReportForm({
   const removeFile = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      attachments: prev.attachments.filter((_, i) => i !== index)
+      attachments: (prev.attachments ?? []).filter((_, i) => i !== index)
     }))
   }
 
@@ -291,7 +230,7 @@ export function IssueReportForm({
 
   return (
     <div className="w-full bg-card rounded-xl p-4">
-      {showTitle && (
+      {showTitle && title && (
         <div className="flex items-center gap-2 mb-4">
           <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         </div>
@@ -564,7 +503,7 @@ export function IssueReportForm({
                       onClick={() => toggleAttemptedAction(action)}
                       className={cn(
                         'px-2 py-1 text-xs rounded-md border transition-colors',
-                        formData.attemptedActions.includes(action)
+                        (formData.attemptedActions ?? []).includes(action)
                           ? 'bg-primary text-primary-foreground border-primary'
                           : 'bg-background text-foreground border-border hover:border-primary'
                       )}
@@ -631,9 +570,9 @@ export function IssueReportForm({
             onChange={handleFileSelect}
             className="hidden"
           />
-          {formData.attachments.length > 0 && (
+          {(formData.attachments ?? []).length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-2">
-              {formData.attachments.map((file, index) => (
+              {(formData.attachments ?? []).map((file, index) => (
                 <div
                   key={index}
                   className="flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs"

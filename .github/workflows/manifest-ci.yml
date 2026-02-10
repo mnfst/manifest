@@ -1,0 +1,139 @@
+# ============================================================================
+# Manifest Package CI Workflow
+# ============================================================================
+# Runs CI checks for the manifest package:
+#   - Changeset: Verifies PRs include a changeset file (runs first)
+#   - Tests: Runs backend tests (after changeset check passes)
+#   - Docker: Validates Docker image builds (after changeset check passes)
+# ============================================================================
+
+name: Manifest CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/manifest/**'
+  workflow_dispatch:
+
+jobs:
+  changeset-check:
+    name: Changeset Check
+    runs-on: ubuntu-latest
+    # Skip for Version Packages PR (created by changesets action)
+    if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for changeset
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+
+          # Check if any files in packages/manifest/** changed
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD -- 'packages/manifest/**')
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changes in packages/manifest/**, skipping changeset check"
+            exit 0
+          fi
+
+          echo "Changed files in packages/manifest/**:"
+          echo "$CHANGED_FILES"
+
+          # Check if there's a changeset that mentions "manifest" package
+          CHANGESET_FILES=$(git diff --name-only origin/main...HEAD -- '.changeset/*.md' | grep -v README.md || true)
+
+          if [ -z "$CHANGESET_FILES" ]; then
+            echo "::error::Changes detected in packages/manifest/** but no changeset found."
+            echo "::error::Run 'pnpm changeset' and select the 'manifest' package."
+            exit 1
+          fi
+
+          # Verify at least one changeset mentions "manifest"
+          MANIFEST_CHANGESET=false
+          for file in $CHANGESET_FILES; do
+            if grep -q '"manifest"' "$file" 2>/dev/null; then
+              MANIFEST_CHANGESET=true
+              echo "Found changeset for manifest: $file"
+              break
+            fi
+          done
+
+          if [ "$MANIFEST_CHANGESET" = false ]; then
+            echo "::error::Changeset files found but none reference the 'manifest' package."
+            echo "::error::Run 'pnpm changeset' and select the 'manifest' package."
+            exit 1
+          fi
+
+          echo "Changeset check passed!"
+
+  test:
+    name: lint & test
+    runs-on: ubuntu-latest
+    needs: changeset-check
+    if: always() && (needs.changeset-check.result == 'success' || needs.changeset-check.result == 'skipped')
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run manifest package tests
+        run: pnpm run manifest:test
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: changeset-check
+    if: github.event_name == 'pull_request' && needs.changeset-check.result == 'success'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/manifest/Dockerfile
+          push: false
+          tags: manifest:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

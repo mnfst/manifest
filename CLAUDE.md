@@ -10,23 +10,12 @@ Manifest is a monorepo containing tools for building MCP (Model Context Protocol
 
 ```
 packages/
-├── manifest-ui/   # Component registry (Next.js) - port 3001
-├── create-manifest/      # CLI for scaffolding new projects
-└── starter/              # Starter template (nested pnpm workspace) - port 3000
-    ├── server/           # MCP server (Express + TypeScript)
-    └── web/              # Web client (Next.js)
-```
-
-## Important: Nested Workspace
-
-The `packages/starter` directory is a **nested pnpm workspace** with its own `pnpm-lock.yaml`. You must install dependencies in both locations:
-
-```bash
-# Root dependencies
-pnpm install
-
-# Starter package dependencies (required!)
-cd packages/starter && pnpm install
+├── manifest/      # Flow editor application (NestJS + React)
+│   ├── backend/   # NestJS API
+│   ├── frontend/  # React SPA
+│   ├── shared/    # Shared types and utilities
+│   └── nodes/     # Node type definitions
+└── manifest-ui/   # Component registry (Next.js) - port 3001
 ```
 
 ## Common Commands
@@ -48,28 +37,66 @@ pnpm run test
 ## Development Workflow
 
 1. Run `pnpm install` at the root
-2. Run `pnpm install` in `packages/starter`
-3. Run `pnpm run dev` to start both the registry (port 3001) and starter server (port 3000)
-
-## Testing with ChatGPT
-
-Use ngrok to expose the local MCP server:
-
-```bash
-ngrok http 3000
-```
-
-Connect using: `https://xxxx.ngrok-free.app/mcp`
+2. Run `pnpm run dev` to start the registry on port 3001
 
 ## Key Files
 
-- `/packages/starter/server/src/index.ts` - Main MCP server entry point
 - `/packages/manifest-ui/registry.json` - Component registry definitions
 - `/turbo.json` - Turborepo configuration
 
+## Changesets (CRITICAL)
+
+This project uses [changesets](https://github.com/changesets/changesets) for versioning and changelog generation.
+
+### When to Create a Changeset
+
+**You MUST create a changeset when modifying code in:**
+- `packages/manifest/**` → select **manifest** package
+
+**You do NOT need a changeset for:**
+- `packages/manifest-ui/**` → This package has its own versioning via `registry.json` and `changelog.json`
+
+### How to Create a Changeset
+
+After making changes to `packages/manifest/**`, create a changeset file:
+
+```bash
+pnpm changeset
+```
+
+This will prompt you to:
+1. Select the affected package: `manifest`
+2. Choose version bump type: `patch`, `minor`, or `major`
+3. Write a summary of the changes
+
+### Changeset File Format
+
+Changesets are stored in `.changeset/` as markdown files:
+
+```markdown
+---
+"manifest": patch
+---
+
+Fixed authentication bug in login flow
+```
+
+### Version Bump Guidelines
+
+| Change Type | Bump | Examples |
+|-------------|------|----------|
+| **patch** | Bug fixes, small improvements | Fix typo, fix styling issue |
+| **minor** | New features, non-breaking | Add new component, add optional prop |
+| **major** | Breaking changes | Remove prop, change API, rename component |
+
+### Important Notes
+
+- PRs modifying `manifest` without a changeset will **fail CI**
+- The changeset summary should be user-facing (what changed, not how)
+
 ## Pull Request Guidelines
 
-**CRITICAL**: When creating pull requests, you MUST use the PR template format from `.github/pull_request_template.md`.
+**CRITICAL**: When creating pull requests, you MUST use the PR template format from `.github/PULL_REQUEST_TEMPLATE.md`.
 
 ### Required PR Body Format
 
@@ -129,6 +156,50 @@ EOF
 )"
 ```
 
+## Files to Never Commit
+
+**CRITICAL**: The following files must NEVER be committed to the repository:
+
+| File                          | Reason                                                               |
+| ----------------------------- | -------------------------------------------------------------------- |
+| `settings.local.json`         | Local settings file with personal configurations                     |
+| `.claude/settings.local.json` | Claude Code local settings                                           |
+| `.claude/commands/**`         | Claude Code custom commands (except speckit commands)                |
+| `specs/**`                    | Generated specs from speckit (auto-generated, not source-controlled) |
+
+### Exception: Speckit Commands
+
+Speckit-related Claude commands ARE allowed to be committed. These are commands that are part of the project's shared tooling and should be version controlled.
+
+### Before Committing
+
+Always check that staged files do not include:
+
+- Any `settings.local.json` files
+- Claude settings or command files (unless they are speckit-related)
+
+## Component Naming Convention (CRITICAL)
+
+**All component names MUST be consistent across registry name, display title, and React export.**
+
+The relationship between the three names must follow this deterministic mapping:
+
+| Layer | Format | Example |
+|-------|--------|---------|
+| Registry `name` in `registry.json` | kebab-case | `stat-card` |
+| Display `title` in `registry.json` | Title Case | `Stat Card` |
+| React component export | PascalCase of registry name | `StatCard` |
+| Props interface export | PascalCase + `Props` | `StatCardProps` |
+
+**The React component name MUST be the PascalCase version of the registry `name`.** No abbreviations, no synonyms, no creative alternatives.
+
+**Known exceptions** for brand-specific casing (tracked in `NAMING_VARIATIONS` in tests):
+- `linkedin-post` → `LinkedInPost` (brand casing)
+- `youtube-post` → `YouTubePost` (brand casing)
+- `x-post` → `XPost` (single-letter brand)
+
+When creating a new component, verify: registry name → PascalCase → component export → props interface all align.
+
 ## Block Development Guidelines
 
 **CRITICAL**: When adding or editing a block, you MUST update ALL related code across the codebase.
@@ -139,12 +210,13 @@ EOF
 
 A block modification is NOT complete until you have updated:
 
-| Location | What to Update |
-|----------|----------------|
-| `registry/<category>/<block>.tsx` | Component code, interfaces, props, default values |
-| `app/blocks/[category]/[block]/page.tsx` | `usageCode`, component preview, block metadata, default data |
-| `registry.json` | Version bump (PATCH/MINOR/MAJOR), category field (auto-derived from folder) |
-| `changelog.json` | Changelog entry for the new version |
+| Location                                 | What to Update                                                              |
+| ---------------------------------------- | --------------------------------------------------------------------------- |
+| `registry/<category>/<block>.tsx`        | Component code, interfaces, props (NO default data in component!)           |
+| `registry/<category>/demo/data.ts`       | Centralized demo data for previews (single source of truth)                 |
+| `app/blocks/[category]/[block]/page.tsx` | `usageCode`, component preview, block metadata (imports from demo/data.ts)  |
+| `registry.json`                          | Version bump (PATCH/MINOR/MAJOR), category field (auto-derived from folder) |
+| `changelog.json`                         | Changelog entry for the new version                                         |
 
 **Note**: The `category` field in `registry.json` is automatically derived from the folder name (e.g., `registry/form/` → `category: "form"`). When adding a new component, place it in the correct folder and the category will be set automatically.
 
@@ -169,6 +241,7 @@ The block detail page (`app/blocks/[category]/[block]/page.tsx`) contains:
 #### Verification Steps
 
 After ANY component change:
+
 1. Read the component `.tsx` file to understand the current interface
 2. Read the `page.tsx` block definition to see current `usageCode`
 3. Ensure `usageCode` exactly matches the component's interface
@@ -181,10 +254,63 @@ After ANY component change:
 When creating or modifying a block, update these files:
 
 1. **Component file**: `packages/manifest-ui/registry/<category>/<block-name>.tsx`
-2. **Registry definition**: `packages/manifest-ui/registry.json`
-3. **Block demo with usage example**: `packages/manifest-ui/app/blocks/[category]/[block]/page.tsx`
-4. **Sidebar navigation** (if new block): `packages/manifest-ui/app/blocks/page.tsx`
-5. **Category navigation** (if new): `packages/manifest-ui/lib/blocks-categories.ts`
+2. **Demo data file**: `packages/manifest-ui/registry/<category>/demo/data.ts` (centralized demo data)
+3. **Registry definition**: `packages/manifest-ui/registry.json`
+4. **Block demo with usage example**: `packages/manifest-ui/app/blocks/[category]/[block]/page.tsx`
+5. **Preview components**: `packages/manifest-ui/lib/preview-components.tsx` (imports from demo/data.ts)
+6. **Sidebar navigation** (if new block): `packages/manifest-ui/app/blocks/page.tsx`
+7. **Category navigation** (if new): `packages/manifest-ui/lib/blocks-categories.ts`
+
+### Display Modes Pattern (CRITICAL)
+
+**ALL components in this registry MUST support all 3 display modes.** This is a fundamental architecture requirement, not optional:
+
+| Mode | Description | Layout |
+|------|-------------|--------|
+| `inline` | Compact view within chat flow | Horizontal card, truncated content |
+| `pip` | Picture-in-picture floating view | Similar to inline, optimized for floating |
+| `fullscreen` | Full-page expanded view | Complete content, vertical scroll |
+
+**Implementation:**
+- Accept `displayMode` in the `appearance` prop
+- Render different layouts based on the mode
+- Integrate with ChatGPT/MCP host API for real environments
+
+See `packages/manifest-ui/CLAUDE.md` for detailed implementation patterns.
+
+### No Default Data Pattern (CRITICAL)
+
+**Components MUST NOT have hardcoded default data.** They should only render what the user explicitly provides.
+
+```typescript
+// ❌ BAD - Don't use default data in components
+const post = data?.post ?? { title: 'Default Title' };
+
+// ✅ GOOD - Only render what's provided
+const post = data?.post;
+return post?.title && <h1>{post.title}</h1>;
+```
+
+**Why:**
+- Users expect empty components until they provide data
+- Default data creates confusion about required vs optional fields
+- Demo data belongs in `demo/data.ts`, not in the component
+
+**Note:** While components don't use *inline* hardcoded defaults, they DO import centralized demo data and use `data ?? demoData` so that `<Component />` renders meaningful content. See `packages/manifest-ui/CLAUDE.md` for the full "Component Demo Data Initialization" pattern.
+
+### Centralized Demo Data Pattern (CRITICAL)
+
+All demo data MUST live in `registry/<category>/demo/data.ts`:
+
+```
+registry/blogging/
+├── post-detail.tsx     # Component (NO default data)
+├── types.ts            # TypeScript interfaces
+└── demo/
+    └── data.ts         # All demo data (single source of truth)
+```
+
+Both `page.tsx` and `preview-components.tsx` import from `demo/data.ts`. Never duplicate demo data.
 
 ### Avatar Pattern (IMPORTANT)
 
@@ -202,16 +328,18 @@ data?: {
 ```
 
 **Implementation:**
+
 - If `avatarUrl` is provided and loads successfully → show the image
 - If `avatarUrl` fails to load OR is not provided → show letter in a colored circle
 - Always require `avatarFallback` (letter) as the fallback
 
 **usageCode example:**
+
 ```tsx
 <MessageBubble
   data={{
-    avatarUrl: "https://i.pravatar.cc/150?u=sarah",  // Optional image URL
-    avatarFallback: "S",  // Letter fallback (required)
+    avatarUrl: 'https://i.pravatar.cc/150?u=sarah', // Optional image URL
+    avatarFallback: 'S', // Letter fallback (required)
     // ...
   }}
 />
@@ -236,16 +364,16 @@ All blocks follow this consistent props pattern:
 export interface BlockProps {
   data?: {
     // Content/configuration - titles, items, amounts, etc.
-  }
+  };
   actions?: {
     // Event handlers - onSubmit, onClick, onSelect, etc.
-  }
+  };
   appearance?: {
     // Visual/styling - variant, currency, columns, theme, etc.
-  }
+  };
   control?: {
     // State/loading - isLoading, value, disabled, etc.
-  }
+  };
 }
 ```
 
@@ -322,16 +450,17 @@ When adding a block to `app/blocks/page.tsx`, follow this pattern:
 **Every modification to a block's source files MUST include a version bump in `registry.json`.**
 
 This is enforced by automated tests that will fail if:
+
 1. You modified any file in `registry/**/*.tsx`
 2. But did NOT update the corresponding component's `version` in `registry.json`
 
 #### Semantic Versioning Guide
 
-| Change Type | Version Bump | Examples |
-|-------------|--------------|----------|
-| **PATCH** | `1.0.0` → `1.0.1` | Bug fixes, styling fixes, refactoring without API changes |
-| **MINOR** | `1.0.0` → `1.1.0` | New features, new optional props, new variants |
-| **MAJOR** | `1.0.0` → `2.0.0` | Breaking changes: removing/renaming props, changing behavior |
+| Change Type | Version Bump      | Examples                                                     |
+| ----------- | ----------------- | ------------------------------------------------------------ |
+| **PATCH**   | `1.0.0` → `1.0.1` | Bug fixes, styling fixes, refactoring without API changes    |
+| **MINOR**   | `1.0.0` → `1.1.0` | New features, new optional props, new variants               |
+| **MAJOR**   | `1.0.0` → `2.0.0` | Breaking changes: removing/renaming props, changing behavior |
 
 #### Example
 
@@ -348,6 +477,7 @@ This is enforced by automated tests that will fail if:
 **Every version MUST have a corresponding changelog entry in `changelog.json`.**
 
 This is enforced by automated tests that will fail if:
+
 1. A component has a version in `registry.json`
 2. But does NOT have a changelog entry for that version in `changelog.json`
 
@@ -374,12 +504,14 @@ The changelog is stored in `packages/manifest-ui/changelog.json`:
 3. **Be specific** - Avoid vague descriptions like "bug fixes"
 
 **Good examples:**
+
 - "Initial release with text, image, and voice message support"
 - "Fixed images not loading on slow connections"
 - "Added dark mode support"
 - "Improved accessibility with better screen reader support"
 
 **Bad examples:**
+
 - "Bug fixes" (too vague)
 - "Refactored internal state management" (too technical)
 - "Updated dependencies" (not user-facing)
@@ -389,10 +521,12 @@ The changelog is stored in `packages/manifest-ui/changelog.json`:
 **Every component MUST have a `category` field in `registry.json`.**
 
 The category is automatically derived from the folder structure:
+
 - File path: `registry/form/date-time-picker.tsx`
 - Category: `form`
 
 This is enforced by automated tests that will fail if:
+
 1. A component is missing a `category` field
 2. The `category` doesn't match the folder name in the file path
 
@@ -404,15 +538,15 @@ This is enforced by automated tests that will fail if:
 
 #### Available Categories
 
-| Folder | Category | URL Example |
-|--------|----------|-------------|
-| `registry/blogging/` | `blogging` | `/blocks/blogging/post-card` |
-| `registry/events/` | `events` | `/blocks/events/event-card` |
-| `registry/form/` | `form` | `/blocks/form/contact-form` |
-| `registry/list/` | `list` | `/blocks/list/table` |
-| `registry/messaging/` | `messaging` | `/blocks/messaging/message-bubble` |
+| Folder                    | Category        | URL Example                         |
+| ------------------------- | --------------- | ----------------------------------- |
+| `registry/blogging/`      | `blogging`      | `/blocks/blogging/post-card`        |
+| `registry/events/`        | `events`        | `/blocks/events/event-card`         |
+| `registry/form/`          | `form`          | `/blocks/form/contact-form`         |
+| `registry/list/`          | `list`          | `/blocks/list/table`                |
+| `registry/messaging/`     | `messaging`     | `/blocks/messaging/message-bubble`  |
 | `registry/miscellaneous/` | `miscellaneous` | `/blocks/miscellaneous/quick-reply` |
-| `registry/payment/` | `payment` | `/blocks/payment/card-form` |
+| `registry/payment/`       | `payment`       | `/blocks/payment/card-form`         |
 
 #### Adding a New Category
 
@@ -430,37 +564,38 @@ This is enforced by automated tests that will fail if:
 All event components use a shared `Event` interface:
 
 ```typescript
-type EventLocationType = "physical" | "online" | "hybrid"
+type EventLocationType = 'physical' | 'online' | 'hybrid';
 
 interface Event {
-  id: string
-  title: string
-  category: string             // "Music", "Comedy", "Classes", "Nightlife", "Sports"
-  locationType?: EventLocationType // defaults to "physical"
-  venue?: string               // Optional for online events
-  neighborhood?: string
-  city?: string                // Optional for online events
-  onlineUrl?: string           // For online/hybrid events
-  startDateTime: string        // ISO format: "2025-01-11T21:00:00Z"
-  endDateTime?: string         // ISO format: "2025-01-12T03:00:00Z"
-  priceRange: string           // "$45 - $150", "Free"
-  image?: string
-  vibeTags?: VibeTag[]         // ["High energy", "Late night", "Dressy"]
-  vibeDescription?: string
-  aiSummary?: string           // AI-generated match explanation
-  lineup?: string[]
-  eventSignal?: EventSignal
-  ticketSignal?: TicketSignal
-  organizerRating?: number
-  reviewCount?: number
-  hasMultipleDates?: boolean
-  discount?: string
+  id: string;
+  title: string;
+  category: string; // "Music", "Comedy", "Classes", "Nightlife", "Sports"
+  locationType?: EventLocationType; // defaults to "physical"
+  venue?: string; // Optional for online events
+  neighborhood?: string;
+  city?: string; // Optional for online events
+  onlineUrl?: string; // For online/hybrid events
+  startDateTime: string; // ISO format: "2025-01-11T21:00:00Z"
+  endDateTime?: string; // ISO format: "2025-01-12T03:00:00Z"
+  priceRange: string; // "$45 - $150", "Free"
+  image?: string;
+  vibeTags?: VibeTag[]; // ["High energy", "Late night", "Dressy"]
+  vibeDescription?: string;
+  aiSummary?: string; // AI-generated match explanation
+  lineup?: string[];
+  eventSignal?: EventSignal;
+  ticketSignal?: TicketSignal;
+  organizerRating?: number;
+  reviewCount?: number;
+  hasMultipleDates?: boolean;
+  discount?: string;
 }
 ```
 
 #### Event Location Types
 
 Events can be physical, online, or hybrid:
+
 - `physical` - In-person event with venue and city (default)
 - `online` - Virtual event with `onlineUrl`, no venue/city required
 - `hybrid` - Both in-person and online, has venue/city AND `onlineUrl`
@@ -468,14 +603,15 @@ Events can be physical, online, or hybrid:
 #### Date/Time Formatting
 
 Store dates as ISO 8601 strings. The component automatically formats for display:
+
 - **Today**: "Tonight 9:00 PM - 3:00 AM"
 - **Tomorrow**: "Tomorrow 8:00 PM"
 - **Future dates**: "Jan 15 7:00 PM"
 
 ```typescript
 // Example usage
-startDateTime: "2025-01-11T21:00:00Z"  // 9 PM UTC
-endDateTime: "2025-01-12T03:00:00Z"    // 3 AM UTC next day
+startDateTime: '2025-01-11T21:00:00Z'; // 9 PM UTC
+endDateTime: '2025-01-12T03:00:00Z'; // 3 AM UTC next day
 ```
 
 #### Signal Types
@@ -484,45 +620,63 @@ endDateTime: "2025-01-12T03:00:00Z"    // 3 AM UTC next day
 
 ```typescript
 type EventSignal =
-  | "going-fast"       // Orange - "Going Fast"
-  | "popular"          // Pink - "Popular"
-  | "just-added"       // Blue - "Just Added"
-  | "sales-end-soon"   // Red - "Sales End Soon"
-  | "few-tickets-left" // Orange - "Few Tickets Left"
-  | "canceled"         // Gray - "Canceled"
-  | "ended"            // Gray - "Ended"
-  | "postponed"        // Yellow - "Postponed"
+  | 'going-fast' // Orange - "Going Fast"
+  | 'popular' // Pink - "Popular"
+  | 'just-added' // Blue - "Just Added"
+  | 'sales-end-soon' // Red - "Sales End Soon"
+  | 'few-tickets-left' // Orange - "Few Tickets Left"
+  | 'canceled' // Gray - "Canceled"
+  | 'ended' // Gray - "Ended"
+  | 'postponed'; // Yellow - "Postponed"
 ```
 
 **Ticket Signals** - Status indicators for ticket availability:
 
 ```typescript
 type TicketSignal =
-  | "discount-applied"       // Green - "Discount Applied"
-  | "few-tickets-left"       // Orange - "Few Tickets Left"
-  | "less-than-10-remaining" // Orange - "Less than 10 Remaining"
-  | "more-than-11-remaining" // Gray - "More than 11 Remaining"
-  | "not-yet-on-sale"        // Blue - "Not Yet On Sale"
-  | "sales-end-soon"         // Red - "Sales End Soon"
-  | "sales-ended"            // Gray - "Sales Ended"
-  | "sold-out"               // Red - "Sold Out"
-  | "unavailable"            // Gray - "Unavailable"
-  | "unlocked"               // Green - "Unlocked"
+  | 'discount-applied' // Green - "Discount Applied"
+  | 'few-tickets-left' // Orange - "Few Tickets Left"
+  | 'less-than-10-remaining' // Orange - "Less than 10 Remaining"
+  | 'more-than-11-remaining' // Gray - "More than 11 Remaining"
+  | 'not-yet-on-sale' // Blue - "Not Yet On Sale"
+  | 'sales-end-soon' // Red - "Sales End Soon"
+  | 'sales-ended' // Gray - "Sales Ended"
+  | 'sold-out' // Red - "Sold Out"
+  | 'unavailable' // Gray - "Unavailable"
+  | 'unlocked'; // Green - "Unlocked"
 ```
 
 **Vibe Tags** - Descriptive tags for event atmosphere (multiple selection):
 
 ```typescript
 type VibeTag =
-  | "All night"        | "Beginner-friendly" | "Casual"
-  | "Classic"          | "Cocktails"         | "Creative"
-  | "Date night"       | "Discover"          | "Dressy"
-  | "Educational"      | "Exciting"          | "Family-friendly"
-  | "Fun"              | "Hands-on"          | "High energy"
-  | "Interactive"      | "Intimate"          | "Late night"
-  | "Outdoor"          | "Relaxing"          | "Social"
-  | "Sophisticated"    | "Tasting"           | "Underground"
-  | "Upscale"          | "Views"             | "Wellness"
+  | 'All night'
+  | 'Beginner-friendly'
+  | 'Casual'
+  | 'Classic'
+  | 'Cocktails'
+  | 'Creative'
+  | 'Date night'
+  | 'Discover'
+  | 'Dressy'
+  | 'Educational'
+  | 'Exciting'
+  | 'Family-friendly'
+  | 'Fun'
+  | 'Hands-on'
+  | 'High energy'
+  | 'Interactive'
+  | 'Intimate'
+  | 'Late night'
+  | 'Outdoor'
+  | 'Relaxing'
+  | 'Social'
+  | 'Sophisticated'
+  | 'Tasting'
+  | 'Underground'
+  | 'Upscale'
+  | 'Views'
+  | 'Wellness';
 ```
 
 #### Event Card UI Layout
@@ -542,6 +696,7 @@ type VibeTag =
 #### Event Detail Sections
 
 The `event-detail` component has 11 sections in this order:
+
 1. Image header with title overlay
 2. Event basics (date, time, price, location)
 3. AI match explanation (optional, personalized recommendation)
@@ -557,6 +712,7 @@ The `event-detail` component has 11 sections in this order:
 #### EventList Requirements
 
 Like PostList, the `EventList` component requires sufficient demo data:
+
 - Include at least 10 events in `usageCode` for grid/carousel demos
 - Use diverse categories and price ranges
 - Include various event signals to show all badge types
@@ -564,6 +720,7 @@ Like PostList, the `EventList` component requires sufficient demo data:
 #### Ticket Selection Flow
 
 The ticket selection follows this pattern:
+
 1. `ticket-select` - Simple quantity picker for single ticket type
 2. `tier-select` - Multiple tiers with individual quantities
 3. `event-checkout` - Order summary with fees breakdown
@@ -574,11 +731,13 @@ The ticket selection follows this pattern:
 **The PostList block MUST always have exactly 15 posts in its `usageCode` data.**
 
 This is required because:
+
 1. The PostList component does NOT have default posts - it requires data to be passed
 2. Users copy-paste the usage code to test in MCP Jam - they need complete data
 3. 15 posts provides a realistic dataset for pagination and scrolling demos
 
 When updating PostList variants in `app/blocks/page.tsx` or `app/blocks/[category]/[block]/page.tsx`:
+
 - Always include all 15 posts in the `data.posts` array
 - Use the standard 15 demo posts (Sarah Chen, Alex Rivera, Jordan Kim, etc.)
 - Never use placeholders like `[...]` or truncated arrays
@@ -588,16 +747,19 @@ When updating PostList variants in `app/blocks/page.tsx` or `app/blocks/[categor
 Before submitting a PR with block changes:
 
 **Synchronization (CRITICAL):**
+
 - [ ] **Component interface matches `usageCode`** - Every prop in the interface is shown in usageCode
 - [ ] **`usageCode` uses correct prop names** - No stale/renamed props in usageCode
 - [ ] **Preview component uses current props** - The `<Component />` in variants uses the right props
 - [ ] **Default values are consistent** - Defaults in component match what's shown in preview
 
 **Versioning (REQUIRED):**
+
 - [ ] **Version bumped in `registry.json`** (tests will fail otherwise)
 - [ ] **Changelog entry added in `changelog.json`** (tests will fail otherwise)
 
 **Quality:**
+
 - [ ] Component implements the standard props pattern (`data`, `actions`, `appearance`, `control`)
 - [ ] Block is registered in `registry.json` with correct dependencies
 - [ ] EVERY variant has a `usageCode` field with comprehensive example
@@ -606,9 +768,67 @@ Before submitting a PR with block changes:
 - [ ] New category added to `blocks-categories.ts` if needed
 - [ ] **PostList block has exactly 15 posts in usageCode** (if modifying PostList)
 
+## Helper Function Organization
+
+Utility functions follow a three-tier architecture. **Never define helpers inline** in service files or components — always extract to the appropriate utility module.
+
+### Decision Tree for Placement
+
+| Condition | Place in |
+|---|---|
+| No framework dependencies (pure logic) | `@manifest/shared/src/utils/` |
+| Uses NestJS, TypeORM, or Node.js crypto | `backend/src/utils/` |
+| Uses React or browser APIs | `frontend/src/lib/` |
+
+### Existing Utility Modules
+
+**Shared (`@manifest/shared/src/utils/`)** — used by both backend and frontend:
+
+| Module | Exports |
+|---|---|
+| `escape.ts` | `escapeHtml`, `escapeJs` |
+| `formatting.ts` | `formatDuration`, `formatNumber`, `truncateString` |
+| `validation.ts` | `isValidEmail`, `normalizeEmail` |
+| `graph.ts` | `wouldCreateCycle`, `findUpstreamNodeIds`, `findDownstreamNodeIds` |
+| `string.ts` | `toSnakeCase`, `isValidToolName` |
+| `slug.ts` | `toSlug`, `isValidSlug`, `generateUniqueSlug`, `getBaseSlug` |
+| `schemaValidator.ts` | Schema validation utilities |
+| `templateParser.ts` | Template reference parsing |
+
+**Backend (`backend/src/utils/`)** — NestJS/Node-specific:
+
+| Module | Exports |
+|---|---|
+| `crypto.ts` | `getEncryptionKey`, `encryptValue`, `decryptValue` |
+| `entity-mappers.ts` | `entityToApp`, `entityToFlow`, `toExecutionListItem`, `toFlowExecution`, etc. |
+| `template.ts` | `resolveTemplateVariables`, `migrateTemplateReferences`, `updateSlugReferences` |
+| `analytics.ts` | `calculateTrend`, `generateAllBuckets`, `formatBucketLabel`, `getISOWeekNumber` |
+| `security.ts` | `parseAndValidateUrl`, `checkSsrfVulnerability`, `sanitizeMockValue` |
+| `tool-name.ts` | `generateUniqueToolName`, `toolNameExists` |
+
+**Frontend (`frontend/src/lib/`)** — React/browser-specific:
+
+| Module | Exports |
+|---|---|
+| `formatting.ts` | `formatTime`, `formatTimePrecise`, `formatFlowCount` (+ re-exports from shared) |
+| `type-guards.ts` | `hasFlowCount` |
+| `generators.ts` | `generateUniqueName` |
+| `flow-analysis.ts` | `getFlowState` |
+| `api.ts` | API client functions |
+| `schemaUtils.ts` | Schema manipulation utilities |
+
+### Rules
+
+1. **Always search existing utils** before creating a new helper
+2. **No duplicates** — if a function exists in `@manifest/shared`, import it
+3. **Max 50 lines per function**, max 300 lines per file
+4. **Add tests** for new utility functions
+
 ## Package-Specific Guidance
 
 See individual package `CLAUDE.md` files for package-specific guidance:
+
+- `packages/manifest/CLAUDE.md` - Flow editor application guidelines
 - `packages/manifest-ui/CLAUDE.md` - UI toolkit development guidelines
 
 ## SEO Guidelines for ui.manifest.build
@@ -618,6 +838,7 @@ The manifest-ui package powers https://ui.manifest.build. Follow these SEO best 
 ### Automated SEO Tests
 
 SEO requirements are enforced by tests in `__tests__/seo.test.ts`. Run `pnpm test` to verify:
+
 - Meta tags configuration
 - Sitemap and robots.txt presence
 - Structured data (JSON-LD)
@@ -626,12 +847,12 @@ SEO requirements are enforced by tests in `__tests__/seo.test.ts`. Run `pnpm tes
 
 ### Key SEO Files
 
-| File | Purpose |
-|------|---------|
-| `app/layout.tsx` | Global metadata, JSON-LD structured data |
-| `app/sitemap.ts` | Dynamic sitemap generation |
-| `app/robots.ts` | Crawler directives |
-| `app/blocks/layout.tsx` | /blocks page metadata |
+| File                    | Purpose                                  |
+| ----------------------- | ---------------------------------------- |
+| `app/layout.tsx`        | Global metadata, JSON-LD structured data |
+| `app/sitemap.ts`        | Dynamic sitemap generation               |
+| `app/robots.ts`         | Crawler directives                       |
+| `app/blocks/layout.tsx` | /blocks page metadata                    |
 
 ### When Adding New Pages
 
@@ -651,4 +872,3 @@ SEO requirements are enforced by tests in `__tests__/seo.test.ts`. Run `pnpm tes
 - Always include descriptive `alt` attributes
 - Use Next.js `Image` component when possible for optimization
 - Keep OG images under 100KB
-

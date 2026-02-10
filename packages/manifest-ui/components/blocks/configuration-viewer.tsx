@@ -383,7 +383,7 @@ function CustomTypeWithTooltip({
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
-        <code className="text-xs px-1.5 py-0.5 rounded bg-muted font-mono cursor-help border-b border-dashed border-primary/50 hover:border-primary hover:bg-muted/80 transition-colors">
+        <code className="text-xs px-1.5 py-0.5 rounded bg-muted font-mono cursor-help border-b border-dashed border-purple-500/50 hover:border-purple-500 hover:bg-muted/80 transition-colors text-purple-600 dark:text-purple-400">
           {type}
         </code>
       </HoverCardTrigger>

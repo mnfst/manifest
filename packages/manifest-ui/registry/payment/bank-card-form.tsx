@@ -12,31 +12,38 @@ import { useState } from 'react'
  * @property {string} cvv - Card verification value (3 digits)
  */
 export interface BankCardFormData {
-  cardNumber: string
-  expiry: string
-  cvv: string
+  cardNumber?: string
+  expiry?: string
+  cvv?: string
 }
 
 /**
- * Props for the BankCardForm component.
- * @interface BankCardFormProps
- * @property {object} [data] - Payment amount data
- * @property {number} [data.amount] - Amount to charge
- * @property {object} [actions] - Callback functions for form events
- * @property {function} [actions.onSubmit] - Called when the form is submitted
- * @property {object} [appearance] - Visual customization options
- * @property {string} [appearance.submitLabel] - Custom label for submit button
- * @property {string} [appearance.currency] - Currency code for formatting
+ * ═══════════════════════════════════════════════════════════════════════════
+ * BankCardFormProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for a compact bank card payment form with inline layout optimized
+ * for chat interfaces. All inputs appear in a single row on desktop.
  */
 export interface BankCardFormProps {
   data?: {
+    /**
+     * Amount to charge, displayed in the submit button.
+     * @default 279
+     */
     amount?: number
   }
   actions?: {
+    /** Called when the form is submitted with card number, expiry, and CVV. */
     onSubmit?: (data: BankCardFormData) => void
   }
   appearance?: {
+    /** Custom label for the submit button. Overrides the default "Pay {amount}" label. */
     submitLabel?: string
+    /**
+     * Currency code for formatting the amount.
+     * @default "EUR"
+     */
     currency?: string
   }
 }
@@ -69,9 +76,10 @@ export interface BankCardFormProps {
  * ```
  */
 export function BankCardForm({ data, actions, appearance }: BankCardFormProps) {
-  const { amount = 279 } = data ?? {}
-  const { onSubmit } = actions ?? {}
-  const { submitLabel, currency = 'EUR' } = appearance ?? {}
+  const amount = data?.amount
+  const onSubmit = actions?.onSubmit
+  const submitLabel = appearance?.submitLabel
+  const currency = appearance?.currency
   const [cardNumber, setCardNumber] = useState('')
   const [expiry, setExpiry] = useState('')
   const [cvv, setCvv] = useState('')
@@ -92,7 +100,7 @@ export function BankCardForm({ data, actions, appearance }: BankCardFormProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency
+      currency: currency || 'USD'
     }).format(value)
   }
 
@@ -100,7 +108,7 @@ export function BankCardForm({ data, actions, appearance }: BankCardFormProps) {
     onSubmit?.({ cardNumber, expiry, cvv })
   }
 
-  const label = submitLabel || `Pay ${formatCurrency(amount)}`
+  const label = submitLabel ? submitLabel : (amount !== undefined ? `Pay ${formatCurrency(amount)}` : 'Pay')
 
   return (
     <div className="w-full rounded-md sm:rounded-lg bg-card p-3 space-y-3 sm:space-y-0 sm:p-0 sm:pl-4 sm:pr-2 sm:py-2 sm:flex sm:items-center sm:gap-2">

@@ -35,7 +35,7 @@ export function FullscreenModal({
   onClose
 }: FullscreenModalProps) {
   return (
-    <div className="fixed top-14 bottom-0 left-0 right-0 md:left-[226px] z-40 flex flex-col bg-background">
+    <div className="fixed top-14 bottom-0 left-0 right-0 md:left-[226px] z-[1100] flex flex-col bg-background">
       {/* Header - simulates ChatGPT's fullscreen header */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b px-4">
         <button

@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { demoQuickReplies } from './demo/selection'
 
 /**
  * Represents a quick reply option.
@@ -10,33 +11,29 @@ import { cn } from '@/lib/utils'
  * @property {React.ReactNode} [icon] - Optional icon displayed before the label
  */
 export interface QuickReply {
-  label: string
+  label?: string
   icon?: React.ReactNode
 }
 
 /**
- * Props for the QuickReply component.
- * @interface QuickReplyProps
- * @property {object} [data] - Replies data
- * @property {QuickReply[]} [data.replies] - Array of quick reply options
- * @property {object} [actions] - Callback functions for user actions
- * @property {function} [actions.onSelectReply] - Called when a reply is selected
+ * ═══════════════════════════════════════════════════════════════════════════
+ * QuickReplyProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the QuickReply component, which displays predefined response
+ * options as pill-shaped buttons for chat interfaces.
  */
 export interface QuickReplyProps {
   data?: {
+    /** Array of quick reply options to display as buttons. */
     replies?: QuickReply[]
   }
   actions?: {
+    /** Called when a user selects a quick reply option. */
     onSelectReply?: (reply: QuickReply) => void
   }
 }
 
-const defaultReplies: QuickReply[] = [
-  { label: 'Yes, confirm' },
-  { label: 'No thanks' },
-  { label: 'I have a question' },
-  { label: 'View details' }
-]
 
 /**
  * A quick reply button set for chat interfaces.
@@ -66,8 +63,9 @@ const defaultReplies: QuickReply[] = [
  * ```
  */
 export function QuickReply({ data, actions }: QuickReplyProps) {
-  const { replies = defaultReplies } = data ?? {}
-  const { onSelectReply } = actions ?? {}
+  const resolved: NonNullable<QuickReplyProps['data']> = data ?? { replies: demoQuickReplies }
+  const replies = resolved.replies ?? []
+  const onSelectReply = actions?.onSelectReply
   return (
     <div className="w-full bg-card rounded-lg p-4">
       <div className="flex flex-wrap gap-2">
@@ -81,7 +79,7 @@ export function QuickReply({ data, actions }: QuickReplyProps) {
             )}
           >
             {reply.icon}
-            {reply.label}
+            {reply.label && <span>{reply.label}</span>}
           </button>
         ))}
       </div>

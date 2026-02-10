@@ -1,44 +1,83 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip'
-import { Calendar, Clock, ExternalLink } from 'lucide-react'
-import { Post } from './post-card'
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Calendar, Clock, ExternalLink, Maximize2 } from 'lucide-react';
+import { useMemo } from 'react';
+import type { Post } from './types';
+import { demoPostDetailData } from './demo/blogging';
 
-// Import shared OpenAI types
-import '@/lib/openai-types' // Side effect: extends Window interface
+// DOM-based allowlist HTML sanitizer for post content
+const ALLOWED_TAGS = new Set([
+  'p', 'br', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre',
+  'span', 'div', 'img', 'figure', 'figcaption', 'hr',
+]);
+const ALLOWED_ATTRS: Record<string, Set<string>> = {
+  a: new Set(['href', 'target', 'rel', 'title']),
+  img: new Set(['src', 'alt', 'width', 'height']),
+  '*': new Set(['class', 'id']),
+};
+const DANGEROUS_URL = /^\s*(javascript|data):/i;
 
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '')
+function sanitizeNode(node: Node, doc: Document): void {
+  const children = Array.from(node.childNodes);
+  for (const child of children) {
+    if (child.nodeType === 3 /* TEXT */) continue;
+    if (child.nodeType !== 1 /* ELEMENT */) {
+      child.remove();
+      continue;
+    }
+    const el = child as Element;
+    const tag = el.tagName.toLowerCase();
+    if (!ALLOWED_TAGS.has(tag)) {
+      // Unwrap: keep text content, discard the tag
+      while (el.firstChild) node.insertBefore(el.firstChild, el);
+      el.remove();
+      continue;
+    }
+    // Strip disallowed attributes
+    const tagAllowed = ALLOWED_ATTRS[tag];
+    const globalAllowed = ALLOWED_ATTRS['*'];
+    for (const attr of Array.from(el.attributes)) {
+      const name = attr.name.toLowerCase();
+      if (!tagAllowed?.has(name) && !globalAllowed?.has(name)) {
+        el.removeAttribute(attr.name);
+      }
+    }
+    // Block dangerous URL schemes on href/src
+    for (const urlAttr of ['href', 'src']) {
+      const val = el.getAttribute(urlAttr);
+      if (val && DANGEROUS_URL.test(val)) el.removeAttribute(urlAttr);
+    }
+    sanitizeNode(el, doc);
+  }
 }
 
-function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text
-  return text.slice(0, maxLength).trim() + '...'
+function sanitizeHtml(html: string): string {
+  if (typeof document === 'undefined') return html;
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  sanitizeNode(doc.body, doc);
+  return doc.body.innerHTML;
 }
 
 function TagList({
   tags,
   maxVisible = 2,
-  size = 'default'
+  size = 'default',
 }: {
-  tags: string[]
-  maxVisible?: number
-  size?: 'small' | 'default'
+  tags: string[];
+  maxVisible?: number;
+  size?: 'small' | 'default';
 }) {
-  const visibleTags = tags.slice(0, maxVisible)
-  const remainingTags = tags.slice(maxVisible)
-  const hasMore = remainingTags.length > 0
+  const visibleTags = tags.slice(0, maxVisible);
+  const remainingTags = tags.slice(maxVisible);
+  const hasMore = remainingTags.length > 0;
 
   const tagClass =
     size === 'small'
       ? 'rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium'
-      : 'rounded-full bg-muted px-3 py-1 text-xs font-medium'
+      : 'rounded-full bg-muted px-3 py-1 text-xs font-medium';
 
   return (
     <>
@@ -51,9 +90,7 @@ function TagList({
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className={`${tagClass} cursor-default`}>
-                +{remainingTags.length}
-              </span>
+              <span className={`${tagClass} cursor-default`}>+{remainingTags.length}</span>
             </TooltipTrigger>
             <TooltipContent>
               <p>{remainingTags.join(', ')}</p>
@@ -62,123 +99,53 @@ function TagList({
         </TooltipProvider>
       )}
     </>
-  )
+  );
 }
 
-const defaultPost: Post = {
-  title: 'Getting Started with Agentic UI Components',
-  excerpt:
-    'Learn how to build conversational interfaces with our comprehensive component library designed for AI-powered applications.',
-  coverImage:
-    'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
-  author: {
-    name: 'Sarah Chen',
-    avatar: 'https://i.pravatar.cc/150?u=sarah'
-  },
-  publishedAt: '2024-01-15',
-  readTime: '5 min read',
-  tags: ['Tutorial', 'Components', 'AI', 'React', 'TypeScript'],
-  category: 'Tutorial'
-}
-
-const defaultContent = `
-  <p>Building modern AI-powered applications requires a new approach to UI design. Traditional web components don't always translate well to conversational interfaces, where context and flow are paramount.</p>
-
-  <p>Our Agentic UI component library provides a collection of purpose-built components that work seamlessly within chat interfaces. From payment flows to product displays, each component is designed with the unique constraints of conversational UIs in mind.</p>
-
-  <h2>Key Features</h2>
-  <p>Each component supports three display modes: inline (within the chat flow), fullscreen (for complex interactions), and picture-in-picture (persistent visibility). This flexibility allows you to create rich, interactive experiences without breaking the conversational flow.</p>
-
-  <p>Components are designed mobile-first and touch-friendly, ensuring a great experience across all devices. They automatically adapt to light and dark themes, and integrate seamlessly with MCP tools for backend communication.</p>
-`
-
 /**
- * Default related posts for demonstration.
- * @constant
- */
-const defaultRelatedPosts: Post[] = [
-  {
-    title: 'Designing for Conversational Interfaces',
-    excerpt:
-      'Best practices for creating intuitive UI components that work within chat environments.',
-    coverImage:
-      'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=800',
-    author: {
-      name: 'Alex Rivera',
-      avatar: 'https://i.pravatar.cc/150?u=alex'
-    },
-    publishedAt: '2024-01-12',
-    readTime: '8 min read',
-    tags: ['Design', 'UX'],
-    category: 'Design',
-    url: 'https://example.com/posts/designing-conversational-interfaces'
-  },
-  {
-    title: 'MCP Integration Patterns',
-    excerpt:
-      'How to leverage Model Context Protocol for seamless backend communication in your agentic applications.',
-    coverImage:
-      'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800',
-    author: {
-      name: 'Jordan Kim',
-      avatar: 'https://i.pravatar.cc/150?u=jordan'
-    },
-    publishedAt: '2024-01-10',
-    readTime: '12 min read',
-    tags: ['MCP', 'Backend', 'Integration'],
-    category: 'Development',
-    url: 'https://example.com/posts/mcp-integration-patterns'
-  },
-  {
-    title: 'Building Payment Flows in Chat',
-    excerpt:
-      'A complete guide to implementing secure, user-friendly payment experiences within conversational interfaces.',
-    coverImage:
-      'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800',
-    author: {
-      name: 'Morgan Lee',
-      avatar: 'https://i.pravatar.cc/150?u=morgan'
-    },
-    publishedAt: '2024-01-08',
-    readTime: '10 min read',
-    tags: ['Payments', 'Security'],
-    url: 'https://example.com/posts/building-payment-flows',
-    category: 'Tutorial'
-  }
-]
-
-/**
- * Props for the PostDetail component.
- * @interface PostDetailProps
- * @property {object} [data] - Post detail data
- * @property {Post} [data.post] - The main post to display
- * @property {string} [data.content] - HTML content of the post body
- * @property {Post[]} [data.relatedPosts] - Related posts to show at the bottom
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onBack] - Called when back is clicked
- * @property {function} [actions.onReadMore] - Called when read more is clicked (inline mode)
- * @property {function} [actions.onReadRelated] - Called when a related post is clicked
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.showCover] - Whether to show cover image
- * @property {boolean} [appearance.showAuthor] - Whether to show author info
- * @property {"inline" | "fullscreen"} [appearance.displayMode] - Display mode
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PostDetailProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for the PostDetail component, a full post detail view with Medium-style typography.
  */
 export interface PostDetailProps {
   data?: {
-    post?: Post
-    content?: string
-    relatedPosts?: Post[]
-  }
+    /** The main blog post to display. */
+    post?: Post;
+    /** HTML content of the post body. */
+    content?: string;
+    /** Related posts to show at the bottom of the article. */
+    relatedPosts?: Post[];
+  };
   actions?: {
-    onBack?: () => void
-    onReadMore?: () => void
-    onReadRelated?: (post: Post) => void
-  }
+    /** Called when the back button is clicked. */
+    onBack?: () => void;
+    /** Called when the read more button is clicked (inline mode). */
+    onReadMore?: () => void;
+    /** Called when a related post is clicked. */
+    onReadRelated?: (post: Post) => void;
+  };
   appearance?: {
-    showCover?: boolean
-    showAuthor?: boolean
-    displayMode?: 'inline' | 'fullscreen'
-  }
+    /**
+     * Whether to show the cover image.
+     * @default true
+     */
+    showCover?: boolean;
+    /**
+     * Whether to show author information.
+     * @default true
+     */
+    showAuthor?: boolean;
+    /**
+     * Display mode for the component.
+     * - inline: Compact card view with truncated content
+     * - pip: Picture-in-picture view with truncated content
+     * - fullscreen: Full article view with complete content
+     * @default "fullscreen"
+     */
+    displayMode?: 'inline' | 'pip' | 'fullscreen';
+  };
 }
 
 /**
@@ -192,7 +159,7 @@ export interface PostDetailProps {
  * - Tag list with overflow tooltip
  * - Related posts section
  * - Inline (truncated) and fullscreen modes
- * - ChatGPT display mode integration
+ * - MCP Apps display mode integration
  *
  * @component
  * @example
@@ -226,148 +193,246 @@ export interface PostDetailProps {
  * ```
  */
 export function PostDetail({ data, actions, appearance }: PostDetailProps) {
-  const { post = defaultPost, content = defaultContent, relatedPosts = defaultRelatedPosts } = data ?? {}
-  const { onReadMore } = actions ?? {}
-  const { showCover = true, showAuthor = true, displayMode = 'fullscreen' } = appearance ?? {}
+  const resolved: NonNullable<PostDetailProps['data']> = data ?? demoPostDetailData;
+  const post = resolved.post;
+  const rawContent = resolved.content;
+  const content = useMemo(() => rawContent ? sanitizeHtml(rawContent) : undefined, [rawContent]);
+  const relatedPosts = resolved.relatedPosts ?? [];
+  const onReadMore = actions?.onReadMore;
+  const showCover = appearance?.showCover ?? true;
+  const showAuthor = appearance?.showAuthor ?? true;
 
-  // Handle "Read more" click - use callback if provided, otherwise request fullscreen from host
+  const displayMode = appearance?.displayMode ?? 'inline';
+
   const handleReadMore = () => {
-    if (onReadMore) {
-      onReadMore()
-    } else if (typeof window !== 'undefined' && window.openai) {
-      // Request fullscreen mode from ChatGPT host
-      window.openai.requestDisplayMode({ mode: 'fullscreen' })
-    }
-  }
+    onReadMore?.();
+  };
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
-      year: 'numeric'
-    })
-  }
+      year: 'numeric',
+    });
+  };
 
-  const plainTextContent = stripHtml(content)
-  const truncatedContent = truncateText(plainTextContent, 340)
-  const isInline = displayMode === 'inline'
-
-  if (isInline) {
+  // Inline mode - card view with truncated content
+  if (displayMode === 'inline') {
     return (
-      <div className="rounded-lg border bg-card">
-        {showCover && post.coverImage && (
-          <div className="aspect-video overflow-hidden rounded-t-lg">
+      <div className="flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3">
+        {showCover && post?.coverImage && (
+          <div className="aspect-video sm:aspect-square sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-md">
             <img
               src={post.coverImage}
-              alt={post.title}
+              alt={post?.title || ''}
               className="h-full w-full object-cover"
             />
           </div>
         )}
 
-        <div className="p-4">
-          {post.category && (
-            <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-              {post.category}
-            </p>
-          )}
+        <div className="flex flex-1 flex-col justify-between min-w-0">
+          <div>
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                {post?.category && (
+                  <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    {post.category}
+                  </p>
+                )}
 
-          <h1 className="text-xl font-bold">{post.title}</h1>
+                {post?.title && (
+                  <h1 className="line-clamp-2 text-sm font-bold leading-tight">{post.title}</h1>
+                )}
+              </div>
+              <button
+                onClick={handleReadMore}
+                className="shrink-0 p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground cursor-pointer"
+                aria-label="Expand to fullscreen"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+            </div>
 
-          <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {formatDate(post.publishedAt)}
-            </span>
-            {post.readTime && (
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {post.readTime}
-              </span>
+            {post?.excerpt && (
+              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{post.excerpt}</p>
+            )}
+
+            {post?.tags && post.tags.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                <TagList tags={post.tags} maxVisible={2} size="small" />
+              </div>
             )}
           </div>
 
-          <p className="mt-3 text-sm text-muted-foreground">
-            {truncatedContent}
-          </p>
-
-          {post.tags && post.tags.length > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              <TagList tags={post.tags} maxVisible={2} size="small" />
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {showAuthor && post?.author?.avatar && (
+                <img
+                  src={post.author.avatar}
+                  alt={post?.author?.name || ''}
+                  className="h-4 w-4 rounded-full"
+                />
+              )}
+              {showAuthor && post?.author?.name && <span>{post.author.name}</span>}
+              {post?.publishedAt && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {formatDate(post.publishedAt)}
+                </span>
+              )}
+              {post?.readTime && (
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {post.readTime}
+                </span>
+              )}
             </div>
-          )}
 
-          <div className="mt-4">
-            <Button onClick={handleReadMore}>
-              Read more
+            <Button size="sm" onClick={handleReadMore}>
+              Read
             </Button>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
-  // Fullscreen mode
-  return (
-    <div className="min-h-screen bg-background">
-      <article className="mx-auto w-full max-w-[680px] px-6 py-10">
-        {showCover && post.coverImage && (
-          <div className="aspect-video w-full overflow-hidden rounded-lg mb-8">
+  // PiP mode - horizontal layout with image on left, similar to post-card horizontal
+  if (displayMode === 'pip') {
+    return (
+      <div className="flex flex-col sm:flex-row gap-4 rounded-lg border bg-card p-3">
+        {showCover && post?.coverImage && (
+          <div className="aspect-video sm:aspect-square sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-md">
             <img
               src={post.coverImage}
-              alt={post.title}
+              alt={post?.title || ''}
               className="h-full w-full object-cover"
             />
           </div>
         )}
-        {post.category && (
+
+        <div className="flex flex-1 flex-col justify-between min-w-0">
+          <div>
+            {post?.category && (
+              <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                {post.category}
+              </p>
+            )}
+
+            {post?.title && (
+              <h1 className="line-clamp-2 text-sm font-bold leading-tight">{post.title}</h1>
+            )}
+
+            {post?.excerpt && (
+              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{post.excerpt}</p>
+            )}
+
+            {post?.tags && post.tags.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                <TagList tags={post.tags} maxVisible={2} size="small" />
+              </div>
+            )}
+          </div>
+
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {showAuthor && post?.author?.avatar && (
+                <img
+                  src={post.author.avatar}
+                  alt={post?.author?.name || ''}
+                  className="h-4 w-4 rounded-full"
+                />
+              )}
+              {showAuthor && post?.author?.name && <span>{post.author.name}</span>}
+              {post?.publishedAt && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {formatDate(post.publishedAt)}
+                </span>
+              )}
+              {post?.readTime && (
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {post.readTime}
+                </span>
+              )}
+            </div>
+            <Button size="sm" onClick={handleReadMore}>
+              Read
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fullscreen mode
+  return (
+    <div className="min-h-screen fs-mode bg-background">
+      <article className="mx-auto w-full max-w-[680px] px-6 py-10">
+        {showCover && post?.coverImage && (
+          <div className="aspect-video w-full overflow-hidden rounded-lg mb-8">
+            <img
+              src={post.coverImage}
+              alt={post?.title || ''}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
+        {post?.category && (
           <p className="mb-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
             {post.category}
           </p>
         )}
 
-        <h1 className="text-[32px] font-bold leading-[1.25] tracking-tight md:text-[42px]">
-          {post.title}
-        </h1>
+        {post?.title && (
+          <h1 className="text-[32px] font-bold leading-[1.25] tracking-tight md:text-[42px]">
+            {post.title}
+          </h1>
+        )}
 
-        {post.tags && post.tags.length > 0 && (
+        {post?.tags && post.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <TagList tags={post.tags} maxVisible={2} size="default" />
           </div>
         )}
 
-        {showAuthor && (
+        {showAuthor && post?.author && (
           <div className="mt-8 flex items-center gap-4 border-b pb-8">
             {post.author.avatar && (
               <img
                 src={post.author.avatar}
-                alt={post.author.name}
+                alt={post.author.name || ''}
                 className="h-12 w-12 rounded-full"
               />
             )}
             <div>
-              <p className="font-medium">{post.author.name}</p>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" />
-                  {formatDate(post.publishedAt)}
-                </span>
-                {post.readTime && (
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    {post.readTime}
-                  </span>
-                )}
-              </div>
+              {post.author.name && <p className="font-medium">{post.author.name}</p>}
+              {(post?.publishedAt || post?.readTime) && (
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  {post?.publishedAt && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {formatDate(post.publishedAt)}
+                    </span>
+                  )}
+                  {post?.readTime && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      {post.readTime}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {/* Medium-style content */}
         <div className="mt-10">
-          <p className="text-[21px] leading-[1.8] text-muted-foreground mb-8">
-            {post.excerpt}
-          </p>
+          {post?.excerpt && (
+            <p className="text-[21px] leading-[1.8] text-muted-foreground mb-8">{post.excerpt}</p>
+          )}
           {content && (
             <div
               className="
@@ -388,9 +453,9 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
           <div className="mt-16 border-t pt-10">
             <h3 className="mb-6 text-lg font-semibold">Related Posts</h3>
             <div className="space-y-4">
-              {relatedPosts.map((related, index) => (
+              {relatedPosts.map((related) => (
                 <a
-                  key={index}
+                  key={related.title || related.url}
                   href={related.url || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -400,19 +465,21 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
                     <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">
                       <img
                         src={related.coverImage}
-                        alt={related.title}
+                        alt={related.title || ''}
                         className="h-full w-full object-cover"
                       />
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium">{related.title}</p>
-                    <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
-                      {related.excerpt}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {related.readTime}
-                    </p>
+                    {related.title && <p className="font-medium">{related.title}</p>}
+                    {related.excerpt && (
+                      <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+                        {related.excerpt}
+                      </p>
+                    )}
+                    {related.readTime && (
+                      <p className="mt-1 text-xs text-muted-foreground">{related.readTime}</p>
+                    )}
                   </div>
                   <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </a>
@@ -422,5 +489,5 @@ export function PostDetail({ data, actions, appearance }: PostDetailProps) {
         )}
       </article>
     </div>
-  )
+  );
 }

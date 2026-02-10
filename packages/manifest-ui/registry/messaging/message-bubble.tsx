@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { demoTextMessages, demoImageMessages, demoReactionMessage, demoVoiceMessage } from './demo/messaging'
 import { Check, CheckCheck, Smile } from 'lucide-react'
 import { useRef, useState } from 'react'
 
@@ -49,31 +50,35 @@ function Avatar({ src, fallback, className }: InternalAvatarOptions) {
 }
 
 /**
- * Props for the MessageBubble component.
- * @interface MessageBubbleProps
- * @property {object} [data] - Message content and metadata
- * @property {string} [data.content] - Message text content
- * @property {string} [data.avatarUrl] - Avatar image URL
- * @property {string} [data.avatarFallback] - Avatar fallback letter
- * @property {string} [data.author] - Author name
- * @property {string} [data.time] - Time display string
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
- * @property {object} [control] - State control options
- * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
+ * ═══════════════════════════════════════════════════════════════════════════
+ * MessageBubbleProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring a text message bubble in chat interfaces with avatar,
+ * delivery status, and own/other message styling.
  */
 export interface MessageBubbleProps {
   data?: {
+    /** Message text content to display. */
     content?: string
+    /** URL for the sender's avatar image. */
     avatarUrl?: string
+    /** Fallback letter to display when avatar image is unavailable. */
     avatarFallback?: string
+    /** Display name of the message author. */
     author?: string
+    /** Time display string (e.g., "10:30 AM"). */
     time?: string
   }
   appearance?: {
+    /**
+     * Whether this message is from the current user.
+     * @default false
+     */
     isOwn?: boolean
   }
   control?: {
+    /** Message delivery status indicator. */
     status?: 'sent' | 'delivered' | 'read'
   }
 }
@@ -108,32 +113,33 @@ export function MessageBubble({
   appearance,
   control
 }: MessageBubbleProps) {
-  const {
-    content = 'Hey! How are you doing?',
-    avatarFallback = 'J',
-    avatarUrl,
-    time = '10:30 AM'
-  } = data ?? {}
+  const resolved: NonNullable<MessageBubbleProps['data']> = data ?? demoTextMessages[0]
+  const content = resolved.content
+  const avatarFallback = resolved.avatarFallback
+  const avatarUrl = resolved.avatarUrl
+  const time = resolved.time
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
-      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
+      {!isOwn && avatarFallback && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
-        <div
-          className={cn(
-            'rounded-2xl px-4 py-2',
-            isOwn
-              ? 'bg-primary text-primary-foreground rounded-br-md'
-              : 'bg-muted rounded-bl-md'
-          )}
-        >
-          <p className="text-sm">{content}</p>
-        </div>
+        {content && (
+          <div
+            className={cn(
+              'rounded-2xl px-4 py-2',
+              isOwn
+                ? 'bg-primary text-primary-foreground rounded-br-md'
+                : 'bg-muted rounded-bl-md'
+            )}
+          >
+            <p className="text-sm">{content}</p>
+          </div>
+        )}
         <div
           className={cn('flex items-center gap-1 mt-1', isOwn && 'justify-end')}
         >
-          <span className="text-[10px] text-muted-foreground">{time}</span>
+          {time && <span className="text-[10px] text-muted-foreground">{time}</span>}
           {isOwn && status && (
             <span className="text-muted-foreground">
               {status === 'sent' && <Check className="h-3 w-3" />}
@@ -150,33 +156,37 @@ export function MessageBubble({
 }
 
 /**
- * Props for the ImageMessageBubble component.
- * @interface ImageMessageBubbleProps
- * @property {object} [data] - Image message content and metadata
- * @property {string} [data.image] - Image URL to display
- * @property {string} [data.content] - Optional caption text
- * @property {string} [data.avatarUrl] - Avatar image URL
- * @property {string} [data.avatarFallback] - Avatar fallback letter
- * @property {string} [data.author] - Author name
- * @property {string} [data.time] - Time display string
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
- * @property {object} [control] - State control options
- * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ImageMessageBubbleProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring an image message bubble that displays a shared photo
+ * with optional caption and message metadata.
  */
 export interface ImageMessageBubbleProps {
   data?: {
+    /** URL of the image to display. */
     image?: string
+    /** Optional caption text below the image. */
     content?: string
+    /** URL for the sender's avatar image. */
     avatarUrl?: string
+    /** Fallback letter to display when avatar image is unavailable. */
     avatarFallback?: string
+    /** Display name of the message author. */
     author?: string
+    /** Time display string (e.g., "10:32 AM"). */
     time?: string
   }
   appearance?: {
+    /**
+     * Whether this message is from the current user.
+     * @default false
+     */
     isOwn?: boolean
   }
   control?: {
+    /** Message delivery status indicator. */
     status?: 'sent' | 'delivered' | 'read'
   }
 }
@@ -210,45 +220,46 @@ export function ImageMessageBubble({
   appearance,
   control
 }: ImageMessageBubbleProps) {
-  const {
-    image = 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=400&h=300&fit=crop',
-    content,
-    avatarFallback = 'J',
-    avatarUrl,
-    time = '10:32 AM'
-  } = data ?? {}
+  const resolved: NonNullable<ImageMessageBubbleProps['data']> = data ?? demoImageMessages[0]
+  const image = resolved.image
+  const content = resolved.content
+  const avatarFallback = resolved.avatarFallback
+  const avatarUrl = resolved.avatarUrl
+  const time = resolved.time
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
-      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
+      {!isOwn && avatarFallback && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
-        <div
-          className={cn(
-            'rounded-2xl overflow-hidden',
-            isOwn ? 'rounded-br-md' : 'rounded-bl-md'
-          )}
-        >
-          <img
-            src={image}
-            alt={content || 'Shared image in chat'}
-            className="w-full max-w-[280px] h-auto object-cover"
-          />
-          {content && (
-            <div
-              className={cn(
-                'px-3 py-2',
-                isOwn ? 'bg-primary text-primary-foreground' : 'bg-muted'
-              )}
-            >
-              <p className="text-sm">{content}</p>
-            </div>
-          )}
-        </div>
+        {image && (
+          <div
+            className={cn(
+              'rounded-2xl overflow-hidden',
+              isOwn ? 'rounded-br-md' : 'rounded-bl-md'
+            )}
+          >
+            <img
+              src={image}
+              alt={content || 'Shared image in chat'}
+              className="w-full max-w-[280px] h-auto object-cover"
+            />
+            {content && (
+              <div
+                className={cn(
+                  'px-3 py-2',
+                  isOwn ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                )}
+              >
+                <p className="text-sm">{content}</p>
+              </div>
+            )}
+          </div>
+        )}
         <div
           className={cn('flex items-center gap-1 mt-1', isOwn && 'justify-end')}
         >
-          <span className="text-[10px] text-muted-foreground">{time}</span>
+          {time && <span className="text-[10px] text-muted-foreground">{time}</span>}
           {isOwn && status && (
             <span className="text-muted-foreground">
               {status === 'sent' && <Check className="h-3 w-3" />}
@@ -265,33 +276,37 @@ export function ImageMessageBubble({
 }
 
 /**
- * Props for the MessageWithReactions component.
- * @interface MessageWithReactionsProps
- * @property {object} [data] - Message content and metadata
- * @property {string} [data.content] - Message text content
- * @property {string} [data.avatarUrl] - Avatar image URL
- * @property {string} [data.avatarFallback] - Avatar fallback letter
- * @property {string} [data.author] - Author name
- * @property {string} [data.time] - Time display string
- * @property {{ emoji: string; count: number }[]} [data.reactions] - Reaction counts
- * @property {object} [actions] - Callback functions
- * @property {function} [actions.onReact] - Called when user reacts with an emoji
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
+ * ═══════════════════════════════════════════════════════════════════════════
+ * MessageWithReactionsProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring a message bubble with emoji reaction support,
+ * allowing users to add, toggle, and view reactions on messages.
  */
 export interface MessageWithReactionsProps {
   data?: {
+    /** Message text content to display. */
     content?: string
+    /** URL for the sender's avatar image. */
     avatarUrl?: string
+    /** Fallback letter to display when avatar image is unavailable. */
     avatarFallback?: string
+    /** Display name of the message author. */
     author?: string
+    /** Time display string (e.g., "2:45 PM"). */
     time?: string
+    /** Array of reactions with emoji and count. */
     reactions?: { emoji: string; count: number }[]
   }
   actions?: {
+    /** Called when the user adds or toggles a reaction emoji. */
     onReact?: (emoji: string) => void
   }
   appearance?: {
+    /**
+     * Whether this message is from the current user.
+     * @default false
+     */
     isOwn?: boolean
   }
 }
@@ -346,16 +361,12 @@ export function MessageWithReactions({
   actions,
   appearance
 }: MessageWithReactionsProps) {
-  const {
-    content = 'This is such great news! 🎉',
-    avatarFallback = 'A',
-    avatarUrl,
-    time = '2:45 PM',
-    reactions: initialReactions = [
-      { emoji: '❤️', count: 3 },
-      { emoji: '👍', count: 2 }
-    ]
-  } = data ?? {}
+  const resolved: NonNullable<MessageWithReactionsProps['data']> = data ?? demoReactionMessage
+  const content = resolved.content
+  const avatarFallback = resolved.avatarFallback
+  const avatarUrl = resolved.avatarUrl
+  const time = resolved.time
+  const initialReactions = resolved.reactions ?? []
   const { onReact } = actions ?? {}
   const { isOwn = false } = appearance ?? {}
   const [reactions, setReactions] = useState(initialReactions)
@@ -407,18 +418,20 @@ export function MessageWithReactions({
 
   return (
     <div className={cn('flex gap-2', isOwn && 'flex-row-reverse')}>
-      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
+      {!isOwn && avatarFallback && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
-        <div
-          className={cn(
-            'rounded-2xl px-4 py-2',
-            isOwn
-              ? 'bg-primary text-primary-foreground rounded-br-md'
-              : 'bg-muted rounded-bl-md'
-          )}
-        >
-          <p className="text-sm">{content}</p>
-        </div>
+        {content && (
+          <div
+            className={cn(
+              'rounded-2xl px-4 py-2',
+              isOwn
+                ? 'bg-primary text-primary-foreground rounded-br-md'
+                : 'bg-muted rounded-bl-md'
+            )}
+          >
+            <p className="text-sm">{content}</p>
+          </div>
+        )}
         <div
           className={cn(
             'flex items-center gap-1 mt-1.5',
@@ -481,7 +494,7 @@ export function MessageWithReactions({
         <div
           className={cn('flex items-center gap-1 mt-1', isOwn && 'justify-end')}
         >
-          <span className="text-[10px] text-muted-foreground">{time}</span>
+          {time && <span className="text-[10px] text-muted-foreground">{time}</span>}
         </div>
       </div>
     </div>
@@ -489,33 +502,37 @@ export function MessageWithReactions({
 }
 
 /**
- * Props for the VoiceMessageBubble component.
- * @interface VoiceMessageBubbleProps
- * @property {object} [data] - Voice message content and metadata
- * @property {string} [data.duration] - Total duration display (e.g., "0:42")
- * @property {string} [data.avatarUrl] - Avatar image URL
- * @property {string} [data.avatarFallback] - Avatar fallback letter
- * @property {string} [data.author] - Author name
- * @property {string} [data.time] - Time display string
- * @property {string} [data.audioSrc] - Audio file URL
- * @property {object} [appearance] - Visual customization
- * @property {boolean} [appearance.isOwn] - Whether this is the current user's message
- * @property {object} [control] - State control options
- * @property {"sent" | "delivered" | "read"} [control.status] - Message delivery status
+ * ═══════════════════════════════════════════════════════════════════════════
+ * VoiceMessageBubbleProps
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Props for configuring a voice/audio message bubble with playback controls,
+ * progress bar, and duration display.
  */
 export interface VoiceMessageBubbleProps {
   data?: {
+    /** Total duration display string (e.g., "0:42"). */
     duration?: string
+    /** URL for the sender's avatar image. */
     avatarUrl?: string
+    /** Fallback letter to display when avatar image is unavailable. */
     avatarFallback?: string
+    /** Display name of the message author. */
     author?: string
+    /** Time display string (e.g., "3:15 PM"). */
     time?: string
+    /** URL of the audio file to play. */
     audioSrc?: string
   }
   appearance?: {
+    /**
+     * Whether this message is from the current user.
+     * @default false
+     */
     isOwn?: boolean
   }
   control?: {
+    /** Message delivery status indicator. */
     status?: 'sent' | 'delivered' | 'read'
   }
 }
@@ -551,13 +568,12 @@ export function VoiceMessageBubble({
   appearance,
   control
 }: VoiceMessageBubbleProps) {
-  const {
-    duration = '0:42',
-    avatarFallback = 'M',
-    avatarUrl,
-    time = '3:15 PM',
-    audioSrc = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
-  } = data ?? {}
+  const resolved: NonNullable<VoiceMessageBubbleProps['data']> = data ?? demoVoiceMessage
+  const duration = resolved.duration
+  const avatarFallback = resolved.avatarFallback
+  const avatarUrl = resolved.avatarUrl
+  const time = resolved.time
+  const audioSrc = resolved.audioSrc
   const { isOwn = false } = appearance ?? {}
   const { status } = control ?? {}
   const [isPlaying, setIsPlaying] = useState(false)
@@ -602,7 +618,7 @@ export function VoiceMessageBubble({
         onEnded={handleEnded}
         preload="metadata"
       />
-      {!isOwn && <Avatar src={avatarUrl} fallback={avatarFallback} />}
+      {!isOwn && avatarFallback && <Avatar src={avatarUrl} fallback={avatarFallback} />}
       <div className={cn('max-w-[75%]', isOwn && 'items-end')}>
         <div
           className={cn(
@@ -644,14 +660,14 @@ export function VoiceMessageBubble({
               />
             </div>
             <span className="text-xs font-medium">
-              {isPlaying ? currentTime : duration}
+              {isPlaying ? currentTime : (duration ?? '0:00')}
             </span>
           </div>
         </div>
         <div
           className={cn('flex items-center gap-1 mt-1', isOwn && 'justify-end')}
         >
-          <span className="text-[10px] text-muted-foreground">{time}</span>
+          {time && <span className="text-[10px] text-muted-foreground">{time}</span>}
           {isOwn && status && (
             <span className="text-muted-foreground">
               {status === 'sent' && <Check className="h-3 w-3" />}

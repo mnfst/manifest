@@ -1,7 +1,6 @@
 {
   "name": "manifest-ui",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.2",
   "scripts": {
     "dev": "pnpm run registry:build && next dev --turbopack -p 3001",
     "build": "pnpm run registry:build && next build",
@@ -13,7 +12,8 @@
     "generate-previews": "node scripts/generate-previews.mjs"
   },
   "dependencies": {
-    "@openai/apps-sdk-ui": "^0.2.1",
+    "@docsearch/react": "^4.5.3",
+    "@modelcontextprotocol/ext-apps": "^1.0.1",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-hover-card": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
@@ -28,7 +28,7 @@
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.487.0",
-    "next": "16.1.1",
+    "next": "16.1.5",
     "next-themes": "^0.4.6",
     "oniguruma-parser": "^0.12.1",
     "react": "19.1.0",
@@ -52,7 +52,7 @@
     "@types/react": "19.1.2",
     "@types/react-dom": "19.1.2",
     "eslint": "^9.32.0",
-    "eslint-config-next": "16.0.7",
+    "eslint-config-next": "16.1.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "jest": "^29.7.0",

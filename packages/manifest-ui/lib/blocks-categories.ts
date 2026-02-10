@@ -43,6 +43,9 @@ function buildBlockCategories(): BlockCategory[] {
   const categoryMap = new Map<string, { id: string; name: string }[]>()
 
   for (const item of registry.items) {
+    // Skip non-component items (e.g. shared type definitions)
+    if (item.type !== 'registry:block') continue
+
     // Support both 'categories' array (new format) and 'category' string (old format)
     const categories = item.categories
     if (!categories || categories.length === 0) continue

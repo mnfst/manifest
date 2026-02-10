@@ -98,7 +98,8 @@ async function generatePreviews() {
   }
 
   const registry = JSON.parse(readFileSync(REGISTRY_PATH, 'utf-8'))
-  let components = registry.items
+  // Only generate previews for visual block components (skip registry:lib like manifest-types)
+  let components = registry.items.filter((c) => c.type === 'registry:block')
 
   // Filter to specific component if requested
   if (options.component) {
@@ -150,9 +151,10 @@ async function generatePreviews() {
     log.debug(`  Output: ${outputPath}`)
 
     try {
-      // Navigate to preview page
+      // Navigate to preview page (use domcontentloaded instead of networkidle
+      // because some components like event-detail have maps that never go idle)
       await page.goto(previewUrl, {
-        waitUntil: 'networkidle',
+        waitUntil: 'domcontentloaded',
         timeout: 30000
       })
 
@@ -163,6 +165,11 @@ async function generatePreviews() {
 
       // Small delay for any animations to settle
       await page.waitForTimeout(500)
+
+      // Hide Next.js dev overlay so it doesn't appear in screenshots
+      await page.evaluate(() => {
+        document.querySelectorAll('[data-nextjs-dev-overlay], nextjs-portal, next-route-announcer').forEach(el => el.remove())
+      })
 
       // Take screenshot
       await page.screenshot({
