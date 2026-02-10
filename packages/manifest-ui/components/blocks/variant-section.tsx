@@ -8,6 +8,7 @@ import { FullscreenModal } from '@/components/layout/fullscreen-modal'
 import { PipModal } from '@/components/layout/pip-modal'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { TokenScope } from '@/lib/token-context'
 import { cn } from '@/lib/utils'
 import { Maximize2, MessageSquare, PictureInPicture2, Settings2 } from 'lucide-react'
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
@@ -357,7 +358,9 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
 
       {/* Content based on view mode */}
       <div ref={contentRef}>
-        {viewMode === 'inline' && component}
+        {viewMode === 'inline' && (
+          <TokenScope>{component}</TokenScope>
+        )}
 
         {viewMode === 'fullwidth' && (
           <FullwidthPlaceholder onOpen={() => setIsFullscreenOpen(true)} />
@@ -407,7 +410,9 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
           appName={name}
           onClose={() => setIsFullscreenOpen(false)}
         >
-          {fullscreenComponent || component}
+          <TokenScope className="w-full">
+            {fullscreenComponent || component}
+          </TokenScope>
         </FullscreenModal>
       )}
 
@@ -418,7 +423,9 @@ export const VariantSection = forwardRef<VariantSectionHandle, VariantSectionPro
           onClose={() => setIsPipOpen(false)}
           position={pipPosition}
         >
-          {component}
+          <TokenScope>
+            {component}
+          </TokenScope>
         </PipModal>
       )}
     </div>

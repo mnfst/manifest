@@ -15,30 +15,108 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { useTokens, type DesignTokens } from '@/lib/token-context'
-import { ArrowRight, ChevronDown, RotateCcw } from 'lucide-react'
+import { useTokens, hexToOklch, getTokenCssVars, type DesignTokens, type ThemeMode } from '@/lib/token-context'
+import { ArrowRight, ChevronDown, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { HexColorPicker } from 'react-colorful'
 
 // Registry components
+import { PostCard } from '@/registry/blogging/post-card'
 import { ContactForm } from '@/registry/form/contact-form'
-import { CardForm } from '@/registry/payment/card-form'
-import { PayConfirm } from '@/registry/payment/pay-confirm'
-import { OrderSummary } from '@/registry/payment/order-summary'
+import { Table } from '@/registry/list/table'
+import { MessageBubble } from '@/registry/messaging/message-bubble'
+import { Stats } from '@/registry/miscellaneous/stat-card'
 import { AmountInput } from '@/registry/payment/amount-input'
+import { CardForm } from '@/registry/payment/card-form'
+import { OrderSummary } from '@/registry/payment/order-summary'
+import { PayConfirm } from '@/registry/payment/pay-confirm'
 import { OptionList } from '@/registry/selection/option-list'
-import { TagSelect } from '@/registry/selection/tag-select'
 import { QuickReply } from '@/registry/selection/quick-reply'
+import { TagSelect } from '@/registry/selection/tag-select'
 import { ProgressSteps } from '@/registry/status/progress-steps'
 import { StatusBadge } from '@/registry/status/status-badge'
-import { Stats } from '@/registry/miscellaneous/stat-card'
-import { PostCard } from '@/registry/blogging/post-card'
-import { MessageBubble } from '@/registry/messaging/message-bubble'
-import { Table } from '@/registry/list/table'
 
 // ---------------------------------------------------------------------------
 // Sidebar control components
 // ---------------------------------------------------------------------------
+
+type ColorFormat = 'HEX' | 'RGBA' | 'HSLA'
+
+function hexToRgba(hex: string): string {
+  const h = hex.replace('#', '')
+  const r = parseInt(h.substring(0, 2), 16)
+  const g = parseInt(h.substring(2, 4), 16)
+  const b = parseInt(h.substring(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, 1)`
+}
+
+function hexToHsla(hex: string): string {
+  const h = hex.replace('#', '')
+  let r = parseInt(h.substring(0, 2), 16) / 255
+  let g = parseInt(h.substring(2, 4), 16) / 255
+  let b = parseInt(h.substring(4, 6), 16) / 255
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const l = (max + min) / 2
+  let hue = 0
+  let s = 0
+  if (max !== min) {
+    const d = max - min
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+    if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) / 6
+    else if (max === g) hue = ((b - r) / d + 2) / 6
+    else hue = ((r - g) / d + 4) / 6
+  }
+  return `hsla(${Math.round(hue * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%, 1)`
+}
+
+function parseColorToHex(input: string): string | null {
+  const trimmed = input.trim()
+  // HEX
+  if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed.toLowerCase()
+  // rgba(r, g, b, a)
+  const rgbaMatch = trimmed.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/)
+  if (rgbaMatch) {
+    const [, r, g, b] = rgbaMatch
+    const toHex = (n: string) => parseInt(n).toString(16).padStart(2, '0')
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+  }
+  // hsla(h, s%, l%, a)
+  const hslaMatch = trimmed.match(/^hsla?\(\s*(\d{1,3})\s*,\s*(\d{1,3})%?\s*,\s*(\d{1,3})%?/)
+  if (hslaMatch) {
+    const [, hStr, sStr, lStr] = hslaMatch
+    const h = parseInt(hStr) / 360
+    const s = parseInt(sStr) / 100
+    const l = parseInt(lStr) / 100
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1
+      if (t > 1) t -= 1
+      if (t < 1 / 6) return p + (q - p) * 6 * t
+      if (t < 1 / 2) return q
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+      return p
+    }
+    let r: number, g: number, b: number
+    if (s === 0) {
+      r = g = b = l
+    } else {
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+      const p = 2 * l - q
+      r = hue2rgb(p, q, h + 1 / 3)
+      g = hue2rgb(p, q, h)
+      b = hue2rgb(p, q, h - 1 / 3)
+    }
+    const toHex = (n: number) => Math.round(n * 255).toString(16).padStart(2, '0')
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+  }
+  return null
+}
+
+function formatColor(hex: string, format: ColorFormat): string {
+  if (format === 'RGBA') return hexToRgba(hex)
+  if (format === 'HSLA') return hexToHsla(hex)
+  return hex.toUpperCase()
+}
 
 function ColorRow({
   label,
@@ -49,53 +127,70 @@ function ColorRow({
   value: string
   onChange: (value: string) => void
 }) {
+  const [format, setFormat] = useState<ColorFormat>('HEX')
+  const [inputValue, setInputValue] = useState(formatColor(value, format))
+
+  // Sync input when value or format changes externally
+  useEffect(() => {
+    setInputValue(formatColor(value, format))
+  }, [value, format])
+
+  const handleInputChange = (raw: string) => {
+    setInputValue(raw)
+    const parsed = parseColorToHex(raw)
+    if (parsed) onChange(parsed)
+  }
+
   return (
-    <div className="flex items-center gap-2.5">
-      <Popover>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className="shrink-0 w-6 h-6 rounded-full border-2 border-border/60 hover:border-foreground/30 transition-colors cursor-pointer shadow-sm"
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex items-center w-full gap-2.5 px-2 py-1.5 -mx-2 rounded-md hover:bg-foreground/5 transition-colors cursor-pointer"
+        >
+          <span
+            className="shrink-0 w-5 h-5 rounded-full border border-border/60 shadow-sm"
             style={{ backgroundColor: value }}
           />
-        </PopoverTrigger>
-        <PopoverContent
-          side="left"
-          align="start"
-          sideOffset={12}
-          className="w-auto p-3 rounded-xl"
-        >
-          <HexColorPicker color={value} onChange={onChange} />
-          <div className="mt-3">
+          <span className="text-[12px] text-muted-foreground flex-1 text-left">{label}</span>
+          <span className="text-[11px] font-mono text-muted-foreground/70">{value.toUpperCase()}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="left"
+        align="start"
+        sideOffset={12}
+        className="w-[220px] p-3 rounded-xl"
+      >
+        <HexColorPicker color={value} onChange={onChange} />
+
+        <div className="mt-3 space-y-2">
+          <div>
+            <span className="text-[11px] font-medium text-muted-foreground">Value</span>
             <Input
               type="text"
-              value={value.toUpperCase()}
-              onChange={(e) => {
-                const val = e.target.value
-                if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) {
-                  onChange(val)
-                }
-              }}
-              className="h-8 text-xs font-mono text-center rounded-lg"
-              placeholder="#000000"
+              value={inputValue}
+              onChange={(e) => handleInputChange(e.target.value)}
+              className="h-8 text-xs font-mono text-center rounded-lg mt-1"
             />
           </div>
-        </PopoverContent>
-      </Popover>
-      <span className="text-[11px] text-muted-foreground w-[52px] shrink-0 truncate">{label}</span>
-      <Input
-        type="text"
-        value={value.toUpperCase()}
-        onChange={(e) => {
-          const val = e.target.value
-          if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) {
-            onChange(val)
-          }
-        }}
-        className="h-6 text-[11px] font-mono px-1.5 rounded-md flex-1 min-w-0"
-        placeholder="#000000"
-      />
-    </div>
+
+          <div>
+            <span className="text-[11px] font-medium text-muted-foreground">Format</span>
+            <Select value={format} onValueChange={(v) => setFormat(v as ColorFormat)}>
+              <SelectTrigger className="h-8 text-xs mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="HEX">HEX</SelectItem>
+                <SelectItem value="RGBA">RGBA</SelectItem>
+                <SelectItem value="HSLA">HSLA</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -132,7 +227,7 @@ function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="border-b border-border pb-4">
+    <div className=" border-border pb-4">
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -342,32 +437,7 @@ const showcaseItems: { label: string; component: React.ReactNode }[] = [
 // Hook: apply token CSS variables to a scoped container (not :root)
 // ---------------------------------------------------------------------------
 
-function hexToOklch(hex: string): string {
-  hex = hex.replace('#', '')
-  const r = parseInt(hex.substring(0, 2), 16) / 255
-  const g = parseInt(hex.substring(2, 4), 16) / 255
-  const b = parseInt(hex.substring(4, 6), 16) / 255
-  const toLinear = (c: number) =>
-    c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-  const lr = toLinear(r)
-  const lg = toLinear(g)
-  const lb = toLinear(b)
-  const x = 0.4124564 * lr + 0.3575761 * lg + 0.1804375 * lb
-  const y = 0.2126729 * lr + 0.7151522 * lg + 0.072175 * lb
-  const z = 0.0193339 * lr + 0.119192 * lg + 0.9503041 * lb
-  const l_ = Math.cbrt(0.8189330101 * x + 0.3618667424 * y - 0.1288597137 * z)
-  const m_ = Math.cbrt(0.0329845436 * x + 0.9293118715 * y + 0.0361456387 * z)
-  const s_ = Math.cbrt(0.0482003018 * x + 0.2643662691 * y + 0.633851707 * z)
-  const L = 0.2104542553 * l_ + 0.793617785 * m_ - 0.0040720468 * s_
-  const a = 1.9779984951 * l_ - 2.428592205 * m_ + 0.4505937099 * s_
-  const bVal = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.808675766 * s_
-  const C = Math.sqrt(a * a + bVal * bVal)
-  let H = (Math.atan2(bVal, a) * 180) / Math.PI
-  if (H < 0) H += 360
-  return `oklch(${L.toFixed(3)} ${C.toFixed(3)} ${H.toFixed(3)})`
-}
-
-function useScopedTokens(tokens: DesignTokens) {
+function useScopedTokens(tokens: DesignTokens, mode: ThemeMode) {
   const ref = useRef<HTMLDivElement>(null)
   const mobileRef = useRef<HTMLDivElement>(null)
 
@@ -375,33 +445,16 @@ function useScopedTokens(tokens: DesignTokens) {
     const targets = [ref.current, mobileRef.current].filter(Boolean) as HTMLDivElement[]
     if (targets.length === 0) return
 
-    const vars: Record<string, string> = {
-      '--primary': hexToOklch(tokens.primaryColor),
-      '--primary-foreground': hexToOklch(tokens.primaryForeground),
-      '--secondary': hexToOklch(tokens.secondaryColor),
-      '--secondary-foreground': hexToOklch(tokens.secondaryForeground),
-      '--accent': hexToOklch(tokens.accentColor),
-      '--accent-foreground': hexToOklch(tokens.accentForeground),
-      '--destructive': hexToOklch(tokens.destructiveColor),
-      '--destructive-foreground': hexToOklch(tokens.destructiveForeground),
-      '--success': hexToOklch(tokens.successColor),
-      '--success-foreground': hexToOklch(tokens.successForeground),
-      '--border': hexToOklch(tokens.borderColor),
-      '--input': hexToOklch(tokens.inputBorderColor),
-      '--ring': hexToOklch(tokens.ringColor),
-      '--radius': `${tokens.borderRadius / 16}rem`,
-      '--radius-sm': `${Math.max(tokens.borderRadius - 2, 2) / 16}rem`,
-      '--radius-md': `${tokens.borderRadius / 16}rem`,
-      '--radius-lg': `${(tokens.borderRadius + 2) / 16}rem`,
-      '--radius-xl': `${(tokens.borderRadius + 4) / 16}rem`,
-    }
+    const vars = getTokenCssVars(tokens, mode)
 
     for (const target of targets) {
       for (const [prop, val] of Object.entries(vars)) {
         target.style.setProperty(prop, val)
       }
+      target.style.backgroundColor = `var(--background)`
+      target.style.color = `var(--foreground)`
     }
-  }, [tokens])
+  }, [tokens, mode])
 
   return { ref, mobileRef }
 }
@@ -411,8 +464,8 @@ function useScopedTokens(tokens: DesignTokens) {
 // ---------------------------------------------------------------------------
 
 export default function CustomizePage() {
-  const { tokens, updateToken, resetToDefaults, isModified } = useTokens()
-  const { ref: previewRef, mobileRef } = useScopedTokens(tokens)
+  const { tokens, updateToken, resetToDefaults, isModified, mode, setMode } = useTokens()
+  const { ref: previewRef, mobileRef } = useScopedTokens(tokens, mode)
   const [showCta, setShowCta] = useState(false)
 
   // Show the CTA after first modification with a slight delay
@@ -428,21 +481,64 @@ export default function CustomizePage() {
 
   const sidebarContent = (
     <>
+      {/* Light / Dark mode toggle */}
+      <div className="flex items-center rounded-lg border border-border p-1 gap-1">
+        <button
+          type="button"
+          onClick={() => setMode('light')}
+          className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            mode === 'light'
+              ? 'bg-foreground text-background'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Sun className="h-3.5 w-3.5" />
+          Light
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('dark')}
+          className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            mode === 'dark'
+              ? 'bg-foreground text-background'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Moon className="h-3.5 w-3.5" />
+          Dark
+        </button>
+      </div>
+
       <Section title="Colors">
         <div className="space-y-4">
+          <ColorPairInput label="Base" bgValue={tokens.backgroundColor} fgValue={tokens.foregroundColor} onBgChange={(v) => updateToken('backgroundColor', v)} onFgChange={(v) => updateToken('foregroundColor', v)} />
           <ColorPairInput label="Primary" bgValue={tokens.primaryColor} fgValue={tokens.primaryForeground} onBgChange={(v) => updateToken('primaryColor', v)} onFgChange={(v) => updateToken('primaryForeground', v)} />
           <ColorPairInput label="Secondary" bgValue={tokens.secondaryColor} fgValue={tokens.secondaryForeground} onBgChange={(v) => updateToken('secondaryColor', v)} onFgChange={(v) => updateToken('secondaryForeground', v)} />
           <ColorPairInput label="Accent" bgValue={tokens.accentColor} fgValue={tokens.accentForeground} onBgChange={(v) => updateToken('accentColor', v)} onFgChange={(v) => updateToken('accentForeground', v)} />
           <ColorPairInput label="Destructive" bgValue={tokens.destructiveColor} fgValue={tokens.destructiveForeground} onBgChange={(v) => updateToken('destructiveColor', v)} onFgChange={(v) => updateToken('destructiveForeground', v)} />
           <ColorPairInput label="Success" bgValue={tokens.successColor} fgValue={tokens.successForeground} onBgChange={(v) => updateToken('successColor', v)} onFgChange={(v) => updateToken('successForeground', v)} />
-        </div>
-      </Section>
 
-      <Section title="Border & Input">
-        <div className="space-y-2">
-          <ColorRow label="Border" value={tokens.borderColor} onChange={(v) => updateToken('borderColor', v)} />
-          <ColorRow label="Input" value={tokens.inputBorderColor} onChange={(v) => updateToken('inputBorderColor', v)} />
-          <ColorRow label="Focus ring" value={tokens.ringColor} onChange={(v) => updateToken('ringColor', v)} />
+          <div className="space-y-1.5">
+            <span className="text-xs font-medium">Popover</span>
+            <ColorRow label="Background" value={tokens.popoverColor} onChange={(v) => updateToken('popoverColor', v)} />
+            <ColorRow label="Text" value={tokens.popoverForeground} onChange={(v) => updateToken('popoverForeground', v)} />
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="text-xs font-medium">Border & Input</span>
+            <ColorRow label="Border" value={tokens.borderColor} onChange={(v) => updateToken('borderColor', v)} />
+            <ColorRow label="Input" value={tokens.inputBorderColor} onChange={(v) => updateToken('inputBorderColor', v)} />
+            <ColorRow label="Focus ring" value={tokens.ringColor} onChange={(v) => updateToken('ringColor', v)} />
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="text-xs font-medium">Chart</span>
+            <ColorRow label="Chart 1" value={tokens.chart1} onChange={(v) => updateToken('chart1', v)} />
+            <ColorRow label="Chart 2" value={tokens.chart2} onChange={(v) => updateToken('chart2', v)} />
+            <ColorRow label="Chart 3" value={tokens.chart3} onChange={(v) => updateToken('chart3', v)} />
+            <ColorRow label="Chart 4" value={tokens.chart4} onChange={(v) => updateToken('chart4', v)} />
+            <ColorRow label="Chart 5" value={tokens.chart5} onChange={(v) => updateToken('chart5', v)} />
+          </div>
         </div>
       </Section>
 
@@ -496,14 +592,18 @@ export default function CustomizePage() {
         </Button>
       </div>
 
-      {/* CTA - animated appearance */}
-      <div
-        className={`pt-2 transition-all duration-500 ease-out ${
-          showCta
-            ? 'opacity-100 translate-y-0'
-            : 'opacity-0 translate-y-4 pointer-events-none'
-        }`}
-      >
+    </>
+  )
+
+  const ctaButton = (
+    <div
+      className={`sticky bottom-0 transition-all duration-500 ease-out ${
+        showCta
+          ? 'opacity-100 translate-y-0'
+          : 'opacity-0 translate-y-4 pointer-events-none'
+      }`}
+    >
+      <div className="bg-gradient-to-t from-card from-60% to-transparent px-5 pt-8 pb-5">
         <a
           href="https://manifest.build?ref=toolkit"
           target="_blank"
@@ -514,7 +614,7 @@ export default function CustomizePage() {
           <ArrowRight className="h-4 w-4" />
         </a>
       </div>
-    </>
+    </div>
   )
 
   return (
@@ -551,7 +651,7 @@ export default function CustomizePage() {
               Adjust design tokens on the right and see changes reflected across all components in real-time.
             </p>
           </div>
-          <div className="columns-2 gap-6 [&>div]:mb-6 [&>div]:break-inside-avoid">
+          <div className="columns-2 gap-6 [&>div]:mb-6 [&>div]:break-inside-avoid max-w-3xl">
             {showcaseItems.map((item) => (
               <div key={item.label}>
                 {item.component}
@@ -562,9 +662,10 @@ export default function CustomizePage() {
 
         {/* Right sidebar: controls */}
         <aside className="w-[280px] shrink-0 border-l bg-card sticky top-[3.5rem] h-[calc(100vh-3.5rem)] overflow-y-auto">
-          <div className="p-5 space-y-4">
+          <div className="p-5 pb-20 space-y-4">
             {sidebarContent}
           </div>
+          {ctaButton}
         </aside>
       </div>
     </div>
