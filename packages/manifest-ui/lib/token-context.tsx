@@ -3,12 +3,21 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 
 export interface DesignTokens {
-  // Colors
+  // Colors (background + foreground pairs)
   primaryColor: string
+  primaryForeground: string
   secondaryColor: string
+  secondaryForeground: string
   accentColor: string
+  accentForeground: string
   destructiveColor: string
+  destructiveForeground: string
   successColor: string
+  successForeground: string
+  // Border & Input
+  borderColor: string
+  inputBorderColor: string
+  ringColor: string
   // Typography
   fontFamily: 'system' | 'inter' | 'roboto' | 'poppins'
   // Layout
@@ -17,10 +26,18 @@ export interface DesignTokens {
 
 export const defaultTokens: DesignTokens = {
   primaryColor: '#1a1a1a',
+  primaryForeground: '#fafafa',
   secondaryColor: '#f5f5f5',
+  secondaryForeground: '#1a1a1a',
   accentColor: '#f5f5f5',
+  accentForeground: '#1a1a1a',
   destructiveColor: '#dc2626',
+  destructiveForeground: '#ffffff',
   successColor: '#16a34a',
+  successForeground: '#ffffff',
+  borderColor: '#e5e5e5',
+  inputBorderColor: '#e5e5e5',
+  ringColor: '#737373',
   fontFamily: 'system',
   borderRadius: 8,
 }
@@ -115,41 +132,13 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
     setIsHydrated(true)
   }, [])
 
-  // Apply tokens to CSS variables
+  // Font family is the only token applied globally (affects text rendering)
   useEffect(() => {
     if (!isHydrated) return
-
     const root = document.documentElement
-
-    // Primary color
-    root.style.setProperty('--primary', hexToOklch(tokens.primaryColor))
-    root.style.setProperty('--primary-foreground', getForegroundColor(tokens.primaryColor))
-
-    // Secondary color
-    root.style.setProperty('--secondary', hexToOklch(tokens.secondaryColor))
-    root.style.setProperty('--secondary-foreground', getForegroundColor(tokens.secondaryColor))
-
-    // Accent color
-    root.style.setProperty('--accent', hexToOklch(tokens.accentColor))
-    root.style.setProperty('--accent-foreground', getForegroundColor(tokens.accentColor))
-
-    // Destructive color
-    root.style.setProperty('--destructive', hexToOklch(tokens.destructiveColor))
-
-    // Success color
-    root.style.setProperty('--success', hexToOklch(tokens.successColor))
-
-    // Border radius
-    root.style.setProperty('--radius', `${tokens.borderRadius / 16}rem`)
-    root.style.setProperty('--radius-sm', `${Math.max(tokens.borderRadius - 2, 2) / 16}rem`)
-    root.style.setProperty('--radius-md', `${tokens.borderRadius / 16}rem`)
-    root.style.setProperty('--radius-lg', `${(tokens.borderRadius + 2) / 16}rem`)
-    root.style.setProperty('--radius-xl', `${(tokens.borderRadius + 4) / 16}rem`)
-
-    // Font family
     root.style.setProperty('--font-sans', fontFamilies[tokens.fontFamily])
     document.body.style.fontFamily = fontFamilies[tokens.fontFamily]
-  }, [tokens, isHydrated])
+  }, [tokens.fontFamily, isHydrated])
 
   // Load Google Fonts if needed
   useEffect(() => {
@@ -198,19 +187,6 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(STORAGE_KEY)
       // Clear custom CSS properties
       const root = document.documentElement
-      root.style.removeProperty('--primary')
-      root.style.removeProperty('--primary-foreground')
-      root.style.removeProperty('--secondary')
-      root.style.removeProperty('--secondary-foreground')
-      root.style.removeProperty('--accent')
-      root.style.removeProperty('--accent-foreground')
-      root.style.removeProperty('--destructive')
-      root.style.removeProperty('--success')
-      root.style.removeProperty('--radius')
-      root.style.removeProperty('--radius-sm')
-      root.style.removeProperty('--radius-md')
-      root.style.removeProperty('--radius-lg')
-      root.style.removeProperty('--radius-xl')
       root.style.removeProperty('--font-sans')
       document.body.style.removeProperty('font-family')
     } catch (e) {
