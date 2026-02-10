@@ -183,7 +183,7 @@ function ColorRow({
               <SelectTrigger className="h-8 text-xs mt-1">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[70]">
                 <SelectItem value="HEX">HEX</SelectItem>
                 <SelectItem value="RGBA">RGBA</SelectItem>
                 <SelectItem value="HSLA">HSLA</SelectItem>
@@ -678,7 +678,7 @@ export default function CustomizePage() {
       <div className="border-t bg-foreground px-6 py-6">
         <div className="max-w-xl mx-auto flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
           <p className="text-background text-center sm:text-left flex-1">
-            Ship this theme in a MCP app in minutes.
+            Ship this theme in a MCP App in minutes.
           </p>
           <a
             href="https://manifest.build?ref=toolkit"
