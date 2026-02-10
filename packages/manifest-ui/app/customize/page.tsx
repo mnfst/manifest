@@ -25,7 +25,7 @@ import { PostCard } from '@/registry/blogging/post-card'
 import { ContactForm } from '@/registry/form/contact-form'
 import { Table } from '@/registry/list/table'
 import { MessageBubble } from '@/registry/messaging/message-bubble'
-import { Stats } from '@/registry/miscellaneous/stat-card'
+import { StatCard } from '@/registry/miscellaneous/stat-card'
 import { AmountInput } from '@/registry/payment/amount-input'
 import { CardForm } from '@/registry/payment/card-form'
 import { OrderSummary } from '@/registry/payment/order-summary'
@@ -257,9 +257,9 @@ const showcaseItems: { label: string; component: React.ReactNode }[] = [
     component: <CardForm />
   },
   {
-    label: 'Stats',
+    label: 'Stat Card',
     component: (
-      <Stats
+      <StatCard
         data={{
           stats: [
             { label: 'Revenue', value: '$12,345', change: 12.5 },
@@ -386,10 +386,10 @@ const showcaseItems: { label: string; component: React.ReactNode }[] = [
       <ProgressSteps
         data={{
           steps: [
-            { id: '1', label: 'Cart', status: 'completed' },
-            { id: '2', label: 'Shipping', status: 'current' },
-            { id: '3', label: 'Payment', status: 'pending' },
-            { id: '4', label: 'Confirm', status: 'pending' }
+            { label: 'Cart', status: 'completed' },
+            { label: 'Shipping', status: 'current' },
+            { label: 'Payment', status: 'pending' },
+            { label: 'Confirm', status: 'pending' }
           ]
         }}
       />
