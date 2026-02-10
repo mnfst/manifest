@@ -659,10 +659,10 @@ export default function CustomizePage() {
     </>
   );
 
-  const ctaButton = (
+  const ctaBanner = (
     <div
-      className={`sticky bottom-0 transition-all duration-500 ease-out ${
-        showCta ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+      className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
+        showCta ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'
       }`}
     >
       <style>{`
@@ -675,16 +675,21 @@ export default function CustomizePage() {
         }
         .cta-vibrate { animation: vibrate 3s ease-in-out infinite; }
       `}</style>
-      <div className="bg-gradient-to-t from-card from-60% to-transparent px-5 pt-8 pb-5">
-        <a
-          href="https://manifest.build?ref=toolkit"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="cta-vibrate flex items-center justify-center gap-2 w-full rounded-lg bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"
-        >
-          Use with Manifest
-          <ArrowRight className="h-4 w-4" />
-        </a>
+      <div className="border-t bg-foreground px-6 py-6">
+        <div className="max-w-xl mx-auto flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+          <p className="text-background text-center sm:text-left flex-1">
+            Ship this theme in a MCP app in minutes.
+          </p>
+          <a
+            href="https://manifest.build?ref=toolkit"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cta-vibrate shrink-0 flex items-center justify-center gap-2 rounded-lg bg-background text-foreground px-5 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            Use with Manifest
+            <ArrowRight className="h-4 w-4" />
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -723,10 +728,7 @@ export default function CustomizePage() {
         {mobileOpen && (
           <div className="fixed inset-0 z-50 flex">
             {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black/40"
-              onClick={() => setMobileOpen(false)}
-            />
+            <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
             {/* Panel */}
             <div className="relative ml-auto w-[300px] max-w-[85vw] h-full bg-card border-l shadow-xl overflow-y-auto animate-in slide-in-from-right duration-200">
               <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-card">
@@ -739,10 +741,7 @@ export default function CustomizePage() {
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <div className="p-4 pb-24 space-y-4">
-                {sidebarContent}
-              </div>
-              {ctaButton}
+              <div className="p-4 pb-24 space-y-4">{sidebarContent}</div>
             </div>
           </div>
         )}
@@ -753,30 +752,32 @@ export default function CustomizePage() {
         {/* Center: component grid — tokens scoped here only */}
         <div
           ref={previewRef}
-          className="flex-1 p-8 overflow-y-auto [&_input:focus-visible]:!border-[var(--ring)] [&_select:focus-visible]:!border-[var(--ring)] [&_textarea:focus-visible]:!border-[var(--ring)]"
+          className="flex-1 p-8 pb-24 overflow-y-auto [&_input:focus-visible]:!border-[var(--ring)] [&_select:focus-visible]:!border-[var(--ring)] [&_textarea:focus-visible]:!border-[var(--ring)]"
         >
           <div className="max-w-3xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-tight">Customize</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Adjust design tokens on the right and see changes reflected across all components in
-              real-time.
-            </p>
-          </div>
-          <div className="columns-2 gap-6 [&>div]:mb-6 [&>div]:break-inside-avoid">
-            {showcaseItems.map((item) => (
-              <div key={item.label}>{item.component}</div>
-            ))}
-          </div>
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold tracking-tight">Customize</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Adjust design tokens on the right and see changes reflected across all components in
+                real-time.
+              </p>
+            </div>
+            <div className="columns-2 gap-6 [&>div]:mb-6 [&>div]:break-inside-avoid">
+              {showcaseItems.map((item) => (
+                <div key={item.label}>{item.component}</div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Right sidebar: controls */}
         <aside className="w-[280px] shrink-0 border-l bg-card sticky top-[3.5rem] h-[calc(100vh-3.5rem)] overflow-y-auto">
-          <div className="p-5 pb-20 space-y-4">{sidebarContent}</div>
-          {ctaButton}
+          <div className="p-5 pb-24 space-y-4">{sidebarContent}</div>
         </aside>
       </div>
+
+      {/* Full-width CTA banner */}
+      {ctaBanner}
     </div>
   );
 }
