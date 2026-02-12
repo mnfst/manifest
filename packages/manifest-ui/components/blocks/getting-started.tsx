@@ -1,5 +1,11 @@
 import { blockCategories } from '@/lib/blocks-categories'
-import { ArrowRight, FolderPlus, Paintbrush, Terminal } from 'lucide-react'
+import {
+  ArrowRight,
+  FolderPlus,
+  Paintbrush,
+  Rocket,
+  Terminal
+} from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 
@@ -141,87 +147,127 @@ export function GettingStarted() {
         </p>
       </div>
 
-      {/* Step 1: Initialize shadcn/ui */}
-      <section id="add-to-existing" className="space-y-6 scroll-mt-8">
+      {/* Start from scratch */}
+      <section id="start-from-scratch" className="space-y-6 scroll-mt-8">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10 text-primary">
-            <FolderPlus className="h-5 w-5" />
+            <Rocket className="h-5 w-5" />
           </div>
-          <h2 className="text-xl font-semibold">
-            1. Initialize shadcn/ui
-          </h2>
+          <h2 className="text-xl font-semibold">Start from scratch</h2>
         </div>
 
         <p className="text-muted-foreground">
-          Make sure you have shadcn/ui initialized in your project. If not, see{' '}
+          The fastest way to get started is to use the{' '}
           <a
-            href="https://ui.shadcn.com/docs/installation"
+            href="https://docs.skybridge.tech/home"
             target="_blank"
             rel="noreferrer"
             className="underline hover:text-primary"
           >
-            the shadcn/ui installation guide
-          </a>
-          .
+            Alpic SkyBridge
+          </a>{' '}
+          starter with Manifest UI. It creates a ready-to-go app with Manifest
+          UI configured out of the box.
         </p>
 
-        <CodeBlock code="npx shadcn@latest init" />
+        <CodeBlock code="npx create-skybridge@latest my-app --repo github:alpic-ai/skybridge/examples/manifest-ui" />
       </section>
 
-      {/* Step 2: Configure Tailwind CSS */}
-      <section id="configure-styles" className="space-y-6 scroll-mt-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
-            <Paintbrush className="h-5 w-5" />
-          </div>
+      {/* Add Manifest UI to your project */}
+      <section className="space-y-12 scroll-mt-8">
+        <div id="add-to-existing">
           <h2 className="text-xl font-semibold">
-            2. Configure Tailwind CSS v4 theme
+            Add Manifest UI to your project
           </h2>
+          <p className="text-muted-foreground mt-2">
+            Already have an existing project? Follow these steps to add Manifest
+            UI.
+          </p>
         </div>
 
-        <p className="text-muted-foreground">
-          Manifest UI blocks use Tailwind CSS v4 with CSS custom properties for
-          theming. Add the following configuration to your main CSS file
-          (e.g.{' '}
-          <code className="text-sm bg-muted px-1.5 py-0.5 rounded">
-            globals.css
-          </code>{' '}
-          or{' '}
-          <code className="text-sm bg-muted px-1.5 py-0.5 rounded">
-            index.css
-          </code>
-          ).
-        </p>
-
-        <p className="text-sm text-muted-foreground">
-          If you initialized your project with{' '}
-          <code className="bg-muted px-1.5 py-0.5 rounded">
-            npx shadcn@latest init
-          </code>
-          , this may already be configured. If blocks aren&apos;t rendering
-          correctly, verify your CSS includes this setup:
-        </p>
-
-        <div className="max-h-96 overflow-y-auto rounded-lg border">
-          <CodeBlock code={tailwindCssConfig} language="css" />
-        </div>
-      </section>
-
-      {/* Step 3: Add a block */}
-      <section id="add-block" className="space-y-6 scroll-mt-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
-            <Terminal className="h-5 w-5" />
+        {/* Step 1: Initialize shadcn/ui */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <FolderPlus className="h-5 w-5" />
+            </div>
+            <h3 className="text-lg font-semibold">
+              1. Initialize shadcn/ui
+            </h3>
           </div>
-          <h2 className="text-xl font-semibold">3. Add a block</h2>
+
+          <p className="text-muted-foreground">
+            Make sure you have shadcn/ui initialized in your project. If not,
+            see{' '}
+            <a
+              href="https://ui.shadcn.com/docs/installation"
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:text-primary"
+            >
+              the shadcn/ui installation guide
+            </a>
+            .
+          </p>
+
+          <CodeBlock code="npx shadcn@latest init" />
         </div>
 
-        <p className="text-muted-foreground">
-          Browse to the block you want to use and run the provided command to
-          add it to your project. For example, to add the Table block:
-        </p>
+        {/* Step 2: Configure Tailwind CSS */}
+        <div id="configure-styles" className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <Paintbrush className="h-5 w-5" />
+            </div>
+            <h3 className="text-lg font-semibold">
+              2. Configure Tailwind CSS v4 theme
+            </h3>
+          </div>
 
-        <CodeBlock code="npx shadcn@latest add @manifest/table" />
+          <p className="text-muted-foreground">
+            Manifest UI blocks use Tailwind CSS v4 with CSS custom properties
+            for theming. Add the following configuration to your main CSS file
+            (e.g.{' '}
+            <code className="text-sm bg-muted px-1.5 py-0.5 rounded">
+              globals.css
+            </code>{' '}
+            or{' '}
+            <code className="text-sm bg-muted px-1.5 py-0.5 rounded">
+              index.css
+            </code>
+            ).
+          </p>
+
+          <p className="text-sm text-muted-foreground">
+            If you initialized your project with{' '}
+            <code className="bg-muted px-1.5 py-0.5 rounded">
+              npx shadcn@latest init
+            </code>
+            , this may already be configured. If blocks aren&apos;t rendering
+            correctly, verify your CSS includes this setup:
+          </p>
+
+          <div className="max-h-96 overflow-y-auto rounded-lg border">
+            <CodeBlock code={tailwindCssConfig} language="css" />
+          </div>
+        </div>
+
+        {/* Step 3: Add a block */}
+        <div id="add-block" className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <Terminal className="h-5 w-5" />
+            </div>
+            <h3 className="text-lg font-semibold">3. Add a block</h3>
+          </div>
+
+          <p className="text-muted-foreground">
+            Browse to the block you want to use and run the provided command to
+            add it to your project. For example, to add the Table block:
+          </p>
+
+          <CodeBlock code="npx shadcn@latest add @manifest/table" />
+        </div>
       </section>
 
       {/* Next Step */}
