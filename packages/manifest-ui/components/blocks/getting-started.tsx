@@ -1,11 +1,5 @@
 import { blockCategories } from '@/lib/blocks-categories'
-import {
-  ArrowRight,
-  FolderPlus,
-  Paintbrush,
-  Rocket,
-  Terminal
-} from 'lucide-react'
+import { ArrowRight, FolderPlus, Rocket } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 
@@ -176,9 +170,14 @@ export function GettingStarted() {
       {/* Add Manifest UI to your project */}
       <section className="space-y-12 scroll-mt-8">
         <div id="add-to-existing">
-          <h2 className="text-xl font-semibold">
-            Add Manifest UI to your project
-          </h2>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <FolderPlus className="h-5 w-5" />
+            </div>
+            <h2 className="text-xl font-semibold">
+              Add Manifest UI to your project
+            </h2>
+          </div>
           <p className="text-muted-foreground mt-2">
             Already have an existing project? Follow these steps to add Manifest
             UI.
@@ -187,14 +186,9 @@ export function GettingStarted() {
 
         {/* Step 1: Initialize shadcn/ui */}
         <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <FolderPlus className="h-5 w-5" />
-            </div>
-            <h3 className="text-lg font-semibold">
-              1. Initialize shadcn/ui
-            </h3>
-          </div>
+          <h3 className="text-lg font-semibold">
+            1. Initialize shadcn/ui
+          </h3>
 
           <p className="text-muted-foreground">
             Make sure you have shadcn/ui initialized in your project. If not,
@@ -215,14 +209,9 @@ export function GettingStarted() {
 
         {/* Step 2: Configure Tailwind CSS */}
         <div id="configure-styles" className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <Paintbrush className="h-5 w-5" />
-            </div>
-            <h3 className="text-lg font-semibold">
-              2. Configure Tailwind CSS v4 theme
-            </h3>
-          </div>
+          <h3 className="text-lg font-semibold">
+            2. Configure Tailwind CSS v4 theme
+          </h3>
 
           <p className="text-muted-foreground">
             Manifest UI blocks use Tailwind CSS v4 with CSS custom properties
@@ -254,12 +243,7 @@ export function GettingStarted() {
 
         {/* Step 3: Add a block */}
         <div id="add-block" className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <Terminal className="h-5 w-5" />
-            </div>
-            <h3 className="text-lg font-semibold">3. Add a block</h3>
-          </div>
+          <h3 className="text-lg font-semibold">3. Add a block</h3>
 
           <p className="text-muted-foreground">
             Browse to the block you want to use and run the provided command to
