@@ -30,14 +30,17 @@ export class TelemetryService {
   private static readonly MAX_EVENTS_PER_BATCH = 1000;
 
   async ingest(events: TelemetryEventDto[], userId: string): Promise<IngestResult> {
-    const safeEvents = events.slice(0, TelemetryService.MAX_EVENTS_PER_BATCH);
+    if (!Array.isArray(events)) {
+      return { accepted: 0, rejected: 0, errors: [] };
+    }
+    const maxLen = Math.min(events.length, TelemetryService.MAX_EVENTS_PER_BATCH);
     let accepted = 0;
     let rejected = 0;
     const errors: Array<{ index: number; reason: string }> = [];
 
-    for (let i = 0; i < safeEvents.length; i++) {
+    for (let i = 0; i < maxLen; i++) {
       try {
-        await this.insertEvent(safeEvents[i], userId);
+        await this.insertEvent(events[i], userId);
         accepted++;
       } catch (err) {
         rejected++;
