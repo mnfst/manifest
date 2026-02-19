@@ -1,0 +1,190 @@
+import * as React from 'react';
+import {
+  Html,
+  Head,
+  Body,
+  Container,
+  Section,
+  Text,
+  Button,
+  Preview,
+  Hr,
+} from '@react-email/components';
+
+export interface VerifyEmailProps {
+  userName: string;
+  verificationUrl: string;
+}
+
+export function VerifyEmailEmail(props: VerifyEmailProps) {
+  const { userName, verificationUrl } = props;
+
+  return (
+    <Html>
+      <Head />
+      <Preview>Verify your email address to get started with Manifest</Preview>
+      <Body style={body}>
+        <Container style={container}>
+          {/* Logo */}
+          <Section style={logoSection}>
+            <Text style={logo}>manifest</Text>
+          </Section>
+
+          {/* Main content */}
+          <Section style={card}>
+            <Text style={heading}>Verify your email</Text>
+            <Text style={paragraph}>
+              Hi {userName}, thanks for signing up. Please confirm your email
+              address by clicking the button below.
+            </Text>
+
+            <Section style={buttonContainer}>
+              <Button style={button} href={verificationUrl}>
+                Verify email address
+              </Button>
+            </Section>
+
+            <Text style={hint}>
+              If you didn't create an account, you can safely ignore this email.
+            </Text>
+          </Section>
+
+          {/* Fallback link */}
+          <Section style={fallbackSection}>
+            <Text style={fallbackText}>
+              If the button above doesn't work, copy and paste this link into
+              your browser:
+            </Text>
+            <Text style={fallbackUrl}>{verificationUrl}</Text>
+          </Section>
+
+          {/* Footer */}
+          <Hr style={divider} />
+          <Section style={footer}>
+            <Text style={footerMuted}>
+              manifest.build
+            </Text>
+          </Section>
+        </Container>
+      </Body>
+    </Html>
+  );
+}
+
+/* ── Brand tokens ──────────────────────────────────── */
+const brandBg = '#f8f6f1';
+const brandCardBg = '#ffffff';
+const brandPrimary = '#0f172a';
+const brandPrimaryFg = '#f9f8f5';
+const brandFg = '#020817';
+const brandMuted = '#64748b';
+const brandBorder = '#e5dfd6';
+const brandFont =
+  'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+/* ── Styles ────────────────────────────────────────── */
+const body: React.CSSProperties = {
+  backgroundColor: brandBg,
+  fontFamily: brandFont,
+  margin: 0,
+  padding: 0,
+};
+
+const container: React.CSSProperties = {
+  maxWidth: '520px',
+  margin: '0 auto',
+  padding: '40px 20px',
+};
+
+const logoSection: React.CSSProperties = {
+  textAlign: 'center' as const,
+  paddingBottom: '32px',
+};
+
+const logo: React.CSSProperties = {
+  fontSize: '22px',
+  fontWeight: 700,
+  letterSpacing: '-0.03em',
+  color: '#22110C',
+  margin: 0,
+};
+
+const card: React.CSSProperties = {
+  backgroundColor: brandCardBg,
+  borderRadius: '12px',
+  padding: '40px 36px',
+  border: `1px solid ${brandBorder}`,
+};
+
+const heading: React.CSSProperties = {
+  fontSize: '22px',
+  fontWeight: 700,
+  letterSpacing: '-0.02em',
+  color: brandFg,
+  margin: '0 0 12px',
+  lineHeight: '1.3',
+};
+
+const paragraph: React.CSSProperties = {
+  fontSize: '15px',
+  lineHeight: '1.6',
+  color: '#374151',
+  margin: '0 0 28px',
+};
+
+const buttonContainer: React.CSSProperties = {
+  textAlign: 'center' as const,
+  margin: '0 0 28px',
+};
+
+const button: React.CSSProperties = {
+  backgroundColor: brandPrimary,
+  color: brandPrimaryFg,
+  fontSize: '14px',
+  fontWeight: 600,
+  padding: '14px 28px',
+  borderRadius: '8px',
+  textDecoration: 'none',
+  display: 'inline-block',
+  lineHeight: '1',
+};
+
+const hint: React.CSSProperties = {
+  fontSize: '13px',
+  lineHeight: '1.5',
+  color: brandMuted,
+  margin: 0,
+};
+
+const fallbackSection: React.CSSProperties = {
+  padding: '24px 0 0',
+};
+
+const fallbackText: React.CSSProperties = {
+  fontSize: '12px',
+  color: brandMuted,
+  margin: '0 0 6px',
+};
+
+const fallbackUrl: React.CSSProperties = {
+  fontSize: '12px',
+  color: brandMuted,
+  margin: 0,
+  wordBreak: 'break-all' as const,
+};
+
+const divider: React.CSSProperties = {
+  borderColor: brandBorder,
+  borderTop: 'none',
+  margin: '32px 0 24px',
+};
+
+const footer: React.CSSProperties = {
+  textAlign: 'center' as const,
+};
+
+const footerMuted: React.CSSProperties = {
+  fontSize: '12px',
+  color: '#94a3b8',
+  margin: 0,
+};

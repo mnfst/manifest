@@ -1,874 +1,286 @@
-# CLAUDE.md
+# Manifest Development Guidelines
 
-This file provides guidance for Claude Code when working with this repository.
+Last updated: 2026-02-18
 
-## Project Overview
+## Active Technologies
 
-Manifest is a monorepo containing tools for building MCP (Model Context Protocol) servers with agentic UI components.
+- **Backend**: NestJS 11, TypeORM 0.3, PostgreSQL 16, Better Auth, class-validator, class-transformer, Helmet
+- **Frontend**: SolidJS, Vite, uPlot (charts), Better Auth client, custom CSS theme
+- **Runtime**: TypeScript 5.x (strict mode), Node.js 22.x
+- **Monorepo**: npm workspaces + Turborepo
 
-## Repository Structure
+## Project Structure
 
-```
+```text
 packages/
-├── manifest/      # Flow editor application (NestJS + React)
-│   ├── backend/   # NestJS API
-│   ├── frontend/  # React SPA
-│   ├── shared/    # Shared types and utilities
-│   └── nodes/     # Node type definitions
-└── manifest-ui/   # Component registry (Next.js) - port 3001
+├── backend/
+│   ├── src/
+│   │   ├── main.ts                          # Bootstrap: Helmet, ValidationPipe, Better Auth mount, CORS
+│   │   ├── app.module.ts                    # Root module (guards: ApiKey, Session, Throttler)
+│   │   ├── config/app.config.ts             # Environment variable config
+│   │   ├── auth/
+│   │   │   ├── auth.instance.ts             # Better Auth singleton (email/pass + 3 OAuth)
+│   │   │   ├── auth.module.ts               # Registers SessionGuard as APP_GUARD
+│   │   │   ├── session.guard.ts             # Cookie session auth via Better Auth
+│   │   │   └── current-user.decorator.ts    # @CurrentUser() param decorator
+│   │   ├── database/
+│   │   │   ├── database.module.ts           # TypeORM PostgreSQL config
+│   │   │   └── database-seeder.service.ts   # Seeds model_pricing + demo data
+│   │   ├── entities/                        # TypeORM entities (14 files)
+│   │   │   ├── tenant.entity.ts             # Multi-tenant root
+│   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
+│   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
+│   │   │   └── ...                          # agent-message, llm-call, security-event, etc.
+│   │   ├── common/
+│   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
+│   │   │   ├── decorators/public.decorator.ts
+│   │   │   ├── dto/range-query.dto.ts
+│   │   │   └── utils/range.util.ts
+│   │   ├── health/                          # @Public() health check
+│   │   ├── telemetry/                       # POST /api/v1/telemetry (JSON ingestion)
+│   │   ├── analytics/                       # Dashboard analytics
+│   │   │   ├── controllers/                 # overview, tokens, costs, messages, agents
+│   │   │   └── services/                    # aggregation + timeseries-queries + query-helpers
+│   │   ├── otlp/                            # OTLP ingestion (traces, metrics, logs)
+│   │   │   ├── guards/otlp-auth.guard.ts    # Bearer token auth (agent API keys)
+│   │   │   └── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
+│   │   └── security/                        # GET /api/v1/security
+│   └── test/                                # E2E tests (supertest)
+├── frontend/
+│   ├── src/
+│   │   ├── index.tsx                        # Router setup (App + AuthLayout)
+│   │   ├── components/
+│   │   │   ├── AuthGuard.tsx                # Session check, redirect to /login
+│   │   │   ├── SocialButtons.tsx            # 3 OAuth provider buttons
+│   │   │   ├── Header.tsx                   # User session data, logout
+│   │   │   └── ...
+│   │   ├── pages/
+│   │   │   ├── Login.tsx, Register.tsx       # Auth pages
+│   │   │   ├── Workspace.tsx                # Agent grid + create agent
+│   │   │   ├── Overview.tsx                 # Agent dashboard
+│   │   │   ├── MessageLog.tsx               # Paginated messages
+│   │   │   ├── Account.tsx                  # User profile (session data)
+│   │   │   └── Settings.tsx                 # Agent settings
+│   │   ├── services/
+│   │   │   ├── auth-client.ts               # Better Auth SolidJS client
+│   │   │   ├── api.ts                       # API functions (credentials: include)
+│   │   │   └── formatters.ts               # Number/cost formatting
+│   │   └── styles/
+│   └── tests/
+└── openclaw-plugin/
 ```
 
-## Common Commands
+## Single-Service Deployment
+
+The app deploys as a **single service**. In production, NestJS serves both the API and the frontend static files from the same port.
 
 ```bash
-# Start development (from root)
-pnpm run dev
-
-# Build all packages
-pnpm run build
-
-# Lint all packages
-pnpm run lint
-
-# Run tests
-pnpm run test
+npm run build     # Turborepo: frontend (Vite) then backend (Nest)
+npm start         # node packages/backend/dist/main.js — serves frontend + API
 ```
 
-## Development Workflow
+- API routes (`/api/*`, `/otlp/*`) are excluded from static file serving.
+- Dev mode: Vite on `:3000` proxies `/api` and `/otlp` to backend on `:3001`.
 
-1. Run `pnpm install` at the root
-2. Run `pnpm run dev` to start the registry on port 3001
+## Commands
 
-## Key Files
+### Starting the Dev Server
 
-- `/packages/manifest-ui/registry.json` - Component registry definitions
-- `/turbo.json` - Turborepo configuration
+The backend requires a `.env` file at `packages/backend/.env` with at least `BETTER_AUTH_SECRET` (32+ chars). The `auth.instance.ts` reads `process.env` at import time, before NestJS `ConfigModule` loads `.env`, so env vars must be available to the Node process.
 
-## Changesets (CRITICAL)
-
-This project uses [changesets](https://github.com/changesets/changesets) for versioning and changelog generation.
-
-### When to Create a Changeset
-
-**You MUST create a changeset when modifying code in:**
-- `packages/manifest/**` → select **manifest** package
-
-**You do NOT need a changeset for:**
-- `packages/manifest-ui/**` → This package has its own versioning via `registry.json` and `changelog.json`
-
-### How to Create a Changeset
-
-After making changes to `packages/manifest/**`, create a changeset file:
+**Quick start (run these in parallel):**
 
 ```bash
-pnpm changeset
+# Backend — must preload dotenv since auth.instance.ts reads process.env at import time
+cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
+
+# Frontend
+cd packages/frontend && npx vite
+
+# Plugin (watch mode, optional)
+cd packages/openclaw-plugin && npx tsx watch build.ts
 ```
 
-This will prompt you to:
-1. Select the affected package: `manifest`
-2. Choose version bump type: `patch`, `minor`, or `major`
-3. Write a summary of the changes
+**Note:** `npm run dev` (turbo) starts frontend + plugin but NOT the backend, because the backend's script is `start:dev` not `dev`. Start the backend separately as shown above.
 
-### Changeset File Format
+### Seeding Dev Data
 
-Changesets are stored in `.changeset/` as markdown files:
+Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test only). This creates:
 
-```markdown
----
-"manifest": patch
----
+- **Admin user**: `admin@manifest.build` / `manifest` (email verification email is skipped if Mailgun is not configured — user is created but unverified)
+- **Tenant**: `seed-tenant-001` linked to the admin user
+- **Agent**: `demo-agent` with OTLP key `dev-otlp-key-001`
+- **API key**: `dev-api-key-manifest-001`
+- **Security events**: 12 sample events for the security dashboard
+- **Model pricing**: 28 models seeded (Anthropic, OpenAI, Google, DeepSeek, etc.)
 
-Fixed authentication bug in login flow
+Seeding is idempotent — it checks for existing records before inserting.
+
+**Minimal `.env` for development:**
+
+```env
+PORT=3001
+BIND_ADDRESS=127.0.0.1
+NODE_ENV=development
+BETTER_AUTH_SECRET=<random-hex-64-chars>
+DATABASE_URL=postgresql://myuser:mypassword@localhost:5432/mydatabase
+API_KEY=dev-api-key-12345
+SEED_DATA=true
 ```
 
-### Version Bump Guidelines
+Generate a secret with: `openssl rand -hex 32`
 
-| Change Type | Bump | Examples |
-|-------------|------|----------|
-| **patch** | Bug fixes, small improvements | Fix typo, fix styling issue |
-| **minor** | New features, non-breaking | Add new component, add optional prop |
-| **major** | Breaking changes | Remove prop, change API, rename component |
-
-### Important Notes
-
-- PRs modifying `manifest` without a changeset will **fail CI**
-- The changeset summary should be user-facing (what changed, not how)
-
-## Pull Request Guidelines
-
-**CRITICAL**: When creating pull requests, you MUST use the PR template format from `.github/PULL_REQUEST_TEMPLATE.md`.
-
-### Required PR Body Format
-
-Always structure PR bodies exactly like this:
-
-```markdown
-## Description
-
-[Your description of changes goes here - explain WHAT changed and WHY]
-
-## Related Issues
-
-[Link related issues using #123 format, or write "None" if no related issues]
-
-## How can it be tested?
-
-[Step-by-step instructions for testing the changes]
-
-## Check list before submitting
-
-- [x] This PR is wrote in a clear language and correctly labeled
-- [x] I have performed a self-review of my code (no debugs, no commented code, good naming, etc.)
-- [ ] I wrote the relative tests
-- [ ] I created a PR for the [documentation](https://github.com/mnfst/docs) if necessary and attached the link to this PR
-```
-
-### Rules
-
-1. **NEVER** put description text before the `## Description` heading
-2. **ALWAYS** fill in content UNDER each section heading
-3. **ALWAYS** include all four sections even if some are "None" or "N/A"
-4. **CHECK** the boxes that apply (change `[ ]` to `[x]`)
-5. Use the HEREDOC format when calling `gh pr create`:
+**Database naming convention:** Always create uniquely-named databases to avoid overlapping other dev/test instances. Use the pattern `manifest_<context>_<random>` (e.g., `manifest_sse_49821`, `manifest_dev_83712`). Create databases via Docker:
 
 ```bash
-gh pr create --title "feat: your title" --body "$(cat <<'EOF'
-## Description
-
-Your description here.
-
-## Related Issues
-
-#123 or None
-
-## How can it be tested?
-
-1. Step one
-2. Step two
-
-## Check list before submitting
-
-- [x] This PR is wrote in a clear language and correctly labeled
-- [x] I have performed a self-review of my code (no debugs, no commented code, good naming, etc.)
-- [ ] I wrote the relative tests
-- [ ] I created a PR for the [documentation](https://github.com/mnfst/docs) if necessary and attached the link to this PR
-EOF
-)"
+docker exec postgres_db psql -U myuser -d postgres -c "CREATE DATABASE manifest_<name>;"
 ```
 
-## Files to Never Commit
+Then set `DATABASE_URL=postgresql://myuser:mypassword@localhost:5432/manifest_<name>` in `.env`.
 
-**CRITICAL**: The following files must NEVER be committed to the repository:
+**Plugin build (one-time):**
 
-| File                          | Reason                                                               |
-| ----------------------------- | -------------------------------------------------------------------- |
-| `settings.local.json`         | Local settings file with personal configurations                     |
-| `.claude/settings.local.json` | Claude Code local settings                                           |
-| `.claude/commands/**`         | Claude Code custom commands (except speckit commands)                |
-| `specs/**`                    | Generated specs from speckit (auto-generated, not source-controlled) |
+```bash
+npm run build:plugin
+# or: cd packages/openclaw-plugin && npx tsx build.ts
+```
 
-### Exception: Speckit Commands
+```bash
+# Production build + start (single server)
+npm run build && npm start
 
-Speckit-related Claude commands ARE allowed to be committed. These are commands that are part of the project's shared tooling and should be version controlled.
+# Tests
+npm test --workspace=packages/backend          # Jest unit tests
+npm run test:e2e --workspace=packages/backend  # Jest e2e tests
+npm test --workspace=packages/frontend         # Vitest tests
+```
 
-### Before Committing
+### Database Migrations
 
-Always check that staged files do not include:
+TypeORM migrations run automatically on app startup (`migrationsRun: true`). Schema sync (`synchronize`) is permanently disabled — all schema changes must go through migrations.
 
-- Any `settings.local.json` files
-- Claude settings or command files (unless they are speckit-related)
+**Dev workflow:** modify entity → generate migration → commit both.
 
-## Component Naming Convention (CRITICAL)
+```bash
+# Generate a migration after changing an entity
+cd packages/backend
+npm run migration:generate -- src/database/migrations/DescriptiveName
 
-**All component names MUST be consistent across registry name, display title, and React export.**
+# Other migration commands
+npm run migration:run       # Run pending migrations
+npm run migration:revert    # Revert the last migration
+npm run migration:show      # Show migration status ([X] = applied)
+npm run migration:create -- src/database/migrations/Name  # Create empty migration
+```
 
-The relationship between the three names must follow this deterministic mapping:
+New migrations must be imported in `database.module.ts` and added to the `migrations` array.
 
-| Layer | Format | Example |
-|-------|--------|---------|
-| Registry `name` in `registry.json` | kebab-case | `stat-card` |
-| Display `title` in `registry.json` | Title Case | `Stat Card` |
-| React component export | PascalCase of registry name | `StatCard` |
-| Props interface export | PascalCase + `Props` | `StatCardProps` |
+## Authentication Architecture
 
-**The React component name MUST be the PascalCase version of the registry `name`.** No abbreviations, no synonyms, no creative alternatives.
+### Guard Chain
 
-**Known exceptions** for brand-specific casing (tracked in `NAMING_VARIATIONS` in tests):
-- `linkedin-post` → `LinkedInPost` (brand casing)
-- `youtube-post` → `YouTubePost` (brand casing)
-- `x-post` → `XPost` (single-letter brand)
+Three global guards run on every request (order matters):
 
-When creating a new component, verify: registry name → PascalCase → component export → props interface all align.
+1. **SessionGuard** (`auth/session.guard.ts`) — Checks `@Public()` first. If not public, validates the Better Auth cookie session via `auth.api.getSession()`. Attaches `request.user` and `request.session`.
+2. **ApiKeyGuard** (`common/guards/api-key.guard.ts`) — Falls through if session already set. Otherwise checks `X-API-Key` header against `API_KEY` env var (timing-safe compare). Use `@Public()` to skip both guards.
+3. **ThrottlerGuard** — Rate limiting.
 
-## Block Development Guidelines
+### Better Auth Setup
 
-**CRITICAL**: When adding or editing a block, you MUST update ALL related code across the codebase.
+- **Instance**: `auth/auth.instance.ts` — `betterAuth()` with `emailAndPassword` + 3 social providers (Google, GitHub, Discord). Each provider only activates when both `CLIENT_ID` and `CLIENT_SECRET` env vars are set.
+- **Mounting**: In `main.ts`, Better Auth is mounted as Express middleware at `/api/auth/*splat` **before** `express.json()` (it needs raw body control). NestJS body parsing is re-added after for all other routes.
+- **Frontend client**: `services/auth-client.ts` — `createAuthClient()` from `better-auth/solid`.
+- **Social login in dev**: OAuth callback URLs point to `:3001` (`BETTER_AUTH_URL`). Social login only works when accessing the app on port **3001** (production build), not on Vite's `:3000` dev server.
 
-### Complete Update Requirement (CRITICAL)
-
-**When modifying ANY aspect of a block, you MUST update EVERY place that references it.**
-
-A block modification is NOT complete until you have updated:
-
-| Location                                 | What to Update                                                              |
-| ---------------------------------------- | --------------------------------------------------------------------------- |
-| `registry/<category>/<block>.tsx`        | Component code, interfaces, props (NO default data in component!)           |
-| `registry/<category>/demo/data.ts`       | Centralized demo data for previews (single source of truth)                 |
-| `app/blocks/[category]/[block]/page.tsx` | `usageCode`, component preview, block metadata (imports from demo/data.ts)  |
-| `registry.json`                          | Version bump (PATCH/MINOR/MAJOR), category field (auto-derived from folder) |
-| `changelog.json`                         | Changelog entry for the new version                                         |
-
-**Note**: The `category` field in `registry.json` is automatically derived from the folder name (e.g., `registry/form/` → `category: "form"`). When adding a new component, place it in the correct folder and the category will be set automatically.
-
-#### What Lives in `page.tsx`
-
-The block detail page (`app/blocks/[category]/[block]/page.tsx`) contains:
-
-1. **Block metadata** - `id`, `name`, `description`, `registryName`, `layouts`, `actionCount`
-2. **Variants array** - Each variant has:
-   - `id`, `name` - Variant identifier and display name
-   - `component` - The actual React component with props for preview
-   - `usageCode` - **String** that developers copy-paste (MUST match the component interface exactly)
-3. **Default data** - Sample data used in the preview
-
-#### Common Mistakes to Avoid
-
-- Changing a prop name in the `.tsx` file but forgetting to update `usageCode`
-- Removing a prop from the interface but leaving it in `usageCode`
-- Adding a new required prop but not showing it in `usageCode`
-- Updating default values in the component but not reflecting them in preview data
-
-#### Verification Steps
-
-After ANY component change:
-
-1. Read the component `.tsx` file to understand the current interface
-2. Read the `page.tsx` block definition to see current `usageCode`
-3. Ensure `usageCode` exactly matches the component's interface
-4. Ensure the preview component uses the correct props
-5. Bump version in `registry.json`
-6. Add changelog entry in `changelog.json`
-
-### Required Files to Update
-
-When creating or modifying a block, update these files:
-
-1. **Component file**: `packages/manifest-ui/registry/<category>/<block-name>.tsx`
-2. **Demo data file**: `packages/manifest-ui/registry/<category>/demo/data.ts` (centralized demo data)
-3. **Registry definition**: `packages/manifest-ui/registry.json`
-4. **Block demo with usage example**: `packages/manifest-ui/app/blocks/[category]/[block]/page.tsx`
-5. **Preview components**: `packages/manifest-ui/lib/preview-components.tsx` (imports from demo/data.ts)
-6. **Sidebar navigation** (if new block): `packages/manifest-ui/app/blocks/page.tsx`
-7. **Category navigation** (if new): `packages/manifest-ui/lib/blocks-categories.ts`
-
-### Display Modes Pattern (CRITICAL)
-
-**ALL components in this registry MUST support all 3 display modes.** This is a fundamental architecture requirement, not optional:
-
-| Mode | Description | Layout |
-|------|-------------|--------|
-| `inline` | Compact view within chat flow | Horizontal card, truncated content |
-| `pip` | Picture-in-picture floating view | Similar to inline, optimized for floating |
-| `fullscreen` | Full-page expanded view | Complete content, vertical scroll |
-
-**Implementation:**
-- Accept `displayMode` in the `appearance` prop
-- Render different layouts based on the mode
-- Integrate with ChatGPT/MCP host API for real environments
-
-See `packages/manifest-ui/CLAUDE.md` for detailed implementation patterns.
-
-### No Default Data Pattern (CRITICAL)
-
-**Components MUST NOT have hardcoded default data.** They should only render what the user explicitly provides.
+### Auth Types
 
 ```typescript
-// ❌ BAD - Don't use default data in components
-const post = data?.post ?? { title: 'Default Title' };
+// backend/src/auth/auth.instance.ts
+export type AuthSession = typeof auth.$Infer.Session;
+export type AuthUser = typeof auth.$Infer.Session.user;
 
-// ✅ GOOD - Only render what's provided
-const post = data?.post;
-return post?.title && <h1>{post.title}</h1>;
-```
-
-**Why:**
-- Users expect empty components until they provide data
-- Default data creates confusion about required vs optional fields
-- Demo data belongs in `demo/data.ts`, not in the component
-
-**Note:** While components don't use *inline* hardcoded defaults, they DO import centralized demo data and use `data ?? demoData` so that `<Component />` renders meaningful content. See `packages/manifest-ui/CLAUDE.md` for the full "Component Demo Data Initialization" pattern.
-
-### Centralized Demo Data Pattern (CRITICAL)
-
-All demo data MUST live in `registry/<category>/demo/data.ts`:
-
-```
-registry/blogging/
-├── post-detail.tsx     # Component (NO default data)
-├── types.ts            # TypeScript interfaces
-└── demo/
-    └── data.ts         # All demo data (single source of truth)
-```
-
-Both `page.tsx` and `preview-components.tsx` import from `demo/data.ts`. Never duplicate demo data.
-
-### Avatar Pattern (IMPORTANT)
-
-**All components with avatars MUST support both image URLs and letter fallbacks.**
-
-When a component displays an avatar (e.g., in messaging, comments, profiles), implement this pattern:
-
-```typescript
-// In the component's data interface
-data?: {
-  avatarUrl?: string       // Image URL (optional, takes priority over letter)
-  avatarFallback?: string  // Letter fallback (e.g., "S" for Sarah)
-  // ... other props
+// Use in controllers:
+@Get('something')
+async handler(@CurrentUser() user: AuthUser) {
+  // user.id, user.name, user.email
 }
 ```
 
-**Implementation:**
-
-- If `avatarUrl` is provided and loads successfully → show the image
-- If `avatarUrl` fails to load OR is not provided → show letter in a colored circle
-- Always require `avatarFallback` (letter) as the fallback
-
-**usageCode example:**
-
-```tsx
-<MessageBubble
-  data={{
-    avatarUrl: 'https://i.pravatar.cc/150?u=sarah', // Optional image URL
-    avatarFallback: 'S', // Letter fallback (required)
-    // ...
-  }}
-/>
-```
-
-This ensures components gracefully handle missing or broken avatar images.
-
-### Usage Example Requirements
-
-Every block variant in `app/blocks/[category]/[block]/page.tsx` MUST have a `usageCode` field with a comprehensive example that demonstrates:
-
-1. **All common props** - Show the typical props a developer would use
-2. **Realistic demo data** - Use meaningful placeholder data, not just "test" or "foo"
-3. **Action handlers** - Include `console.log` examples for all actions
-4. **Proper prop categories** - Use the standard `data`, `actions`, `appearance`, `control` structure
-
-### Props Structure Pattern
-
-All blocks follow this consistent props pattern:
-
-```typescript
-export interface BlockProps {
-  data?: {
-    // Content/configuration - titles, items, amounts, etc.
-  };
-  actions?: {
-    // Event handlers - onSubmit, onClick, onSelect, etc.
-  };
-  appearance?: {
-    // Visual/styling - variant, currency, columns, theme, etc.
-  };
-  control?: {
-    // State/loading - isLoading, value, disabled, etc.
-  };
-}
-```
-
-### Complete Usage Example Template
-
-When adding a block to `app/blocks/page.tsx`, follow this pattern:
-
-```typescript
-{
-  id: "my-block",
-  name: "My Block",
-  description: "A brief description of what this block does",
-  registryName: "my-block",
-  layouts: ["inline", "fullscreen"],
-  actionCount: 2,
-  variants: [
-    {
-      id: "default",
-      name: "Default",
-      component: <MyBlock {...defaultProps} />,
-      usageCode: `<MyBlock
-  data={{
-    title: "Welcome to My Block",
-    items: [
-      {
-        id: "1",
-        name: "First Item",
-        description: "Description of first item",
-        price: 29.99,
-        image: "/demo/item-1.png"
-      },
-      {
-        id: "2",
-        name: "Second Item",
-        description: "Description of second item",
-        price: 49.99,
-        image: "/demo/item-2.png"
-      }
-    ]
-  }}
-  appearance={{
-    variant: "default",
-    currency: "USD",
-    columns: 2
-  }}
-  actions={{
-    onItemSelect: (item) => console.log("Selected:", item),
-    onSubmit: (data) => console.log("Submitted:", data)
-  }}
-  control={{
-    isLoading: false
-  }}
-/>`
-    },
-    {
-      id: "compact",
-      name: "Compact",
-      component: <MyBlock {...compactProps} />,
-      usageCode: `<MyBlock
-  data={{
-    title: "Compact View",
-    items: [{ id: "1", name: "Item", price: 19.99 }]
-  }}
-  appearance={{ variant: "compact" }}
-  actions={{ onItemSelect: (item) => console.log(item) }}
-/>`
-    }
-  ]
-}
-```
-
-### Version Bump Requirements (CRITICAL)
-
-**Every modification to a block's source files MUST include a version bump in `registry.json`.**
-
-This is enforced by automated tests that will fail if:
-
-1. You modified any file in `registry/**/*.tsx`
-2. But did NOT update the corresponding component's `version` in `registry.json`
-
-#### Semantic Versioning Guide
-
-| Change Type | Version Bump      | Examples                                                     |
-| ----------- | ----------------- | ------------------------------------------------------------ |
-| **PATCH**   | `1.0.0` → `1.0.1` | Bug fixes, styling fixes, refactoring without API changes    |
-| **MINOR**   | `1.0.0` → `1.1.0` | New features, new optional props, new variants               |
-| **MAJOR**   | `1.0.0` → `2.0.0` | Breaking changes: removing/renaming props, changing behavior |
-
-#### Example
-
-```json
-// Before modifying message-bubble.tsx
-{ "name": "message-bubble", "version": "1.0.0", ... }
-
-// After bug fix - bump PATCH
-{ "name": "message-bubble", "version": "1.0.1", ... }
-```
-
-### Changelog Requirements (CRITICAL)
-
-**Every version MUST have a corresponding changelog entry in `changelog.json`.**
-
-This is enforced by automated tests that will fail if:
-
-1. A component has a version in `registry.json`
-2. But does NOT have a changelog entry for that version in `changelog.json`
-
-#### Changelog File Structure
-
-The changelog is stored in `packages/manifest-ui/changelog.json`:
-
-```json
-{
-  "components": {
-    "component-name": {
-      "1.0.0": "Initial release with core features",
-      "1.0.1": "Fixed a display issue on mobile devices",
-      "1.1.0": "Added new compact variant"
-    }
-  }
-}
-```
-
-#### Changelog Entry Guidelines
-
-1. **Keep it simple** - One sentence, non-technical if possible
-2. **Focus on user impact** - What changed from the user's perspective
-3. **Be specific** - Avoid vague descriptions like "bug fixes"
-
-**Good examples:**
-
-- "Initial release with text, image, and voice message support"
-- "Fixed images not loading on slow connections"
-- "Added dark mode support"
-- "Improved accessibility with better screen reader support"
-
-**Bad examples:**
-
-- "Bug fixes" (too vague)
-- "Refactored internal state management" (too technical)
-- "Updated dependencies" (not user-facing)
-
-### Category Requirements (CRITICAL)
-
-**Every component MUST have a `category` field in `registry.json`.**
-
-The category is automatically derived from the folder structure:
-
-- File path: `registry/form/date-time-picker.tsx`
-- Category: `form`
-
-This is enforced by automated tests that will fail if:
-
-1. A component is missing a `category` field
-2. The `category` doesn't match the folder name in the file path
-
-#### How Categories Work
-
-1. **Folder determines category**: Place your component in `registry/<category>/<component-name>.tsx`
-2. **Category is auto-derived**: The build script extracts the category from the file path
-3. **URL structure matches**: The category appears in URLs as `/blocks/<category>/<component>`
-
-#### Available Categories
-
-| Folder                    | Category        | URL Example                         |
-| ------------------------- | --------------- | ----------------------------------- |
-| `registry/blogging/`      | `blogging`      | `/blocks/blogging/post-card`        |
-| `registry/events/`        | `events`        | `/blocks/events/event-card`         |
-| `registry/form/`          | `form`          | `/blocks/form/contact-form`         |
-| `registry/list/`          | `list`          | `/blocks/list/table`                |
-| `registry/messaging/`     | `messaging`     | `/blocks/messaging/message-bubble`  |
-| `registry/miscellaneous/` | `miscellaneous` | `/blocks/miscellaneous/quick-reply` |
-| `registry/payment/`       | `payment`       | `/blocks/payment/card-form`         |
-
-#### Adding a New Category
-
-1. Create a new folder: `registry/<new-category>/`
-2. Add your component: `registry/<new-category>/<component>.tsx`
-3. The category will be automatically derived from the folder name
-4. Update `lib/blocks-categories.ts` to add the category to navigation
-
-### Events Category Guidelines (CRITICAL)
-
-**When creating or modifying Events category components, follow these guidelines:**
-
-#### Event Data Structure
-
-All event components use a shared `Event` interface:
-
-```typescript
-type EventLocationType = 'physical' | 'online' | 'hybrid';
-
-interface Event {
-  id: string;
-  title: string;
-  category: string; // "Music", "Comedy", "Classes", "Nightlife", "Sports"
-  locationType?: EventLocationType; // defaults to "physical"
-  venue?: string; // Optional for online events
-  neighborhood?: string;
-  city?: string; // Optional for online events
-  onlineUrl?: string; // For online/hybrid events
-  startDateTime: string; // ISO format: "2025-01-11T21:00:00Z"
-  endDateTime?: string; // ISO format: "2025-01-12T03:00:00Z"
-  priceRange: string; // "$45 - $150", "Free"
-  image?: string;
-  vibeTags?: VibeTag[]; // ["High energy", "Late night", "Dressy"]
-  vibeDescription?: string;
-  aiSummary?: string; // AI-generated match explanation
-  lineup?: string[];
-  eventSignal?: EventSignal;
-  ticketSignal?: TicketSignal;
-  organizerRating?: number;
-  reviewCount?: number;
-  hasMultipleDates?: boolean;
-  discount?: string;
-}
-```
-
-#### Event Location Types
-
-Events can be physical, online, or hybrid:
-
-- `physical` - In-person event with venue and city (default)
-- `online` - Virtual event with `onlineUrl`, no venue/city required
-- `hybrid` - Both in-person and online, has venue/city AND `onlineUrl`
-
-#### Date/Time Formatting
-
-Store dates as ISO 8601 strings. The component automatically formats for display:
-
-- **Today**: "Tonight 9:00 PM - 3:00 AM"
-- **Tomorrow**: "Tomorrow 8:00 PM"
-- **Future dates**: "Jan 15 7:00 PM"
-
-```typescript
-// Example usage
-startDateTime: '2025-01-11T21:00:00Z'; // 9 PM UTC
-endDateTime: '2025-01-12T03:00:00Z'; // 3 AM UTC next day
-```
-
-#### Signal Types
-
-**Event Signals** - Status indicators for events:
-
-```typescript
-type EventSignal =
-  | 'going-fast' // Orange - "Going Fast"
-  | 'popular' // Pink - "Popular"
-  | 'just-added' // Blue - "Just Added"
-  | 'sales-end-soon' // Red - "Sales End Soon"
-  | 'few-tickets-left' // Orange - "Few Tickets Left"
-  | 'canceled' // Gray - "Canceled"
-  | 'ended' // Gray - "Ended"
-  | 'postponed'; // Yellow - "Postponed"
-```
-
-**Ticket Signals** - Status indicators for ticket availability:
-
-```typescript
-type TicketSignal =
-  | 'discount-applied' // Green - "Discount Applied"
-  | 'few-tickets-left' // Orange - "Few Tickets Left"
-  | 'less-than-10-remaining' // Orange - "Less than 10 Remaining"
-  | 'more-than-11-remaining' // Gray - "More than 11 Remaining"
-  | 'not-yet-on-sale' // Blue - "Not Yet On Sale"
-  | 'sales-end-soon' // Red - "Sales End Soon"
-  | 'sales-ended' // Gray - "Sales Ended"
-  | 'sold-out' // Red - "Sold Out"
-  | 'unavailable' // Gray - "Unavailable"
-  | 'unlocked'; // Green - "Unlocked"
-```
-
-**Vibe Tags** - Descriptive tags for event atmosphere (multiple selection):
-
-```typescript
-type VibeTag =
-  | 'All night'
-  | 'Beginner-friendly'
-  | 'Casual'
-  | 'Classic'
-  | 'Cocktails'
-  | 'Creative'
-  | 'Date night'
-  | 'Discover'
-  | 'Dressy'
-  | 'Educational'
-  | 'Exciting'
-  | 'Family-friendly'
-  | 'Fun'
-  | 'Hands-on'
-  | 'High energy'
-  | 'Interactive'
-  | 'Intimate'
-  | 'Late night'
-  | 'Outdoor'
-  | 'Relaxing'
-  | 'Social'
-  | 'Sophisticated'
-  | 'Tasting'
-  | 'Underground'
-  | 'Upscale'
-  | 'Views'
-  | 'Wellness';
-```
-
-#### Event Card UI Layout
-
-**EventSignal placement**: Always display the EventSignal badge to the right of the category label.
+## Multi-Tenancy Model
 
 ```
-┌─────────────────────────────────┐
-│ [Category]  [EventSignal Badge] │  ← Signal next to category
-│ Event Title                     │
-│ 📅 Date/Time  📍 Location       │
-│ [Tag] [Tag] [Tag]               │
-│ $Price         ⭐ Rating  [CTA] │
-└─────────────────────────────────┘
+User (Better Auth) ──→ Tenant ──→ Agent ──→ AgentApiKey (mnfst_*)
+                                    │
+                                    └──→ agent_messages (telemetry data)
 ```
 
-#### Event Detail Sections
+- **Tenant** (`tenants` table): Created automatically on first agent creation. `tenant.name` = `user.id`.
+- **Agent** (`agents` table): Belongs to a tenant. Unique constraint on `[tenant_id, name]`.
+- **AgentApiKey** (`agent_api_keys` table): One-to-one with agent. `mnfst_*` format key for OTLP ingestion.
+- **Onboarding flow**: `ApiKeyGeneratorService.onboardAgent()` creates tenant (if new) + agent + API key in one transaction.
 
-The `event-detail` component has 11 sections in this order:
+### Data Isolation
 
-1. Image header with title overlay
-2. Event basics (date, time, price, location)
-3. AI match explanation (optional, personalized recommendation)
-4. About section (description)
-5. Good to know (accessibility, dress code, age restriction)
-6. Organizer info (name, rating, verified badge)
-7. Location with map
-8. Amenities (parking, food, etc.)
-9. Policies (refund, entry requirements)
-10. FAQ (expandable questions)
-11. CTAs (Get Tickets, Share, Save)
+All analytics queries filter by user via `addTenantFilter(qb, userId)` from `query-helpers.ts`. The `userId` comes from the `@CurrentUser()` decorator.
 
-#### EventList Requirements
+## API Endpoints
 
-Like PostList, the `EventList` component requires sufficient demo data:
+| Method | Route | Auth | Purpose |
+|--------|-------|------|---------|
+| GET | `/api/v1/health` | Public | Health check |
+| ALL | `/api/auth/*` | Public | Better Auth (login, register, OAuth, sessions) |
+| POST | `/api/v1/telemetry` | API Key | Ingest events (returns 202) |
+| GET | `/api/v1/overview` | Session/API Key | Dashboard summary |
+| GET | `/api/v1/tokens` | Session/API Key | Token usage analytics |
+| GET | `/api/v1/costs` | Session/API Key | Cost analytics |
+| GET | `/api/v1/messages` | Session/API Key | Paginated message log |
+| GET | `/api/v1/agents` | Session/API Key | Agent list with sparklines |
+| POST | `/api/v1/agents` | Session/API Key | Create agent + OTLP key |
+| DELETE | `/api/v1/agents/:name` | Session/API Key | Delete agent |
+| GET | `/api/v1/security` | Session/API Key | Security score + events |
+| POST | `/otlp/v1/traces` | Bearer (mnfst_*) | OTLP trace ingestion |
+| POST | `/otlp/v1/metrics` | Bearer (mnfst_*) | OTLP metric ingestion |
+| POST | `/otlp/v1/logs` | Bearer (mnfst_*) | OTLP log ingestion |
 
-- Include at least 10 events in `usageCode` for grid/carousel demos
-- Use diverse categories and price ranges
-- Include various event signals to show all badge types
+## Environment Variables
 
-#### Ticket Selection Flow
+See `packages/backend/.env.example` for all variables. Key ones:
 
-The ticket selection follows this pattern:
+- `BETTER_AUTH_SECRET` — **Required.** Secret for Better Auth session signing (min 32 chars). Generate with `openssl rand -hex 32`.
+- `DATABASE_URL` — **Required in production.** PostgreSQL connection string. Format: `postgresql://user:password@host:port/database`. Defaults to `postgresql://myuser:mypassword@localhost:5432/mydatabase` (matches the local Docker command).
+- `PORT` — Server port. Default: `3001`
+- `BIND_ADDRESS` — Bind address. Default: `127.0.0.1` (use `0.0.0.0` for Railway/Docker)
+- `NODE_ENV` — `development` or `production`. CORS only enabled in dev.
+- `CORS_ORIGIN` — Allowed CORS origin. Default: `http://localhost:3000`
+- `BETTER_AUTH_URL` — Base URL for Better Auth. Default: `http://localhost:{PORT}`
+- `FRONTEND_PORT` — Extra trusted origin port for Better Auth.
+- `API_KEY` — Secret for programmatic API access (X-API-Key header).
+- `THROTTLE_TTL` — Rate limit window in ms. Default: `60000`
+- `THROTTLE_LIMIT` — Max requests per window. Default: `100`
+- `MAILGUN_API_KEY` — Mailgun API key for email verification/password reset.
+- `MAILGUN_DOMAIN` — Mailgun sending domain (e.g. `mg.manifest.build`).
+- `NOTIFICATION_FROM_EMAIL` — Sender email. Default: `noreply@manifest.build`
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth (optional)
+- `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` — GitHub OAuth (optional)
+- `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` — Discord OAuth (optional)
+- `PLUGIN_OTLP_ENDPOINT` — Custom OTLP endpoint for plugin setup UI.
+- `SEED_DATA` — Set `true` to seed demo data on startup.
 
-1. `ticket-select` - Simple quantity picker for single ticket type
-2. `tier-select` - Multiple tiers with individual quantities
-3. `event-checkout` - Order summary with fees breakdown
-4. `event-confirmation` - Booking confirmation with QR code
+## Domain Terminology
 
-### PostList Block Requirements (CRITICAL)
+- **Message**: The primary entity in the system. Every row in `agent_messages` is a Message. The UI labels them "Messages" everywhere.
+- **Tenant**: A user's data boundary. Created from `user.id` on first agent creation.
+- **Agent**: An AI agent owned by a tenant. Has a unique OTLP ingest key.
 
-**The PostList block MUST always have exactly 15 posts in its `usageCode` data.**
+## Architecture Notes
 
-This is required because:
-
-1. The PostList component does NOT have default posts - it requires data to be passed
-2. Users copy-paste the usage code to test in MCP Jam - they need complete data
-3. 15 posts provides a realistic dataset for pagination and scrolling demos
-
-When updating PostList variants in `app/blocks/page.tsx` or `app/blocks/[category]/[block]/page.tsx`:
-
-- Always include all 15 posts in the `data.posts` array
-- Use the standard 15 demo posts (Sarah Chen, Alex Rivera, Jordan Kim, etc.)
-- Never use placeholders like `[...]` or truncated arrays
-
-### Checklist for Block Changes
-
-Before submitting a PR with block changes:
-
-**Synchronization (CRITICAL):**
-
-- [ ] **Component interface matches `usageCode`** - Every prop in the interface is shown in usageCode
-- [ ] **`usageCode` uses correct prop names** - No stale/renamed props in usageCode
-- [ ] **Preview component uses current props** - The `<Component />` in variants uses the right props
-- [ ] **Default values are consistent** - Defaults in component match what's shown in preview
-
-**Versioning (REQUIRED):**
-
-- [ ] **Version bumped in `registry.json`** (tests will fail otherwise)
-- [ ] **Changelog entry added in `changelog.json`** (tests will fail otherwise)
-
-**Quality:**
-
-- [ ] Component implements the standard props pattern (`data`, `actions`, `appearance`, `control`)
-- [ ] Block is registered in `registry.json` with correct dependencies
-- [ ] EVERY variant has a `usageCode` field with comprehensive example
-- [ ] Usage example shows realistic data (not placeholder text like "test" or "foo")
-- [ ] All action handlers are demonstrated with `console.log` examples
-- [ ] New category added to `blocks-categories.ts` if needed
-- [ ] **PostList block has exactly 15 posts in usageCode** (if modifying PostList)
-
-## Helper Function Organization
-
-Utility functions follow a three-tier architecture. **Never define helpers inline** in service files or components — always extract to the appropriate utility module.
-
-### Decision Tree for Placement
-
-| Condition | Place in |
-|---|---|
-| No framework dependencies (pure logic) | `@manifest/shared/src/utils/` |
-| Uses NestJS, TypeORM, or Node.js crypto | `backend/src/utils/` |
-| Uses React or browser APIs | `frontend/src/lib/` |
-
-### Existing Utility Modules
-
-**Shared (`@manifest/shared/src/utils/`)** — used by both backend and frontend:
-
-| Module | Exports |
-|---|---|
-| `escape.ts` | `escapeHtml`, `escapeJs` |
-| `formatting.ts` | `formatDuration`, `formatNumber`, `truncateString` |
-| `validation.ts` | `isValidEmail`, `normalizeEmail` |
-| `graph.ts` | `wouldCreateCycle`, `findUpstreamNodeIds`, `findDownstreamNodeIds` |
-| `string.ts` | `toSnakeCase`, `isValidToolName` |
-| `slug.ts` | `toSlug`, `isValidSlug`, `generateUniqueSlug`, `getBaseSlug` |
-| `schemaValidator.ts` | Schema validation utilities |
-| `templateParser.ts` | Template reference parsing |
-
-**Backend (`backend/src/utils/`)** — NestJS/Node-specific:
-
-| Module | Exports |
-|---|---|
-| `crypto.ts` | `getEncryptionKey`, `encryptValue`, `decryptValue` |
-| `entity-mappers.ts` | `entityToApp`, `entityToFlow`, `toExecutionListItem`, `toFlowExecution`, etc. |
-| `template.ts` | `resolveTemplateVariables`, `migrateTemplateReferences`, `updateSlugReferences` |
-| `analytics.ts` | `calculateTrend`, `generateAllBuckets`, `formatBucketLabel`, `getISOWeekNumber` |
-| `security.ts` | `parseAndValidateUrl`, `checkSsrfVulnerability`, `sanitizeMockValue` |
-| `tool-name.ts` | `generateUniqueToolName`, `toolNameExists` |
-
-**Frontend (`frontend/src/lib/`)** — React/browser-specific:
-
-| Module | Exports |
-|---|---|
-| `formatting.ts` | `formatTime`, `formatTimePrecise`, `formatFlowCount` (+ re-exports from shared) |
-| `type-guards.ts` | `hasFlowCount` |
-| `generators.ts` | `generateUniqueName` |
-| `flow-analysis.ts` | `getFlowState` |
-| `api.ts` | API client functions |
-| `schemaUtils.ts` | Schema manipulation utilities |
-
-### Rules
-
-1. **Always search existing utils** before creating a new helper
-2. **No duplicates** — if a function exists in `@manifest/shared`, import it
-3. **Max 50 lines per function**, max 300 lines per file
-4. **Add tests** for new utility functions
-
-## Package-Specific Guidance
-
-See individual package `CLAUDE.md` files for package-specific guidance:
-
-- `packages/manifest/CLAUDE.md` - Flow editor application guidelines
-- `packages/manifest-ui/CLAUDE.md` - UI toolkit development guidelines
-
-## SEO Guidelines for ui.manifest.build
-
-The manifest-ui package powers https://ui.manifest.build. Follow these SEO best practices:
-
-### Automated SEO Tests
-
-SEO requirements are enforced by tests in `__tests__/seo.test.ts`. Run `pnpm test` to verify:
-
-- Meta tags configuration
-- Sitemap and robots.txt presence
-- Structured data (JSON-LD)
-- Heading hierarchy
-- Image alt text
-
-### Key SEO Files
-
-| File                    | Purpose                                  |
-| ----------------------- | ---------------------------------------- |
-| `app/layout.tsx`        | Global metadata, JSON-LD structured data |
-| `app/sitemap.ts`        | Dynamic sitemap generation               |
-| `app/robots.ts`         | Crawler directives                       |
-| `app/blocks/layout.tsx` | /blocks page metadata                    |
-
-### When Adding New Pages
-
-1. **Add page-specific metadata** using Next.js Metadata API
-2. **Update sitemap.ts** to include the new route
-3. **Use semantic HTML** - one `<h1>` per page, proper heading hierarchy
-4. **Add alt text** to all images
-
-### When Modifying Existing Pages
-
-1. **Preserve heading structure** - don't remove or duplicate `<h1>`
-2. **Keep alt text** on images descriptive and relevant
-3. **Run SEO tests** before committing: `pnpm test`
-
-### Image Best Practices
-
-- Always include descriptive `alt` attributes
-- Use Next.js `Image` component when possible for optimization
-- Keep OG images under 100KB
+- **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/otlp/*`) are excluded.
+- **Dev mode**: Vite dev server on `:3000` proxies `/api` and `/otlp` to backend on `:3001`. CORS enabled only in dev.
+- **Body parsing**: Disabled at NestJS level (`bodyParser: false`). Better Auth mounted first (needs raw body), then `express.json()` and `express.raw()` for OTLP protobuf.
+- **QueryBuilder API**: Analytics and ingestion services use TypeORM `Repository.createQueryBuilder()` instead of raw SQL. The `addTenantFilter()` helper in `query-helpers.ts` applies multi-tenant WHERE clauses. Only the database seeder and notification cron still use `DataSource.query()` with numbered `$1, $2, ...` placeholders.
+- **PostgreSQL time functions**: `NOW() - CAST(:interval AS interval)`, `to_char(date_trunc('hour', timestamp), ...)`, `timestamp::date`.
+- **Better Auth database**: Uses a `pg.Pool` instance (from the `pg` driver) passed directly to `betterAuth({ database: pool })`. Better Auth auto-detects the PostgreSQL dialect via Kysely.
+- **PostgreSQL container**: `docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432 postgres:16`
+- **Validation**: Global `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`. Explicit `@Type()` decorators on numeric DTO fields.
+- **OTLP auth caching**: `OtlpAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.
+- **Database migrations**: TypeORM migrations are version-controlled in `src/database/migrations/`. `synchronize` is permanently `false`. Migrations auto-run on boot (`migrationsRun: true`) wrapped in a single transaction. The CLI DataSource is at `src/database/datasource.ts`. Better Auth manages its own tables separately via `ctx.runMigrations()`.

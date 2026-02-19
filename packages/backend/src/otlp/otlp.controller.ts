@@ -1,0 +1,63 @@
+import { Controller, Post, Req, UseGuards, HttpCode, Logger } from '@nestjs/common';
+import { Request } from 'express';
+import { Public } from '../common/decorators/public.decorator';
+import { OtlpAuthGuard } from './guards/otlp-auth.guard';
+import { OtlpDecoderService } from './services/otlp-decoder.service';
+import { TraceIngestService } from './services/trace-ingest.service';
+import { MetricIngestService } from './services/metric-ingest.service';
+import { LogIngestService } from './services/log-ingest.service';
+import { IngestionContext } from './interfaces/ingestion-context.interface';
+import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
+
+interface RawBodyRequest extends Request {
+  rawBody?: Buffer;
+  ingestionContext: IngestionContext;
+}
+
+@Controller('otlp/v1')
+@Public()
+@UseGuards(OtlpAuthGuard)
+export class OtlpController {
+  private readonly logger = new Logger(OtlpController.name);
+
+  constructor(
+    private readonly decoder: OtlpDecoderService,
+    private readonly traceIngest: TraceIngestService,
+    private readonly metricIngest: MetricIngestService,
+    private readonly logIngest: LogIngestService,
+    private readonly eventBus: IngestEventBusService,
+  ) {}
+
+  @Post('traces')
+  @HttpCode(200)
+  async ingestTraces(@Req() req: RawBodyRequest) {
+    const ctx = req.ingestionContext;
+    const payload = this.decoder.decodeTraces(req.headers['content-type'], req.body, req.rawBody);
+    const result = await this.traceIngest.ingest(payload, ctx);
+    if (result.accepted > 0) this.eventBus.emit(ctx.userId);
+    this.logger.debug(`[${ctx.tenantId}/${ctx.agentId}] Traces: ${result.accepted} spans`);
+    return { partialSuccess: result.accepted === 0 ? { rejectedSpans: 0 } : undefined };
+  }
+
+  @Post('metrics')
+  @HttpCode(200)
+  async ingestMetrics(@Req() req: RawBodyRequest) {
+    const ctx = req.ingestionContext;
+    const payload = this.decoder.decodeMetrics(req.headers['content-type'], req.body, req.rawBody);
+    const result = await this.metricIngest.ingest(payload, ctx);
+    if (result.accepted > 0) this.eventBus.emit(ctx.userId);
+    this.logger.debug(`[${ctx.tenantId}/${ctx.agentId}] Metrics: ${result.accepted} points`);
+    return { partialSuccess: result.accepted === 0 ? { rejectedDataPoints: 0 } : undefined };
+  }
+
+  @Post('logs')
+  @HttpCode(200)
+  async ingestLogs(@Req() req: RawBodyRequest) {
+    const ctx = req.ingestionContext;
+    const payload = this.decoder.decodeLogs(req.headers['content-type'], req.body, req.rawBody);
+    const result = await this.logIngest.ingest(payload, ctx);
+    if (result.accepted > 0) this.eventBus.emit(ctx.userId);
+    this.logger.debug(`[${ctx.tenantId}/${ctx.agentId}] Logs: ${result.accepted} records`);
+    return { partialSuccess: result.accepted === 0 ? { rejectedLogRecords: 0 } : undefined };
+  }
+}

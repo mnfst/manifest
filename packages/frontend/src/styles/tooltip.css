@@ -1,0 +1,48 @@
+/* ── InfoTooltip ──────────────────────── */
+
+.info-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  cursor: help;
+  vertical-align: middle;
+}
+
+.info-tooltip__icon {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.info-tooltip:hover .info-tooltip__icon,
+.info-tooltip:focus .info-tooltip__icon {
+  opacity: 1;
+}
+
+.info-tooltip__bubble {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: normal;
+  width: max-content;
+  max-width: 260px;
+  box-shadow: 0 2px 8px hsl(var(--foreground) / 0.08);
+  z-index: 50;
+  pointer-events: none;
+}
+
+.info-tooltip:hover .info-tooltip__bubble,
+.info-tooltip:focus .info-tooltip__bubble {
+  display: block;
+}

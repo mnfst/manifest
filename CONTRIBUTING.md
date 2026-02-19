@@ -1,93 +1,148 @@
 # Contributing to Manifest
 
-This guide explains how to set up and work with the Manifest monorepo as a developer.
+Thanks for your interest in contributing to Manifest! This guide will help you get up and running.
 
 ## Prerequisites
 
-- Node.js 22+
-- pnpm 9.15+
-- [ngrok](https://ngrok.com/) (required for ChatGPT integration)
+- Node.js 22.x (LTS)
+- npm 10.x
 
 ## Repository Structure
 
+Manifest is a monorepo managed with [Turborepo](https://turbo.build/) and npm workspaces.
+
 ```
 packages/
-└── manifest-ui/   # Component registry (Next.js)
+├── backend/           # NestJS API server (TypeORM, PostgreSQL, Better Auth)
+├── frontend/          # SolidJS single-page app (Vite, uPlot)
+└── openclaw-plugin/   # OpenClaw observability plugin (esbuild)
 ```
 
 ## Getting Started
 
-1. Clone the repository and install dependencies:
+1. Fork and clone the repository:
 
 ```bash
-git clone https://github.com/mnfst/manifest.git
+git clone https://github.com/<your-username>/manifest.git
 cd manifest
-pnpm install
+npm install
 ```
 
-2. Start the development server:
+2. Set up environment variables:
 
 ```bash
-pnpm run dev
+cp packages/backend/.env.example packages/backend/.env
 ```
 
-This starts the registry at `http://localhost:3001` - Component documentation.
+Edit `packages/backend/.env` with at least:
 
-Browse available components at `http://localhost:3001`.
+```env
+PORT=3001
+BIND_ADDRESS=127.0.0.1
+NODE_ENV=development
+BETTER_AUTH_SECRET=<run: openssl rand -hex 32>
+DATABASE_URL=postgresql://myuser:mypassword@localhost:5432/mydatabase
+API_KEY=dev-api-key-12345
+SEED_DATA=true
+```
 
-## Connecting to ChatGPT
-
-To test your MCP server with ChatGPT, you need ngrok to expose your local server:
-
-1. Install ngrok from https://ngrok.com/download
-
-2. Start your dev server:
+3. Start the development servers (in separate terminals):
 
 ```bash
-pnpm run dev
+# Backend (must preload dotenv)
+cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
+
+# Frontend
+cd packages/frontend && npx vite
 ```
 
-3. In a separate terminal, start ngrok:
+The frontend runs on `http://localhost:3000` and proxies API requests to the backend on `http://localhost:3001`.
 
-```bash
-ngrok http 3000
-```
-
-4. Copy the ngrok URL and append `/mcp` to connect your MCP server to ChatGPT:
-
-```
-https://xxxx.ngrok-free.app/mcp
-```
-
-The MCP server endpoint is available at `/mcp`, not at the root path.
+4. With `SEED_DATA=true`, you can log in with `admin@manifest.build` / `manifest`.
 
 ## Available Scripts
 
-| Command          | Description                                |
-| ---------------- | ------------------------------------------ |
-| `pnpm run dev`   | Start dev server (registry)                |
-| `pnpm run build` | Build all packages                         |
-| `pnpm run lint`  | Lint all packages                          |
-| `pnpm run test`  | Run tests                                  |
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start frontend + plugin in watch mode (start backend separately) |
+| `npm run build` | Production build (frontend then backend via Turborepo) |
+| `npm start` | Start the production server |
+| `npm test --workspace=packages/backend` | Run backend unit tests (Jest) |
+| `npm run test:e2e --workspace=packages/backend` | Run backend e2e tests (Jest + Supertest) |
+| `npm test --workspace=packages/frontend` | Run frontend tests (Vitest) |
+| `npm run build:plugin` | Build the OpenClaw plugin |
 
 ## Working with Individual Packages
 
-### Registry (manifest-ui)
+### Backend (`packages/backend`)
+
+- **Framework**: NestJS 11 with TypeORM 0.3 and PostgreSQL 16
+- **Auth**: Better Auth (email/password + Google, GitHub, Discord OAuth)
+- **Tests**: Jest for unit tests (`*.spec.ts`), Supertest for e2e tests (`test/`)
+- **Key directories**: `entities/` (data models), `analytics/` (dashboard queries), `otlp/` (telemetry ingestion), `auth/` (session management)
+
+### Frontend (`packages/frontend`)
+
+- **Framework**: SolidJS with Vite
+- **Charts**: uPlot for time-series visualization
+- **Tests**: Vitest
+- **Key directories**: `pages/` (route components), `components/` (shared UI), `services/` (API client, auth client)
+
+### Plugin (`packages/openclaw-plugin`)
+
+- **Bundler**: esbuild (zero runtime dependencies)
+- **Build**: `npx tsx build.ts` or `npm run build:plugin` from the root
+- **Watch mode**: `cd packages/openclaw-plugin && npx tsx watch build.ts`
+
+## Making Changes
+
+### Workflow
+
+1. Create a branch from `main` for your change
+2. Make your changes in the relevant package(s)
+3. Write or update tests as needed
+4. Run the test suite to make sure everything passes:
 
 ```bash
-cd packages/manifest-ui
-pnpm run dev          # Start dev server on port 3001
-pnpm run registry:build  # Build registry JSON files
+npm test --workspace=packages/backend
+npm run test:e2e --workspace=packages/backend
+npm test --workspace=packages/frontend
 ```
 
-## Adding Components to the Registry
+5. Verify the production build works:
 
-1. Create component files in `packages/manifest-ui/registry/misc/<component-name>/`
-2. Add entry to `registry.json` with file paths and dependencies
-3. Run `pnpm run registry:build` to generate the distributable JSON
-4. Preview at `http://localhost:3001`
+```bash
+npm run build
+```
 
-## Code Style
+6. Open a pull request against `main`
 
-- Use ESLint for the registry package
-- Run `pnpm run lint` before committing
+### Commit Messages
+
+Write clear, concise commit messages that explain **why** the change was made. Use present tense (e.g., "Add token cost breakdown to overview page").
+
+### Pull Requests
+
+- Keep PRs focused on a single concern
+- Include a short summary of what changed and why
+- Reference any related issues
+
+## Architecture Notes
+
+- **Single-service deployment**: In production, NestJS serves both the API and the frontend static files from the same port via `@nestjs/serve-static`.
+- **Dev mode**: Vite on `:3000` proxies `/api` and `/otlp` to the backend on `:3001`. CORS is enabled only in development.
+- **Database**: PostgreSQL 16. Schema changes are managed via TypeORM migrations (`migrationsRun: true` on boot). After modifying an entity, generate a migration with `npm run migration:generate -- src/database/migrations/Name`.
+- **Validation**: Global `ValidationPipe` with `whitelist: true` and `forbidNonWhitelisted: true`.
+- **TypeScript**: Strict mode across all packages.
+
+## Reporting Issues
+
+Found a bug or have a feature request? [Open an issue](https://github.com/mnfst/manifest/issues) with as much detail as possible.
+
+## Code of Conduct
+
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).

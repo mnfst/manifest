@@ -1,0 +1,19 @@
+import { Entity, Column, PrimaryColumn } from 'typeorm';
+
+@Entity('model_pricing')
+export class ModelPricing {
+  @PrimaryColumn('varchar')
+  model_name!: string;
+
+  @Column('decimal', { precision: 12, scale: 10 })
+  input_price_per_token!: number;
+
+  @Column('decimal', { precision: 12, scale: 10 })
+  output_price_per_token!: number;
+
+  @Column('varchar', { default: '' })
+  provider!: string;
+
+  @Column('varchar', { nullable: true })
+  updated_at!: string | null;
+}

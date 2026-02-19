@@ -1,0 +1,97 @@
+import { createSignal, Show, type Component } from "solid-js";
+import { CopyButton } from "./SetupStepInstall.jsx";
+
+type ConfigTab = "cli" | "env";
+
+interface Props {
+  apiKey: string | null;
+  keyPrefix: string | null;
+  agentName: string;
+  endpoint: string | null;
+  stepNumber?: number;
+}
+
+const SetupStepConfigure: Component<Props> = (props) => {
+  const [tab, setTab] = createSignal<ConfigTab>("cli");
+
+  const key = () => props.apiKey ?? "mnfst_YOUR_KEY";
+  const hasFullKey = () => !!props.apiKey;
+
+  const cliCommand = () => {
+    const lines = [`openclaw config set plugins.entries.manifest.config.apiKey "${key()}"`];
+    if (props.endpoint) {
+      lines.push(`openclaw config set plugins.entries.manifest.config.endpoint "${props.endpoint}"`);
+    }
+    return lines.join("\n");
+  };
+
+  const envCommand = () => {
+    const lines = [`export MANIFEST_API_KEY="${key()}"`];
+    if (props.endpoint) {
+      lines.push(`export MANIFEST_ENDPOINT="${props.endpoint}"`);
+    }
+    return lines.join("\n");
+  };
+
+  return (
+    <div>
+      <h3 style="margin: 0 0 4px; font-size: var(--font-size-base); font-weight: 600;">
+        {props.stepNumber ? `${props.stepNumber}. ` : ''}Configure your agent
+      </h3>
+      <p style="margin: 0 0 16px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+        Run one of these commands to connect your agent to Manifest.
+      </p>
+
+      <Show when={hasFullKey()}>
+        <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
+          Copy your API key now — it won't be shown again.
+        </div>
+      </Show>
+
+      <Show when={hasFullKey()} fallback={
+        <Show when={props.keyPrefix}>
+          <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); font-family: var(--font-mono); padding: 10px 14px; background: hsl(var(--muted)); border-radius: var(--radius);">
+            Active key: {props.keyPrefix}...
+          </div>
+        </Show>
+      }>
+        <div class="modal-terminal">
+          <div class="modal-terminal__header">
+            <div class="modal-terminal__dots">
+              <span class="modal-terminal__dot modal-terminal__dot--red" />
+              <span class="modal-terminal__dot modal-terminal__dot--yellow" />
+              <span class="modal-terminal__dot modal-terminal__dot--green" />
+            </div>
+            <div class="modal-terminal__tabs">
+              <button
+                class="modal-terminal__tab"
+                classList={{ "modal-terminal__tab--active": tab() === "cli" }}
+                onClick={() => setTab("cli")}
+              >
+                OpenClaw CLI
+              </button>
+              <span class="modal-terminal__tab-sep">|</span>
+              <button
+                class="modal-terminal__tab"
+                classList={{ "modal-terminal__tab--active": tab() === "env" }}
+                onClick={() => setTab("env")}
+              >
+                Environment
+              </button>
+            </div>
+          </div>
+          <div class="modal-terminal__body">
+            <CopyButton text={tab() === "cli" ? cliCommand() : envCommand()} />
+            <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">
+              <code class="modal-terminal__code">
+                {tab() === "cli" ? cliCommand() : envCommand()}
+              </code>
+            </pre>
+          </div>
+        </div>
+      </Show>
+    </div>
+  );
+};
+
+export default SetupStepConfigure;

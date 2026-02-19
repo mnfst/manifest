@@ -1,0 +1,279 @@
+/* ── Agents Grid (Workspace) ──────────────────────── */
+.agents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--gap-lg);
+}
+
+.agent-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: var(--gap-lg);
+  box-shadow: var(--card-shadow);
+  text-decoration: none;
+  color: inherit;
+  transition: all var(--transition-base);
+  animation: fadeInUp 300ms ease-out both;
+}
+
+.agent-card:hover {
+  box-shadow: var(--card-shadow-hover);
+  border-color: hsl(var(--foreground) / 0.2);
+}
+
+.agent-card--skeleton {
+  pointer-events: none;
+}
+
+.agent-card__top {
+  margin-bottom: var(--gap-sm);
+}
+
+.agent-card__name {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.agent-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-sm) var(--gap-md);
+  margin-bottom: var(--gap-md);
+}
+
+.agent-card__stat {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.agent-card__stat-value {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  font-family: var(--font-mono);
+  color: hsl(var(--foreground));
+}
+
+.agent-card__stat-label {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  width: 55px;
+  flex-shrink: 0;
+}
+
+.agent-card__chart {
+  margin: 0 calc(var(--gap-lg) * -1) calc(var(--gap-lg) * -1);
+  overflow: hidden;
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: transparent;
+}
+
+.agent-card__chart svg {
+  width: 100%;
+  height: 50px;
+}
+
+
+/* ── Account Modal ────────────────────────────────── */
+.account-modal {
+  position: fixed;
+  inset: 0;
+  top: var(--header-height);
+  z-index: 30;
+  background: hsl(var(--background));
+  overflow-y: auto;
+}
+
+.account-modal__inner {
+  max-width: 680px;
+  margin-inline: auto;
+  padding: var(--gap-xl) var(--gap-lg);
+}
+
+.account-modal__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  cursor: pointer;
+  margin-bottom: var(--gap-lg);
+  transition: color var(--transition-fast);
+}
+
+.account-modal__back:hover {
+  color: hsl(var(--foreground));
+}
+
+/* ── Settings Card (Account / Vercel-style) ───────── */
+.settings-section__title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: var(--gap-md);
+  margin-top: var(--gap-xl);
+}
+
+.settings-section__title:first-of-type {
+  margin-top: 0;
+}
+
+.settings-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  margin-bottom: var(--gap-lg);
+  overflow: hidden;
+}
+
+.settings-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-xl);
+  padding: var(--gap-md) var(--gap-lg);
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.settings-card__row:last-child {
+  border-bottom: none;
+}
+
+.settings-card__label {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-card__label-title {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.settings-card__label-desc {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+}
+
+.settings-card__control {
+  flex-shrink: 0;
+  width: 260px;
+}
+
+.settings-card__input {
+  width: 100%;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.settings-card__input:focus {
+  outline: none;
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+.settings-card__input[readonly] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.settings-card__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--gap-sm) var(--gap-lg);
+  background: hsl(var(--muted) / 0.3);
+  border-top: 1px solid hsl(var(--border));
+}
+
+.settings-card__body {
+  padding: var(--gap-md) var(--gap-lg);
+}
+
+.settings-card__desc {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  margin-bottom: var(--gap-md);
+}
+
+.settings-card__id-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: var(--gap-sm) var(--gap-md);
+  background: hsl(var(--muted) / 0.5);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.settings-card__id-value {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+}
+
+.settings-card__copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.settings-card__copy-btn:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+/* ── Theme Picker ─────────────────────────────────── */
+.theme-picker {
+  display: flex;
+  gap: var(--gap-sm);
+}
+
+.theme-picker__option {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: var(--gap-sm) var(--gap-md);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.theme-picker__option:hover {
+  border-color: hsl(var(--foreground) / 0.3);
+  color: hsl(var(--foreground));
+}
+
+.theme-picker__option--active {
+  border-color: hsl(var(--chart-1));
+  color: hsl(var(--foreground));
+  background: hsl(var(--chart-1) / 0.08);
+}

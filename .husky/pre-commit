@@ -1,2 +1,0 @@
-# Run lint on all packages before committing
-pnpm lint

@@ -1,0 +1,37 @@
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  Index,
+} from 'typeorm';
+
+@Entity('notification_logs')
+@Index(['rule_id', 'period_start'], { unique: true })
+export class NotificationLog {
+  @PrimaryColumn('varchar')
+  id!: string;
+
+  @Column('varchar')
+  rule_id!: string;
+
+  @Column('timestamp')
+  period_start!: string;
+
+  @Column('timestamp')
+  period_end!: string;
+
+  @Column('decimal', { precision: 15, scale: 6 })
+  actual_value!: number;
+
+  @Column('decimal', { precision: 15, scale: 6 })
+  threshold_value!: number;
+
+  @Column('varchar')
+  metric_type!: string;
+
+  @Column('varchar')
+  agent_name!: string;
+
+  @Column('timestamp', { default: () => 'NOW()' })
+  sent_at!: string;
+}

@@ -1,0 +1,2 @@
+export const DASHBOARD_CACHE_TTL_MS = 5_000;
+export const MODEL_PRICES_CACHE_TTL_MS = 300_000;
