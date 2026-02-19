@@ -59,7 +59,7 @@
     "@opentelemetry/exporter-metrics-otlp-http": "^0.57.0",
     "@opentelemetry/resources": "^1.30.0",
     "@opentelemetry/semantic-conventions": "^1.30.0",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.25.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "@types/jest": "^29.5.0",
