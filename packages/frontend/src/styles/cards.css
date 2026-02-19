@@ -1,0 +1,220 @@
+/* ── Summary Card — shadcn Card style ────────────── */
+.summary-card {
+  background: hsl(var(--card));
+  border: none;
+  border-radius: var(--radius);
+  padding: var(--gap-lg);
+  box-shadow: var(--card-shadow);
+}
+
+.summary-card__label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+}
+
+.summary-card__value {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-top: var(--gap-xs);
+  line-height: 1.1;
+  color: hsl(var(--foreground));
+}
+
+.summary-card__subtitle {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  margin-top: var(--gap-sm);
+}
+
+/* ── Trend Badge ──────────────────────────────────── */
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: calc(var(--radius) - 4px);
+  line-height: 1.4;
+}
+
+.trend--up {
+  color: hsl(var(--success));
+  background: hsl(var(--success) / 0.1);
+}
+
+.trend--down {
+  color: hsl(var(--destructive));
+  background: hsl(var(--destructive) / 0.1);
+}
+
+/* ── Panel — shadcn Card ──────────────────────────── */
+.panel {
+  background: hsl(var(--card));
+  border: none;
+  border-radius: var(--radius);
+  padding: var(--gap-lg);
+  margin-bottom: var(--gap-lg);
+  box-shadow: var(--card-shadow);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.panel__title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: var(--gap-lg);
+}
+.view-more-link {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.view-more-link:hover {
+  color: hsl(var(--foreground));
+}
+
+/* ── Chart Card — stats header + chart body ────────── */
+.chart-card {
+  background: hsl(var(--card));
+  border: none;
+  border-radius: var(--radius);
+  margin-bottom: var(--gap-lg);
+  box-shadow: var(--card-shadow);
+  animation: fadeInUp 300ms ease-out both;
+}
+
+.chart-card__header {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.chart-card__stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 200px;
+  gap: 2px;
+  padding: var(--gap-lg) var(--gap-xl);
+  border-right: 1px solid hsl(var(--border));
+}
+
+.chart-card__stat:first-child {
+  padding-left: var(--gap-lg);
+}
+
+.chart-card__stat--clickable {
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.chart-card__stat--clickable::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: -1px;
+  right: -1px;
+  height: 2px;
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+.chart-card__stat--active::after {
+  background: hsl(var(--chart-1));
+}
+
+.chart-card__stat--clickable:not(.chart-card__stat--active):hover::after {
+  background: hsl(var(--border));
+}
+
+.chart-card__label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+.chart-card__value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: hsl(var(--foreground));
+}
+
+.chart-card__value-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+}
+
+.chart-card__controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding: var(--gap-md) var(--gap-lg) var(--gap-md) var(--gap-xl);
+}
+
+.chart-card__body {
+  padding: var(--gap-md) var(--gap-lg) var(--gap-lg);
+  overflow: hidden;
+}
+
+.chart-card__body .u-wrap {
+  overflow: hidden !important;
+}
+
+/* ── Panel Header with Tabs ────────────────────────── */
+.panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--gap-lg);
+}
+
+.panel__tabs {
+  display: inline-flex;
+  height: 2.25rem;
+  align-items: center;
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+  padding: 3px;
+  gap: 1px;
+}
+
+.panel__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0 14px;
+  height: 100%;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.panel__tab:hover {
+  color: hsl(var(--foreground));
+}
+
+.panel__tab--active {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+  font-weight: 600;
+}

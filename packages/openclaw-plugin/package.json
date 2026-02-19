@@ -1,0 +1,70 @@
+{
+  "name": "manifest",
+  "version": "5.1.4",
+  "description": "Observability plugin for OpenClaw — traces, metrics, and cost tracking for your AI agent",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "author": "MNFST Inc.",
+  "homepage": "https://manifest.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mnfst/manifest"
+  },
+  "files": [
+    "dist/index.js",
+    "openclaw.plugin.json",
+    "skills/",
+    "README.md",
+    "LICENSE.md"
+  ],
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsx build.ts",
+    "dev": "tsx watch build.ts",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  },
+  "keywords": [
+    "openclaw",
+    "openclaw-plugin",
+    "clawdbot",
+    "moltbot",
+    "manifest",
+    "observability",
+    "opentelemetry",
+    "tracing",
+    "monitoring",
+    "ai-agent",
+    "ai-observability",
+    "llm-monitoring",
+    "token-tracking",
+    "cost-tracking",
+    "otlp",
+    "telemetry",
+    "agent-analytics"
+  ],
+  "devDependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/sdk-trace-base": "^1.30.0",
+    "@opentelemetry/sdk-metrics": "^1.30.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.57.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.57.0",
+    "@opentelemetry/resources": "^1.30.0",
+    "@opentelemetry/semantic-conventions": "^1.30.0",
+    "esbuild": "^0.24.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "@types/jest": "^29.5.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.0"
+  },
+  "peerDependencies": {}
+}

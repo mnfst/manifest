@@ -1,0 +1,113 @@
+import { ModelPricingCacheService } from './model-pricing-cache.service';
+import { ModelPricing } from '../entities/model-pricing.entity';
+
+function makePricing(name: string): ModelPricing {
+  const p = new ModelPricing();
+  p.model_name = name;
+  p.input_price_per_token = 0.000015;
+  p.output_price_per_token = 0.000075;
+  p.provider = 'TestProvider';
+  p.updated_at = null;
+  return p;
+}
+
+describe('ModelPricingCacheService', () => {
+  let service: ModelPricingCacheService;
+  let mockFind: jest.Mock;
+
+  beforeEach(() => {
+    mockFind = jest.fn().mockResolvedValue([]);
+    const mockRepo = { find: mockFind } as never;
+    service = new ModelPricingCacheService(mockRepo);
+  });
+
+  describe('onModuleInit', () => {
+    it('should load all pricing rows into the cache', async () => {
+      const rows = [makePricing('gpt-4o'), makePricing('claude-opus-4')];
+      mockFind.mockResolvedValue(rows);
+
+      await service.onModuleInit();
+
+      expect(mockFind).toHaveBeenCalledTimes(1);
+      expect(service.getByModel('gpt-4o')).toEqual(rows[0]);
+      expect(service.getByModel('claude-opus-4')).toEqual(rows[1]);
+    });
+
+    it('should result in empty cache when DB has no rows', async () => {
+      mockFind.mockResolvedValue([]);
+
+      await service.onModuleInit();
+
+      expect(mockFind).toHaveBeenCalledTimes(1);
+      expect(service.getByModel('anything')).toBeUndefined();
+    });
+  });
+
+  describe('reload', () => {
+    it('should clear old entries and load new ones', async () => {
+      const oldRows = [makePricing('old-model')];
+      mockFind.mockResolvedValueOnce(oldRows);
+      await service.onModuleInit();
+      expect(service.getByModel('old-model')).toBeDefined();
+
+      const newRows = [makePricing('new-model')];
+      mockFind.mockResolvedValueOnce(newRows);
+      await service.reload();
+
+      expect(service.getByModel('old-model')).toBeUndefined();
+      expect(service.getByModel('new-model')).toEqual(newRows[0]);
+    });
+
+    it('should handle reload to empty state', async () => {
+      mockFind.mockResolvedValueOnce([makePricing('model-a')]);
+      await service.onModuleInit();
+      expect(service.getByModel('model-a')).toBeDefined();
+
+      mockFind.mockResolvedValueOnce([]);
+      await service.reload();
+
+      expect(service.getByModel('model-a')).toBeUndefined();
+    });
+
+    it('should call find on each reload', async () => {
+      await service.onModuleInit();
+      await service.reload();
+      await service.reload();
+
+      expect(mockFind).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('getByModel', () => {
+    it('should return the pricing entity for a known model', async () => {
+      const pricing = makePricing('claude-sonnet');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      const result = service.getByModel('claude-sonnet');
+
+      expect(result).toBe(pricing);
+    });
+
+    it('should return undefined for an unknown model', async () => {
+      mockFind.mockResolvedValue([makePricing('known-model')]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('unknown-model')).toBeUndefined();
+    });
+
+    it('should return undefined before initialization', () => {
+      expect(service.getByModel('any-model')).toBeUndefined();
+    });
+
+    it('should distinguish between models with similar names', async () => {
+      const rows = [makePricing('gpt-4'), makePricing('gpt-4o')];
+      mockFind.mockResolvedValue(rows);
+      await service.onModuleInit();
+
+      expect(service.getByModel('gpt-4')).toBe(rows[0]);
+      expect(service.getByModel('gpt-4o')).toBe(rows[1]);
+      expect(service.getByModel('gpt-4o-mini')).toBeUndefined();
+    });
+  });
+});

@@ -1,0 +1,112 @@
+/* ── Notification Rules Table ─────────────────────── */
+.notif-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.notif-table thead th {
+  text-align: left;
+  font-weight: 500;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  padding: var(--gap-sm) var(--gap-lg);
+  border-bottom: 1px solid hsl(var(--border));
+  white-space: nowrap;
+}
+
+.notif-table tbody td {
+  padding: var(--gap-sm) var(--gap-lg);
+  color: hsl(var(--foreground));
+  border-bottom: 1px solid hsl(var(--border));
+  white-space: nowrap;
+}
+
+.notif-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.notif-table__mono {
+  font-family: var(--font-mono);
+}
+
+.notif-table__row--disabled td {
+  opacity: 0.45;
+}
+
+.notif-table__row--disabled td:last-child {
+  opacity: 1;
+}
+
+.notif-table__actions {
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--gap-sm);
+}
+
+.notification-rule__edit,
+.notification-rule__delete {
+  color: hsl(var(--muted-foreground));
+  padding: 4px;
+  height: auto;
+}
+
+.notification-rule__edit:hover {
+  color: hsl(var(--foreground));
+}
+
+.notification-rule__delete:hover {
+  color: hsl(var(--destructive));
+}
+
+/* ── Toggle Switch ───────────────────────────────── */
+.notification-toggle {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.notification-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.notification-toggle__slider {
+  width: 36px;
+  height: 20px;
+  background: hsl(var(--muted));
+  border-radius: 9999px;
+  transition: background var(--transition-fast);
+  position: relative;
+}
+
+.notification-toggle__slider::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  top: 2px;
+  left: 2px;
+  transition: transform var(--transition-fast);
+}
+
+.notification-toggle input:checked + .notification-toggle__slider {
+  background: hsl(var(--success));
+}
+
+.notification-toggle input:checked + .notification-toggle__slider::after {
+  transform: translateX(16px);
+}
+
+/* ── Modal Select ─────────────────────────────────── */
+.notification-modal__select {
+  width: 100%;
+  margin-bottom: var(--gap-lg);
+  height: 2.5rem;
+}

@@ -1,0 +1,120 @@
+/* ── shadcn/ui design tokens — Light (default) ───── */
+@layer base {
+  :root {
+    --background: 45 49% 97%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 44 60% 99%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 44 60% 99%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 45 30% 97%;
+    --secondary: 40 33% 93%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 40 33% 93%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 40 33% 93%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 45 30% 97%;
+    --border: 36 25% 88%;
+    --input: 36 25% 88%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+
+    /* Chart palette */
+    --chart-1: 178 75% 44%;
+    --chart-2: 197 37% 24%;
+    --chart-3: 167 70% 48%;
+    --bar-input: 178 75% 34%;
+    --bar-output: 178 55% 72%;
+    --chart-4: 349 52% 61%;
+    --chart-5: 43 96% 56%;
+
+    /* Sidebar */
+    --sidebar-background: 43 38% 95%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 45 30% 97%;
+    --sidebar-accent: 40 28% 93%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 36 20% 89%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Success (emerald accent for our dashboard) */
+    --success: 178 75% 44%;
+    --success-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 0 0% 9%;
+    --foreground: 0 0% 93%;
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 93%;
+    --primary: 0 0% 93%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 93%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 93%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 93%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 60%;
+
+    --chart-1: 178 70% 50%;
+    --chart-2: 197 50% 55%;
+    --chart-3: 167 70% 55%;
+    --chart-4: 349 52% 65%;
+    --chart-5: 43 96% 65%;
+    --bar-input: 178 70% 40%;
+    --bar-output: 178 50% 70%;
+
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 93%;
+    --sidebar-primary: 0 0% 93%;
+    --sidebar-primary-foreground: 0 0% 9%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 0 0% 93%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 0 0% 60%;
+
+    --success: 178 70% 50%;
+    --success-foreground: 0 0% 100%;
+  }
+}
+
+/* ── Shared tokens ────────────────────────────────── */
+:root {
+  --sidebar-width: 230px;
+  --header-height: 48px;
+
+  --gap-xs: 4px;
+  --gap-sm: 8px;
+  --gap-md: 16px;
+  --gap-lg: 24px;
+  --gap-xl: 32px;
+  --gap-2xl: 48px;
+
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 0.9375rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 1.875rem;
+  --font-size-3xl: 2.25rem;
+  --font-size-4xl: 3rem;
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  --card-shadow: rgba(0, 0, 0, 0.06) 0px 0px 0px 1px, rgba(0, 0, 0, 0.03) 0px 2px 6px 0px;
+  --card-shadow-hover: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.06) 0px 3px 8px 0px;
+}

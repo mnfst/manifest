@@ -1,3 +1,70 @@
-# Manifest Skill
+---
+name: manifest
+description: Install and configure the Manifest observability plugin for OpenClaw agents. Use when the user wants to set up Manifest telemetry, connect an agent to Manifest, configure an API key or endpoint, troubleshoot plugin connection issues, or check if the Manifest plugin is running.
+---
 
-Placeholder for Manifest skill
+# Manifest Setup
+
+Follow these steps **in order**. Do not skip ahead.
+
+## Step 1 — Install the plugin
+
+```bash
+openclaw plugins install manifest
+```
+
+If it fails, check that OpenClaw is installed and the CLI is available in the PATH.
+
+## Step 2 — Get an API key
+
+Ask the user:
+
+> To connect your agent, you need a Manifest API key. Here's how to get one:
+>
+> 1. Go to **https://app.manifest.build** and create an account (or sign in)
+> 2. Once logged in, click **"Connect Agent"** to create a new agent
+> 3. Copy the API key that starts with `mnfst_`
+> 4. Paste it here
+
+Wait for a key starting with `mnfst_`. If the key doesn't match, tell the user the format looks incorrect and ask them to try again.
+
+## Step 3 — Configure the plugin
+
+```bash
+openclaw config set plugins.entries.manifest.config.apiKey "USER_API_KEY"
+```
+
+Replace `USER_API_KEY` with the actual key the user provided.
+
+Ask the user if they have a custom endpoint. If not, the default (`https://app.manifest.build/api/v1/otlp`) is used automatically. If they do:
+
+```bash
+openclaw config set plugins.entries.manifest.config.endpoint "USER_ENDPOINT"
+```
+
+## Step 4 — Restart the gateway
+
+```bash
+openclaw gateway restart
+```
+
+## Step 5 — Verify
+
+```bash
+openclaw gateway logs --tail 20
+```
+
+Look for:
+
+```
+[manifest] Observability pipeline active
+```
+
+If it appears, tell the user setup is complete. If not, check the error messages and troubleshoot.
+
+## Troubleshooting
+
+- **"Missing apiKey"**: Re-run step 3.
+- **"Invalid apiKey format"**: The key must start with `mnfst_`.
+- **Connection refused**: The endpoint is unreachable. Check the URL or ask if they self-host.
+- **Duplicate OTel registration**: Disable the conflicting built-in plugin: `openclaw plugins disable diagnostics-otel`

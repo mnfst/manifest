@@ -1,0 +1,191 @@
+/* Terminal block (step 1) */
+.modal-terminal {
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  margin-bottom: var(--gap-md);
+}
+
+.modal-terminal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: hsl(var(--muted));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.modal-terminal__dots {
+  display: flex;
+  gap: 6px;
+}
+
+.modal-terminal__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.modal-terminal__dot--red { background: #ff5f57; }
+.modal-terminal__dot--yellow { background: #febc2e; }
+.modal-terminal__dot--green { background: #28c840; }
+
+.modal-terminal__tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+}
+
+.modal-terminal__tab {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.modal-terminal__tab--active {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+.modal-terminal__tab-sep {
+  color: hsl(var(--muted-foreground));
+}
+
+.modal-terminal__body {
+  position: relative;
+  padding: 14px 16px;
+  background: hsl(222 47% 6%);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  line-height: 1.7;
+  color: hsl(178 75% 50%);
+}
+
+.modal-terminal__line--comment {
+  color: hsl(var(--muted-foreground));
+}
+
+.modal-terminal__prompt {
+  color: hsl(var(--muted-foreground));
+  margin-right: 8px;
+}
+
+.modal-terminal__code {
+  word-break: break-all;
+}
+
+.modal-terminal__copy {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px;
+  border: none;
+  border-radius: var(--radius);
+  background: hsl(0 0% 100% / 0.1);
+  color: hsl(0 0% 100% / 0.5);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modal-terminal__copy:hover {
+  background: hsl(0 0% 100% / 0.2);
+  color: hsl(0 0% 100% / 0.8);
+}
+
+/* Key box (step 2) */
+.modal-key-box {
+  border: 1px solid hsl(var(--chart-5) / 0.3);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: var(--gap-lg);
+}
+
+.modal-key-box__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+}
+
+.modal-key-box__label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+}
+
+.modal-key-box__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modal-key-box__copy:hover {
+  background: hsl(var(--accent));
+}
+
+.modal-key-box__value {
+  display: block;
+  padding: 12px 14px;
+  background: hsl(222 47% 6%);
+  color: hsl(178 75% 50%);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  word-break: break-all;
+  line-height: 1.6;
+}
+
+.modal-key-box__warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap-sm);
+  padding: 10px 14px;
+  background: hsl(var(--chart-5) / 0.08);
+  border-top: 1px solid hsl(var(--chart-5) / 0.2);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+}
+
+.modal-key-box__warning svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: hsl(var(--chart-5));
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Animations ────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cards-grid > * {
+  animation: fadeInUp 300ms ease-out both;
+}
+.cards-grid > *:nth-child(1) { animation-delay: 0ms; }
+.cards-grid > *:nth-child(2) { animation-delay: 50ms; }
+.cards-grid > *:nth-child(3) { animation-delay: 100ms; }
+.cards-grid > *:nth-child(4) { animation-delay: 150ms; }
+
+.panel { animation: fadeInUp 300ms ease-out both; }
