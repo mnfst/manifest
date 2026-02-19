@@ -1,5 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { createHash } from 'crypto';
+import { scryptSync } from 'crypto';
+
+const HASH_SALT = 'manifest-api-key-salt';
+const KEY_LENGTH = 32;
 
 export class HashApiKeys1771500000000 implements MigrationInterface {
   name = 'HashApiKeys1771500000000';
@@ -53,7 +56,7 @@ export class HashApiKeys1771500000000 implements MigrationInterface {
       `SELECT id, key FROM "agent_api_keys" WHERE key IS NOT NULL AND key != ''`,
     );
     for (const row of agentKeys) {
-      const hash = createHash('sha256').update(row.key).digest('hex');
+      const hash = scryptSync(row.key, HASH_SALT, KEY_LENGTH).toString('hex');
       const prefix = row.key.substring(0, 12);
       await queryRunner.query(
         `UPDATE "agent_api_keys" SET key_hash = $1, key_prefix = $2 WHERE id = $3`,
@@ -65,7 +68,7 @@ export class HashApiKeys1771500000000 implements MigrationInterface {
       `SELECT id, key FROM "api_keys" WHERE key IS NOT NULL AND key != ''`,
     );
     for (const row of apiKeys) {
-      const hash = createHash('sha256').update(row.key).digest('hex');
+      const hash = scryptSync(row.key, HASH_SALT, KEY_LENGTH).toString('hex');
       const prefix = row.key.substring(0, 12);
       await queryRunner.query(
         `UPDATE "api_keys" SET key_hash = $1, key_prefix = $2 WHERE id = $3`,

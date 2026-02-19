@@ -65,7 +65,7 @@ export function validateConfig(config: ManifestConfig): string | null {
   }
   if (!config.apiKey.startsWith("mnfst_")) {
     return (
-      `Invalid apiKey format '${config.apiKey.slice(0, 8)}…'. ` +
+      "Invalid apiKey format. " +
       "Keys must start with 'mnfst_'. Fix it via:\n" +
       "  openclaw config set manifest.apiKey mnfst_YOUR_KEY"
     );

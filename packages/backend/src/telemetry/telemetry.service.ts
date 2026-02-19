@@ -27,14 +27,17 @@ export class TelemetryService {
     private readonly pricingCache: ModelPricingCacheService,
   ) {}
 
+  private static readonly MAX_EVENTS_PER_BATCH = 1000;
+
   async ingest(events: TelemetryEventDto[], userId: string): Promise<IngestResult> {
+    const safeEvents = events.slice(0, TelemetryService.MAX_EVENTS_PER_BATCH);
     let accepted = 0;
     let rejected = 0;
     const errors: Array<{ index: number; reason: string }> = [];
 
-    for (let i = 0; i < events.length; i++) {
+    for (let i = 0; i < safeEvents.length; i++) {
       try {
-        await this.insertEvent(events[i], userId);
+        await this.insertEvent(safeEvents[i], userId);
         accepted++;
       } catch (err) {
         rejected++;

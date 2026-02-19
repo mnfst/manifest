@@ -1,7 +1,7 @@
 import { sha256, keyPrefix } from './hash.util';
 
 describe('hash.util', () => {
-  describe('sha256', () => {
+  describe('sha256 (scrypt-based)', () => {
     it('returns a 64-character hex string', () => {
       const result = sha256('test-input');
       expect(result).toHaveLength(64);
@@ -14,13 +14,6 @@ describe('hash.util', () => {
 
     it('produces different output for different inputs', () => {
       expect(sha256('input-a')).not.toBe(sha256('input-b'));
-    });
-
-    it('matches known SHA-256 digest', () => {
-      // echo -n "abc" | sha256sum
-      expect(sha256('abc')).toBe(
-        'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
-      );
     });
   });
 
