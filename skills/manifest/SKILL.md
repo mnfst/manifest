@@ -7,7 +7,15 @@ description: Install and configure the Manifest observability plugin for OpenCla
 
 Follow these steps **in order**. Do not skip ahead.
 
-## Step 1 — Install the plugin
+## Step 1 — Stop the gateway
+
+Stop the gateway first to avoid hot-reload issues during configuration.
+
+```bash
+openclaw gateway stop
+```
+
+## Step 2 — Install the plugin
 
 ```bash
 openclaw plugins install manifest
@@ -15,7 +23,7 @@ openclaw plugins install manifest
 
 If it fails, check that OpenClaw is installed and the CLI is available in the PATH.
 
-## Step 2 — Get an API key
+## Step 3 — Get an API key
 
 Ask the user:
 
@@ -28,7 +36,7 @@ Ask the user:
 
 Wait for a key starting with `mnfst_`. If the key doesn't match, tell the user the format looks incorrect and ask them to try again.
 
-## Step 3 — Configure the plugin
+## Step 4 — Configure the plugin
 
 ```bash
 openclaw config set plugins.entries.manifest.config.apiKey "USER_API_KEY"
@@ -42,16 +50,18 @@ Ask the user if they have a custom endpoint. If not, the default (`https://app.m
 openclaw config set plugins.entries.manifest.config.endpoint "USER_ENDPOINT"
 ```
 
-## Step 4 — Restart the gateway
+## Step 5 — Start the gateway
 
 ```bash
-openclaw gateway restart
+openclaw gateway install
 ```
 
-## Step 5 — Verify
+## Step 6 — Verify
+
+Wait 3 seconds for the gateway to fully start, then check the logs:
 
 ```bash
-openclaw gateway logs --tail 20
+grep "manifest" ~/.openclaw/logs/gateway.log | tail -5
 ```
 
 Look for:
@@ -64,7 +74,7 @@ If it appears, tell the user setup is complete. If not, check the error messages
 
 ## Troubleshooting
 
-- **"Missing apiKey"**: Re-run step 3.
+- **"Missing apiKey"**: Re-run step 4.
 - **"Invalid apiKey format"**: The key must start with `mnfst_`.
 - **Connection refused**: The endpoint is unreachable. Check the URL or ask if they self-host.
 - **Duplicate OTel registration**: Disable the conflicting built-in plugin: `openclaw plugins disable diagnostics-otel`
