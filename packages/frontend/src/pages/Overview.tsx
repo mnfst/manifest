@@ -1,5 +1,5 @@
 import { Meta, Title } from '@solidjs/meta'
-import { A, useParams } from '@solidjs/router'
+import { A, useLocation, useParams } from '@solidjs/router'
 import {
   createEffect,
   createResource,
@@ -77,9 +77,12 @@ type ActiveView = 'cost' | 'tokens' | 'messages'
 
 const Overview: Component = () => {
   const params = useParams<{ agentName: string }>()
+  const location = useLocation<{ newAgent?: boolean; newApiKey?: string }>()
   const [range, setRange] = createSignal('24h')
   const [activeView, setActiveView] = createSignal<ActiveView>('cost')
-  const [setupOpen, setSetupOpen] = createSignal(false)
+  const [setupOpen, setSetupOpen] = createSignal(
+    !!(location.state as { newAgent?: boolean } | undefined)?.newAgent
+  )
   const [setupCompleted, setSetupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`)
   )
@@ -557,6 +560,7 @@ const Overview: Component = () => {
       <SetupModal
         open={setupOpen()}
         agentName={decodeURIComponent(params.agentName)}
+        apiKey={(location.state as { newApiKey?: string } | undefined)?.newApiKey ?? null}
         onClose={() => {
           localStorage.setItem(`setup_dismissed_${params.agentName}`, '1')
           setSetupOpen(false)

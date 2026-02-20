@@ -40,8 +40,8 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
       toast.success(`Agent "${agentName}" connected`);
       props.onClose();
       setName("");
-      const url = `/agents/${encodeURIComponent(agentName)}/settings`;
-      navigate(url, { state: { newApiKey: result?.apiKey } });
+      const url = `/agents/${encodeURIComponent(agentName)}`;
+      navigate(url, { state: { newAgent: true, newApiKey: result?.apiKey } });
     } catch {
       // error toast already shown by fetchMutate
     }
