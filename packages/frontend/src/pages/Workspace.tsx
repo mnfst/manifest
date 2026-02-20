@@ -80,13 +80,13 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
 
           <label class="modal-card__field-label">Agent name</label>
           <input
+            ref={(el) => requestAnimationFrame(() => el.focus())}
             class="modal-card__input"
             type="text"
             placeholder="e.g. Clawdy"
             value={name()}
             onInput={(e) => setName(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
-            autofocus
           />
 
           <div class="modal-card__footer">
