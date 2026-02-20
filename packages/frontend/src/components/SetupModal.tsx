@@ -4,7 +4,7 @@ import SetupStepConfigure from './SetupStepConfigure.jsx'
 import SetupStepVerify from './SetupStepVerify.jsx'
 import { getAgentKey } from '../services/api.js'
 
-const SetupModal: Component<{ open: boolean; agentName: string; onClose: () => void; onDone?: () => void }> = (props) => {
+const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string | null; onClose: () => void; onDone?: () => void }> = (props) => {
   const [step, setStep] = createSignal(1)
 
   const [apiKeyData] = createResource(
@@ -75,7 +75,7 @@ const SetupModal: Component<{ open: boolean; agentName: string; onClose: () => v
           </Show>
           <Show when={step() === 2}>
             <SetupStepConfigure
-              apiKey={null}
+              apiKey={props.apiKey ?? null}
               keyPrefix={apiKeyData()?.keyPrefix ?? null}
               agentName={props.agentName}
               endpoint={endpoint()}

@@ -171,6 +171,10 @@ h1, h2, h3, h4, h5, h6 {
   min-width: 0;
 }
 
+.main-content--full {
+  margin-left: 0;
+}
+
 /* ── Container sizes ───────────────────────────────── */
 .container--sm {
   max-width: 680px;
