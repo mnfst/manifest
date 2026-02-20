@@ -36,7 +36,7 @@ export const TEST_USER_ID = 'test-user-001';
 export const TEST_API_KEY = 'test-api-key-001';
 export const TEST_TENANT_ID = 'test-tenant-001';
 export const TEST_AGENT_ID = 'test-agent-001';
-export const TEST_OTLP_KEY = 'test-otlp-key-001';
+export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
 const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog];
 

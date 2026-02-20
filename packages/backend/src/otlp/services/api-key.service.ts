@@ -7,6 +7,7 @@ import { Tenant } from '../../entities/tenant.entity';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { sha256, keyPrefix } from '../../common/utils/hash.util';
+import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 
 @Injectable()
 export class ApiKeyGeneratorService {
@@ -20,7 +21,7 @@ export class ApiKeyGeneratorService {
   ) {}
 
   private generateKey(): string {
-    return 'mnfst_' + randomBytes(32).toString('base64url');
+    return API_KEY_PREFIX + randomBytes(32).toString('base64url');
   }
 
   async onboardAgent(params: {

@@ -1,5 +1,15 @@
 import { parseConfig, validateConfig } from "../src/config";
-import { DEFAULTS, ENV } from "../src/constants";
+import { API_KEY_PREFIX, DEFAULTS, ENV } from "../src/constants";
+
+describe("API_KEY_PREFIX constant", () => {
+  it("equals mnfst_ (catches accidental revert)", () => {
+    expect(API_KEY_PREFIX).toBe("mnfst_");
+  });
+
+  it("does not equal the old osk_ prefix", () => {
+    expect(API_KEY_PREFIX).not.toBe("osk_");
+  });
+});
 
 // Regression: Verify the DEFAULTS constant never reverts to the old wrong path.
 // OTel exporters append /v1/traces etc., so the base must be /otlp, not /api/v1/otlp.
@@ -176,6 +186,13 @@ describe("validateConfig", () => {
     const err = validateConfig(config)!;
     expect(err).toContain("mnfst_");
     expect(err).toContain("openclaw config set");
+  });
+
+  it("rejects keys with old osk_ prefix", () => {
+    const config = { ...validConfig, apiKey: "osk_some_old_key" };
+    const err = validateConfig(config)!;
+    expect(err).toContain("Invalid apiKey format");
+    expect(err).toContain("mnfst_");
   });
 
   it("rejects invalid endpoint URL with actionable fix command", () => {

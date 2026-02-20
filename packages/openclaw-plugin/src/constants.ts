@@ -41,6 +41,9 @@ export const ENV = {
   ENDPOINT: "MANIFEST_ENDPOINT",
 } as const;
 
+// API key prefix — must match the backend's API_KEY_PREFIX
+export const API_KEY_PREFIX = "mnfst_" as const;
+
 // Plugin defaults
 export const DEFAULTS = {
   ENDPOINT: "https://app.manifest.build/otlp",
