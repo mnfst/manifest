@@ -48,48 +48,46 @@ const SetupStepConfigure: Component<Props> = (props) => {
         </div>
       </Show>
 
-      <Show when={hasFullKey()} fallback={
-        <Show when={props.keyPrefix}>
-          <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); font-family: var(--font-mono); padding: 10px 14px; background: hsl(var(--muted)); border-radius: var(--radius);">
-            Active key: {props.keyPrefix}...
-          </div>
-        </Show>
-      }>
-        <div class="modal-terminal">
-          <div class="modal-terminal__header">
-            <div class="modal-terminal__dots">
-              <span class="modal-terminal__dot modal-terminal__dot--red" />
-              <span class="modal-terminal__dot modal-terminal__dot--yellow" />
-              <span class="modal-terminal__dot modal-terminal__dot--green" />
-            </div>
-            <div class="modal-terminal__tabs">
-              <button
-                class="modal-terminal__tab"
-                classList={{ "modal-terminal__tab--active": tab() === "cli" }}
-                onClick={() => setTab("cli")}
-              >
-                OpenClaw CLI
-              </button>
-              <span class="modal-terminal__tab-sep">|</span>
-              <button
-                class="modal-terminal__tab"
-                classList={{ "modal-terminal__tab--active": tab() === "env" }}
-                onClick={() => setTab("env")}
-              >
-                Environment
-              </button>
-            </div>
-          </div>
-          <div class="modal-terminal__body">
-            <CopyButton text={tab() === "cli" ? cliCommand() : envCommand()} />
-            <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">
-              <code class="modal-terminal__code">
-                {tab() === "cli" ? cliCommand() : envCommand()}
-              </code>
-            </pre>
-          </div>
+      <Show when={!hasFullKey() && props.keyPrefix}>
+        <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); font-family: var(--font-mono); padding: 10px 14px; background: hsl(var(--muted)); border-radius: var(--radius); margin-bottom: 16px;">
+          Active key: {props.keyPrefix}...
         </div>
       </Show>
+
+      <div class="modal-terminal">
+        <div class="modal-terminal__header">
+          <div class="modal-terminal__dots">
+            <span class="modal-terminal__dot modal-terminal__dot--red" />
+            <span class="modal-terminal__dot modal-terminal__dot--yellow" />
+            <span class="modal-terminal__dot modal-terminal__dot--green" />
+          </div>
+          <div class="modal-terminal__tabs">
+            <button
+              class="modal-terminal__tab"
+              classList={{ "modal-terminal__tab--active": tab() === "cli" }}
+              onClick={() => setTab("cli")}
+            >
+              OpenClaw CLI
+            </button>
+            <span class="modal-terminal__tab-sep">|</span>
+            <button
+              class="modal-terminal__tab"
+              classList={{ "modal-terminal__tab--active": tab() === "env" }}
+              onClick={() => setTab("env")}
+            >
+              Environment
+            </button>
+          </div>
+        </div>
+        <div class="modal-terminal__body">
+          <CopyButton text={tab() === "cli" ? cliCommand() : envCommand()} />
+          <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">
+            <code class="modal-terminal__code">
+              {tab() === "cli" ? cliCommand() : envCommand()}
+            </code>
+          </pre>
+        </div>
+      </div>
     </div>
   );
 };
