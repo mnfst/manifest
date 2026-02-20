@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "@solidjs/router";
+import { useParams, useNavigate, useLocation } from "@solidjs/router";
 import { createResource, createEffect, Show, type ParentComponent } from "solid-js";
 import ErrorState from "./ErrorState.jsx";
 import { getAgents } from "../services/api.js";
@@ -14,9 +14,11 @@ interface AgentsData {
 const AgentGuard: ParentComponent = (props) => {
   const params = useParams<{ agentName: string }>();
   const navigate = useNavigate();
+  const location = useLocation<{ newAgent?: boolean }>();
   const [data, { refetch }] = createResource(() => getAgents() as Promise<AgentsData>);
 
   createEffect(() => {
+    if (location.state?.newAgent) return;
     const list = data()?.agents;
     if (!list) return;
     const exists = list.some(
