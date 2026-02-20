@@ -713,7 +713,7 @@ h1, h2, h3, h4, h5, h6 {
   left: 0;
   background: hsl(var(--sidebar-background));
   border-right: 1px solid hsl(var(--sidebar-border));
-  padding: var(--gap-lg) 0;
+  padding: var(--gap-lg) 0 0 0;
   display: flex;
   flex-direction: column;
   z-index: 10;
@@ -770,6 +770,39 @@ h1, h2, h3, h4, h5, h6 {
   background: hsl(var(--sidebar-accent));
   color: hsl(var(--sidebar-primary));
   font-weight: 500;
+}
+
+.sidebar__spacer {
+  flex: 1;
+}
+
+.sidebar__feedback {
+  display: block;
+  padding: var(--gap-md) var(--gap-lg);
+  border-top: 1px solid hsl(var(--sidebar-border));
+  text-decoration: none;
+  color: hsl(var(--sidebar-foreground));
+  transition: background var(--transition-fast);
+  cursor: pointer;
+}
+
+.sidebar__feedback:hover {
+  background: hsl(var(--sidebar-accent));
+}
+
+.sidebar__feedback-title {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.sidebar__feedback-hint {
+  margin-top: var(--gap-xs);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
 }
 
 .sidebar__footer {

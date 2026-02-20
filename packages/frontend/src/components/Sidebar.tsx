@@ -79,6 +79,23 @@ const Sidebar: Component = () => {
           Help
         </A>
       </Show>
+
+      <div class="sidebar__spacer" />
+
+      <a
+        href="https://github.com/mnfst/manifest/discussions/new?category=feature-request"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="sidebar__feedback"
+      >
+        <span class="sidebar__feedback-title">
+          <i class="bxd bx-message-bubble-detail" />
+          Feedback
+        </span>
+        <p class="sidebar__feedback-hint">
+          Help us improve Manifest by sharing your ideas and feature requests.
+        </p>
+      </a>
     </nav>
   );
 };
