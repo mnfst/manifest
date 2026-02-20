@@ -29,6 +29,7 @@ describe('ApiKeyGeneratorService', () => {
   let mockAgentInsert: jest.Mock;
   let mockKeyInsert: jest.Mock;
   let mockKeyUpdate: jest.Mock;
+  let mockKeyDelete: jest.Mock;
   let mockKeyGetOne: jest.Mock;
   let mockKeyQb: Record<string, jest.Mock>;
   let mockAgentGetOne: jest.Mock;
@@ -40,6 +41,7 @@ describe('ApiKeyGeneratorService', () => {
     mockAgentInsert = jest.fn().mockResolvedValue({});
     mockKeyInsert = jest.fn().mockResolvedValue({});
     mockKeyUpdate = jest.fn().mockResolvedValue({});
+    mockKeyDelete = jest.fn().mockResolvedValue({});
     mockKeyGetOne = jest.fn();
     mockAgentGetOne = jest.fn();
 
@@ -79,6 +81,7 @@ describe('ApiKeyGeneratorService', () => {
           useValue: {
             insert: mockKeyInsert,
             update: mockKeyUpdate,
+            delete: mockKeyDelete,
             createQueryBuilder: jest.fn().mockReturnValue(mockKeyQb),
           },
         },
@@ -367,15 +370,12 @@ describe('ApiKeyGeneratorService', () => {
       ).rejects.toThrow('Agent not found or access denied');
     });
 
-    it('should deactivate all existing active keys for the agent', async () => {
+    it('should delete existing keys for the agent before creating a new one', async () => {
       mockAgentGetOne.mockResolvedValue(existingAgent);
 
       await service.rotateKey('user-1', 'my-agent');
 
-      expect(mockKeyUpdate).toHaveBeenCalledWith(
-        { agent_id: 'agent-id-1', is_active: true },
-        { is_active: false },
-      );
+      expect(mockKeyDelete).toHaveBeenCalledWith({ agent_id: 'agent-id-1' });
     });
 
     it('should create a new key with hash and prefix, no plaintext', async () => {
@@ -432,12 +432,12 @@ describe('ApiKeyGeneratorService', () => {
       );
     });
 
-    it('should deactivate old keys before inserting the new one', async () => {
+    it('should delete old keys before inserting the new one', async () => {
       mockAgentGetOne.mockResolvedValue(existingAgent);
 
       const callOrder: string[] = [];
-      mockKeyUpdate.mockImplementation(() => {
-        callOrder.push('update');
+      mockKeyDelete.mockImplementation(() => {
+        callOrder.push('delete');
         return Promise.resolve({});
       });
       mockKeyInsert.mockImplementation(() => {
@@ -447,7 +447,7 @@ describe('ApiKeyGeneratorService', () => {
 
       await service.rotateKey('user-1', 'my-agent');
 
-      expect(callOrder).toEqual(['update', 'insert']);
+      expect(callOrder).toEqual(['delete', 'insert']);
     });
   });
 });
