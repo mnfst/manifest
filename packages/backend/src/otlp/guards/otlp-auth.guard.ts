@@ -11,6 +11,7 @@ import { Request } from 'express';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 import { sha256 } from '../../common/utils/hash.util';
+import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 
 interface CachedKey {
   tenantId: string;
@@ -47,6 +48,10 @@ export class OtlpAuthGuard implements CanActivate {
 
     if (!token) {
       throw new UnauthorizedException('Empty token');
+    }
+
+    if (!token.startsWith(API_KEY_PREFIX)) {
+      throw new UnauthorizedException('Invalid API key format');
     }
 
     const cached = this.cache.get(token);

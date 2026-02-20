@@ -1,4 +1,4 @@
-import { DEFAULTS, ENV } from "./constants";
+import { API_KEY_PREFIX, DEFAULTS, ENV } from "./constants";
 
 export interface ManifestConfig {
   apiKey: string;
@@ -59,15 +59,15 @@ export function validateConfig(config: ManifestConfig): string | null {
   if (!config.apiKey) {
     return (
       "Missing apiKey. Set it via:\n" +
-      "  openclaw config set manifest.apiKey mnfst_YOUR_KEY\n" +
-      "  or export MANIFEST_API_KEY=mnfst_YOUR_KEY"
+      `  openclaw config set manifest.apiKey ${API_KEY_PREFIX}YOUR_KEY\n` +
+      `  or export MANIFEST_API_KEY=${API_KEY_PREFIX}YOUR_KEY`
     );
   }
-  if (!config.apiKey.startsWith("mnfst_")) {
+  if (!config.apiKey.startsWith(API_KEY_PREFIX)) {
     return (
       "Invalid apiKey format. " +
-      "Keys must start with 'mnfst_'. Fix it via:\n" +
-      "  openclaw config set manifest.apiKey mnfst_YOUR_KEY"
+      `Keys must start with '${API_KEY_PREFIX}'. Fix it via:\n` +
+      `  openclaw config set manifest.apiKey ${API_KEY_PREFIX}YOUR_KEY`
     );
   }
   if (!config.endpoint.startsWith("http")) {

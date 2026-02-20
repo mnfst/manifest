@@ -46,9 +46,16 @@ describe('OtlpAuthGuard', () => {
     await expect(guard.canActivate(ctx)).rejects.toThrow('Empty token');
   });
 
+  it('rejects token without mnfst_ prefix', async () => {
+    const { ctx } = makeContext({ authorization: 'Bearer osk_some_old_key' });
+    await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+  });
+
   it('throws UnauthorizedException when API key is not found in DB', async () => {
     mockGetOne.mockResolvedValue(null);
-    const { ctx } = makeContext({ authorization: 'Bearer unknown-key' });
+    const { ctx } = makeContext({ authorization: 'Bearer mnfst_unknown-key' });
 
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
     await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key');
@@ -63,7 +70,7 @@ describe('OtlpAuthGuard', () => {
       tenant: { name: 'user-1' },
     });
 
-    const { ctx, req } = makeContext({ authorization: 'Bearer valid-key' });
+    const { ctx, req } = makeContext({ authorization: 'Bearer mnfst_valid-key' });
     const result = await guard.canActivate(ctx);
 
     expect(result).toBe(true);
@@ -84,7 +91,7 @@ describe('OtlpAuthGuard', () => {
       tenant: { name: 'user-2' },
     });
 
-    const { ctx, req } = makeContext({ authorization: 'raw-key' });
+    const { ctx, req } = makeContext({ authorization: 'mnfst_raw-key' });
     const result = await guard.canActivate(ctx);
 
     expect(result).toBe(true);
@@ -106,7 +113,7 @@ describe('OtlpAuthGuard', () => {
       tenant: { name: 'user-1' },
     });
 
-    const { ctx } = makeContext({ authorization: 'Bearer expired-key' });
+    const { ctx } = makeContext({ authorization: 'Bearer mnfst_expired-key' });
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
     await expect(guard.canActivate(ctx)).rejects.toThrow('API key expired');
   });
@@ -120,7 +127,7 @@ describe('OtlpAuthGuard', () => {
       tenant: { name: 'user-1' },
     });
 
-    const { ctx: ctx1 } = makeContext({ authorization: 'Bearer cached-key' });
+    const { ctx: ctx1 } = makeContext({ authorization: 'Bearer mnfst_cached-key' });
     await guard.canActivate(ctx1);
 
     expect(mockCreateQueryBuilder).toHaveBeenCalledTimes(1);
@@ -128,7 +135,7 @@ describe('OtlpAuthGuard', () => {
     mockCreateQueryBuilder.mockClear();
     mockGetOne.mockClear();
 
-    const { ctx: ctx2 } = makeContext({ authorization: 'Bearer cached-key' });
+    const { ctx: ctx2 } = makeContext({ authorization: 'Bearer mnfst_cached-key' });
     await guard.canActivate(ctx2);
 
     expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
@@ -143,10 +150,10 @@ describe('OtlpAuthGuard', () => {
       tenant: { name: 'user-1' },
     });
 
-    const { ctx } = makeContext({ authorization: 'Bearer inv-key' });
+    const { ctx } = makeContext({ authorization: 'Bearer mnfst_inv-key' });
     await guard.canActivate(ctx);
 
-    guard.invalidateCache('inv-key');
+    guard.invalidateCache('mnfst_inv-key');
     mockCreateQueryBuilder.mockClear();
     mockGetOne.mockClear();
 
@@ -166,7 +173,7 @@ describe('OtlpAuthGuard', () => {
     };
     mockCreateQueryBuilder.mockReturnValue(mockQb2);
 
-    const { ctx: ctx2 } = makeContext({ authorization: 'Bearer inv-key' });
+    const { ctx: ctx2 } = makeContext({ authorization: 'Bearer mnfst_inv-key' });
     await guard.canActivate(ctx2);
 
     expect(mockCreateQueryBuilder).toHaveBeenCalledTimes(1);
