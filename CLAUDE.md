@@ -272,6 +272,21 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - **Tenant**: A user's data boundary. Created from `user.id` on first agent creation.
 - **Agent**: An AI agent owned by a tenant. Has a unique OTLP ingest key.
 
+## Content Security Policy (CSP)
+
+Helmet enforces a strict CSP in `main.ts`. The policy only allows `'self'` origins — **no external CDNs are permitted**.
+
+**Rule: Never load external resources from CDNs.** All assets (fonts, icons, stylesheets) must be self-hosted under `packages/frontend/public/`. This keeps the CSP strict and avoids third-party dependencies at runtime.
+
+Current self-hosted assets:
+- **Boxicons Duotone** — `public/fonts/boxicons/` (CSS + woff/ttf font files)
+
+To add a new font or icon library:
+1. Download the CSS and font files into `packages/frontend/public/`
+2. Rewrite any CDN URLs inside the CSS to use relative paths (`./filename.woff`)
+3. Reference the local CSS in `index.html` (e.g. `<link href="/fonts/..." />`)
+4. Do **not** add external domains to the CSP directives
+
 ## Architecture Notes
 
 - **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/otlp/*`) are excluded.
