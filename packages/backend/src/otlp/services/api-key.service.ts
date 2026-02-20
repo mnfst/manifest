@@ -101,10 +101,7 @@ export class ApiKeyGeneratorService {
       .getOne();
     if (!agent) throw new NotFoundException('Agent not found or access denied');
 
-    await this.keyRepo.update(
-      { agent_id: agent.id, is_active: true },
-      { is_active: false },
-    );
+    await this.keyRepo.delete({ agent_id: agent.id });
 
     const rawKey = this.generateKey();
     const keyId = uuidv4();
