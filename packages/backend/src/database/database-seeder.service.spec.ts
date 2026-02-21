@@ -1,6 +1,5 @@
-import { ConfigService } from '@nestjs/config';
+import { keyPrefix, sha256 } from '../common/utils/hash.util';
 import { DatabaseSeederService } from './database-seeder.service';
-import { sha256, keyPrefix } from '../common/utils/hash.util';
 
 // Mock auth.instance before importing the service
 jest.mock('../auth/auth.instance', () => ({
@@ -85,7 +84,7 @@ describe('DatabaseSeederService', () => {
 
       await service.onModuleInit();
 
-      expect(mockPricingRepo.count).toHaveBeenCalled();
+      expect(mockPricingRepo.upsert).toHaveBeenCalled();
     });
 
     it('should seed demo data when env is development and SEED_DATA is true', async () => {
@@ -295,24 +294,13 @@ describe('DatabaseSeederService', () => {
   });
 
   describe('seedModelPricing', () => {
-    it('should skip seeding when pricing data already exists', async () => {
-      mockPricingRepo.count.mockResolvedValue(10);
-
-      await service.onModuleInit();
-
-      expect(mockPricingRepo.upsert).not.toHaveBeenCalled();
-    });
-
-    it('should upsert all model pricing entries when table is empty', async () => {
-      mockPricingRepo.count.mockResolvedValue(0);
-
-      // Prevent demo data seeding to isolate pricing test
+    it('should always upsert model pricing even when data exists', async () => {
       mockConfigService.get.mockReturnValue('production');
 
       await service.onModuleInit();
 
-      // The source has 29 models defined
-      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(29);
+      // 30 curated models are always upserted
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(30);
     });
 
     it('should upsert with model_name as conflict key', async () => {
@@ -361,8 +349,8 @@ describe('DatabaseSeederService', () => {
       // First call (checkBetterAuthUser): no rows
       // Subsequent calls (getAdminUserId): return the user
       mockDataSource.query
-        .mockResolvedValueOnce([])    // checkBetterAuthUser
-        .mockResolvedValueOnce({})    // UPDATE emailVerified
+        .mockResolvedValueOnce([]) // checkBetterAuthUser
+        .mockResolvedValueOnce({}) // UPDATE emailVerified
         .mockResolvedValue([{ id: 'new-admin-id' }]); // getAdminUserId
 
       await service.onModuleInit();
@@ -378,8 +366,8 @@ describe('DatabaseSeederService', () => {
 
     it('should mark email as verified after creating admin user', async () => {
       mockDataSource.query
-        .mockResolvedValueOnce([])    // checkBetterAuthUser
-        .mockResolvedValueOnce({})    // UPDATE emailVerified
+        .mockResolvedValueOnce([]) // checkBetterAuthUser
+        .mockResolvedValueOnce({}) // UPDATE emailVerified
         .mockResolvedValue([{ id: 'new-admin-id' }]);
 
       await service.onModuleInit();
@@ -439,9 +427,9 @@ describe('DatabaseSeederService', () => {
       // which causes seedAdminUser to proceed with signUpEmail.
       // The subsequent UPDATE query also needs a mock.
       mockDataSource.query
-        .mockRejectedValueOnce(new Error('DB down'))  // checkBetterAuthUser
-        .mockResolvedValueOnce({})                     // UPDATE emailVerified
-        .mockResolvedValue([{ id: 'admin-id' }]);      // getAdminUserId calls
+        .mockRejectedValueOnce(new Error('DB down')) // checkBetterAuthUser
+        .mockResolvedValueOnce({}) // UPDATE emailVerified
+        .mockResolvedValue([{ id: 'admin-id' }]); // getAdminUserId calls
 
       await expect(service.onModuleInit()).resolves.toBeUndefined();
       // signUpEmail was called because checkBetterAuthUser returned false
@@ -450,7 +438,7 @@ describe('DatabaseSeederService', () => {
 
     it('should propagate unhandled errors from seedAdminUser', async () => {
       // checkBetterAuthUser returns false, signUpEmail throws
-      mockDataSource.query.mockResolvedValueOnce([]);  // checkBetterAuthUser: no user
+      mockDataSource.query.mockResolvedValueOnce([]); // checkBetterAuthUser: no user
       auth.api.signUpEmail.mockRejectedValueOnce(new Error('signup failed'));
 
       await expect(service.onModuleInit()).rejects.toThrow('signup failed');

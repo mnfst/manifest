@@ -151,9 +151,8 @@ export class DatabaseSeederService implements OnModuleInit {
   }
 
   private async seedModelPricing() {
-    const count = await this.pricingRepo.count();
-    if (count > 0) return;
-
+    // Always upsert the curated model list so missing models are re-added
+    // and existing ones keep their seeded quality_score / capabilities.
     // [model_id, provider, input/tok, output/tok, context_window, reasoning, code, quality]
     // quality_score: 5=frontier, 4=tier-1.5, 3=mid-range, 2=cost-optimized, 1=ultra-low-cost
     // Source: official pricing pages (Feb 2026)
@@ -191,12 +190,12 @@ export class DatabaseSeederService implements OnModuleInit {
       ['mistral-large',              'Mistral',   0.000002,   0.000006,   128000,  false, true,  3],
       ['mistral-small',              'Mistral',   0.0000002,  0.0000006,  128000,  false, false, 1],
       ['codestral',                  'Mistral',   0.0000003,  0.0000009,  256000,  false, true,  2],
-      // Meta (Llama)
-      ['llama-4-maverick',           'Meta',      0.00000018, 0.00000059, 1048576, false, true,  3],
-      ['llama-4-scout',              'Meta',      0.00000015, 0.00000044, 512000,  false, true,  2],
-      // Cohere
-      ['command-r-plus',             'Cohere',    0.0000025,  0.00001,    128000,  false, false, 3],
-      ['command-r',                  'Cohere',    0.00000015, 0.0000006,  128000,  false, false, 2],
+      // xAI (Grok)
+      ['grok-3',                     'xAI',       0.000003,   0.000015,   131072,  true,  true,  5],
+      ['grok-3-mini',                'xAI',       0.0000003,  0.0000005,  131072,  true,  true,  3],
+      ['grok-3-fast',                'xAI',       0.000005,   0.000025,   131072,  false, true,  4],
+      ['grok-3-mini-fast',           'xAI',       0.0000006,  0.000004,   131072,  false, true,  2],
+      ['grok-2',                     'xAI',       0.000002,   0.00001,    131072,  false, true,  3],
     ];
 
     for (const [name, provider, inputPrice, outputPrice, ctxWindow, reasoning, code, quality] of models) {

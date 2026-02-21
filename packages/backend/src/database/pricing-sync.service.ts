@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.se
 
 interface OpenRouterModel {
   id: string;
+  context_length?: number;
   pricing?: {
     prompt?: string;
     completion?: string;
@@ -18,58 +19,25 @@ interface OpenRouterResponse {
   data: OpenRouterModel[];
 }
 
-interface ModelMapping {
-  canonical: string;
-  provider: string;
-}
+// Map OpenRouter provider prefixes to our canonical provider names
+const PROVIDER_PREFIXES: ReadonlyMap<string, string> = new Map([
+  ['anthropic/', 'Anthropic'],
+  ['openai/', 'OpenAI'],
+  ['google/', 'Google'],
+  ['deepseek/', 'DeepSeek'],
+  ['mistralai/', 'Mistral'],
+  ['x-ai/', 'xAI'],
+  ['qwen/', 'Alibaba'],
+  ['moonshotai/', 'Moonshot'],
+]);
 
-// Map OpenRouter model IDs to our canonical model names + provider
-const MODEL_MAP: Record<string, ModelMapping> = {
-  // Anthropic
-  'anthropic/claude-opus-4': { canonical: 'claude-opus-4-6', provider: 'Anthropic' },
-  'anthropic/claude-sonnet-4': { canonical: 'claude-sonnet-4-20250514', provider: 'Anthropic' },
-  'anthropic/claude-sonnet-4.5': { canonical: 'claude-sonnet-4-5-20250929', provider: 'Anthropic' },
-  'anthropic/claude-haiku-4.5': { canonical: 'claude-haiku-4-5-20251001', provider: 'Anthropic' },
-  // OpenAI GPT
-  'openai/gpt-4o': { canonical: 'gpt-4o', provider: 'OpenAI' },
-  'openai/gpt-4o-mini': { canonical: 'gpt-4o-mini', provider: 'OpenAI' },
-  'openai/gpt-4.1': { canonical: 'gpt-4.1', provider: 'OpenAI' },
-  'openai/gpt-4.1-mini': { canonical: 'gpt-4.1-mini', provider: 'OpenAI' },
-  'openai/gpt-4.1-nano': { canonical: 'gpt-4.1-nano', provider: 'OpenAI' },
-  // OpenAI reasoning
-  'openai/o3': { canonical: 'o3', provider: 'OpenAI' },
-  'openai/o3-mini': { canonical: 'o3-mini', provider: 'OpenAI' },
-  'openai/o4-mini': { canonical: 'o4-mini', provider: 'OpenAI' },
-  // Google Gemini
-  'google/gemini-2.5-pro': { canonical: 'gemini-2.5-pro', provider: 'Google' },
-  'google/gemini-2.5-flash': { canonical: 'gemini-2.5-flash', provider: 'Google' },
-  'google/gemini-2.5-flash-lite': { canonical: 'gemini-2.5-flash-lite', provider: 'Google' },
-  'google/gemini-2.0-flash': { canonical: 'gemini-2.0-flash', provider: 'Google' },
-  // DeepSeek
-  'deepseek/deepseek-chat-v3-0324': { canonical: 'deepseek-v3', provider: 'DeepSeek' },
-  'deepseek/deepseek-r1': { canonical: 'deepseek-r1', provider: 'DeepSeek' },
-  // Moonshot (Kimi)
-  'moonshotai/kimi-k2': { canonical: 'kimi-k2', provider: 'Moonshot' },
-  // Alibaba (Qwen)
-  'qwen/qwen-2.5-72b-instruct': { canonical: 'qwen-2.5-72b-instruct', provider: 'Alibaba' },
-  'qwen/qwq-32b': { canonical: 'qwq-32b', provider: 'Alibaba' },
-  'qwen/qwen-2.5-coder-32b-instruct': { canonical: 'qwen-2.5-coder-32b-instruct', provider: 'Alibaba' },
-  // Mistral
-  'mistralai/mistral-large': { canonical: 'mistral-large', provider: 'Mistral' },
-  'mistralai/mistral-small': { canonical: 'mistral-small', provider: 'Mistral' },
-  'mistralai/codestral': { canonical: 'codestral', provider: 'Mistral' },
-  // Meta (Llama)
-  'meta-llama/llama-4-maverick': { canonical: 'llama-4-maverick', provider: 'Meta' },
-  'meta-llama/llama-4-scout': { canonical: 'llama-4-scout', provider: 'Meta' },
-  // Cohere
-  'cohere/command-r-plus': { canonical: 'command-r-plus', provider: 'Cohere' },
-  'cohere/command-r': { canonical: 'command-r', provider: 'Cohere' },
-};
+// OpenRouter variant suffixes to skip (non-standard pricing / duplicates)
+const VARIANT_SUFFIXES = [':free', ':extended', ':nitro'];
 
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/models';
 
 @Injectable()
-export class PricingSyncService {
+export class PricingSyncService implements OnModuleInit {
   private readonly logger = new Logger(PricingSyncService.name);
 
   constructor(
@@ -78,6 +46,14 @@ export class PricingSyncService {
     private readonly pricingCache: ModelPricingCacheService,
     private readonly moduleRef: ModuleRef,
   ) {}
+
+  async onModuleInit() {
+    // Fire-and-forget: sync prices from OpenRouter on startup to keep
+    // the seeded models up-to-date (no new models are added).
+    this.syncPricing().catch((err) => {
+      this.logger.error(`Startup pricing sync failed: ${err}`);
+    });
+  }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async syncPricing(): Promise<number> {
@@ -101,26 +77,35 @@ export class PricingSyncService {
       return 0;
     }
 
-    const updatedModels = new Set<string>();
+    const existingModels = new Set(
+      this.pricingCache.getAll().map((m) => m.model_name),
+    );
+
     let updated = 0;
     for (const model of data) {
-      const mapping = MODEL_MAP[model.id];
-      if (!mapping) continue;
+      const match = this.matchProvider(model.id);
+      if (!match) continue;
 
       const prompt = Number(model.pricing?.prompt ?? 0);
       const completion = Number(model.pricing?.completion ?? 0);
       if (prompt === 0 && completion === 0) continue;
 
+      const { canonical, provider } = match;
+
+      // Only update prices for models we already have (seeded).
+      // Never insert new models — keep the curated list small.
+      if (!existingModels.has(canonical)) continue;
+
       await this.pricingRepo.upsert(
         {
-          model_name: mapping.canonical,
-          provider: mapping.provider,
+          model_name: canonical,
+          provider,
           input_price_per_token: prompt,
           output_price_per_token: completion,
+          ...(model.context_length ? { context_window: model.context_length } : {}),
         },
         ['model_name'],
       );
-      updatedModels.add(mapping.canonical);
       updated++;
     }
 
@@ -153,4 +138,20 @@ export class PricingSyncService {
 
     return updated;
   }
+
+  /** Match an OpenRouter model ID to a supported provider, returning canonical name + provider. */
+  private matchProvider(
+    modelId: string,
+  ): { canonical: string; provider: string } | null {
+    // Skip OpenRouter variant suffixes
+    if (VARIANT_SUFFIXES.some((s) => modelId.endsWith(s))) return null;
+
+    for (const [prefix, provider] of PROVIDER_PREFIXES) {
+      if (modelId.startsWith(prefix)) {
+        return { canonical: modelId.slice(prefix.length), provider };
+      }
+    }
+    return null;
+  }
+
 }

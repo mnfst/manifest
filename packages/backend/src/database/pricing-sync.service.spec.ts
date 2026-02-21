@@ -20,40 +20,157 @@ describe('PricingSyncService', () => {
     mockGetAll.mockReturnValue([]);
   });
 
-  it('updates known models from OpenRouter response', async () => {
+  it('only updates existing models, skips new ones', async () => {
+    // Cache has gpt-4o but not the other two
+    mockGetAll.mockReturnValue([
+      { model_name: 'gpt-4o', provider: 'OpenAI' },
+    ]);
+
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
         data: [
-          { id: 'anthropic/claude-opus-4', pricing: { prompt: '0.000015', completion: '0.000075' } },
-          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+          { id: 'anthropic/claude-opus-4', context_length: 200000, pricing: { prompt: '0.000015', completion: '0.000075' } },
+          { id: 'openai/gpt-4o', context_length: 128000, pricing: { prompt: '0.0000025', completion: '0.00001' } },
+          { id: 'x-ai/grok-3', context_length: 131072, pricing: { prompt: '0.000003', completion: '0.000015' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'gpt-4o',
+        provider: 'OpenAI',
+      }),
+      ['model_name'],
+    );
+  });
+
+  it('skips models from unsupported providers', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'meta-llama/llama-4-scout', pricing: { prompt: '0.00000015', completion: '0.00000044' } },
+          { id: 'cohere/command-r', pricing: { prompt: '0.00000015', completion: '0.0000006' } },
           { id: 'some/unknown-model', pricing: { prompt: '0.001', completion: '0.002' } },
         ],
       }),
     });
 
     const updated = await service.syncPricing();
-    expect(updated).toBe(2);
-    expect(mockReload).toHaveBeenCalledTimes(1);
-    expect(mockUpsert).toHaveBeenCalledTimes(2);
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('skips :free, :extended, and :nitro variant suffixes', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'anthropic/claude-opus-4:free', pricing: { prompt: '0', completion: '0' } },
+          { id: 'openai/gpt-4o:extended', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+          { id: 'google/gemini-2.5-pro:nitro', pricing: { prompt: '0.00000125', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('skips models with zero pricing', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0', completion: '0' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('propagates context_length to context_window for existing models', async () => {
+    mockGetAll.mockReturnValue([
+      { model_name: 'gemini-2.5-pro', provider: 'Google' },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'google/gemini-2.5-pro', context_length: 1048576, pricing: { prompt: '0.00000125', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
     expect(mockUpsert).toHaveBeenCalledWith(
-      {
-        model_name: 'claude-opus-4-6',
-        provider: 'Anthropic',
-        input_price_per_token: 0.000015,
-        output_price_per_token: 0.000075,
-      },
+      expect.objectContaining({
+        model_name: 'gemini-2.5-pro',
+        context_window: 1048576,
+      }),
       ['model_name'],
     );
+  });
+
+  it('updates only prices for existing models (preserves quality_score and capabilities)', async () => {
+    // Simulate existing models in cache
+    mockGetAll.mockReturnValue([
+      { model_name: 'gpt-4o', provider: 'OpenAI' },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', context_length: 128000, pricing: { prompt: '0.000003', completion: '0.000012' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
     expect(mockUpsert).toHaveBeenCalledWith(
       {
         model_name: 'gpt-4o',
         provider: 'OpenAI',
-        input_price_per_token: 0.0000025,
-        output_price_per_token: 0.00001,
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000012,
+        context_window: 128000,
       },
       ['model_name'],
     );
+    // Should NOT include capability or quality fields
+    const upsertData = mockUpsert.mock.calls[0][0];
+    expect(upsertData).not.toHaveProperty('capability_reasoning');
+    expect(upsertData).not.toHaveProperty('capability_code');
+    expect(upsertData).not.toHaveProperty('quality_score');
+  });
+
+  it('skips new models not in the curated list', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/o3', context_length: 200000, pricing: { prompt: '0.000002', completion: '0.000008' } },
+          { id: 'deepseek/deepseek-r1', pricing: { prompt: '0.00000055', completion: '0.00000219' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
   });
 
   it('returns 0 when API returns non-OK status', async () => {
@@ -70,21 +187,6 @@ describe('PricingSyncService', () => {
     expect(updated).toBe(0);
     expect(mockUpsert).not.toHaveBeenCalled();
     expect(mockReload).not.toHaveBeenCalled();
-  });
-
-  it('skips models with zero pricing', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        data: [
-          { id: 'openai/gpt-4o', pricing: { prompt: '0', completion: '0' } },
-        ],
-      }),
-    });
-
-    const updated = await service.syncPricing();
-    expect(updated).toBe(0);
-    expect(mockUpsert).not.toHaveBeenCalled();
   });
 
   it('skips models with missing pricing field', async () => {
@@ -107,5 +209,38 @@ describe('PricingSyncService', () => {
 
     const updated = await service.syncPricing();
     expect(updated).toBe(0);
+  });
+
+  it('triggers sync on startup via onModuleInit', async () => {
+    mockGetAll.mockReturnValue([
+      { model_name: 'claude-opus-4', provider: 'Anthropic' },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'anthropic/claude-opus-4', pricing: { prompt: '0.000015', completion: '0.000075' } },
+        ],
+      }),
+    });
+
+    // onModuleInit fires syncPricing as fire-and-forget
+    await service.onModuleInit();
+    // Allow the async fire-and-forget to settle
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockFetch).toHaveBeenCalledWith('https://openrouter.ai/api/v1/models');
+    expect(mockUpsert).toHaveBeenCalled();
+  });
+
+  it('does not crash if startup sync fails', async () => {
+    mockFetch.mockRejectedValue(new Error('Startup network error'));
+
+    // Should not throw
+    await service.onModuleInit();
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockUpsert).not.toHaveBeenCalled();
   });
 });
