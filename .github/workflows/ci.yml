@@ -10,7 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  backend:
+  backend-postgres:
+    name: Backend (PostgreSQL)
     runs-on: ubuntu-latest
 
     services:
@@ -30,7 +31,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://myuser:mypassword@localhost:5432/mydatabase
-      BETTER_AUTH_SECRET: ci-test-secret
+      BETTER_AUTH_SECRET: ci-test-secret-at-least-32-characters-long!!
       NODE_ENV: test
 
     steps:
@@ -48,6 +49,26 @@ jobs:
       - run: npm test --workspace=packages/backend
       - run: npm run test:e2e --workspace=packages/backend
 
+  backend-sqlite:
+    name: Backend (SQLite)
+    runs-on: ubuntu-latest
+
+    env:
+      MANIFEST_MODE: local
+      BETTER_AUTH_SECRET: ci-test-secret-at-least-32-characters-long!!
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace=packages/backend
+      - name: E2E tests (SQLite in-memory)
+        run: npm run test:e2e --workspace=packages/backend
+
   frontend:
     runs-on: ubuntu-latest
     steps:
@@ -62,3 +83,14 @@ jobs:
       - run: npm test --workspace=packages/frontend
       - run: npx vite build
         working-directory: packages/frontend
+
+  plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test --workspace=packages/openclaw-plugin

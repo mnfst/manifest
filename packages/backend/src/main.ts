@@ -6,7 +6,7 @@ import * as express from 'express';
 import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
 
-async function bootstrap() {
+export async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule, { bodyParser: false });
   app.enableShutdownHooks();
@@ -72,6 +72,10 @@ async function bootstrap() {
   const host = process.env['BIND_ADDRESS'] ?? '127.0.0.1';
   await app.listen(port, host);
   logger.log(`Server running on http://${host}:${port}`);
+  return app;
 }
 
-bootstrap();
+// Only auto-start when run directly (not imported by manifest-server)
+if (!process.env['MANIFEST_EMBEDDED']) {
+  bootstrap();
+}

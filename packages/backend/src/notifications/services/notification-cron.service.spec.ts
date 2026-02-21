@@ -30,7 +30,7 @@ describe('NotificationCronService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationCronService,
-        { provide: DataSource, useValue: { query: mockQuery } },
+        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'postgres' } } },
         {
           provide: NotificationRulesService,
           useValue: {

@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryColumn, OneToMany } from 'typeorm';
 import { Agent } from './agent.entity';
+import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('tenants')
 export class Tenant {
@@ -21,9 +22,9 @@ export class Tenant {
   @OneToMany(() => Agent, (a) => a.tenant, { cascade: true })
   agents!: Agent[];
 
-  @Column('timestamp', { default: () => 'NOW()' })
+  @Column(timestampType(), { default: () => 'CURRENT_TIMESTAMP' })
   created_at!: string;
 
-  @Column('timestamp', { default: () => 'NOW()' })
+  @Column(timestampType(), { default: () => 'CURRENT_TIMESTAMP' })
   updated_at!: string;
 }

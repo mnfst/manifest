@@ -2,364 +2,218 @@
   <img src="home-gh.png" alt="Manifest" />
 </p>
 
-# Manifest
+<h1 align="center">Manifest</h1>
 
-AI agent observability platform. Monitor costs, tokens, messages, and performance of your AI agents in real time.
+<p align="center">
+  Open-source observability for AI agents.<br />
+  Track costs, tokens, messages, and performance — entirely on your machine.
+</p>
+
+<p align="center">
+  <a href="#install">Install</a> &nbsp;&middot;&nbsp;
+  <a href="#what-you-get">What you get</a> &nbsp;&middot;&nbsp;
+  <a href="#tech-stack">Tech stack</a> &nbsp;&middot;&nbsp;
+  <a href="#connecting-telemetry">Telemetry</a> &nbsp;&middot;&nbsp;
+  <a href="#configuration">Configuration</a> &nbsp;&middot;&nbsp;
+  <a href="#contributing">Contributing</a>
+</p>
+
+---
+
+> **Want a hosted version instead?** [app.manifest.build](https://app.manifest.build) is a free cloud instance — install the plugin, paste your API key, and you're done in 30 seconds. No server to run.
+
+---
+
+## Install
+
+Manifest runs as an embedded server inside the [OpenClaw](https://openclaw.com) plugin. Two commands, no Docker, no Postgres, no env files.
+
+```bash
+openclaw plugins install manifest
+openclaw config set plugins.entries.manifest.config.mode "local"
+```
+
+Restart the gateway and you're up:
+
+```bash
+openclaw gateway restart
+```
+
+The dashboard opens at **http://127.0.0.1:2099**. Telemetry from your agent flows in automatically.
+
+### What happens under the hood
+
+1. The plugin generates a local API key and stores it in `~/.openclaw/manifest/config.json`
+2. An embedded NestJS server starts with a SQLite database at `~/.openclaw/manifest/manifest.db`
+3. OpenTelemetry traces and metrics are piped to the local OTLP endpoint
+4. Model pricing is seeded on first boot and refreshed from OpenRouter on each startup
+
+No account, no signup, no external network calls for telemetry. Everything stays on your machine.
+
+## What you get
+
+- **Real-time dashboard** — tokens, costs, messages, and model usage with interactive charts
+- **Per-agent breakdown** — track multiple agents independently with sparkline overviews
+- **Cost tracking** — automatic cost calculation using up-to-date model pricing (28+ models)
+- **Message log** — paginated history of every agent message with token counts
+- **Security events** — monitor for prompt injection attempts and anomalous patterns
+- **Notification rules** — set threshold alerts on token or cost usage per period
+- **OTLP-native** — standard OpenTelemetry ingestion (traces, metrics, logs) via HTTP
 
 ## Tech Stack
 
-| Layer     | Technology                                       |
-| --------- | ------------------------------------------------ |
-| Frontend  | SolidJS, uPlot, custom CSS tokens                |
-| Backend   | NestJS 11, TypeORM, PostgreSQL 16                |
-| Auth      | Better Auth (email/password + 3 OAuth providers) |
-| Telemetry | OTLP HTTP (JSON + Protobuf)                      |
-| Monorepo  | Turborepo + npm workspaces                       |
+| Layer     | Technology                                |
+| --------- | ----------------------------------------- |
+| Frontend  | SolidJS, uPlot, custom CSS theme          |
+| Backend   | NestJS 11, TypeORM, SQLite (local mode)   |
+| Auth      | Better Auth (auto-login on localhost)      |
+| Telemetry | OTLP HTTP (JSON + Protobuf)               |
+| Build     | Turborepo + npm workspaces                |
 
-## Getting Started
+The full NestJS + SolidJS stack runs locally backed by SQLite. The same codebase also powers the [cloud version](https://app.manifest.build) with PostgreSQL — the only differences are the database driver and auth guard.
 
-### Prerequisites
+## Connecting Telemetry
 
-- Node.js 22.x (LTS)
-- npm 10.x
-- Docker (for PostgreSQL)
+### Automatic (OpenClaw plugin)
 
-### PostgreSQL
+If you installed Manifest via the OpenClaw plugin, telemetry is wired up automatically. Every agent conversation generates traces and metrics without any extra configuration.
 
-Start a local PostgreSQL 16 instance. The easiest way is Docker:
+### Manual (any OpenTelemetry SDK)
 
-```bash
-docker run -d --name postgres_db \
-  -e POSTGRES_USER=myuser \
-  -e POSTGRES_PASSWORD=mypassword \
-  -e POSTGRES_DB=mydatabase \
-  -p 5432:5432 \
-  postgres:16
-```
+Manifest accepts standard OTLP HTTP signals. Point any exporter at your local instance:
 
-The `DATABASE_URL` in your `.env` must match these credentials:
+| Signal  | Endpoint                              | Auth                                    |
+| ------- | ------------------------------------- | --------------------------------------- |
+| Traces  | `POST http://127.0.0.1:2099/otlp/v1/traces`  | `Authorization: Bearer <your-api-key>` |
+| Metrics | `POST http://127.0.0.1:2099/otlp/v1/metrics` | `Authorization: Bearer <your-api-key>` |
+| Logs    | `POST http://127.0.0.1:2099/otlp/v1/logs`    | `Authorization: Bearer <your-api-key>` |
 
-```
-DATABASE_URL=postgresql://myuser:mypassword@localhost:5432/mydatabase
-```
+Your API key is in `~/.openclaw/manifest/config.json`. Both `application/json` and `application/x-protobuf` are supported.
 
-> **Format:** `postgresql://<user>:<password>@<host>:<port>/<database>`
-
-If you use a managed PostgreSQL instance (e.g. Railway, Supabase, Neon), set `DATABASE_URL` to the connection string provided by your provider.
-
-### Install & Run
-
-```bash
-git clone <repo-url> && cd manifest
-npm install
-cp packages/backend/.env.example packages/backend/.env    # edit with your secrets
-npm run dev
-```
-
-The frontend starts on `http://localhost:3000` and the backend on `http://localhost:3001`.
-
-### Environment Variables
-
-Copy `packages/backend/.env.example` to `packages/backend/.env` and fill in the required values.
-
-#### Core
-
-| Variable | Required | Default | Description |
-| --- | --- | --- | --- |
-| `BETTER_AUTH_SECRET` | Yes | — | Secret for session signing. Must be at least 32 characters. Generate with `openssl rand -hex 32`. |
-| `DATABASE_URL` | Yes* | `postgresql://myuser:mypassword@localhost:5432/mydatabase` | PostgreSQL connection string. Format: `postgresql://user:password@host:port/database`. The default matches the Docker command above — override in production. |
-| `PORT` | No | `3001` | Server port. |
-| `BIND_ADDRESS` | No | `127.0.0.1` | Bind address. Use `0.0.0.0` for Docker/Railway. |
-| `NODE_ENV` | No | `development` | Set `production` to disable CORS and serve frontend static files. |
-| `CORS_ORIGIN` | No | `http://localhost:3000` | Allowed CORS origin (dev mode only). |
-| `API_KEY` | No | — | Secret for programmatic API access via `X-API-Key` header. |
-| `BETTER_AUTH_URL` | No | `http://localhost:{PORT}` | Base URL for Better Auth (set to your public URL in production). |
-| `FRONTEND_PORT` | No | — | Extra trusted origin port for Better Auth (added to trusted origins list). |
-| `THROTTLE_TTL` | No | `60000` | Rate limit window in milliseconds. |
-| `THROTTLE_LIMIT` | No | `100` | Max requests per rate limit window. |
-| `SEED_DATA` | No | — | Set `true` to seed demo data on startup. |
-
-*The default `DATABASE_URL` matches the Docker command in the PostgreSQL section above. For production, you must set this to your actual PostgreSQL connection string.
-
-#### Email (Mailgun)
-
-Required for email verification and password reset to work. Without these, users can register but won't receive verification or reset emails.
-
-| Variable | Required | Default | Description |
-| --- | --- | --- | --- |
-| `MAILGUN_API_KEY` | Yes* | — | Mailgun API key (starts with `key-`). Found in Mailgun dashboard under API Keys. |
-| `MAILGUN_DOMAIN` | Yes* | — | Mailgun sending domain (e.g. `mg.yourdomain.com`). Must be verified in Mailgun. |
-| `NOTIFICATION_FROM_EMAIL` | No | `noreply@manifest.build` | Sender email address for all outgoing emails. |
-
-*If not set, the app runs normally but email verification and password reset emails are silently skipped.
-
-#### OAuth Providers (all optional)
-
-Each provider requires both `CLIENT_ID` and `CLIENT_SECRET` to be set. If either is missing, that provider is disabled.
-
-| Variable | Description |
-| --- | --- |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth |
-| `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | Discord OAuth |
-
-#### Plugin (optional)
-
-| Variable | Required | Default | Description |
-| --- | --- | --- | --- |
-| `PLUGIN_OTLP_ENDPOINT` | No | — | Custom OTLP endpoint URL shown in the plugin setup UI. |
-
-## Authentication
-
-Manifest uses [Better Auth](https://www.better-auth.com/) for user authentication. Two auth methods are supported:
-
-### Session-Based (UI)
-
-Users sign in via the web UI using email/password or one of three OAuth providers (Google, GitHub, Discord). Sessions are cookie-based and managed by Better Auth at `/api/auth/*`.
-
-### API Key (Programmatic)
-
-For CLI/script access, set the `API_KEY` env var and pass it via `X-API-Key` header. This bypasses session auth and is useful for automation.
-
-### OTLP Ingest Keys
-
-Each agent gets a unique ingest key (`mnfst_*` format) for sending telemetry. Pass it via `Authorization: Bearer <key>` to OTLP endpoints. Keys are created automatically when onboarding a new agent.
-
-## Multi-Tenancy
-
-Each authenticated user is mapped to a **tenant**. Agents belong to tenants, and all data is filtered by tenant ownership:
-
-```
-User (Better Auth) ──→ Tenant ──→ Agent ──→ AgentApiKey (mnfst_*)
-                                    │
-                                    └──→ agent_messages (telemetry data)
-```
-
-- Users only see their own agents and telemetry data
-- Creating an agent via the UI auto-creates the tenant, agent, and OTLP ingest key
-- The `user.id` from Better Auth is used as the tenant `name`
-
-## Connecting OpenTelemetry
-
-Manifest accepts standard OTLP HTTP signals (traces, metrics, logs). Any OpenTelemetry SDK exporter can send data directly to the platform.
-
-### Endpoints
-
-| Signal  | Endpoint                | Auth                                    |
-| ------- | ----------------------- | --------------------------------------- |
-| Traces  | `POST /otlp/v1/traces`  | `Authorization: Bearer <agent-api-key>` |
-| Metrics | `POST /otlp/v1/metrics` | `Authorization: Bearer <agent-api-key>` |
-| Logs    | `POST /otlp/v1/logs`    | `Authorization: Bearer <agent-api-key>` |
-
-Both `application/json` and `application/x-protobuf` content types are supported.
-
-### Node.js / TypeScript Example
-
-```bash
-npm install @opentelemetry/sdk-node @opentelemetry/exporter-trace-otlp-http @opentelemetry/exporter-metrics-otlp-http @opentelemetry/exporter-logs-otlp-http
-```
+#### Node.js / TypeScript
 
 ```typescript
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
-import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
-
-const headers = { Authorization: 'Bearer mnfst_your-agent-api-key' }
-const baseUrl = 'http://localhost:3001'
 
 const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
-    url: `${baseUrl}/otlp/v1/traces`,
-    headers,
-  }),
-  metricReader: new PeriodicExportingMetricReader({
-    exporter: new OTLPMetricExporter({
-      url: `${baseUrl}/otlp/v1/metrics`,
-      headers,
-    }),
-  }),
-  logRecordProcessor: new OTLPLogExporter({
-    url: `${baseUrl}/otlp/v1/logs`,
-    headers,
+    url: 'http://127.0.0.1:2099/otlp/v1/traces',
+    headers: { Authorization: 'Bearer mnfst_your-api-key' },
   }),
   serviceName: 'my-agent',
-  resource: { 'agent.name': 'my-agent' },
 })
 
 sdk.start()
 ```
 
-### Python Example
-
-```bash
-pip install opentelemetry-sdk opentelemetry-exporter-otlp-proto-http
-```
+#### Python
 
 ```python
-from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
 provider = TracerProvider()
-exporter = OTLPSpanExporter(
-    endpoint="http://localhost:3001/otlp/v1/traces",
-    headers={"Authorization": "Bearer mnfst_your-agent-api-key"},
-)
-provider.add_span_processor(BatchSpanProcessor(exporter))
-trace.set_tracer_provider(provider)
-
-tracer = trace.get_tracer("my-agent")
-with tracer.start_as_current_span("process-request"):
-    pass  # your agent logic
-```
-
-### Using the OpenTelemetry Collector
-
-If you run the OTel Collector, add Manifest as an OTLP HTTP exporter:
-
-```yaml
-# otel-collector-config.yaml
-exporters:
-  otlphttp/manifest:
-    endpoint: http://localhost:3001
-    headers:
-      Authorization: 'Bearer mnfst_your-agent-api-key'
-
-service:
-  pipelines:
-    traces:
-      exporters: [otlphttp/manifest]
-    metrics:
-      exporters: [otlphttp/manifest]
-    logs:
-      exporters: [otlphttp/manifest]
+provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(
+    endpoint="http://127.0.0.1:2099/otlp/v1/traces",
+    headers={"Authorization": "Bearer mnfst_your-api-key"},
+)))
 ```
 
 ### Semantic Conventions
 
-Manifest classifies OTLP trace spans using these attributes:
+Manifest classifies spans using these OpenTelemetry attributes:
 
-| Attribute                    | Maps to               | Purpose                           |
-| ---------------------------- | --------------------- | --------------------------------- |
-| `agent.name`                 | Agent name            | Groups data per agent             |
-| `gen_ai.system`              | LLM call record       | Identifies spans as LLM API calls |
-| `gen_ai.request.model`       | Model name            | Tracks which model was used       |
-| `gen_ai.usage.input_tokens`  | Input tokens          | Token usage tracking              |
-| `gen_ai.usage.output_tokens` | Output tokens         | Token usage tracking              |
-| `tool.name`                  | Tool execution record | Identifies spans as tool calls    |
-| `session.key`                | Session key           | Groups messages by session        |
+| Attribute                    | Purpose                           |
+| ---------------------------- | --------------------------------- |
+| `agent.name`                 | Groups data per agent             |
+| `gen_ai.system`              | Identifies LLM API calls          |
+| `gen_ai.request.model`       | Tracks which model was used       |
+| `gen_ai.usage.input_tokens`  | Token usage tracking              |
+| `gen_ai.usage.output_tokens` | Token usage tracking              |
+| `tool.name`                  | Identifies tool call spans        |
+| `session.key`                | Groups messages by session        |
 
-## API Reference
+## Configuration
 
-### Agent Management
+The plugin config lives in your OpenClaw settings. All fields are optional in local mode.
 
-| Method | Route                       | Auth            | Purpose                            |
-| ------ | --------------------------- | --------------- | ---------------------------------- |
-| GET    | `/api/v1/agents`            | Session/API Key | List user's agents with sparklines |
-| POST   | `/api/v1/agents`            | Session/API Key | Create agent + OTLP ingest key     |
-| DELETE | `/api/v1/agents/:agentName` | Session/API Key | Delete an agent                    |
-
-### Analytics
-
-| Method | Route                        | Auth            | Purpose               |
-| ------ | ---------------------------- | --------------- | --------------------- |
-| GET    | `/api/v1/overview?range=24h` | Session/API Key | Dashboard summary     |
-| GET    | `/api/v1/tokens?range=24h`   | Session/API Key | Token usage analytics |
-| GET    | `/api/v1/costs?range=24h`    | Session/API Key | Cost breakdown        |
-| GET    | `/api/v1/messages?range=24h` | Session/API Key | Paginated message log |
-| GET    | `/api/v1/security?range=24h` | Session/API Key | Security events       |
-
-### Telemetry Ingestion
-
-| Method | Route               | Auth    | Purpose                           |
-| ------ | ------------------- | ------- | --------------------------------- |
-| POST   | `/api/v1/telemetry` | API Key | Ingest events (JSON, returns 202) |
-| POST   | `/otlp/v1/traces`   | Bearer  | OTLP trace ingestion              |
-| POST   | `/otlp/v1/metrics`  | Bearer  | OTLP metric ingestion             |
-| POST   | `/otlp/v1/logs`     | Bearer  | OTLP log ingestion                |
-
-### Other
-
-| Method | Route            | Auth   | Purpose                                        |
-| ------ | ---------------- | ------ | ---------------------------------------------- |
-| GET    | `/api/v1/health` | Public | Health check                                   |
-| ALL    | `/api/auth/*`    | Public | Better Auth (login, register, OAuth, sessions) |
-
-## Frontend Pages
-
-| Route                    | Page           | Description                                            |
-| ------------------------ | -------------- | ------------------------------------------------------ |
-| `/login`                 | Login          | Email/password + social OAuth                          |
-| `/register`              | Register       | Create new account                                     |
-| `/reset-password`        | Reset Password | Password recovery                                      |
-| `/`                      | Workspace      | Agent grid (auto-opens "Add Agent" modal if no agents) |
-| `/agents/:name`          | Overview       | Agent dashboard with charts                            |
-| `/agents/:name/messages` | Message Log    | Paginated message history                              |
-| `/agents/:name/settings` | Settings       | Agent configuration                                    |
-| `/account`               | Account        | User profile and workspace ID                          |
-
-## Deployment
-
-### Single-Service Architecture
-
-The app deploys as a single service. In production, NestJS serves both the API and frontend static files from the same port via `@nestjs/serve-static`.
+| Setting | Default | Description |
+| --- | --- | --- |
+| `mode` | `"cloud"` | Set to `"local"` for the self-hosted server |
+| `port` | `2099` | Dashboard and OTLP port |
+| `host` | `"127.0.0.1"` | Bind address |
 
 ```bash
-npm run build     # Turborepo: frontend (Vite) then backend (Nest)
-npm start         # Starts single server serving everything
+# Change the port
+openclaw config set plugins.entries.manifest.config.port 8080
+
+# Bind to all interfaces (access from other machines)
+openclaw config set plugins.entries.manifest.config.host "0.0.0.0"
 ```
 
-### Railway
+### Data location
 
-Set these environment variables in Railway:
-
-| Variable              | Value        | Notes                                  |
-| --------------------- | ------------ | -------------------------------------- |
-| `DATABASE_URL`        | (from addon) | Add a PostgreSQL addon, use its URL    |
-| `BETTER_AUTH_SECRET`  | (generate)   | `openssl rand -hex 32`                 |
-| `PORT`                | (auto)       | Railway sets this automatically        |
-| `BIND_ADDRESS`        | `0.0.0.0`    | Required for Railway                   |
-| `NODE_ENV`            | `production` | Disables CORS, serves frontend static  |
-
-Build command: `npm run build`
-Start command: `npm start`
-
-## Database Migrations
-
-TypeORM migrations are version-controlled and run automatically on app startup (`migrationsRun: true`). Schema sync (`synchronize`) is permanently disabled.
-
-### Dev Workflow
-
-1. Modify an entity in `packages/backend/src/entities/`
-2. Generate a migration: `npm run migration:generate --workspace=packages/backend -- src/database/migrations/DescriptiveName`
-3. Commit both the entity change and the migration file
-
-### Migration Commands
-
-Run from the repo root with `--workspace=packages/backend`, or `cd packages/backend` first.
-
-| Command | Description |
+| Path | Contents |
 | --- | --- |
-| `npm run migration:generate -- src/database/migrations/Name` | Generate migration from entity diff |
-| `npm run migration:run` | Run pending migrations |
-| `npm run migration:revert` | Revert the last migration |
-| `npm run migration:show` | Show migration status (`[X]` = applied) |
-| `npm run migration:create -- src/database/migrations/Name` | Create an empty migration file |
+| `~/.openclaw/manifest/manifest.db` | SQLite database (all telemetry data) |
+| `~/.openclaw/manifest/config.json` | Auto-generated API key |
 
-## Testing
+To reset everything, delete `~/.openclaw/manifest/` and restart the gateway.
+
+## Contributing
+
+Manifest is open source under the [MIT license](LICENSE). Contributions are welcome.
+
+### Prerequisites
+
+- Node.js 22.x
+- npm 10.x
+
+### Setup
 
 ```bash
-# All tests
-npm test --workspace=packages/backend && npm run test:e2e --workspace=packages/backend && npm test --workspace=packages/frontend
+git clone https://github.com/mnfst/manifest && cd manifest
+npm install
+```
 
-# Individual
-npm test --workspace=packages/backend          # Jest unit tests (250 tests)
-npm run test:e2e --workspace=packages/backend  # Jest e2e tests (45 tests)
-npm test --workspace=packages/frontend         # Vitest tests (51 tests)
-npm run build                         # Verify TypeScript compilation
+### Development
+
+Run the backend and frontend separately in dev mode:
+
+```bash
+# Backend (needs a .env — see packages/backend/.env.example)
+cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
+
+# Frontend (proxies API to backend on :3001)
+cd packages/frontend && npx vite
+```
+
+For local mode development without PostgreSQL:
+
+```bash
+MANIFEST_MODE=local MANIFEST_DB_PATH=./dev.db BETTER_AUTH_SECRET=$(openssl rand -hex 32) \
+  node packages/backend/dist/main.js
+```
+
+### Testing
+
+```bash
+npm test --workspace=packages/backend          # 378 unit tests
+npm run test:e2e --workspace=packages/backend  # 45 e2e tests
+npm test --workspace=packages/frontend         # 82 frontend tests
+npm test --workspace=packages/openclaw-plugin  # 116 plugin tests
+```
+
+### Project structure
+
+```
+packages/
+  backend/           NestJS API + OTLP ingestion + analytics
+  frontend/          SolidJS dashboard
+  openclaw-plugin/   OpenClaw plugin (cloud + local mode)
+  manifest-server/   Embedded server wrapper for local mode
 ```
 
 ## License

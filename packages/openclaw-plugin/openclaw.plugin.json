@@ -9,9 +9,15 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
+      "mode": {
+        "type": "string",
+        "enum": ["cloud", "local"],
+        "default": "cloud",
+        "description": "Run mode: 'cloud' sends telemetry to app.manifest.build, 'local' starts an embedded server with SQLite"
+      },
       "apiKey": {
         "type": "string",
-        "description": "Your Manifest API key (starts with mnfst_)"
+        "description": "Your Manifest API key (starts with mnfst_). Not required in local mode."
       },
       "endpoint": {
         "type": "string",
@@ -33,10 +39,24 @@
         "minimum": 5000,
         "default": 30000,
         "description": "Metrics export interval in milliseconds"
+      },
+      "port": {
+        "type": "number",
+        "default": 2099,
+        "description": "Port for the local embedded server (local mode only)"
+      },
+      "host": {
+        "type": "string",
+        "default": "127.0.0.1",
+        "description": "Bind address for the local embedded server (local mode only)"
       }
     }
   },
   "uiHints": {
+    "mode": {
+      "label": "Mode",
+      "description": "Choose 'local' to run a self-contained server with SQLite, or 'cloud' to send data to app.manifest.build"
+    },
     "apiKey": {
       "label": "API Key",
       "placeholder": "mnfst_...",
@@ -56,6 +76,12 @@
     },
     "metricsIntervalMs": {
       "label": "Metrics Interval (ms)"
+    },
+    "port": {
+      "label": "Local Server Port"
+    },
+    "host": {
+      "label": "Local Server Host"
     }
   },
   "skills": ["skills/manifest-analytics"]

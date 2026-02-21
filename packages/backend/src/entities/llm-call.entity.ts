@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('llm_calls')
 export class LlmCall {
@@ -52,6 +53,6 @@ export class LlmCall {
   @Column('integer', { nullable: true })
   max_output_tokens!: number | null;
 
-  @Column('timestamp')
+  @Column(timestampType())
   timestamp!: string;
 }

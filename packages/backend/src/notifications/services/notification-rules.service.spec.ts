@@ -13,7 +13,7 @@ describe('NotificationRulesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationRulesService,
-        { provide: DataSource, useValue: { query: mockQuery } },
+        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'postgres' } } },
       ],
     }).compile();
 

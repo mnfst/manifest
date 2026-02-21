@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { AggregationService } from './aggregation.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
@@ -75,6 +76,7 @@ describe('AggregationService', () => {
           },
         },
         { provide: TimeseriesQueriesService, useValue: mockTimeseries },
+        { provide: DataSource, useValue: { options: { type: 'postgres' } } },
       ],
     }).compile();
 
@@ -255,7 +257,7 @@ describe('AggregationService', () => {
       });
 
       expect(result.next_cursor).not.toBeNull();
-      // Should use formatPgTimestamp for Date objects
+      // Should use formatTimestamp for Date objects
       expect(result.next_cursor).toContain('2026-02-16T09:30:00');
       expect(result.next_cursor).toContain('|msg-1');
     });

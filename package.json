@@ -5,7 +5,8 @@
   "workspaces": [
     "packages/frontend",
     "packages/backend",
-    "packages/openclaw-plugin"
+    "packages/openclaw-plugin",
+    "packages/manifest-server"
   ],
   "scripts": {
     "dev": "turbo dev",

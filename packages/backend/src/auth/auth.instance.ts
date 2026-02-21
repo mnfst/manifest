@@ -1,20 +1,37 @@
 import { betterAuth } from 'better-auth';
-import { Pool } from 'pg';
 import { render } from '@react-email/render';
 import { VerifyEmailEmail } from '../notifications/emails/verify-email';
 import { ResetPasswordEmail } from '../notifications/emails/reset-password';
 import { sendMailgunEmail } from '../notifications/services/mailgun';
 
-const databaseUrl = process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase';
-const pool = new Pool({ connectionString: databaseUrl });
+const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const port = process.env['PORT'] ?? '3001';
 const isDev = (process.env['NODE_ENV'] ?? '') !== 'production';
 
+function createDatabaseConnection() {
+  if (isLocalMode) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Database = require('better-sqlite3');
+    const dbPath = process.env['MANIFEST_DB_PATH'] || ':memory:';
+    return new Database(dbPath);
+  }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Pool } = require('pg');
+  const databaseUrl = process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase';
+  return new Pool({ connectionString: databaseUrl });
+}
+
+const database = createDatabaseConnection();
+
 const betterAuthSecret = process.env['BETTER_AUTH_SECRET'] ?? '';
 const nodeEnv = process.env['NODE_ENV'] ?? '';
-if (nodeEnv !== 'test' && (!betterAuthSecret || betterAuthSecret.length < 32)) {
+
+// In local mode, use a fixed secret since auth is auto-granted for loopback
+if (!isLocalMode && nodeEnv !== 'test' && (!betterAuthSecret || betterAuthSecret.length < 32)) {
   throw new Error('BETTER_AUTH_SECRET must be set to a value of at least 32 characters');
 }
+
+const LOCAL_SECRET = 'manifest-local-mode-secret-do-not-use-in-production!!';
 
 function buildTrustedOrigins(): string[] {
   const origins: string[] = [];
@@ -25,6 +42,9 @@ function buildTrustedOrigins(): string[] {
     origins.push(process.env['CORS_ORIGIN']);
   }
   origins.push(`http://localhost:3000`, `http://localhost:${port}`);
+  if (isLocalMode) {
+    origins.push(`http://127.0.0.1:${port}`, `http://127.0.0.1:3000`);
+  }
   if (process.env['FRONTEND_PORT']) {
     origins.push(`http://localhost:${process.env['FRONTEND_PORT']}`);
   }
@@ -32,10 +52,12 @@ function buildTrustedOrigins(): string[] {
 }
 
 export const auth = betterAuth({
-  database: pool,
+  database,
   baseURL: process.env['BETTER_AUTH_URL'] ?? `http://localhost:${port}`,
   basePath: '/api/auth',
-  secret: betterAuthSecret || 'test-only-fallback-secret-not-for-production',
+  secret: isLocalMode
+    ? (betterAuthSecret || LOCAL_SECRET)
+    : (betterAuthSecret || 'test-only-fallback-secret-not-for-production'),
   logger: {
     level: 'debug',
   },
@@ -49,7 +71,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
-    requireEmailVerification: !isDev,
+    requireEmailVerification: !isDev && !isLocalMode,
     sendResetPassword: async ({ user, url }) => {
       const html = await render(ResetPasswordEmail({
         userName: user.name,
@@ -63,7 +85,7 @@ export const auth = betterAuth({
     },
   },
   emailVerification: {
-    sendOnSignUp: true,
+    sendOnSignUp: !isLocalMode,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       const html = await render(VerifyEmailEmail({

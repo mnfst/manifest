@@ -4,6 +4,7 @@ import {
   PrimaryColumn,
   Index,
 } from 'typeorm';
+import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('notification_logs')
 @Index(['rule_id', 'period_start'], { unique: true })
@@ -14,10 +15,10 @@ export class NotificationLog {
   @Column('varchar')
   rule_id!: string;
 
-  @Column('timestamp')
+  @Column(timestampType())
   period_start!: string;
 
-  @Column('timestamp')
+  @Column(timestampType())
   period_end!: string;
 
   @Column('decimal', { precision: 15, scale: 6 })
@@ -32,6 +33,6 @@ export class NotificationLog {
   @Column('varchar')
   agent_name!: string;
 
-  @Column('timestamp', { default: () => 'NOW()' })
+  @Column(timestampType(), { default: () => 'CURRENT_TIMESTAMP' })
   sent_at!: string;
 }

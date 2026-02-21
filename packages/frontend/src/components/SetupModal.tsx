@@ -2,10 +2,14 @@ import { createResource, createSignal, For, Show, type Component } from 'solid-j
 import SetupStepInstall from './SetupStepInstall.jsx'
 import SetupStepConfigure from './SetupStepConfigure.jsx'
 import SetupStepVerify from './SetupStepVerify.jsx'
-import { getAgentKey } from '../services/api.js'
+import SetupStepLocalConfigure from './SetupStepLocalConfigure.jsx'
+import { getAgentKey, getHealth } from '../services/api.js'
 
 const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string | null; onClose: () => void; onDone?: () => void }> = (props) => {
   const [step, setStep] = createSignal(1)
+
+  const [healthData] = createResource(() => props.open, (open) => open ? getHealth() : null)
+  const isLocal = () => (healthData() as { mode?: string })?.mode === 'local'
 
   const [apiKeyData] = createResource(
     () => (props.open ? props.agentName : null),
@@ -19,6 +23,10 @@ const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string 
     if (host === 'app.manifest.build') return null
     return `${window.location.origin}/otlp`
   }
+
+  const steps = () => isLocal()
+    ? [{ n: 1, label: 'Install' }, { n: 2, label: 'Configure' }, { n: 3, label: 'Activate' }]
+    : [{ n: 1, label: 'Install' }, { n: 2, label: 'Configure' }, { n: 3, label: 'Activate' }]
 
   return (
     <Show when={props.open}>
@@ -39,11 +47,7 @@ const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string 
           </p>
 
           <div class="modal-stepper">
-            <For each={[
-              { n: 1, label: 'Install' },
-              { n: 2, label: 'Configure' },
-              { n: 3, label: 'Activate' },
-            ]}>
+            <For each={steps()}>
               {(s, i) => (
                 <>
                   <Show when={i() > 0}>
@@ -74,12 +78,20 @@ const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string 
             <SetupStepInstall />
           </Show>
           <Show when={step() === 2}>
-            <SetupStepConfigure
-              apiKey={props.apiKey ?? null}
-              keyPrefix={apiKeyData()?.keyPrefix ?? null}
-              agentName={props.agentName}
-              endpoint={endpoint()}
-            />
+            <Show when={isLocal()} fallback={
+              <SetupStepConfigure
+                apiKey={props.apiKey ?? null}
+                keyPrefix={apiKeyData()?.keyPrefix ?? null}
+                agentName={props.agentName}
+                endpoint={endpoint()}
+              />
+            }>
+              <SetupStepLocalConfigure
+                apiKey={props.apiKey ?? null}
+                keyPrefix={apiKeyData()?.keyPrefix ?? null}
+                endpoint={endpoint()}
+              />
+            </Show>
           </Show>
           <Show when={step() === 3}>
             <SetupStepVerify />
