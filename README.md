@@ -10,6 +10,16 @@
 </p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/manifest"><img src="https://img.shields.io/npm/v/manifest?color=cb3837&label=npm" alt="npm version" /></a>
+  &nbsp;
+  <a href="https://www.npmjs.com/package/manifest"><img src="https://img.shields.io/npm/dw/manifest?color=cb3837" alt="npm downloads" /></a>
+  &nbsp;
+  <a href="https://codecov.io/gh/mnfst/manifest"><img src="https://img.shields.io/codecov/c/github/mnfst/manifest?color=brightgreen" alt="coverage" /></a>
+  &nbsp;
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/mnfst/manifest?color=blue" alt="license" /></a>
+</p>
+
+<p align="center">
   <a href="#install">Install</a> &nbsp;&middot;&nbsp;
   <a href="#what-you-get">What you get</a> &nbsp;&middot;&nbsp;
   <a href="#tech-stack">Tech stack</a> &nbsp;&middot;&nbsp;
