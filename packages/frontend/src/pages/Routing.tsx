@@ -25,7 +25,8 @@ function pricePerM(perToken: number): string {
 
 /** Find the provider id (lowercase) for a model_name from available models */
 function providerIdForModel(model: string, models: AvailableModel[]): string | undefined {
-  const m = models.find((x) => x.model_name === model);
+  const m = models.find((x) => x.model_name === model)
+    ?? models.find((x) => x.model_name.startsWith(model + "-"));
   if (!m) return undefined;
   return PROVIDERS.find((p) => p.name.toLowerCase() === m.provider.toLowerCase())?.id;
 }
@@ -48,8 +49,11 @@ const Routing: Component = () => {
   const effectiveModel = (t: TierAssignment): string | null =>
     t.override_model ?? t.auto_assigned_model;
 
-  const modelInfo = (modelName: string): AvailableModel | undefined =>
-    models()?.find((m) => m.model_name === modelName);
+  const modelInfo = (modelName: string): AvailableModel | undefined => {
+    const all = models() ?? [];
+    return all.find((m) => m.model_name === modelName)
+      ?? all.find((m) => m.model_name.startsWith(modelName + "-"));
+  };
 
   /** Label for a model: try provider-based label first, fall back to model_name */
   const labelFor = (modelName: string): string => {
@@ -182,7 +186,7 @@ const Routing: Component = () => {
         </div>
       }>
         <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-md);">
-          Models are automatically assigned based on your connected providers. Override any tier manually, or manage providers in{" "}
+          Models are automatically assigned based on your connected providers. You can override any tier manually. Add and manage model providers in{" "}
           <A href={agentPath(agentName(), "/settings")} style="color: hsl(var(--foreground)); font-weight: 600; text-decoration: underline;">Settings</A>.
         </p>
 
@@ -219,17 +223,7 @@ const Routing: Component = () => {
                       }
                     >
                       {(modelName) => (
-                        <Show
-                          when={isManual()}
-                          fallback={
-                            <>
-                              <span class="routing-card__main">Default model</span>
-                              <span class="routing-card__sub">
-                                {labelFor(modelName())} · {priceLabel(modelName())}
-                              </span>
-                            </>
-                          }
-                        >
+                        <>
                           <div class="routing-card__override">
                             {(() => {
                               const provId = providerIdForModel(modelName(), models() ?? []);
@@ -244,9 +238,12 @@ const Routing: Component = () => {
                               );
                             })()}
                             <span class="routing-card__main">{labelFor(modelName())}</span>
+                            <Show when={!isManual()}>
+                              <span class="routing-card__auto-tag">auto</span>
+                            </Show>
                           </div>
                           <span class="routing-card__sub">{priceLabel(modelName())}</span>
-                        </Show>
+                        </>
                       )}
                     </Show>
                   </div>
@@ -260,6 +257,9 @@ const Routing: Component = () => {
                         </button>
                       }
                     >
+                      <button class="routing-action" onClick={() => openDropdown(stage.id)}>
+                        Edit
+                      </button>
                       <button class="routing-action" onClick={() => handleReset(stage.id)}>
                         Reset
                       </button>

@@ -92,7 +92,9 @@
 }
 
 .routing-card__header {
-  flex: 0 0 200px;
+  flex: 0 0 380px;
+  max-width: 380px;
+  min-width: 380px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -139,6 +141,18 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
+}
+
+.routing-card__auto-tag {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: hsl(var(--success) / 0.15);
+  color: hsl(var(--success));
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
 }
 
 .routing-card__empty {

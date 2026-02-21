@@ -95,16 +95,25 @@ export class RoutingController {
   /* ── Available models ── */
 
   @Get('available-models')
-  getAvailableModels() {
+  async getAvailableModels(@CurrentUser() user: AuthUser) {
+    const providers = await this.routingService.getProviders(user.id);
+    const activeProviders = new Set(
+      providers
+        .filter((p) => p.is_active)
+        .map((p) => p.provider.toLowerCase()),
+    );
+
     const models = this.pricingCache.getAll();
-    return models.map((m) => ({
-      model_name: m.model_name,
-      provider: m.provider,
-      input_price_per_token: m.input_price_per_token,
-      output_price_per_token: m.output_price_per_token,
-      context_window: m.context_window,
-      capability_reasoning: m.capability_reasoning,
-      capability_code: m.capability_code,
-    }));
+    return models
+      .filter((m) => activeProviders.has(m.provider.toLowerCase()))
+      .map((m) => ({
+        model_name: m.model_name,
+        provider: m.provider,
+        input_price_per_token: m.input_price_per_token,
+        output_price_per_token: m.output_price_per_token,
+        context_window: m.context_window,
+        capability_reasoning: m.capability_reasoning,
+        capability_code: m.capability_code,
+      }));
   }
 }

@@ -28,6 +28,10 @@ function buildTrustedOrigins(): string[] {
   if (process.env['FRONTEND_PORT']) {
     origins.push(`http://localhost:${process.env['FRONTEND_PORT']}`);
   }
+  // In dev mode, trust any localhost origin (random ports from /serve)
+  if (isDev) {
+    origins.push('http://localhost:*');
+  }
   return origins;
 }
 
