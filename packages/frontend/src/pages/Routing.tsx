@@ -29,7 +29,8 @@ function providerIdForModel(model: string, models: AvailableModel[]): string | u
   const m = models.find((x) => x.model_name === model)
     ?? models.find((x) => x.model_name.startsWith(model + "-"));
   if (!m) return undefined;
-  return PROVIDERS.find((p) => p.name.toLowerCase() === m.provider.toLowerCase())?.id;
+  const key = m.provider.toLowerCase();
+  return PROVIDERS.find((p) => p.id === key || p.name.toLowerCase() === key)?.id;
 }
 
 const Routing: Component = () => {
@@ -61,8 +62,9 @@ const Routing: Component = () => {
   const labelFor = (modelName: string): string => {
     const info = modelInfo(modelName);
     if (info) {
+      const key = info.provider.toLowerCase();
       const provId = PROVIDERS.find(
-        (p) => p.name.toLowerCase() === info.provider.toLowerCase(),
+        (p) => p.id === key || p.name.toLowerCase() === key,
       )?.id;
       if (provId) return getModelLabel(provId, modelName);
     }
