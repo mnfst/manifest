@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Tenant } from './tenant.entity';
 import { AgentApiKey } from './agent-api-key.entity';
-import { timestampType } from '../common/utils/sql-dialect';
+import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('agents')
 @Index(['tenant_id', 'name'], { unique: true })
@@ -36,9 +36,9 @@ export class Agent {
   @OneToOne(() => AgentApiKey, (k) => k.agent, { cascade: true })
   apiKey!: AgentApiKey;
 
-  @Column(timestampType(), { default: () => 'NOW()' })
+  @Column(timestampType(), { default: timestampDefault() })
   created_at!: string;
 
-  @Column(timestampType(), { default: () => 'NOW()' })
+  @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;
 }

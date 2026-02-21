@@ -233,7 +233,8 @@ describe('NotificationRulesService', () => {
       const result = await service.getAllActiveRules();
       expect(result).toEqual(rules);
       expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('is_active = true'),
+        expect.stringContaining('is_active = $1'),
+        [true],
       );
     });
   });
@@ -251,7 +252,7 @@ describe('NotificationRulesService', () => {
   });
 
   describe('createRule with PG params', () => {
-    it('uses $1 through $10 numbered params in INSERT', async () => {
+    it('uses $1 through $11 numbered params in INSERT', async () => {
       mockQuery
         .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }]) // resolveAgent
         .mockResolvedValueOnce(undefined) // INSERT
@@ -269,8 +270,8 @@ describe('NotificationRulesService', () => {
       const params = insertCall[1] as unknown[];
 
       expect(sql).toContain('$1');
-      expect(sql).toContain('$10');
-      expect(params).toHaveLength(10);
+      expect(sql).toContain('$11');
+      expect(params).toHaveLength(11);
     });
   });
 });
@@ -321,8 +322,8 @@ describe('NotificationRulesService (SQLite dialect)', () => {
     const params = insertCall[1] as unknown[];
 
     expect(sql).not.toContain('$1');
-    expect((sql.match(/\?/g) ?? []).length).toBe(10);
-    expect(params).toHaveLength(10);
+    expect((sql.match(/\?/g) ?? []).length).toBe(11);
+    expect(params).toHaveLength(11);
   });
 
   it('converts is_active boolean to 1/0 for sqlite in updateRule', async () => {

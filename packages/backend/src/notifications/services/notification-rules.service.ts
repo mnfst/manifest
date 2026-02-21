@@ -40,10 +40,11 @@ export class NotificationRulesService {
       this.sql(
         `INSERT INTO notification_rules
          (id, tenant_id, agent_id, agent_name, user_id, metric_type, threshold, period, is_active, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9, $10)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
       ),
       [id, agent.tenant_id, agent.id, dto.agent_name, userId,
-       dto.metric_type, dto.threshold, dto.period, now, now],
+       dto.metric_type, dto.threshold, dto.period,
+       this.dialect === 'sqlite' ? 1 : true, now, now],
     );
 
     const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [id]);
@@ -108,7 +109,8 @@ export class NotificationRulesService {
 
   async getAllActiveRules() {
     return this.ds.query(
-      this.sql(`SELECT * FROM notification_rules WHERE is_active = true`),
+      this.sql(`SELECT * FROM notification_rules WHERE is_active = $1`),
+      [this.dialect === 'sqlite' ? 1 : true],
     );
   }
 

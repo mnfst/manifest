@@ -14,6 +14,17 @@ export function timestampType(): 'datetime' | 'timestamp' {
 }
 
 /**
+ * Returns the correct column default for timestamp columns.
+ * Postgres uses NOW(), SQLite uses CURRENT_TIMESTAMP.
+ * Evaluated at decorator time using MANIFEST_MODE env var.
+ */
+export function timestampDefault(): () => string {
+  return process.env['MANIFEST_MODE'] === 'local'
+    ? () => 'CURRENT_TIMESTAMP'
+    : () => 'NOW()';
+}
+
+/**
  * Convert a Postgres-style interval string (e.g. '7 days', '24 hours')
  * to a JS Date cutoff. Both Postgres and SQLite can compare ISO timestamps.
  */

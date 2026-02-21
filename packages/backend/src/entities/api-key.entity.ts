@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
-import { timestampType } from '../common/utils/sql-dialect';
+import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('api_keys')
 export class ApiKey {
@@ -22,7 +22,7 @@ export class ApiKey {
   @Column('varchar')
   name!: string;
 
-  @Column(timestampType(), { default: () => 'NOW()' })
+  @Column(timestampType(), { default: timestampDefault() })
   created_at!: string;
 
   @Column(timestampType(), { nullable: true, default: null })

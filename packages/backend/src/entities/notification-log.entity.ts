@@ -4,7 +4,7 @@ import {
   PrimaryColumn,
   Index,
 } from 'typeorm';
-import { timestampType } from '../common/utils/sql-dialect';
+import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('notification_logs')
 @Index(['rule_id', 'period_start'], { unique: true })
@@ -33,6 +33,6 @@ export class NotificationLog {
   @Column('varchar')
   agent_name!: string;
 
-  @Column(timestampType(), { default: () => 'NOW()' })
+  @Column(timestampType(), { default: timestampDefault() })
   sent_at!: string;
 }

@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Tenant } from './tenant.entity';
 import { Agent } from './agent.entity';
-import { timestampType } from '../common/utils/sql-dialect';
+import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('agent_api_keys')
 export class AgentApiKey {
@@ -52,6 +52,6 @@ export class AgentApiKey {
   @Column(timestampType(), { nullable: true })
   last_used_at!: string | null;
 
-  @Column(timestampType(), { default: () => 'NOW()' })
+  @Column(timestampType(), { default: timestampDefault() })
   created_at!: string;
 }

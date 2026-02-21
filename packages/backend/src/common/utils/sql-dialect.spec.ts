@@ -1,6 +1,7 @@
 import {
   detectDialect,
   timestampType,
+  timestampDefault,
   computeCutoff,
   sqlNow,
   sqlHourBucket,
@@ -46,6 +47,32 @@ describe('sql-dialect', () => {
     it('returns timestamp when MANIFEST_MODE is unset', () => {
       delete process.env['MANIFEST_MODE'];
       expect(timestampType()).toBe('timestamp');
+    });
+  });
+
+  describe('timestampDefault', () => {
+    const origMode = process.env['MANIFEST_MODE'];
+    afterEach(() => {
+      if (origMode === undefined) delete process.env['MANIFEST_MODE'];
+      else process.env['MANIFEST_MODE'] = origMode;
+    });
+
+    it('returns CURRENT_TIMESTAMP function for local mode', () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      const fn = timestampDefault();
+      expect(fn()).toBe('CURRENT_TIMESTAMP');
+    });
+
+    it('returns NOW() function for cloud mode', () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      const fn = timestampDefault();
+      expect(fn()).toBe('NOW()');
+    });
+
+    it('returns NOW() function when MANIFEST_MODE is unset', () => {
+      delete process.env['MANIFEST_MODE'];
+      const fn = timestampDefault();
+      expect(fn()).toBe('NOW()');
     });
   });
 
