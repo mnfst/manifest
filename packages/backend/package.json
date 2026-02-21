@@ -1,6 +1,7 @@
 {
   "name": "manifest-backend",
   "version": "0.1.0",
+  "private": true,
   "scripts": {
     "build": "rm -f tsconfig.build.tsbuildinfo && nest build",
     "start": "node dist/main",

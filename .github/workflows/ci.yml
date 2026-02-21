@@ -66,6 +66,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build --workspace=packages/backend
+      - name: Unit tests (SQLite dialect)
+        run: npm test --workspace=packages/backend
       - name: E2E tests (SQLite in-memory)
         run: npm run test:e2e --workspace=packages/backend
 
@@ -94,3 +96,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test --workspace=packages/openclaw-plugin
+
+  changeset-check:
+    name: Changeset status
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx changeset status --since=origin/main
