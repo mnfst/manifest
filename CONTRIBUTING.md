@@ -15,7 +15,8 @@ Manifest is a monorepo managed with [Turborepo](https://turbo.build/) and npm wo
 packages/
 ├── backend/           # NestJS API server (TypeORM, PostgreSQL, Better Auth)
 ├── frontend/          # SolidJS single-page app (Vite, uPlot)
-└── openclaw-plugin/   # OpenClaw observability plugin (esbuild)
+├── openclaw-plugin/   # OpenClaw observability plugin (npm: manifest)
+└── manifest-server/   # Embedded server for local mode (npm: @manifest/server)
 ```
 
 ## Getting Started
@@ -101,7 +102,15 @@ The frontend runs on `http://localhost:3000` and proxies API requests to the bac
 1. Create a branch from `main` for your change
 2. Make your changes in the relevant package(s)
 3. Write or update tests as needed
-4. Run the test suite to make sure everything passes:
+4. If your change affects a publishable package (`manifest` or `@manifest/server`), add a changeset:
+
+```bash
+npx changeset
+```
+
+Follow the prompts to select the affected packages and bump type (patch / minor / major). This creates a file in `.changeset/` — commit it with your code. See [Changesets](#changesets) below for details.
+
+5. Run the test suite to make sure everything passes:
 
 ```bash
 npm test --workspace=packages/backend
@@ -109,13 +118,46 @@ npm run test:e2e --workspace=packages/backend
 npm test --workspace=packages/frontend
 ```
 
-5. Verify the production build works:
+6. Verify the production build works:
 
 ```bash
 npm run build
 ```
 
-6. Open a pull request against `main`
+7. Open a pull request against `main`
+
+### Changesets
+
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and npm publishing. When you change a publishable package, you need to include a changeset describing the change.
+
+**Which packages need changesets?**
+
+| Package | npm name | Needs changeset? |
+| --- | --- | --- |
+| `packages/openclaw-plugin` | `manifest` | Yes |
+| `packages/manifest-server` | `@manifest/server` | Yes |
+| `packages/backend` | — | No (private) |
+| `packages/frontend` | — | No (private) |
+
+**Adding a changeset:**
+
+```bash
+npx changeset
+```
+
+Select the affected packages, choose the semver bump type, and write a short summary. This creates a markdown file in `.changeset/` — commit it alongside your code changes.
+
+**What happens after merge:**
+
+1. The release workflow detects changesets and opens a "Version Packages" PR
+2. That PR bumps versions in `package.json` and updates `CHANGELOG.md`
+3. When the version PR is merged, the workflow publishes to npm automatically
+
+**If your change doesn't need a release** (e.g., docs, CI, internal tooling):
+
+```bash
+npx changeset add --empty
+```
 
 ### Commit Messages
 
@@ -125,6 +167,7 @@ Write clear, concise commit messages that explain **why** the change was made. U
 
 - Keep PRs focused on a single concern
 - Include a short summary of what changed and why
+- If you changed a publishable package, include a changeset (CI will warn if missing)
 - Reference any related issues
 
 ## Architecture Notes
