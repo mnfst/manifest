@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.2.2
+
+### Patch Changes
+
+- bea1c4b: Publish @mnfst/server package
+
 ## 5.2.0
 
 ### Minor Changes
