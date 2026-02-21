@@ -39,6 +39,7 @@ const Settings: Component = () => {
   const [providerList, { refetch: refetchProviders }] = createResource(getProviders);
   const [providerModal, setProviderModal] = createSignal<ProviderDef | null>(null);
   const [providerInput, setProviderInput] = createSignal("");
+  const [keyError, setKeyError] = createSignal("");
 
   const isActive = (provId: string): boolean => {
     const list = providerList();
@@ -51,6 +52,7 @@ const Settings: Component = () => {
   const openProviderModal = (prov: ProviderDef) => {
     setProviderModal(prov);
     setProviderInput("");
+    setKeyError("");
   };
 
   const closeProviderModal = () => setProviderModal(null);
@@ -60,6 +62,12 @@ const Settings: Component = () => {
     if (!prov) return;
     const input = providerInput().trim();
     if (!input) return;
+
+    if (prov.keyPattern && !prov.keyPattern.test(input)) {
+      setKeyError(prov.keyHint ?? "Invalid API key format");
+      return;
+    }
+    setKeyError("");
 
     try {
       await connectProvider({ provider: prov.id, apiKey: input });
@@ -350,11 +358,17 @@ const Settings: Component = () => {
               <input
                 class="modal-card__input"
                 style="margin-bottom: 6px;"
+                classList={{ "modal-card__input--error": !!keyError() }}
                 type={prov().inputType === "apiKey" ? "password" : "text"}
                 placeholder={prov().placeholder}
                 value={providerInput()}
-                onInput={(e) => setProviderInput(e.currentTarget.value)}
+                onInput={(e) => { setProviderInput(e.currentTarget.value); setKeyError(""); }}
               />
+              <Show when={keyError()}>
+                <p style="font-size: var(--font-size-sm); color: hsl(var(--destructive)); margin: 4px 0 0;">
+                  {keyError()}
+                </p>
+              </Show>
               <Show when={prov().inputType === "apiKey"}>
                 <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-top: 6px; margin-bottom: 0;">
                   Need an API key?{" "}

@@ -8,6 +8,10 @@ export interface ProviderDef {
   inputType: "apiKey" | "baseUrl";
   inputLabel: string;
   placeholder: string;
+  /** Regex the key must match, or null to skip validation. */
+  keyPattern?: RegExp;
+  /** Human-readable hint shown when key doesn't match the pattern. */
+  keyHint?: string;
   subtitle: string;
   docsUrl: string;
   models: { label: string; value: string }[];
@@ -22,6 +26,8 @@ export const PROVIDERS: ProviderDef[] = [
     inputType: "apiKey",
     inputLabel: "API Key",
     placeholder: "sk-...",
+    keyPattern: /^sk-[A-Za-z0-9_-]{20,}$/,
+    keyHint: "OpenAI keys start with \"sk-\"",
     subtitle: "GPT-4o, GPT-4.1, o3, o4",
     docsUrl: "https://platform.openai.com/api-keys",
     models: [
@@ -50,6 +56,8 @@ export const PROVIDERS: ProviderDef[] = [
     inputType: "apiKey",
     inputLabel: "API Key",
     placeholder: "sk-ant-...",
+    keyPattern: /^sk-ant-[A-Za-z0-9_-]{20,}$/,
+    keyHint: "Anthropic keys start with \"sk-ant-\"",
     subtitle: "Claude Opus 4, Sonnet 4.5, Haiku",
     docsUrl: "https://console.anthropic.com/settings/keys",
     models: [
@@ -82,6 +90,8 @@ export const PROVIDERS: ProviderDef[] = [
     inputType: "apiKey",
     inputLabel: "API Key",
     placeholder: "AIza...",
+    keyPattern: /^AIza[A-Za-z0-9_-]{30,}$/,
+    keyHint: "Google API keys start with \"AIza\"",
     subtitle: "Gemini 2.5, Gemini 2.0 Flash",
     docsUrl: "https://aistudio.google.com/app/apikey",
     models: [
@@ -107,6 +117,8 @@ export const PROVIDERS: ProviderDef[] = [
     inputType: "apiKey",
     inputLabel: "API Key",
     placeholder: "sk-...",
+    keyPattern: /^sk-[A-Za-z0-9_-]{20,}$/,
+    keyHint: "DeepSeek keys start with \"sk-\"",
     subtitle: "DeepSeek V3, R1",
     docsUrl: "https://platform.deepseek.com/api_keys",
     models: [
@@ -129,6 +141,8 @@ export const PROVIDERS: ProviderDef[] = [
     inputType: "apiKey",
     inputLabel: "API Key",
     placeholder: "...",
+    keyPattern: /^[A-Za-z0-9]{32,}$/,
+    keyHint: "Mistral keys are at least 32 alphanumeric characters",
     subtitle: "Mistral Large, Codestral, Pixtral",
     docsUrl: "https://console.mistral.ai/api-keys",
     models: [
@@ -156,6 +170,8 @@ export const PROVIDERS: ProviderDef[] = [
     inputType: "apiKey",
     inputLabel: "API Key",
     placeholder: "xai-...",
+    keyPattern: /^xai-[A-Za-z0-9_-]{20,}$/,
+    keyHint: "xAI keys start with \"xai-\"",
     subtitle: "Grok 3, Grok 2",
     docsUrl: "https://console.x.ai/",
     models: [
@@ -175,6 +191,8 @@ export const PROVIDERS: ProviderDef[] = [
     inputType: "apiKey",
     inputLabel: "API Key",
     placeholder: "sk-...",
+    keyPattern: /^sk-[A-Za-z0-9_-]{20,}$/,
+    keyHint: "Qwen keys start with \"sk-\"",
     subtitle: "Qwen3, Qwen2.5, QwQ",
     docsUrl: "https://dashscope.console.aliyun.com/apiKey",
     models: [
@@ -201,6 +219,8 @@ export const PROVIDERS: ProviderDef[] = [
     inputType: "apiKey",
     inputLabel: "API Key",
     placeholder: "sk-...",
+    keyPattern: /^sk-[A-Za-z0-9_-]{20,}$/,
+    keyHint: "Kimi keys start with \"sk-\"",
     subtitle: "Kimi k2, Moonshot v1",
     docsUrl: "https://platform.moonshot.cn/console/api-keys",
     models: [
