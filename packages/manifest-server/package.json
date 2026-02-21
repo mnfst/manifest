@@ -1,6 +1,6 @@
 {
   "name": "@mnfst/server",
-  "version": "5.2.0",
+  "version": "5.2.2",
   "description": "Embedded Manifest server for local mode",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
