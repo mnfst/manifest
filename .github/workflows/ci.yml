@@ -45,8 +45,16 @@ jobs:
       - run: npm run build --workspace=packages/backend
       - name: Test migrations
         run: npm run migration:run --workspace=packages/backend
-      - run: npm test --workspace=packages/backend
-      - run: npm run test:e2e --workspace=packages/backend
+      - run: npm test --workspace=packages/backend -- --coverage --coverageReporters=lcov
+      - run: npm run test:e2e --workspace=packages/backend -- --coverage --coverageReporters=lcov
+      - name: Upload backend coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: backend
+          directory: packages/backend
+          fail_ci_if_error: false
 
   frontend:
     runs-on: ubuntu-latest
@@ -59,6 +67,33 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
         working-directory: packages/frontend
-      - run: npm test --workspace=packages/frontend
+      - run: npm test --workspace=packages/frontend -- --coverage
       - run: npx vite build
         working-directory: packages/frontend
+      - name: Upload frontend coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: frontend
+          directory: packages/frontend/coverage
+          fail_ci_if_error: false
+
+  plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test --workspace=packages/openclaw-plugin -- --coverage --coverageReporters=lcov
+      - name: Upload plugin coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: plugin
+          directory: packages/openclaw-plugin
+          fail_ci_if_error: false
