@@ -79,7 +79,12 @@
     "collectCoverageFrom": [
       "**/*.ts",
       "!**/*.spec.ts",
-      "!main.ts"
+      "!main.ts",
+      "!**/database/migrations/**",
+      "!**/database/datasource.ts",
+      "!**/*.module.ts",
+      "!**/otlp/interfaces/index.ts",
+      "!**/otlp/proto/**"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
