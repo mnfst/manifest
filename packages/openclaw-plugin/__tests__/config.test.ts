@@ -62,6 +62,22 @@ describe("parseConfig", () => {
     expect(result.metricsIntervalMs).toBe(DEFAULTS.METRICS_INTERVAL_MS);
   });
 
+  it("defaults mode to cloud", () => {
+    const result = parseConfig({ apiKey: "mnfst_abc" });
+    expect(result.mode).toBe("cloud");
+  });
+
+  it("parses mode: local", () => {
+    const result = parseConfig({ mode: "local" });
+    expect(result.mode).toBe("local");
+  });
+
+  it("defaults port and host", () => {
+    const result = parseConfig({ apiKey: "mnfst_abc" });
+    expect(result.port).toBe(2099);
+    expect(result.host).toBe("127.0.0.1");
+  });
+
   it("handles null/undefined input gracefully", () => {
     const result = parseConfig(null);
     expect(result.apiKey).toBe("");
@@ -162,15 +178,23 @@ describe("parseConfig", () => {
 
 describe("validateConfig", () => {
   const validConfig = {
+    mode: "cloud" as const,
     apiKey: "mnfst_abc",
     endpoint: "https://app.manifest.build/otlp",
     serviceName: "test",
     captureContent: false,
     metricsIntervalMs: 30000,
+    port: 2099,
+    host: "127.0.0.1",
   };
 
   it("accepts valid config", () => {
     expect(validateConfig(validConfig)).toBeNull();
+  });
+
+  it("skips validation in local mode (no apiKey required)", () => {
+    const config = { ...validConfig, mode: "local" as const, apiKey: "" };
+    expect(validateConfig(config)).toBeNull();
   });
 
   it("rejects missing apiKey with actionable fix command", () => {

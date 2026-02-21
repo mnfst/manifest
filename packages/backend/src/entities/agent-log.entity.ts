@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('agent_logs')
 @Index(['tenant_id', 'agent_id', 'timestamp'])
@@ -14,7 +15,7 @@ export class AgentLog {
   @Column('varchar', { nullable: true })
   agent_id!: string | null;
 
-  @Column('timestamp')
+  @Column(timestampType())
   timestamp!: string;
 
   @Column('varchar', { nullable: true })

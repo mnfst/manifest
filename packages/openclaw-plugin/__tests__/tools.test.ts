@@ -12,11 +12,14 @@ const mockLogger = {
 };
 
 const config: ManifestConfig = {
+  mode: "cloud",
   apiKey: "mnfst_test_key",
   endpoint: "http://localhost:3001/otlp",
   serviceName: "test",
   captureContent: false,
   metricsIntervalMs: 30000,
+  port: 2099,
+  host: "127.0.0.1",
 };
 
 function createMockApi() {

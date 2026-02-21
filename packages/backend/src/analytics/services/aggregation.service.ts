@@ -1,21 +1,29 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
-import { MetricWithTrend, computeTrend, addTenantFilter, formatPgTimestamp } from './query-helpers';
+import { MetricWithTrend, computeTrend, addTenantFilter, formatTimestamp } from './query-helpers';
+import {
+  DbDialect, detectDialect, computeCutoff, sqlNow, sqlCastFloat,
+} from '../../common/utils/sql-dialect';
 
 export { MetricWithTrend };
 
 @Injectable()
 export class AggregationService {
+  private readonly dialect: DbDialect;
+
   constructor(
     @InjectRepository(AgentMessage)
     private readonly turnRepo: Repository<AgentMessage>,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
-  ) {}
+    private readonly dataSource: DataSource,
+  ) {
+    this.dialect = detectDialect(this.dataSource.options.type as string);
+  }
 
   async hasAnyData(userId: string, agentName?: string): Promise<boolean> {
     const qb = this.turnRepo.createQueryBuilder('at').select('1').limit(1);
@@ -27,20 +35,23 @@ export class AggregationService {
   async getTokenSummary(range: string, userId: string, agentName?: string) {
     const interval = rangeToInterval(range);
     const prevInterval = rangeToPreviousInterval(range);
+    const cutoff = computeCutoff(interval);
+    const prevCutoff = computeCutoff(prevInterval);
+    const now = sqlNow();
 
     const currentQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
-      .where('at.timestamp >= NOW() - CAST(:interval AS interval)', { interval })
-      .andWhere('at.timestamp <= NOW()');
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.timestamp <= :now', { now });
     addTenantFilter(currentQb, userId, agentName);
     const currentRow = await currentQb.getRawOne();
 
     const prevQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
-      .where('at.timestamp >= NOW() - CAST(:prevInterval AS interval)', { prevInterval })
-      .andWhere('at.timestamp < NOW() - CAST(:interval AS interval)', { interval });
+      .where('at.timestamp >= :prevCutoff', { prevCutoff })
+      .andWhere('at.timestamp < :cutoff', { cutoff });
     addTenantFilter(prevQb, userId, agentName);
     const prevRow = await prevQb.getRawOne();
 
@@ -48,8 +59,8 @@ export class AggregationService {
       .createQueryBuilder('at')
       .select('COALESCE(SUM(at.input_tokens), 0)', 'inp')
       .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
-      .where('at.timestamp >= NOW() - CAST(:interval AS interval)', { interval })
-      .andWhere('at.timestamp <= NOW()');
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.timestamp <= :now', { now });
     addTenantFilter(detailQb, userId, agentName);
     const detail = await detailQb.getRawOne();
 
@@ -72,20 +83,23 @@ export class AggregationService {
   async getCostSummary(range: string, userId: string, agentName?: string): Promise<MetricWithTrend> {
     const interval = rangeToInterval(range);
     const prevInterval = rangeToPreviousInterval(range);
+    const cutoff = computeCutoff(interval);
+    const prevCutoff = computeCutoff(prevInterval);
+    const now = sqlNow();
 
     const currentQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COALESCE(SUM(at.cost_usd), 0)', 'total')
-      .where('at.timestamp >= NOW() - CAST(:interval AS interval)', { interval })
-      .andWhere('at.timestamp <= NOW()');
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.timestamp <= :now', { now });
     addTenantFilter(currentQb, userId, agentName);
     const currentRow = await currentQb.getRawOne();
 
     const prevQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COALESCE(SUM(at.cost_usd), 0)', 'total')
-      .where('at.timestamp >= NOW() - CAST(:prevInterval AS interval)', { prevInterval })
-      .andWhere('at.timestamp < NOW() - CAST(:interval AS interval)', { interval });
+      .where('at.timestamp >= :prevCutoff', { prevCutoff })
+      .andWhere('at.timestamp < :cutoff', { cutoff });
     addTenantFilter(prevQb, userId, agentName);
     const prevRow = await prevQb.getRawOne();
 
@@ -97,20 +111,23 @@ export class AggregationService {
   async getMessageCount(range: string, userId: string, agentName?: string): Promise<MetricWithTrend> {
     const interval = rangeToInterval(range);
     const prevInterval = rangeToPreviousInterval(range);
+    const cutoff = computeCutoff(interval);
+    const prevCutoff = computeCutoff(prevInterval);
+    const now = sqlNow();
 
     const currentQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COUNT(*)', 'total')
-      .where('at.timestamp >= NOW() - CAST(:interval AS interval)', { interval })
-      .andWhere('at.timestamp <= NOW()');
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.timestamp <= :now', { now });
     addTenantFilter(currentQb, userId, agentName);
     const currentRow = await currentQb.getRawOne();
 
     const prevQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COUNT(*)', 'total')
-      .where('at.timestamp >= NOW() - CAST(:prevInterval AS interval)', { prevInterval })
-      .andWhere('at.timestamp < NOW() - CAST(:interval AS interval)', { interval });
+      .where('at.timestamp >= :prevCutoff', { prevCutoff })
+      .andWhere('at.timestamp < :cutoff', { cutoff });
     addTenantFilter(prevQb, userId, agentName);
     const prevRow = await prevQb.getRawOne();
 
@@ -146,10 +163,11 @@ export class AggregationService {
     agent_name?: string;
   }) {
     const interval = rangeToInterval(params.range);
+    const cutoff = computeCutoff(interval);
 
     const baseQb = this.turnRepo
       .createQueryBuilder('at')
-      .where('at.timestamp >= NOW() - CAST(:interval AS interval)', { interval });
+      .where('at.timestamp >= :cutoff', { cutoff });
 
     addTenantFilter(baseQb, params.userId);
 
@@ -166,6 +184,7 @@ export class AggregationService {
     const totalCount = Number(countResult?.total ?? 0);
 
     // Data (with cursor)
+    const costExpr = sqlCastFloat('at.cost_usd', this.dialect);
     const dataQb = baseQb.clone()
       .select('at.id', 'id')
       .addSelect('at.timestamp', 'timestamp')
@@ -177,7 +196,7 @@ export class AggregationService {
       .addSelect('at.output_tokens', 'output_tokens')
       .addSelect('at.status', 'status')
       .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
-      .addSelect('at.cost_usd::float', 'cost');
+      .addSelect(costExpr, 'cost');
 
     if (params.cursor) {
       const sepIdx = params.cursor.indexOf('|');
@@ -210,7 +229,7 @@ export class AggregationService {
     const items = rows.slice(0, params.limit);
     const lastItem = items[items.length - 1] as Record<string, unknown> | undefined;
     const ts = lastItem?.['timestamp'];
-    const tsStr = ts instanceof Date ? formatPgTimestamp(ts) : String(ts ?? '');
+    const tsStr = ts instanceof Date ? formatTimestamp(ts) : String(ts ?? '');
     const lastId = lastItem?.['id'];
     const nextCursor = hasMore && lastItem
       ? `${tsStr}|${String(lastId)}` : null;
@@ -221,7 +240,7 @@ export class AggregationService {
       .select('DISTINCT at.model', 'model')
       .where('at.model IS NOT NULL')
       .andWhere("at.model != ''")
-      .andWhere('at.timestamp >= NOW() - CAST(:interval AS interval)', { interval });
+      .andWhere('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(modelsQb, params.userId);
     const modelsResult = await modelsQb.orderBy('at.model', 'ASC').getRawMany();
 

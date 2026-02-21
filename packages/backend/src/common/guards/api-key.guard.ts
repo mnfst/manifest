@@ -51,7 +51,7 @@ export class ApiKeyGuard implements CanActivate {
 
     if (found) {
       (request as Request & { apiKeyUserId: string }).apiKeyUserId = String(found.user_id);
-      this.apiKeyRepo.update({ key_hash: hash }, { last_used_at: () => 'NOW()' } as never)
+      this.apiKeyRepo.update({ key_hash: hash }, { last_used_at: () => 'CURRENT_TIMESTAMP' } as never)
         .catch(() => {});
       return true;
     }

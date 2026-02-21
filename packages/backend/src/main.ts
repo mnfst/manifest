@@ -5,8 +5,11 @@ import { toNodeHandler } from 'better-auth/node';
 import * as express from 'express';
 import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
+import { LOCAL_EMAIL, getLocalPassword } from './common/constants/local-mode.constants';
 
-async function bootstrap() {
+const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+
+export async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule, { bodyParser: false });
   app.enableShutdownHooks();
@@ -45,8 +48,46 @@ async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
 
   // Trust reverse proxy (Railway, Render, etc.) so Express sees the real protocol/IP
-  if (!isDev) {
+  // Disabled in local mode — loopback-only, no reverse proxy
+  if (!isDev && process.env['MANIFEST_MODE'] !== 'local') {
     expressApp.set('trust proxy', 1);
+  }
+
+  // Local-mode auto-session: issues a session cookie for loopback requests
+  if (process.env['MANIFEST_MODE'] === 'local') {
+    expressApp.get('/api/auth/local-session', async (req: express.Request, res: express.Response) => {
+      const ip = req.ip ?? '';
+      if (!LOOPBACK_IPS.has(ip)) {
+        res.status(403).json({ error: 'Forbidden' });
+        return;
+      }
+      try {
+        const response = await auth.api.signInEmail({
+          body: { email: LOCAL_EMAIL, password: getLocalPassword() },
+          asResponse: true,
+        });
+        const cookies = response.headers.getSetCookie();
+        for (const cookie of cookies) {
+          res.append('set-cookie', cookie);
+        }
+        const body = await response.json();
+        res.json(body);
+      } catch {
+        res.status(500).json({ error: 'Auto-login failed' });
+      }
+    });
+  }
+
+  // In local mode, restrict Better Auth endpoints to loopback IPs
+  if (process.env['MANIFEST_MODE'] === 'local') {
+    expressApp.all('/api/auth/*splat', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      const ip = req.ip ?? '';
+      if (!LOOPBACK_IPS.has(ip)) {
+        res.status(403).json({ error: 'Forbidden' });
+        return;
+      }
+      next();
+    });
   }
 
   // Mount Better Auth handler (needs raw body, before express.json)
@@ -72,6 +113,10 @@ async function bootstrap() {
   const host = process.env['BIND_ADDRESS'] ?? '127.0.0.1';
   await app.listen(port, host);
   logger.log(`Server running on http://${host}:${port}`);
+  return app;
 }
 
-bootstrap();
+// Only auto-start when run directly (not imported by manifest-server)
+if (!process.env['MANIFEST_EMBEDDED']) {
+  bootstrap();
+}

@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-02-18
+Last updated: 2026-02-20
 
 ## Active Technologies
 
@@ -8,6 +8,7 @@ Last updated: 2026-02-18
 - **Frontend**: SolidJS, Vite, uPlot (charts), Better Auth client, custom CSS theme
 - **Runtime**: TypeScript 5.x (strict mode), Node.js 22.x
 - **Monorepo**: npm workspaces + Turborepo
+- **Release**: Changesets for version management + GitHub Actions for npm publishing
 
 ## Project Structure
 
@@ -67,7 +68,8 @@ packages/
 │   │   │   └── formatters.ts               # Number/cost formatting
 │   │   └── styles/
 │   └── tests/
-└── openclaw-plugin/
+├── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin
+└── manifest-server/               # npm: `@mnfst/server` — embedded server for local mode
 ```
 
 ## Single-Service Deployment
@@ -299,3 +301,37 @@ To add a new font or icon library:
 - **Validation**: Global `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`. Explicit `@Type()` decorators on numeric DTO fields.
 - **OTLP auth caching**: `OtlpAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.
 - **Database migrations**: TypeORM migrations are version-controlled in `src/database/migrations/`. `synchronize` is permanently `false`. Migrations auto-run on boot (`migrationsRun: true`) wrapped in a single transaction. The CLI DataSource is at `src/database/datasource.ts`. Better Auth manages its own tables separately via `ctx.runMigrations()`.
+
+## Releases & Changesets
+
+Version management and npm publishing use [Changesets](https://github.com/changesets/changesets). Config is in `.changeset/config.json`.
+
+### Publishable Packages
+
+| Package | npm name | Published |
+|---------|----------|-----------|
+| `packages/openclaw-plugin` | `manifest` | Yes |
+| `packages/manifest-server` | `@mnfst/server` | Yes |
+| `packages/backend` | `manifest-backend` | No (`private: true`) |
+| `packages/frontend` | `manifest-frontend` | No (`private: true`) |
+
+The two publishable packages are **linked** in changesets config — a major/minor bump to one bumps the other.
+
+### Workflow
+
+1. When changing a publishable package, run `npx changeset` and commit the generated file
+2. On merge to `main`, the release workflow (`.github/workflows/release.yml`) opens a "Version Packages" PR
+3. When that PR merges, the workflow publishes to npm using `NPM_TOKEN` secret
+
+### Commands
+
+```bash
+npx changeset              # Add a changeset (interactive)
+npx changeset status       # Check pending changesets
+npm run version-packages   # Apply changesets (bump versions + changelogs)
+npm run release             # Publish to npm (used by CI)
+```
+
+### CI Integration
+
+The `changeset-check` job in `.github/workflows/ci.yml` runs `npx changeset status --since=origin/main` on PRs. It warns when publishable packages changed without a changeset. If a PR only touches internal packages (backend, frontend, CI, docs), use `npx changeset add --empty`.

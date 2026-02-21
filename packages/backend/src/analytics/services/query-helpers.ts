@@ -6,8 +6,8 @@ export interface MetricWithTrend {
   sub_values?: Record<string, number>;
 }
 
-/** Format a Date as a PG-compatible timestamp string using local time (matches `timestamp without time zone` storage). */
-export function formatPgTimestamp(d: Date): string {
+/** Format a Date as a timestamp string using local time (matches `timestamp without time zone` storage). */
+export function formatTimestamp(d: Date): string {
   const p = (n: number, len = 2) => String(n).padStart(len, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(d.getMilliseconds(), 3)}`;
 }
