@@ -8,13 +8,13 @@ set -euo pipefail
 # Patterns that should never appear in committed code.
 # Each entry: "regex|human-readable label"
 PATTERNS=(
-  'sk-ant-[A-Za-z0-9_\-]|Anthropic API key'
-  'sk-[A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-][A-Za-z0-9_\-]|OpenAI/generic API key (40+ chars)'
-  'AIzaSy[A-Za-z0-9_\-]|Google API key'
-  'xai-[A-Za-z0-9_\-]|xAI API key'
+  'sk-ant-[A-Za-z0-9_-]|Anthropic API key'
+  'sk-[A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-]|OpenAI/generic API key (40+ chars)'
+  'AIzaSy[A-Za-z0-9_-]|Google API key'
+  'xai-[A-Za-z0-9_-]|xAI API key'
   'ghp_[A-Za-z0-9]|GitHub personal access token'
   'gho_[A-Za-z0-9]|GitHub OAuth token'
-  'glpat-[A-Za-z0-9_\-]|GitLab personal access token'
+  'glpat-[A-Za-z0-9_-]|GitLab personal access token'
   'AKIA[0-9A-Z][0-9A-Z][0-9A-Z][0-9A-Z]|AWS access key ID'
   'BEGIN PRIVATE KEY|Private key file'
   'BEGIN RSA PRIVATE KEY|RSA private key file'
