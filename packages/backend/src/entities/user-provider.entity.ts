@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('user_providers')
 @Index(['user_id', 'provider'], { unique: true })
@@ -18,9 +19,9 @@ export class UserProvider {
   @Column('boolean', { default: true })
   is_active!: boolean;
 
-  @Column('timestamp', { default: () => 'NOW()' })
+  @Column(timestampType(), { default: timestampDefault() })
   connected_at!: string;
 
-  @Column('timestamp', { default: () => 'NOW()' })
+  @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;
 }

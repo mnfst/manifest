@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('tier_assignments')
 @Index(['user_id', 'tier'], { unique: true })
@@ -18,6 +19,6 @@ export class TierAssignment {
   @Column('varchar', { nullable: true })
   auto_assigned_model!: string | null;
 
-  @Column('timestamp', { default: () => 'NOW()' })
+  @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;
 }

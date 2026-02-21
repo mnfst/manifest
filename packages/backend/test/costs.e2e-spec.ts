@@ -1,53 +1,47 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_API_KEY } from './helpers';
+import { createTestApp, TEST_API_KEY, TEST_USER_ID } from './helpers';
+import { detectDialect, portableSql, sqlNow } from '../src/common/utils/sql-dialect';
+import { v4 as uuid } from 'uuid';
 
 let app: INestApplication;
 
 beforeAll(async () => {
   app = await createTestApp();
 
-  // Seed model pricing so costs can be calculated
   const ds = app.get(DataSource);
+  const dialect = detectDialect(ds.options.type as string);
+  const sql = (q: string) => portableSql(q, dialect);
+  const now = sqlNow();
+
+  // Seed model pricing so costs can be calculated
   await ds.query(
-    `INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token, context_window)
-     VALUES ($1, $2, $3, $4, $5)`,
+    sql(`INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token, context_window)
+     VALUES ($1, $2, $3, $4, $5)`),
     ['gpt-4o', 'OpenAI', 0.0000025, 0.00001, 128000],
   );
 
-  // Reload pricing cache so telemetry can calculate cost_usd
+  // Reload pricing cache
   const { ModelPricingCacheService } = await import(
     '../src/model-prices/model-pricing-cache.service'
   );
   await app.get(ModelPricingCacheService).reload();
 
-  // Seed agent_messages for cost data (use telemetry API like other E2E tests)
-  await request(app.getHttpServer())
-    .post('/api/v1/telemetry')
-    .set('x-api-key', TEST_API_KEY)
-    .send({
-      events: [
-        {
-          timestamp: new Date().toISOString(),
-          description: 'Cost query 1',
-          service_type: 'agent',
-          status: 'ok',
-          model: 'gpt-4o',
-          input_tokens: 5000,
-          output_tokens: 2000,
-        },
-        {
-          timestamp: new Date().toISOString(),
-          description: 'Cost query 2',
-          service_type: 'agent',
-          status: 'ok',
-          model: 'gpt-4o',
-          input_tokens: 3000,
-          output_tokens: 1000,
-        },
-      ],
-    });
+  // Seed agent_messages directly (with pre-calculated cost_usd) using the same
+  // timestamp format as sqlNow() so that date comparisons work in both PG & SQLite.
+  const costUsd1 = 5000 * 0.0000025 + 2000 * 0.00001; // 0.0325
+  const costUsd2 = 3000 * 0.0000025 + 1000 * 0.00001; // 0.0175
+  await ds.query(
+    sql(`INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`),
+    [uuid(), now, 'Cost query 1', 'agent', 'ok', 'gpt-4o', 5000, 2000, costUsd1, TEST_USER_ID, null, null],
+  );
+  await ds.query(
+    sql(`INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`),
+    [uuid(), now, 'Cost query 2', 'agent', 'ok', 'gpt-4o', 3000, 1000, costUsd2, TEST_USER_ID, null, null],
+  );
 }, 30000);
 
 afterAll(async () => {

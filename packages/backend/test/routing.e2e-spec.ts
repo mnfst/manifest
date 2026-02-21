@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { createTestApp, TEST_API_KEY } from './helpers';
+import { detectDialect, portableSql } from '../src/common/utils/sql-dialect';
 
 let app: INestApplication;
 
@@ -10,19 +11,22 @@ beforeAll(async () => {
 
   // Seed model pricing data so the auto-assign scoring has something to work with
   const ds = app.get(DataSource);
+  const dialect = detectDialect(ds.options.type as string);
+  const sql = (q: string) => portableSql(q, dialect);
+  const b = (v: boolean) => (dialect === 'sqlite' ? (v ? 1 : 0) : v);
   await ds.query(
-    `INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token, context_window, capability_reasoning, capability_code)
+    sql(`INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token, context_window, capability_reasoning, capability_code)
      VALUES
        ($1, $2, $3, $4, $5, $6, $7),
        ($8, $9, $10, $11, $12, $13, $14),
-       ($15, $16, $17, $18, $19, $20, $21)`,
+       ($15, $16, $17, $18, $19, $20, $21)`),
     [
       // Cheap OpenAI model
-      'gpt-4o-mini', 'OpenAI', 0.00000015, 0.0000006, 128000, false, true,
+      'gpt-4o-mini', 'OpenAI', 0.00000015, 0.0000006, 128000, b(false), b(true),
       // Expensive Anthropic reasoning model
-      'claude-opus-4-6', 'Anthropic', 0.000015, 0.000075, 200000, true, true,
+      'claude-opus-4-6', 'Anthropic', 0.000015, 0.000075, 200000, b(true), b(true),
       // Mid-range Anthropic model
-      'claude-sonnet-4', 'Anthropic', 0.000003, 0.000015, 200000, false, true,
+      'claude-sonnet-4', 'Anthropic', 0.000003, 0.000015, 200000, b(false), b(true),
     ],
   );
 
