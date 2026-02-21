@@ -69,7 +69,7 @@ packages/
 │   │   └── styles/
 │   └── tests/
 ├── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin
-└── manifest-server/               # npm: `@manifest/server` — embedded server for local mode
+└── manifest-server/               # npm: `@mnfst/server` — embedded server for local mode
 ```
 
 ## Single-Service Deployment
@@ -311,7 +311,7 @@ Version management and npm publishing use [Changesets](https://github.com/change
 | Package | npm name | Published |
 |---------|----------|-----------|
 | `packages/openclaw-plugin` | `manifest` | Yes |
-| `packages/manifest-server` | `@manifest/server` | Yes |
+| `packages/manifest-server` | `@mnfst/server` | Yes |
 | `packages/backend` | `manifest-backend` | No (`private: true`) |
 | `packages/frontend` | `manifest-frontend` | No (`private: true`) |
 

@@ -1,6 +1,6 @@
 ---
 "manifest": minor
-"@manifest/server": minor
+"@mnfst/server": minor
 ---
 
-Add local mode with embedded SQLite server and rename server package to @manifest/server
+Add local mode with embedded SQLite server and rename server package to @mnfst/server

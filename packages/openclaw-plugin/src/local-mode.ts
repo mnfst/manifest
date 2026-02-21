@@ -67,11 +67,11 @@ export function registerLocalMode(
   // Try to load the server package
   let serverModule: { start: (opts: Record<string, unknown>) => Promise<unknown>; version?: string };
   try {
-    serverModule = require("@manifest/server");
+    serverModule = require("@mnfst/server");
   } catch {
     logger.error(
-      "[manifest] @manifest/server is not installed.\n" +
-        "  Install it with: npm install @manifest/server\n" +
+      "[manifest] @mnfst/server is not installed.\n" +
+        "  Install it with: npm install @mnfst/server\n" +
         "  Then restart the gateway.",
     );
     return;

@@ -3,7 +3,7 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [],
-  "linked": [["manifest", "@manifest/server"]],
+  "linked": [["manifest", "@mnfst/server"]],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",

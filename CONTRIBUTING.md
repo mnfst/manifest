@@ -16,7 +16,7 @@ packages/
 ├── backend/           # NestJS API server (TypeORM, PostgreSQL, Better Auth)
 ├── frontend/          # SolidJS single-page app (Vite, uPlot)
 ├── openclaw-plugin/   # OpenClaw observability plugin (npm: manifest)
-└── manifest-server/   # Embedded server for local mode (npm: @manifest/server)
+└── manifest-server/   # Embedded server for local mode (npm: @mnfst/server)
 ```
 
 ## Getting Started
@@ -102,7 +102,7 @@ The frontend runs on `http://localhost:3000` and proxies API requests to the bac
 1. Create a branch from `main` for your change
 2. Make your changes in the relevant package(s)
 3. Write or update tests as needed
-4. If your change affects a publishable package (`manifest` or `@manifest/server`), add a changeset:
+4. If your change affects a publishable package (`manifest` or `@mnfst/server`), add a changeset:
 
 ```bash
 npx changeset
@@ -135,7 +135,7 @@ This project uses [Changesets](https://github.com/changesets/changesets) for ver
 | Package | npm name | Needs changeset? |
 | --- | --- | --- |
 | `packages/openclaw-plugin` | `manifest` | Yes |
-| `packages/manifest-server` | `@manifest/server` | Yes |
+| `packages/manifest-server` | `@mnfst/server` | Yes |
 | `packages/backend` | — | No (private) |
 | `packages/frontend` | — | No (private) |
 

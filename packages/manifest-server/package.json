@@ -1,5 +1,5 @@
 {
-  "name": "@manifest/server",
+  "name": "@mnfst/server",
   "version": "0.1.0",
   "description": "Embedded Manifest server for local mode",
   "main": "dist/index.js",
