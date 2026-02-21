@@ -18,10 +18,12 @@ jest.mock('../auth/auth.instance', () => ({
   },
 }));
 
-// Mock fs for config reading
+// Mock fs for config reading (includes writeFileSync/mkdirSync used by local-mode.constants)
 jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(false),
   readFileSync: jest.fn(),
+  writeFileSync: jest.fn(),
+  mkdirSync: jest.fn(),
 }));
 
 // Mock pricing-sync to avoid deep import chain
@@ -65,6 +67,8 @@ describe('LocalBootstrapService', () => {
 
   beforeEach(() => {
     mockDataSource = { query: jest.fn() };
+    // Pre-mock the WAL mode PRAGMA call that runs first in onModuleInit
+    mockDataSource.query.mockResolvedValueOnce(undefined);
     mockTenantRepo = makeMockRepo();
     mockAgentRepo = makeMockRepo();
     mockAgentKeyRepo = makeMockRepo();

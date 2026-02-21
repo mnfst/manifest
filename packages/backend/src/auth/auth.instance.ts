@@ -13,7 +13,11 @@ function createDatabaseConnection() {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Database = require('better-sqlite3');
     const dbPath = process.env['MANIFEST_DB_PATH'] || ':memory:';
-    return new Database(dbPath);
+    const db = new Database(dbPath);
+    if (dbPath !== ':memory:') {
+      db.pragma('journal_mode = WAL');
+    }
+    return db;
   }
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Pool } = require('pg');
@@ -31,8 +35,7 @@ if (!isLocalMode && nodeEnv !== 'test' && (!betterAuthSecret || betterAuthSecret
   throw new Error('BETTER_AUTH_SECRET must be set to a value of at least 32 characters');
 }
 
-// Shared constant — must match the secret set by manifest-server
-import { LOCAL_AUTH_SECRET } from '../common/constants/local-mode.constants';
+import { getLocalAuthSecret } from '../common/constants/local-mode.constants';
 
 function buildTrustedOrigins(): string[] {
   const origins: string[] = [];
@@ -57,7 +60,7 @@ export const auth = betterAuth({
   baseURL: process.env['BETTER_AUTH_URL'] ?? `http://localhost:${port}`,
   basePath: '/api/auth',
   secret: isLocalMode
-    ? (betterAuthSecret || LOCAL_AUTH_SECRET)
+    ? (betterAuthSecret || getLocalAuthSecret())
     : (betterAuthSecret || 'test-only-fallback-secret-not-for-production'),
   logger: {
     level: 'debug',

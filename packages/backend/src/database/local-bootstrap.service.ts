@@ -12,7 +12,7 @@ import { ModelPricing } from '../entities/model-pricing.entity';
 import { sha256, keyPrefix } from '../common/utils/hash.util';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { PricingSyncService } from './pricing-sync.service';
-import { LOCAL_EMAIL, LOCAL_PASSWORD } from '../common/constants/local-mode.constants';
+import { LOCAL_EMAIL, getLocalPassword } from '../common/constants/local-mode.constants';
 
 const LOCAL_TENANT_ID = 'local-tenant-001';
 const LOCAL_AGENT_ID = 'local-agent-001';
@@ -33,6 +33,7 @@ export class LocalBootstrapService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    await this.enableWalMode();
     await this.runBetterAuthMigrations();
     await this.seedModelPricing();
     await this.pricingCache.reload();
@@ -44,6 +45,14 @@ export class LocalBootstrapService implements OnModuleInit {
     this.pricingSync.syncPricing().catch((err) => {
       this.logger.warn(`Background pricing sync failed: ${err}`);
     });
+  }
+
+  private async enableWalMode() {
+    try {
+      await this.dataSource.query('PRAGMA journal_mode=WAL');
+    } catch {
+      // WAL not supported (e.g., in-memory database)
+    }
   }
 
   private async runBetterAuthMigrations() {
@@ -59,7 +68,7 @@ export class LocalBootstrapService implements OnModuleInit {
       await auth.api.signUpEmail({
         body: {
           email: LOCAL_EMAIL,
-          password: LOCAL_PASSWORD,
+          password: getLocalPassword(),
           name: 'Local User',
         },
       });

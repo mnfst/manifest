@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { homedir } from 'os';
-import { LOCAL_AUTH_SECRET, LOCAL_DEFAULT_PORT } from 'manifest-backend/dist/common/constants/local-mode.constants';
+import { getLocalAuthSecret, LOCAL_DEFAULT_PORT } from 'manifest-backend/dist/common/constants/local-mode.constants';
 
 export const version = '0.1.0';
 
@@ -23,9 +23,9 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
   process.env['MANIFEST_DB_PATH'] = dbPath;
   process.env['NODE_ENV'] = 'development';
 
-  // Fixed secret for local mode (not security-sensitive — auth is auto-granted for loopback)
+  // Generate a random persistent secret for local mode
   if (!process.env['BETTER_AUTH_SECRET']) {
-    process.env['BETTER_AUTH_SECRET'] = LOCAL_AUTH_SECRET;
+    process.env['BETTER_AUTH_SECRET'] = getLocalAuthSecret();
   }
 
   const { bootstrap } = await import('manifest-backend/dist/main');

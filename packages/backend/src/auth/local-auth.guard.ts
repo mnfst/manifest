@@ -36,7 +36,7 @@ export class LocalAuthGuard implements CanActivate {
       return true;
     }
 
-    // Non-loopback: fall through to let ApiKeyGuard handle
-    return true;
+    // Non-loopback without API key: deny access
+    return false;
   }
 }

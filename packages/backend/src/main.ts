@@ -5,7 +5,7 @@ import { toNodeHandler } from 'better-auth/node';
 import * as express from 'express';
 import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
-import { LOCAL_EMAIL, LOCAL_PASSWORD } from './common/constants/local-mode.constants';
+import { LOCAL_EMAIL, getLocalPassword } from './common/constants/local-mode.constants';
 
 const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
@@ -32,7 +32,7 @@ export async function bootstrap() {
   const isDev = process.env['NODE_ENV'] !== 'production';
   if (isDev) {
     app.enableCors({
-      origin: process.env['CORS_ORIGIN'] || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/,
+      origin: process.env['CORS_ORIGIN'] || /^https?:\/\/(localhost|127\.0\.0\.1)(:(2099|300[01]))?$/,
       credentials: true,
     });
   }
@@ -48,7 +48,8 @@ export async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
 
   // Trust reverse proxy (Railway, Render, etc.) so Express sees the real protocol/IP
-  if (!isDev) {
+  // Disabled in local mode — loopback-only, no reverse proxy
+  if (!isDev && process.env['MANIFEST_MODE'] !== 'local') {
     expressApp.set('trust proxy', 1);
   }
 
@@ -62,7 +63,7 @@ export async function bootstrap() {
       }
       try {
         const response = await auth.api.signInEmail({
-          body: { email: LOCAL_EMAIL, password: LOCAL_PASSWORD },
+          body: { email: LOCAL_EMAIL, password: getLocalPassword() },
           asResponse: true,
         });
         const cookies = response.headers.getSetCookie();
@@ -74,6 +75,18 @@ export async function bootstrap() {
       } catch {
         res.status(500).json({ error: 'Auto-login failed' });
       }
+    });
+  }
+
+  // In local mode, restrict Better Auth endpoints to loopback IPs
+  if (process.env['MANIFEST_MODE'] === 'local') {
+    expressApp.all('/api/auth/*splat', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      const ip = req.ip ?? '';
+      if (!LOOPBACK_IPS.has(ip)) {
+        res.status(403).json({ error: 'Forbidden' });
+        return;
+      }
+      next();
     });
   }
 

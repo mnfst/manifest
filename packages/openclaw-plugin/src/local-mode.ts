@@ -19,7 +19,7 @@ interface LocalConfig {
 
 function ensureConfigDir() {
   if (!existsSync(CONFIG_DIR)) {
-    mkdirSync(CONFIG_DIR, { recursive: true });
+    mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
   }
 }
 
@@ -38,7 +38,16 @@ function loadOrGenerateApiKey(): string {
   }
 
   const key = `${API_KEY_PREFIX}local_${randomBytes(24).toString("hex")}`;
-  writeFileSync(CONFIG_FILE, JSON.stringify({ apiKey: key }, null, 2));
+  // Preserve existing config fields when writing
+  let existing: Record<string, unknown> = {};
+  if (existsSync(CONFIG_FILE)) {
+    try {
+      existing = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
+    } catch {
+      // Overwrite if corrupted
+    }
+  }
+  writeFileSync(CONFIG_FILE, JSON.stringify({ ...existing, apiKey: key }, null, 2), { mode: 0o600 });
   return key;
 }
 

@@ -101,17 +101,17 @@ describe('LocalAuthGuard', () => {
     expect(request['user']).toBeUndefined();
   });
 
-  it('allows non-loopback without injecting user', async () => {
+  it('denies non-loopback requests without API key', async () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     const { context, request } = createMockContext({ ip: '192.168.1.100' });
 
     const result = await guard.canActivate(context);
 
-    expect(result).toBe(true);
+    expect(result).toBe(false);
     expect(request['user']).toBeUndefined();
   });
 
-  it('handles undefined IP gracefully', async () => {
+  it('denies requests with undefined IP', async () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     const { context, request } = createMockContext({});
     // Simulate undefined IP
@@ -119,7 +119,7 @@ describe('LocalAuthGuard', () => {
 
     const result = await guard.canActivate(context);
 
-    expect(result).toBe(true);
+    expect(result).toBe(false);
     expect(request['user']).toBeUndefined();
   });
 });
