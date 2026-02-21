@@ -1,6 +1,7 @@
 import {
   createSignal,
   createResource,
+  onMount,
   Show,
   For,
   type Component,
@@ -16,6 +17,7 @@ import {
 } from "../services/api.js";
 import { formatMetricType } from "../services/formatters.js";
 import { toast } from "../services/toast-store.js";
+import { checkLocalMode, isLocalMode } from "../services/local-mode.js";
 import NotificationRuleModal from "../components/NotificationRuleModal.jsx";
 
 function formatThreshold(rule: NotificationRule): string {
@@ -33,6 +35,10 @@ const Notifications: Component = () => {
   const agentName = () => decodeURIComponent(params.agentName);
   const [modalOpen, setModalOpen] = createSignal(false);
   const [editingRule, setEditingRule] = createSignal<NotificationRule | null>(null);
+
+  onMount(() => {
+    checkLocalMode();
+  });
 
   const [rules, { refetch }] = createResource(
     () => agentName(),
@@ -87,6 +93,17 @@ const Notifications: Component = () => {
           Create alert
         </button>
       </div>
+
+      <Show when={isLocalMode()}>
+        <div class="waiting-banner" role="status">
+          <i class="bxd bx-info-circle" />
+          <p>
+            Email notifications are available on the cloud version of Manifest.
+            You can still create and manage alert rules here -- they will be
+            stored and will take effect once email delivery is configured.
+          </p>
+        </div>
+      </Show>
 
       <Show
         when={!rules.loading}
