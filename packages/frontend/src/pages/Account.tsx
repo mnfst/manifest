@@ -1,7 +1,8 @@
-import { createSignal, onMount, type Component } from "solid-js";
+import { createSignal, onMount, Show, type Component } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { Title, Meta } from "@solidjs/meta";
 import { authClient } from "../services/auth-client.js";
+import { checkLocalMode, isLocalMode } from "../services/local-mode.js";
 
 const Account: Component = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const Account: Component = () => {
   const userId = () => session()?.data?.user?.id ?? "";
 
   onMount(() => {
+    checkLocalMode();
     const stored = localStorage.getItem("theme");
     if (stored === "dark" || stored === "light") {
       setTheme(stored);
@@ -56,55 +58,57 @@ const Account: Component = () => {
           </div>
         </div>
 
-      {/* Profile Information */}
-      <h3 class="settings-section__title">Profile information</h3>
+      <Show when={!isLocalMode()}>
+        {/* Profile Information — cloud only */}
+        <h3 class="settings-section__title">Profile information</h3>
 
-      <div class="settings-card">
-        <div class="settings-card__row">
-          <div class="settings-card__label">
-            <span class="settings-card__label-title">Display name</span>
-            <span class="settings-card__label-desc">Name shown throughout the dashboard.</span>
+        <div class="settings-card">
+          <div class="settings-card__row">
+            <div class="settings-card__label">
+              <span class="settings-card__label-title">Display name</span>
+              <span class="settings-card__label-desc">Name shown throughout the dashboard.</span>
+            </div>
+            <div class="settings-card__control">
+              <label for="display-name" class="sr-only">Display name</label>
+              <input class="settings-card__input" type="text" id="display-name" value={userName()} readonly />
+            </div>
           </div>
-          <div class="settings-card__control">
-            <label for="display-name" class="sr-only">Display name</label>
-            <input class="settings-card__input" type="text" id="display-name" value={userName()} readonly />
+          <div class="settings-card__row">
+            <div class="settings-card__label">
+              <span class="settings-card__label-title">Email</span>
+              <span class="settings-card__label-desc">Used for account notifications.</span>
+            </div>
+            <div class="settings-card__control">
+              <label for="email" class="sr-only">Email</label>
+              <input class="settings-card__input" type="email" id="email" value={userEmail()} readonly />
+            </div>
+          </div>
+          <div class="settings-card__footer">
+            <button class="btn btn--outline" style="font-size: var(--font-size-sm);">Save</button>
           </div>
         </div>
-        <div class="settings-card__row">
-          <div class="settings-card__label">
-            <span class="settings-card__label-title">Email</span>
-            <span class="settings-card__label-desc">Used for account notifications.</span>
-          </div>
-          <div class="settings-card__control">
-            <label for="email" class="sr-only">Email</label>
-            <input class="settings-card__input" type="email" id="email" value={userEmail()} readonly />
-          </div>
-        </div>
-        <div class="settings-card__footer">
-          <button class="btn btn--outline" style="font-size: var(--font-size-sm);">Save</button>
-        </div>
-      </div>
 
-      {/* Workspace ID */}
-      <h3 class="settings-section__title">Workspace</h3>
+        {/* Workspace ID — cloud only */}
+        <h3 class="settings-section__title">Workspace</h3>
 
-      <div class="settings-card">
-        <div class="settings-card__body">
-          <p class="settings-card__desc">Your unique workspace identifier. You may need this for support requests or advanced integrations.</p>
-          <div class="settings-card__id-row">
-            <code class="settings-card__id-value">{userId()}</code>
-            <button class="settings-card__copy-btn" onClick={copyId} title="Copy">
-              {copied() ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              )}
-            </button>
+        <div class="settings-card">
+          <div class="settings-card__body">
+            <p class="settings-card__desc">Your unique workspace identifier. You may need this for support requests or advanced integrations.</p>
+            <div class="settings-card__id-row">
+              <code class="settings-card__id-value">{userId()}</code>
+              <button class="settings-card__copy-btn" onClick={copyId} title="Copy">
+                {copied() ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                )}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </Show>
 
-      {/* Appearance */}
+      {/* Appearance — both modes */}
       <h3 class="settings-section__title">Appearance</h3>
 
       <div class="settings-card">

@@ -1,0 +1,21 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+flags:
+  backend:
+    paths:
+      - packages/backend/src/
+  frontend:
+    paths:
+      - packages/frontend/src/
+  plugin:
+    paths:
+      - packages/openclaw-plugin/src/
+comment:
+  layout: "reach,diff,flags"

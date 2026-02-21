@@ -1,13 +1,29 @@
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
 
-const databaseUrl =
-  process.env['DATABASE_URL'] ??
-  'postgresql://myuser:mypassword@localhost:5432/mydatabase';
+const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 
-export default new DataSource({
-  type: 'postgres',
-  url: databaseUrl,
-  entities: ['src/entities/*.ts'],
-  migrations: ['src/database/migrations/*.ts'],
-});
+function createDataSource(): DataSource {
+  if (isLocalMode) {
+    const dbPath = process.env['MANIFEST_DB_PATH'] || ':memory:';
+    return new DataSource({
+      type: 'better-sqlite3',
+      database: dbPath,
+      entities: ['src/entities/!(*.spec).ts'],
+      synchronize: true,
+    });
+  }
+
+  const databaseUrl =
+    process.env['DATABASE_URL'] ??
+    'postgresql://myuser:mypassword@localhost:5432/mydatabase';
+
+  return new DataSource({
+    type: 'postgres',
+    url: databaseUrl,
+    entities: ['src/entities/!(*.spec).ts'],
+    migrations: ['src/database/migrations/*.ts'],
+  });
+}
+
+export default createDataSource();

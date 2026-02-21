@@ -2,20 +2,31 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { CreateNotificationRuleDto, UpdateNotificationRuleDto } from '../dto/notification-rule.dto';
+import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
 
 @Injectable()
 export class NotificationRulesService {
-  constructor(private readonly ds: DataSource) {}
+  private readonly dialect: DbDialect;
+
+  constructor(private readonly ds: DataSource) {
+    this.dialect = detectDialect(ds.options.type as string);
+  }
+
+  private sql(query: string): string {
+    return portableSql(query, this.dialect);
+  }
 
   async listRules(userId: string, agentName: string) {
     return this.ds.query(
-      `SELECT nr.*, COALESCE(nl.trigger_count, 0) AS trigger_count
-       FROM notification_rules nr
-       LEFT JOIN (
-         SELECT rule_id, COUNT(*) AS trigger_count FROM notification_logs GROUP BY rule_id
-       ) nl ON nl.rule_id = nr.id
-       WHERE nr.user_id = $1 AND nr.agent_name = $2
-       ORDER BY nr.created_at DESC`,
+      this.sql(
+        `SELECT nr.*, COALESCE(nl.trigger_count, 0) AS trigger_count
+         FROM notification_rules nr
+         LEFT JOIN (
+           SELECT rule_id, COUNT(*) AS trigger_count FROM notification_logs GROUP BY rule_id
+         ) nl ON nl.rule_id = nr.id
+         WHERE nr.user_id = $1 AND nr.agent_name = $2
+         ORDER BY nr.created_at DESC`,
+      ),
       [userId, agentName],
     );
   }
@@ -26,44 +37,51 @@ export class NotificationRulesService {
     const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
     await this.ds.query(
-      `INSERT INTO notification_rules
-       (id, tenant_id, agent_id, agent_name, user_id, metric_type, threshold, period, is_active, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9, $10)`,
+      this.sql(
+        `INSERT INTO notification_rules
+         (id, tenant_id, agent_id, agent_name, user_id, metric_type, threshold, period, is_active, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      ),
       [id, agent.tenant_id, agent.id, dto.agent_name, userId,
-       dto.metric_type, dto.threshold, dto.period, now, now],
+       dto.metric_type, dto.threshold, dto.period,
+       this.dialect === 'sqlite' ? 1 : true, now, now],
     );
 
-    const rows = await this.ds.query(`SELECT * FROM notification_rules WHERE id = $1`, [id]);
+    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [id]);
     return rows[0];
   }
 
   async updateRule(userId: string, ruleId: string, dto: UpdateNotificationRuleDto) {
     await this.verifyOwnership(userId, ruleId);
 
-    const update: Record<string, unknown> = {};
-    if (dto.metric_type !== undefined) update.metric_type = dto.metric_type;
-    if (dto.threshold !== undefined) update.threshold = dto.threshold;
-    if (dto.period !== undefined) update.period = dto.period;
-    if (dto.is_active !== undefined) update.is_active = dto.is_active;
+    const sets: string[] = [];
+    const params: unknown[] = [];
+    let paramIdx = 1;
 
-    if (Object.keys(update).length === 0) return this.getRule(ruleId);
+    if (dto.metric_type !== undefined) { sets.push(`metric_type = $${paramIdx++}`); params.push(dto.metric_type); }
+    if (dto.threshold !== undefined) { sets.push(`threshold = $${paramIdx++}`); params.push(dto.threshold); }
+    if (dto.period !== undefined) { sets.push(`period = $${paramIdx++}`); params.push(dto.period); }
+    if (dto.is_active !== undefined) {
+      sets.push(`is_active = $${paramIdx++}`);
+      params.push(this.dialect === 'sqlite' ? (dto.is_active ? 1 : 0) : dto.is_active);
+    }
 
-    update.updated_at = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+    if (sets.length === 0) return this.getRule(ruleId);
 
-    await this.ds
-      .createQueryBuilder()
-      .update('notification_rules')
-      .set(update)
-      .where('id = :id', { id: ruleId })
-      .execute();
+    const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+    sets.push(`updated_at = $${paramIdx++}`);
+    params.push(now);
+    params.push(ruleId);
 
-    const rows = await this.ds.query(`SELECT * FROM notification_rules WHERE id = $1`, [ruleId]);
+    await this.ds.query(this.sql(`UPDATE notification_rules SET ${sets.join(', ')} WHERE id = $${paramIdx}`), params);
+
+    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [ruleId]);
     return rows[0];
   }
 
   async deleteRule(userId: string, ruleId: string) {
     await this.verifyOwnership(userId, ruleId);
-    await this.ds.query(`DELETE FROM notification_rules WHERE id = $1`, [ruleId]);
+    await this.ds.query(this.sql(`DELETE FROM notification_rules WHERE id = $1`), [ruleId]);
   }
 
   async getConsumption(
@@ -78,9 +96,11 @@ export class NotificationRulesService {
       : 'COALESCE(SUM(cost_usd), 0)';
 
     const rows = await this.ds.query(
-      `SELECT ${expr} as total FROM agent_messages
-       WHERE tenant_id = $1 AND agent_name = $2
-       AND timestamp >= $3 AND timestamp < $4`,
+      this.sql(
+        `SELECT ${expr} as total FROM agent_messages
+         WHERE tenant_id = $1 AND agent_name = $2
+         AND timestamp >= $3 AND timestamp < $4`,
+      ),
       [tenantId, agentName, periodStart, periodEnd],
     );
 
@@ -89,15 +109,18 @@ export class NotificationRulesService {
 
   async getAllActiveRules() {
     return this.ds.query(
-      `SELECT * FROM notification_rules WHERE is_active = true`,
+      this.sql(`SELECT * FROM notification_rules WHERE is_active = $1`),
+      [this.dialect === 'sqlite' ? 1 : true],
     );
   }
 
   private async resolveAgent(userId: string, agentName: string) {
     const rows = await this.ds.query(
-      `SELECT a.id, a.tenant_id FROM agents a
-       JOIN tenants t ON t.id = a.tenant_id
-       WHERE t.name = $1 AND a.name = $2`,
+      this.sql(
+        `SELECT a.id, a.tenant_id FROM agents a
+         JOIN tenants t ON t.id = a.tenant_id
+         WHERE t.name = $1 AND a.name = $2`,
+      ),
       [userId, agentName],
     );
     if (!rows.length) {
@@ -108,7 +131,7 @@ export class NotificationRulesService {
 
   private async verifyOwnership(userId: string, ruleId: string) {
     const rows = await this.ds.query(
-      `SELECT id FROM notification_rules WHERE id = $1 AND user_id = $2`,
+      this.sql(`SELECT id FROM notification_rules WHERE id = $1 AND user_id = $2`),
       [ruleId, userId],
     );
     if (!rows.length) {
@@ -117,7 +140,7 @@ export class NotificationRulesService {
   }
 
   private async getRule(ruleId: string) {
-    const rows = await this.ds.query(`SELECT * FROM notification_rules WHERE id = $1`, [ruleId]);
+    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [ruleId]);
     return rows[0];
   }
 }

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SecurityEvent } from '../entities/security-event.entity';
 import { rangeToInterval } from '../common/utils/range.util';
+import { computeCutoff } from '../common/utils/sql-dialect';
 
 @Injectable()
 export class SecurityService {
@@ -15,12 +16,13 @@ export class SecurityService {
 
   async getSecurityOverview(range: string, userId: string) {
     const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
 
     const countRows = await this.securityRepo
       .createQueryBuilder('se')
       .select('se.severity', 'severity')
       .addSelect('COUNT(*)', 'cnt')
-      .where('se.timestamp >= NOW() - CAST(:interval AS interval)', { interval })
+      .where('se.timestamp >= :cutoff', { cutoff })
       .andWhere('se.user_id = :userId', { userId })
       .groupBy('se.severity')
       .getRawMany();
@@ -35,7 +37,7 @@ export class SecurityService {
     const events = await this.securityRepo
       .createQueryBuilder('se')
       .select(['se.id', 'se.timestamp', 'se.severity', 'se.category', 'se.description'])
-      .where('se.timestamp >= NOW() - CAST(:interval AS interval)', { interval })
+      .where('se.timestamp >= :cutoff', { cutoff })
       .andWhere('se.user_id = :userId', { userId })
       .orderBy('se.timestamp', 'DESC')
       .limit(50)

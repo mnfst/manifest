@@ -32,6 +32,9 @@ export class DatabaseSeederService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    // In local mode, LocalBootstrapService handles initialization
+    if (process.env['MANIFEST_MODE'] === 'local') return;
+
     await this.runBetterAuthMigrations();
     await this.seedModelPricing();
 

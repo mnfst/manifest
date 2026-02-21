@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
+import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
 
 interface ActiveRule {
   id: string;
@@ -18,12 +19,19 @@ interface ActiveRule {
 @Injectable()
 export class NotificationCronService {
   private readonly logger = new Logger(NotificationCronService.name);
+  private readonly dialect: DbDialect;
 
   constructor(
     private readonly ds: DataSource,
     private readonly rulesService: NotificationRulesService,
     private readonly emailService: NotificationEmailService,
-  ) {}
+  ) {
+    this.dialect = detectDialect(ds.options.type as string);
+  }
+
+  private sql(query: string): string {
+    return portableSql(query, this.dialect);
+  }
 
   @Cron(CronExpression.EVERY_HOUR)
   async checkThresholds(): Promise<number> {
@@ -52,7 +60,7 @@ export class NotificationCronService {
     const { periodStart, periodEnd } = this.computePeriodBoundaries(rule.period);
 
     const alreadySent = await this.ds.query(
-      `SELECT 1 FROM notification_logs WHERE rule_id = $1 AND period_start = $2`,
+      this.sql(`SELECT 1 FROM notification_logs WHERE rule_id = $1 AND period_start = $2`),
       [rule.id, periodStart],
     );
     if (alreadySent.length > 0) return false;
@@ -66,9 +74,11 @@ export class NotificationCronService {
     const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
     await this.ds.query(
-      `INSERT INTO notification_logs
-       (id, rule_id, period_start, period_end, actual_value, threshold_value, metric_type, agent_name, sent_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      this.sql(
+        `INSERT INTO notification_logs
+         (id, rule_id, period_start, period_end, actual_value, threshold_value, metric_type, agent_name, sent_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      ),
       [uuid(), rule.id, periodStart, periodEnd, actual, rule.threshold,
        rule.metric_type, rule.agent_name, now],
     );
@@ -120,7 +130,7 @@ export class NotificationCronService {
 
   private async resolveUserEmail(userId: string): Promise<string | null> {
     const rows = await this.ds.query(
-      `SELECT email FROM "user" WHERE id = $1`,
+      this.sql(`SELECT email FROM "user" WHERE id = $1`),
       [userId],
     );
     return rows[0]?.email ?? null;

@@ -19,6 +19,7 @@ import { NotificationLog } from '../entities/notification-log.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { DatabaseSeederService } from './database-seeder.service';
+import { LocalBootstrapService } from './local-bootstrap.service';
 import { PricingSyncService } from './pricing-sync.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -38,26 +39,46 @@ const entities = [
 
 const migrations = [InitialSchema1771464895790, HashApiKeys1771500000000, AddModelCapabilities1771600000000, AddRoutingTables1771700000000, AddQualityScore1771800000000, SeedQualityScores1771800100000];
 
+const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
+
+function buildModeServices() {
+  const seeder = isLocalMode ? LocalBootstrapService : DatabaseSeederService;
+  return [seeder, PricingSyncService];
+}
+
 @Module({
   imports: [
     ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres' as const,
-        url: config.get<string>('app.databaseUrl'),
-        entities,
-        synchronize: false,
-        migrationsRun: true,
-        migrationsTransactionMode: 'all' as const,
-        migrations,
-        logging: false,
-      }),
+      useFactory: (config: ConfigService) => {
+        if (isLocalMode) {
+          const dbPath = config.get<string>('app.sqlitePath') || ':memory:';
+          return {
+            type: 'better-sqlite3' as const,
+            database: dbPath,
+            entities,
+            synchronize: true,
+            migrationsRun: false,
+            logging: false,
+          };
+        }
+        return {
+          type: 'postgres' as const,
+          url: config.get<string>('app.databaseUrl'),
+          entities,
+          synchronize: false,
+          migrationsRun: true,
+          migrationsTransactionMode: 'all' as const,
+          migrations,
+          logging: false,
+        };
+      },
     }),
     TypeOrmModule.forFeature([Tenant, Agent, AgentApiKey, ApiKey, ModelPricing, SecurityEvent]),
     ModelPricesModule,
   ],
-  providers: [DatabaseSeederService, PricingSyncService],
-  exports: [DatabaseSeederService, PricingSyncService],
+  providers: buildModeServices(),
+  exports: buildModeServices(),
 })
 export class DatabaseModule {}

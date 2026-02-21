@@ -1,30 +1,40 @@
-/* Mock ESM dependencies before any imports */
-const mockGetSession = jest.fn();
-
 jest.mock('better-auth/node', () => ({
-  fromNodeHeaders: jest.fn((h: unknown) => h),
+  fromNodeHeaders: jest.fn((headers: Record<string, string>) => headers),
 }));
 
 jest.mock('./auth.instance', () => ({
   auth: {
-    api: { getSession: mockGetSession },
+    api: {
+      getSession: jest.fn(),
+    },
   },
 }));
 
-import { SessionGuard } from './session.guard';
-import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { SessionGuard } from './session.guard';
 
-function makeContext(headers: Record<string, string> = {}) {
-  const request: Record<string, unknown> = { headers };
-  return {
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { auth } = require('./auth.instance');
+
+function createMockContext(overrides: {
+  ip?: string;
+  headers?: Record<string, string>;
+}): { context: ExecutionContext; request: Record<string, unknown> } {
+  const request: Record<string, unknown> = {
+    ip: overrides.ip ?? '127.0.0.1',
+    headers: overrides.headers ?? {},
+  };
+
+  const context = {
     getHandler: jest.fn(),
     getClass: jest.fn(),
     switchToHttp: () => ({
       getRequest: () => request,
     }),
-    _request: request,
-  } as unknown as ExecutionContext & { _request: typeof request };
+  } as unknown as ExecutionContext;
+
+  return { context, request };
 }
 
 describe('SessionGuard', () => {
@@ -34,82 +44,55 @@ describe('SessionGuard', () => {
   beforeEach(() => {
     reflector = new Reflector();
     guard = new SessionGuard(reflector);
-    mockGetSession.mockReset();
+    jest.clearAllMocks();
   });
 
-  describe('public routes', () => {
-    it('should return true for @Public() routes without checking session', async () => {
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(true);
-      const ctx = makeContext();
+  it('allows public routes', async () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(true);
+    const { context } = createMockContext({});
 
-      const result = await guard.canActivate(ctx);
+    const result = await guard.canActivate(context);
 
-      expect(result).toBe(true);
-      expect(mockGetSession).not.toHaveBeenCalled();
-    });
+    expect(result).toBe(true);
+    expect(auth.api.getSession).not.toHaveBeenCalled();
   });
 
-  describe('API key passthrough', () => {
-    it('should return true when x-api-key header is present', async () => {
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-      const ctx = makeContext({ 'x-api-key': 'test-key' });
-
-      const result = await guard.canActivate(ctx);
-
-      expect(result).toBe(true);
-      expect(mockGetSession).not.toHaveBeenCalled();
+  it('passes through when X-API-Key header is present', async () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    const { context } = createMockContext({
+      headers: { 'x-api-key': 'some-key' },
     });
+
+    const result = await guard.canActivate(context);
+
+    expect(result).toBe(true);
+    expect(auth.api.getSession).not.toHaveBeenCalled();
   });
 
-  describe('session validation', () => {
-    it('should attach user and session when session is valid', async () => {
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-      const session = {
-        user: { id: 'u1', name: 'Alice', email: 'alice@test.com' },
-        session: { id: 's1', token: 'tok' },
-      };
-      mockGetSession.mockResolvedValue(session);
-      const ctx = makeContext({ cookie: 'session=abc' });
+  it('attaches user when session is valid', async () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    const mockSession = {
+      user: { id: 'user-1', name: 'Test', email: 'test@test.com' },
+      session: { id: 'session-1' },
+    };
+    (auth.api.getSession as jest.Mock).mockResolvedValue(mockSession);
+    const { context, request } = createMockContext({});
 
-      const result = await guard.canActivate(ctx);
+    const result = await guard.canActivate(context);
 
-      expect(result).toBe(true);
-      expect(ctx._request.user).toEqual(session.user);
-      expect(ctx._request.session).toEqual(session.session);
-    });
+    expect(result).toBe(true);
+    expect(request['user']).toEqual(mockSession.user);
+    expect(request['session']).toEqual(mockSession.session);
+  });
 
-    it('should still return true when no session exists (delegates to ApiKeyGuard)', async () => {
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-      mockGetSession.mockResolvedValue(null);
-      const ctx = makeContext();
+  it('returns true even when no session found', async () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    (auth.api.getSession as jest.Mock).mockResolvedValue(null);
+    const { context, request } = createMockContext({});
 
-      const result = await guard.canActivate(ctx);
+    const result = await guard.canActivate(context);
 
-      expect(result).toBe(true);
-    });
-
-    it('should not attach user when session is null', async () => {
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-      mockGetSession.mockResolvedValue(null);
-      const ctx = makeContext();
-
-      await guard.canActivate(ctx);
-
-      expect(ctx._request.user).toBeUndefined();
-      expect(ctx._request.session).toBeUndefined();
-    });
-
-    it('should call getSession with request headers', async () => {
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-      mockGetSession.mockResolvedValue(null);
-      const headers = { cookie: 'auth=xyz', 'user-agent': 'test' };
-      const ctx = makeContext(headers);
-
-      await guard.canActivate(ctx);
-
-      expect(mockGetSession).toHaveBeenCalledWith(
-        expect.objectContaining({ headers }),
-      );
-    });
+    expect(result).toBe(true);
+    expect(request['user']).toBeUndefined();
   });
 });

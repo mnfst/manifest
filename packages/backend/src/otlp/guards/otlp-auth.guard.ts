@@ -83,7 +83,7 @@ export class OtlpAuthGuard implements CanActivate {
       throw new UnauthorizedException('API key expired');
     }
 
-    this.keyRepo.update({ key_hash: tokenHash }, { last_used_at: () => 'NOW()' } as never)
+    this.keyRepo.update({ key_hash: tokenHash }, { last_used_at: () => 'CURRENT_TIMESTAMP' } as never)
       .catch((err: Error) => this.logger.warn(`Failed to update last_used_at: ${err.message}`));
 
     this.evictExpired();

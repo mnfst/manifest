@@ -1,4 +1,4 @@
-import { computeTrend, downsample, formatPgTimestamp, addTenantFilter } from './query-helpers';
+import { computeTrend, downsample, formatTimestamp, addTenantFilter } from './query-helpers';
 import { SelectQueryBuilder, Brackets } from 'typeorm';
 
 describe('computeTrend', () => {
@@ -69,28 +69,28 @@ describe('downsample', () => {
   });
 });
 
-describe('formatPgTimestamp', () => {
+describe('formatTimestamp', () => {
   it('formats a Date as a PG-compatible timestamp string', () => {
     const d = new Date(2026, 1, 16, 10, 5, 3, 42);
-    const result = formatPgTimestamp(d);
+    const result = formatTimestamp(d);
     expect(result).toBe('2026-02-16T10:05:03.042');
   });
 
   it('zero-pads single-digit months, days, hours, minutes, seconds', () => {
     const d = new Date(2026, 0, 2, 3, 4, 5, 7);
-    const result = formatPgTimestamp(d);
+    const result = formatTimestamp(d);
     expect(result).toBe('2026-01-02T03:04:05.007');
   });
 
   it('handles midnight (all-zero time components)', () => {
     const d = new Date(2026, 5, 15, 0, 0, 0, 0);
-    const result = formatPgTimestamp(d);
+    const result = formatTimestamp(d);
     expect(result).toBe('2026-06-15T00:00:00.000');
   });
 
   it('handles end-of-day timestamp', () => {
     const d = new Date(2026, 11, 31, 23, 59, 59, 999);
-    const result = formatPgTimestamp(d);
+    const result = formatTimestamp(d);
     expect(result).toBe('2026-12-31T23:59:59.999');
   });
 });

@@ -1,0 +1,26 @@
+{
+  "name": "@mnfst/server",
+  "version": "5.2.3",
+  "description": "Embedded Manifest server for local mode",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && node scripts/copy-assets.js",
+    "prebuild": "rm -rf dist"
+  },
+  "dependencies": {
+    "manifest-backend": "*"
+  },
+  "files": [
+    "dist",
+    "public"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mnfst/manifest"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}

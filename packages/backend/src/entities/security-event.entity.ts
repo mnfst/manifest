@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('security_event')
 export class SecurityEvent {
@@ -8,7 +9,7 @@ export class SecurityEvent {
   @Column('varchar', { nullable: true })
   session_key!: string | null;
 
-  @Column('timestamp')
+  @Column(timestampType())
   timestamp!: string;
 
   @Column('varchar')

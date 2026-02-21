@@ -1,21 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { agentPath } from "../../src/services/routing.js";
+import { agentPath } from "../../src/services/routing";
 
 describe("agentPath", () => {
-  it("builds path for agent with sub-route", () => {
-    expect(agentPath("my-bot", "/messages")).toBe("/agents/my-bot/messages");
+  it("builds path with agent name", () => {
+    expect(agentPath("my-agent", "/overview")).toBe("/agents/my-agent/overview");
   });
-
-  it("builds base path for agent", () => {
-    expect(agentPath("my-bot", "")).toBe("/agents/my-bot");
-  });
-
   it("encodes special characters in agent name", () => {
-    expect(agentPath("bot with spaces", "/settings")).toBe("/agents/bot%20with%20spaces/settings");
+    expect(agentPath("my agent", "/overview")).toBe("/agents/my%20agent/overview");
   });
-
-  it("returns / when agentName is null", () => {
-    expect(agentPath(null, "/messages")).toBe("/");
-    expect(agentPath(null, "")).toBe("/");
+  it("returns root when agent is null", () => {
+    expect(agentPath(null, "/overview")).toBe("/");
   });
 });

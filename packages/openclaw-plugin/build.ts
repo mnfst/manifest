@@ -13,7 +13,7 @@ async function main() {
     outfile: "dist/index.js",
     sourcemap: false,
     minify: true,
-    external: [],
+    external: ["@mnfst/server"],
     alias: {
       "@protobufjs/inquire": "./stubs/inquire.js",
       "child_process": "./stubs/child_process.js",
