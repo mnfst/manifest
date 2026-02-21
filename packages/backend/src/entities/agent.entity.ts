@@ -36,9 +36,9 @@ export class Agent {
   @OneToOne(() => AgentApiKey, (k) => k.agent, { cascade: true })
   apiKey!: AgentApiKey;
 
-  @Column(timestampType(), { default: () => 'CURRENT_TIMESTAMP' })
+  @Column(timestampType(), { default: () => 'NOW()' })
   created_at!: string;
 
-  @Column(timestampType(), { default: () => 'CURRENT_TIMESTAMP' })
+  @Column(timestampType(), { default: () => 'NOW()' })
   updated_at!: string;
 }

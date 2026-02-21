@@ -33,6 +33,6 @@ export class NotificationLog {
   @Column('varchar')
   agent_name!: string;
 
-  @Column(timestampType(), { default: () => 'CURRENT_TIMESTAMP' })
+  @Column(timestampType(), { default: () => 'NOW()' })
   sent_at!: string;
 }

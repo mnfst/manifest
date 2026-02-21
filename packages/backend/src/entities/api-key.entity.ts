@@ -22,7 +22,7 @@ export class ApiKey {
   @Column('varchar')
   name!: string;
 
-  @Column(timestampType(), { default: () => 'CURRENT_TIMESTAMP' })
+  @Column(timestampType(), { default: () => 'NOW()' })
   created_at!: string;
 
   @Column(timestampType(), { nullable: true, default: null })

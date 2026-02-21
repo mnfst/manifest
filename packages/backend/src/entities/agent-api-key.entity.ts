@@ -52,6 +52,6 @@ export class AgentApiKey {
   @Column(timestampType(), { nullable: true })
   last_used_at!: string | null;
 
-  @Column(timestampType(), { default: () => 'CURRENT_TIMESTAMP' })
+  @Column(timestampType(), { default: () => 'NOW()' })
   created_at!: string;
 }

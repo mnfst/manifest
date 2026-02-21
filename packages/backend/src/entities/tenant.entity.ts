@@ -22,9 +22,9 @@ export class Tenant {
   @OneToMany(() => Agent, (a) => a.tenant, { cascade: true })
   agents!: Agent[];
 
-  @Column(timestampType(), { default: () => 'CURRENT_TIMESTAMP' })
+  @Column(timestampType(), { default: () => 'NOW()' })
   created_at!: string;
 
-  @Column(timestampType(), { default: () => 'CURRENT_TIMESTAMP' })
+  @Column(timestampType(), { default: () => 'NOW()' })
   updated_at!: string;
 }
