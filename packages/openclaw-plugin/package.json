@@ -13,7 +13,6 @@
   "files": [
     "dist/index.js",
     "openclaw.plugin.json",
-    "skills/",
     "README.md",
     "LICENSE.md"
   ],
