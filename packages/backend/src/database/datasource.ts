@@ -9,7 +9,7 @@ function createDataSource(): DataSource {
     return new DataSource({
       type: 'better-sqlite3',
       database: dbPath,
-      entities: ['src/entities/*.ts'],
+      entities: ['src/entities/!(*.spec).ts'],
       synchronize: true,
     });
   }
@@ -21,7 +21,7 @@ function createDataSource(): DataSource {
   return new DataSource({
     type: 'postgres',
     url: databaseUrl,
-    entities: ['src/entities/*.ts'],
+    entities: ['src/entities/!(*.spec).ts'],
     migrations: ['src/database/migrations/*.ts'],
   });
 }

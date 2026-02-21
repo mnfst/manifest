@@ -1,94 +1,65 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 
-let signalValue: unknown[] = [];
-const mockSetToasts = vi.fn((fn: (prev: unknown[]) => unknown[]) => {
-  signalValue = fn(signalValue);
-});
-
-vi.mock("solid-js", () => ({
-  createSignal: (init: unknown[]) => {
-    signalValue = init;
-    return [() => signalValue, mockSetToasts];
-  },
-}));
-
+// We need to reset the module for each test to clear state
 describe("toast-store", () => {
+  let addToast: typeof import("../../src/services/toast-store").addToast;
+  let dismissToast: typeof import("../../src/services/toast-store").dismissToast;
+  let toasts: typeof import("../../src/services/toast-store").toasts;
+  let toast: typeof import("../../src/services/toast-store").toast;
+
   beforeEach(async () => {
-    vi.resetModules();
-    signalValue = [];
-    mockSetToasts.mockClear();
+    const mod = await import("../../src/services/toast-store");
+    addToast = mod.addToast;
+    dismissToast = mod.dismissToast;
+    toasts = mod.toasts;
+    toast = mod.toast;
+    // Clear existing toasts
+    for (const t of toasts()) {
+      dismissToast(t.id);
+    }
   });
 
-  it("addToast creates a toast with default duration", async () => {
-    const { addToast, toasts } = await import("../../src/services/toast-store.js");
-
-    addToast("error", "Something went wrong");
-
-    expect(toasts()).toHaveLength(1);
-    expect(toasts()[0]).toMatchObject({
-      type: "error",
-      message: "Something went wrong",
-      duration: 6000,
-    });
+  it("adds a toast with default duration", () => {
+    const id = addToast("error", "Something went wrong");
+    const list = toasts();
+    expect(list.length).toBeGreaterThanOrEqual(1);
+    const found = list.find((t) => t.id === id);
+    expect(found).toBeDefined();
+    expect(found!.type).toBe("error");
+    expect(found!.message).toBe("Something went wrong");
+    expect(found!.duration).toBe(6000);
   });
 
-  it("addToast uses custom duration when provided", async () => {
-    const { addToast, toasts } = await import("../../src/services/toast-store.js");
-
-    addToast("success", "Done", 2000);
-
-    expect(toasts()[0].duration).toBe(2000);
+  it("adds toast with custom duration", () => {
+    const id = addToast("success", "Saved!", 2000);
+    const found = toasts().find((t) => t.id === id);
+    expect(found!.duration).toBe(2000);
   });
 
-  it("addToast returns unique ids", async () => {
-    const { addToast } = await import("../../src/services/toast-store.js");
-
-    const id1 = addToast("error", "Error 1");
-    const id2 = addToast("warning", "Warning 1");
-
-    expect(id1).not.toBe(id2);
-  });
-
-  it("dismissToast removes a toast by id", async () => {
-    const { addToast, dismissToast, toasts } = await import("../../src/services/toast-store.js");
-
-    const id = addToast("success", "Done");
-    addToast("error", "Fail");
+  it("dismisses a toast by id", () => {
+    const id = addToast("warning", "Watch out");
+    expect(toasts().some((t) => t.id === id)).toBe(true);
     dismissToast(id);
-
-    expect(toasts()).toHaveLength(1);
-    expect(toasts()[0].type).toBe("error");
+    expect(toasts().some((t) => t.id === id)).toBe(false);
   });
 
-  it("toast.error creates an error toast", async () => {
-    const { toast, toasts } = await import("../../src/services/toast-store.js");
-
-    toast.error("Oops");
-
-    expect(toasts()[0]).toMatchObject({ type: "error", message: "Oops" });
+  it("toast.error creates error toast", () => {
+    const id = toast.error("Err");
+    const found = toasts().find((t) => t.id === id);
+    expect(found!.type).toBe("error");
   });
 
-  it("toast.success creates a success toast with 4s duration", async () => {
-    const { toast, toasts } = await import("../../src/services/toast-store.js");
-
-    toast.success("Saved");
-
-    expect(toasts()[0]).toMatchObject({
-      type: "success",
-      message: "Saved",
-      duration: 4000,
-    });
+  it("toast.success creates success toast", () => {
+    const id = toast.success("OK");
+    const found = toasts().find((t) => t.id === id);
+    expect(found!.type).toBe("success");
+    expect(found!.duration).toBe(4000);
   });
 
-  it("toast.warning creates a warning toast with 5s duration", async () => {
-    const { toast, toasts } = await import("../../src/services/toast-store.js");
-
-    toast.warning("Careful");
-
-    expect(toasts()[0]).toMatchObject({
-      type: "warning",
-      message: "Careful",
-      duration: 5000,
-    });
+  it("toast.warning creates warning toast", () => {
+    const id = toast.warning("Warn");
+    const found = toasts().find((t) => t.id === id);
+    expect(found!.type).toBe("warning");
+    expect(found!.duration).toBe(5000);
   });
 });

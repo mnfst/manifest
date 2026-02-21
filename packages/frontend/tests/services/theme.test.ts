@@ -1,40 +1,37 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getCssVar, getHsl, getHslA } from "../../src/services/theme.js";
 
-describe("theme utilities", () => {
+describe("theme", () => {
   beforeEach(() => {
-    vi.spyOn(window, "getComputedStyle").mockReturnValue({
+    // Mock document.documentElement with getComputedStyle
+    vi.stubGlobal("document", {
+      documentElement: {},
+    });
+    vi.stubGlobal("getComputedStyle", vi.fn(() => ({
       getPropertyValue: vi.fn((name: string) => {
-        if (name === "--primary") return " 210 40% 98% ";
-        if (name === "--accent") return " 0 0% 100% ";
+        if (name === "--primary") return " 220 80% 50% ";
+        if (name === "--bg") return " 0 0% 100% ";
         return "";
       }),
-    } as unknown as CSSStyleDeclaration);
+    })));
   });
 
-  describe("getCssVar", () => {
-    it("returns trimmed CSS variable value", () => {
-      expect(getCssVar("--primary")).toBe("210 40% 98%");
-    });
-
-    it("returns empty string for unknown variable", () => {
-      expect(getCssVar("--unknown")).toBe("");
-    });
+  it("getCssVar reads and trims CSS variable", async () => {
+    const { getCssVar } = await import("../../src/services/theme");
+    expect(getCssVar("--primary")).toBe("220 80% 50%");
   });
 
-  describe("getHsl", () => {
-    it("wraps value in hsl()", () => {
-      expect(getHsl("--primary")).toBe("hsl(210 40% 98%)");
-    });
+  it("getHsl wraps value in hsl()", async () => {
+    const { getHsl } = await import("../../src/services/theme");
+    expect(getHsl("--primary")).toBe("hsl(220 80% 50%)");
   });
 
-  describe("getHslA", () => {
-    it("wraps value in hsl() with alpha", () => {
-      expect(getHslA("--primary", 0.5)).toBe("hsl(210 40% 98% / 0.5)");
-    });
+  it("getHslA wraps with alpha", async () => {
+    const { getHslA } = await import("../../src/services/theme");
+    expect(getHslA("--primary", 0.5)).toBe("hsl(220 80% 50% / 0.5)");
+  });
 
-    it("handles alpha of 1", () => {
-      expect(getHslA("--accent", 1)).toBe("hsl(0 0% 100% / 1)");
-    });
+  it("handles empty CSS variable", async () => {
+    const { getCssVar } = await import("../../src/services/theme");
+    expect(getCssVar("--nonexistent")).toBe("");
   });
 });

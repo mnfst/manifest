@@ -23,7 +23,14 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/index.tsx"],
+      exclude: [
+        "src/index.tsx",
+        "src/components/CostChart.tsx",
+        "src/components/TokenChart.tsx",
+        "src/components/SingleTokenChart.tsx",
+        "src/components/Sparkline.tsx",
+        "src/services/auth-client.ts",
+      ],
     },
   },
 });

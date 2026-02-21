@@ -1,35 +1,34 @@
 import { ModelPricesService } from './model-prices.service';
+import { DataSource } from 'typeorm';
 
 describe('ModelPricesService', () => {
   let service: ModelPricesService;
-  let mockDs: { query: jest.Mock };
+  let mockDs: jest.Mocked<DataSource>;
 
   beforeEach(() => {
-    mockDs = { query: jest.fn() };
-    service = new ModelPricesService(mockDs as never);
+    mockDs = { query: jest.fn() } as unknown as jest.Mocked<DataSource>;
+    service = new ModelPricesService(mockDs);
   });
 
-  it('returns formatted model prices', async () => {
+  it('returns mapped models and lastSyncedAt', async () => {
     mockDs.query
       .mockResolvedValueOnce([
-        { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_token: 0.0000025, output_price_per_token: 0.00001, updated_at: '2025-01-01' },
+        { model_name: 'gpt-4', provider: 'OpenAI', input_price_per_token: 0.00003, output_price_per_token: 0.00006, updated_at: '2024-01-01' },
       ])
-      .mockResolvedValueOnce([{ last_synced: '2025-01-01T00:00:00Z' }]);
+      .mockResolvedValueOnce([{ last_synced: '2024-01-01' }]);
 
     const result = await service.getAll();
 
-    expect(result.models).toHaveLength(1);
-    expect(result.models[0].model_name).toBe('gpt-4o');
-    expect(result.models[0].provider).toBe('OpenAI');
-    expect(result.models[0].input_price_per_million).toBe(2.5);
-    expect(result.models[0].output_price_per_million).toBe(10);
-    expect(result.lastSyncedAt).toBe('2025-01-01T00:00:00Z');
+    expect(result.models).toEqual([
+      { model_name: 'gpt-4', provider: 'OpenAI', input_price_per_million: 30, output_price_per_million: 60 },
+    ]);
+    expect(result.lastSyncedAt).toBe('2024-01-01');
   });
 
   it('defaults provider to Unknown when empty', async () => {
     mockDs.query
       .mockResolvedValueOnce([
-        { model_name: 'custom-model', provider: '', input_price_per_token: 0.001, output_price_per_token: 0.002, updated_at: null },
+        { model_name: 'custom-model', provider: '', input_price_per_token: 0.00001, output_price_per_token: 0.00002, updated_at: null },
       ])
       .mockResolvedValueOnce([{ last_synced: null }]);
 
@@ -39,14 +38,14 @@ describe('ModelPricesService', () => {
     expect(result.lastSyncedAt).toBeNull();
   });
 
-  it('returns empty array when no models exist', async () => {
+  it('handles empty model list', async () => {
     mockDs.query
       .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([{ last_synced: null }]);
+      .mockResolvedValueOnce([{}]);
 
     const result = await service.getAll();
 
-    expect(result.models).toHaveLength(0);
+    expect(result.models).toEqual([]);
     expect(result.lastSyncedAt).toBeNull();
   });
 });
