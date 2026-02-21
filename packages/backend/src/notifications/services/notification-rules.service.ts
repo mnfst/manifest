@@ -40,23 +40,22 @@ export class NotificationRulesService {
   async updateRule(userId: string, ruleId: string, dto: UpdateNotificationRuleDto) {
     await this.verifyOwnership(userId, ruleId);
 
-    const sets: string[] = [];
-    const params: unknown[] = [];
-    let paramIdx = 1;
+    const update: Record<string, unknown> = {};
+    if (dto.metric_type !== undefined) update.metric_type = dto.metric_type;
+    if (dto.threshold !== undefined) update.threshold = dto.threshold;
+    if (dto.period !== undefined) update.period = dto.period;
+    if (dto.is_active !== undefined) update.is_active = dto.is_active;
 
-    if (dto.metric_type !== undefined) { sets.push(`metric_type = $${paramIdx++}`); params.push(dto.metric_type); }
-    if (dto.threshold !== undefined) { sets.push(`threshold = $${paramIdx++}`); params.push(dto.threshold); }
-    if (dto.period !== undefined) { sets.push(`period = $${paramIdx++}`); params.push(dto.period); }
-    if (dto.is_active !== undefined) { sets.push(`is_active = $${paramIdx++}`); params.push(dto.is_active); }
+    if (Object.keys(update).length === 0) return this.getRule(ruleId);
 
-    if (sets.length === 0) return this.getRule(ruleId);
+    update.updated_at = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
-    const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
-    sets.push(`updated_at = $${paramIdx++}`);
-    params.push(now);
-    params.push(ruleId);
-
-    await this.ds.query(`UPDATE notification_rules SET ${sets.join(', ')} WHERE id = $${paramIdx}`, params);
+    await this.ds
+      .createQueryBuilder()
+      .update('notification_rules')
+      .set(update)
+      .where('id = :id', { id: ruleId })
+      .execute();
 
     const rows = await this.ds.query(`SELECT * FROM notification_rules WHERE id = $1`, [ruleId]);
     return rows[0];

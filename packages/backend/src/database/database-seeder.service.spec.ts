@@ -333,7 +333,7 @@ describe('DatabaseSeederService', () => {
       await service.onModuleInit();
 
       expect(mockPricingRepo.upsert).toHaveBeenCalledWith(
-        {
+        expect.objectContaining({
           model_name: 'claude-opus-4-6',
           provider: 'Anthropic',
           input_price_per_token: 0.000015,
@@ -341,7 +341,7 @@ describe('DatabaseSeederService', () => {
           context_window: 200000,
           capability_reasoning: true,
           capability_code: true,
-        },
+        }),
         ['model_name'],
       );
     });

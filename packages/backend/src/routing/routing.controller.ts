@@ -12,6 +12,12 @@ import { AuthUser } from '../auth/auth.instance';
 import { RoutingService } from './routing.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { expandProviderNames } from './provider-aliases';
+import {
+  TierParamDto,
+  ProviderParamDto,
+  ConnectProviderDto,
+  SetOverrideDto,
+} from './dto/routing.dto';
 
 @Controller('api/v1/routing')
 export class RoutingController {
@@ -36,7 +42,7 @@ export class RoutingController {
   @Post('providers')
   async upsertProvider(
     @CurrentUser() user: AuthUser,
-    @Body() body: { provider: string; apiKey: string },
+    @Body() body: ConnectProviderDto,
   ) {
     const result = await this.routingService.upsertProvider(
       user.id,
@@ -53,11 +59,11 @@ export class RoutingController {
   @Delete('providers/:provider')
   async removeProvider(
     @CurrentUser() user: AuthUser,
-    @Param('provider') provider: string,
+    @Param() params: ProviderParamDto,
   ) {
     const { notifications } = await this.routingService.removeProvider(
       user.id,
-      provider,
+      params.provider,
     );
     return { ok: true, notifications };
   }
@@ -72,18 +78,18 @@ export class RoutingController {
   @Put('tiers/:tier')
   async setOverride(
     @CurrentUser() user: AuthUser,
-    @Param('tier') tier: string,
-    @Body() body: { model: string },
+    @Param() params: TierParamDto,
+    @Body() body: SetOverrideDto,
   ) {
-    return this.routingService.setOverride(user.id, tier, body.model);
+    return this.routingService.setOverride(user.id, params.tier, body.model);
   }
 
   @Delete('tiers/:tier')
   async clearOverride(
     @CurrentUser() user: AuthUser,
-    @Param('tier') tier: string,
+    @Param() params: TierParamDto,
   ) {
-    await this.routingService.clearOverride(user.id, tier);
+    await this.routingService.clearOverride(user.id, params.tier);
     return { ok: true };
   }
 

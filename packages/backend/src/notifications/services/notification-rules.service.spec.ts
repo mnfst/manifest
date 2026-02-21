@@ -6,14 +6,29 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 describe('NotificationRulesService', () => {
   let service: NotificationRulesService;
   let mockQuery: jest.Mock;
+  let mockExecute: jest.Mock;
 
   beforeEach(async () => {
     mockQuery = jest.fn();
+    mockExecute = jest.fn().mockResolvedValue({ affected: 1 });
+
+    const mockQb = {
+      update: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      execute: mockExecute,
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationRulesService,
-        { provide: DataSource, useValue: { query: mockQuery } },
+        {
+          provide: DataSource,
+          useValue: {
+            query: mockQuery,
+            createQueryBuilder: jest.fn().mockReturnValue(mockQb),
+          },
+        },
       ],
     }).compile();
 
@@ -70,17 +85,16 @@ describe('NotificationRulesService', () => {
     it('updates fields and returns updated rule', async () => {
       mockQuery
         .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
-        .mockResolvedValueOnce(undefined) // UPDATE
-        .mockResolvedValueOnce([{ id: 'r1', threshold: 200 }]); // SELECT
+        .mockResolvedValueOnce([{ id: 'r1', threshold: 200 }]); // SELECT after update
 
       const result = await service.updateRule('user-1', 'r1', { threshold: 200 });
       expect(result.threshold).toBe(200);
+      expect(mockExecute).toHaveBeenCalledTimes(1);
     });
 
-    it('builds correct numbered params for multi-field update', async () => {
+    it('uses QueryBuilder for multi-field update', async () => {
       mockQuery
         .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
-        .mockResolvedValueOnce(undefined) // UPDATE
         .mockResolvedValueOnce([{ id: 'r1', metric_type: 'cost', threshold: 500, period: 'week', is_active: false }]); // SELECT
 
       const result = await service.updateRule('user-1', 'r1', {
@@ -90,26 +104,7 @@ describe('NotificationRulesService', () => {
         is_active: false,
       });
 
-      // Verify the UPDATE query uses numbered PG params ($1, $2, etc.)
-      const updateCall = mockQuery.mock.calls[1];
-      const sql = updateCall[0] as string;
-      const params = updateCall[1] as unknown[];
-
-      expect(sql).toContain('metric_type = $1');
-      expect(sql).toContain('threshold = $2');
-      expect(sql).toContain('period = $3');
-      expect(sql).toContain('is_active = $4');
-      expect(sql).toContain('updated_at = $5');
-      expect(sql).toContain('WHERE id = $6');
-
-      // Params should be: metric_type, threshold, period, is_active, updated_at, ruleId
-      expect(params[0]).toBe('cost');
-      expect(params[1]).toBe(500);
-      expect(params[2]).toBe('week');
-      expect(params[3]).toBe(false);
-      expect(typeof params[4]).toBe('string'); // timestamp
-      expect(params[5]).toBe('r1');
-
+      expect(mockExecute).toHaveBeenCalledTimes(1);
       expect(result.metric_type).toBe('cost');
     });
 
