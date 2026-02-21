@@ -24,13 +24,27 @@ function pricePerM(perToken: number): string {
   return `$${perM.toFixed(2)}`;
 }
 
+/** Map DB provider names to frontend provider IDs */
+const PROVIDER_ALIASES: Record<string, string> = {
+  google: "gemini",
+  alibaba: "qwen",
+  moonshot: "moonshot",
+  meta: "meta",
+  cohere: "cohere",
+};
+
+function resolveProviderId(dbProvider: string): string | undefined {
+  const key = dbProvider.toLowerCase();
+  const alias = PROVIDER_ALIASES[key];
+  return PROVIDERS.find((p) => p.id === key || p.id === alias || p.name.toLowerCase() === key)?.id;
+}
+
 /** Find the provider id (lowercase) for a model_name from available models */
 function providerIdForModel(model: string, models: AvailableModel[]): string | undefined {
   const m = models.find((x) => x.model_name === model)
     ?? models.find((x) => x.model_name.startsWith(model + "-"));
   if (!m) return undefined;
-  const key = m.provider.toLowerCase();
-  return PROVIDERS.find((p) => p.id === key || p.name.toLowerCase() === key)?.id;
+  return resolveProviderId(m.provider);
 }
 
 const Routing: Component = () => {
@@ -62,10 +76,7 @@ const Routing: Component = () => {
   const labelFor = (modelName: string): string => {
     const info = modelInfo(modelName);
     if (info) {
-      const key = info.provider.toLowerCase();
-      const provId = PROVIDERS.find(
-        (p) => p.id === key || p.name.toLowerCase() === key,
-      )?.id;
+      const provId = resolveProviderId(info.provider);
       if (provId) return getModelLabel(provId, modelName);
     }
     return modelName;
@@ -93,8 +104,8 @@ const Routing: Component = () => {
     const active = new Set<string>();
     for (const p of connectedProviders() ?? []) {
       if (!p.is_active) continue;
-      const prov = PROVIDERS.find((x) => x.id === p.provider || x.name.toLowerCase() === p.provider.toLowerCase());
-      if (prov) active.add(prov.id);
+      const provId = resolveProviderId(p.provider);
+      if (provId) active.add(provId);
     }
     return active;
   };
