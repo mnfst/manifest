@@ -1,0 +1,22 @@
+{
+  "name": "@mnfst/server",
+  "version": "5.2.0",
+  "description": "Embedded Manifest server for local mode",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && node scripts/copy-assets.js",
+    "prebuild": "rm -rf dist"
+  },
+  "dependencies": {
+    "manifest-backend": "*"
+  },
+  "files": [
+    "dist",
+    "public"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}

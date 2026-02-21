@@ -4,6 +4,7 @@ import {
   PrimaryColumn,
   Index,
 } from 'typeorm';
+import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('notification_rules')
 @Index(['tenant_id', 'agent_id'])
@@ -35,9 +36,9 @@ export class NotificationRule {
   @Column('boolean', { default: true })
   is_active!: boolean;
 
-  @Column('timestamp', { default: () => 'NOW()' })
+  @Column(timestampType(), { default: timestampDefault() })
   created_at!: string;
 
-  @Column('timestamp', { default: () => 'NOW()' })
+  @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;
 }

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { AggregationService } from './aggregation.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
@@ -75,6 +76,7 @@ describe('AggregationService', () => {
           },
         },
         { provide: TimeseriesQueriesService, useValue: mockTimeseries },
+        { provide: DataSource, useValue: { options: { type: 'postgres' } } },
       ],
     }).compile();
 
@@ -255,7 +257,7 @@ describe('AggregationService', () => {
       });
 
       expect(result.next_cursor).not.toBeNull();
-      // Should use formatPgTimestamp for Date objects
+      // Should use formatTimestamp for Date objects
       expect(result.next_cursor).toContain('2026-02-16T09:30:00');
       expect(result.next_cursor).toContain('|msg-1');
     });
@@ -277,5 +279,120 @@ describe('AggregationService', () => {
       expect(result.next_cursor).toBeNull();
       expect(result.models).toEqual([]);
     });
+  });
+});
+
+describe('AggregationService (SQLite dialect)', () => {
+  let service: AggregationService;
+  let mockSelect: jest.Mock;
+  let mockAddSelect: jest.Mock;
+  let mockGetRawOne: jest.Mock;
+  let mockGetRawMany: jest.Mock;
+
+  beforeEach(async () => {
+    mockSelect = jest.fn().mockReturnThis();
+    mockAddSelect = jest.fn().mockReturnThis();
+    mockGetRawOne = jest.fn().mockResolvedValue({ total: 0 });
+    mockGetRawMany = jest.fn().mockResolvedValue([]);
+
+    const mockQb = {
+      select: mockSelect,
+      addSelect: mockAddSelect,
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orWhere: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      clone: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
+      getRawOne: mockGetRawOne,
+      getRawMany: mockGetRawMany,
+      getMany: jest.fn().mockResolvedValue([]),
+      getOne: jest.fn().mockResolvedValue(null),
+    };
+
+    // Clone must return a fresh object with the same mocks
+    mockQb.clone = jest.fn().mockReturnValue({ ...mockQb, clone: jest.fn() });
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AggregationService,
+        {
+          provide: getRepositoryToken(AgentMessage),
+          useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockQb) },
+        },
+        {
+          provide: getRepositoryToken(Agent),
+          useValue: {
+            createQueryBuilder: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnThis(),
+              leftJoin: jest.fn().mockReturnThis(),
+              where: jest.fn().mockReturnThis(),
+              andWhere: jest.fn().mockReturnThis(),
+              orderBy: jest.fn().mockReturnThis(),
+              getOne: jest.fn().mockResolvedValue(null),
+              getMany: jest.fn().mockResolvedValue([]),
+            }),
+            delete: jest.fn().mockResolvedValue({}),
+          },
+        },
+        {
+          provide: TimeseriesQueriesService,
+          useValue: {
+            getHourlyTokens: jest.fn().mockResolvedValue([]),
+            getDailyTokens: jest.fn().mockResolvedValue([]),
+            getHourlyCosts: jest.fn().mockResolvedValue([]),
+            getDailyCosts: jest.fn().mockResolvedValue([]),
+            getHourlyMessages: jest.fn().mockResolvedValue([]),
+            getDailyMessages: jest.fn().mockResolvedValue([]),
+            getActiveSkills: jest.fn().mockResolvedValue([]),
+            getRecentActivity: jest.fn().mockResolvedValue([]),
+            getCostByModel: jest.fn().mockResolvedValue([]),
+            getAgentList: jest.fn().mockResolvedValue([]),
+          },
+        },
+        { provide: DataSource, useValue: { options: { type: 'better-sqlite3' } } },
+      ],
+    }).compile();
+
+    service = module.get<AggregationService>(AggregationService);
+  });
+
+  it('detects sqlite dialect from better-sqlite3 datasource', () => {
+    // Service should initialize without error — dialect detection worked
+    expect(service).toBeDefined();
+  });
+
+  it('uses CAST(... AS REAL) for cost in getMessages', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-01-01', cost: 0.5 }])
+      .mockResolvedValueOnce([]);
+
+    await service.getMessages({ range: '24h', userId: 'u1', limit: 20 });
+
+    // Verify addSelect was called with SQLite float cast
+    const addSelectCalls = mockAddSelect.mock.calls.map(
+      (c: unknown[]) => c[0],
+    );
+    const hasCastReal = addSelectCalls.some(
+      (expr: unknown) => typeof expr === 'string' && expr.includes('CAST') && expr.includes('AS REAL'),
+    );
+    expect(hasCastReal).toBe(true);
+  });
+
+  it('business logic works identically on sqlite dialect', async () => {
+    mockGetRawOne
+      .mockResolvedValueOnce({ total: 200 })
+      .mockResolvedValueOnce({ total: 100 })
+      .mockResolvedValueOnce({ inp: 120, out: 80 });
+
+    const result = await service.getTokenSummary('24h', 'user-1');
+    expect(result.tokens_today.value).toBe(200);
+    expect(result.tokens_today.trend_pct).toBe(100);
+    expect(result.input_tokens).toBe(120);
+    expect(result.output_tokens).toBe(80);
   });
 });

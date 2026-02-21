@@ -32,8 +32,11 @@ describe('DatabaseSeederService', () => {
   let mockPricingRepo: ReturnType<typeof makeMockRepo>;
   let mockSecurityRepo: ReturnType<typeof makeMockRepo>;
   const originalSeedData = process.env['SEED_DATA'];
+  const originalManifestMode = process.env['MANIFEST_MODE'];
 
   beforeEach(() => {
+    // Ensure local mode doesn't short-circuit onModuleInit (SQLite CI sets MANIFEST_MODE=local)
+    delete process.env['MANIFEST_MODE'];
     mockDataSource = { query: jest.fn() };
     mockConfigService = { get: jest.fn() };
     mockTenantRepo = makeMockRepo();
@@ -69,6 +72,11 @@ describe('DatabaseSeederService', () => {
       process.env['SEED_DATA'] = originalSeedData;
     } else {
       delete process.env['SEED_DATA'];
+    }
+    if (originalManifestMode !== undefined) {
+      process.env['MANIFEST_MODE'] = originalManifestMode;
+    } else {
+      delete process.env['MANIFEST_MODE'];
     }
   });
 

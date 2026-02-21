@@ -3,12 +3,13 @@ import { CanActivate, ExecutionContext, INestApplication, Injectable, Unauthoriz
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { DataSource } from 'typeorm';
 import { appConfig } from '../src/config/app.config';
 import { IS_PUBLIC_KEY } from '../src/common/decorators/public.decorator';
 import { sha256, keyPrefix } from '../src/common/utils/hash.util';
+import { portableSql, detectDialect } from '../src/common/utils/sql-dialect';
 import { AgentMessage } from '../src/entities/agent-message.entity';
 import { LlmCall } from '../src/entities/llm-call.entity';
 import { ToolExecution } from '../src/entities/tool-execution.entity';
@@ -39,6 +40,29 @@ export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
 const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog];
+
+const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
+
+function buildTypeOrmConfig(): TypeOrmModuleOptions {
+  if (isLocalMode) {
+    return {
+      type: 'better-sqlite3' as const,
+      database: ':memory:',
+      entities,
+      synchronize: true,
+      dropSchema: true,
+      logging: false,
+    };
+  }
+  return {
+    type: 'postgres' as const,
+    url: process.env['DATABASE_URL'] || 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
+    entities,
+    synchronize: true,
+    dropSchema: true,
+    logging: false,
+  };
+}
 
 @Injectable()
 class MockSessionGuard implements CanActivate {
@@ -73,14 +97,7 @@ export async function createTestApp(): Promise<INestApplication> {
       ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
       CacheModule.register({ isGlobal: true, ttl: 5000 }),
       ThrottlerModule.forRoot([{ ttl: 60000, limit: 1000 }]),
-      TypeOrmModule.forRoot({
-        type: 'postgres',
-        url: process.env['DATABASE_URL'] || 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
-        entities,
-        synchronize: true,
-        dropSchema: true,
-        logging: false,
-      }),
+      TypeOrmModule.forRoot(buildTypeOrmConfig()),
       TypeOrmModule.forFeature(entities),
       CommonModule,
       HealthModule,
@@ -106,28 +123,29 @@ export async function createTestApp(): Promise<INestApplication> {
   );
   await app.init();
 
-  // Seed test API key (hashed)
   const ds = app.get(DataSource);
+  const dialect = detectDialect(ds.options.type as string);
+  const sql = (query: string) => portableSql(query, dialect);
+  const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+
+  // Seed test API key (hashed)
   await ds.query(
-    `INSERT INTO api_keys (id, key, key_hash, key_prefix, user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, NOW())`,
-    ['test-key-id', sha256(TEST_API_KEY), keyPrefix(TEST_API_KEY), TEST_USER_ID, 'Test Key'],
+    sql(`INSERT INTO api_keys (id, key, key_hash, key_prefix, user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6)`),
+    ['test-key-id', sha256(TEST_API_KEY), keyPrefix(TEST_API_KEY), TEST_USER_ID, 'Test Key', now],
   );
 
   // Seed test tenant, agent, and OTLP key (hashed)
   await ds.query(
-    `INSERT INTO tenants (id, name, organization_name, is_active, created_at, updated_at)
-     VALUES ($1,$2,$3,true,NOW(),NOW())`,
-    [TEST_TENANT_ID, 'test-tenant', 'Test Org'],
+    sql(`INSERT INTO tenants (id, name, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,true,$4,$5)`),
+    [TEST_TENANT_ID, 'test-tenant', 'Test Org', now, now],
   );
   await ds.query(
-    `INSERT INTO agents (id, name, description, is_active, tenant_id, created_at, updated_at)
-     VALUES ($1,$2,$3,true,$4,NOW(),NOW())`,
-    [TEST_AGENT_ID, 'test-agent', 'Test agent', TEST_TENANT_ID],
+    sql(`INSERT INTO agents (id, name, description, is_active, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,true,$4,$5,$6)`),
+    [TEST_AGENT_ID, 'test-agent', 'Test agent', TEST_TENANT_ID, now, now],
   );
   await ds.query(
-    `INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at)
-     VALUES ($1, NULL, $2, $3, $4, $5, $6, true, NOW())`,
-    ['test-otlp-key-id', sha256(TEST_OTLP_KEY), keyPrefix(TEST_OTLP_KEY), 'Test OTLP Key', TEST_TENANT_ID, TEST_AGENT_ID],
+    sql(`INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`),
+    ['test-otlp-key-id', sha256(TEST_OTLP_KEY), keyPrefix(TEST_OTLP_KEY), 'Test OTLP Key', TEST_TENANT_ID, TEST_AGENT_ID, now],
   );
 
   return app;

@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('cost_snapshots')
 export class CostSnapshot {
@@ -16,7 +17,7 @@ export class CostSnapshot {
   @Column('varchar', { nullable: true })
   agent_name!: string | null;
 
-  @Column('timestamp')
+  @Column(timestampType())
   snapshot_time!: string;
 
   @Column('decimal', { precision: 10, scale: 6, default: 0 })

@@ -1,11 +1,14 @@
 import { API_KEY_PREFIX, DEFAULTS, ENV } from "./constants";
 
 export interface ManifestConfig {
+  mode: "cloud" | "local";
   apiKey: string;
   endpoint: string;
   serviceName: string;
   captureContent: boolean;
   metricsIntervalMs: number;
+  port: number;
+  host: string;
 }
 
 export function parseConfig(raw: unknown): ManifestConfig {
@@ -23,6 +26,9 @@ export function parseConfig(raw: unknown): ManifestConfig {
   ) {
     obj = obj.config as Record<string, unknown>;
   }
+
+  const mode =
+    obj.mode === "local" ? "local" as const : "cloud" as const;
 
   const apiKey =
     typeof obj.apiKey === "string" && obj.apiKey.length > 0
@@ -52,10 +58,23 @@ export function parseConfig(raw: unknown): ManifestConfig {
       ? obj.metricsIntervalMs
       : DEFAULTS.METRICS_INTERVAL_MS;
 
-  return { apiKey, endpoint, serviceName, captureContent, metricsIntervalMs };
+  const port =
+    typeof obj.port === "number" && obj.port > 0
+      ? obj.port
+      : 2099;
+
+  const host =
+    typeof obj.host === "string" && obj.host.length > 0
+      ? obj.host
+      : "127.0.0.1";
+
+  return { mode, apiKey, endpoint, serviceName, captureContent, metricsIntervalMs, port, host };
 }
 
 export function validateConfig(config: ManifestConfig): string | null {
+  // In local mode, API key is auto-generated — skip validation
+  if (config.mode === "local") return null;
+
   if (!config.apiKey) {
     return (
       "Missing apiKey. Set it via:\n" +

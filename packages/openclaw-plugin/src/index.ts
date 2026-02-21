@@ -3,6 +3,7 @@ import { initTelemetry, shutdownTelemetry, PluginLogger } from "./telemetry";
 import { registerHooks, initMetrics } from "./hooks";
 import { registerTools } from "./tools";
 import { verifyConnection } from "./verify";
+import { registerLocalMode } from "./local-mode";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 module.exports = {
@@ -18,6 +19,11 @@ module.exports = {
     };
 
     const config: ManifestConfig = parseConfig(api.pluginConfig);
+
+    if (config.mode === "local") {
+      registerLocalMode(api, config, logger);
+      return;
+    }
 
     const error = validateConfig(config);
     if (error) {

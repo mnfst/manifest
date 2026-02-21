@@ -13,7 +13,7 @@ describe('NotificationRulesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationRulesService,
-        { provide: DataSource, useValue: { query: mockQuery } },
+        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'postgres' } } },
       ],
     }).compile();
 
@@ -233,7 +233,8 @@ describe('NotificationRulesService', () => {
       const result = await service.getAllActiveRules();
       expect(result).toEqual(rules);
       expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('is_active = true'),
+        expect.stringContaining('is_active = $1'),
+        [true],
       );
     });
   });
@@ -251,7 +252,7 @@ describe('NotificationRulesService', () => {
   });
 
   describe('createRule with PG params', () => {
-    it('uses $1 through $10 numbered params in INSERT', async () => {
+    it('uses $1 through $11 numbered params in INSERT', async () => {
       mockQuery
         .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }]) // resolveAgent
         .mockResolvedValueOnce(undefined) // INSERT
@@ -269,8 +270,132 @@ describe('NotificationRulesService', () => {
       const params = insertCall[1] as unknown[];
 
       expect(sql).toContain('$1');
-      expect(sql).toContain('$10');
-      expect(params).toHaveLength(10);
+      expect(sql).toContain('$11');
+      expect(params).toHaveLength(11);
     });
+  });
+});
+
+describe('NotificationRulesService (SQLite dialect)', () => {
+  let service: NotificationRulesService;
+  let mockQuery: jest.Mock;
+
+  beforeEach(async () => {
+    mockQuery = jest.fn();
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        NotificationRulesService,
+        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'better-sqlite3' } } },
+      ],
+    }).compile();
+
+    service = module.get(NotificationRulesService);
+  });
+
+  it('uses ? placeholders in listRules', async () => {
+    mockQuery.mockResolvedValueOnce([]);
+
+    await service.listRules('user-1', 'agent-x');
+
+    const sql = mockQuery.mock.calls[0][0] as string;
+    expect(sql).not.toContain('$1');
+    expect(sql).toContain('?');
+    expect(sql).toContain('notification_rules');
+  });
+
+  it('uses ? placeholders in createRule INSERT', async () => {
+    mockQuery
+      .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }]) // resolveAgent
+      .mockResolvedValueOnce(undefined) // INSERT
+      .mockResolvedValueOnce([{ id: 'new-rule' }]); // SELECT
+
+    await service.createRule('user-1', {
+      agent_name: 'my-agent',
+      metric_type: 'tokens',
+      threshold: 50000,
+      period: 'day',
+    });
+
+    const insertCall = mockQuery.mock.calls[1];
+    const sql = insertCall[0] as string;
+    const params = insertCall[1] as unknown[];
+
+    expect(sql).not.toContain('$1');
+    expect((sql.match(/\?/g) ?? []).length).toBe(11);
+    expect(params).toHaveLength(11);
+  });
+
+  it('converts is_active boolean to 1/0 for sqlite in updateRule', async () => {
+    mockQuery
+      .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
+      .mockResolvedValueOnce(undefined) // UPDATE
+      .mockResolvedValueOnce([{ id: 'r1', is_active: 0 }]); // SELECT
+
+    await service.updateRule('user-1', 'r1', { is_active: false });
+
+    const updateCall = mockQuery.mock.calls[1];
+    const params = updateCall[1] as unknown[];
+
+    // is_active should be 0 (not false) for SQLite
+    expect(params).toContain(0);
+  });
+
+  it('converts is_active true to 1 for sqlite in updateRule', async () => {
+    mockQuery
+      .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
+      .mockResolvedValueOnce(undefined) // UPDATE
+      .mockResolvedValueOnce([{ id: 'r1', is_active: 1 }]); // SELECT
+
+    await service.updateRule('user-1', 'r1', { is_active: true });
+
+    const updateCall = mockQuery.mock.calls[1];
+    const params = updateCall[1] as unknown[];
+
+    // is_active should be 1 (not true) for SQLite
+    expect(params).toContain(1);
+  });
+
+  it('uses ? placeholders in UPDATE for sqlite', async () => {
+    mockQuery
+      .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
+      .mockResolvedValueOnce(undefined) // UPDATE
+      .mockResolvedValueOnce([{ id: 'r1', threshold: 200 }]); // SELECT
+
+    await service.updateRule('user-1', 'r1', { threshold: 200 });
+
+    const updateCall = mockQuery.mock.calls[1];
+    const sql = updateCall[0] as string;
+
+    expect(sql).not.toContain('$1');
+    expect(sql).toContain('?');
+    expect(sql).toContain('UPDATE notification_rules');
+  });
+
+  it('uses ? placeholders in getConsumption for sqlite', async () => {
+    mockQuery.mockResolvedValueOnce([{ total: 12345 }]);
+
+    await service.getConsumption(
+      'tenant-1', 'my-agent', 'tokens', '2026-02-17 00:00:00', '2026-02-17 14:00:00',
+    );
+
+    const sql = mockQuery.mock.calls[0][0] as string;
+    expect(sql).not.toContain('$1');
+    expect((sql.match(/\?/g) ?? []).length).toBe(4);
+  });
+
+  it('uses ? placeholder in deleteRule for sqlite', async () => {
+    mockQuery
+      .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
+      .mockResolvedValueOnce(undefined); // DELETE
+
+    await service.deleteRule('user-1', 'r1');
+
+    const deleteCall = mockQuery.mock.calls[2]; // verifyOwnership(2 queries) then DELETE
+    // The DELETE should use ? placeholder
+    const allCalls = mockQuery.mock.calls.map((c: unknown[]) => c[0] as string);
+    const deleteQuery = allCalls.find((sql) => sql.includes('DELETE'));
+    expect(deleteQuery).toContain('?');
+    expect(deleteQuery).not.toContain('$1');
   });
 });

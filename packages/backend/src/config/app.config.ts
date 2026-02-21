@@ -1,9 +1,17 @@
 import { registerAs } from '@nestjs/config';
+import { resolve } from 'path';
+
+function sanitizeSqlitePath(raw: string): string {
+  if (!raw) return '';
+  return resolve(raw);
+}
 
 export const appConfig = registerAs('app', () => ({
   port: Number(process.env['PORT'] ?? 3001),
   nodeEnv: process.env['NODE_ENV'] ?? 'development',
   databaseUrl: process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
+  manifestMode: process.env['MANIFEST_MODE'] ?? 'cloud',
+  sqlitePath: sanitizeSqlitePath(process.env['MANIFEST_DB_PATH'] ?? ''),
 
   corsOrigin: process.env['CORS_ORIGIN'] ?? 'http://localhost:3000',
   throttleTtl: Number(process.env['THROTTLE_TTL'] ?? 60000),
