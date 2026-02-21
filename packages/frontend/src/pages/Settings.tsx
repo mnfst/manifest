@@ -323,7 +323,7 @@ const Settings: Component = () => {
             <div class="modal-card" style="max-width: 440px;">
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--gap-lg);">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                  <span style="display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; background: #FCFAF5; border: 1px solid hsl(var(--border)); border-radius: 5px; flex-shrink: 0;">
+                  <span style="display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; background: hsl(var(--muted)); border: 1px solid hsl(var(--border)); border-radius: 5px; flex-shrink: 0;">
                     {providerIcon(prov().id, 22) ?? (
                       <span class="provider-card__logo-letter" style={{ background: prov().color, width: "28px", height: "28px" }}>{prov().initial}</span>
                     )}
