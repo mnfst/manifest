@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.2.3
+
+### Patch Changes
+
+- ee5d607: Add repository field for npm provenance validation
+
 ## 5.2.2
 
 ### Patch Changes
