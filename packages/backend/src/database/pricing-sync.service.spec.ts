@@ -243,4 +243,130 @@ describe('PricingSyncService', () => {
 
     expect(mockUpsert).not.toHaveBeenCalled();
   });
+
+  it('handles response body with undefined data field', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        /* no data field at all */
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('omits context_window when model has no context_length', async () => {
+    mockGetAll.mockReturnValue([
+      { model_name: 'gpt-4o', provider: 'OpenAI' },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'openai/gpt-4o',
+            // no context_length
+            pricing: { prompt: '0.0000025', completion: '0.00001' },
+          },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+    const upsertData = mockUpsert.mock.calls[0][0];
+    expect(upsertData).not.toHaveProperty('context_window');
+  });
+
+  it('detects removed models and calls invalidateOverridesForRemovedModels', async () => {
+    // Before sync: cache has two models
+    mockGetAll
+      .mockReturnValueOnce([
+        { model_name: 'gpt-4o', provider: 'OpenAI' },
+        { model_name: 'old-model', provider: 'OpenAI' },
+      ])
+      // During sync: existingModels check
+      .mockReturnValueOnce([
+        { model_name: 'gpt-4o', provider: 'OpenAI' },
+        { model_name: 'old-model', provider: 'OpenAI' },
+      ])
+      // After reload: old-model is gone
+      .mockReturnValueOnce([
+        { model_name: 'gpt-4o', provider: 'OpenAI' },
+      ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    const mockInvalidate = jest.fn().mockResolvedValue(undefined);
+    const mockModuleRefGet = (mockModuleRef as { get: jest.Mock }).get;
+    mockModuleRefGet.mockReturnValue({
+      invalidateOverridesForRemovedModels: mockInvalidate,
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+    expect(mockInvalidate).toHaveBeenCalledWith(['old-model']);
+  });
+
+  it('logs error when invalidation fails after model removal', async () => {
+    // Before sync: cache has a model
+    mockGetAll
+      .mockReturnValueOnce([
+        { model_name: 'gpt-4o', provider: 'OpenAI' },
+        { model_name: 'removed', provider: 'OpenAI' },
+      ])
+      .mockReturnValueOnce([
+        { model_name: 'gpt-4o', provider: 'OpenAI' },
+        { model_name: 'removed', provider: 'OpenAI' },
+      ])
+      // After reload: removed model is gone
+      .mockReturnValueOnce([
+        { model_name: 'gpt-4o', provider: 'OpenAI' },
+      ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    const mockModuleRefGet = (mockModuleRef as { get: jest.Mock }).get;
+    mockModuleRefGet.mockImplementation(() => {
+      throw new Error('Module not found');
+    });
+
+    // Should not throw — error is caught internally
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+  });
+
+  it('does not reload cache when no models were updated', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+    // Cache has no models, so gpt-4o won't match existingModels
+    mockGetAll.mockReturnValue([]);
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockReload).not.toHaveBeenCalled();
+  });
 });
