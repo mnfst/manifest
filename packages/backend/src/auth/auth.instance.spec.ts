@@ -29,6 +29,8 @@ describe('auth.instance', () => {
       NODE_ENV: 'test',
       BETTER_AUTH_SECRET: 'a]3kF9!xLm2@pQzR7^wYu4&vN6*cE0hT',
     };
+    // Ensure local mode doesn't interfere (SQLite CI job sets MANIFEST_MODE=local)
+    delete process.env['MANIFEST_MODE'];
   });
 
   afterEach(() => {
