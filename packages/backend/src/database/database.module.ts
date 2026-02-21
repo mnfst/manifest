@@ -26,6 +26,7 @@ import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys
 import { AddModelCapabilities1771600000000 } from './migrations/1771600000000-AddModelCapabilities';
 import { AddRoutingTables1771700000000 } from './migrations/1771700000000-AddRoutingTables';
 import { AddQualityScore1771800000000 } from './migrations/1771800000000-AddQualityScore';
+import { SeedQualityScores1771800100000 } from './migrations/1771800100000-SeedQualityScores';
 
 const entities = [
   AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing,
@@ -35,7 +36,7 @@ const entities = [
   UserProvider, TierAssignment,
 ];
 
-const migrations = [InitialSchema1771464895790, HashApiKeys1771500000000, AddModelCapabilities1771600000000, AddRoutingTables1771700000000, AddQualityScore1771800000000];
+const migrations = [InitialSchema1771464895790, HashApiKeys1771500000000, AddModelCapabilities1771600000000, AddRoutingTables1771700000000, AddQualityScore1771800000000, SeedQualityScores1771800100000];
 
 @Module({
   imports: [

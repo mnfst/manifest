@@ -92,9 +92,9 @@
 }
 
 .routing-card__header {
-  flex: 0 0 380px;
-  max-width: 380px;
-  min-width: 380px;
+  flex: 0 0 420px;
+  max-width: 420px;
+  min-width: 420px;
   display: flex;
   flex-direction: column;
   gap: 2px;

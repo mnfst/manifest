@@ -1,17 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddQualityScore1771800000000 implements MigrationInterface {
+export class SeedQualityScores1771800100000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const rows = await queryRunner.query(
-      `SELECT 1 FROM information_schema.columns WHERE table_name = 'model_pricing' AND column_name = 'quality_score'`,
-    );
-    if (rows.length === 0) {
-      await queryRunner.query(
-        `ALTER TABLE model_pricing ADD COLUMN quality_score INTEGER NOT NULL DEFAULT 3`,
-      );
-    }
-
-    // Set quality scores for known models
     // 5=frontier, 4=tier-1.5, 3=mid-range, 2=cost-optimized, 1=ultra-low-cost
     const scores: [string, number][] = [
       // Anthropic
@@ -62,7 +52,7 @@ export class AddQualityScore1771800000000 implements MigrationInterface {
     }
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE model_pricing DROP COLUMN IF EXISTS quality_score`);
+  public async down(): Promise<void> {
+    // No rollback — quality_score column is dropped by the AddQualityScore migration
   }
 }
