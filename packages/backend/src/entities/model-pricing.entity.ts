@@ -25,4 +25,7 @@ export class ModelPricing {
 
   @Column('boolean', { default: false })
   capability_code!: boolean;
+
+  @Column('integer', { default: 3 })
+  quality_score!: number;
 }

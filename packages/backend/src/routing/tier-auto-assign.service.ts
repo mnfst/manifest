@@ -65,68 +65,76 @@ export class TierAutoAssignService {
     this.logger.log(`Recalculated tier assignments for user ${userId}`);
   }
 
+  /**
+   * Deterministic sorting per tier — no magic formulas.
+   *
+   * SIMPLE    — cheapest wins (pure cost).
+   * STANDARD  — cheapest among quality >= 2 (excludes ultra-low-cost).
+   * COMPLEX   — highest quality wins; cost breaks ties.
+   * REASONING — highest quality among reasoning-capable models;
+   *             falls back to COMPLEX if none have reasoning.
+   */
   pickBest(models: ModelPricing[], tier: Tier): ScoredModel | null {
     if (models.length === 0) return null;
 
-    const scored = models.map((m) => ({
-      model_name: m.model_name,
-      score: this.score(m, tier),
-    }));
-
-    scored.sort((a, b) => b.score - a.score);
-    return scored[0];
-  }
-
-  /**
-   * Scoring strategy per tier:
-   *
-   * - simple:    cheapest model wins (pure cost efficiency)
-   * - standard:  cheapest model with code capability preferred
-   * - complex:   quality-first — large context + code capability,
-   *              cost as tiebreaker among equals
-   * - reasoning: reasoning capability required, then quality, then cost
-   *
-   * Quality tiers (0-3) are used for complex/reasoning so that a more
-   * capable but expensive model always beats a cheaper but less capable one.
-   */
-  private score(m: ModelPricing, tier: Tier): number {
-    const totalPrice =
+    const totalPrice = (m: ModelPricing) =>
       Number(m.input_price_per_token) + Number(m.output_price_per_token);
-    if (totalPrice <= 0) return 0;
 
-    // Normalize cost to 0-1 range (higher = cheaper = better for cost)
-    // Using log scale so ratios matter more than absolutes
-    const costScore = 1 / Math.log2(totalPrice * 1e9 + 2);
+    const quality = (m: ModelPricing) => m.quality_score ?? 3;
+
+    // Sort by price ascending (cheapest first)
+    const byPrice = [...models]
+      .filter((m) => totalPrice(m) > 0)
+      .sort((a, b) => totalPrice(a) - totalPrice(b));
+
+    if (byPrice.length === 0) return null;
+
+    let picked: ModelPricing;
 
     switch (tier) {
-      case 'simple':
-        // Pure cheapest wins
-        return 1 / totalPrice;
+      case 'simple': {
+        // Cheapest model wins
+        picked = byPrice[0];
+        break;
+      }
 
       case 'standard': {
-        // Cheapest wins, slight bonus for code capability
-        const codeBonus = m.capability_code ? 1.2 : 1;
-        return (1 / totalPrice) * codeBonus;
+        // Cheapest among quality >= 2; fallback to cheapest overall
+        const eligible = byPrice.filter((m) => quality(m) >= 2);
+        picked = eligible.length > 0 ? eligible[0] : byPrice[0];
+        break;
       }
 
       case 'complex': {
-        // Quality tier: capabilities are primary, cost is tiebreaker
-        let quality = 0;
-        if (m.capability_code) quality += 1;
-        if (m.capability_reasoning) quality += 1;
-        if (m.context_window >= 100_000) quality += 1;
-        // Quality is the major factor (x1000), cost is minor tiebreaker
-        return quality * 1000 + costScore;
+        // Best quality first, then cheapest as tiebreaker
+        const byQuality = [...byPrice].sort(
+          (a, b) => quality(b) - quality(a),
+        );
+        picked = byQuality[0];
+        break;
       }
 
       case 'reasoning': {
-        // Reasoning required, then quality, then cost
-        let quality = 0;
-        if (m.capability_reasoning) quality += 3;
-        if (m.capability_code) quality += 1;
-        if (m.context_window >= 100_000) quality += 1;
-        return quality * 1000 + costScore;
+        // Among reasoning-capable: best quality, then cheapest
+        const reasoningModels = byPrice.filter(
+          (m) => m.capability_reasoning,
+        );
+        if (reasoningModels.length > 0) {
+          const byQuality = [...reasoningModels].sort(
+            (a, b) => quality(b) - quality(a),
+          );
+          picked = byQuality[0];
+        } else {
+          // Fallback to COMPLEX logic
+          const byQuality = [...byPrice].sort(
+            (a, b) => quality(b) - quality(a),
+          );
+          picked = byQuality[0];
+        }
+        break;
       }
     }
+
+    return { model_name: picked.model_name, score: quality(picked) };
   }
 }
