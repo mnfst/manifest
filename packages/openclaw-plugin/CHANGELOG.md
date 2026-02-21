@@ -1,5 +1,11 @@
 # manifest
 
+## 5.2.1
+
+### Patch Changes
+
+- b3971d5: Remove skills folder from the published package
+
 ## 5.2.0
 
 ### Minor Changes
