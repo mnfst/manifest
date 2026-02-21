@@ -16,6 +16,9 @@ vi.mock("../../src/services/api.js", () => ({
   getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: null }),
   deleteAgent: vi.fn().mockResolvedValue(undefined),
   rotateAgentKey: vi.fn().mockResolvedValue({ apiKey: "new-key" }),
+  getProviders: vi.fn().mockResolvedValue([]),
+  connectProvider: vi.fn().mockResolvedValue(undefined),
+  disconnectProvider: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -33,6 +36,15 @@ vi.mock("../../src/components/SetupStepConfigure.jsx", () => ({
 
 vi.mock("../../src/components/SetupStepVerify.jsx", () => ({
   default: () => <div data-testid="setup-verify" />,
+}));
+
+vi.mock("../../src/components/ProviderIcon.js", () => ({
+  providerIcon: () => null,
+}));
+
+vi.mock("../../src/services/routing.js", () => ({
+  agentPath: (name: string, sub: string) => `/agents/${name}${sub}`,
+  useAgentName: () => () => "test-agent",
 }));
 
 import Settings from "../../src/pages/Settings";
@@ -53,9 +65,9 @@ describe("Settings", () => {
     expect(screen.getByLabelText("Agent name")).toBeDefined();
   });
 
-  it("renders API Key section", () => {
+  it("renders Integration tab", () => {
     render(() => <Settings />);
-    expect(screen.getByText("API Key")).toBeDefined();
+    expect(screen.getByText("Integration")).toBeDefined();
   });
 
   it("renders Danger zone", () => {
