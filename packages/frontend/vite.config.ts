@@ -13,4 +13,17 @@ export default defineConfig({
   build: {
     target: "esnext",
   },
+  test: {
+    environment: "jsdom",
+    globals: true,
+    transformMode: { web: [/\.[jt]sx?$/] },
+    deps: {
+      optimizer: { web: { include: ["solid-js"] } },
+    },
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/index.tsx"],
+    },
+  },
 });

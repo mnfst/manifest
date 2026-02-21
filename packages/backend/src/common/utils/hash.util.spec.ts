@@ -1,34 +1,30 @@
 import { sha256, keyPrefix } from './hash.util';
 
-describe('hash.util', () => {
-  describe('sha256 (scrypt-based)', () => {
-    it('returns a 64-character hex string', () => {
-      const result = sha256('test-input');
-      expect(result).toHaveLength(64);
-      expect(result).toMatch(/^[0-9a-f]{64}$/);
-    });
-
-    it('produces deterministic output', () => {
-      expect(sha256('hello')).toBe(sha256('hello'));
-    });
-
-    it('produces different output for different inputs', () => {
-      expect(sha256('input-a')).not.toBe(sha256('input-b'));
-    });
+describe('sha256', () => {
+  it('returns a hex string', () => {
+    const hash = sha256('test-key');
+    expect(hash).toMatch(/^[0-9a-f]+$/);
   });
 
-  describe('keyPrefix', () => {
-    it('returns the first 12 characters', () => {
-      expect(keyPrefix('mnfst_abcdefghijklmnop')).toBe('mnfst_abcdef');
-    });
+  it('returns consistent output for same input', () => {
+    expect(sha256('my-key')).toBe(sha256('my-key'));
+  });
 
-    it('returns the full string if shorter than 12 chars', () => {
-      expect(keyPrefix('short')).toBe('short');
-    });
+  it('returns different output for different input', () => {
+    expect(sha256('key-1')).not.toBe(sha256('key-2'));
+  });
 
-    it('returns exactly 12 characters for long keys', () => {
-      const result = keyPrefix('a'.repeat(100));
-      expect(result).toHaveLength(12);
-    });
+  it('returns 64 hex chars (32 bytes)', () => {
+    expect(sha256('any-input')).toHaveLength(64);
+  });
+});
+
+describe('keyPrefix', () => {
+  it('returns first 12 characters', () => {
+    expect(keyPrefix('mnfst_abcdefghij')).toBe('mnfst_abcdef');
+  });
+
+  it('returns full string when shorter than 12 chars', () => {
+    expect(keyPrefix('short')).toBe('short');
   });
 });

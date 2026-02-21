@@ -1,71 +1,68 @@
-import { appConfig } from './app.config';
-
 describe('appConfig', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
+    jest.resetModules();
     process.env = { ...originalEnv };
   });
 
-  afterEach(() => {
+  afterAll(() => {
     process.env = originalEnv;
   });
 
-  it('returns default values when env vars are not set', () => {
-    delete process.env['PORT'];
-    delete process.env['NODE_ENV'];
-    delete process.env['DATABASE_URL'];
-    delete process.env['CORS_ORIGIN'];
-    delete process.env['THROTTLE_TTL'];
-    delete process.env['THROTTLE_LIMIT'];
-    delete process.env['API_KEY'];
-    delete process.env['BIND_ADDRESS'];
+  async function loadConfig() {
+    const { appConfig } = await import('./app.config');
+    return appConfig();
+  }
 
-    const config = appConfig();
+  it('returns default port 3001', async () => {
+    delete process.env['PORT'];
+    const config = await loadConfig();
     expect(config.port).toBe(3001);
-    expect(config.nodeEnv).toBe('development');
-    expect(config.databaseUrl).toBe('postgresql://myuser:mypassword@localhost:5432/mydatabase');
-    expect(config.corsOrigin).toBe('http://localhost:3000');
-    expect(config.throttleTtl).toBe(60000);
-    expect(config.throttleLimit).toBe(100);
-    expect(config.apiKey).toBe('');
+  });
+
+  it('reads PORT from env', async () => {
+    process.env['PORT'] = '8080';
+    const config = await loadConfig();
+    expect(config.port).toBe(8080);
+  });
+
+  it('defaults manifestMode to cloud', async () => {
+    delete process.env['MANIFEST_MODE'];
+    const config = await loadConfig();
+    expect(config.manifestMode).toBe('cloud');
+  });
+
+  it('reads MANIFEST_MODE from env', async () => {
+    process.env['MANIFEST_MODE'] = 'local';
+    const config = await loadConfig();
+    expect(config.manifestMode).toBe('local');
+  });
+
+  it('sanitizes MANIFEST_DB_PATH with path.resolve', async () => {
+    process.env['MANIFEST_DB_PATH'] = './relative/../db.sqlite';
+    const config = await loadConfig();
+    expect(config.sqlitePath).not.toContain('..');
+    expect(config.sqlitePath).toMatch(/db\.sqlite$/);
+  });
+
+  it('returns empty string for empty MANIFEST_DB_PATH', async () => {
+    delete process.env['MANIFEST_DB_PATH'];
+    const config = await loadConfig();
+    expect(config.sqlitePath).toBe('');
+  });
+
+  it('defaults bindAddress to 127.0.0.1', async () => {
+    delete process.env['BIND_ADDRESS'];
+    const config = await loadConfig();
     expect(config.bindAddress).toBe('127.0.0.1');
   });
 
-  it('reads PORT from environment', () => {
-    process.env['PORT'] = '4000';
-    const config = appConfig();
-    expect(config.port).toBe(4000);
+  it('defaults throttle settings', async () => {
+    delete process.env['THROTTLE_TTL'];
+    delete process.env['THROTTLE_LIMIT'];
+    const config = await loadConfig();
+    expect(config.throttleTtl).toBe(60000);
+    expect(config.throttleLimit).toBe(100);
   });
-
-  it('reads NODE_ENV from environment', () => {
-    process.env['NODE_ENV'] = 'production';
-    const config = appConfig();
-    expect(config.nodeEnv).toBe('production');
-  });
-
-  it('reads DATABASE_URL from environment', () => {
-    process.env['DATABASE_URL'] = 'postgresql://user:pass@host:5432/db';
-    const config = appConfig();
-    expect(config.databaseUrl).toBe('postgresql://user:pass@host:5432/db');
-  });
-
-  it('reads CORS_ORIGIN from environment', () => {
-    process.env['CORS_ORIGIN'] = 'https://example.com';
-    const config = appConfig();
-    expect(config.corsOrigin).toBe('https://example.com');
-  });
-
-  it('reads API_KEY from environment', () => {
-    process.env['API_KEY'] = 'secret-key-123';
-    const config = appConfig();
-    expect(config.apiKey).toBe('secret-key-123');
-  });
-
-  it('reads BIND_ADDRESS from environment', () => {
-    process.env['BIND_ADDRESS'] = '0.0.0.0';
-    const config = appConfig();
-    expect(config.bindAddress).toBe('0.0.0.0');
-  });
-
 });
