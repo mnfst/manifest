@@ -1,17 +1,17 @@
 import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class MessagesQueryDto {
   @IsOptional()
-  @IsString()
+  @IsIn(['1h', '6h', '24h', '7d', '30d'])
   range?: string;
 
   @IsOptional()
-  @IsString()
+  @IsIn(['ok', 'retry', 'error'])
   status?: string;
 
   @IsOptional()
-  @IsString()
+  @IsIn(['agent', 'browser', 'voice', 'whatsapp', 'api', 'other'])
   service_type?: string;
 
   @IsOptional()
