@@ -25,7 +25,7 @@ DIFF=$(git diff --cached --diff-filter=ACMR -U0 -- \
   '*.ts' '*.tsx' '*.js' '*.json' '*.yml' '*.yaml' '*.toml' '*.cfg' \
   ':!*.spec.ts' ':!*.test.ts' ':!*test/helpers*' ':!*.env.example' \
   | grep -E '^\+' \
-  | grep -v '^\+\+\+' \
+  | grep -v '^+++' \
   || true)
 
 if [ -z "$DIFF" ]; then
