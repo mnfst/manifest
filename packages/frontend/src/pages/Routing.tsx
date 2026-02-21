@@ -8,6 +8,7 @@ import { toast } from "../services/toast-store.js";
 import {
   getTierAssignments,
   getAvailableModels,
+  getProviders,
   overrideTier,
   resetTier,
   resetAllTiers,
@@ -37,6 +38,7 @@ const Routing: Component = () => {
 
   const [tiers, { refetch: refetchTiers }] = createResource(getTierAssignments);
   const [models] = createResource(getAvailableModels);
+  const [connectedProviders] = createResource(getProviders);
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
   const [search, setSearch] = createSignal("");
 
@@ -84,45 +86,60 @@ const Routing: Component = () => {
     setSearch("");
   };
 
-  /** Group available models by provider, filtered by search */
+  /** Set of active provider IDs the user has connected */
+  const activeProviderIds = (): Set<string> => {
+    const active = new Set<string>();
+    for (const p of connectedProviders() ?? []) {
+      if (!p.is_active) continue;
+      const prov = PROVIDERS.find((x) => x.id === p.provider || x.name.toLowerCase() === p.provider.toLowerCase());
+      if (prov) active.add(prov.id);
+    }
+    return active;
+  };
+
+  /** Build a pricing lookup from API models */
+  const pricingMap = (): Map<string, AvailableModel> => {
+    const map = new Map<string, AvailableModel>();
+    for (const m of models() ?? []) {
+      map.set(m.model_name, m);
+    }
+    return map;
+  };
+
+  /** Group all models from connected providers, filtered by search */
   const groupedModels = () => {
-    const allModels = models() ?? [];
+    const active = activeProviderIds();
+    const pricing = pricingMap();
     const q = search().toLowerCase().trim();
 
-    const groups: { provId: string; name: string; models: AvailableModel[] }[] = [];
-    const byProvider = new Map<string, AvailableModel[]>();
-
-    for (const m of allModels) {
-      const key = m.provider.toLowerCase();
-      if (!byProvider.has(key)) byProvider.set(key, []);
-      byProvider.get(key)!.push(m);
-    }
+    type ModalModel = { value: string; label: string; pricing: AvailableModel | undefined };
+    const groups: { provId: string; name: string; models: ModalModel[] }[] = [];
 
     for (const prov of PROVIDERS) {
-      const provModels = byProvider.get(prov.name.toLowerCase()) ?? [];
-      if (provModels.length === 0) continue;
+      if (!active.has(prov.id)) continue;
+      if (prov.models.length === 0) continue;
 
-      // Sort by total price ascending
-      const sorted = [...provModels].sort(
-        (a, b) =>
-          Number(a.input_price_per_token) + Number(a.output_price_per_token) -
-          (Number(b.input_price_per_token) + Number(b.output_price_per_token)),
-      );
+      const provModels: ModalModel[] = prov.models.map((m) => ({
+        value: m.value,
+        label: m.label,
+        pricing: pricing.get(m.value)
+          ?? [...pricing.values()].find((p) => p.model_name.startsWith(m.value + "-")),
+      }));
 
       if (q) {
         const nameMatch = prov.name.toLowerCase().includes(q);
         const filtered = nameMatch
-          ? sorted
-          : sorted.filter(
+          ? provModels
+          : provModels.filter(
               (m) =>
-                m.model_name.toLowerCase().includes(q) ||
-                labelFor(m.model_name).toLowerCase().includes(q),
+                m.label.toLowerCase().includes(q) ||
+                m.value.toLowerCase().includes(q),
             );
         if (filtered.length > 0) {
           groups.push({ provId: prov.id, name: prov.name, models: filtered });
         }
       } else {
-        groups.push({ provId: prov.id, name: prov.name, models: sorted });
+        groups.push({ provId: prov.id, name: prov.name, models: provModels });
       }
     }
 
@@ -327,17 +344,21 @@ const Routing: Component = () => {
                         {(model) => (
                           <button
                             class="routing-modal__model"
-                            onClick={() => handleOverride(tierId(), model.model_name)}
+                            onClick={() => handleOverride(tierId(), model.value)}
                           >
                             <span class="routing-modal__model-label">
-                              {labelFor(model.model_name)}
-                              <Show when={isRecommended(tierId(), model.model_name)}>
+                              {model.label}
+                              <Show when={isRecommended(tierId(), model.value)}>
                                 <span class="routing-modal__recommended"> (recommended)</span>
                               </Show>
                             </span>
-                            <span class="routing-modal__model-id">
-                              {pricePerM(model.input_price_per_token)}/{pricePerM(model.output_price_per_token)} /M
-                            </span>
+                            <Show when={model.pricing}>
+                              {(p) => (
+                                <span class="routing-modal__model-id">
+                                  {pricePerM(p().input_price_per_token)}/{pricePerM(p().output_price_per_token)} /M
+                                </span>
+                              )}
+                            </Show>
                           </button>
                         )}
                       </For>
