@@ -106,60 +106,57 @@ const Routing: Component = () => {
     setSearch("");
   };
 
-  /** Set of active provider IDs the user has connected */
-  const activeProviderIds = (): Set<string> => {
-    const active = new Set<string>();
-    for (const p of connectedProviders() ?? []) {
-      if (!p.is_active) continue;
-      const provId = resolveProviderId(p.provider);
-      if (provId) active.add(provId);
-    }
-    return active;
-  };
-
-  /** Build a pricing lookup from API models */
-  const pricingMap = (): Map<string, AvailableModel> => {
-    const map = new Map<string, AvailableModel>();
-    for (const m of models() ?? []) {
-      map.set(m.model_name, m);
+  /** Build a label lookup from PROVIDERS: model value → human label */
+  const providerLabelMap = (): Map<string, string> => {
+    const map = new Map<string, string>();
+    for (const prov of PROVIDERS) {
+      for (const m of prov.models) {
+        map.set(m.value, m.label);
+      }
     }
     return map;
   };
 
-  /** Group all models from connected providers, filtered by search */
+  /** Group models from the pricing API (source of truth), filtered by search */
   const groupedModels = () => {
-    const active = activeProviderIds();
-    const pricing = pricingMap();
     const q = search().toLowerCase().trim();
+    const labels = providerLabelMap();
 
-    type ModalModel = { value: string; label: string; pricing: AvailableModel | undefined };
+    type ModalModel = { value: string; label: string; pricing: AvailableModel };
+    const groupMap = new Map<string, { provId: string; name: string; models: ModalModel[] }>();
+
+    for (const m of models() ?? []) {
+      const provId = resolveProviderId(m.provider);
+      if (!provId) continue;
+
+      if (!groupMap.has(provId)) {
+        const provDef = PROVIDERS.find((p) => p.id === provId);
+        groupMap.set(provId, { provId, name: provDef?.name ?? m.provider, models: [] });
+      }
+
+      groupMap.get(provId)!.models.push({
+        value: m.model_name,
+        label: labels.get(m.model_name) ?? m.model_name,
+        pricing: m,
+      });
+    }
+
     const groups: { provId: string; name: string; models: ModalModel[] }[] = [];
-
-    for (const prov of PROVIDERS) {
-      if (!active.has(prov.id)) continue;
-      if (prov.models.length === 0) continue;
-
-      const provModels: ModalModel[] = prov.models.map((m) => ({
-        value: m.value,
-        label: m.label,
-        pricing: pricing.get(m.value)
-          ?? [...pricing.values()].find((p) => p.model_name.startsWith(m.value + "-")),
-      }));
-
+    for (const group of groupMap.values()) {
       if (q) {
-        const nameMatch = prov.name.toLowerCase().includes(q);
+        const nameMatch = group.name.toLowerCase().includes(q);
         const filtered = nameMatch
-          ? provModels
-          : provModels.filter(
+          ? group.models
+          : group.models.filter(
               (m) =>
                 m.label.toLowerCase().includes(q) ||
                 m.value.toLowerCase().includes(q),
             );
         if (filtered.length > 0) {
-          groups.push({ provId: prov.id, name: prov.name, models: filtered });
+          groups.push({ ...group, models: filtered });
         }
-      } else {
-        groups.push({ provId: prov.id, name: prov.name, models: provModels });
+      } else if (group.models.length > 0) {
+        groups.push(group);
       }
     }
 
