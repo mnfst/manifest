@@ -15,6 +15,10 @@
     "dist",
     "public"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mnfst/manifest"
+  },
   "publishConfig": {
     "access": "public"
   },
