@@ -338,6 +338,9 @@ describe('DatabaseSeederService', () => {
           provider: 'Anthropic',
           input_price_per_token: 0.000015,
           output_price_per_token: 0.000075,
+          context_window: 200000,
+          capability_reasoning: true,
+          capability_code: true,
         },
         ['model_name'],
       );

@@ -145,3 +145,88 @@ export function deleteNotificationRule(id: string) {
     method: "DELETE",
   });
 }
+
+/* ── Routing: Providers ── */
+
+export interface RoutingProvider {
+  id: string;
+  provider: string;
+  is_active: boolean;
+  connected_at: string;
+}
+
+export function getProviders() {
+  return fetchJson<RoutingProvider[]>("/routing/providers");
+}
+
+export function connectProvider(data: { provider: string; apiKey: string }) {
+  return fetchMutate<{ id: string; provider: string; is_active: boolean }>(
+    `${BASE_URL}/routing/providers`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  );
+}
+
+export function disconnectProvider(provider: string) {
+  return fetchMutate<{ ok: boolean; notifications: string[] }>(
+    `${BASE_URL}/routing/providers/${encodeURIComponent(provider)}`,
+    { method: "DELETE" },
+  );
+}
+
+/* ── Routing: Tier Assignments ── */
+
+export interface TierAssignment {
+  id: string;
+  user_id: string;
+  tier: string;
+  override_model: string | null;
+  auto_assigned_model: string | null;
+  updated_at: string;
+}
+
+export function getTierAssignments() {
+  return fetchJson<TierAssignment[]>("/routing/tiers");
+}
+
+export function overrideTier(tier: string, model: string) {
+  return fetchMutate<TierAssignment>(
+    `${BASE_URL}/routing/tiers/${encodeURIComponent(tier)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model }),
+    },
+  );
+}
+
+export function resetTier(tier: string) {
+  return fetchMutate(`${BASE_URL}/routing/tiers/${encodeURIComponent(tier)}`, {
+    method: "DELETE",
+  });
+}
+
+export function resetAllTiers() {
+  return fetchMutate(`${BASE_URL}/routing/tiers/reset-all`, {
+    method: "POST",
+  });
+}
+
+/* ── Routing: Available Models ── */
+
+export interface AvailableModel {
+  model_name: string;
+  provider: string;
+  input_price_per_token: number;
+  output_price_per_token: number;
+  context_window: number;
+  capability_reasoning: boolean;
+  capability_code: boolean;
+}
+
+export function getAvailableModels() {
+  return fetchJson<AvailableModel[]>("/routing/available-models");
+}

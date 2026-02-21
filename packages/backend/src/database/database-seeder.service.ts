@@ -154,53 +154,61 @@ export class DatabaseSeederService implements OnModuleInit {
     const count = await this.pricingRepo.count();
     if (count > 0) return;
 
-    // Prices: [model_id, provider, input_per_token, output_per_token]
+    // [model_id, provider, input/tok, output/tok, context_window, reasoning, code]
     // Source: official pricing pages (Feb 2026)
-    const models: ReadonlyArray<readonly [string, string, number, number]> = [
+    const models: ReadonlyArray<readonly [string, string, number, number, number, boolean, boolean]> = [
       // Anthropic Claude
-      ['claude-opus-4-6',            'Anthropic', 0.000015,   0.000075  ],
-      ['claude-sonnet-4-5-20250929', 'Anthropic', 0.000003,   0.000015  ],
-      ['claude-sonnet-4-20250514',   'Anthropic', 0.000003,   0.000015  ],
-      ['claude-haiku-4-5-20251001',  'Anthropic', 0.000001,   0.000005  ],
+      ['claude-opus-4-6',            'Anthropic', 0.000015,   0.000075,   200000,  true,  true ],
+      ['claude-sonnet-4-5-20250929', 'Anthropic', 0.000003,   0.000015,   200000,  true,  true ],
+      ['claude-sonnet-4-20250514',   'Anthropic', 0.000003,   0.000015,   200000,  true,  true ],
+      ['claude-haiku-4-5-20251001',  'Anthropic', 0.000001,   0.000005,   200000,  false, true ],
       // OpenAI GPT
-      ['gpt-4o',                     'OpenAI',    0.0000025,  0.00001   ],
-      ['gpt-4o-mini',                'OpenAI',    0.00000015, 0.0000006 ],
-      ['gpt-4.1',                    'OpenAI',    0.000002,   0.000008  ],
-      ['gpt-4.1-mini',               'OpenAI',    0.0000004,  0.0000016 ],
-      ['gpt-4.1-nano',               'OpenAI',    0.0000001,  0.0000004 ],
+      ['gpt-4o',                     'OpenAI',    0.0000025,  0.00001,    128000,  false, true ],
+      ['gpt-4o-mini',                'OpenAI',    0.00000015, 0.0000006,  128000,  false, true ],
+      ['gpt-4.1',                    'OpenAI',    0.000002,   0.000008,   1047576, false, true ],
+      ['gpt-4.1-mini',               'OpenAI',    0.0000004,  0.0000016,  1047576, false, true ],
+      ['gpt-4.1-nano',               'OpenAI',    0.0000001,  0.0000004,  1047576, false, false],
       // OpenAI reasoning
-      ['o3',                         'OpenAI',    0.000002,   0.000008  ],
-      ['o3-mini',                    'OpenAI',    0.0000011,  0.0000044 ],
-      ['o4-mini',                    'OpenAI',    0.0000011,  0.0000044 ],
+      ['o3',                         'OpenAI',    0.000002,   0.000008,   200000,  true,  true ],
+      ['o3-mini',                    'OpenAI',    0.0000011,  0.0000044,  200000,  true,  true ],
+      ['o4-mini',                    'OpenAI',    0.0000011,  0.0000044,  200000,  true,  true ],
       // Google Gemini
-      ['gemini-2.5-pro',             'Google',    0.00000125, 0.00001   ],
-      ['gemini-2.5-flash',           'Google',    0.00000015, 0.0000006 ],
-      ['gemini-2.5-flash-lite',      'Google',    0.0000001,  0.0000004 ],
-      ['gemini-2.0-flash',           'Google',    0.0000001,  0.0000004 ],
+      ['gemini-2.5-pro',             'Google',    0.00000125, 0.00001,    1048576, true,  true ],
+      ['gemini-2.5-flash',           'Google',    0.00000015, 0.0000006,  1048576, false, true ],
+      ['gemini-2.5-flash-lite',      'Google',    0.0000001,  0.0000004,  1048576, false, false],
+      ['gemini-2.0-flash',           'Google',    0.0000001,  0.0000004,  1048576, false, true ],
       // DeepSeek
-      ['deepseek-v3',                'DeepSeek',  0.00000014, 0.00000028],
-      ['deepseek-r1',                'DeepSeek',  0.00000055, 0.00000219],
+      ['deepseek-v3',                'DeepSeek',  0.00000014, 0.00000028, 128000,  false, true ],
+      ['deepseek-r1',                'DeepSeek',  0.00000055, 0.00000219, 128000,  true,  false],
       // Moonshot (Kimi)
-      ['kimi-k2',                    'Moonshot',  0.0000006,  0.0000024 ],
+      ['kimi-k2',                    'Moonshot',  0.0000006,  0.0000024,  262144,  true,  true ],
       // Alibaba (Qwen)
-      ['qwen-2.5-72b-instruct',      'Alibaba',  0.00000034, 0.00000039],
-      ['qwq-32b',                    'Alibaba',   0.00000012, 0.00000018],
-      ['qwen-2.5-coder-32b-instruct','Alibaba',   0.00000018, 0.00000018],
+      ['qwen-2.5-72b-instruct',      'Alibaba',  0.00000034, 0.00000039, 131072,  false, true ],
+      ['qwq-32b',                    'Alibaba',   0.00000012, 0.00000018, 131072,  true,  false],
+      ['qwen-2.5-coder-32b-instruct','Alibaba',   0.00000018, 0.00000018, 131072,  false, true ],
       // Mistral
-      ['mistral-large',              'Mistral',   0.000002,   0.000006  ],
-      ['mistral-small',              'Mistral',   0.0000002,  0.0000006 ],
-      ['codestral',                  'Mistral',   0.0000003,  0.0000009 ],
+      ['mistral-large',              'Mistral',   0.000002,   0.000006,   128000,  false, true ],
+      ['mistral-small',              'Mistral',   0.0000002,  0.0000006,  128000,  false, false],
+      ['codestral',                  'Mistral',   0.0000003,  0.0000009,  256000,  false, true ],
       // Meta (Llama)
-      ['llama-4-maverick',           'Meta',      0.00000018, 0.00000059],
-      ['llama-4-scout',              'Meta',      0.00000015, 0.00000044],
+      ['llama-4-maverick',           'Meta',      0.00000018, 0.00000059, 1048576, false, true ],
+      ['llama-4-scout',              'Meta',      0.00000015, 0.00000044, 512000,  false, true ],
       // Cohere
-      ['command-r-plus',             'Cohere',    0.0000025,  0.00001   ],
-      ['command-r',                  'Cohere',    0.00000015, 0.0000006 ],
+      ['command-r-plus',             'Cohere',    0.0000025,  0.00001,    128000,  false, false],
+      ['command-r',                  'Cohere',    0.00000015, 0.0000006,  128000,  false, false],
     ];
 
-    for (const [name, provider, inputPrice, outputPrice] of models) {
+    for (const [name, provider, inputPrice, outputPrice, ctxWindow, reasoning, code] of models) {
       await this.pricingRepo.upsert(
-        { model_name: name, provider, input_price_per_token: inputPrice, output_price_per_token: outputPrice },
+        {
+          model_name: name,
+          provider,
+          input_price_per_token: inputPrice,
+          output_price_per_token: outputPrice,
+          context_window: ctxWindow,
+          capability_reasoning: reasoning,
+          capability_code: code,
+        },
         ['model_name'],
       );
     }

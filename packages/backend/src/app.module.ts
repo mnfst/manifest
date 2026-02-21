@@ -21,6 +21,7 @@ import { SecurityModule } from './security/security.module';
 import { OtlpModule } from './otlp/otlp.module';
 import { ModelPricesModule } from './model-prices/model-prices.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { RoutingModule } from './routing/routing.module';
 import { CommonModule } from './common/common.module';
 import { SseModule } from './sse/sse.module';
 
@@ -51,6 +52,7 @@ const serveStaticImports = existsSync(frontendPath)
     OtlpModule,
     ModelPricesModule,
     NotificationsModule,
+    RoutingModule,
     SseModule,
   ],
   providers: [

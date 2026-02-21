@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -75,11 +76,16 @@ export class PricingSyncService {
     @InjectRepository(ModelPricing)
     private readonly pricingRepo: Repository<ModelPricing>,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly moduleRef: ModuleRef,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async syncPricing(): Promise<number> {
     this.logger.log('Starting daily model pricing sync from OpenRouter...');
+
+    const modelsBefore = new Set(
+      this.pricingCache.getAll().map((m) => m.model_name),
+    );
 
     let data: OpenRouterModel[];
     try {
@@ -95,6 +101,7 @@ export class PricingSyncService {
       return 0;
     }
 
+    const updatedModels = new Set<string>();
     let updated = 0;
     for (const model of data) {
       const mapping = MODEL_MAP[model.id];
@@ -113,6 +120,7 @@ export class PricingSyncService {
         },
         ['model_name'],
       );
+      updatedModels.add(mapping.canonical);
       updated++;
     }
 
@@ -120,6 +128,29 @@ export class PricingSyncService {
     if (updated > 0) {
       await this.pricingCache.reload();
     }
+
+    // Detect models that existed before but were not in this sync
+    const modelsAfter = new Set(
+      this.pricingCache.getAll().map((m) => m.model_name),
+    );
+    const removed = [...modelsBefore].filter((m) => !modelsAfter.has(m));
+
+    if (removed.length > 0) {
+      this.logger.warn(`Models removed after sync: ${removed.join(', ')}`);
+      try {
+        // Lazily resolve RoutingService to avoid circular module dependency
+        const { RoutingService } = await import(
+          '../routing/routing.service'
+        );
+        const routingService = this.moduleRef.get(RoutingService, {
+          strict: false,
+        });
+        await routingService.invalidateOverridesForRemovedModels(removed);
+      } catch (err) {
+        this.logger.error(`Failed to invalidate overrides: ${err}`);
+      }
+    }
+
     return updated;
   }
 }

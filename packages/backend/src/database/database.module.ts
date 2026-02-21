@@ -16,20 +16,25 @@ import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { NotificationRule } from '../entities/notification-rule.entity';
 import { NotificationLog } from '../entities/notification-log.entity';
+import { UserProvider } from '../entities/user-provider.entity';
+import { TierAssignment } from '../entities/tier-assignment.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { PricingSyncService } from './pricing-sync.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
+import { AddModelCapabilities1771600000000 } from './migrations/1771600000000-AddModelCapabilities';
+import { AddRoutingTables1771700000000 } from './migrations/1771700000000-AddRoutingTables';
 
 const entities = [
   AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing,
   TokenUsageSnapshot, CostSnapshot, AgentLog,
   ApiKey, Tenant, Agent, AgentApiKey,
   NotificationRule, NotificationLog,
+  UserProvider, TierAssignment,
 ];
 
-const migrations = [InitialSchema1771464895790, HashApiKeys1771500000000];
+const migrations = [InitialSchema1771464895790, HashApiKeys1771500000000, AddModelCapabilities1771600000000, AddRoutingTables1771700000000];
 
 @Module({
   imports: [

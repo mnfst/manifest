@@ -4,7 +4,9 @@ import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.se
 const mockUpsert = jest.fn();
 const mockRepo = { upsert: mockUpsert } as never;
 const mockReload = jest.fn().mockResolvedValue(undefined);
-const mockPricingCache = { reload: mockReload } as unknown as ModelPricingCacheService;
+const mockGetAll = jest.fn().mockReturnValue([]);
+const mockPricingCache = { reload: mockReload, getAll: mockGetAll } as unknown as ModelPricingCacheService;
+const mockModuleRef = { get: jest.fn() } as never;
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -13,8 +15,9 @@ describe('PricingSyncService', () => {
   let service: PricingSyncService;
 
   beforeEach(() => {
-    service = new PricingSyncService(mockRepo, mockPricingCache);
+    service = new PricingSyncService(mockRepo, mockPricingCache, mockModuleRef);
     jest.clearAllMocks();
+    mockGetAll.mockReturnValue([]);
   });
 
   it('updates known models from OpenRouter response', async () => {
