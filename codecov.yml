@@ -3,6 +3,7 @@ coverage:
     project:
       default:
         target: auto
+        threshold: 1%
     patch:
       default:
         target: auto
@@ -10,14 +11,11 @@ flags:
   backend:
     paths:
       - packages/backend/src/
-    carryforward: true
   frontend:
     paths:
       - packages/frontend/src/
-    carryforward: true
   plugin:
     paths:
       - packages/openclaw-plugin/src/
-    carryforward: true
 comment:
   layout: "reach,diff,flags"

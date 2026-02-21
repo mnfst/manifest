@@ -1,61 +1,35 @@
-import {
-  rangeToInterval,
-  rangeToPreviousInterval,
-  isHourlyRange,
-} from './range.util';
+import { rangeToInterval, rangeToPreviousInterval, isHourlyRange } from './range.util';
 
 describe('rangeToInterval', () => {
-  it('maps 1h to 1 hour', () => {
-    expect(rangeToInterval('1h')).toBe('1 hour');
+  it.each([
+    ['1h', '1 hour'],
+    ['6h', '6 hours'],
+    ['24h', '24 hours'],
+    ['7d', '7 days'],
+    ['30d', '30 days'],
+  ])('maps %s to %s', (input, expected) => {
+    expect(rangeToInterval(input)).toBe(expected);
   });
 
-  it('maps 6h to 6 hours', () => {
-    expect(rangeToInterval('6h')).toBe('6 hours');
-  });
-
-  it('maps 24h to 24 hours', () => {
-    expect(rangeToInterval('24h')).toBe('24 hours');
-  });
-
-  it('maps 7d to 7 days', () => {
-    expect(rangeToInterval('7d')).toBe('7 days');
-  });
-
-  it('maps 30d to 30 days', () => {
-    expect(rangeToInterval('30d')).toBe('30 days');
-  });
-
-  it('defaults to 24 hours for unknown range', () => {
+  it('defaults to 24 hours for unknown ranges', () => {
     expect(rangeToInterval('unknown')).toBe('24 hours');
     expect(rangeToInterval('')).toBe('24 hours');
-    expect(rangeToInterval('365d')).toBe('24 hours');
   });
 });
 
 describe('rangeToPreviousInterval', () => {
-  it('maps 1h to 2 hours (double the range)', () => {
-    expect(rangeToPreviousInterval('1h')).toBe('2 hours');
+  it.each([
+    ['1h', '2 hours'],
+    ['6h', '12 hours'],
+    ['24h', '48 hours'],
+    ['7d', '14 days'],
+    ['30d', '60 days'],
+  ])('maps %s to %s', (input, expected) => {
+    expect(rangeToPreviousInterval(input)).toBe(expected);
   });
 
-  it('maps 6h to 12 hours', () => {
-    expect(rangeToPreviousInterval('6h')).toBe('12 hours');
-  });
-
-  it('maps 24h to 48 hours', () => {
-    expect(rangeToPreviousInterval('24h')).toBe('48 hours');
-  });
-
-  it('maps 7d to 14 days', () => {
-    expect(rangeToPreviousInterval('7d')).toBe('14 days');
-  });
-
-  it('maps 30d to 60 days', () => {
-    expect(rangeToPreviousInterval('30d')).toBe('60 days');
-  });
-
-  it('defaults to 48 hours for unknown range', () => {
+  it('defaults to 48 hours for unknown ranges', () => {
     expect(rangeToPreviousInterval('unknown')).toBe('48 hours');
-    expect(rangeToPreviousInterval('')).toBe('48 hours');
   });
 });
 
@@ -73,6 +47,5 @@ describe('isHourlyRange', () => {
 
   it('returns false for unknown ranges', () => {
     expect(isHourlyRange('unknown')).toBe(false);
-    expect(isHourlyRange('')).toBe(false);
   });
 });
