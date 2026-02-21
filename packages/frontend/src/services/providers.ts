@@ -53,13 +53,16 @@ export const PROVIDERS: ProviderDef[] = [
     subtitle: "Claude Opus 4, Sonnet 4.5, Haiku",
     docsUrl: "https://console.anthropic.com/settings/keys",
     models: [
+      { label: "Claude Opus 4.6", value: "claude-opus-4-6" },
       { label: "Claude Opus 4", value: "claude-opus-4" },
       { label: "Claude Opus 4 (2025-05-14)", value: "claude-opus-4-20250514" },
       { label: "Claude Sonnet 4.5", value: "claude-sonnet-4-5" },
+      { label: "Claude Sonnet 4.5", value: "claude-sonnet-4-5-20250929" },
       { label: "Claude Sonnet 4.5 (2025-04-14)", value: "claude-sonnet-4-5-20250414" },
       { label: "Claude Sonnet 4", value: "claude-sonnet-4" },
       { label: "Claude Sonnet 4 (2025-05-14)", value: "claude-sonnet-4-20250514" },
       { label: "Claude Haiku 4.5", value: "claude-haiku-4-5" },
+      { label: "Claude Haiku 4.5 (2025-10-01)", value: "claude-haiku-4-5-20251001" },
       { label: "Claude 3.5 Sonnet", value: "claude-3-5-sonnet-latest" },
       { label: "Claude 3.5 Sonnet (2024-10-22)", value: "claude-3-5-sonnet-20241022" },
       { label: "Claude 3.5 Sonnet (2024-06-20)", value: "claude-3-5-sonnet-20240620" },
@@ -108,8 +111,10 @@ export const PROVIDERS: ProviderDef[] = [
     docsUrl: "https://platform.deepseek.com/api_keys",
     models: [
       { label: "DeepSeek V3", value: "deepseek-chat" },
+      { label: "DeepSeek V3", value: "deepseek-v3" },
       { label: "DeepSeek V3 (0324)", value: "deepseek-chat-0324" },
       { label: "DeepSeek R1", value: "deepseek-reasoner" },
+      { label: "DeepSeek R1", value: "deepseek-r1" },
       { label: "DeepSeek R1 (0528)", value: "deepseek-reasoner-0528" },
       { label: "DeepSeek Coder V2", value: "deepseek-coder" },
       { label: "DeepSeek R1 Distill Qwen 32B", value: "deepseek-r1-distill-qwen-32b" },
@@ -127,11 +132,14 @@ export const PROVIDERS: ProviderDef[] = [
     subtitle: "Mistral Large, Codestral, Pixtral",
     docsUrl: "https://console.mistral.ai/api-keys",
     models: [
+      { label: "Mistral Large", value: "mistral-large" },
       { label: "Mistral Large (25.01)", value: "mistral-large-latest" },
       { label: "Mistral Large (24.11)", value: "mistral-large-2411" },
+      { label: "Mistral Small", value: "mistral-small" },
       { label: "Mistral Small (25.01)", value: "mistral-small-latest" },
       { label: "Mistral Small (24.09)", value: "mistral-small-2409" },
       { label: "Mistral Medium", value: "mistral-medium-latest" },
+      { label: "Codestral", value: "codestral" },
       { label: "Codestral (25.01)", value: "codestral-latest" },
       { label: "Codestral Mamba", value: "codestral-mamba-latest" },
       { label: "Mistral Nemo", value: "open-mistral-nemo" },
@@ -178,8 +186,10 @@ export const PROVIDERS: ProviderDef[] = [
       { label: "Qwen3 1.7B", value: "qwen3-1.7b" },
       { label: "Qwen3 0.6B", value: "qwen3-0.6b" },
       { label: "Qwen2.5 72B Instruct", value: "qwen2.5-72b-instruct" },
+      { label: "Qwen2.5 72B Instruct", value: "qwen-2.5-72b-instruct" },
       { label: "Qwen2.5 32B Instruct", value: "qwen2.5-32b-instruct" },
       { label: "Qwen2.5 Coder 32B", value: "qwen2.5-coder-32b-instruct" },
+      { label: "Qwen2.5 Coder 32B", value: "qwen-2.5-coder-32b-instruct" },
       { label: "QwQ 32B (Reasoning)", value: "qwq-32b" },
     ],
   },
@@ -306,8 +316,19 @@ export function getProvider(id: string): ProviderDef | undefined {
 export function getModelLabel(providerId: string, modelValue: string): string {
   const prov = getProvider(providerId);
   if (!prov) return modelValue;
-  const m = prov.models.find((m) => m.value === modelValue);
-  return m?.label ?? modelValue;
+  // Exact match
+  const exact = prov.models.find((m) => m.value === modelValue);
+  if (exact) return exact.label;
+  // Strip date suffix (e.g. "-20250929") and try again
+  const stripped = modelValue.replace(/-\d{8}$/, "");
+  if (stripped !== modelValue) {
+    const m = prov.models.find((m) => m.value === stripped);
+    if (m) return m.label;
+  }
+  // Prefix match: modelValue starts with a known value
+  const prefix = prov.models.find((m) => modelValue.startsWith(m.value + "-"));
+  if (prefix) return prefix.label;
+  return modelValue;
 }
 
 /* ── Auto-assignment ─────────────────────────────── */
