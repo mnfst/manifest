@@ -11,6 +11,13 @@ async function fetchJson<T>(path: string, params?: Record<string, string | undef
   }
 
   const res = await fetch(url.toString(), { credentials: "include" });
+  if (res.status === 401) {
+    // Session expired or user logged out — silently redirect to login
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
+    return new Promise<T>(() => {}); // hang forever, page is redirecting
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(body || `API error: ${res.status} ${res.statusText}`);
