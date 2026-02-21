@@ -108,7 +108,7 @@ export class NotificationRulesService {
 
   async getAllActiveRules() {
     return this.ds.query(
-      `SELECT * FROM notification_rules WHERE is_active = true`,
+      this.sql(`SELECT * FROM notification_rules WHERE is_active = true`),
     );
   }
 

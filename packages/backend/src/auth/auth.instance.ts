@@ -31,7 +31,8 @@ if (!isLocalMode && nodeEnv !== 'test' && (!betterAuthSecret || betterAuthSecret
   throw new Error('BETTER_AUTH_SECRET must be set to a value of at least 32 characters');
 }
 
-const LOCAL_SECRET = 'manifest-local-mode-secret-do-not-use-in-production!!';
+// Shared constant — must match the secret set by manifest-server
+import { LOCAL_AUTH_SECRET } from '../common/constants/local-mode.constants';
 
 function buildTrustedOrigins(): string[] {
   const origins: string[] = [];
@@ -56,7 +57,7 @@ export const auth = betterAuth({
   baseURL: process.env['BETTER_AUTH_URL'] ?? `http://localhost:${port}`,
   basePath: '/api/auth',
   secret: isLocalMode
-    ? (betterAuthSecret || LOCAL_SECRET)
+    ? (betterAuthSecret || LOCAL_AUTH_SECRET)
     : (betterAuthSecret || 'test-only-fallback-secret-not-for-production'),
   logger: {
     level: 'debug',

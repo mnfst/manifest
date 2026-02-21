@@ -1,5 +1,6 @@
 import { join } from 'path';
 import { homedir } from 'os';
+import { LOCAL_AUTH_SECRET, LOCAL_DEFAULT_PORT } from 'manifest-backend/dist/common/constants/local-mode.constants';
 
 export const version = '0.1.0';
 
@@ -10,7 +11,7 @@ interface StartOptions {
 }
 
 export async function start(options: StartOptions = {}): Promise<unknown> {
-  const port = options.port ?? 2099;
+  const port = options.port ?? LOCAL_DEFAULT_PORT;
   const host = options.host ?? '127.0.0.1';
   const dbPath = options.dbPath ?? join(homedir(), '.openclaw', 'manifest', 'manifest.db');
 
@@ -24,7 +25,7 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
 
   // Fixed secret for local mode (not security-sensitive — auth is auto-granted for loopback)
   if (!process.env['BETTER_AUTH_SECRET']) {
-    process.env['BETTER_AUTH_SECRET'] = 'manifest-local-mode-secret-not-for-production-use!!';
+    process.env['BETTER_AUTH_SECRET'] = LOCAL_AUTH_SECRET;
   }
 
   const { bootstrap } = await import('manifest-backend/dist/main');

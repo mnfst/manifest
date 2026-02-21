@@ -1,20 +1,17 @@
 import { useNavigate } from "@solidjs/router";
 import { Show, createEffect, createSignal, type ParentComponent } from "solid-js";
 import { authClient } from "../services/auth-client.js";
+import { checkLocalMode } from "../services/local-mode.js";
 
-const [localAutoLogin, setLocalAutoLogin] = createSignal(false);
+const [autoLoginState, setAutoLoginState] = createSignal<"idle" | "pending" | "done">("idle");
 
 async function tryLocalAutoLogin(): Promise<boolean> {
   try {
-    const res = await fetch("/api/v1/health");
-    const data = await res.json();
-    if (data.mode !== "local") return false;
+    const local = await checkLocalMode();
+    if (!local) return false;
 
-    const { error } = await authClient.signIn.email({
-      email: "local@manifest.local",
-      password: "local-mode-password",
-    });
-    return !error;
+    const res = await fetch("/api/auth/local-session", { credentials: "include" });
+    return res.ok;
   } catch {
     return false;
   }
@@ -29,9 +26,13 @@ const AuthGuard: ParentComponent = (props) => {
     if (s.isPending) return;
     if (s.data) return;
 
-    if (!localAutoLogin()) {
-      setLocalAutoLogin(true);
+    const state = autoLoginState();
+    if (state === "pending") return;
+
+    if (state === "idle") {
+      setAutoLoginState("pending");
       const ok = await tryLocalAutoLogin();
+      setAutoLoginState("done");
       if (ok) return; // session will refresh automatically
     }
 

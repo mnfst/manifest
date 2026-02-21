@@ -34,18 +34,9 @@ const migrations = [InitialSchema1771464895790, HashApiKeys1771500000000];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 
-function buildProviders() {
-  if (isLocalMode) {
-    return [LocalBootstrapService, PricingSyncService];
-  }
-  return [DatabaseSeederService, PricingSyncService];
-}
-
-function buildExports() {
-  if (isLocalMode) {
-    return [LocalBootstrapService, PricingSyncService];
-  }
-  return [DatabaseSeederService, PricingSyncService];
+function buildModeServices() {
+  const seeder = isLocalMode ? LocalBootstrapService : DatabaseSeederService;
+  return [seeder, PricingSyncService];
 }
 
 @Module({
@@ -80,7 +71,7 @@ function buildExports() {
     TypeOrmModule.forFeature([Tenant, Agent, AgentApiKey, ApiKey, ModelPricing, SecurityEvent]),
     ModelPricesModule,
   ],
-  providers: buildProviders(),
-  exports: buildExports(),
+  providers: buildModeServices(),
+  exports: buildModeServices(),
 })
 export class DatabaseModule {}

@@ -5,6 +5,19 @@ import SetupStepVerify from './SetupStepVerify.jsx'
 import SetupStepLocalConfigure from './SetupStepLocalConfigure.jsx'
 import { getAgentKey, getHealth } from '../services/api.js'
 
+interface StepDef { n: number; label: string }
+
+const CLOUD_STEPS: StepDef[] = [
+  { n: 1, label: 'Install' },
+  { n: 2, label: 'Configure' },
+  { n: 3, label: 'Activate' },
+]
+
+const LOCAL_STEPS: StepDef[] = [
+  { n: 1, label: 'Configure' },
+  { n: 2, label: 'Verify' },
+]
+
 const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string | null; onClose: () => void; onDone?: () => void }> = (props) => {
   const [step, setStep] = createSignal(1)
 
@@ -24,9 +37,8 @@ const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string 
     return `${window.location.origin}/otlp`
   }
 
-  const steps = () => isLocal()
-    ? [{ n: 1, label: 'Install' }, { n: 2, label: 'Configure' }, { n: 3, label: 'Activate' }]
-    : [{ n: 1, label: 'Install' }, { n: 2, label: 'Configure' }, { n: 3, label: 'Activate' }]
+  const steps = () => isLocal() ? LOCAL_STEPS : CLOUD_STEPS
+  const totalSteps = () => steps().length
 
   return (
     <Show when={props.open}>
@@ -43,7 +55,11 @@ const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string 
             </button>
           </div>
           <p class="modal-card__desc">
-            Follow these steps to connect your agent to Manifest. Once your first messages come in, <strong>this dashboard unlocks automatically</strong>.
+            <Show when={isLocal()} fallback={
+              <>Follow these steps to connect your agent to Manifest. Once your first messages come in, <strong>this dashboard unlocks automatically</strong>.</>
+            }>
+              <>Your local server is running. Just verify telemetry is flowing and you're all set.</>
+            </Show>
           </p>
 
           <div class="modal-stepper">
@@ -74,27 +90,36 @@ const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string 
             </For>
           </div>
 
-          <Show when={step() === 1}>
-            <SetupStepInstall />
-          </Show>
-          <Show when={step() === 2}>
-            <Show when={isLocal()} fallback={
+          {/* Cloud flow: Install → Configure → Activate */}
+          <Show when={!isLocal()}>
+            <Show when={step() === 1}>
+              <SetupStepInstall />
+            </Show>
+            <Show when={step() === 2}>
               <SetupStepConfigure
                 apiKey={props.apiKey ?? null}
                 keyPrefix={apiKeyData()?.keyPrefix ?? null}
                 agentName={props.agentName}
                 endpoint={endpoint()}
               />
-            }>
+            </Show>
+            <Show when={step() === 3}>
+              <SetupStepVerify />
+            </Show>
+          </Show>
+
+          {/* Local flow: Configure → Verify */}
+          <Show when={isLocal()}>
+            <Show when={step() === 1}>
               <SetupStepLocalConfigure
                 apiKey={props.apiKey ?? null}
                 keyPrefix={apiKeyData()?.keyPrefix ?? null}
                 endpoint={endpoint()}
               />
             </Show>
-          </Show>
-          <Show when={step() === 3}>
-            <SetupStepVerify />
+            <Show when={step() === 2}>
+              <SetupStepVerify />
+            </Show>
           </Show>
 
           <div class="setup-modal__nav">
@@ -105,7 +130,7 @@ const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string 
             >
               Back
             </button>
-            <Show when={step() < 3} fallback={
+            <Show when={step() < totalSteps()} fallback={
               <button
                 class="setup-modal__next"
                 onClick={() => { props.onDone?.(); props.onClose(); }}

@@ -5,6 +5,9 @@ import { toNodeHandler } from 'better-auth/node';
 import * as express from 'express';
 import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
+import { LOCAL_EMAIL, LOCAL_PASSWORD } from './common/constants/local-mode.constants';
+
+const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
 export async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -47,6 +50,31 @@ export async function bootstrap() {
   // Trust reverse proxy (Railway, Render, etc.) so Express sees the real protocol/IP
   if (!isDev) {
     expressApp.set('trust proxy', 1);
+  }
+
+  // Local-mode auto-session: issues a session cookie for loopback requests
+  if (process.env['MANIFEST_MODE'] === 'local') {
+    expressApp.get('/api/auth/local-session', async (req: express.Request, res: express.Response) => {
+      const ip = req.ip ?? '';
+      if (!LOOPBACK_IPS.has(ip)) {
+        res.status(403).json({ error: 'Forbidden' });
+        return;
+      }
+      try {
+        const response = await auth.api.signInEmail({
+          body: { email: LOCAL_EMAIL, password: LOCAL_PASSWORD },
+          asResponse: true,
+        });
+        const cookies = response.headers.getSetCookie();
+        for (const cookie of cookies) {
+          res.append('set-cookie', cookie);
+        }
+        const body = await response.json();
+        res.json(body);
+      } catch {
+        res.status(500).json({ error: 'Auto-login failed' });
+      }
+    });
   }
 
   // Mount Better Auth handler (needs raw body, before express.json)

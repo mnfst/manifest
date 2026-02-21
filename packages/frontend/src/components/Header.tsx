@@ -1,13 +1,16 @@
 import { A, useNavigate } from "@solidjs/router";
-import { Show, createSignal, onCleanup, type Component } from "solid-js";
+import { Show, createSignal, onCleanup, onMount, type Component } from "solid-js";
 import { useAgentName } from "../services/routing.js";
 import { authClient } from "../services/auth-client.js";
+import { checkLocalMode, isLocalMode } from "../services/local-mode.js";
 
 const Header: Component = () => {
   const getAgentName = useAgentName();
   const [menuOpen, setMenuOpen] = createSignal(false);
   const session = authClient.useSession();
   const navigate = useNavigate();
+
+  onMount(() => { checkLocalMode(); });
 
   const user = () => session()?.data?.user;
   const initials = () => {
@@ -38,6 +41,9 @@ const Header: Component = () => {
           <img src="/logo.svg" alt="Manifest" class="header__logo-img header__logo-img--light" />
           <img src="/logo-white.svg" alt="Manifest" class="header__logo-img header__logo-img--dark" />
         </A>
+        <Show when={isLocalMode()}>
+          <span class="header__mode-badge">Local</span>
+        </Show>
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
           <A href="/" class="header__breadcrumb-link">Workspace</A>
@@ -67,10 +73,12 @@ const Header: Component = () => {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 Account Preferences
               </A>
-              <button class="header__dropdown-item header__dropdown-item--danger" role="menuitem" onClick={handleLogout}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                Log out
-              </button>
+              <Show when={!isLocalMode()}>
+                <button class="header__dropdown-item header__dropdown-item--danger" role="menuitem" onClick={handleLogout}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  Log out
+                </button>
+              </Show>
             </div>
           </Show>
         </div>

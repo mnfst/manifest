@@ -197,3 +197,120 @@ describe('NotificationCronService', () => {
     expect(result).toBe(1);
   });
 });
+
+describe('NotificationCronService (SQLite dialect)', () => {
+  let service: NotificationCronService;
+  let mockQuery: jest.Mock;
+  let mockGetAllActiveRules: jest.Mock;
+  let mockGetConsumption: jest.Mock;
+  let mockSendThresholdAlert: jest.Mock;
+
+  const sqliteRule = {
+    id: 'rule-1',
+    tenant_id: 'tenant-1',
+    agent_name: 'my-agent',
+    user_id: 'user-1',
+    metric_type: 'tokens' as const,
+    threshold: 100000,
+    period: 'day' as const,
+  };
+
+  beforeEach(async () => {
+    mockQuery = jest.fn();
+    mockGetAllActiveRules = jest.fn();
+    mockGetConsumption = jest.fn();
+    mockSendThresholdAlert = jest.fn().mockResolvedValue(true);
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        NotificationCronService,
+        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'better-sqlite3' } } },
+        {
+          provide: NotificationRulesService,
+          useValue: {
+            getAllActiveRules: mockGetAllActiveRules,
+            getConsumption: mockGetConsumption,
+          },
+        },
+        {
+          provide: NotificationEmailService,
+          useValue: { sendThresholdAlert: mockSendThresholdAlert },
+        },
+      ],
+    }).compile();
+
+    service = module.get(NotificationCronService);
+  });
+
+  it('uses ? placeholders in dedup query for sqlite', async () => {
+    mockGetAllActiveRules.mockResolvedValue([sqliteRule]);
+    mockQuery.mockResolvedValueOnce([{ 1: 1 }]); // dedup hit
+
+    await service.checkThresholds();
+
+    const dedupCall = mockQuery.mock.calls[0];
+    const sql = dedupCall[0] as string;
+    expect(sql).not.toContain('$1');
+    expect(sql).not.toContain('$2');
+    expect(sql).toContain('?');
+    expect(sql).toContain('notification_logs');
+  });
+
+  it('uses ? placeholders in INSERT notification_logs for sqlite', async () => {
+    mockGetAllActiveRules.mockResolvedValue([sqliteRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce(undefined) // INSERT
+      .mockResolvedValueOnce([{ email: 'a@b.com' }]); // email
+    mockGetConsumption.mockResolvedValue(200000);
+
+    await service.checkThresholds();
+
+    const insertCall = mockQuery.mock.calls[1];
+    const sql = insertCall[0] as string;
+    const params = insertCall[1] as unknown[];
+
+    expect(sql).toContain('INSERT INTO notification_logs');
+    expect(sql).not.toContain('$1');
+    // All 9 params replaced with ?
+    expect((sql.match(/\?/g) ?? []).length).toBe(9);
+    expect(params).toHaveLength(9);
+  });
+
+  it('uses ? placeholder in user email lookup for sqlite', async () => {
+    mockGetAllActiveRules.mockResolvedValue([sqliteRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce(undefined) // INSERT
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]); // email
+    mockGetConsumption.mockResolvedValue(200000);
+
+    await service.checkThresholds();
+
+    const emailCall = mockQuery.mock.calls[2];
+    const sql = emailCall[0] as string;
+    expect(sql).toContain('SELECT email FROM "user" WHERE id = ?');
+    expect(emailCall[1]).toEqual(['user-1']);
+  });
+
+  it('triggers notification correctly on sqlite dialect', async () => {
+    mockGetAllActiveRules.mockResolvedValue([sqliteRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce(undefined) // INSERT
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]); // email
+    mockGetConsumption.mockResolvedValue(150000);
+
+    const result = await service.checkThresholds();
+    expect(result).toBe(1);
+    expect(mockSendThresholdAlert).toHaveBeenCalledWith(
+      'user@test.com',
+      expect.objectContaining({
+        agentName: 'my-agent',
+        metricType: 'tokens',
+        threshold: 100000,
+        actualValue: 150000,
+      }),
+    );
+  });
+});

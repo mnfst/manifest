@@ -344,6 +344,19 @@
 .dark .header__logo-img--light { display: none; }
 .dark .header__logo-img--dark { display: block; }
 
+.header__mode-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: var(--radius);
+  background: hsl(var(--chart-4) / 0.15);
+  color: hsl(var(--chart-4));
+  line-height: 1.4;
+  user-select: none;
+}
+
 .header__separator {
   color: hsl(var(--muted-foreground));
   font-size: var(--font-size-sm);

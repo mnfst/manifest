@@ -12,12 +12,11 @@ import { ModelPricing } from '../entities/model-pricing.entity';
 import { sha256, keyPrefix } from '../common/utils/hash.util';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { PricingSyncService } from './pricing-sync.service';
+import { LOCAL_EMAIL, LOCAL_PASSWORD } from '../common/constants/local-mode.constants';
 
-const LOCAL_USER_ID = 'local-user-001';
 const LOCAL_TENANT_ID = 'local-tenant-001';
 const LOCAL_AGENT_ID = 'local-agent-001';
 const LOCAL_AGENT_NAME = 'local-agent';
-const LOCAL_EMAIL = 'local@manifest.local';
 
 @Injectable()
 export class LocalBootstrapService implements OnModuleInit {
@@ -60,14 +59,15 @@ export class LocalBootstrapService implements OnModuleInit {
       await auth.api.signUpEmail({
         body: {
           email: LOCAL_EMAIL,
-          password: 'local-mode-password',
+          password: LOCAL_PASSWORD,
           name: 'Local User',
         },
       });
 
       // Mark email as verified
       await this.dataSource.query(
-        `UPDATE "user" SET "emailVerified" = 1 WHERE email = '${LOCAL_EMAIL}'`,
+        `UPDATE "user" SET "emailVerified" = 1 WHERE email = ?`,
+        [LOCAL_EMAIL],
       );
       this.logger.log('Created local user');
     } catch (err) {
@@ -78,7 +78,8 @@ export class LocalBootstrapService implements OnModuleInit {
   private async checkUserExists(email: string): Promise<boolean> {
     try {
       const rows = await this.dataSource.query(
-        `SELECT id FROM "user" WHERE email = '${email}'`,
+        `SELECT id FROM "user" WHERE email = ?`,
+        [email],
       );
       return rows.length > 0;
     } catch {
@@ -90,7 +91,6 @@ export class LocalBootstrapService implements OnModuleInit {
     const count = await this.tenantRepo.count({ where: { id: LOCAL_TENANT_ID } });
     if (count > 0) return;
 
-    // Get the Better Auth user ID (it may differ from LOCAL_USER_ID)
     const userId = await this.getBetterAuthUserId();
     if (!userId) {
       this.logger.warn('No local user found, skipping tenant/agent creation');
@@ -124,7 +124,8 @@ export class LocalBootstrapService implements OnModuleInit {
   private async getBetterAuthUserId(): Promise<string | null> {
     try {
       const rows = await this.dataSource.query(
-        `SELECT id FROM "user" WHERE email = '${LOCAL_EMAIL}'`,
+        `SELECT id FROM "user" WHERE email = ?`,
+        [LOCAL_EMAIL],
       );
       return rows.length > 0 ? String(rows[0].id) : null;
     } catch {

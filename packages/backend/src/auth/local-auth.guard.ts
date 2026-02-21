@@ -6,8 +6,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
+import { LOCAL_USER_ID, LOCAL_EMAIL } from '../common/constants/local-mode.constants';
 
-const LOCAL_USER_ID = 'local-user-001';
 const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
 @Injectable()
@@ -31,7 +31,7 @@ export class LocalAuthGuard implements CanActivate {
       (request as Request & { user: unknown }).user = {
         id: LOCAL_USER_ID,
         name: 'Local User',
-        email: 'local@manifest.local',
+        email: LOCAL_EMAIL,
       };
       return true;
     }
