@@ -11,6 +11,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { RoutingService } from './routing.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { expandProviderNames } from './provider-aliases';
 
 @Controller('api/v1/routing')
 export class RoutingController {
@@ -97,10 +98,8 @@ export class RoutingController {
   @Get('available-models')
   async getAvailableModels(@CurrentUser() user: AuthUser) {
     const providers = await this.routingService.getProviders(user.id);
-    const activeProviders = new Set(
-      providers
-        .filter((p) => p.is_active)
-        .map((p) => p.provider.toLowerCase()),
+    const activeProviders = expandProviderNames(
+      providers.filter((p) => p.is_active).map((p) => p.provider),
     );
 
     const models = this.pricingCache.getAll();

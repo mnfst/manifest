@@ -39,12 +39,19 @@ function resolveProviderId(dbProvider: string): string | undefined {
   return PROVIDERS.find((p) => p.id === key || p.id === alias || p.name.toLowerCase() === key)?.id;
 }
 
-/** Find the provider id (lowercase) for a model_name from available models */
-function providerIdForModel(model: string, models: AvailableModel[]): string | undefined {
-  const m = models.find((x) => x.model_name === model)
-    ?? models.find((x) => x.model_name.startsWith(model + "-"));
-  if (!m) return undefined;
-  return resolveProviderId(m.provider);
+/** Find the provider id for a model — checks pricing API first, then PROVIDERS list */
+function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
+  // Try pricing API data
+  const m = apiModels.find((x) => x.model_name === model)
+    ?? apiModels.find((x) => x.model_name.startsWith(model + "-"));
+  if (m) return resolveProviderId(m.provider);
+  // Fallback: search PROVIDERS model lists by value
+  for (const prov of PROVIDERS) {
+    if (prov.models.some((pm) => pm.value === model || model.startsWith(pm.value + "-") || pm.value.startsWith(model + "-"))) {
+      return prov.id;
+    }
+  }
+  return undefined;
 }
 
 const Routing: Component = () => {

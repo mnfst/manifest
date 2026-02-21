@@ -6,6 +6,7 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { randomUUID } from 'crypto';
+import { expandProviderNames } from './provider-aliases';
 
 const TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
 type Tier = (typeof TIERS)[number];
@@ -31,11 +32,13 @@ export class TierAutoAssignService {
     const providers = await this.providerRepo.find({
       where: { user_id: userId, is_active: true },
     });
-    const activeProviderNames = providers.map((p) => p.provider);
+    const activeProviders = expandProviderNames(
+      providers.map((p) => p.provider),
+    );
 
     const allModels = this.pricingCache.getAll();
     const available = allModels.filter((m) =>
-      activeProviderNames.includes(m.provider.toLowerCase()),
+      activeProviders.has(m.provider.toLowerCase()),
     );
 
     for (const tier of TIERS) {
