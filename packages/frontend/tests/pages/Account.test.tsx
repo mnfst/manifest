@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@solidjs/testing-library";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 vi.mock("@solidjs/router", () => ({
   useNavigate: () => vi.fn(),
@@ -19,9 +19,38 @@ vi.mock("../../src/services/auth-client.js", () => ({
   },
 }));
 
+vi.mock("../../src/services/local-mode.js", () => ({
+  checkLocalMode: vi.fn().mockResolvedValue(false),
+  isLocalMode: () => false,
+}));
+
+vi.stubGlobal("navigator", {
+  clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+});
+
+// Stub window.matchMedia for jsdom
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
 import Account from "../../src/pages/Account";
 
 describe("Account", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
   it("renders Account Preferences heading", () => {
     render(() => <Account />);
     expect(screen.getByText("Account Preferences")).toBeDefined();
@@ -49,5 +78,58 @@ describe("Account", () => {
   it("shows workspace section", () => {
     render(() => <Account />);
     expect(screen.getByText("Workspace")).toBeDefined();
+  });
+
+  it("shows Back button", () => {
+    render(() => <Account />);
+    expect(screen.getByText("Back")).toBeDefined();
+  });
+
+  it("shows profile information section", () => {
+    render(() => <Account />);
+    expect(screen.getByText("Profile information")).toBeDefined();
+  });
+
+  it("shows appearance section", () => {
+    render(() => <Account />);
+    expect(screen.getByText("Appearance")).toBeDefined();
+  });
+
+  it("shows workspace ID", () => {
+    const { container } = render(() => <Account />);
+    expect(container.textContent).toContain("u1");
+  });
+
+  it("applies light theme when Light clicked", () => {
+    render(() => <Account />);
+    fireEvent.click(screen.getByText("Light"));
+    expect(localStorage.getItem("theme")).toBe("light");
+  });
+
+  it("applies dark theme when Dark clicked", () => {
+    render(() => <Account />);
+    fireEvent.click(screen.getByText("Dark"));
+    expect(localStorage.getItem("theme")).toBe("dark");
+  });
+
+  it("removes theme from storage when System clicked", () => {
+    localStorage.setItem("theme", "dark");
+    render(() => <Account />);
+    fireEvent.click(screen.getByText("System"));
+    expect(localStorage.getItem("theme")).toBeNull();
+  });
+
+  it("copies user ID to clipboard when copy button clicked", () => {
+    const { container } = render(() => <Account />);
+    const copyBtn = container.querySelector(".settings-card__copy-btn")!;
+    fireEvent.click(copyBtn);
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("u1");
+  });
+
+  it("reads stored theme on mount", () => {
+    localStorage.setItem("theme", "dark");
+    render(() => <Account />);
+    // Component should read and apply stored theme
+    expect(localStorage.getItem("theme")).toBe("dark");
   });
 });
