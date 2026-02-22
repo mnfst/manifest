@@ -191,6 +191,15 @@
   color: hsl(var(--muted-foreground));
 }
 
+.modal-card__input--error {
+  border-color: hsl(var(--destructive));
+}
+
+.modal-card__input--error:focus {
+  border-color: hsl(var(--destructive));
+  box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.2);
+}
+
 .modal-card__cta {
   display: flex;
   align-items: center;

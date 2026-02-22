@@ -27,24 +27,12 @@
   animation: toastSlideIn 200ms ease-out;
 }
 
-.toast--error {
-  border-left: 3px solid hsl(var(--destructive));
-}
-
 .toast--error .toast__icon {
   color: hsl(var(--destructive));
 }
 
-.toast--success {
-  border-left: 3px solid hsl(var(--success));
-}
-
 .toast--success .toast__icon {
   color: hsl(var(--success));
-}
-
-.toast--warning {
-  border-left: 3px solid hsl(var(--chart-5));
 }
 
 .toast--warning .toast__icon {

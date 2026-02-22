@@ -16,4 +16,16 @@ export class ModelPricing {
 
   @Column('varchar', { nullable: true })
   updated_at!: string | null;
+
+  @Column('integer', { default: 128000 })
+  context_window!: number;
+
+  @Column('boolean', { default: false })
+  capability_reasoning!: boolean;
+
+  @Column('boolean', { default: false })
+  capability_code!: boolean;
+
+  @Column('integer', { default: 3 })
+  quality_score!: number;
 }

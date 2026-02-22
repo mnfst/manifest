@@ -29,4 +29,8 @@ export class ModelPricingCacheService implements OnModuleInit {
   getByModel(modelName: string): ModelPricing | undefined {
     return this.cache.get(modelName);
   }
+
+  getAll(): ModelPricing[] {
+    return [...this.cache.values()];
+  }
 }

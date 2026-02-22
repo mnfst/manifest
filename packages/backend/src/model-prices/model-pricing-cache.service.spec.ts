@@ -110,4 +110,31 @@ describe('ModelPricingCacheService', () => {
       expect(service.getByModel('gpt-4o-mini')).toBeUndefined();
     });
   });
+
+  describe('getAll', () => {
+    it('should return all cached models', async () => {
+      const rows = [makePricing('gpt-4o'), makePricing('claude-opus-4')];
+      mockFind.mockResolvedValue(rows);
+      await service.onModuleInit();
+
+      const result = service.getAll();
+
+      expect(result).toHaveLength(2);
+      expect(result).toEqual(expect.arrayContaining(rows));
+    });
+
+    it('should return empty array before initialization', () => {
+      expect(service.getAll()).toEqual([]);
+    });
+
+    it('should return a new array each time (not the internal cache)', async () => {
+      mockFind.mockResolvedValue([makePricing('model-a')]);
+      await service.onModuleInit();
+
+      const a = service.getAll();
+      const b = service.getAll();
+      expect(a).not.toBe(b);
+      expect(a).toEqual(b);
+    });
+  });
 });

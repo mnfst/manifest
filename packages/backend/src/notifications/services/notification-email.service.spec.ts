@@ -1,59 +1,112 @@
+import { NotificationEmailService } from './notification-email.service';
+import { ThresholdAlertProps } from '../emails/threshold-alert';
+
+/* Mock external dependencies */
 jest.mock('@react-email/render', () => ({
-  render: jest.fn().mockResolvedValue('<html>rendered</html>'),
+  render: jest.fn().mockResolvedValue('<html>mock</html>'),
 }));
 
 jest.mock('./mailgun', () => ({
-  sendMailgunEmail: jest.fn(),
+  sendMailgunEmail: jest.fn().mockResolvedValue(true),
 }));
 
-jest.mock('../emails/threshold-alert', () => ({
-  ThresholdAlertEmail: jest.fn(() => 'mock-element'),
-}));
-
-import { NotificationEmailService } from './notification-email.service';
+import { render } from '@react-email/render';
 import { sendMailgunEmail } from './mailgun';
+
+const mockRender = render as jest.Mock;
+const mockSend = sendMailgunEmail as jest.Mock;
+
+const baseProps: ThresholdAlertProps = {
+  agentName: 'demo-agent',
+  metricType: 'tokens',
+  threshold: 10000,
+  actualValue: 15000,
+  period: '24h',
+  timestamp: '2025-06-01T00:00:00Z',
+};
 
 describe('NotificationEmailService', () => {
   let service: NotificationEmailService;
 
   beforeEach(() => {
     service = new NotificationEmailService();
-    jest.clearAllMocks();
+    mockRender.mockClear();
+    mockSend.mockClear();
+    mockRender.mockResolvedValue('<html>mock</html>');
+    mockSend.mockResolvedValue(true);
   });
 
-  it('sends threshold alert email', async () => {
-    (sendMailgunEmail as jest.Mock).mockResolvedValue(true);
+  it('should render the email template and send via Mailgun', async () => {
+    const result = await service.sendThresholdAlert('user@test.com', baseProps);
 
-    const result = await service.sendThresholdAlert('user@test.com', {
-      agentName: 'demo-agent',
-      metricType: 'tokens',
-      threshold: 1000,
-      actualValue: 1500,
-      period: 'hour',
-      timestamp: '2024-01-01T00:00:00Z',
-    });
-
-    expect(result).toBe(true);
-    expect(sendMailgunEmail).toHaveBeenCalledWith(
+    expect(mockRender).toHaveBeenCalledTimes(1);
+    expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'user@test.com',
-        subject: expect.stringContaining('demo-agent'),
+        subject: 'Alert: demo-agent exceeded tokens threshold',
+        html: '<html>mock</html>',
+      }),
+    );
+    expect(result).toBe(true);
+  });
+
+  it('should format subject with agent name and metric type', async () => {
+    const costProps: ThresholdAlertProps = { ...baseProps, metricType: 'cost', agentName: 'my-bot' };
+
+    await service.sendThresholdAlert('user@test.com', costProps);
+
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Alert: my-bot exceeded cost threshold',
       }),
     );
   });
 
-  it('returns false when mailgun fails', async () => {
-    (sendMailgunEmail as jest.Mock).mockResolvedValue(false);
+  it('should use NOTIFICATION_FROM_EMAIL env var in from field', async () => {
+    process.env['NOTIFICATION_FROM_EMAIL'] = 'alerts@custom.com';
 
-    const result = await service.sendThresholdAlert('user@test.com', {
-      agentName: 'demo-agent',
-      metricType: 'cost',
-      threshold: 50,
-      actualValue: 75,
-      period: 'day',
-      timestamp: '2024-01-01T12:00:00Z',
-    });
+    await service.sendThresholdAlert('user@test.com', baseProps);
+
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: 'Manifest <alerts@custom.com>',
+      }),
+    );
+
+    delete process.env['NOTIFICATION_FROM_EMAIL'];
+  });
+
+  it('should fall back to default from email', async () => {
+    delete process.env['NOTIFICATION_FROM_EMAIL'];
+
+    await service.sendThresholdAlert('user@test.com', baseProps);
+
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: 'Manifest <noreply@manifest.build>',
+      }),
+    );
+  });
+
+  it('should return false when Mailgun send fails', async () => {
+    mockSend.mockResolvedValue(false);
+
+    const result = await service.sendThresholdAlert('user@test.com', baseProps);
 
     expect(result).toBe(false);
+  });
+
+  it('should return true and log on success', async () => {
+    const logSpy = jest.spyOn(
+      (service as unknown as { logger: { log: (...args: unknown[]) => void } }).logger,
+      'log',
+    );
+
+    const result = await service.sendThresholdAlert('user@test.com', baseProps);
+
+    expect(result).toBe(true);
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('demo-agent'),
+    );
   });
 });
