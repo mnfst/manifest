@@ -63,4 +63,9 @@ describe("Sidebar", () => {
     render(() => <Sidebar />);
     expect(screen.getByText("Feedback")).toBeDefined();
   });
+
+  it("renders Routing link", () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText("Routing")).toBeDefined();
+  });
 });

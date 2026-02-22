@@ -79,4 +79,33 @@ describe("Settings", () => {
     render(() => <Settings />);
     expect(screen.getByText("Delete agent")).toBeDefined();
   });
+
+  it("renders LLM Providers tab", () => {
+    render(() => <Settings />);
+    expect(screen.getByText("LLM Providers")).toBeDefined();
+  });
+
+  it("renders all three tab buttons", () => {
+    render(() => <Settings />);
+    expect(screen.getByText("General")).toBeDefined();
+    expect(screen.getByText("LLM Providers")).toBeDefined();
+    expect(screen.getByText("Integration")).toBeDefined();
+  });
+
+  it("renders breadcrumb with agent name", () => {
+    render(() => <Settings />);
+    const matches = screen.getAllByText(/test-agent/);
+    expect(matches.length).toBeGreaterThan(0);
+    const breadcrumb = matches.find(el => el.classList.contains("breadcrumb"));
+    expect(breadcrumb).toBeDefined();
+  });
+
+  it("renders Save button disabled when name unchanged", () => {
+    render(() => <Settings />);
+    const saveSpan = screen.getByText("Save");
+    expect(saveSpan).toBeDefined();
+    const saveButton = saveSpan.closest("button") as HTMLButtonElement;
+    expect(saveButton).toBeDefined();
+    expect(saveButton.disabled).toBe(true);
+  });
 });
