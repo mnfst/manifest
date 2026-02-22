@@ -2,15 +2,19 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-white.svg" />
     <source media="(prefers-color-scheme: light)" srcset=".github/assets/logo-dark.svg" />
-    <img src=".github/assets/logo-dark.svg" alt="Manifest" height="53" />
+    <img src=".github/assets/logo-dark.svg" alt="Manifest" height="53" title="Manifest"/>
   </picture>
 </p>
 <p align="center">
-  Open-source observability for AI agents.<br />
-  Track costs, tokens, messages, and performance, entirely on your machine.
+  🦞 Take control of your
+OpenClaw costs
 </p>
 <p align="center">
-  <img src=".github/assets/home-gh.png" alt="Manifest" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/home-gh-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/home-gh-light.png" />
+    <img src=".github/assets/home-gh-light.png" alt="Manifest" />
+  </picture>
 </p>
 
 <p align="center">
