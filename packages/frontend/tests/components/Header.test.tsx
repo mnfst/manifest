@@ -1,9 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
+const mockSignOut = vi.fn().mockResolvedValue(undefined);
+const mockNavigate = vi.fn();
+
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
-  useNavigate: () => vi.fn(),
+  useNavigate: () => mockNavigate,
   useLocation: () => ({ pathname: "/" }),
 }));
 
@@ -13,12 +16,17 @@ vi.mock("../../src/services/auth-client.js", () => ({
       data: { user: { id: "u1", name: "Alice", email: "alice@test.com" } },
       isPending: false,
     }),
-    signOut: vi.fn().mockResolvedValue(undefined),
+    signOut: (...args: unknown[]) => mockSignOut(...args),
   },
 }));
 
 vi.mock("../../src/services/routing.js", () => ({
   useAgentName: () => () => null,
+}));
+
+vi.mock("../../src/services/local-mode.js", () => ({
+  checkLocalMode: vi.fn().mockResolvedValue(false),
+  isLocalMode: () => false,
 }));
 
 import Header from "../../src/components/Header";
@@ -57,5 +65,21 @@ describe("Header", () => {
     render(() => <Header />);
     await fireEvent.click(screen.getByLabelText("User menu"));
     expect(screen.getByText("Log out")).toBeDefined();
+  });
+
+  it("calls signOut when Log out clicked", async () => {
+    render(() => <Header />);
+    await fireEvent.click(screen.getByLabelText("User menu"));
+    await fireEvent.click(screen.getByText("Log out"));
+    expect(mockSignOut).toHaveBeenCalled();
+  });
+
+  it("navigates to login after signOut", async () => {
+    render(() => <Header />);
+    await fireEvent.click(screen.getByLabelText("User menu"));
+    await fireEvent.click(screen.getByText("Log out"));
+    await vi.waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/login", { replace: true });
+    });
   });
 });
