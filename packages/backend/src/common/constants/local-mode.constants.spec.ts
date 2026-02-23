@@ -11,6 +11,11 @@ import {
   LOCAL_DEFAULT_PORT,
   getLocalAuthSecret,
   getLocalPassword,
+  readLocalEmailConfig,
+  writeLocalEmailConfig,
+  clearLocalEmailConfig,
+  readLocalNotificationEmail,
+  writeLocalNotificationEmail,
 } from './local-mode.constants';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -156,6 +161,145 @@ describe('local-mode.constants', () => {
         expect.any(String),
         expect.objectContaining({ mode: 0o600 }),
       );
+    });
+  });
+
+  describe('readLocalEmailConfig', () => {
+    it('returns null when no email config in file', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify({ apiKey: 'mnfst_key' }));
+
+      const result = readLocalEmailConfig();
+      expect(result).toBeNull();
+    });
+
+    it('returns null when emailProvider missing', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(
+        JSON.stringify({ emailApiKey: 'some-key' }),
+      );
+
+      const result = readLocalEmailConfig();
+      expect(result).toBeNull();
+    });
+
+    it('returns config when email provider and key are set', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(
+        JSON.stringify({
+          emailProvider: 'resend',
+          emailApiKey: 're_key',
+          emailDomain: 'test.com',
+          emailFromAddress: 'noreply@test.com',
+        }),
+      );
+
+      const result = readLocalEmailConfig();
+      expect(result).toEqual({
+        provider: 'resend',
+        apiKey: 're_key',
+        domain: 'test.com',
+        fromEmail: 'noreply@test.com',
+      });
+    });
+  });
+
+  describe('writeLocalEmailConfig', () => {
+    it('writes email config fields to config file', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify({ apiKey: 'existing' }));
+
+      writeLocalEmailConfig({
+        provider: 'sendgrid',
+        apiKey: 'sg-key',
+        domain: 'test.com',
+        fromEmail: 'noreply@test.com',
+      });
+
+      const written = JSON.parse((fs.writeFileSync as jest.Mock).mock.calls[0][1]);
+      expect(written.apiKey).toBe('existing');
+      expect(written.emailProvider).toBe('sendgrid');
+      expect(written.emailApiKey).toBe('sg-key');
+      expect(written.emailDomain).toBe('test.com');
+      expect(written.emailFromAddress).toBe('noreply@test.com');
+    });
+  });
+
+  describe('clearLocalEmailConfig', () => {
+    it('removes email config fields from config file', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(
+        JSON.stringify({
+          apiKey: 'existing',
+          emailProvider: 'resend',
+          emailApiKey: 're_key',
+          emailDomain: 'test.com',
+          emailFromAddress: 'noreply@test.com',
+        }),
+      );
+
+      clearLocalEmailConfig();
+
+      const written = JSON.parse((fs.writeFileSync as jest.Mock).mock.calls[0][1]);
+      expect(written.apiKey).toBe('existing');
+      expect(written.emailProvider).toBeUndefined();
+      expect(written.emailApiKey).toBeUndefined();
+      expect(written.emailDomain).toBeUndefined();
+      expect(written.emailFromAddress).toBeUndefined();
+    });
+  });
+
+  describe('readLocalNotificationEmail', () => {
+    it('returns null when no notification email in config', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify({ apiKey: 'existing' }));
+
+      const result = readLocalNotificationEmail();
+      expect(result).toBeNull();
+    });
+
+    it('returns email when notification email is set', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(
+        JSON.stringify({ notificationEmail: 'user@real.com' }),
+      );
+
+      const result = readLocalNotificationEmail();
+      expect(result).toBe('user@real.com');
+    });
+
+    it('returns null when config file does not exist', () => {
+      (fs.existsSync as jest.Mock)
+        .mockReturnValueOnce(true)  // ensureConfigDir
+        .mockReturnValueOnce(false); // config file
+
+      const result = readLocalNotificationEmail();
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('writeLocalNotificationEmail', () => {
+    it('writes notification email to config file', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify({ apiKey: 'existing' }));
+
+      writeLocalNotificationEmail('user@real.com');
+
+      const written = JSON.parse((fs.writeFileSync as jest.Mock).mock.calls[0][1]);
+      expect(written.apiKey).toBe('existing');
+      expect(written.notificationEmail).toBe('user@real.com');
+    });
+
+    it('overwrites existing notification email', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(
+        JSON.stringify({ notificationEmail: 'old@example.com' }),
+      );
+
+      writeLocalNotificationEmail('new@example.com');
+
+      const written = JSON.parse((fs.writeFileSync as jest.Mock).mock.calls[0][1]);
+      expect(written.notificationEmail).toBe('new@example.com');
     });
   });
 });

@@ -1,8 +1,14 @@
+jest.mock('../../common/constants/local-mode.constants', () => ({
+  LOCAL_EMAIL: 'local@manifest.local',
+  readLocalNotificationEmail: jest.fn().mockReturnValue(null),
+}));
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { NotificationCronService } from './notification-cron.service';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
+import { readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
 
 const activeRule = {
   id: 'rule-1',
@@ -52,6 +58,18 @@ describe('NotificationCronService', () => {
     mockGetAllActiveRules.mockResolvedValue([]);
     const result = await service.checkThresholds();
     expect(result).toBe(0);
+  });
+
+  it('onModuleInit calls checkThresholds for startup catch-up', async () => {
+    mockGetAllActiveRules.mockResolvedValue([]);
+    const spy = jest.spyOn(service, 'checkThresholds');
+    await service.onModuleInit();
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('onModuleInit does not throw on error', async () => {
+    mockGetAllActiveRules.mockRejectedValue(new Error('DB not ready'));
+    await expect(service.onModuleInit()).resolves.not.toThrow();
   });
 
   it('skips rule when already notified for current period (dedup)', async () => {
@@ -251,6 +269,63 @@ describe('NotificationCronService', () => {
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
+  });
+
+  it('filters out local@manifest.local fake email', async () => {
+    mockGetAllActiveRules.mockResolvedValue([activeRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce([{ email: 'local@manifest.local' }]) // fake email
+      .mockResolvedValueOnce(undefined); // INSERT log (no email, still logs)
+    mockGetConsumption.mockResolvedValue(200000);
+
+    const result = await service.checkThresholds();
+    expect(result).toBe(1);
+    expect(mockSendThresholdAlert).not.toHaveBeenCalled();
+  });
+
+  it('uses local config notification email in local mode', async () => {
+    const originalMode = process.env['MANIFEST_MODE'];
+    process.env['MANIFEST_MODE'] = 'local';
+    (readLocalNotificationEmail as jest.Mock).mockReturnValue('real@user.com');
+
+    mockGetAllActiveRules.mockResolvedValue([activeRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce(undefined); // INSERT log
+    mockGetConsumption.mockResolvedValue(200000);
+
+    const result = await service.checkThresholds();
+    expect(result).toBe(1);
+    expect(mockSendThresholdAlert).toHaveBeenCalledWith(
+      'real@user.com',
+      expect.any(Object),
+    );
+
+    process.env['MANIFEST_MODE'] = originalMode;
+    (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
+  });
+
+  it('falls back to DB email when local config email not set in local mode', async () => {
+    const originalMode = process.env['MANIFEST_MODE'];
+    process.env['MANIFEST_MODE'] = 'local';
+    (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
+
+    mockGetAllActiveRules.mockResolvedValue([activeRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce([{ email: 'real@db.com' }]) // DB email
+      .mockResolvedValueOnce(undefined); // INSERT log
+    mockGetConsumption.mockResolvedValue(200000);
+
+    const result = await service.checkThresholds();
+    expect(result).toBe(1);
+    expect(mockSendThresholdAlert).toHaveBeenCalledWith(
+      'real@db.com',
+      expect.any(Object),
+    );
+
+    process.env['MANIFEST_MODE'] = originalMode;
   });
 });
 

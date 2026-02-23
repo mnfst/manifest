@@ -11,10 +11,17 @@ export const LOCAL_DEFAULT_PORT = 2099;
 const CONFIG_DIR = join(homedir(), '.openclaw', 'manifest');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
 
+import type { EmailProviderConfig, EmailProviderType } from '../../notifications/services/email-providers/email-provider.interface';
+
 interface LocalConfigFile {
   apiKey?: string;
   authSecret?: string;
   localPassword?: string;
+  notificationEmail?: string;
+  emailProvider?: EmailProviderType;
+  emailApiKey?: string;
+  emailDomain?: string;
+  emailFromAddress?: string;
 }
 
 function ensureConfigDir(): void {
@@ -58,4 +65,49 @@ export function getLocalPassword(): string {
   const password = randomBytes(24).toString('base64url');
   writeConfig({ ...config, localPassword: password });
   return password;
+}
+
+/** Reads email provider config from the local config file. Returns null if not configured. */
+export function readLocalEmailConfig(): EmailProviderConfig | null {
+  const config = readConfig();
+  if (!config.emailProvider || !config.emailApiKey) return null;
+  return {
+    provider: config.emailProvider,
+    apiKey: config.emailApiKey,
+    domain: config.emailDomain,
+    fromEmail: config.emailFromAddress,
+  };
+}
+
+/** Writes email provider config to the local config file. */
+export function writeLocalEmailConfig(emailConfig: EmailProviderConfig): void {
+  const config = readConfig();
+  config.emailProvider = emailConfig.provider;
+  config.emailApiKey = emailConfig.apiKey;
+  config.emailDomain = emailConfig.domain;
+  config.emailFromAddress = emailConfig.fromEmail;
+  writeConfig(config);
+}
+
+/** Clears email provider config from the local config file. */
+export function clearLocalEmailConfig(): void {
+  const config = readConfig();
+  delete config.emailProvider;
+  delete config.emailApiKey;
+  delete config.emailDomain;
+  delete config.emailFromAddress;
+  writeConfig(config);
+}
+
+/** Reads the notification email from the local config file. Returns null if not set. */
+export function readLocalNotificationEmail(): string | null {
+  const config = readConfig();
+  return config.notificationEmail ?? null;
+}
+
+/** Writes a notification email to the local config file. */
+export function writeLocalNotificationEmail(email: string): void {
+  const config = readConfig();
+  config.notificationEmail = email;
+  writeConfig(config);
 }

@@ -1,6 +1,10 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-02-20
+Last updated: 2026-02-23
+
+## IMPORTANT: Local Mode First
+
+When starting the app for development or testing (e.g. `/serve`), **always use `MANIFEST_MODE=local`** unless explicitly asked for cloud mode. Local mode is the primary development target — cloud mode comes second.
 
 ## Active Technologies
 

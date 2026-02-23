@@ -145,3 +145,64 @@ export function deleteNotificationRule(id: string) {
     method: "DELETE",
   });
 }
+
+export interface EmailConfig {
+  configured: boolean;
+  provider?: string;
+  domain?: string;
+  fromEmail?: string;
+}
+
+export function getEmailConfig() {
+  return fetchJson<EmailConfig>("/email-config");
+}
+
+export function saveEmailConfig(data: {
+  provider: string;
+  apiKey: string;
+  domain?: string;
+  fromEmail?: string;
+}) {
+  return fetchMutate(`${BASE_URL}/email-config`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export function testEmailConfig(data: {
+  to: string;
+  provider: string;
+  apiKey: string;
+  domain?: string;
+  fromEmail?: string;
+}) {
+  return fetchMutate<{ success: boolean; error?: string }>(`${BASE_URL}/email-config/test`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export function clearEmailConfig() {
+  return fetchMutate(`${BASE_URL}/email-config`, {
+    method: "DELETE",
+  });
+}
+
+export interface NotificationEmailResponse {
+  email: string | null;
+  isDefault: boolean;
+}
+
+export function getNotificationEmail() {
+  return fetchJson<NotificationEmailResponse>("/email-config/notification-email");
+}
+
+export function saveNotificationEmail(email: string) {
+  return fetchMutate<{ saved: boolean }>(`${BASE_URL}/email-config/notification-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+}
