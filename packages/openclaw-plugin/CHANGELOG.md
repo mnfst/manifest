@@ -1,5 +1,11 @@
 # manifest
 
+## 5.6.1
+
+### Patch Changes
+
+- af2ff12: Fire agent_created product telemetry event in local mode when a new tenant/agent is created via LocalBootstrapService.
+
 ## 5.6.0
 
 ### Minor Changes
