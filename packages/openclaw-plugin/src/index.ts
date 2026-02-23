@@ -30,12 +30,12 @@ module.exports = {
 
     const error = validateConfig(config);
     if (error) {
-      // No key at all = fresh install, show friendly next-steps
       if (!config.apiKey) {
         logger.info(
-          "[manifest] Installed! Complete setup:\n" +
-            "  1. openclaw config set plugins.entries.manifest.config.apiKey mnfst_YOUR_KEY\n" +
-            "  2. openclaw gateway restart",
+          "[manifest] Cloud mode requires an API key:\n" +
+            "  openclaw config set plugins.entries.manifest.config.apiKey mnfst_YOUR_KEY\n" +
+            "  openclaw gateway restart\n\n" +
+            "Tip: Remove the mode setting to use local mode instead (zero config).",
         );
       } else {
         logger.error(`[manifest] Configuration error:\n${error}`);
