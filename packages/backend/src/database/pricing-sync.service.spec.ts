@@ -105,4 +105,73 @@ describe('PricingSyncService', () => {
     const updated = await service.syncPricing();
     expect(updated).toBe(0);
   });
+
+  it('updates Zhipu models from OpenRouter response', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'zhipuai/glm-4-plus', pricing: { prompt: '0.0000005', completion: '0.0000005' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      {
+        model_name: 'glm-4-plus',
+        provider: 'Zhipu',
+        input_price_per_token: 0.0000005,
+        output_price_per_token: 0.0000005,
+      },
+      ['model_name'],
+    );
+  });
+
+  it('updates Amazon Nova models from OpenRouter response', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'amazon/nova-pro', pricing: { prompt: '0.0000008', completion: '0.0000032' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      {
+        model_name: 'nova-pro',
+        provider: 'Amazon',
+        input_price_per_token: 0.0000008,
+        output_price_per_token: 0.0000032,
+      },
+      ['model_name'],
+    );
+  });
+
+  it('updates Qwen 3 models from OpenRouter response', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'qwen/qwen3-235b-a22b', pricing: { prompt: '0.0000003', completion: '0.0000012' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      {
+        model_name: 'qwen3-235b-a22b',
+        provider: 'Alibaba',
+        input_price_per_token: 0.0000003,
+        output_price_per_token: 0.0000012,
+      },
+      ['model_name'],
+    );
+  });
 });

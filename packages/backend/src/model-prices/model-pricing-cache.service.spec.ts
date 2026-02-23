@@ -109,5 +109,52 @@ describe('ModelPricingCacheService', () => {
       expect(service.getByModel('gpt-4o')).toBe(rows[1]);
       expect(service.getByModel('gpt-4o-mini')).toBeUndefined();
     });
+
+    it('should resolve provider-prefixed model names', async () => {
+      const pricing = makePricing('gpt-4o');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('openai/gpt-4o')).toBe(pricing);
+    });
+
+    it('should resolve known aliases', async () => {
+      const pricing = makePricing('claude-opus-4-6');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('claude-opus-4')).toBe(pricing);
+    });
+
+    it('should resolve date-suffixed model names', async () => {
+      const pricing = makePricing('gpt-4.1');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('gpt-4.1-2025-04-14')).toBe(pricing);
+    });
+
+    it('should resolve prefix + date suffix combined', async () => {
+      const pricing = makePricing('gpt-4.1');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('openai/gpt-4.1-2025-04-14')).toBe(pricing);
+    });
+
+    it('should resolve deepseek-chat to deepseek-v3', async () => {
+      const pricing = makePricing('deepseek-v3');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('deepseek-chat')).toBe(pricing);
+    });
+
+    it('should still return undefined for truly unknown models', async () => {
+      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('totally-unknown')).toBeUndefined();
+    });
   });
 });

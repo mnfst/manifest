@@ -175,6 +175,10 @@ export class DatabaseSeederService implements OnModuleInit {
       ['o3',                         'OpenAI',    0.000002,   0.000008  ],
       ['o3-mini',                    'OpenAI',    0.0000011,  0.0000044 ],
       ['o4-mini',                    'OpenAI',    0.0000011,  0.0000044 ],
+      // OpenAI GPT-5.3
+      ['gpt-5.3',                    'OpenAI',    0.00001,    0.00003   ],
+      ['gpt-5.3-codex',              'OpenAI',    0.00001,    0.00003   ],
+      ['gpt-5.3-mini',               'OpenAI',    0.0000015,  0.000006  ],
       // Google Gemini
       ['gemini-2.5-pro',             'Google',    0.00000125, 0.00001   ],
       ['gemini-2.5-flash',           'Google',    0.00000015, 0.0000006 ],
@@ -189,16 +193,19 @@ export class DatabaseSeederService implements OnModuleInit {
       ['qwen-2.5-72b-instruct',      'Alibaba',  0.00000034, 0.00000039],
       ['qwq-32b',                    'Alibaba',   0.00000012, 0.00000018],
       ['qwen-2.5-coder-32b-instruct','Alibaba',   0.00000018, 0.00000018],
+      ['qwen3-235b-a22b',            'Alibaba',   0.0000003,  0.0000012 ],
+      ['qwen3-32b',                  'Alibaba',   0.0000001,  0.0000003 ],
       // Mistral
       ['mistral-large',              'Mistral',   0.000002,   0.000006  ],
       ['mistral-small',              'Mistral',   0.0000002,  0.0000006 ],
       ['codestral',                  'Mistral',   0.0000003,  0.0000009 ],
-      // Meta (Llama)
-      ['llama-4-maverick',           'Meta',      0.00000018, 0.00000059],
-      ['llama-4-scout',              'Meta',      0.00000015, 0.00000044],
-      // Cohere
-      ['command-r-plus',             'Cohere',    0.0000025,  0.00001   ],
-      ['command-r',                  'Cohere',    0.00000015, 0.0000006 ],
+      // Zhipu (GLM)
+      ['glm-4-plus',                 'Zhipu',     0.0000005,  0.0000005 ],
+      ['glm-4-flash',                'Zhipu',     0.00000005, 0.00000005],
+      // Amazon Nova
+      ['nova-pro',                   'Amazon',    0.0000008,  0.0000032 ],
+      ['nova-lite',                  'Amazon',    0.00000006, 0.00000024],
+      ['nova-micro',                 'Amazon',    0.000000035,0.00000014],
     ];
 
     for (const [name, provider, inputPrice, outputPrice] of models) {
