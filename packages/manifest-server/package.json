@@ -36,6 +36,7 @@
   "scripts": {
     "build": "node scripts/copy-assets.js && tsc",
     "prebuild": "rm -rf dist public",
+    "postinstall": "npm rebuild better-sqlite3",
     "test": "jest"
   },
   "dependencies": {
