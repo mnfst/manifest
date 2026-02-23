@@ -20,10 +20,10 @@ describe("formatAxisTimestamp", () => {
     const result = formatAxisTimestamp(epoch, 3600);
     expect(result).toBe("10:30");
   });
-  it("shows date + time for weekly range", () => {
+  it("shows just date for weekly range", () => {
     const epoch = Date.UTC(2024, 0, 15, 10, 30) / 1000;
     const result = formatAxisTimestamp(epoch, 604800);
-    expect(result).toBe("Jan 15 10:30");
+    expect(result).toBe("Jan 15");
   });
   it("shows just date for monthly range", () => {
     const epoch = Date.UTC(2024, 0, 15, 10, 30) / 1000;

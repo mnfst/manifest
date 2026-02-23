@@ -40,6 +40,19 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
     );
   }
 
+  // Pre-flight: verify better-sqlite3 native addon loads
+  try {
+    require('better-sqlite3');
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `better-sqlite3 native module failed to load: ${msg}\n` +
+      '  On macOS, install Xcode Command Line Tools: xcode-select --install\n' +
+      '  Then rebuild: npm rebuild better-sqlite3\n' +
+      '  Or reinstall the plugin: openclaw plugins install manifest',
+    );
+  }
+
   // Generate a random persistent secret for local mode
   if (!process.env['BETTER_AUTH_SECRET']) {
     const constants = require(`${BACKEND_DIR}/common/constants/local-mode.constants`);

@@ -98,7 +98,7 @@ export function formatAxisTimestamp(epochSec: number, rangeSeconds: number): str
   if (rangeSeconds <= 86400) return `${hh}:${mm}`;
   const mon = MONTHS[d.getUTCMonth()]!;
   const day = d.getUTCDate();
-  if (rangeSeconds <= 7 * 86400) return `${mon} ${day} ${hh}:${mm}`;
+  if (rangeSeconds <= 7 * 86400) return `${mon} ${day}`;
   return `${mon} ${day}`;
 }
 

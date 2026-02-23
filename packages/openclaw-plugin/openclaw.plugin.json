@@ -84,5 +84,5 @@
       "label": "Local Server Host"
     }
   },
-  "skills": ["skills/manifest-analytics"]
+  "skills": ["skills/manifest"]
 }

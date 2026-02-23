@@ -134,10 +134,10 @@ describe("formatAxisTimestamp edge cases", () => {
     expect(result).toBe("00:00");
   });
 
-  it("shows date+time for range just over 86400", () => {
+  it("shows just date for range just over 86400", () => {
     const epoch = Date.UTC(2024, 5, 15, 14, 30) / 1000;
     const result = formatAxisTimestamp(epoch, 86401);
-    expect(result).toBe("Jun 15 14:30");
+    expect(result).toBe("Jun 15");
   });
 
   it("shows just date for range over 7d", () => {

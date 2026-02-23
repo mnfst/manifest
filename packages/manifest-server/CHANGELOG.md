@@ -1,5 +1,23 @@
 # @mnfst/server
 
+## 5.3.3
+
+### Patch Changes
+
+- ebd8913: Fix better-sqlite3 version conflict causing silent failures on macOS and improve error messages for native module issues
+
+## 5.3.2
+
+### Patch Changes
+
+- 1440512: Fix notification cron: hourly alerts never triggered because the evaluation window was empty, and failed email sends prevented retries
+
+## 5.3.0
+
+### Minor Changes
+
+- dfa7025: Import all OpenRouter models instead of a curated subset, add price history tracking, unresolved model detection, and a live search/filter UI for the model prices page.
+
 ## 5.2.11
 
 ### Patch Changes
