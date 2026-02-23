@@ -35,6 +35,7 @@ OpenClaw costs
   <a href="#tech-stack">Tech stack</a> &nbsp;&middot;&nbsp;
   <a href="#connecting-telemetry">Telemetry</a> &nbsp;&middot;&nbsp;
   <a href="#configuration">Configuration</a> &nbsp;&middot;&nbsp;
+  <a href="#telemetry--privacy">Privacy</a> &nbsp;&middot;&nbsp;
   <a href="#contributing">Contributing</a>
 </p>
 
@@ -181,6 +182,29 @@ openclaw config set plugins.entries.manifest.config.host "0.0.0.0"
 | `~/.openclaw/manifest/config.json` | Auto-generated API key               |
 
 To reset everything, delete `~/.openclaw/manifest/` and restart the gateway.
+
+## Telemetry & Privacy
+
+**Your data stays on your machine.** All agent messages, token counts, costs, LLM call details, tool executions, and logs are stored locally in your database (SQLite in local mode, PostgreSQL in cloud self-hosted). None of this data is ever sent to us or any third party.
+
+Manifest collects **anonymous product analytics** to help us understand usage patterns and improve the project. These events contain:
+
+- A hashed machine identifier (SHA-256 of hostname + OS + architecture, truncated to 16 characters)
+- OS platform, OS version, and Node.js version
+- Package version and running mode (cloud/local)
+- Event name (e.g. `server_started`, `agent_created`)
+
+No personally identifiable information, agent messages, token counts, cost data, or telemetry content is ever included in these analytics.
+
+### Opting out
+
+Set the environment variable before starting Manifest:
+
+```bash
+MANIFEST_TELEMETRY_OPTOUT=1
+```
+
+Or add `"telemetryOptOut": true` to `~/.openclaw/manifest/config.json`. When opted out, no analytics data is sent.
 
 ## Contributing
 
