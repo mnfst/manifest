@@ -19,10 +19,6 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null,
 }));
 
-vi.mock("../../src/components/InfoTooltip.js", () => ({
-  default: (props: any) => <span class="info-tooltip">{props.text ?? props.children}</span>,
-}));
-
 vi.mock("../../src/services/routing.js", () => ({
   agentPath: (name: string, sub: string) => `/agents/${name}${sub}`,
   useAgentName: () => () => "test-agent",
@@ -68,13 +64,12 @@ describe("Routing", () => {
     expect(screen.getByText("Reasoning", sel)).toBeDefined();
   });
 
-  it("renders tier descriptions in tooltip", () => {
+  it("renders tier descriptions", async () => {
     render(() => <Routing />);
-    // Tier descriptions are now inside the InfoTooltip next to the heading
-    const tooltip = document.querySelector(".info-tooltip");
-    expect(tooltip).toBeDefined();
-    expect(tooltip?.textContent).toContain("Simple");
-    expect(tooltip?.textContent).toContain("Reasoning");
+    expect(await screen.findByText("Repetitive, low-cost tasks that any model can handle.")).toBeDefined();
+    expect(screen.getByText("General-purpose requests that need a good balance of quality and cost.")).toBeDefined();
+    expect(screen.getByText("Tasks requiring high quality, nuance, or multi-step reasoning.")).toBeDefined();
+    expect(screen.getByText("Advanced reasoning, planning, and critical decision-making.")).toBeDefined();
   });
 
   it("shows custom tag only for override tiers", async () => {

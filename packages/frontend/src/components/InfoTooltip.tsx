@@ -2,12 +2,13 @@ import { Show, type Component, type JSX } from "solid-js";
 
 interface Props {
   text?: string;
+  class?: string;
   children?: JSX.Element;
 }
 
 const InfoTooltip: Component<Props> = (props) => {
   return (
-    <span class="info-tooltip" tabindex="0" role="note" aria-label={props.text ?? ""}>
+    <span class={`info-tooltip${props.class ? ` ${props.class}` : ""}`} tabindex="0" role="note" aria-label={props.text ?? ""}>
       <svg
         class="info-tooltip__icon"
         width="13"

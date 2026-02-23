@@ -178,7 +178,7 @@ export class DatabaseSeederService implements OnModuleInit {
       // Google Gemini
       ['gemini-2.5-pro',             'Google',    0.00000125, 0.00001,    1048576, true,  true,  true,  true,  true,  5],
       ['gemini-2.5-flash',           'Google',    0.00000015, 0.0000006,  1048576, false, true,  true,  true,  true,  2],
-      ['gemini-2.5-flash-lite',      'Google',    0.0000001,  0.0000004,  1048576, false, false, true,  false, false, 1],
+      ['gemini-2.5-flash-lite',      'Google',    0.0000001,  0.0000004,  1048576, true,  false, true,  false, false, 1],
       ['gemini-2.0-flash',           'Google',    0.0000001,  0.0000004,  1048576, false, true,  true,  true,  true,  2],
       // DeepSeek
       ['deepseek-v3',                'DeepSeek',  0.00000014, 0.00000028, 128000,  false, true,  false, true,  true,  2],

@@ -91,11 +91,24 @@
   border-radius: var(--radius);
 }
 
+.routing-card__header {
+  flex: 0 0 340px;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .routing-card__tier {
-  flex: 0 0 100px;
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: hsl(var(--foreground));
+}
+
+.routing-card__desc {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
 }
 
 .routing-card__body {
@@ -129,20 +142,37 @@
 }
 
 .routing-card__custom-tag {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1;
   padding: 3px 6px;
   border-radius: 4px;
-  background: hsl(var(--muted-foreground) / 0.15);
-  color: hsl(var(--muted-foreground));
+  background: hsl(var(--success) / 0.15);
+  color: hsl(var(--success));
   text-transform: lowercase;
   letter-spacing: 0.02em;
 }
 
-.routing-card__pricing {
-  flex: 0 0 auto;
-  min-width: 0;
+.routing-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.routing-card__tag {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: hsl(var(--muted-foreground) / 0.12);
+  color: hsl(var(--muted-foreground));
+  letter-spacing: 0.01em;
+}
+
+.routing-card__actions {
+  flex-shrink: 0;
 }
 
 .routing-card__empty {
@@ -162,9 +192,6 @@
   text-decoration: underline;
 }
 
-.routing-card__actions {
-  flex-shrink: 0;
-}
 
 .routing-action {
   font-size: var(--font-size-sm);

@@ -36,7 +36,7 @@
   line-height: 1.5;
   white-space: normal;
   width: max-content;
-  max-width: 340px;
+  max-width: 260px;
   box-shadow: 0 2px 8px hsl(var(--foreground) / 0.08);
   z-index: 50;
   pointer-events: none;

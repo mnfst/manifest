@@ -5,7 +5,6 @@ import { agentPath } from "../services/routing.js";
 import { STAGES, PROVIDERS, getModelLabel, getProvider } from "../services/providers.js";
 import { providerIcon } from "../components/ProviderIcon.js";
 import { toast } from "../services/toast-store.js";
-import InfoTooltip from "../components/InfoTooltip.js";
 import {
   getTierAssignments,
   getAvailableModels,
@@ -101,13 +100,6 @@ const Routing: Component = () => {
     const info = modelInfo(modelName);
     if (!info) return "";
     return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out / 1M tokens`;
-  };
-
-  const capsLabel = (modelName: string): string => {
-    const info = modelInfo(modelName);
-    if (!info) return "";
-    const active = CAPABILITY_LABELS.filter((c) => info[c.key] === true);
-    return active.map((c) => c.label).join(" · ");
   };
 
   /* ── Dropdown model list ── */
@@ -230,22 +222,7 @@ const Routing: Component = () => {
 
       <div class="page-header">
         <div>
-          <h1>
-            Routing
-            <InfoTooltip>
-              <For each={STAGES}>
-                {(stage, i) => (
-                  <>
-                    <strong>{stage.label}</strong>
-                    {stage.desc}
-                    <Show when={i() < STAGES.length - 1}>
-                      <br /><br />
-                    </Show>
-                  </>
-                )}
-              </For>
-            </InfoTooltip>
-          </h1>
+          <h1>Routing</h1>
           <span class="breadcrumb">{agentName()} &rsaquo; Assign a model to each tier</span>
         </div>
       </div>
@@ -272,7 +249,10 @@ const Routing: Component = () => {
 
               return (
                 <div class="routing-card">
-                  <div class="routing-card__tier">{stage.label}</div>
+                  <div class="routing-card__header">
+                    <span class="routing-card__tier">{stage.label}</span>
+                    <span class="routing-card__desc">{stage.desc}</span>
+                  </div>
 
                   <div class="routing-card__body">
                     <Show
@@ -284,7 +264,7 @@ const Routing: Component = () => {
                             href={agentPath(agentName(), "/settings")}
                             class="routing-card__empty-link"
                           >
-                            Connect a provider
+                            Connect a provider in Settings
                           </A>
                         </div>
                       }
@@ -309,19 +289,23 @@ const Routing: Component = () => {
                               <span class="routing-card__custom-tag">custom</span>
                             </Show>
                           </div>
+                          <span class="routing-card__sub">{priceLabel(modelName())}</span>
                           {(() => {
-                            const caps = capsLabel(modelName());
-                            return caps ? <span class="routing-card__sub">{caps}</span> : null;
+                            const info = modelInfo(modelName());
+                            if (!info) return null;
+                            const active = CAPABILITY_LABELS.filter((c) => info[c.key] === true);
+                            if (active.length === 0) return null;
+                            return (
+                              <div class="routing-card__tags">
+                                <For each={active}>
+                                  {(cap) => (
+                                    <span class="routing-card__tag">{cap.label}</span>
+                                  )}
+                                </For>
+                              </div>
+                            );
                           })()}
                         </>
-                      )}
-                    </Show>
-                  </div>
-
-                  <div class="routing-card__pricing">
-                    <Show when={eff()}>
-                      {(modelName) => (
-                        <span class="routing-card__sub">{priceLabel(modelName())}</span>
                       )}
                     </Show>
                   </div>
