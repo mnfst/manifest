@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.4.1
+
+### Patch Changes
+
+- b8c8b06: Fix CSP errors from GitHub star button by proxying the GitHub API through a backend endpoint
+
 ## 5.4.0
 
 ### Minor Changes
