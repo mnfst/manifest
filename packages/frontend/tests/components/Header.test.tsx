@@ -92,7 +92,7 @@ describe("Header", () => {
 describe("Header - GitHub star button", () => {
   it("renders the star button with link to GitHub repo", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ stargazers_count: 1234 }))
+      new Response(JSON.stringify({ stars: 1234 }))
     );
     const { container } = render(() => <Header />);
     await vi.waitFor(() => {
@@ -107,7 +107,7 @@ describe("Header - GitHub star button", () => {
 
   it("fetches and displays the star count", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ stargazers_count: 5678 }))
+      new Response(JSON.stringify({ stars: 5678 }))
     );
     render(() => <Header />);
     await vi.waitFor(() => {
@@ -117,7 +117,7 @@ describe("Header - GitHub star button", () => {
 
   it("formats large star counts with locale separators", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ stargazers_count: 12345 }))
+      new Response(JSON.stringify({ stars: 12345 }))
     );
     render(() => <Header />);
     await vi.waitFor(() => {
@@ -127,7 +127,7 @@ describe("Header - GitHub star button", () => {
 
   it("renders star button without count when API returns non-numeric value", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ stargazers_count: "not a number" }))
+      new Response(JSON.stringify({ stars: "not a number" }))
     );
     const { container } = render(() => <Header />);
     await vi.waitFor(() => {
@@ -148,7 +148,7 @@ describe("Header - GitHub star button", () => {
 
   it("shows dismiss button", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ stargazers_count: 100 }))
+      new Response(JSON.stringify({ stars: 100 }))
     );
     render(() => <Header />);
     await vi.waitFor(() => {
@@ -158,7 +158,7 @@ describe("Header - GitHub star button", () => {
 
   it("hides star button when dismiss is clicked", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ stargazers_count: 100 }))
+      new Response(JSON.stringify({ stars: 100 }))
     );
     const { container } = render(() => <Header />);
     await vi.waitFor(() => {
@@ -170,7 +170,7 @@ describe("Header - GitHub star button", () => {
 
   it("persists dismiss state in sessionStorage", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ stargazers_count: 100 }))
+      new Response(JSON.stringify({ stars: 100 }))
     );
     render(() => <Header />);
     await vi.waitFor(() => {
@@ -183,7 +183,7 @@ describe("Header - GitHub star button", () => {
   it("does not render star button if previously dismissed", async () => {
     sessionStorage.setItem("github-star-dismissed", "true");
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ stargazers_count: 100 }))
+      new Response(JSON.stringify({ stars: 100 }))
     );
     const { container } = render(() => <Header />);
     expect(container.querySelector(".header__github-star")).toBeNull();
@@ -193,7 +193,7 @@ describe("Header - GitHub star button", () => {
   it("does not fetch star count if dismissed", () => {
     sessionStorage.setItem("github-star-dismissed", "true");
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-      new Response(JSON.stringify({ stargazers_count: 100 }))
+      new Response(JSON.stringify({ stars: 100 }))
     );
     render(() => <Header />);
     expect(fetchSpy).not.toHaveBeenCalled();
