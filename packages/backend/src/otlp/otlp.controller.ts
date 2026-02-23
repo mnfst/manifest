@@ -8,6 +8,7 @@ import { MetricIngestService } from './services/metric-ingest.service';
 import { LogIngestService } from './services/log-ingest.service';
 import { IngestionContext } from './interfaces/ingestion-context.interface';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
+import { trackCloudEvent } from '../common/utils/product-telemetry';
 
 interface RawBodyRequest extends Request {
   rawBody?: Buffer;
@@ -19,6 +20,7 @@ interface RawBodyRequest extends Request {
 @UseGuards(OtlpAuthGuard)
 export class OtlpController {
   private readonly logger = new Logger(OtlpController.name);
+  private readonly seenAgents = new Set<string>();
 
   constructor(
     private readonly decoder: OtlpDecoderService,
@@ -34,7 +36,10 @@ export class OtlpController {
     const ctx = req.ingestionContext;
     const payload = this.decoder.decodeTraces(req.headers['content-type'], req.body, req.rawBody);
     const result = await this.traceIngest.ingest(payload, ctx);
-    if (result.accepted > 0) this.eventBus.emit(ctx.userId);
+    if (result.accepted > 0) {
+      this.eventBus.emit(ctx.userId);
+      this.trackFirstTelemetry(ctx);
+    }
     this.logger.debug(`[${ctx.tenantId}/${ctx.agentId}] Traces: ${result.accepted} spans`);
     return { partialSuccess: result.accepted === 0 ? { rejectedSpans: 0 } : undefined };
   }
@@ -45,7 +50,10 @@ export class OtlpController {
     const ctx = req.ingestionContext;
     const payload = this.decoder.decodeMetrics(req.headers['content-type'], req.body, req.rawBody);
     const result = await this.metricIngest.ingest(payload, ctx);
-    if (result.accepted > 0) this.eventBus.emit(ctx.userId);
+    if (result.accepted > 0) {
+      this.eventBus.emit(ctx.userId);
+      this.trackFirstTelemetry(ctx);
+    }
     this.logger.debug(`[${ctx.tenantId}/${ctx.agentId}] Metrics: ${result.accepted} points`);
     return { partialSuccess: result.accepted === 0 ? { rejectedDataPoints: 0 } : undefined };
   }
@@ -56,8 +64,19 @@ export class OtlpController {
     const ctx = req.ingestionContext;
     const payload = this.decoder.decodeLogs(req.headers['content-type'], req.body, req.rawBody);
     const result = await this.logIngest.ingest(payload, ctx);
-    if (result.accepted > 0) this.eventBus.emit(ctx.userId);
+    if (result.accepted > 0) {
+      this.eventBus.emit(ctx.userId);
+      this.trackFirstTelemetry(ctx);
+    }
     this.logger.debug(`[${ctx.tenantId}/${ctx.agentId}] Logs: ${result.accepted} records`);
     return { partialSuccess: result.accepted === 0 ? { rejectedLogRecords: 0 } : undefined };
+  }
+
+  private trackFirstTelemetry(ctx: IngestionContext): void {
+    if (this.seenAgents.has(ctx.agentId)) return;
+    this.seenAgents.add(ctx.agentId);
+    trackCloudEvent('first_telemetry_received', ctx.tenantId, {
+      agent_id_hash: ctx.agentId.slice(0, 8),
+    });
   }
 }

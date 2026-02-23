@@ -8,6 +8,10 @@ import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { sha256, keyPrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 
+jest.mock('../../common/utils/product-telemetry', () => ({
+  trackCloudEvent: jest.fn(),
+}));
+
 jest.mock('uuid', () => ({ v4: jest.fn() }));
 jest.mock('crypto', () => {
   const actual = jest.requireActual('crypto');
