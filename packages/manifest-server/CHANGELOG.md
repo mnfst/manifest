@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.3.2
+
+### Patch Changes
+
+- 1440512: Fix notification cron: hourly alerts never triggered because the evaluation window was empty, and failed email sends prevented retries
+
 ## 5.3.0
 
 ### Minor Changes
