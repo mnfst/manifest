@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.2.9
+
+### Patch Changes
+
+- 388b714: Add `@mnfst/server` as a dependency of the `manifest` plugin so local mode works out of the box
+
 ## 5.2.8
 
 ### Patch Changes
