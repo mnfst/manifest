@@ -7,6 +7,10 @@ import { LogIngestService } from './services/log-ingest.service';
 import { OtlpAuthGuard } from './guards/otlp-auth.guard';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
 
+jest.mock('../common/utils/product-telemetry', () => ({
+  trackCloudEvent: jest.fn(),
+}));
+
 describe('OtlpController', () => {
   let controller: OtlpController;
   let mockDecoder: Record<string, jest.Mock>;

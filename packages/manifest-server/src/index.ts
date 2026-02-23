@@ -36,5 +36,10 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
   }
 
   const backendMain = await import(`${BACKEND_DIR}/main`);
-  return backendMain.bootstrap();
+  const app = await backendMain.bootstrap();
+
+  const { trackEvent } = require(`${BACKEND_DIR}/common/utils/product-telemetry`);
+  trackEvent('server_started', { package_version: version });
+
+  return app;
 }

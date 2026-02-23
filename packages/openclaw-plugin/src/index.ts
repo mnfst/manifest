@@ -4,6 +4,7 @@ import { registerHooks, initMetrics } from "./hooks";
 import { registerTools } from "./tools";
 import { verifyConnection } from "./verify";
 import { registerLocalMode } from "./local-mode";
+import { trackPluginEvent } from "./product-telemetry";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 module.exports = {
@@ -19,6 +20,8 @@ module.exports = {
     };
 
     const config: ManifestConfig = parseConfig(api.pluginConfig);
+    trackPluginEvent("plugin_registered");
+    trackPluginEvent("plugin_mode_selected", { mode: config.mode });
 
     if (config.mode === "local") {
       registerLocalMode(api, config, logger);
