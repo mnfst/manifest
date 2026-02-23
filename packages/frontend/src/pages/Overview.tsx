@@ -78,7 +78,7 @@ type ActiveView = 'cost' | 'tokens' | 'messages'
 const Overview: Component = () => {
   const params = useParams<{ agentName: string }>()
   const location = useLocation<{ newAgent?: boolean; newApiKey?: string }>()
-  const [range, setRange] = createSignal('24h')
+  const [range, setRange] = createSignal('7d')
   const [activeView, setActiveView] = createSignal<ActiveView>('cost')
   const [setupOpen, setSetupOpen] = createSignal(
     !!(location.state as { newAgent?: boolean } | undefined)?.newAgent

@@ -11,7 +11,7 @@ export class MessagesController {
   @Get('messages')
   async getMessages(@Query() query: MessagesQueryDto, @CurrentUser() user: AuthUser) {
     return this.aggregation.getMessages({
-      range: query.range ?? '24h',
+      range: query.range,
       userId: user.id,
       status: query.status,
       service_type: query.service_type,

@@ -143,7 +143,7 @@ export class AggregationService {
   }
 
   async getMessages(params: {
-    range: string;
+    range?: string;
     userId: string;
     status?: string;
     service_type?: string;
@@ -154,12 +154,14 @@ export class AggregationService {
     cursor?: string;
     agent_name?: string;
   }) {
-    const interval = rangeToInterval(params.range);
-    const cutoff = computeCutoff(interval);
+    const cutoff = params.range
+      ? computeCutoff(rangeToInterval(params.range))
+      : undefined;
 
-    const baseQb = this.turnRepo
-      .createQueryBuilder('at')
-      .where('at.timestamp >= :cutoff', { cutoff });
+    const baseQb = this.turnRepo.createQueryBuilder('at');
+    if (cutoff) {
+      baseQb.where('at.timestamp >= :cutoff', { cutoff });
+    }
 
     addTenantFilter(baseQb, params.userId);
 
@@ -231,8 +233,10 @@ export class AggregationService {
       .createQueryBuilder('at')
       .select('DISTINCT at.model', 'model')
       .where('at.model IS NOT NULL')
-      .andWhere("at.model != ''")
-      .andWhere('at.timestamp >= :cutoff', { cutoff });
+      .andWhere("at.model != ''");
+    if (cutoff) {
+      modelsQb.andWhere('at.timestamp >= :cutoff', { cutoff });
+    }
     addTenantFilter(modelsQb, params.userId);
     const modelsResult = await modelsQb.orderBy('at.model', 'ASC').getRawMany();
 
