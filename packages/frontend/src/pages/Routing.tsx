@@ -24,6 +24,13 @@ function pricePerM(perToken: number): string {
   return `$${perM.toFixed(2)}`;
 }
 
+const CAPABILITY_LABELS: { key: keyof AvailableModel; label: string }[] = [
+  { key: "capability_vision", label: "Multimodal" },
+  { key: "capability_tool_calling", label: "Tool Calling" },
+  { key: "capability_reasoning", label: "Reasoning" },
+  { key: "capability_structured_output", label: "Structured Output" },
+];
+
 /** Map DB provider names to frontend provider IDs */
 const PROVIDER_ALIASES: Record<string, string> = {
   google: "gemini",
@@ -92,7 +99,7 @@ const Routing: Component = () => {
   const priceLabel = (modelName: string): string => {
     const info = modelInfo(modelName);
     if (!info) return "";
-    return `${pricePerM(info.input_price_per_token)}/${pricePerM(info.output_price_per_token)} /M`;
+    return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out / 1M tokens`;
   };
 
   /* ── Dropdown model list ── */
@@ -167,6 +174,12 @@ const Routing: Component = () => {
   const isRecommended = (tierId: string, modelName: string): boolean => {
     const t = getTier(tierId);
     return t?.auto_assigned_model === modelName;
+  };
+
+  /** Check if a model is the currently active model for a tier */
+  const isCurrent = (tierId: string, modelName: string): boolean => {
+    const t = getTier(tierId);
+    return t ? effectiveModel(t) === modelName : false;
   };
 
   const handleOverride = async (tierId: string, modelName: string) => {
@@ -272,11 +285,26 @@ const Routing: Component = () => {
                               );
                             })()}
                             <span class="routing-card__main">{labelFor(modelName())}</span>
-                            <Show when={!isManual()}>
-                              <span class="routing-card__auto-tag">auto</span>
+                            <Show when={isManual()}>
+                              <span class="routing-card__custom-tag">custom</span>
                             </Show>
                           </div>
                           <span class="routing-card__sub">{priceLabel(modelName())}</span>
+                          {(() => {
+                            const info = modelInfo(modelName());
+                            if (!info) return null;
+                            const active = CAPABILITY_LABELS.filter((c) => info[c.key] === true);
+                            if (active.length === 0) return null;
+                            return (
+                              <div class="routing-card__tags">
+                                <For each={active}>
+                                  {(cap) => (
+                                    <span class="routing-card__tag">{cap.label}</span>
+                                  )}
+                                </For>
+                              </div>
+                            );
+                          })()}
                         </>
                       )}
                     </Show>
@@ -360,7 +388,7 @@ const Routing: Component = () => {
                       <For each={group.models}>
                         {(model) => (
                           <button
-                            class="routing-modal__model"
+                            class={`routing-modal__model${isCurrent(tierId(), model.value) ? " routing-modal__model--current" : ""}`}
                             onClick={() => handleOverride(tierId(), model.value)}
                           >
                             <span class="routing-modal__model-label">
@@ -372,7 +400,7 @@ const Routing: Component = () => {
                             <Show when={model.pricing}>
                               {(p) => (
                                 <span class="routing-modal__model-id">
-                                  {pricePerM(p().input_price_per_token)}/{pricePerM(p().output_price_per_token)} /M
+                                  {pricePerM(p().input_price_per_token)} in · {pricePerM(p().output_price_per_token)} out
                                 </span>
                               )}
                             </Show>

@@ -26,6 +26,15 @@ export class ModelPricing {
   @Column('boolean', { default: false })
   capability_code!: boolean;
 
+  @Column('boolean', { default: false })
+  capability_vision!: boolean;
+
+  @Column('boolean', { default: true })
+  capability_tool_calling!: boolean;
+
+  @Column('boolean', { default: false })
+  capability_structured_output!: boolean;
+
   @Column('integer', { default: 3 })
   quality_score!: number;
 }

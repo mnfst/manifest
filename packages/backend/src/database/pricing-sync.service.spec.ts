@@ -154,6 +154,9 @@ describe('PricingSyncService', () => {
     const upsertData = mockUpsert.mock.calls[0][0];
     expect(upsertData).not.toHaveProperty('capability_reasoning');
     expect(upsertData).not.toHaveProperty('capability_code');
+    expect(upsertData).not.toHaveProperty('capability_vision');
+    expect(upsertData).not.toHaveProperty('capability_tool_calling');
+    expect(upsertData).not.toHaveProperty('capability_structured_output');
     expect(upsertData).not.toHaveProperty('quality_score');
   });
 

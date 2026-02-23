@@ -229,6 +229,9 @@ describe('RoutingController', () => {
       expect(Object.keys(result[0]).sort()).toEqual([
         'capability_code',
         'capability_reasoning',
+        'capability_structured_output',
+        'capability_tool_calling',
+        'capability_vision',
         'context_window',
         'input_price_per_token',
         'model_name',

@@ -8,6 +8,10 @@ interface ModelPrice {
   provider: string;
   input_price_per_million: number;
   output_price_per_million: number;
+  capability_vision: boolean;
+  capability_tool_calling: boolean;
+  capability_reasoning: boolean;
+  capability_structured_output: boolean;
 }
 
 interface ModelPricesData {
@@ -17,6 +21,36 @@ interface ModelPricesData {
 
 type SortKey = "model_name" | "provider" | "input_price_per_million" | "output_price_per_million";
 type SortDir = "asc" | "desc";
+
+const CAPABILITIES = [
+  { key: "capability_vision" as const, icon: "bx-message-image", title: "Multimodal", desc: "Can understand and analyze images sent in prompts." },
+  { key: "capability_tool_calling" as const, icon: "bx-webhook", title: "Tool Calling", desc: "Can call external functions and APIs to take actions." },
+  { key: "capability_reasoning" as const, icon: "bx-brain", title: "Reasoning", desc: "Can think step-by-step through complex problems." },
+  { key: "capability_structured_output" as const, icon: "bx-bracket-curly", title: "Structured Output", desc: "Can reliably output valid JSON matching a given schema." },
+];
+
+function CapabilityIcon(props: { enabled: boolean; icon: string; title: string; desc: string }) {
+  return (
+    <span
+      class="info-tooltip"
+      style={{ "margin-left": "0" }}
+    >
+      <i
+        class={`bxd ${props.icon}`}
+        style={{
+          "font-size": "16px",
+          color: props.enabled ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+          opacity: props.enabled ? 1 : 0.4,
+          "--bx-duotone-secondary-opacity": props.enabled ? "0.8" : "0.4",
+        }}
+      />
+      <span class="info-tooltip__bubble">
+        <strong>{props.title}</strong>
+        {props.desc}
+      </span>
+    </span>
+  );
+}
 
 function formatPrice(price: number): string {
   if (price < 0.01) return `$${price.toFixed(4)}`;
@@ -124,6 +158,16 @@ const ModelPrices: Component = () => {
                 <th class="data-table__sortable" onClick={() => handleSort("provider")}>
                   Provider{indicator("provider")}
                 </th>
+                <th>
+                  Capabilities
+                  <span class="info-tooltip">
+                    <i class="bxd bx-info-circle info-tooltip__icon" style={{ "font-size": "14px", "--bx-duotone-secondary-opacity": "1", color: "hsl(var(--muted-foreground))" }} />
+                    <span class="info-tooltip__bubble">
+                      <strong>How to read icons</strong>
+                      Solid icons are supported by the model. Faded icons are not.
+                    </span>
+                  </span>
+                </th>
                 <th class="data-table__sortable" onClick={() => handleSort("input_price_per_million")}>
                   Cost to send / 1M tokens{indicator("input_price_per_million")}
                 </th>
@@ -140,6 +184,20 @@ const ModelPrices: Component = () => {
                       {model.model_name}
                     </td>
                     <td>{model.provider}</td>
+                    <td>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <For each={CAPABILITIES}>
+                          {(cap) => (
+                            <CapabilityIcon
+                              enabled={model[cap.key]}
+                              icon={cap.icon}
+                              title={cap.title}
+                              desc={cap.desc}
+                            />
+                          )}
+                        </For>
+                      </div>
+                    </td>
                     <td style="font-family: var(--font-mono);">
                       {formatPrice(model.input_price_per_million)}
                     </td>

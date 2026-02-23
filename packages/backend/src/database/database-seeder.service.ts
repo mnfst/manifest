@@ -156,52 +156,52 @@ export class DatabaseSeederService implements OnModuleInit {
   private async seedModelPricing() {
     // Always upsert the curated model list so missing models are re-added
     // and existing ones keep their seeded quality_score / capabilities.
-    // [model_id, provider, input/tok, output/tok, context_window, reasoning, code, quality]
+    // [model_id, provider, input/tok, output/tok, context_window, reasoning, code, vision, tool_calling, structured_output, quality]
     // quality_score: 5=frontier, 4=tier-1.5, 3=mid-range, 2=cost-optimized, 1=ultra-low-cost
     // Source: official pricing pages (Feb 2026)
-    const models: ReadonlyArray<readonly [string, string, number, number, number, boolean, boolean, number]> = [
+    const models: ReadonlyArray<readonly [string, string, number, number, number, boolean, boolean, boolean, boolean, boolean, number]> = [
       // Anthropic Claude
-      ['claude-opus-4-6',            'Anthropic', 0.000015,   0.000075,   200000,  true,  true,  5],
-      ['claude-sonnet-4-5-20250929', 'Anthropic', 0.000003,   0.000015,   200000,  true,  true,  4],
-      ['claude-sonnet-4-20250514',   'Anthropic', 0.000003,   0.000015,   200000,  true,  true,  4],
-      ['claude-haiku-4-5-20251001',  'Anthropic', 0.000001,   0.000005,   200000,  false, true,  2],
+      ['claude-opus-4-6',            'Anthropic', 0.000015,   0.000075,   200000,  true,  true,  true,  true,  true,  5],
+      ['claude-sonnet-4-5-20250929', 'Anthropic', 0.000003,   0.000015,   200000,  true,  true,  true,  true,  true,  4],
+      ['claude-sonnet-4-20250514',   'Anthropic', 0.000003,   0.000015,   200000,  true,  true,  true,  true,  true,  4],
+      ['claude-haiku-4-5-20251001',  'Anthropic', 0.000001,   0.000005,   200000,  false, true,  true,  true,  true,  2],
       // OpenAI GPT
-      ['gpt-4o',                     'OpenAI',    0.0000025,  0.00001,    128000,  false, true,  3],
-      ['gpt-4o-mini',                'OpenAI',    0.00000015, 0.0000006,  128000,  false, true,  2],
-      ['gpt-4.1',                    'OpenAI',    0.000002,   0.000008,   1047576, false, true,  5],
-      ['gpt-4.1-mini',               'OpenAI',    0.0000004,  0.0000016,  1047576, false, true,  2],
-      ['gpt-4.1-nano',               'OpenAI',    0.0000001,  0.0000004,  1047576, false, false, 1],
+      ['gpt-4o',                     'OpenAI',    0.0000025,  0.00001,    128000,  false, true,  true,  true,  true,  3],
+      ['gpt-4o-mini',                'OpenAI',    0.00000015, 0.0000006,  128000,  false, true,  true,  true,  true,  2],
+      ['gpt-4.1',                    'OpenAI',    0.000002,   0.000008,   1047576, false, true,  true,  true,  true,  5],
+      ['gpt-4.1-mini',               'OpenAI',    0.0000004,  0.0000016,  1047576, false, true,  true,  true,  true,  2],
+      ['gpt-4.1-nano',               'OpenAI',    0.0000001,  0.0000004,  1047576, false, false, false, true,  true,  1],
       // OpenAI reasoning
-      ['o3',                         'OpenAI',    0.000002,   0.000008,   200000,  true,  true,  5],
-      ['o3-mini',                    'OpenAI',    0.0000011,  0.0000044,  200000,  true,  true,  3],
-      ['o4-mini',                    'OpenAI',    0.0000011,  0.0000044,  200000,  true,  true,  3],
+      ['o3',                         'OpenAI',    0.000002,   0.000008,   200000,  true,  true,  false, true,  true,  5],
+      ['o3-mini',                    'OpenAI',    0.0000011,  0.0000044,  200000,  true,  true,  false, true,  true,  3],
+      ['o4-mini',                    'OpenAI',    0.0000011,  0.0000044,  200000,  true,  true,  true,  true,  true,  3],
       // Google Gemini
-      ['gemini-2.5-pro',             'Google',    0.00000125, 0.00001,    1048576, true,  true,  5],
-      ['gemini-2.5-flash',           'Google',    0.00000015, 0.0000006,  1048576, false, true,  2],
-      ['gemini-2.5-flash-lite',      'Google',    0.0000001,  0.0000004,  1048576, false, false, 1],
-      ['gemini-2.0-flash',           'Google',    0.0000001,  0.0000004,  1048576, false, true,  2],
+      ['gemini-2.5-pro',             'Google',    0.00000125, 0.00001,    1048576, true,  true,  true,  true,  true,  5],
+      ['gemini-2.5-flash',           'Google',    0.00000015, 0.0000006,  1048576, false, true,  true,  true,  true,  2],
+      ['gemini-2.5-flash-lite',      'Google',    0.0000001,  0.0000004,  1048576, true,  false, true,  false, false, 1],
+      ['gemini-2.0-flash',           'Google',    0.0000001,  0.0000004,  1048576, false, true,  true,  true,  true,  2],
       // DeepSeek
-      ['deepseek-v3',                'DeepSeek',  0.00000014, 0.00000028, 128000,  false, true,  2],
-      ['deepseek-r1',                'DeepSeek',  0.00000055, 0.00000219, 128000,  true,  false, 4],
+      ['deepseek-v3',                'DeepSeek',  0.00000014, 0.00000028, 128000,  false, true,  false, true,  true,  2],
+      ['deepseek-r1',                'DeepSeek',  0.00000055, 0.00000219, 128000,  true,  false, false, false, false, 4],
       // Moonshot (Kimi)
-      ['kimi-k2',                    'Moonshot',  0.0000006,  0.0000024,  262144,  true,  true,  3],
+      ['kimi-k2',                    'Moonshot',  0.0000006,  0.0000024,  262144,  true,  true,  true,  true,  false, 3],
       // Alibaba (Qwen)
-      ['qwen-2.5-72b-instruct',      'Alibaba',  0.00000034, 0.00000039, 131072,  false, true,  2],
-      ['qwq-32b',                    'Alibaba',   0.00000012, 0.00000018, 131072,  true,  false, 1],
-      ['qwen-2.5-coder-32b-instruct','Alibaba',   0.00000018, 0.00000018, 131072,  false, true,  2],
+      ['qwen-2.5-72b-instruct',      'Alibaba',  0.00000034, 0.00000039, 131072,  false, true,  false, true,  true,  2],
+      ['qwq-32b',                    'Alibaba',   0.00000012, 0.00000018, 131072,  true,  false, false, false, false, 1],
+      ['qwen-2.5-coder-32b-instruct','Alibaba',   0.00000018, 0.00000018, 131072,  false, true,  false, true,  true,  2],
       // Mistral
-      ['mistral-large',              'Mistral',   0.000002,   0.000006,   128000,  false, true,  3],
-      ['mistral-small',              'Mistral',   0.0000002,  0.0000006,  128000,  false, false, 1],
-      ['codestral',                  'Mistral',   0.0000003,  0.0000009,  256000,  false, true,  2],
+      ['mistral-large',              'Mistral',   0.000002,   0.000006,   128000,  false, true,  false, true,  true,  3],
+      ['mistral-small',              'Mistral',   0.0000002,  0.0000006,  128000,  false, false, false, true,  false, 1],
+      ['codestral',                  'Mistral',   0.0000003,  0.0000009,  256000,  false, true,  false, false, false, 2],
       // xAI (Grok)
-      ['grok-3',                     'xAI',       0.000003,   0.000015,   131072,  true,  true,  5],
-      ['grok-3-mini',                'xAI',       0.0000003,  0.0000005,  131072,  true,  true,  3],
-      ['grok-3-fast',                'xAI',       0.000005,   0.000025,   131072,  false, true,  4],
-      ['grok-3-mini-fast',           'xAI',       0.0000006,  0.000004,   131072,  false, true,  2],
-      ['grok-2',                     'xAI',       0.000002,   0.00001,    131072,  false, true,  3],
+      ['grok-3',                     'xAI',       0.000003,   0.000015,   131072,  true,  true,  false, true,  true,  5],
+      ['grok-3-mini',                'xAI',       0.0000003,  0.0000005,  131072,  true,  true,  false, true,  false, 3],
+      ['grok-3-fast',                'xAI',       0.000005,   0.000025,   131072,  false, true,  false, true,  true,  4],
+      ['grok-3-mini-fast',           'xAI',       0.0000006,  0.000004,   131072,  false, true,  false, true,  false, 2],
+      ['grok-2',                     'xAI',       0.000002,   0.00001,    131072,  false, true,  true,  true,  false, 3],
     ];
 
-    for (const [name, provider, inputPrice, outputPrice, ctxWindow, reasoning, code, quality] of models) {
+    for (const [name, provider, inputPrice, outputPrice, ctxWindow, reasoning, code, vision, toolCalling, structuredOutput, quality] of models) {
       await this.pricingRepo.upsert(
         {
           model_name: name,
@@ -211,6 +211,9 @@ export class DatabaseSeederService implements OnModuleInit {
           context_window: ctxWindow,
           capability_reasoning: reasoning,
           capability_code: code,
+          capability_vision: vision,
+          capability_tool_calling: toolCalling,
+          capability_structured_output: structuredOutput,
           quality_score: quality,
         },
         ['model_name'],

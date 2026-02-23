@@ -28,6 +28,7 @@ import { AddModelCapabilities1771600000000 } from './migrations/1771600000000-Ad
 import { AddRoutingTables1771700000000 } from './migrations/1771700000000-AddRoutingTables';
 import { AddQualityScore1771800000000 } from './migrations/1771800000000-AddQualityScore';
 import { SeedQualityScores1771800100000 } from './migrations/1771800100000-SeedQualityScores';
+import { AddExtraCapabilities1771900000000 } from './migrations/1771900000000-AddExtraCapabilities';
 
 const entities = [
   AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing,
@@ -37,7 +38,7 @@ const entities = [
   UserProvider, TierAssignment,
 ];
 
-const migrations = [InitialSchema1771464895790, HashApiKeys1771500000000, AddModelCapabilities1771600000000, AddRoutingTables1771700000000, AddQualityScore1771800000000, SeedQualityScores1771800100000];
+const migrations = [InitialSchema1771464895790, HashApiKeys1771500000000, AddModelCapabilities1771600000000, AddRoutingTables1771700000000, AddQualityScore1771800000000, SeedQualityScores1771800100000, AddExtraCapabilities1771900000000];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 
