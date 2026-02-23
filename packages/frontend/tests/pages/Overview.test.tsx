@@ -1,10 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
+let mockAgentName = "test-agent";
+let mockLocationState: any = null;
 vi.mock("@solidjs/router", () => ({
-  useParams: () => ({ agentName: "test-agent" }),
-  useLocation: () => ({ pathname: "/agents/test-agent", state: null }),
+  useParams: () => ({ agentName: mockAgentName }),
+  useLocation: () => ({ pathname: `/agents/${mockAgentName}`, state: mockLocationState }),
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
+}));
+
+let mockIsLocalMode: boolean | null = false;
+vi.mock("../../src/services/local-mode.js", () => ({
+  isLocalMode: () => mockIsLocalMode,
 }));
 
 vi.mock("@solidjs/meta", () => ({
@@ -41,7 +48,7 @@ vi.mock("../../src/components/SingleTokenChart.jsx", () => ({
 }));
 
 vi.mock("../../src/components/SetupModal.jsx", () => ({
-  default: () => <div data-testid="setup-modal" />,
+  default: (props: any) => <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} />,
 }));
 
 vi.mock("../../src/components/InfoTooltip.jsx", () => ({
@@ -82,6 +89,9 @@ describe("Overview", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    mockAgentName = "test-agent";
+    mockLocationState = null;
+    mockIsLocalMode = false;
   });
 
   it("renders Overview heading", () => {
@@ -197,6 +207,61 @@ describe("Overview", () => {
       const link = container.querySelector('a.view-more-link') as HTMLAnchorElement;
       expect(link).not.toBeNull();
       expect(link.getAttribute("href")).toBe("/agents/test-agent/messages");
+    });
+  });
+
+  describe("local mode", () => {
+    it("should auto-complete setup for local-agent in local mode", async () => {
+      mockAgentName = "local-agent";
+      mockIsLocalMode = true;
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(localStorage.getItem("setup_completed_local-agent")).toBe("1");
+      });
+    });
+
+    it("should not open setup modal for local-agent in local mode", async () => {
+      mockAgentName = "local-agent";
+      mockIsLocalMode = true;
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const modal = container.querySelector('[data-testid="setup-modal"]');
+        expect(modal?.getAttribute("data-open")).toBe("false");
+      });
+    });
+
+    it("should show waiting banner instead of empty state for local-agent in local mode", async () => {
+      mockAgentName = "local-agent";
+      mockIsLocalMode = true;
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("dashboard will populate");
+      });
+    });
+
+    it("should still open setup modal for non-local-agent even in local mode", async () => {
+      mockAgentName = "other-agent";
+      mockIsLocalMode = true;
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const modal = container.querySelector('[data-testid="setup-modal"]');
+        expect(modal?.getAttribute("data-open")).toBe("true");
+      });
+    });
+
+    it("should still open setup modal for local-agent when not in local mode", async () => {
+      mockAgentName = "local-agent";
+      mockIsLocalMode = false;
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const modal = container.querySelector('[data-testid="setup-modal"]');
+        expect(modal?.getAttribute("data-open")).toBe("true");
+      });
     });
   });
 });

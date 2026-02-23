@@ -42,4 +42,53 @@ describe("SetupStepVerify", () => {
     const { container } = render(() => <SetupStepVerify stepNumber={3} />);
     expect(container.textContent).toContain("3. Activate the plugin");
   });
+
+  describe("when isLocal is true", () => {
+    it("should render Start chatting heading", () => {
+      render(() => <SetupStepVerify isLocal={true} />);
+      expect(screen.getByText("Start chatting")).toBeDefined();
+    });
+
+    it("should not render Activate the plugin heading", () => {
+      const { container } = render(() => <SetupStepVerify isLocal={true} />);
+      expect(container.textContent).not.toContain("Activate the plugin");
+    });
+
+    it("should not show terminal UI", () => {
+      const { container } = render(() => <SetupStepVerify isLocal={true} />);
+      expect(container.querySelector(".modal-terminal")).toBeNull();
+    });
+
+    it("should not show restart command", () => {
+      const { container } = render(() => <SetupStepVerify isLocal={true} />);
+      expect(container.textContent).not.toContain("openclaw gateway restart");
+    });
+
+    it("should show telemetry ready message", () => {
+      const { container } = render(() => <SetupStepVerify isLocal={true} />);
+      expect(container.textContent).toContain("ready to receive telemetry");
+    });
+
+    it("should show step number with Start chatting heading", () => {
+      const { container } = render(() => <SetupStepVerify isLocal={true} stepNumber={2} />);
+      expect(container.textContent).toContain("2. Start chatting");
+    });
+  });
+
+  describe("when isLocal is false", () => {
+    it("should render Activate the plugin heading", () => {
+      render(() => <SetupStepVerify isLocal={false} />);
+      expect(screen.getByText("Activate the plugin")).toBeDefined();
+    });
+
+    it("should show terminal UI", () => {
+      const { container } = render(() => <SetupStepVerify isLocal={false} />);
+      expect(container.querySelector(".modal-terminal")).not.toBeNull();
+    });
+
+    it("should show restart command", () => {
+      const { container } = render(() => <SetupStepVerify isLocal={false} />);
+      expect(container.textContent).toContain("openclaw gateway restart");
+    });
+  });
 });
