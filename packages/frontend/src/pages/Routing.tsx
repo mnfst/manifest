@@ -5,6 +5,7 @@ import { agentPath } from "../services/routing.js";
 import { STAGES, PROVIDERS, getModelLabel, getProvider } from "../services/providers.js";
 import { providerIcon } from "../components/ProviderIcon.js";
 import { toast } from "../services/toast-store.js";
+import InfoTooltip from "../components/InfoTooltip.js";
 import {
   getTierAssignments,
   getAvailableModels,
@@ -24,11 +25,11 @@ function pricePerM(perToken: number): string {
   return `$${perM.toFixed(2)}`;
 }
 
-const CAPABILITY_ICONS: { key: keyof import("../services/api.js").AvailableModel; icon: string; label: string }[] = [
-  { key: "capability_vision", icon: "bx-message-image", label: "Multimodal" },
-  { key: "capability_tool_calling", icon: "bx-webhook", label: "Tool Calling" },
-  { key: "capability_reasoning", icon: "bx-brain", label: "Reasoning" },
-  { key: "capability_structured_output", icon: "bx-bracket-curly", label: "Structured Output" },
+const CAPABILITY_LABELS: { key: keyof AvailableModel; label: string }[] = [
+  { key: "capability_vision", label: "Multimodal" },
+  { key: "capability_tool_calling", label: "Tool Calling" },
+  { key: "capability_reasoning", label: "Reasoning" },
+  { key: "capability_structured_output", label: "Structured Output" },
 ];
 
 /** Map DB provider names to frontend provider IDs */
@@ -100,6 +101,13 @@ const Routing: Component = () => {
     const info = modelInfo(modelName);
     if (!info) return "";
     return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out / 1M tokens`;
+  };
+
+  const capsLabel = (modelName: string): string => {
+    const info = modelInfo(modelName);
+    if (!info) return "";
+    const active = CAPABILITY_LABELS.filter((c) => info[c.key] === true);
+    return active.map((c) => c.label).join(" · ");
   };
 
   /* ── Dropdown model list ── */
@@ -222,7 +230,22 @@ const Routing: Component = () => {
 
       <div class="page-header">
         <div>
-          <h1>Routing</h1>
+          <h1>
+            Routing
+            <InfoTooltip>
+              <For each={STAGES}>
+                {(stage, i) => (
+                  <>
+                    <strong>{stage.label}</strong>
+                    {stage.desc}
+                    <Show when={i() < STAGES.length - 1}>
+                      <br /><br />
+                    </Show>
+                  </>
+                )}
+              </For>
+            </InfoTooltip>
+          </h1>
           <span class="breadcrumb">{agentName()} &rsaquo; Assign a model to each tier</span>
         </div>
       </div>
@@ -249,10 +272,7 @@ const Routing: Component = () => {
 
               return (
                 <div class="routing-card">
-                  <div class="routing-card__header">
-                    <span class="routing-card__tier">{stage.label}</span>
-                    <span class="routing-card__desc">{stage.desc}</span>
-                  </div>
+                  <div class="routing-card__tier">{stage.label}</div>
 
                   <div class="routing-card__body">
                     <Show
@@ -264,7 +284,7 @@ const Routing: Component = () => {
                             href={agentPath(agentName(), "/settings")}
                             class="routing-card__empty-link"
                           >
-                            Connect a provider in Settings
+                            Connect a provider
                           </A>
                         </div>
                       }
@@ -289,17 +309,19 @@ const Routing: Component = () => {
                               <span class="routing-card__custom-tag">custom</span>
                             </Show>
                           </div>
-                          <span class="routing-card__sub">{priceLabel(modelName())}</span>
                           {(() => {
-                            const info = modelInfo(modelName());
-                            if (!info) return null;
-                            const active = CAPABILITY_ICONS.filter((c) => info[c.key] === true);
-                            if (active.length === 0) return null;
-                            return (
-                              <span class="routing-card__sub">{active.map((c) => c.label).join(" · ")}</span>
-                            );
+                            const caps = capsLabel(modelName());
+                            return caps ? <span class="routing-card__sub">{caps}</span> : null;
                           })()}
                         </>
+                      )}
+                    </Show>
+                  </div>
+
+                  <div class="routing-card__pricing">
+                    <Show when={eff()}>
+                      {(modelName) => (
+                        <span class="routing-card__sub">{priceLabel(modelName())}</span>
                       )}
                     </Show>
                   </div>
