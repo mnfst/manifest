@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.2.10
+
+### Patch Changes
+
+- 6c2e828: Improve local mode first-visit UX: skip redundant setup modal for local-agent, print dashboard URL from @mnfst/server, and show contextual verify step in local mode
+
 ## 5.2.9
 
 ### Patch Changes
