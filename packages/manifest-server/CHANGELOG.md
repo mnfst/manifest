@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.2.8
+
+### Patch Changes
+
+- bd821f3: Expand model pricing: add normalizer for variant model names and 10 new models (GPT-5.3, GLM-4, Nova, Qwen 3)
+
 ## 5.2.7
 
 ### Patch Changes
