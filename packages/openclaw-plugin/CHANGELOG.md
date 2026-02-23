@@ -1,5 +1,11 @@
 # manifest
 
+## 5.2.4
+
+### Patch Changes
+
+- fda9600: Add README, LICENSE, and improve package metadata for npm discoverability
+
 ## 5.2.1
 
 ### Patch Changes
