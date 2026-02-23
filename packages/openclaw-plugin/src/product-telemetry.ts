@@ -1,27 +1,12 @@
 import { createHash } from "crypto";
 import { hostname, platform, arch, release } from "os";
-import { readFileSync, existsSync } from "fs";
-import { join } from "path";
-import { homedir } from "os";
 
 const POSTHOG_HOST = "https://eu.i.posthog.com";
 const POSTHOG_API_KEY = "phc_g5pLOu5bBRjhVJBwAsx0eCzJFWq0cri2TyVLQLxf045";
-const CONFIG_FILE = join(homedir(), ".openclaw", "manifest", "config.json");
 
 function isOptedOut(): boolean {
   const envVal = process.env.MANIFEST_TELEMETRY_OPTOUT;
-  if (envVal === "1" || envVal === "true") return true;
-
-  try {
-    if (existsSync(CONFIG_FILE)) {
-      const config = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
-      if (config.telemetryOptOut === true) return true;
-    }
-  } catch {
-    // Ignore corrupted config
-  }
-
-  return false;
+  return envVal === "1" || envVal === "true";
 }
 
 function getMachineId(): string {

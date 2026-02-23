@@ -1,8 +1,7 @@
-import { registerLocalMode } from "../src/local-mode";
 import { ManifestConfig } from "../src/config";
 import { PluginLogger } from "../src/telemetry";
 
-// Mock all dependencies that local-mode.ts imports
+// Mock all dependencies that local-mode.ts imports at the top level
 jest.mock("fs", () => ({
   readFileSync: jest.fn(() => JSON.stringify({ apiKey: "mnfst_test_key" })),
   writeFileSync: jest.fn(),
@@ -64,17 +63,15 @@ describe("registerLocalMode", () => {
   });
 
   it("logs error with reinstall instructions when @mnfst/server is not installed", () => {
-    // Re-require with @mnfst/server failing to load
-    jest.mock("@mnfst/server", () => {
-      throw new Error("Cannot find module '@mnfst/server'");
-    });
-
-    // Need to re-require local-mode since jest.mock is hoisted
     jest.isolateModules(() => {
-      const { registerLocalMode: register } = require("../src/local-mode");
+      jest.doMock("@mnfst/server", () => {
+        throw new Error("Cannot find module '@mnfst/server'");
+      });
+
+      const { registerLocalMode } = require("../src/local-mode");
       const logger = makeLogger();
       const api = makeApi();
-      register(api, makeConfig(), logger);
+      registerLocalMode(api, makeConfig(), logger);
 
       expect(logger.error).toHaveBeenCalledWith(
         expect.stringContaining("@mnfst/server is not installed"),
@@ -87,16 +84,16 @@ describe("registerLocalMode", () => {
   });
 
   it("registers a service when @mnfst/server loads successfully", () => {
-    jest.mock("@mnfst/server", () => ({
-      start: jest.fn().mockResolvedValue({}),
-      version: "1.0.0",
-    }));
-
     jest.isolateModules(() => {
-      const { registerLocalMode: register } = require("../src/local-mode");
+      jest.doMock("@mnfst/server", () => ({
+        start: jest.fn().mockResolvedValue({}),
+        version: "1.0.0",
+      }));
+
+      const { registerLocalMode } = require("../src/local-mode");
       const logger = makeLogger();
       const api = makeApi();
-      register(api, makeConfig(), logger);
+      registerLocalMode(api, makeConfig(), logger);
 
       expect(api.registerService).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -109,16 +106,17 @@ describe("registerLocalMode", () => {
   });
 
   it("logs EADDRINUSE error with port change instructions", async () => {
-    const mockStart = jest.fn().mockRejectedValue(new Error("listen EADDRINUSE: address already in use"));
-    jest.mock("@mnfst/server", () => ({
-      start: mockStart,
-    }));
+    const mockStart = jest.fn().mockRejectedValue(
+      new Error("listen EADDRINUSE: address already in use"),
+    );
 
     await jest.isolateModulesAsync(async () => {
-      const { registerLocalMode: register } = require("../src/local-mode");
+      jest.doMock("@mnfst/server", () => ({ start: mockStart }));
+
+      const { registerLocalMode } = require("../src/local-mode");
       const logger = makeLogger();
       const api = makeApi();
-      register(api, makeConfig({ port: 2099 }), logger);
+      registerLocalMode(api, makeConfig({ port: 2099 }), logger);
 
       const service = api.registerService.mock.calls[0][0];
       await service.start();
@@ -136,15 +134,14 @@ describe("registerLocalMode", () => {
     const mockStart = jest.fn().mockRejectedValue(
       new Error("Could not load better-sqlite3 bindings"),
     );
-    jest.mock("@mnfst/server", () => ({
-      start: mockStart,
-    }));
 
     await jest.isolateModulesAsync(async () => {
-      const { registerLocalMode: register } = require("../src/local-mode");
+      jest.doMock("@mnfst/server", () => ({ start: mockStart }));
+
+      const { registerLocalMode } = require("../src/local-mode");
       const logger = makeLogger();
       const api = makeApi();
-      register(api, makeConfig(), logger);
+      registerLocalMode(api, makeConfig(), logger);
 
       const service = api.registerService.mock.calls[0][0];
       await service.start();
@@ -162,15 +159,14 @@ describe("registerLocalMode", () => {
     const mockStart = jest.fn().mockRejectedValue(
       new Error("EACCES: permission denied, open '/home/.openclaw/manifest/manifest.db'"),
     );
-    jest.mock("@mnfst/server", () => ({
-      start: mockStart,
-    }));
 
     await jest.isolateModulesAsync(async () => {
-      const { registerLocalMode: register } = require("../src/local-mode");
+      jest.doMock("@mnfst/server", () => ({ start: mockStart }));
+
+      const { registerLocalMode } = require("../src/local-mode");
       const logger = makeLogger();
       const api = makeApi();
-      register(api, makeConfig(), logger);
+      registerLocalMode(api, makeConfig(), logger);
 
       const service = api.registerService.mock.calls[0][0];
       await service.start();
@@ -188,15 +184,14 @@ describe("registerLocalMode", () => {
     const mockStart = jest.fn().mockRejectedValue(
       new Error("Something unexpected happened"),
     );
-    jest.mock("@mnfst/server", () => ({
-      start: mockStart,
-    }));
 
     await jest.isolateModulesAsync(async () => {
-      const { registerLocalMode: register } = require("../src/local-mode");
+      jest.doMock("@mnfst/server", () => ({ start: mockStart }));
+
+      const { registerLocalMode } = require("../src/local-mode");
       const logger = makeLogger();
       const api = makeApi();
-      register(api, makeConfig(), logger);
+      registerLocalMode(api, makeConfig(), logger);
 
       const service = api.registerService.mock.calls[0][0];
       await service.start();
@@ -212,15 +207,14 @@ describe("registerLocalMode", () => {
 
   it("logs success messages when server starts", async () => {
     const mockStart = jest.fn().mockResolvedValue({});
-    jest.mock("@mnfst/server", () => ({
-      start: mockStart,
-    }));
 
     await jest.isolateModulesAsync(async () => {
-      const { registerLocalMode: register } = require("../src/local-mode");
+      jest.doMock("@mnfst/server", () => ({ start: mockStart }));
+
+      const { registerLocalMode } = require("../src/local-mode");
       const logger = makeLogger();
       const api = makeApi();
-      register(api, makeConfig({ port: 2099, host: "127.0.0.1" }), logger);
+      registerLocalMode(api, makeConfig({ port: 2099, host: "127.0.0.1" }), logger);
 
       const service = api.registerService.mock.calls[0][0];
       await service.start();
