@@ -1,5 +1,11 @@
 # manifest
 
+## 5.6.3
+
+### Patch Changes
+
+- 070f100: Separate env variable reads from network code in product telemetry to avoid OpenClaw "credential harvesting" false-positive warning
+
 ## 5.6.2
 
 ### Patch Changes
