@@ -3,6 +3,7 @@ import { render, screen } from "@solidjs/testing-library";
 
 let mockAgentName: string | null = "test-agent";
 let mockPathname = "/agents/test-agent";
+let mockIsLocalMode: boolean | null = true;
 
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class} aria-current={props["aria-current"]}>{props.children}</a>,
@@ -12,6 +13,10 @@ vi.mock("@solidjs/router", () => ({
 vi.mock("../../src/services/routing.js", () => ({
   useAgentName: () => () => mockAgentName,
   agentPath: (name: string, sub: string) => name ? `/agents/${name}${sub}` : "/",
+}));
+
+vi.mock("../../src/services/local-mode.js", () => ({
+  isLocalMode: () => mockIsLocalMode,
 }));
 
 import Sidebar from "../../src/components/Sidebar";
@@ -70,6 +75,11 @@ describe("Sidebar with agent", () => {
   it("renders Feedback section", () => {
     render(() => <Sidebar />);
     expect(screen.getByText("Feedback")).toBeDefined();
+  });
+
+  it("renders Routing link", () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText("Routing")).toBeDefined();
   });
 
   it("has correct link hrefs for agent routes", () => {

@@ -1,3 +1,9 @@
+console.warn(
+  '[@mnfst/server] This package is deprecated. ' +
+  'The embedded server is now included in the `manifest` plugin package. ' +
+  'Uninstall @mnfst/server and update manifest to the latest version.',
+);
+
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { homedir } from 'os';

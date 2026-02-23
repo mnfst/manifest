@@ -7,6 +7,7 @@ import { ManifestConfig } from "../src/config";
 function createMockSpan() {
   return {
     setAttributes: jest.fn(),
+    setAttribute: jest.fn(),
     setStatus: jest.fn(),
     end: jest.fn(),
     spanContext: jest.fn(() => ({ traceId: "abc", spanId: "def" })),
@@ -48,14 +49,14 @@ function createMockMeter() {
 
 // --- Mock API (event emitter) ---
 function createMockApi() {
-  const handlers = new Map<string, (event: unknown) => void>();
+  const handlers = new Map<string, (event: unknown) => unknown>();
   return {
     handlers,
-    on: jest.fn((event: string, handler: (event: unknown) => void) => {
+    on: jest.fn((event: string, handler: (event: unknown) => unknown) => {
       handlers.set(event, handler);
     }),
-    emit(event: string, data: unknown) {
-      handlers.get(event)?.(data);
+    async emit(event: string, data: unknown) {
+      return handlers.get(event)?.(data);
     },
   };
 }
@@ -371,14 +372,14 @@ describe("registerHooks", () => {
   });
 
   describe("agent_end", () => {
-    it("sets attributes on turn span and ends both spans", () => {
+    it("sets attributes on turn span and ends both spans", async () => {
       api.emit("message_received", { sessionKey: "sess-1" });
       api.emit("before_agent_start", { sessionKey: "sess-1" });
 
       const rootSpan = tracer.spans[0];
       const turnSpan = tracer.spans[1];
 
-      api.emit("agent_end", {
+      await api.emit("agent_end", {
         sessionKey: "sess-1",
         messages: [
           {
@@ -403,10 +404,10 @@ describe("registerHooks", () => {
       expect(rootSpan.end).toHaveBeenCalled();
     });
 
-    it("records LLM metrics with model attributes", () => {
+    it("records LLM metrics with model attributes", async () => {
       api.emit("message_received", { sessionKey: "sess-2" });
       api.emit("before_agent_start", { sessionKey: "sess-2" });
-      api.emit("agent_end", {
+      await api.emit("agent_end", {
         sessionKey: "sess-2",
         messages: [
           {
@@ -432,10 +433,10 @@ describe("registerHooks", () => {
       expect(outputCounter?.add).toHaveBeenCalledWith(300, attrs);
     });
 
-    it("records cache-read tokens only when > 0", () => {
+    it("records cache-read tokens only when > 0", async () => {
       api.emit("message_received", { sessionKey: "sess-3" });
       api.emit("before_agent_start", { sessionKey: "sess-3" });
-      api.emit("agent_end", {
+      await api.emit("agent_end", {
         sessionKey: "sess-3",
         messages: [
           {
@@ -450,10 +451,10 @@ describe("registerHooks", () => {
       expect(cacheCounter?.add).not.toHaveBeenCalled();
     });
 
-    it("records cache-read tokens when present", () => {
+    it("records cache-read tokens when present", async () => {
       api.emit("message_received", { sessionKey: "sess-4" });
       api.emit("before_agent_start", { sessionKey: "sess-4" });
-      api.emit("agent_end", {
+      await api.emit("agent_end", {
         sessionKey: "sess-4",
         messages: [
           {
@@ -468,10 +469,10 @@ describe("registerHooks", () => {
       expect(cacheCounter?.add).toHaveBeenCalledWith(200, expect.any(Object));
     });
 
-    it("extracts usage from the last assistant message", () => {
+    it("extracts usage from the last assistant message", async () => {
       api.emit("message_received", { sessionKey: "sess-5" });
       api.emit("before_agent_start", { sessionKey: "sess-5" });
-      api.emit("agent_end", {
+      await api.emit("agent_end", {
         sessionKey: "sess-5",
         messages: [
           { role: "user", content: "hello" },
@@ -496,10 +497,10 @@ describe("registerHooks", () => {
       }));
     });
 
-    it("falls back to event-level model/provider/usage when no assistant message", () => {
+    it("falls back to event-level model/provider/usage when no assistant message", async () => {
       api.emit("message_received", { sessionKey: "sess-6" });
       api.emit("before_agent_start", { sessionKey: "sess-6" });
-      api.emit("agent_end", {
+      await api.emit("agent_end", {
         sessionKey: "sess-6",
         model: "fallback-model",
         provider: "FallbackProvider",
@@ -516,10 +517,10 @@ describe("registerHooks", () => {
       expect(outputCounter?.add).toHaveBeenCalledWith(13, expect.any(Object));
     });
 
-    it("defaults to 'unknown' model/provider when missing", () => {
+    it("defaults to 'unknown' model/provider when missing", async () => {
       api.emit("message_received", { sessionKey: "sess-7" });
       api.emit("before_agent_start", { sessionKey: "sess-7" });
-      api.emit("agent_end", {
+      await api.emit("agent_end", {
         sessionKey: "sess-7",
         messages: [],
       });
@@ -531,19 +532,91 @@ describe("registerHooks", () => {
       });
     });
 
-    it("does not end root span when it is the same as turn span", () => {
+    it("does not end root span when it is the same as turn span", async () => {
       // When before_agent_start fires without a prior message_received,
       // root and turn are the same span object
       api.emit("before_agent_start", { sessionKey: "orphan-sess" });
       const turnSpan = tracer.spans[0];
 
-      api.emit("agent_end", {
+      await api.emit("agent_end", {
         sessionKey: "orphan-sess",
         messages: [],
       });
 
       // end() should be called once (for turn), not twice
       expect(turnSpan.end).toHaveBeenCalledTimes(1);
+    });
+
+    it("resolves 'auto' model in local mode via resolveRouting", async () => {
+      // Re-register with local mode config
+      const localApi = createMockApi();
+      const localTracer = createMockTracer();
+      const localConfig: ManifestConfig = { ...config, mode: "local" };
+      initMetrics(meter as any);
+      registerHooks(localApi, localTracer as any, localConfig, mockLogger);
+
+      jest.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(JSON.stringify({
+          tier: "complex", model: "claude-sonnet-4", provider: "Anthropic",
+          confidence: 0.9, score: 0.2, reason: "scored",
+        }), { status: 200 }),
+      );
+
+      localApi.emit("message_received", { sessionKey: "sess-resolve" });
+      localApi.emit("before_agent_start", { sessionKey: "sess-resolve" });
+
+      const turnSpan = localTracer.spans[1];
+
+      await localApi.emit("agent_end", {
+        sessionKey: "sess-resolve",
+        messages: [
+          { role: "user", content: "explain quantum computing" },
+          {
+            role: "assistant",
+            model: "auto",
+            provider: "manifest",
+            usage: { input: 500, output: 200 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.MODEL]: "claude-sonnet-4",
+          [ATTRS.PROVIDER]: "Anthropic",
+        }),
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "complex",
+      );
+    });
+
+    it("does not resolve when model is not 'auto'", async () => {
+      const localApi = createMockApi();
+      const localTracer = createMockTracer();
+      const localConfig: ManifestConfig = { ...config, mode: "local" };
+      initMetrics(meter as any);
+      registerHooks(localApi, localTracer as any, localConfig, mockLogger);
+
+      const fetchSpy = jest.spyOn(globalThis, "fetch");
+
+      localApi.emit("message_received", { sessionKey: "sess-no-resolve" });
+      localApi.emit("before_agent_start", { sessionKey: "sess-no-resolve" });
+
+      await localApi.emit("agent_end", {
+        sessionKey: "sess-no-resolve",
+        messages: [
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 100, output: 50 },
+          },
+        ],
+      });
+
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 });

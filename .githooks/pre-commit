@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Pre-commit hook: scan staged files for potential secrets.
+# Activated automatically via `git config core.hooksPath .githooks`
+# (set by the npm "prepare" script).
+
+set -euo pipefail
+
+# Patterns that should never appear in committed code.
+# Each entry: "regex|human-readable label"
+PATTERNS=(
+  'sk-ant-[A-Za-z0-9_-]{10,}|Anthropic API key'
+  'sk-[A-Za-z0-9_-]{20,}|OpenAI/generic API key'
+  'AIzaSy[A-Za-z0-9_-]{30,}|Google API key'
+  'xai-[A-Za-z0-9_-]{10,}|xAI API key'
+  'ghp_[A-Za-z0-9]{20,}|GitHub personal access token'
+  'gho_[A-Za-z0-9]{20,}|GitHub OAuth token'
+  'glpat-[A-Za-z0-9_-]{10,}|GitLab personal access token'
+  'AKIA[0-9A-Z]{16}|AWS access key ID'
+  'BEGIN PRIVATE KEY|Private key file'
+  'BEGIN RSA PRIVATE KEY|RSA private key file'
+)
+
+# Get staged diff (added lines only), excluding test/example files.
+DIFF=$(git diff --cached --diff-filter=ACMR -U0 -- \
+  '*.ts' '*.tsx' '*.js' '*.json' '*.yml' '*.yaml' '*.toml' '*.cfg' \
+  ':!*.spec.ts' ':!*.test.ts' ':!*test/helpers*' ':!*.env.example' \
+  | grep -E '^\+' \
+  | grep -v '^+++' \
+  || true)
+
+if [ -z "$DIFF" ]; then
+  exit 0
+fi
+
+# Skip lines that are clearly regex patterns / validation (e.g. keyPattern: /^sk-/)
+DIFF=$(echo "$DIFF" | grep -v 'keyPattern' | grep -v 'keyHint' | grep -v 'placeholder' || true)
+
+if [ -z "$DIFF" ]; then
+  exit 0
+fi
+
+FOUND=0
+
+for entry in "${PATTERNS[@]}"; do
+  REGEX="${entry%%|*}"
+  LABEL="${entry##*|}"
+
+  MATCHES=$(echo "$DIFF" | grep -E "$REGEX" || true)
+
+  if [ -n "$MATCHES" ]; then
+    if [ "$FOUND" -eq 0 ]; then
+      echo ""
+      echo "=== Secret Detection: potential secrets in staged changes ==="
+      echo ""
+    fi
+    FOUND=1
+    echo "  [$LABEL]"
+    echo "$MATCHES" | head -5 | sed 's/^/    /'
+    echo ""
+  fi
+done
+
+if [ "$FOUND" -ne 0 ]; then
+  echo "Commit blocked. Remove secrets from staged files or use:"
+  echo "  git commit --no-verify   (only if you are sure these are safe)"
+  echo ""
+  exit 1
+fi

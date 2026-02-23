@@ -33,6 +33,7 @@ export const ATTRS = {
   TOOL_NAME: "tool.name",
   TOOL_SUCCESS: "tool.success",
   AGENT_NAME: "openclaw.agent.name",
+  ROUTING_TIER: "manifest.routing.tier",
 } as const;
 
 // Environment variable names (fallback when plugin config is missing)
@@ -49,4 +50,8 @@ export const DEFAULTS = {
   ENDPOINT: "https://app.manifest.build/otlp",
   SERVICE_NAME: "openclaw-gateway",
   METRICS_INTERVAL_MS: 30_000,
+} as const;
+
+export const LOCAL_DEFAULTS = {
+  METRICS_INTERVAL_MS: 10_000,
 } as const;

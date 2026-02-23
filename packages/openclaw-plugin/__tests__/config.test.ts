@@ -62,12 +62,17 @@ describe("parseConfig", () => {
     expect(result.metricsIntervalMs).toBe(DEFAULTS.METRICS_INTERVAL_MS);
   });
 
-  it("defaults mode to cloud", () => {
+  it("defaults mode to local", () => {
     const result = parseConfig({ apiKey: "mnfst_abc" });
+    expect(result.mode).toBe("local");
+  });
+
+  it("parses explicit mode: cloud", () => {
+    const result = parseConfig({ mode: "cloud", apiKey: "mnfst_abc" });
     expect(result.mode).toBe("cloud");
   });
 
-  it("parses mode: local", () => {
+  it("parses explicit mode: local", () => {
     const result = parseConfig({ mode: "local" });
     expect(result.mode).toBe("local");
   });

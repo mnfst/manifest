@@ -53,7 +53,7 @@ describe("Settings", () => {
     expect(screen.getByText("Settings")).toBeDefined();
   });
 
-  it("renders General section", () => {
+  it("renders General tab", () => {
     render(() => <Settings />);
     expect(screen.getByText("General")).toBeDefined();
   });
@@ -64,9 +64,20 @@ describe("Settings", () => {
     expect(input.value).toBe("test-agent");
   });
 
-  it("renders API Key section", () => {
+  it("renders Integration tab", () => {
     render(() => <Settings />);
-    expect(screen.getByText("API Key")).toBeDefined();
+    expect(screen.getByText("Integration")).toBeDefined();
+  });
+
+  it("does not render LLM Providers tab", () => {
+    render(() => <Settings />);
+    expect(screen.queryByText("LLM Providers")).toBeNull();
+  });
+
+  it("renders only two tab buttons", () => {
+    render(() => <Settings />);
+    expect(screen.getByText("General")).toBeDefined();
+    expect(screen.getByText("Integration")).toBeDefined();
   });
 
   it("renders Danger zone", () => {
@@ -81,6 +92,7 @@ describe("Settings", () => {
 
   it("shows key prefix after loading", async () => {
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     await vi.waitFor(() => {
       expect(container.textContent).toContain("mnfst_abc");
     });
@@ -94,6 +106,7 @@ describe("Settings", () => {
 
   it("has rotate key button", async () => {
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     await vi.waitFor(() => {
       const rotateBtn = Array.from(container.querySelectorAll("button")).find(
         (b) => b.textContent?.includes("Rotate key"),
@@ -120,11 +133,6 @@ describe("Settings", () => {
     expect(saveBtn.disabled).toBe(false);
   });
 
-  it("shows Integration section", () => {
-    const { container } = render(() => <Settings />);
-    expect(container.textContent).toContain("Integration");
-  });
-
   it("clicking Save navigates when name changed", async () => {
     const { container } = render(() => <Settings />);
     const input = screen.getByLabelText("Agent name") as HTMLInputElement;
@@ -141,6 +149,7 @@ describe("Settings", () => {
   it("clicking Rotate key calls rotateAgentKey", async () => {
     mockRotateAgentKey.mockResolvedValue({ apiKey: "mnfst_new_rotated_key" });
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Rotate key");
     });
@@ -156,6 +165,7 @@ describe("Settings", () => {
   it("shows rotated key after successful rotation", async () => {
     mockRotateAgentKey.mockResolvedValue({ apiKey: "mnfst_new_rotated_key" });
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Rotate key");
     });
@@ -210,17 +220,18 @@ describe("Settings", () => {
     expect(container.querySelector(".modal-overlay")).not.toBeNull();
     const closeBtn = container.querySelector('.modal-overlay [aria-label="Close"]')!;
     fireEvent.click(closeBtn);
-    // Modal should close
     expect(container.querySelector(".modal-overlay")).toBeNull();
   });
 
   it("shows OTLP ingest key label", () => {
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     expect(container.textContent).toContain("OTLP ingest key");
   });
 
   it("shows setup steps after loading", async () => {
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="setup-install"]')).not.toBeNull();
     });

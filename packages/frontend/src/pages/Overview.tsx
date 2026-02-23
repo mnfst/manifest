@@ -31,6 +31,7 @@ interface RecentMessage {
   timestamp: string
   agent_name: string | null
   model: string | null
+  routing_tier?: string
   input_tokens: number | null
   output_tokens: number | null
   total_tokens: number | null
@@ -492,6 +493,7 @@ const Overview: Component = () => {
                             </td>
                             <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                               {item.model ?? '\u2014'}
+                              {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
                             </td>
                             <td style="font-family: var(--font-mono);">
                               {item.total_tokens != null

@@ -39,6 +39,7 @@
     "start": "node packages/backend/dist/main.js",
     "build:plugin": "npm run build --workspace=packages/openclaw-plugin",
     "publish:plugin": "npm publish --access public --workspace=packages/openclaw-plugin",
+    "prepare": "git config core.hooksPath .githooks",
     "check:api-prefix": "node scripts/check-api-prefix.js",
     "lint": "eslint packages/backend/src packages/frontend/src",
     "format": "prettier --write 'packages/*/src/**/*.{ts,tsx,css}'",

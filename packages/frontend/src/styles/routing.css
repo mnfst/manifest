@@ -1,0 +1,263 @@
+@import "./routing-providers.css";
+@import "./routing-modal.css";
+
+/* ── Enable card (disabled state) ─────────────────── */
+.routing-enable-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 32px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.routing-enable-card__icon {
+  color: hsl(var(--muted-foreground));
+  margin-bottom: var(--gap-lg);
+}
+
+.routing-enable-card__title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0 0 var(--gap-sm);
+}
+
+.routing-enable-card__desc {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  max-width: 400px;
+  line-height: 1.6;
+  margin: 0 0 var(--gap-xl);
+}
+
+/* ── Provider selector button ─────────────────────── */
+.routing-providers-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+  transition: border-color var(--transition-fast);
+  margin-bottom: var(--gap-lg);
+}
+
+.routing-providers-btn:hover {
+  border-color: hsl(var(--foreground) / 0.3);
+}
+
+.routing-providers-btn__icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.routing-providers-btn__icon {
+  display: flex;
+  align-items: center;
+}
+
+.routing-providers-btn__label {
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ── Routing cards ─────────────────────────────────── */
+.routing-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.routing-card {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-lg);
+  padding: 16px 20px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.routing-card__header {
+  flex: 0 0 420px;
+  max-width: 420px;
+  min-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.routing-card__tier {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.routing-card__desc {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+}
+
+.routing-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.routing-card__main {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  display: block;
+}
+
+.routing-card__sub {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  display: block;
+  margin-top: 2px;
+}
+
+.routing-card__override {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.routing-card__override-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.routing-card__auto-tag {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: hsl(var(--success) / 0.15);
+  color: hsl(var(--success));
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+.routing-card__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.routing-card__empty-text {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+}
+
+.routing-card__empty-link {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--foreground));
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: 0;
+  text-align: left;
+}
+
+.routing-card__actions {
+  flex-shrink: 0;
+}
+
+.routing-action {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: 4px 8px;
+  transition: color var(--transition-fast);
+}
+
+.routing-action:hover {
+  color: hsl(var(--foreground));
+}
+
+.routing-action:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.routing-action--danger:hover {
+  color: hsl(var(--destructive));
+}
+
+/* ── Disable routing button ───────────────────────── */
+.routing-disable-btn {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.routing-disable-btn:hover {
+  color: hsl(var(--destructive));
+  background: hsl(var(--destructive) / 0.08);
+}
+
+.routing-disable-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.routing-disable-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Routing footer ───────────────────────────────── */
+.routing-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+  margin-top: var(--gap-lg);
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .routing-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gap-sm);
+  }
+
+  .routing-card__header {
+    flex: none;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .routing-card__actions {
+    align-self: flex-end;
+  }
+
+  .provider-toggle__expand {
+    padding-left: 24px;
+  }
+}

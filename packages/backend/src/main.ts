@@ -1,13 +1,37 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
-import { toNodeHandler } from 'better-auth/node';
 import * as express from 'express';
 import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
-import { LOCAL_EMAIL, getLocalPassword } from './common/constants/local-mode.constants';
+import { LOCAL_USER_ID, LOCAL_EMAIL } from './common/constants/local-mode.constants';
 
 const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
+
+function buildLocalSessionResponse() {
+  const now = new Date().toISOString();
+  const farFuture = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+  return {
+    session: {
+      id: 'local-session',
+      userId: LOCAL_USER_ID,
+      token: 'local-token',
+      expiresAt: farFuture,
+      createdAt: now,
+      updatedAt: now,
+    },
+    user: {
+      id: LOCAL_USER_ID,
+      name: 'Local User',
+      email: LOCAL_EMAIL,
+      emailVerified: true,
+      image: null,
+      createdAt: now,
+      updatedAt: now,
+    },
+  };
+}
 
 export async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -49,49 +73,32 @@ export async function bootstrap() {
 
   // Trust reverse proxy (Railway, Render, etc.) so Express sees the real protocol/IP
   // Disabled in local mode — loopback-only, no reverse proxy
-  if (!isDev && process.env['MANIFEST_MODE'] !== 'local') {
+  if (!isDev && !isLocalMode) {
     expressApp.set('trust proxy', 1);
   }
 
-  // Local-mode auto-session: issues a session cookie for loopback requests
-  if (process.env['MANIFEST_MODE'] === 'local') {
-    expressApp.get('/api/auth/local-session', async (req: express.Request, res: express.Response) => {
+  // Mount auth handlers
+  if (isLocalMode) {
+    // Local mode: simple session endpoints (no Better Auth needed)
+    const localSessionHandler = (req: express.Request, res: express.Response) => {
       const ip = req.ip ?? '';
       if (!LOOPBACK_IPS.has(ip)) {
         res.status(403).json({ error: 'Forbidden' });
         return;
       }
-      try {
-        const response = await auth.api.signInEmail({
-          body: { email: LOCAL_EMAIL, password: getLocalPassword() },
-          asResponse: true,
-        });
-        const cookies = response.headers.getSetCookie();
-        for (const cookie of cookies) {
-          res.append('set-cookie', cookie);
-        }
-        const body = await response.json();
-        res.json(body);
-      } catch {
-        res.status(500).json({ error: 'Auto-login failed' });
-      }
+      res.json(buildLocalSessionResponse());
+    };
+    expressApp.get('/api/auth/get-session', localSessionHandler);
+    expressApp.get('/api/auth/local-session', localSessionHandler);
+    expressApp.all('/api/auth/*splat', (_req: express.Request, res: express.Response) => {
+      res.status(404).json({ error: 'Not available in local mode' });
     });
+  } else {
+    // Cloud mode: mount Better Auth handler (needs raw body, before express.json)
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { toNodeHandler } = require('better-auth/node');
+    expressApp.all('/api/auth/*splat', toNodeHandler(auth!));
   }
-
-  // In local mode, restrict Better Auth endpoints to loopback IPs
-  if (process.env['MANIFEST_MODE'] === 'local') {
-    expressApp.all('/api/auth/*splat', (req: express.Request, res: express.Response, next: express.NextFunction) => {
-      const ip = req.ip ?? '';
-      if (!LOOPBACK_IPS.has(ip)) {
-        res.status(403).json({ error: 'Forbidden' });
-        return;
-      }
-      next();
-    });
-  }
-
-  // Mount Better Auth handler (needs raw body, before express.json)
-  expressApp.all('/api/auth/*splat', toNodeHandler(auth));
 
   // Re-add body parsing for NestJS routes, with rawBody capture for OTLP protobuf
   expressApp.use(express.json({
