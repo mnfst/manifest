@@ -111,4 +111,18 @@ describe('MailgunProvider', () => {
     expect(body.get('h:Reply-To')).toBe('noreply@test.com');
     expect(body.get('o:tag')).toBe('manifest');
   });
+
+  it('rejects domain with path traversal characters', async () => {
+    const provider = new MailgunProvider({ ...config, domain: '../../evil.com' });
+    const result = await provider.send({ to: 'a@b.com', subject: 'Hi', html: '<p>Hello</p>' });
+    expect(result).toBe(false);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects domain with slashes', async () => {
+    const provider = new MailgunProvider({ ...config, domain: 'evil.com/redirect' });
+    const result = await provider.send({ to: 'a@b.com', subject: 'Hi', html: '<p>Hello</p>' });
+    expect(result).toBe(false);
+    expect(fetch).not.toHaveBeenCalled();
+  });
 });

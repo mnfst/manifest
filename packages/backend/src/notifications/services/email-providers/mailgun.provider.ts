@@ -1,5 +1,8 @@
 import { EmailProvider, EmailProviderConfig, SendEmailOptions } from './email-provider.interface';
 
+const MAILGUN_BASE = 'https://api.mailgun.net';
+const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
+
 const logger = {
   warn: (msg: string) => console.warn(`[Mailgun] ${msg}`),
   error: (msg: string) => console.error(`[Mailgun] ${msg}`),
@@ -24,6 +27,11 @@ export class MailgunProvider implements EmailProvider {
       return false;
     }
 
+    if (!DOMAIN_RE.test(this.domain)) {
+      logger.error('Invalid Mailgun domain — must be a valid hostname');
+      return false;
+    }
+
     try {
       const form = new URLSearchParams();
       form.append('from', opts.from ?? `Manifest <${this.defaultFrom}>`);
@@ -34,7 +42,8 @@ export class MailgunProvider implements EmailProvider {
       form.append('h:Reply-To', this.defaultFrom);
       form.append('o:tag', 'manifest');
 
-      const res = await fetch(`https://api.mailgun.net/v3/${this.domain}/messages`, {
+      const url = new URL(`/v3/${encodeURIComponent(this.domain)}/messages`, MAILGUN_BASE);
+      const res = await fetch(url.href, {
         method: 'POST',
         headers: {
           Authorization: `Basic ${Buffer.from(`api:${this.apiKey}`).toString('base64')}`,
