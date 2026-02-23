@@ -1,6 +1,6 @@
 {
   "name": "@mnfst/server",
-  "version": "5.2.8",
+  "version": "5.2.9",
   "description": "Embedded Manifest observability server — self-hosted AI agent monitoring with SQLite, zero external dependencies",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
