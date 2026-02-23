@@ -16,6 +16,24 @@ Or with environment variables:
 export MANIFEST_API_KEY=mnfst_YOUR_KEY
 ```
 
+## Local mode
+
+Run the full Manifest dashboard locally — no cloud account needed. Data is stored in SQLite at `~/.openclaw/manifest/`.
+
+```bash
+openclaw plugins install manifest
+openclaw config set plugins.entries.manifest.config.mode "local"
+openclaw gateway restart
+```
+
+Open `http://127.0.0.1:2099` to view the dashboard.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `mode` | string | `cloud` | `local` for embedded server, `cloud` for hosted |
+| `port` | number | `2099` | Local server port |
+| `host` | string | `127.0.0.1` | Local server bind address |
+
 ## Configuration
 
 | Option | Type | Default | Description |

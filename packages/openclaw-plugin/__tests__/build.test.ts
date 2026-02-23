@@ -134,4 +134,17 @@ describe("build configuration", () => {
     expect(buildContent).toContain("@opentelemetry/resources");
     expect(buildContent).toContain("stubs/resources.js");
   });
+
+  it("package.json declares @mnfst/server as a dependency", () => {
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+    expect(pkg.dependencies).toHaveProperty("@mnfst/server");
+  });
+
+  it("build.ts keeps @mnfst/server as external", () => {
+    const buildPath = resolve(__dirname, "../build.ts");
+    const buildContent = readFileSync(buildPath, "utf-8");
+
+    expect(buildContent).toContain("@mnfst/server");
+    expect(buildContent).toMatch(/external.*@mnfst\/server/);
+  });
 });

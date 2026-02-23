@@ -54,6 +54,9 @@
     "telemetry",
     "agent-analytics"
   ],
+  "dependencies": {
+    "@mnfst/server": "^5.2.8"
+  },
   "devDependencies": {
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/sdk-trace-base": "^1.30.0",
