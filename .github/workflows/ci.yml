@@ -127,6 +127,7 @@ jobs:
   server-smoke:
     name: Server smoke test
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     env:
       BETTER_AUTH_SECRET: ci-test-secret-at-least-32-characters-long!!
