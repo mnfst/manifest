@@ -1,5 +1,12 @@
 # @mnfst/server
 
+## 5.2.11
+
+### Patch Changes
+
+- 0cc919c: Fix manifest plugin not being published with @mnfst/server dependency; add startup pre-flight check
+- e491d5e: Add GitHub star button to header
+
 ## 5.2.10
 
 ### Patch Changes

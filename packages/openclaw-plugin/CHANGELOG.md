@@ -1,5 +1,14 @@
 # manifest
 
+## 5.2.11
+
+### Patch Changes
+
+- 0cc919c: Fix manifest plugin not being published with @mnfst/server dependency; add startup pre-flight check
+- Updated dependencies [0cc919c]
+- Updated dependencies [e491d5e]
+  - @mnfst/server@5.2.11
+
 ## 5.2.7
 
 ### Patch Changes
