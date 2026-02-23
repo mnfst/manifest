@@ -195,6 +195,46 @@ describe('NotificationCronService', () => {
     expect(result).toBe(1);
   });
 
+  it('triggers notification for hourly period (checks previous hour)', async () => {
+    const hourlyRule = { ...activeRule, id: 'rule-hour', period: 'hour' as const };
+    mockGetAllActiveRules.mockResolvedValue([hourlyRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
+    mockGetConsumption.mockResolvedValue(150000);
+
+    const result = await service.checkThresholds();
+    expect(result).toBe(1);
+    expect(mockSendThresholdAlert).toHaveBeenCalled();
+  });
+
+  it('triggers notification for weekly period', async () => {
+    const weeklyRule = { ...activeRule, id: 'rule-week', period: 'week' as const };
+    mockGetAllActiveRules.mockResolvedValue([weeklyRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
+    mockGetConsumption.mockResolvedValue(150000);
+
+    const result = await service.checkThresholds();
+    expect(result).toBe(1);
+  });
+
+  it('triggers notification for monthly period', async () => {
+    const monthlyRule = { ...activeRule, id: 'rule-month', period: 'month' as const };
+    mockGetAllActiveRules.mockResolvedValue([monthlyRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
+    mockGetConsumption.mockResolvedValue(150000);
+
+    const result = await service.checkThresholds();
+    expect(result).toBe(1);
+  });
+
   it('continues processing remaining rules when one throws', async () => {
     const rule2 = { ...activeRule, id: 'rule-2' };
     mockGetAllActiveRules.mockResolvedValue([activeRule, rule2]);
