@@ -1,9 +1,38 @@
 {
   "name": "@mnfst/server",
-  "version": "5.2.3",
-  "description": "Embedded Manifest server for local mode",
+  "version": "5.2.4",
+  "description": "Embedded Manifest observability server — self-hosted AI agent monitoring with SQLite, zero external dependencies",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "author": "MNFST Inc.",
+  "homepage": "https://manifest.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mnfst/manifest",
+    "directory": "packages/manifest-server"
+  },
+  "bugs": {
+    "url": "https://github.com/mnfst/manifest/issues"
+  },
+  "keywords": [
+    "manifest",
+    "ai-observability",
+    "ai-agent",
+    "llm-monitoring",
+    "embedded-server",
+    "opentelemetry",
+    "otlp",
+    "cost-tracking",
+    "token-tracking",
+    "observability",
+    "telemetry",
+    "nestjs",
+    "sqlite",
+    "self-hosted"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "build": "node scripts/copy-assets.js && tsc",
     "prebuild": "rm -rf dist public"
@@ -41,12 +70,10 @@
   },
   "files": [
     "dist",
-    "public"
+    "public",
+    "README.md",
+    "LICENSE"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mnfst/manifest"
-  },
   "publishConfig": {
     "access": "public"
   },
