@@ -164,7 +164,7 @@ const ModelPrices: Component = () => {
                     <i class="bxd bx-info-circle info-tooltip__icon" style={{ "font-size": "14px", "--bx-duotone-secondary-opacity": "1", color: "hsl(var(--muted-foreground))" }} />
                     <span class="info-tooltip__bubble">
                       <strong>How to read icons</strong>
-                      Dark icons are supported by the model. Faded icons are not.
+                      Solid icons are supported by the model. Faded icons are not.
                     </span>
                   </span>
                 </th>
