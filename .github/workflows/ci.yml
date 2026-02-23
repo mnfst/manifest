@@ -137,4 +137,21 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx changeset status --since=origin/main
+      - name: Check changeset status
+        run: npx changeset status --since=origin/main
+        continue-on-error: true
+
+      - name: Require @mnfst/server changeset for backend/frontend changes
+        run: |
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          if echo "$CHANGED_FILES" | grep -qE '^packages/(backend|frontend)/'; then
+            echo "Backend or frontend files changed — checking for @mnfst/server changeset..."
+            if ! npx changeset status 2>&1 | grep -q '@mnfst/server'; then
+              echo "::error::Backend or frontend files changed but no @mnfst/server changeset found."
+              echo "Run 'npx changeset' and add a patch/minor bump for @mnfst/server."
+              exit 1
+            fi
+            echo "Found @mnfst/server changeset."
+          else
+            echo "No backend/frontend changes detected — skipping check."
+          fi
