@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.3.3
+
+### Patch Changes
+
+- ebd8913: Fix better-sqlite3 version conflict causing silent failures on macOS and improve error messages for native module issues
+
 ## 5.3.2
 
 ### Patch Changes
