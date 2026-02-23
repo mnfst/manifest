@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.4.0
+
+### Minor Changes
+
+- 00d8a90: Add local-mode notification system with configurable email providers, email deliverability improvements, and notification management UI
+
 ## 5.3.5
 
 ### Patch Changes
