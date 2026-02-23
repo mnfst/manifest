@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { existsSync } from 'fs';
 import { homedir } from 'os';
 
 export const version = '0.1.0';
@@ -28,6 +29,15 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
   process.env['MANIFEST_DB_PATH'] = dbPath;
   process.env['NODE_ENV'] = 'development';
   process.env['MANIFEST_FRONTEND_DIR'] = join(__dirname, '..', 'public');
+
+  // Pre-flight: verify backend dist exists
+  const backendMainPath = join(__dirname, 'backend', 'main.js');
+  if (!existsSync(backendMainPath)) {
+    throw new Error(
+      `Backend not found at ${backendMainPath}. ` +
+        'The @mnfst/server package may be corrupt — try reinstalling it.',
+    );
+  }
 
   // Generate a random persistent secret for local mode
   if (!process.env['BETTER_AUTH_SECRET']) {
