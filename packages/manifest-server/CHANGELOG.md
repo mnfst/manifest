@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.2.5
+
+### Patch Changes
+
+- 3371a9f: Fix dynamic imports and dependency resolution for local-install mode
+
 ## 5.2.4
 
 ### Patch Changes
