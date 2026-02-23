@@ -38,6 +38,9 @@ import {
   checkExistingServer,
   registerLocalMode,
 } from "../src/local-mode";
+import { initTelemetry } from "../src/telemetry";
+import { registerHooks } from "../src/hooks";
+import { LOCAL_DEFAULTS } from "../src/constants";
 
 const mockLogger = {
   info: jest.fn(),
@@ -318,6 +321,88 @@ describe("checkExistingServer", () => {
 
     const result = await checkExistingServer("127.0.0.1", 2099);
     expect(result).toBe(false);
+  });
+});
+
+describe("registerLocalMode — localConfig overrides", () => {
+  const baseConfig = {
+    mode: "local" as const,
+    apiKey: "",
+    endpoint: "",
+    serviceName: "test",
+    captureContent: false,
+    metricsIntervalMs: 30_000,
+    port: 2099,
+    host: "127.0.0.1",
+  };
+
+  beforeEach(() => {
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p.includes("config.json")) return true;
+      if (p.includes("agents")) return false;
+      return false;
+    });
+    (readFileSync as jest.Mock).mockReturnValue(
+      JSON.stringify({ apiKey: "mnfst_local_existing" }),
+    );
+  });
+
+  function createMockApi() {
+    return {
+      config: {},
+      registerProvider: jest.fn(),
+      registerService: jest.fn(),
+      registerTool: jest.fn(),
+    };
+  }
+
+  it("overrides captureContent to true for local telemetry", () => {
+    const api = createMockApi();
+    registerLocalMode(api, { ...baseConfig, captureContent: false }, mockLogger);
+
+    const telemetryCall = (initTelemetry as jest.Mock).mock.calls[0];
+    const configPassedToTelemetry = telemetryCall[0];
+    expect(configPassedToTelemetry.captureContent).toBe(true);
+  });
+
+  it("overrides metricsIntervalMs to LOCAL_DEFAULTS value (10s)", () => {
+    const api = createMockApi();
+    registerLocalMode(api, { ...baseConfig, metricsIntervalMs: 30_000 }, mockLogger);
+
+    const telemetryCall = (initTelemetry as jest.Mock).mock.calls[0];
+    const configPassedToTelemetry = telemetryCall[0];
+    expect(configPassedToTelemetry.metricsIntervalMs).toBe(
+      LOCAL_DEFAULTS.METRICS_INTERVAL_MS,
+    );
+    expect(configPassedToTelemetry.metricsIntervalMs).toBe(10_000);
+  });
+
+  it("passes overridden config to registerHooks", () => {
+    const api = createMockApi();
+    registerLocalMode(api, baseConfig, mockLogger);
+
+    const hooksCall = (registerHooks as jest.Mock).mock.calls[0];
+    const configPassedToHooks = hooksCall[2];
+    expect(configPassedToHooks.captureContent).toBe(true);
+    expect(configPassedToHooks.metricsIntervalMs).toBe(10_000);
+  });
+
+  it("sets endpoint to local server URL", () => {
+    const api = createMockApi();
+    registerLocalMode(api, baseConfig, mockLogger);
+
+    const telemetryCall = (initTelemetry as jest.Mock).mock.calls[0];
+    const configPassedToTelemetry = telemetryCall[0];
+    expect(configPassedToTelemetry.endpoint).toBe("http://127.0.0.1:2099/otlp");
+  });
+
+  it("uses generated API key in localConfig", () => {
+    const api = createMockApi();
+    registerLocalMode(api, baseConfig, mockLogger);
+
+    const telemetryCall = (initTelemetry as jest.Mock).mock.calls[0];
+    const configPassedToTelemetry = telemetryCall[0];
+    expect(configPassedToTelemetry.apiKey).toBe("mnfst_local_existing");
   });
 });
 

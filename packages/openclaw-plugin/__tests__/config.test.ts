@@ -1,5 +1,5 @@
 import { parseConfig, validateConfig } from "../src/config";
-import { API_KEY_PREFIX, DEFAULTS, ENV } from "../src/constants";
+import { API_KEY_PREFIX, DEFAULTS, ENV, LOCAL_DEFAULTS } from "../src/constants";
 
 describe("API_KEY_PREFIX constant", () => {
   it("equals mnfst_ (catches accidental revert)", () => {
@@ -20,6 +20,18 @@ describe("DEFAULTS.ENDPOINT constant", () => {
 
   it("does not contain /api/v1/otlp (would cause double-pathing with OTel)", () => {
     expect(DEFAULTS.ENDPOINT).not.toContain("/api/v1/otlp");
+  });
+});
+
+describe("LOCAL_DEFAULTS constant", () => {
+  it("has METRICS_INTERVAL_MS set to 10 seconds", () => {
+    expect(LOCAL_DEFAULTS.METRICS_INTERVAL_MS).toBe(10_000);
+  });
+
+  it("uses a shorter interval than the cloud DEFAULTS", () => {
+    expect(LOCAL_DEFAULTS.METRICS_INTERVAL_MS).toBeLessThan(
+      DEFAULTS.METRICS_INTERVAL_MS,
+    );
   });
 });
 
@@ -75,6 +87,34 @@ describe("parseConfig", () => {
   it("parses explicit mode: local", () => {
     const result = parseConfig({ mode: "local" });
     expect(result.mode).toBe("local");
+  });
+
+  it("falls back to local for unknown mode string", () => {
+    const result = parseConfig({ mode: "hybrid" });
+    expect(result.mode).toBe("local");
+  });
+
+  it("falls back to local when mode is a non-string value", () => {
+    const result = parseConfig({ mode: 42 });
+    expect(result.mode).toBe("local");
+  });
+
+  it("defaults to local with zero config (empty object)", () => {
+    const result = parseConfig({});
+    expect(result.mode).toBe("local");
+  });
+
+  it("defaults to local with null input", () => {
+    const result = parseConfig(null);
+    expect(result.mode).toBe("local");
+  });
+
+  it("preserves mode: cloud through nested config wrapper", () => {
+    const result = parseConfig({
+      enabled: true,
+      config: { mode: "cloud", apiKey: "mnfst_abc" },
+    });
+    expect(result.mode).toBe("cloud");
   });
 
   it("defaults port and host", () => {
