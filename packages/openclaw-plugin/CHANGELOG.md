@@ -1,5 +1,11 @@
 # manifest
 
+## 5.5.0
+
+### Minor Changes
+
+- 0a252e6: Default mode changed from cloud to local — zero-config install now starts an embedded SQLite server. Content capture and faster metrics (10s) enabled automatically in local mode.
+
 ## 5.3.4
 
 ### Patch Changes
