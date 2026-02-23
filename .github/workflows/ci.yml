@@ -146,7 +146,7 @@ jobs:
           CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
           if echo "$CHANGED_FILES" | grep -qE '^packages/(backend|frontend)/'; then
             echo "Backend or frontend files changed — checking for @mnfst/server changeset..."
-            if ! npx changeset status 2>&1 | grep -q '@mnfst/server'; then
+            if ! grep -rl '"@mnfst/server"' .changeset/*.md 2>/dev/null | grep -qv README.md; then
               echo "::error::Backend or frontend files changed but no @mnfst/server changeset found."
               echo "Run 'npx changeset' and add a patch/minor bump for @mnfst/server."
               exit 1
