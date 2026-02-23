@@ -143,17 +143,18 @@
   flex-shrink: 0;
 }
 
-.routing-card__auto-tag {
+.routing-card__custom-tag {
   font-size: 10px;
   font-weight: 600;
   line-height: 1;
   padding: 3px 6px;
   border-radius: 4px;
-  background: hsl(var(--success) / 0.15);
-  color: hsl(var(--success));
+  background: hsl(var(--muted-foreground) / 0.15);
+  color: hsl(var(--muted-foreground));
   text-transform: lowercase;
   letter-spacing: 0.02em;
 }
+
 
 .routing-card__empty {
   display: flex;
@@ -344,4 +345,13 @@
   text-align: center;
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));
+}
+
+/* ── Current model indicator ─────────────────────── */
+.routing-modal__model--current {
+  background: hsl(var(--muted) / 0.5);
+}
+
+.routing-modal__model--current .routing-modal__model-label {
+  font-weight: 700;
 }

@@ -119,6 +119,9 @@ export class RoutingController {
         context_window: m.context_window,
         capability_reasoning: m.capability_reasoning,
         capability_code: m.capability_code,
+        capability_vision: m.capability_vision,
+        capability_tool_calling: m.capability_tool_calling,
+        capability_structured_output: m.capability_structured_output,
         quality_score: m.quality_score,
       }));
   }

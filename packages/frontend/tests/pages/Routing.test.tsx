@@ -32,8 +32,8 @@ vi.mock("../../src/services/api.js", () => ({
     { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
   ]),
   getAvailableModels: vi.fn().mockResolvedValue([
-    { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
-    { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true, capability_vision: true, capability_tool_calling: true, capability_structured_output: true },
+    { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true, capability_vision: true, capability_tool_calling: true, capability_structured_output: true },
   ]),
   getProviders: vi.fn().mockResolvedValue([
     { id: "p1", provider: "openai", is_active: true, connected_at: "2025-01-01" },
@@ -60,7 +60,7 @@ describe("Routing", () => {
     expect(await screen.findByText("Simple")).toBeDefined();
     expect(screen.getByText("Standard")).toBeDefined();
     expect(screen.getByText("Complex")).toBeDefined();
-    expect(screen.getByText("Reasoning")).toBeDefined();
+    expect(screen.getByText("Reasoning", { selector: ".routing-card__tier" })).toBeDefined();
   });
 
   it("renders tier descriptions", async () => {
@@ -71,11 +71,11 @@ describe("Routing", () => {
     expect(screen.getByText("Advanced reasoning, planning, and critical decision-making.")).toBeDefined();
   });
 
-  it("shows auto tag for non-override tiers", async () => {
+  it("shows custom tag only for override tiers", async () => {
     render(() => <Routing />);
-    const autoTags = await screen.findAllByText("auto");
-    // simple, standard, reasoning are auto (3 tiers); complex has an override
-    expect(autoTags.length).toBe(3);
+    // complex has an override => 1 custom tag
+    const customTags = await screen.findAllByText("custom");
+    expect(customTags.length).toBe(1);
   });
 
   it("shows model labels for assigned models", async () => {

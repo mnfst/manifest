@@ -232,6 +232,9 @@ export interface AvailableModel {
   context_window: number;
   capability_reasoning: boolean;
   capability_code: boolean;
+  capability_vision: boolean;
+  capability_tool_calling: boolean;
+  capability_structured_output: boolean;
 }
 
 export function getAvailableModels() {
