@@ -47,6 +47,9 @@
     "version-packages": "changeset version",
     "release": "changeset publish"
   },
+  "overrides": {
+    "@types/node": "^22.0.0"
+  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.56.0",
     "@typescript-eslint/parser": "^8.56.0",
