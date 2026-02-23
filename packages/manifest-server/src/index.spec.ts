@@ -32,31 +32,30 @@ describe('start() pre-flight checks', () => {
     await expect(start({ quiet: true })).rejects.toThrow('corrupt');
   });
 
-  it('throws with actionable message when better-sqlite3 fails to load', async () => {
+  it('throws with actionable message when sql.js fails to load', async () => {
     const fs = require('fs');
     // First call: backend dist exists; second call: whatever else
     fs.existsSync.mockReturnValue(true);
 
-    // Mock require to fail for better-sqlite3
-    jest.mock('better-sqlite3', () => {
-      throw new Error('Could not locate the bindings file');
+    // Mock require to fail for sql.js
+    jest.mock('sql.js', () => {
+      throw new Error('Cannot find module sql.js');
     });
 
     const { start } = require('./index');
 
     await expect(start({ quiet: true })).rejects.toThrow(
-      'better-sqlite3 native module failed to load',
+      'sql.js package failed to load',
     );
-    await expect(start({ quiet: true })).rejects.toThrow('xcode-select --install');
-    await expect(start({ quiet: true })).rejects.toThrow('npm rebuild better-sqlite3');
+    await expect(start({ quiet: true })).rejects.toThrow('openclaw plugins install manifest');
   });
 
   it('sets environment variables before importing backend', async () => {
     const fs = require('fs');
     fs.existsSync.mockReturnValue(true);
 
-    // Mock better-sqlite3 to succeed
-    jest.mock('better-sqlite3', () => ({}));
+    // Mock sql.js to succeed
+    jest.mock('sql.js', () => ({}));
 
     const { start } = require('./index');
 

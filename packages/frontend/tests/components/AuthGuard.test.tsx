@@ -42,24 +42,24 @@ describe("AuthGuard", () => {
     expect(screen.getByText("Protected content")).toBeDefined();
   });
 
-  it("renders nothing when session is pending", () => {
+  it("shows loading state when session is pending", () => {
     mockSessionData = { data: null, isPending: true };
     const { container } = render(() => (
       <AuthGuard>
         <span>Protected content</span>
       </AuthGuard>
     ));
-    expect(container.textContent).toBe("");
+    expect(container.textContent).toContain("Loading...");
   });
 
-  it("renders nothing when no session data", () => {
+  it("shows loading state when no session data", () => {
     mockSessionData = { data: null, isPending: false };
     const { container } = render(() => (
       <AuthGuard>
         <span>Protected content</span>
       </AuthGuard>
     ));
-    expect(container.textContent).toBe("");
+    expect(container.textContent).toContain("Loading...");
   });
 
   it("navigates to login when no session and auto-login fails", async () => {

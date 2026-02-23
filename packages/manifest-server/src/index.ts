@@ -1,3 +1,9 @@
+console.warn(
+  '[@mnfst/server] This package is deprecated. ' +
+  'The embedded server is now included in the `manifest` plugin package. ' +
+  'Uninstall @mnfst/server and update manifest to the latest version.',
+);
+
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { homedir } from 'os';
@@ -30,6 +36,9 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
   process.env['MANIFEST_DB_PATH'] = dbPath;
   process.env['NODE_ENV'] = 'development';
   process.env['MANIFEST_FRONTEND_DIR'] = join(__dirname, '..', 'public');
+  if (!process.env['BETTER_AUTH_URL']) {
+    process.env['BETTER_AUTH_URL'] = `http://${host}:${port}`;
+  }
 
   // Pre-flight: verify backend dist exists
   const backendMainPath = join(__dirname, 'backend', 'main.js');
@@ -40,16 +49,14 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
     );
   }
 
-  // Pre-flight: verify better-sqlite3 native addon loads
+  // Pre-flight: verify sql.js (WASM) can be loaded.
   try {
-    require('better-sqlite3');
+    require('sql.js');
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     throw new Error(
-      `better-sqlite3 native module failed to load: ${msg}\n` +
-      '  On macOS, install Xcode Command Line Tools: xcode-select --install\n' +
-      '  Then rebuild: npm rebuild better-sqlite3\n' +
-      '  Or reinstall the plugin: openclaw plugins install manifest',
+      `sql.js package failed to load: ${msg}\n` +
+      '  Try reinstalling the plugin: openclaw plugins install manifest',
     );
   }
 

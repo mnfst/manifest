@@ -1,0 +1,88 @@
+{
+  "id": "manifest",
+  "name": "Manifest — Agent Observability",
+  "version": "5.0.0",
+  "description": "Traces, metrics, and cost tracking for your OpenClaw agent. Exports telemetry to the Manifest platform.",
+  "author": "MNFST Inc.",
+  "homepage": "https://manifest.build",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "mode": {
+        "type": "string",
+        "enum": ["cloud", "local"],
+        "default": "cloud",
+        "description": "Run mode: 'cloud' sends telemetry to app.manifest.build, 'local' starts an embedded server with SQLite"
+      },
+      "apiKey": {
+        "type": "string",
+        "description": "Your Manifest API key (starts with mnfst_). Not required in local mode."
+      },
+      "endpoint": {
+        "type": "string",
+        "default": "https://app.manifest.build/api/v1/otlp",
+        "description": "Manifest OTLP endpoint URL"
+      },
+      "serviceName": {
+        "type": "string",
+        "default": "openclaw-gateway",
+        "description": "OpenTelemetry service name"
+      },
+      "captureContent": {
+        "type": "boolean",
+        "default": false,
+        "description": "Include message content in spans (disable for privacy)"
+      },
+      "metricsIntervalMs": {
+        "type": "number",
+        "minimum": 5000,
+        "default": 30000,
+        "description": "Metrics export interval in milliseconds"
+      },
+      "port": {
+        "type": "number",
+        "default": 2099,
+        "description": "Port for the local embedded server (local mode only)"
+      },
+      "host": {
+        "type": "string",
+        "default": "127.0.0.1",
+        "description": "Bind address for the local embedded server (local mode only)"
+      }
+    }
+  },
+  "uiHints": {
+    "mode": {
+      "label": "Mode",
+      "description": "Choose 'local' to run a self-contained server with SQLite, or 'cloud' to send data to app.manifest.build"
+    },
+    "apiKey": {
+      "label": "API Key",
+      "placeholder": "mnfst_...",
+      "sensitive": true
+    },
+    "endpoint": {
+      "label": "Endpoint URL",
+      "placeholder": "https://app.manifest.build/api/v1/otlp"
+    },
+    "serviceName": {
+      "label": "Service Name",
+      "placeholder": "openclaw-gateway"
+    },
+    "captureContent": {
+      "label": "Capture Message Content",
+      "description": "When enabled, message text is included in trace spans. Disable for privacy."
+    },
+    "metricsIntervalMs": {
+      "label": "Metrics Interval (ms)"
+    },
+    "port": {
+      "label": "Local Server Port"
+    },
+    "host": {
+      "label": "Local Server Host"
+    }
+  },
+  "skills": ["skills/manifest"]
+}

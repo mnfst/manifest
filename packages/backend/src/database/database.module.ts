@@ -68,8 +68,9 @@ function buildModeServices() {
         if (isLocalMode) {
           const dbPath = config.get<string>('app.sqlitePath') || ':memory:';
           return {
-            type: 'better-sqlite3' as const,
-            database: dbPath,
+            type: 'sqljs' as const,
+            location: dbPath === ':memory:' ? undefined : dbPath,
+            autoSave: dbPath !== ':memory:',
             entities,
             synchronize: true,
             migrationsRun: false,

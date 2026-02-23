@@ -50,8 +50,7 @@ const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 function buildTypeOrmConfig(): TypeOrmModuleOptions {
   if (isLocalMode) {
     return {
-      type: 'better-sqlite3' as const,
-      database: ':memory:',
+      type: 'sqljs' as const,
       entities,
       synchronize: true,
       dropSchema: true,

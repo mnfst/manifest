@@ -50,3 +50,7 @@ export const DEFAULTS = {
   SERVICE_NAME: "openclaw-gateway",
   METRICS_INTERVAL_MS: 30_000,
 } as const;
+
+export const LOCAL_DEFAULTS = {
+  METRICS_INTERVAL_MS: 10_000,
+} as const;

@@ -1,7 +1,14 @@
+jest.mock('../common/constants/local-mode.constants', () => ({
+  LOCAL_USER_ID: 'local-user-001',
+  LOCAL_EMAIL: 'local@manifest.local',
+  readLocalNotificationEmail: jest.fn().mockReturnValue(null),
+}));
+
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { LocalAuthGuard } from './local-auth.guard';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
+import { readLocalNotificationEmail } from '../common/constants/local-mode.constants';
 
 function createMockContext(overrides: {
   ip?: string;
@@ -121,5 +128,36 @@ describe('LocalAuthGuard', () => {
 
     expect(result).toBe(false);
     expect(request['user']).toBeUndefined();
+  });
+
+  it('uses notification email from config when set', async () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    (readLocalNotificationEmail as jest.Mock).mockReturnValue('real@user.com');
+    const { context, request } = createMockContext({ ip: '127.0.0.1' });
+
+    const result = await guard.canActivate(context);
+
+    expect(result).toBe(true);
+    expect(request['user']).toEqual({
+      id: 'local-user-001',
+      name: 'Local User',
+      email: 'real@user.com',
+    });
+    (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
+  });
+
+  it('falls back to LOCAL_EMAIL when notification email not set', async () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
+    const { context, request } = createMockContext({ ip: '127.0.0.1' });
+
+    const result = await guard.canActivate(context);
+
+    expect(result).toBe(true);
+    expect(request['user']).toEqual({
+      id: 'local-user-001',
+      name: 'Local User',
+      email: 'local@manifest.local',
+    });
   });
 });

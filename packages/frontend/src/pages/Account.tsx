@@ -1,8 +1,11 @@
-import { createSignal, onMount, Show, type Component } from "solid-js";
+import { createSignal, onMount, Show, lazy, type Component } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { Title, Meta } from "@solidjs/meta";
 import { authClient } from "../services/auth-client.js";
 import { checkLocalMode, isLocalMode } from "../services/local-mode.js";
+
+const NotificationEmailSection = lazy(() => import("../components/NotificationEmailSection.jsx"));
+const EmailProviderConfig = lazy(() => import("../components/EmailProviderConfig.jsx"));
 
 const Account: Component = () => {
   const navigate = useNavigate();
@@ -142,6 +145,11 @@ const Account: Component = () => {
           </div>
         </div>
         </div>
+
+      <Show when={isLocalMode()}>
+        <NotificationEmailSection />
+        <EmailProviderConfig />
+      </Show>
       </div>
     </div>
   );

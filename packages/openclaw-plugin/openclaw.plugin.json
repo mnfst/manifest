@@ -2,7 +2,7 @@
   "id": "manifest",
   "name": "Manifest — Agent Observability",
   "version": "5.0.0",
-  "description": "Traces, metrics, and cost tracking for your OpenClaw agent. Exports telemetry to the Manifest platform.",
+  "description": "Traces, metrics, and cost tracking for your OpenClaw agent. Zero-config local dashboard included.",
   "author": "MNFST Inc.",
   "homepage": "https://manifest.build",
   "configSchema": {
@@ -12,8 +12,8 @@
       "mode": {
         "type": "string",
         "enum": ["cloud", "local"],
-        "default": "cloud",
-        "description": "Run mode: 'cloud' sends telemetry to app.manifest.build, 'local' starts an embedded server with SQLite"
+        "default": "local",
+        "description": "Run mode: 'local' starts an embedded server with SQLite (zero config), 'cloud' sends telemetry to app.manifest.build"
       },
       "apiKey": {
         "type": "string",
@@ -55,7 +55,7 @@
   "uiHints": {
     "mode": {
       "label": "Mode",
-      "description": "Choose 'local' to run a self-contained server with SQLite, or 'cloud' to send data to app.manifest.build"
+      "description": "Choose 'local' for a self-contained server with SQLite (default), or 'cloud' to send data to app.manifest.build"
     },
     "apiKey": {
       "label": "API Key",
@@ -72,7 +72,7 @@
     },
     "captureContent": {
       "label": "Capture Message Content",
-      "description": "When enabled, message text is included in trace spans. Disable for privacy."
+      "description": "Include message content in trace spans. Always enabled in local mode."
     },
     "metricsIntervalMs": {
       "label": "Metrics Interval (ms)"

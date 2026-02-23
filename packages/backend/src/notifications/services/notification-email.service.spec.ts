@@ -1,20 +1,26 @@
-import { NotificationEmailService } from './notification-email.service';
 import { ThresholdAlertProps } from '../emails/threshold-alert';
 
 /* Mock external dependencies */
 jest.mock('@react-email/render', () => ({
-  render: jest.fn().mockResolvedValue('<html>mock</html>'),
+  render: jest.fn().mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
+    Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
+  ),
 }));
 
-jest.mock('./mailgun', () => ({
-  sendMailgunEmail: jest.fn().mockResolvedValue(true),
+jest.mock('./email-providers/send-email', () => ({
+  sendEmail: jest.fn().mockResolvedValue(true),
 }));
 
+jest.mock('../emails/threshold-alert', () => ({
+  ThresholdAlertEmail: jest.fn(() => 'mock-element'),
+}));
+
+import { NotificationEmailService } from './notification-email.service';
 import { render } from '@react-email/render';
-import { sendMailgunEmail } from './mailgun';
+import { sendEmail } from './email-providers/send-email';
 
 const mockRender = render as jest.Mock;
-const mockSend = sendMailgunEmail as jest.Mock;
+const mockSend = sendEmail as jest.Mock;
 
 const baseProps: ThresholdAlertProps = {
   agentName: 'demo-agent',
@@ -32,19 +38,22 @@ describe('NotificationEmailService', () => {
     service = new NotificationEmailService();
     mockRender.mockClear();
     mockSend.mockClear();
-    mockRender.mockResolvedValue('<html>mock</html>');
+    mockRender.mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
+      Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
+    );
     mockSend.mockResolvedValue(true);
   });
 
-  it('should render the email template and send via Mailgun', async () => {
+  it('should render the email template and send via email provider', async () => {
     const result = await service.sendThresholdAlert('user@test.com', baseProps);
 
-    expect(mockRender).toHaveBeenCalledTimes(1);
+    expect(mockRender).toHaveBeenCalledTimes(2);
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'user@test.com',
         subject: 'Alert: demo-agent exceeded tokens threshold',
-        html: '<html>mock</html>',
+        html: '<html>rendered</html>',
+        text: 'plain text version',
       }),
     );
     expect(result).toBe(true);
@@ -88,7 +97,7 @@ describe('NotificationEmailService', () => {
     );
   });
 
-  it('should return false when Mailgun send fails', async () => {
+  it('should return false when email send fails', async () => {
     mockSend.mockResolvedValue(false);
 
     const result = await service.sendThresholdAlert('user@test.com', baseProps);

@@ -1,7 +1,7 @@
 export type DbDialect = 'postgres' | 'sqlite';
 
 export function detectDialect(dsType: string): DbDialect {
-  return dsType === 'better-sqlite3' ? 'sqlite' : 'postgres';
+  return (dsType === 'better-sqlite3' || dsType === 'sqljs') ? 'sqlite' : 'postgres';
 }
 
 /**

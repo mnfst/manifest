@@ -1,6 +1,10 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-02-20
+Last updated: 2026-02-23
+
+## IMPORTANT: Local Mode First
+
+When starting the app for development or testing (e.g. `/serve`), **always use `MANIFEST_MODE=local`** unless explicitly asked for cloud mode. Local mode is the primary development target — cloud mode comes second.
 
 ## Active Technologies
 
@@ -68,8 +72,8 @@ packages/
 │   │   │   └── formatters.ts               # Number/cost formatting
 │   │   └── styles/
 │   └── tests/
-├── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin
-└── manifest-server/               # npm: `@mnfst/server` — embedded server for local mode
+├── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin (includes embedded server)
+└── manifest-server/               # npm: `@mnfst/server` — DEPRECATED (merged into manifest)
 ```
 
 ## Single-Service Deployment
@@ -296,7 +300,8 @@ To add a new font or icon library:
 - **Body parsing**: Disabled at NestJS level (`bodyParser: false`). Better Auth mounted first (needs raw body), then `express.json()` and `express.raw()` for OTLP protobuf.
 - **QueryBuilder API**: Analytics and ingestion services use TypeORM `Repository.createQueryBuilder()` instead of raw SQL. The `addTenantFilter()` helper in `query-helpers.ts` applies multi-tenant WHERE clauses. Only the database seeder and notification cron still use `DataSource.query()` with numbered `$1, $2, ...` placeholders.
 - **PostgreSQL time functions**: `NOW() - CAST(:interval AS interval)`, `to_char(date_trunc('hour', timestamp), ...)`, `timestamp::date`.
-- **Better Auth database**: Uses a `pg.Pool` instance (from the `pg` driver) passed directly to `betterAuth({ database: pool })`. Better Auth auto-detects the PostgreSQL dialect via Kysely.
+- **Better Auth database**: In cloud mode, uses a `pg.Pool` instance passed directly to `betterAuth({ database: pool })`. In local mode, Better Auth is skipped entirely (`auth = null`) — `LocalAuthGuard` handles auth via loopback IP check, and simple Express handlers serve session data.
+- **Local mode SQLite**: Uses `sql.js` (WASM-based, zero native deps) instead of `better-sqlite3`. TypeORM driver type is `'sqljs'` with `autoSave: true` for file persistence.
 - **PostgreSQL container**: `docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432 postgres:16`
 - **Validation**: Global `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`. Explicit `@Type()` decorators on numeric DTO fields.
 - **OTLP auth caching**: `OtlpAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.
@@ -310,26 +315,26 @@ Version management and npm publishing use [Changesets](https://github.com/change
 
 | Package | npm name | Published |
 |---------|----------|-----------|
-| `packages/openclaw-plugin` | `manifest` | Yes |
-| `packages/manifest-server` | `@mnfst/server` | Yes |
+| `packages/openclaw-plugin` | `manifest` | Yes (includes embedded server) |
+| `packages/manifest-server` | `@mnfst/server` | Deprecated (merged into manifest) |
 | `packages/backend` | `manifest-backend` | No (`private: true`) |
 | `packages/frontend` | `manifest-frontend` | No (`private: true`) |
 
-The two publishable packages are **linked** in changesets config — a major/minor bump to one bumps the other.
+Only `manifest` is actively published. `@mnfst/server` is deprecated — its functionality is now embedded in `manifest`.
 
 ### CRITICAL: Every PR Needs a Changeset
 
 **Before creating any PR, you MUST add a changeset.** The `changeset-check` CI job will fail without one.
 
-- **Backend or frontend changes always need a `@mnfst/server` changeset.** These packages compile into `@mnfst/server`, so any change to `packages/backend/` or `packages/frontend/` must include a changeset bumping `@mnfst/server` (patch for fixes, minor for features). CI enforces this.
+- **Backend or frontend changes always need a `manifest` changeset.** These packages compile into `manifest`, so any change to `packages/backend/` or `packages/frontend/` must include a changeset bumping `manifest` (patch for fixes, minor for features). CI enforces this.
 - If the PR changes a **publishable package** directly (`openclaw-plugin` or `manifest-server`): run `npx changeset` and select the appropriate bump level.
-- Since `@mnfst/server` and `manifest` are **linked**, bumping one automatically bumps the other.
+- Since `@mnfst/server` is deprecated, only bump `manifest` in changesets.
 - **Empty changesets** (`npx changeset add --empty`) should only be used for changes that don't affect any publishable package: CI config, docs, tooling, or dev-only scripts.
 - Commit the generated `.changeset/*.md` file as part of the PR.
 
 ### Workflow
 
-1. When changing backend, frontend, or a publishable package, run `npx changeset` and select `@mnfst/server` with the appropriate bump level
+1. When changing backend, frontend, or a publishable package, run `npx changeset` and select `manifest` with the appropriate bump level
 2. On merge to `main`, the release workflow (`.github/workflows/release.yml`) opens a "Version Packages" PR
 3. When that PR merges, the workflow publishes to npm using `NPM_TOKEN` secret
 
@@ -344,4 +349,4 @@ npm run release             # Publish to npm (used by CI)
 
 ### CI Integration
 
-The `changeset-check` job in `.github/workflows/ci.yml` runs `npx changeset status --since=origin/main` on PRs. It also enforces that any PR touching `packages/backend/` or `packages/frontend/` includes a `@mnfst/server` changeset. The job will fail if backend/frontend files changed without one.
+The `changeset-check` job in `.github/workflows/ci.yml` runs `npx changeset status --since=origin/main` on PRs. It also enforces that any PR touching `packages/backend/` or `packages/frontend/` includes a `manifest` changeset. The job will fail if backend/frontend files changed without one.

@@ -1,5 +1,30 @@
 # @mnfst/server
 
+## 5.4.1
+
+### Patch Changes
+
+- b8c8b06: Fix CSP errors from GitHub star button by proxying the GitHub API through a backend endpoint
+
+## 5.4.0
+
+### Minor Changes
+
+- 00d8a90: Add local-mode notification system with configurable email providers, email deliverability improvements, and notification management UI
+
+## 5.3.5
+
+### Patch Changes
+
+- ed4ba94: Fix local mode server failing silently when better-sqlite3 native binary is missing. The pre-flight check now instantiates an in-memory database to exercise the native addon, surfacing a clear error message before the backend import triggers the same failure deep in auth.instance.js. Also fixes AuthGuard showing a blank page during session checks by adding a loading state and refreshing the session after auto-login.
+
+## 5.3.4
+
+### Patch Changes
+
+- 3006ee5: Add postinstall check for better-sqlite3 native module and CI verification step
+- 388730a: Remove unnecessary time (HH:MM) from x-axis labels on dashboard charts when using the "Last 7 days" filter
+
 ## 5.3.3
 
 ### Patch Changes

@@ -1,5 +1,44 @@
 # manifest
 
+## 5.6.3
+
+### Patch Changes
+
+- 070f100: Separate env variable reads from network code in product telemetry to avoid OpenClaw "credential harvesting" false-positive warning
+
+## 5.6.2
+
+### Patch Changes
+
+- 9bdaa46: fix: remove private workspace packages from devDependencies to fix standalone npm install
+
+## 5.6.1
+
+### Patch Changes
+
+- af2ff12: Fire agent_created product telemetry event in local mode when a new tenant/agent is created via LocalBootstrapService.
+
+## 5.6.0
+
+### Minor Changes
+
+- 532b6ce: Merge @mnfst/server into manifest plugin and replace better-sqlite3 with sql.js (WASM). Local mode no longer requires native C++ compilation — zero external build dependencies. Better Auth is skipped entirely in local mode; simple session endpoints serve loopback requests.
+
+## 5.5.0
+
+### Minor Changes
+
+- 0a252e6: Default mode changed from cloud to local — zero-config install now starts an embedded SQLite server. Content capture and faster metrics (10s) enabled automatically in local mode.
+
+## 5.3.4
+
+### Patch Changes
+
+- 3006ee5: Add postinstall check for better-sqlite3 native module and CI verification step
+- Updated dependencies [3006ee5]
+- Updated dependencies [388730a]
+  - @mnfst/server@5.3.4
+
 ## 5.3.1
 
 ### Patch Changes
