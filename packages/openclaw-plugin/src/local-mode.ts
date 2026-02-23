@@ -70,9 +70,17 @@ export function registerLocalMode(
     serverModule = require("@mnfst/server");
   } catch {
     logger.error(
-      "[manifest] @mnfst/server is not installed.\n" +
-        "  Install it with: npm install @mnfst/server\n" +
-        "  Then restart the gateway.",
+      "[manifest] @mnfst/server is not installed. Local mode cannot start.\n" +
+        "  Try reinstalling the plugin:\n" +
+        "    openclaw plugins install manifest && openclaw gateway restart\n" +
+        "\n" +
+        "  If that doesn't help, install the server globally:\n" +
+        "    npm install -g @mnfst/server\n" +
+        "    openclaw gateway restart\n" +
+        "\n" +
+        "  Or switch to cloud mode:\n" +
+        "    openclaw config set plugins.entries.manifest.config.mode cloud\n" +
+        "    openclaw gateway restart",
     );
     return;
   }
