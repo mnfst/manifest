@@ -1,5 +1,11 @@
 # manifest
 
+## 5.3.1
+
+### Patch Changes
+
+- 6904ab9: Remove filesystem access from product telemetry opt-out check and bundle skill file at build time
+
 ## 5.2.11
 
 ### Patch Changes
