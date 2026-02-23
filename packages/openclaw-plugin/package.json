@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "5.2.7",
+  "version": "5.2.11",
   "description": "Observability plugin for OpenClaw — traces, metrics, and cost tracking for your AI agent",
   "main": "dist/index.js",
   "license": "MIT",
@@ -55,7 +55,7 @@
     "agent-analytics"
   ],
   "dependencies": {
-    "@mnfst/server": "^5.2.8"
+    "@mnfst/server": "^5.2.11"
   },
   "devDependencies": {
     "@opentelemetry/api": "^1.9.0",
