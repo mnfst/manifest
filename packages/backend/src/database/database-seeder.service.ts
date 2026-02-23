@@ -50,7 +50,7 @@ export class DatabaseSeederService implements OnModuleInit {
   }
 
   private async runBetterAuthMigrations() {
-    const ctx = await auth.$context;
+    const ctx = await auth!.$context;
     await ctx.runMigrations();
   }
 
@@ -58,7 +58,7 @@ export class DatabaseSeederService implements OnModuleInit {
     const existing = await this.checkBetterAuthUser('admin@manifest.build');
     if (existing) return;
 
-    await auth.api.signUpEmail({
+    await auth!.api.signUpEmail({
       body: {
         email: 'admin@manifest.build',
         password: 'manifest',

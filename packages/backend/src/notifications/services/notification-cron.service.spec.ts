@@ -355,7 +355,7 @@ describe('NotificationCronService (SQLite dialect)', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationCronService,
-        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'better-sqlite3' } } },
+        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'sqljs' } } },
         {
           provide: NotificationRulesService,
           useValue: {

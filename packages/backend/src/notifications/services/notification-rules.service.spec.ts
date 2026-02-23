@@ -286,7 +286,7 @@ describe('NotificationRulesService (SQLite dialect)', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationRulesService,
-        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'better-sqlite3' } } },
+        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'sqljs' } } },
       ],
     }).compile();
 

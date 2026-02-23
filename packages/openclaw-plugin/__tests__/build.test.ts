@@ -51,6 +51,15 @@ describeIfBuilt("built bundle (dist/index.js)", () => {
     expect(telemetrySrc).not.toMatch(/from ["']fs["']|require\(["']fs["']\)/);
   });
 
+  it("does not contain readFile references outside local-mode config", () => {
+    // readFile + fetch triggers the scanner's potential-exfiltration rule.
+    // local-mode uses readFileSync to read ~/.openclaw/manifest/config.json —
+    // that's expected. Verify no OTHER occurrences by checking count.
+    const matches = bundleContent.match(/\breadFileSync\b/g) || [];
+    // local-mode config reading produces a small number of references
+    expect(matches.length).toBeLessThanOrEqual(5);
+  });
+
   it("does not contain literal process.env references", () => {
     // process.env is replaced with __fromEnv to avoid scanner flagging
     // env access + network send as credential harvesting
@@ -139,16 +148,16 @@ describe("build configuration", () => {
     expect(buildContent).toContain("stubs/resources.js");
   });
 
-  it("package.json declares @mnfst/server as a dependency", () => {
+  it("package.json no longer depends on @mnfst/server (merged into plugin)", () => {
     const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-    expect(pkg.dependencies).toHaveProperty("@mnfst/server");
+    expect(pkg.dependencies).not.toHaveProperty("@mnfst/server");
   });
 
-  it("build.ts keeps @mnfst/server as external", () => {
+  it("build.ts keeps ./server as external", () => {
     const buildPath = resolve(__dirname, "../build.ts");
     const buildContent = readFileSync(buildPath, "utf-8");
 
-    expect(buildContent).toContain("@mnfst/server");
-    expect(buildContent).toMatch(/external.*@mnfst\/server/);
+    expect(buildContent).toContain("./server");
+    expect(buildContent).toMatch(/external.*\.\/server/);
   });
 });

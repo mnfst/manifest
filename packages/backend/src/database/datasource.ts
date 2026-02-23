@@ -7,8 +7,9 @@ function createDataSource(): DataSource {
   if (isLocalMode) {
     const dbPath = process.env['MANIFEST_DB_PATH'] || ':memory:';
     return new DataSource({
-      type: 'better-sqlite3',
-      database: dbPath,
+      type: 'sqljs',
+      location: dbPath === ':memory:' ? undefined : dbPath,
+      autoSave: dbPath !== ':memory:',
       entities: ['src/entities/!(*.spec).ts'],
       synchronize: true,
     });
