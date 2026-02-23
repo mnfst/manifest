@@ -7,6 +7,8 @@ import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
 import { SecurityEvent } from '../entities/security-event.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
+import { ModelPricingHistory } from '../entities/model-pricing-history.entity';
+import { UnresolvedModel } from '../entities/unresolved-model.entity';
 import { TokenUsageSnapshot } from '../entities/token-usage-snapshot.entity';
 import { CostSnapshot } from '../entities/cost-snapshot.entity';
 import { AgentLog } from '../entities/agent-log.entity';
@@ -18,25 +20,30 @@ import { NotificationRule } from '../entities/notification-rule.entity';
 import { NotificationLog } from '../entities/notification-log.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { LocalBootstrapService } from './local-bootstrap.service';
-import { PricingSyncService } from './pricing-sync.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
+import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
 
 const entities = [
   AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing,
+  ModelPricingHistory, UnresolvedModel,
   TokenUsageSnapshot, CostSnapshot, AgentLog,
   ApiKey, Tenant, Agent, AgentApiKey,
   NotificationRule, NotificationLog,
 ];
 
-const migrations = [InitialSchema1771464895790, HashApiKeys1771500000000];
+const migrations = [
+  InitialSchema1771464895790,
+  HashApiKeys1771500000000,
+  ModelPricingImprovements1771600000000,
+];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 
 function buildModeServices() {
   const seeder = isLocalMode ? LocalBootstrapService : DatabaseSeederService;
-  return [seeder, PricingSyncService];
+  return [seeder];
 }
 
 @Module({

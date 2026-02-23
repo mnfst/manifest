@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { buildAliasMap, resolveModelName } from './model-name-normalizer';
+import { UnresolvedModelTrackerService } from './unresolved-model-tracker.service';
 
 @Injectable()
 export class ModelPricingCacheService implements OnModuleInit {
@@ -13,6 +14,7 @@ export class ModelPricingCacheService implements OnModuleInit {
   constructor(
     @InjectRepository(ModelPricing)
     private readonly pricingRepo: Repository<ModelPricing>,
+    private readonly unresolvedTracker: UnresolvedModelTrackerService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -34,6 +36,9 @@ export class ModelPricingCacheService implements OnModuleInit {
     if (exact) return exact;
 
     const resolved = resolveModelName(modelName, this.aliasMap);
-    return resolved ? this.cache.get(resolved) : undefined;
+    if (resolved) return this.cache.get(resolved);
+
+    this.unresolvedTracker.track(modelName);
+    return undefined;
   }
 }

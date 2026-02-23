@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { UnresolvedModelTrackerService } from './unresolved-model-tracker.service';
+import { PricingHistoryService } from '../database/pricing-history.service';
+import { PricingSyncService } from '../database/pricing-sync.service';
 
 interface ModelPriceRow {
   model_name: string;
@@ -11,7 +14,12 @@ interface ModelPriceRow {
 
 @Injectable()
 export class ModelPricesService {
-  constructor(private readonly ds: DataSource) {}
+  constructor(
+    private readonly ds: DataSource,
+    private readonly unresolvedTracker: UnresolvedModelTrackerService,
+    private readonly pricingHistory: PricingHistoryService,
+    private readonly pricingSync: PricingSyncService,
+  ) {}
 
   async getAll() {
     const rows: ModelPriceRow[] = await this.ds.query(
@@ -34,5 +42,23 @@ export class ModelPricesService {
       })),
       lastSyncedAt,
     };
+  }
+
+  async triggerSync() {
+    const updated = await this.pricingSync.syncPricing();
+    return { updated };
+  }
+
+  async getUnresolved() {
+    return this.unresolvedTracker.getUnresolved();
+  }
+
+  async getHistory(modelName: string) {
+    const records = await this.pricingHistory.getHistory(modelName);
+    return records.map((r) => ({
+      ...r,
+      input_price_per_million: Number(r.input_price_per_token) * 1_000_000,
+      output_price_per_million: Number(r.output_price_per_token) * 1_000_000,
+    }));
   }
 }

@@ -1,5 +1,6 @@
 import { ModelPricingCacheService } from './model-pricing-cache.service';
 import { ModelPricing } from '../entities/model-pricing.entity';
+import { UnresolvedModelTrackerService } from './unresolved-model-tracker.service';
 
 function makePricing(name: string): ModelPricing {
   const p = new ModelPricing();
@@ -14,11 +15,14 @@ function makePricing(name: string): ModelPricing {
 describe('ModelPricingCacheService', () => {
   let service: ModelPricingCacheService;
   let mockFind: jest.Mock;
+  let mockTrack: jest.Mock;
 
   beforeEach(() => {
     mockFind = jest.fn().mockResolvedValue([]);
     const mockRepo = { find: mockFind } as never;
-    service = new ModelPricingCacheService(mockRepo);
+    mockTrack = jest.fn();
+    const mockTracker = { track: mockTrack } as unknown as UnresolvedModelTrackerService;
+    service = new ModelPricingCacheService(mockRepo, mockTracker);
   });
 
   describe('onModuleInit', () => {
@@ -150,11 +154,38 @@ describe('ModelPricingCacheService', () => {
       expect(service.getByModel('deepseek-chat')).toBe(pricing);
     });
 
+    it('should track unresolved models on cache miss', async () => {
+      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
+      await service.onModuleInit();
+
+      service.getByModel('totally-unknown');
+
+      expect(mockTrack).toHaveBeenCalledWith('totally-unknown');
+    });
+
+    it('should not track models that resolve successfully', async () => {
+      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
+      await service.onModuleInit();
+
+      service.getByModel('openai/gpt-4o');
+
+      expect(mockTrack).not.toHaveBeenCalled();
+    });
+
     it('should still return undefined for truly unknown models', async () => {
       mockFind.mockResolvedValue([makePricing('gpt-4o')]);
       await service.onModuleInit();
 
       expect(service.getByModel('totally-unknown')).toBeUndefined();
+    });
+
+    it('should not track models that match exactly in cache', async () => {
+      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
+      await service.onModuleInit();
+
+      service.getByModel('gpt-4o');
+
+      expect(mockTrack).not.toHaveBeenCalled();
     });
   });
 });
