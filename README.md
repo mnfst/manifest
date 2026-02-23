@@ -47,7 +47,7 @@ OpenClaw costs
 
 ## Install
 
-Manifest runs as an embedded server inside the [OpenClaw](https://openclaw.com) plugin. Two commands, no Docker, no Postgres, no env files.
+Manifest runs as an embedded server inside the [OpenClaw](https://openclaw.ai) plugin. Two commands, no Docker, no Postgres, no env files.
 
 ```bash
 openclaw plugins install manifest
