@@ -168,6 +168,11 @@ jobs:
           npm init -y
           npm install ../mnfst-server-*.tgz
 
+      - name: Verify native modules
+        run: |
+          cd "$RUNNER_TEMP/smoke-test"
+          node -e "require('better-sqlite3'); console.log('better-sqlite3 OK')"
+
       - name: Run smoke test
         run: |
           cp packages/manifest-server/smoke-test.cjs "$RUNNER_TEMP/smoke-test/"
