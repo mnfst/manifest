@@ -77,8 +77,8 @@ describe('NotificationCronService', () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
     mockQuery
       .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce(undefined) // INSERT notification_log
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]); // resolve user email
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // resolve user email
+      .mockResolvedValueOnce(undefined); // INSERT notification_log
     mockGetConsumption.mockResolvedValue(150000);
 
     const result = await service.checkThresholds();
@@ -102,13 +102,29 @@ describe('NotificationCronService', () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
     mockQuery
       .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce(undefined) // INSERT notification_log
-      .mockResolvedValueOnce([]); // no email
+      .mockResolvedValueOnce([]) // no email
+      .mockResolvedValueOnce(undefined); // INSERT notification_log
     mockGetConsumption.mockResolvedValue(200000);
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
     expect(mockSendThresholdAlert).not.toHaveBeenCalled();
+  });
+
+  it('does not record log when email send fails (allows retry)', async () => {
+    mockGetAllActiveRules.mockResolvedValue([activeRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]); // resolve email
+    mockGetConsumption.mockResolvedValue(200000);
+    mockSendThresholdAlert.mockResolvedValue(false); // email failed
+
+    const result = await service.checkThresholds();
+    expect(result).toBe(0);
+    expect(mockQuery).not.toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO notification_logs'),
+      expect.any(Array),
+    );
   });
 
   it('uses PostgreSQL numbered params ($1, $2) in dedup query', async () => {
@@ -128,13 +144,13 @@ describe('NotificationCronService', () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
     mockQuery
       .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce(undefined) // INSERT
-      .mockResolvedValueOnce([{ email: 'a@b.com' }]); // email
+      .mockResolvedValueOnce([{ email: 'a@b.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
     mockGetConsumption.mockResolvedValue(200000);
 
     await service.checkThresholds();
 
-    const insertCall = mockQuery.mock.calls[1];
+    const insertCall = mockQuery.mock.calls[2];
     const sql = insertCall[0] as string;
     const params = insertCall[1] as unknown[];
 
@@ -148,13 +164,13 @@ describe('NotificationCronService', () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
     mockQuery
       .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce(undefined) // INSERT
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]); // email
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
     mockGetConsumption.mockResolvedValue(200000);
 
     await service.checkThresholds();
 
-    const emailCall = mockQuery.mock.calls[2];
+    const emailCall = mockQuery.mock.calls[1];
     const sql = emailCall[0] as string;
     expect(sql).toContain('SELECT email FROM "user" WHERE id = $1');
     expect(emailCall[1]).toEqual(['user-1']);
@@ -167,13 +183,53 @@ describe('NotificationCronService', () => {
     // Rule 1: triggers
     mockQuery
       .mockResolvedValueOnce([]) // no dedup rule-1
-      .mockResolvedValueOnce(undefined) // INSERT rule-1
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]); // email rule-1
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email rule-1
+      .mockResolvedValueOnce(undefined); // INSERT rule-1
     mockGetConsumption.mockResolvedValueOnce(150000); // above 100k
 
     // Rule 2: does not trigger
     mockQuery.mockResolvedValueOnce([]); // no dedup rule-2
     mockGetConsumption.mockResolvedValueOnce(100000); // below 500k
+
+    const result = await service.checkThresholds();
+    expect(result).toBe(1);
+  });
+
+  it('triggers notification for hourly period (checks previous hour)', async () => {
+    const hourlyRule = { ...activeRule, id: 'rule-hour', period: 'hour' as const };
+    mockGetAllActiveRules.mockResolvedValue([hourlyRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
+    mockGetConsumption.mockResolvedValue(150000);
+
+    const result = await service.checkThresholds();
+    expect(result).toBe(1);
+    expect(mockSendThresholdAlert).toHaveBeenCalled();
+  });
+
+  it('triggers notification for weekly period', async () => {
+    const weeklyRule = { ...activeRule, id: 'rule-week', period: 'week' as const };
+    mockGetAllActiveRules.mockResolvedValue([weeklyRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
+    mockGetConsumption.mockResolvedValue(150000);
+
+    const result = await service.checkThresholds();
+    expect(result).toBe(1);
+  });
+
+  it('triggers notification for monthly period', async () => {
+    const monthlyRule = { ...activeRule, id: 'rule-month', period: 'month' as const };
+    mockGetAllActiveRules.mockResolvedValue([monthlyRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
+    mockGetConsumption.mockResolvedValue(150000);
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
@@ -189,8 +245,8 @@ describe('NotificationCronService', () => {
     // Rule 2: triggers
     mockQuery
       .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce(undefined) // INSERT
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]); // email
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
     mockGetConsumption.mockResolvedValueOnce(200000);
 
     const result = await service.checkThresholds();
@@ -260,13 +316,13 @@ describe('NotificationCronService (SQLite dialect)', () => {
     mockGetAllActiveRules.mockResolvedValue([sqliteRule]);
     mockQuery
       .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce(undefined) // INSERT
-      .mockResolvedValueOnce([{ email: 'a@b.com' }]); // email
+      .mockResolvedValueOnce([{ email: 'a@b.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
     mockGetConsumption.mockResolvedValue(200000);
 
     await service.checkThresholds();
 
-    const insertCall = mockQuery.mock.calls[1];
+    const insertCall = mockQuery.mock.calls[2];
     const sql = insertCall[0] as string;
     const params = insertCall[1] as unknown[];
 
@@ -281,13 +337,13 @@ describe('NotificationCronService (SQLite dialect)', () => {
     mockGetAllActiveRules.mockResolvedValue([sqliteRule]);
     mockQuery
       .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce(undefined) // INSERT
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]); // email
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
     mockGetConsumption.mockResolvedValue(200000);
 
     await service.checkThresholds();
 
-    const emailCall = mockQuery.mock.calls[2];
+    const emailCall = mockQuery.mock.calls[1];
     const sql = emailCall[0] as string;
     expect(sql).toContain('SELECT email FROM "user" WHERE id = ?');
     expect(emailCall[1]).toEqual(['user-1']);
@@ -297,8 +353,8 @@ describe('NotificationCronService (SQLite dialect)', () => {
     mockGetAllActiveRules.mockResolvedValue([sqliteRule]);
     mockQuery
       .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce(undefined) // INSERT
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]); // email
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
     mockGetConsumption.mockResolvedValue(150000);
 
     const result = await service.checkThresholds();
