@@ -168,10 +168,10 @@ jobs:
           npm init -y
           npm install ../mnfst-server-*.tgz
 
-      - name: Verify native modules
+      - name: Verify sql.js loads
         run: |
           cd "$RUNNER_TEMP/smoke-test"
-          node -e "require('better-sqlite3'); console.log('better-sqlite3 OK')"
+          node -e "require('sql.js'); console.log('sql.js OK')"
 
       - name: Run smoke test
         run: |
@@ -196,17 +196,17 @@ jobs:
         run: npx changeset status --since=origin/main
         continue-on-error: true
 
-      - name: Require @mnfst/server changeset for backend/frontend changes
+      - name: Require manifest changeset for backend/frontend changes
         run: |
           CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
           if echo "$CHANGED_FILES" | grep -qE '^packages/(backend|frontend)/'; then
-            echo "Backend or frontend files changed — checking for @mnfst/server changeset..."
-            if ! grep -rl '"@mnfst/server"' .changeset/*.md 2>/dev/null | grep -qv README.md; then
-              echo "::error::Backend or frontend files changed but no @mnfst/server changeset found."
-              echo "Run 'npx changeset' and add a patch/minor bump for @mnfst/server."
+            echo "Backend or frontend files changed — checking for manifest changeset..."
+            if ! grep -rl '"manifest"' .changeset/*.md 2>/dev/null | grep -qv README.md; then
+              echo "::error::Backend or frontend files changed but no manifest changeset found."
+              echo "Run 'npx changeset' and add a patch/minor bump for manifest."
               exit 1
             fi
-            echo "Found @mnfst/server changeset."
+            echo "Found manifest changeset."
           else
             echo "No backend/frontend changes detected — skipping check."
           fi

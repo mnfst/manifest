@@ -25,6 +25,9 @@ export class SessionGuard implements CanActivate {
     // Let API-key authenticated requests be handled by ApiKeyGuard
     if (request.headers['x-api-key']) return true;
 
+    // In local mode, Better Auth is not initialized
+    if (!auth) return true;
+
     const session = await auth.api.getSession({
       headers: fromNodeHeaders(request.headers),
     });

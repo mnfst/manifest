@@ -1,21 +1,10 @@
 // Mock typeorm to avoid path-scurry native dependency issue
 jest.mock('typeorm', () => ({
-  DataSource: jest.fn(),
   Repository: jest.fn(),
 }));
 
 jest.mock('@nestjs/typeorm', () => ({
   InjectRepository: () => () => undefined,
-}));
-
-// Mock auth.instance before importing the service
-jest.mock('../auth/auth.instance', () => ({
-  auth: {
-    $context: Promise.resolve({ runMigrations: jest.fn() }),
-    api: {
-      signUpEmail: jest.fn().mockResolvedValue({}),
-    },
-  },
 }));
 
 // Mock fs for config reading (includes writeFileSync/mkdirSync used by local-mode.constants)
@@ -44,9 +33,6 @@ jest.mock('../entities/model-pricing.entity', () => ({ ModelPricing: jest.fn() }
 
 import { LocalBootstrapService } from './local-bootstrap.service';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { auth } = require('../auth/auth.instance');
-
 function makeMockRepo() {
   return {
     count: jest.fn().mockResolvedValue(0),
@@ -57,7 +43,6 @@ function makeMockRepo() {
 
 describe('LocalBootstrapService', () => {
   let service: LocalBootstrapService;
-  let mockDataSource: { query: jest.Mock };
   let mockTenantRepo: ReturnType<typeof makeMockRepo>;
   let mockAgentRepo: ReturnType<typeof makeMockRepo>;
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
@@ -66,9 +51,6 @@ describe('LocalBootstrapService', () => {
   let mockPricingSync: { syncPricing: jest.Mock };
 
   beforeEach(() => {
-    mockDataSource = { query: jest.fn() };
-    // Pre-mock the WAL mode PRAGMA call that runs first in onModuleInit
-    mockDataSource.query.mockResolvedValueOnce(undefined);
     mockTenantRepo = makeMockRepo();
     mockAgentRepo = makeMockRepo();
     mockAgentKeyRepo = makeMockRepo();
@@ -76,11 +58,7 @@ describe('LocalBootstrapService', () => {
     mockPricingCache = { reload: jest.fn().mockResolvedValue(undefined) };
     mockPricingSync = { syncPricing: jest.fn().mockResolvedValue(undefined) };
 
-    (auth.api.signUpEmail as jest.Mock).mockClear();
-    (auth.api.signUpEmail as jest.Mock).mockResolvedValue({});
-
     service = new LocalBootstrapService(
-      mockDataSource as never,
       mockTenantRepo as never,
       mockAgentRepo as never,
       mockAgentKeyRepo as never,
@@ -92,9 +70,6 @@ describe('LocalBootstrapService', () => {
 
   describe('onModuleInit', () => {
     it('runs full bootstrap sequence', async () => {
-      mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
-      mockDataSource.query.mockResolvedValueOnce(undefined); // UPDATE emailVerified
-
       await service.onModuleInit();
 
       expect(mockPricingRepo.upsert).toHaveBeenCalled();
@@ -120,19 +95,8 @@ describe('LocalBootstrapService', () => {
       expect(mockPricingSync.syncPricing).toHaveBeenCalled();
     });
 
-    it('skips user creation when user already exists', async () => {
-      mockDataSource.query.mockResolvedValueOnce([{ id: 'existing-id' }]);
-      mockDataSource.query.mockResolvedValueOnce([{ id: 'existing-id' }]);
-
-      await service.onModuleInit();
-
-      expect(auth.api.signUpEmail).not.toHaveBeenCalled();
-    });
-
     it('skips tenant/agent when tenant already exists', async () => {
       mockTenantRepo.count.mockResolvedValue(1);
-      mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
-      mockDataSource.query.mockResolvedValueOnce(undefined); // UPDATE email
 
       await service.onModuleInit();
 
@@ -142,27 +106,10 @@ describe('LocalBootstrapService', () => {
 
     it('skips model pricing seed when models already exist', async () => {
       mockPricingRepo.count.mockResolvedValue(28);
-      mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
-      mockDataSource.query.mockResolvedValueOnce(undefined); // UPDATE email
 
       await service.onModuleInit();
 
       expect(mockPricingRepo.upsert).not.toHaveBeenCalled();
-    });
-
-    it('creates tenant/agent even without BetterAuth user', async () => {
-      mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
-      mockDataSource.query.mockResolvedValueOnce(undefined); // UPDATE email
-
-      await service.onModuleInit();
-
-      expect(mockTenantRepo.insert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'local-tenant-001',
-          name: 'local-user-001',
-        }),
-      );
-      expect(mockAgentRepo.insert).toHaveBeenCalled();
     });
   });
 
@@ -170,10 +117,6 @@ describe('LocalBootstrapService', () => {
     it('does not register API key when config file missing', async () => {
       const { existsSync } = require('fs');
       (existsSync as jest.Mock).mockReturnValue(false);
-
-      mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
-      mockDataSource.query.mockResolvedValueOnce(undefined); // UPDATE email
-      mockDataSource.query.mockResolvedValueOnce([{ id: 'ba-id' }]); // getBetterAuthUserId
 
       await service.onModuleInit();
 
@@ -186,10 +129,6 @@ describe('LocalBootstrapService', () => {
       (readFileSync as jest.Mock).mockReturnValue(
         JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
       );
-
-      mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
-      mockDataSource.query.mockResolvedValueOnce(undefined); // UPDATE email
-      mockDataSource.query.mockResolvedValueOnce([{ id: 'ba-id' }]); // getBetterAuthUserId
 
       await service.onModuleInit();
 
@@ -212,10 +151,6 @@ describe('LocalBootstrapService', () => {
       );
       mockAgentKeyRepo.count.mockResolvedValue(1);
 
-      mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
-      mockDataSource.query.mockResolvedValueOnce(undefined); // UPDATE email
-      mockDataSource.query.mockResolvedValueOnce([{ id: 'ba-id' }]); // getBetterAuthUserId
-
       await service.onModuleInit();
 
       expect(mockAgentKeyRepo.insert).not.toHaveBeenCalled();
@@ -223,21 +158,8 @@ describe('LocalBootstrapService', () => {
   });
 
   describe('error handling', () => {
-    it('handles signUp failure gracefully', async () => {
-      (auth.api.signUpEmail as jest.Mock).mockRejectedValueOnce(
-        new Error('signup failed'),
-      );
-      mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
-      mockDataSource.query.mockResolvedValueOnce([]); // getBetterAuthUserId
-
-      await expect(service.onModuleInit()).resolves.not.toThrow();
-    });
-
     it('handles background pricing sync failure gracefully', async () => {
       mockPricingSync.syncPricing.mockRejectedValue(new Error('network error'));
-      mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
-      mockDataSource.query.mockResolvedValueOnce(undefined); // UPDATE email
-      mockDataSource.query.mockResolvedValueOnce([{ id: 'ba-id' }]); // getBetterAuthUserId
 
       await expect(service.onModuleInit()).resolves.not.toThrow();
     });

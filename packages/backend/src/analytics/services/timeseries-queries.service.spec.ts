@@ -321,14 +321,14 @@ describe('TimeseriesQueriesService (SQLite dialect)', () => {
           provide: getRepositoryToken(Agent),
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockAgentQb) },
         },
-        { provide: DataSource, useValue: { options: { type: 'better-sqlite3' } } },
+        { provide: DataSource, useValue: { options: { type: 'sqljs' } } },
       ],
     }).compile();
 
     service = module.get<TimeseriesQueriesService>(TimeseriesQueriesService);
   });
 
-  it('initializes with sqlite dialect from better-sqlite3', () => {
+  it('initializes with sqlite dialect from sqljs', () => {
     expect(service).toBeDefined();
   });
 
