@@ -1,11 +1,22 @@
 # Manifest
 
-Observability plugin for [OpenClaw](https://github.com/open-claw/open-claw). Collects traces, metrics, and cost data from your AI agent and exports them to [Manifest](https://manifest.build) via OTLP/HTTP.
+Observability plugin for [OpenClaw](https://github.com/open-claw/open-claw). Collects traces, metrics, and cost data from your AI agent and displays them in a local dashboard — zero configuration required.
 
 ## Install
 
 ```bash
 openclaw plugins install manifest
+openclaw gateway restart
+```
+
+That's it. The plugin starts an embedded server with SQLite at `http://127.0.0.1:2099`. Open that URL to see your dashboard.
+
+### Cloud mode
+
+To send telemetry to the hosted platform at [app.manifest.build](https://app.manifest.build) instead:
+
+```bash
+openclaw config set plugins.entries.manifest.config.mode cloud
 openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
 openclaw gateway restart
 ```
@@ -16,33 +27,18 @@ Or with environment variables:
 export MANIFEST_API_KEY=mnfst_YOUR_KEY
 ```
 
-## Local mode
-
-Run the full Manifest dashboard locally — no cloud account needed. Data is stored in SQLite at `~/.openclaw/manifest/`.
-
-```bash
-openclaw plugins install manifest
-openclaw config set plugins.entries.manifest.config.mode "local"
-openclaw gateway restart
-```
-
-Open `http://127.0.0.1:2099` to view the dashboard.
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `mode` | string | `cloud` | `local` for embedded server, `cloud` for hosted |
-| `port` | number | `2099` | Local server port |
-| `host` | string | `127.0.0.1` | Local server bind address |
-
 ## Configuration
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `apiKey` | string | env `MANIFEST_API_KEY` | Agent API key (`mnfst_*`) |
-| `endpoint` | string | `https://app.manifest.build/api/v1/otlp` | OTLP endpoint URL |
+| `mode` | string | `local` | `local` for embedded server + SQLite, `cloud` for app.manifest.build |
+| `apiKey` | string | env `MANIFEST_API_KEY` | Agent API key (`mnfst_*`). Required for cloud mode only. |
+| `endpoint` | string | `https://app.manifest.build/otlp` | OTLP endpoint URL (cloud mode) |
 | `serviceName` | string | `openclaw-gateway` | OpenTelemetry service name |
-| `captureContent` | boolean | `false` | Include message content in spans |
-| `metricsIntervalMs` | number | `30000` | Metrics export interval (min 5000ms) |
+| `captureContent` | boolean | `false` | Include message content in spans. Always enabled in local mode. |
+| `metricsIntervalMs` | number | `30000` | Metrics export interval (min 5000ms). 10s in local mode. |
+| `port` | number | `2099` | Local server port (local mode only) |
+| `host` | string | `127.0.0.1` | Local server bind address (local mode only) |
 
 Point to a self-hosted instance:
 
@@ -110,15 +106,14 @@ Local testing:
 
 ```bash
 openclaw plugins install -l ./packages/openclaw-plugin
-openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
-openclaw config set plugins.entries.manifest.config.endpoint "http://localhost:3001/otlp/v1"
 openclaw gateway restart
+# Dashboard at http://127.0.0.1:2099
 ```
 
 ## Troubleshooting
 
 **No spans appearing?**
-- Check your API key starts with `mnfst_`
+- In cloud mode, check your API key starts with `mnfst_`
 - Verify the endpoint is reachable: `curl -I http://your-endpoint/v1/traces`
 - Disable `diagnostics-otel` if enabled: `openclaw plugins disable diagnostics-otel`
 

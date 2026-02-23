@@ -1,5 +1,6 @@
 import { ManifestConfig } from "../src/config";
 import { PluginLogger } from "../src/telemetry";
+import { LOCAL_DEFAULTS } from "../src/constants";
 
 // Mock all dependencies that local-mode.ts imports at the top level
 jest.mock("fs", () => ({
@@ -225,6 +226,58 @@ describe("registerLocalMode", () => {
       expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining("Dashboard: http://127.0.0.1:2099"),
       );
+    });
+  });
+
+  it("overrides captureContent to true in localConfig", () => {
+    jest.isolateModules(() => {
+      jest.doMock("@mnfst/server", () => ({
+        start: jest.fn().mockResolvedValue({}),
+      }));
+
+      const { initTelemetry } = require("../src/telemetry");
+      const { registerLocalMode } = require("../src/local-mode");
+      const logger = makeLogger();
+      const api = makeApi();
+      registerLocalMode(api, makeConfig({ captureContent: false }), logger);
+
+      const telemetryCall = (initTelemetry as jest.Mock).mock.calls[0];
+      expect(telemetryCall[0].captureContent).toBe(true);
+    });
+  });
+
+  it("overrides metricsIntervalMs to LOCAL_DEFAULTS value (10s)", () => {
+    jest.isolateModules(() => {
+      jest.doMock("@mnfst/server", () => ({
+        start: jest.fn().mockResolvedValue({}),
+      }));
+
+      const { initTelemetry } = require("../src/telemetry");
+      const { registerLocalMode } = require("../src/local-mode");
+      const logger = makeLogger();
+      const api = makeApi();
+      registerLocalMode(api, makeConfig({ metricsIntervalMs: 30_000 }), logger);
+
+      const telemetryCall = (initTelemetry as jest.Mock).mock.calls[0];
+      expect(telemetryCall[0].metricsIntervalMs).toBe(LOCAL_DEFAULTS.METRICS_INTERVAL_MS);
+      expect(telemetryCall[0].metricsIntervalMs).toBe(10_000);
+    });
+  });
+
+  it("sets endpoint to local server URL in localConfig", () => {
+    jest.isolateModules(() => {
+      jest.doMock("@mnfst/server", () => ({
+        start: jest.fn().mockResolvedValue({}),
+      }));
+
+      const { initTelemetry } = require("../src/telemetry");
+      const { registerLocalMode } = require("../src/local-mode");
+      const logger = makeLogger();
+      const api = makeApi();
+      registerLocalMode(api, makeConfig({ port: 2099, host: "127.0.0.1" }), logger);
+
+      const telemetryCall = (initTelemetry as jest.Mock).mock.calls[0];
+      expect(telemetryCall[0].endpoint).toBe("http://127.0.0.1:2099/otlp");
     });
   });
 });
