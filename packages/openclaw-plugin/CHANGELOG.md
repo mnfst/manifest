@@ -1,5 +1,11 @@
 # manifest
 
+## 5.6.2
+
+### Patch Changes
+
+- 9bdaa46: fix: remove private workspace packages from devDependencies to fix standalone npm install
+
 ## 5.6.1
 
 ### Patch Changes
