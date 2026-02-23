@@ -125,9 +125,13 @@ jobs:
           fail_ci_if_error: false
 
   server-smoke:
-    name: Server smoke test
-    runs-on: ubuntu-latest
+    name: Server smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     env:
       BETTER_AUTH_SECRET: ci-test-secret-at-least-32-characters-long!!
@@ -140,8 +144,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build --workspace=packages/backend
-      - run: npm run build --workspace=packages/frontend
-      - run: npm run build --workspace=packages/manifest-server
+
+      - name: Build frontend
+        if: runner.os == 'Linux'
+        run: npm run build --workspace=packages/frontend
+
+      - name: Build manifest-server
+        shell: bash
+        run: |
+          cd packages/manifest-server
+          rm -rf dist
+          node scripts/copy-assets.js
+          npx tsc
 
       - name: Pack @mnfst/server
         run: npm pack --workspace=packages/manifest-server --pack-destination="$RUNNER_TEMP"
