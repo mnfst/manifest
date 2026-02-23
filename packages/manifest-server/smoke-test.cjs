@@ -35,7 +35,7 @@ async function waitForServer(url, retries = 60, delay = 1000) {
     process.env.BETTER_AUTH_SECRET || 'smoke-test-secret-at-least-32-chars!!';
 
   const { start } = require('@mnfst/server');
-  await start({ port: 2099, host: '127.0.0.1' });
+  await start({ port: 2099, host: '127.0.0.1', dbPath: ':memory:' });
 
   await waitForServer('http://127.0.0.1:2099/api/v1/health');
 
