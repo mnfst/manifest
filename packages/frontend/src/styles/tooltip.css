@@ -46,3 +46,8 @@
 .info-tooltip:focus .info-tooltip__bubble {
   display: block;
 }
+
+.info-tooltip__bubble strong {
+  display: block;
+  margin-bottom: 2px;
+}

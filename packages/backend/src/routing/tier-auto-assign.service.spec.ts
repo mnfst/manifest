@@ -10,6 +10,9 @@ function makeModel(overrides: Partial<ModelPricing>): ModelPricing {
     context_window: 128000,
     capability_reasoning: false,
     capability_code: false,
+    capability_vision: false,
+    capability_tool_calling: true,
+    capability_structured_output: false,
     quality_score: 3,
     updated_at: null,
     ...overrides,
@@ -141,6 +144,18 @@ describe('TierAutoAssignService', () => {
       expect(service.pickBest(models, 'standard')!.model_name).toBe('gemini-2.5-flash');
       expect(service.pickBest(models, 'complex')!.model_name).toBe('gemini-2.5-pro');
       expect(service.pickBest(models, 'reasoning')!.model_name).toBe('gemini-2.5-pro');
+    });
+
+    it('extra capabilities do not affect pickBest selection', () => {
+      const withVision = makeModel({ model_name: 'vision', input_price_per_token: 0.000001, output_price_per_token: 0.000002, quality_score: 3, capability_vision: true, capability_tool_calling: true, capability_structured_output: true });
+      const noVision = makeModel({ model_name: 'no-vision', input_price_per_token: 0.0000005, output_price_per_token: 0.000001, quality_score: 3, capability_vision: false, capability_tool_calling: false, capability_structured_output: false });
+
+      // simple: cheapest wins regardless of capabilities
+      expect(service.pickBest([withVision, noVision], 'simple')!.model_name).toBe('no-vision');
+      // standard: same quality, cheapest wins
+      expect(service.pickBest([withVision, noVision], 'standard')!.model_name).toBe('no-vision');
+      // complex: same quality, cheapest wins
+      expect(service.pickBest([withVision, noVision], 'complex')!.model_name).toBe('no-vision');
     });
 
     it('should assign different models per tier (multi-provider catalog)', () => {

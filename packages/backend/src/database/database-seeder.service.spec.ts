@@ -337,6 +337,9 @@ describe('DatabaseSeederService', () => {
           context_window: 200000,
           capability_reasoning: true,
           capability_code: true,
+          capability_vision: true,
+          capability_tool_calling: true,
+          capability_structured_output: true,
         }),
         ['model_name'],
       );

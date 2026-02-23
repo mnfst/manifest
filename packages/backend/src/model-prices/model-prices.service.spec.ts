@@ -14,14 +14,14 @@ describe('ModelPricesService', () => {
     it('should return transformed models with per-million pricing', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_token: 0.0000025, output_price_per_token: 0.00001, updated_at: '2025-06-01' },
+          { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_token: 0.0000025, output_price_per_token: 0.00001, updated_at: '2025-06-01', capability_vision: true, capability_tool_calling: true, capability_reasoning: false, capability_structured_output: true },
         ])
         .mockResolvedValueOnce([{ last_synced: '2025-06-01' }]);
 
       const result = await service.getAll();
 
       expect(result.models).toEqual([
-        { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_million: 2.5, output_price_per_million: 10 },
+        { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_million: 2.5, output_price_per_million: 10, capability_vision: true, capability_tool_calling: true, capability_reasoning: false, capability_structured_output: true },
       ]);
       expect(result.lastSyncedAt).toBe('2025-06-01');
     });
@@ -29,7 +29,7 @@ describe('ModelPricesService', () => {
     it('should use "Unknown" when provider is empty', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'test-model', provider: '', input_price_per_token: 0.000001, output_price_per_token: 0.000002, updated_at: null },
+          { model_name: 'test-model', provider: '', input_price_per_token: 0.000001, output_price_per_token: 0.000002, updated_at: null, capability_vision: false, capability_tool_calling: false, capability_reasoning: false, capability_structured_output: false },
         ])
         .mockResolvedValueOnce([{ last_synced: null }]);
 
@@ -62,7 +62,7 @@ describe('ModelPricesService', () => {
     it('should correctly calculate per-million prices for very small token prices', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'cheap-model', provider: 'Test', input_price_per_token: 0.00000006, output_price_per_token: 0.00000024, updated_at: null },
+          { model_name: 'cheap-model', provider: 'Test', input_price_per_token: 0.00000006, output_price_per_token: 0.00000024, updated_at: null, capability_vision: false, capability_tool_calling: true, capability_reasoning: false, capability_structured_output: false },
         ])
         .mockResolvedValueOnce([{ last_synced: null }]);
 
@@ -75,8 +75,8 @@ describe('ModelPricesService', () => {
     it('should return multiple models sorted by provider', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'claude-opus-4-6', provider: 'Anthropic', input_price_per_token: 0.000015, output_price_per_token: 0.000075, updated_at: '2025-06-01' },
-          { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_token: 0.0000025, output_price_per_token: 0.00001, updated_at: '2025-06-01' },
+          { model_name: 'claude-opus-4-6', provider: 'Anthropic', input_price_per_token: 0.000015, output_price_per_token: 0.000075, updated_at: '2025-06-01', capability_vision: true, capability_tool_calling: true, capability_reasoning: true, capability_structured_output: true },
+          { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_token: 0.0000025, output_price_per_token: 0.00001, updated_at: '2025-06-01', capability_vision: true, capability_tool_calling: true, capability_reasoning: false, capability_structured_output: true },
         ])
         .mockResolvedValueOnce([{ last_synced: '2025-06-01' }]);
 
