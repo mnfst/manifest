@@ -1,5 +1,14 @@
 # manifest
 
+## 5.3.4
+
+### Patch Changes
+
+- 3006ee5: Add postinstall check for better-sqlite3 native module and CI verification step
+- Updated dependencies [3006ee5]
+- Updated dependencies [388730a]
+  - @mnfst/server@5.3.4
+
 ## 5.3.1
 
 ### Patch Changes

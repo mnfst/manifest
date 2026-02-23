@@ -1,5 +1,12 @@
 # @mnfst/server
 
+## 5.3.4
+
+### Patch Changes
+
+- 3006ee5: Add postinstall check for better-sqlite3 native module and CI verification step
+- 388730a: Remove unnecessary time (HH:MM) from x-axis labels on dashboard charts when using the "Last 7 days" filter
+
 ## 5.3.3
 
 ### Patch Changes
