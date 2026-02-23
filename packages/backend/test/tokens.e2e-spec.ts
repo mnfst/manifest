@@ -50,10 +50,10 @@ describe('GET /api/v1/tokens', () => {
     expect(res.body.summary).toHaveProperty('total_tokens');
     expect(res.body.summary).toHaveProperty('input_tokens');
     expect(res.body.summary).toHaveProperty('output_tokens');
-    expect(res.body.summary.total_tokens).toHaveProperty('value');
+    expect(res.body.summary.total_tokens.value).toBeGreaterThan(0);
   });
 
-  it('returns hourly breakdown', async () => {
+  it('returns hourly breakdown with data', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/tokens?range=24h')
       .set('x-api-key', TEST_API_KEY)
@@ -61,6 +61,7 @@ describe('GET /api/v1/tokens', () => {
 
     expect(res.body).toHaveProperty('hourly');
     expect(Array.isArray(res.body.hourly)).toBe(true);
+    expect(res.body.hourly.length).toBeGreaterThan(0);
   });
 });
 

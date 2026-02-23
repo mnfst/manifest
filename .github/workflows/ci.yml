@@ -58,8 +58,11 @@ jobs:
           fail_ci_if_error: false
 
   backend-sqlite:
-    name: Backend (SQLite)
-    runs-on: ubuntu-latest
+    name: Backend (SQLite / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     env:
       MANIFEST_MODE: local

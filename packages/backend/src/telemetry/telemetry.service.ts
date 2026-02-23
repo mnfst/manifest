@@ -59,7 +59,7 @@ export class TelemetryService {
   }
 
   private normalizeTimestamp(ts: string): string {
-    return ts.replace('T', ' ').replace('Z', '');
+    return new Date(ts).toISOString();
   }
 
   private async insertEvent(event: TelemetryEventDto, userId: string): Promise<void> {

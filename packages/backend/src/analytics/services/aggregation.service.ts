@@ -6,7 +6,7 @@ import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
 import { MetricWithTrend, computeTrend, addTenantFilter, formatTimestamp } from './query-helpers';
 import {
-  DbDialect, detectDialect, computeCutoff, sqlNow, sqlCastFloat,
+  DbDialect, detectDialect, computeCutoff, sqlCastFloat,
 } from '../../common/utils/sql-dialect';
 
 export { MetricWithTrend };
@@ -37,13 +37,10 @@ export class AggregationService {
     const prevInterval = rangeToPreviousInterval(range);
     const cutoff = computeCutoff(interval);
     const prevCutoff = computeCutoff(prevInterval);
-    const now = sqlNow();
-
     const currentQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now });
+      .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(currentQb, userId, agentName);
     const currentRow = await currentQb.getRawOne();
 
@@ -59,8 +56,7 @@ export class AggregationService {
       .createQueryBuilder('at')
       .select('COALESCE(SUM(at.input_tokens), 0)', 'inp')
       .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now });
+      .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(detailQb, userId, agentName);
     const detail = await detailQb.getRawOne();
 
@@ -85,13 +81,11 @@ export class AggregationService {
     const prevInterval = rangeToPreviousInterval(range);
     const cutoff = computeCutoff(interval);
     const prevCutoff = computeCutoff(prevInterval);
-    const now = sqlNow();
 
     const currentQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COALESCE(SUM(at.cost_usd), 0)', 'total')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now });
+      .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(currentQb, userId, agentName);
     const currentRow = await currentQb.getRawOne();
 
@@ -113,13 +107,11 @@ export class AggregationService {
     const prevInterval = rangeToPreviousInterval(range);
     const cutoff = computeCutoff(interval);
     const prevCutoff = computeCutoff(prevInterval);
-    const now = sqlNow();
 
     const currentQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COUNT(*)', 'total')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now });
+      .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(currentQb, userId, agentName);
     const currentRow = await currentQb.getRawOne();
 

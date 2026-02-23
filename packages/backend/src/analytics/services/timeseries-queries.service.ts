@@ -6,7 +6,7 @@ import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
 import { addTenantFilter, downsample } from './query-helpers';
 import {
-  DbDialect, detectDialect, computeCutoff, sqlNow,
+  DbDialect, detectDialect, computeCutoff,
   sqlHourBucket, sqlDateBucket, sqlCastFloat,
 } from '../../common/utils/sql-dialect';
 
@@ -27,7 +27,7 @@ export class TimeseriesQueriesService {
   async getHourlyTokens(range: string, userId: string, agentName?: string) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
-    const now = sqlNow();
+
     const hourExpr = sqlHourBucket('at.timestamp', this.dialect);
 
     const qb = this.turnRepo
@@ -35,8 +35,7 @@ export class TimeseriesQueriesService {
       .select(hourExpr, 'hour')
       .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
       .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now });
+      .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName);
     const rows = await qb.groupBy('hour').orderBy('hour', 'ASC').getRawMany();
     return rows.map((r: Record<string, unknown>) => ({
@@ -49,7 +48,7 @@ export class TimeseriesQueriesService {
   async getDailyTokens(range: string, userId: string, agentName?: string) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
-    const now = sqlNow();
+
     const dateExpr = sqlDateBucket('at.timestamp', this.dialect);
 
     const qb = this.turnRepo
@@ -57,8 +56,7 @@ export class TimeseriesQueriesService {
       .select(dateExpr, 'date')
       .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
       .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now });
+      .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName);
     const rows = await qb.groupBy('date').orderBy('date', 'ASC').getRawMany();
     return rows.map((r: Record<string, unknown>) => ({
@@ -71,15 +69,14 @@ export class TimeseriesQueriesService {
   async getHourlyCosts(range: string, userId: string, agentName?: string) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
-    const now = sqlNow();
+
     const hourExpr = sqlHourBucket('at.timestamp', this.dialect);
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .select(hourExpr, 'hour')
       .addSelect('COALESCE(SUM(at.cost_usd), 0)', 'cost')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now });
+      .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName);
     const rows = await qb.groupBy('hour').orderBy('hour', 'ASC').getRawMany();
     return rows.map((r: Record<string, unknown>) => ({
@@ -91,15 +88,14 @@ export class TimeseriesQueriesService {
   async getDailyCosts(range: string, userId: string, agentName?: string) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
-    const now = sqlNow();
+
     const dateExpr = sqlDateBucket('at.timestamp', this.dialect);
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .select(dateExpr, 'date')
       .addSelect('COALESCE(SUM(at.cost_usd), 0)', 'cost')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now });
+      .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName);
     const rows = await qb.groupBy('date').orderBy('date', 'ASC').getRawMany();
     return rows.map((r: Record<string, unknown>) => ({
@@ -111,15 +107,14 @@ export class TimeseriesQueriesService {
   async getHourlyMessages(range: string, userId: string, agentName?: string) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
-    const now = sqlNow();
+
     const hourExpr = sqlHourBucket('at.timestamp', this.dialect);
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .select(hourExpr, 'hour')
       .addSelect('COUNT(*)', 'count')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now });
+      .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName);
     const rows = await qb.groupBy('hour').orderBy('hour', 'ASC').getRawMany();
     return rows.map((r: Record<string, unknown>) => ({
@@ -131,15 +126,14 @@ export class TimeseriesQueriesService {
   async getDailyMessages(range: string, userId: string, agentName?: string) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
-    const now = sqlNow();
+
     const dateExpr = sqlDateBucket('at.timestamp', this.dialect);
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .select(dateExpr, 'date')
       .addSelect('COUNT(*)', 'count')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now });
+      .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName);
     const rows = await qb.groupBy('date').orderBy('date', 'ASC').getRawMany();
     return rows.map((r: Record<string, unknown>) => ({
@@ -151,7 +145,7 @@ export class TimeseriesQueriesService {
   async getActiveSkills(range: string, userId: string, agentName?: string) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
-    const now = sqlNow();
+
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
@@ -160,7 +154,6 @@ export class TimeseriesQueriesService {
       .addSelect('COUNT(*)', 'run_count')
       .addSelect('MAX(at.timestamp)', 'last_active_at')
       .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now })
       .andWhere('at.skill_name IS NOT NULL');
     addTenantFilter(qb, userId, agentName);
     const rows = await qb.groupBy('at.skill_name').orderBy('run_count', 'DESC').getRawMany();
@@ -176,7 +169,7 @@ export class TimeseriesQueriesService {
   async getRecentActivity(range: string, userId: string, limit = 5, agentName?: string) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
-    const now = sqlNow();
+
     const costExpr = sqlCastFloat('at.cost_usd', this.dialect);
 
     const qb = this.turnRepo
@@ -190,8 +183,7 @@ export class TimeseriesQueriesService {
       .addSelect('at.status', 'status')
       .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
       .addSelect(costExpr, 'cost')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now });
+      .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName);
     return qb.orderBy('at.timestamp', 'DESC').limit(limit).getRawMany();
   }
@@ -199,7 +191,7 @@ export class TimeseriesQueriesService {
   async getCostByModel(range: string, userId: string, agentName?: string) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
-    const now = sqlNow();
+
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
@@ -207,7 +199,6 @@ export class TimeseriesQueriesService {
       .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
       .addSelect('COALESCE(SUM(at.cost_usd), 0)', 'estimated_cost')
       .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.timestamp <= :now', { now })
       .andWhere('at.model IS NOT NULL')
       .andWhere("at.model != ''");
     addTenantFilter(qb, userId, agentName);

@@ -10,6 +10,7 @@ import {
   attrNumber,
   AttributeMap,
 } from './otlp-helpers';
+import { computeCutoff } from '../../common/utils/sql-dialect';
 
 describe('extractAttributes', () => {
   it('extracts string values', () => {
@@ -71,7 +72,7 @@ describe('nanoToDatetime', () => {
     // 2026-02-16T12:00:00.000Z in nanoseconds
     const nanos = BigInt(new Date('2026-02-16T12:00:00.000Z').getTime()) * 1_000_000n;
     const result = nanoToDatetime(nanos.toString());
-    expect(result).toBe('2026-02-16 12:00:00.000');
+    expect(result).toBe('2026-02-16T12:00:00.000Z');
   });
 
   it('accepts numeric input', () => {
@@ -79,6 +80,30 @@ describe('nanoToDatetime', () => {
     const nanos = BigInt(ms) * 1_000_000n;
     const result = nanoToDatetime(Number(nanos));
     expect(result).toContain('2026-01-01');
+  });
+});
+
+describe('nanoToDatetime format consistency', () => {
+  it('outputs strict ISO-8601 format with trailing Z', () => {
+    const nanos = BigInt(Date.now()) * 1_000_000n;
+    const result = nanoToDatetime(nanos.toString());
+    expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+  });
+
+  it('produces timestamps comparable with computeCutoff (write/read parity)', () => {
+    const nanos = BigInt(Date.now()) * 1_000_000n;
+    const written = nanoToDatetime(nanos.toString());
+    const cutoff = computeCutoff('1 hour');
+    // Written "now" must be lexicographically >= cutoff (1 hour ago)
+    expect(written >= cutoff).toBe(true);
+  });
+
+  it('produces timestamps that sort correctly as strings', () => {
+    const earlier = BigInt(new Date('2026-02-16T10:00:00Z').getTime()) * 1_000_000n;
+    const later = BigInt(new Date('2026-02-16T11:00:00Z').getTime()) * 1_000_000n;
+    const a = nanoToDatetime(earlier.toString());
+    const b = nanoToDatetime(later.toString());
+    expect(a < b).toBe(true);
   });
 });
 
