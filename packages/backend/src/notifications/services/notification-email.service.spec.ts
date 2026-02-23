@@ -1,9 +1,11 @@
 jest.mock('@react-email/render', () => ({
-  render: jest.fn().mockResolvedValue('<html>rendered</html>'),
+  render: jest.fn().mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
+    Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
+  ),
 }));
 
-jest.mock('./mailgun', () => ({
-  sendMailgunEmail: jest.fn(),
+jest.mock('./email-providers/send-email', () => ({
+  sendEmail: jest.fn(),
 }));
 
 jest.mock('../emails/threshold-alert', () => ({
@@ -11,7 +13,7 @@ jest.mock('../emails/threshold-alert', () => ({
 }));
 
 import { NotificationEmailService } from './notification-email.service';
-import { sendMailgunEmail } from './mailgun';
+import { sendEmail } from './email-providers/send-email';
 
 describe('NotificationEmailService', () => {
   let service: NotificationEmailService;
@@ -22,7 +24,7 @@ describe('NotificationEmailService', () => {
   });
 
   it('sends threshold alert email', async () => {
-    (sendMailgunEmail as jest.Mock).mockResolvedValue(true);
+    (sendEmail as jest.Mock).mockResolvedValue(true);
 
     const result = await service.sendThresholdAlert('user@test.com', {
       agentName: 'demo-agent',
@@ -34,16 +36,18 @@ describe('NotificationEmailService', () => {
     });
 
     expect(result).toBe(true);
-    expect(sendMailgunEmail).toHaveBeenCalledWith(
+    expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'user@test.com',
         subject: expect.stringContaining('demo-agent'),
+        html: '<html>rendered</html>',
+        text: 'plain text version',
       }),
     );
   });
 
-  it('returns false when mailgun fails', async () => {
-    (sendMailgunEmail as jest.Mock).mockResolvedValue(false);
+  it('returns false when email send fails', async () => {
+    (sendEmail as jest.Mock).mockResolvedValue(false);
 
     const result = await service.sendThresholdAlert('user@test.com', {
       agentName: 'demo-agent',

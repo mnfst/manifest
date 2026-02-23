@@ -7,15 +7,19 @@ const mockBetterAuth = jest.fn().mockReturnValue({
 
 jest.mock('better-auth', () => ({ betterAuth: mockBetterAuth }));
 jest.mock('pg', () => ({ Pool: jest.fn() }));
-jest.mock('@react-email/render', () => ({ render: jest.fn() }));
+jest.mock('@react-email/render', () => ({
+  render: jest.fn().mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
+    Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
+  ),
+}));
 jest.mock('../notifications/emails/verify-email', () => ({
   VerifyEmailEmail: jest.fn(),
 }));
 jest.mock('../notifications/emails/reset-password', () => ({
   ResetPasswordEmail: jest.fn(),
 }));
-jest.mock('../notifications/services/mailgun', () => ({
-  sendMailgunEmail: jest.fn(),
+jest.mock('../notifications/services/email-providers/send-email', () => ({
+  sendEmail: jest.fn(),
 }));
 
 describe('auth.instance', () => {

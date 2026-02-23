@@ -11,6 +11,7 @@ import { Title, Meta } from "@solidjs/meta";
 import ErrorState from "../components/ErrorState.jsx";
 import {
   getNotificationRules,
+  getEmailConfig,
   updateNotificationRule,
   deleteNotificationRule,
   type NotificationRule,
@@ -39,6 +40,8 @@ const Notifications: Component = () => {
   onMount(() => {
     checkLocalMode();
   });
+
+  const [emailConfig] = createResource(() => isLocalMode() ? true : null, () => getEmailConfig());
 
   const [rules, { refetch }] = createResource(
     () => agentName(),
@@ -95,14 +98,21 @@ const Notifications: Component = () => {
       </div>
 
       <Show when={isLocalMode()}>
-        <div class="waiting-banner" role="status">
-          <i class="bxd bx-info-circle" />
-          <p>
-            Email notifications are available on the cloud version of Manifest.
-            You can still create and manage alert rules here -- they will be
-            stored and will take effect once email delivery is configured.
-          </p>
-        </div>
+        <Show when={emailConfig()?.configured} fallback={
+          <div class="waiting-banner" role="status">
+            <i class="bxd bx-info-circle" />
+            <p>
+              Email delivery is not configured.
+              <a href="/account"> Set up an email provider</a> in Account Preferences to receive alerts.
+              You can still create and manage rules here.
+            </p>
+          </div>
+        }>
+          <div class="waiting-banner waiting-banner--success" role="status">
+            <i class="bxd bx-check-circle" />
+            <p>Email delivery is configured via <strong>{emailConfig()?.provider}</strong>.</p>
+          </div>
+        </Show>
       </Show>
 
       <Show

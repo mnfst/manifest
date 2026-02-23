@@ -2,7 +2,7 @@ import { betterAuth } from 'better-auth';
 import { render } from '@react-email/render';
 import { VerifyEmailEmail } from '../notifications/emails/verify-email';
 import { ResetPasswordEmail } from '../notifications/emails/reset-password';
-import { sendMailgunEmail } from '../notifications/services/mailgun';
+import { sendEmail } from '../notifications/services/email-providers/send-email';
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const port = process.env['PORT'] ?? '3001';
@@ -77,14 +77,17 @@ export const auth = betterAuth({
     minPasswordLength: 8,
     requireEmailVerification: !isDev && !isLocalMode,
     sendResetPassword: async ({ user, url }) => {
-      const html = await render(ResetPasswordEmail({
+      const element = ResetPasswordEmail({
         userName: user.name,
         resetUrl: url,
-      }));
-      void sendMailgunEmail({
+      });
+      const html = await render(element);
+      const text = await render(element, { plainText: true });
+      void sendEmail({
         to: user.email,
         subject: 'Reset your password',
         html,
+        text,
       });
     },
   },
@@ -92,14 +95,17 @@ export const auth = betterAuth({
     sendOnSignUp: !isLocalMode,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
-      const html = await render(VerifyEmailEmail({
+      const element = VerifyEmailEmail({
         userName: user.name,
         verificationUrl: url,
-      }));
-      void sendMailgunEmail({
+      });
+      const html = await render(element);
+      const text = await render(element, { plainText: true });
+      void sendEmail({
         to: user.email,
         subject: 'Verify your email address',
         html,
+        text,
       });
     },
   },

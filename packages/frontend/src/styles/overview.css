@@ -59,6 +59,15 @@
   margin: 0;
 }
 
+.waiting-banner--success {
+  border-color: hsl(var(--success) / 0.3);
+  background: hsl(var(--success) / 0.06);
+}
+
+.waiting-banner--success i {
+  color: hsl(var(--success));
+}
+
 /* ── Demo dashboard (setup done, no data yet) ────── */
 .demo-dashboard {
   opacity: 0.5;

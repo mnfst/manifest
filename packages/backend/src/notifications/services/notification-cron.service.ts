@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
+import { LOCAL_EMAIL, readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
 
 interface ActiveRule {
   id: string;
@@ -17,7 +18,7 @@ interface ActiveRule {
 }
 
 @Injectable()
-export class NotificationCronService {
+export class NotificationCronService implements OnModuleInit {
   private readonly logger = new Logger(NotificationCronService.name);
   private readonly dialect: DbDialect;
 
@@ -27,6 +28,17 @@ export class NotificationCronService {
     private readonly emailService: NotificationEmailService,
   ) {
     this.dialect = detectDialect(ds.options.type as string);
+  }
+
+  async onModuleInit(): Promise<void> {
+    try {
+      const triggered = await this.checkThresholds();
+      if (triggered > 0) {
+        this.logger.log(`Startup catch-up: ${triggered} notification(s) triggered`);
+      }
+    } catch (err) {
+      this.logger.error(`Startup catch-up failed: ${err}`);
+    }
   }
 
   private sql(query: string): string {
@@ -136,10 +148,17 @@ export class NotificationCronService {
   }
 
   private async resolveUserEmail(userId: string): Promise<string | null> {
+    if (process.env['MANIFEST_MODE'] === 'local') {
+      const configEmail = readLocalNotificationEmail();
+      if (configEmail) return configEmail;
+    }
+
     const rows = await this.ds.query(
       this.sql(`SELECT email FROM "user" WHERE id = $1`),
       [userId],
     );
-    return rows[0]?.email ?? null;
+    const email = rows[0]?.email ?? null;
+    if (email === LOCAL_EMAIL) return null;
+    return email;
   }
 }
