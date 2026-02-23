@@ -7,7 +7,7 @@ import {
   rangeToPreviousInterval,
 } from '../../common/utils/range.util';
 import { computeTrend } from './query-helpers';
-import { computeCutoff, sqlNow } from '../../common/utils/sql-dialect';
+import { computeCutoff } from '../../common/utils/sql-dialect';
 
 interface AgentScope {
   tenantId: string;
@@ -43,7 +43,6 @@ export class AgentAnalyticsService {
     const prevInterval = rangeToPreviousInterval(range);
     const cutoff = computeCutoff(interval);
     const prevCutoff = computeCutoff(prevInterval);
-    const now = sqlNow();
 
     const [currentRows, prevRows] = await Promise.all([
       this.turnRepo
@@ -53,7 +52,6 @@ export class AgentAnalyticsService {
         .addSelect('COALESCE(SUM(at.cache_read_tokens), 0)', 'cache_read')
         .addSelect('COUNT(*)', 'messages')
         .where('at.timestamp >= :cutoff', { cutoff })
-        .andWhere('at.timestamp <= :now', { now })
         .andWhere('at.tenant_id = :tenantId', { tenantId: scope.tenantId })
         .andWhere('at.agent_id = :agentId', { agentId: scope.agentId })
         .getRawOne(),
@@ -90,14 +88,12 @@ export class AgentAnalyticsService {
     const prevInterval = rangeToPreviousInterval(range);
     const cutoff = computeCutoff(interval);
     const prevCutoff = computeCutoff(prevInterval);
-    const now = sqlNow();
 
     const [currentRows, prevRows, modelRows] = await Promise.all([
       this.turnRepo
         .createQueryBuilder('at')
         .select('COALESCE(SUM(at.cost_usd), 0)', 'total')
         .where('at.timestamp >= :cutoff', { cutoff })
-        .andWhere('at.timestamp <= :now', { now })
         .andWhere('at.tenant_id = :tenantId', { tenantId: scope.tenantId })
         .andWhere('at.agent_id = :agentId', { agentId: scope.agentId })
         .getRawOne(),
@@ -116,7 +112,6 @@ export class AgentAnalyticsService {
         .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
         .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
         .where('at.timestamp >= :cutoff', { cutoff })
-        .andWhere('at.timestamp <= :now', { now })
         .andWhere('at.tenant_id = :tenantId', { tenantId: scope.tenantId })
         .andWhere('at.agent_id = :agentId', { agentId: scope.agentId })
         .andWhere('at.model IS NOT NULL')

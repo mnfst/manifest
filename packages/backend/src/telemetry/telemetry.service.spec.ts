@@ -80,6 +80,30 @@ describe('TelemetryService', () => {
     expect(result.rejected).toBe(1);
   });
 
+  it('stores timestamps in ISO-8601 format with trailing Z', async () => {
+    await service.ingest([makeEvent({ input_tokens: 10 })], 'test-user');
+
+    const insertedObj = mockTurnInsert.mock.calls[0][0];
+    expect(insertedObj.timestamp).toMatch(/T/);
+    expect(insertedObj.timestamp).toMatch(/Z$/);
+  });
+
+  it('normalizes various timestamp formats to ISO-8601', async () => {
+    const formats = [
+      '2026-02-16 10:00:00',
+      '2026-02-16T10:00:00Z',
+      '2026-02-16T10:00:00+00:00',
+    ];
+
+    for (const ts of formats) {
+      mockTurnInsert.mockClear();
+      await service.ingest([makeEvent({ timestamp: ts, input_tokens: 1 })], 'test-user');
+
+      const stored = mockTurnInsert.mock.calls[0][0].timestamp;
+      expect(stored).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+    }
+  });
+
   it('looks up model pricing for cost calculation', async () => {
     mockPricingGetByModel.mockReturnValue({
       input_price_per_token: 0.000015,

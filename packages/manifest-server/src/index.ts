@@ -1,8 +1,13 @@
 import { join } from 'path';
 import { homedir } from 'os';
-import { getLocalAuthSecret, LOCAL_DEFAULT_PORT } from 'manifest-backend/dist/common/constants/local-mode.constants';
 
 export const version = '0.1.0';
+
+const LOCAL_DEFAULT_PORT = 2099;
+
+// Dynamic path prevents tsc from resolving at compile time;
+// the backend dist is copied into dist/backend/ at build time.
+const BACKEND_DIR = './backend';
 
 interface StartOptions {
   port?: number;
@@ -22,12 +27,14 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
   process.env['BIND_ADDRESS'] = host;
   process.env['MANIFEST_DB_PATH'] = dbPath;
   process.env['NODE_ENV'] = 'development';
+  process.env['MANIFEST_FRONTEND_DIR'] = join(__dirname, '..', 'public');
 
   // Generate a random persistent secret for local mode
   if (!process.env['BETTER_AUTH_SECRET']) {
-    process.env['BETTER_AUTH_SECRET'] = getLocalAuthSecret();
+    const constants = require(`${BACKEND_DIR}/common/constants/local-mode.constants`);
+    process.env['BETTER_AUTH_SECRET'] = constants.getLocalAuthSecret();
   }
 
-  const { bootstrap } = await import('manifest-backend/dist/main');
-  return bootstrap();
+  const backendMain = await import(`${BACKEND_DIR}/main`);
+  return backendMain.bootstrap();
 }

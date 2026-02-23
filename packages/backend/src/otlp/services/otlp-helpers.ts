@@ -20,11 +20,11 @@ function resolveAnyValue(v: OtlpAnyValue): string | number | boolean | undefined
   return undefined;
 }
 
-/** Converts OTLP nanosecond timestamp to PostgreSQL-compatible datetime string ("YYYY-MM-DD HH:mm:ss.SSS") */
+/** Converts OTLP nanosecond timestamp to ISO-8601 datetime string. */
 export function nanoToDatetime(nanoStr: string | number): string {
   const nano = BigInt(nanoStr);
   const ms = Number(nano / 1_000_000n);
-  return new Date(ms).toISOString().replace('T', ' ').replace('Z', '');
+  return new Date(ms).toISOString();
 }
 
 export function spanDurationMs(startNano: string, endNano: string): number {

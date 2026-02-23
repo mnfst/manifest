@@ -31,6 +31,7 @@ import { SecurityModule } from '../src/security/security.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
 import { NotificationsModule } from '../src/notifications/notifications.module';
 import { ModelPricesModule } from '../src/model-prices/model-prices.module';
+import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { CommonModule } from '../src/common/common.module';
 
 export const TEST_USER_ID = 'test-user-001';
@@ -137,7 +138,7 @@ export async function createTestApp(): Promise<INestApplication> {
   // Seed test tenant, agent, and OTLP key (hashed)
   await ds.query(
     sql(`INSERT INTO tenants (id, name, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,true,$4,$5)`),
-    [TEST_TENANT_ID, 'test-tenant', 'Test Org', now, now],
+    [TEST_TENANT_ID, TEST_USER_ID, 'Test Org', now, now],
   );
   await ds.query(
     sql(`INSERT INTO agents (id, name, description, is_active, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,true,$4,$5,$6)`),
@@ -147,6 +148,20 @@ export async function createTestApp(): Promise<INestApplication> {
     sql(`INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`),
     ['test-otlp-key-id', sha256(TEST_OTLP_KEY), keyPrefix(TEST_OTLP_KEY), 'Test OTLP Key', TEST_TENANT_ID, TEST_AGENT_ID, now],
   );
+
+  // Seed model pricing so cost calculations work in e2e tests
+  await ds.query(
+    sql(`INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token) VALUES ($1,$2,$3,$4)`),
+    ['claude-opus-4-6', 'Anthropic', 0.000015, 0.000075],
+  );
+  await ds.query(
+    sql(`INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token) VALUES ($1,$2,$3,$4)`),
+    ['gpt-4o', 'OpenAI', 0.0000025, 0.00001],
+  );
+
+  // Reload pricing cache so cost calculations use the seeded data
+  const pricingCache = app.get(ModelPricingCacheService);
+  await pricingCache.reload();
 
   return app;
 }

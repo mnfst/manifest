@@ -41,8 +41,8 @@ const Header: Component = () => {
           <img src="/logo.svg" alt="Manifest" class="header__logo-img header__logo-img--light" />
           <img src="/logo-white.svg" alt="Manifest" class="header__logo-img header__logo-img--dark" />
         </A>
-        <Show when={isLocalMode()}>
-          <span class="header__mode-badge">Local</span>
+        <Show when={!isLocalMode()}>
+          <span class="header__mode-badge">Cloud</span>
         </Show>
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>

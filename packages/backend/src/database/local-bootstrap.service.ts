@@ -12,7 +12,7 @@ import { ModelPricing } from '../entities/model-pricing.entity';
 import { sha256, keyPrefix } from '../common/utils/hash.util';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { PricingSyncService } from './pricing-sync.service';
-import { LOCAL_EMAIL, getLocalPassword } from '../common/constants/local-mode.constants';
+import { LOCAL_USER_ID, LOCAL_EMAIL, getLocalPassword } from '../common/constants/local-mode.constants';
 
 const LOCAL_TENANT_ID = 'local-tenant-001';
 const LOCAL_AGENT_ID = 'local-agent-001';
@@ -100,15 +100,9 @@ export class LocalBootstrapService implements OnModuleInit {
     const count = await this.tenantRepo.count({ where: { id: LOCAL_TENANT_ID } });
     if (count > 0) return;
 
-    const userId = await this.getBetterAuthUserId();
-    if (!userId) {
-      this.logger.warn('No local user found, skipping tenant/agent creation');
-      return;
-    }
-
     await this.tenantRepo.insert({
       id: LOCAL_TENANT_ID,
-      name: userId,
+      name: LOCAL_USER_ID,
       organization_name: 'Local',
       email: LOCAL_EMAIL,
       is_active: true,
@@ -128,18 +122,6 @@ export class LocalBootstrapService implements OnModuleInit {
     }
 
     this.logger.log(`Created tenant/agent for local mode`);
-  }
-
-  private async getBetterAuthUserId(): Promise<string | null> {
-    try {
-      const rows = await this.dataSource.query(
-        `SELECT id FROM "user" WHERE email = ?`,
-        [LOCAL_EMAIL],
-      );
-      return rows.length > 0 ? String(rows[0].id) : null;
-    } catch {
-      return null;
-    }
   }
 
   private readApiKeyFromConfig(): string | null {
