@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.2.6
+
+### Patch Changes
+
+- 43e9c48: Show all messages by default and change overview default to 7 days
+
 ## 5.2.5
 
 ### Patch Changes
