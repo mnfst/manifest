@@ -144,7 +144,7 @@ describe("registerHooks", () => {
   });
 
   it("logs that hooks are registered", () => {
-    expect(mockLogger.info).toHaveBeenCalledWith(
+    expect(mockLogger.debug).toHaveBeenCalledWith(
       "[manifest] All hooks registered",
     );
   });

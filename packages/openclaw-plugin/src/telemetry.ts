@@ -53,7 +53,7 @@ export function initTelemetry(
     ],
   });
   tracerProvider.register();
-  logger.info(`[manifest] Trace exporter -> ${config.endpoint}/v1/traces`);
+  logger.debug(`[manifest] Trace exporter -> ${config.endpoint}/v1/traces`);
 
   // Metrics exporter
   const metricExporter = new OTLPMetricExporter({
@@ -71,7 +71,7 @@ export function initTelemetry(
     ],
   });
   metrics.setGlobalMeterProvider(meterProvider);
-  logger.info(
+  logger.debug(
     `[manifest] Metrics exporter -> ${config.endpoint}/v1/metrics ` +
       `(interval=${config.metricsIntervalMs}ms)`,
   );

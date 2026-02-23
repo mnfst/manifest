@@ -233,7 +233,7 @@ export function registerLocalMode(
   const apiKey = loadOrGenerateApiKey();
   const dbPath = join(CONFIG_DIR, "manifest.db");
 
-  logger.info("[manifest] Local mode — starting embedded server...");
+  logger.debug("[manifest] Local mode — starting embedded server...");
 
   // Inject provider config BEFORE routing registration
   injectProviderConfig(api, host, port, apiKey, logger);
@@ -270,6 +270,8 @@ export function registerLocalMode(
   if (typeof api.registerTool === "function") {
     registerTools(api, localConfig, logger);
   }
+
+  logger.info(`[manifest] 🦚 View your Manifest Dashboard -> http://${host}:${port}`);
 
   api.registerService({
     id: "manifest-local",

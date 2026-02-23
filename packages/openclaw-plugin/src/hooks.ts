@@ -227,5 +227,5 @@ export function registerHooks(
     logger.debug(`[manifest] Trace completed for session=${sessionKey}`);
   });
 
-  logger.info("[manifest] All hooks registered");
+  logger.debug("[manifest] All hooks registered");
 }
