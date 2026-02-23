@@ -317,6 +317,14 @@ Version management and npm publishing use [Changesets](https://github.com/change
 
 The two publishable packages are **linked** in changesets config — a major/minor bump to one bumps the other.
 
+### CRITICAL: Every PR Needs a Changeset
+
+**Before creating any PR, you MUST add a changeset.** The `changeset-check` CI job will fail without one.
+
+- If the PR changes a **publishable package** (`openclaw-plugin` or `manifest-server`): run `npx changeset` and follow the prompts to describe the change and select a bump level.
+- If the PR **only touches internal packages** (backend, frontend, CI, docs, tests): run `npx changeset add --empty` to create an empty changeset.
+- Commit the generated `.changeset/*.md` file as part of the PR.
+
 ### Workflow
 
 1. When changing a publishable package, run `npx changeset` and commit the generated file
