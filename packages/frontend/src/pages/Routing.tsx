@@ -174,7 +174,7 @@ const Routing: Component = () => {
     if (tierId in d) {
       // Draft has an entry: if model is set use it, if null use auto fallback
       const draftModel = d[tierId];
-      if (draftModel !== null) return draftModel;
+      if (draftModel !== null && draftModel !== undefined) return draftModel;
       // null means "reset to auto" — use server auto_assigned_model
       const t = getTier(tierId);
       return t?.auto_assigned_model ?? null;

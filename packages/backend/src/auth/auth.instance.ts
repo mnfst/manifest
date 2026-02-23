@@ -80,7 +80,7 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
     requireEmailVerification: !isDev && !isLocalMode,
-    sendResetPassword: async ({ user, url }) => {
+    sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
       const html = await render(ResetPasswordEmail({
         userName: user.name,
         resetUrl: url,
@@ -95,7 +95,7 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: !isLocalMode,
     autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }) => {
+    sendVerificationEmail: async ({ user, url }: { user: any; url: string }) => {
       const html = await render(VerifyEmailEmail({
         userName: user.name,
         verificationUrl: url,
