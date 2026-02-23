@@ -73,19 +73,10 @@ export class NotificationCronService {
 
     const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
-    await this.ds.query(
-      this.sql(
-        `INSERT INTO notification_logs
-         (id, rule_id, period_start, period_end, actual_value, threshold_value, metric_type, agent_name, sent_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      ),
-      [uuid(), rule.id, periodStart, periodEnd, actual, rule.threshold,
-       rule.metric_type, rule.agent_name, now],
-    );
-
     const email = await this.resolveUserEmail(rule.user_id);
+    let emailSent = false;
     if (email) {
-      await this.emailService.sendThresholdAlert(email, {
+      emailSent = await this.emailService.sendThresholdAlert(email, {
         agentName: rule.agent_name,
         metricType: rule.metric_type,
         threshold: rule.threshold,
@@ -93,9 +84,25 @@ export class NotificationCronService {
         period: rule.period,
         timestamp: now,
       });
+    } else {
+      this.logger.warn(`No email found for user ${rule.user_id}, skipping alert for rule ${rule.id}`);
     }
 
-    return true;
+    if (emailSent || !email) {
+      await this.ds.query(
+        this.sql(
+          `INSERT INTO notification_logs
+           (id, rule_id, period_start, period_end, actual_value, threshold_value, metric_type, agent_name, sent_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        ),
+        [uuid(), rule.id, periodStart, periodEnd, actual, rule.threshold,
+         rule.metric_type, rule.agent_name, now],
+      );
+    } else {
+      this.logger.warn(`Failed to send alert for rule ${rule.id}, will retry next cron run`);
+    }
+
+    return emailSent || !email;
   }
 
   private computePeriodBoundaries(period: string): { periodStart: string; periodEnd: string } {
@@ -104,7 +111,7 @@ export class NotificationCronService {
 
     switch (period) {
       case 'hour':
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours()));
+        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() - 1));
         break;
       case 'day':
         start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -119,7 +126,7 @@ export class NotificationCronService {
         start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
         break;
       default:
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours()));
+        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() - 1));
     }
 
     const end = new Date(now.getTime());
