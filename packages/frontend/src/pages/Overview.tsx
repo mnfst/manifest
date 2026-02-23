@@ -22,6 +22,7 @@ import {
   formatStatus,
   formatTime,
 } from '../services/formatters.js'
+import { isLocalMode } from '../services/local-mode.js'
 import { pingCount } from '../services/sse.js'
 import '../styles/overview.css'
 
@@ -97,6 +98,11 @@ const Overview: Component = () => {
   }
 
   createEffect(() => {
+    if (isLocalMode() === true && params.agentName === 'local-agent') {
+      localStorage.setItem(`setup_completed_${params.agentName}`, '1')
+      setSetupCompleted(true)
+      return
+    }
     if (isNewAgent() && !setupCompleted() && !localStorage.getItem(`setup_dismissed_${params.agentName}`)) {
       setSetupOpen(true)
     }

@@ -13,6 +13,7 @@ interface StartOptions {
   port?: number;
   host?: string;
   dbPath?: string;
+  quiet?: boolean;
 }
 
 export async function start(options: StartOptions = {}): Promise<unknown> {
@@ -37,6 +38,10 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
 
   const backendMain = await import(`${BACKEND_DIR}/main`);
   const app = await backendMain.bootstrap();
+
+  if (!options.quiet) {
+    console.log(`Manifest dashboard ready: http://${host}:${port}`);
+  }
 
   const { trackEvent } = require(`${BACKEND_DIR}/common/utils/product-telemetry`);
   trackEvent('server_started', { package_version: version });

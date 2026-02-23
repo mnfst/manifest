@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
+const mockGetHealth = vi.fn().mockResolvedValue({ mode: "cloud" });
 vi.mock("../../src/services/api.js", () => ({
   getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: null }),
-  getHealth: vi.fn().mockResolvedValue({ mode: "cloud" }),
+  getHealth: (...args: unknown[]) => mockGetHealth(...args),
 }));
 
 vi.mock("../../src/components/SetupStepInstall.jsx", () => ({
@@ -15,7 +16,11 @@ vi.mock("../../src/components/SetupStepConfigure.jsx", () => ({
 }));
 
 vi.mock("../../src/components/SetupStepVerify.jsx", () => ({
-  default: () => <div data-testid="step-verify">Verify Step</div>,
+  default: (props: any) => (
+    <div data-testid="step-verify" data-is-local={props.isLocal ? "true" : "false"}>
+      Verify Step
+    </div>
+  ),
 }));
 
 vi.mock("../../src/components/SetupStepLocalConfigure.jsx", () => ({
@@ -170,5 +175,83 @@ describe("SetupModal", () => {
     const stepLabels = container.querySelectorAll(".modal-stepper__step");
     fireEvent.click(stepLabels[2]); // Activate step
     expect(container.querySelector('[data-testid="step-verify"]')).not.toBeNull();
+  });
+
+  describe("local mode", () => {
+    beforeEach(() => {
+      mockGetHealth.mockResolvedValue({ mode: "local" });
+    });
+
+    it("should show 2 steps for local mode", async () => {
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
+      ));
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Configure");
+        expect(container.textContent).toContain("Verify");
+        expect(container.textContent).not.toContain("Install");
+      });
+    });
+
+    it("should show local description text", async () => {
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
+      ));
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("local server is running");
+      });
+    });
+
+    it("should show LocalConfigure step first in local flow", async () => {
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
+      ));
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="step-local-configure"]')).not.toBeNull();
+      });
+    });
+
+    it("should pass isLocal to SetupStepVerify on step 2", async () => {
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
+      ));
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="step-local-configure"]')).not.toBeNull();
+      });
+      // Navigate to step 2
+      fireEvent.click(container.querySelector(".setup-modal__next")!);
+      await vi.waitFor(() => {
+        const verify = container.querySelector('[data-testid="step-verify"]');
+        expect(verify).not.toBeNull();
+        expect(verify?.getAttribute("data-is-local")).toBe("true");
+      });
+    });
+
+    it("should show Done on step 2 in local flow", async () => {
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
+      ));
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="step-local-configure"]')).not.toBeNull();
+      });
+      fireEvent.click(container.querySelector(".setup-modal__next")!);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Done");
+      });
+    });
+  });
+
+  describe("cloud mode", () => {
+    it("should not pass isLocal to SetupStepVerify on step 3", () => {
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="test-agent" onClose={onClose} />
+      ));
+      // Navigate to step 3
+      fireEvent.click(container.querySelector(".setup-modal__next")!);
+      fireEvent.click(container.querySelector(".setup-modal__next")!);
+      const verify = container.querySelector('[data-testid="step-verify"]');
+      expect(verify).not.toBeNull();
+      expect(verify?.getAttribute("data-is-local")).toBe("false");
+    });
   });
 });
