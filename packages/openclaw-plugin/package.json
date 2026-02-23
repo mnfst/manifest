@@ -33,6 +33,7 @@
     "build": "tsx build.ts",
     "dev": "tsx watch build.ts",
     "prepublishOnly": "npm run build",
+    "postinstall": "node -e \"try{require('better-sqlite3')}catch(e){console.warn('\\nWARNING: better-sqlite3 native module not built.\\n  On macOS: xcode-select --install\\n  Then run: npm rebuild better-sqlite3\\n')}\"",
     "typecheck": "tsc --noEmit",
     "test": "jest"
   },
