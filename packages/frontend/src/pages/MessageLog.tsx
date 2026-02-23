@@ -31,7 +31,6 @@ interface MessagesData {
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
-  const [range, setRange] = createSignal("24h");
   const [statusFilter, setStatusFilter] = createSignal("");
   const [modelFilter, setModelFilter] = createSignal("");
   const [costMin, setCostMin] = createSignal("");
@@ -41,9 +40,9 @@ const MessageLog: Component = () => {
     !!localStorage.getItem(`setup_completed_${params.agentName}`)
   );
   const [data, { refetch }] = createResource(
-    () => ({ range: range(), status: statusFilter(), model: modelFilter(), costMin: costMin(), costMax: costMax(), agentName: params.agentName, _ping: pingCount() }),
+    () => ({ status: statusFilter(), model: modelFilter(), costMin: costMin(), costMax: costMax(), agentName: params.agentName, _ping: pingCount() }),
     (p) => {
-      const q: Record<string, string> = { range: p.range };
+      const q: Record<string, string> = {};
       if (p.status) q.status = p.status;
       if (p.model) q.model = p.model;
       if (p.costMin) q.cost_min = p.costMin;
@@ -108,16 +107,6 @@ const MessageLog: Component = () => {
                 onInput={(e) => setCostMax(e.currentTarget.value)}
               />
             </div>
-            <Select
-              value={range()}
-              onChange={setRange}
-              options={[
-                { label: "Last hour", value: "1h" },
-                { label: "Last 24 hours", value: "24h" },
-                { label: "Last 7 days", value: "7d" },
-                { label: "Last 30 days", value: "30d" },
-              ]}
-            />
           </Show>
           <Show when={hasNoData() && !setupCompleted()}>
             <button class="btn btn--primary" onClick={() => setSetupOpen(true)}>

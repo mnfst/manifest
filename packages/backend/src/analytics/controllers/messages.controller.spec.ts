@@ -32,7 +32,7 @@ describe('MessagesController', () => {
     await controller.getMessages({} as never, user as never);
 
     expect(mockGetMessages).toHaveBeenCalledWith({
-      range: '24h',
+      range: undefined,
       userId: 'u1',
       status: undefined,
       service_type: undefined,
