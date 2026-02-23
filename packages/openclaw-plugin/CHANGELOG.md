@@ -1,5 +1,11 @@
 # manifest
 
+## 5.2.7
+
+### Patch Changes
+
+- 16984c3: Add anonymous product telemetry via PostHog
+
 ## 5.2.4
 
 ### Patch Changes
