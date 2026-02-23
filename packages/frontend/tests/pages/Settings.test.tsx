@@ -113,6 +113,7 @@ describe("Settings", () => {
 
   it("shows key prefix after loading", async () => {
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     await vi.waitFor(() => {
       expect(container.textContent).toContain("mnfst_abc");
     });
@@ -126,6 +127,7 @@ describe("Settings", () => {
 
   it("has rotate key button", async () => {
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     await vi.waitFor(() => {
       const rotateBtn = Array.from(container.querySelectorAll("button")).find(
         (b) => b.textContent?.includes("Rotate key"),
@@ -173,6 +175,7 @@ describe("Settings", () => {
   it("clicking Rotate key calls rotateAgentKey", async () => {
     mockRotateAgentKey.mockResolvedValue({ apiKey: "mnfst_new_rotated_key" });
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Rotate key");
     });
@@ -188,6 +191,7 @@ describe("Settings", () => {
   it("shows rotated key after successful rotation", async () => {
     mockRotateAgentKey.mockResolvedValue({ apiKey: "mnfst_new_rotated_key" });
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Rotate key");
     });
@@ -248,11 +252,13 @@ describe("Settings", () => {
 
   it("shows OTLP ingest key label", () => {
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     expect(container.textContent).toContain("OTLP ingest key");
   });
 
   it("shows setup steps after loading", async () => {
     const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Integration"));
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="setup-install"]')).not.toBeNull();
     });

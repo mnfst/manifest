@@ -15,6 +15,8 @@ beforeAll(async () => {
   const sql = (q: string) => portableSql(q, dialect);
   const now = sqlNow();
   const b = (v: boolean) => (dialect === 'sqlite' ? (v ? 1 : 0) : v);
+  // Clear model_pricing seeded by helpers so we can insert our own complete set
+  await ds.query('DELETE FROM model_pricing');
   await ds.query(
     sql(`INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token, context_window, capability_reasoning, capability_code, quality_score, updated_at)
      VALUES
