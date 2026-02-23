@@ -14,6 +14,7 @@
 @import "./routing.css";
 @import "./tooltip.css";
 @import "./toast.css";
+@import "./model-filter.css";
 
 /* ── shadcn/ui design tokens — Light (default) ───── */
 @layer base {
@@ -680,8 +681,13 @@ h1, h2, h3, h4, h5, h6 {
   color: hsl(var(--primary-foreground));
 }
 
-.btn--primary:hover {
+.btn--primary:hover:not(:disabled) {
   background: hsl(var(--primary) / 0.9);
+}
+
+.btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn--ghost {

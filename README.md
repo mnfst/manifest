@@ -1,15 +1,25 @@
 <p align="center">
-  <img src="home-gh.png" alt="Manifest" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-white.svg" />
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/logo-dark.svg" />
+    <img src=".github/assets/logo-dark.svg" alt="Manifest" height="53" title="Manifest"/>
+  </picture>
+</p>
+<p align="center">
+  🦞 Take control of your
+OpenClaw costs
+</p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/home-gh-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/home-gh-light.png" />
+    <img src=".github/assets/home-gh-light.png" alt="Manifest" />
+  </picture>
 </p>
 
-<h1 align="center">Manifest</h1>
-
 <p align="center">
-  Open-source observability for AI agents.<br />
-  Track costs, tokens, messages, and performance — entirely on your machine.
-</p>
-
-<p align="center">
+  <a href="https://github.com/mnfst/manifest/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/mnfst/manifest/ci.yml?branch=main&label=CI" alt="CI status" /></a>
+  &nbsp;
   <a href="https://www.npmjs.com/package/manifest"><img src="https://img.shields.io/npm/v/manifest?color=cb3837&label=npm" alt="npm version" /></a>
   &nbsp;
   <a href="https://www.npmjs.com/package/manifest"><img src="https://img.shields.io/npm/dw/manifest?color=cb3837" alt="npm downloads" /></a>
@@ -72,13 +82,13 @@ No account, no signup, no external network calls for telemetry. Everything stays
 
 ## Tech Stack
 
-| Layer     | Technology                                |
-| --------- | ----------------------------------------- |
-| Frontend  | SolidJS, uPlot, custom CSS theme          |
-| Backend   | NestJS 11, TypeORM, SQLite (local mode)   |
-| Auth      | Better Auth (auto-login on localhost)      |
-| Telemetry | OTLP HTTP (JSON + Protobuf)               |
-| Build     | Turborepo + npm workspaces                |
+| Layer     | Technology                              |
+| --------- | --------------------------------------- |
+| Frontend  | SolidJS, uPlot, custom CSS theme        |
+| Backend   | NestJS 11, TypeORM, SQLite (local mode) |
+| Auth      | Better Auth (auto-login on localhost)   |
+| Telemetry | OTLP HTTP (JSON + Protobuf)             |
+| Build     | Turborepo + npm workspaces              |
 
 The full NestJS + SolidJS stack runs locally backed by SQLite. The same codebase also powers the [cloud version](https://app.manifest.build) with PostgreSQL — the only differences are the database driver and auth guard.
 
@@ -92,8 +102,8 @@ If you installed Manifest via the OpenClaw plugin, telemetry is wired up automat
 
 Manifest accepts standard OTLP HTTP signals. Point any exporter at your local instance:
 
-| Signal  | Endpoint                              | Auth                                    |
-| ------- | ------------------------------------- | --------------------------------------- |
+| Signal  | Endpoint                                     | Auth                                   |
+| ------- | -------------------------------------------- | -------------------------------------- |
 | Traces  | `POST http://127.0.0.1:2099/otlp/v1/traces`  | `Authorization: Bearer <your-api-key>` |
 | Metrics | `POST http://127.0.0.1:2099/otlp/v1/metrics` | `Authorization: Bearer <your-api-key>` |
 | Logs    | `POST http://127.0.0.1:2099/otlp/v1/logs`    | `Authorization: Bearer <your-api-key>` |
@@ -103,8 +113,8 @@ Your API key is in `~/.openclaw/manifest/config.json`. Both `application/json` a
 #### Node.js / TypeScript
 
 ```typescript
-import { NodeSDK } from '@opentelemetry/sdk-node'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 
 const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
@@ -112,9 +122,9 @@ const sdk = new NodeSDK({
     headers: { Authorization: 'Bearer mnfst_your-api-key' },
   }),
   serviceName: 'my-agent',
-})
+});
 
-sdk.start()
+sdk.start();
 ```
 
 #### Python
@@ -135,25 +145,25 @@ provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(
 
 Manifest classifies spans using these OpenTelemetry attributes:
 
-| Attribute                    | Purpose                           |
-| ---------------------------- | --------------------------------- |
-| `agent.name`                 | Groups data per agent             |
-| `gen_ai.system`              | Identifies LLM API calls          |
-| `gen_ai.request.model`       | Tracks which model was used       |
-| `gen_ai.usage.input_tokens`  | Token usage tracking              |
-| `gen_ai.usage.output_tokens` | Token usage tracking              |
-| `tool.name`                  | Identifies tool call spans        |
-| `session.key`                | Groups messages by session        |
+| Attribute                    | Purpose                     |
+| ---------------------------- | --------------------------- |
+| `agent.name`                 | Groups data per agent       |
+| `gen_ai.system`              | Identifies LLM API calls    |
+| `gen_ai.request.model`       | Tracks which model was used |
+| `gen_ai.usage.input_tokens`  | Token usage tracking        |
+| `gen_ai.usage.output_tokens` | Token usage tracking        |
+| `tool.name`                  | Identifies tool call spans  |
+| `session.key`                | Groups messages by session  |
 
 ## Configuration
 
 The plugin config lives in your OpenClaw settings. All fields are optional in local mode.
 
-| Setting | Default | Description |
-| --- | --- | --- |
-| `mode` | `"cloud"` | Set to `"local"` for the self-hosted server |
-| `port` | `2099` | Dashboard and OTLP port |
-| `host` | `"127.0.0.1"` | Bind address |
+| Setting | Default       | Description                                 |
+| ------- | ------------- | ------------------------------------------- |
+| `mode`  | `"cloud"`     | Set to `"local"` for the self-hosted server |
+| `port`  | `2099`        | Dashboard and OTLP port                     |
+| `host`  | `"127.0.0.1"` | Bind address                                |
 
 ```bash
 # Change the port
@@ -165,10 +175,10 @@ openclaw config set plugins.entries.manifest.config.host "0.0.0.0"
 
 ### Data location
 
-| Path | Contents |
-| --- | --- |
+| Path                               | Contents                             |
+| ---------------------------------- | ------------------------------------ |
 | `~/.openclaw/manifest/manifest.db` | SQLite database (all telemetry data) |
-| `~/.openclaw/manifest/config.json` | Auto-generated API key |
+| `~/.openclaw/manifest/config.json` | Auto-generated API key               |
 
 To reset everything, delete `~/.openclaw/manifest/` and restart the gateway.
 

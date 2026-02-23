@@ -19,6 +19,9 @@ export class TierAssignment {
   @Column('varchar', { nullable: true })
   auto_assigned_model!: string | null;
 
+  @Column('varchar', { nullable: true })
+  custom_model!: string | null;
+
   @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;
 }

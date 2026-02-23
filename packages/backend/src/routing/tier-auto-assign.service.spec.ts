@@ -158,6 +158,95 @@ describe('TierAutoAssignService', () => {
     });
   });
 
+  describe('pickBestForPreset', () => {
+    it('should return null for empty model list', () => {
+      expect(service.pickBestForPreset([], 'simple', 'eco')).toBeNull();
+    });
+
+    it('should return null if all models have zero price', () => {
+      const free = makeModel({ model_name: 'free', input_price_per_token: 0, output_price_per_token: 0 });
+      expect(service.pickBestForPreset([free], 'simple', 'eco')).toBeNull();
+    });
+
+    // ── ECO: cheapest for every tier ──
+
+    it('eco: should pick cheapest model regardless of tier', () => {
+      const cheap = makeModel({ model_name: 'cheap', input_price_per_token: 0.000001, output_price_per_token: 0.000002, quality_score: 1 });
+      const expensive = makeModel({ model_name: 'expensive', input_price_per_token: 0.00001, output_price_per_token: 0.00003, quality_score: 5 });
+
+      expect(service.pickBestForPreset([cheap, expensive], 'simple', 'eco')!.model_name).toBe('cheap');
+      expect(service.pickBestForPreset([cheap, expensive], 'complex', 'eco')!.model_name).toBe('cheap');
+    });
+
+    // ── BALANCED: delegates to pickBest ──
+
+    it('balanced: should delegate to pickBest', () => {
+      const cheap = makeModel({ model_name: 'cheap', input_price_per_token: 0.000001, output_price_per_token: 0.000002, quality_score: 1 });
+      const expensive = makeModel({ model_name: 'expensive', input_price_per_token: 0.00001, output_price_per_token: 0.00003, quality_score: 5 });
+
+      // complex tier uses quality-first logic
+      expect(service.pickBestForPreset([cheap, expensive], 'complex', 'balanced')!.model_name).toBe('expensive');
+      // simple tier uses cheapest logic
+      expect(service.pickBestForPreset([cheap, expensive], 'simple', 'balanced')!.model_name).toBe('cheap');
+    });
+
+    // ── QUALITY: highest quality_score, cheapest tiebreaker ──
+
+    it('quality: should pick highest quality_score', () => {
+      const lowQ = makeModel({ model_name: 'low-q', input_price_per_token: 0.000001, output_price_per_token: 0.000002, quality_score: 2 });
+      const highQ = makeModel({ model_name: 'high-q', input_price_per_token: 0.00001, output_price_per_token: 0.00003, quality_score: 5 });
+
+      expect(service.pickBestForPreset([lowQ, highQ], 'simple', 'quality')!.model_name).toBe('high-q');
+    });
+
+    it('quality: should use cheapest as tiebreaker at same quality', () => {
+      const cheapQ4 = makeModel({ model_name: 'cheap-q4', input_price_per_token: 0.000003, output_price_per_token: 0.000015, quality_score: 4 });
+      const expensiveQ4 = makeModel({ model_name: 'expensive-q4', input_price_per_token: 0.000015, output_price_per_token: 0.000075, quality_score: 4 });
+
+      expect(service.pickBestForPreset([expensiveQ4, cheapQ4], 'simple', 'quality')!.model_name).toBe('cheap-q4');
+    });
+
+    // ── FAST: smallest context_window, cheapest tiebreaker ──
+
+    it('fast: should pick smallest context_window', () => {
+      const small = makeModel({ model_name: 'small', context_window: 8000, input_price_per_token: 0.00001, output_price_per_token: 0.00003 });
+      const large = makeModel({ model_name: 'large', context_window: 128000, input_price_per_token: 0.000001, output_price_per_token: 0.000002 });
+
+      expect(service.pickBestForPreset([small, large], 'simple', 'fast')!.model_name).toBe('small');
+    });
+
+    it('fast: should use cheapest as tiebreaker at same context_window', () => {
+      const cheapSmall = makeModel({ model_name: 'cheap-small', context_window: 8000, input_price_per_token: 0.000001, output_price_per_token: 0.000002 });
+      const expensiveSmall = makeModel({ model_name: 'expensive-small', context_window: 8000, input_price_per_token: 0.00001, output_price_per_token: 0.00003 });
+
+      expect(service.pickBestForPreset([expensiveSmall, cheapSmall], 'simple', 'fast')!.model_name).toBe('cheap-small');
+    });
+
+    // ── REASONING tier: reasoning-capable models preferred in all presets ──
+
+    it('eco: reasoning tier should prefer reasoning-capable models', () => {
+      const cheapNonReasoning = makeModel({ model_name: 'cheap-nr', input_price_per_token: 0.000001, output_price_per_token: 0.000002, capability_reasoning: false });
+      const expensiveReasoning = makeModel({ model_name: 'expensive-r', input_price_per_token: 0.00001, output_price_per_token: 0.00003, capability_reasoning: true });
+
+      expect(service.pickBestForPreset([cheapNonReasoning, expensiveReasoning], 'reasoning', 'eco')!.model_name).toBe('expensive-r');
+    });
+
+    it('quality: reasoning tier should prefer reasoning-capable models', () => {
+      const highQNonReasoning = makeModel({ model_name: 'hq-nr', input_price_per_token: 0.00001, output_price_per_token: 0.00003, quality_score: 5, capability_reasoning: false });
+      const midQReasoning = makeModel({ model_name: 'mq-r', input_price_per_token: 0.00005, output_price_per_token: 0.0001, quality_score: 4, capability_reasoning: true });
+
+      expect(service.pickBestForPreset([highQNonReasoning, midQReasoning], 'reasoning', 'quality')!.model_name).toBe('mq-r');
+    });
+
+    it('reasoning tier should fall back to all models when no reasoning-capable exist', () => {
+      const a = makeModel({ model_name: 'a', input_price_per_token: 0.000001, output_price_per_token: 0.000002, capability_reasoning: false });
+      const b = makeModel({ model_name: 'b', input_price_per_token: 0.00001, output_price_per_token: 0.00003, capability_reasoning: false });
+
+      // eco picks cheapest
+      expect(service.pickBestForPreset([a, b], 'reasoning', 'eco')!.model_name).toBe('a');
+    });
+  });
+
   describe('recalculate', () => {
     it('should assign a single model to all 4 tiers (one provider, one model)', async () => {
       mockProviderRepo.find.mockResolvedValue([{ provider: 'openai', is_active: true }]);

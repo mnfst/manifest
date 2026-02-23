@@ -118,7 +118,7 @@ const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string 
               />
             </Show>
             <Show when={step() === 2}>
-              <SetupStepVerify />
+              <SetupStepVerify isLocal={isLocal()} />
             </Show>
           </Show>
 

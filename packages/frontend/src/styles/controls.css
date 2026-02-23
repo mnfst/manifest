@@ -138,8 +138,13 @@
   gap: 6px;
 }
 
-.btn--primary:hover {
+.btn--primary:hover:not(:disabled) {
   background: hsl(var(--primary) / 0.9);
+}
+
+.btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn--ghost {
@@ -383,6 +388,7 @@
 .header__right {
   display: flex;
   align-items: center;
+  align-self: stretch;
   gap: var(--gap-sm);
 }
 
@@ -481,4 +487,103 @@
 
 .header__dropdown-item--danger:hover {
   background: hsl(var(--accent));
+}
+
+/* ── GitHub Star Button ──────────────────────────── */
+.header__github-star {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.header__github-star-btn {
+  display: inline-flex;
+  align-items: stretch;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  font-family: var(--font-family);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.header__github-star-btn:hover {
+  border-color: hsl(var(--ring) / 0.3);
+}
+
+.header__github-star-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: hsl(var(--muted));
+  transition: background var(--transition-fast);
+}
+
+.header__github-star-btn:hover .header__github-star-action {
+  background: hsl(var(--muted-foreground) / 0.15);
+}
+
+.header__github-icon {
+  flex-shrink: 0;
+}
+
+.header__github-star-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.header__github-star-count {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  border-left: 1px solid hsl(var(--border));
+}
+
+.header__github-star-close {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  padding: 0;
+  line-height: 1;
+}
+
+.header__github-star:hover .header__github-star-close {
+  opacity: 1;
+}
+
+.header__github-star-close:hover {
+  background: hsl(var(--destructive));
+  border-color: hsl(var(--destructive));
+  color: white;
+}
+
+.header__star-separator {
+  width: 1px;
+  align-self: stretch;
+  background: hsl(var(--border));
+  margin: 0 8px;
 }

@@ -29,7 +29,7 @@ import { SseModule } from './sse/sse.module';
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const sessionGuardClass = isLocalMode ? LocalAuthGuard : SessionGuard;
 
-const frontendPath = join(__dirname, '..', '..', 'frontend', 'dist');
+const frontendPath = process.env['MANIFEST_FRONTEND_DIR'] || join(__dirname, '..', '..', 'frontend', 'dist');
 const serveStaticImports = existsSync(frontendPath)
   ? [ServeStaticModule.forRoot({ rootPath: frontendPath, exclude: ['/api/{*path}', '/otlp/{*path}'] })]
   : [];

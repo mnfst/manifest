@@ -5,6 +5,8 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
+import { type Preset } from './tier-auto-assign.service';
+import { expandProviderNames } from './provider-aliases';
 import { randomUUID } from 'crypto';
 
 const TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
@@ -228,6 +230,96 @@ export class RoutingService {
       { user_id: userId },
       { override_model: null, updated_at: new Date().toISOString() },
     );
+  }
+
+  /* ── Bulk save ── */
+
+  async bulkSaveTiers(
+    userId: string,
+    items: { tier: string; model: string | null }[],
+    preset?: string,
+    fromPreset?: string,
+  ): Promise<TierAssignment[]> {
+    const namedPresets = ['eco', 'balanced', 'quality', 'fast'];
+
+    // Only snapshot override_model → custom_model when leaving Custom for a named preset
+    if (preset && namedPresets.includes(preset) && fromPreset === 'custom') {
+      const currentTiers = await this.tierRepo.find({
+        where: { user_id: userId },
+      });
+      for (const tier of currentTiers) {
+        if (tier.override_model !== null) {
+          tier.custom_model = tier.override_model;
+          tier.updated_at = new Date().toISOString();
+          await this.tierRepo.save(tier);
+        }
+      }
+    }
+
+    for (const item of items) {
+      if (item.model !== null) {
+        await this.setOverride(userId, item.tier, item.model);
+      } else {
+        await this.clearOverride(userId, item.tier);
+      }
+    }
+
+    // When saving Custom, sync custom_model to match the new overrides
+    if (preset === 'custom') {
+      const updatedTiers = await this.tierRepo.find({
+        where: { user_id: userId },
+      });
+      for (const tier of updatedTiers) {
+        tier.custom_model = tier.override_model;
+        tier.updated_at = new Date().toISOString();
+        await this.tierRepo.save(tier);
+      }
+    }
+
+    await this.autoAssign.recalculate(userId);
+    return this.getTiers(userId);
+  }
+
+  async clearCustomSnapshot(userId: string): Promise<void> {
+    await this.tierRepo.update(
+      { user_id: userId },
+      { custom_model: null, updated_at: new Date().toISOString() },
+    );
+  }
+
+  /* ── Preset recommendations ── */
+
+  async getPresetRecommendations(
+    userId: string,
+  ): Promise<Record<string, Record<string, string | null>>> {
+    const providers = await this.providerRepo.find({
+      where: { user_id: userId, is_active: true },
+    });
+    const activeProviders = expandProviderNames(
+      providers.map((p) => p.provider),
+    );
+
+    const allModels = this.pricingCache.getAll();
+    const available = allModels.filter((m) =>
+      activeProviders.has(m.provider.toLowerCase()),
+    );
+
+    const presets = ['eco', 'balanced', 'quality', 'fast'] as const;
+    const result: Record<string, Record<string, string | null>> = {};
+
+    for (const preset of presets) {
+      result[preset] = {};
+      for (const tier of TIERS) {
+        const best = this.autoAssign.pickBestForPreset(
+          available,
+          tier as 'simple' | 'standard' | 'complex' | 'reasoning',
+          preset,
+        );
+        result[preset][tier] = best?.model_name ?? null;
+      }
+    }
+
+    return result;
   }
 
   /* ── Runtime helper ── */

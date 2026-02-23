@@ -175,6 +175,10 @@ export class DatabaseSeederService implements OnModuleInit {
       ['o3',                         'OpenAI',    0.000002,   0.000008,   200000,  true,  true,  5],
       ['o3-mini',                    'OpenAI',    0.0000011,  0.0000044,  200000,  true,  true,  3],
       ['o4-mini',                    'OpenAI',    0.0000011,  0.0000044,  200000,  true,  true,  3],
+      // OpenAI GPT-5.3
+      ['gpt-5.3',                    'OpenAI',    0.00001,    0.00003,    128000,  false, true,  5],
+      ['gpt-5.3-codex',              'OpenAI',    0.00001,    0.00003,    128000,  false, true,  5],
+      ['gpt-5.3-mini',               'OpenAI',    0.0000015,  0.000006,   128000,  false, true,  2],
       // Google Gemini
       ['gemini-2.5-pro',             'Google',    0.00000125, 0.00001,    1048576, true,  true,  5],
       ['gemini-2.5-flash',           'Google',    0.00000015, 0.0000006,  1048576, false, true,  2],
@@ -189,10 +193,19 @@ export class DatabaseSeederService implements OnModuleInit {
       ['qwen-2.5-72b-instruct',      'Alibaba',  0.00000034, 0.00000039, 131072,  false, true,  2],
       ['qwq-32b',                    'Alibaba',   0.00000012, 0.00000018, 131072,  true,  false, 1],
       ['qwen-2.5-coder-32b-instruct','Alibaba',   0.00000018, 0.00000018, 131072,  false, true,  2],
+      ['qwen3-235b-a22b',            'Alibaba',   0.0000003,  0.0000012,  131072,  true,  true,  3],
+      ['qwen3-32b',                  'Alibaba',   0.0000001,  0.0000003,  131072,  false, true,  2],
       // Mistral
       ['mistral-large',              'Mistral',   0.000002,   0.000006,   128000,  false, true,  3],
       ['mistral-small',              'Mistral',   0.0000002,  0.0000006,  128000,  false, false, 1],
       ['codestral',                  'Mistral',   0.0000003,  0.0000009,  256000,  false, true,  2],
+      // Zhipu (GLM)
+      ['glm-4-plus',                 'Zhipu',     0.0000005,  0.0000005,  128000,  false, true,  2],
+      ['glm-4-flash',                'Zhipu',     0.00000005, 0.00000005, 128000,  false, false, 1],
+      // Amazon Nova
+      ['nova-pro',                   'Amazon',    0.0000008,  0.0000032,  300000,  false, true,  3],
+      ['nova-lite',                  'Amazon',    0.00000006, 0.00000024, 300000,  false, true,  2],
+      ['nova-micro',                 'Amazon',    0.000000035,0.00000014, 128000,  false, false, 1],
       // xAI (Grok)
       ['grok-3',                     'xAI',       0.000003,   0.000015,   131072,  true,  true,  5],
       ['grok-3-mini',                'xAI',       0.0000003,  0.0000005,  131072,  true,  true,  3],

@@ -52,10 +52,12 @@ describe('GET /api/v1/overview', () => {
     expect(res.body.summary).toHaveProperty('messages');
     expect(res.body.summary.tokens_today).toHaveProperty('value');
     expect(res.body.summary.tokens_today).toHaveProperty('trend_pct');
-    expect(typeof res.body.has_data).toBe('boolean');
+    expect(res.body.has_data).toBe(true);
+    expect(res.body.summary.tokens_today.value).toBeGreaterThan(0);
+    expect(res.body.summary.messages.value).toBeGreaterThan(0);
   });
 
-  it('returns cost by model', async () => {
+  it('returns cost by model with data', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/overview?range=24h')
       .set('x-api-key', TEST_API_KEY)
@@ -63,9 +65,10 @@ describe('GET /api/v1/overview', () => {
 
     expect(res.body).toHaveProperty('cost_by_model');
     expect(Array.isArray(res.body.cost_by_model)).toBe(true);
+    expect(res.body.cost_by_model.length).toBeGreaterThan(0);
   });
 
-  it('returns recent activity', async () => {
+  it('returns recent activity with data', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/overview?range=24h')
       .set('x-api-key', TEST_API_KEY)
@@ -73,6 +76,7 @@ describe('GET /api/v1/overview', () => {
 
     expect(res.body).toHaveProperty('recent_activity');
     expect(Array.isArray(res.body.recent_activity)).toBe(true);
+    expect(res.body.recent_activity.length).toBeGreaterThan(0);
   });
 
   it('returns token usage data', async () => {

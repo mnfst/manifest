@@ -26,10 +26,10 @@ vi.mock("../../src/services/routing.js", () => ({
 
 vi.mock("../../src/services/api.js", () => ({
   getTierAssignments: vi.fn().mockResolvedValue([
-    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "3", user_id: "u1", tier: "complex", override_model: "claude-opus-4-6", auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
+    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", custom_model: null, updated_at: "2025-01-01" },
+    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", custom_model: null, updated_at: "2025-01-01" },
+    { id: "3", user_id: "u1", tier: "complex", override_model: "claude-opus-4-6", auto_assigned_model: "gpt-4o-mini", custom_model: null, updated_at: "2025-01-01" },
+    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", custom_model: null, updated_at: "2025-01-01" },
   ]),
   getAvailableModels: vi.fn().mockResolvedValue([
     { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
@@ -38,6 +38,13 @@ vi.mock("../../src/services/api.js", () => ({
   getProviders: vi.fn().mockResolvedValue([
     { id: "p1", provider: "openai", is_active: true, connected_at: "2025-01-01" },
   ]),
+  getPresets: vi.fn().mockResolvedValue({
+    eco: { simple: "gpt-4o-mini", standard: "gpt-4o-mini", complex: "gpt-4o-mini", reasoning: "gpt-4o-mini" },
+    balanced: {},
+    quality: { simple: "claude-opus-4-6", standard: "claude-opus-4-6", complex: "claude-opus-4-6", reasoning: "claude-opus-4-6" },
+    fast: { simple: "gpt-4o-mini", standard: "gpt-4o-mini", complex: "gpt-4o-mini", reasoning: "gpt-4o-mini" },
+  }),
+  bulkSaveTiers: vi.fn().mockResolvedValue({}),
   overrideTier: vi.fn().mockResolvedValue({}),
   resetTier: vi.fn().mockResolvedValue({}),
   resetAllTiers: vi.fn().mockResolvedValue({}),

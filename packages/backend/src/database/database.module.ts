@@ -7,6 +7,8 @@ import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
 import { SecurityEvent } from '../entities/security-event.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
+import { ModelPricingHistory } from '../entities/model-pricing-history.entity';
+import { UnresolvedModel } from '../entities/unresolved-model.entity';
 import { TokenUsageSnapshot } from '../entities/token-usage-snapshot.entity';
 import { CostSnapshot } from '../entities/cost-snapshot.entity';
 import { AgentLog } from '../entities/agent-log.entity';
@@ -20,30 +22,41 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { LocalBootstrapService } from './local-bootstrap.service';
-import { PricingSyncService } from './pricing-sync.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { AddModelCapabilities1771600000000 } from './migrations/1771600000000-AddModelCapabilities';
+import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
 import { AddRoutingTables1771700000000 } from './migrations/1771700000000-AddRoutingTables';
 import { AddQualityScore1771800000000 } from './migrations/1771800000000-AddQualityScore';
 import { SeedQualityScores1771800100000 } from './migrations/1771800100000-SeedQualityScores';
+import { AddCustomModelColumn1771900000000 } from './migrations/1771900000000-AddCustomModelColumn';
 
 const entities = [
   AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing,
+  ModelPricingHistory, UnresolvedModel,
   TokenUsageSnapshot, CostSnapshot, AgentLog,
   ApiKey, Tenant, Agent, AgentApiKey,
   NotificationRule, NotificationLog,
   UserProvider, TierAssignment,
 ];
 
-const migrations = [InitialSchema1771464895790, HashApiKeys1771500000000, AddModelCapabilities1771600000000, AddRoutingTables1771700000000, AddQualityScore1771800000000, SeedQualityScores1771800100000];
+const migrations = [
+  InitialSchema1771464895790,
+  HashApiKeys1771500000000,
+  AddModelCapabilities1771600000000,
+  ModelPricingImprovements1771600000000,
+  AddRoutingTables1771700000000,
+  AddQualityScore1771800000000,
+  SeedQualityScores1771800100000,
+  AddCustomModelColumn1771900000000,
+];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 
 function buildModeServices() {
   const seeder = isLocalMode ? LocalBootstrapService : DatabaseSeederService;
-  return [seeder, PricingSyncService];
+  return [seeder];
 }
 
 @Module({

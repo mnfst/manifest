@@ -8,6 +8,7 @@ import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { sha256, keyPrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
+import { trackCloudEvent } from '../../common/utils/product-telemetry';
 
 @Injectable()
 export class ApiKeyGeneratorService {
@@ -71,6 +72,7 @@ export class ApiKeyGeneratorService {
       is_active: true,
     });
 
+    trackCloudEvent('agent_created', tenantId);
     return { tenantId, agentId, apiKey: rawKey };
   }
 

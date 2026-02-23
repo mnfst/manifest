@@ -74,6 +74,160 @@
   color: hsl(var(--foreground));
 }
 
+/* ── Routing title + status indicator ─────────────── */
+.routing-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.routing-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 2px;
+  color: hsl(var(--destructive));
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: hsl(var(--destructive) / 0.12);
+}
+
+.routing-status-indicator--active {
+  color: hsl(var(--success));
+  background: hsl(var(--success) / 0.12);
+}
+
+.routing-status-indicator__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(var(--destructive));
+}
+
+.routing-status-indicator--active .routing-status-indicator__dot {
+  background: hsl(var(--success));
+}
+
+/* ── Activate/Deactivate button ──────────────────── */
+.routing-status-btn {
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  font-weight: 500;
+  color: hsl(var(--background));
+  background: hsl(var(--foreground));
+  border: 1px solid hsl(var(--foreground));
+  padding: 6px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+
+.routing-status-btn:hover {
+  opacity: 0.8;
+}
+
+.routing-status-btn--outline {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--input));
+}
+
+.routing-status-btn--outline:hover {
+  opacity: 1;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* ── Routing content fade ────────────────────────── */
+.routing-content-enter {
+  animation: routing-fade-in 150ms ease-out both;
+}
+
+@keyframes routing-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Preset section ───────────────────────────────── */
+.preset-section {
+  margin-bottom: var(--gap-md);
+}
+
+.preset-section__title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0 0 4px;
+}
+
+.preset-section__desc {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 var(--gap-sm);
+  line-height: 1.4;
+}
+
+/* ── Preset selector ──────────────────────────────── */
+.preset-selector {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  background: hsl(var(--muted) / 0.4);
+  border-radius: var(--radius);
+  width: fit-content;
+  margin-bottom: var(--gap-md);
+}
+
+.preset-selector__btn {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: 1px solid transparent;
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.preset-selector__btn:hover:not(:disabled) {
+  color: hsl(var(--foreground));
+}
+
+.preset-selector__btn--active {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.06);
+}
+
+.preset-selector__icon {
+  margin-right: 5px;
+  font-size: 15px;
+  --bx-duotone-primary-color: hsl(var(--foreground));
+  --bx-duotone-secondary-color: hsl(var(--foreground));
+  --bx-duotone-primary-opacity: 1;
+  --bx-duotone-secondary-opacity: 1;
+}
+
+.preset-selector__btn:disabled {
+  cursor: default;
+}
+
 /* ── Routing cards ─────────────────────────────────── */
 .routing-cards {
   display: flex;
@@ -115,6 +269,26 @@
 .routing-card__body {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+}
+
+.routing-card__model-content {
+  animation: none;
+}
+
+.routing-card__body--slot .routing-card__model-content {
+  animation: slot-in 300ms ease-out both;
+}
+
+@keyframes slot-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .routing-card__main {
@@ -344,4 +518,20 @@
   text-align: center;
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));
+}
+
+/* ── Routing actions (bottom bar) ────────────────── */
+.routing-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 24px;
+  margin-top: var(--gap-lg);
+}
+
+.routing-actions__buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  flex-shrink: 0;
 }

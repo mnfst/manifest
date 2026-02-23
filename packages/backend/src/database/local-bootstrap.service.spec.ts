@@ -94,16 +94,20 @@ describe('LocalBootstrapService', () => {
     it('runs full bootstrap sequence', async () => {
       mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
       mockDataSource.query.mockResolvedValueOnce(undefined); // UPDATE emailVerified
-      mockDataSource.query.mockResolvedValueOnce([{ id: 'ba-user-id' }]); // getBetterAuthUserId
 
       await service.onModuleInit();
 
       expect(mockPricingRepo.upsert).toHaveBeenCalled();
       expect(mockPricingCache.reload).toHaveBeenCalled();
+      // Verify tenant name equals LOCAL_USER_ID (guard/bootstrap consistency)
+      const { LOCAL_USER_ID } = require('../common/constants/local-mode.constants');
+      const tenantInsertArg = mockTenantRepo.insert.mock.calls[0][0];
+      expect(tenantInsertArg.name).toBe(LOCAL_USER_ID);
+
       expect(mockTenantRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'local-tenant-001',
-          name: 'ba-user-id',
+          name: 'local-user-001',
         }),
       );
       expect(mockAgentRepo.insert).toHaveBeenCalledWith(
@@ -140,22 +144,25 @@ describe('LocalBootstrapService', () => {
       mockPricingRepo.count.mockResolvedValue(28);
       mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
       mockDataSource.query.mockResolvedValueOnce(undefined); // UPDATE email
-      mockDataSource.query.mockResolvedValueOnce([{ id: 'ba-id' }]); // getBetterAuthUserId
 
       await service.onModuleInit();
 
       expect(mockPricingRepo.upsert).not.toHaveBeenCalled();
     });
 
-    it('skips tenant/agent when no user found in BetterAuth', async () => {
+    it('creates tenant/agent even without BetterAuth user', async () => {
       mockDataSource.query.mockResolvedValueOnce([]); // checkUserExists
       mockDataSource.query.mockResolvedValueOnce(undefined); // UPDATE email
-      mockDataSource.query.mockResolvedValueOnce([]); // getBetterAuthUserId empty
 
       await service.onModuleInit();
 
-      expect(mockTenantRepo.insert).not.toHaveBeenCalled();
-      expect(mockAgentRepo.insert).not.toHaveBeenCalled();
+      expect(mockTenantRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'local-tenant-001',
+          name: 'local-user-001',
+        }),
+      );
+      expect(mockAgentRepo.insert).toHaveBeenCalled();
     });
   });
 

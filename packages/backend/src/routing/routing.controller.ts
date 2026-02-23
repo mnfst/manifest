@@ -17,6 +17,7 @@ import {
   ProviderParamDto,
   ConnectProviderDto,
   SetOverrideDto,
+  BulkSaveTiersDto,
 } from './dto/routing.dto';
 
 @Controller('api/v1/routing')
@@ -73,6 +74,24 @@ export class RoutingController {
   @Get('tiers')
   async getTiers(@CurrentUser() user: AuthUser) {
     return this.routingService.getTiers(user.id);
+  }
+
+  @Put('tiers')
+  async bulkSaveTiers(
+    @CurrentUser() user: AuthUser,
+    @Body() body: BulkSaveTiersDto,
+  ) {
+    return this.routingService.bulkSaveTiers(
+      user.id,
+      body.tiers.map((t) => ({ tier: t.tier, model: t.model })),
+      body.preset,
+      body.fromPreset,
+    );
+  }
+
+  @Get('presets')
+  async getPresets(@CurrentUser() user: AuthUser) {
+    return this.routingService.getPresetRecommendations(user.id);
   }
 
   @Put('tiers/:tier')

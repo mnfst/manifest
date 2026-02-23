@@ -2,15 +2,19 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ModelPricing } from '../entities/model-pricing.entity';
+import { buildAliasMap, resolveModelName } from './model-name-normalizer';
+import { UnresolvedModelTrackerService } from './unresolved-model-tracker.service';
 
 @Injectable()
 export class ModelPricingCacheService implements OnModuleInit {
   private readonly logger = new Logger(ModelPricingCacheService.name);
   private readonly cache = new Map<string, ModelPricing>();
+  private aliasMap = new Map<string, string>();
 
   constructor(
     @InjectRepository(ModelPricing)
     private readonly pricingRepo: Repository<ModelPricing>,
+    private readonly unresolvedTracker: UnresolvedModelTrackerService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -23,11 +27,19 @@ export class ModelPricingCacheService implements OnModuleInit {
     for (const row of rows) {
       this.cache.set(row.model_name, row);
     }
+    this.aliasMap = buildAliasMap([...this.cache.keys()]);
     this.logger.log(`Loaded ${this.cache.size} model pricing entries`);
   }
 
   getByModel(modelName: string): ModelPricing | undefined {
-    return this.cache.get(modelName);
+    const exact = this.cache.get(modelName);
+    if (exact) return exact;
+
+    const resolved = resolveModelName(modelName, this.aliasMap);
+    if (resolved) return this.cache.get(resolved);
+
+    this.unresolvedTracker.track(modelName);
+    return undefined;
   }
 
   getAll(): ModelPricing[] {

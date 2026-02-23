@@ -5,6 +5,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { PricingHistoryService } from './pricing-history.service';
+import { UnresolvedModelTrackerService } from '../model-prices/unresolved-model-tracker.service';
+import { sqlNow } from '../common/utils/sql-dialect';
 
 interface OpenRouterModel {
   id: string;
@@ -19,20 +22,20 @@ interface OpenRouterResponse {
   data: OpenRouterModel[];
 }
 
-// Map OpenRouter provider prefixes to our canonical provider names
-const PROVIDER_PREFIXES: ReadonlyMap<string, string> = new Map([
-  ['anthropic/', 'Anthropic'],
-  ['openai/', 'OpenAI'],
-  ['google/', 'Google'],
-  ['deepseek/', 'DeepSeek'],
-  ['mistralai/', 'Mistral'],
-  ['x-ai/', 'xAI'],
-  ['qwen/', 'Alibaba'],
-  ['moonshotai/', 'Moonshot'],
-]);
-
-// OpenRouter variant suffixes to skip (non-standard pricing / duplicates)
-const VARIANT_SUFFIXES = [':free', ':extended', ':nitro'];
+const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
+  anthropic: 'Anthropic',
+  openai: 'OpenAI',
+  google: 'Google',
+  deepseek: 'DeepSeek',
+  mistralai: 'Mistral',
+  moonshotai: 'Moonshot',
+  qwen: 'Alibaba',
+  zhipuai: 'Zhipu',
+  amazon: 'Amazon',
+  'meta-llama': 'Meta',
+  cohere: 'Cohere',
+  xai: 'xAI',
+};
 
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/models';
 
@@ -44,6 +47,8 @@ export class PricingSyncService implements OnModuleInit {
     @InjectRepository(ModelPricing)
     private readonly pricingRepo: Repository<ModelPricing>,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly pricingHistory: PricingHistoryService,
+    private readonly unresolvedTracker: UnresolvedModelTrackerService,
     private readonly moduleRef: ModuleRef,
   ) {}
 
@@ -63,51 +68,11 @@ export class PricingSyncService implements OnModuleInit {
       this.pricingCache.getAll().map((m) => m.model_name),
     );
 
-    let data: OpenRouterModel[];
-    try {
-      const res = await fetch(OPENROUTER_API);
-      if (!res.ok) {
-        this.logger.error(`OpenRouter API returned ${res.status}`);
-        return 0;
-      }
-      const body = (await res.json()) as OpenRouterResponse;
-      data = body.data ?? [];
-    } catch (err) {
-      this.logger.error(`Failed to fetch OpenRouter models: ${err}`);
-      return 0;
-    }
+    const data = await this.fetchOpenRouterModels();
+    if (!data) return 0;
 
-    const existingModels = new Set(
-      this.pricingCache.getAll().map((m) => m.model_name),
-    );
-
-    let updated = 0;
-    for (const model of data) {
-      const match = this.matchProvider(model.id);
-      if (!match) continue;
-
-      const prompt = Number(model.pricing?.prompt ?? 0);
-      const completion = Number(model.pricing?.completion ?? 0);
-      if (prompt === 0 && completion === 0) continue;
-
-      const { canonical, provider } = match;
-
-      // Only update prices for models we already have (seeded).
-      // Never insert new models — keep the curated list small.
-      if (!existingModels.has(canonical)) continue;
-
-      await this.pricingRepo.upsert(
-        {
-          model_name: canonical,
-          provider,
-          input_price_per_token: prompt,
-          output_price_per_token: completion,
-          ...(model.context_length ? { context_window: model.context_length } : {}),
-        },
-        ['model_name'],
-      );
-      updated++;
-    }
+    const updated = await this.syncAllModels(data);
+    await this.resolveUnresolvedModels(data);
 
     this.logger.log(`Pricing sync complete: ${updated} models updated`);
     if (updated > 0) {
@@ -139,19 +104,113 @@ export class PricingSyncService implements OnModuleInit {
     return updated;
   }
 
-  /** Match an OpenRouter model ID to a supported provider, returning canonical name + provider. */
-  private matchProvider(
-    modelId: string,
-  ): { canonical: string; provider: string } | null {
-    // Skip OpenRouter variant suffixes
-    if (VARIANT_SUFFIXES.some((s) => modelId.endsWith(s))) return null;
+  private async fetchOpenRouterModels(): Promise<OpenRouterModel[] | null> {
+    try {
+      const res = await fetch(OPENROUTER_API);
+      if (!res.ok) {
+        this.logger.error(`OpenRouter API returned ${res.status}`);
+        return null;
+      }
+      const body = (await res.json()) as OpenRouterResponse;
+      return body.data ?? [];
+    } catch (err) {
+      this.logger.error(`Failed to fetch OpenRouter models: ${err}`);
+      return null;
+    }
+  }
 
-    for (const [prefix, provider] of PROVIDER_PREFIXES) {
-      if (modelId.startsWith(prefix)) {
-        return { canonical: modelId.slice(prefix.length), provider };
+  private async syncAllModels(data: OpenRouterModel[]): Promise<number> {
+    let updated = 0;
+    const now = new Date(sqlNow());
+
+    for (const model of data) {
+      const prompt = Number(model.pricing?.prompt ?? 0);
+      const completion = Number(model.pricing?.completion ?? 0);
+      if (prompt === 0 && completion === 0) continue;
+
+      const { canonical, provider } = this.deriveNames(model.id);
+      const existing = await this.pricingRepo.findOneBy({
+        model_name: canonical,
+      });
+
+      const incoming = {
+        model_name: canonical,
+        provider,
+        input_price_per_token: prompt,
+        output_price_per_token: completion,
+      };
+
+      await this.pricingHistory.recordChange(existing, incoming, 'sync');
+      await this.pricingRepo.upsert(
+        { ...incoming, updated_at: now },
+        ['model_name'],
+      );
+      updated++;
+    }
+
+    return updated;
+  }
+
+  deriveNames(openRouterId: string): {
+    canonical: string;
+    provider: string;
+  } {
+    const slashIndex = openRouterId.indexOf('/');
+    if (slashIndex === -1) {
+      return { canonical: openRouterId, provider: 'Unknown' };
+    }
+
+    const prefix = openRouterId.substring(0, slashIndex);
+    const canonical = openRouterId.substring(slashIndex + 1);
+    const provider = PROVIDER_DISPLAY_NAMES[prefix] ?? this.titleCase(prefix);
+
+    return { canonical, provider };
+  }
+
+  private titleCase(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  private async resolveUnresolvedModels(
+    data: OpenRouterModel[],
+  ): Promise<void> {
+    const unresolved = await this.unresolvedTracker.getUnresolved();
+    if (unresolved.length === 0) return;
+
+    const knownNames = new Set<string>();
+    for (const model of data) {
+      const { canonical } = this.deriveNames(model.id);
+      knownNames.add(canonical);
+    }
+
+    for (const entry of unresolved) {
+      const resolvedName = this.tryResolve(entry.model_name, knownNames);
+      if (resolvedName) {
+        await this.unresolvedTracker.markResolved(
+          entry.model_name,
+          resolvedName,
+        );
       }
     }
+  }
+
+  private tryResolve(
+    modelName: string,
+    knownNames: Set<string>,
+  ): string | null {
+    if (knownNames.has(modelName)) return modelName;
+
+    const stripped = this.stripPrefix(modelName);
+    if (knownNames.has(stripped)) return stripped;
+
+    const noDate = stripped.replace(/-\d{4}-\d{2}-\d{2}$/, '');
+    if (noDate !== stripped && knownNames.has(noDate)) return noDate;
+
     return null;
   }
 
+  private stripPrefix(name: string): string {
+    const slashIndex = name.indexOf('/');
+    return slashIndex === -1 ? name : name.substring(slashIndex + 1);
+  }
 }

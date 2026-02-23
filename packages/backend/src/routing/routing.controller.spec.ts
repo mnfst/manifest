@@ -19,6 +19,8 @@ describe('RoutingController', () => {
       setOverride: jest.fn().mockResolvedValue({}),
       clearOverride: jest.fn().mockResolvedValue(undefined),
       resetAllOverrides: jest.fn().mockResolvedValue(undefined),
+      bulkSaveTiers: jest.fn().mockResolvedValue([]),
+      getPresetRecommendations: jest.fn().mockResolvedValue({}),
     };
     mockPricingCache = {
       getAll: jest.fn().mockReturnValue([]),
@@ -154,6 +156,66 @@ describe('RoutingController', () => {
 
       expect(mockRoutingService.resetAllOverrides).toHaveBeenCalledWith('user-1');
       expect(result).toEqual({ ok: true });
+    });
+  });
+
+  /* ── bulkSaveTiers ── */
+
+  describe('bulkSaveTiers', () => {
+    it('should call service with correct args', async () => {
+      const tiers = [
+        { tier: 'complex', override_model: 'claude-opus-4-6', auto_assigned_model: 'gpt-4o' },
+      ];
+      mockRoutingService.bulkSaveTiers.mockResolvedValue(tiers);
+
+      const result = await controller.bulkSaveTiers(mockUser, {
+        tiers: [
+          { tier: 'complex', model: 'claude-opus-4-6' },
+          { tier: 'simple', model: null },
+        ],
+      });
+
+      expect(mockRoutingService.bulkSaveTiers).toHaveBeenCalledWith('user-1', [
+        { tier: 'complex', model: 'claude-opus-4-6' },
+        { tier: 'simple', model: null },
+      ], undefined, undefined);
+      expect(result).toBe(tiers);
+    });
+
+    it('should pass preset and fromPreset to service when provided', async () => {
+      mockRoutingService.bulkSaveTiers.mockResolvedValue([]);
+
+      await controller.bulkSaveTiers(mockUser, {
+        tiers: [{ tier: 'simple', model: null }],
+        preset: 'eco',
+        fromPreset: 'custom',
+      });
+
+      expect(mockRoutingService.bulkSaveTiers).toHaveBeenCalledWith(
+        'user-1',
+        [{ tier: 'simple', model: null }],
+        'eco',
+        'custom',
+      );
+    });
+  });
+
+  /* ── getPresets ── */
+
+  describe('getPresets', () => {
+    it('should return preset recommendations', async () => {
+      const recommendations = {
+        eco: { simple: 'cheap-model', standard: 'cheap-model', complex: 'cheap-model', reasoning: 'cheap-model' },
+        balanced: { simple: 'cheap-model', standard: 'mid-model', complex: 'top-model', reasoning: 'top-model' },
+        quality: { simple: 'top-model', standard: 'top-model', complex: 'top-model', reasoning: 'top-model' },
+        fast: { simple: 'fast-model', standard: 'fast-model', complex: 'fast-model', reasoning: 'fast-model' },
+      };
+      mockRoutingService.getPresetRecommendations.mockResolvedValue(recommendations);
+
+      const result = await controller.getPresets(mockUser);
+
+      expect(mockRoutingService.getPresetRecommendations).toHaveBeenCalledWith('user-1');
+      expect(result).toBe(recommendations);
     });
   });
 

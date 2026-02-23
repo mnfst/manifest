@@ -1,5 +1,6 @@
 import { ModelPricingCacheService } from './model-pricing-cache.service';
 import { ModelPricing } from '../entities/model-pricing.entity';
+import { UnresolvedModelTrackerService } from './unresolved-model-tracker.service';
 
 function makePricing(name: string): ModelPricing {
   const p = new ModelPricing();
@@ -14,11 +15,14 @@ function makePricing(name: string): ModelPricing {
 describe('ModelPricingCacheService', () => {
   let service: ModelPricingCacheService;
   let mockFind: jest.Mock;
+  let mockTrack: jest.Mock;
 
   beforeEach(() => {
     mockFind = jest.fn().mockResolvedValue([]);
     const mockRepo = { find: mockFind } as never;
-    service = new ModelPricingCacheService(mockRepo);
+    mockTrack = jest.fn();
+    const mockTracker = { track: mockTrack } as unknown as UnresolvedModelTrackerService;
+    service = new ModelPricingCacheService(mockRepo, mockTracker);
   });
 
   describe('onModuleInit', () => {
@@ -108,6 +112,80 @@ describe('ModelPricingCacheService', () => {
       expect(service.getByModel('gpt-4')).toBe(rows[0]);
       expect(service.getByModel('gpt-4o')).toBe(rows[1]);
       expect(service.getByModel('gpt-4o-mini')).toBeUndefined();
+    });
+
+    it('should resolve provider-prefixed model names', async () => {
+      const pricing = makePricing('gpt-4o');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('openai/gpt-4o')).toBe(pricing);
+    });
+
+    it('should resolve known aliases', async () => {
+      const pricing = makePricing('claude-opus-4-6');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('claude-opus-4')).toBe(pricing);
+    });
+
+    it('should resolve date-suffixed model names', async () => {
+      const pricing = makePricing('gpt-4.1');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('gpt-4.1-2025-04-14')).toBe(pricing);
+    });
+
+    it('should resolve prefix + date suffix combined', async () => {
+      const pricing = makePricing('gpt-4.1');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('openai/gpt-4.1-2025-04-14')).toBe(pricing);
+    });
+
+    it('should resolve deepseek-chat to deepseek-v3', async () => {
+      const pricing = makePricing('deepseek-v3');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('deepseek-chat')).toBe(pricing);
+    });
+
+    it('should track unresolved models on cache miss', async () => {
+      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
+      await service.onModuleInit();
+
+      service.getByModel('totally-unknown');
+
+      expect(mockTrack).toHaveBeenCalledWith('totally-unknown');
+    });
+
+    it('should not track models that resolve successfully', async () => {
+      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
+      await service.onModuleInit();
+
+      service.getByModel('openai/gpt-4o');
+
+      expect(mockTrack).not.toHaveBeenCalled();
+    });
+
+    it('should still return undefined for truly unknown models', async () => {
+      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('totally-unknown')).toBeUndefined();
+    });
+
+    it('should not track models that match exactly in cache', async () => {
+      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
+      await service.onModuleInit();
+
+      service.getByModel('gpt-4o');
+
+      expect(mockTrack).not.toHaveBeenCalled();
     });
   });
 

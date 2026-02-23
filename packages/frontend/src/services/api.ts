@@ -192,6 +192,7 @@ export interface TierAssignment {
   tier: string;
   override_model: string | null;
   auto_assigned_model: string | null;
+  custom_model: string | null;
   updated_at: string;
 }
 
@@ -219,6 +220,23 @@ export function resetTier(tier: string) {
 export function resetAllTiers() {
   return fetchMutate(`${BASE_URL}/routing/tiers/reset-all`, {
     method: "POST",
+  });
+}
+
+/* ── Routing: Presets & Bulk Save ── */
+
+export type PresetId = "eco" | "balanced" | "quality" | "fast";
+export type PresetRecommendations = Record<PresetId, Record<string, string | null>>;
+
+export function getPresets() {
+  return fetchJson<PresetRecommendations>("/routing/presets");
+}
+
+export function bulkSaveTiers(tiers: { tier: string; model: string | null }[], preset?: string, fromPreset?: string) {
+  return fetchMutate<TierAssignment[]>(`${BASE_URL}/routing/tiers`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tiers, ...(preset ? { preset } : {}), ...(fromPreset ? { fromPreset } : {}) }),
   });
 }
 

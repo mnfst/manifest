@@ -1,6 +1,30 @@
 {
   "name": "manifest",
   "private": true,
+  "description": "Open-source observability for AI agents — track costs, tokens, messages, and performance",
+  "homepage": "https://manifest.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mnfst/manifest"
+  },
+  "bugs": {
+    "url": "https://github.com/mnfst/manifest/issues"
+  },
+  "author": "MNFST Inc.",
+  "license": "MIT",
+  "keywords": [
+    "ai-observability",
+    "ai-agent",
+    "llm-monitoring",
+    "opentelemetry",
+    "otlp",
+    "cost-tracking",
+    "token-tracking",
+    "observability",
+    "telemetry",
+    "nestjs",
+    "solidjs"
+  ],
   "packageManager": "npm@10.9.2",
   "workspaces": [
     "packages/frontend",

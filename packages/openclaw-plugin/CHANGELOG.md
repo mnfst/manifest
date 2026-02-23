@@ -1,5 +1,26 @@
 # manifest
 
+## 5.2.11
+
+### Patch Changes
+
+- 0cc919c: Fix manifest plugin not being published with @mnfst/server dependency; add startup pre-flight check
+- Updated dependencies [0cc919c]
+- Updated dependencies [e491d5e]
+  - @mnfst/server@5.2.11
+
+## 5.2.7
+
+### Patch Changes
+
+- 16984c3: Add anonymous product telemetry via PostHog
+
+## 5.2.4
+
+### Patch Changes
+
+- fda9600: Add README, LICENSE, and improve package metadata for npm discoverability
+
 ## 5.2.1
 
 ### Patch Changes

@@ -1,6 +1,7 @@
 import { createSignal, createResource, Show, For, createMemo, type Component } from "solid-js";
 import { Title, Meta } from "@solidjs/meta";
 import ErrorState from "../components/ErrorState.jsx";
+import ModelPricesFilterBar from "../components/ModelPricesFilterBar.jsx";
 import { getModelPrices } from "../services/api.js";
 
 interface ModelPrice {
@@ -28,6 +29,8 @@ const ModelPrices: Component = () => {
   const [data, { refetch }] = createResource(() => getModelPrices() as Promise<ModelPricesData>);
   const [sortKey, setSortKey] = createSignal<SortKey>("provider");
   const [sortDir, setSortDir] = createSignal<SortDir>("asc");
+  const [search, setSearch] = createSignal("");
+  const [selectedProviders, setSelectedProviders] = createSignal<Set<string>>(new Set());
 
   const handleSort = (key: SortKey) => {
     if (sortKey() === key) {
@@ -38,9 +41,29 @@ const ModelPrices: Component = () => {
     }
   };
 
-  const sortedModels = createMemo(() => {
+  const allProviders = createMemo(() => {
     const models = data()?.models;
     if (!models) return [];
+    const unique = [...new Set(models.map((m) => m.provider))];
+    return unique.sort((a, b) => a.localeCompare(b));
+  });
+
+  const filteredModels = createMemo(() => {
+    const models = data()?.models;
+    if (!models) return [];
+    const query = search().toLowerCase().trim();
+    const providers = selectedProviders();
+
+    return models.filter((m) => {
+      if (query && !m.model_name.toLowerCase().includes(query)) return false;
+      if (providers.size > 0 && !providers.has(m.provider)) return false;
+      return true;
+    });
+  });
+
+  const sortedModels = createMemo(() => {
+    const models = filteredModels();
+    if (!models.length) return [];
     const key = sortKey();
     const dir = sortDir();
     return [...models].sort((a, b) => {
@@ -56,6 +79,23 @@ const ModelPrices: Component = () => {
   const indicator = (key: SortKey) => {
     if (sortKey() !== key) return "";
     return sortDir() === "asc" ? " \u25B2" : " \u25BC";
+  };
+
+  const toggleProvider = (provider: string) => {
+    setSelectedProviders((prev) => {
+      const next = new Set(prev);
+      if (next.has(provider)) {
+        next.delete(provider);
+      } else {
+        next.add(provider);
+      }
+      return next;
+    });
+  };
+
+  const clearFilters = () => {
+    setSearch("");
+    setSelectedProviders(new Set<string>());
   };
 
   const formatSyncTime = (ts: string | null) => {
@@ -105,52 +145,65 @@ const ModelPrices: Component = () => {
           <ErrorState error={data.error} onRetry={refetch} />
         }>
         <div class="panel">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
-            <div>
-              <div class="panel__title" style="margin-bottom: 0;">
-                {sortedModels().length} models
-              </div>
-              <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: 4px 0 0;">
-                Tokens are units of text that AI models process. "Send" is what you give the model, "Receive" is what it returns.
-              </p>
+          <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: 0 0 var(--gap-md);">
+            Tokens are units of text that AI models process. "Send" is what you give the model, "Receive" is what it returns.
+          </p>
+          <ModelPricesFilterBar
+            search={search()}
+            onSearchChange={setSearch}
+            providers={allProviders()}
+            selectedProviders={selectedProviders()}
+            onToggleProvider={toggleProvider}
+            onClearFilters={clearFilters}
+            totalCount={data()?.models?.length ?? 0}
+            filteredCount={filteredModels().length}
+          />
+          <Show when={sortedModels().length > 0} fallback={
+            <div class="model-filter__empty">
+              <p class="model-filter__empty-title">No models match your filters</p>
+              <p class="model-filter__empty-hint">Try a different search term or clear the provider filter.</p>
+              <button class="btn btn--outline" onClick={clearFilters} type="button">
+                Clear filters
+              </button>
             </div>
-          </div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th class="data-table__sortable" onClick={() => handleSort("model_name")}>
-                  Model{indicator("model_name")}
-                </th>
-                <th class="data-table__sortable" onClick={() => handleSort("provider")}>
-                  Provider{indicator("provider")}
-                </th>
-                <th class="data-table__sortable" onClick={() => handleSort("input_price_per_million")}>
-                  Cost to send / 1M tokens{indicator("input_price_per_million")}
-                </th>
-                <th class="data-table__sortable" onClick={() => handleSort("output_price_per_million")}>
-                  Cost to receive / 1M tokens{indicator("output_price_per_million")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={sortedModels()}>
-                {(model) => (
-                  <tr>
-                    <td style="font-family: var(--font-mono); font-size: var(--font-size-sm);">
-                      {model.model_name}
-                    </td>
-                    <td>{model.provider}</td>
-                    <td style="font-family: var(--font-mono);">
-                      {formatPrice(model.input_price_per_million)}
-                    </td>
-                    <td style="font-family: var(--font-mono);">
-                      {formatPrice(model.output_price_per_million)}
-                    </td>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
+          }>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="data-table__sortable" onClick={() => handleSort("model_name")}>
+                    Model{indicator("model_name")}
+                  </th>
+                  <th class="data-table__sortable" onClick={() => handleSort("provider")}>
+                    Provider{indicator("provider")}
+                  </th>
+                  <th class="data-table__sortable" onClick={() => handleSort("input_price_per_million")}>
+                    Cost to send / 1M tokens{indicator("input_price_per_million")}
+                  </th>
+                  <th class="data-table__sortable" onClick={() => handleSort("output_price_per_million")}>
+                    Cost to receive / 1M tokens{indicator("output_price_per_million")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={sortedModels()}>
+                  {(model) => (
+                    <tr>
+                      <td style="font-family: var(--font-mono); font-size: var(--font-size-sm);">
+                        {model.model_name}
+                      </td>
+                      <td>{model.provider}</td>
+                      <td style="font-family: var(--font-mono);">
+                        {formatPrice(model.input_price_per_million)}
+                      </td>
+                      <td style="font-family: var(--font-mono);">
+                        {formatPrice(model.output_price_per_million)}
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
+          </Show>
         </div>
         </Show>
       </Show>

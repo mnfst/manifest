@@ -307,8 +307,8 @@ describe('DatabaseSeederService', () => {
 
       await service.onModuleInit();
 
-      // 30 curated models are always upserted
-      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(30);
+      // 40 curated models are always upserted
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(40);
     });
 
     it('should upsert with model_name as conflict key', async () => {

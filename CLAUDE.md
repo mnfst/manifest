@@ -317,9 +317,19 @@ Version management and npm publishing use [Changesets](https://github.com/change
 
 The two publishable packages are **linked** in changesets config — a major/minor bump to one bumps the other.
 
+### CRITICAL: Every PR Needs a Changeset
+
+**Before creating any PR, you MUST add a changeset.** The `changeset-check` CI job will fail without one.
+
+- **Backend or frontend changes always need a `@mnfst/server` changeset.** These packages compile into `@mnfst/server`, so any change to `packages/backend/` or `packages/frontend/` must include a changeset bumping `@mnfst/server` (patch for fixes, minor for features). CI enforces this.
+- If the PR changes a **publishable package** directly (`openclaw-plugin` or `manifest-server`): run `npx changeset` and select the appropriate bump level.
+- Since `@mnfst/server` and `manifest` are **linked**, bumping one automatically bumps the other.
+- **Empty changesets** (`npx changeset add --empty`) should only be used for changes that don't affect any publishable package: CI config, docs, tooling, or dev-only scripts.
+- Commit the generated `.changeset/*.md` file as part of the PR.
+
 ### Workflow
 
-1. When changing a publishable package, run `npx changeset` and commit the generated file
+1. When changing backend, frontend, or a publishable package, run `npx changeset` and select `@mnfst/server` with the appropriate bump level
 2. On merge to `main`, the release workflow (`.github/workflows/release.yml`) opens a "Version Packages" PR
 3. When that PR merges, the workflow publishes to npm using `NPM_TOKEN` secret
 
@@ -334,4 +344,4 @@ npm run release             # Publish to npm (used by CI)
 
 ### CI Integration
 
-The `changeset-check` job in `.github/workflows/ci.yml` runs `npx changeset status --since=origin/main` on PRs. It warns when publishable packages changed without a changeset. If a PR only touches internal packages (backend, frontend, CI, docs), use `npx changeset add --empty`.
+The `changeset-check` job in `.github/workflows/ci.yml` runs `npx changeset status --since=origin/main` on PRs. It also enforces that any PR touching `packages/backend/` or `packages/frontend/` includes a `@mnfst/server` changeset. The job will fail if backend/frontend files changed without one.

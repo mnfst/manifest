@@ -11,6 +11,9 @@ import { expandProviderNames } from './provider-aliases';
 const TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
 type Tier = (typeof TIERS)[number];
 
+const PRESETS = ['eco', 'balanced', 'quality', 'fast'] as const;
+export type Preset = (typeof PRESETS)[number];
+
 interface ScoredModel {
   model_name: string;
   score: number;
@@ -131,6 +134,75 @@ export class TierAutoAssignService {
           );
           picked = byQuality[0];
         }
+        break;
+      }
+    }
+
+    return { model_name: picked.model_name, score: quality(picked) };
+  }
+
+  /**
+   * Preset-aware model selection.
+   *
+   * ECO       — cheapest model for every tier.
+   * BALANCED  — delegates to the existing per-tier `pickBest` logic.
+   * QUALITY   — highest quality_score; cheapest as tiebreaker.
+   * FAST      — smallest context_window (speed proxy); cheapest as tiebreaker.
+   *
+   * For the REASONING tier in all presets: reasoning-capable models are
+   * preferred when available.
+   */
+  pickBestForPreset(
+    models: ModelPricing[],
+    tier: Tier,
+    preset: Preset,
+  ): ScoredModel | null {
+    if (models.length === 0) return null;
+
+    if (preset === 'balanced') return this.pickBest(models, tier);
+
+    const totalPrice = (m: ModelPricing) =>
+      Number(m.input_price_per_token) + Number(m.output_price_per_token);
+
+    const quality = (m: ModelPricing) => m.quality_score ?? 3;
+
+    // Filter out zero-price models
+    let pool = models.filter((m) => totalPrice(m) > 0);
+    if (pool.length === 0) return null;
+
+    // For reasoning tier: prefer reasoning-capable models if any exist
+    if (tier === 'reasoning') {
+      const reasoningPool = pool.filter((m) => m.capability_reasoning);
+      if (reasoningPool.length > 0) pool = reasoningPool;
+    }
+
+    // Sort by price ascending as the base order
+    pool.sort((a, b) => totalPrice(a) - totalPrice(b));
+
+    let picked: ModelPricing;
+
+    switch (preset) {
+      case 'eco': {
+        // Cheapest model regardless of tier
+        picked = pool[0];
+        break;
+      }
+
+      case 'quality': {
+        // Highest quality_score first, cheapest as tiebreaker
+        const byQuality = [...pool].sort(
+          (a, b) => quality(b) - quality(a),
+        );
+        picked = byQuality[0];
+        break;
+      }
+
+      case 'fast': {
+        // Smallest context_window first, cheapest as tiebreaker
+        const byContext = [...pool].sort(
+          (a, b) => (a.context_window ?? 0) - (b.context_window ?? 0),
+        );
+        picked = byContext[0];
         break;
       }
     }

@@ -18,13 +18,16 @@ describe('RoutingService', () => {
   let service: RoutingService;
   let mockProviderRepo: ReturnType<typeof makeMockRepo>;
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
-  let mockAutoAssign: { recalculate: jest.Mock };
+  let mockAutoAssign: { recalculate: jest.Mock; pickBestForPreset: jest.Mock };
   let mockPricingCache: { getByModel: jest.Mock; getAll: jest.Mock };
 
   beforeEach(() => {
     mockProviderRepo = makeMockRepo();
     mockTierRepo = makeMockRepo();
-    mockAutoAssign = { recalculate: jest.fn().mockResolvedValue(undefined) };
+    mockAutoAssign = {
+      recalculate: jest.fn().mockResolvedValue(undefined),
+      pickBestForPreset: jest.fn().mockReturnValue(null),
+    };
     mockPricingCache = {
       getByModel: jest.fn(),
       getAll: jest.fn().mockReturnValue([]),
@@ -489,6 +492,170 @@ describe('RoutingService', () => {
       // Same user — should only recalculate once
       expect(mockAutoAssign.recalculate).toHaveBeenCalledTimes(1);
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
+    });
+  });
+
+  /* ── bulkSaveTiers ── */
+
+  describe('bulkSaveTiers', () => {
+    it('should set overrides and clear nulls', async () => {
+      // Mock setOverride path (findOne returns existing tier)
+      const complexTier = Object.assign(new TierAssignment(), {
+        id: 't1', user_id: 'u1', tier: 'complex', override_model: null,
+      });
+      const simpleTier = Object.assign(new TierAssignment(), {
+        id: 't2', user_id: 'u1', tier: 'simple', override_model: 'old-model',
+      });
+
+      mockTierRepo.findOne
+        .mockResolvedValueOnce(complexTier) // setOverride('complex')
+        .mockResolvedValueOnce(simpleTier); // clearOverride('simple')
+
+      // Mock getTiers response after bulk save
+      const finalTiers = [
+        { tier: 'simple', override_model: null, auto_assigned_model: 'gpt-4o' },
+        { tier: 'complex', override_model: 'claude-opus-4-6', auto_assigned_model: 'gpt-4o' },
+      ];
+      mockTierRepo.find.mockResolvedValue(finalTiers);
+
+      const result = await service.bulkSaveTiers('u1', [
+        { tier: 'complex', model: 'claude-opus-4-6' },
+        { tier: 'simple', model: null },
+      ]);
+
+      expect(complexTier.override_model).toBe('claude-opus-4-6');
+      expect(simpleTier.override_model).toBeNull();
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
+      expect(result).toBe(finalTiers);
+    });
+
+    it('should call recalculate once', async () => {
+      mockTierRepo.findOne.mockResolvedValue(
+        Object.assign(new TierAssignment(), { id: 't1', user_id: 'u1', tier: 'simple', override_model: null }),
+      );
+      mockTierRepo.find.mockResolvedValue([]);
+
+      await service.bulkSaveTiers('u1', [
+        { tier: 'simple', model: 'model-a' },
+      ]);
+
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledTimes(1);
+    });
+
+    it('should snapshot overrides to custom_model when leaving custom for a named preset', async () => {
+      const tier1 = Object.assign(new TierAssignment(), {
+        id: 't1', user_id: 'u1', tier: 'complex', override_model: 'claude-opus-4-6', custom_model: null,
+      });
+      const tier2 = Object.assign(new TierAssignment(), {
+        id: 't2', user_id: 'u1', tier: 'simple', override_model: null, custom_model: null,
+      });
+
+      // First find: returns current tiers for snapshotting
+      mockTierRepo.find
+        .mockResolvedValueOnce([tier1, tier2]) // snapshot read
+        .mockResolvedValueOnce([tier1, tier2]); // getTiers at the end
+
+      // findOne calls for clearOverride
+      mockTierRepo.findOne
+        .mockResolvedValueOnce(tier1) // clearOverride('complex')
+        .mockResolvedValueOnce(tier2); // clearOverride('simple')
+
+      await service.bulkSaveTiers('u1', [
+        { tier: 'complex', model: null },
+        { tier: 'simple', model: null },
+      ], 'eco', 'custom');
+
+      // Only tier1 had an override, so only tier1 should get custom_model set
+      expect(tier1.custom_model).toBe('claude-opus-4-6');
+      expect(tier2.custom_model).toBeNull();
+    });
+
+    it('should NOT snapshot when switching between named presets', async () => {
+      const tier1 = Object.assign(new TierAssignment(), {
+        id: 't1', user_id: 'u1', tier: 'complex', override_model: 'fast-model', custom_model: 'my-custom-model',
+      });
+
+      mockTierRepo.findOne.mockResolvedValue(tier1);
+      mockTierRepo.find.mockResolvedValue([tier1]);
+
+      await service.bulkSaveTiers('u1', [
+        { tier: 'complex', model: 'quality-model' },
+      ], 'quality', 'fast');
+
+      // custom_model should remain unchanged (not overwritten with fast-model)
+      expect(tier1.custom_model).toBe('my-custom-model');
+    });
+
+    it('should update custom_model when saving custom preset', async () => {
+      const tier1 = Object.assign(new TierAssignment(), {
+        id: 't1', user_id: 'u1', tier: 'simple', override_model: null, custom_model: null,
+      });
+
+      mockTierRepo.findOne.mockResolvedValue(tier1);
+      // First find: for custom_model sync after overrides are set
+      // Second find: getTiers at the end
+      mockTierRepo.find
+        .mockResolvedValueOnce([tier1])
+        .mockResolvedValueOnce([tier1]);
+
+      await service.bulkSaveTiers('u1', [
+        { tier: 'simple', model: 'model-a' },
+      ], 'custom');
+
+      // custom_model should be set to match the override
+      expect(tier1.custom_model).toBe('model-a');
+    });
+  });
+
+  /* ── clearCustomSnapshot ── */
+
+  describe('clearCustomSnapshot', () => {
+    it('should clear custom_model for all user tiers', async () => {
+      await service.clearCustomSnapshot('u1');
+
+      expect(mockTierRepo.update).toHaveBeenCalledWith(
+        { user_id: 'u1' },
+        expect.objectContaining({ custom_model: null }),
+      );
+    });
+  });
+
+  /* ── getPresetRecommendations ── */
+
+  describe('getPresetRecommendations', () => {
+    it('should return 4 presets x 4 tiers', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'openai', is_active: true },
+      ]);
+      mockPricingCache.getAll.mockReturnValue([
+        { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_token: 0.0000025, output_price_per_token: 0.00001 },
+      ]);
+
+      mockAutoAssign.pickBestForPreset.mockReturnValue({ model_name: 'gpt-4o', score: 3 });
+
+      const result = await service.getPresetRecommendations('u1');
+
+      expect(Object.keys(result)).toEqual(['eco', 'balanced', 'quality', 'fast']);
+      for (const preset of ['eco', 'balanced', 'quality', 'fast']) {
+        expect(Object.keys(result[preset])).toEqual(['simple', 'standard', 'complex', 'reasoning']);
+        for (const tier of ['simple', 'standard', 'complex', 'reasoning']) {
+          expect(result[preset][tier]).toBe('gpt-4o');
+        }
+      }
+    });
+
+    it('should return nulls when no models available', async () => {
+      mockProviderRepo.find.mockResolvedValue([]);
+      mockPricingCache.getAll.mockReturnValue([]);
+      mockAutoAssign.pickBestForPreset.mockReturnValue(null);
+
+      const result = await service.getPresetRecommendations('u1');
+
+      for (const preset of ['eco', 'balanced', 'quality', 'fast']) {
+        for (const tier of ['simple', 'standard', 'complex', 'reasoning']) {
+          expect(result[preset][tier]).toBeNull();
+        }
+      }
     });
   });
 });
