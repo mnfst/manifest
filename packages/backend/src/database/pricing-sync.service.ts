@@ -39,6 +39,10 @@ const MODEL_MAP: Record<string, ModelMapping> = {
   'openai/o3': { canonical: 'o3', provider: 'OpenAI' },
   'openai/o3-mini': { canonical: 'o3-mini', provider: 'OpenAI' },
   'openai/o4-mini': { canonical: 'o4-mini', provider: 'OpenAI' },
+  // OpenAI GPT-5.3
+  'openai/gpt-5.3': { canonical: 'gpt-5.3', provider: 'OpenAI' },
+  'openai/gpt-5.3-codex': { canonical: 'gpt-5.3-codex', provider: 'OpenAI' },
+  'openai/gpt-5.3-mini': { canonical: 'gpt-5.3-mini', provider: 'OpenAI' },
   // Google Gemini
   'google/gemini-2.5-pro': { canonical: 'gemini-2.5-pro', provider: 'Google' },
   'google/gemini-2.5-flash': { canonical: 'gemini-2.5-flash', provider: 'Google' },
@@ -53,16 +57,19 @@ const MODEL_MAP: Record<string, ModelMapping> = {
   'qwen/qwen-2.5-72b-instruct': { canonical: 'qwen-2.5-72b-instruct', provider: 'Alibaba' },
   'qwen/qwq-32b': { canonical: 'qwq-32b', provider: 'Alibaba' },
   'qwen/qwen-2.5-coder-32b-instruct': { canonical: 'qwen-2.5-coder-32b-instruct', provider: 'Alibaba' },
+  'qwen/qwen3-235b-a22b': { canonical: 'qwen3-235b-a22b', provider: 'Alibaba' },
+  'qwen/qwen3-32b': { canonical: 'qwen3-32b', provider: 'Alibaba' },
   // Mistral
   'mistralai/mistral-large': { canonical: 'mistral-large', provider: 'Mistral' },
   'mistralai/mistral-small': { canonical: 'mistral-small', provider: 'Mistral' },
   'mistralai/codestral': { canonical: 'codestral', provider: 'Mistral' },
-  // Meta (Llama)
-  'meta-llama/llama-4-maverick': { canonical: 'llama-4-maverick', provider: 'Meta' },
-  'meta-llama/llama-4-scout': { canonical: 'llama-4-scout', provider: 'Meta' },
-  // Cohere
-  'cohere/command-r-plus': { canonical: 'command-r-plus', provider: 'Cohere' },
-  'cohere/command-r': { canonical: 'command-r', provider: 'Cohere' },
+  // Zhipu (GLM)
+  'zhipuai/glm-4-plus': { canonical: 'glm-4-plus', provider: 'Zhipu' },
+  'zhipuai/glm-4-flash': { canonical: 'glm-4-flash', provider: 'Zhipu' },
+  // Amazon Nova
+  'amazon/nova-pro': { canonical: 'nova-pro', provider: 'Amazon' },
+  'amazon/nova-lite': { canonical: 'nova-lite', provider: 'Amazon' },
+  'amazon/nova-micro': { canonical: 'nova-micro', provider: 'Amazon' },
 };
 
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/models';

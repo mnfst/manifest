@@ -319,8 +319,8 @@ describe('DatabaseSeederService', () => {
 
       await service.onModuleInit();
 
-      // The source has 29 models defined
-      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(29);
+      // The source has 35 models defined
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(35);
     });
 
     it('should upsert with model_name as conflict key', async () => {
