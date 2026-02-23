@@ -30,6 +30,9 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
   process.env['MANIFEST_DB_PATH'] = dbPath;
   process.env['NODE_ENV'] = 'development';
   process.env['MANIFEST_FRONTEND_DIR'] = join(__dirname, '..', 'public');
+  if (!process.env['BETTER_AUTH_URL']) {
+    process.env['BETTER_AUTH_URL'] = `http://${host}:${port}`;
+  }
 
   // Pre-flight: verify backend dist exists
   const backendMainPath = join(__dirname, 'backend', 'main.js');
@@ -40,9 +43,14 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
     );
   }
 
-  // Pre-flight: verify better-sqlite3 native addon loads
+  // Pre-flight: verify better-sqlite3 native addon actually works.
+  // require() alone only loads the JS wrapper; the native .node binary is
+  // loaded lazily when Database() is instantiated.  An in-memory open+close
+  // exercises the full path so we can surface a clear error before the
+  // backend import triggers the same failure deep in auth.instance.js.
   try {
-    require('better-sqlite3');
+    const Database = require('better-sqlite3');
+    new Database(':memory:').close();
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     throw new Error(
