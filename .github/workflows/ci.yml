@@ -124,6 +124,46 @@ jobs:
           directory: packages/openclaw-plugin
           fail_ci_if_error: false
 
+  server-smoke:
+    name: Server smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    env:
+      BETTER_AUTH_SECRET: ci-test-secret-at-least-32-characters-long!!
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace=packages/backend
+      - run: npm run build --workspace=packages/frontend
+      - run: npm run build --workspace=packages/manifest-server
+
+      - name: Pack @mnfst/server
+        shell: bash
+        run: npm pack --workspace=packages/manifest-server --pack-destination=./
+
+      - name: Install from tarball
+        shell: bash
+        run: |
+          mkdir smoke-test-dir
+          cd smoke-test-dir
+          npm init -y
+          npm install ../mnfst-server-*.tgz
+
+      - name: Run smoke test
+        shell: bash
+        run: |
+          cp packages/manifest-server/smoke-test.cjs smoke-test-dir/
+          cd smoke-test-dir
+          node smoke-test.cjs
+
   changeset-check:
     name: Changeset status
     runs-on: ubuntu-latest
