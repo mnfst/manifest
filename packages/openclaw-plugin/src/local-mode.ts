@@ -117,8 +117,29 @@ export function registerLocalMode(
               `  Change it with: openclaw config set plugins.entries.manifest.config.port ${port + 1}\n` +
               `  Then restart the gateway.`,
           );
+        } else if (
+          msg.includes("better-sqlite3") ||
+          msg.includes("bindings") ||
+          msg.includes("native module")
+        ) {
+          logger.error(
+            `[manifest] SQLite native module failed to load: ${msg}\n` +
+              `  On macOS, install build tools: xcode-select --install\n` +
+              `  Then reinstall: openclaw plugins install manifest\n` +
+              `  Then restart: openclaw gateway restart`,
+          );
+        } else if (msg.includes("EACCES") || msg.includes("permission denied")) {
+          logger.error(
+            `[manifest] Permission denied: ${msg}\n` +
+              `  Check permissions on: ${dbPath}\n` +
+              `  Or delete and recreate: rm -rf ~/.openclaw/manifest && openclaw gateway restart`,
+          );
         } else {
-          logger.error(`[manifest] Failed to start local server: ${msg}`);
+          logger.error(
+            `[manifest] Failed to start local server: ${msg}\n` +
+              `  Try reinstalling: openclaw plugins install manifest\n` +
+              `  Then restart: openclaw gateway restart`,
+          );
         }
       }
     },
