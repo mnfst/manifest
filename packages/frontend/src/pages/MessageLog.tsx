@@ -6,6 +6,7 @@ import { getMessages } from "../services/api.js";
 import { formatNumber, formatCost, formatTime, formatStatus } from "../services/formatters.js";
 import Select from "../components/Select.jsx";
 import InfoTooltip from "../components/InfoTooltip.jsx";
+import { isLocalMode } from "../services/local-mode.js";
 import { pingCount } from "../services/sse.js";
 import SetupModal from "../components/SetupModal.jsx";
 import "../styles/overview.css";
@@ -37,7 +38,8 @@ const MessageLog: Component = () => {
   const [costMax, setCostMax] = createSignal("");
   const [setupOpen, setSetupOpen] = createSignal(false);
   const [setupCompleted] = createSignal(
-    !!localStorage.getItem(`setup_completed_${params.agentName}`)
+    !!localStorage.getItem(`setup_completed_${params.agentName}`) ||
+    (isLocalMode() === true && params.agentName === 'local-agent')
   );
   const [data, { refetch }] = createResource(
     () => ({ status: statusFilter(), model: modelFilter(), costMin: costMin(), costMax: costMax(), agentName: params.agentName, _ping: pingCount() }),

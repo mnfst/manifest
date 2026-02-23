@@ -97,7 +97,7 @@ export function registerLocalMode(
     id: "manifest-local",
     start: async () => {
       try {
-        await serverModule.start({ port, host, dbPath });
+        await serverModule.start({ port, host, dbPath, quiet: true });
         logger.info(`[manifest] Local server running on http://${host}:${port}`);
         logger.info(`[manifest]   Dashboard: http://${host}:${port}`);
         logger.info(`[manifest]   DB: ${dbPath}`);
