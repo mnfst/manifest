@@ -3,7 +3,9 @@ import { Show, createEffect, createSignal, type ParentComponent } from "solid-js
 import { authClient } from "../services/auth-client.js";
 import { checkLocalMode } from "../services/local-mode.js";
 
-const [autoLoginState, setAutoLoginState] = createSignal<"idle" | "pending" | "done">("idle");
+const [autoLoginState, setAutoLoginState] = createSignal<
+  "idle" | "pending" | "done" | "failed"
+>("idle");
 
 async function tryLocalAutoLogin(): Promise<boolean> {
   try {
@@ -29,18 +31,40 @@ const AuthGuard: ParentComponent = (props) => {
     const state = autoLoginState();
     if (state === "pending") return;
 
-    if (state === "idle") {
-      setAutoLoginState("pending");
-      const ok = await tryLocalAutoLogin();
-      setAutoLoginState("done");
-      if (ok) return; // session will refresh automatically
+    if (state === "done" || state === "failed") {
+      navigate("/login", { replace: true });
+      return;
     }
 
-    navigate("/login", { replace: true });
+    // state === "idle": attempt local auto-login
+    setAutoLoginState("pending");
+    const ok = await tryLocalAutoLogin();
+
+    if (ok) {
+      // Cookies are set; tell Better Auth client to re-fetch the session
+      // so the reactive signal updates without a full page reload.
+      await s.refetch();
+      setAutoLoginState("done");
+    } else {
+      setAutoLoginState("failed");
+    }
   });
 
   return (
-    <Show when={!session().isPending && session().data} fallback={null}>
+    <Show
+      when={!session().isPending && session().data}
+      fallback={
+        <div class="auth-layout">
+          <div class="auth-card" style="text-align: center;">
+            <div class="auth-logo">
+              <img src="/logo.svg" alt="Manifest" class="auth-logo__img auth-logo__img--light" />
+              <img src="/logo-white.svg" alt="Manifest" class="auth-logo__img auth-logo__img--dark" />
+            </div>
+            <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">Loading...</p>
+          </div>
+        </div>
+      }
+    >
       {props.children}
     </Show>
   );
