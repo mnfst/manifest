@@ -1,5 +1,11 @@
 # manifest
 
+## 5.9.5
+
+### Patch Changes
+
+- 5f5a117: Fix flaky keyword-trie performance test threshold for CI stability
+
 ## 5.9.4
 
 ### Patch Changes
