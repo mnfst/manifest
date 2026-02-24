@@ -1,6 +1,7 @@
 import { createSignal, createResource, Show, For, createMemo, type Component } from "solid-js";
 import { Title, Meta } from "@solidjs/meta";
 import ErrorState from "../components/ErrorState.jsx";
+import InfoTooltip from "../components/InfoTooltip.jsx";
 import ModelPricesFilterBar from "../components/ModelPricesFilterBar.jsx";
 import { getModelPrices } from "../services/api.js";
 
@@ -29,7 +30,7 @@ const ModelPrices: Component = () => {
   const [data, { refetch }] = createResource(() => getModelPrices() as Promise<ModelPricesData>);
   const [sortKey, setSortKey] = createSignal<SortKey>("provider");
   const [sortDir, setSortDir] = createSignal<SortDir>("asc");
-  const [search, setSearch] = createSignal("");
+  const [selectedModels, setSelectedModels] = createSignal<Set<string>>(new Set());
   const [selectedProviders, setSelectedProviders] = createSignal<Set<string>>(new Set());
 
   const handleSort = (key: SortKey) => {
@@ -48,15 +49,22 @@ const ModelPrices: Component = () => {
     return unique.sort((a, b) => a.localeCompare(b));
   });
 
+  const allModelNames = createMemo(() => {
+    const models = data()?.models;
+    if (!models) return [];
+    const unique = [...new Set(models.map((m) => m.model_name))];
+    return unique.sort((a, b) => a.localeCompare(b));
+  });
+
   const filteredModels = createMemo(() => {
     const models = data()?.models;
     if (!models) return [];
-    const query = search().toLowerCase().trim();
-    const providers = selectedProviders();
+    const selModels = selectedModels();
+    const selProviders = selectedProviders();
 
     return models.filter((m) => {
-      if (query && !m.model_name.toLowerCase().includes(query)) return false;
-      if (providers.size > 0 && !providers.has(m.provider)) return false;
+      if (selModels.size > 0 && !selModels.has(m.model_name)) return false;
+      if (selProviders.size > 0 && !selProviders.has(m.provider)) return false;
       return true;
     });
   });
@@ -81,20 +89,40 @@ const ModelPrices: Component = () => {
     return sortDir() === "asc" ? " \u25B2" : " \u25BC";
   };
 
-  const toggleProvider = (provider: string) => {
+  const addModel = (model: string) => {
+    setSelectedModels((prev) => {
+      const next = new Set(prev);
+      next.add(model);
+      return next;
+    });
+  };
+
+  const removeModel = (model: string) => {
+    setSelectedModels((prev) => {
+      const next = new Set(prev);
+      next.delete(model);
+      return next;
+    });
+  };
+
+  const addProvider = (provider: string) => {
     setSelectedProviders((prev) => {
       const next = new Set(prev);
-      if (next.has(provider)) {
-        next.delete(provider);
-      } else {
-        next.add(provider);
-      }
+      next.add(provider);
+      return next;
+    });
+  };
+
+  const removeProvider = (provider: string) => {
+    setSelectedProviders((prev) => {
+      const next = new Set(prev);
+      next.delete(provider);
       return next;
     });
   };
 
   const clearFilters = () => {
-    setSearch("");
+    setSelectedModels(new Set<string>());
     setSelectedProviders(new Set<string>());
   };
 
@@ -145,15 +173,15 @@ const ModelPrices: Component = () => {
           <ErrorState error={data.error} onRetry={refetch} />
         }>
         <div class="panel">
-          <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: 0 0 var(--gap-md);">
-            Tokens are units of text that AI models process. "Send" is what you give the model, "Receive" is what it returns.
-          </p>
           <ModelPricesFilterBar
-            search={search()}
-            onSearchChange={setSearch}
-            providers={allProviders()}
+            allModels={allModelNames()}
+            allProviders={allProviders()}
+            selectedModels={selectedModels()}
             selectedProviders={selectedProviders()}
-            onToggleProvider={toggleProvider}
+            onAddModel={addModel}
+            onRemoveModel={removeModel}
+            onAddProvider={addProvider}
+            onRemoveProvider={removeProvider}
             onClearFilters={clearFilters}
             totalCount={data()?.models?.length ?? 0}
             filteredCount={filteredModels().length}
@@ -178,9 +206,11 @@ const ModelPrices: Component = () => {
                   </th>
                   <th class="data-table__sortable" onClick={() => handleSort("input_price_per_million")}>
                     Cost to send / 1M tokens{indicator("input_price_per_million")}
+                    <InfoTooltip text="Tokens are small chunks of text. Send cost is what you pay for the input you give the model." />
                   </th>
                   <th class="data-table__sortable" onClick={() => handleSort("output_price_per_million")}>
                     Cost to receive / 1M tokens{indicator("output_price_per_million")}
+                    <InfoTooltip text="Tokens are small chunks of text. Receive cost is what you pay for the output the model returns." />
                   </th>
                 </tr>
               </thead>
