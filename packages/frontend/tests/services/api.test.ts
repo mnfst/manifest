@@ -10,6 +10,7 @@ import {
   getAgentKey,
   rotateAgentKey,
   createAgent,
+  renameAgent,
   deleteAgent,
   getModelPrices,
   getProviders,
@@ -369,6 +370,43 @@ describe("deleteAgent", () => {
     const result = await deleteAgent("bot");
 
     expect(result).toBeUndefined();
+  });
+});
+
+describe("renameAgent", () => {
+  it("should PATCH to the correct URL with JSON body", async () => {
+    const payload = { renamed: true, name: "new-bot" };
+    mockMutateOk(payload);
+
+    const result = await renameAgent("old-bot", "new-bot");
+
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/agents/old-bot",
+      expect.objectContaining({
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "new-bot" }),
+      }),
+    );
+  });
+
+  it("should encode agent name in URL", async () => {
+    mockMutateOk({ renamed: true, name: "new-name" });
+
+    await renameAgent("agent/special name", "new-name");
+
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/agents/agent%2Fspecial%20name");
+  });
+
+  it("should throw and call toast.error on failure", async () => {
+    const { toast } = await import("../../src/services/toast-store.js");
+    mockMutateError(409, 'Agent "new-bot" already exists');
+
+    await expect(renameAgent("old-bot", "new-bot")).rejects.toThrow('Agent "new-bot" already exists');
+    expect(toast.error).toHaveBeenCalledWith('Agent "new-bot" already exists');
   });
 });
 

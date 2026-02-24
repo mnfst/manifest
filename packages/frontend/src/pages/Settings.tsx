@@ -9,6 +9,7 @@ import { CopyButton } from "../components/SetupStepInstall.jsx";
 import {
   getAgentKey,
   deleteAgent,
+  renameAgent,
   rotateAgentKey,
 } from "../services/api.js";
 import { toast } from "../services/toast-store.js";
@@ -19,6 +20,12 @@ const Settings: Component = () => {
   const navigate = useNavigate();
   const location = useLocation<{ newApiKey?: string }>();
   const agentName = () => decodeURIComponent(params.agentName);
+
+  // In local mode, settings (rename/delete) are not available — redirect to overview.
+  if (isLocalMode()) {
+    navigate(`/agents/${params.agentName}`, { replace: true });
+    return null;
+  }
   const [name, setName] = createSignal(agentName());
   const [saving, setSaving] = createSignal(false);
   const [saved, setSaved] = createSignal(false);
@@ -48,10 +55,16 @@ const Settings: Component = () => {
     if (!newName || newName === agentName()) return;
 
     setSaving(true);
-    navigate(`/agents/${encodeURIComponent(newName)}/settings`, { replace: true });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      await renameAgent(agentName(), newName);
+      navigate(`/agents/${encodeURIComponent(newName)}/settings`, { replace: true, state: { newAgent: true } });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      setName(agentName());
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleRotate = async () => {

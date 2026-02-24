@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, UseInterceptors } from '@nestjs/common';
 import { CacheTTL } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { readFileSync, existsSync } from 'fs';
@@ -10,6 +10,7 @@ import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 import { CreateAgentDto } from '../../common/dto/create-agent.dto';
+import { RenameAgentDto } from '../../common/dto/rename-agent.dto';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
 import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 
@@ -58,6 +59,16 @@ export class AgentsController {
   async rotateAgentKey(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
     const result = await this.apiKeyGenerator.rotateKey(user.id, agentName);
     return { apiKey: result.apiKey };
+  }
+
+  @Patch('agents/:agentName')
+  async renameAgent(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Body() body: RenameAgentDto,
+  ) {
+    await this.aggregation.renameAgent(user.id, agentName, body.name);
+    return { renamed: true, name: body.name };
   }
 
   @Delete('agents/:agentName')
