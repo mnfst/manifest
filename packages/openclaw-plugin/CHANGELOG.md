@@ -1,5 +1,11 @@
 # manifest
 
+## 5.9.4
+
+### Patch Changes
+
+- e685b5e: fix: resolve AgentGuard 404 on page refresh in local mode, hide Settings tab in local mode, and add agent rename API endpoint
+
 ## 5.9.3
 
 ### Patch Changes
