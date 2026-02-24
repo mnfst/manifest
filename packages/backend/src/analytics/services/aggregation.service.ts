@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, DataSource, Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -140,6 +140,49 @@ export class AggregationService {
       throw new NotFoundException(`Agent "${agentName}" not found`);
     }
     await this.agentRepo.delete(agent.id);
+  }
+
+  async renameAgent(userId: string, currentName: string, newName: string): Promise<void> {
+    const agent = await this.agentRepo
+      .createQueryBuilder('a')
+      .leftJoin('a.tenant', 't')
+      .where('t.name = :userId', { userId })
+      .andWhere('a.name = :currentName', { currentName })
+      .getOne();
+
+    if (!agent) {
+      throw new NotFoundException(`Agent "${currentName}" not found`);
+    }
+
+    const duplicate = await this.agentRepo
+      .createQueryBuilder('a')
+      .leftJoin('a.tenant', 't')
+      .where('t.name = :userId', { userId })
+      .andWhere('a.name = :newName', { newName })
+      .getOne();
+
+    if (duplicate) {
+      throw new ConflictException(`Agent "${newName}" already exists`);
+    }
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .update('agents')
+        .set({ name: newName })
+        .where('id = :id', { id: agent.id })
+        .execute();
+
+      const tables = ['agent_messages', 'notification_rules', 'notification_logs', 'token_usage_snapshots', 'cost_snapshots'];
+      for (const table of tables) {
+        await manager
+          .createQueryBuilder()
+          .update(table)
+          .set({ agent_name: newName })
+          .where('agent_name = :currentName', { currentName })
+          .execute();
+      }
+    });
   }
 
   async getMessages(params: {

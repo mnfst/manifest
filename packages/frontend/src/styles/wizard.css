@@ -66,10 +66,15 @@
 .modal-terminal__body {
   position: relative;
   padding: 14px 16px;
-  background: hsl(222 47% 6%);
+  background: hsl(var(--background));
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   line-height: 1.7;
+  color: hsl(var(--foreground));
+}
+
+.dark .modal-terminal__body {
+  background: hsl(222 47% 6%);
   color: hsl(178 75% 50%);
 }
 
@@ -78,8 +83,12 @@
 }
 
 .modal-terminal__prompt {
-  color: hsl(var(--muted-foreground));
+  color: hsl(var(--chart-1));
   margin-right: 8px;
+}
+
+.dark .modal-terminal__prompt {
+  color: hsl(var(--muted-foreground));
 }
 
 .modal-terminal__code {
@@ -93,19 +102,29 @@
   padding: 6px;
   border: none;
   border-radius: var(--radius);
-  background: hsl(0 0% 100% / 0.1);
-  color: hsl(0 0% 100% / 0.5);
+  background: hsl(0 0% 0% / 0.06);
+  color: hsl(0 0% 0% / 0.4);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .modal-terminal__copy:hover {
+  background: hsl(0 0% 0% / 0.1);
+  color: hsl(0 0% 0% / 0.7);
+}
+
+.dark .modal-terminal__copy {
+  background: hsl(0 0% 100% / 0.1);
+  color: hsl(0 0% 100% / 0.5);
+}
+
+.dark .modal-terminal__copy:hover {
   background: hsl(0 0% 100% / 0.2);
   color: hsl(0 0% 100% / 0.8);
 }
 
 .modal-terminal__copy:focus-visible {
-  outline: 2px solid hsl(0 0% 100% / 0.6);
+  outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
 
@@ -154,12 +173,17 @@
 .modal-key-box__value {
   display: block;
   padding: 12px 14px;
-  background: hsl(222 47% 6%);
-  color: hsl(178 75% 50%);
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   word-break: break-all;
   line-height: 1.6;
+}
+
+.dark .modal-key-box__value {
+  background: hsl(222 47% 6%);
+  color: hsl(178 75% 50%);
 }
 
 .modal-key-box__warning {

@@ -47,9 +47,17 @@ describe("Sidebar with agent", () => {
     expect(screen.getByText("MANAGE")).toBeDefined();
   });
 
-  it("renders Settings link", () => {
+  it("hides Settings link in local mode", () => {
+    const { container } = render(() => <Sidebar />);
+    expect(container.textContent).not.toContain("Settings");
+  });
+
+  it("renders Settings link in cloud mode", () => {
+    const prev = mockIsLocalMode;
+    mockIsLocalMode = false;
     render(() => <Sidebar />);
     expect(screen.getByText("Settings")).toBeDefined();
+    mockIsLocalMode = prev;
   });
 
   it("renders Notifications link", () => {
@@ -83,6 +91,8 @@ describe("Sidebar with agent", () => {
   });
 
   it("has correct link hrefs for agent routes", () => {
+    const prev = mockIsLocalMode;
+    mockIsLocalMode = false;
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('a[href="/agents/test-agent"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/messages"]')).not.toBeNull();
@@ -90,6 +100,7 @@ describe("Sidebar with agent", () => {
     expect(container.querySelector('a[href="/agents/test-agent/notifications"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/model-prices"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/help"]')).not.toBeNull();
+    mockIsLocalMode = prev;
   });
 
   it("marks current page link as active", () => {

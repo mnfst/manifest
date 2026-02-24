@@ -22,6 +22,7 @@ describe('AgentsController', () => {
   let mockRotateKey: jest.Mock;
   let mockConfigGet: jest.Mock;
   let mockDeleteAgent: jest.Mock;
+  let mockRenameAgent: jest.Mock;
 
   const origMode = process.env['MANIFEST_MODE'];
 
@@ -39,6 +40,7 @@ describe('AgentsController', () => {
     mockRotateKey = jest.fn().mockResolvedValue({ apiKey: 'mnfst_new_key_123' });
     mockConfigGet = jest.fn().mockReturnValue('');
     mockDeleteAgent = jest.fn().mockResolvedValue(undefined);
+    mockRenameAgent = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -50,7 +52,7 @@ describe('AgentsController', () => {
         },
         {
           provide: AggregationService,
-          useValue: { deleteAgent: mockDeleteAgent },
+          useValue: { deleteAgent: mockDeleteAgent, renameAgent: mockRenameAgent },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -123,6 +125,14 @@ describe('AgentsController', () => {
 
     expect(result).toEqual({ apiKey: 'mnfst_new_key_123' });
     expect(mockRotateKey).toHaveBeenCalledWith('u1', 'bot-1');
+  });
+
+  it('renames agent and returns success', async () => {
+    const user = { id: 'u1' };
+    const result = await controller.renameAgent(user as never, 'bot-1', { name: 'bot-renamed' } as never);
+
+    expect(result).toEqual({ renamed: true, name: 'bot-renamed' });
+    expect(mockRenameAgent).toHaveBeenCalledWith('u1', 'bot-1', 'bot-renamed');
   });
 
   it('deletes agent and returns success', async () => {

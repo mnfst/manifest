@@ -7,6 +7,10 @@ export interface ProviderDef {
   initial: string;
   subtitle: string;
   models: { label: string; value: string }[];
+  keyPrefix: string;
+  minKeyLength: number;
+  keyPlaceholder: string;
+  noKeyRequired?: boolean;
 }
 
 export const PROVIDERS: ProviderDef[] = [
@@ -16,6 +20,9 @@ export const PROVIDERS: ProviderDef[] = [
     color: "#10a37f",
     initial: "O",
     subtitle: "GPT-4o, GPT-4.1, o3, o4",
+    keyPrefix: "sk-",
+    minKeyLength: 50,
+    keyPlaceholder: "sk-...",
     models: [
       { label: "GPT-4o", value: "gpt-4o" },
       { label: "GPT-4o Mini", value: "gpt-4o-mini" },
@@ -40,6 +47,9 @@ export const PROVIDERS: ProviderDef[] = [
     color: "#d97757",
     initial: "A",
     subtitle: "Claude Opus 4, Sonnet 4.5, Haiku",
+    keyPrefix: "sk-ant-",
+    minKeyLength: 50,
+    keyPlaceholder: "sk-ant-...",
     models: [
       { label: "Claude Opus 4.6", value: "claude-opus-4-6" },
       { label: "Claude Opus 4", value: "claude-opus-4" },
@@ -68,6 +78,9 @@ export const PROVIDERS: ProviderDef[] = [
     color: "#4285f4",
     initial: "G",
     subtitle: "Gemini 2.5, Gemini 2.0 Flash",
+    keyPrefix: "AIza",
+    minKeyLength: 39,
+    keyPlaceholder: "AIza...",
     models: [
       { label: "Gemini 2.5 Pro", value: "gemini-2.5-pro" },
       { label: "Gemini 2.5 Pro (Preview)", value: "gemini-2.5-pro-preview-05-06" },
@@ -89,6 +102,9 @@ export const PROVIDERS: ProviderDef[] = [
     color: "#4d6bfe",
     initial: "D",
     subtitle: "DeepSeek V3, R1",
+    keyPrefix: "sk-",
+    minKeyLength: 30,
+    keyPlaceholder: "sk-...",
     models: [
       { label: "DeepSeek V3", value: "deepseek-chat" },
       { label: "DeepSeek V3", value: "deepseek-v3" },
@@ -107,6 +123,9 @@ export const PROVIDERS: ProviderDef[] = [
     color: "#f97316",
     initial: "M",
     subtitle: "Mistral Large, Codestral, Pixtral",
+    keyPrefix: "",
+    minKeyLength: 32,
+    keyPlaceholder: "API key",
     models: [
       { label: "Mistral Large", value: "mistral-large" },
       { label: "Mistral Large (25.01)", value: "mistral-large-latest" },
@@ -130,6 +149,9 @@ export const PROVIDERS: ProviderDef[] = [
     color: "#555555",
     initial: "X",
     subtitle: "Grok 3, Grok 2",
+    keyPrefix: "xai-",
+    minKeyLength: 50,
+    keyPlaceholder: "xai-...",
     models: [
       { label: "Grok 3", value: "grok-3" },
       { label: "Grok 3 Mini", value: "grok-3-mini" },
@@ -145,6 +167,9 @@ export const PROVIDERS: ProviderDef[] = [
     color: "#6236ff",
     initial: "Qw",
     subtitle: "Qwen3, Qwen2.5, QwQ",
+    keyPrefix: "sk-",
+    minKeyLength: 30,
+    keyPlaceholder: "sk-...",
     models: [
       { label: "Qwen3 235B A22B", value: "qwen3-235b-a22b" },
       { label: "Qwen3 32B", value: "qwen3-32b" },
@@ -167,20 +192,15 @@ export const PROVIDERS: ProviderDef[] = [
     color: "#1a1a2e",
     initial: "Ki",
     subtitle: "Kimi k2, Moonshot v1",
+    keyPrefix: "sk-",
+    minKeyLength: 30,
+    keyPlaceholder: "sk-...",
     models: [
       { label: "Kimi k2", value: "kimi-k2" },
       { label: "Moonshot v1 128K", value: "moonshot-v1-128k" },
       { label: "Moonshot v1 32K", value: "moonshot-v1-32k" },
       { label: "Moonshot v1 8K", value: "moonshot-v1-8k" },
     ],
-  },
-  {
-    id: "ollama",
-    name: "Ollama",
-    color: "#808080",
-    initial: "OL",
-    subtitle: "Run models locally",
-    models: [],
   },
 ];
 
@@ -224,6 +244,32 @@ export const STAGES: StageDef[] = [
 
 export function getProvider(id: string): ProviderDef | undefined {
   return PROVIDERS.find((p) => p.id === id);
+}
+
+export function validateApiKey(
+  provider: ProviderDef,
+  key: string,
+): { valid: boolean; error?: string } {
+  if (provider.noKeyRequired) return { valid: true };
+
+  const trimmed = key.trim();
+  if (!trimmed) return { valid: false, error: "API key is required" };
+
+  if (provider.keyPrefix && !trimmed.startsWith(provider.keyPrefix)) {
+    return {
+      valid: false,
+      error: `${provider.name} keys start with "${provider.keyPrefix}"`,
+    };
+  }
+
+  if (provider.minKeyLength && trimmed.length < provider.minKeyLength) {
+    return {
+      valid: false,
+      error: `Key is too short (minimum ${provider.minKeyLength} characters)`,
+    };
+  }
+
+  return { valid: true };
 }
 
 export function getModelLabel(providerId: string, modelValue: string): string {

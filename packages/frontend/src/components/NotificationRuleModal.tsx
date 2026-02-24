@@ -112,7 +112,7 @@ const NotificationRuleModal: Component<Props> = (props) => {
             autofocus
           />
 
-          <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: 4px 0 12px;">
+          <p class="modal-card__field-hint">
             {metricType() === "cost"
               ? "Set a dollar amount. You'll be notified when costs exceed this."
               : "A typical conversation uses 1,000\u20135,000 tokens."}

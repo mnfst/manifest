@@ -18,12 +18,19 @@ export function getEncryptionSecret(): string {
   const key =
     process.env['MANIFEST_ENCRYPTION_KEY'] ||
     process.env['BETTER_AUTH_SECRET'];
-  if (!key || key.length < 32) {
-    throw new Error(
-      'Encryption secret required. Set MANIFEST_ENCRYPTION_KEY or BETTER_AUTH_SECRET (>=32 chars).',
-    );
+  if (key && key.length >= 32) {
+    return key;
   }
-  return key;
+
+  // Local mode: use persistent local auth secret
+  if (process.env['MANIFEST_MODE'] === 'local') {
+    const { getLocalAuthSecret } = require('../../common/constants/local-mode.constants');
+    return getLocalAuthSecret();
+  }
+
+  throw new Error(
+    'Encryption secret required. Set MANIFEST_ENCRYPTION_KEY or BETTER_AUTH_SECRET (>=32 chars).',
+  );
 }
 
 export function encrypt(plaintext: string, secret: string): string {

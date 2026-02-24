@@ -3,12 +3,14 @@ import { useNavigate } from "@solidjs/router";
 import { Title, Meta } from "@solidjs/meta";
 import { authClient } from "../services/auth-client.js";
 import { checkLocalMode, isLocalMode } from "../services/local-mode.js";
+import { displayName, setDisplayName } from "../services/display-name.js";
 
 const Account: Component = () => {
   const navigate = useNavigate();
   const session = authClient.useSession();
   const [copied, setCopied] = createSignal(false);
   const [theme, setTheme] = createSignal<"light" | "dark" | "system">("system");
+  const [localName, setLocalName] = createSignal("");
 
   const userName = () => session()?.data?.user?.name ?? "";
   const userEmail = () => session()?.data?.user?.email ?? "";
@@ -16,6 +18,7 @@ const Account: Component = () => {
 
   onMount(() => {
     checkLocalMode();
+    setLocalName(displayName() || "Local User");
     const stored = localStorage.getItem("theme");
     if (stored === "dark" || stored === "light") {
       setTheme(stored);
@@ -103,6 +106,32 @@ const Account: Component = () => {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      </Show>
+
+      {/* Profile — local mode */}
+      <Show when={isLocalMode()}>
+        <h3 class="settings-section__title">Profile</h3>
+        <div class="settings-card">
+          <div class="settings-card__row">
+            <div class="settings-card__label">
+              <span class="settings-card__label-title">Display name</span>
+              <span class="settings-card__label-desc">Name shown throughout the dashboard.</span>
+            </div>
+            <div class="settings-card__control">
+              <label for="local-display-name" class="sr-only">Display name</label>
+              <input
+                class="settings-card__input"
+                type="text"
+                id="local-display-name"
+                value={localName()}
+                onInput={(e) => setLocalName(e.currentTarget.value)}
+                onBlur={() => setDisplayName(localName())}
+                onKeyDown={(e) => { if (e.key === "Enter") { setDisplayName(localName()); e.currentTarget.blur(); } }}
+                placeholder="Local User"
+              />
             </div>
           </div>
         </div>

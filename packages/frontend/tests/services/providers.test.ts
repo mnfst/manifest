@@ -56,8 +56,8 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 9 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(9);
+  it("has 8 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(8);
   });
 
   it("each provider has required fields", () => {

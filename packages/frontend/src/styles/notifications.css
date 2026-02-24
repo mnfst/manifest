@@ -118,7 +118,7 @@
 }
 
 .notification-toggle__slider::after {
-  content: "";
+  content: '';
   position: absolute;
   width: 16px;
   height: 16px;
@@ -140,7 +140,6 @@
 /* ── Modal Select ─────────────────────────────────── */
 .notification-modal__select {
   width: 100%;
-  margin-bottom: var(--gap-lg);
   height: 2.5rem;
 }
 
@@ -176,7 +175,9 @@
   cursor: pointer;
   text-align: left;
   font-family: var(--font-family);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .provider-setup-card:hover {
@@ -207,7 +208,6 @@
 .provider-modal-picker {
   display: flex;
   gap: var(--gap-sm);
-  margin-bottom: var(--gap-lg);
 }
 
 .provider-modal-option {
@@ -217,14 +217,16 @@
   gap: 8px;
   padding: 10px 14px;
   background: hsl(var(--background));
-  border: 2px solid hsl(var(--border));
+  border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   cursor: pointer;
   font-family: var(--font-family);
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: hsl(var(--muted-foreground));
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .provider-modal-option:hover {
@@ -263,7 +265,7 @@
   font-size: var(--font-size-base);
   font-weight: 600;
   color: hsl(var(--foreground));
-  margin-bottom: var(--gap-md);
+  margin-bottom: 0;
 }
 
 .provider-card__actions {
@@ -328,7 +330,9 @@
   background: transparent;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .provider-card__menu-btn:hover {
@@ -381,12 +385,11 @@
   display: flex;
   align-items: center;
   gap: var(--gap-sm);
-  padding: 0 14px;
+  padding: 0 1px 0 14px;
   height: 2.5rem;
   background: hsl(var(--muted) / 0.4);
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  margin-bottom: var(--gap-lg);
 }
 
 .masked-key__value {
@@ -412,7 +415,7 @@
 }
 
 .modal-card__field-error {
-  margin: 4px 0 var(--gap-lg);
+  margin: 4px 0 0;
   padding: 0;
   font-size: var(--font-size-xs);
   color: hsl(var(--destructive));
@@ -420,7 +423,7 @@
 }
 
 .modal-card__field-hint {
-  margin: 4px 0 var(--gap-md);
+  margin: 4px 0 0;
   padding: 0;
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));

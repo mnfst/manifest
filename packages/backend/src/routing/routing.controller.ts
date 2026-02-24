@@ -36,6 +36,7 @@ export class RoutingController {
       provider: p.provider,
       is_active: p.is_active,
       has_api_key: !!p.api_key_encrypted,
+      key_prefix: this.routingService.getKeyPrefix(p.api_key_encrypted),
       connected_at: p.connected_at,
     }));
   }

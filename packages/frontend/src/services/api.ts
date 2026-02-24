@@ -93,6 +93,14 @@ export function rotateAgentKey(agentName: string) {
   });
 }
 
+export function renameAgent(currentName: string, newName: string) {
+  return fetchMutate<{ renamed: boolean; name: string }>(`${BASE_URL}/agents/${encodeURIComponent(currentName)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: newName }),
+  });
+}
+
 export function deleteAgent(agentName: string) {
   return fetchMutate(`${BASE_URL}/agents/${encodeURIComponent(agentName)}`, {
     method: "DELETE",
@@ -261,6 +269,7 @@ export interface RoutingProvider {
   provider: string;
   is_active: boolean;
   has_api_key: boolean;
+  key_prefix?: string | null;
   connected_at: string;
 }
 

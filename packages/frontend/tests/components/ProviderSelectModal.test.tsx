@@ -26,6 +26,7 @@ const connectedProvider: RoutingProvider = {
   provider: "openai",
   is_active: true,
   has_api_key: true,
+  key_prefix: "sk-proj-",
   connected_at: "2025-01-01",
 };
 
@@ -36,6 +37,11 @@ const disconnectedProvider: RoutingProvider = {
   has_api_key: false,
   connected_at: "2025-01-01",
 };
+
+// Valid key that passes OpenAI validation (prefix "sk-", min 50 chars)
+const VALID_OPENAI_KEY = "sk-" + "a".repeat(50);
+// Valid key that passes Anthropic validation (prefix "sk-ant-", min 50 chars)
+const VALID_ANTHROPIC_KEY = "sk-ant-" + "a".repeat(50);
 
 describe("ProviderSelectModal", () => {
   let onClose: ReturnType<typeof vi.fn>;
@@ -73,24 +79,26 @@ describe("ProviderSelectModal", () => {
     expect(screen.getByText("DeepSeek")).toBeDefined();
   });
 
-  it("shows 'Connected' badge for active providers with API keys", () => {
-    render(() => (
+  it("shows toggle switch in 'on' state for connected providers", () => {
+    const { container } = render(() => (
       <ProviderSelectModal
         providers={[connectedProvider]}
         onClose={onClose}
         onUpdate={onUpdate}
       />
     ));
-    const badges = screen.getAllByText("Connected");
-    expect(badges.length).toBeGreaterThanOrEqual(1);
+    const onSwitches = container.querySelectorAll(".provider-toggle__switch--on");
+    expect(onSwitches.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("shows 'Not connected' badge for inactive providers", () => {
-    render(() => (
+  it("shows toggle switch in 'off' state for disconnected providers", () => {
+    const { container } = render(() => (
       <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
     ));
-    const notConnected = screen.getAllByText("Not connected");
-    expect(notConnected.length).toBeGreaterThanOrEqual(1);
+    const allSwitches = container.querySelectorAll(".provider-toggle__switch");
+    const onSwitches = container.querySelectorAll(".provider-toggle__switch--on");
+    expect(allSwitches.length).toBeGreaterThan(0);
+    expect(onSwitches.length).toBe(0);
   });
 
   it("calls onClose when Done button is clicked", () => {
@@ -136,7 +144,7 @@ describe("ProviderSelectModal", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  describe("expanding a provider", () => {
+  describe("detail view navigation", () => {
     it("shows API key input when provider row is clicked", async () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
@@ -145,18 +153,20 @@ describe("ProviderSelectModal", () => {
       expect(screen.getByLabelText("OpenAI API key")).toBeDefined();
     });
 
-    it("collapses when same provider is clicked again", async () => {
+    it("returns to list view when back button is clicked", async () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       expect(screen.getByLabelText("OpenAI API key")).toBeDefined();
 
-      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByLabelText("Back to providers"));
       expect(screen.queryByLabelText("OpenAI API key")).toBeNull();
+      // List view is back
+      expect(screen.getByText("Done")).toBeDefined();
     });
 
-    it("shows Disconnect button for connected providers", () => {
+    it("shows disconnect icon for connected providers", () => {
       render(() => (
         <ProviderSelectModal
           providers={[connectedProvider]}
@@ -165,10 +175,10 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
-      expect(screen.getByText("Disconnect")).toBeDefined();
+      expect(screen.getByLabelText("Disconnect provider")).toBeDefined();
     });
 
-    it("shows 'Update key' button for connected non-ollama providers", () => {
+    it("shows 'Change' button for connected non-ollama providers", () => {
       render(() => (
         <ProviderSelectModal
           providers={[connectedProvider]}
@@ -177,7 +187,7 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
-      expect(screen.getByText("Update key")).toBeDefined();
+      expect(screen.getByText("Change")).toBeDefined();
     });
 
     it("shows 'Connect' button for non-connected providers", () => {
@@ -191,26 +201,38 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("OpenAI"));
       expect(screen.getByText("Connect")).toBeDefined();
     });
+
+    it("shows masked key prefix for connected providers", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[connectedProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+        />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      expect(screen.getByLabelText("Current API key (masked)")).toBeDefined();
+    });
   });
 
   describe("connecting a provider", () => {
-    it("connects a provider when API key is entered and Connect clicked", async () => {
+    it("connects a provider when valid API key is entered and Connect clicked", async () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
-      fireEvent.input(input, { target: { value: "sk-test-123" } });
+      fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
       fireEvent.click(screen.getByText("Connect"));
 
       await waitFor(() => {
         expect(mockConnectProvider).toHaveBeenCalledWith({
           provider: "openai",
-          apiKey: "sk-test-123",
+          apiKey: VALID_OPENAI_KEY,
         });
       });
       expect(onUpdate).toHaveBeenCalled();
-      expect(toast.success).toHaveBeenCalledWith("openai connected");
+      expect(toast.success).toHaveBeenCalledWith("OpenAI connected");
     });
 
     it("does not connect when API key is empty", () => {
@@ -223,42 +245,59 @@ describe("ProviderSelectModal", () => {
       expect(connectBtn.hasAttribute("disabled")).toBe(true);
     });
 
+    it("shows validation error for invalid key prefix", async () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      const input = screen.getByLabelText("OpenAI API key");
+      fireEvent.input(input, { target: { value: "invalid-key-prefix-12345678901234567890123456789012345" } });
+      fireEvent.click(screen.getByText("Connect"));
+
+      expect(screen.getByText('OpenAI keys start with "sk-"')).toBeDefined();
+      expect(mockConnectProvider).not.toHaveBeenCalled();
+    });
+
+    it("shows validation error for key that is too short", async () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      const input = screen.getByLabelText("OpenAI API key");
+      fireEvent.input(input, { target: { value: "sk-short" } });
+      fireEvent.click(screen.getByText("Connect"));
+
+      expect(screen.getByText("Key is too short (minimum 50 characters)")).toBeDefined();
+      expect(mockConnectProvider).not.toHaveBeenCalled();
+    });
+
+    it("clears validation error on input change", async () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      const input = screen.getByLabelText("OpenAI API key");
+      fireEvent.input(input, { target: { value: "bad" } });
+      fireEvent.click(screen.getByText("Connect"));
+
+      expect(screen.getByText('OpenAI keys start with "sk-"')).toBeDefined();
+
+      // Typing clears the error
+      fireEvent.input(input, { target: { value: "sk-" } });
+      expect(screen.queryByText('OpenAI keys start with "sk-"')).toBeNull();
+    });
+
     it("connects on Enter key in API key input", async () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
-      fireEvent.input(input, { target: { value: "sk-test" } });
+      fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
       fireEvent.keyDown(input, { key: "Enter" });
 
       await waitFor(() => {
         expect(mockConnectProvider).toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe("Ollama provider", () => {
-    it("shows 'No API key required' for Ollama", () => {
-      render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
-      ));
-      fireEvent.click(screen.getByText("Ollama"));
-      expect(screen.getByText("No API key required for local models")).toBeDefined();
-    });
-
-    it("connects Ollama without API key", async () => {
-      render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
-      ));
-      fireEvent.click(screen.getByText("Ollama"));
-      fireEvent.click(screen.getByText("Connect"));
-
-      await waitFor(() => {
-        expect(mockConnectProvider).toHaveBeenCalledWith({
-          provider: "ollama",
-          apiKey: undefined,
-        });
       });
     });
   });
@@ -273,7 +312,7 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
-      fireEvent.click(screen.getByText("Disconnect"));
+      fireEvent.click(screen.getByLabelText("Disconnect provider"));
 
       await waitFor(() => {
         expect(mockDisconnectProvider).toHaveBeenCalledWith("openai");
@@ -294,7 +333,7 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
-      fireEvent.click(screen.getByText("Disconnect"));
+      fireEvent.click(screen.getByLabelText("Disconnect provider"));
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith(
@@ -314,7 +353,7 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
-      fireEvent.click(screen.getByText("Disconnect"));
+      fireEvent.click(screen.getByLabelText("Disconnect provider"));
 
       // Should not throw, busy state should reset
       await waitFor(() => {
@@ -332,13 +371,55 @@ describe("ProviderSelectModal", () => {
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
-      fireEvent.input(input, { target: { value: "sk-bad" } });
+      fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
       fireEvent.click(screen.getByText("Connect"));
 
       // Should not throw
       await waitFor(() => {
         expect(mockConnectProvider).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe("updating a key", () => {
+    it("switches to edit mode when Change is clicked", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[connectedProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+        />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Change"));
+
+      // Edit mode shows a password input and Save button
+      expect(screen.getByLabelText("New OpenAI API key")).toBeDefined();
+      expect(screen.getByText("Save")).toBeDefined();
+    });
+
+    it("saves updated key", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[connectedProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+        />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Change"));
+
+      const input = screen.getByLabelText("New OpenAI API key");
+      fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
+      fireEvent.click(screen.getByText("Save"));
+
+      await waitFor(() => {
+        expect(mockConnectProvider).toHaveBeenCalledWith({
+          provider: "openai",
+          apiKey: VALID_OPENAI_KEY,
+        });
+      });
+      expect(toast.success).toHaveBeenCalledWith("OpenAI key updated");
     });
   });
 });

@@ -544,6 +544,55 @@ describe('RoutingService', () => {
     });
   });
 
+  /* ── getKeyPrefix ── */
+
+  describe('getKeyPrefix', () => {
+    it('should return null when encryptedKey is null', () => {
+      const result = service.getKeyPrefix(null);
+      expect(result).toBeNull();
+    });
+
+    it('should return null when encryptedKey is empty string', () => {
+      const result = service.getKeyPrefix('');
+      expect(result).toBeNull();
+    });
+
+    it('should return first 8 chars of decrypted key', async () => {
+      const { encrypt, getEncryptionSecret } = await import(
+        '../common/utils/crypto.util'
+      );
+      const secret = getEncryptionSecret();
+      const encrypted = encrypt('sk-abcdefghijklmnop', secret);
+
+      const result = service.getKeyPrefix(encrypted);
+      expect(result).toBe('sk-abcde');
+    });
+
+    it('should return custom length prefix', async () => {
+      const { encrypt, getEncryptionSecret } = await import(
+        '../common/utils/crypto.util'
+      );
+      const secret = getEncryptionSecret();
+      const encrypted = encrypt('sk-abcdefghijklmnop', secret);
+
+      const result = service.getKeyPrefix(encrypted, 4);
+      expect(result).toBe('sk-a');
+    });
+
+    it('should return null and log warning when decrypt throws', () => {
+      const warnSpy = jest.spyOn(
+        (service as any).logger,
+        'warn',
+      );
+
+      const result = service.getKeyPrefix('invalid:encrypted:data');
+      expect(result).toBeNull();
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Failed to decrypt API key for prefix extraction',
+      );
+    });
+  });
+
   /* ── getProviderApiKey ── */
 
   describe('getProviderApiKey', () => {

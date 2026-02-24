@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 let mockAgentName = "test-agent";
+const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
-  useNavigate: () => vi.fn(),
+  useNavigate: () => mockNavigate,
   useLocation: () => ({ pathname: `/agents/${mockAgentName}/settings`, state: null }),
 }));
 
@@ -15,10 +16,12 @@ vi.mock("@solidjs/meta", () => ({
 
 const mockGetAgentKey = vi.fn();
 const mockDeleteAgent = vi.fn();
+const mockRenameAgent = vi.fn();
 const mockRotateAgentKey = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getAgentKey: (...args: unknown[]) => mockGetAgentKey(...args),
   deleteAgent: (...args: unknown[]) => mockDeleteAgent(...args),
+  renameAgent: (...args: unknown[]) => mockRenameAgent(...args),
   rotateAgentKey: (...args: unknown[]) => mockRotateAgentKey(...args),
 }));
 
@@ -53,6 +56,7 @@ describe("Settings", () => {
     mockIsLocalMode = false;
     mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: null });
     mockDeleteAgent.mockResolvedValue(undefined);
+    mockRenameAgent.mockResolvedValue({ renamed: true, name: "new-name" });
     mockRotateAgentKey.mockResolvedValue({ apiKey: "new-key" });
   });
 
@@ -141,7 +145,7 @@ describe("Settings", () => {
     expect(saveBtn.disabled).toBe(false);
   });
 
-  it("clicking Save navigates when name changed", async () => {
+  it("clicking Save calls renameAgent API then shows Saved", async () => {
     const { container } = render(() => <Settings />);
     const input = screen.getByLabelText("Agent name") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "new-name" } });
@@ -150,7 +154,27 @@ describe("Settings", () => {
     ) as HTMLButtonElement;
     fireEvent.click(saveBtn);
     await vi.waitFor(() => {
+      expect(mockRenameAgent).toHaveBeenCalledWith("test-agent", "new-name");
+    });
+    await vi.waitFor(() => {
       expect(container.textContent).toContain("Saved");
+    });
+  });
+
+  it("resets name on rename error", async () => {
+    mockRenameAgent.mockRejectedValueOnce(new Error("Conflict"));
+    const { container } = render(() => <Settings />);
+    const input = screen.getByLabelText("Agent name") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "bad-name" } });
+    const saveBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Save"),
+    ) as HTMLButtonElement;
+    fireEvent.click(saveBtn);
+    await vi.waitFor(() => {
+      expect(mockRenameAgent).toHaveBeenCalled();
+    });
+    await vi.waitFor(() => {
+      expect(input.value).toBe("test-agent");
     });
   });
 
@@ -256,27 +280,16 @@ describe("Settings", () => {
       mockIsLocalMode = true;
     });
 
-    it("hides API Key section in local mode", () => {
+    it("redirects to agent overview in local mode", () => {
       const { container } = render(() => <Settings />);
-      expect(container.textContent).not.toContain("API Key");
-      expect(container.textContent).not.toContain("OTLP ingest key");
+      expect(mockNavigate).toHaveBeenCalledWith(`/agents/${mockAgentName}`, { replace: true });
+      expect(container.textContent).toBe("");
     });
 
-    it("hides Integration section in local mode", () => {
+    it("does not render any settings content in local mode", () => {
       const { container } = render(() => <Settings />);
-      expect(container.textContent).not.toContain("Integration");
-    });
-
-    it("hides Danger zone in local mode", () => {
-      const { container } = render(() => <Settings />);
-      expect(container.textContent).not.toContain("Danger zone");
-      expect(container.textContent).not.toContain("Delete agent");
-    });
-
-    it("still shows General section in local mode", () => {
-      const { container } = render(() => <Settings />);
-      expect(screen.getByText("General")).toBeDefined();
-      expect(screen.getByLabelText("Agent name")).toBeDefined();
+      expect(container.textContent).not.toContain("Settings");
+      expect(container.textContent).not.toContain("Agent name");
     });
   });
 });

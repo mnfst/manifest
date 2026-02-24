@@ -9,6 +9,7 @@ import { CopyButton } from "../components/SetupStepInstall.jsx";
 import {
   getAgentKey,
   deleteAgent,
+  renameAgent,
   rotateAgentKey,
 } from "../services/api.js";
 import { toast } from "../services/toast-store.js";
@@ -19,6 +20,12 @@ const Settings: Component = () => {
   const navigate = useNavigate();
   const location = useLocation<{ newApiKey?: string }>();
   const agentName = () => decodeURIComponent(params.agentName);
+
+  // In local mode, settings (rename/delete) are not available — redirect to overview.
+  if (isLocalMode()) {
+    navigate(`/agents/${params.agentName}`, { replace: true });
+    return null;
+  }
   const [name, setName] = createSignal(agentName());
   const [saving, setSaving] = createSignal(false);
   const [saved, setSaved] = createSignal(false);
@@ -48,10 +55,16 @@ const Settings: Component = () => {
     if (!newName || newName === agentName()) return;
 
     setSaving(true);
-    navigate(`/agents/${encodeURIComponent(newName)}/settings`, { replace: true });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      await renameAgent(agentName(), newName);
+      navigate(`/agents/${encodeURIComponent(newName)}/settings`, { replace: true, state: { newAgent: true } });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      setName(agentName());
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleRotate = async () => {
@@ -68,7 +81,7 @@ const Settings: Component = () => {
     }
   };
 
-  const TABS = () => isLocalMode() ? ["General"] as const : ["General", "Integration"] as const;
+  const TABS = () => isLocalMode() ? [] as const : ["General", "Integration"] as const;
   type Tab = "General" | "Integration";
   const [tab, setTab] = createSignal<Tab>("General");
 
@@ -83,24 +96,24 @@ const Settings: Component = () => {
         </div>
       </div>
 
-      <div class="panel__tabs" style="margin-bottom: var(--gap-xl);">
-        <For each={TABS()}>
-          {(t) => (
-            <button
-              class="panel__tab"
-              classList={{ "panel__tab--active": tab() === t }}
-              onClick={() => setTab(t)}
-            >
-              {t}
-            </button>
-          )}
-        </For>
-      </div>
+      <Show when={TABS().length > 0}>
+        <div class="panel__tabs" style="margin-bottom: var(--gap-xl);">
+          <For each={TABS()}>
+            {(t) => (
+              <button
+                class="panel__tab"
+                classList={{ "panel__tab--active": tab() === t }}
+                onClick={() => setTab(t)}
+              >
+                {t}
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
 
       {/* -- Tab: General ----------------------------- */}
       <Show when={tab() === "General"}>
-        <h3 class="settings-section__title">Agent name</h3>
-
         <div class="settings-card">
           <div class="settings-card__row">
             <div class="settings-card__label">

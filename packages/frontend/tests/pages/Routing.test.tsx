@@ -285,17 +285,21 @@ describe("Routing — enabled state (providers active)", () => {
     });
   });
 
-  it("opens provider modal when Manage providers button is clicked", async () => {
+  it("opens provider modal when Connect providers button is clicked", async () => {
     render(() => <Routing />);
-    const provBtn = await screen.findByLabelText("Manage connected providers");
+    const provBtn = await screen.findByText("Connect providers");
     fireEvent.click(provBtn);
     expect(screen.getByTestId("provider-modal")).toBeDefined();
   });
 
-  it("calls deactivateAllProviders when Disable Routing is clicked", async () => {
+  it("calls deactivateAllProviders when Disable Routing is confirmed", async () => {
     render(() => <Routing />);
     const disableBtn = await screen.findByText("Disable Routing");
     fireEvent.click(disableBtn);
+
+    // Confirm dialog appears — click the "Disable" button
+    const confirmBtn = await screen.findByText("Disable");
+    fireEvent.click(confirmBtn);
 
     await waitFor(() => {
       expect(mockDeactivateAllProviders).toHaveBeenCalled();
@@ -422,6 +426,9 @@ describe("Routing — helper functions", () => {
     const disableBtn = await screen.findByText("Disable Routing");
     fireEvent.click(disableBtn);
 
+    const confirmBtn = await screen.findByText("Disable");
+    fireEvent.click(confirmBtn);
+
     await waitFor(() => {
       expect(mockDeactivateAllProviders).toHaveBeenCalled();
     });
@@ -463,7 +470,7 @@ describe("Routing — handleProviderUpdate", () => {
 
     render(() => <Routing />);
     // Open provider modal
-    const provBtn = await screen.findByLabelText("Manage connected providers");
+    const provBtn = await screen.findByText("Connect providers");
     fireEvent.click(provBtn);
 
     // Trigger update (routing was already enabled)

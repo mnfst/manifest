@@ -15,7 +15,7 @@
 .provider-toggle {
   display: flex;
   align-items: center;
-  gap: var(--gap-md);
+  gap: var(--gap-sm);
   width: 100%;
   padding: 10px 24px;
   background: none;
@@ -47,6 +47,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: hsl(var(--foreground));
 }
 
 .provider-toggle__info {
@@ -157,6 +158,225 @@
 
 .provider-toggle__disconnect-btn:hover {
   background: hsl(var(--destructive) / 0.08);
+}
+
+/* ── Provider detail view (two-step modal) ────────── */
+.provider-detail {
+  padding: 20px 24px 24px;
+  overflow: hidden;
+}
+
+.provider-detail__header {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  margin-bottom: 20px;
+}
+
+.provider-detail__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: color var(--transition-fast);
+}
+
+.provider-detail__back:hover {
+  color: hsl(var(--foreground));
+}
+
+.provider-detail__icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: hsl(var(--foreground));
+}
+
+.provider-detail__title-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.provider-detail__name {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.provider-detail__subtitle {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
+.provider-detail__field {
+  margin-bottom: 16px;
+}
+
+.provider-detail__label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  margin-bottom: 6px;
+}
+
+.provider-detail__input {
+  width: 100%;
+  height: 2.25rem;
+  padding: 0 12px;
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  outline: none;
+  transition: border-color var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.provider-detail__input:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+.provider-detail__input::placeholder {
+  color: hsl(var(--muted-foreground) / 0.6);
+}
+
+.provider-detail__input--disabled {
+  opacity: 0.7;
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.05em;
+  cursor: not-allowed;
+}
+
+.provider-detail__input--error {
+  border-color: hsl(var(--destructive));
+}
+
+.provider-detail__input--error:focus {
+  box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.2);
+}
+
+.provider-detail__error {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--destructive));
+  margin-top: 4px;
+}
+
+.provider-detail__key-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.provider-detail__key-row .provider-detail__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.provider-detail__key-row .btn {
+  height: 2.25rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.provider-detail__action {
+  width: auto;
+  margin-top: 4px;
+  float: right;
+}
+
+.provider-detail__no-key {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+}
+
+.provider-detail__disconnect {
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.3);
+}
+
+.provider-detail__disconnect:hover {
+  background: hsl(var(--destructive) / 0.08);
+}
+
+.provider-detail__disconnect-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.provider-detail__disconnect-icon:hover {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
+}
+
+.provider-detail__disconnect-icon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Modal view transitions ────────────────────────── */
+.provider-modal__view {
+  animation: modalSlideIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.provider-modal__view--from-left {
+  animation-name: modalSlideFromLeft;
+}
+
+.provider-modal__view--from-right {
+  animation-name: modalSlideFromRight;
+}
+
+@keyframes modalSlideFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes modalSlideFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ── Provider list (kept for legacy references) ───── */

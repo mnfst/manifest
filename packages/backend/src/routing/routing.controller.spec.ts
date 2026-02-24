@@ -20,6 +20,7 @@ describe('RoutingController', () => {
       setOverride: jest.fn().mockResolvedValue({}),
       clearOverride: jest.fn().mockResolvedValue(undefined),
       resetAllOverrides: jest.fn().mockResolvedValue(undefined),
+      getKeyPrefix: jest.fn().mockReturnValue(null),
     };
     mockPricingCache = {
       getAll: jest.fn().mockReturnValue([]),
@@ -38,12 +39,13 @@ describe('RoutingController', () => {
       mockRoutingService.getProviders.mockResolvedValue([
         { id: 'p1', provider: 'openai', is_active: true, connected_at: '2025-01-01', api_key_encrypted: 'enc' },
       ]);
+      mockRoutingService.getKeyPrefix.mockReturnValue('sk-proj-');
 
       const result = await controller.getProviders(mockUser);
 
       expect(mockRoutingService.getProviders).toHaveBeenCalledWith('user-1');
       expect(result).toEqual([
-        { id: 'p1', provider: 'openai', is_active: true, has_api_key: true, connected_at: '2025-01-01' },
+        { id: 'p1', provider: 'openai', is_active: true, has_api_key: true, key_prefix: 'sk-proj-', connected_at: '2025-01-01' },
       ]);
     });
 
@@ -51,12 +53,14 @@ describe('RoutingController', () => {
       mockRoutingService.getProviders.mockResolvedValue([
         { id: 'p1', provider: 'openai', is_active: true, connected_at: '2025-01-01', api_key_encrypted: 'secret', user_id: 'u1' },
       ]);
+      mockRoutingService.getKeyPrefix.mockReturnValue('sk-proj-');
 
       const result = await controller.getProviders(mockUser);
 
       expect(result[0]).not.toHaveProperty('api_key_encrypted');
       expect(result[0]).not.toHaveProperty('user_id');
       expect(result[0]).toHaveProperty('has_api_key', true);
+      expect(result[0]).toHaveProperty('key_prefix', 'sk-proj-');
     });
 
     it('should return empty array when no providers', async () => {

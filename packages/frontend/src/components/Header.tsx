@@ -3,6 +3,7 @@ import { Show, createSignal, onCleanup, onMount, type Component } from "solid-js
 import { useAgentName } from "../services/routing.js";
 import { authClient } from "../services/auth-client.js";
 import { checkLocalMode, isLocalMode } from "../services/local-mode.js";
+import { displayName } from "../services/display-name.js";
 
 const GITHUB_REPO = "mnfst/manifest";
 const STAR_DISMISSED_KEY = "github-star-dismissed";
@@ -43,10 +44,16 @@ const Header: Component = () => {
   };
 
   const user = () => session()?.data?.user;
+  const effectiveName = () => {
+    if (isLocalMode()) {
+      const custom = displayName();
+      if (custom) return custom;
+    }
+    return user()?.name ?? "User";
+  };
   const initials = () => {
-    const u = user();
-    if (!u?.name) return "?";
-    return u.name.charAt(0).toUpperCase();
+    const name = effectiveName();
+    return name.charAt(0).toUpperCase();
   };
 
   const handleLogout = async () => {
@@ -129,8 +136,10 @@ const Header: Component = () => {
           <Show when={menuOpen()}>
             <div class="header__dropdown" role="menu">
               <div class="header__dropdown-header">
-                <span class="header__dropdown-name">{user()?.name ?? "User"}</span>
-                <span class="header__dropdown-email">{user()?.email ?? ""}</span>
+                <span class="header__dropdown-name">{effectiveName()}</span>
+                <Show when={!isLocalMode()}>
+                  <span class="header__dropdown-email">{user()?.email ?? ""}</span>
+                </Show>
               </div>
               <div class="header__dropdown-divider" />
               <A href="/account" class="header__dropdown-item" role="menuitem" onClick={() => setMenuOpen(false)}>
