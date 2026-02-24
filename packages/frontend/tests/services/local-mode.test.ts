@@ -1,21 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock solid-js signals
-let signalValue: boolean | null = null;
-const mockSetIsLocalMode = vi.fn((v: boolean | null) => { signalValue = v; });
+// Mock solid-js signals — each createSignal call gets its own isolated state
+const signalStates: { value: unknown }[] = [];
 
 vi.mock("solid-js", () => ({
-  createSignal: (init: boolean | null) => {
-    signalValue = init;
-    return [() => signalValue, mockSetIsLocalMode];
+  createSignal: (init: unknown) => {
+    const state = { value: init };
+    signalStates.push(state);
+    return [() => state.value, (v: unknown) => { state.value = v; }];
   },
 }));
 
 describe("local-mode", () => {
   beforeEach(() => {
     vi.resetModules();
-    signalValue = null;
-    mockSetIsLocalMode.mockClear();
+    signalStates.length = 0;
     global.fetch = vi.fn();
   });
 
@@ -60,5 +59,27 @@ describe("local-mode", () => {
     await checkLocalMode();
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("exposes telemetryOptOut from health response", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      json: () => Promise.resolve({ mode: "local", telemetryOptOut: true }),
+    });
+
+    const { checkLocalMode, telemetryOptOut } = await import("../../src/services/local-mode.js");
+    await checkLocalMode();
+
+    expect(telemetryOptOut()).toBe(true);
+  });
+
+  it("defaults telemetryOptOut to false", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      json: () => Promise.resolve({ mode: "cloud" }),
+    });
+
+    const { checkLocalMode, telemetryOptOut } = await import("../../src/services/local-mode.js");
+    await checkLocalMode();
+
+    expect(telemetryOptOut()).toBe(false);
   });
 });
