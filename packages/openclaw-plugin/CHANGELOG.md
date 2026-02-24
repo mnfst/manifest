@@ -1,5 +1,11 @@
 # manifest
 
+## 5.9.2
+
+### Patch Changes
+
+- 3d65f32: fix: update SKILL.md to resolve ClaWHub suspicious flag — add openclaw binary requirement metadata, fix gateway restart command, add user confirmation prompts, and disclose API key storage location
+
 ## 5.9.1
 
 ### Patch Changes
