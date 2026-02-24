@@ -1,5 +1,11 @@
 # manifest
 
+## 5.6.6
+
+### Patch Changes
+
+- 37885aa: Redesign Model Prices filter bar with autocomplete search, provider logos, and tag-based filtering
+
 ## 5.6.5
 
 ### Patch Changes
