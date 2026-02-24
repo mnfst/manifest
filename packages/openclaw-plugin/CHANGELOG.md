@@ -1,5 +1,11 @@
 # manifest
 
+## 5.9.1
+
+### Patch Changes
+
+- 759465f: Fix SPA deep-page reload returning 404 in local/production mode by adding a NotFoundException filter that serves index.html for non-API GET requests
+
 ## 5.9.0
 
 ### Minor Changes
