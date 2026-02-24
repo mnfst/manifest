@@ -1,5 +1,11 @@
 # manifest
 
+## 5.7.0
+
+### Minor Changes
+
+- ed76803: Add version indicator with update notification to the dashboard
+
 ## 5.6.6
 
 ### Patch Changes
