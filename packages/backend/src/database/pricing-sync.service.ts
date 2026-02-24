@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { PricingHistoryService } from './pricing-history.service';
@@ -37,8 +37,10 @@ const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
 
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/models';
 
+const FRESHNESS_HOURS = 12;
+
 @Injectable()
-export class PricingSyncService {
+export class PricingSyncService implements OnModuleInit {
   private readonly logger = new Logger(PricingSyncService.name);
 
   constructor(
@@ -48,6 +50,20 @@ export class PricingSyncService {
     private readonly pricingHistory: PricingHistoryService,
     private readonly unresolvedTracker: UnresolvedModelTrackerService,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    const cutoff = new Date(Date.now() - FRESHNESS_HOURS * 3600_000);
+    const recent = await this.pricingRepo.count({
+      where: { updated_at: MoreThan(cutoff) },
+    });
+    if (recent > 0) {
+      this.logger.log('Pricing data is fresh — skipping startup sync');
+      return;
+    }
+    this.syncPricing().catch((err) => {
+      this.logger.error(`Startup pricing sync failed: ${err}`);
+    });
+  }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async syncPricing(): Promise<number> {
@@ -83,33 +99,49 @@ export class PricingSyncService {
 
   private async syncAllModels(data: OpenRouterModel[]): Promise<number> {
     let updated = 0;
+    let failed = 0;
     const now = new Date(sqlNow());
 
     for (const model of data) {
-      const prompt = Number(model.pricing?.prompt ?? 0);
-      const completion = Number(model.pricing?.completion ?? 0);
-      if (prompt === 0 && completion === 0) continue;
+      try {
+        const prompt = Number(model.pricing?.prompt ?? 0);
+        const completion = Number(model.pricing?.completion ?? 0);
+        if (prompt === 0 && completion === 0) continue;
+        if (!Number.isFinite(prompt) || !Number.isFinite(completion)) {
+          this.logger.warn(`Skipping ${model.id}: non-finite pricing`);
+          failed++;
+          continue;
+        }
 
-      const { canonical, provider } = this.deriveNames(model.id);
-      const existing = await this.pricingRepo.findOneBy({
-        model_name: canonical,
-      });
+        const { canonical, provider } = this.deriveNames(model.id);
+        const existing = await this.pricingRepo.findOneBy({
+          model_name: canonical,
+        });
 
-      const incoming = {
-        model_name: canonical,
-        provider,
-        input_price_per_token: prompt,
-        output_price_per_token: completion,
-      };
+        const incoming = {
+          model_name: canonical,
+          provider,
+          input_price_per_token: prompt,
+          output_price_per_token: completion,
+        };
 
-      await this.pricingHistory.recordChange(existing, incoming, 'sync');
-      await this.pricingRepo.upsert(
-        { ...incoming, updated_at: now },
-        ['model_name'],
-      );
-      updated++;
+        await this.pricingHistory.recordChange(existing, incoming, 'sync');
+        await this.pricingRepo.upsert(
+          { ...incoming, updated_at: now },
+          ['model_name'],
+        );
+        updated++;
+      } catch (err) {
+        failed++;
+        this.logger.warn(
+          `Failed to sync model ${model.id}: ${err instanceof Error ? err.message : err}`,
+        );
+      }
     }
 
+    if (failed > 0) {
+      this.logger.warn(`Pricing sync: ${failed} models failed`);
+    }
     return updated;
   }
 

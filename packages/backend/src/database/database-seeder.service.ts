@@ -154,11 +154,8 @@ export class DatabaseSeederService implements OnModuleInit {
   }
 
   private async seedModelPricing() {
-    const count = await this.pricingRepo.count();
-    if (count > 0) return;
-
-    // Prices: [model_id, provider, input_per_token, output_per_token]
-    // Source: official pricing pages (Feb 2026)
+    // Always upsert curated models so new entries are added on every restart
+    // and existing curated models keep correct fallback pricing.
     const models: ReadonlyArray<readonly [string, string, number, number]> = [
       // Anthropic Claude
       ['claude-opus-4-6',            'Anthropic', 0.000015,   0.000075  ],
