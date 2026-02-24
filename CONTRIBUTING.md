@@ -2,6 +2,20 @@
 
 Thanks for your interest in contributing to Manifest! This guide will help you get up and running.
 
+[![codecov](https://img.shields.io/codecov/c/github/mnfst/manifest?color=brightgreen)](https://codecov.io/gh/mnfst/manifest)
+
+## Tech Stack
+
+| Layer     | Technology                                    |
+| --------- | --------------------------------------------- |
+| Frontend  | SolidJS, uPlot, custom CSS theme              |
+| Backend   | NestJS 11, TypeORM, SQLite (local) / PostgreSQL (cloud) |
+| Auth      | Better Auth (auto-login on localhost)          |
+| Telemetry | OTLP HTTP (JSON + Protobuf)                   |
+| Build     | Turborepo + npm workspaces                    |
+
+The full NestJS + SolidJS stack runs locally backed by SQLite. The same codebase also powers the [cloud version](https://app.manifest.build) with PostgreSQL — the only differences are the database driver and auth guard.
+
 ## Prerequisites
 
 - Node.js 22.x (LTS)

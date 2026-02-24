@@ -14,11 +14,11 @@ interface Props {
 const SetupStepConfigure: Component<Props> = (props) => {
   const [tab, setTab] = createSignal<ConfigTab>("cli");
 
-  const key = () => props.apiKey ?? "mnfst_YOUR_KEY";
   const hasFullKey = () => !!props.apiKey;
+  const displayKey = () => props.apiKey ?? (props.keyPrefix ? `${props.keyPrefix}...` : "mnfst_YOUR_KEY");
 
   const cliCommand = () => {
-    const lines = [`openclaw config set plugins.entries.manifest.config.apiKey "${key()}"`];
+    const lines = [`openclaw config set plugins.entries.manifest.config.apiKey "${displayKey()}"`];
     if (props.endpoint) {
       lines.push(`openclaw config set plugins.entries.manifest.config.endpoint "${props.endpoint}"`);
     }
@@ -26,7 +26,7 @@ const SetupStepConfigure: Component<Props> = (props) => {
   };
 
   const envCommand = () => {
-    const lines = [`export MANIFEST_API_KEY="${key()}"`];
+    const lines = [`export MANIFEST_API_KEY="${displayKey()}"`];
     if (props.endpoint) {
       lines.push(`export MANIFEST_ENDPOINT="${props.endpoint}"`);
     }
@@ -53,8 +53,8 @@ const SetupStepConfigure: Component<Props> = (props) => {
       </Show>
 
       <Show when={!hasFullKey() && props.keyPrefix}>
-        <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); font-family: var(--font-mono); padding: 10px 14px; background: hsl(var(--muted)); border-radius: var(--radius); margin-bottom: 16px;">
-          Active key: {props.keyPrefix}...
+        <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); padding: 10px 14px; background: hsl(var(--muted)); border-radius: var(--radius); margin-bottom: 16px;">
+          Replace <code style="font-family: var(--font-mono); font-size: var(--font-size-sm);">{props.keyPrefix}...</code> below with your full API key.
         </div>
       </Show>
 
@@ -65,19 +65,23 @@ const SetupStepConfigure: Component<Props> = (props) => {
             <span class="modal-terminal__dot modal-terminal__dot--yellow" />
             <span class="modal-terminal__dot modal-terminal__dot--green" />
           </div>
-          <div class="modal-terminal__tabs">
+          <div class="modal-terminal__tabs" role="tablist" aria-label="Configuration method">
             <button
               class="modal-terminal__tab"
               classList={{ "modal-terminal__tab--active": tab() === "cli" }}
               onClick={() => setTab("cli")}
+              role="tab"
+              aria-selected={tab() === "cli"}
             >
               OpenClaw CLI
             </button>
-            <span class="modal-terminal__tab-sep">|</span>
+            <span class="modal-terminal__tab-sep" aria-hidden="true">|</span>
             <button
               class="modal-terminal__tab"
               classList={{ "modal-terminal__tab--active": tab() === "env" }}
               onClick={() => setTab("env")}
+              role="tab"
+              aria-selected={tab() === "env"}
             >
               Environment
             </button>

@@ -3,14 +3,18 @@ import { createSignal, type Component } from "solid-js";
 function CopyButton(props: { text: string }) {
   const [copied, setCopied] = createSignal(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(props.text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(props.text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback: select text for manual copy (e.g. non-HTTPS contexts)
+    }
   };
 
   return (
-    <button class="modal-terminal__copy" onClick={handleCopy} title="Copy">
+    <button class="modal-terminal__copy" onClick={handleCopy} title="Copy" aria-label={copied() ? "Copied" : "Copy to clipboard"}>
       {copied() ? (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="20 6 9 17 4 12" />

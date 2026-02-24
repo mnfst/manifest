@@ -16,6 +16,7 @@ interface MessageItem {
   timestamp: string;
   agent_name: string | null;
   model: string | null;
+  routing_tier?: string;
   input_tokens: number | null;
   output_tokens: number | null;
   total_tokens: number | null;
@@ -110,7 +111,7 @@ const MessageLog: Component = () => {
               />
             </div>
           </Show>
-          <Show when={hasNoData() && !setupCompleted()}>
+          <Show when={hasNoData() && !(isLocalMode() && params.agentName === 'local-agent') && !setupCompleted()}>
             <button class="btn btn--primary" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
@@ -141,7 +142,7 @@ const MessageLog: Component = () => {
           <ErrorState error={data.error} onRetry={refetch} />
         }>
         <Show when={!hasNoData()} fallback={
-          <Show when={setupCompleted()} fallback={
+          <Show when={(isLocalMode() && params.agentName === 'local-agent') || setupCompleted()} fallback={
             <div class="empty-state">
               <div class="empty-state__title">No messages recorded</div>
               <p>Set up your agent and start chatting. Activity will appear here automatically.</p>
@@ -232,7 +233,10 @@ const MessageLog: Component = () => {
                       <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                         {item.output_tokens != null ? formatNumber(item.output_tokens) : "\u2014"}
                       </td>
-                      <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">{item.model ?? "\u2014"}</td>
+                      <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                        {item.model ?? "\u2014"}
+                        {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
+                      </td>
                       <td>
                         <span class={`status-badge status-badge--${item.status}`}>{formatStatus(item.status)}</span>
                       </td>

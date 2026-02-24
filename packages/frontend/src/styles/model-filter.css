@@ -9,15 +9,21 @@
   gap: var(--gap-md);
 }
 
-.model-filter__search-wrapper {
+.model-filter__combobox {
   position: relative;
   flex: 1;
-  max-width: 320px;
+  max-width: 480px;
+}
+
+.model-filter__input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .model-filter__search-icon {
   position: absolute;
-  left: 10px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
   color: hsl(var(--muted-foreground));
@@ -26,17 +32,15 @@
 
 .model-filter__search {
   width: 100%;
-  height: 2.25rem;
-  padding: 0 2rem 0 2rem;
+  height: 2.5rem;
+  padding: 0 12px 0 2.25rem;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--input));
+  border: none;
   border-radius: var(--radius);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-family: var(--font-family);
-  transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
+  transition: box-shadow var(--transition-fast);
 }
 
 .model-filter__search::placeholder {
@@ -45,33 +49,143 @@
 
 .model-filter__search:focus-visible {
   outline: none;
-  border-color: hsl(var(--ring));
-  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.25);
 }
 
-.model-filter__clear-input {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
+/* ── Tags row (below search) ───────────────────────── */
+.model-filter__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: var(--gap-sm);
+}
+
+.model-filter__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 1.75rem;
+  padding: 0 6px 0 10px;
+  background: hsl(var(--secondary));
+  border: 1px solid hsl(var(--border));
+  border-radius: 9999px;
+  font-size: var(--font-size-xs);
+  line-height: 1;
+  white-space: nowrap;
+  animation: fadeInUp 100ms ease-out;
+}
+
+.model-filter__tag--provider {
+  padding-left: 6px;
+}
+
+.model-filter__tag-type {
+  font-weight: 600;
+  line-height: 1;
+  color: hsl(var(--muted-foreground));
+}
+
+.model-filter__tag-value {
+  font-weight: 500;
+  line-height: 1;
+  color: hsl(var(--foreground));
+}
+
+.model-filter__tag-remove {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.125rem;
+  height: 1.125rem;
   border: none;
-  border-radius: calc(var(--radius) - 2px);
+  border-radius: 9999px;
   background: transparent;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.model-filter__clear-input:hover {
+.model-filter__tag-remove:hover {
   background: hsl(var(--muted));
   color: hsl(var(--foreground));
 }
 
+/* ── Provider icon ─────────────────────────────────── */
+.model-filter__provider-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .model-filter__provider-icon--mono {
+  filter: invert(1);
+}
+
+/* ── Dropdown ──────────────────────────────────────── */
+.model-filter__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  padding: 4px 0;
+  z-index: 50;
+  animation: fadeInUp 100ms ease-out;
+}
+
+.model-filter__dropdown-group + .model-filter__dropdown-group {
+  border-top: 1px solid hsl(var(--border));
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.model-filter__dropdown-label {
+  padding: 4px 14px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.model-filter__dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 7px 14px;
+  border: none;
+  background: transparent;
+  color: hsl(var(--popover-foreground));
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  text-align: left;
+}
+
+.model-filter__dropdown-item:hover,
+.model-filter__dropdown-item--highlighted {
+  background: hsl(var(--accent));
+}
+
+.model-filter__dropdown-item-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.model-filter__dropdown-item-type {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
+/* ── Summary ───────────────────────────────────────── */
 .model-filter__summary {
   display: flex;
   align-items: center;
@@ -99,47 +213,7 @@
   color: hsl(var(--foreground));
 }
 
-.model-filter__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: var(--gap-sm);
-}
-
-.model-filter__chip {
-  display: inline-flex;
-  align-items: center;
-  height: 1.75rem;
-  padding: 0 12px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 9999px;
-  background: transparent;
-  color: hsl(var(--muted-foreground));
-  font-size: var(--font-size-xs);
-  font-family: var(--font-family);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  user-select: none;
-}
-
-.model-filter__chip:hover {
-  border-color: hsl(var(--foreground) / 0.3);
-  color: hsl(var(--foreground));
-}
-
-.model-filter__chip--active {
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  border-color: hsl(var(--primary));
-}
-
-.model-filter__chip--active:hover {
-  background: hsl(var(--primary) / 0.9);
-  border-color: hsl(var(--primary) / 0.9);
-  color: hsl(var(--primary-foreground));
-}
-
+/* ── Empty state ───────────────────────────────────── */
 .model-filter__empty {
   text-align: center;
   padding: var(--gap-2xl) var(--gap-lg);
@@ -158,13 +232,14 @@
   margin-bottom: var(--gap-md);
 }
 
+/* ── Responsive ────────────────────────────────────── */
 @media (max-width: 640px) {
   .model-filter__row {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .model-filter__search-wrapper {
+  .model-filter__combobox {
     max-width: 100%;
   }
 

@@ -190,7 +190,8 @@ export class AggregationService {
       .addSelect('at.output_tokens', 'output_tokens')
       .addSelect('at.status', 'status')
       .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
-      .addSelect(costExpr, 'cost');
+      .addSelect(costExpr, 'cost')
+      .addSelect('at.routing_tier', 'routing_tier');
 
     if (params.cursor) {
       const sepIdx = params.cursor.indexOf('|');

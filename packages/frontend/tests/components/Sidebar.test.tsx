@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import { render, screen } from "@solidjs/testing-library";
 
 let mockAgentName: string | null = "test-agent";
 let mockPathname = "/agents/test-agent";
+let mockIsLocalMode: boolean | null = true;
 
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class} aria-current={props["aria-current"]}>{props.children}</a>,
@@ -12,6 +13,10 @@ vi.mock("@solidjs/router", () => ({
 vi.mock("../../src/services/routing.js", () => ({
   useAgentName: () => () => mockAgentName,
   agentPath: (name: string, sub: string) => name ? `/agents/${name}${sub}` : "/",
+}));
+
+vi.mock("../../src/services/local-mode.js", () => ({
+  isLocalMode: () => mockIsLocalMode,
 }));
 
 import Sidebar from "../../src/components/Sidebar";
@@ -72,6 +77,11 @@ describe("Sidebar with agent", () => {
     expect(screen.getByText("Feedback")).toBeDefined();
   });
 
+  it("renders Routing link", () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText("Routing")).toBeDefined();
+  });
+
   it("has correct link hrefs for agent routes", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('a[href="/agents/test-agent"]')).not.toBeNull();
@@ -113,6 +123,7 @@ describe("Sidebar without agent", () => {
   beforeAll(() => {
     mockAgentName = null;
     mockPathname = "/";
+    mockIsLocalMode = false;
   });
 
   it("renders Agents link when no agent selected", () => {
@@ -129,5 +140,18 @@ describe("Sidebar without agent", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.textContent).not.toContain("Overview");
     expect(container.textContent).not.toContain("Messages");
+  });
+});
+
+describe("Sidebar in local mode", () => {
+  beforeAll(() => {
+    mockAgentName = null;
+    mockPathname = "/";
+    mockIsLocalMode = true;
+  });
+
+  it("hides Agents link in local mode", () => {
+    const { container } = render(() => <Sidebar />);
+    expect(container.textContent).not.toContain("Agents");
   });
 });

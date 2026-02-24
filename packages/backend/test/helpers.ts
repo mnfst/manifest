@@ -1,3 +1,6 @@
+// Set MANIFEST_MODE before any entity imports so timestampType() picks up 'datetime' for sqljs
+process.env['MANIFEST_MODE'] = 'local';
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { CanActivate, ExecutionContext, INestApplication, Injectable, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { APP_GUARD, Reflector } from '@nestjs/core';
@@ -24,6 +27,8 @@ import { Agent } from '../src/entities/agent.entity';
 import { AgentApiKey } from '../src/entities/agent-api-key.entity';
 import { NotificationRule } from '../src/entities/notification-rule.entity';
 import { NotificationLog } from '../src/entities/notification-log.entity';
+import { UserProvider } from '../src/entities/user-provider.entity';
+import { TierAssignment } from '../src/entities/tier-assignment.entity';
 import { HealthModule } from '../src/health/health.module';
 import { TelemetryModule } from '../src/telemetry/telemetry.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
@@ -32,6 +37,7 @@ import { OtlpModule } from '../src/otlp/otlp.module';
 import { NotificationsModule } from '../src/notifications/notifications.module';
 import { ModelPricesModule } from '../src/model-prices/model-prices.module';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
+import { RoutingModule } from '../src/routing/routing.module';
 import { CommonModule } from '../src/common/common.module';
 
 export const TEST_USER_ID = 'test-user-001';
@@ -40,23 +46,11 @@ export const TEST_TENANT_ID = 'test-tenant-001';
 export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
-const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog];
-
-const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
+const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment];
 
 function buildTypeOrmConfig(): TypeOrmModuleOptions {
-  if (isLocalMode) {
-    return {
-      type: 'sqljs' as const,
-      entities,
-      synchronize: true,
-      dropSchema: true,
-      logging: false,
-    };
-  }
   return {
-    type: 'postgres' as const,
-    url: process.env['DATABASE_URL'] || 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
+    type: 'sqljs' as const,
     entities,
     synchronize: true,
     dropSchema: true,
@@ -107,6 +101,7 @@ export async function createTestApp(): Promise<INestApplication> {
       OtlpModule,
       NotificationsModule,
       ModelPricesModule,
+      RoutingModule,
     ],
     providers: [
       { provide: APP_GUARD, useClass: MockSessionGuard },

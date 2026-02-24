@@ -2,24 +2,31 @@ import { ModelPricingCacheService } from './model-pricing-cache.service';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { UnresolvedModelTrackerService } from './unresolved-model-tracker.service';
 
-function makePricing(name: string): ModelPricing {
+function makePricing(name: string, overrides?: Partial<ModelPricing>): ModelPricing {
   const p = new ModelPricing();
   p.model_name = name;
   p.input_price_per_token = 0.000015;
   p.output_price_per_token = 0.000075;
   p.provider = 'TestProvider';
   p.updated_at = null;
+  p.context_window = 128000;
+  p.capability_reasoning = true;
+  p.capability_code = true;
+  p.quality_score = 5;
+  Object.assign(p, overrides);
   return p;
 }
 
 describe('ModelPricingCacheService', () => {
   let service: ModelPricingCacheService;
   let mockFind: jest.Mock;
+  let mockUpdate: jest.Mock;
   let mockTrack: jest.Mock;
 
   beforeEach(() => {
     mockFind = jest.fn().mockResolvedValue([]);
-    const mockRepo = { find: mockFind } as never;
+    mockUpdate = jest.fn().mockResolvedValue({});
+    const mockRepo = { find: mockFind, update: mockUpdate } as never;
     mockTrack = jest.fn();
     const mockTracker = { track: mockTrack } as unknown as UnresolvedModelTrackerService;
     service = new ModelPricingCacheService(mockRepo, mockTracker);
@@ -79,6 +86,31 @@ describe('ModelPricingCacheService', () => {
       await service.reload();
 
       expect(mockFind).toHaveBeenCalledTimes(3);
+    });
+
+    it('should recompute quality scores on reload', async () => {
+      // Model with stale quality_score=1 but frontier-level pricing + caps
+      const stale = makePricing('frontier-model', { quality_score: 1 });
+      mockFind.mockResolvedValue([stale]);
+
+      await service.reload();
+
+      // Should have updated the DB with the computed score (5)
+      expect(mockUpdate).toHaveBeenCalledWith(
+        { model_name: 'frontier-model' },
+        { quality_score: 5 },
+      );
+      // Cached value should also be updated
+      expect(service.getByModel('frontier-model')?.quality_score).toBe(5);
+    });
+
+    it('should skip DB update when quality score is already correct', async () => {
+      const correct = makePricing('correct-model', { quality_score: 5 });
+      mockFind.mockResolvedValue([correct]);
+
+      await service.reload();
+
+      expect(mockUpdate).not.toHaveBeenCalled();
     });
   });
 
@@ -186,6 +218,33 @@ describe('ModelPricingCacheService', () => {
       service.getByModel('gpt-4o');
 
       expect(mockTrack).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getAll', () => {
+    it('should return all cached models', async () => {
+      const rows = [makePricing('gpt-4o'), makePricing('claude-opus-4')];
+      mockFind.mockResolvedValue(rows);
+      await service.onModuleInit();
+
+      const result = service.getAll();
+
+      expect(result).toHaveLength(2);
+      expect(result).toEqual(expect.arrayContaining(rows));
+    });
+
+    it('should return empty array before initialization', () => {
+      expect(service.getAll()).toEqual([]);
+    });
+
+    it('should return a new array each time (not the internal cache)', async () => {
+      mockFind.mockResolvedValue([makePricing('model-a')]);
+      await service.onModuleInit();
+
+      const a = service.getAll();
+      const b = service.getAll();
+      expect(a).not.toBe(b);
+      expect(a).toEqual(b);
     });
   });
 });
