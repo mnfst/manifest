@@ -311,14 +311,14 @@ const ProviderSelectModal: Component<Props> = (props) => {
                           aria-label="Current API key (masked)"
                         />
                         <button
-                          class="btn btn--primary btn--sm"
+                          class="btn btn--outline btn--sm"
                           onClick={() => {
                             setEditing(true);
                             setKeyInput("");
                             setValidationError(null);
                           }}
                         >
-                          Update Key
+                          Change
                         </button>
                         <button
                           class="provider-detail__disconnect-icon"

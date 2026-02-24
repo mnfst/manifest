@@ -176,7 +176,7 @@ describe("ProviderSelectModal", () => {
       expect(screen.getByLabelText("Disconnect provider")).toBeDefined();
     });
 
-    it("shows 'Update Key' button for connected non-ollama providers", () => {
+    it("shows 'Change' button for connected non-ollama providers", () => {
       render(() => (
         <ProviderSelectModal
           providers={[connectedProvider]}
@@ -185,7 +185,7 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
-      expect(screen.getByText("Update Key")).toBeDefined();
+      expect(screen.getByText("Change")).toBeDefined();
     });
 
     it("shows 'Connect' button for non-connected providers", () => {
@@ -405,7 +405,7 @@ describe("ProviderSelectModal", () => {
   });
 
   describe("updating a key", () => {
-    it("switches to edit mode when Update Key is clicked", () => {
+    it("switches to edit mode when Change is clicked", () => {
       render(() => (
         <ProviderSelectModal
           providers={[connectedProvider]}
@@ -414,7 +414,7 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
-      fireEvent.click(screen.getByText("Update Key"));
+      fireEvent.click(screen.getByText("Change"));
 
       // Edit mode shows a password input and Save button
       expect(screen.getByLabelText("New OpenAI API key")).toBeDefined();
@@ -430,7 +430,7 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
-      fireEvent.click(screen.getByText("Update Key"));
+      fireEvent.click(screen.getByText("Change"));
 
       const input = screen.getByLabelText("New OpenAI API key");
       fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });

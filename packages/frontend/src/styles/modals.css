@@ -161,7 +161,12 @@
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: hsl(var(--foreground));
+  margin-top: var(--gap-md);
   margin-bottom: 6px;
+}
+
+.modal-card__field-label:first-of-type {
+  margin-top: 0;
 }
 
 .modal-card__input {
@@ -178,7 +183,7 @@
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
-  margin-bottom: var(--gap-lg);
+  margin-bottom: 0;
   box-sizing: border-box;
 }
 
@@ -251,6 +256,7 @@
 .modal-card__footer {
   display: flex;
   justify-content: flex-end;
+  margin-top: var(--gap-xl);
 }
 
 .modal-card__footer .btn:disabled {

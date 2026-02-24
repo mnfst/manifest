@@ -281,6 +281,13 @@
 
 .provider-detail__key-row .provider-detail__input {
   flex: 1;
+  min-width: 0;
+}
+
+.provider-detail__key-row .btn {
+  height: 2.25rem;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .provider-detail__action {
@@ -304,8 +311,8 @@
 }
 
 .provider-detail__disconnect-icon {
-  width: 32px;
-  height: 32px;
+  width: 2.25rem;
+  height: 2.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
