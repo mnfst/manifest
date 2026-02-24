@@ -14,6 +14,7 @@ import {
   readLocalEmailConfig,
   writeLocalEmailConfig,
   clearLocalEmailConfig,
+  readLocalApiKey,
   readLocalNotificationEmail,
   writeLocalNotificationEmail,
 } from './local-mode.constants';
@@ -246,6 +247,35 @@ describe('local-mode.constants', () => {
       expect(written.emailApiKey).toBeUndefined();
       expect(written.emailDomain).toBeUndefined();
       expect(written.emailFromAddress).toBeUndefined();
+    });
+  });
+
+  describe('readLocalApiKey', () => {
+    it('returns api key when set in config', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(
+        JSON.stringify({ apiKey: 'mnfst_test_key_123' }),
+      );
+
+      const result = readLocalApiKey();
+      expect(result).toBe('mnfst_test_key_123');
+    });
+
+    it('returns null when apiKey is not set', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify({}));
+
+      const result = readLocalApiKey();
+      expect(result).toBeNull();
+    });
+
+    it('returns null when config file does not exist', () => {
+      (fs.existsSync as jest.Mock)
+        .mockReturnValueOnce(true)  // ensureConfigDir
+        .mockReturnValueOnce(false); // config file
+
+      const result = readLocalApiKey();
+      expect(result).toBeNull();
     });
   });
 
