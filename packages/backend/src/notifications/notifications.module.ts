@@ -6,7 +6,6 @@ import { NotificationCronService } from './services/notification-cron.service';
 import { NotificationEmailService } from './services/notification-email.service';
 import { EmailConfigService } from './services/email-config.service';
 import { NotificationEmailAddressService } from './services/notification-email-address.service';
-import { EmailProviderConfigService } from './services/email-provider-config.service';
 
 @Module({
   controllers: [NotificationsController, EmailConfigController],
@@ -16,7 +15,6 @@ import { EmailProviderConfigService } from './services/email-provider-config.ser
     NotificationEmailService,
     EmailConfigService,
     NotificationEmailAddressService,
-    EmailProviderConfigService,
   ],
 })
 export class NotificationsModule {}
