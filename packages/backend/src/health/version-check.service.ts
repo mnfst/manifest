@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 interface UpdateInfo {
   latestVersion?: string;
@@ -14,13 +15,15 @@ export class VersionCheckService implements OnModuleInit {
   private static readonly FETCH_TIMEOUT_MS = 5000;
   private static readonly VERSION_RE = /^\d+\.\d+\.\d+$/;
 
+  constructor(private readonly config: ConfigService) {}
+
   async onModuleInit(): Promise<void> {
     if (!this.isEnabled()) return;
     this.fetchLatestVersion().catch(() => {});
   }
 
   getCurrentVersion(): string {
-    return process.env['MANIFEST_PACKAGE_VERSION'] ?? '0.0.0';
+    return this.config.get<string>('MANIFEST_PACKAGE_VERSION', '0.0.0');
   }
 
   getUpdateInfo(): UpdateInfo {
@@ -75,8 +78,8 @@ export class VersionCheckService implements OnModuleInit {
   }
 
   private isEnabled(): boolean {
-    if (process.env['MANIFEST_MODE'] !== 'local') return false;
-    const opt = process.env['MANIFEST_TELEMETRY_OPTOUT'];
+    if (this.config.get<string>('MANIFEST_MODE') !== 'local') return false;
+    const opt = this.config.get<string>('MANIFEST_TELEMETRY_OPTOUT');
     if (opt === '1' || opt === 'true') return false;
     return true;
   }
