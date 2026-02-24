@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
+import { ForbiddenException } from '@nestjs/common';
 import { AgentsController } from './agents.controller';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
 import { AggregationService } from '../services/aggregation.service';
@@ -13,6 +14,7 @@ describe('AgentsController', () => {
   let mockGetKeyForAgent: jest.Mock;
   let mockRotateKey: jest.Mock;
   let mockConfigGet: jest.Mock;
+  let mockDeleteAgent: jest.Mock;
 
   beforeEach(async () => {
     mockGetAgentList = jest.fn().mockResolvedValue([
@@ -22,6 +24,7 @@ describe('AgentsController', () => {
     mockGetKeyForAgent = jest.fn().mockResolvedValue({ keyPrefix: 'mnfst_test1234' });
     mockRotateKey = jest.fn().mockResolvedValue({ apiKey: 'mnfst_new_key_123' });
     mockConfigGet = jest.fn().mockReturnValue('');
+    mockDeleteAgent = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -33,7 +36,7 @@ describe('AgentsController', () => {
         },
         {
           provide: AggregationService,
-          useValue: { deleteAgent: jest.fn() },
+          useValue: { deleteAgent: mockDeleteAgent },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -95,5 +98,25 @@ describe('AgentsController', () => {
 
     expect(result).toEqual({ apiKey: 'mnfst_new_key_123' });
     expect(mockRotateKey).toHaveBeenCalledWith('u1', 'bot-1');
+  });
+
+  it('deletes agent and returns success', async () => {
+    const user = { id: 'u1' };
+    const result = await controller.deleteAgent(user as never, 'bot-1');
+
+    expect(result).toEqual({ deleted: true });
+    expect(mockDeleteAgent).toHaveBeenCalledWith('u1', 'bot-1');
+  });
+
+  it('throws ForbiddenException when deleting in local mode', async () => {
+    const orig = process.env['MANIFEST_MODE'];
+    process.env['MANIFEST_MODE'] = 'local';
+    try {
+      const user = { id: 'u1' };
+      await expect(controller.deleteAgent(user as never, 'bot-1')).rejects.toThrow(ForbiddenException);
+      expect(mockDeleteAgent).not.toHaveBeenCalled();
+    } finally {
+      process.env['MANIFEST_MODE'] = orig;
+    }
   });
 });

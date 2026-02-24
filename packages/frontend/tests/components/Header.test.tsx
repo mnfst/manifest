@@ -20,13 +20,15 @@ vi.mock("../../src/services/auth-client.js", () => ({
   },
 }));
 
+let mockAgentName: string | null = null;
 vi.mock("../../src/services/routing.js", () => ({
-  useAgentName: () => () => null,
+  useAgentName: () => () => mockAgentName,
 }));
 
+let mockIsLocalMode: boolean | null = false;
 vi.mock("../../src/services/local-mode.js", () => ({
   checkLocalMode: vi.fn().mockResolvedValue(false),
-  isLocalMode: () => false,
+  isLocalMode: () => mockIsLocalMode,
 }));
 
 import Header from "../../src/components/Header";
@@ -34,6 +36,8 @@ import Header from "../../src/components/Header";
 beforeEach(() => {
   vi.restoreAllMocks();
   sessionStorage.clear();
+  mockAgentName = null;
+  mockIsLocalMode = false;
 });
 
 describe("Header", () => {
@@ -197,5 +201,61 @@ describe("Header - GitHub star button", () => {
     );
     render(() => <Header />);
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("Header - local mode", () => {
+  it("logo links to /agents/local-agent in local mode", () => {
+    mockIsLocalMode = true;
+    const { container } = render(() => <Header />);
+    const logoLink = container.querySelector(".header__logo") as HTMLAnchorElement;
+    expect(logoLink.getAttribute("href")).toBe("/agents/local-agent");
+  });
+
+  it("logo links to / in cloud mode", () => {
+    mockIsLocalMode = false;
+    const { container } = render(() => <Header />);
+    const logoLink = container.querySelector(".header__logo") as HTMLAnchorElement;
+    expect(logoLink.getAttribute("href")).toBe("/");
+  });
+
+  it("hides Cloud badge in local mode", () => {
+    mockIsLocalMode = true;
+    render(() => <Header />);
+    expect(screen.queryByText("Cloud")).toBeNull();
+  });
+
+  it("shows Cloud badge in cloud mode", () => {
+    mockIsLocalMode = false;
+    render(() => <Header />);
+    expect(screen.getByText("Cloud")).toBeDefined();
+  });
+
+  it("hides Workspace breadcrumb in local mode", () => {
+    mockIsLocalMode = true;
+    mockAgentName = "my-agent";
+    render(() => <Header />);
+    expect(screen.queryByText("Workspace")).toBeNull();
+  });
+
+  it("shows Workspace breadcrumb in cloud mode", () => {
+    mockIsLocalMode = false;
+    mockAgentName = "my-agent";
+    render(() => <Header />);
+    expect(screen.getByText("Workspace")).toBeDefined();
+  });
+
+  it("hides Log out in local mode", async () => {
+    mockIsLocalMode = true;
+    render(() => <Header />);
+    await fireEvent.click(screen.getByLabelText("User menu"));
+    expect(screen.queryByText("Log out")).toBeNull();
+  });
+
+  it("shows Account Preferences in local mode", async () => {
+    mockIsLocalMode = true;
+    render(() => <Header />);
+    await fireEvent.click(screen.getByLabelText("User menu"));
+    expect(screen.getByText("Account Preferences")).toBeDefined();
   });
 });
