@@ -14,17 +14,18 @@ beforeAll(async () => {
   const dialect = detectDialect(ds.options.type as string);
   const sql = (q: string) => portableSql(q, dialect);
   const now = sqlNow();
+  const b = (v: boolean) => (dialect === 'sqlite' ? (v ? 1 : 0) : v);
   await ds.query('DELETE FROM model_pricing');
   await ds.query(
-    sql(`INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token, updated_at)
+    sql(`INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token, context_window, capability_reasoning, capability_code, quality_score, updated_at)
      VALUES
-       ($1, $2, $3, $4, $5),
-       ($6, $7, $8, $9, $10),
-       ($11, $12, $13, $14, NULL)`),
+       ($1, $2, $3, $4, $5, $6, $7, $8, $9),
+       ($10, $11, $12, $13, $14, $15, $16, $17, $18),
+       ($19, $20, $21, $22, $23, $24, $25, $26, NULL)`),
     [
-      'gpt-4o', 'OpenAI', 0.0000025, 0.00001, now,
-      'claude-opus-4-6', 'Anthropic', 0.000015, 0.000075, now,
-      'grok-3', 'xAI', 0.000003, 0.000015,
+      'gpt-4o', 'OpenAI', 0.0000025, 0.00001, 128000, b(false), b(true), 3, now,
+      'claude-opus-4-6', 'Anthropic', 0.000015, 0.000075, 200000, b(true), b(true), 5, now,
+      'grok-3', 'xAI', 0.000003, 0.000015, 131072, b(true), b(true), 4,
     ],
   );
 }, 30000);

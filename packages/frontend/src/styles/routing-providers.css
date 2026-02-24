@@ -1,0 +1,174 @@
+/* ── Provider toggle (modal rows) ─────────────────── */
+.provider-modal__list {
+  padding: 8px 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.provider-modal__footer {
+  padding: 16px 24px;
+  border-top: 1px solid hsl(var(--border));
+  display: flex;
+  justify-content: flex-end;
+}
+
+.provider-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+  width: 100%;
+  padding: 10px 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.provider-toggle:hover {
+  background: hsl(var(--muted) / 0.5);
+}
+
+.provider-toggle:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: -2px;
+}
+
+.provider-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.provider-toggle__icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.provider-toggle__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.provider-toggle__name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.provider-toggle__subtitle {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
+/* Toggle switch */
+.provider-toggle__switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: hsl(var(--muted));
+  border-radius: 10px;
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+
+.provider-toggle__switch--on {
+  background: hsl(var(--success));
+}
+
+.provider-toggle__switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform var(--transition-fast);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+}
+
+.provider-toggle__switch--on .provider-toggle__switch-thumb {
+  transform: translateX(16px);
+}
+
+/* ── Provider badge + expandable key input ─────── */
+.provider-toggle__badge {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: hsl(var(--muted) / 0.6);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.provider-toggle__badge--connected {
+  color: hsl(var(--success));
+  background: hsl(var(--success) / 0.12);
+}
+
+.provider-toggle__expand {
+  padding: 0 24px 12px 60px;
+}
+
+.provider-toggle__key-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.provider-toggle__key-input {
+  flex: 1;
+  height: 2rem;
+  padding: 0 10px;
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  outline: none;
+  transition: border-color var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.provider-toggle__key-input:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+.provider-toggle__key-input::placeholder {
+  color: hsl(var(--muted-foreground) / 0.6);
+}
+
+.provider-toggle__disconnect-btn {
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.3);
+}
+
+.provider-toggle__disconnect-btn:hover {
+  background: hsl(var(--destructive) / 0.08);
+}
+
+/* ── Provider list (kept for legacy references) ───── */
+.provider-card__logo-letter {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+}

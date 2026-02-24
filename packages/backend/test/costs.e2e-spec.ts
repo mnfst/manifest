@@ -19,9 +19,9 @@ beforeAll(async () => {
   const insertOrIgnore = dialect === 'sqlite' ? 'INSERT OR IGNORE' : 'INSERT';
   const onConflict = dialect === 'sqlite' ? '' : ' ON CONFLICT (model_name) DO NOTHING';
   await ds.query(
-    sql(`${insertOrIgnore} INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token)
-     VALUES ($1, $2, $3, $4)${onConflict}`),
-    ['gpt-4o', 'OpenAI', 0.0000025, 0.00001],
+    sql(`${insertOrIgnore} INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token, context_window)
+     VALUES ($1, $2, $3, $4, $5)${onConflict}`),
+    ['gpt-4o', 'OpenAI', 0.0000025, 0.00001, 128000],
   );
 
   // Reload pricing cache

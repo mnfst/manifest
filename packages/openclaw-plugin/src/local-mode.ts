@@ -14,6 +14,7 @@ import { ManifestConfig } from "./config";
 import { PluginLogger } from "./telemetry";
 import { initTelemetry, shutdownTelemetry } from "./telemetry";
 import { registerHooks, initMetrics } from "./hooks";
+import { registerRouting } from "./routing";
 import { registerTools } from "./tools";
 import { API_KEY_PREFIX, LOCAL_DEFAULTS } from "./constants";
 
@@ -266,6 +267,7 @@ export function registerLocalMode(
   const { tracer, meter } = initTelemetry(localConfig, logger);
   initMetrics(meter);
   registerHooks(api, tracer, localConfig, logger);
+  registerRouting(api, localConfig, logger);
 
   if (typeof api.registerTool === "function") {
     registerTools(api, localConfig, logger);
@@ -275,7 +277,7 @@ export function registerLocalMode(
     id: "manifest-local",
     start: async () => {
       try {
-        await serverModule.start({ port, host, dbPath });
+        await serverModule.start({ port, host, dbPath, quiet: true });
         logger.info(`[manifest] Local server running on http://${host}:${port}`);
         logger.info(`[manifest]   Dashboard: http://${host}:${port}`);
         logger.info(`[manifest]   DB: ${dbPath}`);
@@ -293,7 +295,11 @@ export function registerLocalMode(
             );
           }
         } else {
-          logger.error(`[manifest] Failed to start local server: ${msg}`);
+          logger.error(
+            `[manifest] Failed to start local server: ${msg}\n` +
+              `  Try reinstalling: openclaw plugins install manifest\n` +
+              `  Then restart: openclaw gateway restart`,
+          );
         }
       }
     },

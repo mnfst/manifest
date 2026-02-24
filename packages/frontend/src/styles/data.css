@@ -75,6 +75,23 @@
   color: hsl(var(--destructive));
 }
 
+/* ── Tier Badges ──────────────────────────────────── */
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-2xs, 10px);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.tier-badge--simple    { background: hsl(var(--success) / 0.1);     color: hsl(var(--success)); }
+.tier-badge--standard  { background: hsl(var(--chart-2) / 0.15);    color: hsl(var(--chart-2)); }
+.tier-badge--complex   { background: hsl(var(--chart-5) / 0.15);    color: hsl(var(--chart-5)); }
+.tier-badge--reasoning { background: hsl(var(--destructive) / 0.1); color: hsl(var(--destructive)); }
+
 /* ── Security Events ─────────────────────────────── */
 .security-event {
   display: flex;

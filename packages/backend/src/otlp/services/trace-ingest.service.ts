@@ -21,7 +21,7 @@ import {
 
 interface SpanEntry {
   uuid: string;
-  type: 'agent_message' | 'llm_call' | 'tool_execution';
+  type: 'agent_message' | 'llm_call' | 'tool_execution' | 'root_request';
   spanId: string;
 }
 
@@ -62,7 +62,10 @@ export class TraceIngestService {
     return spans;
   }
 
-  private classifySpan(attrs: AttributeMap): SpanEntry['type'] {
+  private classifySpan(attrs: AttributeMap, spanName?: string): SpanEntry['type'] {
+    if (spanName === 'openclaw.agent.turn' || (spanName && spanName.startsWith('manifest.')))
+      return 'agent_message';
+    if (spanName === 'openclaw.request') return 'root_request';
     if (attrString(attrs, 'gen_ai.system')) return 'llm_call';
     if (attrString(attrs, 'tool.name')) return 'tool_execution';
     return 'agent_message';
@@ -73,7 +76,7 @@ export class TraceIngestService {
     for (const span of spans) {
       const spanId = toHexString(span.spanId);
       const attrs = { ...resourceAttrs, ...extractAttributes(span.attributes) };
-      map.set(spanId, { uuid: uuidv4(), type: this.classifySpan(attrs), spanId });
+      map.set(spanId, { uuid: uuidv4(), type: this.classifySpan(attrs, span.name), spanId });
     }
     return map;
   }
@@ -86,7 +89,7 @@ export class TraceIngestService {
   ): Promise<void> {
     const messageAggregates = new Map<string, {
       input: number; output: number; cacheRead: number; cacheCreation: number;
-      model: string | null; cost: number;
+      model: string | null; tier: string | null; cost: number;
     }>();
 
     for (const span of spans) {
@@ -94,6 +97,7 @@ export class TraceIngestService {
       const entry = spanMap.get(spanId)!;
       const attrs = { ...resourceAttrs, ...extractAttributes(span.attributes) };
 
+      if (entry.type === 'root_request') continue;
       if (entry.type === 'agent_message') {
         await this.insertAgentMessage(span, attrs, entry, spanMap, ctx);
       } else if (entry.type === 'llm_call') {
@@ -111,24 +115,25 @@ export class TraceIngestService {
     span: OtlpSpan,
     attrs: AttributeMap,
     spanMap: Map<string, SpanEntry>,
-    aggregates: Map<string, { input: number; output: number; cacheRead: number; cacheCreation: number; model: string | null; cost: number }>,
+    aggregates: Map<string, { input: number; output: number; cacheRead: number; cacheCreation: number; model: string | null; tier: string | null; cost: number }>,
   ): void {
     const parentId = toHexString(span.parentSpanId);
     const parentEntry = spanMap.get(parentId);
     if (!parentEntry || parentEntry.type !== 'agent_message') return;
 
     const messageId = parentEntry.uuid;
-    const agg = aggregates.get(messageId) ?? { input: 0, output: 0, cacheRead: 0, cacheCreation: 0, model: null, cost: 0 };
+    const agg = aggregates.get(messageId) ?? { input: 0, output: 0, cacheRead: 0, cacheCreation: 0, model: null, tier: null, cost: 0 };
     agg.input += attrNumber(attrs, 'gen_ai.usage.input_tokens') ?? 0;
     agg.output += attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0;
     agg.cacheRead += attrNumber(attrs, 'gen_ai.usage.cache_read_input_tokens') ?? 0;
     agg.cacheCreation += attrNumber(attrs, 'gen_ai.usage.cache_creation_input_tokens') ?? 0;
     if (!agg.model) agg.model = attrString(attrs, 'gen_ai.request.model') || attrString(attrs, 'gen_ai.response.model') || null;
+    if (!agg.tier) agg.tier = attrString(attrs, 'manifest.routing.tier') || null;
     aggregates.set(messageId, agg);
   }
 
   private async rollUpMessageAggregates(
-    aggregates: Map<string, { input: number; output: number; cacheRead: number; cacheCreation: number; model: string | null; cost: number }>,
+    aggregates: Map<string, { input: number; output: number; cacheRead: number; cacheCreation: number; model: string | null; tier: string | null; cost: number }>,
   ): Promise<void> {
     for (const [messageId, agg] of aggregates) {
       if (agg.input === 0 && agg.output === 0) continue;
@@ -150,9 +155,11 @@ export class TraceIngestService {
           cache_read_tokens: agg.cacheRead,
           cache_creation_tokens: agg.cacheCreation,
           model: () => 'COALESCE(model, :model)',
+          routing_tier: () => 'COALESCE(routing_tier, :tier)',
           cost_usd: cost,
         })
         .setParameter('model', agg.model)
+        .setParameter('tier', agg.tier)
         .where('id = :id', { id: messageId })
         .execute();
     }
@@ -186,6 +193,7 @@ export class TraceIngestService {
       service_type: attrString(attrs, 'service.name') ?? 'agent',
       agent_name: attrString(attrs, 'agent.name') ?? ctx.agentName,
       model: attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model'),
+      routing_tier: attrString(attrs, 'manifest.routing.tier'),
       skill_name: attrString(attrs, 'skill.name'),
     });
   }

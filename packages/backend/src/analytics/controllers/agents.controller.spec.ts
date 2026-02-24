@@ -67,7 +67,8 @@ describe('AgentsController', () => {
     const user = { id: 'u1' };
     const result = await controller.getAgentKey(user as never, 'bot-1');
 
-    expect(result).toEqual({ keyPrefix: 'mnfst_test1234' });
+    expect(result).toMatchObject({ keyPrefix: 'mnfst_test1234' });
+    expect(result).not.toHaveProperty('pluginEndpoint');
     expect(mockGetKeyForAgent).toHaveBeenCalledWith('u1', 'bot-1');
   });
 
@@ -76,7 +77,7 @@ describe('AgentsController', () => {
     const user = { id: 'u1' };
     const result = await controller.getAgentKey(user as never, 'bot-1');
 
-    expect(result).toEqual({ keyPrefix: 'mnfst_test1234', pluginEndpoint: 'http://localhost:3001/otlp' });
+    expect(result).toMatchObject({ keyPrefix: 'mnfst_test1234', pluginEndpoint: 'http://localhost:3001/otlp' });
   });
 
   it('returns empty agents array when no agents exist', async () => {
