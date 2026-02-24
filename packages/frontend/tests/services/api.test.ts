@@ -25,6 +25,19 @@ import {
   createNotificationRule,
   updateNotificationRule,
   deleteNotificationRule,
+  getEmailProvider,
+  setEmailProvider,
+  removeEmailProvider,
+  testEmailProvider,
+  testSavedEmailProvider,
+  getNotificationEmailForProvider,
+  saveNotificationEmailForProvider,
+  getEmailConfig,
+  saveEmailConfig,
+  testEmailConfig,
+  clearEmailConfig,
+  getNotificationEmail,
+  saveNotificationEmail,
 } from "../../src/services/api.js";
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -668,6 +681,222 @@ describe("deleteNotificationRule", () => {
     await deleteNotificationRule("id/special");
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain("/notifications/id%2Fspecial");
+  });
+});
+
+describe("getEmailProvider", () => {
+  it("returns config when provider is configured", async () => {
+    const payload = { provider: "resend", domain: "example.com", keyPrefix: "re_abc", is_active: true, notificationEmail: "me@example.com" };
+    mockOk(payload);
+
+    const result = await getEmailProvider();
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/notifications/email-provider");
+  });
+
+  it("returns null when configured is false", async () => {
+    mockOk({ configured: false });
+
+    const result = await getEmailProvider();
+    expect(result).toBeNull();
+  });
+});
+
+describe("setEmailProvider", () => {
+  it("POSTs provider config with apiKey", async () => {
+    mockMutateOk();
+
+    await setEmailProvider({ provider: "resend", apiKey: "re_test123", domain: "example.com" });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/notifications/email-provider",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: "resend", apiKey: "re_test123", domain: "example.com" }),
+      }),
+    );
+  });
+
+  it("POSTs without optional apiKey", async () => {
+    mockMutateOk();
+
+    await setEmailProvider({ provider: "resend" });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/notifications/email-provider",
+      expect.objectContaining({
+        body: JSON.stringify({ provider: "resend" }),
+      }),
+    );
+  });
+});
+
+describe("removeEmailProvider", () => {
+  it("sends DELETE to /notifications/email-provider", async () => {
+    mockMutateOk();
+
+    await removeEmailProvider();
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/notifications/email-provider",
+      expect.objectContaining({ method: "DELETE", credentials: "include" }),
+    );
+  });
+});
+
+describe("testEmailProvider", () => {
+  it("POSTs test credentials", async () => {
+    mockMutateOk({ success: true });
+
+    const result = await testEmailProvider({ provider: "resend", apiKey: "re_key", domain: "example.com", to: "test@example.com" });
+    expect(result).toEqual({ success: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/notifications/email-provider/test",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: "resend", apiKey: "re_key", domain: "example.com", to: "test@example.com" }),
+      }),
+    );
+  });
+});
+
+describe("testSavedEmailProvider", () => {
+  it("POSTs with just recipient email", async () => {
+    mockMutateOk({ success: true });
+
+    const result = await testSavedEmailProvider("user@example.com");
+    expect(result).toEqual({ success: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/notifications/email-provider/test-saved",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: "user@example.com" }),
+      }),
+    );
+  });
+});
+
+describe("getNotificationEmailForProvider", () => {
+  it("fetches /notifications/notification-email", async () => {
+    mockOk({ email: "user@example.com" });
+
+    const result = await getNotificationEmailForProvider();
+    expect(result).toEqual({ email: "user@example.com" });
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/notifications/notification-email");
+  });
+
+  it("returns null email when not set", async () => {
+    mockOk({ email: null });
+
+    const result = await getNotificationEmailForProvider();
+    expect(result).toEqual({ email: null });
+  });
+});
+
+describe("saveNotificationEmailForProvider", () => {
+  it("POSTs email to /notifications/notification-email", async () => {
+    mockMutateOk({ saved: true });
+
+    const result = await saveNotificationEmailForProvider("new@example.com");
+    expect(result).toEqual({ saved: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/notifications/notification-email",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "new@example.com" }),
+      }),
+    );
+  });
+});
+
+describe("getEmailConfig", () => {
+  it("fetches /email-config", async () => {
+    const payload = { configured: true, provider: "mailgun", domain: "mg.example.com", fromEmail: "noreply@example.com" };
+    mockOk(payload);
+
+    const result = await getEmailConfig();
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/email-config");
+  });
+});
+
+describe("saveEmailConfig", () => {
+  it("POSTs to /email-config with JSON body", async () => {
+    mockMutateOk();
+
+    await saveEmailConfig({ provider: "mailgun", apiKey: "key-123", domain: "mg.example.com", fromEmail: "noreply@example.com" });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/email-config",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: "mailgun", apiKey: "key-123", domain: "mg.example.com", fromEmail: "noreply@example.com" }),
+      }),
+    );
+  });
+});
+
+describe("testEmailConfig", () => {
+  it("POSTs to /email-config/test with config + toEmail", async () => {
+    mockMutateOk({ success: true });
+
+    const config = { provider: "mailgun", apiKey: "key-123", domain: "mg.example.com" };
+    const result = await testEmailConfig(config, "test@example.com");
+    expect(result).toEqual({ success: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/email-config/test",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...config, toEmail: "test@example.com" }),
+      }),
+    );
+  });
+});
+
+describe("clearEmailConfig", () => {
+  it("sends DELETE to /email-config", async () => {
+    mockMutateOk();
+
+    await clearEmailConfig();
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/email-config",
+      expect.objectContaining({ method: "DELETE", credentials: "include" }),
+    );
+  });
+});
+
+describe("getNotificationEmail", () => {
+  it("fetches /notification-email", async () => {
+    mockOk({ email: "user@example.com", isDefault: false });
+
+    const result = await getNotificationEmail();
+    expect(result).toEqual({ email: "user@example.com", isDefault: false });
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/notification-email");
+  });
+});
+
+describe("saveNotificationEmail", () => {
+  it("POSTs to /notification-email", async () => {
+    mockMutateOk();
+
+    await saveNotificationEmail("new@example.com");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/notification-email",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "new@example.com" }),
+      }),
+    );
   });
 });
 
