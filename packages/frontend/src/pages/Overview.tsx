@@ -110,7 +110,7 @@ const Overview: Component = () => {
   })
 
   const trendBadge = (pct: number) => {
-    const cls = pct >= 0 ? 'trend trend--up' : 'trend trend--down'
+    const cls = pct <= 0 ? 'trend trend--up' : 'trend trend--down'
     const sign = pct >= 0 ? '+' : ''
     return (
       <span class={cls}>
