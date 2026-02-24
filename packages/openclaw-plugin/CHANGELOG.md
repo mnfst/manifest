@@ -1,5 +1,11 @@
 # manifest
 
+## 5.9.3
+
+### Patch Changes
+
+- 518e89c: Remove fs imports and direct process.env access from backend files that get copied into the plugin dist, eliminating false-positive security scanner warnings about credential harvesting.
+
 ## 5.9.2
 
 ### Patch Changes
