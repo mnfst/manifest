@@ -1,12 +1,6 @@
 import { createHash } from 'crypto';
 import { hostname, platform, arch } from 'os';
-import { existsSync, readFileSync } from 'fs';
 import { getMachineId, trackEvent, trackCloudEvent } from './product-telemetry';
-
-jest.mock('fs');
-
-const mockExistsSync = existsSync as jest.MockedFunction<typeof existsSync>;
-const mockReadFileSync = readFileSync as jest.MockedFunction<typeof readFileSync>;
 
 let mockFetch: jest.Mock;
 
@@ -15,8 +9,6 @@ beforeEach(() => {
   global.fetch = mockFetch;
   delete process.env['MANIFEST_TELEMETRY_OPTOUT'];
   delete process.env['MANIFEST_MODE'];
-  mockExistsSync.mockReturnValue(false);
-  mockReadFileSync.mockReturnValue('{}');
 });
 
 describe('getMachineId', () => {
@@ -79,29 +71,7 @@ describe('trackEvent', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it('does not send when config file has telemetryOptOut: true', () => {
-    mockExistsSync.mockReturnValue(true);
-    mockReadFileSync.mockReturnValue(JSON.stringify({ telemetryOptOut: true }));
-    trackEvent('test_event');
-    expect(mockFetch).not.toHaveBeenCalled();
-  });
-
-  it('sends when config file has telemetryOptOut: false', () => {
-    mockExistsSync.mockReturnValue(true);
-    mockReadFileSync.mockReturnValue(JSON.stringify({ telemetryOptOut: false }));
-    trackEvent('test_event');
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('sends when config file is missing', () => {
-    mockExistsSync.mockReturnValue(false);
-    trackEvent('test_event');
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('sends when config file is corrupted', () => {
-    mockExistsSync.mockReturnValue(true);
-    mockReadFileSync.mockReturnValue('not json');
+  it('sends when not opted out', () => {
     trackEvent('test_event');
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });

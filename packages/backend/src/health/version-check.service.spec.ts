@@ -1,11 +1,16 @@
+import { ConfigService } from '@nestjs/config';
 import { VersionCheckService } from './version-check.service';
+
+function createMockConfig(): ConfigService {
+  return { get: (key: string, fallback?: string) => process.env[key] ?? fallback } as unknown as ConfigService;
+}
 
 describe('VersionCheckService', () => {
   let service: VersionCheckService;
   let mockFetch: jest.Mock;
 
   beforeEach(() => {
-    service = new VersionCheckService();
+    service = new VersionCheckService(createMockConfig());
     mockFetch = jest.fn();
     global.fetch = mockFetch;
     delete process.env['MANIFEST_PACKAGE_VERSION'];

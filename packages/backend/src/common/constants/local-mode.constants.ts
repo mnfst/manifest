@@ -99,6 +99,12 @@ export function clearLocalEmailConfig(): void {
   writeConfig(config);
 }
 
+/** Reads the API key from the local config file. Returns null if not set. */
+export function readLocalApiKey(): string | null {
+  const config = readConfig();
+  return typeof config.apiKey === 'string' ? config.apiKey : null;
+}
+
 /** Reads the notification email from the local config file. Returns null if not set. */
 export function readLocalNotificationEmail(): string | null {
   const config = readConfig();
