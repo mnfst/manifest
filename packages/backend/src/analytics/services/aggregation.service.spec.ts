@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AggregationService } from './aggregation.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -13,6 +13,8 @@ describe('AggregationService', () => {
   let mockGetRawMany: jest.Mock;
   let mockAgentGetOne: jest.Mock;
   let mockAgentDelete: jest.Mock;
+  let mockTransaction: jest.Mock;
+  let mockAgentCreateQueryBuilder: jest.Mock;
 
   beforeEach(async () => {
     mockGetRawOne = jest.fn().mockResolvedValue({ total: 0 });
@@ -38,6 +40,8 @@ describe('AggregationService', () => {
       getOne: jest.fn().mockResolvedValue(null),
     };
 
+    mockTransaction = jest.fn().mockImplementation(async (cb: Function) => cb());
+
     const mockAgentQb = {
       select: jest.fn().mockReturnThis(),
       leftJoin: jest.fn().mockReturnThis(),
@@ -47,6 +51,8 @@ describe('AggregationService', () => {
       getOne: mockAgentGetOne,
       getMany: jest.fn().mockResolvedValue([]),
     };
+
+    mockAgentCreateQueryBuilder = jest.fn().mockReturnValue(mockAgentQb);
 
     const mockTimeseries = {
       getHourlyTokens: jest.fn().mockResolvedValue([]),
@@ -71,12 +77,12 @@ describe('AggregationService', () => {
         {
           provide: getRepositoryToken(Agent),
           useValue: {
-            createQueryBuilder: jest.fn().mockReturnValue(mockAgentQb),
+            createQueryBuilder: mockAgentCreateQueryBuilder,
             delete: mockAgentDelete,
           },
         },
         { provide: TimeseriesQueriesService, useValue: mockTimeseries },
-        { provide: DataSource, useValue: { options: { type: 'postgres' } } },
+        { provide: DataSource, useValue: { options: { type: 'postgres' }, transaction: mockTransaction } },
       ],
     }).compile();
 
@@ -167,6 +173,73 @@ describe('AggregationService', () => {
       await expect(
         service.deleteAgent('test-user', 'nonexistent'),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('renameAgent', () => {
+    it('should throw NotFoundException when agent not found', async () => {
+      mockAgentGetOne.mockResolvedValueOnce(null);
+
+      await expect(
+        service.renameAgent('test-user', 'nonexistent', 'new-name'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ConflictException when new name already exists', async () => {
+      // First call: find current agent — found
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'old-agent' });
+      // Second call: check for duplicate — found
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-2', name: 'taken-name' });
+
+      await expect(
+        service.renameAgent('test-user', 'old-agent', 'taken-name'),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('should rename agent and update all related tables in a transaction', async () => {
+      // First call: find current agent — found
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'old-agent' });
+      // Second call: check for duplicate — not found
+      mockAgentGetOne.mockResolvedValueOnce(null);
+
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockManagerQb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+
+      mockTransaction.mockImplementation(async (cb: Function) => {
+        const manager = {
+          createQueryBuilder: jest.fn().mockReturnValue(mockManagerQb),
+        };
+        return cb(manager);
+      });
+
+      await service.renameAgent('test-user', 'old-agent', 'new-agent');
+
+      // Verify transaction was called
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
+
+      // The transaction callback should have executed:
+      // 1 update for agents table + 5 updates for related tables = 6 total
+      expect(mockExecute).toHaveBeenCalledTimes(6);
+
+      // Verify agents table update was called with agent id
+      expect(mockManagerQb.update).toHaveBeenCalledWith('agents');
+      expect(mockManagerQb.set).toHaveBeenCalledWith({ name: 'new-agent' });
+
+      // Verify all 5 related tables were updated
+      const updateCalls = mockManagerQb.update.mock.calls.map(
+        (c: unknown[]) => c[0],
+      );
+      expect(updateCalls).toContain('agents');
+      expect(updateCalls).toContain('agent_messages');
+      expect(updateCalls).toContain('notification_rules');
+      expect(updateCalls).toContain('notification_logs');
+      expect(updateCalls).toContain('token_usage_snapshots');
+      expect(updateCalls).toContain('cost_snapshots');
     });
   });
 
