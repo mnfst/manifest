@@ -9,11 +9,11 @@ export interface ValidationResult {
 export function validateProviderConfig(
   provider: string,
   apiKey: string,
-  domain: string,
+  domain?: string,
 ): ValidationResult {
   const errors: string[] = [];
   const trimmedKey = apiKey.trim();
-  const trimmedDomain = domain.trim().toLowerCase();
+  const trimmedDomain = (domain ?? '').trim().toLowerCase();
 
   if (provider === 'resend') {
     if (!trimmedKey.startsWith('re_')) {
@@ -21,13 +21,23 @@ export function validateProviderConfig(
     }
   }
 
+  if (provider === 'sendgrid') {
+    if (!trimmedKey.startsWith('SG.')) {
+      errors.push('SendGrid API key must start with SG.');
+    }
+  }
+
   if (trimmedKey.length < 8) {
     errors.push('API key must be at least 8 characters');
   }
 
-  if (!trimmedDomain) {
-    errors.push('Domain is required');
-  } else if (!DOMAIN_RE.test(trimmedDomain)) {
+  if (provider === 'mailgun') {
+    if (!trimmedDomain) {
+      errors.push('Domain is required for Mailgun');
+    } else if (!DOMAIN_RE.test(trimmedDomain)) {
+      errors.push('Invalid domain format');
+    }
+  } else if (trimmedDomain && !DOMAIN_RE.test(trimmedDomain)) {
     errors.push('Invalid domain format');
   }
 

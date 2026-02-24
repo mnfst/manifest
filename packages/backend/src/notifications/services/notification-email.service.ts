@@ -12,7 +12,7 @@ export class NotificationEmailService {
   async sendThresholdAlert(
     to: string,
     props: ThresholdAlertProps,
-    providerConfig?: { provider: string; apiKey: string; domain: string },
+    providerConfig?: { provider: string; apiKey: string; domain: string | null },
   ): Promise<boolean> {
     const element = ThresholdAlertEmail(props);
     const html = await render(element);
@@ -20,11 +20,14 @@ export class NotificationEmailService {
     const subject = `Alert: ${props.agentName} exceeded ${props.metricType} threshold`;
 
     if (providerConfig) {
-      const from = `Manifest <noreply@${providerConfig.domain}>`;
+      const defaultFrom = process.env['NOTIFICATION_FROM_EMAIL'] ?? 'noreply@manifest.build';
+      const from = providerConfig.domain
+        ? `Manifest <noreply@${providerConfig.domain}>`
+        : `Manifest <${defaultFrom}>`;
       const config: EmailProviderConfig = {
         provider: providerConfig.provider as EmailProviderConfig['provider'],
         apiKey: providerConfig.apiKey,
-        domain: providerConfig.domain,
+        domain: providerConfig.domain ?? undefined,
       };
       const provider = createProvider(config);
       const sent = await provider.send({ to, subject, html, text, from });

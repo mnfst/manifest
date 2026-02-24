@@ -1,6 +1,18 @@
 import { createSignal, Show, onCleanup, type Component } from "solid-js";
 import type { EmailProviderConfig } from "../services/api.js";
 
+const PROVIDER_LOGOS: Record<string, string> = {
+  resend: "/logos/resend.svg",
+  mailgun: "/logos/mailgun.svg",
+  sendgrid: "/logos/sendgrid.svg",
+};
+
+const PROVIDER_NAMES: Record<string, string> = {
+  resend: "Resend",
+  mailgun: "Mailgun",
+  sendgrid: "SendGrid",
+};
+
 interface Props {
   config: EmailProviderConfig;
   onEdit: () => void;
@@ -8,8 +20,8 @@ interface Props {
 }
 
 const ProviderBanner: Component<Props> = (props) => {
-  const logo = () => props.config.provider === "resend" ? "/logos/resend.svg" : "/logos/mailgun.svg";
-  const name = () => props.config.provider === "resend" ? "Resend" : "Mailgun";
+  const logo = () => PROVIDER_LOGOS[props.config.provider] ?? "/logos/resend.svg";
+  const name = () => PROVIDER_NAMES[props.config.provider] ?? props.config.provider;
 
   const [menuOpen, setMenuOpen] = createSignal(false);
 
@@ -67,8 +79,19 @@ const ProviderBanner: Component<Props> = (props) => {
         <div>
           <div class="provider-card__name">{name()}</div>
           <div class="provider-card__meta">
-            <span>{props.config.domain}</span>
+            <Show when={props.config.domain}>
+              <span>{props.config.domain}</span>
+            </Show>
             <span class="provider-card__key">{props.config.keyPrefix}...</span>
+            <Show when={props.config.notificationEmail}>
+              <span class="provider-card__email">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+                {props.config.notificationEmail}
+              </span>
+            </Show>
           </div>
         </div>
       </div>

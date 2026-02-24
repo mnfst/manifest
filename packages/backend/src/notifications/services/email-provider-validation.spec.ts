@@ -18,6 +18,25 @@ describe('validateProviderConfig', () => {
     expect(result.errors).toHaveLength(0);
   });
 
+  it('accepts valid SendGrid config without domain', () => {
+    const result = validateProviderConfig('sendgrid', 'SG.abcdefghij');
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+    expect(result.normalized.domain).toBe('');
+  });
+
+  it('accepts valid SendGrid config with domain', () => {
+    const result = validateProviderConfig('sendgrid', 'SG.abcdefghij', 'example.com');
+    expect(result.valid).toBe(true);
+    expect(result.normalized.domain).toBe('example.com');
+  });
+
+  it('rejects SendGrid key without SG. prefix', () => {
+    const result = validateProviderConfig('sendgrid', 'abcdefghij');
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('SendGrid API key must start with SG.');
+  });
+
   it('rejects Resend key without re_ prefix', () => {
     const result = validateProviderConfig('resend', 'abcdefghij', 'example.com');
     expect(result.valid).toBe(false);
@@ -30,14 +49,38 @@ describe('validateProviderConfig', () => {
     expect(result.errors).toContain('API key must be at least 8 characters');
   });
 
-  it('rejects empty domain', () => {
-    const result = validateProviderConfig('resend', 're_abcdefghij', '');
+  it('requires domain for Mailgun', () => {
+    const result = validateProviderConfig('mailgun', 'key-12345678');
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain('Domain is required');
+    expect(result.errors).toContain('Domain is required for Mailgun');
+  });
+
+  it('requires domain for Mailgun (empty string)', () => {
+    const result = validateProviderConfig('mailgun', 'key-12345678', '');
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Domain is required for Mailgun');
+  });
+
+  it('does not require domain for Resend', () => {
+    const result = validateProviderConfig('resend', 're_abcdefghij');
+    expect(result.valid).toBe(true);
+    expect(result.normalized.domain).toBe('');
+  });
+
+  it('does not require domain for SendGrid', () => {
+    const result = validateProviderConfig('sendgrid', 'SG.abcdefghij');
+    expect(result.valid).toBe(true);
+    expect(result.normalized.domain).toBe('');
   });
 
   it('rejects invalid domain format', () => {
     const result = validateProviderConfig('resend', 're_abcdefghij', 'not a domain');
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Invalid domain format');
+  });
+
+  it('rejects invalid domain format for non-Mailgun when provided', () => {
+    const result = validateProviderConfig('sendgrid', 'SG.abcdefghij', 'not a domain');
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('Invalid domain format');
   });
@@ -58,7 +101,7 @@ describe('validateProviderConfig', () => {
   it('returns multiple errors at once', () => {
     const result = validateProviderConfig('resend', 're_', '');
     expect(result.valid).toBe(false);
-    expect(result.errors.length).toBeGreaterThanOrEqual(2);
+    expect(result.errors.length).toBeGreaterThanOrEqual(1);
   });
 
   it('does not require re_ prefix for Mailgun', () => {

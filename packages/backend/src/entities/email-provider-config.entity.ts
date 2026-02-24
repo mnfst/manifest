@@ -16,13 +16,16 @@ export class EmailProviderConfig {
   user_id!: string;
 
   @Column('varchar')
-  provider!: string; // 'resend' | 'mailgun'
+  provider!: string; // 'resend' | 'mailgun' | 'sendgrid'
 
   @Column('varchar')
   api_key_encrypted!: string;
 
-  @Column('varchar')
-  domain!: string;
+  @Column('varchar', { nullable: true })
+  domain!: string | null;
+
+  @Column('varchar', { nullable: true })
+  notification_email!: string | null;
 
   @Column('boolean', { default: true })
   is_active!: boolean;

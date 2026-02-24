@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsController } from './notifications.controller';
 import { NotificationRulesService } from './services/notification-rules.service';
 import { EmailProviderConfigService } from './services/email-provider-config.service';
+import { NotificationCronService } from './services/notification-cron.service';
 
 const mockUser = { id: 'user-1', email: 'test@test.com', name: 'Test' } as never;
 
@@ -20,6 +21,7 @@ const mockRule = {
 };
 
 describe('NotificationsController', () => {
+  let module: TestingModule;
   let controller: NotificationsController;
   let rulesService: jest.Mocked<NotificationRulesService>;
   let emailProviderConfigService: jest.Mocked<EmailProviderConfigService>;
@@ -37,13 +39,20 @@ describe('NotificationsController', () => {
       upsert: jest.fn(),
       remove: jest.fn(),
       testConfig: jest.fn().mockResolvedValue({ success: true }),
+      getNotificationEmail: jest.fn().mockResolvedValue(null),
+      setNotificationEmail: jest.fn().mockResolvedValue(undefined),
     };
 
-    const module: TestingModule = await Test.createTestingModule({
+    const mockCronService = {
+      checkThresholds: jest.fn().mockResolvedValue(2),
+    };
+
+    module = await Test.createTestingModule({
       controllers: [NotificationsController],
       providers: [
         { provide: NotificationRulesService, useValue: mockRulesService },
         { provide: EmailProviderConfigService, useValue: mockEmailProviderConfigService },
+        { provide: NotificationCronService, useValue: mockCronService },
       ],
     }).compile();
 
@@ -92,5 +101,34 @@ describe('NotificationsController', () => {
       'test@test.com',
     );
     expect(result).toEqual({ success: true });
+  });
+
+  it('tests sendgrid provider config without domain', async () => {
+    const dto = { provider: 'sendgrid', apiKey: 'SG.testkey123456', to: 'test@test.com' } as never;
+    const result = await controller.testEmailProvider(mockUser, dto);
+    expect(emailProviderConfigService.testConfig).toHaveBeenCalledWith(
+      { provider: 'sendgrid', apiKey: 'SG.testkey123456', domain: undefined },
+      'test@test.com',
+    );
+    expect(result).toEqual({ success: true });
+  });
+
+  it('triggers manual notification check', async () => {
+    const cronService = module.get(NotificationCronService) as jest.Mocked<NotificationCronService>;
+    const result = await controller.triggerCheck();
+    expect(cronService.checkThresholds).toHaveBeenCalled();
+    expect(result).toEqual({ triggered: 2, message: '2 notification(s) triggered' });
+  });
+
+  it('returns null notification email when not set', async () => {
+    const result = await controller.getNotificationEmail(mockUser);
+    expect(emailProviderConfigService.getNotificationEmail).toHaveBeenCalledWith('user-1');
+    expect(result).toEqual({ email: null });
+  });
+
+  it('saves notification email', async () => {
+    const result = await controller.setNotificationEmail(mockUser, { email: 'alerts@test.com' });
+    expect(emailProviderConfigService.setNotificationEmail).toHaveBeenCalledWith('user-1', 'alerts@test.com');
+    expect(result).toEqual({ saved: true });
   });
 });

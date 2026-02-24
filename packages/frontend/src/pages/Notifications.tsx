@@ -1,29 +1,27 @@
+import { Meta, Title } from "@solidjs/meta";
+import { useParams } from "@solidjs/router";
 import {
-  createSignal,
   createResource,
-  onMount,
-  Show,
+  createSignal,
   For,
+  Show,
   type Component,
 } from "solid-js";
-import { useParams } from "@solidjs/router";
-import { Title, Meta } from "@solidjs/meta";
-import ErrorState from "../components/ErrorState.jsx";
-import EmailProviderSetup from "../components/EmailProviderSetup.jsx";
 import EmailProviderModal from "../components/EmailProviderModal.jsx";
+import EmailProviderSetup from "../components/EmailProviderSetup.jsx";
+import ErrorState from "../components/ErrorState.jsx";
+import NotificationRuleModal from "../components/NotificationRuleModal.jsx";
 import ProviderBanner from "../components/ProviderBanner.jsx";
 import {
-  getNotificationRules,
+  deleteNotificationRule,
   getEmailProvider,
+  getNotificationRules,
   removeEmailProvider,
   updateNotificationRule,
-  deleteNotificationRule,
   type NotificationRule,
 } from "../services/api.js";
 import { formatMetricType } from "../services/formatters.js";
 import { toast } from "../services/toast-store.js";
-import { checkLocalMode } from "../services/local-mode.js";
-import NotificationRuleModal from "../components/NotificationRuleModal.jsx";
 
 function formatThreshold(rule: NotificationRule): string {
   if (rule.metric_type === "cost") return `$${Number(rule.threshold).toFixed(2)}`;
@@ -41,10 +39,6 @@ const Notifications: Component = () => {
   const [modalOpen, setModalOpen] = createSignal(false);
   const [editingRule, setEditingRule] = createSignal<NotificationRule | null>(null);
   const [editProviderOpen, setEditProviderOpen] = createSignal(false);
-
-  onMount(() => {
-    checkLocalMode();
-  });
 
   const [emailProvider, { refetch: refetchProvider }] = createResource(
     () => true,
@@ -139,7 +133,9 @@ const Notifications: Component = () => {
             open={editProviderOpen()}
             initialProvider={emailProvider()?.provider ?? "resend"}
             editMode={true}
+            existingKeyPrefix={emailProvider()?.keyPrefix}
             existingDomain={emailProvider()?.domain}
+            existingNotificationEmail={emailProvider()?.notificationEmail}
             onClose={() => setEditProviderOpen(false)}
             onSaved={refetchProvider}
           />

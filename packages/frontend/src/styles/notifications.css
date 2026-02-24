@@ -161,7 +161,7 @@
 /* ── Provider Cards Grid ─────────────────────────── */
 .provider-setup-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--gap-md);
 }
 
@@ -305,6 +305,13 @@
   opacity: 0.5;
 }
 
+.provider-card__email {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.7;
+}
+
 /* ── Provider Card Menu (three-dot dropdown) ─────── */
 .provider-card__menu {
   position: relative;
@@ -369,6 +376,35 @@
   color: hsl(var(--destructive));
 }
 
+/* ── Masked Key Display ──────────────────────────── */
+.masked-key {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: 0 14px;
+  height: 2.5rem;
+  background: hsl(var(--muted) / 0.4);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  margin-bottom: var(--gap-lg);
+}
+
+.masked-key__value {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  letter-spacing: 0.02em;
+}
+
+.masked-key__edit {
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  padding: 4px 8px;
+  height: auto;
+  gap: 4px;
+}
+
 /* ── Modal Field Errors ─────────────────────────── */
 .modal-card__input--error {
   border-color: hsl(var(--destructive));
@@ -381,4 +417,18 @@
   font-size: var(--font-size-xs);
   color: hsl(var(--destructive));
   line-height: 1.4;
+}
+
+.modal-card__field-hint {
+  margin: 4px 0 var(--gap-md);
+  padding: 0;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+}
+
+.modal-card__footer--split {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

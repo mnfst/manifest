@@ -36,6 +36,13 @@ const EmailProviderSetup: Component<Props> = (props) => {
             <div class="provider-setup-card__desc">Reliable email service</div>
           </div>
         </button>
+        <button class="provider-setup-card" onClick={() => openModal("sendgrid")}>
+          <img src="/logos/sendgrid.svg" alt="" class="provider-setup-card__logo" />
+          <div>
+            <div class="provider-setup-card__name">SendGrid</div>
+            <div class="provider-setup-card__desc">Scalable email delivery</div>
+          </div>
+        </button>
       </div>
 
       <EmailProviderModal

@@ -155,6 +155,9 @@ export class NotificationCronService implements OnModuleInit {
   }
 
   private async resolveUserEmail(userId: string): Promise<string | null> {
+    const fullConfig = await this.emailProviderConfigService.getFullConfig(userId);
+    if (fullConfig?.notificationEmail) return fullConfig.notificationEmail;
+
     if (process.env['MANIFEST_MODE'] === 'local') {
       const configEmail = readLocalNotificationEmail();
       if (configEmail) return configEmail;

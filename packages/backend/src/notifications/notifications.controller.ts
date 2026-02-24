@@ -1,16 +1,20 @@
-import { Controller, Get, Post, Patch, Delete, Query, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Query, Param, Body, Logger } from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { NotificationRulesService } from './services/notification-rules.service';
 import { EmailProviderConfigService } from './services/email-provider-config.service';
+import { NotificationCronService } from './services/notification-cron.service';
 import { CreateNotificationRuleDto, UpdateNotificationRuleDto } from './dto/notification-rule.dto';
 import { SetEmailProviderDto, TestEmailProviderDto } from './dto/set-email-provider.dto';
 
 @Controller('api/v1/notifications')
 export class NotificationsController {
+  private readonly logger = new Logger(NotificationsController.name);
+
   constructor(
     private readonly rulesService: NotificationRulesService,
     private readonly emailProviderConfigService: EmailProviderConfigService,
+    private readonly cronService: NotificationCronService,
   ) {}
 
   @Get('email-provider')
@@ -30,6 +34,14 @@ export class NotificationsController {
     );
   }
 
+  @Post('email-provider/test-saved')
+  async testSavedEmailProvider(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { to: string },
+  ) {
+    return this.emailProviderConfigService.testSavedConfig(user.id, body.to);
+  }
+
   @Post('email-provider')
   async setEmailProvider(
     @CurrentUser() user: AuthUser,
@@ -42,6 +54,28 @@ export class NotificationsController {
   async removeEmailProvider(@CurrentUser() user: AuthUser) {
     await this.emailProviderConfigService.remove(user.id);
     return { ok: true };
+  }
+
+  @Get('notification-email')
+  async getNotificationEmail(@CurrentUser() user: AuthUser) {
+    const email = await this.emailProviderConfigService.getNotificationEmail(user.id);
+    return { email };
+  }
+
+  @Post('notification-email')
+  async setNotificationEmail(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { email: string },
+  ) {
+    await this.emailProviderConfigService.setNotificationEmail(user.id, body.email);
+    return { saved: true };
+  }
+
+  @Post('trigger-check')
+  async triggerCheck() {
+    this.logger.log('Manual notification check triggered');
+    const triggered = await this.cronService.checkThresholds();
+    return { triggered, message: `${triggered} notification(s) triggered` };
   }
 
   @Get()

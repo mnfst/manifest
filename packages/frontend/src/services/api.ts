@@ -148,9 +148,10 @@ export function deleteNotificationRule(id: string) {
 
 export interface EmailProviderConfig {
   provider: string;
-  domain: string;
+  domain: string | null;
   keyPrefix: string;
   is_active: boolean;
+  notificationEmail: string | null;
 }
 
 export async function getEmailProvider(): Promise<EmailProviderConfig | null> {
@@ -159,7 +160,7 @@ export async function getEmailProvider(): Promise<EmailProviderConfig | null> {
   return data;
 }
 
-export function setEmailProvider(data: { provider: string; apiKey: string; domain: string }) {
+export function setEmailProvider(data: { provider: string; apiKey?: string; domain?: string; notificationEmail?: string }) {
   return fetchMutate(`${BASE_URL}/notifications/email-provider`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -173,11 +174,31 @@ export function removeEmailProvider() {
   });
 }
 
-export function testEmailProvider(data: { provider: string; apiKey: string; domain: string; to: string }) {
+export function testEmailProvider(data: { provider: string; apiKey: string; domain?: string; to: string }) {
   return fetchMutate<{ success: boolean; error?: string }>(`${BASE_URL}/notifications/email-provider/test`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
+  });
+}
+
+export function testSavedEmailProvider(to: string) {
+  return fetchMutate<{ success: boolean; error?: string }>(`${BASE_URL}/notifications/email-provider/test-saved`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ to }),
+  });
+}
+
+export function getNotificationEmailForProvider() {
+  return fetchJson<{ email: string | null }>("/notifications/notification-email");
+}
+
+export function saveNotificationEmailForProvider(email: string) {
+  return fetchMutate<{ saved: boolean }>(`${BASE_URL}/notifications/notification-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
   });
 }
 
