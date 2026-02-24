@@ -24,6 +24,7 @@ import { ModelPricesModule } from './model-prices/model-prices.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { CommonModule } from './common/common.module';
 import { SseModule } from './sse/sse.module';
+import { GithubModule } from './github/github.module';
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const sessionGuardClass = isLocalMode ? LocalAuthGuard : SessionGuard;
@@ -56,6 +57,7 @@ const serveStaticImports = existsSync(frontendPath)
     ModelPricesModule,
     NotificationsModule,
     SseModule,
+    GithubModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: sessionGuardClass },

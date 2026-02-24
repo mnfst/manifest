@@ -106,7 +106,7 @@ export function registerTools(
     },
   });
 
-  logger.info(
+  logger.debug(
     "[manifest] Registered agent tools: manifest_usage, manifest_costs, manifest_health",
   );
 }

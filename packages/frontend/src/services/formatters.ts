@@ -12,10 +12,14 @@ export function formatNumber(n: number): string {
 }
 
 /**
- * Format a USD cost value (e.g., $6.18, $17.50).
+ * Format a USD cost value with adaptive precision.
+ * Shows 2 decimals for >= $0.01, up to 4 for smaller values.
  */
 export function formatCost(n: number): string {
-  return `$${n.toFixed(2)}`;
+  if (n >= 0.01) return `$${n.toFixed(2)}`;
+  if (n >= 0.001) return `$${n.toFixed(3)}`;
+  if (n > 0) return `$${n.toFixed(4)}`;
+  return "$0.00";
 }
 
 /**

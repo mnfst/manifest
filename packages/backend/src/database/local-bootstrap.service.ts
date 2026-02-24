@@ -1,18 +1,18 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { auth } from '../auth/auth.instance';
 import { Tenant } from '../entities/tenant.entity';
 import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { sha256, keyPrefix } from '../common/utils/hash.util';
+import { trackEvent } from '../common/utils/product-telemetry';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { PricingSyncService } from './pricing-sync.service';
-import { LOCAL_USER_ID, LOCAL_EMAIL, getLocalPassword } from '../common/constants/local-mode.constants';
+import { LOCAL_USER_ID, LOCAL_EMAIL } from '../common/constants/local-mode.constants';
 
 const LOCAL_TENANT_ID = 'local-tenant-001';
 const LOCAL_AGENT_ID = 'local-agent-001';
@@ -23,7 +23,6 @@ export class LocalBootstrapService implements OnModuleInit {
   private readonly logger = new Logger(LocalBootstrapService.name);
 
   constructor(
-    private readonly dataSource: DataSource,
     @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
     @InjectRepository(Agent) private readonly agentRepo: Repository<Agent>,
     @InjectRepository(AgentApiKey) private readonly agentKeyRepo: Repository<AgentApiKey>,
@@ -33,11 +32,8 @@ export class LocalBootstrapService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.enableWalMode();
-    await this.runBetterAuthMigrations();
     await this.seedModelPricing();
     await this.pricingCache.reload();
-    await this.ensureLocalUser();
     await this.ensureTenantAndAgent();
     this.logger.log('Local mode bootstrap complete');
 
@@ -45,55 +41,6 @@ export class LocalBootstrapService implements OnModuleInit {
     this.pricingSync.syncPricing().catch((err) => {
       this.logger.warn(`Background pricing sync failed: ${err}`);
     });
-  }
-
-  private async enableWalMode() {
-    try {
-      await this.dataSource.query('PRAGMA journal_mode=WAL');
-    } catch {
-      // WAL not supported (e.g., in-memory database)
-    }
-  }
-
-  private async runBetterAuthMigrations() {
-    const ctx = await auth.$context;
-    await ctx.runMigrations();
-  }
-
-  private async ensureLocalUser() {
-    const exists = await this.checkUserExists(LOCAL_EMAIL);
-    if (exists) return;
-
-    try {
-      await auth.api.signUpEmail({
-        body: {
-          email: LOCAL_EMAIL,
-          password: getLocalPassword(),
-          name: 'Local User',
-        },
-      });
-
-      // Mark email as verified
-      await this.dataSource.query(
-        `UPDATE "user" SET "emailVerified" = 1 WHERE email = ?`,
-        [LOCAL_EMAIL],
-      );
-      this.logger.log('Created local user');
-    } catch (err) {
-      this.logger.warn(`Failed to create local user: ${err instanceof Error ? err.message : err}`);
-    }
-  }
-
-  private async checkUserExists(email: string): Promise<boolean> {
-    try {
-      const rows = await this.dataSource.query(
-        `SELECT id FROM "user" WHERE email = ?`,
-        [email],
-      );
-      return rows.length > 0;
-    } catch {
-      return false;
-    }
   }
 
   private async ensureTenantAndAgent() {
@@ -121,6 +68,7 @@ export class LocalBootstrapService implements OnModuleInit {
       await this.registerApiKey(apiKey);
     }
 
+    trackEvent('agent_created');
     this.logger.log(`Created tenant/agent for local mode`);
   }
 

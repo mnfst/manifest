@@ -149,8 +149,7 @@ const MessageLog: Component = () => {
                 Set up agent
               </button>
               <div class="empty-state__img-wrapper">
-                <img src="/example-messages.svg" alt="" class="empty-state__img empty-state__img--light" />
-                <img src="/example-messages-dark.svg" alt="" class="empty-state__img empty-state__img--dark" />
+                <img src="/example-messages.svg" alt="" class="empty-state__img" />
               </div>
             </div>
           }>

@@ -20,11 +20,11 @@ const Header: Component = () => {
   onMount(() => {
     checkLocalMode();
     if (!starDismissed()) {
-      fetch(`https://api.github.com/repos/${GITHUB_REPO}`)
+      fetch("/api/v1/github/stars")
         .then((r) => r.json())
         .then((data) => {
-          if (typeof data.stargazers_count === "number") {
-            setStarCount(data.stargazers_count);
+          if (typeof data.stars === "number") {
+            setStarCount(data.stars);
           }
         })
         .catch(() => {});

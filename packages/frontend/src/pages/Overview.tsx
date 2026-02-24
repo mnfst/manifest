@@ -257,8 +257,7 @@ const Overview: Component = () => {
                 Set up agent
               </button>
               <div class="empty-state__img-wrapper">
-                <img src="/example-overview.svg" alt="" class="empty-state__img empty-state__img--light" />
-                <img src="/example-overview-dark.svg" alt="" class="empty-state__img empty-state__img--dark" />
+                <img src="/example-overview.svg" alt="" class="empty-state__img" />
               </div>
             </div>
           }>
