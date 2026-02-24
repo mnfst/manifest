@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, UseInterceptors } from '@nestjs/common';
 import { CacheTTL } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
@@ -55,6 +55,9 @@ export class AgentsController {
 
   @Delete('agents/:agentName')
   async deleteAgent(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+    if (process.env['MANIFEST_MODE'] === 'local') {
+      throw new ForbiddenException('Cannot delete agents in local mode');
+    }
     await this.aggregation.deleteAgent(user.id, agentName);
     return { deleted: true };
   }

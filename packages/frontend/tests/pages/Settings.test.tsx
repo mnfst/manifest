@@ -120,9 +120,9 @@ describe("Settings", () => {
     expect(saveBtn.disabled).toBe(false);
   });
 
-  it("shows Integration section", () => {
+  it("shows Agent setup section", () => {
     const { container } = render(() => <Settings />);
-    expect(container.textContent).toContain("Integration");
+    expect(container.textContent).toContain("Agent setup");
   });
 
   it("clicking Save navigates when name changed", async () => {

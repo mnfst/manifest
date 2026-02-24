@@ -1,6 +1,7 @@
 import {
   createResource,
   createSignal,
+  createEffect,
   Show,
   For,
   type Component,
@@ -12,6 +13,7 @@ import { getAgents, createAgent } from "../services/api.js";
 import { toast } from "../services/toast-store.js";
 import { formatNumber, formatCost } from "../services/formatters.js";
 import Sparkline from "../components/Sparkline.jsx";
+import { isLocalMode, checkLocalMode } from "../services/local-mode.js";
 
 interface Agent {
   agent_name: string;
@@ -105,9 +107,16 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
 };
 
 const Workspace: Component = () => {
+  const navigate = useNavigate();
   const [data, { refetch }] = createResource(() => getAgents() as Promise<AgentsData>);
   const [modalOpen, setModalOpen] = createSignal(false);
 
+  checkLocalMode();
+  createEffect(() => {
+    if (isLocalMode() === true) {
+      navigate("/agents/local-agent", { replace: true });
+    }
+  });
 
   return (
     <div class="container--md">
