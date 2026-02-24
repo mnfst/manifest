@@ -146,6 +146,33 @@ export function deleteNotificationRule(id: string) {
   });
 }
 
+export interface EmailProviderConfig {
+  provider: string;
+  domain: string;
+  keyPrefix: string;
+  is_active: boolean;
+}
+
+export async function getEmailProvider(): Promise<EmailProviderConfig | null> {
+  const data = await fetchJson<EmailProviderConfig & { configured?: boolean }>("/notifications/email-provider");
+  if ('configured' in data && data.configured === false) return null;
+  return data;
+}
+
+export function setEmailProvider(data: { provider: string; apiKey: string; domain: string }) {
+  return fetchMutate(`${BASE_URL}/notifications/email-provider`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export function removeEmailProvider() {
+  return fetchMutate(`${BASE_URL}/notifications/email-provider`, {
+    method: "DELETE",
+  });
+}
+
 export interface EmailConfig {
   configured: boolean;
   provider?: string;

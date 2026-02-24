@@ -18,12 +18,14 @@ import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { NotificationRule } from '../entities/notification-rule.entity';
 import { NotificationLog } from '../entities/notification-log.entity';
+import { EmailProviderConfig } from '../entities/email-provider-config.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { LocalBootstrapService } from './local-bootstrap.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
+import { EmailProviderConfigs1771700000000 } from './migrations/1771700000000-EmailProviderConfigs';
 
 const entities = [
   AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing,
@@ -31,12 +33,14 @@ const entities = [
   TokenUsageSnapshot, CostSnapshot, AgentLog,
   ApiKey, Tenant, Agent, AgentApiKey,
   NotificationRule, NotificationLog,
+  EmailProviderConfig,
 ];
 
 const migrations = [
   InitialSchema1771464895790,
   HashApiKeys1771500000000,
   ModelPricingImprovements1771600000000,
+  EmailProviderConfigs1771700000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
