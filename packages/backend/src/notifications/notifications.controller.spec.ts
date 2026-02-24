@@ -22,6 +22,7 @@ const mockRule = {
 describe('NotificationsController', () => {
   let controller: NotificationsController;
   let rulesService: jest.Mocked<NotificationRulesService>;
+  let emailProviderConfigService: jest.Mocked<EmailProviderConfigService>;
 
   beforeEach(async () => {
     const mockRulesService = {
@@ -35,6 +36,7 @@ describe('NotificationsController', () => {
       getConfig: jest.fn().mockResolvedValue(null),
       upsert: jest.fn(),
       remove: jest.fn(),
+      testConfig: jest.fn().mockResolvedValue({ success: true }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -47,6 +49,7 @@ describe('NotificationsController', () => {
 
     controller = module.get(NotificationsController);
     rulesService = module.get(NotificationRulesService);
+    emailProviderConfigService = module.get(EmailProviderConfigService);
   });
 
   it('lists rules for an agent', async () => {
@@ -73,5 +76,21 @@ describe('NotificationsController', () => {
     const result = await controller.deleteRule('rule-1', mockUser);
     expect(rulesService.deleteRule).toHaveBeenCalledWith('user-1', 'rule-1');
     expect(result).toEqual({ deleted: true });
+  });
+
+  it('returns configured: false when no provider', async () => {
+    const result = await controller.getEmailProvider(mockUser);
+    expect(emailProviderConfigService.getConfig).toHaveBeenCalledWith('user-1');
+    expect(result).toEqual({ configured: false });
+  });
+
+  it('tests email provider config', async () => {
+    const dto = { provider: 'resend', apiKey: 're_testkey123', domain: 'example.com', to: 'test@test.com' } as never;
+    const result = await controller.testEmailProvider(mockUser, dto);
+    expect(emailProviderConfigService.testConfig).toHaveBeenCalledWith(
+      { provider: 'resend', apiKey: 're_testkey123', domain: 'example.com' },
+      'test@test.com',
+    );
+    expect(result).toEqual({ success: true });
   });
 });

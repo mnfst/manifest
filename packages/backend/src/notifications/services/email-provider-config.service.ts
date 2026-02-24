@@ -1,7 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
+import { render } from '@react-email/render';
 import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
+import { validateProviderConfig } from './email-provider-validation';
+import { createProvider } from './email-providers/resolve-provider';
+import { TestEmail } from '../emails/test-email';
+import type { EmailProviderConfig as ProviderConfig } from './email-providers/email-provider.interface';
 
 export interface EmailProviderPublicConfig {
   provider: string;
@@ -45,6 +50,13 @@ export class EmailProviderConfigService {
   }
 
   async upsert(userId: string, dto: { provider: string; apiKey: string; domain: string }): Promise<EmailProviderPublicConfig> {
+    const validation = validateProviderConfig(dto.provider, dto.apiKey, dto.domain);
+    if (!validation.valid) {
+      throw new BadRequestException(validation.errors);
+    }
+
+    const { apiKey, domain, provider } = validation.normalized;
+
     const existing = await this.ds.query(
       this.sql(`SELECT id FROM email_provider_configs WHERE user_id = $1`),
       [userId],
@@ -55,19 +67,19 @@ export class EmailProviderConfigService {
     if (existing.length > 0) {
       await this.ds.query(
         this.sql(`UPDATE email_provider_configs SET provider = $1, api_key_encrypted = $2, domain = $3, is_active = $4, updated_at = $5 WHERE user_id = $6`),
-        [dto.provider, dto.apiKey, dto.domain, 1, now, userId],
+        [provider, apiKey, domain, 1, now, userId],
       );
     } else {
       await this.ds.query(
         this.sql(`INSERT INTO email_provider_configs (id, user_id, provider, api_key_encrypted, domain, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`),
-        [uuid(), userId, dto.provider, dto.apiKey, dto.domain, 1, now, now],
+        [uuid(), userId, provider, apiKey, domain, 1, now, now],
       );
     }
 
     return {
-      provider: dto.provider,
-      domain: dto.domain,
-      keyPrefix: dto.apiKey.substring(0, 8),
+      provider,
+      domain,
+      keyPrefix: apiKey.substring(0, 8),
       is_active: true,
     };
   }
@@ -92,5 +104,39 @@ export class EmailProviderConfigService {
       apiKey: row.api_key_encrypted,
       domain: row.domain,
     };
+  }
+
+  async testConfig(
+    dto: { provider: string; apiKey: string; domain: string },
+    toEmail: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    const validation = validateProviderConfig(dto.provider, dto.apiKey, dto.domain);
+    if (!validation.valid) {
+      return { success: false, error: validation.errors.join(', ') };
+    }
+
+    const { provider, apiKey, domain } = validation.normalized;
+
+    try {
+      const config: ProviderConfig = {
+        provider: provider as ProviderConfig['provider'],
+        apiKey,
+        domain,
+      };
+      const emailProvider = createProvider(config);
+      const html = await render(TestEmail());
+      const text = await render(TestEmail(), { plainText: true });
+      const from = `Manifest <noreply@${domain}>`;
+      const sent = await emailProvider.send({
+        to: toEmail,
+        subject: 'Manifest — Test Email',
+        html,
+        text,
+        from,
+      });
+      return sent ? { success: true } : { success: false, error: 'Provider returned failure' };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
   }
 }

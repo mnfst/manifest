@@ -368,3 +368,17 @@
   background: hsl(var(--destructive) / 0.1);
   color: hsl(var(--destructive));
 }
+
+/* ── Modal Field Errors ─────────────────────────── */
+.modal-card__input--error {
+  border-color: hsl(var(--destructive));
+  margin-bottom: 0;
+}
+
+.modal-card__field-error {
+  margin: 4px 0 var(--gap-lg);
+  padding: 0;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--destructive));
+  line-height: 1.4;
+}

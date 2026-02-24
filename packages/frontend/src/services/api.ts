@@ -173,6 +173,14 @@ export function removeEmailProvider() {
   });
 }
 
+export function testEmailProvider(data: { provider: string; apiKey: string; domain: string; to: string }) {
+  return fetchMutate<{ success: boolean; error?: string }>(`${BASE_URL}/notifications/email-provider/test`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
 export interface EmailConfig {
   configured: boolean;
   provider?: string;

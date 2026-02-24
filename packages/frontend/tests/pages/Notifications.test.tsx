@@ -16,6 +16,7 @@ const mockDeleteNotificationRule = vi.fn();
 const mockGetEmailProvider = vi.fn();
 const mockSetEmailProvider = vi.fn();
 const mockRemoveEmailProvider = vi.fn();
+const mockTestEmailProvider = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getNotificationRules: (...args: unknown[]) => mockGetNotificationRules(...args),
   updateNotificationRule: (...args: unknown[]) => mockUpdateNotificationRule(...args),
@@ -23,6 +24,7 @@ vi.mock("../../src/services/api.js", () => ({
   getEmailProvider: (...args: unknown[]) => mockGetEmailProvider(...args),
   setEmailProvider: (...args: unknown[]) => mockSetEmailProvider(...args),
   removeEmailProvider: (...args: unknown[]) => mockRemoveEmailProvider(...args),
+  testEmailProvider: (...args: unknown[]) => mockTestEmailProvider(...args),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
