@@ -1,5 +1,11 @@
 # manifest
 
+## 5.8.0
+
+### Minor Changes
+
+- 532b6ce: Merge @mnfst/server into manifest plugin and replace better-sqlite3 with sql.js (WASM). Add intelligent model routing with a 23-dimension scoring engine, OpenAI-compatible proxy, heartbeat detection, and a Routing UI page with provider management. Local mode no longer requires native C++ compilation — zero external build dependencies.
+
 ## 5.7.0
 
 ### Minor Changes
