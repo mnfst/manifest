@@ -1,0 +1,113 @@
+/* ── Version Indicator ────────────────── */
+
+.version-indicator {
+  position: fixed;
+  bottom: var(--gap-md);
+  right: var(--gap-md);
+  z-index: 40;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: hsl(var(--muted-foreground));
+  opacity: 0.5;
+  transition: opacity var(--transition-fast);
+  cursor: default;
+  user-select: none;
+}
+
+.version-indicator:hover {
+  opacity: 1;
+}
+
+.version-indicator--update {
+  color: hsl(var(--success));
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.version-indicator--update:hover {
+  opacity: 1;
+}
+
+/* ── Tooltip ── */
+
+.version-indicator__tooltip-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.version-indicator__bubble {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  padding: 10px 12px;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: nowrap;
+  width: max-content;
+  max-width: 300px;
+  box-shadow: 0 2px 8px hsl(var(--foreground) / 0.08);
+  z-index: 50;
+}
+
+/* Invisible bridge so mouse can travel from trigger to bubble */
+.version-indicator__bubble::before {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+}
+
+.version-indicator__tooltip-wrap:hover .version-indicator__bubble {
+  display: block;
+}
+
+.version-indicator__range {
+  display: block;
+  margin-bottom: 6px;
+  color: hsl(var(--muted-foreground));
+}
+
+.version-indicator__command-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: hsl(var(--muted));
+  border-radius: calc(var(--radius) - 2px);
+  padding: 4px 4px 4px 8px;
+}
+
+.version-indicator__command {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--foreground));
+}
+
+.version-indicator__copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  font-size: 13px;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.version-indicator__copy-btn:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
