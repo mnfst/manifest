@@ -108,7 +108,6 @@ describe('AgentsController', () => {
   });
 
   it('deletes agent and returns success', async () => {
-    delete process.env['MANIFEST_MODE'];
     const user = { id: 'u1' };
     const result = await controller.deleteAgent(user as never, 'bot-1');
 
@@ -117,7 +116,9 @@ describe('AgentsController', () => {
   });
 
   it('throws ForbiddenException when deleting in local mode', async () => {
-    process.env['MANIFEST_MODE'] = 'local';
+    mockConfigGet.mockImplementation((key: string, fallback?: string) =>
+      key === 'MANIFEST_MODE' ? 'local' : fallback ?? '',
+    );
     const user = { id: 'u1' };
     await expect(controller.deleteAgent(user as never, 'bot-1')).rejects.toThrow(ForbiddenException);
     expect(mockDeleteAgent).not.toHaveBeenCalled();
