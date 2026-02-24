@@ -33,39 +33,36 @@
   margin: 0 0 var(--gap-xl);
 }
 
-/* ── Provider selector button ─────────────────────── */
-.routing-providers-btn {
+/* ── Page header with connect button ──────────────── */
+.routing-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+/* ── Provider info display ───────────────────────── */
+.routing-providers-info {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-size: var(--font-size-sm);
-  color: hsl(var(--foreground));
-  transition: border-color var(--transition-fast);
   margin-bottom: var(--gap-lg);
 }
 
-.routing-providers-btn:hover {
-  border-color: hsl(var(--foreground) / 0.3);
-}
-
-.routing-providers-btn__icons {
+.routing-providers-info__icons {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.routing-providers-btn__icon {
+.routing-providers-info__icon {
   display: flex;
   align-items: center;
+  position: relative;
+  cursor: default;
 }
 
-.routing-providers-btn__label {
+.routing-providers-info__label {
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: hsl(var(--muted-foreground));
 }

@@ -49,6 +49,7 @@ const Routing: Component = () => {
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
   const [showProviderModal, setShowProviderModal] = createSignal(false);
   const [disabling, setDisabling] = createSignal(false);
+  const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<"enable" | "disable" | null>(null);
 
   const isEnabled = () =>
@@ -145,11 +146,16 @@ const Routing: Component = () => {
       <Title>{agentName()} - Routing | Manifest</Title>
       <Meta name="description" content={`Configure model routing for ${agentName()}.`} />
 
-      <div class="page-header">
+      <div class="page-header routing-page-header">
         <div>
           <h1>Routing</h1>
           <span class="breadcrumb">{agentName()} &rsaquo; Assign a model to each tier</span>
         </div>
+        <Show when={isEnabled()}>
+          <button class="btn btn--primary btn--sm" onClick={() => setShowProviderModal(true)}>
+            Connect providers
+          </button>
+        </Show>
       </div>
 
       <Show when={!tiers.loading && !connectedProviders.loading} fallback={
@@ -177,23 +183,23 @@ const Routing: Component = () => {
             </div>
           }
         >
-          <button class="routing-providers-btn" onClick={() => setShowProviderModal(true)} aria-label="Manage connected providers">
-            <span class="routing-providers-btn__icons">
-              <For each={activeProviderIds().slice(0, 5)}>
-                {(provId) => (
-                  <span class="routing-providers-btn__icon">
-                    {providerIcon(provId, 16)}
-                  </span>
-                )}
+          <div class="routing-providers-info">
+            <span class="routing-providers-info__icons">
+              <For each={activeProviderIds()}>
+                {(provId) => {
+                  const provDef = PROVIDERS.find((p) => p.id === provId);
+                  return (
+                    <span class="routing-providers-info__icon" title={provDef?.name ?? provId}>
+                      {providerIcon(provId, 16)}
+                    </span>
+                  );
+                }}
               </For>
             </span>
-            <span class="routing-providers-btn__label">
+            <span class="routing-providers-info__label">
               {activeProviderIds().length} provider{activeProviderIds().length !== 1 ? "s" : ""}
             </span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="m6 9 6 6 6-6" />
-            </svg>
-          </button>
+          </div>
 
           <div class="routing-cards">
             <For each={STAGES}>
@@ -245,6 +251,9 @@ const Routing: Component = () => {
           </div>
 
           <div class="routing-footer">
+            <button class="routing-disable-btn" onClick={() => setConfirmDisable(true)} disabled={disabling()}>
+              {disabling() ? "Disabling..." : "Disable Routing"}
+            </button>
             <Show when={hasOverrides()}>
               <button class="btn btn--outline" style="font-size: var(--font-size-sm);" onClick={handleResetAll}>
                 Reset all to auto
@@ -253,9 +262,6 @@ const Routing: Component = () => {
             <div style="flex: 1;" />
             <button class="routing-footer__instructions" onClick={() => setInstructionModal("enable")}>
               Setup instructions
-            </button>
-            <button class="routing-disable-btn" onClick={handleDisable} disabled={disabling()}>
-              {disabling() ? "Disabling..." : "Disable Routing"}
             </button>
           </div>
         </Show>
@@ -286,6 +292,38 @@ const Routing: Component = () => {
         mode={instructionModal() ?? "enable"}
         onClose={() => setInstructionModal(null)}
       />
+
+      <Show when={confirmDisable()}>
+        <div
+          class="modal-overlay"
+          onClick={(e) => { if (e.target === e.currentTarget) setConfirmDisable(false); }}
+          onKeyDown={(e) => { if (e.key === "Escape") setConfirmDisable(false); }}
+        >
+          <div class="modal-card" style="max-width: 420px;">
+            <h2 style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;">
+              Disable routing?
+            </h2>
+            <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+              All saved API keys and tier assignments will be removed. You will need to reconnect your providers if you re-enable routing later.
+            </p>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+              <button class="btn btn--outline" onClick={() => setConfirmDisable(false)}>
+                Cancel
+              </button>
+              <button
+                class="btn btn--danger"
+                disabled={disabling()}
+                onClick={async () => {
+                  setConfirmDisable(false);
+                  await handleDisable();
+                }}
+              >
+                {disabling() ? "Disabling..." : "Disable"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Show>
     </div>
   );
 };

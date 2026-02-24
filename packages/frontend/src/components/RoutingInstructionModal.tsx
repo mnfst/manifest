@@ -24,11 +24,6 @@ const RoutingInstructionModal: Component<Props> = (props) => {
     `openclaw config set agents.defaults.model.primary ${selectedModel()}\nopenclaw gateway restart`;
   const command = () => (isEnable() ? ENABLE_CMD : disableCmd());
 
-  const description = () =>
-    isEnable()
-      ? "Set manifest/auto as your default model so requests are routed through Manifest:"
-      : "Pick the model to switch back to, then run the command:";
-
   return (
     <Show when={props.open}>
       <div
@@ -57,11 +52,17 @@ const RoutingInstructionModal: Component<Props> = (props) => {
             </button>
           </div>
 
-          <p style="margin: 0 0 16px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-            {description()}
-          </p>
+          <Show when={isEnable()}>
+            <p style="margin: 0 0 16px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+              Run the following command in your agent's terminal to route all requests through Manifest:
+            </p>
+          </Show>
 
           <Show when={!isEnable()}>
+            <p style="margin: 0 0 14px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+              1. Pick the model to switch back to.
+            </p>
+
             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
               {FALLBACK_MODELS.map((m) => (
                 <button
@@ -72,6 +73,10 @@ const RoutingInstructionModal: Component<Props> = (props) => {
                 </button>
               ))}
             </div>
+
+            <p style="margin: 0 0 14px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+              2. Now run this command in your agent's terminal to restore direct model access:
+            </p>
           </Show>
 
           <div class="modal-terminal">

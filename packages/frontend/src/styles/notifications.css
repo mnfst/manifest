@@ -118,7 +118,7 @@
 }
 
 .notification-toggle__slider::after {
-  content: "";
+  content: '';
   position: absolute;
   width: 16px;
   height: 16px;
@@ -176,7 +176,9 @@
   cursor: pointer;
   text-align: left;
   font-family: var(--font-family);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .provider-setup-card:hover {
@@ -224,7 +226,9 @@
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: hsl(var(--muted-foreground));
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .provider-modal-option:hover {
@@ -263,7 +267,7 @@
   font-size: var(--font-size-base);
   font-weight: 600;
   color: hsl(var(--foreground));
-  margin-bottom: var(--gap-md);
+  margin-bottom: 0;
 }
 
 .provider-card__actions {
@@ -328,7 +332,9 @@
   background: transparent;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .provider-card__menu-btn:hover {

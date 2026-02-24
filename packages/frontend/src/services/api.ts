@@ -261,6 +261,7 @@ export interface RoutingProvider {
   provider: string;
   is_active: boolean;
   has_api_key: boolean;
+  key_prefix?: string | null;
   connected_at: string;
 }
 

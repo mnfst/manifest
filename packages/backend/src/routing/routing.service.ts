@@ -271,6 +271,19 @@ export class RoutingService {
     }
   }
 
+  /* ── Key prefix extraction ── */
+
+  getKeyPrefix(encryptedKey: string | null, length = 8): string | null {
+    if (!encryptedKey) return null;
+    try {
+      const decrypted = decrypt(encryptedKey, getEncryptionSecret());
+      return decrypted.substring(0, length);
+    } catch {
+      this.logger.warn('Failed to decrypt API key for prefix extraction');
+      return null;
+    }
+  }
+
   /* ── Runtime helper ── */
 
   async getEffectiveModel(

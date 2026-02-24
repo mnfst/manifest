@@ -68,7 +68,7 @@ const Settings: Component = () => {
     }
   };
 
-  const TABS = () => isLocalMode() ? ["General"] as const : ["General", "Integration"] as const;
+  const TABS = () => isLocalMode() ? [] as const : ["General", "Integration"] as const;
   type Tab = "General" | "Integration";
   const [tab, setTab] = createSignal<Tab>("General");
 
@@ -83,24 +83,24 @@ const Settings: Component = () => {
         </div>
       </div>
 
-      <div class="panel__tabs" style="margin-bottom: var(--gap-xl);">
-        <For each={TABS()}>
-          {(t) => (
-            <button
-              class="panel__tab"
-              classList={{ "panel__tab--active": tab() === t }}
-              onClick={() => setTab(t)}
-            >
-              {t}
-            </button>
-          )}
-        </For>
-      </div>
+      <Show when={TABS().length > 0}>
+        <div class="panel__tabs" style="margin-bottom: var(--gap-xl);">
+          <For each={TABS()}>
+            {(t) => (
+              <button
+                class="panel__tab"
+                classList={{ "panel__tab--active": tab() === t }}
+                onClick={() => setTab(t)}
+              >
+                {t}
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
 
       {/* -- Tab: General ----------------------------- */}
       <Show when={tab() === "General"}>
-        <h3 class="settings-section__title">Agent name</h3>
-
         <div class="settings-card">
           <div class="settings-card__row">
             <div class="settings-card__label">

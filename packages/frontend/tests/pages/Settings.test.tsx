@@ -273,9 +273,10 @@ describe("Settings", () => {
       expect(container.textContent).not.toContain("Delete agent");
     });
 
-    it("still shows General section in local mode", () => {
-      const { container } = render(() => <Settings />);
-      expect(screen.getByText("General")).toBeDefined();
+    it("still shows General section in local mode without tabs", () => {
+      render(() => <Settings />);
+      // Tabs are hidden in local mode but the General content is still rendered
+      expect(screen.queryByText("General")).toBeNull();
       expect(screen.getByLabelText("Agent name")).toBeDefined();
     });
   });
