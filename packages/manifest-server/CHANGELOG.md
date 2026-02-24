@@ -1,5 +1,12 @@
 # @mnfst/server
 
+## 5.5.0
+
+### Minor Changes
+
+- 36f70dd: Add per-user email provider configuration with test-before-save validation (Resend/Mailgun)
+- 36f70dd: Add SendGrid provider, move email config to Notifications page, make domain optional for non-Mailgun
+
 ## 5.4.2
 
 ### Patch Changes

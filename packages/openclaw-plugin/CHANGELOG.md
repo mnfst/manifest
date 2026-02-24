@@ -1,5 +1,16 @@
 # manifest
 
+## 5.9.0
+
+### Minor Changes
+
+- 36f70dd: Add per-user email provider configuration with test-before-save validation (Resend/Mailgun)
+- 6d6cc96: Improve local mode UX: skip Workspace page and redirect to agent dashboard, hide API key/integration/danger zone sections in Settings, block agent deletion via API, and simplify header breadcrumbs
+
+### Patch Changes
+
+- ffddce7: Add tests for deleteAgent local mode guard and Header local mode UI behavior
+
 ## 5.8.0
 
 ### Minor Changes
