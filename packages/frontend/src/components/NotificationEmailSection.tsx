@@ -40,7 +40,7 @@ const NotificationEmailSection: Component = () => {
               when={data()?.email}
               fallback={
                 <div class="waiting-banner waiting-banner--warning" role="alert">
-                  <i class="bxd bx-error-circle" />
+                  <i class="bxd bx-x-circle" />
                   <p>No notification email configured. Alerts will not be delivered until you set one.</p>
                 </div>
               }
