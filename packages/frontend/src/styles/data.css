@@ -286,6 +286,6 @@
   width: 100%;
 }
 
-.empty-state__img--dark { display: none; }
-.dark .empty-state__img--light { display: none; }
-.dark .empty-state__img--dark { display: block; }
+.dark .empty-state__img {
+  filter: invert(0.92) hue-rotate(180deg);
+}

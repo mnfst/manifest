@@ -17,7 +17,7 @@ const Sidebar: Component = () => {
 
   return (
     <nav class="sidebar" aria-label="Agent navigation">
-      <Show when={!getAgentName()}>
+      <Show when={!getAgentName() && !isLocalMode()}>
         <A
           href="/"
           class="sidebar__link"

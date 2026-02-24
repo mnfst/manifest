@@ -68,8 +68,8 @@ const Settings: Component = () => {
     }
   };
 
-  const TABS = ["General", "Integration"] as const;
-  type Tab = (typeof TABS)[number];
+  const TABS = () => isLocalMode() ? ["General"] as const : ["General", "Integration"] as const;
+  type Tab = "General" | "Integration";
   const [tab, setTab] = createSignal<Tab>("General");
 
   return (
@@ -84,7 +84,7 @@ const Settings: Component = () => {
       </div>
 
       <div class="panel__tabs" style="margin-bottom: var(--gap-xl);">
-        <For each={TABS}>
+        <For each={TABS()}>
           {(t) => (
             <button
               class="panel__tab"
@@ -129,25 +129,27 @@ const Settings: Component = () => {
           </div>
         </div>
 
-        <h3 class="settings-section__title settings-section__title--danger">Danger zone</h3>
+        <Show when={!isLocalMode()}>
+          <h3 class="settings-section__title settings-section__title--danger">Danger zone</h3>
 
-        <div class="settings-card settings-card--danger">
-          <div class="settings-card__row">
-            <div class="settings-card__label">
-              <span class="settings-card__label-title">Delete this agent</span>
-              <span class="settings-card__label-desc">Permanently remove this agent and all its activity data. This action cannot be undone.</span>
-            </div>
-            <div class="settings-card__control">
-              <button
-                class="btn btn--danger"
-                style="font-size: var(--font-size-sm);"
-                onClick={() => { setShowDeleteModal(true); setDeleteConfirmName(""); }}
-              >
-                Delete agent
-              </button>
+          <div class="settings-card settings-card--danger">
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Delete this agent</span>
+                <span class="settings-card__label-desc">Permanently remove this agent and all its activity data. This action cannot be undone.</span>
+              </div>
+              <div class="settings-card__control">
+                <button
+                  class="btn btn--danger"
+                  style="font-size: var(--font-size-sm);"
+                  onClick={() => { setShowDeleteModal(true); setDeleteConfirmName(""); }}
+                >
+                  Delete agent
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </Show>
       </Show>
 
       {/* -- Tab: Integration ------------------------- */}

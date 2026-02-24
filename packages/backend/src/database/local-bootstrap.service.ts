@@ -9,6 +9,7 @@ import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { sha256, keyPrefix } from '../common/utils/hash.util';
+import { trackEvent } from '../common/utils/product-telemetry';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { PricingSyncService } from './pricing-sync.service';
 import { LOCAL_USER_ID, LOCAL_EMAIL } from '../common/constants/local-mode.constants';
@@ -67,6 +68,7 @@ export class LocalBootstrapService implements OnModuleInit {
       await this.registerApiKey(apiKey);
     }
 
+    trackEvent('agent_created');
     this.logger.log(`Created tenant/agent for local mode`);
   }
 

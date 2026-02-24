@@ -1,13 +1,9 @@
 import { createHash } from "crypto";
 import { hostname, platform, arch, release } from "os";
+import { getTelemetryConfig } from "./telemetry-config";
 
 const POSTHOG_HOST = "https://eu.i.posthog.com";
 const POSTHOG_API_KEY = "phc_g5pLOu5bBRjhVJBwAsx0eCzJFWq0cri2TyVLQLxf045";
-
-function isOptedOut(): boolean {
-  const envVal = process.env.MANIFEST_TELEMETRY_OPTOUT;
-  return envVal === "1" || envVal === "true";
-}
 
 function getMachineId(): string {
   const raw = `${hostname()}-${platform()}-${arch()}`;
@@ -18,7 +14,8 @@ export function trackPluginEvent(
   event: string,
   properties?: Record<string, unknown>,
 ): void {
-  if (isOptedOut()) return;
+  const config = getTelemetryConfig();
+  if (config.optedOut) return;
 
   const payload = {
     api_key: POSTHOG_API_KEY,
@@ -28,7 +25,7 @@ export function trackPluginEvent(
       os: platform(),
       os_version: release(),
       node_version: process.versions.node,
-      package_version: process.env.PLUGIN_VERSION ?? "unknown",
+      package_version: config.packageVersion,
       ...properties,
     },
     timestamp: new Date().toISOString(),

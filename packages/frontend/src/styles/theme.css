@@ -15,6 +15,7 @@
 @import "./tooltip.css";
 @import "./toast.css";
 @import "./model-filter.css";
+@import "./version-indicator.css";
 
 /* ── shadcn/ui design tokens — Light (default) ───── */
 @layer base {

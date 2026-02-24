@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
+let mockAgentName = "test-agent";
 vi.mock("@solidjs/router", () => ({
-  useParams: () => ({ agentName: "test-agent" }),
+  useParams: () => ({ agentName: mockAgentName }),
   useNavigate: () => vi.fn(),
-  useLocation: () => ({ pathname: "/agents/test-agent/settings", state: null }),
+  useLocation: () => ({ pathname: `/agents/${mockAgentName}/settings`, state: null }),
 }));
 
 vi.mock("@solidjs/meta", () => ({
@@ -38,11 +39,18 @@ vi.mock("../../src/components/SetupStepVerify.jsx", () => ({
   default: () => <div data-testid="setup-verify" />,
 }));
 
+let mockIsLocalMode: boolean | null = false;
+vi.mock("../../src/services/local-mode.js", () => ({
+  isLocalMode: () => mockIsLocalMode,
+}));
+
 import Settings from "../../src/pages/Settings";
 
 describe("Settings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAgentName = "test-agent";
+    mockIsLocalMode = false;
     mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: null });
     mockDeleteAgent.mockResolvedValue(undefined);
     mockRotateAgentKey.mockResolvedValue({ apiKey: "new-key" });
@@ -241,5 +249,34 @@ describe("Settings", () => {
     const { container } = render(() => <Settings />);
     expect(container.textContent).toContain("test-agent");
     expect(container.textContent).toContain("Configure your agent");
+  });
+
+  describe("local mode", () => {
+    beforeEach(() => {
+      mockIsLocalMode = true;
+    });
+
+    it("hides API Key section in local mode", () => {
+      const { container } = render(() => <Settings />);
+      expect(container.textContent).not.toContain("API Key");
+      expect(container.textContent).not.toContain("OTLP ingest key");
+    });
+
+    it("hides Integration section in local mode", () => {
+      const { container } = render(() => <Settings />);
+      expect(container.textContent).not.toContain("Integration");
+    });
+
+    it("hides Danger zone in local mode", () => {
+      const { container } = render(() => <Settings />);
+      expect(container.textContent).not.toContain("Danger zone");
+      expect(container.textContent).not.toContain("Delete agent");
+    });
+
+    it("still shows General section in local mode", () => {
+      const { container } = render(() => <Settings />);
+      expect(screen.getByText("General")).toBeDefined();
+      expect(screen.getByLabelText("Agent name")).toBeDefined();
+    });
   });
 });

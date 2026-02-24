@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import { render, screen } from "@solidjs/testing-library";
 
 let mockAgentName: string | null = "test-agent";
@@ -123,6 +123,7 @@ describe("Sidebar without agent", () => {
   beforeAll(() => {
     mockAgentName = null;
     mockPathname = "/";
+    mockIsLocalMode = false;
   });
 
   it("renders Agents link when no agent selected", () => {
@@ -139,5 +140,18 @@ describe("Sidebar without agent", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.textContent).not.toContain("Overview");
     expect(container.textContent).not.toContain("Messages");
+  });
+});
+
+describe("Sidebar in local mode", () => {
+  beforeAll(() => {
+    mockAgentName = null;
+    mockPathname = "/";
+    mockIsLocalMode = true;
+  });
+
+  it("hides Agents link in local mode", () => {
+    const { container } = render(() => <Sidebar />);
+    expect(container.textContent).not.toContain("Agents");
   });
 });

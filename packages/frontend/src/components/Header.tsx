@@ -75,8 +75,10 @@ const Header: Component = () => {
           <span class="header__mode-badge">Cloud</span>
         </Show>
         <Show when={getAgentName()}>
-          <span class="header__separator">/</span>
-          <A href="/" class="header__breadcrumb-link">Workspace</A>
+          <Show when={!isLocalMode()}>
+            <span class="header__separator">/</span>
+            <A href="/" class="header__breadcrumb-link">Workspace</A>
+          </Show>
           <span class="header__separator">/</span>
           <span class="header__breadcrumb-current">{getAgentName()}</span>
         </Show>
