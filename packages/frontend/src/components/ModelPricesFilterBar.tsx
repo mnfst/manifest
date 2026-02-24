@@ -163,7 +163,7 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
       e.preventDefault();
       const idx = highlightIndex();
       if (idx >= 0 && idx < suggestions.length) {
-        selectSuggestion(suggestions[idx]);
+        selectSuggestion(suggestions[idx]!);
       }
     } else if (e.key === "Escape") {
       setDropdownOpen(false);
@@ -171,7 +171,7 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
     } else if (e.key === "Backspace" && query() === "") {
       const tags = activeTags();
       if (tags.length > 0) {
-        removeTag(tags[tags.length - 1]);
+        removeTag(tags[tags.length - 1]!);
       }
     }
   };
