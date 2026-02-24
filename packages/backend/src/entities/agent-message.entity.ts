@@ -64,6 +64,9 @@ export class AgentMessage {
   model!: string | null;
 
   @Column('varchar', { nullable: true })
+  routing_tier!: string | null;
+
+  @Column('varchar', { nullable: true })
   skill_name!: string | null;
 
   @Index()

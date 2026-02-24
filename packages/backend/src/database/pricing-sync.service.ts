@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThan, Repository } from 'typeorm';
@@ -49,6 +50,7 @@ export class PricingSyncService implements OnModuleInit {
     private readonly pricingCache: ModelPricingCacheService,
     private readonly pricingHistory: PricingHistoryService,
     private readonly unresolvedTracker: UnresolvedModelTrackerService,
+    private readonly moduleRef: ModuleRef,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -69,6 +71,10 @@ export class PricingSyncService implements OnModuleInit {
   async syncPricing(): Promise<number> {
     this.logger.log('Starting daily model pricing sync from OpenRouter...');
 
+    const modelsBefore = new Set(
+      this.pricingCache.getAll().map((m) => m.model_name),
+    );
+
     const data = await this.fetchOpenRouterModels();
     if (!data) return 0;
 
@@ -79,6 +85,28 @@ export class PricingSyncService implements OnModuleInit {
     if (updated > 0) {
       await this.pricingCache.reload();
     }
+
+    // Detect removed models and invalidate routing overrides
+    const modelsAfter = new Set(
+      this.pricingCache.getAll().map((m) => m.model_name),
+    );
+    const removed = [...modelsBefore].filter((m) => !modelsAfter.has(m));
+
+    if (removed.length > 0) {
+      this.logger.warn(`Models removed after sync: ${removed.join(', ')}`);
+      try {
+        const { RoutingService } = await import(
+          '../routing/routing.service'
+        );
+        const routingService = this.moduleRef.get(RoutingService, {
+          strict: false,
+        });
+        await routingService.invalidateOverridesForRemovedModels(removed);
+      } catch (err) {
+        this.logger.error(`Failed to invalidate overrides: ${err}`);
+      }
+    }
+
     return updated;
   }
 

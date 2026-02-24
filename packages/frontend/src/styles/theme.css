@@ -11,6 +11,7 @@
 @import "./tokens.css";
 @import "./wizard.css";
 @import "./notifications.css";
+@import "./routing.css";
 @import "./tooltip.css";
 @import "./toast.css";
 @import "./model-filter.css";
@@ -704,6 +705,22 @@ h1, h2, h3, h4, h5, h6 {
 .btn--outline:hover {
   background: hsl(var(--accent));
   color: hsl(var(--accent-foreground));
+}
+
+.btn--sm {
+  height: 2rem;
+  padding: 0 0.75rem;
+  font-size: var(--font-size-xs);
+}
+
+.btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ── Sidebar — shadcn Sidebar style ──────────────── */

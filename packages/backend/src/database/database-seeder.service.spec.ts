@@ -1,6 +1,5 @@
-import { ConfigService } from '@nestjs/config';
+import { keyPrefix, sha256 } from '../common/utils/hash.util';
 import { DatabaseSeederService } from './database-seeder.service';
-import { sha256, keyPrefix } from '../common/utils/hash.util';
 
 // Mock auth.instance before importing the service
 jest.mock('../auth/auth.instance', () => ({
@@ -31,6 +30,7 @@ describe('DatabaseSeederService', () => {
   let mockApiKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockPricingRepo: ReturnType<typeof makeMockRepo>;
   let mockSecurityRepo: ReturnType<typeof makeMockRepo>;
+  let mockPricingCache: { reload: jest.Mock };
   const originalSeedData = process.env['SEED_DATA'];
   const originalManifestMode = process.env['MANIFEST_MODE'];
 
@@ -45,6 +45,7 @@ describe('DatabaseSeederService', () => {
     mockApiKeyRepo = makeMockRepo();
     mockPricingRepo = makeMockRepo();
     mockSecurityRepo = makeMockRepo();
+    mockPricingCache = { reload: jest.fn().mockResolvedValue(undefined) };
 
     service = new DatabaseSeederService(
       mockDataSource as never,
@@ -55,6 +56,7 @@ describe('DatabaseSeederService', () => {
       mockApiKeyRepo as never,
       mockPricingRepo as never,
       mockSecurityRepo as never,
+      mockPricingCache as never,
     );
 
     jest.clearAllMocks();
@@ -303,22 +305,13 @@ describe('DatabaseSeederService', () => {
   });
 
   describe('seedModelPricing', () => {
-    it('should always upsert curated models even when data exists', async () => {
-      mockPricingRepo.count.mockResolvedValue(10);
+    it('should always upsert model pricing even when data exists', async () => {
       mockConfigService.get.mockReturnValue('production');
 
       await service.onModuleInit();
 
-      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(35);
-    });
-
-    it('should upsert all model pricing entries when table is empty', async () => {
-      mockConfigService.get.mockReturnValue('production');
-
-      await service.onModuleInit();
-
-      // The source has 35 models defined
-      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(35);
+      // All curated models are always upserted (40 total)
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(40);
     });
 
     it('should upsert with model_name as conflict key', async () => {
@@ -332,6 +325,24 @@ describe('DatabaseSeederService', () => {
       }
     });
 
+    it('should reload pricing cache after seeding models', async () => {
+      mockConfigService.get.mockReturnValue('production');
+
+      await service.onModuleInit();
+
+      expect(mockPricingCache.reload).toHaveBeenCalled();
+    });
+
+    it('should not include quality_score in upsert (computed dynamically)', async () => {
+      mockConfigService.get.mockReturnValue('production');
+
+      await service.onModuleInit();
+
+      for (const call of mockPricingRepo.upsert.mock.calls) {
+        expect(call[0]).not.toHaveProperty('quality_score');
+      }
+    });
+
     it('should include claude-opus-4-6 with correct pricing', async () => {
       mockPricingRepo.count.mockResolvedValue(0);
       mockConfigService.get.mockReturnValue('production');
@@ -339,12 +350,15 @@ describe('DatabaseSeederService', () => {
       await service.onModuleInit();
 
       expect(mockPricingRepo.upsert).toHaveBeenCalledWith(
-        {
+        expect.objectContaining({
           model_name: 'claude-opus-4-6',
           provider: 'Anthropic',
           input_price_per_token: 0.000015,
           output_price_per_token: 0.000075,
-        },
+          context_window: 200000,
+          capability_reasoning: true,
+          capability_code: true,
+        }),
         ['model_name'],
       );
     });
@@ -364,8 +378,8 @@ describe('DatabaseSeederService', () => {
       // First call (checkBetterAuthUser): no rows
       // Subsequent calls (getAdminUserId): return the user
       mockDataSource.query
-        .mockResolvedValueOnce([])    // checkBetterAuthUser
-        .mockResolvedValueOnce({})    // UPDATE emailVerified
+        .mockResolvedValueOnce([]) // checkBetterAuthUser
+        .mockResolvedValueOnce({}) // UPDATE emailVerified
         .mockResolvedValue([{ id: 'new-admin-id' }]); // getAdminUserId
 
       await service.onModuleInit();
@@ -381,8 +395,8 @@ describe('DatabaseSeederService', () => {
 
     it('should mark email as verified after creating admin user', async () => {
       mockDataSource.query
-        .mockResolvedValueOnce([])    // checkBetterAuthUser
-        .mockResolvedValueOnce({})    // UPDATE emailVerified
+        .mockResolvedValueOnce([]) // checkBetterAuthUser
+        .mockResolvedValueOnce({}) // UPDATE emailVerified
         .mockResolvedValue([{ id: 'new-admin-id' }]);
 
       await service.onModuleInit();
@@ -442,9 +456,9 @@ describe('DatabaseSeederService', () => {
       // which causes seedAdminUser to proceed with signUpEmail.
       // The subsequent UPDATE query also needs a mock.
       mockDataSource.query
-        .mockRejectedValueOnce(new Error('DB down'))  // checkBetterAuthUser
-        .mockResolvedValueOnce({})                     // UPDATE emailVerified
-        .mockResolvedValue([{ id: 'admin-id' }]);      // getAdminUserId calls
+        .mockRejectedValueOnce(new Error('DB down')) // checkBetterAuthUser
+        .mockResolvedValueOnce({}) // UPDATE emailVerified
+        .mockResolvedValue([{ id: 'admin-id' }]); // getAdminUserId calls
 
       await expect(service.onModuleInit()).resolves.toBeUndefined();
       // signUpEmail was called because checkBetterAuthUser returned false
@@ -453,7 +467,7 @@ describe('DatabaseSeederService', () => {
 
     it('should propagate unhandled errors from seedAdminUser', async () => {
       // checkBetterAuthUser returns false, signUpEmail throws
-      mockDataSource.query.mockResolvedValueOnce([]);  // checkBetterAuthUser: no user
+      mockDataSource.query.mockResolvedValueOnce([]); // checkBetterAuthUser: no user
       auth.api.signUpEmail.mockRejectedValueOnce(new Error('signup failed'));
 
       await expect(service.onModuleInit()).rejects.toThrow('signup failed');

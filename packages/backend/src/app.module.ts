@@ -22,6 +22,7 @@ import { SecurityModule } from './security/security.module';
 import { OtlpModule } from './otlp/otlp.module';
 import { ModelPricesModule } from './model-prices/model-prices.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { RoutingModule } from './routing/routing.module';
 import { CommonModule } from './common/common.module';
 import { SseModule } from './sse/sse.module';
 import { GithubModule } from './github/github.module';
@@ -31,7 +32,7 @@ const sessionGuardClass = isLocalMode ? LocalAuthGuard : SessionGuard;
 
 const frontendPath = process.env['MANIFEST_FRONTEND_DIR'] || join(__dirname, '..', '..', 'frontend', 'dist');
 const serveStaticImports = existsSync(frontendPath)
-  ? [ServeStaticModule.forRoot({ rootPath: frontendPath, exclude: ['/api/{*path}', '/otlp/{*path}'] })]
+  ? [ServeStaticModule.forRoot({ rootPath: frontendPath, exclude: ['/api/{*path}', '/otlp/{*path}', '/v1/{*path}'] })]
   : [];
 
 @Module({
@@ -56,6 +57,7 @@ const serveStaticImports = existsSync(frontendPath)
     OtlpModule,
     ModelPricesModule,
     NotificationsModule,
+    RoutingModule,
     SseModule,
     GithubModule,
   ],

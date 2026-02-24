@@ -1,6 +1,7 @@
 import { parseConfig, validateConfig, ManifestConfig } from "./config";
 import { initTelemetry, shutdownTelemetry, PluginLogger } from "./telemetry";
 import { registerHooks, initMetrics } from "./hooks";
+import { registerRouting } from "./routing";
 import { registerTools } from "./tools";
 import { verifyConnection } from "./verify";
 import { registerLocalMode } from "./local-mode";
@@ -61,6 +62,7 @@ module.exports = {
     const { tracer, meter } = initTelemetry(config, logger);
     initMetrics(meter);
     registerHooks(api, tracer, config, logger);
+    registerRouting(api, config, logger);
 
     if (typeof api.registerTool === "function") {
       registerTools(api, config, logger);

@@ -51,6 +51,16 @@ const Sidebar: Component = () => {
         <A href={path("/settings")} class="sidebar__link" classList={{ active: isActive("/settings") }} aria-current={isActive("/settings") ? "page" : undefined}>
           Settings
         </A>
+        <Show when={isLocalMode()}>
+          <A
+            href={path("/routing")}
+            class="sidebar__link"
+            classList={{ active: isActive("/routing") }}
+            aria-current={isActive("/routing") ? "page" : undefined}
+          >
+            Routing
+          </A>
+        </Show>
         <A
           href={path("/notifications")}
           class="sidebar__link"

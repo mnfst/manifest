@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { buildAliasMap, resolveModelName } from './model-name-normalizer';
 import { UnresolvedModelTrackerService } from './unresolved-model-tracker.service';
+import { computeQualityScore } from '../database/quality-score.util';
 
 @Injectable()
 export class ModelPricingCacheService implements OnModuleInit {
@@ -23,6 +24,19 @@ export class ModelPricingCacheService implements OnModuleInit {
 
   async reload(): Promise<void> {
     const rows = await this.pricingRepo.find();
+
+    // Recompute quality scores from current data signals
+    for (const row of rows) {
+      const computed = computeQualityScore(row);
+      if (computed !== row.quality_score) {
+        row.quality_score = computed;
+        await this.pricingRepo.update(
+          { model_name: row.model_name },
+          { quality_score: computed },
+        );
+      }
+    }
+
     this.cache.clear();
     for (const row of rows) {
       this.cache.set(row.model_name, row);
@@ -40,5 +54,9 @@ export class ModelPricingCacheService implements OnModuleInit {
 
     this.unresolvedTracker.track(modelName);
     return undefined;
+  }
+
+  getAll(): ModelPricing[] {
+    return [...this.cache.values()];
   }
 }

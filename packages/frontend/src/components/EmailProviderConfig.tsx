@@ -54,12 +54,11 @@ const EmailProviderConfig: Component = () => {
     setTesting(true);
     try {
       const result = await testEmailConfig({
-        to,
         provider: provider(),
         apiKey: apiKey(),
         domain: domain() || undefined,
         fromEmail: fromEmail() || undefined,
-      });
+      }, to);
       if (result.success) {
         toast.success(`Test email sent to ${to}`);
       } else {
