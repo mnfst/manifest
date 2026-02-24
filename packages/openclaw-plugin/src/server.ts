@@ -1,7 +1,9 @@
 import { join } from 'path';
 import { homedir } from 'os';
+import { readFileSync } from 'fs';
 
-export const version = '0.1.0';
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8')) as { version: string };
+export const version = pkg.version;
 
 const LOCAL_DEFAULT_PORT = 2099;
 
@@ -21,6 +23,7 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
   const dbPath = options.dbPath ?? join(homedir(), '.openclaw', 'manifest', 'manifest.db');
 
   // Set environment before importing the backend (it reads env at import time)
+  process.env['MANIFEST_PACKAGE_VERSION'] = version;
   process.env['MANIFEST_MODE'] = 'local';
   process.env['MANIFEST_EMBEDDED'] = '1';
   process.env['PORT'] = String(port);
