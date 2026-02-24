@@ -70,7 +70,7 @@ Dashboard opens at **http://127.0.0.1:2099**. Telemetry from your agents flows i
 | Architecture | Runs locally — data stays on your machine                  | Cloud proxy — all traffic routes through their servers        |
 | Cost         | Free                                                       | 5% fee on every API call                                      |
 | Source code  | MIT licensed, fully open                                   | Proprietary                                                   |
-| Data privacy | 100% local, nothing leaves your network                    | Your prompts and responses pass through a third party         |
+| Data privacy | 100% local routing and logging                    | Your prompts and responses pass through a third party         |
 | Transparency | Open scoring algorithm — see exactly why a model is chosen | Black box routing, no visibility into how models are selected |
 
 ## Privacy
