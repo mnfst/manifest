@@ -16,6 +16,13 @@ describe('AgentsController', () => {
   let mockConfigGet: jest.Mock;
   let mockDeleteAgent: jest.Mock;
 
+  const origMode = process.env['MANIFEST_MODE'];
+
+  afterEach(() => {
+    if (origMode === undefined) delete process.env['MANIFEST_MODE'];
+    else process.env['MANIFEST_MODE'] = origMode;
+  });
+
   beforeEach(async () => {
     mockGetAgentList = jest.fn().mockResolvedValue([
       { agent_name: 'bot-1', agent_id: 'id-1', message_count: 100 },
@@ -101,6 +108,7 @@ describe('AgentsController', () => {
   });
 
   it('deletes agent and returns success', async () => {
+    delete process.env['MANIFEST_MODE'];
     const user = { id: 'u1' };
     const result = await controller.deleteAgent(user as never, 'bot-1');
 
@@ -109,14 +117,9 @@ describe('AgentsController', () => {
   });
 
   it('throws ForbiddenException when deleting in local mode', async () => {
-    const orig = process.env['MANIFEST_MODE'];
     process.env['MANIFEST_MODE'] = 'local';
-    try {
-      const user = { id: 'u1' };
-      await expect(controller.deleteAgent(user as never, 'bot-1')).rejects.toThrow(ForbiddenException);
-      expect(mockDeleteAgent).not.toHaveBeenCalled();
-    } finally {
-      process.env['MANIFEST_MODE'] = orig;
-    }
+    const user = { id: 'u1' };
+    await expect(controller.deleteAgent(user as never, 'bot-1')).rejects.toThrow(ForbiddenException);
+    expect(mockDeleteAgent).not.toHaveBeenCalled();
   });
 });
