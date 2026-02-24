@@ -6,13 +6,13 @@ import SetupStepInstall from "../components/SetupStepInstall.jsx";
 import SetupStepConfigure from "../components/SetupStepConfigure.jsx";
 import SetupStepVerify from "../components/SetupStepVerify.jsx";
 import { CopyButton } from "../components/SetupStepInstall.jsx";
-import { isLocalMode } from "../services/local-mode.js";
 import {
   getAgentKey,
   deleteAgent,
   rotateAgentKey,
 } from "../services/api.js";
 import { toast } from "../services/toast-store.js";
+import { isLocalMode } from "../services/local-mode.js";
 
 const Settings: Component = () => {
   const params = useParams<{ agentName: string }>();

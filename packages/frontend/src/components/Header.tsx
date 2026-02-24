@@ -67,7 +67,7 @@ const Header: Component = () => {
   return (
     <header class="header">
       <div class="header__left">
-        <A href="/" class="header__logo">
+        <A href={isLocalMode() ? "/agents/local-agent" : "/"} class="header__logo">
           <img src="/logo.svg" alt="Manifest" class="header__logo-img header__logo-img--light" />
           <img src="/logo-white.svg" alt="Manifest" class="header__logo-img header__logo-img--dark" />
         </A>
