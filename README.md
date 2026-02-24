@@ -75,7 +75,7 @@ Dashboard opens at **http://127.0.0.1:2099**. Telemetry from your agents flows i
 
 ## Privacy
 
-**Your data stays on your machine.** All agent messages, token counts, costs, and telemetry are stored locally in SQLite. None of this data is ever sent to us or any third party.
+**Your data stays on your machine.** All agent messages, token counts, costs, and telemetry are stored locally. None of this data is ever sent to us or any third party.
 
 Manifest collects anonymous product analytics (hashed machine ID, OS platform, package version, event names) to help improve the project. No personally identifiable information or agent data is included.
 
