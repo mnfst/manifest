@@ -5,6 +5,7 @@ import * as express from 'express';
 import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
 import { LOCAL_USER_ID, LOCAL_EMAIL } from './common/constants/local-mode.constants';
+import { SpaFallbackFilter } from './common/filters/spa-fallback.filter';
 
 const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
@@ -12,6 +13,7 @@ export async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule, { bodyParser: false });
   app.enableShutdownHooks();
+  app.useGlobalFilters(new SpaFallbackFilter());
 
   app.use(helmet({
     contentSecurityPolicy: {
