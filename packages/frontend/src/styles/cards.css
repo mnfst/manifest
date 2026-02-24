@@ -53,6 +53,11 @@
   background: hsl(var(--destructive) / 0.1);
 }
 
+.trend--neutral {
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted-foreground) / 0.1);
+}
+
 /* ── Panel — shadcn Card ──────────────────────────── */
 .panel {
   background: hsl(var(--card));

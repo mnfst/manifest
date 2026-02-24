@@ -285,6 +285,11 @@ h1, h2, h3, h4, h5, h6 {
   background: hsl(var(--destructive) / 0.1);
 }
 
+.trend--neutral {
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted-foreground) / 0.1);
+}
+
 /* ── Panel — shadcn Card ──────────────────────────── */
 .panel {
   background: hsl(var(--card));

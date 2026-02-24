@@ -109,8 +109,10 @@ const Overview: Component = () => {
     }
   })
 
-  const trendBadge = (pct: number) => {
-    const cls = pct <= 0 ? 'trend trend--up' : 'trend trend--down'
+  const trendBadge = (pct: number, neutral = false) => {
+    const cls = neutral
+      ? 'trend trend--neutral'
+      : pct <= 0 ? 'trend trend--up' : 'trend trend--down'
     const sign = pct >= 0 ? '+' : ''
     return (
       <span class={cls}>
@@ -401,7 +403,7 @@ const Overview: Component = () => {
                         <span class="chart-card__value">
                           {d().summary?.messages?.value ?? 0}
                         </span>
-                        {trendBadge(d().summary?.messages?.trend_pct ?? 0)}
+                        {trendBadge(d().summary?.messages?.trend_pct ?? 0, true)}
                       </div>
                     </div>
                   </div>
