@@ -54,7 +54,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: backend
-          directory: packages/backend
+          directory: packages/backend/coverage
           fail_ci_if_error: false
 
   backend-sqlite:

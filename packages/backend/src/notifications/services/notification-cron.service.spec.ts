@@ -8,6 +8,7 @@ import { DataSource } from 'typeorm';
 import { NotificationCronService } from './notification-cron.service';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
+import { EmailProviderConfigService } from './email-provider-config.service';
 import { readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
 
 const activeRule = {
@@ -47,6 +48,10 @@ describe('NotificationCronService', () => {
         {
           provide: NotificationEmailService,
           useValue: { sendThresholdAlert: mockSendThresholdAlert },
+        },
+        {
+          provide: EmailProviderConfigService,
+          useValue: { getFullConfig: jest.fn().mockResolvedValue(null) },
         },
       ],
     }).compile();
@@ -113,6 +118,7 @@ describe('NotificationCronService', () => {
         threshold: 100000,
         actualValue: 150000,
       }),
+      undefined,
     );
   });
 
@@ -300,6 +306,7 @@ describe('NotificationCronService', () => {
     expect(mockSendThresholdAlert).toHaveBeenCalledWith(
       'real@user.com',
       expect.any(Object),
+      undefined,
     );
 
     process.env['MANIFEST_MODE'] = originalMode;
@@ -323,6 +330,7 @@ describe('NotificationCronService', () => {
     expect(mockSendThresholdAlert).toHaveBeenCalledWith(
       'real@db.com',
       expect.any(Object),
+      undefined,
     );
 
     process.env['MANIFEST_MODE'] = originalMode;
@@ -366,6 +374,10 @@ describe('NotificationCronService (SQLite dialect)', () => {
         {
           provide: NotificationEmailService,
           useValue: { sendThresholdAlert: mockSendThresholdAlert },
+        },
+        {
+          provide: EmailProviderConfigService,
+          useValue: { getFullConfig: jest.fn().mockResolvedValue(null) },
         },
       ],
     }).compile();
@@ -442,6 +454,7 @@ describe('NotificationCronService (SQLite dialect)', () => {
         threshold: 100000,
         actualValue: 150000,
       }),
+      undefined,
     );
   });
 });

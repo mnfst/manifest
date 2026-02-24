@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
+import { EmailProviderConfigService } from './email-provider-config.service';
 import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
 import { LOCAL_EMAIL, readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
 
@@ -26,6 +27,7 @@ export class NotificationCronService implements OnModuleInit {
     private readonly ds: DataSource,
     private readonly rulesService: NotificationRulesService,
     private readonly emailService: NotificationEmailService,
+    private readonly emailProviderConfigService: EmailProviderConfigService,
   ) {
     this.dialect = detectDialect(ds.options.type as string);
   }
@@ -88,14 +90,19 @@ export class NotificationCronService implements OnModuleInit {
     const email = await this.resolveUserEmail(rule.user_id);
     let emailSent = false;
     if (email) {
-      emailSent = await this.emailService.sendThresholdAlert(email, {
-        agentName: rule.agent_name,
-        metricType: rule.metric_type,
-        threshold: rule.threshold,
-        actualValue: actual,
-        period: rule.period,
-        timestamp: now,
-      });
+      const providerConfig = await this.emailProviderConfigService.getFullConfig(rule.user_id);
+      emailSent = await this.emailService.sendThresholdAlert(
+        email,
+        {
+          agentName: rule.agent_name,
+          metricType: rule.metric_type,
+          threshold: rule.threshold,
+          actualValue: actual,
+          period: rule.period,
+          timestamp: now,
+        },
+        providerConfig ?? undefined,
+      );
     } else {
       this.logger.warn(`No email found for user ${rule.user_id}, skipping alert for rule ${rule.id}`);
     }
@@ -148,6 +155,9 @@ export class NotificationCronService implements OnModuleInit {
   }
 
   private async resolveUserEmail(userId: string): Promise<string | null> {
+    const fullConfig = await this.emailProviderConfigService.getFullConfig(userId);
+    if (fullConfig?.notificationEmail) return fullConfig.notificationEmail;
+
     if (process.env['MANIFEST_MODE'] === 'local') {
       const configEmail = readLocalNotificationEmail();
       if (configEmail) return configEmail;
