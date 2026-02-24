@@ -15,11 +15,13 @@ export class HealthController {
   @Public()
   @Get('health')
   getHealth() {
+    const optOut = process.env['MANIFEST_TELEMETRY_OPTOUT'];
     return {
       status: 'healthy',
       uptime_seconds: Math.floor((Date.now() - this.startTime) / 1000),
       version: pkg.version,
       mode: process.env['MANIFEST_MODE'] === 'local' ? 'local' : 'cloud',
+      telemetryOptOut: optOut === '1' || optOut === 'true',
       ...this.versionCheck.getUpdateInfo(),
     };
   }

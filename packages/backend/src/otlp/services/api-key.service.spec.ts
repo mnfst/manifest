@@ -8,10 +8,6 @@ import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { sha256, keyPrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 
-jest.mock('../../common/utils/product-telemetry', () => ({
-  trackCloudEvent: jest.fn(),
-}));
-
 jest.mock('uuid', () => ({ v4: jest.fn() }));
 jest.mock('crypto', () => {
   const actual = jest.requireActual('crypto');
@@ -23,7 +19,6 @@ jest.mock('crypto', () => {
 
 import { v4 as uuidv4 } from 'uuid';
 import { randomBytes } from 'crypto';
-import { trackCloudEvent } from '../../common/utils/product-telemetry';
 
 const mockedUuidv4 = uuidv4 as jest.Mock;
 const mockedRandomBytes = randomBytes as jest.Mock;
@@ -262,17 +257,6 @@ describe('ApiKeyGeneratorService', () => {
         expect.objectContaining({
           description: 'A helpful bot',
         }),
-      );
-    });
-
-    it('fires agent_created telemetry event', async () => {
-      mockTenantFindOne.mockResolvedValue(null);
-
-      const result = await service.onboardAgent(defaultParams);
-
-      expect(trackCloudEvent).toHaveBeenCalledWith(
-        'agent_created',
-        result.tenantId,
       );
     });
 

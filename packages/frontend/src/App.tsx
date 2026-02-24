@@ -5,11 +5,17 @@ import Sidebar from "./components/Sidebar.jsx";
 import AuthGuard from "./components/AuthGuard.jsx";
 import { connectSse } from "./services/sse.js";
 import VersionIndicator from "./components/VersionIndicator.jsx";
+import { trackEvent } from "./services/analytics.js";
 
 const SseConnector: ParentComponent = (props) => {
   onMount(() => {
     const cleanup = connectSse();
     onCleanup(cleanup);
+
+    if (!sessionStorage.getItem("mnfst_dashboard_loaded")) {
+      sessionStorage.setItem("mnfst_dashboard_loaded", "1");
+      trackEvent("dashboard_loaded");
+    }
   });
   return <>{props.children}</>;
 };
