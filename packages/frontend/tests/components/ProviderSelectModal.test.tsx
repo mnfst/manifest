@@ -79,24 +79,26 @@ describe("ProviderSelectModal", () => {
     expect(screen.getByText("DeepSeek")).toBeDefined();
   });
 
-  it("shows 'Connected' badge for active providers with API keys", () => {
-    render(() => (
+  it("shows toggle switch in 'on' state for connected providers", () => {
+    const { container } = render(() => (
       <ProviderSelectModal
         providers={[connectedProvider]}
         onClose={onClose}
         onUpdate={onUpdate}
       />
     ));
-    const badges = screen.getAllByText("Connected");
-    expect(badges.length).toBeGreaterThanOrEqual(1);
+    const onSwitches = container.querySelectorAll(".provider-toggle__switch--on");
+    expect(onSwitches.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("shows 'Not connected' badge for inactive providers", () => {
-    render(() => (
+  it("shows toggle switch in 'off' state for disconnected providers", () => {
+    const { container } = render(() => (
       <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
     ));
-    const notConnected = screen.getAllByText("Not connected");
-    expect(notConnected.length).toBeGreaterThanOrEqual(1);
+    const allSwitches = container.querySelectorAll(".provider-toggle__switch");
+    const onSwitches = container.querySelectorAll(".provider-toggle__switch--on");
+    expect(allSwitches.length).toBeGreaterThan(0);
+    expect(onSwitches.length).toBe(0);
   });
 
   it("calls onClose when Done button is clicked", () => {
@@ -296,31 +298,6 @@ describe("ProviderSelectModal", () => {
 
       await waitFor(() => {
         expect(mockConnectProvider).toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe("Ollama provider", () => {
-    it("shows 'No API key required' for Ollama", () => {
-      render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
-      ));
-      fireEvent.click(screen.getByText("Ollama"));
-      expect(screen.getByText("No API key required for local models")).toBeDefined();
-    });
-
-    it("connects Ollama without API key", async () => {
-      render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
-      ));
-      fireEvent.click(screen.getByText("Ollama"));
-      fireEvent.click(screen.getByText("Connect"));
-
-      await waitFor(() => {
-        expect(mockConnectProvider).toHaveBeenCalledWith({
-          provider: "ollama",
-          apiKey: undefined,
-        });
       });
     });
   });

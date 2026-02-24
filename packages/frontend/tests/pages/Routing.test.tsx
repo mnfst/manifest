@@ -292,10 +292,14 @@ describe("Routing — enabled state (providers active)", () => {
     expect(screen.getByTestId("provider-modal")).toBeDefined();
   });
 
-  it("calls deactivateAllProviders when Disable Routing is clicked", async () => {
+  it("calls deactivateAllProviders when Disable Routing is confirmed", async () => {
     render(() => <Routing />);
     const disableBtn = await screen.findByText("Disable Routing");
     fireEvent.click(disableBtn);
+
+    // Confirm dialog appears — click the "Disable" button
+    const confirmBtn = await screen.findByText("Disable");
+    fireEvent.click(confirmBtn);
 
     await waitFor(() => {
       expect(mockDeactivateAllProviders).toHaveBeenCalled();
@@ -421,6 +425,9 @@ describe("Routing — helper functions", () => {
     render(() => <Routing />);
     const disableBtn = await screen.findByText("Disable Routing");
     fireEvent.click(disableBtn);
+
+    const confirmBtn = await screen.findByText("Disable");
+    fireEvent.click(confirmBtn);
 
     await waitFor(() => {
       expect(mockDeactivateAllProviders).toHaveBeenCalled();
