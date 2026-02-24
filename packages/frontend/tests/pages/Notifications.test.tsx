@@ -13,10 +13,16 @@ vi.mock("@solidjs/meta", () => ({
 const mockGetNotificationRules = vi.fn();
 const mockUpdateNotificationRule = vi.fn();
 const mockDeleteNotificationRule = vi.fn();
+const mockGetEmailProvider = vi.fn();
+const mockSetEmailProvider = vi.fn();
+const mockRemoveEmailProvider = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getNotificationRules: (...args: unknown[]) => mockGetNotificationRules(...args),
   updateNotificationRule: (...args: unknown[]) => mockUpdateNotificationRule(...args),
   deleteNotificationRule: (...args: unknown[]) => mockDeleteNotificationRule(...args),
+  getEmailProvider: (...args: unknown[]) => mockGetEmailProvider(...args),
+  setEmailProvider: (...args: unknown[]) => mockSetEmailProvider(...args),
+  removeEmailProvider: (...args: unknown[]) => mockRemoveEmailProvider(...args),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -32,6 +38,18 @@ vi.mock("../../src/components/NotificationRuleModal.jsx", () => ({
   default: () => <div data-testid="notification-modal" />,
 }));
 
+vi.mock("../../src/components/EmailProviderSetup.jsx", () => ({
+  default: () => <div data-testid="email-provider-setup" />,
+}));
+
+vi.mock("../../src/components/EmailProviderModal.jsx", () => ({
+  default: () => <div data-testid="email-provider-modal" />,
+}));
+
+vi.mock("../../src/components/ProviderBanner.jsx", () => ({
+  default: () => <div data-testid="provider-banner" />,
+}));
+
 import Notifications from "../../src/pages/Notifications";
 
 const rulesData = [
@@ -43,6 +61,7 @@ describe("Notifications", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetNotificationRules.mockResolvedValue(rulesData);
+    mockGetEmailProvider.mockResolvedValue({ provider: "resend", domain: "example.com", keyPrefix: "re_abcde", is_active: true });
   });
 
   it("renders Notifications heading", () => {
@@ -50,10 +69,12 @@ describe("Notifications", () => {
     expect(screen.getByText("Notifications")).toBeDefined();
   });
 
-  it("renders Create alert button", () => {
+  it("renders Create alert button", async () => {
     render(() => <Notifications />);
-    const buttons = screen.getAllByText("Create alert");
-    expect(buttons.length).toBeGreaterThanOrEqual(1);
+    await vi.waitFor(() => {
+      const buttons = screen.getAllByText("Create alert");
+      expect(buttons.length).toBeGreaterThanOrEqual(1);
+    });
   });
 
   it("shows notification rules in table", async () => {
@@ -76,7 +97,7 @@ describe("Notifications", () => {
     mockGetNotificationRules.mockResolvedValue([]);
     const { container } = render(() => <Notifications />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("No alerts set up");
+      expect(container.textContent).toContain("No alerts configured");
     });
   });
 

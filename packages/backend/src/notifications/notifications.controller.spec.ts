@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsController } from './notifications.controller';
 import { NotificationRulesService } from './services/notification-rules.service';
+import { EmailProviderConfigService } from './services/email-provider-config.service';
 
 const mockUser = { id: 'user-1', email: 'test@test.com', name: 'Test' } as never;
 
@@ -30,9 +31,18 @@ describe('NotificationsController', () => {
       deleteRule: jest.fn().mockResolvedValue(undefined),
     };
 
+    const mockEmailProviderConfigService = {
+      getConfig: jest.fn().mockResolvedValue(null),
+      upsert: jest.fn(),
+      remove: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [NotificationsController],
-      providers: [{ provide: NotificationRulesService, useValue: mockRulesService }],
+      providers: [
+        { provide: NotificationRulesService, useValue: mockRulesService },
+        { provide: EmailProviderConfigService, useValue: mockEmailProviderConfigService },
+      ],
     }).compile();
 
     controller = module.get(NotificationsController);
