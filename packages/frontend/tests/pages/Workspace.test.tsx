@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
+const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
-  useNavigate: () => vi.fn(),
+  useNavigate: () => mockNavigate,
 }));
 
 vi.mock("@solidjs/meta", () => ({
@@ -31,11 +32,17 @@ vi.mock("../../src/components/Sparkline.jsx", () => ({
   default: () => <div data-testid="sparkline" />,
 }));
 
+let mockCheckLocalMode = vi.fn().mockResolvedValue(false);
+vi.mock("../../src/services/local-mode.js", () => ({
+  checkLocalMode: (...args: unknown[]) => mockCheckLocalMode(...args),
+}));
+
 import Workspace from "../../src/pages/Workspace";
 
 describe("Workspace", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCheckLocalMode = vi.fn().mockResolvedValue(false);
     mockGetAgents.mockResolvedValue({
       agents: [
         { agent_name: "demo-agent", message_count: 42, last_active: "2024-01-01", total_cost: 5.5, total_tokens: 15000, sparkline: [1, 2, 3] },
@@ -154,6 +161,25 @@ describe("Workspace", () => {
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Connect your first agent");
+    });
+  });
+
+  describe("local mode", () => {
+    it("redirects to /agents/local-agent in local mode", async () => {
+      mockCheckLocalMode = vi.fn().mockResolvedValue(true);
+      render(() => <Workspace />);
+      await vi.waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith("/agents/local-agent", { replace: true });
+      });
+    });
+
+    it("does not redirect in cloud mode", async () => {
+      mockCheckLocalMode = vi.fn().mockResolvedValue(false);
+      render(() => <Workspace />);
+      await vi.waitFor(() => {
+        expect(mockCheckLocalMode).toHaveBeenCalled();
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

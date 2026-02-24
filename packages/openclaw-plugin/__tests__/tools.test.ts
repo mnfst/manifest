@@ -49,7 +49,7 @@ describe("registerTools", () => {
   });
 
   it("logs registered tool names", () => {
-    expect(mockLogger.info).toHaveBeenCalledWith(
+    expect(mockLogger.debug).toHaveBeenCalledWith(
       expect.stringContaining("manifest_usage"),
     );
   });

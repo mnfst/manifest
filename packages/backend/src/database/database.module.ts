@@ -19,6 +19,8 @@ import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { NotificationRule } from '../entities/notification-rule.entity';
 import { NotificationLog } from '../entities/notification-log.entity';
 import { EmailProviderConfig } from '../entities/email-provider-config.entity';
+import { UserProvider } from '../entities/user-provider.entity';
+import { TierAssignment } from '../entities/tier-assignment.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { LocalBootstrapService } from './local-bootstrap.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
@@ -27,6 +29,13 @@ import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
 import { EmailProviderConfigs1771700000000 } from './migrations/1771700000000-EmailProviderConfigs';
 import { AddNotificationEmailAndOptionalDomain1771800000000 } from './migrations/1771800000000-AddNotificationEmailAndOptionalDomain';
+import { AddModelCapabilities1771600000000 } from './migrations/1771600000000-AddModelCapabilities';
+import { AddRoutingTables1771700000000 } from './migrations/1771700000000-AddRoutingTables';
+import { AddQualityScore1771800000000 } from './migrations/1771800000000-AddQualityScore';
+import { SeedQualityScores1771800100000 } from './migrations/1771800100000-SeedQualityScores';
+import { EncryptApiKeys1771900000000 } from './migrations/1771900000000-EncryptApiKeys';
+import { MakeApiKeyNullable1772000000000 } from './migrations/1772000000000-MakeApiKeyNullable';
+import { AddRoutingTier1772100000000 } from './migrations/1772100000000-AddRoutingTier';
 
 const entities = [
   AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing,
@@ -35,6 +44,7 @@ const entities = [
   ApiKey, Tenant, Agent, AgentApiKey,
   NotificationRule, NotificationLog,
   EmailProviderConfig,
+  UserProvider, TierAssignment,
 ];
 
 const migrations = [
@@ -43,6 +53,13 @@ const migrations = [
   ModelPricingImprovements1771600000000,
   EmailProviderConfigs1771700000000,
   AddNotificationEmailAndOptionalDomain1771800000000,
+  AddModelCapabilities1771600000000,
+  AddRoutingTables1771700000000,
+  AddQualityScore1771800000000,
+  SeedQualityScores1771800100000,
+  EncryptApiKeys1771900000000,
+  MakeApiKeyNullable1772000000000,
+  AddRoutingTier1772100000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -61,8 +78,9 @@ function buildModeServices() {
         if (isLocalMode) {
           const dbPath = config.get<string>('app.sqlitePath') || ':memory:';
           return {
-            type: 'better-sqlite3' as const,
-            database: dbPath,
+            type: 'sqljs' as const,
+            location: dbPath === ':memory:' ? undefined : dbPath,
+            autoSave: dbPath !== ':memory:',
             entities,
             synchronize: true,
             migrationsRun: false,

@@ -31,6 +31,7 @@ interface RecentMessage {
   timestamp: string
   agent_name: string | null
   model: string | null
+  routing_tier?: string
   input_tokens: number | null
   output_tokens: number | null
   total_tokens: number | null
@@ -151,7 +152,7 @@ const Overview: Component = () => {
               ]}
             />
           </Show>
-          <Show when={isNewAgent() && !setupCompleted()}>
+          <Show when={isNewAgent() && !(isLocalMode() && params.agentName === 'local-agent') && !setupCompleted()}>
             <button class="btn btn--primary" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
@@ -249,7 +250,7 @@ const Overview: Component = () => {
           <ErrorState error={data.error} onRetry={refetch} />
         }>
         <Show when={isNewAgent()}>
-          <Show when={setupCompleted()} fallback={
+          <Show when={(isLocalMode() && params.agentName === 'local-agent') || setupCompleted()} fallback={
             <div class="empty-state">
               <div class="empty-state__title">No activity yet</div>
               <p>Set up your agent and start chatting. Activity will appear here automatically.</p>
@@ -257,8 +258,7 @@ const Overview: Component = () => {
                 Set up agent
               </button>
               <div class="empty-state__img-wrapper">
-                <img src="/example-overview.svg" alt="" class="empty-state__img empty-state__img--light" />
-                <img src="/example-overview-dark.svg" alt="" class="empty-state__img empty-state__img--dark" />
+                <img src="/example-overview.svg" alt="" class="empty-state__img" />
               </div>
             </div>
           }>
@@ -492,6 +492,7 @@ const Overview: Component = () => {
                             </td>
                             <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                               {item.model ?? '\u2014'}
+                              {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
                             </td>
                             <td style="font-family: var(--font-mono);">
                               {item.total_tokens != null

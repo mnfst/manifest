@@ -353,14 +353,14 @@ describe('AggregationService (SQLite dialect)', () => {
             getAgentList: jest.fn().mockResolvedValue([]),
           },
         },
-        { provide: DataSource, useValue: { options: { type: 'better-sqlite3' } } },
+        { provide: DataSource, useValue: { options: { type: 'sqljs' } } },
       ],
     }).compile();
 
     service = module.get<AggregationService>(AggregationService);
   });
 
-  it('detects sqlite dialect from better-sqlite3 datasource', () => {
+  it('detects sqlite dialect from sqljs datasource', () => {
     // Service should initialize without error — dialect detection worked
     expect(service).toBeDefined();
   });

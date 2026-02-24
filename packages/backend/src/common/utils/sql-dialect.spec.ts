@@ -13,6 +13,10 @@ import {
 
 describe('sql-dialect', () => {
   describe('detectDialect', () => {
+    it('returns sqlite for sqljs', () => {
+      expect(detectDialect('sqljs')).toBe('sqlite');
+    });
+
     it('returns sqlite for better-sqlite3', () => {
       expect(detectDialect('better-sqlite3')).toBe('sqlite');
     });

@@ -1,5 +1,11 @@
 # @mnfst/server
 
+## 5.4.2
+
+### Patch Changes
+
+- 37885aa: Redesign Model Prices filter bar with autocomplete search, provider logos, and tag-based filtering
+
 ## 5.4.1
 
 ### Patch Changes

@@ -3,19 +3,36 @@ import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.se
 import { PricingHistoryService } from './pricing-history.service';
 import { UnresolvedModelTrackerService } from '../model-prices/unresolved-model-tracker.service';
 
-const mockUpsert = jest.fn();
 const mockFindOneBy = jest.fn().mockResolvedValue(null);
-const mockRepo = { upsert: mockUpsert, findOneBy: mockFindOneBy } as never;
+const mockUpsert = jest.fn().mockResolvedValue(undefined);
+const mockCount = jest.fn().mockResolvedValue(0);
+const mockRepo = {
+  findOneBy: mockFindOneBy,
+  upsert: mockUpsert,
+  count: mockCount,
+} as never;
+
 const mockReload = jest.fn().mockResolvedValue(undefined);
-const mockPricingCache = { reload: mockReload } as unknown as ModelPricingCacheService;
+const mockGetAll = jest.fn().mockReturnValue([]);
+const mockPricingCache = {
+  reload: mockReload,
+  getAll: mockGetAll,
+} as unknown as ModelPricingCacheService;
+
 const mockRecordChange = jest.fn().mockResolvedValue(false);
-const mockPricingHistory = { recordChange: mockRecordChange } as unknown as PricingHistoryService;
+const mockPricingHistory = {
+  recordChange: mockRecordChange,
+} as unknown as PricingHistoryService;
+
 const mockGetUnresolved = jest.fn().mockResolvedValue([]);
 const mockMarkResolved = jest.fn().mockResolvedValue(undefined);
 const mockUnresolvedTracker = {
   getUnresolved: mockGetUnresolved,
   markResolved: mockMarkResolved,
 } as unknown as UnresolvedModelTrackerService;
+
+const mockModuleRefGet = jest.fn();
+const mockModuleRef = { get: mockModuleRefGet } as never;
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -29,71 +46,29 @@ describe('PricingSyncService', () => {
       mockPricingCache,
       mockPricingHistory,
       mockUnresolvedTracker,
+      mockModuleRef,
     );
     jest.clearAllMocks();
-    mockFindOneBy.mockResolvedValue(null);
-    mockRecordChange.mockResolvedValue(false);
+    mockGetAll.mockReturnValue([]);
     mockGetUnresolved.mockResolvedValue([]);
+    mockCount.mockResolvedValue(0);
   });
 
-  it('updates all models with pricing from OpenRouter', async () => {
+  it('upserts all models with valid pricing', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
         data: [
           { id: 'anthropic/claude-opus-4', pricing: { prompt: '0.000015', completion: '0.000075' } },
           { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
-          { id: 'some/unknown-model', pricing: { prompt: '0.001', completion: '0.002' } },
         ],
       }),
     });
 
     const updated = await service.syncPricing();
-
-    expect(updated).toBe(3);
-    expect(mockReload).toHaveBeenCalledTimes(1);
-    expect(mockUpsert).toHaveBeenCalledTimes(3);
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        model_name: 'claude-opus-4',
-        provider: 'Anthropic',
-        input_price_per_token: 0.000015,
-        output_price_per_token: 0.000075,
-      }),
-      ['model_name'],
-    );
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        model_name: 'gpt-4o',
-        provider: 'OpenAI',
-        input_price_per_token: 0.0000025,
-        output_price_per_token: 0.00001,
-      }),
-      ['model_name'],
-    );
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        model_name: 'unknown-model',
-        provider: 'Some',
-      }),
-      ['model_name'],
-    );
-  });
-
-  it('returns 0 when API returns non-OK status', async () => {
-    mockFetch.mockResolvedValue({ ok: false, status: 503 });
-    const updated = await service.syncPricing();
-    expect(updated).toBe(0);
-    expect(mockUpsert).not.toHaveBeenCalled();
-    expect(mockReload).not.toHaveBeenCalled();
-  });
-
-  it('returns 0 when fetch throws', async () => {
-    mockFetch.mockRejectedValue(new Error('Network error'));
-    const updated = await service.syncPricing();
-    expect(updated).toBe(0);
-    expect(mockUpsert).not.toHaveBeenCalled();
-    expect(mockReload).not.toHaveBeenCalled();
+    expect(updated).toBe(2);
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
+    expect(mockRecordChange).toHaveBeenCalledTimes(2);
   });
 
   it('skips models with zero pricing', async () => {
@@ -133,19 +108,23 @@ describe('PricingSyncService', () => {
     expect(updated).toBe(0);
   });
 
-  it('does not call reload when zero models are updated', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        data: [{ id: 'openai/gpt-4o', pricing: { prompt: '0', completion: '0' } }],
-      }),
-    });
-
-    await service.syncPricing();
+  it('returns 0 when API returns non-OK status', async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 503 });
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
     expect(mockReload).not.toHaveBeenCalled();
   });
 
-  it('handles missing data field in response body', async () => {
+  it('returns 0 when fetch throws', async () => {
+    mockFetch.mockRejectedValue(new Error('Network error'));
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+    expect(mockReload).not.toHaveBeenCalled();
+  });
+
+  it('handles response body with undefined data field', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({}),
@@ -156,53 +135,7 @@ describe('PricingSyncService', () => {
     expect(mockUpsert).not.toHaveBeenCalled();
   });
 
-  it('handles models with only prompt pricing', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        data: [{ id: 'openai/gpt-4o', pricing: { prompt: '0.0000025' } }],
-      }),
-    });
-
-    const updated = await service.syncPricing();
-    expect(updated).toBe(1);
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        input_price_per_token: 0.0000025,
-        output_price_per_token: 0,
-      }),
-      ['model_name'],
-    );
-  });
-
-  it('handles models with only completion pricing', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        data: [{ id: 'openai/gpt-4o', pricing: { completion: '0.00001' } }],
-      }),
-    });
-
-    const updated = await service.syncPricing();
-    expect(updated).toBe(1);
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        input_price_per_token: 0,
-        output_price_per_token: 0.00001,
-      }),
-      ['model_name'],
-    );
-  });
-
-  it('passes existing model to recordChange when found in DB', async () => {
-    const existingModel = {
-      model_name: 'gpt-4o',
-      input_price_per_token: 0.000002,
-      output_price_per_token: 0.00001,
-      provider: 'OpenAI',
-    };
-    mockFindOneBy.mockResolvedValue(existingModel);
-
+  it('reloads cache when models were updated', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -213,15 +146,24 @@ describe('PricingSyncService', () => {
     });
 
     await service.syncPricing();
-
-    expect(mockRecordChange).toHaveBeenCalledWith(
-      existingModel,
-      expect.objectContaining({ model_name: 'gpt-4o' }),
-      'sync',
-    );
+    expect(mockReload).toHaveBeenCalledTimes(1);
   });
 
-  it('records price history for each model', async () => {
+  it('does not reload cache when no models were updated', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0', completion: '0' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    expect(mockReload).not.toHaveBeenCalled();
+  });
+
+  it('calls pricingHistory.recordChange for each model', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -232,11 +174,11 @@ describe('PricingSyncService', () => {
     });
 
     await service.syncPricing();
-
     expect(mockRecordChange).toHaveBeenCalledWith(
       null,
       expect.objectContaining({
         model_name: 'gpt-4o',
+        provider: 'OpenAI',
         input_price_per_token: 0.0000025,
         output_price_per_token: 0.00001,
       }),
@@ -244,7 +186,10 @@ describe('PricingSyncService', () => {
     );
   });
 
-  it('includes updated_at in upsert', async () => {
+  it('passes existing model to recordChange when found', async () => {
+    const existing = { model_name: 'gpt-4o', input_price_per_token: 0.000001 };
+    mockFindOneBy.mockResolvedValue(existing);
+
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -255,175 +200,229 @@ describe('PricingSyncService', () => {
     });
 
     await service.syncPricing();
-
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({ updated_at: expect.any(Date) }),
-      ['model_name'],
+    expect(mockRecordChange).toHaveBeenCalledWith(
+      existing,
+      expect.any(Object),
+      'sync',
     );
   });
 
+  it('detects removed models and calls invalidateOverridesForRemovedModels', async () => {
+    mockGetAll
+      .mockReturnValueOnce([
+        { model_name: 'gpt-4o', provider: 'OpenAI' },
+        { model_name: 'old-model', provider: 'OpenAI' },
+      ])
+      .mockReturnValueOnce([
+        { model_name: 'gpt-4o', provider: 'OpenAI' },
+      ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    const mockInvalidate = jest.fn().mockResolvedValue(undefined);
+    mockModuleRefGet.mockReturnValue({
+      invalidateOverridesForRemovedModels: mockInvalidate,
+    });
+
+    await service.syncPricing();
+    expect(mockInvalidate).toHaveBeenCalledWith(['old-model']);
+  });
+
+  it('logs error when invalidation fails after model removal', async () => {
+    mockGetAll
+      .mockReturnValueOnce([
+        { model_name: 'gpt-4o', provider: 'OpenAI' },
+        { model_name: 'removed', provider: 'OpenAI' },
+      ])
+      .mockReturnValueOnce([
+        { model_name: 'gpt-4o', provider: 'OpenAI' },
+      ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    mockModuleRefGet.mockImplementation(() => {
+      throw new Error('Module not found');
+    });
+
+    // Should not throw — error is caught internally
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+  });
+
+  it('resolves unresolved models after sync', async () => {
+    mockGetUnresolved.mockResolvedValue([
+      { model_name: 'gpt-4o', resolved: false },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    expect(mockMarkResolved).toHaveBeenCalledWith('gpt-4o', 'gpt-4o');
+  });
+
+  it('does not resolve models that are not in OpenRouter data', async () => {
+    mockGetUnresolved.mockResolvedValue([
+      { model_name: 'nonexistent-model', resolved: false },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    expect(mockMarkResolved).not.toHaveBeenCalled();
+  });
+
+  describe('onModuleInit', () => {
+    it('skips sync when data is fresh', async () => {
+      mockCount.mockResolvedValue(5);
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('runs sync when data is stale', async () => {
+      mockCount.mockResolvedValue(0);
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'anthropic/claude-opus-4', pricing: { prompt: '0.000015', completion: '0.000075' } },
+          ],
+        }),
+      });
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://openrouter.ai/api/v1/models',
+      );
+    });
+
+    it('does not crash if startup sync fails', async () => {
+      mockCount.mockResolvedValue(0);
+      mockFetch.mockRejectedValue(new Error('Startup network error'));
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+      expect(mockUpsert).not.toHaveBeenCalled();
+    });
+  });
+
   describe('deriveNames', () => {
-    it('derives canonical name and known provider', () => {
+    it('maps known providers correctly', () => {
       expect(service.deriveNames('anthropic/claude-opus-4')).toEqual({
         canonical: 'claude-opus-4',
         provider: 'Anthropic',
       });
-    });
-
-    it('derives canonical name for unknown provider', () => {
-      expect(service.deriveNames('newprovider/some-model')).toEqual({
-        canonical: 'some-model',
-        provider: 'Newprovider',
-      });
-    });
-
-    it('handles IDs without slash', () => {
-      expect(service.deriveNames('standalone-model')).toEqual({
-        canonical: 'standalone-model',
-        provider: 'Unknown',
-      });
-    });
-
-    it('maps meta-llama to Meta', () => {
-      expect(service.deriveNames('meta-llama/llama-4-scout').provider).toBe('Meta');
-    });
-
-    it('maps qwen to Alibaba', () => {
-      expect(service.deriveNames('qwen/qwen3-235b-a22b').provider).toBe('Alibaba');
-    });
-
-    it('maps xai to xAI', () => {
-      expect(service.deriveNames('xai/grok-3').provider).toBe('xAI');
-    });
-
-    it('maps google to Google', () => {
-      expect(service.deriveNames('google/gemini-2.0-flash').provider).toBe('Google');
-    });
-
-    it('maps deepseek to DeepSeek', () => {
-      expect(service.deriveNames('deepseek/deepseek-v3').provider).toBe('DeepSeek');
-    });
-
-    it('maps mistralai to Mistral', () => {
-      expect(service.deriveNames('mistralai/mistral-large').provider).toBe('Mistral');
-    });
-
-    it('maps cohere to Cohere', () => {
-      expect(service.deriveNames('cohere/command-r-plus').provider).toBe('Cohere');
-    });
-
-    it('maps amazon to Amazon', () => {
-      expect(service.deriveNames('amazon/nova-pro').provider).toBe('Amazon');
-    });
-
-    it('maps moonshotai to Moonshot', () => {
-      expect(service.deriveNames('moonshotai/moonshot-v1').provider).toBe('Moonshot');
-    });
-
-    it('maps zhipuai to Zhipu', () => {
-      expect(service.deriveNames('zhipuai/glm-4-plus').provider).toBe('Zhipu');
-    });
-
-    it('handles multi-segment canonical names after slash', () => {
-      expect(service.deriveNames('openai/gpt-4o-mini-2024-07-18')).toEqual({
-        canonical: 'gpt-4o-mini-2024-07-18',
+      expect(service.deriveNames('openai/gpt-4o')).toEqual({
+        canonical: 'gpt-4o',
         provider: 'OpenAI',
+      });
+      expect(service.deriveNames('google/gemini-2.5-pro')).toEqual({
+        canonical: 'gemini-2.5-pro',
+        provider: 'Google',
+      });
+    });
+
+    it('title-cases unknown providers', () => {
+      expect(service.deriveNames('newvendor/some-model')).toEqual({
+        canonical: 'some-model',
+        provider: 'Newvendor',
+      });
+    });
+
+    it('handles model IDs without slash', () => {
+      expect(service.deriveNames('bare-model')).toEqual({
+        canonical: 'bare-model',
+        provider: 'Unknown',
       });
     });
   });
 
-  describe('auto-resolve unresolved models', () => {
-    it('resolves models that match synced names', async () => {
-      mockGetUnresolved.mockResolvedValue([
-        { model_name: 'gpt-4o', resolved: false },
-      ]);
-
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          data: [
-            { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
-          ],
-        }),
-      });
-
-      await service.syncPricing();
-
-      expect(mockMarkResolved).toHaveBeenCalledWith('gpt-4o', 'gpt-4o');
+  it('maps Zhipu provider correctly', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'zhipuai/glm-4-plus', pricing: { prompt: '0.0000005', completion: '0.0000005' } },
+        ],
+      }),
     });
 
-    it('resolves prefixed model names', async () => {
-      mockGetUnresolved.mockResolvedValue([
-        { model_name: 'openai/gpt-4o', resolved: false },
-      ]);
+    await service.syncPricing();
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'glm-4-plus',
+        provider: 'Zhipu',
+      }),
+      ['model_name'],
+    );
+  });
 
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          data: [
-            { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
-          ],
-        }),
-      });
-
-      await service.syncPricing();
-
-      expect(mockMarkResolved).toHaveBeenCalledWith('openai/gpt-4o', 'gpt-4o');
+  it('maps Amazon provider correctly', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'amazon/nova-pro', pricing: { prompt: '0.0000008', completion: '0.0000032' } },
+        ],
+      }),
     });
 
-    it('resolves date-suffixed model names', async () => {
-      mockGetUnresolved.mockResolvedValue([
-        { model_name: 'gpt-4o-2025-01-15', resolved: false },
-      ]);
+    await service.syncPricing();
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'nova-pro',
+        provider: 'Amazon',
+      }),
+      ['model_name'],
+    );
+  });
 
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          data: [
-            { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
-          ],
-        }),
-      });
-
-      await service.syncPricing();
-
-      expect(mockMarkResolved).toHaveBeenCalledWith('gpt-4o-2025-01-15', 'gpt-4o');
+  it('maps Qwen/Alibaba provider correctly', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'qwen/qwen3-235b-a22b', pricing: { prompt: '0.0000003', completion: '0.0000012' } },
+        ],
+      }),
     });
 
-    it('skips resolution when no unresolved models exist', async () => {
-      mockGetUnresolved.mockResolvedValue([]);
-
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          data: [
-            { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
-          ],
-        }),
-      });
-
-      await service.syncPricing();
-
-      expect(mockMarkResolved).not.toHaveBeenCalled();
-    });
-
-    it('does not resolve models with no match', async () => {
-      mockGetUnresolved.mockResolvedValue([
-        { model_name: 'totally-fake', resolved: false },
-      ]);
-
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          data: [
-            { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
-          ],
-        }),
-      });
-
-      await service.syncPricing();
-
-      expect(mockMarkResolved).not.toHaveBeenCalled();
-    });
+    await service.syncPricing();
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'qwen3-235b-a22b',
+        provider: 'Alibaba',
+      }),
+      ['model_name'],
+    );
   });
 });

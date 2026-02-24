@@ -12,6 +12,7 @@ import {
 import { SPANS, METRICS, ATTRS } from "./constants";
 import { ManifestConfig } from "./config";
 import { PluginLogger } from "./telemetry";
+import { resolveRouting } from "./routing";
 
 interface ActiveSpans {
   root: Span;
@@ -68,7 +69,7 @@ export function initMetrics(meter: Meter): void {
 export function registerHooks(
   api: any,
   tracer: Tracer,
-  _config: ManifestConfig,
+  config: ManifestConfig,
   logger: PluginLogger,
 ): void {
   // --- message_received ---
@@ -171,7 +172,7 @@ export function registerHooks(
   // Records LLM metrics and closes all spans.
   // Event shape: { messages: Message[], success: boolean, durationMs: number }
   // Usage data lives on each assistant message, not at the top level.
-  api.on("agent_end", (event: any) => {
+  api.on("agent_end", async (event: any) => {
     const sessionKey =
       event.sessionKey ||
       event.session?.key ||
@@ -191,17 +192,34 @@ export function registerHooks(
     const cacheReadTokens = usage.cacheRead || usage.cacheReadTokens || 0;
     const cacheWriteTokens = usage.cacheWrite || usage.cacheWriteTokens || 0;
 
+    // If model is "auto" (routed through manifest proxy), resolve the actual model
+    let finalModel = model;
+    let finalProvider = provider;
+    let routingTier: string | null = null;
+
+    if (finalModel === "auto" && config.mode === "local") {
+      const resolved = await resolveRouting(config, messages, sessionKey, logger);
+      if (resolved) {
+        finalModel = resolved.model;
+        finalProvider = resolved.provider;
+        routingTier = resolved.tier;
+      }
+    }
+
     const active = activeSpans.get(sessionKey);
 
     if (active?.turn) {
       active.turn.setAttributes({
-        [ATTRS.MODEL]: model,
-        [ATTRS.PROVIDER]: provider,
+        [ATTRS.MODEL]: finalModel,
+        [ATTRS.PROVIDER]: finalProvider,
         [ATTRS.INPUT_TOKENS]: inputTokens,
         [ATTRS.OUTPUT_TOKENS]: outputTokens,
         [ATTRS.CACHE_READ_TOKENS]: cacheReadTokens,
         [ATTRS.CACHE_WRITE_TOKENS]: cacheWriteTokens,
       });
+      if (routingTier) {
+        active.turn.setAttribute(ATTRS.ROUTING_TIER, routingTier);
+      }
       active.turn.end();
     }
 
@@ -211,8 +229,8 @@ export function registerHooks(
     activeSpans.delete(sessionKey);
 
     const metricAttrs = {
-      [ATTRS.MODEL]: model,
-      [ATTRS.PROVIDER]: provider,
+      [ATTRS.MODEL]: finalModel,
+      [ATTRS.PROVIDER]: finalProvider,
     };
     llmRequests.add(1, metricAttrs);
     llmTokensInput.add(inputTokens, metricAttrs);
@@ -227,5 +245,5 @@ export function registerHooks(
     logger.debug(`[manifest] Trace completed for session=${sessionKey}`);
   });
 
-  logger.info("[manifest] All hooks registered");
+  logger.debug("[manifest] All hooks registered");
 }

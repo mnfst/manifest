@@ -14,7 +14,7 @@ async function main() {
     outfile: "dist/index.js",
     sourcemap: false,
     minify: true,
-    external: ["@mnfst/server"],
+    external: ["./server"],
     alias: {
       "@protobufjs/inquire": "./stubs/inquire.js",
       "child_process": "./stubs/child_process.js",
@@ -37,6 +37,9 @@ async function main() {
   mkdirSync(resolve("skills/manifest"), { recursive: true });
   copyFileSync(skillSrc, skillDest);
   console.log("Copied skills/manifest/SKILL.md");
+
+  copyFileSync(resolve("openclaw.plugin.json"), resolve("dist/openclaw.plugin.json"));
+  console.log("Copied dist/openclaw.plugin.json");
 }
 
 main();

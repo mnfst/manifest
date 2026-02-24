@@ -183,6 +183,7 @@ export class TimeseriesQueriesService {
       .addSelect('at.status', 'status')
       .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
       .addSelect(costExpr, 'cost')
+      .addSelect('at.routing_tier', 'routing_tier')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName);
     return qb.orderBy('at.timestamp', 'DESC').limit(limit).getRawMany();

@@ -1,4 +1,4 @@
-import { createSignal, createResource, Show, type Component } from "solid-js";
+import { createSignal, createResource, Show, For, type Component } from "solid-js";
 import { useParams, useNavigate, useLocation } from "@solidjs/router";
 import { Title, Meta } from "@solidjs/meta";
 import ErrorState from "../components/ErrorState.jsx";
@@ -6,8 +6,13 @@ import SetupStepInstall from "../components/SetupStepInstall.jsx";
 import SetupStepConfigure from "../components/SetupStepConfigure.jsx";
 import SetupStepVerify from "../components/SetupStepVerify.jsx";
 import { CopyButton } from "../components/SetupStepInstall.jsx";
-import { getAgentKey, deleteAgent, rotateAgentKey } from "../services/api.js";
+import {
+  getAgentKey,
+  deleteAgent,
+  rotateAgentKey,
+} from "../services/api.js";
 import { toast } from "../services/toast-store.js";
+import { isLocalMode } from "../services/local-mode.js";
 
 const Settings: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -63,6 +68,10 @@ const Settings: Component = () => {
     }
   };
 
+  const TABS = () => isLocalMode() ? ["General"] as const : ["General", "Integration"] as const;
+  type Tab = "General" | "Integration";
+  const [tab, setTab] = createSignal<Tab>("General");
+
   return (
     <div class="container--sm">
       <Title>{agentName()} - Settings | Manifest</Title>
@@ -74,120 +83,150 @@ const Settings: Component = () => {
         </div>
       </div>
 
-      <h3 class="settings-section__title">General</h3>
-
-      <div class="settings-card">
-        <div class="settings-card__row">
-          <div class="settings-card__label">
-            <span class="settings-card__label-title">Agent name</span>
-            <span class="settings-card__label-desc">The display name for this agent across the dashboard.</span>
-          </div>
-          <div class="settings-card__control">
-            <input
-              class="settings-card__input"
-              type="text"
-              aria-label="Agent name"
-              value={name()}
-              onInput={(e) => setName(e.currentTarget.value)}
-            />
-          </div>
-        </div>
-        <div class="settings-card__footer">
-          <button
-            class="btn btn--outline"
-            style="font-size: var(--font-size-sm);"
-            onClick={handleSave}
-            disabled={saving() || name().trim() === agentName()}
-          >
-            <span aria-live="polite">{saved() ? "Saved" : saving() ? "Saving..." : "Save"}</span>
-          </button>
-        </div>
+      <div class="panel__tabs" style="margin-bottom: var(--gap-xl);">
+        <For each={TABS()}>
+          {(t) => (
+            <button
+              class="panel__tab"
+              classList={{ "panel__tab--active": tab() === t }}
+              onClick={() => setTab(t)}
+            >
+              {t}
+            </button>
+          )}
+        </For>
       </div>
 
-      <h3 class="settings-section__title">API Key</h3>
+      {/* -- Tab: General ----------------------------- */}
+      <Show when={tab() === "General"}>
+        <h3 class="settings-section__title">Agent name</h3>
 
-      <div class="settings-card">
-        <div class="settings-card__row">
-          <div class="settings-card__label">
-            <span class="settings-card__label-title">OTLP ingest key</span>
-            <span class="settings-card__label-desc">Used by your agent to send telemetry data. Rotating creates a new key and invalidates the old one.</span>
+        <div class="settings-card">
+          <div class="settings-card__row">
+            <div class="settings-card__label">
+              <span class="settings-card__label-title">Agent name</span>
+              <span class="settings-card__label-desc">The display name for this agent across the dashboard.</span>
+            </div>
+            <div class="settings-card__control">
+              <input
+                class="settings-card__input"
+                type="text"
+                aria-label="Agent name"
+                value={name()}
+                onInput={(e) => setName(e.currentTarget.value)}
+              />
+            </div>
           </div>
-          <div class="settings-card__control" style="display: flex; align-items: center; gap: 8px;">
-            <code style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-              {apiKeyData()?.keyPrefix ?? "..."}...
-            </code>
+          <div class="settings-card__footer">
             <button
-              class="btn btn--outline"
+              class="btn btn--primary"
               style="font-size: var(--font-size-sm);"
-              onClick={handleRotate}
-              disabled={rotating()}
+              onClick={handleSave}
+              disabled={saving() || name().trim() === agentName()}
             >
-              {rotating() ? "Rotating..." : "Rotate key"}
+              <span aria-live="polite">{saved() ? "Saved" : saving() ? "Saving..." : "Save"}</span>
             </button>
           </div>
         </div>
-        <Show when={rotatedKey()}>
-          <div style="padding: 0 var(--gap-md) var(--gap-md);">
-            <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-              Copy your new API key now — it won't be shown again.
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px; background: hsl(var(--muted)); border-radius: var(--radius); padding: 10px 14px; font-family: var(--font-mono); font-size: var(--font-size-sm); word-break: break-all;">
-              {rotatedKey()}
-              <CopyButton text={rotatedKey()!} />
-            </div>
-          </div>
-        </Show>
-      </div>
 
-      <h3 class="settings-section__title">Integration</h3>
+        <Show when={!isLocalMode()}>
+          <h3 class="settings-section__title settings-section__title--danger">Danger zone</h3>
 
-      <Show when={!apiKeyData.loading} fallback={
-        <div class="setup-steps">
-          <div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />
-        </div>
-      }>
-        <Show when={!apiKeyData.error} fallback={
-          <ErrorState
-            error={apiKeyData.error}
-            title="Could not load API key"
-            message="Failed to fetch your agent's API key. Please try again."
-            onRetry={refetchKey}
-          />
-        }>
-          <div class="settings-card" style="padding: var(--gap-lg);">
-            <SetupStepInstall stepNumber={1} />
-            <SetupStepConfigure
-              stepNumber={2}
-              apiKey={rotatedKey()}
-              keyPrefix={apiKeyData()?.keyPrefix ?? null}
-              agentName={agentName()}
-              endpoint={endpoint()}
-            />
-            <SetupStepVerify stepNumber={3} />
+          <div class="settings-card settings-card--danger">
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Delete this agent</span>
+                <span class="settings-card__label-desc">Permanently remove this agent and all its activity data. This action cannot be undone.</span>
+              </div>
+              <div class="settings-card__control">
+                <button
+                  class="btn btn--danger"
+                  style="font-size: var(--font-size-sm);"
+                  onClick={() => { setShowDeleteModal(true); setDeleteConfirmName(""); }}
+                >
+                  Delete agent
+                </button>
+              </div>
+            </div>
           </div>
         </Show>
       </Show>
 
-      <h3 class="settings-section__title settings-section__title--danger">Danger zone</h3>
+      {/* -- Tab: Integration ------------------------- */}
+      <Show when={tab() === "Integration"}>
+        <h3 class="settings-section__title">API Key</h3>
 
-      <div class="settings-card settings-card--danger">
-        <div class="settings-card__row">
-          <div class="settings-card__label">
-            <span class="settings-card__label-title">Delete this agent</span>
-            <span class="settings-card__label-desc">Permanently remove this agent and all its activity data. This action cannot be undone.</span>
+        <div class="settings-card">
+          <div class="settings-card__row">
+            <div class="settings-card__label">
+              <span class="settings-card__label-title">OTLP ingest key</span>
+              <span class="settings-card__label-desc">Used by your agent to send telemetry data. Rotating creates a new key and invalidates the old one.</span>
+            </div>
+            <div class="settings-card__control" style="display: flex; align-items: center; gap: 8px;">
+              <Show when={isLocalMode() && apiKeyData()?.apiKey} fallback={
+                <code style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                  {apiKeyData()?.keyPrefix ?? "..."}...
+                </code>
+              }>
+                <code style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); word-break: break-all;">
+                  {apiKeyData()!.apiKey!}
+                </code>
+                <CopyButton text={apiKeyData()!.apiKey!} />
+              </Show>
+              <button
+                class="btn btn--outline"
+                style="font-size: var(--font-size-sm);"
+                onClick={handleRotate}
+                disabled={rotating()}
+              >
+                {rotating() ? "Rotating..." : "Rotate key"}
+              </button>
+            </div>
           </div>
-          <div class="settings-card__control">
-            <button
-              class="btn btn--danger"
-              style="font-size: var(--font-size-sm);"
-              onClick={() => { setShowDeleteModal(true); setDeleteConfirmName(""); }}
-            >
-              Delete agent
-            </button>
-          </div>
+          <Show when={rotatedKey() && !isLocalMode()}>
+            <div style="padding: 0 var(--gap-md) var(--gap-md);">
+              <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
+                Copy your new API key now — it won't be shown again.
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; background: hsl(var(--muted)); border-radius: var(--radius); padding: 10px 14px; font-family: var(--font-mono); font-size: var(--font-size-sm); word-break: break-all;">
+                {rotatedKey()}
+                <CopyButton text={rotatedKey()!} />
+              </div>
+            </div>
+          </Show>
         </div>
-      </div>
 
+        <h3 class="settings-section__title">Setup</h3>
+
+        <Show when={!apiKeyData.loading} fallback={
+          <div class="setup-steps">
+            <div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />
+          </div>
+        }>
+          <Show when={!apiKeyData.error} fallback={
+            <ErrorState
+              error={apiKeyData.error}
+              title="Could not load API key"
+              message="Failed to fetch your agent's API key. Please try again."
+              onRetry={refetchKey}
+            />
+          }>
+            <div class="settings-card" style="padding: var(--gap-lg);">
+              <SetupStepInstall stepNumber={1} />
+              <SetupStepConfigure
+                stepNumber={2}
+                apiKey={rotatedKey() ?? apiKeyData()?.apiKey ?? null}
+                keyPrefix={apiKeyData()?.keyPrefix ?? null}
+                agentName={agentName()}
+                endpoint={endpoint()}
+              />
+              <SetupStepVerify stepNumber={3} />
+            </div>
+          </Show>
+        </Show>
+      </Show>
+
+      {/* -- Delete Agent Modal ----------------------- */}
       <Show when={showDeleteModal()}>
         <div class="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
           <div class="modal-card" style="max-width: 440px;">

@@ -172,10 +172,10 @@ describe("initTelemetry", () => {
   it("logs trace and metrics exporter endpoints", () => {
     initTelemetry(config, mockLogger);
 
-    expect(mockLogger.info).toHaveBeenCalledWith(
+    expect(mockLogger.debug).toHaveBeenCalledWith(
       expect.stringContaining("Trace exporter ->"),
     );
-    expect(mockLogger.info).toHaveBeenCalledWith(
+    expect(mockLogger.debug).toHaveBeenCalledWith(
       expect.stringContaining("Metrics exporter ->"),
     );
   });

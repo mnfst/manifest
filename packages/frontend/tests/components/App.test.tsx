@@ -21,6 +21,10 @@ vi.mock("../../src/services/sse.js", () => ({
   connectSse: () => () => {},
 }));
 
+vi.mock("../../src/components/VersionIndicator.jsx", () => ({
+  default: () => <div data-testid="version-indicator" />,
+}));
+
 import App from "../../src/App";
 
 describe("App", () => {

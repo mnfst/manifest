@@ -12,6 +12,19 @@ import {
   createAgent,
   deleteAgent,
   getModelPrices,
+  getProviders,
+  connectProvider,
+  deactivateAllProviders,
+  disconnectProvider,
+  getTierAssignments,
+  overrideTier,
+  resetTier,
+  resetAllTiers,
+  getAvailableModels,
+  getNotificationRules,
+  createNotificationRule,
+  updateNotificationRule,
+  deleteNotificationRule,
 } from "../../src/services/api.js";
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -392,5 +405,298 @@ describe("fetchMutate error handling", () => {
 
     await expect(deleteAgent("bot")).rejects.toThrow("Request failed (500)");
     expect(toast.error).toHaveBeenCalledWith("Request failed (500)");
+  });
+});
+
+describe("getProviders", () => {
+  it("fetches /routing/providers", async () => {
+    const payload = [{ id: "1", provider: "openai", is_active: true, connected_at: "2026-01-01" }];
+    mockOk(payload);
+
+    const result = await getProviders();
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:3000/api/v1/routing/providers",
+      { credentials: "include" },
+    );
+  });
+});
+
+describe("connectProvider", () => {
+  it("POSTs to /routing/providers with provider only (no apiKey)", async () => {
+    const payload = { id: "1", provider: "openai", is_active: true };
+    mockMutateOk(payload);
+
+    const result = await connectProvider({ provider: "openai" });
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/providers",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: "openai" }),
+      }),
+    );
+  });
+
+  it("POSTs with optional apiKey when provided", async () => {
+    const payload = { id: "1", provider: "openai", is_active: true };
+    mockMutateOk(payload);
+
+    await connectProvider({ provider: "openai", apiKey: "sk-test" });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/providers",
+      expect.objectContaining({
+        body: JSON.stringify({ provider: "openai", apiKey: "sk-test" }),
+      }),
+    );
+  });
+
+  it("throws and shows toast on error", async () => {
+    const { toast } = await import("../../src/services/toast-store.js");
+    mockMutateError(400, "Invalid provider");
+
+    await expect(connectProvider({ provider: "" })).rejects.toThrow("Invalid provider");
+    expect(toast.error).toHaveBeenCalledWith("Invalid provider");
+  });
+});
+
+describe("deactivateAllProviders", () => {
+  it("POSTs to /routing/providers/deactivate-all", async () => {
+    mockMutateOk({ ok: true });
+
+    const result = await deactivateAllProviders();
+    expect(result).toEqual({ ok: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/providers/deactivate-all",
+      expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
+  });
+});
+
+describe("disconnectProvider", () => {
+  it("sends DELETE to /routing/providers/:provider", async () => {
+    const payload = { ok: true, notifications: [] };
+    mockMutateOk(payload);
+
+    const result = await disconnectProvider("openai");
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/providers/openai",
+      expect.objectContaining({ method: "DELETE", credentials: "include" }),
+    );
+  });
+
+  it("encodes provider name in URL", async () => {
+    mockMutateOk({ ok: true, notifications: [] });
+
+    await disconnectProvider("my provider");
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/routing/providers/my%20provider");
+  });
+});
+
+describe("getTierAssignments", () => {
+  it("fetches /routing/tiers", async () => {
+    const payload = [{ id: "1", tier: "tier-1", override_model: null, auto_assigned_model: "gpt-4" }];
+    mockOk(payload);
+
+    const result = await getTierAssignments();
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:3000/api/v1/routing/tiers",
+      { credentials: "include" },
+    );
+  });
+});
+
+describe("overrideTier", () => {
+  it("PUTs to /routing/tiers/:tier with JSON body", async () => {
+    const payload = { id: "1", tier: "tier-1", override_model: "gpt-4o", auto_assigned_model: null, updated_at: "2026-01-01" };
+    mockMutateOk(payload);
+
+    const result = await overrideTier("tier-1", "gpt-4o");
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/tiers/tier-1",
+      expect.objectContaining({
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "gpt-4o" }),
+      }),
+    );
+  });
+
+  it("encodes tier name in URL", async () => {
+    mockMutateOk({});
+
+    await overrideTier("tier 1", "gpt-4o");
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/routing/tiers/tier%201");
+  });
+});
+
+describe("resetTier", () => {
+  it("sends DELETE to /routing/tiers/:tier", async () => {
+    mockMutateOk();
+
+    await resetTier("tier-1");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/tiers/tier-1",
+      expect.objectContaining({ method: "DELETE", credentials: "include" }),
+    );
+  });
+
+  it("encodes tier name in URL", async () => {
+    mockMutateOk();
+
+    await resetTier("tier/special");
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/routing/tiers/tier%2Fspecial");
+  });
+});
+
+describe("resetAllTiers", () => {
+  it("POSTs to /routing/tiers/reset-all", async () => {
+    mockMutateOk();
+
+    await resetAllTiers();
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/tiers/reset-all",
+      expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
+  });
+});
+
+describe("getAvailableModels", () => {
+  it("fetches /routing/available-models", async () => {
+    const payload = [{ model_name: "gpt-4o", provider: "openai", input_price_per_token: 0.01 }];
+    mockOk(payload);
+
+    const result = await getAvailableModels();
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:3000/api/v1/routing/available-models",
+      { credentials: "include" },
+    );
+  });
+});
+
+describe("getNotificationRules", () => {
+  it("fetches /notifications with agent_name param", async () => {
+    const payload = [{ id: "1", agent_name: "bot", metric_type: "tokens", threshold: 1000 }];
+    mockOk(payload);
+
+    const result = await getNotificationRules("bot");
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/notifications");
+    expect(url).toContain("agent_name=bot");
+  });
+});
+
+describe("createNotificationRule", () => {
+  it("POSTs to /notifications with JSON body", async () => {
+    const data = { agent_name: "bot", metric_type: "tokens", threshold: 1000, period: "hour" };
+    mockMutateOk({ id: "1", ...data });
+
+    await createNotificationRule(data);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/notifications",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    );
+  });
+
+  it("throws and shows toast on error", async () => {
+    const { toast } = await import("../../src/services/toast-store.js");
+    mockMutateError(400, "Threshold must be positive");
+
+    await expect(
+      createNotificationRule({ agent_name: "bot", metric_type: "tokens", threshold: -1, period: "hour" }),
+    ).rejects.toThrow("Threshold must be positive");
+    expect(toast.error).toHaveBeenCalledWith("Threshold must be positive");
+  });
+});
+
+describe("updateNotificationRule", () => {
+  it("PATCHes to /notifications/:id with JSON body", async () => {
+    const updates = { threshold: 2000 };
+    mockMutateOk({ id: "rule-1", threshold: 2000 });
+
+    await updateNotificationRule("rule-1", updates);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/notifications/rule-1",
+      expect.objectContaining({
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      }),
+    );
+  });
+
+  it("encodes rule id in URL", async () => {
+    mockMutateOk({});
+
+    await updateNotificationRule("id/special", { threshold: 500 });
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/notifications/id%2Fspecial");
+  });
+});
+
+describe("deleteNotificationRule", () => {
+  it("sends DELETE to /notifications/:id", async () => {
+    mockMutateOk();
+
+    await deleteNotificationRule("rule-1");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/notifications/rule-1",
+      expect.objectContaining({ method: "DELETE", credentials: "include" }),
+    );
+  });
+
+  it("encodes rule id in URL", async () => {
+    mockMutateOk();
+
+    await deleteNotificationRule("id/special");
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/notifications/id%2Fspecial");
+  });
+});
+
+describe("fetchJson 401 redirect", () => {
+  it("redirects to /login on 401 response", async () => {
+    const loc = { origin: "http://localhost:3000", pathname: "/overview", href: "" };
+    vi.stubGlobal("location", loc);
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 401 });
+
+    // fetchJson returns a never-resolving promise on 401, so race with a timeout
+    const result = await Promise.race([
+      getHealth().then(() => "resolved"),
+      new Promise<string>((r) => setTimeout(() => r("pending"), 50)),
+    ]);
+
+    expect(result).toBe("pending");
+    expect(loc.href).toBe("/login");
+  });
+
+  it("does not redirect if already on /login", async () => {
+    const loc = { origin: "http://localhost:3000", pathname: "/login", href: "" };
+    vi.stubGlobal("location", loc);
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 401 });
+
+    await Promise.race([
+      getHealth(),
+      new Promise<string>((r) => setTimeout(() => r("done"), 50)),
+    ]);
+
+    expect(loc.href).toBe("");
   });
 });
