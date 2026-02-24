@@ -110,7 +110,7 @@ const MessageLog: Component = () => {
               />
             </div>
           </Show>
-          <Show when={hasNoData() && !setupCompleted()}>
+          <Show when={hasNoData() && !(isLocalMode() && params.agentName === 'local-agent') && !setupCompleted()}>
             <button class="btn btn--primary" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
@@ -141,7 +141,7 @@ const MessageLog: Component = () => {
           <ErrorState error={data.error} onRetry={refetch} />
         }>
         <Show when={!hasNoData()} fallback={
-          <Show when={setupCompleted()} fallback={
+          <Show when={(isLocalMode() && params.agentName === 'local-agent') || setupCompleted()} fallback={
             <div class="empty-state">
               <div class="empty-state__title">No messages recorded</div>
               <p>Set up your agent and start chatting. Activity will appear here automatically.</p>
