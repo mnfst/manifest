@@ -93,7 +93,7 @@ describe('DatabaseSeederService', () => {
 
       await service.onModuleInit();
 
-      expect(mockPricingRepo.count).toHaveBeenCalled();
+      expect(mockPricingRepo.upsert).toHaveBeenCalled();
     });
 
     it('should seed demo data when env is development and SEED_DATA is true', async () => {
@@ -303,18 +303,16 @@ describe('DatabaseSeederService', () => {
   });
 
   describe('seedModelPricing', () => {
-    it('should skip seeding when pricing data already exists', async () => {
+    it('should always upsert curated models even when data exists', async () => {
       mockPricingRepo.count.mockResolvedValue(10);
+      mockConfigService.get.mockReturnValue('production');
 
       await service.onModuleInit();
 
-      expect(mockPricingRepo.upsert).not.toHaveBeenCalled();
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(35);
     });
 
     it('should upsert all model pricing entries when table is empty', async () => {
-      mockPricingRepo.count.mockResolvedValue(0);
-
-      // Prevent demo data seeding to isolate pricing test
       mockConfigService.get.mockReturnValue('production');
 
       await service.onModuleInit();
