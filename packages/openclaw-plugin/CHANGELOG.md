@@ -1,5 +1,12 @@
 # manifest
 
+## 5.6.4
+
+### Patch Changes
+
+- c5e7207: Reduce npm package size by ~60%: subset Boxicons font to 5 used icons, optimize SVGs with SVGO, replace dark SVG duplicates with CSS filter, and remove unused assets (logo.png, og-image.png)
+- 54cd181: Revert per-user email provider configuration (#819)
+
 ## 5.6.3
 
 ### Patch Changes
