@@ -59,10 +59,13 @@ export class KeywordTrie {
     this.keywordCount++;
   }
 
+  /** Max characters to scan. Inputs beyond this are truncated for scoring. */
+  private static readonly MAX_SCAN_LENGTH = 100_000;
+
   scan(text: string): TrieMatch[] {
     const matches: TrieMatch[] = [];
     const lower = text.toLowerCase();
-    const len = lower.length;
+    const len = Math.min(lower.length, KeywordTrie.MAX_SCAN_LENGTH);
 
     for (let i = 0; i < len; i++) {
       if (i > 0 && isWordChar(lower[i - 1])) continue;

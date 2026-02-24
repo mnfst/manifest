@@ -99,7 +99,7 @@ const CONSTRAINT_PATTERNS = [
   /\bcannot exceed\b/gi,
   /\bwithin\s+\d+/gi,
   /\bbetween\s+\S+\s+and\s+\S+/gi,
-  /O\([^)]+\)/g,
+  /O\([^)]{1,200}\)/g,
   /\/[^/\s]+\//g,
 ];
 

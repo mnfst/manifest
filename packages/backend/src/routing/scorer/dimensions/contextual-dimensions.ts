@@ -36,7 +36,7 @@ export function scoreExpectedOutputLength(
 }
 
 const REPETITION_PATTERN =
-  /(\d+)\s*(variations?|options?|alternatives?|versions?|examples?|ways?\s+to|times)/i;
+  /(\d{1,6})\s{0,10}(variations?|options?|alternatives?|versions?|examples?|ways?\s{1,10}to|times)/i;
 
 export function scoreRepetitionRequests(text: string): number {
   const match = text.match(REPETITION_PATTERN);
