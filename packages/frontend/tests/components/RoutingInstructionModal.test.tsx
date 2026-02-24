@@ -36,11 +36,34 @@ describe("RoutingInstructionModal", () => {
     expect(screen.getByText("Deactivate routing")).toBeDefined();
   });
 
-  it("shows <your-model> placeholder in disable mode", () => {
+  it("shows default model (openai/gpt-4o) in disable mode", () => {
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="disable" onClose={() => {}} />
     ));
-    expect(container.textContent).toContain("<your-model>");
+    expect(container.textContent).toContain("openai/gpt-4o");
+  });
+
+  it("shows model picker buttons in disable mode", () => {
+    render(() => (
+      <RoutingInstructionModal open={true} mode="disable" onClose={() => {}} />
+    ));
+    expect(screen.getByText("GPT-4o")).toBeDefined();
+    expect(screen.getByText("Claude Sonnet 4")).toBeDefined();
+  });
+
+  it("does not show model picker in enable mode", () => {
+    render(() => (
+      <RoutingInstructionModal open={true} mode="enable" onClose={() => {}} />
+    ));
+    expect(screen.queryByText("GPT-4o")).toBeNull();
+  });
+
+  it("updates command when a different model is selected", async () => {
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="disable" onClose={() => {}} />
+    ));
+    fireEvent.click(screen.getByText("Claude Sonnet 4"));
+    expect(container.textContent).toContain("anthropic/claude-sonnet-4");
   });
 
   it("shows restart command in enable mode", () => {

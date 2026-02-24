@@ -543,4 +543,93 @@ describe('RoutingService', () => {
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
     });
   });
+
+  /* ── getProviderApiKey ── */
+
+  describe('getProviderApiKey', () => {
+    it('should return decrypted key when provider is active and has encrypted key', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const encrypted = encrypt('sk-test-key', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          user_id: 'u1',
+          provider: 'openai',
+          is_active: true,
+          api_key_encrypted: encrypted,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('u1', 'openai');
+      expect(result).toBe('sk-test-key');
+    });
+
+    it('should return null when no active provider matches', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          user_id: 'u1',
+          provider: 'anthropic',
+          is_active: true,
+          api_key_encrypted: 'enc',
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('u1', 'openai');
+      expect(result).toBeNull();
+    });
+
+    it('should return null when match has no encrypted key', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          user_id: 'u1',
+          provider: 'openai',
+          is_active: true,
+          api_key_encrypted: null,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('u1', 'openai');
+      expect(result).toBeNull();
+    });
+
+    it('should return null when decryption fails', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          user_id: 'u1',
+          provider: 'openai',
+          is_active: true,
+          api_key_encrypted: 'invalid:encrypted:data:format',
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('u1', 'openai');
+      expect(result).toBeNull();
+    });
+
+    it('should resolve aliases (e.g. google matches gemini provider)', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const encrypted = encrypt('AIza-test', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          user_id: 'u1',
+          provider: 'gemini',
+          is_active: true,
+          api_key_encrypted: encrypted,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('u1', 'google');
+      expect(result).toBe('AIza-test');
+    });
+
+    it('should return null when no records exist', async () => {
+      mockProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getProviderApiKey('u1', 'openai');
+      expect(result).toBeNull();
+    });
+  });
 });

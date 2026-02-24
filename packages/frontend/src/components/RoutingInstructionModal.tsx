@@ -1,8 +1,14 @@
-import { Show, type Component } from "solid-js";
+import { Show, createSignal, type Component } from "solid-js";
 import { CopyButton } from "./SetupStepInstall.jsx";
 
 const ENABLE_CMD = `openclaw config set agents.defaults.model.primary manifest/auto\nopenclaw gateway restart`;
-const DISABLE_CMD = `openclaw config set agents.defaults.model.primary <your-model>\nopenclaw gateway restart`;
+
+const FALLBACK_MODELS = [
+  { label: "GPT-4o", value: "openai/gpt-4o" },
+  { label: "Claude Sonnet 4", value: "anthropic/claude-sonnet-4" },
+  { label: "Gemini 2.5 Flash", value: "google/gemini-2.5-flash" },
+  { label: "GPT-4o Mini", value: "openai/gpt-4o-mini" },
+];
 
 interface Props {
   open: boolean;
@@ -11,14 +17,17 @@ interface Props {
 }
 
 const RoutingInstructionModal: Component<Props> = (props) => {
+  const [selectedModel, setSelectedModel] = createSignal(FALLBACK_MODELS[0]?.value ?? "openai/gpt-4o");
   const isEnable = () => props.mode === "enable";
   const title = () => (isEnable() ? "Activate routing" : "Deactivate routing");
-  const command = () => (isEnable() ? ENABLE_CMD : DISABLE_CMD);
+  const disableCmd = () =>
+    `openclaw config set agents.defaults.model.primary ${selectedModel()}\nopenclaw gateway restart`;
+  const command = () => (isEnable() ? ENABLE_CMD : disableCmd());
 
   const description = () =>
     isEnable()
       ? "Set manifest/auto as your default model so requests are routed through Manifest:"
-      : "Switch back to your preferred model to stop routing through Manifest:";
+      : "Pick the model to switch back to, then run the command:";
 
   return (
     <Show when={props.open}>
@@ -52,6 +61,19 @@ const RoutingInstructionModal: Component<Props> = (props) => {
             {description()}
           </p>
 
+          <Show when={!isEnable()}>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+              {FALLBACK_MODELS.map((m) => (
+                <button
+                  class={`btn btn--sm ${selectedModel() === m.value ? "btn--primary" : "btn--outline"}`}
+                  onClick={() => setSelectedModel(m.value)}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </Show>
+
           <div class="modal-terminal">
             <div class="modal-terminal__header">
               <div class="modal-terminal__dots">
@@ -69,7 +91,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
                 <>
                   <div>
                     <span class="modal-terminal__prompt">$</span>
-                    <span class="modal-terminal__code">openclaw config set agents.defaults.model.primary &lt;your-model&gt;</span>
+                    <span class="modal-terminal__code">openclaw config set agents.defaults.model.primary {selectedModel()}</span>
                   </div>
                   <div style="margin-top: 8px;">
                     <span class="modal-terminal__prompt">$</span>

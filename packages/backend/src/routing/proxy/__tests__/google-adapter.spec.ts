@@ -88,6 +88,119 @@ describe('Google Adapter', () => {
       }]);
     });
 
+    it('skips system messages with non-string content from systemInstruction', () => {
+      const body = {
+        messages: [
+          { role: 'system', content: { instructions: 'Be helpful' } },
+          { role: 'user', content: 'Hi' },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      // Non-string system content is filtered out (only string content makes it)
+      expect(result.systemInstruction).toBeUndefined();
+    });
+
+    it('joins multiple system messages into one instruction', () => {
+      const body = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'system', content: 'Be concise.' },
+          { role: 'user', content: 'Hi' },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const sysText = (result.systemInstruction as { parts: Array<{ text: string }> }).parts[0].text;
+      expect(sysText).toContain('You are helpful.');
+      expect(sysText).toContain('Be concise.');
+    });
+
+    it('handles array content blocks in messages', () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'First part' },
+              { type: 'text', text: 'Second part' },
+              { type: 'image', source: { data: 'base64' } }, // non-text blocks are skipped
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const contents = result.contents as Array<{ parts: Array<{ text?: string }> }>;
+      expect(contents[0].parts).toHaveLength(2);
+      expect(contents[0].parts[0].text).toBe('First part');
+      expect(contents[0].parts[1].text).toBe('Second part');
+    });
+
+    it('handles tool response messages', () => {
+      const body = {
+        messages: [
+          { role: 'user', content: 'Search for cats' },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [{
+              id: 'call_1',
+              type: 'function',
+              function: { name: 'web_search', arguments: '{"query":"cats"}' },
+            }],
+          },
+          {
+            role: 'tool',
+            tool_call_id: 'call_1',
+            content: '{"results": ["cat1", "cat2"]}',
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const contents = result.contents as Array<{ role: string; parts: Array<Record<string, unknown>> }>;
+      // Tool response should be mapped to functionResponse
+      const toolContent = contents[2];
+      expect(toolContent.role).toBe('user');
+      expect(toolContent.parts[0].functionResponse).toEqual({
+        name: 'call_1',
+        response: { result: '{"results": ["cat1", "cat2"]}' },
+      });
+    });
+
+    it('skips messages that produce no parts', () => {
+      const body = {
+        messages: [
+          { role: 'user', content: 'Hello' },
+          { role: 'assistant' }, // no content, no tool_calls
+          { role: 'user', content: 'Bye' },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const contents = result.contents as Array<Record<string, unknown>>;
+      // assistant with no parts should be skipped
+      expect(contents).toHaveLength(2);
+    });
+
+    it('returns empty tools when tool has no function property', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        tools: [{ type: 'retrieval' }], // no function property
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      expect(result.tools).toBeUndefined();
+    });
+
+    it('omits generationConfig when no generation params', () => {
+      const body = { messages: [{ role: 'user', content: 'Hi' }] };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      expect(result.generationConfig).toBeUndefined();
+    });
+
     it('handles tool_calls in assistant messages', () => {
       const body = {
         messages: [
@@ -168,6 +281,82 @@ describe('Google Adapter', () => {
       const result = fromGoogleResponse({ candidates: [] }, 'gemini-2.0-flash');
       const choices = result.choices as unknown[];
       expect(choices).toHaveLength(0);
+    });
+
+    it('maps SAFETY finish reason to content_filter', () => {
+      const google = {
+        candidates: [{
+          content: { parts: [{ text: '' }] },
+          finishReason: 'SAFETY',
+        }],
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{ finish_reason: string }>;
+      expect(choices[0].finish_reason).toBe('content_filter');
+    });
+
+    it('maps RECITATION finish reason to content_filter', () => {
+      const google = {
+        candidates: [{
+          content: { parts: [{ text: '' }] },
+          finishReason: 'RECITATION',
+        }],
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{ finish_reason: string }>;
+      expect(choices[0].finish_reason).toBe('content_filter');
+    });
+
+    it('maps unknown finish reason to stop', () => {
+      const google = {
+        candidates: [{
+          content: { parts: [{ text: 'ok' }] },
+          finishReason: 'UNKNOWN_REASON',
+        }],
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{ finish_reason: string }>;
+      expect(choices[0].finish_reason).toBe('stop');
+    });
+
+    it('handles missing finishReason as stop', () => {
+      const google = {
+        candidates: [{
+          content: { parts: [{ text: 'ok' }] },
+        }],
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{ finish_reason: string }>;
+      expect(choices[0].finish_reason).toBe('stop');
+    });
+
+    it('omits usage when usageMetadata is absent', () => {
+      const google = {
+        candidates: [{
+          content: { parts: [{ text: 'hi' }] },
+          finishReason: 'STOP',
+        }],
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      expect(result.usage).toBeUndefined();
+    });
+
+    it('handles no candidates', () => {
+      const result = fromGoogleResponse({}, 'gemini-2.0-flash');
+      const choices = result.choices as unknown[];
+      expect(choices).toHaveLength(0);
+    });
+
+    it('returns null content when parts have no text', () => {
+      const google = {
+        candidates: [{
+          content: { parts: [{ functionCall: { name: 'test', args: {} } }] },
+          finishReason: 'STOP',
+        }],
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{ message: Record<string, unknown> }>;
+      expect(choices[0].message.content).toBeNull();
     });
 
     it('maps MAX_TOKENS finish reason to length', () => {

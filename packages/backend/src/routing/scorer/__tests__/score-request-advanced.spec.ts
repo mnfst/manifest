@@ -95,6 +95,80 @@ describe('scoreRequest — ambiguous fallback', () => {
   });
 });
 
+describe('scoreRequest — estimateTotalTokens coverage', () => {
+  it('counts chars from array content blocks in large context check', () => {
+    // Array content with enough text to pass the 50-char short_message gate
+    const result = scoreRequest({
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Write a comprehensive React application that handles ' },
+            { type: 'text', text: 'state management, routing, authentication and forms' },
+          ],
+        },
+      ],
+    });
+    // Should not be short_message since combined text is > 50 chars
+    expect(result.reason).not.toBe('short_message');
+    expect(result).toHaveProperty('tier');
+  });
+
+  it('handles non-string non-array content via String() coercion in estimateTotalTokens', () => {
+    // Use a number as content for one message, plus a longer user message
+    // to avoid the short_message bypass
+    const result = scoreRequest({
+      messages: [
+        { role: 'user', content: 99999 },
+        {
+          role: 'user',
+          content: 'Please explain this concept in detail with examples and use cases for production',
+        },
+      ],
+    });
+    expect(result).toHaveProperty('tier');
+    expect(result.reason).not.toBe('short_message');
+  });
+
+  it('handles undefined content (skips in token estimation)', () => {
+    const result = scoreRequest({
+      messages: [
+        { role: 'assistant', content: undefined },
+        {
+          role: 'user',
+          content: 'Write a detailed analysis of this codebase architecture and deployment strategy',
+        },
+      ],
+    });
+    expect(result).toHaveProperty('tier');
+  });
+});
+
+describe('scoreRequest — scoreStructuralDimension default branch', () => {
+  it('returns 0 for unknown structural dimension names', () => {
+    const result = scoreRequest(
+      {
+        messages: [
+          {
+            role: 'user',
+            content: 'Write a comprehensive guide to React hooks with examples',
+          },
+        ],
+      },
+      {
+        dimensions: [
+          { name: 'unknownDimension', weight: 1.0, direction: 'up' as const },
+        ],
+      },
+    );
+    // The unknown dimension should contribute 0
+    const unknownDim = result.dimensions.find((d) => d.name === 'unknownDimension');
+    expect(unknownDim).toBeDefined();
+    expect(unknownDim!.rawScore).toBe(0);
+    expect(unknownDim!.weightedScore).toBe(0);
+  });
+});
+
 describe('scoreRequest — performance', () => {
   it('scores 1000 requests in under 500ms', () => {
     const input = {

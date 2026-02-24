@@ -51,6 +51,36 @@ describe('SessionMomentumService', () => {
     expect(service.getRecentTiers('sess-1')).toBeUndefined();
   });
 
+  it('evicts stale sessions during cleanup', () => {
+    service.recordTier('fresh', 'simple');
+    service.recordTier('stale', 'complex');
+
+    // Manually expire the 'stale' session
+    const sessions = (service as unknown as {
+      sessions: Map<string, { tiers: string[]; lastUpdated: number }>;
+    }).sessions;
+    const staleEntry = sessions.get('stale')!;
+    staleEntry.lastUpdated = Date.now() - 31 * 60 * 1000; // 31 minutes ago
+
+    // Trigger eviction manually
+    (service as unknown as { evictStale: () => void }).evictStale();
+
+    // Stale session should be removed, fresh session should remain
+    expect(service.getRecentTiers('stale')).toBeUndefined();
+    expect(service.getRecentTiers('fresh')).toEqual(['simple']);
+  });
+
+  it('eviction keeps non-stale sessions', () => {
+    service.recordTier('a', 'simple');
+    service.recordTier('b', 'complex');
+
+    (service as unknown as { evictStale: () => void }).evictStale();
+
+    // Both should survive since they are fresh
+    expect(service.getRecentTiers('a')).toEqual(['simple']);
+    expect(service.getRecentTiers('b')).toEqual(['complex']);
+  });
+
   it('isolates different session keys', () => {
     service.recordTier('a', 'simple');
     service.recordTier('b', 'complex');

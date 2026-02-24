@@ -8,8 +8,7 @@ import { TierAutoAssignService } from './tier-auto-assign.service';
 import { randomUUID } from 'crypto';
 import { encrypt, decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { expandProviderNames } from './provider-aliases';
-
-const TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
+import { TIERS } from './scorer/types';
 
 const TIER_LABELS: Record<string, string> = {
   simple: 'Simple',

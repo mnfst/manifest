@@ -7,9 +7,7 @@ import { TierAssignment } from '../entities/tier-assignment.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { randomUUID } from 'crypto';
 import { expandProviderNames } from './provider-aliases';
-
-const TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
-type Tier = (typeof TIERS)[number];
+import { TIERS, Tier } from './scorer/types';
 
 interface ScoredModel {
   model_name: string;

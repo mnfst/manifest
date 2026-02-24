@@ -148,6 +148,42 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('convertGoogleResponse', () => {
+    it('delegates to fromGoogleResponse', () => {
+      const googleBody = {
+        candidates: [{
+          content: { parts: [{ text: 'Hello' }] },
+          finishReason: 'STOP',
+        }],
+      };
+      const result = client.convertGoogleResponse(googleBody, 'gemini-2.0-flash');
+
+      expect(result.object).toBe('chat.completion');
+      expect(result.model).toBe('gemini-2.0-flash');
+      const choices = result.choices as Array<{ message: { content: string } }>;
+      expect(choices[0].message.content).toBe('Hello');
+    });
+  });
+
+  describe('convertGoogleStreamChunk', () => {
+    it('delegates to transformGoogleStreamChunk', () => {
+      const chunk = JSON.stringify({
+        candidates: [{
+          content: { parts: [{ text: 'Hi' }] },
+        }],
+      });
+      const result = client.convertGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+
+      expect(result).toContain('data: ');
+      expect(result).toContain('"chat.completion.chunk"');
+    });
+
+    it('returns null for empty chunk', () => {
+      const result = client.convertGoogleStreamChunk('', 'gemini-2.0-flash');
+      expect(result).toBeNull();
+    });
+  });
+
   describe('Error handling', () => {
     it('throws for unknown provider', async () => {
       await expect(

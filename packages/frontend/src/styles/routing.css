@@ -231,6 +231,30 @@
   cursor: not-allowed;
 }
 
+/* ── Setup instructions link ─────────────────────── */
+.routing-footer__instructions {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  transition: color var(--transition-fast);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.routing-footer__instructions:hover {
+  color: hsl(var(--foreground));
+}
+
+.routing-footer__instructions:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
 /* ── Routing footer ───────────────────────────────── */
 .routing-footer {
   display: flex;

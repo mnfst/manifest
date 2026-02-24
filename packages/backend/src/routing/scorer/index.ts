@@ -29,6 +29,7 @@ import {
 } from './dimensions';
 import { applyMomentum, MomentumInput } from './momentum';
 import { computeConfidence, scoreToTier } from './sigmoid';
+import { checkFormalLogicOverride, estimateTotalTokens } from './overrides';
 
 export type {
   ScorerInput,
@@ -72,30 +73,6 @@ function maxTier(a: Tier, b: Tier): Tier {
   return TIER_ORDER[a] >= TIER_ORDER[b] ? a : b;
 }
 
-function estimateTotalTokens(messages: ScorerInput['messages']): number {
-  let chars = 0;
-  for (const msg of messages) {
-    if (msg.content === null || msg.content === undefined) continue;
-    if (typeof msg.content === 'string') {
-      chars += msg.content.length;
-    } else if (Array.isArray(msg.content)) {
-      for (const block of msg.content) {
-        if (
-          block &&
-          typeof block === 'object' &&
-          'text' in block &&
-          typeof (block as Record<string, unknown>).text === 'string'
-        ) {
-          chars += ((block as Record<string, unknown>).text as string).length;
-        }
-      }
-    } else {
-      chars += String(msg.content).length;
-    }
-  }
-  return chars / 4;
-}
-
 function emptyDimensions(config: ScorerConfig): DimensionScore[] {
   return config.dimensions.map((d) => ({
     name: d.name,
@@ -104,44 +81,6 @@ function emptyDimensions(config: ScorerConfig): DimensionScore[] {
     weightedScore: 0,
     ...(d.keywords ? { matchedKeywords: [] } : {}),
   }));
-}
-
-function isWordCharCode(code: number): boolean {
-  return (
-    (code >= 48 && code <= 57) ||   // 0-9
-    (code >= 65 && code <= 90) ||   // A-Z
-    (code >= 97 && code <= 122) ||  // a-z
-    code === 95                     // _
-  );
-}
-
-function hasWordBoundaryMatch(text: string, keyword: string): boolean {
-  const kwLower = keyword.toLowerCase();
-  let idx = text.indexOf(kwLower);
-  while (idx !== -1) {
-    const beforeOk = idx === 0 || !isWordCharCode(text.charCodeAt(idx - 1));
-    const afterEnd = idx + kwLower.length;
-    const afterOk = afterEnd >= text.length || !isWordCharCode(text.charCodeAt(afterEnd));
-    if (beforeOk && afterOk) return true;
-    idx = text.indexOf(kwLower, idx + 1);
-  }
-  return false;
-}
-
-function checkFormalLogicOverride(
-  config: ScorerConfig,
-  lastUserText: string,
-): boolean {
-  const formalDim = config.dimensions.find(
-    (d) => d.name === 'formalLogic',
-  );
-  if (!formalDim?.keywords || lastUserText.length === 0) return false;
-
-  const lastTextLower = lastUserText.toLowerCase();
-  for (const kw of formalDim.keywords) {
-    if (hasWordBoundaryMatch(lastTextLower, kw)) return true;
-  }
-  return false;
 }
 
 interface StructuralDimContext {

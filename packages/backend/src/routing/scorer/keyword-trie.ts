@@ -13,15 +13,18 @@ function createNode(): TrieNode {
   return { children: new Map(), terminals: [] };
 }
 
-/** Matches [0-9A-Za-z_] — used for word-boundary detection in trie scanning. */
-function isWordChar(c: string): boolean {
-  const code = c.charCodeAt(0);
+/** Matches [0-9A-Za-z_] — used for word-boundary detection. */
+export function isWordCharCode(code: number): boolean {
   return (
     (code >= 48 && code <= 57) ||   // 0-9
     (code >= 65 && code <= 90) ||   // A-Z
     (code >= 97 && code <= 122) ||  // a-z
     code === 95                     // _
   );
+}
+
+function isWordChar(c: string): boolean {
+  return isWordCharCode(c.charCodeAt(0));
 }
 
 export class KeywordTrie {

@@ -6,12 +6,13 @@ import { STAGES, PROVIDERS, getModelLabel } from "../services/providers.js";
 import { providerIcon } from "../components/ProviderIcon.js";
 import ProviderSelectModal from "../components/ProviderSelectModal.js";
 import RoutingInstructionModal from "../components/RoutingInstructionModal.js";
+import ModelPickerModal from "../components/ModelPickerModal.js";
 import { toast } from "../services/toast-store.js";
+import { pricePerM, resolveProviderId } from "../services/routing-utils.js";
 import {
   getTierAssignments,
   getAvailableModels,
   getProviders,
-  connectProvider,
   deactivateAllProviders,
   overrideTier,
   resetTier,
@@ -19,28 +20,6 @@ import {
   type TierAssignment,
   type AvailableModel,
 } from "../services/api.js";
-
-/** Format per-million token price: $0.15 */
-function pricePerM(perToken: number): string {
-  const perM = Number(perToken) * 1_000_000;
-  if (perM < 0.01) return "$0.00";
-  return `$${perM.toFixed(2)}`;
-}
-
-/** Map DB provider names to frontend provider IDs */
-const PROVIDER_ALIASES: Record<string, string> = {
-  google: "gemini",
-  alibaba: "qwen",
-  moonshot: "moonshot",
-  meta: "meta",
-  cohere: "cohere",
-};
-
-function resolveProviderId(dbProvider: string): string | undefined {
-  const key = dbProvider.toLowerCase();
-  const alias = PROVIDER_ALIASES[key];
-  return PROVIDERS.find((p) => p.id === key || p.id === alias || p.name.toLowerCase() === key)?.id;
-}
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m = apiModels.find((x) => x.model_name === model)
@@ -68,7 +47,6 @@ const Routing: Component = () => {
   const [models, { refetch: refetchModels }] = createResource(getAvailableModels);
   const [connectedProviders, { refetch: refetchProviders }] = createResource(getProviders);
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
-  const [search, setSearch] = createSignal("");
   const [showProviderModal, setShowProviderModal] = createSignal(false);
   const [disabling, setDisabling] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<"enable" | "disable" | null>(null);
@@ -106,72 +84,8 @@ const Routing: Component = () => {
     return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out per 1M`;
   };
 
-  /* ── Dropdown model list ── */
-  const openDropdown = (tierId: string) => {
-    setSearch("");
-    setDropdownTier(tierId);
-  };
-
-  const closeDropdown = () => {
-    setDropdownTier(null);
-    setSearch("");
-  };
-
-  const providerLabelMap = (): Map<string, string> => {
-    const map = new Map<string, string>();
-    for (const prov of PROVIDERS) {
-      for (const m of prov.models) {
-        map.set(m.value, m.label);
-      }
-    }
-    return map;
-  };
-
-  const groupedModels = () => {
-    const q = search().toLowerCase().trim();
-    const labels = providerLabelMap();
-
-    type ModalModel = { value: string; label: string; pricing: AvailableModel };
-    const groupMap = new Map<string, { provId: string; name: string; models: ModalModel[] }>();
-
-    for (const m of models() ?? []) {
-      const provId = resolveProviderId(m.provider);
-      if (!provId) continue;
-      if (!groupMap.has(provId)) {
-        const provDef = PROVIDERS.find((p) => p.id === provId);
-        groupMap.set(provId, { provId, name: provDef?.name ?? m.provider, models: [] });
-      }
-      groupMap.get(provId)!.models.push({
-        value: m.model_name,
-        label: labels.get(m.model_name) ?? m.model_name,
-        pricing: m,
-      });
-    }
-
-    const groups: { provId: string; name: string; models: ModalModel[] }[] = [];
-    for (const group of groupMap.values()) {
-      if (q) {
-        const nameMatch = group.name.toLowerCase().includes(q);
-        const filtered = nameMatch
-          ? group.models
-          : group.models.filter(
-              (m) => m.label.toLowerCase().includes(q) || m.value.toLowerCase().includes(q),
-            );
-        if (filtered.length > 0) groups.push({ ...group, models: filtered });
-      } else if (group.models.length > 0) {
-        groups.push(group);
-      }
-    }
-    return groups;
-  };
-
-  const isRecommended = (tierId: string, modelName: string): boolean => {
-    const t = getTier(tierId);
-    return t?.auto_assigned_model === modelName;
-  };
-
   const handleOverride = async (tierId: string, modelName: string) => {
-    closeDropdown();
+    setDropdownTier(null);
     try {
       await overrideTier(tierId, modelName);
       await refetchTiers();
@@ -263,7 +177,6 @@ const Routing: Component = () => {
             </div>
           }
         >
-          {/* Provider selector button */}
           <button class="routing-providers-btn" onClick={() => setShowProviderModal(true)} aria-label="Manage connected providers">
             <span class="routing-providers-btn__icons">
               <For each={activeProviderIds().slice(0, 5)}>
@@ -286,10 +199,7 @@ const Routing: Component = () => {
             <For each={STAGES}>
               {(stage) => {
                 const tier = () => getTier(stage.id);
-                const eff = () => {
-                  const t = tier();
-                  return t ? effectiveModel(t) : null;
-                };
+                const eff = () => { const t = tier(); return t ? effectiveModel(t) : null; };
                 const isManual = () => tier()?.override_model !== null && tier()?.override_model !== undefined;
 
                 return (
@@ -298,64 +208,33 @@ const Routing: Component = () => {
                       <span class="routing-card__tier">{stage.label}</span>
                       <span class="routing-card__desc">{stage.desc}</span>
                     </div>
-
                     <div class="routing-card__body">
-                      <Show
-                        when={eff()}
-                        fallback={
-                          <div class="routing-card__empty">
-                            <span class="routing-card__empty-text">No model available</span>
-                            <button
-                              class="routing-card__empty-link"
-                              onClick={() => openDropdown(stage.id)}
-                            >
-                              Select model
-                            </button>
+                      <Show when={eff()} fallback={
+                        <div class="routing-card__empty">
+                          <span class="routing-card__empty-text">No model available</span>
+                          <button class="routing-card__empty-link" onClick={() => setDropdownTier(stage.id)}>Select model</button>
+                        </div>
+                      }>
+                        {(modelName) => (<>
+                          <div class="routing-card__override">
+                            {(() => {
+                              const provId = providerIdForModel(modelName(), models() ?? []);
+                              return (<Show when={provId}>{(pid) => (<span class="routing-card__override-icon">{providerIcon(pid(), 16)}</span>)}</Show>);
+                            })()}
+                            <span class="routing-card__main">{labelFor(modelName())}</span>
+                            <Show when={!isManual()}><span class="routing-card__auto-tag">auto</span></Show>
                           </div>
-                        }
-                      >
-                        {(modelName) => (
-                          <>
-                            <div class="routing-card__override">
-                              {(() => {
-                                const provId = providerIdForModel(modelName(), models() ?? []);
-                                return (
-                                  <Show when={provId}>
-                                    {(pid) => (
-                                      <span class="routing-card__override-icon">
-                                        {providerIcon(pid(), 16)}
-                                      </span>
-                                    )}
-                                  </Show>
-                                );
-                              })()}
-                              <span class="routing-card__main">{labelFor(modelName())}</span>
-                              <Show when={!isManual()}>
-                                <span class="routing-card__auto-tag">auto</span>
-                              </Show>
-                            </div>
-                            <span class="routing-card__sub">{priceLabel(modelName())}</span>
-                          </>
-                        )}
+                          <span class="routing-card__sub">{priceLabel(modelName())}</span>
+                        </>)}
                       </Show>
                     </div>
-
                     <Show when={eff()}>
                       <div class="routing-card__actions">
-                        <Show
-                          when={isManual()}
-                          fallback={
-                            <button class="routing-action" onClick={() => openDropdown(stage.id)}>
-                              Override
-                            </button>
-                          }
-                        >
-                          <button class="routing-action" onClick={() => openDropdown(stage.id)}>
-                            Edit
-                          </button>
-                          <button class="routing-action" onClick={() => handleReset(stage.id)}>
-                            Reset
-                          </button>
+                        <Show when={isManual()} fallback={
+                          <button class="routing-action" onClick={() => setDropdownTier(stage.id)}>Override</button>
+                        }>
+                          <button class="routing-action" onClick={() => setDropdownTier(stage.id)}>Edit</button>
+                          <button class="routing-action" onClick={() => handleReset(stage.id)}>Reset</button>
                         </Show>
                       </div>
                     </Show>
@@ -372,102 +251,28 @@ const Routing: Component = () => {
               </button>
             </Show>
             <div style="flex: 1;" />
-            <button
-              class="routing-disable-btn"
-              onClick={handleDisable}
-              disabled={disabling()}
-            >
+            <button class="routing-footer__instructions" onClick={() => setInstructionModal("enable")}>
+              Setup instructions
+            </button>
+            <button class="routing-disable-btn" onClick={handleDisable} disabled={disabling()}>
               {disabling() ? "Disabling..." : "Disable Routing"}
             </button>
           </div>
         </Show>
       </Show>
 
-      {/* ── Model picker modal ─────────────────────────── */}
       <Show when={dropdownTier()}>
         {(tierId) => (
-          <div class="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) closeDropdown(); }} onKeyDown={(e) => { if (e.key === "Escape") closeDropdown(); }}>
-            <div
-              class="modal-card"
-              style="max-width: 600px; padding: 0; display: flex; flex-direction: column; max-height: 80vh;"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="model-picker-title"
-            >
-              <div class="routing-modal__header">
-                <div>
-                  <div class="routing-modal__title" id="model-picker-title">Select a model</div>
-                  <div class="routing-modal__subtitle">
-                    {STAGES.find((s) => s.id === tierId())?.label} tier
-                  </div>
-                </div>
-                <button class="modal__close" onClick={closeDropdown} aria-label="Close">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M18 6 6 18" /><path d="m6 6 12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div class="routing-modal__search-wrap">
-                <svg class="routing-modal__search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-                </svg>
-                <input
-                  class="routing-modal__search"
-                  type="text"
-                  placeholder="Search models or providers..."
-                  aria-label="Search models or providers"
-                  value={search()}
-                  onInput={(e) => setSearch(e.currentTarget.value)}
-                  autofocus
-                />
-              </div>
-
-              <div class="routing-modal__list">
-                <For each={groupedModels()}>
-                  {(group) => (
-                    <div class="routing-modal__group">
-                      <div class="routing-modal__group-header">
-                        <span class="routing-modal__group-icon">
-                          {providerIcon(group.provId, 16)}
-                        </span>
-                        <span class="routing-modal__group-name">{group.name}</span>
-                      </div>
-                      <For each={group.models}>
-                        {(model) => (
-                          <button
-                            class="routing-modal__model"
-                            onClick={() => handleOverride(tierId(), model.value)}
-                          >
-                            <span class="routing-modal__model-label">
-                              {model.label}
-                              <Show when={isRecommended(tierId(), model.value)}>
-                                <span class="routing-modal__recommended"> (recommended)</span>
-                              </Show>
-                            </span>
-                            <Show when={model.pricing}>
-                              {(p) => (
-                                <span class="routing-modal__model-id">
-                                  {pricePerM(p().input_price_per_token)} in · {pricePerM(p().output_price_per_token)} out per 1M
-                                </span>
-                              )}
-                            </Show>
-                          </button>
-                        )}
-                      </For>
-                    </div>
-                  )}
-                </For>
-                <Show when={groupedModels().length === 0}>
-                  <div class="routing-modal__empty">No models match your search.</div>
-                </Show>
-              </div>
-            </div>
-          </div>
+          <ModelPickerModal
+            tierId={tierId()}
+            models={models() ?? []}
+            tiers={tiers() ?? []}
+            onSelect={handleOverride}
+            onClose={() => setDropdownTier(null)}
+          />
         )}
       </Show>
 
-      {/* ── Provider selection modal ────────────────────── */}
       <Show when={showProviderModal()}>
         <ProviderSelectModal
           providers={connectedProviders() ?? []}
@@ -476,7 +281,6 @@ const Routing: Component = () => {
         />
       </Show>
 
-      {/* ── Routing instruction modal ────────────────────── */}
       <RoutingInstructionModal
         open={instructionModal() !== null}
         mode={instructionModal() ?? "enable"}

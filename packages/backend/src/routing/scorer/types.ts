@@ -19,7 +19,8 @@ export interface ScorerInput {
 
 // ── Output types ──
 
-export type Tier = 'simple' | 'standard' | 'complex' | 'reasoning';
+export const TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
+export type Tier = (typeof TIERS)[number];
 
 export type ScoringReason =
   | 'scored'
