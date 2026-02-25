@@ -25,6 +25,11 @@ jest.mock('../model-prices/model-pricing-cache.service', () => ({
   ModelPricingCacheService: jest.fn(),
 }));
 
+// Mock product telemetry
+jest.mock('../common/utils/product-telemetry', () => ({
+  trackEvent: jest.fn(),
+}));
+
 // Mock entity imports
 jest.mock('../entities/tenant.entity', () => ({ Tenant: jest.fn() }));
 jest.mock('../entities/agent.entity', () => ({ Agent: jest.fn() }));
@@ -32,6 +37,7 @@ jest.mock('../entities/agent-api-key.entity', () => ({ AgentApiKey: jest.fn() })
 jest.mock('../entities/model-pricing.entity', () => ({ ModelPricing: jest.fn() }));
 
 import { LocalBootstrapService } from './local-bootstrap.service';
+import { trackEvent } from '../common/utils/product-telemetry';
 
 function makeMockRepo() {
   return {
@@ -51,6 +57,7 @@ describe('LocalBootstrapService', () => {
   let mockPricingSync: { syncPricing: jest.Mock };
 
   beforeEach(() => {
+    (trackEvent as jest.Mock).mockClear();
     mockTenantRepo = makeMockRepo();
     mockAgentRepo = makeMockRepo();
     mockAgentKeyRepo = makeMockRepo();
@@ -102,6 +109,20 @@ describe('LocalBootstrapService', () => {
 
       expect(mockTenantRepo.insert).not.toHaveBeenCalled();
       expect(mockAgentRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('calls trackEvent agent_created during first bootstrap', async () => {
+      await service.onModuleInit();
+
+      expect(trackEvent).toHaveBeenCalledWith('agent_created', { agent_name: 'local-agent' });
+    });
+
+    it('does NOT call trackEvent when tenant already exists', async () => {
+      mockTenantRepo.count.mockResolvedValue(1);
+
+      await service.onModuleInit();
+
+      expect(trackEvent).not.toHaveBeenCalled();
     });
 
     it('skips model pricing seed when models already exist', async () => {

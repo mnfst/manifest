@@ -129,6 +129,16 @@ describe("register — dev mode", () => {
     host: "127.0.0.1",
   };
 
+  it("does NOT call trackPluginEvent in dev mode", () => {
+    (parseConfig as jest.Mock).mockReturnValue(devConfig);
+    (validateConfig as jest.Mock).mockReturnValue(null);
+
+    const api = makeApi();
+    plugin.register(api);
+
+    expect(trackPluginEvent).not.toHaveBeenCalled();
+  });
+
   it("does NOT delegate to registerLocalMode", () => {
     (parseConfig as jest.Mock).mockReturnValue(devConfig);
     (validateConfig as jest.Mock).mockReturnValue(null);
