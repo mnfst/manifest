@@ -64,9 +64,6 @@ describe("register — mode routing", () => {
       mode: "local",
       apiKey: "",
       endpoint: "",
-      serviceName: "test",
-      captureContent: false,
-      metricsIntervalMs: 30000,
       port: 2099,
       host: "127.0.0.1",
     });
@@ -82,9 +79,6 @@ describe("register — mode routing", () => {
       mode: "cloud",
       apiKey: "mnfst_abc",
       endpoint: "https://app.manifest.build/otlp",
-      serviceName: "test",
-      captureContent: false,
-      metricsIntervalMs: 30000,
       port: 2099,
       host: "127.0.0.1",
     });
@@ -101,9 +95,6 @@ describe("register — mode routing", () => {
       mode: "local",
       apiKey: "",
       endpoint: "",
-      serviceName: "test",
-      captureContent: false,
-      metricsIntervalMs: 30000,
       port: 2099,
       host: "127.0.0.1",
     });
@@ -122,9 +113,6 @@ describe("register — dev mode", () => {
     mode: "dev" as const,
     apiKey: "",
     endpoint: "http://localhost:38238/otlp",
-    serviceName: "test",
-    captureContent: true,
-    metricsIntervalMs: 10000,
     port: 2099,
     host: "127.0.0.1",
   };
@@ -301,9 +289,6 @@ describe("register — cloud mode missing API key", () => {
       mode: "cloud",
       apiKey: "",
       endpoint: "https://app.manifest.build/otlp",
-      serviceName: "test",
-      captureContent: false,
-      metricsIntervalMs: 30000,
       port: 2099,
       host: "127.0.0.1",
     });
@@ -322,9 +307,6 @@ describe("register — cloud mode missing API key", () => {
       mode: "cloud",
       apiKey: "",
       endpoint: "https://app.manifest.build/otlp",
-      serviceName: "test",
-      captureContent: false,
-      metricsIntervalMs: 30000,
       port: 2099,
       host: "127.0.0.1",
     });

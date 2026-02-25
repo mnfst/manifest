@@ -24,22 +24,6 @@
         "default": "https://app.manifest.build/api/v1/otlp",
         "description": "Manifest OTLP endpoint URL"
       },
-      "serviceName": {
-        "type": "string",
-        "default": "openclaw-gateway",
-        "description": "OpenTelemetry service name"
-      },
-      "captureContent": {
-        "type": "boolean",
-        "default": false,
-        "description": "Include message content in spans (disable for privacy)"
-      },
-      "metricsIntervalMs": {
-        "type": "number",
-        "minimum": 5000,
-        "default": 30000,
-        "description": "Metrics export interval in milliseconds"
-      },
       "port": {
         "type": "number",
         "default": 2099,
@@ -65,17 +49,6 @@
     "endpoint": {
       "label": "Endpoint URL",
       "placeholder": "https://app.manifest.build/api/v1/otlp"
-    },
-    "serviceName": {
-      "label": "Service Name",
-      "placeholder": "openclaw-gateway"
-    },
-    "captureContent": {
-      "label": "Capture Message Content",
-      "description": "Include message content in trace spans. Always enabled in local mode."
-    },
-    "metricsIntervalMs": {
-      "label": "Metrics Interval (ms)"
     },
     "port": {
       "label": "Local Server Port"
