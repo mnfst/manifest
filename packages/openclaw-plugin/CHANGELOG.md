@@ -1,5 +1,11 @@
 # manifest
 
+## 5.9.7
+
+### Patch Changes
+
+- 55359f1: Add PostHog analytics for routing adoption tracking
+
 ## 5.9.6
 
 ### Patch Changes
