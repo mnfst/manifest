@@ -1,10 +1,30 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-02-23
+Last updated: 2026-02-24
 
 ## IMPORTANT: Local Mode First
 
 When starting the app for development or testing (e.g. `/serve`), **always use `MANIFEST_MODE=local`** unless explicitly asked for cloud mode. Local mode is the primary development target — cloud mode comes second.
+
+## Plugin Dev Mode
+
+When testing the OpenClaw plugin integration (routing, telemetry, OTLP), use **dev mode** to connect the plugin to a local backend without API key management:
+
+```bash
+# 1. Build and start the backend in local mode
+npm run build
+MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
+  node -r dotenv/config packages/backend/dist/main.js
+
+# 2. Configure the plugin
+openclaw config set plugins.entries.manifest.config.mode dev
+openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp
+
+# 3. Restart the gateway
+openclaw gateway --force
+```
+
+No API key needed. The dashboard shows an orange **Dev** badge in the header when running in local mode. Dev mode uses the OTLP loopback bypass — the `OtlpAuthGuard` trusts same-machine connections without Bearer token auth.
 
 ## Active Technologies
 

@@ -75,6 +75,40 @@ The frontend runs on `http://localhost:3000` and proxies API requests to the bac
 
 4. With `SEED_DATA=true`, you can log in with `admin@manifest.build` / `manifest`.
 
+## Testing with the OpenClaw Plugin (Dev Mode)
+
+When developing features that involve the OpenClaw plugin (routing, telemetry, observability), use **dev mode** to point the plugin at your local backend without API key management.
+
+1. Build and start the backend in local mode:
+
+```bash
+npm run build
+MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
+  node -r dotenv/config packages/backend/dist/main.js
+```
+
+2. Configure the plugin to use dev mode:
+
+```bash
+openclaw config set plugins.entries.manifest.config.mode dev
+openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp
+```
+
+3. Restart the gateway:
+
+```bash
+openclaw gateway --force
+```
+
+That's it — no API key needed. Telemetry from your agent flows directly to the local backend. Open `http://localhost:38238` to see the dashboard (you'll see an orange **Dev** badge in the header).
+
+**When to use dev mode:**
+
+- Testing routing, tier assignment, or model resolution
+- Working on OTLP ingestion or telemetry pipelines
+- Debugging the plugin ↔ backend integration
+- Any time you need the full plugin + backend stack running locally
+
 ## Available Scripts
 
 | Command | Description |
