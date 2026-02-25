@@ -142,6 +142,23 @@ That's it — no API key needed. Telemetry from your agent flows directly to the
 - **Build**: `npx tsx build.ts` or `npm run build:plugin` from the root
 - **Watch mode**: `cd packages/openclaw-plugin && npx tsx watch build.ts`
 
+#### Plugin Settings
+
+The plugin exposes 5 user-facing settings via `openclaw.plugin.json`. All are optional — local mode works with zero configuration.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `mode` | `string` | `local` | Controls the plugin's operating mode. `local` starts an embedded NestJS server backed by sql.js. `cloud` exports telemetry to `app.manifest.build`. `dev` connects to a local backend without API key management (uses OTLP loopback bypass). |
+| `apiKey` | `string` | env `MANIFEST_API_KEY` | OTLP ingest key (must start with `mnfst_`). Required in cloud mode. Auto-generated and persisted to `~/.openclaw/manifest/config.json` in local mode. Ignored in dev mode. |
+| `endpoint` | `string` | `https://app.manifest.build/otlp` | Base URL for the OTLP exporters. The SDK appends `/v1/traces`, `/v1/metrics`, `/v1/logs` automatically. Only used in cloud and dev modes — local mode overrides this to `http://{host}:{port}/otlp`. |
+| `port` | `number` | `2099` | Bind port for the embedded server (local mode only). Also used for the dashboard URL and the injected OpenAI-compatible provider config. |
+| `host` | `string` | `127.0.0.1` | Bind address for the embedded server (local mode only). |
+
+Settings are parsed in `src/config.ts` (`parseConfig`) and validated in `validateConfig`. The JSON schema in `openclaw.plugin.json` (package root) is the source of truth — the build copies it to `dist/`. Some internal values are not user-configurable:
+
+- **`serviceName`**: Always `"openclaw-gateway"` (hardcoded via `DEFAULTS.SERVICE_NAME` in `src/constants.ts`)
+- **`metricsIntervalMs`**: 10s for local/dev, 30s for cloud (computed per mode in `src/telemetry.ts`)
+
 ## Making Changes
 
 ### Workflow
