@@ -1,5 +1,11 @@
 # manifest
 
+## 5.9.8
+
+### Patch Changes
+
+- e0f0b6b: Remove dead code (unused constants, orphaned mocks, deleted manifest-server package) and rewrite plugin README to highlight LLM router value proposition
+
 ## 5.9.7
 
 ### Patch Changes

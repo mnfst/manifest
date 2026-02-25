@@ -4,7 +4,7 @@ This folder is managed by [Changesets](https://github.com/changesets/changesets)
 
 ## Adding a changeset
 
-When you make a change to a publishable package (`manifest` or `@mnfst/server`), run:
+When you make a change to a publishable package (`manifest`), run:
 
 ```bash
 npx changeset

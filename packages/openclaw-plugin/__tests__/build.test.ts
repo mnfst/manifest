@@ -148,11 +148,6 @@ describe("build configuration", () => {
     expect(buildContent).toContain("stubs/resources.js");
   });
 
-  it("package.json no longer depends on @mnfst/server (merged into plugin)", () => {
-    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-    expect(pkg.dependencies).not.toHaveProperty("@mnfst/server");
-  });
-
   it("build.ts keeps ./server as external", () => {
     const buildPath = resolve(__dirname, "../build.ts");
     const buildContent = readFileSync(buildPath, "utf-8");

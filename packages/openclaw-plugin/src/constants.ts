@@ -3,7 +3,6 @@ export const SPANS = {
   REQUEST: "openclaw.request",
   AGENT_TURN: "openclaw.agent.turn",
   TOOL_PREFIX: "tool.",
-  MESSAGE_RECEIVED: "openclaw.message.received",
 } as const;
 
 // Metric names
@@ -17,7 +16,6 @@ export const METRICS = {
   TOOL_ERRORS: "openclaw.tool.errors",
   TOOL_DURATION: "openclaw.tool.duration",
   MESSAGES_RECEIVED: "openclaw.messages.received",
-  ESTIMATED_COST_USD: "openclaw.estimated_cost.usd",
 } as const;
 
 // Attribute keys
