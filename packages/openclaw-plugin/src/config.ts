@@ -1,12 +1,9 @@
 import { API_KEY_PREFIX, DEFAULTS, ENV } from "./constants";
 
 export interface ManifestConfig {
-  mode: "cloud" | "local";
+  mode: "cloud" | "local" | "dev";
   apiKey: string;
   endpoint: string;
-  serviceName: string;
-  captureContent: boolean;
-  metricsIntervalMs: number;
   port: number;
   host: string;
 }
@@ -28,7 +25,11 @@ export function parseConfig(raw: unknown): ManifestConfig {
   }
 
   const mode =
-    obj.mode === "cloud" ? "cloud" as const : "local" as const;
+    obj.mode === "cloud"
+      ? "cloud" as const
+      : obj.mode === "dev"
+        ? "dev" as const
+        : "local" as const;
 
   const apiKey =
     typeof obj.apiKey === "string" && obj.apiKey.length > 0
@@ -44,20 +45,6 @@ export function parseConfig(raw: unknown): ManifestConfig {
         ? envEndpoint
         : DEFAULTS.ENDPOINT;
 
-  const serviceName =
-    typeof obj.serviceName === "string" && obj.serviceName.length > 0
-      ? obj.serviceName
-      : DEFAULTS.SERVICE_NAME;
-
-  const captureContent =
-    typeof obj.captureContent === "boolean" ? obj.captureContent : false;
-
-  const metricsIntervalMs =
-    typeof obj.metricsIntervalMs === "number" &&
-    obj.metricsIntervalMs >= 5000
-      ? obj.metricsIntervalMs
-      : DEFAULTS.METRICS_INTERVAL_MS;
-
   const port =
     typeof obj.port === "number" && obj.port > 0
       ? obj.port
@@ -68,12 +55,24 @@ export function parseConfig(raw: unknown): ManifestConfig {
       ? obj.host
       : "127.0.0.1";
 
-  return { mode, apiKey, endpoint, serviceName, captureContent, metricsIntervalMs, port, host };
+  return { mode, apiKey, endpoint, port, host };
 }
 
 export function validateConfig(config: ManifestConfig): string | null {
   // In local mode, API key is auto-generated — skip validation
   if (config.mode === "local") return null;
+
+  // Dev mode requires an endpoint but no API key
+  if (config.mode === "dev") {
+    if (!config.endpoint.startsWith("http")) {
+      return (
+        `Invalid endpoint URL '${config.endpoint}'. ` +
+        "Must start with http:// or https://. Fix it via:\n" +
+        "  openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp"
+      );
+    }
+    return null;
+  }
 
   if (!config.apiKey) {
     return (

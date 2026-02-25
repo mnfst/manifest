@@ -1,3 +1,5 @@
+import { OLLAMA_HOST } from '../../common/constants/ollama';
+
 export interface ProviderEndpoint {
   baseUrl: string;
   buildHeaders: (apiKey: string) => Record<string, string>;
@@ -49,6 +51,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: (model: string) =>
       `/v1beta/models/${model}:generateContent`,
     format: 'google',
+  },
+  ollama: {
+    baseUrl: OLLAMA_HOST,
+    buildHeaders: () => ({ 'Content-Type': 'application/json' }),
+    buildPath: openaiPath,
+    format: 'openai',
   },
 };
 

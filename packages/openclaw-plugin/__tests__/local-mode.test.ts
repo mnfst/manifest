@@ -1,5 +1,5 @@
 import { join } from "path";
-import { LOCAL_DEFAULTS } from "../src/constants";
+
 
 // Mock fs, os, crypto before importing the module
 jest.mock("fs");
@@ -329,9 +329,6 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     mode: "local" as const,
     apiKey: "",
     endpoint: "",
-    serviceName: "test",
-    captureContent: false,
-    metricsIntervalMs: 30000,
     port: 2099,
     host: "127.0.0.1",
   };
@@ -416,25 +413,6 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     expect(mockLogger.info).toHaveBeenCalledWith(
       expect.stringContaining("Local server running"),
     );
-  });
-
-  it("overrides captureContent to true in localConfig", () => {
-    const { initTelemetry } = require("../src/telemetry");
-    const api = createMockApi();
-    registerLocalMode(api, { ...testConfig, captureContent: false }, mockLogger);
-
-    const telemetryCall = (initTelemetry as jest.Mock).mock.calls[0];
-    expect(telemetryCall[0].captureContent).toBe(true);
-  });
-
-  it("overrides metricsIntervalMs to LOCAL_DEFAULTS value (10s)", () => {
-    const { initTelemetry } = require("../src/telemetry");
-    const api = createMockApi();
-    registerLocalMode(api, { ...testConfig, metricsIntervalMs: 30_000 }, mockLogger);
-
-    const telemetryCall = (initTelemetry as jest.Mock).mock.calls[0];
-    expect(telemetryCall[0].metricsIntervalMs).toBe(LOCAL_DEFAULTS.METRICS_INTERVAL_MS);
-    expect(telemetryCall[0].metricsIntervalMs).toBe(10_000);
   });
 
   it("sets endpoint to local server URL in localConfig", () => {

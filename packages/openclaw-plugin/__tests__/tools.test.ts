@@ -15,9 +15,6 @@ const config: ManifestConfig = {
   mode: "cloud",
   apiKey: "mnfst_test_key",
   endpoint: "http://localhost:3001/otlp",
-  serviceName: "test",
-  captureContent: false,
-  metricsIntervalMs: 30000,
   port: 2099,
   host: "127.0.0.1",
 };
@@ -222,5 +219,38 @@ describe("registerTools", () => {
       expect(url).toBe("http://localhost:3001/api/v1/agent/usage?range=24h");
       expect(url).not.toContain("/otlp");
     });
+  });
+});
+
+describe("registerTools — no apiKey (dev mode)", () => {
+  const devConfig: ManifestConfig = {
+    mode: "dev",
+    apiKey: "",
+    endpoint: "http://localhost:38238/otlp",
+      port: 2099,
+    host: "127.0.0.1",
+  };
+
+  let devApi: ReturnType<typeof createMockApi>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    devApi = createMockApi();
+    registerTools(devApi, devConfig, mockLogger);
+  });
+
+  it("sends no Authorization header when apiKey is empty", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ total_tokens: 100 }),
+    });
+
+    const handler = devApi.tools.get("manifest_usage")!.handler;
+    await handler({ period: "today" });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/v1/agent/usage"),
+      expect.objectContaining({ headers: {} }),
+    );
   });
 });

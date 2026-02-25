@@ -16,7 +16,7 @@ import { initTelemetry, shutdownTelemetry } from "./telemetry";
 import { registerHooks, initMetrics } from "./hooks";
 import { registerRouting } from "./routing";
 import { registerTools } from "./tools";
-import { API_KEY_PREFIX, LOCAL_DEFAULTS } from "./constants";
+import { API_KEY_PREFIX } from "./constants";
 
 const CONFIG_DIR = join(homedir(), ".openclaw", "manifest");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
@@ -260,8 +260,6 @@ export function registerLocalMode(
     ...config,
     apiKey,
     endpoint: localEndpoint,
-    captureContent: true,
-    metricsIntervalMs: LOCAL_DEFAULTS.METRICS_INTERVAL_MS,
   };
 
   const { tracer, meter } = initTelemetry(localConfig, logger);

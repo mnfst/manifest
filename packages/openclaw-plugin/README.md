@@ -11,7 +11,7 @@ openclaw plugins install manifest
 openclaw gateway restart
 ```
 
-Open `http://127.0.0.1:2099` — your dashboard is live with SQLite storage, no accounts or external services needed.
+Open `http://127.0.0.1:2099` — your dashboard is live with sql.js storage, no accounts or external services needed.
 
 ## How the LLM router works
 
@@ -62,41 +62,28 @@ User: "How much have I spent today?"
 
 ## Data privacy
 
-- **Local mode**: Everything stays on your machine. SQLite database, no network calls.
-- **Cloud mode**: Only OpenTelemetry metadata (model, tokens, latency) is sent. Your message content is never collected unless you explicitly enable `captureContent`.
+- **Local mode**: Everything stays on your machine. sql.js database, no network calls.
+- **Cloud mode**: Only OpenTelemetry metadata (model, tokens, latency) is sent. Message content is never collected.
 
 ## Configuration
 
-### Local mode (default)
+Local mode works out of the box with zero configuration. All settings are optional.
 
-Works out of the box. No API key needed.
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `port` | number | `2099` | Dashboard port |
-| `host` | string | `127.0.0.1` | Bind address |
-| `serviceName` | string | `openclaw-gateway` | OpenTelemetry service name |
-| `captureContent` | boolean | `true` | Include message content in spans (always on in local mode) |
-| `metricsIntervalMs` | number | `10000` | Metrics export interval |
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `mode` | string | `local` | `local` runs an embedded server on your machine. `cloud` sends telemetry to app.manifest.build. `dev` connects to a local backend without API key management. |
+| `apiKey` | string | env `MANIFEST_API_KEY` | Agent API key (must start with `mnfst_`). Required for cloud mode, auto-generated in local mode. |
+| `endpoint` | string | `https://app.manifest.build/otlp` | OTLP endpoint URL. Only relevant for cloud and dev modes. |
+| `port` | number | `2099` | Port for the embedded dashboard server (local mode only). |
+| `host` | string | `127.0.0.1` | Bind address for the embedded server (local mode only). |
 
 ### Cloud mode
-
-Send telemetry to the hosted platform at [app.manifest.build](https://app.manifest.build):
 
 ```bash
 openclaw config set plugins.entries.manifest.config.mode cloud
 openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
 openclaw gateway restart
 ```
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `mode` | string | `local` | `local` or `cloud` |
-| `apiKey` | string | env `MANIFEST_API_KEY` | Agent API key (`mnfst_*`). Required for cloud mode. |
-| `endpoint` | string | `https://app.manifest.build/otlp` | OTLP endpoint URL |
-| `serviceName` | string | `openclaw-gateway` | OpenTelemetry service name |
-| `captureContent` | boolean | `false` | Include message content in spans |
-| `metricsIntervalMs` | number | `30000` | Metrics export interval (min 5000ms) |
 
 ### Self-hosted
 

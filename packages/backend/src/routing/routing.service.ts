@@ -255,6 +255,9 @@ export class RoutingService {
     userId: string,
     provider: string,
   ): Promise<string | null> {
+    // Ollama runs locally — no API key needed
+    if (provider.toLowerCase() === 'ollama') return '';
+
     const names = expandProviderNames([provider]);
     const records = await this.providerRepo.find({
       where: { user_id: userId, is_active: true },

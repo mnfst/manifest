@@ -5,9 +5,6 @@ const baseConfig: ManifestConfig = {
   mode: "cloud",
   apiKey: "mnfst_test123",
   endpoint: "http://localhost:3001/otlp",
-  serviceName: "test",
-  captureContent: false,
-  metricsIntervalMs: 30000,
   port: 2099,
   host: "127.0.0.1",
 };
@@ -178,5 +175,25 @@ describe("verifyConnection", () => {
     expect(result.endpointReachable).toBe(true);
     expect(result.authValid).toBe(false);
     expect(result.error).toContain("500");
+  });
+
+  it("sends no Authorization header when apiKey is empty (dev mode)", async () => {
+    const devConfig = { ...baseConfig, mode: "dev" as const, apiKey: "" };
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, status: 200 })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ agentName: "dev-agent" }),
+      });
+
+    const result = await verifyConnection(devConfig);
+
+    expect(result.authValid).toBe(true);
+    expect(result.agentName).toBe("dev-agent");
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/v1/agent/usage"),
+      expect.objectContaining({ headers: {} }),
+    );
   });
 });

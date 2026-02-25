@@ -11,11 +11,13 @@ import { ModelPricing } from '../entities/model-pricing.entity';
 import { sha256, keyPrefix } from '../common/utils/hash.util';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { PricingSyncService } from './pricing-sync.service';
-import { LOCAL_USER_ID, LOCAL_EMAIL } from '../common/constants/local-mode.constants';
-
-const LOCAL_TENANT_ID = 'local-tenant-001';
-const LOCAL_AGENT_ID = 'local-agent-001';
-const LOCAL_AGENT_NAME = 'local-agent';
+import {
+  LOCAL_USER_ID,
+  LOCAL_EMAIL,
+  LOCAL_TENANT_ID,
+  LOCAL_AGENT_ID,
+  LOCAL_AGENT_NAME,
+} from '../common/constants/local-mode.constants';
 
 @Injectable()
 export class LocalBootstrapService implements OnModuleInit {

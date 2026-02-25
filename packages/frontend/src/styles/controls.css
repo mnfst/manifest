@@ -357,6 +357,11 @@
   user-select: none;
 }
 
+.header__mode-badge--dev {
+  background: hsl(25 95% 53% / 0.15);
+  color: hsl(25 95% 53%);
+}
+
 .header__separator {
   color: hsl(var(--muted-foreground));
   font-size: var(--font-size-sm);

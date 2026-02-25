@@ -1,5 +1,23 @@
 # manifest
 
+## 5.10.1
+
+### Patch Changes
+
+- 96d7b99: Remove dead config settings: `captureContent`, `serviceName`, and `metricsIntervalMs`. These are now either hardcoded internally or computed per mode. Delete duplicate `src/openclaw.plugin.json`.
+
+## 5.10.0
+
+### Minor Changes
+
+- 338ec44: Add Ollama provider support and plugin dev mode
+  - Ollama integration: auto-sync local models, quality scoring for free models, proxy forwarding to local Ollama instance
+  - Plugin dev mode: connect to an external dev server without API key management
+  - OTLP loopback bypass: trust loopback connections in local mode without Bearer token
+  - Provider icons: show provider logo before model names in message tables with hover tooltip
+  - Increase provider timeout to 600s to support local model inference on CPU
+  - Reorder provider list: Ollama first, then by popularity
+
 ## 5.9.8
 
 ### Patch Changes

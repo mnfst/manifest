@@ -34,12 +34,15 @@ export async function verifyConnection(
     return result;
   }
 
-  // Step 2: auth check (Bearer token)
+  // Step 2: auth check (Bearer token, or no auth in dev mode)
   try {
+    const authHeaders: Record<string, string> = config.apiKey
+      ? { Authorization: `Bearer ${config.apiKey}` }
+      : {};
     const usageRes = await fetch(
       `${baseUrl}/api/v1/agent/usage?range=24h`,
       {
-        headers: { Authorization: `Bearer ${config.apiKey}` },
+        headers: authHeaders,
         signal: AbortSignal.timeout(5000),
       },
     );

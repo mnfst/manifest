@@ -15,7 +15,7 @@ export interface ForwardResult {
   isGoogle: boolean;
 }
 
-const PROVIDER_TIMEOUT_MS = 30_000;
+const PROVIDER_TIMEOUT_MS = 600_000;
 
 @Injectable()
 export class ProviderClient {

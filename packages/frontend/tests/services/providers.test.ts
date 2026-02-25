@@ -56,8 +56,16 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 8 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(8);
+  it("has 9 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(9);
+  });
+
+  it("Ollama provider requires no API key and has dynamic models", () => {
+    const ollama = PROVIDERS.find((p) => p.id === "ollama");
+    expect(ollama).toBeDefined();
+    expect(ollama!.noKeyRequired).toBe(true);
+    expect(ollama!.models).toEqual([]);
+    expect(ollama!.minKeyLength).toBe(0);
   });
 
   it("each provider has required fields", () => {

@@ -9,6 +9,7 @@ const ALIASES: Record<string, string[]> = {
   alibaba: ['qwen'],
   moonshot: ['moonshot'],
   xai: ['xai'],
+  ollama: ['ollama'],
 };
 
 /** Expand a set of provider names to include known aliases. */

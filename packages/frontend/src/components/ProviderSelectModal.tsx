@@ -26,9 +26,10 @@ const ProviderSelectModal: Component<Props> = (props) => {
     return !!p && p.is_active && p.has_api_key;
   };
 
-  const isOllamaConnected = (provId: string): boolean => {
+  const isNoKeyConnected = (provId: string): boolean => {
     const p = getProviderData(provId);
-    return !!p && p.is_active && provId === "ollama";
+    const provDef = PROVIDERS.find((pr) => pr.id === provId);
+    return !!p && p.is_active && !!provDef?.noKeyRequired;
   };
 
   const getKeyPrefixDisplay = (provId: string): string => {
@@ -159,7 +160,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
           <div class="provider-modal__list">
             <For each={PROVIDERS}>
               {(prov) => {
-                const connected = () => isConnected(prov.id) || isOllamaConnected(prov.id);
+                const connected = () => isConnected(prov.id) || isNoKeyConnected(prov.id);
 
                 return (
                   <button
@@ -203,7 +204,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
           {(() => {
             const provId = selectedProvider()!;
             const provDef = PROVIDERS.find((p) => p.id === provId)!;
-            const connected = () => isConnected(provId) || isOllamaConnected(provId);
+            const connected = () => isConnected(provId) || isNoKeyConnected(provId);
             const isOllama = provDef.noKeyRequired;
 
             return (

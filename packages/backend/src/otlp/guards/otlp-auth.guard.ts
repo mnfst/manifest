@@ -12,6 +12,14 @@ import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 import { sha256 } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
+import {
+  LOCAL_TENANT_ID,
+  LOCAL_AGENT_ID,
+  LOCAL_AGENT_NAME,
+  LOCAL_USER_ID,
+} from '../../common/constants/local-mode.constants';
+
+const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
 interface CachedKey {
   tenantId: string;
@@ -36,6 +44,23 @@ export class OtlpAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers['authorization'];
+
+    // In local mode, trust loopback connections without requiring an API key.
+    // Only applies when no Authorization header is sent — if a Bearer token
+    // is present, validate it normally so explicit auth is always honoured.
+    if (
+      !authHeader &&
+      process.env['MANIFEST_MODE'] === 'local' &&
+      LOOPBACK_IPS.has(request.ip ?? '')
+    ) {
+      (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
+        tenantId: LOCAL_TENANT_ID,
+        agentId: LOCAL_AGENT_ID,
+        agentName: LOCAL_AGENT_NAME,
+        userId: LOCAL_USER_ID,
+      };
+      return true;
+    }
 
     if (!authHeader) {
       this.logger.warn(`OTLP request without auth from ${request.ip}`);

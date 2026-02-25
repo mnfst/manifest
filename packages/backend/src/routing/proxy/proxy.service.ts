@@ -96,7 +96,7 @@ export class ProxyService {
       userId,
       resolved.provider,
     );
-    if (!apiKey) {
+    if (apiKey === null) {
       throw new BadRequestException(
         `No API key found for provider: ${resolved.provider}. Re-connect the provider with an API key.`,
       );

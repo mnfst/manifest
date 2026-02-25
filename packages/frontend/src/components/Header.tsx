@@ -81,6 +81,9 @@ const Header: Component = () => {
         <Show when={!isLocalMode()}>
           <span class="header__mode-badge">Cloud</span>
         </Show>
+        <Show when={isLocalMode()}>
+          <span class="header__mode-badge header__mode-badge--dev">Dev</span>
+        </Show>
         <Show when={getAgentName()}>
           <Show when={!isLocalMode()}>
             <span class="header__separator">/</span>
