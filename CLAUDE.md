@@ -370,3 +370,32 @@ npm run release             # Publish to npm (used by CI)
 ### CI Integration
 
 The `changeset-check` job in `.github/workflows/ci.yml` runs `npx changeset status --since=origin/main` on PRs. It also enforces that any PR touching `packages/backend/` or `packages/frontend/` includes a `manifest` changeset. The job will fail if backend/frontend files changed without one.
+
+## Code Coverage (Codecov)
+
+Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. Configuration is in `codecov.yml`.
+
+### Thresholds
+
+- **Project coverage** (`codecov/project`): Must not drop more than **1%** below the base branch (`target: auto`, `threshold: 1%`).
+- **Patch coverage** (`codecov/patch`): New/changed lines must have at least **auto - 5%** coverage (`target: auto`, `threshold: 5%`). In practice, aim for **>90%** patch coverage.
+
+### CRITICAL: Write Tests for New Code
+
+**Every new source file or modified function must have corresponding tests.** Codecov will fail the PR if changed lines are not covered. This applies to:
+
+- New services, guards, controllers, or utilities in `packages/backend/src/`
+- New components or functions in `packages/frontend/src/`
+- New modules in `packages/openclaw-plugin/src/`
+
+### Coverage Flags
+
+| Flag | Paths | CI Job |
+|------|-------|--------|
+| `backend` | `packages/backend/src/` | Backend (PostgreSQL) |
+| `frontend` | `packages/frontend/src/` | frontend |
+| `plugin` | `packages/openclaw-plugin/src/` | plugin |
+
+### E2E Test Entities
+
+When adding new TypeORM entities to `database.module.ts`, also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.
