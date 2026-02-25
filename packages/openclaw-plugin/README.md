@@ -9,7 +9,7 @@ openclaw plugins install manifest
 openclaw gateway restart
 ```
 
-That's it. The plugin starts an embedded server with SQLite at `http://127.0.0.1:2099`. Open that URL to see your dashboard.
+That's it. The plugin starts an embedded server with sql.js at `http://127.0.0.1:2099`. Open that URL to see your dashboard.
 
 ### Cloud mode
 
@@ -31,7 +31,7 @@ export MANIFEST_API_KEY=mnfst_YOUR_KEY
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `mode` | string | `local` | `local` for embedded server + SQLite, `cloud` for app.manifest.build |
+| `mode` | string | `local` | `local` for embedded server + sql.js, `cloud` for app.manifest.build |
 | `apiKey` | string | env `MANIFEST_API_KEY` | Agent API key (`mnfst_*`). Required for cloud mode only. |
 | `endpoint` | string | `https://app.manifest.build/otlp` | OTLP endpoint URL (cloud mode) |
 | `serviceName` | string | `openclaw-gateway` | OpenTelemetry service name |

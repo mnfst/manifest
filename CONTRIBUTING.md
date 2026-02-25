@@ -9,12 +9,12 @@ Thanks for your interest in contributing to Manifest! This guide will help you g
 | Layer     | Technology                                    |
 | --------- | --------------------------------------------- |
 | Frontend  | SolidJS, uPlot, custom CSS theme              |
-| Backend   | NestJS 11, TypeORM, SQLite (local) / PostgreSQL (cloud) |
+| Backend   | NestJS 11, TypeORM, sql.js (local) / PostgreSQL (cloud) |
 | Auth      | Better Auth (auto-login on localhost)          |
 | Telemetry | OTLP HTTP (JSON + Protobuf)                   |
 | Build     | Turborepo + npm workspaces                    |
 
-The full NestJS + SolidJS stack runs locally backed by SQLite. The same codebase also powers the [cloud version](https://app.manifest.build) with PostgreSQL — the only differences are the database driver and auth guard.
+The full NestJS + SolidJS stack runs locally backed by sql.js (WASM SQLite). The same codebase also powers the [cloud version](https://app.manifest.build) with PostgreSQL — the only differences are the database driver and auth guard.
 
 ## Prerequisites
 

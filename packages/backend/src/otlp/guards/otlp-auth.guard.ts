@@ -43,10 +43,13 @@ export class OtlpAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
+    const authHeader = request.headers['authorization'];
 
     // In local mode, trust loopback connections without requiring an API key.
-    // This allows dev-mode plugins to send OTLP data without key management.
+    // Only applies when no Authorization header is sent — if a Bearer token
+    // is present, validate it normally so explicit auth is always honoured.
     if (
+      !authHeader &&
       process.env['MANIFEST_MODE'] === 'local' &&
       LOOPBACK_IPS.has(request.ip ?? '')
     ) {
@@ -58,8 +61,6 @@ export class OtlpAuthGuard implements CanActivate {
       };
       return true;
     }
-
-    const authHeader = request.headers['authorization'];
 
     if (!authHeader) {
       this.logger.warn(`OTLP request without auth from ${request.ip}`);

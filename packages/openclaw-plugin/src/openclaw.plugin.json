@@ -55,7 +55,7 @@
   "uiHints": {
     "mode": {
       "label": "Mode",
-      "description": "Choose 'local' to run a self-contained server with SQLite, or 'cloud' to send data to app.manifest.build"
+      "description": "Choose 'local' to run a self-contained server with sql.js, or 'cloud' to send data to app.manifest.build"
     },
     "apiKey": {
       "label": "API Key",

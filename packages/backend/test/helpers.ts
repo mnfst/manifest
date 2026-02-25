@@ -25,6 +25,8 @@ import { ApiKey } from '../src/entities/api-key.entity';
 import { Tenant } from '../src/entities/tenant.entity';
 import { Agent } from '../src/entities/agent.entity';
 import { AgentApiKey } from '../src/entities/agent-api-key.entity';
+import { ModelPricingHistory } from '../src/entities/model-pricing-history.entity';
+import { UnresolvedModel } from '../src/entities/unresolved-model.entity';
 import { NotificationRule } from '../src/entities/notification-rule.entity';
 import { NotificationLog } from '../src/entities/notification-log.entity';
 import { UserProvider } from '../src/entities/user-provider.entity';
@@ -46,7 +48,7 @@ export const TEST_TENANT_ID = 'test-tenant-001';
 export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
-const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment];
+const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing, ModelPricingHistory, UnresolvedModel, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment];
 
 function buildTypeOrmConfig(): TypeOrmModuleOptions {
   return {

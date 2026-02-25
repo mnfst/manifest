@@ -1,13 +1,13 @@
 # @mnfst/server
 
-Embedded [Manifest](https://manifest.build) observability server for local mode. Runs the full Manifest dashboard backed by SQLite — no PostgreSQL, no Docker, no external services.
+Embedded [Manifest](https://manifest.build) observability server for local mode. Runs the full Manifest dashboard backed by sql.js — no PostgreSQL, no Docker, no external services.
 
 [![npm version](https://img.shields.io/npm/v/@mnfst/server?color=cb3837&label=npm)](https://www.npmjs.com/package/@mnfst/server)
 [![license](https://img.shields.io/github/license/mnfst/manifest?color=blue)](LICENSE)
 
 ## What is this?
 
-This package wraps the Manifest backend (NestJS + TypeORM) into a single `start()` function that boots an embedded server with SQLite. It's used by the [Manifest OpenClaw plugin](https://www.npmjs.com/package/manifest) to run a local observability dashboard for AI agents.
+This package wraps the Manifest backend (NestJS + TypeORM) into a single `start()` function that boots an embedded server with sql.js. It's used by the [Manifest OpenClaw plugin](https://www.npmjs.com/package/manifest) to run a local observability dashboard for AI agents.
 
 ## Usage
 
@@ -26,7 +26,7 @@ Once started, the dashboard is available at `http://127.0.0.1:2099` and OTLP end
 ## Features
 
 - **Zero-config** — starts with sensible defaults, no env files needed
-- **SQLite** — all data stored in a single file, no database server required
+- **sql.js** — all data stored in a single file, no database server required
 - **Full dashboard** — same SolidJS frontend as the cloud version
 - **OTLP ingestion** — standard OpenTelemetry HTTP endpoints (JSON + Protobuf)
 - **Auto-login** — no authentication required in local mode
@@ -39,7 +39,7 @@ Once started, the dashboard is available at `http://127.0.0.1:2099` and OTLP end
 |--------|------|---------|-------------|
 | `port` | `number` | `2099` | Server port |
 | `host` | `string` | `"127.0.0.1"` | Bind address |
-| `dbPath` | `string` | `~/.openclaw/manifest/manifest.db` | SQLite database path |
+| `dbPath` | `string` | `~/.openclaw/manifest/manifest.db` | sql.js database path |
 
 ## Related
 

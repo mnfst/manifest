@@ -57,8 +57,8 @@ jobs:
           directory: packages/backend/coverage
           fail_ci_if_error: false
 
-  backend-sqlite:
-    name: Backend (SQLite / ${{ matrix.os }})
+  backend-sqljs:
+    name: Backend (sql.js / ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -77,9 +77,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build --workspace=packages/backend
-      - name: Unit tests (SQLite dialect)
+      - name: Unit tests (sql.js dialect)
         run: npm test --workspace=packages/backend
-      - name: E2E tests (SQLite in-memory)
+      - name: E2E tests (sql.js in-memory)
         run: npm run test:e2e --workspace=packages/backend
 
   frontend:

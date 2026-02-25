@@ -1,7 +1,7 @@
 {
   "name": "@mnfst/server",
   "version": "5.5.0",
-  "description": "Embedded Manifest observability server — self-hosted AI agent monitoring with SQLite, zero external dependencies",
+  "description": "Embedded Manifest observability server — self-hosted AI agent monitoring with sql.js, zero external dependencies",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "MNFST Inc.",
@@ -27,7 +27,7 @@
     "observability",
     "telemetry",
     "nestjs",
-    "sqlite",
+    "sql.js",
     "self-hosted"
   ],
   "engines": {

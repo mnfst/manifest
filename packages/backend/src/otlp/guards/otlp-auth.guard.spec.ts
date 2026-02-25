@@ -1,7 +1,7 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { OtlpAuthGuard } from './otlp-auth.guard';
 
-function makeContext(headers: Record<string, string | undefined>, ip = '127.0.0.1') {
+function makeContext(headers: Record<string, string | undefined>, ip = '10.0.0.1') {
   const request: Record<string, unknown> = { headers, ip };
   return {
     req: request,

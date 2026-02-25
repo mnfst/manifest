@@ -70,7 +70,7 @@ describe("parseConfig", () => {
     const result = parseConfig({ apiKey: "mnfst_abc" });
     expect(result.endpoint).toBe(DEFAULTS.ENDPOINT);
     expect(result.serviceName).toBe(DEFAULTS.SERVICE_NAME);
-    expect(result.captureContent).toBe(false);
+    expect(result.captureContent).toBe(true);
     expect(result.metricsIntervalMs).toBe(DEFAULTS.METRICS_INTERVAL_MS);
   });
 
