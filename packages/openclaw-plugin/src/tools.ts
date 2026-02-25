@@ -21,9 +21,10 @@ async function callApi(
 ): Promise<ToolResult> {
   const url = `${baseUrl}${path}`;
   try {
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
+    const headers: Record<string, string> = apiKey
+      ? { Authorization: `Bearer ${apiKey}` }
+      : {};
+    const res = await fetch(url, { headers });
     if (!res.ok) return { error: `API returned ${res.status}` };
     return { result: await res.json() };
   } catch (err: unknown) {

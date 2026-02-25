@@ -1,4 +1,4 @@
-/** Shared constants for local mode — used by LocalAuthGuard, LocalBootstrapService, and manifest-server */
+/** Shared constants for local mode — used by LocalAuthGuard, LocalBootstrapService, OtlpAuthGuard, and manifest-server */
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
@@ -7,6 +7,9 @@ import { randomBytes } from 'crypto';
 export const LOCAL_USER_ID = 'local-user-001';
 export const LOCAL_EMAIL = 'local@manifest.local';
 export const LOCAL_DEFAULT_PORT = 2099;
+export const LOCAL_TENANT_ID = 'local-tenant-001';
+export const LOCAL_AGENT_ID = 'local-agent-001';
+export const LOCAL_AGENT_NAME = 'local-agent';
 
 const CONFIG_DIR = join(homedir(), '.openclaw', 'manifest');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.json');

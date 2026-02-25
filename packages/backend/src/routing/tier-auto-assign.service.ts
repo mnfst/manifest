@@ -80,10 +80,10 @@ export class TierAutoAssignService {
 
     const quality = (m: ModelPricing) => m.quality_score ?? 3;
 
-    // Sort by price ascending (cheapest first)
-    const byPrice = [...models]
-      .filter((m) => totalPrice(m) > 0)
-      .sort((a, b) => totalPrice(a) - totalPrice(b));
+    // Sort by price ascending (cheapest first, including free local models)
+    const byPrice = [...models].sort(
+      (a, b) => totalPrice(a) - totalPrice(b),
+    );
 
     if (byPrice.length === 0) return null;
 

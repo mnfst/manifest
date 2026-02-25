@@ -11,9 +11,9 @@
     "properties": {
       "mode": {
         "type": "string",
-        "enum": ["cloud", "local"],
+        "enum": ["cloud", "local", "dev"],
         "default": "cloud",
-        "description": "Run mode: 'cloud' sends telemetry to app.manifest.build, 'local' starts an embedded server with SQLite"
+        "description": "Run mode: 'cloud' sends to app.manifest.build, 'local' starts an embedded server, 'dev' connects to a dev server without API key"
       },
       "apiKey": {
         "type": "string",

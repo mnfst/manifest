@@ -34,7 +34,9 @@ export function initTelemetry(
     "manifest.plugin": "true",
   });
 
-  const headers = { Authorization: `Bearer ${config.apiKey}` };
+  const headers: Record<string, string> = config.apiKey
+    ? { Authorization: `Bearer ${config.apiKey}` }
+    : {};
 
   // Trace exporter
   const traceExporter = new OTLPTraceExporter({

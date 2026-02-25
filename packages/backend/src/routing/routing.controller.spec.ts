@@ -1,6 +1,7 @@
 import { RoutingController } from './routing.controller';
 import { RoutingService } from './routing.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { OllamaSyncService } from '../database/ollama-sync.service';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import * as telemetry from '../common/utils/product-telemetry';
 
@@ -14,6 +15,7 @@ describe('RoutingController', () => {
   let controller: RoutingController;
   let mockRoutingService: Record<string, jest.Mock>;
   let mockPricingCache: Record<string, jest.Mock>;
+  let mockOllamaSync: Record<string, jest.Mock>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -31,10 +33,14 @@ describe('RoutingController', () => {
     mockPricingCache = {
       getAll: jest.fn().mockReturnValue([]),
     };
+    mockOllamaSync = {
+      sync: jest.fn().mockResolvedValue({ count: 0 }),
+    };
 
     controller = new RoutingController(
       mockRoutingService as unknown as RoutingService,
       mockPricingCache as unknown as ModelPricingCacheService,
+      mockOllamaSync as unknown as OllamaSyncService,
     );
   });
 

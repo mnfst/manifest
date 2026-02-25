@@ -1,8 +1,8 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { OtlpAuthGuard } from './otlp-auth.guard';
 
-function makeContext(headers: Record<string, string | undefined>) {
-  const request: Record<string, unknown> = { headers, ip: '127.0.0.1' };
+function makeContext(headers: Record<string, string | undefined>, ip = '127.0.0.1') {
+  const request: Record<string, unknown> = { headers, ip };
   return {
     req: request,
     ctx: {
@@ -139,6 +139,62 @@ describe('OtlpAuthGuard', () => {
     await guard.canActivate(ctx2);
 
     expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+  });
+
+  describe('loopback bypass in local mode', () => {
+    const origMode = process.env['MANIFEST_MODE'];
+
+    afterEach(() => {
+      if (origMode === undefined) delete process.env['MANIFEST_MODE'];
+      else process.env['MANIFEST_MODE'] = origMode;
+    });
+
+    it('allows loopback requests without auth in local mode', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      const { ctx, req } = makeContext({}, '127.0.0.1');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'local-tenant-001',
+        agentId: 'local-agent-001',
+        agentName: 'local-agent',
+        userId: 'local-user-001',
+      });
+      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('allows ::1 loopback without auth in local mode', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      const { ctx, req } = makeContext({}, '::1');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'local-tenant-001',
+        agentId: 'local-agent-001',
+        agentName: 'local-agent',
+        userId: 'local-user-001',
+      });
+    });
+
+    it('still requires auth for non-loopback IPs in local mode', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      const { ctx } = makeContext({}, '192.168.1.100');
+      await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('still requires auth for loopback IPs when not in local mode', async () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      const { ctx } = makeContext({}, '127.0.0.1');
+      await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('still requires auth when MANIFEST_MODE is unset', async () => {
+      delete process.env['MANIFEST_MODE'];
+      const { ctx } = makeContext({}, '127.0.0.1');
+      await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    });
   });
 
   it('invalidateCache removes a specific key from cache', async () => {

@@ -90,12 +90,16 @@ export async function resolveRouting(
     const body: Record<string, unknown> = { messages: scoringMessages };
     if (recentTiers) body.recentTiers = recentTiers;
 
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (config.apiKey) {
+      headers["Authorization"] = `Bearer ${config.apiKey}`;
+    }
+
     const res = await fetch(resolveUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${config.apiKey}`,
-      },
+      headers,
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(RESOLVE_TIMEOUT_MS),
     });

@@ -55,3 +55,7 @@ export const DEFAULTS = {
 export const LOCAL_DEFAULTS = {
   METRICS_INTERVAL_MS: 10_000,
 } as const;
+
+export const DEV_DEFAULTS = {
+  METRICS_INTERVAL_MS: 10_000,
+} as const;

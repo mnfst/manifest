@@ -44,6 +44,15 @@ export function computeQualityScore(model: Pick<
   const bigContext = model.context_window >= 1_000_000;
   const isMini = MINI_VARIANT.test(model.model_name);
 
+  // Zero-price models (local, e.g. Ollama) — score on capabilities only
+  if (totalPerM === 0) {
+    if (hasBoth && !isMini) return 3;
+    if (hasReasoning && !isMini) return 3;
+    if (hasReasoning && isMini) return 2;
+    if (hasCode) return 2;
+    return 1;
+  }
+
   // Q5: Frontier — expensive with strong capabilities
   if (totalPerM >= 8.0 && hasBoth && !isMini) return 5;
   if (totalPerM >= 8.0 && hasCode && bigContext) return 5;

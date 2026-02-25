@@ -197,7 +197,7 @@ export function registerHooks(
     let finalProvider = provider;
     let routingTier: string | null = null;
 
-    if (finalModel === "auto" && config.mode === "local") {
+    if (finalModel === "auto" && config.mode !== "cloud") {
       const resolved = await resolveRouting(config, messages, sessionKey, logger);
       if (resolved) {
         finalModel = resolved.model;

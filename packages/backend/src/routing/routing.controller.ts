@@ -11,6 +11,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { RoutingService } from './routing.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { OllamaSyncService } from '../database/ollama-sync.service';
 import { expandProviderNames } from './provider-aliases';
 import { trackCloudEvent } from '../common/utils/product-telemetry';
 import {
@@ -25,6 +26,7 @@ export class RoutingController {
   constructor(
     private readonly routingService: RoutingService,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly ollamaSync: OllamaSyncService,
   ) {}
 
   /* ── Providers ── */
@@ -47,6 +49,11 @@ export class RoutingController {
     @CurrentUser() user: AuthUser,
     @Body() body: ConnectProviderDto,
   ) {
+    // Sync Ollama models before connecting so tier assignment has data
+    if (body.provider.toLowerCase() === 'ollama') {
+      await this.ollamaSync.sync();
+    }
+
     const { provider: result, isNew } =
       await this.routingService.upsertProvider(
         user.id,
@@ -83,6 +90,13 @@ export class RoutingController {
       params.provider,
     );
     return { ok: true, notifications };
+  }
+
+  /* ── Ollama sync ── */
+
+  @Post('ollama/sync')
+  async syncOllama() {
+    return this.ollamaSync.sync();
   }
 
   /* ── Tiers ── */

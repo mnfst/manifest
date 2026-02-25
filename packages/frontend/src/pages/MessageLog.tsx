@@ -4,6 +4,8 @@ import { Title, Meta } from "@solidjs/meta";
 import ErrorState from "../components/ErrorState.jsx";
 import { getMessages } from "../services/api.js";
 import { formatNumber, formatCost, formatTime, formatStatus } from "../services/formatters.js";
+import { inferProviderFromModel, inferProviderName } from "../services/routing-utils.js";
+import { providerIcon } from "../components/ProviderIcon.jsx";
 import Select from "../components/Select.jsx";
 import InfoTooltip from "../components/InfoTooltip.jsx";
 import { isLocalMode } from "../services/local-mode.js";
@@ -234,7 +236,12 @@ const MessageLog: Component = () => {
                         {item.output_tokens != null ? formatNumber(item.output_tokens) : "\u2014"}
                       </td>
                       <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                        {item.model ?? "\u2014"}
+                        <span style="display: inline-flex; align-items: center; gap: 4px;">
+                          {item.model && inferProviderFromModel(item.model) && (
+                            <span title={inferProviderName(item.model)} style="display: inline-flex; flex-shrink: 0;">{providerIcon(inferProviderFromModel(item.model)!, 14)}</span>
+                          )}
+                          {item.model ?? "\u2014"}
+                        </span>
                         {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
                       </td>
                       <td>
