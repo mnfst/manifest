@@ -58,25 +58,6 @@ openclaw gateway restart
 
 Dashboard opens at **http://127.0.0.1:2099**. Telemetry from your agents flows in automatically.
 
-## Configuration
-
-Local mode works out of the box — all settings are optional.
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `mode` | `string` | `local` | `local` runs an embedded server on your machine. `cloud` sends telemetry to app.manifest.build. `dev` connects to a local backend without API key. |
-| `apiKey` | `string` | env `MANIFEST_API_KEY` | Agent API key (must start with `mnfst_`). Required for cloud mode, auto-generated in local mode. |
-| `endpoint` | `string` | `https://app.manifest.build/otlp` | OTLP endpoint URL. Only relevant for cloud and dev modes. |
-| `port` | `number` | `2099` | Port for the embedded dashboard server (local mode only). |
-| `host` | `string` | `127.0.0.1` | Bind address for the embedded server (local mode only). |
-
-```bash
-# Switch to cloud mode
-openclaw config set plugins.entries.manifest.config.mode cloud
-openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
-openclaw gateway restart
-```
-
 ## Features
 
 - **LLM Router** — scores each query and calls the most suitable model
@@ -108,22 +89,30 @@ MANIFEST_TELEMETRY_OPTOUT=1
 
 Or add `"telemetryOptOut": true` to `~/.openclaw/manifest/config.json`.
 
-## Contributing
+## Configuration
 
-Manifest is open source under the [MIT license](LICENSE). Contributions are welcome.
+Local mode works out of the box — all settings are optional.
 
-**Prerequisites:** Node.js 22.x, npm 10.x
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `mode` | `string` | `local` | `local` runs an embedded server on your machine. `cloud` sends telemetry to app.manifest.build. `dev` connects to a local backend without API key. |
+| `apiKey` | `string` | env `MANIFEST_API_KEY` | Agent API key (must start with `mnfst_`). Required for cloud mode, auto-generated in local mode. |
+| `endpoint` | `string` | `https://app.manifest.build/otlp` | OTLP endpoint URL. Only relevant for cloud and dev modes. |
+| `port` | `number` | `2099` | Port for the embedded dashboard server (local mode only). |
+| `host` | `string` | `127.0.0.1` | Bind address for the embedded server (local mode only). |
 
 ```bash
-git clone https://github.com/mnfst/manifest && cd manifest
-npm install
+# Switch to cloud mode
+openclaw config set plugins.entries.manifest.config.mode cloud
+openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
+openclaw gateway restart
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development setup, architecture notes, and workflow.
+## Contributing
 
-Join the conversation on [Discord](https://discord.gg/FepAked3W7).
+Manifest is open source under the [MIT license](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) for the development setup, architecture notes, and workflow. Join the conversation on [Discord](https://discord.gg/FepAked3W7).
 
-> **Want a hosted version instead?** Check out our cloud version at [app.manifest.build](https://app.manifest.build)
+> **Want a hosted version instead?** Check out [app.manifest.build](https://app.manifest.build)
 
 ## License
 
