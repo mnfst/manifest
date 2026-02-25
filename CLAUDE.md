@@ -1,10 +1,30 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-02-23
+Last updated: 2026-02-24
 
 ## IMPORTANT: Local Mode First
 
 When starting the app for development or testing (e.g. `/serve`), **always use `MANIFEST_MODE=local`** unless explicitly asked for cloud mode. Local mode is the primary development target — cloud mode comes second.
+
+## Plugin Dev Mode
+
+When testing the OpenClaw plugin integration (routing, telemetry, OTLP), use **dev mode** to connect the plugin to a local backend without API key management:
+
+```bash
+# 1. Build and start the backend in local mode
+npm run build
+MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
+  node -r dotenv/config packages/backend/dist/main.js
+
+# 2. Configure the plugin
+openclaw config set plugins.entries.manifest.config.mode dev
+openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp
+
+# 3. Restart the gateway
+openclaw gateway --force
+```
+
+No API key needed. The dashboard shows an orange **Dev** badge in the header when running in local mode. Dev mode uses the OTLP loopback bypass — the `OtlpAuthGuard` trusts same-machine connections without Bearer token auth.
 
 ## Active Technologies
 
@@ -347,3 +367,32 @@ npm run release             # Publish to npm (used by CI)
 ### CI Integration
 
 The `changeset-check` job in `.github/workflows/ci.yml` runs `npx changeset status --since=origin/main` on PRs. It also enforces that any PR touching `packages/backend/` or `packages/frontend/` includes a `manifest` changeset. The job will fail if backend/frontend files changed without one.
+
+## Code Coverage (Codecov)
+
+Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. Configuration is in `codecov.yml`.
+
+### Thresholds
+
+- **Project coverage** (`codecov/project`): Must not drop more than **1%** below the base branch (`target: auto`, `threshold: 1%`).
+- **Patch coverage** (`codecov/patch`): New/changed lines must have at least **auto - 5%** coverage (`target: auto`, `threshold: 5%`). In practice, aim for **>90%** patch coverage.
+
+### CRITICAL: Write Tests for New Code
+
+**Every new source file or modified function must have corresponding tests.** Codecov will fail the PR if changed lines are not covered. This applies to:
+
+- New services, guards, controllers, or utilities in `packages/backend/src/`
+- New components or functions in `packages/frontend/src/`
+- New modules in `packages/openclaw-plugin/src/`
+
+### Coverage Flags
+
+| Flag | Paths | CI Job |
+|------|-------|--------|
+| `backend` | `packages/backend/src/` | Backend (PostgreSQL) |
+| `frontend` | `packages/frontend/src/` | frontend |
+| `plugin` | `packages/openclaw-plugin/src/` | plugin |
+
+### E2E Test Entities
+
+When adding new TypeORM entities to `database.module.ts`, also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.

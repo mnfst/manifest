@@ -52,9 +52,9 @@ describe('TierAutoAssignService', () => {
       expect(service.pickBest([], 'simple')).toBeNull();
     });
 
-    it('should return null if all models have zero price', () => {
+    it('should pick free models (e.g. local Ollama)', () => {
       const free = makeModel({ model_name: 'free', input_price_per_token: 0, output_price_per_token: 0 });
-      expect(service.pickBest([free], 'simple')).toBeNull();
+      expect(service.pickBest([free], 'simple')!.model_name).toBe('free');
     });
 
     // ── SIMPLE: cheapest wins ──

@@ -9,12 +9,12 @@ Thanks for your interest in contributing to Manifest! This guide will help you g
 | Layer     | Technology                                    |
 | --------- | --------------------------------------------- |
 | Frontend  | SolidJS, uPlot, custom CSS theme              |
-| Backend   | NestJS 11, TypeORM, SQLite (local) / PostgreSQL (cloud) |
+| Backend   | NestJS 11, TypeORM, sql.js (local) / PostgreSQL (cloud) |
 | Auth      | Better Auth (auto-login on localhost)          |
 | Telemetry | OTLP HTTP (JSON + Protobuf)                   |
 | Build     | Turborepo + npm workspaces                    |
 
-The full NestJS + SolidJS stack runs locally backed by SQLite. The same codebase also powers the [cloud version](https://app.manifest.build) with PostgreSQL — the only differences are the database driver and auth guard.
+The full NestJS + SolidJS stack runs locally backed by sql.js (WASM SQLite). The same codebase also powers the [cloud version](https://app.manifest.build) with PostgreSQL — the only differences are the database driver and auth guard.
 
 ## Prerequisites
 
@@ -73,6 +73,40 @@ cd packages/frontend && npx vite
 The frontend runs on `http://localhost:3000` and proxies API requests to the backend on `http://localhost:3001`.
 
 4. With `SEED_DATA=true`, you can log in with `admin@manifest.build` / `manifest`.
+
+## Testing with the OpenClaw Plugin (Dev Mode)
+
+When developing features that involve the OpenClaw plugin (routing, telemetry, observability), use **dev mode** to point the plugin at your local backend without API key management.
+
+1. Build and start the backend in local mode:
+
+```bash
+npm run build
+MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
+  node -r dotenv/config packages/backend/dist/main.js
+```
+
+2. Configure the plugin to use dev mode:
+
+```bash
+openclaw config set plugins.entries.manifest.config.mode dev
+openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp
+```
+
+3. Restart the gateway:
+
+```bash
+openclaw gateway --force
+```
+
+That's it — no API key needed. Telemetry from your agent flows directly to the local backend. Open `http://localhost:38238` to see the dashboard (you'll see an orange **Dev** badge in the header).
+
+**When to use dev mode:**
+
+- Testing routing, tier assignment, or model resolution
+- Working on OTLP ingestion or telemetry pipelines
+- Debugging the plugin ↔ backend integration
+- Any time you need the full plugin + backend stack running locally
 
 ## Available Scripts
 

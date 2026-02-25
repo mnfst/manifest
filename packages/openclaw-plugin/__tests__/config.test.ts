@@ -1,5 +1,5 @@
 import { parseConfig, validateConfig } from "../src/config";
-import { API_KEY_PREFIX, DEFAULTS, ENV, LOCAL_DEFAULTS } from "../src/constants";
+import { API_KEY_PREFIX, DEFAULTS, DEV_DEFAULTS, ENV, LOCAL_DEFAULTS } from "../src/constants";
 
 describe("API_KEY_PREFIX constant", () => {
   it("equals mnfst_ (catches accidental revert)", () => {
@@ -30,6 +30,18 @@ describe("LOCAL_DEFAULTS constant", () => {
 
   it("uses a shorter interval than the cloud DEFAULTS", () => {
     expect(LOCAL_DEFAULTS.METRICS_INTERVAL_MS).toBeLessThan(
+      DEFAULTS.METRICS_INTERVAL_MS,
+    );
+  });
+});
+
+describe("DEV_DEFAULTS constant", () => {
+  it("has METRICS_INTERVAL_MS set to 10 seconds", () => {
+    expect(DEV_DEFAULTS.METRICS_INTERVAL_MS).toBe(10_000);
+  });
+
+  it("uses a shorter interval than the cloud DEFAULTS", () => {
+    expect(DEV_DEFAULTS.METRICS_INTERVAL_MS).toBeLessThan(
       DEFAULTS.METRICS_INTERVAL_MS,
     );
   });
@@ -70,7 +82,7 @@ describe("parseConfig", () => {
     const result = parseConfig({ apiKey: "mnfst_abc" });
     expect(result.endpoint).toBe(DEFAULTS.ENDPOINT);
     expect(result.serviceName).toBe(DEFAULTS.SERVICE_NAME);
-    expect(result.captureContent).toBe(false);
+    expect(result.captureContent).toBe(true);
     expect(result.metricsIntervalMs).toBe(DEFAULTS.METRICS_INTERVAL_MS);
   });
 
@@ -87,6 +99,34 @@ describe("parseConfig", () => {
   it("parses explicit mode: local", () => {
     const result = parseConfig({ mode: "local" });
     expect(result.mode).toBe("local");
+  });
+
+  it("parses explicit mode: dev", () => {
+    const result = parseConfig({ mode: "dev", endpoint: "http://localhost:38238/otlp" });
+    expect(result.mode).toBe("dev");
+  });
+
+  it("defaults captureContent to true in dev mode", () => {
+    const result = parseConfig({ mode: "dev", endpoint: "http://localhost:38238/otlp" });
+    expect(result.captureContent).toBe(true);
+  });
+
+  it("respects explicit captureContent=false in dev mode", () => {
+    const result = parseConfig({ mode: "dev", captureContent: false });
+    expect(result.captureContent).toBe(false);
+  });
+
+  it("uses DEV_DEFAULTS metrics interval in dev mode", () => {
+    const result = parseConfig({ mode: "dev" });
+    expect(result.metricsIntervalMs).toBe(DEV_DEFAULTS.METRICS_INTERVAL_MS);
+  });
+
+  it("preserves mode: dev through nested config wrapper", () => {
+    const result = parseConfig({
+      enabled: true,
+      config: { mode: "dev", endpoint: "http://localhost:38238/otlp" },
+    });
+    expect(result.mode).toBe("dev");
   });
 
   it("falls back to local for unknown mode string", () => {
@@ -240,6 +280,38 @@ describe("validateConfig", () => {
   it("skips validation in local mode (no apiKey required)", () => {
     const config = { ...validConfig, mode: "local" as const, apiKey: "" };
     expect(validateConfig(config)).toBeNull();
+  });
+
+  it("accepts dev mode with valid http endpoint (no apiKey required)", () => {
+    const config = {
+      ...validConfig,
+      mode: "dev" as const,
+      apiKey: "",
+      endpoint: "http://localhost:38238/otlp",
+    };
+    expect(validateConfig(config)).toBeNull();
+  });
+
+  it("accepts dev mode with https endpoint", () => {
+    const config = {
+      ...validConfig,
+      mode: "dev" as const,
+      apiKey: "",
+      endpoint: "https://dev.example.com/otlp",
+    };
+    expect(validateConfig(config)).toBeNull();
+  });
+
+  it("rejects dev mode with invalid endpoint", () => {
+    const config = {
+      ...validConfig,
+      mode: "dev" as const,
+      apiKey: "",
+      endpoint: "not-a-url",
+    };
+    const err = validateConfig(config)!;
+    expect(err).toContain("Invalid endpoint URL");
+    expect(err).toContain("http://localhost:38238/otlp");
   });
 
   it("rejects missing apiKey with actionable fix command", () => {

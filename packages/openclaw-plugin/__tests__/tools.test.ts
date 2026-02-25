@@ -224,3 +224,39 @@ describe("registerTools", () => {
     });
   });
 });
+
+describe("registerTools — no apiKey (dev mode)", () => {
+  const devConfig: ManifestConfig = {
+    mode: "dev",
+    apiKey: "",
+    endpoint: "http://localhost:38238/otlp",
+    serviceName: "test",
+    captureContent: true,
+    metricsIntervalMs: 10000,
+    port: 2099,
+    host: "127.0.0.1",
+  };
+
+  let devApi: ReturnType<typeof createMockApi>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    devApi = createMockApi();
+    registerTools(devApi, devConfig, mockLogger);
+  });
+
+  it("sends no Authorization header when apiKey is empty", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ total_tokens: 100 }),
+    });
+
+    const handler = devApi.tools.get("manifest_usage")!.handler;
+    await handler({ period: "today" });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/v1/agent/usage"),
+      expect.objectContaining({ headers: {} }),
+    );
+  });
+});

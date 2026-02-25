@@ -11,7 +11,7 @@ openclaw plugins install manifest
 openclaw gateway restart
 ```
 
-Open `http://127.0.0.1:2099` — your dashboard is live with SQLite storage, no accounts or external services needed.
+Open `http://127.0.0.1:2099` — your dashboard is live with sql.js storage, no accounts or external services needed.
 
 ## How the LLM router works
 
@@ -62,7 +62,7 @@ User: "How much have I spent today?"
 
 ## Data privacy
 
-- **Local mode**: Everything stays on your machine. SQLite database, no network calls.
+- **Local mode**: Everything stays on your machine. sql.js database, no network calls.
 - **Cloud mode**: Only OpenTelemetry metadata (model, tokens, latency) is sent. Your message content is never collected unless you explicitly enable `captureContent`.
 
 ## Configuration

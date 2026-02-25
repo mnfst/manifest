@@ -59,10 +59,16 @@ describe('POST /otlp/v1/traces', () => {
   });
 
   it('rejects request without auth header with 401', async () => {
-    await request(app.getHttpServer())
-      .post('/otlp/v1/traces')
-      .send(makeTracePayload())
-      .expect(401);
+    const origMode = process.env['MANIFEST_MODE'];
+    delete process.env['MANIFEST_MODE'];
+    try {
+      await request(app.getHttpServer())
+        .post('/otlp/v1/traces')
+        .send(makeTracePayload())
+        .expect(401);
+    } finally {
+      if (origMode !== undefined) process.env['MANIFEST_MODE'] = origMode;
+    }
   });
 
   it('rejects request with wrong API key with 401', async () => {
@@ -198,10 +204,16 @@ describe('POST /otlp/v1/metrics', () => {
   });
 
   it('rejects without auth', async () => {
-    await request(app.getHttpServer())
-      .post('/otlp/v1/metrics')
-      .send({ resourceMetrics: [] })
-      .expect(401);
+    const origMode = process.env['MANIFEST_MODE'];
+    delete process.env['MANIFEST_MODE'];
+    try {
+      await request(app.getHttpServer())
+        .post('/otlp/v1/metrics')
+        .send({ resourceMetrics: [] })
+        .expect(401);
+    } finally {
+      if (origMode !== undefined) process.env['MANIFEST_MODE'] = origMode;
+    }
   });
 });
 
@@ -271,9 +283,15 @@ describe('POST /otlp/v1/logs', () => {
   });
 
   it('rejects without auth', async () => {
-    await request(app.getHttpServer())
-      .post('/otlp/v1/logs')
-      .send({ resourceLogs: [] })
-      .expect(401);
+    const origMode = process.env['MANIFEST_MODE'];
+    delete process.env['MANIFEST_MODE'];
+    try {
+      await request(app.getHttpServer())
+        .post('/otlp/v1/logs')
+        .send({ resourceLogs: [] })
+        .expect(401);
+    } finally {
+      if (origMode !== undefined) process.env['MANIFEST_MODE'] = origMode;
+    }
   });
 });

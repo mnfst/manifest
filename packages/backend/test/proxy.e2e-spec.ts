@@ -47,10 +47,18 @@ const bearer = (r: request.Test) =>
 
 describe('Proxy E2E — /v1/chat/completions', () => {
   it('rejects requests without auth', async () => {
-    await api()
-      .post('/v1/chat/completions')
-      .send({ messages: [{ role: 'user', content: 'hello' }] })
-      .expect(401);
+    // In local mode, loopback requests bypass auth (trusted same-machine).
+    // Temporarily unset MANIFEST_MODE to test the auth rejection path.
+    const origMode = process.env['MANIFEST_MODE'];
+    delete process.env['MANIFEST_MODE'];
+    try {
+      await api()
+        .post('/v1/chat/completions')
+        .send({ messages: [{ role: 'user', content: 'hello' }] })
+        .expect(401);
+    } finally {
+      if (origMode !== undefined) process.env['MANIFEST_MODE'] = origMode;
+    }
   });
 
   it('returns 400 when messages are missing', async () => {

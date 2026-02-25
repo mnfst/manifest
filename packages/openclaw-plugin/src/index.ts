@@ -4,7 +4,7 @@ import { registerHooks, initMetrics } from "./hooks";
 import { registerRouting } from "./routing";
 import { registerTools } from "./tools";
 import { verifyConnection } from "./verify";
-import { registerLocalMode } from "./local-mode";
+import { registerLocalMode, injectProviderConfig, injectAuthProfile } from "./local-mode";
 import { trackPluginEvent } from "./product-telemetry";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -31,7 +31,7 @@ module.exports = {
 
     const error = validateConfig(config);
     if (error) {
-      if (!config.apiKey) {
+      if (config.mode === "cloud" && !config.apiKey) {
         logger.info(
           "[manifest] Cloud mode requires an API key:\n" +
             "  openclaw config set plugins.entries.manifest.config.apiKey mnfst_YOUR_KEY\n" +
@@ -57,6 +57,54 @@ module.exports = {
       return;
     }
 
+    // Dev mode: connect to an external server without API key
+    if (config.mode === "dev") {
+      logger.info("[manifest] Dev mode — connecting to external server...");
+
+      const endpointUrl = new URL(config.endpoint);
+      const host = endpointUrl.hostname;
+      const port = parseInt(endpointUrl.port, 10) || (endpointUrl.protocol === "https:" ? 443 : 80);
+
+      const devPlaceholderKey = "dev-no-auth";
+      injectProviderConfig(api, host, port, devPlaceholderKey, logger);
+      injectAuthProfile(devPlaceholderKey, logger);
+
+      const { tracer, meter } = initTelemetry(config, logger);
+      initMetrics(meter);
+      registerHooks(api, tracer, config, logger);
+      registerRouting(api, config, logger);
+
+      if (typeof api.registerTool === "function") {
+        registerTools(api, config, logger);
+      }
+
+      const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, "");
+      logger.info(`[manifest]   Dashboard: ${baseUrl}`);
+
+      api.registerService({
+        id: "manifest-dev",
+        start: () => {
+          logger.info("[manifest] Dev mode pipeline active");
+          logger.info(`[manifest]   Endpoint=${config.endpoint}`);
+
+          verifyConnection(config).then((check) => {
+            if (check.error) {
+              logger.warn?.(`[manifest] Connection check failed: ${check.error}`);
+              return;
+            }
+            const agent = check.agentName ? ` (agent: ${check.agentName})` : "";
+            logger.info(`[manifest] Connection verified${agent}`);
+          }).catch(() => {});
+        },
+        stop: async () => {
+          await shutdownTelemetry(logger);
+        },
+      });
+
+      return;
+    }
+
+    // Cloud mode
     logger.info("[manifest] Initializing observability pipeline...");
 
     const { tracer, meter } = initTelemetry(config, logger);

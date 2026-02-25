@@ -1,7 +1,7 @@
-import { API_KEY_PREFIX, DEFAULTS, ENV } from "./constants";
+import { API_KEY_PREFIX, DEFAULTS, DEV_DEFAULTS, ENV } from "./constants";
 
 export interface ManifestConfig {
-  mode: "cloud" | "local";
+  mode: "cloud" | "local" | "dev";
   apiKey: string;
   endpoint: string;
   serviceName: string;
@@ -28,7 +28,11 @@ export function parseConfig(raw: unknown): ManifestConfig {
   }
 
   const mode =
-    obj.mode === "cloud" ? "cloud" as const : "local" as const;
+    obj.mode === "cloud"
+      ? "cloud" as const
+      : obj.mode === "dev"
+        ? "dev" as const
+        : "local" as const;
 
   const apiKey =
     typeof obj.apiKey === "string" && obj.apiKey.length > 0
@@ -50,13 +54,18 @@ export function parseConfig(raw: unknown): ManifestConfig {
       : DEFAULTS.SERVICE_NAME;
 
   const captureContent =
-    typeof obj.captureContent === "boolean" ? obj.captureContent : false;
+    typeof obj.captureContent === "boolean"
+      ? obj.captureContent
+      : mode === "dev" || mode === "local";
+
+  const defaultMetricsInterval =
+    mode === "dev" ? DEV_DEFAULTS.METRICS_INTERVAL_MS : DEFAULTS.METRICS_INTERVAL_MS;
 
   const metricsIntervalMs =
     typeof obj.metricsIntervalMs === "number" &&
     obj.metricsIntervalMs >= 5000
       ? obj.metricsIntervalMs
-      : DEFAULTS.METRICS_INTERVAL_MS;
+      : defaultMetricsInterval;
 
   const port =
     typeof obj.port === "number" && obj.port > 0
@@ -74,6 +83,18 @@ export function parseConfig(raw: unknown): ManifestConfig {
 export function validateConfig(config: ManifestConfig): string | null {
   // In local mode, API key is auto-generated — skip validation
   if (config.mode === "local") return null;
+
+  // Dev mode requires an endpoint but no API key
+  if (config.mode === "dev") {
+    if (!config.endpoint.startsWith("http")) {
+      return (
+        `Invalid endpoint URL '${config.endpoint}'. ` +
+        "Must start with http:// or https://. Fix it via:\n" +
+        "  openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp"
+      );
+    }
+    return null;
+  }
 
   if (!config.apiKey) {
     return (
