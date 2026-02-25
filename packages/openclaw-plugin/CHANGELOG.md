@@ -1,5 +1,11 @@
 # manifest
 
+## 5.10.1
+
+### Patch Changes
+
+- 96d7b99: Remove dead config settings: `captureContent`, `serviceName`, and `metricsIntervalMs`. These are now either hardcoded internally or computed per mode. Delete duplicate `src/openclaw.plugin.json`.
+
 ## 5.10.0
 
 ### Minor Changes
