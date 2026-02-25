@@ -1,4 +1,4 @@
-/** Shared constants for local mode — used by LocalAuthGuard, LocalBootstrapService, and manifest-server */
+/** Shared constants for local mode — used by LocalAuthGuard and LocalBootstrapService */
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';

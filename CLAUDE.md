@@ -72,8 +72,7 @@ packages/
 │   │   │   └── formatters.ts               # Number/cost formatting
 │   │   └── styles/
 │   └── tests/
-├── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin (includes embedded server)
-└── manifest-server/               # npm: `@mnfst/server` — DEPRECATED (merged into manifest)
+└── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin (includes embedded server)
 ```
 
 ## Single-Service Deployment
@@ -316,19 +315,17 @@ Version management and npm publishing use [Changesets](https://github.com/change
 | Package | npm name | Published |
 |---------|----------|-----------|
 | `packages/openclaw-plugin` | `manifest` | Yes (includes embedded server) |
-| `packages/manifest-server` | `@mnfst/server` | Deprecated (merged into manifest) |
 | `packages/backend` | `manifest-backend` | No (`private: true`) |
 | `packages/frontend` | `manifest-frontend` | No (`private: true`) |
 
-Only `manifest` is actively published. `@mnfst/server` is deprecated — its functionality is now embedded in `manifest`.
+Only `manifest` is actively published.
 
 ### CRITICAL: Every PR Needs a Changeset
 
 **Before creating any PR, you MUST add a changeset.** The `changeset-check` CI job will fail without one.
 
 - **Backend or frontend changes always need a `manifest` changeset.** These packages compile into `manifest`, so any change to `packages/backend/` or `packages/frontend/` must include a changeset bumping `manifest` (patch for fixes, minor for features). CI enforces this.
-- If the PR changes a **publishable package** directly (`openclaw-plugin` or `manifest-server`): run `npx changeset` and select the appropriate bump level.
-- Since `@mnfst/server` is deprecated, only bump `manifest` in changesets.
+- If the PR changes a **publishable package** directly (`openclaw-plugin`): run `npx changeset` and select the appropriate bump level.
 - **Empty changesets** (`npx changeset add --empty`) should only be used for changes that don't affect any publishable package: CI config, docs, tooling, or dev-only scripts.
 - Commit the generated `.changeset/*.md` file as part of the PR.
 
