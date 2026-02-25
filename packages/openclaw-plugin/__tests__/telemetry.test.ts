@@ -129,6 +129,20 @@ describe("initTelemetry", () => {
     });
   });
 
+  it("sends empty headers when apiKey is empty (dev mode)", () => {
+    const devConfig = { ...config, mode: "dev" as const, apiKey: "" };
+    initTelemetry(devConfig, mockLogger);
+
+    expect(OTLPTraceExporter).toHaveBeenCalledWith({
+      url: "http://localhost:3001/otlp/v1/traces",
+      headers: {},
+    });
+    expect(OTLPMetricExporter).toHaveBeenCalledWith({
+      url: "http://localhost:3001/otlp/v1/metrics",
+      headers: {},
+    });
+  });
+
   it("creates BatchSpanProcessor with tuned settings", () => {
     initTelemetry(config, mockLogger);
 
