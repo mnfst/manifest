@@ -206,8 +206,9 @@ describe('RoutingService', () => {
       expect(inserted.api_key_encrypted).not.toBe('enc-key');
       expect(inserted.api_key_encrypted).toContain(':');
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
-      expect(result.provider).toBe('openai');
-      expect(result.is_active).toBe(true);
+      expect(result.provider.provider).toBe('openai');
+      expect(result.provider.is_active).toBe(true);
+      expect(result.isNew).toBe(true);
     });
 
     it('should create a new provider without apiKey (null encrypted)', async () => {
@@ -218,8 +219,9 @@ describe('RoutingService', () => {
       const inserted = mockProviderRepo.insert.mock.calls[0][0];
       expect(inserted.api_key_encrypted).toBeNull();
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
-      expect(result.provider).toBe('openai');
-      expect(result.is_active).toBe(true);
+      expect(result.provider.provider).toBe('openai');
+      expect(result.provider.is_active).toBe(true);
+      expect(result.isNew).toBe(true);
     });
 
     it('should update existing provider and reactivate it', async () => {
@@ -244,8 +246,9 @@ describe('RoutingService', () => {
       expect(saved.api_key_encrypted).toContain(':');
       expect(mockProviderRepo.insert).not.toHaveBeenCalled();
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
-      expect(result.api_key_encrypted).toContain(':');
-      expect(result.is_active).toBe(true);
+      expect(result.provider.api_key_encrypted).toContain(':');
+      expect(result.provider.is_active).toBe(true);
+      expect(result.isNew).toBe(false);
     });
 
     it('should reactivate existing provider without changing key when no apiKey', async () => {
@@ -260,9 +263,72 @@ describe('RoutingService', () => {
 
       const result = await service.upsertProvider('u1', 'openai');
 
-      expect(result.is_active).toBe(true);
-      expect(result.api_key_encrypted).toBe('old-encrypted');
+      expect(result.provider.is_active).toBe(true);
+      expect(result.provider.api_key_encrypted).toBe('old-encrypted');
+      expect(result.isNew).toBe(false);
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
+    });
+
+    it('should return object with exactly provider and isNew keys', async () => {
+      mockProviderRepo.findOne.mockResolvedValue(null);
+
+      const result = await service.upsertProvider('u1', 'openai', 'key');
+
+      expect(Object.keys(result).sort()).toEqual(['isNew', 'provider']);
+      expect(result.provider).toBeDefined();
+      expect(typeof result.isNew).toBe('boolean');
+    });
+
+    it('should set connected_at and updated_at on new provider', async () => {
+      mockProviderRepo.findOne.mockResolvedValue(null);
+
+      const before = new Date().toISOString();
+      const result = await service.upsertProvider('u1', 'openai', 'key');
+      const after = new Date().toISOString();
+
+      const inserted = mockProviderRepo.insert.mock.calls[0][0];
+      expect(inserted.connected_at).toBeDefined();
+      expect(inserted.updated_at).toBeDefined();
+      expect(inserted.connected_at >= before).toBe(true);
+      expect(inserted.connected_at <= after).toBe(true);
+      expect(inserted.updated_at >= before).toBe(true);
+      expect(inserted.updated_at <= after).toBe(true);
+      expect(result.provider.connected_at).toBe(inserted.connected_at);
+    });
+
+    it('should update updated_at but preserve connected_at on existing provider', async () => {
+      const originalConnectedAt = '2025-01-01T00:00:00.000Z';
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        user_id: 'u1',
+        provider: 'openai',
+        api_key_encrypted: 'old-encrypted',
+        is_active: false,
+        connected_at: originalConnectedAt,
+        updated_at: '2025-01-01T00:00:00.000Z',
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+
+      const before = new Date().toISOString();
+      await service.upsertProvider('u1', 'openai', 'new-key');
+
+      const saved = mockProviderRepo.save.mock.calls[0][0];
+      expect(saved.connected_at).toBe(originalConnectedAt);
+      expect(saved.updated_at >= before).toBe(true);
+    });
+
+    it('should generate a UUID id for new provider', async () => {
+      mockProviderRepo.findOne.mockResolvedValue(null);
+
+      await service.upsertProvider('u1', 'openai', 'key');
+
+      const inserted = mockProviderRepo.insert.mock.calls[0][0];
+      expect(inserted.id).toBeDefined();
+      expect(typeof inserted.id).toBe('string');
+      // UUID v4 format: 8-4-4-4-12
+      expect(inserted.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      );
     });
   });
 

@@ -15,6 +15,7 @@ import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interf
 import { ProxyService } from './proxy.service';
 import { ProviderClient } from './provider-client';
 import { initSseHeaders, pipeStream } from './stream-writer';
+import { trackCloudEvent } from '../../common/utils/product-telemetry';
 
 @Controller('v1')
 @Public()
@@ -22,6 +23,7 @@ import { initSseHeaders, pipeStream } from './stream-writer';
 @SkipThrottle()
 export class ProxyController {
   private readonly logger = new Logger(ProxyController.name);
+  private readonly seenUsers = new Set<string>();
 
   constructor(
     private readonly proxyService: ProxyService,
@@ -45,6 +47,8 @@ export class ProxyController {
         body,
         sessionKey,
       );
+
+      this.trackFirstProxyRequest(userId, meta);
 
       const metaHeaders: Record<string, string> = {
         'X-Manifest-Tier': meta.tier,
@@ -108,5 +112,18 @@ export class ProxyController {
         error: { message: clientMessage, type: 'proxy_error' },
       });
     }
+  }
+
+  private trackFirstProxyRequest(
+    userId: string,
+    meta: { provider: string; model: string; tier: string },
+  ): void {
+    if (this.seenUsers.has(userId)) return;
+    this.seenUsers.add(userId);
+    trackCloudEvent('routing_first_proxy_request', userId, {
+      provider: meta.provider,
+      model: meta.model,
+      tier: meta.tier,
+    });
   }
 }

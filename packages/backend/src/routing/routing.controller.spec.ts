@@ -2,6 +2,11 @@ import { RoutingController } from './routing.controller';
 import { RoutingService } from './routing.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { ModelPricing } from '../entities/model-pricing.entity';
+import * as telemetry from '../common/utils/product-telemetry';
+
+jest.mock('../common/utils/product-telemetry', () => ({
+  trackCloudEvent: jest.fn(),
+}));
 
 const mockUser = { id: 'user-1' } as never;
 
@@ -11,9 +16,10 @@ describe('RoutingController', () => {
   let mockPricingCache: Record<string, jest.Mock>;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockRoutingService = {
       getProviders: jest.fn().mockResolvedValue([]),
-      upsertProvider: jest.fn().mockResolvedValue({}),
+      upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: false }),
       removeProvider: jest.fn().mockResolvedValue({ notifications: 0 }),
       deactivateAllProviders: jest.fn().mockResolvedValue(undefined),
       getTiers: jest.fn().mockResolvedValue([]),
@@ -74,7 +80,8 @@ describe('RoutingController', () => {
   describe('upsertProvider', () => {
     it('should call service and return mapped result (with apiKey)', async () => {
       mockRoutingService.upsertProvider.mockResolvedValue({
-        id: 'p1', provider: 'anthropic', is_active: true, api_key_encrypted: 'enc',
+        provider: { id: 'p1', provider: 'anthropic', is_active: true, api_key_encrypted: 'enc' },
+        isNew: true,
       });
 
       const result = await controller.upsertProvider(mockUser, {
@@ -88,7 +95,8 @@ describe('RoutingController', () => {
 
     it('should call service without apiKey', async () => {
       mockRoutingService.upsertProvider.mockResolvedValue({
-        id: 'p1', provider: 'openai', is_active: true, api_key_encrypted: null,
+        provider: { id: 'p1', provider: 'openai', is_active: true, api_key_encrypted: null },
+        isNew: false,
       });
 
       const result = await controller.upsertProvider(mockUser, {
@@ -97,6 +105,107 @@ describe('RoutingController', () => {
 
       expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith('user-1', 'openai', undefined);
       expect(result).toEqual({ id: 'p1', provider: 'openai', is_active: true });
+    });
+
+    it('should fire routing_provider_connected when provider is new', async () => {
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: { id: 'p1', provider: 'openai', is_active: true },
+        isNew: true,
+      });
+
+      await controller.upsertProvider(mockUser, { provider: 'openai', apiKey: 'sk-test' });
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
+        'routing_provider_connected',
+        'user-1',
+        { provider: 'openai' },
+      );
+    });
+
+    it('should not fire event when provider already exists', async () => {
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: { id: 'p1', provider: 'openai', is_active: true },
+        isNew: false,
+      });
+
+      await controller.upsertProvider(mockUser, { provider: 'openai', apiKey: 'sk-test' });
+
+      expect(telemetry.trackCloudEvent).not.toHaveBeenCalled();
+    });
+
+    it('should fire event for new provider even without apiKey', async () => {
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: { id: 'p1', provider: 'anthropic', is_active: true },
+        isNew: true,
+      });
+
+      await controller.upsertProvider(mockUser, { provider: 'anthropic' });
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
+        'routing_provider_connected',
+        'user-1',
+        { provider: 'anthropic' },
+      );
+    });
+
+    it('should pass body.provider to trackCloudEvent, not result.provider', async () => {
+      // Simulate a case where the body provider name differs in casing
+      // from the stored result provider name
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: { id: 'p1', provider: 'OpenAI', is_active: true },
+        isNew: true,
+      });
+
+      await controller.upsertProvider(mockUser, { provider: 'openai', apiKey: 'sk-test' });
+
+      // The event should use body.provider ('openai'), not result.provider ('OpenAI')
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
+        'routing_provider_connected',
+        'user-1',
+        { provider: 'openai' },
+      );
+    });
+
+    it('should not expose api_key_encrypted in response', async () => {
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: {
+          id: 'p1',
+          provider: 'openai',
+          is_active: true,
+          api_key_encrypted: 'secret-encrypted-value',
+          user_id: 'user-1',
+          connected_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+        isNew: true,
+      });
+
+      const result = await controller.upsertProvider(mockUser, {
+        provider: 'openai',
+        apiKey: 'sk-test',
+      });
+
+      expect(result).toEqual({ id: 'p1', provider: 'openai', is_active: true });
+      expect(result).not.toHaveProperty('api_key_encrypted');
+      expect(result).not.toHaveProperty('user_id');
+      expect(result).not.toHaveProperty('connected_at');
+      expect(result).not.toHaveProperty('updated_at');
+    });
+
+    it('should pass user.id to trackCloudEvent as tenantId', async () => {
+      const customUser = { id: 'custom-user-id-123' } as never;
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: { id: 'p1', provider: 'openai', is_active: true },
+        isNew: true,
+      });
+
+      await controller.upsertProvider(customUser, { provider: 'openai' });
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
+        'routing_provider_connected',
+        'custom-user-id-123',
+        { provider: 'openai' },
+      );
     });
   });
 

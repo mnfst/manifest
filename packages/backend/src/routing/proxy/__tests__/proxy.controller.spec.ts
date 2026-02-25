@@ -1,5 +1,10 @@
 import { HttpException } from '@nestjs/common';
 import { ProxyController } from '../proxy.controller';
+import * as telemetry from '../../../common/utils/product-telemetry';
+
+jest.mock('../../../common/utils/product-telemetry', () => ({
+  trackCloudEvent: jest.fn(),
+}));
 
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
@@ -48,6 +53,7 @@ describe('ProxyController', () => {
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
     proxyService = { proxyRequest: jest.fn() };
     providerClient = {
       convertGoogleResponse: jest.fn(),
@@ -204,6 +210,216 @@ describe('ProxyController', () => {
       req.body,
       'default',
     );
+  });
+
+  describe('first proxy request tracking', () => {
+    it('should fire routing_first_proxy_request on first successful proxy', async () => {
+      const responseBody = { choices: [] };
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: new Response(JSON.stringify(responseBody), { status: 200 }),
+          isGoogle: false,
+        },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
+        'routing_first_proxy_request',
+        'user-1',
+        { provider: 'OpenAI', model: 'gpt-4o', tier: 'standard' },
+      );
+    });
+
+    it('should not fire event on second request from same user', async () => {
+      const makeProxyResult = () => ({
+        forward: {
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+        },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
+      const req1 = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res: res1 } = mockResponse();
+      await controller.chatCompletions(req1 as never, res1 as never);
+
+      jest.clearAllMocks();
+      proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
+      const req2 = mockRequest({ messages: [{ role: 'user', content: 'hi again' }] });
+      const { res: res2 } = mockResponse();
+      await controller.chatCompletions(req2 as never, res2 as never);
+
+      expect(telemetry.trackCloudEvent).not.toHaveBeenCalled();
+    });
+
+    it('should fire event separately for different users', async () => {
+      const makeProxyResult = () => ({
+        forward: {
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+        },
+        meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
+      const req1 = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-1');
+      const { res: res1 } = mockResponse();
+      await controller.chatCompletions(req1 as never, res1 as never);
+
+      proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
+      const req2 = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-2');
+      const { res: res2 } = mockResponse();
+      await controller.chatCompletions(req2 as never, res2 as never);
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledTimes(2);
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
+        'routing_first_proxy_request',
+        'user-1',
+        expect.any(Object),
+      );
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
+        'routing_first_proxy_request',
+        'user-2',
+        expect.any(Object),
+      );
+    });
+
+    it('should fire event even when provider returns error status', async () => {
+      const errorBody = '{"error": "rate limit exceeded"}';
+      const mockProviderResp = new Response(errorBody, {
+        status: 429,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false },
+        meta: { tier: 'complex', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.7 },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
+        'routing_first_proxy_request',
+        'user-1',
+        { provider: 'OpenAI', model: 'gpt-4o', tier: 'complex' },
+      );
+    });
+
+    it('should not fire event when proxyService throws before tracking', async () => {
+      proxyService.proxyRequest.mockRejectedValue(
+        new Error('No model available'),
+      );
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(telemetry.trackCloudEvent).not.toHaveBeenCalled();
+    });
+
+    it('should fire event on next success after a proxyService failure', async () => {
+      // First request: proxyService throws, user never added to seenUsers
+      proxyService.proxyRequest.mockRejectedValue(new Error('No API key'));
+
+      const req1 = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res: res1 } = mockResponse();
+      await controller.chatCompletions(req1 as never, res1 as never);
+
+      expect(telemetry.trackCloudEvent).not.toHaveBeenCalled();
+
+      // Second request: succeeds, user should be tracked as first
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+        },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      });
+
+      const req2 = mockRequest({ messages: [{ role: 'user', content: 'retry' }] });
+      const { res: res2 } = mockResponse();
+      await controller.chatCompletions(req2 as never, res2 as never);
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledTimes(1);
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
+        'routing_first_proxy_request',
+        'user-1',
+        { provider: 'OpenAI', model: 'gpt-4o', tier: 'standard' },
+      );
+    });
+
+    it('should not fire event on provider error for already-seen user', async () => {
+      // First request: success, user added to seenUsers
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+        },
+        meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      });
+
+      const req1 = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res: res1 } = mockResponse();
+      await controller.chatCompletions(req1 as never, res1 as never);
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledTimes(1);
+      jest.clearAllMocks();
+
+      // Second request: provider 429 error, but user already seen
+      const errorResp = new Response('{"error":"rate limit"}', { status: 429 });
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: errorResp, isGoogle: false },
+        meta: { tier: 'complex', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
+      });
+
+      const req2 = mockRequest({ messages: [{ role: 'user', content: 'hi again' }] });
+      const { res: res2 } = mockResponse();
+      await controller.chatCompletions(req2 as never, res2 as never);
+
+      expect(telemetry.trackCloudEvent).not.toHaveBeenCalled();
+    });
+
+    it('should include correct meta in tracking event', async () => {
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+        },
+        meta: {
+          tier: 'reasoning',
+          model: 'o1-pro',
+          provider: 'OpenAI',
+          confidence: 0.95,
+        },
+      });
+
+      const req = mockRequest(
+        { messages: [{ role: 'user', content: 'complex question' }] },
+        'tracking-user',
+      );
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
+        'routing_first_proxy_request',
+        'tracking-user',
+        { provider: 'OpenAI', model: 'o1-pro', tier: 'reasoning' },
+      );
+      // confidence should NOT be in the tracking payload
+      const trackingProps = (telemetry.trackCloudEvent as jest.Mock).mock.calls[0][2];
+      expect(trackingProps).not.toHaveProperty('confidence');
+    });
   });
 
   describe('streaming', () => {

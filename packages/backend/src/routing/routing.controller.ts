@@ -12,6 +12,7 @@ import { AuthUser } from '../auth/auth.instance';
 import { RoutingService } from './routing.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { expandProviderNames } from './provider-aliases';
+import { trackCloudEvent } from '../common/utils/product-telemetry';
 import {
   TierParamDto,
   ProviderParamDto,
@@ -46,11 +47,19 @@ export class RoutingController {
     @CurrentUser() user: AuthUser,
     @Body() body: ConnectProviderDto,
   ) {
-    const result = await this.routingService.upsertProvider(
-      user.id,
-      body.provider,
-      body.apiKey,
-    );
+    const { provider: result, isNew } =
+      await this.routingService.upsertProvider(
+        user.id,
+        body.provider,
+        body.apiKey,
+      );
+
+    if (isNew) {
+      trackCloudEvent('routing_provider_connected', user.id, {
+        provider: body.provider,
+      });
+    }
+
     return {
       id: result.id,
       provider: result.provider,

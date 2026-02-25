@@ -40,7 +40,7 @@ export class RoutingService {
     userId: string,
     provider: string,
     apiKey?: string,
-  ): Promise<UserProvider> {
+  ): Promise<{ provider: UserProvider; isNew: boolean }> {
     const apiKeyEncrypted = apiKey
       ? encrypt(apiKey, getEncryptionSecret())
       : null;
@@ -57,7 +57,7 @@ export class RoutingService {
       existing.updated_at = new Date().toISOString();
       await this.providerRepo.save(existing);
       await this.autoAssign.recalculate(userId);
-      return existing;
+      return { provider: existing, isNew: false };
     }
 
     const record: UserProvider = Object.assign(new UserProvider(), {
@@ -72,7 +72,7 @@ export class RoutingService {
 
     await this.providerRepo.insert(record);
     await this.autoAssign.recalculate(userId);
-    return record;
+    return { provider: record, isNew: true };
   }
 
   async removeProvider(
