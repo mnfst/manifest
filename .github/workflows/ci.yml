@@ -124,61 +124,6 @@ jobs:
           directory: packages/openclaw-plugin
           fail_ci_if_error: false
 
-  server-smoke:
-    name: Server smoke (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-
-    env:
-      BETTER_AUTH_SECRET: ci-test-secret-at-least-32-characters-long!!
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run build --workspace=packages/backend
-
-      - name: Build frontend
-        if: runner.os == 'Linux'
-        run: npm run build --workspace=packages/frontend
-
-      - name: Build manifest-server
-        shell: bash
-        run: |
-          cd packages/manifest-server
-          rm -rf dist
-          node scripts/copy-assets.js
-          npx tsc
-
-      - name: Pack @mnfst/server
-        run: npm pack --workspace=packages/manifest-server --pack-destination="$RUNNER_TEMP"
-
-      - name: Install from tarball
-        run: |
-          cd "$RUNNER_TEMP"
-          mkdir smoke-test
-          cd smoke-test
-          npm init -y
-          npm install ../mnfst-server-*.tgz
-
-      - name: Verify sql.js loads
-        run: |
-          cd "$RUNNER_TEMP/smoke-test"
-          node -e "require('sql.js'); console.log('sql.js OK')"
-
-      - name: Run smoke test
-        run: |
-          cp packages/manifest-server/smoke-test.cjs "$RUNNER_TEMP/smoke-test/"
-          cd "$RUNNER_TEMP/smoke-test"
-          node smoke-test.cjs
-
   changeset-check:
     name: Changeset status
     runs-on: ubuntu-latest

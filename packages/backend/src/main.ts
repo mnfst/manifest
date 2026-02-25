@@ -124,7 +124,7 @@ function buildLocalSessionResponse() {
   };
 }
 
-// Only auto-start when run directly (not imported by manifest-server)
+// Only auto-start when run directly (not when embedded)
 if (!process.env['MANIFEST_EMBEDDED']) {
   bootstrap();
 }
