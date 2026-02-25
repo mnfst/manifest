@@ -8,6 +8,7 @@ import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
 import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
+import { ProviderHealthService } from '../../health/provider-health.service';
 
 @Controller('api/v1')
 @UseInterceptors(UserCacheInterceptor)
@@ -16,7 +17,8 @@ export class OverviewController {
   constructor(
     private readonly aggregation: AggregationService,
     private readonly timeseries: TimeseriesQueriesService,
-  ) {}
+    private readonly healthService: ProviderHealthService,
+  ) { }
 
   @Get('overview')
   async getOverview(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
@@ -49,8 +51,7 @@ export class OverviewController {
         tokens_today: tokenSummary.tokens_today,
         cost_today: costSummary,
         messages,
-        // TODO: implement real service health tracking
-        services_hit: { total: 0, healthy: 0, issues: 0 },
+        services_hit: this.healthService.getSummary(),
       },
       token_usage: hourly ? hourlyTokens : dailyTokens,
       cost_usage: hourly ? hourlyCosts : dailyCosts,
