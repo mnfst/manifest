@@ -1,9 +1,10 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, HttpException } from '@nestjs/common';
 import { ProxyService } from '../proxy.service';
 import { ResolveService } from '../../resolve.service';
 import { RoutingService } from '../../routing.service';
 import { ProviderClient } from '../provider-client';
 import { SessionMomentumService } from '../session-momentum.service';
+import { LimitCheckService } from '../../../notifications/services/limit-check.service';
 
 describe('ProxyService', () => {
   let service: ProxyService;
@@ -11,6 +12,7 @@ describe('ProxyService', () => {
   let routingService: jest.Mocked<RoutingService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let momentum: SessionMomentumService;
+  let limitCheck: jest.Mocked<LimitCheckService>;
 
   beforeEach(() => {
     resolveService = {
@@ -27,11 +29,17 @@ describe('ProxyService', () => {
 
     momentum = new SessionMomentumService();
 
+    limitCheck = {
+      checkLimits: jest.fn().mockResolvedValue(null),
+      invalidateCache: jest.fn(),
+    } as unknown as jest.Mocked<LimitCheckService>;
+
     service = new ProxyService(
       resolveService,
       routingService,
       providerClient,
       momentum,
+      limitCheck,
     );
   });
 
@@ -362,6 +370,66 @@ describe('ProxyService', () => {
       // Should be the last 10 user messages (5-14)
       expect(scoredMessages[0].content).toBe('Message 5');
       expect(scoredMessages[9].content).toBe('Message 14');
+    });
+  });
+
+  describe('limit checking', () => {
+    const setupSuccessMocks = () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+      });
+    };
+
+    it('throws 429 when limit is exceeded', async () => {
+      limitCheck.checkLimits.mockResolvedValue({
+        ruleId: 'r1',
+        metricType: 'tokens',
+        threshold: 50000,
+        actual: 52000,
+        period: 'day',
+      });
+
+      await expect(
+        service.proxyRequest('user-1', body, 'default', 'tenant-1', 'my-agent'),
+      ).rejects.toThrow(HttpException);
+
+      try {
+        await service.proxyRequest('user-1', body, 'default', 'tenant-1', 'my-agent');
+      } catch (err) {
+        expect((err as HttpException).getStatus()).toBe(429);
+        const response = (err as HttpException).getResponse() as Record<string, unknown>;
+        const error = response.error as Record<string, unknown>;
+        expect(error.code).toBe('limit_exceeded');
+        expect(error.type).toBe('rate_limit_exceeded');
+      }
+    });
+
+    it('does not check limits when tenantId/agentName are not provided', async () => {
+      setupSuccessMocks();
+
+      await service.proxyRequest('user-1', body, 'default');
+
+      expect(limitCheck.checkLimits).not.toHaveBeenCalled();
+    });
+
+    it('proceeds normally when no limit is exceeded', async () => {
+      setupSuccessMocks();
+      limitCheck.checkLimits.mockResolvedValue(null);
+
+      const result = await service.proxyRequest('user-1', body, 'default', 'tenant-1', 'my-agent');
+
+      expect(limitCheck.checkLimits).toHaveBeenCalledWith('tenant-1', 'my-agent');
+      expect(result.meta.model).toBe('gpt-4o');
     });
   });
 });

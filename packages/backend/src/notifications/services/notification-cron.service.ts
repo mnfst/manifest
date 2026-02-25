@@ -6,6 +6,7 @@ import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
 import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
+import { computePeriodBoundaries } from '../../common/utils/period.util';
 import { LOCAL_EMAIL, readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
 
 interface ActiveRule {
@@ -71,7 +72,7 @@ export class NotificationCronService implements OnModuleInit {
   }
 
   private async evaluateRule(rule: ActiveRule): Promise<boolean> {
-    const { periodStart, periodEnd } = this.computePeriodBoundaries(rule.period);
+    const { periodStart, periodEnd } = computePeriodBoundaries(rule.period);
 
     const alreadySent = await this.ds.query(
       this.sql(`SELECT 1 FROM notification_logs WHERE rule_id = $1 AND period_start = $2`),
@@ -122,36 +123,6 @@ export class NotificationCronService implements OnModuleInit {
     }
 
     return emailSent || !email;
-  }
-
-  private computePeriodBoundaries(period: string): { periodStart: string; periodEnd: string } {
-    const now = new Date();
-    let start: Date;
-
-    switch (period) {
-      case 'hour':
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() - 1));
-        break;
-      case 'day':
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-        break;
-      case 'week': {
-        const dayOfWeek = now.getUTCDay();
-        const monday = now.getUTCDate() - ((dayOfWeek + 6) % 7);
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), monday));
-        break;
-      }
-      case 'month':
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-        break;
-      default:
-        start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() - 1));
-    }
-
-    const end = new Date(now.getTime());
-    const fmt = (d: Date) => d.toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
-
-    return { periodStart: fmt(start), periodEnd: fmt(end) };
   }
 
   private async resolveUserEmail(userId: string): Promise<string | null> {

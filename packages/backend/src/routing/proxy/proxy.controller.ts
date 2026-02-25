@@ -7,11 +7,15 @@ import {
   Logger,
   HttpException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Request, Response as ExpressResponse } from 'express';
+import { v4 as uuid } from 'uuid';
 import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../../common/decorators/public.decorator';
 import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
+import { AgentMessage } from '../../entities/agent-message.entity';
 import { ProxyService } from './proxy.service';
 import { ProviderClient } from './provider-client';
 import { initSseHeaders, pipeStream } from './stream-writer';
@@ -24,10 +28,15 @@ import { trackCloudEvent } from '../../common/utils/product-telemetry';
 export class ProxyController {
   private readonly logger = new Logger(ProxyController.name);
   private readonly seenUsers = new Set<string>();
+  private readonly rateLimitCooldown = new Map<string, number>();
+  private readonly RATE_LIMIT_COOLDOWN_MS = 60_000;
+  private readonly MAX_COOLDOWN_ENTRIES = 1_000;
 
   constructor(
     private readonly proxyService: ProxyService,
     private readonly providerClient: ProviderClient,
+    @InjectRepository(AgentMessage)
+    private readonly messageRepo: Repository<AgentMessage>,
   ) {}
 
   @Post('chat/completions')
@@ -35,7 +44,7 @@ export class ProxyController {
     @Req() req: Request & { ingestionContext: IngestionContext },
     @Res() res: ExpressResponse,
   ): Promise<void> {
-    const { userId } = req.ingestionContext;
+    const { userId, tenantId, agentName } = req.ingestionContext;
     const body = req.body as Record<string, unknown>;
     const sessionKey = (req.headers['x-session-key'] as string) || 'default';
     const isStream = body.stream === true;
@@ -46,6 +55,8 @@ export class ProxyController {
         userId,
         body,
         sessionKey,
+        tenantId,
+        agentName,
       );
 
       this.trackFirstProxyRequest(userId, meta);
@@ -101,8 +112,13 @@ export class ProxyController {
       const status = err instanceof HttpException ? err.getStatus() : 500;
       this.logger.error(`Proxy error: ${message}`);
 
+      if (status === 429) {
+        this.recordRateLimited(req.ingestionContext, message).catch((e) =>
+          this.logger.warn(`Failed to record rate_limited message: ${e}`),
+        );
+      }
+
       if (headersSent) {
-        // Headers already flushed for SSE — just close the stream
         if (!res.writableEnded) res.end();
         return;
       }
@@ -112,6 +128,34 @@ export class ProxyController {
         error: { message: clientMessage, type: 'proxy_error' },
       });
     }
+  }
+
+  private async recordRateLimited(ctx: IngestionContext, errorMessage: string): Promise<void> {
+    const key = `${ctx.tenantId}:${ctx.agentId}`;
+    const now = Date.now();
+    const lastRecorded = this.rateLimitCooldown.get(key) ?? 0;
+    if (now - lastRecorded < this.RATE_LIMIT_COOLDOWN_MS) return;
+    this.rateLimitCooldown.set(key, now);
+
+    if (this.rateLimitCooldown.size > this.MAX_COOLDOWN_ENTRIES) {
+      for (const [k, v] of this.rateLimitCooldown) {
+        if (now - v >= this.RATE_LIMIT_COOLDOWN_MS) this.rateLimitCooldown.delete(k);
+      }
+    }
+
+    await this.messageRepo.insert({
+      id: uuid(),
+      tenant_id: ctx.tenantId,
+      agent_id: ctx.agentId,
+      timestamp: new Date().toISOString(),
+      status: 'rate_limited',
+      error_message: errorMessage,
+      agent_name: ctx.agentName,
+      input_tokens: 0,
+      output_tokens: 0,
+      cache_read_tokens: 0,
+      cache_creation_tokens: 0,
+    });
   }
 
   private trackFirstProxyRequest(

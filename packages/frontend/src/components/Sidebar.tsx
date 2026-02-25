@@ -64,12 +64,12 @@ const Sidebar: Component = () => {
           </A>
         </Show>
         <A
-          href={path("/notifications")}
+          href={path("/limits")}
           class="sidebar__link"
-          classList={{ active: isActive("/notifications") }}
-          aria-current={isActive("/notifications") ? "page" : undefined}
+          classList={{ active: isActive("/limits") }}
+          aria-current={isActive("/limits") ? "page" : undefined}
         >
-          Notifications
+          Limits
         </A>
       </Show>
 

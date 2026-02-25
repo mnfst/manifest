@@ -1,8 +1,9 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, HttpException } from '@nestjs/common';
 import { ResolveService } from '../resolve.service';
 import { RoutingService } from '../routing.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
+import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { Tier, ScorerMessage } from '../scorer/types';
 
 /**
@@ -35,16 +36,38 @@ export class ProxyService {
     private readonly routingService: RoutingService,
     private readonly providerClient: ProviderClient,
     private readonly momentum: SessionMomentumService,
+    private readonly limitCheck: LimitCheckService,
   ) {}
 
   async proxyRequest(
     userId: string,
     body: Record<string, unknown>,
     sessionKey: string,
+    tenantId?: string,
+    agentName?: string,
   ): Promise<ProxyResult> {
     const messages = body.messages;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw new BadRequestException('messages array is required');
+    }
+
+    if (tenantId && agentName) {
+      const exceeded = await this.limitCheck.checkLimits(tenantId, agentName);
+      if (exceeded) {
+        const fmt = exceeded.metricType === 'cost'
+          ? `$${exceeded.actual.toFixed(2)}`
+          : exceeded.actual.toLocaleString();
+        const threshFmt = exceeded.metricType === 'cost'
+          ? `$${exceeded.threshold.toFixed(2)}`
+          : exceeded.threshold.toLocaleString();
+        throw new HttpException({
+          error: {
+            message: `Limit exceeded: ${exceeded.metricType} usage (${fmt}) exceeds ${threshFmt} per ${exceeded.period}`,
+            type: 'rate_limit_exceeded',
+            code: 'limit_exceeded',
+          },
+        }, 429);
+      }
     }
 
     const recentTiers = this.momentum.getRecentTiers(sessionKey);

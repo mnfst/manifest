@@ -125,6 +125,7 @@ export interface NotificationRule {
   metric_type: "tokens" | "cost";
   threshold: number;
   period: "hour" | "day" | "week" | "month";
+  action: "notify" | "block";
   is_active: boolean | number;
   trigger_count: number;
   created_at: string;
@@ -139,6 +140,7 @@ export function createNotificationRule(data: {
   metric_type: string;
   threshold: number;
   period: string;
+  action?: string;
 }) {
   return fetchMutate(`${BASE_URL}/notifications`, {
     method: "POST",
@@ -260,6 +262,12 @@ export function saveNotificationEmail(email: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
+}
+
+/* -- Routing: Status -- */
+
+export function getRoutingStatus() {
+  return fetchJson<{ enabled: boolean }>("/routing/status");
 }
 
 /* -- Routing: Providers -- */

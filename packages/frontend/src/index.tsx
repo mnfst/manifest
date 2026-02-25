@@ -9,7 +9,7 @@ import Overview from "./pages/Overview.jsx";
 import MessageLog from "./pages/MessageLog.jsx";
 import Settings from "./pages/Settings.jsx";
 import Routing from "./pages/Routing.jsx";
-import Notifications from "./pages/Notifications.jsx";
+import Limits from "./pages/Limits.jsx";
 import Account from "./pages/Account.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
@@ -48,7 +48,7 @@ render(
             <Route path="/messages" component={MessageLog} />
             <Route path="/settings/*" component={Settings} />
             <Route path="/routing" component={Routing} />
-            <Route path="/notifications" component={Notifications} />
+            <Route path="/limits" component={Limits} />
             <Route path="/model-prices" component={ModelPrices} />
             <Route path="/help" component={Help} />
           </Route>

@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
+import { AgentMessage } from '../entities/agent-message.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { OtlpAuthGuard } from '../otlp/guards/otlp-auth.guard';
@@ -16,11 +17,13 @@ import { ProxyService } from './proxy/proxy.service';
 import { ProviderClient } from './proxy/provider-client';
 import { SessionMomentumService } from './proxy/session-momentum.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserProvider, TierAssignment, AgentApiKey, ModelPricing]),
+    TypeOrmModule.forFeature([UserProvider, TierAssignment, AgentApiKey, AgentMessage, ModelPricing]),
     ModelPricesModule,
+    NotificationsModule,
   ],
   controllers: [RoutingController, ResolveController, ProxyController],
   providers: [

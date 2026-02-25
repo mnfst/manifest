@@ -36,6 +36,7 @@ import { SeedQualityScores1771800100000 } from './migrations/1771800100000-SeedQ
 import { EncryptApiKeys1771900000000 } from './migrations/1771900000000-EncryptApiKeys';
 import { MakeApiKeyNullable1772000000000 } from './migrations/1772000000000-MakeApiKeyNullable';
 import { AddRoutingTier1772100000000 } from './migrations/1772100000000-AddRoutingTier';
+import { AddLimitAction1772200000000 } from './migrations/1772200000000-AddLimitAction';
 
 const entities = [
   AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing,
@@ -60,6 +61,7 @@ const migrations = [
   EncryptApiKeys1771900000000,
   MakeApiKeyNullable1772000000000,
   AddRoutingTier1772100000000,
+  AddLimitAction1772200000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';

@@ -112,8 +112,9 @@ const Overview: Component = () => {
   })
 
   const trendBadge = (pct: number) => {
-    const cls = pct >= 0 ? 'trend trend--up' : 'trend trend--down'
-    const sign = pct >= 0 ? '+' : ''
+    if (pct === 0) return null;
+    const cls = pct > 0 ? 'trend trend--up' : 'trend trend--down'
+    const sign = pct > 0 ? '+' : ''
     return (
       <span class={cls}>
         {sign}
@@ -275,21 +276,18 @@ const Overview: Component = () => {
                     <span class="chart-card__label">Cost</span>
                     <div class="chart-card__value-row">
                       <span class="chart-card__value">$0.00</span>
-                      <span class="trend trend--up">+0%</span>
                     </div>
                   </div>
                   <div class="chart-card__stat">
                     <span class="chart-card__label">Token usage</span>
                     <div class="chart-card__value-row">
                       <span class="chart-card__value">0</span>
-                      <span class="trend trend--up">+0%</span>
                     </div>
                   </div>
                   <div class="chart-card__stat">
                     <span class="chart-card__label">Messages</span>
                     <div class="chart-card__value-row">
                       <span class="chart-card__value">0</span>
-                      <span class="trend trend--up">+0%</span>
                     </div>
                   </div>
                 </div>
@@ -507,10 +505,10 @@ const Overview: Component = () => {
                                 : '\u2014'}
                             </td>
                             <td>
-                              <span
-                                class={`status-badge status-badge--${item.status}`}
-                              >
-                                {formatStatus(item.status)}
+                              <span class={`status-badge status-badge--${item.status}`}>
+                                {item.status === 'rate_limited'
+                                  ? <A href={`/agents/${encodeURIComponent(params.agentName)}/limits`}>{formatStatus(item.status)}</A>
+                                  : formatStatus(item.status)}
                               </span>
                             </td>
                           </tr>
