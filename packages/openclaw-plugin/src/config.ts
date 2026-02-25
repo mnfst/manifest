@@ -1,12 +1,9 @@
-import { API_KEY_PREFIX, DEFAULTS, DEV_DEFAULTS, ENV } from "./constants";
+import { API_KEY_PREFIX, DEFAULTS, ENV } from "./constants";
 
 export interface ManifestConfig {
   mode: "cloud" | "local" | "dev";
   apiKey: string;
   endpoint: string;
-  serviceName: string;
-  captureContent: boolean;
-  metricsIntervalMs: number;
   port: number;
   host: string;
 }
@@ -48,25 +45,6 @@ export function parseConfig(raw: unknown): ManifestConfig {
         ? envEndpoint
         : DEFAULTS.ENDPOINT;
 
-  const serviceName =
-    typeof obj.serviceName === "string" && obj.serviceName.length > 0
-      ? obj.serviceName
-      : DEFAULTS.SERVICE_NAME;
-
-  const captureContent =
-    typeof obj.captureContent === "boolean"
-      ? obj.captureContent
-      : mode === "dev" || mode === "local";
-
-  const defaultMetricsInterval =
-    mode === "dev" ? DEV_DEFAULTS.METRICS_INTERVAL_MS : DEFAULTS.METRICS_INTERVAL_MS;
-
-  const metricsIntervalMs =
-    typeof obj.metricsIntervalMs === "number" &&
-    obj.metricsIntervalMs >= 5000
-      ? obj.metricsIntervalMs
-      : defaultMetricsInterval;
-
   const port =
     typeof obj.port === "number" && obj.port > 0
       ? obj.port
@@ -77,7 +55,7 @@ export function parseConfig(raw: unknown): ManifestConfig {
       ? obj.host
       : "127.0.0.1";
 
-  return { mode, apiKey, endpoint, serviceName, captureContent, metricsIntervalMs, port, host };
+  return { mode, apiKey, endpoint, port, host };
 }
 
 export function validateConfig(config: ManifestConfig): string | null {

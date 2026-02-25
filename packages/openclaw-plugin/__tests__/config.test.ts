@@ -81,9 +81,6 @@ describe("parseConfig", () => {
   it("applies defaults for missing fields", () => {
     const result = parseConfig({ apiKey: "mnfst_abc" });
     expect(result.endpoint).toBe(DEFAULTS.ENDPOINT);
-    expect(result.serviceName).toBe(DEFAULTS.SERVICE_NAME);
-    expect(result.captureContent).toBe(true);
-    expect(result.metricsIntervalMs).toBe(DEFAULTS.METRICS_INTERVAL_MS);
   });
 
   it("defaults mode to local", () => {
@@ -104,21 +101,6 @@ describe("parseConfig", () => {
   it("parses explicit mode: dev", () => {
     const result = parseConfig({ mode: "dev", endpoint: "http://localhost:38238/otlp" });
     expect(result.mode).toBe("dev");
-  });
-
-  it("defaults captureContent to true in dev mode", () => {
-    const result = parseConfig({ mode: "dev", endpoint: "http://localhost:38238/otlp" });
-    expect(result.captureContent).toBe(true);
-  });
-
-  it("respects explicit captureContent=false in dev mode", () => {
-    const result = parseConfig({ mode: "dev", captureContent: false });
-    expect(result.captureContent).toBe(false);
-  });
-
-  it("uses DEV_DEFAULTS metrics interval in dev mode", () => {
-    const result = parseConfig({ mode: "dev" });
-    expect(result.metricsIntervalMs).toBe(DEV_DEFAULTS.METRICS_INTERVAL_MS);
   });
 
   it("preserves mode: dev through nested config wrapper", () => {
@@ -172,38 +154,6 @@ describe("parseConfig", () => {
   it("handles array input gracefully", () => {
     const result = parseConfig([1, 2, 3]);
     expect(result.apiKey).toBe("");
-  });
-
-  it("respects custom serviceName", () => {
-    const result = parseConfig({
-      apiKey: "mnfst_abc",
-      serviceName: "my-agent",
-    });
-    expect(result.serviceName).toBe("my-agent");
-  });
-
-  it("respects captureContent when set to true", () => {
-    const result = parseConfig({
-      apiKey: "mnfst_abc",
-      captureContent: true,
-    });
-    expect(result.captureContent).toBe(true);
-  });
-
-  it("clamps metricsIntervalMs below minimum to default", () => {
-    const result = parseConfig({
-      apiKey: "mnfst_abc",
-      metricsIntervalMs: 1000,
-    });
-    expect(result.metricsIntervalMs).toBe(DEFAULTS.METRICS_INTERVAL_MS);
-  });
-
-  it("accepts metricsIntervalMs at minimum", () => {
-    const result = parseConfig({
-      apiKey: "mnfst_abc",
-      metricsIntervalMs: 5000,
-    });
-    expect(result.metricsIntervalMs).toBe(5000);
   });
 
   it("ignores non-string apiKey", () => {
@@ -266,9 +216,6 @@ describe("validateConfig", () => {
     mode: "cloud" as const,
     apiKey: "mnfst_abc",
     endpoint: "https://app.manifest.build/otlp",
-    serviceName: "test",
-    captureContent: false,
-    metricsIntervalMs: 30000,
     port: 2099,
     host: "127.0.0.1",
   };

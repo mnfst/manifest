@@ -11,6 +11,7 @@ import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 import { Resource } from "@opentelemetry/resources";
 import { trace, metrics, Tracer, Meter } from "@opentelemetry/api";
 import { ManifestConfig } from "./config";
+import { DEFAULTS, DEV_DEFAULTS, LOCAL_DEFAULTS } from "./constants";
 
 export interface PluginLogger {
   info: (...args: unknown[]) => void;
@@ -29,7 +30,7 @@ export function initTelemetry(
   logger: PluginLogger,
 ): { tracer: Tracer; meter: Meter } {
   const resource = new Resource({
-    "service.name": config.serviceName,
+    "service.name": DEFAULTS.SERVICE_NAME,
     "service.version": process.env.PLUGIN_VERSION || "0.0.0",
     "manifest.plugin": "true",
   });
@@ -63,19 +64,24 @@ export function initTelemetry(
     headers,
   });
 
+  const metricsIntervalMs =
+    config.mode === "dev" ? DEV_DEFAULTS.METRICS_INTERVAL_MS
+      : config.mode === "local" ? LOCAL_DEFAULTS.METRICS_INTERVAL_MS
+      : DEFAULTS.METRICS_INTERVAL_MS;
+
   meterProvider = new MeterProvider({
     resource,
     readers: [
       new PeriodicExportingMetricReader({
         exporter: metricExporter,
-        exportIntervalMillis: config.metricsIntervalMs,
+        exportIntervalMillis: metricsIntervalMs,
       }),
     ],
   });
   metrics.setGlobalMeterProvider(meterProvider);
   logger.debug(
     `[manifest] Metrics exporter -> ${config.endpoint}/v1/metrics ` +
-      `(interval=${config.metricsIntervalMs}ms)`,
+      `(interval=${metricsIntervalMs}ms)`,
   );
 
   tracer = trace.getTracer("manifest-plugin", process.env.PLUGIN_VERSION);
