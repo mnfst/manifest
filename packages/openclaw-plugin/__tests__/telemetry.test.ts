@@ -165,6 +165,28 @@ describe("initTelemetry", () => {
     expect(mockSetGlobalMeterProvider).toHaveBeenCalledTimes(1);
   });
 
+  it("uses 10s metrics interval in local mode", () => {
+    const localConfig = { ...config, mode: "local" as const };
+    initTelemetry(localConfig, mockLogger);
+
+    expect(PeriodicExportingMetricReader).toHaveBeenCalledWith(
+      expect.objectContaining({
+        exportIntervalMillis: 10000,
+      }),
+    );
+  });
+
+  it("uses 10s metrics interval in dev mode", () => {
+    const devConfig = { ...config, mode: "dev" as const, apiKey: "" };
+    initTelemetry(devConfig, mockLogger);
+
+    expect(PeriodicExportingMetricReader).toHaveBeenCalledWith(
+      expect.objectContaining({
+        exportIntervalMillis: 10000,
+      }),
+    );
+  });
+
   it("returns tracer and meter", () => {
     const result = initTelemetry(config, mockLogger);
 
