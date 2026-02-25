@@ -1,5 +1,11 @@
 # manifest
 
+## 5.10.3
+
+### Patch Changes
+
+- 7844115: Fix broken product analytics funnel by unifying distinct IDs across funnel steps. Local mode now uses machine_id consistently, cloud mode uses SHA256(user.id). Suppress plugin analytics in dev mode. Add file-based dedup for local first_telemetry_received.
+
 ## 5.10.2
 
 ### Patch Changes
