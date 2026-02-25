@@ -1,5 +1,11 @@
 # manifest
 
+## 5.10.2
+
+### Patch Changes
+
+- d61771d: Add meta tags (title, description, og:image, twitter cards) and link auth page logo to manifest.build
+
 ## 5.10.1
 
 ### Patch Changes
