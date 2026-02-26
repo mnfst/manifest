@@ -1,5 +1,11 @@
 # manifest
 
+## 5.11.1
+
+### Patch Changes
+
+- 19b96de: Harmonize PostHog telemetry: fix distinct_id mismatch in first_telemetry_received, add package_version to backend events, and add mode to plugin events
+
 ## 5.11.0
 
 ### Minor Changes
