@@ -1,5 +1,11 @@
 # manifest
 
+## 5.11.0
+
+### Minor Changes
+
+- dcfa4b6: Add hard limits: block proxy requests when agent consumption exceeds configured thresholds
+
 ## 5.10.3
 
 ### Patch Changes
