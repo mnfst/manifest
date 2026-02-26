@@ -54,7 +54,7 @@ describe('PricingSyncService', () => {
     mockCount.mockResolvedValue(0);
   });
 
-  it('upserts all models with valid pricing', async () => {
+  it('upserts all models with valid pricing (native + OpenRouter copy)', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -67,7 +67,8 @@ describe('PricingSyncService', () => {
 
     const updated = await service.syncPricing();
     expect(updated).toBe(2);
-    expect(mockUpsert).toHaveBeenCalledTimes(2);
+    // 2 native + 2 OpenRouter copies = 4 upserts
+    expect(mockUpsert).toHaveBeenCalledTimes(4);
     expect(mockRecordChange).toHaveBeenCalledTimes(2);
   });
 
@@ -184,6 +185,8 @@ describe('PricingSyncService', () => {
       }),
       'sync',
     );
+    // Native upsert + OpenRouter copy
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
   });
 
   it('passes existing model to recordChange when found', async () => {
@@ -364,6 +367,13 @@ describe('PricingSyncService', () => {
         provider: 'Unknown',
       });
     });
+
+    it('preserves full ID for openrouter/ models', () => {
+      expect(service.deriveNames('openrouter/auto')).toEqual({
+        canonical: 'openrouter/auto',
+        provider: 'OpenRouter',
+      });
+    });
   });
 
   it('maps Zhipu provider correctly', async () => {
@@ -381,6 +391,14 @@ describe('PricingSyncService', () => {
       expect.objectContaining({
         model_name: 'glm-4-plus',
         provider: 'Zhipu',
+      }),
+      ['model_name'],
+    );
+    // Also stores OpenRouter copy
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'zhipuai/glm-4-plus',
+        provider: 'OpenRouter',
       }),
       ['model_name'],
     );
@@ -404,6 +422,170 @@ describe('PricingSyncService', () => {
       }),
       ['model_name'],
     );
+    // Also stores OpenRouter copy
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'amazon/nova-pro',
+        provider: 'OpenRouter',
+      }),
+      ['model_name'],
+    );
+  });
+
+  it('syncs openrouter/auto with full ID preserved (no duplicate)', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openrouter/auto', pricing: { prompt: '0.000003', completion: '0.000015' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // openrouter/* models only get 1 upsert (no OpenRouter copy needed)
+    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'openrouter/auto',
+        provider: 'OpenRouter',
+      }),
+      ['model_name'],
+    );
+  });
+
+  it('stores context_length as context_window when present', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', context_length: 128000, pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'gpt-4o',
+        context_window: 128000,
+      }),
+      ['model_name'],
+    );
+    // OpenRouter copy also has context_window
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'openai/gpt-4o',
+        provider: 'OpenRouter',
+        context_window: 128000,
+      }),
+      ['model_name'],
+    );
+  });
+
+  it('omits context_window when context_length is missing (uses DB default)', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // No upsert call should include context_window
+    for (const call of mockUpsert.mock.calls) {
+      expect(call[0]).not.toHaveProperty('context_window');
+    }
+  });
+
+  it('stores OpenRouter copy with full vendor-prefixed ID', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'anthropic/claude-opus-4', pricing: { prompt: '0.000015', completion: '0.000075' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // Native entry
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'claude-opus-4',
+        provider: 'Anthropic',
+      }),
+      ['model_name'],
+    );
+    // OpenRouter copy
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'anthropic/claude-opus-4',
+        provider: 'OpenRouter',
+        input_price_per_token: 0.000015,
+        output_price_per_token: 0.000075,
+      }),
+      ['model_name'],
+    );
+  });
+
+  it('logs warning when OpenRouter copy upsert fails', async () => {
+    mockUpsert
+      .mockResolvedValueOnce(undefined) // native upsert succeeds
+      .mockRejectedValueOnce(new Error('unique constraint violated')); // OpenRouter copy fails
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'anthropic/claude-opus-4', pricing: { prompt: '0.000015', completion: '0.000075' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    // The model still counts as updated (native upsert succeeded)
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not create OpenRouter copy for bare models (no slash)', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'bare-model', pricing: { prompt: '0.000001', completion: '0.000001' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // Only 1 upsert: bare model has no vendor prefix
+    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'bare-model',
+        provider: 'Unknown',
+      }),
+      ['model_name'],
+    );
+  });
+
+  it('skips models with negative pricing', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openrouter/bodybuilder', pricing: { prompt: '-1', completion: '-1' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
   });
 
   it('maps Qwen/Alibaba provider correctly', async () => {
@@ -421,6 +603,14 @@ describe('PricingSyncService', () => {
       expect.objectContaining({
         model_name: 'qwen3-235b-a22b',
         provider: 'Alibaba',
+      }),
+      ['model_name'],
+    );
+    // Also stores OpenRouter copy
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'qwen/qwen3-235b-a22b',
+        provider: 'OpenRouter',
       }),
       ['model_name'],
     );

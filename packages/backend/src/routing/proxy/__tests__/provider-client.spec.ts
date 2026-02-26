@@ -79,6 +79,25 @@ describe('ProviderClient', () => {
       );
     });
 
+    it('builds correct URL for openrouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('openrouter', 'sk-or-test', 'openrouter/auto', body, false);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://openrouter.ai/api/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer sk-or-test',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('openrouter/auto');
+    });
+
     it('sets stream=true when streaming', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward('openai', 'sk-test', 'gpt-4o', body, true);

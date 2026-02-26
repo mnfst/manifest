@@ -12,6 +12,20 @@ interface Props {
   onClose: () => void;
 }
 
+/** Resolve a display label for a model name, handling vendor-prefixed IDs. */
+function labelForModel(name: string, labels: Map<string, string>): string {
+  const direct = labels.get(name);
+  if (direct) return direct;
+  const slash = name.indexOf("/");
+  if (slash !== -1) {
+    const bare = name.substring(slash + 1);
+    const found = labels.get(bare);
+    if (found) return found;
+    return bare;
+  }
+  return name;
+}
+
 const ModelPickerModal: Component<Props> = (props) => {
   const [search, setSearch] = createSignal("");
 
@@ -39,7 +53,7 @@ const ModelPickerModal: Component<Props> = (props) => {
       }
       groupMap.get(provId)!.models.push({
         value: m.model_name,
-        label: labels.get(m.model_name) ?? m.model_name,
+        label: labelForModel(m.model_name, labels),
         pricing: m,
       });
     }
