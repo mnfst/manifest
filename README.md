@@ -33,6 +33,9 @@ OpenClaw costs
   <a href="LICENSE"><img src="https://img.shields.io/github/license/mnfst/manifest?color=blue" alt="license" /></a>
   &nbsp;
   <a href="https://discord.gg/FepAked3W7"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
+  &nbsp;
+  <a href="https://relatedrepos.com/gh/mnfst/manifest"><img src="https://img.shields.io/badge/related-repos-yellow" alt="RelatedRepos" /></a>
+  
 </p>
 
 ## What do you get?
