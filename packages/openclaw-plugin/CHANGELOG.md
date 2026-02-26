@@ -1,5 +1,11 @@
 # manifest
 
+## 5.12.0
+
+### Minor Changes
+
+- f307102: Store OpenRouter copies in pricing sync with full vendor-prefixed model IDs
+
 ## 5.11.1
 
 ### Patch Changes
