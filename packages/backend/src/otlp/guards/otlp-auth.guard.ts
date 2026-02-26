@@ -45,14 +45,13 @@ export class OtlpAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers['authorization'];
 
-    // In local mode, trust loopback connections without requiring an API key.
-    // Only applies when no Authorization header is sent — if a Bearer token
-    // is present, validate it normally so explicit auth is always honoured.
-    if (
-      !authHeader &&
+    const isLocal =
       process.env['MANIFEST_MODE'] === 'local' &&
-      LOOPBACK_IPS.has(request.ip ?? '')
-    ) {
+      LOOPBACK_IPS.has(request.ip ?? '');
+
+    // In local mode, trust loopback connections without requiring an API key.
+    // Also handles dev-mode gateways that send a dummy/non-mnfst token.
+    if (!authHeader && isLocal) {
       (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
         tenantId: LOCAL_TENANT_ID,
         agentId: LOCAL_AGENT_ID,
@@ -75,7 +74,18 @@ export class OtlpAuthGuard implements CanActivate {
       throw new UnauthorizedException('Empty token');
     }
 
+    // In local mode, if the token isn't a valid mnfst_ key (e.g. a dev
+    // gateway sending a dummy key), fall through to the loopback bypass.
     if (!token.startsWith(API_KEY_PREFIX)) {
+      if (isLocal) {
+        (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
+          tenantId: LOCAL_TENANT_ID,
+          agentId: LOCAL_AGENT_ID,
+          agentName: LOCAL_AGENT_NAME,
+          userId: LOCAL_USER_ID,
+        };
+        return true;
+      }
       throw new UnauthorizedException('Invalid API key format');
     }
 

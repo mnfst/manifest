@@ -4,6 +4,7 @@ import { AuthUser } from '../auth/auth.instance';
 import { NotificationRulesService } from './services/notification-rules.service';
 import { EmailProviderConfigService } from './services/email-provider-config.service';
 import { NotificationCronService } from './services/notification-cron.service';
+import { LimitCheckService } from './services/limit-check.service';
 import { CreateNotificationRuleDto, UpdateNotificationRuleDto } from './dto/notification-rule.dto';
 import { SetEmailProviderDto, TestEmailProviderDto } from './dto/set-email-provider.dto';
 
@@ -15,6 +16,7 @@ export class NotificationsController {
     private readonly rulesService: NotificationRulesService,
     private readonly emailProviderConfigService: EmailProviderConfigService,
     private readonly cronService: NotificationCronService,
+    private readonly limitCheck: LimitCheckService,
   ) {}
 
   @Get('email-provider')
@@ -91,7 +93,11 @@ export class NotificationsController {
     @Body() dto: CreateNotificationRuleDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.rulesService.createRule(user.id, dto);
+    const rule = await this.rulesService.createRule(user.id, dto);
+    if (rule.action === 'block') {
+      this.limitCheck.invalidateCache(rule.tenant_id, rule.agent_name);
+    }
+    return rule;
   }
 
   @Patch(':id')
@@ -100,7 +106,9 @@ export class NotificationsController {
     @Body() dto: UpdateNotificationRuleDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.rulesService.updateRule(user.id, id, dto);
+    const rule = await this.rulesService.updateRule(user.id, id, dto);
+    this.limitCheck.invalidateCache(rule.tenant_id, rule.agent_name);
+    return rule;
   }
 
   @Delete(':id')
@@ -108,7 +116,11 @@ export class NotificationsController {
     @Param('id') id: string,
     @CurrentUser() user: AuthUser,
   ) {
+    const rule = await this.rulesService.getRule(id);
     await this.rulesService.deleteRule(user.id, id);
+    if (rule) {
+      this.limitCheck.invalidateCache(rule.tenant_id, rule.agent_name);
+    }
     return { deleted: true };
   }
 }

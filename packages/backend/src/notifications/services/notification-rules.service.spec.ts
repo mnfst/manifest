@@ -226,16 +226,80 @@ describe('NotificationRulesService', () => {
   });
 
   describe('getAllActiveRules', () => {
-    it('returns all active rules', async () => {
-      const rules = [{ id: 'r1', is_active: true }];
+    it('returns only active notify rules', async () => {
+      const rules = [{ id: 'r1', is_active: true, action: 'notify' }];
       mockQuery.mockResolvedValueOnce(rules);
 
       const result = await service.getAllActiveRules();
       expect(result).toEqual(rules);
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('is_active = $1'),
-        [true],
+        [true, 'notify'],
       );
+    });
+
+    it('filters out block rules', async () => {
+      mockQuery.mockResolvedValueOnce([]);
+      await service.getAllActiveRules();
+      const sql = mockQuery.mock.calls[0][0] as string;
+      expect(sql).toContain('action = $2');
+    });
+  });
+
+  describe('getActiveBlockRules', () => {
+    it('returns block rules for tenant and agent', async () => {
+      const rules = [{ id: 'r1', action: 'block' }];
+      mockQuery.mockResolvedValueOnce(rules);
+
+      const result = await service.getActiveBlockRules('tenant-1', 'my-agent');
+      expect(result).toEqual(rules);
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.stringContaining('action = $4'),
+        ['tenant-1', 'my-agent', true, 'block'],
+      );
+    });
+
+    it('filters by tenant_id and agent_name', async () => {
+      mockQuery.mockResolvedValueOnce([]);
+
+      await service.getActiveBlockRules('tenant-2', 'other-agent');
+
+      const sql = mockQuery.mock.calls[0][0] as string;
+      expect(sql).toContain('tenant_id = $1');
+      expect(sql).toContain('agent_name = $2');
+    });
+  });
+
+  describe('getRule', () => {
+    it('returns the rule when found', async () => {
+      const rule = { id: 'r1', metric_type: 'tokens', threshold: 100 };
+      mockQuery.mockResolvedValueOnce([rule]);
+
+      const result = await service.getRule('r1');
+      expect(result).toEqual(rule);
+    });
+
+    it('returns undefined when rule not found', async () => {
+      mockQuery.mockResolvedValueOnce([]);
+
+      const result = await service.getRule('missing');
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('updateRule with action field', () => {
+    it('includes action in UPDATE when provided', async () => {
+      mockQuery
+        .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
+        .mockResolvedValueOnce(undefined) // UPDATE
+        .mockResolvedValueOnce([{ id: 'r1', action: 'block' }]); // SELECT
+
+      const result = await service.updateRule('user-1', 'r1', { action: 'block' });
+      expect(result.action).toBe('block');
+
+      const updateCall = mockQuery.mock.calls[1];
+      const sql = updateCall[0] as string;
+      expect(sql).toContain('action = $1');
     });
   });
 
@@ -252,7 +316,7 @@ describe('NotificationRulesService', () => {
   });
 
   describe('createRule with PG params', () => {
-    it('uses $1 through $11 numbered params in INSERT', async () => {
+    it('uses $1 through $12 numbered params in INSERT', async () => {
       mockQuery
         .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }]) // resolveAgent
         .mockResolvedValueOnce(undefined) // INSERT
@@ -270,8 +334,45 @@ describe('NotificationRulesService', () => {
       const params = insertCall[1] as unknown[];
 
       expect(sql).toContain('$1');
-      expect(sql).toContain('$11');
-      expect(params).toHaveLength(11);
+      expect(sql).toContain('$12');
+      expect(params).toHaveLength(12);
+    });
+
+    it('includes action field defaulting to notify', async () => {
+      mockQuery
+        .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }])
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce([{ id: 'new-rule' }]);
+
+      await service.createRule('user-1', {
+        agent_name: 'my-agent',
+        metric_type: 'tokens',
+        threshold: 50000,
+        period: 'day',
+      });
+
+      const insertCall = mockQuery.mock.calls[1];
+      const params = insertCall[1] as unknown[];
+      expect(params).toContain('notify');
+    });
+
+    it('uses provided action value when specified', async () => {
+      mockQuery
+        .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }])
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce([{ id: 'new-rule' }]);
+
+      await service.createRule('user-1', {
+        agent_name: 'my-agent',
+        metric_type: 'tokens',
+        threshold: 50000,
+        period: 'day',
+        action: 'block',
+      });
+
+      const insertCall = mockQuery.mock.calls[1];
+      const params = insertCall[1] as unknown[];
+      expect(params).toContain('block');
     });
   });
 });
@@ -322,8 +423,8 @@ describe('NotificationRulesService (SQLite dialect)', () => {
     const params = insertCall[1] as unknown[];
 
     expect(sql).not.toContain('$1');
-    expect((sql.match(/\?/g) ?? []).length).toBe(11);
-    expect(params).toHaveLength(11);
+    expect((sql.match(/\?/g) ?? []).length).toBe(12);
+    expect(params).toHaveLength(12);
   });
 
   it('converts is_active boolean to 1/0 for sqlite in updateRule', async () => {

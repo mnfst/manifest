@@ -184,6 +184,27 @@ describe('OtlpAuthGuard', () => {
       await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
     });
 
+    it('allows loopback with non-mnfst token in local mode (dev gateway)', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'local-tenant-001',
+        agentId: 'local-agent-001',
+        agentName: 'local-agent',
+        userId: 'local-user-001',
+      });
+      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('rejects non-mnfst token from non-loopback IP in local mode', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '192.168.1.100');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    });
+
     it('still requires auth for loopback IPs when not in local mode', async () => {
       process.env['MANIFEST_MODE'] = 'cloud';
       const { ctx } = makeContext({}, '127.0.0.1');

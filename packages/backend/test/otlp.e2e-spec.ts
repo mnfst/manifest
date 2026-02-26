@@ -72,11 +72,17 @@ describe('POST /otlp/v1/traces', () => {
   });
 
   it('rejects request with wrong API key with 401', async () => {
-    await request(app.getHttpServer())
-      .post('/otlp/v1/traces')
-      .set('Authorization', 'Bearer wrong-key')
-      .send(makeTracePayload())
-      .expect(401);
+    const origMode = process.env['MANIFEST_MODE'];
+    delete process.env['MANIFEST_MODE'];
+    try {
+      await request(app.getHttpServer())
+        .post('/otlp/v1/traces')
+        .set('Authorization', 'Bearer wrong-key')
+        .send(makeTracePayload())
+        .expect(401);
+    } finally {
+      if (origMode !== undefined) process.env['MANIFEST_MODE'] = origMode;
+    }
   });
 
   it('classifies LLM call spans by gen_ai.system attribute', async () => {

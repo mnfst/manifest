@@ -51,6 +51,7 @@ describe('ProxyController', () => {
     convertGoogleResponse: jest.Mock;
     convertGoogleStreamChunk: jest.Mock;
   };
+  let mockMessageRepo: { insert: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -59,9 +60,11 @@ describe('ProxyController', () => {
       convertGoogleResponse: jest.fn(),
       convertGoogleStreamChunk: jest.fn(),
     };
+    mockMessageRepo = { insert: jest.fn().mockResolvedValue({}) };
     controller = new ProxyController(
       proxyService as never,
       providerClient as never,
+      mockMessageRepo as never,
     );
   });
 
@@ -168,6 +171,57 @@ describe('ProxyController', () => {
     });
   });
 
+  it('should record rate_limited agent_message on 429', async () => {
+    proxyService.proxyRequest.mockRejectedValue(
+      new HttpException({ error: { message: 'Limit exceeded: tokens usage (52,000) exceeds 50,000 per day' } }, 429),
+    );
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenant_id: 'tenant-1',
+        agent_id: 'agent-1',
+        agent_name: 'test-agent',
+        status: 'rate_limited',
+        input_tokens: 0,
+        output_tokens: 0,
+      }),
+    );
+    expect(res.status).toHaveBeenCalledWith(429);
+  });
+
+  it('should not record agent_message on non-429 errors', async () => {
+    proxyService.proxyRequest.mockRejectedValue(new Error('Internal failure'));
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+  });
+
+  it('should only record one rate_limited message per 60s cooldown', async () => {
+    const limitError = new HttpException({ error: { message: 'Limit exceeded' } }, 429);
+    proxyService.proxyRequest.mockRejectedValue(limitError);
+
+    // First 429 — should record
+    const req1 = mockRequest({ messages: [{ role: 'user', content: 'a' }] });
+    const { res: res1 } = mockResponse();
+    await controller.chatCompletions(req1 as never, res1 as never);
+
+    // Second 429 (same agent, within cooldown) — should skip
+    const req2 = mockRequest({ messages: [{ role: 'user', content: 'b' }] });
+    const { res: res2 } = mockResponse();
+    await controller.chatCompletions(req2 as never, res2 as never);
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
+  });
+
   it('should use x-session-key header when present', async () => {
     const responseBody = { choices: [] };
     proxyService.proxyRequest.mockResolvedValue({
@@ -188,6 +242,8 @@ describe('ProxyController', () => {
       'user-1',
       req.body,
       'my-session',
+      'tenant-1',
+      'test-agent',
     );
   });
 
@@ -209,6 +265,8 @@ describe('ProxyController', () => {
       'user-1',
       req.body,
       'default',
+      'tenant-1',
+      'test-agent',
     );
   });
 
