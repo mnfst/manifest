@@ -34,10 +34,6 @@ vi.mock("../../src/services/toast-store.js", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock("../../src/components/ProviderBanner.js", () => ({
-  default: () => <div data-testid="provider-banner">ProviderBanner</div>,
-}));
-
 vi.mock("../../src/components/EmailProviderSetup.js", () => ({
   default: (props: any) => <div data-testid="email-setup">EmailProviderSetup</div>,
 }));
@@ -46,6 +42,18 @@ vi.mock("../../src/components/LimitRuleModal.js", () => ({
   default: (props: any) => (
     <div data-testid="limit-modal" data-open={props.open} data-routing={props.routingEnabled}>
       LimitRuleModal
+      <button data-testid="mock-save" onClick={() => props.onSave({ metric_type: "tokens", threshold: 100, period: "day", action: "notify" })}>
+        Save
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("../../src/components/ProviderBanner.js", () => ({
+  default: (props: any) => (
+    <div data-testid="provider-banner">
+      ProviderBanner
+      <button data-testid="mock-remove" onClick={() => props.onRemove()}>Remove</button>
     </div>
   ),
 }));
@@ -236,33 +244,27 @@ describe("Limits page", () => {
     });
   });
 
-  it("shows disabled row style for inactive rules", async () => {
+  it("shows disabled row style for inactive rules (is_active=0)", async () => {
     mockRules = [{
       id: "r1", agent_name: "test-agent", metric_type: "tokens",
       threshold: 50000, period: "day", action: "notify",
       is_active: 0, trigger_count: 0, created_at: "2026-01-01",
     }];
-
     const { container } = render(() => <Limits />);
-
     await vi.waitFor(() => {
-      const row = container.querySelector(".notif-table__row--disabled");
-      expect(row).not.toBeNull();
+      expect(container.querySelector(".notif-table__row--disabled")).not.toBeNull();
     });
   });
 
-  it("handles is_active as number (SQLite)", async () => {
+  it("does not show disabled row for active rules (is_active=1, SQLite)", async () => {
     mockRules = [{
       id: "r1", agent_name: "test-agent", metric_type: "tokens",
       threshold: 50000, period: "day", action: "notify",
       is_active: 1, trigger_count: 0, created_at: "2026-01-01",
     }];
-
     const { container } = render(() => <Limits />);
-
     await vi.waitFor(() => {
-      const row = container.querySelector(".notif-table__row--disabled");
-      expect(row).toBeNull();
+      expect(container.querySelector(".notif-table__row--disabled")).toBeNull();
     });
   });
 
@@ -292,4 +294,5 @@ describe("Limits page", () => {
       expect(container.textContent).toContain("7");
     });
   });
+
 });
