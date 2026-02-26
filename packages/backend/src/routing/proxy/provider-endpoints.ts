@@ -4,7 +4,7 @@ export interface ProviderEndpoint {
   baseUrl: string;
   buildHeaders: (apiKey: string) => Record<string, string>;
   buildPath: (model: string) => string;
-  format: 'openai' | 'google';
+  format: 'openai';
 }
 
 const openaiHeaders = (apiKey: string) => ({
@@ -47,10 +47,9 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   google: {
     baseUrl: 'https://generativelanguage.googleapis.com',
-    buildHeaders: () => ({ 'Content-Type': 'application/json' }),
-    buildPath: (model: string) =>
-      `/v1beta/models/${model}:generateContent`,
-    format: 'google',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v1beta/openai/chat/completions',
+    format: 'openai',
   },
   ollama: {
     baseUrl: OLLAMA_HOST,

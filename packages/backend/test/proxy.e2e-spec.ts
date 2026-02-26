@@ -61,77 +61,71 @@ describe('Proxy E2E — /v1/chat/completions', () => {
     }
   });
 
-  it('returns 400 when messages are missing', async () => {
+  it('defaults to standard tier when X-Manifest-Tier is missing', async () => {
     const res = await bearer(api().post('/v1/chat/completions'))
-      .send({})
+      .send({
+        messages: [{ role: 'user', content: 'hello' }],
+        stream: false,
+      });
+
+    // Should not be a 400 validation error (tier defaults to standard)
+    expect(res.status).not.toBe(400);
+  });
+
+  it('returns 400 when tier is invalid', async () => {
+    const res = await bearer(api().post('/v1/chat/completions'))
+      .set('X-Manifest-Tier', 'mega')
+      .send({ messages: [{ role: 'user', content: 'hello' }] })
       .expect(400);
 
     expect(res.body.error).toBeDefined();
-    expect(res.body.error.message).toContain('messages');
+    expect(res.body.error.message).toContain('Invalid tier');
   });
 
-  it('returns 400 when messages array is empty', async () => {
+  it('resolves tier and attempts to forward to provider', async () => {
     const res = await bearer(api().post('/v1/chat/completions'))
-      .send({ messages: [] })
-      .expect(400);
-
-    expect(res.body.error).toBeDefined();
-    expect(res.body.error.message).toContain('messages');
-  });
-
-  it('resolves and attempts to forward to provider', async () => {
-    // This test verifies the full proxy pipeline: auth → resolve → forward.
-    // The forward will reach the real OpenAI API which rejects the fake key,
-    // proving the proxy successfully routed and forwarded the request.
-    const res = await bearer(api().post('/v1/chat/completions'))
+      .set('X-Manifest-Tier', 'simple')
       .send({
         messages: [{ role: 'user', content: 'hi' }],
         stream: false,
       });
 
-    // The response should NOT be our OtlpAuthGuard 401 (which has a specific format).
-    // It will be either a provider error (401/403 from OpenAI) or a network error (500).
+    // The forward will reach the real OpenAI API which rejects the fake key.
     // Either way, we passed auth and resolved a model successfully.
-    if (res.status === 401) {
-      // If 401, verify it's from the provider (not our guard)
-      // Our guard returns { message: '...', statusCode: 401 }
-      // Provider errors are forwarded with X-Manifest-* headers
+    if (res.status === 401 || res.status === 403) {
+      // Provider rejected the fake key — proxy worked, routing headers prove it
       const hasManifestHeaders =
         res.headers['x-manifest-tier'] || res.headers['x-manifest-model'];
       expect(hasManifestHeaders).toBeTruthy();
     } else {
-      // Network error or other — proxy attempted the forward
       expect(res.status).toBeDefined();
     }
   });
 
   it('includes X-Manifest-* headers when forwarding', async () => {
     const res = await bearer(api().post('/v1/chat/completions'))
+      .set('X-Manifest-Tier', 'simple')
       .send({
         messages: [{ role: 'user', content: 'hello' }],
         stream: false,
       });
 
-    // Skip assertion if we got a network error (no headers set)
     // When the provider is reachable, even error responses include routing headers
     if (res.status !== 500) {
       expect(res.headers['x-manifest-tier']).toBeDefined();
       expect(res.headers['x-manifest-model']).toBeDefined();
       expect(res.headers['x-manifest-provider']).toBeDefined();
-      expect(res.headers['x-manifest-confidence']).toBeDefined();
     }
   });
 
-  it('accepts X-Session-Key header without error', async () => {
+  it('does NOT include X-Manifest-Confidence header', async () => {
     const res = await bearer(api().post('/v1/chat/completions'))
-      .set('X-Session-Key', 'test-session-123')
+      .set('X-Manifest-Tier', 'simple')
       .send({
         messages: [{ role: 'user', content: 'hello' }],
         stream: false,
       });
 
-    // Should pass auth (not our guard's 401 format)
-    // Any response that isn't a validation error proves the proxy processed it
-    expect(res.status).not.toBe(400);
+    expect(res.headers['x-manifest-confidence']).toBeUndefined();
   });
 });

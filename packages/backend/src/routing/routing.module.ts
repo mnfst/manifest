@@ -14,7 +14,6 @@ import { ResolveService } from './resolve.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { ProxyService } from './proxy/proxy.service';
 import { ProviderClient } from './proxy/provider-client';
-import { SessionMomentumService } from './proxy/session-momentum.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 
 @Module({
@@ -30,7 +29,6 @@ import { OllamaSyncService } from '../database/ollama-sync.service';
     OtlpAuthGuard,
     ProxyService,
     ProviderClient,
-    SessionMomentumService,
     OllamaSyncService,
   ],
   exports: [RoutingService, TierAutoAssignService],

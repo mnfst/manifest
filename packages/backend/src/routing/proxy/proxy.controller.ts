@@ -6,6 +6,7 @@ import {
   UseGuards,
   Logger,
   HttpException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Request, Response as ExpressResponse } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -13,9 +14,9 @@ import { Public } from '../../common/decorators/public.decorator';
 import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { ProxyService } from './proxy.service';
-import { ProviderClient } from './provider-client';
 import { initSseHeaders, pipeStream } from './stream-writer';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
+import { TIERS, Tier } from '../scorer/types';
 
 @Controller('v1')
 @Public()
@@ -25,10 +26,7 @@ export class ProxyController {
   private readonly logger = new Logger(ProxyController.name);
   private readonly seenUsers = new Set<string>();
 
-  constructor(
-    private readonly proxyService: ProxyService,
-    private readonly providerClient: ProviderClient,
-  ) {}
+  constructor(private readonly proxyService: ProxyService) {}
 
   @Post('chat/completions')
   async chatCompletions(
@@ -37,15 +35,16 @@ export class ProxyController {
   ): Promise<void> {
     const { userId } = req.ingestionContext;
     const body = req.body as Record<string, unknown>;
-    const sessionKey = (req.headers['x-session-key'] as string) || 'default';
     const isStream = body.stream === true;
     let headersSent = false;
 
     try {
+      const tier = this.extractTier(req);
+
       const { forward, meta } = await this.proxyService.proxyRequest(
         userId,
         body,
-        sessionKey,
+        tier,
       );
 
       this.trackFirstProxyRequest(userId, meta);
@@ -54,7 +53,6 @@ export class ProxyController {
         'X-Manifest-Tier': meta.tier,
         'X-Manifest-Model': meta.model,
         'X-Manifest-Provider': meta.provider,
-        'X-Manifest-Confidence': String(meta.confidence),
       };
 
       const providerResponse = forward.response;
@@ -72,26 +70,9 @@ export class ProxyController {
       if (isStream && providerResponse.body) {
         initSseHeaders(res, metaHeaders);
         headersSent = true;
-
-        if (forward.isGoogle) {
-          await pipeStream(
-            providerResponse.body,
-            res,
-            (chunk) => this.providerClient.convertGoogleStreamChunk(chunk, meta.model),
-          );
-        } else {
-          await pipeStream(providerResponse.body, res);
-        }
+        await pipeStream(providerResponse.body, res);
       } else {
-        let responseBody: unknown;
-
-        if (forward.isGoogle) {
-          const googleData = await providerResponse.json() as Record<string, unknown>;
-          responseBody = this.providerClient.convertGoogleResponse(googleData, meta.model);
-        } else {
-          responseBody = await providerResponse.json();
-        }
-
+        const responseBody = await providerResponse.json();
         res.status(200);
         for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
         res.json(responseBody);
@@ -102,7 +83,6 @@ export class ProxyController {
       this.logger.error(`Proxy error: ${message}`);
 
       if (headersSent) {
-        // Headers already flushed for SSE — just close the stream
         if (!res.writableEnded) res.end();
         return;
       }
@@ -112,6 +92,19 @@ export class ProxyController {
         error: { message: clientMessage, type: 'proxy_error' },
       });
     }
+  }
+
+  private extractTier(req: Request): Tier {
+    const tierHeader = req.headers['x-manifest-tier'] as string | undefined;
+    if (!tierHeader) return 'standard';
+
+    const tier = tierHeader.toLowerCase();
+    if (!TIERS.includes(tier as Tier)) {
+      throw new BadRequestException(
+        `Invalid tier "${tierHeader}". Must be one of: ${TIERS.join(', ')}`,
+      );
+    }
+    return tier as Tier;
   }
 
   private trackFirstProxyRequest(

@@ -88,11 +88,11 @@ describe('ProviderClient', () => {
     });
   });
 
-  describe('Google provider', () => {
-    it('uses query param auth and Gemini path', async () => {
+  describe('Google provider (OpenAI-compatible)', () => {
+    it('uses Bearer auth and OpenAI-compatible path', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      const result = await client.forward(
+      await client.forward(
         'google',
         'AIza-test',
         'gemini-2.0-flash',
@@ -101,32 +101,29 @@ describe('ProviderClient', () => {
       );
 
       const url = mockFetch.mock.calls[0][0] as string;
-      expect(url).toContain('generativelanguage.googleapis.com');
-      expect(url).toContain('gemini-2.0-flash:generateContent');
-      expect(url).toContain('key=AIza-test');
-      expect(url).not.toContain('alt=sse');
-      expect(result.isGoogle).toBe(true);
+      expect(url).toBe(
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      );
+
+      const headers = mockFetch.mock.calls[0][1].headers;
+      expect(headers.Authorization).toBe('Bearer AIza-test');
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('gemini-2.0-flash');
+      expect(sentBody.stream).toBe(false);
     });
 
-    it('adds alt=sse for streaming', async () => {
-      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
-
-      await client.forward('google', 'AIza-test', 'gemini-2.0-flash', body, true);
-
-      const url = mockFetch.mock.calls[0][0] as string;
-      expect(url).toContain('alt=sse');
-    });
-
-    it('converts request body to Gemini format', async () => {
+    it('sends OpenAI-format body for Google', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       await client.forward('google', 'AIza-test', 'gemini-2.0-flash', body, false);
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.contents).toBeDefined();
-      // Should not have OpenAI-style fields
-      expect(sentBody.model).toBeUndefined();
-      expect(sentBody.stream).toBeUndefined();
+      expect(sentBody.model).toBe('gemini-2.0-flash');
+      expect(sentBody.messages).toEqual(body.messages);
+      expect(sentBody.temperature).toBe(0.7);
+      // Should NOT have Google-native fields
+      expect(sentBody.contents).toBeUndefined();
     });
   });
 
@@ -134,7 +131,7 @@ describe('ProviderClient', () => {
     it('resolves gemini to google endpoint', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      const result = await client.forward(
+      await client.forward(
         'gemini',
         'AIza-test',
         'gemini-2.0-flash',
@@ -144,43 +141,6 @@ describe('ProviderClient', () => {
 
       const url = mockFetch.mock.calls[0][0] as string;
       expect(url).toContain('generativelanguage.googleapis.com');
-      expect(result.isGoogle).toBe(true);
-    });
-  });
-
-  describe('convertGoogleResponse', () => {
-    it('delegates to fromGoogleResponse', () => {
-      const googleBody = {
-        candidates: [{
-          content: { parts: [{ text: 'Hello' }] },
-          finishReason: 'STOP',
-        }],
-      };
-      const result = client.convertGoogleResponse(googleBody, 'gemini-2.0-flash');
-
-      expect(result.object).toBe('chat.completion');
-      expect(result.model).toBe('gemini-2.0-flash');
-      const choices = result.choices as Array<{ message: { content: string } }>;
-      expect(choices[0].message.content).toBe('Hello');
-    });
-  });
-
-  describe('convertGoogleStreamChunk', () => {
-    it('delegates to transformGoogleStreamChunk', () => {
-      const chunk = JSON.stringify({
-        candidates: [{
-          content: { parts: [{ text: 'Hi' }] },
-        }],
-      });
-      const result = client.convertGoogleStreamChunk(chunk, 'gemini-2.0-flash');
-
-      expect(result).toContain('data: ');
-      expect(result).toContain('"chat.completion.chunk"');
-    });
-
-    it('returns null for empty chunk', () => {
-      const result = client.convertGoogleStreamChunk('', 'gemini-2.0-flash');
-      expect(result).toBeNull();
     });
   });
 
