@@ -1,5 +1,5 @@
 import { createSignal, createResource, Show, For, type Component } from "solid-js";
-import { useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
 import { Title, Meta } from "@solidjs/meta";
 import ErrorState from "../components/ErrorState.jsx";
 import { getMessages } from "../services/api.js";
@@ -79,6 +79,7 @@ const MessageLog: Component = () => {
               options={[
                 { label: "All statuses", value: "" },
                 { label: "Successful", value: "ok" },
+                { label: "Rate Limited", value: "rate_limited" },
                 { label: "Retried", value: "retry" },
                 { label: "Failed", value: "error" },
               ]}
@@ -245,7 +246,11 @@ const MessageLog: Component = () => {
                         {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
                       </td>
                       <td>
-                        <span class={`status-badge status-badge--${item.status}`}>{formatStatus(item.status)}</span>
+                        <span class={`status-badge status-badge--${item.status}`}>
+                          {item.status === 'rate_limited'
+                            ? <A href={`/agents/${encodeURIComponent(params.agentName)}/limits`}>{formatStatus(item.status)}</A>
+                            : formatStatus(item.status)}
+                        </span>
                       </td>
                     </tr>
                   )}

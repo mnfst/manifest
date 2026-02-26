@@ -6,9 +6,19 @@ import { MetricIngestService } from './services/metric-ingest.service';
 import { LogIngestService } from './services/log-ingest.service';
 import { OtlpAuthGuard } from './guards/otlp-auth.guard';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
+import { trackEvent, trackCloudEvent } from '../common/utils/product-telemetry';
+import { existsSync } from 'fs';
 
 jest.mock('../common/utils/product-telemetry', () => ({
+  trackEvent: jest.fn(),
   trackCloudEvent: jest.fn(),
+}));
+
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  existsSync: jest.fn().mockReturnValue(false),
+  writeFileSync: jest.fn(),
+  mkdirSync: jest.fn(),
 }));
 
 describe('OtlpController', () => {
@@ -108,6 +118,62 @@ describe('OtlpController', () => {
       const result = await controller.ingestLogs(makeReq('application/json', {}, undefined));
 
       expect(result.partialSuccess).toEqual({ rejectedLogRecords: 0 });
+    });
+  });
+
+  describe('trackFirstTelemetry', () => {
+    const origMode = process.env['MANIFEST_MODE'];
+
+    beforeEach(() => {
+      (trackEvent as jest.Mock).mockClear();
+      (trackCloudEvent as jest.Mock).mockClear();
+      (existsSync as jest.Mock).mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      if (origMode === undefined) delete process.env['MANIFEST_MODE'];
+      else process.env['MANIFEST_MODE'] = origMode;
+    });
+
+    it('calls trackCloudEvent in cloud mode', async () => {
+      delete process.env['MANIFEST_MODE'];
+      await controller.ingestTraces(makeReq('application/json', {}, undefined));
+
+      expect(trackCloudEvent).toHaveBeenCalledWith(
+        'first_telemetry_received',
+        'test-user',
+        { agent_id_hash: 'test-age' },
+      );
+      expect(trackEvent).not.toHaveBeenCalled();
+    });
+
+    it('calls trackEvent in local mode', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      (existsSync as jest.Mock).mockReturnValue(false);
+      await controller.ingestTraces(makeReq('application/json', {}, undefined));
+
+      expect(trackEvent).toHaveBeenCalledWith(
+        'first_telemetry_received',
+        { agent_id_hash: 'test-age' },
+      );
+      expect(trackCloudEvent).not.toHaveBeenCalled();
+    });
+
+    it('skips tracking in local mode when marker file exists', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      (existsSync as jest.Mock).mockReturnValue(true);
+      await controller.ingestTraces(makeReq('application/json', {}, undefined));
+
+      expect(trackEvent).not.toHaveBeenCalled();
+      expect(trackCloudEvent).not.toHaveBeenCalled();
+    });
+
+    it('deduplicates by agentId in cloud mode', async () => {
+      delete process.env['MANIFEST_MODE'];
+      await controller.ingestTraces(makeReq('application/json', {}, undefined));
+      await controller.ingestTraces(makeReq('application/json', {}, undefined));
+
+      expect(trackCloudEvent).toHaveBeenCalledTimes(1);
     });
   });
 });

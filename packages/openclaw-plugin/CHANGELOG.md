@@ -1,5 +1,29 @@
 # manifest
 
+## 5.11.1
+
+### Patch Changes
+
+- 19b96de: Harmonize PostHog telemetry: fix distinct_id mismatch in first_telemetry_received, add package_version to backend events, and add mode to plugin events
+
+## 5.11.0
+
+### Minor Changes
+
+- dcfa4b6: Add hard limits: block proxy requests when agent consumption exceeds configured thresholds
+
+## 5.10.3
+
+### Patch Changes
+
+- 7844115: Fix broken product analytics funnel by unifying distinct IDs across funnel steps. Local mode now uses machine_id consistently, cloud mode uses SHA256(user.id). Suppress plugin analytics in dev mode. Add file-based dedup for local first_telemetry_received.
+
+## 5.10.2
+
+### Patch Changes
+
+- d61771d: Add meta tags (title, description, og:image, twitter cards) and link auth page logo to manifest.build
+
 ## 5.10.1
 
 ### Patch Changes

@@ -11,6 +11,7 @@ import { RenameAgentDto } from '../../common/dto/rename-agent.dto';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
 import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 import { readLocalApiKey } from '../../common/constants/local-mode.constants';
+import { trackCloudEvent } from '../../common/utils/product-telemetry';
 
 @Controller('api/v1')
 export class AgentsController {
@@ -36,6 +37,7 @@ export class AgentsController {
       agentName: body.name,
       email: user.email,
     });
+    trackCloudEvent('agent_created', user.id, { agent_name: body.name });
     return { agent: { id: result.agentId, name: body.name }, apiKey: result.apiKey };
   }
 

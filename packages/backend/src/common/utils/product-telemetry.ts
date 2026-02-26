@@ -16,17 +16,23 @@ function getMode(): string {
   return process.env['MANIFEST_MODE'] ?? 'cloud';
 }
 
+function getPackageVersion(): string | undefined {
+  return process.env['MANIFEST_PACKAGE_VERSION'] || undefined;
+}
+
 export function trackEvent(
   event: string,
   properties?: Record<string, unknown>,
 ): void {
   if (isOptedOut()) return;
+  const version = getPackageVersion();
   sendToPostHog(event, {
     distinct_id: getMachineId(),
     os: platform(),
     os_version: release(),
     node_version: process.versions.node,
     mode: getMode(),
+    ...(version && { package_version: version }),
     ...properties,
   });
 }
@@ -38,12 +44,14 @@ export function trackCloudEvent(
 ): void {
   if (isOptedOut()) return;
   const hashedTenant = createHash('sha256').update(tenantId).digest('hex').slice(0, 16);
+  const version = getPackageVersion();
   sendToPostHog(event, {
     distinct_id: hashedTenant,
     os: platform(),
     os_version: release(),
     node_version: process.versions.node,
     mode: getMode(),
+    ...(version && { package_version: version }),
     ...properties,
   });
 }

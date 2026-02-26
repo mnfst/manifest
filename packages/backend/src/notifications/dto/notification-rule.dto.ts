@@ -9,12 +9,16 @@ export class CreateNotificationRuleDto {
   metric_type!: 'tokens' | 'cost';
 
   @IsNumber()
-  @Min(0)
+  @Min(1)
   @Type(() => Number)
   threshold!: number;
 
   @IsIn(['hour', 'day', 'week', 'month'])
   period!: 'hour' | 'day' | 'week' | 'month';
+
+  @IsOptional()
+  @IsIn(['notify', 'block'])
+  action?: 'notify' | 'block';
 }
 
 export class UpdateNotificationRuleDto {
@@ -24,7 +28,7 @@ export class UpdateNotificationRuleDto {
 
   @IsOptional()
   @IsNumber()
-  @Min(0)
+  @Min(1)
   @Type(() => Number)
   threshold?: number;
 
@@ -36,4 +40,8 @@ export class UpdateNotificationRuleDto {
   @IsBoolean()
   @Type(() => Boolean)
   is_active?: boolean;
+
+  @IsOptional()
+  @IsIn(['notify', 'block'])
+  action?: 'notify' | 'block';
 }

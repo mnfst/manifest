@@ -47,6 +47,7 @@ const STATUS_LABELS: Record<string, string> = {
   ok: "Success",
   retry: "Retried",
   error: "Failed",
+  rate_limited: "Rate Limited",
 };
 
 export function formatStatus(status: string): string {

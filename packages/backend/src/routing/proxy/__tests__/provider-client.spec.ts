@@ -88,11 +88,11 @@ describe('ProviderClient', () => {
     });
   });
 
-  describe('Google provider (OpenAI-compatible)', () => {
-    it('uses Bearer auth and OpenAI-compatible path', async () => {
+  describe('Google provider', () => {
+    it('uses query param auth and Gemini path', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      await client.forward(
+      const result = await client.forward(
         'google',
         'AIza-test',
         'gemini-2.0-flash',
@@ -101,29 +101,32 @@ describe('ProviderClient', () => {
       );
 
       const url = mockFetch.mock.calls[0][0] as string;
-      expect(url).toBe(
-        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-      );
-
-      const headers = mockFetch.mock.calls[0][1].headers;
-      expect(headers.Authorization).toBe('Bearer AIza-test');
-
-      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.model).toBe('gemini-2.0-flash');
-      expect(sentBody.stream).toBe(false);
+      expect(url).toContain('generativelanguage.googleapis.com');
+      expect(url).toContain('gemini-2.0-flash:generateContent');
+      expect(url).toContain('key=AIza-test');
+      expect(url).not.toContain('alt=sse');
+      expect(result.isGoogle).toBe(true);
     });
 
-    it('sends OpenAI-format body for Google', async () => {
+    it('adds alt=sse for streaming', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('google', 'AIza-test', 'gemini-2.0-flash', body, true);
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('alt=sse');
+    });
+
+    it('converts request body to Gemini format', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       await client.forward('google', 'AIza-test', 'gemini-2.0-flash', body, false);
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.model).toBe('gemini-2.0-flash');
-      expect(sentBody.messages).toEqual(body.messages);
-      expect(sentBody.temperature).toBe(0.7);
-      // Should NOT have Google-native fields
-      expect(sentBody.contents).toBeUndefined();
+      expect(sentBody.contents).toBeDefined();
+      // Should not have OpenAI-style fields
+      expect(sentBody.model).toBeUndefined();
+      expect(sentBody.stream).toBeUndefined();
     });
   });
 
@@ -131,7 +134,7 @@ describe('ProviderClient', () => {
     it('resolves gemini to google endpoint', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      await client.forward(
+      const result = await client.forward(
         'gemini',
         'AIza-test',
         'gemini-2.0-flash',
@@ -141,6 +144,153 @@ describe('ProviderClient', () => {
 
       const url = mockFetch.mock.calls[0][0] as string;
       expect(url).toContain('generativelanguage.googleapis.com');
+      expect(result.isGoogle).toBe(true);
+    });
+  });
+
+  describe('AbortSignal passthrough', () => {
+    it('uses timeout signal when no client signal provided', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openai', 'sk-test', 'gpt-4o', body, false);
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.signal).toBeDefined();
+      expect(fetchOptions.signal.aborted).toBe(false);
+    });
+
+    it('combines client signal with timeout signal', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const abortController = new AbortController();
+      await client.forward('openai', 'sk-test', 'gpt-4o', body, false, abortController.signal);
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.signal).toBeDefined();
+      expect(fetchOptions.signal.aborted).toBe(false);
+
+      // Aborting the client signal should abort the combined signal
+      abortController.abort();
+      expect(fetchOptions.signal.aborted).toBe(true);
+    });
+
+    it('passes already-aborted signal correctly', async () => {
+      const abortController = new AbortController();
+      abortController.abort();
+
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openai', 'sk-test', 'gpt-4o', body, false, abortController.signal);
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.signal.aborted).toBe(true);
+    });
+
+    it('always provides a signal to fetch even without client signal', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openai', 'sk-test', 'gpt-4o', body, false);
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.signal).toBeDefined();
+      // The signal should be the timeout signal (not undefined)
+      expect(fetchOptions.signal).toBeInstanceOf(AbortSignal);
+    });
+
+    it('provides signal for Google provider as well', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const ac = new AbortController();
+      await client.forward('google', 'AIza-test', 'gemini-2.0-flash', body, false, ac.signal);
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.signal).toBeDefined();
+      expect(fetchOptions.signal.aborted).toBe(false);
+
+      ac.abort();
+      expect(fetchOptions.signal.aborted).toBe(true);
+    });
+  });
+
+  describe('convertGoogleResponse', () => {
+    it('delegates to fromGoogleResponse', () => {
+      const googleBody = {
+        candidates: [{
+          content: { parts: [{ text: 'Hello' }] },
+          finishReason: 'STOP',
+        }],
+      };
+      const result = client.convertGoogleResponse(googleBody, 'gemini-2.0-flash');
+
+      expect(result.object).toBe('chat.completion');
+      expect(result.model).toBe('gemini-2.0-flash');
+      const choices = result.choices as Array<{ message: { content: string } }>;
+      expect(choices[0].message.content).toBe('Hello');
+    });
+  });
+
+  describe('convertGoogleStreamChunk', () => {
+    it('delegates to transformGoogleStreamChunk', () => {
+      const chunk = JSON.stringify({
+        candidates: [{
+          content: { parts: [{ text: 'Hi' }] },
+        }],
+      });
+      const result = client.convertGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+
+      expect(result).toContain('data: ');
+      expect(result).toContain('"chat.completion.chunk"');
+    });
+
+    it('returns null for empty chunk', () => {
+      const result = client.convertGoogleStreamChunk('', 'gemini-2.0-flash');
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('URL masking', () => {
+    it('masks API key in Google URL for debug logging', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      // Spy on the logger to verify the masked URL
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const debugSpy = jest.spyOn((client as any).logger, 'debug');
+
+      await client.forward('google', 'AIzaSyABCDEF12345', 'gemini-2.0-flash', body, false);
+
+      expect(debugSpy).toHaveBeenCalledWith(
+        expect.stringContaining('key=***'),
+      );
+      expect(debugSpy).toHaveBeenCalledWith(
+        expect.not.stringContaining('AIzaSyABCDEF12345'),
+      );
+
+      debugSpy.mockRestore();
+    });
+  });
+
+  describe('Request body construction', () => {
+    it('includes model and stream in request body for OpenAI providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openai', 'sk-test', 'gpt-4o', body, true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('gpt-4o');
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.messages).toEqual(body.messages);
+      expect(sentBody.temperature).toBe(0.7);
+    });
+
+    it('does not include model or stream for Google provider (uses Gemini format)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('google', 'AIza-test', 'gemini-2.0-flash', body, true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBeUndefined();
+      expect(sentBody.stream).toBeUndefined();
+      expect(sentBody.contents).toBeDefined();
     });
   });
 
@@ -149,6 +299,14 @@ describe('ProviderClient', () => {
       await expect(
         client.forward('unknown-provider', 'key', 'model', body, false),
       ).rejects.toThrow('No endpoint configured for provider');
+    });
+
+    it('propagates fetch errors', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        client.forward('openai', 'sk-test', 'gpt-4o', body, false),
+      ).rejects.toThrow('Network error');
     });
   });
 });

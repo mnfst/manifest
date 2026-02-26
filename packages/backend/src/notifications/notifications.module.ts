@@ -7,6 +7,7 @@ import { NotificationEmailService } from './services/notification-email.service'
 import { EmailConfigService } from './services/email-config.service';
 import { NotificationEmailAddressService } from './services/notification-email-address.service';
 import { EmailProviderConfigService } from './services/email-provider-config.service';
+import { LimitCheckService } from './services/limit-check.service';
 
 @Module({
   controllers: [NotificationsController, EmailConfigController],
@@ -17,6 +18,8 @@ import { EmailProviderConfigService } from './services/email-provider-config.ser
     EmailConfigService,
     NotificationEmailAddressService,
     EmailProviderConfigService,
+    LimitCheckService,
   ],
+  exports: [LimitCheckService],
 })
 export class NotificationsModule {}

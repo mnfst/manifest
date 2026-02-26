@@ -29,6 +29,15 @@ export class RoutingController {
     private readonly ollamaSync: OllamaSyncService,
   ) {}
 
+  /* ── Status ── */
+
+  @Get('status')
+  async getStatus(@CurrentUser() user: AuthUser) {
+    const providers = await this.routingService.getProviders(user.id);
+    const enabled = providers.some((p) => p.is_active);
+    return { enabled };
+  }
+
   /* ── Providers ── */
 
   @Get('providers')

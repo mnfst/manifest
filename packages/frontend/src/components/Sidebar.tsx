@@ -53,23 +53,21 @@ const Sidebar: Component = () => {
             Settings
           </A>
         </Show>
-        <Show when={isLocalMode()}>
-          <A
-            href={path("/routing")}
-            class="sidebar__link"
-            classList={{ active: isActive("/routing") }}
-            aria-current={isActive("/routing") ? "page" : undefined}
-          >
-            Routing
-          </A>
-        </Show>
         <A
-          href={path("/notifications")}
+          href={path("/routing")}
           class="sidebar__link"
-          classList={{ active: isActive("/notifications") }}
-          aria-current={isActive("/notifications") ? "page" : undefined}
+          classList={{ active: isActive("/routing") }}
+          aria-current={isActive("/routing") ? "page" : undefined}
         >
-          Notifications
+          Routing
+        </A>
+        <A
+          href={path("/limits")}
+          class="sidebar__link"
+          classList={{ active: isActive("/limits") }}
+          aria-current={isActive("/limits") ? "page" : undefined}
+        >
+          Limits
         </A>
       </Show>
 

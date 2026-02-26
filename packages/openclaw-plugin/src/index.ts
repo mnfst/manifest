@@ -21,8 +21,10 @@ module.exports = {
     };
 
     const config: ManifestConfig = parseConfig(api.pluginConfig);
-    trackPluginEvent("plugin_registered");
-    trackPluginEvent("plugin_mode_selected", { mode: config.mode });
+    if (config.mode !== "dev") {
+      trackPluginEvent("plugin_registered");
+      trackPluginEvent("plugin_mode_selected", { mode: config.mode });
+    }
 
     if (config.mode === "local") {
       registerLocalMode(api, config, logger);

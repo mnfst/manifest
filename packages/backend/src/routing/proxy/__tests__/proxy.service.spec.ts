@@ -1,18 +1,22 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, HttpException } from '@nestjs/common';
 import { ProxyService } from '../proxy.service';
 import { ResolveService } from '../../resolve.service';
 import { RoutingService } from '../../routing.service';
 import { ProviderClient } from '../provider-client';
+import { SessionMomentumService } from '../session-momentum.service';
+import { LimitCheckService } from '../../../notifications/services/limit-check.service';
 
 describe('ProxyService', () => {
   let service: ProxyService;
   let resolveService: jest.Mocked<ResolveService>;
   let routingService: jest.Mocked<RoutingService>;
   let providerClient: jest.Mocked<ProviderClient>;
+  let momentum: SessionMomentumService;
+  let limitCheck: jest.Mocked<LimitCheckService>;
 
   beforeEach(() => {
     resolveService = {
-      resolveForTier: jest.fn(),
+      resolve: jest.fn(),
     } as unknown as jest.Mocked<ResolveService>;
 
     routingService = {
@@ -23,11 +27,24 @@ describe('ProxyService', () => {
       forward: jest.fn(),
     } as unknown as jest.Mocked<ProviderClient>;
 
+    momentum = new SessionMomentumService();
+
+    limitCheck = {
+      checkLimits: jest.fn().mockResolvedValue(null),
+      invalidateCache: jest.fn(),
+    } as unknown as jest.Mocked<LimitCheckService>;
+
     service = new ProxyService(
       resolveService,
       routingService,
       providerClient,
+      momentum,
+      limitCheck,
     );
+  });
+
+  afterEach(() => {
+    momentum.onModuleDestroy();
   });
 
   const body = {
@@ -35,141 +52,552 @@ describe('ProxyService', () => {
     stream: false,
   };
 
-  it('resolves tier via resolveForTier and forwards', async () => {
-    resolveService.resolveForTier.mockResolvedValue({
+  it('throws BadRequestException when messages are missing', async () => {
+    await expect(
+      service.proxyRequest('user-1', {}, 'default'),
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  it('throws BadRequestException when messages array is empty', async () => {
+    await expect(
+      service.proxyRequest('user-1', { messages: [] }, 'default'),
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  it('throws when no model is resolved', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'simple',
+      model: null,
+      provider: null,
+      confidence: 0.5,
+      score: -0.1,
+      reason: 'ambiguous',
+    });
+
+    await expect(
+      service.proxyRequest('user-1', body, 'default'),
+    ).rejects.toThrow('No model available');
+  });
+
+  it('throws when no API key found for provider', async () => {
+    resolveService.resolve.mockResolvedValue({
       tier: 'standard',
       model: 'gpt-4o',
       provider: 'OpenAI',
-      confidence: 1,
-      score: 0,
-      reason: 'heartbeat',
+      confidence: 0.8,
+      score: 0.1,
+      reason: 'scored',
+    });
+    routingService.getProviderApiKey.mockResolvedValue(null);
+
+    await expect(
+      service.proxyRequest('user-1', body, 'default'),
+    ).rejects.toThrow('No API key found');
+  });
+
+  it('resolves, forwards, and records momentum on success', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'standard',
+      model: 'gpt-4o',
+      provider: 'OpenAI',
+      confidence: 0.8,
+      score: 0.1,
+      reason: 'scored',
     });
     routingService.getProviderApiKey.mockResolvedValue('sk-test');
 
     const mockResponse = new Response('{}', { status: 200 });
-    providerClient.forward.mockResolvedValue({ response: mockResponse });
+    providerClient.forward.mockResolvedValue({
+      response: mockResponse,
+      isGoogle: false,
+    });
 
-    const result = await service.proxyRequest('user-1', body, 'standard');
+    const result = await service.proxyRequest('user-1', body, 'sess-1');
 
-    expect(resolveService.resolveForTier).toHaveBeenCalledWith('user-1', 'standard');
     expect(result.meta).toEqual({
       tier: 'standard',
       model: 'gpt-4o',
       provider: 'OpenAI',
+      confidence: 0.8,
     });
+
+    // Check momentum was recorded
+    expect(momentum.getRecentTiers('sess-1')).toEqual(['standard']);
+
+    // Verify forward was called correctly (signal is undefined when not provided)
     expect(providerClient.forward).toHaveBeenCalledWith(
       'OpenAI',
       'sk-test',
       'gpt-4o',
       body,
       false,
+      undefined,
     );
   });
 
-  it('uses the explicit tier passed to proxyRequest', async () => {
-    resolveService.resolveForTier.mockResolvedValue({
+  it('passes recentTiers from momentum to resolver', async () => {
+    // Pre-populate momentum
+    momentum.recordTier('sess-1', 'complex');
+    momentum.recordTier('sess-1', 'complex');
+
+    resolveService.resolve.mockResolvedValue({
       tier: 'complex',
       model: 'claude-sonnet-4',
       provider: 'Anthropic',
-      confidence: 1,
-      score: 0,
-      reason: 'heartbeat',
+      confidence: 0.9,
+      score: 0.2,
+      reason: 'momentum',
     });
     routingService.getProviderApiKey.mockResolvedValue('sk-ant');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
+      isGoogle: false,
     });
 
-    const result = await service.proxyRequest('user-1', body, 'complex');
+    await service.proxyRequest('user-1', body, 'sess-1');
 
-    expect(resolveService.resolveForTier).toHaveBeenCalledWith('user-1', 'complex');
-    expect(result.meta.tier).toBe('complex');
+    expect(resolveService.resolve).toHaveBeenCalledWith(
+      'user-1',
+      body.messages,
+      undefined,
+      undefined,
+      undefined,
+      ['complex', 'complex'],
+    );
   });
 
-  it('throws when no model is resolved for tier', async () => {
-    resolveService.resolveForTier.mockResolvedValue({
-      tier: 'simple',
-      model: null,
-      provider: null,
-      confidence: 1,
-      score: 0,
-      reason: 'heartbeat',
-    });
-
-    await expect(
-      service.proxyRequest('user-1', body, 'simple'),
-    ).rejects.toThrow(BadRequestException);
-  });
-
-  it('throws when no API key found for provider', async () => {
-    resolveService.resolveForTier.mockResolvedValue({
+  it('does not pass tools or tool_choice to the resolver', async () => {
+    resolveService.resolve.mockResolvedValue({
       tier: 'standard',
       model: 'gpt-4o',
       provider: 'OpenAI',
-      confidence: 1,
-      score: 0,
-      reason: 'heartbeat',
-    });
-    routingService.getProviderApiKey.mockResolvedValue(null);
-
-    await expect(
-      service.proxyRequest('user-1', body, 'standard'),
-    ).rejects.toThrow('No API key found');
-  });
-
-  it('forwards the full unmodified body to the provider', async () => {
-    resolveService.resolveForTier.mockResolvedValue({
-      tier: 'standard',
-      model: 'gpt-4o',
-      provider: 'OpenAI',
-      confidence: 1,
-      score: 0,
-      reason: 'heartbeat',
+      confidence: 0.8,
+      score: 0.1,
+      reason: 'scored',
     });
     routingService.getProviderApiKey.mockResolvedValue('sk-test');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
+      isGoogle: false,
     });
 
     const bodyWithTools = {
       messages: [{ role: 'user', content: 'Hello' }],
       tools: [{ type: 'function', function: { name: 'get_weather' } }],
+      tool_choice: 'auto',
       stream: false,
     };
 
-    await service.proxyRequest('user-1', bodyWithTools, 'standard');
+    await service.proxyRequest('user-1', bodyWithTools, 'default');
 
+    // Resolver should receive undefined for tools and tool_choice
+    expect(resolveService.resolve).toHaveBeenCalledWith(
+      'user-1',
+      expect.any(Array),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    );
+
+    // But the full body (with tools) should be forwarded to the provider
     expect(providerClient.forward).toHaveBeenCalledWith(
       'OpenAI',
       'sk-test',
       'gpt-4o',
       bodyWithTools,
       false,
+      undefined,
     );
   });
 
-  it('passes stream=true when body.stream is true', async () => {
-    resolveService.resolveForTier.mockResolvedValue({
-      tier: 'simple',
-      model: 'gpt-4o-mini',
+  it('passes AbortSignal through to providerClient.forward', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'standard',
+      model: 'gpt-4o',
       provider: 'OpenAI',
-      confidence: 1,
-      score: 0,
-      reason: 'heartbeat',
+      confidence: 0.8,
+      score: 0.1,
+      reason: 'scored',
     });
     routingService.getProviderApiKey.mockResolvedValue('sk-test');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
+      isGoogle: false,
     });
 
-    await service.proxyRequest('user-1', { ...body, stream: true }, 'simple');
+    const abortController = new AbortController();
+    await service.proxyRequest('user-1', body, 'default', undefined, undefined, abortController.signal);
 
     expect(providerClient.forward).toHaveBeenCalledWith(
       'OpenAI',
       'sk-test',
-      'gpt-4o-mini',
-      expect.objectContaining({ stream: true }),
-      true,
+      'gpt-4o',
+      body,
+      false,
+      abortController.signal,
     );
+  });
+
+  describe('heartbeat detection', () => {
+    const heartbeatBody = {
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        {
+          role: 'user',
+          content:
+            'Check tasks and reply HEARTBEAT_OK if nothing needs attention.',
+        },
+      ],
+      stream: false,
+    };
+
+    it('routes heartbeat prompts to simple tier via resolveForTier', async () => {
+      resolveService.resolveForTier = jest.fn().mockResolvedValue({
+        tier: 'simple',
+        model: 'gpt-4o-mini',
+        provider: 'OpenAI',
+        confidence: 1,
+        score: 0,
+        reason: 'heartbeat',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+      });
+
+      const result = await service.proxyRequest('user-1', heartbeatBody, 'sess-1');
+
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('user-1', 'simple');
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(result.meta.tier).toBe('simple');
+      expect(result.meta.model).toBe('gpt-4o-mini');
+    });
+
+    it('forwards the full unmodified body for heartbeat requests', async () => {
+      resolveService.resolveForTier = jest.fn().mockResolvedValue({
+        tier: 'simple',
+        model: 'gpt-4o-mini',
+        provider: 'OpenAI',
+        confidence: 1,
+        score: 0,
+        reason: 'heartbeat',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+      });
+
+      await service.proxyRequest('user-1', heartbeatBody, 'sess-1');
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'OpenAI',
+        'sk-test',
+        'gpt-4o-mini',
+        heartbeatBody,
+        false,
+        undefined,
+      );
+    });
+
+    it('does not detect heartbeat when HEARTBEAT_OK is absent', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+      });
+
+      await service.proxyRequest('user-1', body, 'default');
+
+      expect(resolveService.resolve).toHaveBeenCalled();
+    });
+  });
+
+  describe('system prompt stripping', () => {
+    const setupMocks = () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'simple',
+        model: 'gpt-4o-mini',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        score: -0.3,
+        reason: 'short_message',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+      });
+    };
+
+    it('strips system and developer messages before scoring', async () => {
+      setupMocks();
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant with lots of keywords...' },
+          { role: 'developer', content: 'Internal developer instructions...' },
+          { role: 'user', content: 'hi' },
+        ],
+        stream: false,
+      };
+
+      await service.proxyRequest('user-1', bodyWithSystem, 'default');
+
+      // Scorer should only receive the user message (system/developer stripped)
+      const scoredMessages = resolveService.resolve.mock.calls[0][1];
+      expect(scoredMessages).toEqual([{ role: 'user', content: 'hi' }]);
+    });
+
+    it('forwards the full unmodified body to the provider', async () => {
+      setupMocks();
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'System prompt' },
+          { role: 'user', content: 'hi' },
+        ],
+        stream: false,
+      };
+
+      await service.proxyRequest('user-1', bodyWithSystem, 'default');
+
+      // Provider should get the FULL body including system messages
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'OpenAI',
+        'sk-test',
+        'gpt-4o-mini',
+        bodyWithSystem,
+        false,
+        undefined,
+      );
+    });
+
+    it('limits scoring to last 10 non-system messages', async () => {
+      setupMocks();
+
+      // Build a conversation with 15 user messages + system
+      const messages = [
+        { role: 'system', content: 'System prompt' },
+        ...Array.from({ length: 15 }, (_, i) => ({
+          role: 'user',
+          content: `Message ${i}`,
+        })),
+      ];
+
+      await service.proxyRequest('user-1', { messages, stream: false }, 'default');
+
+      const scoredMessages = resolveService.resolve.mock.calls[0][1];
+      expect(scoredMessages).toHaveLength(10);
+      // Should be the last 10 user messages (5-14)
+      expect(scoredMessages[0].content).toBe('Message 5');
+      expect(scoredMessages[9].content).toBe('Message 14');
+    });
+  });
+
+  describe('limit checking', () => {
+    const setupSuccessMocks = () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+      });
+    };
+
+    it('throws 429 when limit is exceeded', async () => {
+      limitCheck.checkLimits.mockResolvedValue({
+        ruleId: 'r1',
+        metricType: 'tokens',
+        threshold: 50000,
+        actual: 52000,
+        period: 'day',
+      });
+
+      await expect(
+        service.proxyRequest('user-1', body, 'default', 'tenant-1', 'my-agent'),
+      ).rejects.toThrow(HttpException);
+
+      try {
+        await service.proxyRequest('user-1', body, 'default', 'tenant-1', 'my-agent');
+      } catch (err) {
+        expect((err as HttpException).getStatus()).toBe(429);
+        const response = (err as HttpException).getResponse() as Record<string, unknown>;
+        const error = response.error as Record<string, unknown>;
+        expect(error.code).toBe('limit_exceeded');
+        expect(error.type).toBe('rate_limit_exceeded');
+      }
+    });
+
+    it('does not check limits when tenantId/agentName are not provided', async () => {
+      setupSuccessMocks();
+
+      await service.proxyRequest('user-1', body, 'default');
+
+      expect(limitCheck.checkLimits).not.toHaveBeenCalled();
+    });
+
+    it('does not check limits when only tenantId is provided without agentName', async () => {
+      setupSuccessMocks();
+
+      await service.proxyRequest('user-1', body, 'default', 'tenant-1');
+
+      expect(limitCheck.checkLimits).not.toHaveBeenCalled();
+    });
+
+    it('does not check limits when only agentName is provided without tenantId', async () => {
+      setupSuccessMocks();
+
+      await service.proxyRequest('user-1', body, 'default', undefined, 'my-agent');
+
+      expect(limitCheck.checkLimits).not.toHaveBeenCalled();
+    });
+
+    it('proceeds normally when no limit is exceeded', async () => {
+      setupSuccessMocks();
+      limitCheck.checkLimits.mockResolvedValue(null);
+
+      const result = await service.proxyRequest('user-1', body, 'default', 'tenant-1', 'my-agent');
+
+      expect(limitCheck.checkLimits).toHaveBeenCalledWith('tenant-1', 'my-agent');
+      expect(result.meta.model).toBe('gpt-4o');
+    });
+
+    it('formats cost limit error with dollar sign and 2 decimal places', async () => {
+      limitCheck.checkLimits.mockResolvedValue({
+        ruleId: 'r2',
+        metricType: 'cost',
+        threshold: 10.0,
+        actual: 12.5,
+        period: 'month',
+      });
+
+      try {
+        await service.proxyRequest('user-1', body, 'default', 'tenant-1', 'my-agent');
+        fail('Expected HttpException');
+      } catch (err) {
+        const response = (err as HttpException).getResponse() as Record<string, unknown>;
+        const error = response.error as Record<string, unknown>;
+        expect(error.message).toContain('$12.50');
+        expect(error.message).toContain('$10.00');
+        expect(error.message).toContain('per month');
+      }
+    });
+
+    it('formats token limit error with locale string', async () => {
+      limitCheck.checkLimits.mockResolvedValue({
+        ruleId: 'r3',
+        metricType: 'tokens',
+        threshold: 100000,
+        actual: 105000,
+        period: 'day',
+      });
+
+      try {
+        await service.proxyRequest('user-1', body, 'default', 'tenant-1', 'my-agent');
+        fail('Expected HttpException');
+      } catch (err) {
+        const response = (err as HttpException).getResponse() as Record<string, unknown>;
+        const error = response.error as Record<string, unknown>;
+        // toLocaleString formats numbers with commas
+        expect(error.message).toContain('105,000');
+        expect(error.message).toContain('100,000');
+        expect(error.message).toContain('per day');
+      }
+    });
+  });
+
+  describe('max_tokens forwarding', () => {
+    it('passes max_tokens to the resolver', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+      });
+
+      const bodyWithMaxTokens = {
+        messages: [{ role: 'user', content: 'Hello' }],
+        max_tokens: 4096,
+        stream: false,
+      };
+
+      await service.proxyRequest('user-1', bodyWithMaxTokens, 'default');
+
+      expect(resolveService.resolve).toHaveBeenCalledWith(
+        'user-1',
+        expect.any(Array),
+        undefined,
+        undefined,
+        4096,
+        undefined,
+      );
+    });
+  });
+
+  describe('scoring edge cases', () => {
+    it('handles body where all messages are system/developer (empty scoring list)', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'simple',
+        model: 'gpt-4o-mini',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        score: -0.3,
+        reason: 'short_message',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+      });
+
+      const bodyWithOnlySystem = {
+        messages: [
+          { role: 'system', content: 'You are helpful' },
+          { role: 'developer', content: 'Internal instructions' },
+        ],
+        stream: false,
+      };
+
+      await service.proxyRequest('user-1', bodyWithOnlySystem, 'default');
+
+      // Scorer receives empty array after filtering
+      const scoredMessages = resolveService.resolve.mock.calls[0][1];
+      expect(scoredMessages).toEqual([]);
+
+      // But the full body is forwarded to the provider
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'OpenAI',
+        'sk-test',
+        'gpt-4o-mini',
+        bodyWithOnlySystem,
+        false,
+        undefined,
+      );
+    });
   });
 });

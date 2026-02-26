@@ -14,7 +14,6 @@ import { toast } from "../services/toast-store.js";
 import { formatNumber, formatCost } from "../services/formatters.js";
 import Sparkline from "../components/Sparkline.jsx";
 import { checkLocalMode } from "../services/local-mode.js";
-import { trackEvent } from "../services/analytics.js";
 
 interface Agent {
   agent_name: string;
@@ -40,7 +39,6 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
     if (!agentName) return;
     try {
       const result = await createAgent(agentName);
-      trackEvent("agent_created", { agent_name: agentName });
       toast.success(`Agent "${agentName}" connected`);
       props.onClose();
       setName("");

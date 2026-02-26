@@ -21,6 +21,9 @@ jest.mock('../notifications/emails/reset-password', () => ({
 jest.mock('../notifications/services/email-providers/send-email', () => ({
   sendEmail: jest.fn(),
 }));
+jest.mock('../common/utils/product-telemetry', () => ({
+  trackCloudEvent: jest.fn(),
+}));
 
 describe('auth.instance', () => {
   const originalEnv = process.env;
@@ -229,6 +232,28 @@ describe('auth.instance', () => {
       expect(config.secret).toBe(
         'test-only-fallback-secret-not-for-production',
       );
+    });
+  });
+
+  describe('databaseHooks', () => {
+    it('registers a user.create.after hook', () => {
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.databaseHooks).toBeDefined();
+      expect(config.databaseHooks.user.create.after).toBeInstanceOf(Function);
+    });
+
+    it('calls trackCloudEvent with user_registered on user create', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { trackCloudEvent } = require('../common/utils/product-telemetry') as { trackCloudEvent: jest.Mock };
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      const hook = config.databaseHooks.user.create.after;
+      await hook({ id: 'test-user-123' });
+
+      expect(trackCloudEvent).toHaveBeenCalledWith('user_registered', 'test-user-123');
     });
   });
 

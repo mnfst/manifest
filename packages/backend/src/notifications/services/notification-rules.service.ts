@@ -39,11 +39,11 @@ export class NotificationRulesService {
     await this.ds.query(
       this.sql(
         `INSERT INTO notification_rules
-         (id, tenant_id, agent_id, agent_name, user_id, metric_type, threshold, period, is_active, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+         (id, tenant_id, agent_id, agent_name, user_id, metric_type, threshold, period, action, is_active, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       ),
       [id, agent.tenant_id, agent.id, dto.agent_name, userId,
-       dto.metric_type, dto.threshold, dto.period,
+       dto.metric_type, dto.threshold, dto.period, dto.action ?? 'notify',
        this.dialect === 'sqlite' ? 1 : true, now, now],
     );
 
@@ -61,6 +61,7 @@ export class NotificationRulesService {
     if (dto.metric_type !== undefined) { sets.push(`metric_type = $${paramIdx++}`); params.push(dto.metric_type); }
     if (dto.threshold !== undefined) { sets.push(`threshold = $${paramIdx++}`); params.push(dto.threshold); }
     if (dto.period !== undefined) { sets.push(`period = $${paramIdx++}`); params.push(dto.period); }
+    if (dto.action !== undefined) { sets.push(`action = $${paramIdx++}`); params.push(dto.action); }
     if (dto.is_active !== undefined) {
       sets.push(`is_active = $${paramIdx++}`);
       params.push(this.dialect === 'sqlite' ? (dto.is_active ? 1 : 0) : dto.is_active);
@@ -109,8 +110,19 @@ export class NotificationRulesService {
 
   async getAllActiveRules() {
     return this.ds.query(
-      this.sql(`SELECT * FROM notification_rules WHERE is_active = $1`),
-      [this.dialect === 'sqlite' ? 1 : true],
+      this.sql(`SELECT * FROM notification_rules WHERE is_active = $1 AND action = $2`),
+      [this.dialect === 'sqlite' ? 1 : true, 'notify'],
+    );
+  }
+
+  async getActiveBlockRules(tenantId: string, agentName: string) {
+    return this.ds.query(
+      this.sql(
+        `SELECT * FROM notification_rules
+         WHERE tenant_id = $1 AND agent_name = $2
+         AND is_active = $3 AND action = $4`,
+      ),
+      [tenantId, agentName, this.dialect === 'sqlite' ? 1 : true, 'block'],
     );
   }
 
@@ -139,7 +151,7 @@ export class NotificationRulesService {
     }
   }
 
-  private async getRule(ruleId: string) {
+  async getRule(ruleId: string) {
     const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [ruleId]);
     return rows[0];
   }
