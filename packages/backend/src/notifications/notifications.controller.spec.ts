@@ -3,6 +3,7 @@ import { NotificationsController } from './notifications.controller';
 import { NotificationRulesService } from './services/notification-rules.service';
 import { EmailProviderConfigService } from './services/email-provider-config.service';
 import { NotificationCronService } from './services/notification-cron.service';
+import { LimitCheckService } from './services/limit-check.service';
 
 const mockUser = { id: 'user-1', email: 'test@test.com', name: 'Test' } as never;
 
@@ -32,6 +33,7 @@ describe('NotificationsController', () => {
       createRule: jest.fn().mockResolvedValue(mockRule),
       updateRule: jest.fn().mockResolvedValue({ ...mockRule, is_active: 0 }),
       deleteRule: jest.fn().mockResolvedValue(undefined),
+      getRule: jest.fn().mockResolvedValue(mockRule),
     };
 
     const mockEmailProviderConfigService = {
@@ -48,12 +50,17 @@ describe('NotificationsController', () => {
       checkThresholds: jest.fn().mockResolvedValue(2),
     };
 
+    const mockLimitCheck = {
+      invalidateCache: jest.fn(),
+    };
+
     module = await Test.createTestingModule({
       controllers: [NotificationsController],
       providers: [
         { provide: NotificationRulesService, useValue: mockRulesService },
         { provide: EmailProviderConfigService, useValue: mockEmailProviderConfigService },
         { provide: NotificationCronService, useValue: mockCronService },
+        { provide: LimitCheckService, useValue: mockLimitCheck },
       ],
     }).compile();
 
@@ -175,5 +182,63 @@ describe('NotificationsController', () => {
     const result = await controller.testSavedEmailProvider(mockUser, { to: 'test@test.com' });
     expect(emailProviderConfigService.testSavedConfig).toHaveBeenCalledWith('user-1', 'test@test.com');
     expect(result).toEqual({ success: true });
+  });
+
+  describe('block rule cache invalidation', () => {
+    let limitCheck: jest.Mocked<LimitCheckService>;
+
+    beforeEach(() => {
+      limitCheck = module.get(LimitCheckService);
+    });
+
+    it('invalidates cache when creating a block rule', async () => {
+      const blockRule = { ...mockRule, action: 'block' };
+      rulesService.createRule.mockResolvedValue(blockRule);
+
+      const dto = {
+        agent_name: 'my-agent', metric_type: 'tokens' as const,
+        threshold: 100000, period: 'day' as const, action: 'block' as const,
+      };
+      await controller.createRule(dto, mockUser);
+
+      expect(limitCheck.invalidateCache).toHaveBeenCalledWith('t-1', 'my-agent');
+    });
+
+    it('does not invalidate cache when creating a notify rule', async () => {
+      const notifyRule = { ...mockRule, action: 'notify' };
+      rulesService.createRule.mockResolvedValue(notifyRule);
+
+      const dto = {
+        agent_name: 'my-agent', metric_type: 'tokens' as const,
+        threshold: 100000, period: 'day' as const, action: 'notify' as const,
+      };
+      await controller.createRule(dto, mockUser);
+
+      expect(limitCheck.invalidateCache).not.toHaveBeenCalled();
+    });
+
+    it('always invalidates cache on update', async () => {
+      rulesService.updateRule.mockResolvedValue({ ...mockRule, threshold: 200 });
+
+      await controller.updateRule('rule-1', { threshold: 200 }, mockUser);
+
+      expect(limitCheck.invalidateCache).toHaveBeenCalledWith('t-1', 'my-agent');
+    });
+
+    it('invalidates cache on delete when rule exists', async () => {
+      rulesService.getRule.mockResolvedValue(mockRule);
+
+      await controller.deleteRule('rule-1', mockUser);
+
+      expect(limitCheck.invalidateCache).toHaveBeenCalledWith('t-1', 'my-agent');
+    });
+
+    it('does not invalidate cache on delete when rule not found', async () => {
+      rulesService.getRule.mockResolvedValue(undefined);
+
+      await controller.deleteRule('rule-missing', mockUser);
+
+      expect(limitCheck.invalidateCache).not.toHaveBeenCalled();
+    });
   });
 });

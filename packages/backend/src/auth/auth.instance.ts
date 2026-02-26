@@ -3,6 +3,7 @@ import { render } from '@react-email/render';
 import { VerifyEmailEmail } from '../notifications/emails/verify-email';
 import { ResetPasswordEmail } from '../notifications/emails/reset-password';
 import { sendEmail } from '../notifications/services/email-providers/send-email';
+import { trackCloudEvent } from '../common/utils/product-telemetry';
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const port = process.env['PORT'] ?? '3001';
@@ -122,6 +123,15 @@ export const auth: ReturnType<typeof betterAuth> | null = isLocalMode
         },
       },
       trustedOrigins: buildTrustedOrigins(),
+      databaseHooks: {
+        user: {
+          create: {
+            after: async (user) => {
+              trackCloudEvent('user_registered', user.id);
+            },
+          },
+        },
+      },
     });
 
 type BetterAuthInstance = ReturnType<typeof betterAuth>;

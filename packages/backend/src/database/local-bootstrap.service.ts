@@ -18,6 +18,7 @@ import {
   LOCAL_AGENT_ID,
   LOCAL_AGENT_NAME,
 } from '../common/constants/local-mode.constants';
+import { trackEvent } from '../common/utils/product-telemetry';
 
 @Injectable()
 export class LocalBootstrapService implements OnModuleInit {
@@ -63,6 +64,7 @@ export class LocalBootstrapService implements OnModuleInit {
       is_active: true,
       tenant_id: LOCAL_TENANT_ID,
     });
+    trackEvent('agent_created', { agent_name: LOCAL_AGENT_NAME });
 
     const apiKey = this.readApiKeyFromConfig();
     if (apiKey) {

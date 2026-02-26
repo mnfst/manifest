@@ -1,12 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { render, screen } from "@solidjs/testing-library";
-
-vi.mock("@solidjs/router", () => ({
-  A: (props: Record<string, unknown>) => {
-    const { href, class: className, children, ...rest } = props;
-    return <a href={href as string} class={className as string} {...rest}>{children}</a>;
-  },
-}));
 
 import AuthLayout from "../../src/layouts/AuthLayout";
 
@@ -28,5 +21,16 @@ describe("AuthLayout", () => {
     ));
     const imgs = container.querySelectorAll("img");
     expect(imgs.length).toBe(2);
+  });
+
+  it("links logo to manifest website", () => {
+    const { container } = render(() => (
+      <AuthLayout>
+        <span>Content</span>
+      </AuthLayout>
+    ));
+    const link = container.querySelector(".auth-logo__link") as HTMLAnchorElement;
+    expect(link).toBeDefined();
+    expect(link.getAttribute("href")).toBe("https://manifest.build");
   });
 });

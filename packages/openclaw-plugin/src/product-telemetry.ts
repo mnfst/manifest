@@ -26,6 +26,7 @@ export function trackPluginEvent(
       os_version: release(),
       node_version: process.versions.node,
       package_version: config.packageVersion,
+      mode: process.env['MANIFEST_MODE'] ?? 'local',
       ...properties,
     },
     timestamp: new Date().toISOString(),

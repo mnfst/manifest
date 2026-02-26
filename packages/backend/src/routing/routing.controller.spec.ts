@@ -44,6 +44,45 @@ describe('RoutingController', () => {
     );
   });
 
+  /* ── getStatus ── */
+
+  describe('getStatus', () => {
+    it('returns enabled true when at least one provider is active', async () => {
+      mockRoutingService.getProviders.mockResolvedValue([
+        { id: 'p1', provider: 'openai', is_active: true },
+      ]);
+
+      const result = await controller.getStatus(mockUser);
+      expect(result).toEqual({ enabled: true });
+    });
+
+    it('returns enabled false when no providers are active', async () => {
+      mockRoutingService.getProviders.mockResolvedValue([
+        { id: 'p1', provider: 'openai', is_active: false },
+      ]);
+
+      const result = await controller.getStatus(mockUser);
+      expect(result).toEqual({ enabled: false });
+    });
+
+    it('returns enabled false when no providers exist', async () => {
+      mockRoutingService.getProviders.mockResolvedValue([]);
+
+      const result = await controller.getStatus(mockUser);
+      expect(result).toEqual({ enabled: false });
+    });
+
+    it('returns enabled true with mixed active/inactive providers', async () => {
+      mockRoutingService.getProviders.mockResolvedValue([
+        { id: 'p1', provider: 'openai', is_active: false },
+        { id: 'p2', provider: 'anthropic', is_active: true },
+      ]);
+
+      const result = await controller.getStatus(mockUser);
+      expect(result).toEqual({ enabled: true });
+    });
+  });
+
   /* ── getProviders ── */
 
   describe('getProviders', () => {
@@ -299,6 +338,32 @@ describe('RoutingController', () => {
 
       expect(mockRoutingService.resetAllOverrides).toHaveBeenCalledWith('user-1');
       expect(result).toEqual({ ok: true });
+    });
+  });
+
+  /* ── syncOllama ── */
+
+  describe('syncOllama', () => {
+    it('should delegate to ollamaSync service', async () => {
+      const result = await controller.syncOllama();
+      expect(mockOllamaSync.sync).toHaveBeenCalled();
+      expect(result).toEqual({ count: 0 });
+    });
+  });
+
+  /* ── upsertProvider with Ollama ── */
+
+  describe('upsertProvider (ollama)', () => {
+    it('should sync ollama models before connecting', async () => {
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: { id: 'p1', provider: 'ollama', is_active: true },
+        isNew: true,
+      });
+
+      await controller.upsertProvider(mockUser, { provider: 'ollama' });
+
+      expect(mockOllamaSync.sync).toHaveBeenCalled();
+      expect(mockRoutingService.upsertProvider).toHaveBeenCalled();
     });
   });
 

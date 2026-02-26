@@ -60,9 +60,9 @@ describe("Sidebar with agent", () => {
     mockIsLocalMode = prev;
   });
 
-  it("renders Notifications link", () => {
+  it("renders Limits link", () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Notifications")).toBeDefined();
+    expect(screen.getByText("Limits")).toBeDefined();
   });
 
   it("renders RESOURCES section", () => {
@@ -97,7 +97,7 @@ describe("Sidebar with agent", () => {
     expect(container.querySelector('a[href="/agents/test-agent"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/messages"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/settings"]')).not.toBeNull();
-    expect(container.querySelector('a[href="/agents/test-agent/notifications"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/agents/test-agent/limits"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/model-prices"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/help"]')).not.toBeNull();
     mockIsLocalMode = prev;
