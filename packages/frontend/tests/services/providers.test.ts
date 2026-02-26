@@ -51,13 +51,23 @@ describe("getModelLabel", () => {
     // A new date that is NOT in the list triggers stripping -> "claude-opus-4"
     expect(getModelLabel("anthropic", "claude-opus-4-20260101")).toBe("Claude Opus 4");
   });
+
+  it("resolves vendor-prefixed model via cross-provider lookup", () => {
+    // OpenRouter provider doesn't have this model, but Anthropic does
+    expect(getModelLabel("openrouter", "anthropic/claude-opus-4-6")).toBe("Claude Opus 4.6");
+    expect(getModelLabel("openrouter", "openai/gpt-4o")).toBe("GPT-4o");
+  });
+
+  it("returns bare name when vendor-prefixed model is not in any provider", () => {
+    expect(getModelLabel("openrouter", "newvendor/unknown-model")).toBe("unknown-model");
+  });
 });
 
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 9 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(9);
+  it("has 10 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(10);
   });
 
   it("Ollama provider requires no API key and has dynamic models", () => {

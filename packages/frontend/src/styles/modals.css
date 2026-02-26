@@ -83,7 +83,8 @@
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgb(251 249 243 / 0.7);
+  background: rgb(251 249 243 / 0.88);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;

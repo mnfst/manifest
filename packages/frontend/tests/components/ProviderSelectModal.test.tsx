@@ -77,6 +77,7 @@ describe("ProviderSelectModal", () => {
     expect(screen.getByText("Anthropic")).toBeDefined();
     expect(screen.getByText("Gemini")).toBeDefined();
     expect(screen.getByText("DeepSeek")).toBeDefined();
+    expect(screen.getByText("OpenRouter")).toBeDefined();
   });
 
   it("shows toggle switch in 'on' state for connected providers", () => {
