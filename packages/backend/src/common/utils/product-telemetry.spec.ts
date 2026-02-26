@@ -14,6 +14,7 @@ beforeEach(() => {
   mockedSend.mockClear();
   delete process.env['MANIFEST_TELEMETRY_OPTOUT'];
   delete process.env['MANIFEST_MODE'];
+  delete process.env['MANIFEST_PACKAGE_VERSION'];
 });
 
 describe('getMachineId', () => {
@@ -79,6 +80,21 @@ describe('trackEvent', () => {
     const props = mockedSend.mock.calls[0][1];
     expect(props.mode).toBe('local');
   });
+
+  it('includes package_version when MANIFEST_PACKAGE_VERSION is set', () => {
+    process.env['MANIFEST_PACKAGE_VERSION'] = '1.2.3';
+    trackEvent('test_event');
+
+    const props = mockedSend.mock.calls[0][1];
+    expect(props.package_version).toBe('1.2.3');
+  });
+
+  it('omits package_version when MANIFEST_PACKAGE_VERSION is not set', () => {
+    trackEvent('test_event');
+
+    const props = mockedSend.mock.calls[0][1];
+    expect(props).not.toHaveProperty('package_version');
+  });
 });
 
 describe('trackCloudEvent', () => {
@@ -104,5 +120,20 @@ describe('trackCloudEvent', () => {
     process.env['MANIFEST_TELEMETRY_OPTOUT'] = '1';
     trackCloudEvent('agent_created', 'tenant-123');
     expect(mockedSend).not.toHaveBeenCalled();
+  });
+
+  it('includes package_version when MANIFEST_PACKAGE_VERSION is set', () => {
+    process.env['MANIFEST_PACKAGE_VERSION'] = '2.0.0';
+    trackCloudEvent('agent_created', 'tenant-123');
+
+    const props = mockedSend.mock.calls[0][1];
+    expect(props.package_version).toBe('2.0.0');
+  });
+
+  it('omits package_version when MANIFEST_PACKAGE_VERSION is not set', () => {
+    trackCloudEvent('agent_created', 'tenant-123');
+
+    const props = mockedSend.mock.calls[0][1];
+    expect(props).not.toHaveProperty('package_version');
   });
 });
