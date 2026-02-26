@@ -142,6 +142,11 @@ export class PricingSyncService implements OnModuleInit {
           failed++;
           continue;
         }
+        if (prompt < 0 || completion < 0) {
+          this.logger.warn(`Skipping ${model.id}: negative pricing`);
+          failed++;
+          continue;
+        }
 
         const { canonical, provider } = this.deriveNames(model.id);
         const existing = await this.pricingRepo.findOneBy({
