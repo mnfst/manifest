@@ -89,7 +89,7 @@ export class OtlpController {
     } else {
       if (this.seenAgents.has(ctx.agentId)) return;
       this.seenAgents.add(ctx.agentId);
-      trackCloudEvent('first_telemetry_received', ctx.tenantId, {
+      trackCloudEvent('first_telemetry_received', ctx.userId, {
         agent_id_hash: ctx.agentId.slice(0, 8),
       });
     }

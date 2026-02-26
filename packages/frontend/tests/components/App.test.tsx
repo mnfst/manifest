@@ -21,11 +21,28 @@ vi.mock("../../src/services/sse.js", () => ({
   connectSse: () => () => {},
 }));
 
+const mockTrackEvent = vi.fn();
+vi.mock("../../src/services/analytics.js", () => ({
+  trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+}));
+
+vi.mock("../../src/services/local-mode.js", () => ({
+  isLocalMode: () => false,
+  checkLocalMode: () => Promise.resolve(false),
+  telemetryOptOut: () => false,
+  updateInfo: () => null,
+}));
+
 vi.mock("../../src/components/VersionIndicator.jsx", () => ({
   default: () => <div data-testid="version-indicator" />,
 }));
 
 import App from "../../src/App";
+
+beforeEach(() => {
+  sessionStorage.clear();
+  mockTrackEvent.mockClear();
+});
 
 describe("App", () => {
   it("renders the app shell", () => {
@@ -51,6 +68,20 @@ describe("App", () => {
   it("does not show sidebar on non-agent paths", () => {
     const { container } = render(() => <App />);
     expect(container.querySelector('[data-testid="sidebar"]')).toBeNull();
+  });
+});
+
+describe("dashboard_loaded event", () => {
+  it("fires dashboard_loaded with mode cloud", () => {
+    render(() => <App />);
+    expect(mockTrackEvent).toHaveBeenCalledWith("dashboard_loaded", { mode: "cloud" });
+  });
+
+  it("fires dashboard_loaded only once per session", () => {
+    const { unmount } = render(() => <App />);
+    unmount();
+    render(() => <App />);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 });
 

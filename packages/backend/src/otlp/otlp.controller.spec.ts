@@ -141,7 +141,7 @@ describe('OtlpController', () => {
 
       expect(trackCloudEvent).toHaveBeenCalledWith(
         'first_telemetry_received',
-        'test-tenant',
+        'test-user',
         { agent_id_hash: 'test-age' },
       );
       expect(trackEvent).not.toHaveBeenCalled();
