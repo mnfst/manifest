@@ -531,6 +531,26 @@ describe('PricingSyncService', () => {
     );
   });
 
+  it('logs warning when OpenRouter copy upsert fails', async () => {
+    mockUpsert
+      .mockResolvedValueOnce(undefined) // native upsert succeeds
+      .mockRejectedValueOnce(new Error('unique constraint violated')); // OpenRouter copy fails
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'anthropic/claude-opus-4', pricing: { prompt: '0.000015', completion: '0.000075' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    // The model still counts as updated (native upsert succeeded)
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
+  });
+
   it('does not create OpenRouter copy for bare models (no slash)', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
@@ -551,6 +571,21 @@ describe('PricingSyncService', () => {
       }),
       ['model_name'],
     );
+  });
+
+  it('skips models with negative pricing', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openrouter/bodybuilder', pricing: { prompt: '-1', completion: '-1' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
   });
 
   it('maps Qwen/Alibaba provider correctly', async () => {

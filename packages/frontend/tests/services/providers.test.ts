@@ -1,9 +1,72 @@
 import { describe, it, expect } from "vitest";
 import {
   getModelLabel,
+  getProvider,
+  validateApiKey,
   PROVIDERS,
   STAGES,
 } from "../../src/services/providers";
+
+/* ── getProvider ────────────────────────────────── */
+
+describe("getProvider", () => {
+  it("returns the provider definition for a known ID", () => {
+    const result = getProvider("openai");
+    expect(result).toBeDefined();
+    expect(result!.name).toBe("OpenAI");
+  });
+
+  it("returns undefined for an unknown ID", () => {
+    expect(getProvider("nonexistent")).toBeUndefined();
+  });
+});
+
+/* ── validateApiKey ─────────────────────────────── */
+
+describe("validateApiKey", () => {
+  it("returns valid for a provider that requires no key", () => {
+    const ollama = getProvider("ollama")!;
+    expect(validateApiKey(ollama, "")).toEqual({ valid: true });
+  });
+
+  it("returns invalid when key is empty", () => {
+    const openai = getProvider("openai")!;
+    expect(validateApiKey(openai, "")).toEqual({
+      valid: false,
+      error: "API key is required",
+    });
+  });
+
+  it("returns invalid when key is only whitespace", () => {
+    const openai = getProvider("openai")!;
+    expect(validateApiKey(openai, "   ")).toEqual({
+      valid: false,
+      error: "API key is required",
+    });
+  });
+
+  it("returns invalid when key does not match expected prefix", () => {
+    const anthropic = getProvider("anthropic")!;
+    expect(validateApiKey(anthropic, "wrong-prefix-key-that-is-long-enough-for-validation")).toEqual({
+      valid: false,
+      error: 'Anthropic keys start with "sk-ant-"',
+    });
+  });
+
+  it("returns invalid when key is too short", () => {
+    const openai = getProvider("openai")!;
+    expect(validateApiKey(openai, "sk-short")).toEqual({
+      valid: false,
+      error: "Key is too short (minimum 50 characters)",
+    });
+  });
+
+  it("returns valid for a correct key", () => {
+    const openai = getProvider("openai")!;
+    const validKey = "sk-" + "a".repeat(60);
+    expect(validateApiKey(openai, validKey)).toEqual({ valid: true });
+  });
+});
 
 /* ── getModelLabel ──────────────────────────────── */
 
