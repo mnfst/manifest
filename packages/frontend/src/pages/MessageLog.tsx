@@ -250,8 +250,8 @@ const MessageLog: Component = () => {
                             <span title={inferProviderName(item.model)} style="display: inline-flex; flex-shrink: 0;">{providerIcon(inferProviderFromModel(item.model)!, 14)}</span>
                           )}
                           {item.model ?? "\u2014"}
+                          {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
                         </span>
-                        {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
                       </td>
                       <td>
                         <span class={`status-badge status-badge--${item.status}`}>
