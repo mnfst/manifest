@@ -62,7 +62,7 @@ describe("injectProviderConfig", () => {
   it("writes correct provider config to openclaw.json", () => {
     const api = { config: {} };
 
-    injectProviderConfig(api, "127.0.0.1", 2099, "mnfst_test", mockLogger);
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
 
     expect(writeFileSync).toHaveBeenCalled();
     const writtenData = JSON.parse(
@@ -104,7 +104,7 @@ describe("injectProviderConfig", () => {
     );
 
     const api = { config: {} };
-    injectProviderConfig(api, "127.0.0.1", 2099, "mnfst_new", mockLogger);
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_new", mockLogger);
 
     const writtenData = JSON.parse(
       (writeFileSync as jest.Mock).mock.calls[0][1],
@@ -127,7 +127,7 @@ describe("injectProviderConfig", () => {
     );
 
     const api = { config: {} };
-    injectProviderConfig(api, "127.0.0.1", 2099, "mnfst_test", mockLogger);
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
 
     const writtenData = JSON.parse(
       (writeFileSync as jest.Mock).mock.calls[0][1],
@@ -153,7 +153,7 @@ describe("injectProviderConfig", () => {
     );
 
     const api = { config: {} };
-    injectProviderConfig(api, "127.0.0.1", 2099, "mnfst_test", mockLogger);
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
 
     const writtenData = JSON.parse(
       (writeFileSync as jest.Mock).mock.calls[0][1],
@@ -182,7 +182,7 @@ describe("injectProviderConfig", () => {
     );
 
     const api = { config: {} };
-    injectProviderConfig(api, "127.0.0.1", 3000, "mnfst_new", mockLogger);
+    injectProviderConfig(api, "http://127.0.0.1:3000/v1", "mnfst_new", mockLogger);
 
     const writtenData = JSON.parse(
       (writeFileSync as jest.Mock).mock.calls[0][1],
@@ -196,7 +196,7 @@ describe("injectProviderConfig", () => {
   it("sets runtime config on api.config", () => {
     const api = { config: {} };
 
-    injectProviderConfig(api, "127.0.0.1", 2099, "mnfst_test", mockLogger);
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
 
     expect(api.config).toEqual(
       expect.objectContaining({

@@ -85,15 +85,16 @@ function atomicWriteJson(path: string, data: unknown): void {
 /**
  * Injects the Manifest provider configuration into OpenClaw's config file
  * and runtime config so that `manifest/auto` is recognized as a valid model.
+ *
+ * `baseUrl` must include the `/v1` path (e.g. `http://127.0.0.1:2099/v1`
+ * or `https://app.manifest.build/v1`).
  */
 export function injectProviderConfig(
   api: any,
-  host: string,
-  port: number,
+  baseUrl: string,
   apiKey: string,
   logger: PluginLogger,
 ): void {
-  const baseUrl = `http://${host}:${port}/v1`;
 
   const providerConfig = {
     baseUrl,
@@ -237,7 +238,7 @@ export function registerLocalMode(
   logger.debug("[manifest] Local mode — starting embedded server...");
 
   // Inject provider config BEFORE routing registration
-  injectProviderConfig(api, host, port, apiKey, logger);
+  injectProviderConfig(api, `http://${host}:${port}/v1`, apiKey, logger);
   injectAuthProfile(apiKey, logger);
 
   // Load the embedded server module

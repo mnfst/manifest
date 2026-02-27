@@ -145,7 +145,7 @@ describe("register — dev mode", () => {
     plugin.register(api);
 
     expect(injectProviderConfig).toHaveBeenCalledWith(
-      api, "localhost", 38238, "dev-no-auth", api.logger,
+      api, "http://localhost:38238/v1", "dev-no-auth", api.logger,
     );
     expect(injectAuthProfile).toHaveBeenCalledWith("dev-no-auth", api.logger);
   });
@@ -206,7 +206,7 @@ describe("register — dev mode", () => {
     plugin.register(api);
 
     expect(injectProviderConfig).toHaveBeenCalledWith(
-      api, "dev.example.com", 443, "dev-no-auth", api.logger,
+      api, "https://dev.example.com/v1", "dev-no-auth", api.logger,
     );
   });
 
