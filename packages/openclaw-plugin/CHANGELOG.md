@@ -1,5 +1,11 @@
 # manifest
 
+## 5.15.2
+
+### Patch Changes
+
+- 6632ae8: Fix OpenRouter sync misattributing non-native models to providers. The sync now defers to the curated seeder for native provider assignments — existing models get pricing updates only (provider preserved), while new discoveries are added as OpenRouter-only entries.
+
 ## 5.15.1
 
 ### Patch Changes
