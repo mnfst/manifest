@@ -82,8 +82,8 @@ const Settings: Component = () => {
     }
   };
 
-  const TABS = () => isLocalMode() ? [] as const : ["General", "Integration"] as const;
-  type Tab = "General" | "Integration";
+  const TABS = () => isLocalMode() ? [] as const : ["General", "Agent setup"] as const;
+  type Tab = "General" | "Agent setup";
   const [tab, setTab] = createSignal<Tab>("General");
 
   return (
@@ -166,8 +166,8 @@ const Settings: Component = () => {
         </Show>
       </Show>
 
-      {/* -- Tab: Integration ------------------------- */}
-      <Show when={tab() === "Integration"}>
+      {/* -- Tab: Agent setup ------------------------- */}
+      <Show when={tab() === "Agent setup"}>
         <h3 class="settings-section__title">API Key</h3>
 
         <div class="settings-card">
