@@ -163,6 +163,22 @@ describe("registerHooks", () => {
     expect(api.on).toHaveBeenCalledWith("agent_end", expect.any(Function));
   });
 
+  it("falls back to registerHook when api.on is not available", () => {
+    const fallbackApi = {
+      handlers: new Map<string, (event: unknown) => void>(),
+      registerHook: jest.fn((event: string, handler: (event: unknown) => void) => {
+        fallbackApi.handlers.set(event, handler);
+      }),
+    };
+    const fbTracer = createMockTracer();
+    const fbMeter = createMockMeter();
+    initMetrics(fbMeter as any);
+    registerHooks(fallbackApi as any, fbTracer as any, config, mockLogger);
+
+    expect(fallbackApi.registerHook).toHaveBeenCalledWith("message_received", expect.any(Function));
+    expect(fallbackApi.registerHook).toHaveBeenCalledWith("agent_end", expect.any(Function));
+  });
+
   it("logs that hooks are registered", () => {
     expect(mockLogger.debug).toHaveBeenCalledWith(
       "[manifest] All hooks registered",
