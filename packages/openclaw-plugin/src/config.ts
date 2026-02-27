@@ -25,11 +25,11 @@ export function parseConfig(raw: unknown): ManifestConfig {
   }
 
   const mode =
-    obj.mode === "cloud"
-      ? "cloud" as const
+    obj.mode === "local"
+      ? "local" as const
       : obj.mode === "dev"
         ? "dev" as const
-        : "local" as const;
+        : "cloud" as const;
 
   const apiKey =
     typeof obj.apiKey === "string" && obj.apiKey.length > 0

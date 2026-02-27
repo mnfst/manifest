@@ -63,7 +63,7 @@ beforeEach(() => {
 });
 
 describe("register — mode routing", () => {
-  it("delegates to registerLocalMode when mode defaults to local", () => {
+  it("delegates to registerLocalMode when mode is explicitly local", () => {
     (parseConfig as jest.Mock).mockReturnValue({
       mode: "local",
       apiKey: "",
@@ -680,7 +680,7 @@ describe("register — cloud mode missing API key", () => {
     plugin.register(api);
 
     expect(api.logger.info).toHaveBeenCalledWith(
-      expect.stringContaining("local mode instead (zero config)"),
+      expect.stringContaining("Set mode to local"),
     );
   });
 });
