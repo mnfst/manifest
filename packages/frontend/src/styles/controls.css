@@ -351,8 +351,8 @@
   letter-spacing: 0.05em;
   padding: 2px 7px;
   border-radius: var(--radius);
-  background: hsl(var(--chart-4) / 0.15);
-  color: hsl(var(--chart-4));
+  background: hsl(var(--success) / 0.15);
+  color: hsl(var(--success));
   line-height: 1.4;
   user-select: none;
 }
