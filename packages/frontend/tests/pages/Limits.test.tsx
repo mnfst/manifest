@@ -58,6 +58,18 @@ vi.mock("../../src/components/ProviderBanner.js", () => ({
   ),
 }));
 
+vi.mock("../../src/components/CloudEmailInfo.js", () => ({
+  default: (props: any) => (
+    <div data-testid="cloud-email-info">CloudEmailInfo: {props.email}</div>
+  ),
+}));
+
+vi.mock("../../src/services/auth-client.js", () => ({
+  authClient: {
+    useSession: () => () => ({ data: { user: { email: "user@example.com" } } }),
+  },
+}));
+
 import Limits from "../../src/pages/Limits";
 
 describe("Limits page", () => {
@@ -105,7 +117,7 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByText("Alert")).toBeDefined();
+      expect(screen.getByText("Email alert")).toBeDefined();
       expect(screen.getByText("Limit")).toBeDefined();
       expect(container.querySelectorAll("table tbody tr").length).toBe(2);
     });
@@ -137,14 +149,20 @@ describe("Limits page", () => {
     expect(container.textContent).not.toContain("Enable routing to set hard limits");
   });
 
-  it("shows email provider setup in cloud mode", () => {
+  it("shows cloud email info in cloud mode", () => {
     mockIsLocalMode = false;
+    render(() => <Limits />);
+    expect(screen.getByTestId("cloud-email-info")).toBeDefined();
+  });
+
+  it("shows email provider setup in local mode", () => {
+    mockIsLocalMode = true;
     render(() => <Limits />);
     expect(screen.getByTestId("email-setup")).toBeDefined();
   });
 
-  it("hides email provider section in local mode", () => {
-    mockIsLocalMode = true;
+  it("hides email provider setup in cloud mode", () => {
+    mockIsLocalMode = false;
     const { container } = render(() => <Limits />);
     expect(container.querySelector('[data-testid="email-setup"]')).toBeNull();
     expect(container.querySelector('[data-testid="provider-banner"]')).toBeNull();
@@ -268,9 +286,9 @@ describe("Limits page", () => {
     });
   });
 
-  it("shows provider banner when email provider is configured", async () => {
+  it("shows provider banner when email provider is configured in local mode", async () => {
     mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = false;
+    mockIsLocalMode = true;
 
     render(() => <Limits />);
 

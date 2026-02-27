@@ -435,3 +435,33 @@
   justify-content: space-between;
   align-items: center;
 }
+
+/* ── Cloud Email Info Card ──────────────────────── */
+.cloud-email-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.cloud-email-info__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: hsl(var(--success));
+}
+
+.cloud-email-info__title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 2px;
+}
+
+.cloud-email-info__desc {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+}
