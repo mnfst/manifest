@@ -17,6 +17,7 @@ import { checkLocalMode } from "../services/local-mode.js";
 
 interface Agent {
   agent_name: string;
+  display_name?: string;
   message_count: number;
   last_active: string;
   total_cost: number;
@@ -42,7 +43,8 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
       toast.success(`Agent "${agentName}" connected`);
       props.onClose();
       setName("");
-      const url = `/agents/${encodeURIComponent(agentName)}`;
+      const slug = result?.agent?.name ?? agentName;
+      const url = `/agents/${encodeURIComponent(slug)}`;
       navigate(url, { state: { newAgent: true, newApiKey: result?.apiKey } });
     } catch {
       // error toast already shown by fetchMutate
@@ -85,7 +87,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
             ref={(el) => requestAnimationFrame(() => el.focus())}
             class="modal-card__input"
             type="text"
-            placeholder="e.g. Clawdy"
+            placeholder="e.g. My Cool Agent"
             value={name()}
             onInput={(e) => setName(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
@@ -199,7 +201,7 @@ const Workspace: Component = () => {
                   class="agent-card"
                 >
                   <div class="agent-card__top">
-                    <span class="agent-card__name">{agent.agent_name}</span>
+                    <span class="agent-card__name">{agent.display_name ?? agent.agent_name}</span>
                   </div>
                   <div class="agent-card__stats">
                     <div class="agent-card__stat">

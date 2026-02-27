@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, UseInterceptors } from '@nestjs/common';
 import { CacheTTL } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
@@ -12,6 +12,7 @@ import { UserCacheInterceptor } from '../../common/interceptors/user-cache.inter
 import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 import { readLocalApiKey } from '../../common/constants/local-mode.constants';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
+import { slugify } from '../../common/utils/slugify';
 
 @Controller('api/v1')
 export class AgentsController {
@@ -32,13 +33,19 @@ export class AgentsController {
 
   @Post('agents')
   async createAgent(@CurrentUser() user: AuthUser, @Body() body: CreateAgentDto) {
+    const slug = slugify(body.name);
+    if (!slug) {
+      throw new BadRequestException('Agent name produces an empty slug');
+    }
+    const displayName = body.name.trim();
     const result = await this.apiKeyGenerator.onboardAgent({
       tenantName: user.id,
-      agentName: body.name,
+      agentName: slug,
+      displayName,
       email: user.email,
     });
-    trackCloudEvent('agent_created', user.id, { agent_name: body.name });
-    return { agent: { id: result.agentId, name: body.name }, apiKey: result.apiKey };
+    trackCloudEvent('agent_created', user.id, { agent_name: slug });
+    return { agent: { id: result.agentId, name: slug, display_name: displayName }, apiKey: result.apiKey };
   }
 
   @Get('agents/:agentName/key')
@@ -66,8 +73,13 @@ export class AgentsController {
     @Param('agentName') agentName: string,
     @Body() body: RenameAgentDto,
   ) {
-    await this.aggregation.renameAgent(user.id, agentName, body.name);
-    return { renamed: true, name: body.name };
+    const slug = slugify(body.name);
+    if (!slug) {
+      throw new BadRequestException('Agent name produces an empty slug');
+    }
+    const displayName = body.name.trim();
+    await this.aggregation.renameAgent(user.id, agentName, slug, displayName);
+    return { renamed: true, name: slug, display_name: displayName };
   }
 
   @Delete('agents/:agentName')

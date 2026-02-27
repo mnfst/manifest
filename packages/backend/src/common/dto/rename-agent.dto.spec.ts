@@ -5,7 +5,7 @@ import { RenameAgentDto } from './rename-agent.dto';
 
 describe('RenameAgentDto', () => {
   it('accepts valid agent names', async () => {
-    for (const name of ['my-agent', 'agent_1', 'TestBot', 'a']) {
+    for (const name of ['my-agent', 'agent_1', 'TestBot', 'a', 'My Cool Agent']) {
       const dto = plainToInstance(RenameAgentDto, { name });
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
@@ -24,10 +24,10 @@ describe('RenameAgentDto', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 
-  it('rejects names with spaces', async () => {
+  it('accepts names with spaces', async () => {
     const dto = plainToInstance(RenameAgentDto, { name: 'has spaces' });
     const errors = await validate(dto);
-    expect(errors.length).toBeGreaterThan(0);
+    expect(errors).toHaveLength(0);
   });
 
   it('rejects names with special characters', async () => {

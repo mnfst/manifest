@@ -38,6 +38,7 @@ import { MakeApiKeyNullable1772000000000 } from './migrations/1772000000000-Make
 import { AddRoutingTier1772100000000 } from './migrations/1772100000000-AddRoutingTier';
 import { AddLimitAction1772200000000 } from './migrations/1772200000000-AddLimitAction';
 import { AddRoutingReason1772300000000 } from './migrations/1772300000000-AddRoutingReason';
+import { AddAgentDisplayName1772400000000 } from './migrations/1772400000000-AddAgentDisplayName';
 
 const entities = [
   AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing,
@@ -64,6 +65,7 @@ const migrations = [
   AddRoutingTier1772100000000,
   AddLimitAction1772200000000,
   AddRoutingReason1772300000000,
+  AddAgentDisplayName1772400000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';

@@ -217,7 +217,7 @@ describe('AggregationService', () => {
         return cb(manager);
       });
 
-      await service.renameAgent('test-user', 'old-agent', 'new-agent');
+      await service.renameAgent('test-user', 'old-agent', 'new-agent', 'New Agent');
 
       // Verify transaction was called
       expect(mockTransaction).toHaveBeenCalledTimes(1);
@@ -228,7 +228,7 @@ describe('AggregationService', () => {
 
       // Verify agents table update was called with agent id
       expect(mockManagerQb.update).toHaveBeenCalledWith('agents');
-      expect(mockManagerQb.set).toHaveBeenCalledWith({ name: 'new-agent' });
+      expect(mockManagerQb.set).toHaveBeenCalledWith({ name: 'new-agent', display_name: 'New Agent' });
 
       // Verify all 5 related tables were updated
       const updateCalls = mockManagerQb.update.mock.calls.map(
@@ -240,6 +240,38 @@ describe('AggregationService', () => {
       expect(updateCalls).toContain('notification_logs');
       expect(updateCalls).toContain('token_usage_snapshots');
       expect(updateCalls).toContain('cost_snapshots');
+    });
+
+    it('should short-circuit when slug is unchanged and only update display_name', async () => {
+      // Find current agent — found
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
+
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockAgentUpdateQb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+
+      mockAgentCreateQueryBuilder
+        .mockReturnValueOnce({
+          select: jest.fn().mockReturnThis(),
+          leftJoin: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          orderBy: jest.fn().mockReturnThis(),
+          getOne: mockAgentGetOne,
+          getMany: jest.fn().mockResolvedValue([]),
+        })
+        .mockReturnValueOnce(mockAgentUpdateQb);
+
+      await service.renameAgent('test-user', 'my-agent', 'my-agent', 'My Agent');
+
+      // No transaction should occur — only display_name update
+      expect(mockTransaction).not.toHaveBeenCalled();
+      expect(mockExecute).toHaveBeenCalledTimes(1);
+      expect(mockAgentUpdateQb.set).toHaveBeenCalledWith({ display_name: 'My Agent' });
     });
   });
 

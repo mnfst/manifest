@@ -56,8 +56,9 @@ const Settings: Component = () => {
 
     setSaving(true);
     try {
-      await renameAgent(agentName(), newName);
-      navigate(`/agents/${encodeURIComponent(newName)}/settings`, { replace: true, state: { newAgent: true } });
+      const result = await renameAgent(agentName(), newName);
+      const slug = result?.name ?? newName;
+      navigate(`/agents/${encodeURIComponent(slug)}/settings`, { replace: true, state: { newAgent: true } });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
