@@ -1,13 +1,26 @@
 # Manifest
 
-Cut your AI agent costs by up to 70%. Manifest is an open-source [OpenClaw](https://github.com/open-claw/open-claw) plugin that combines **intelligent LLM routing** with **real-time cost observability** — one install, zero configuration.
+Cut your AI agent costs by up to 70%. Manifest is an open-source [OpenClaw](https://github.com/open-claw/open-claw) plugin that combines **intelligent LLM routing** with **real-time cost observability**.
 
 Instead of sending every request to the most expensive model, Manifest scores each query in under 2ms and routes it to the most cost-effective model that can handle it. Simple lookups go to fast, cheap models. Complex reasoning goes to frontier models. You see exactly where every dollar goes in a local dashboard.
 
 ## Quick start
 
+### Cloud (default)
+
 ```bash
 openclaw plugins install manifest
+openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
+openclaw gateway restart
+```
+
+Sign up at [app.manifest.build](https://app.manifest.build) to get your API key.
+
+### Local (zero config)
+
+```bash
+openclaw plugins install manifest
+openclaw config set plugins.entries.manifest.config.mode local
 openclaw gateway restart
 ```
 
@@ -26,7 +39,7 @@ The entire scoring step adds < 2ms of latency. If the resolve call fails, the re
 
 ### Enable routing
 
-Routing activates automatically in local mode. Point your OpenClaw config to use the `manifest` provider with model `auto`:
+Routing activates automatically when the plugin is enabled. Point your OpenClaw config to use the `manifest` provider with model `auto`:
 
 ```yaml
 # openclaw.config.yaml
@@ -67,21 +80,20 @@ User: "How much have I spent today?"
 
 ## Configuration
 
-Local mode works out of the box with zero configuration. All settings are optional.
+Cloud mode is the default. For local mode (zero config), set `mode` to `local`.
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `mode` | string | `local` | `local` runs an embedded server on your machine. `cloud` sends telemetry to app.manifest.build. `dev` connects to a local backend without API key management. |
+| `mode` | string | `cloud` | `cloud` sends telemetry to app.manifest.build (default). `local` runs an embedded server on your machine. `dev` connects to a local backend without API key management. |
 | `apiKey` | string | env `MANIFEST_API_KEY` | Agent API key (must start with `mnfst_`). Required for cloud mode, auto-generated in local mode. |
 | `endpoint` | string | `https://app.manifest.build/otlp` | OTLP endpoint URL. Only relevant for cloud and dev modes. |
 | `port` | number | `2099` | Port for the embedded dashboard server (local mode only). |
 | `host` | string | `127.0.0.1` | Bind address for the embedded server (local mode only). |
 
-### Cloud mode
+### Local mode
 
 ```bash
-openclaw config set plugins.entries.manifest.config.mode cloud
-openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
+openclaw config set plugins.entries.manifest.config.mode local
 openclaw gateway restart
 ```
 

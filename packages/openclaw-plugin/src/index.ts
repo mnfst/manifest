@@ -39,7 +39,9 @@ module.exports = {
           "[manifest] Cloud mode requires an API key:\n" +
             "  openclaw config set plugins.entries.manifest.config.apiKey mnfst_YOUR_KEY\n" +
             "  openclaw gateway restart\n\n" +
-            "Tip: Remove the mode setting to use local mode instead (zero config).",
+            "Tip: Set mode to local for a zero-config embedded server:\n" +
+            "  openclaw config set plugins.entries.manifest.config.mode local\n" +
+            "  openclaw gateway restart",
         );
       } else {
         logger.error(`[manifest] Configuration error:\n${error}`);

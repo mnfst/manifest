@@ -51,8 +51,21 @@ Unlike almost all alternatives, everything stays on your machine. No suspicious 
 
 ## Quick Start
 
+### Cloud (default)
+
 ```bash
 openclaw plugins install manifest
+openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
+openclaw gateway restart
+```
+
+Sign up at [app.manifest.build](https://app.manifest.build) to get your API key.
+
+### Local (zero config)
+
+```bash
+openclaw plugins install manifest
+openclaw config set plugins.entries.manifest.config.mode local
 openclaw gateway restart
 ```
 
@@ -77,7 +90,7 @@ Dashboard opens at **http://127.0.0.1:2099**. Telemetry from your agents flows i
 
 ## Privacy
 
-**Your data stays on your machine.** All agent messages, token counts, costs, and telemetry are stored locally. None of this data is ever sent to us or any third party.
+**In local mode, your data stays on your machine.** All agent messages, token counts, costs, and telemetry are stored locally. In cloud mode, only OpenTelemetry metadata (model, tokens, latency) is sent — message content is never collected.
 
 Manifest collects anonymous product analytics (hashed machine ID, OS platform, package version, event names) to help improve the project. No personally identifiable information or agent data is included.
 
@@ -91,20 +104,19 @@ Or add `"telemetryOptOut": true` to `~/.openclaw/manifest/config.json`.
 
 ## Configuration
 
-Local mode works out of the box — all settings are optional.
+Cloud mode is the default. For local mode (zero config), set `mode` to `local`.
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `mode` | `string` | `local` | `local` runs an embedded server on your machine. `cloud` sends telemetry to app.manifest.build. `dev` connects to a local backend without API key. |
+| `mode` | `string` | `cloud` | `cloud` sends telemetry to app.manifest.build (default). `local` runs an embedded server on your machine. `dev` connects to a local backend without API key. |
 | `apiKey` | `string` | env `MANIFEST_API_KEY` | Agent API key (must start with `mnfst_`). Required for cloud mode, auto-generated in local mode. |
 | `endpoint` | `string` | `https://app.manifest.build/otlp` | OTLP endpoint URL. Only relevant for cloud and dev modes. |
 | `port` | `number` | `2099` | Port for the embedded dashboard server (local mode only). |
 | `host` | `string` | `127.0.0.1` | Bind address for the embedded server (local mode only). |
 
 ```bash
-# Switch to cloud mode
-openclaw config set plugins.entries.manifest.config.mode cloud
-openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
+# Switch to local mode
+openclaw config set plugins.entries.manifest.config.mode local
 openclaw gateway restart
 ```
 
