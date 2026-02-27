@@ -23,21 +23,21 @@ describe("LimitRuleModal", () => {
       <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
     expect(screen.getByRole("dialog")).toBeDefined();
-    expect(screen.getByText("Set up an alert or hard limit for this agent's usage.")).toBeDefined();
+    expect(screen.getByText("Set up an email alert or hard limit for this agent's usage.")).toBeDefined();
   });
 
   it("shows description text", () => {
     render(() => (
       <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    expect(screen.getByText("Set up an alert or hard limit for this agent's usage.")).toBeDefined();
+    expect(screen.getByText("Set up an email alert or hard limit for this agent's usage.")).toBeDefined();
   });
 
   it("renders Alert and Hard Limit type buttons", () => {
     render(() => (
       <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    expect(screen.getByText("Alert")).toBeDefined();
+    expect(screen.getByText("Email Alert")).toBeDefined();
     expect(screen.getByText("Hard Limit")).toBeDefined();
   });
 
@@ -46,7 +46,7 @@ describe("LimitRuleModal", () => {
       <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
     const alertBtn = container.querySelector(".limit-type-option--active");
-    expect(alertBtn?.textContent).toContain("Alert");
+    expect(alertBtn?.textContent).toContain("Email Alert");
   });
 
   it("allows selecting block action when routing is enabled", () => {
@@ -94,7 +94,7 @@ describe("LimitRuleModal", () => {
     fireEvent.click(buttons[1]); // Hard Limit (disabled)
 
     const active = container.querySelector(".limit-type-option--active");
-    expect(active?.textContent).toContain("Alert"); // still Alert
+    expect(active?.textContent).toContain("Email Alert"); // still Email Alert
   });
 
   it("renders metric select with Tokens and Cost options", () => {

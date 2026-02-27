@@ -49,7 +49,7 @@ const LimitRuleModal: Component<Props> = (props) => {
         >
           <h2 class="modal-card__title" id="limit-modal-title">Create rule</h2>
           <p class="modal-card__desc">
-            Set up an alert or hard limit for this agent's usage.
+            Set up an email alert or hard limit for this agent's usage.
           </p>
 
           <label class="modal-card__field-label" style="margin-top: 0;">Rule type</label>
@@ -60,7 +60,7 @@ const LimitRuleModal: Component<Props> = (props) => {
               onClick={() => setAction("notify")}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-              Alert
+              Email Alert
             </button>
             <button
               class="limit-type-option"

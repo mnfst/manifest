@@ -56,6 +56,18 @@ vi.mock("../../src/components/ProviderBanner.js", () => ({
   ),
 }));
 
+vi.mock("../../src/components/CloudEmailInfo.js", () => ({
+  default: (props: any) => (
+    <div data-testid="cloud-email-info">CloudEmailInfo: {props.email}</div>
+  ),
+}));
+
+vi.mock("../../src/services/auth-client.js", () => ({
+  authClient: {
+    useSession: () => () => ({ data: { user: { email: "user@example.com" } } }),
+  },
+}));
+
 import Limits from "../../src/pages/Limits";
 
 describe("Limits page interactions", () => {
@@ -131,7 +143,7 @@ describe("Limits page interactions", () => {
     const { removeEmailProvider } = await import("../../src/services/api.js");
     const { toast } = await import("../../src/services/toast-store.js");
     mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = false;
+    mockIsLocalMode = true;
 
     render(() => <Limits />);
 
