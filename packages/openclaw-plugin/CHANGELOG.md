@@ -1,5 +1,17 @@
 # manifest
 
+## 5.16.0
+
+### Minor Changes
+
+- c9e0d63: Align OpenClaw plugin API with official docs: migrate hooks to registerHook with metadata, rename tool handler to execute with content return format, add optional flag to tools, change provider name to label, add /manifest slash command, and update plugin manifest metadata.
+
+### Patch Changes
+
+- f399e97: Fix absurd trend percentages (e.g. -34497259%) when overview metrics are zero or near-zero. Backend computeTrend() now uses epsilon comparison and clamps output to ±999%. Frontend trendBadge() suppresses badges when the metric value itself is effectively zero. Chart Y-axes no longer collapse when all data points are zero.
+- 2ee3b2e: Fix routing CTA banner flicker on Limits page by waiting for routing status to load before rendering
+- 9a6ded6: Fix tier label alignment in message tables to display inline with model name
+
 ## 5.15.4
 
 ### Patch Changes
