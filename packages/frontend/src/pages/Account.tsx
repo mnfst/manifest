@@ -47,7 +47,7 @@ const Account: Component = () => {
 
   return (
     <div class="account-modal">
-      <Title>Account Preferences | Manifest</Title>
+      <Title>Account Preferences - Manifest</Title>
       <Meta name="description" content="Manage your profile, workspace, and theme preferences." />
       <div class="account-modal__inner">
         <button class="account-modal__back" onClick={() => navigate(-1)}>

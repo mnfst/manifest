@@ -88,7 +88,7 @@ const Settings: Component = () => {
 
   return (
     <div class="container--sm">
-      <Title>{agentName()} - Settings | Manifest</Title>
+      <Title>{agentName()} Settings - Manifest</Title>
       <Meta name="description" content={`Configure settings for ${agentName()}.`} />
       <div class="page-header">
         <div>
