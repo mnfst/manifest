@@ -26,6 +26,9 @@ import {
   parseTimestamps,
   timeScaleRange,
   useChartLifecycle,
+  costYRange,
+  tokenYRange,
+  messageYRange,
 } from "../../src/services/chart-utils";
 
 beforeEach(() => {
@@ -437,6 +440,78 @@ describe("createBaseAxes", () => {
     const mockU = { scales: {} } as any;
     const formatted = (axes[0].values as Function)(mockU, [epoch]);
     expect(formatted[0]).toBe("Jan 15");
+  });
+});
+
+// ---------- costYRange ----------
+
+describe("costYRange", () => {
+  it("scales positive max by 1.15", () => {
+    expect(costYRange(null, 0, 10)).toEqual([0, 11.5]);
+  });
+
+  it("returns [0, 1] when max is zero", () => {
+    expect(costYRange(null, 0, 0)).toEqual([0, 1]);
+  });
+
+  it("returns [0, 1] when max is negative", () => {
+    expect(costYRange(null, 0, -5)).toEqual([0, 1]);
+  });
+
+  it("handles very small positive max", () => {
+    const [min, max] = costYRange(null, 0, 0.001);
+    expect(min).toBe(0);
+    expect(max).toBeCloseTo(0.00115);
+  });
+
+  it("handles large max values", () => {
+    expect(costYRange(null, 0, 1000)).toEqual([0, 1150]);
+  });
+});
+
+// ---------- tokenYRange ----------
+
+describe("tokenYRange", () => {
+  it("scales positive max by 1.1", () => {
+    expect(tokenYRange(null, 0, 1000)).toEqual([0, 1100]);
+  });
+
+  it("returns [0, 100] when max is zero", () => {
+    expect(tokenYRange(null, 0, 0)).toEqual([0, 100]);
+  });
+
+  it("returns [0, 100] when max is negative", () => {
+    expect(tokenYRange(null, 0, -10)).toEqual([0, 100]);
+  });
+
+  it("handles small positive max", () => {
+    const [min, max] = tokenYRange(null, 0, 5);
+    expect(min).toBe(0);
+    expect(max).toBeCloseTo(5.5);
+  });
+});
+
+// ---------- messageYRange ----------
+
+describe("messageYRange", () => {
+  it("scales positive max by 1.1", () => {
+    const [min, max] = messageYRange(null, 0, 50);
+    expect(min).toBe(0);
+    expect(max).toBeCloseTo(55);
+  });
+
+  it("returns [0, 10] when max is zero", () => {
+    expect(messageYRange(null, 0, 0)).toEqual([0, 10]);
+  });
+
+  it("returns [0, 10] when max is negative", () => {
+    expect(messageYRange(null, 0, -1)).toEqual([0, 10]);
+  });
+
+  it("handles small positive max", () => {
+    const [min, max] = messageYRange(null, 0, 3);
+    expect(min).toBe(0);
+    expect(max).toBeCloseTo(3.3);
   });
 });
 

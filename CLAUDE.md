@@ -394,7 +394,7 @@ Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. C
 ### Thresholds
 
 - **Project coverage** (`codecov/project`): Must not drop more than **1%** below the base branch (`target: auto`, `threshold: 1%`).
-- **Patch coverage** (`codecov/patch`): New/changed lines must have at least **auto - 5%** coverage (`target: auto`, `threshold: 5%`). In practice, aim for **>90%** patch coverage.
+- **Patch coverage** (`codecov/patch`): New/changed lines must have at least **auto - 5%** coverage (`target: auto`, `threshold: 5%`). **In practice, aim for 95%+ patch coverage on all new or changed lines.** Extract inline logic into named, exported functions when necessary to make it testable.
 
 ### CRITICAL: Write Tests for New Code
 

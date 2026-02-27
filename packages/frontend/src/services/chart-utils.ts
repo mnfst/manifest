@@ -125,6 +125,22 @@ export function parseTimestamps(data: Array<{ hour?: string; date?: string } & R
   return data.map((d) => new Date(((d.hour ?? d.date) as string ?? "").replace(" ", "T") + "Z").getTime() / 1000);
 }
 
+/**
+ * Y-axis range helpers for charts. Ensure a sensible minimum range
+ * when all data values are zero to prevent the axis from collapsing.
+ */
+export function costYRange(_u: unknown, _min: number, max: number): [number, number] {
+  return [0, max > 0 ? max * 1.15 : 1];
+}
+
+export function tokenYRange(_u: unknown, _min: number, max: number): [number, number] {
+  return [0, max > 0 ? max * 1.1 : 100];
+}
+
+export function messageYRange(_u: unknown, _min: number, max: number): [number, number] {
+  return [0, max > 0 ? max * 1.1 : 10];
+}
+
 const MIN_SPAN = 6 * 3600; // 6 hours in seconds
 
 export function timeScaleRange(_u: uPlot, min: number, max: number): [number, number] {

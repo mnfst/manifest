@@ -168,6 +168,70 @@ describe("Overview", () => {
     });
   });
 
+  it("hides trend badge when value is near-zero (below display threshold)", async () => {
+    const nearZeroData = {
+      ...overviewData,
+      summary: {
+        ...overviewData.summary,
+        cost_today: { value: 0.004, trend_pct: -50 },
+        tokens_today: { value: 0, trend_pct: 25, sub_values: { input: 0, output: 0 } },
+        messages: { value: 0.001, trend_pct: 100 },
+      },
+    };
+    mockGetOverview.mockResolvedValue(nearZeroData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const trends = container.querySelectorAll(".trend");
+      expect(trends.length).toBe(0);
+    });
+  });
+
+  it("shows trend badge with correct CSS class for negative trend", async () => {
+    const negData = {
+      ...overviewData,
+      summary: {
+        ...overviewData.summary,
+        cost_today: { value: 10.0, trend_pct: -25 },
+      },
+    };
+    mockGetOverview.mockResolvedValue(negData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".trend--down");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toContain("-25%");
+    });
+  });
+
+  it("shows trend badge with correct CSS class for positive trend", async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".trend--up");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toContain("+");
+    });
+  });
+
+  it("hides trend badge when pct is exactly zero", async () => {
+    const zeroPctData = {
+      ...overviewData,
+      summary: {
+        ...overviewData.summary,
+        cost_today: { value: 10.0, trend_pct: 0 },
+        tokens_today: { value: 5000, trend_pct: 0, sub_values: { input: 3000, output: 2000 } },
+        messages: { value: 15, trend_pct: 0 },
+      },
+    };
+    mockGetOverview.mockResolvedValue(zeroPctData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("$10.00");
+      const trends = container.querySelectorAll(".trend");
+      expect(trends.length).toBe(0);
+    });
+  });
+
   it("shows recent messages table", async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);

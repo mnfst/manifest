@@ -8,6 +8,7 @@ import {
   createBaseAxes,
   parseTimestamps,
   timeScaleRange,
+  tokenYRange,
 } from "../services/chart-utils.js";
 
 interface TokenChartProps {
@@ -37,7 +38,7 @@ const TokenChart: Component<TokenChartProps> = (props) => {
         height: 260,
         padding: [16, 16, 0, 0],
         cursor: createCursorSnap(bgColor, inputColor),
-        scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.1 : 100] } },
+        scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: tokenYRange } },
         axes: createBaseAxes(axisColor, gridColor, props.range),
         series: [
           {},
