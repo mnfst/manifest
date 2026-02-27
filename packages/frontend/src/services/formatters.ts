@@ -13,9 +13,13 @@ export function formatNumber(n: number): string {
 
 /**
  * Format a USD cost value (e.g., $6.18, $17.50).
+ * Returns null for negative costs (invalid/unknown pricing).
+ * Returns "< $0.01" for small sub-cent positive costs to avoid misleading "$0.00".
  */
-export function formatCost(n: number): string {
-  return `$${Math.max(0, n).toFixed(2)}`;
+export function formatCost(n: number): string | null {
+  if (n < 0) return null;
+  if (n > 0 && n < 0.01) return "< $0.01";
+  return `$${n.toFixed(2)}`;
 }
 
 /**

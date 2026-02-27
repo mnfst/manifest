@@ -23,9 +23,19 @@ describe("formatCost", () => {
     expect(formatCost(0)).toBe("$0.00");
     expect(formatCost(17.5)).toBe("$17.50");
   });
-  it("clamps negative costs to $0.00", () => {
-    expect(formatCost(-1527)).toBe("$0.00");
-    expect(formatCost(-0.01)).toBe("$0.00");
+  it("returns null for negative costs (invalid pricing)", () => {
+    expect(formatCost(-1527)).toBeNull();
+    expect(formatCost(-0.01)).toBeNull();
+    expect(formatCost(-9909)).toBeNull();
+  });
+  it("returns '< $0.01' for sub-cent positive costs", () => {
+    expect(formatCost(0.002836)).toBe("< $0.01");
+    expect(formatCost(0.009)).toBe("< $0.01");
+    expect(formatCost(0.001)).toBe("< $0.01");
+  });
+  it("formats costs at or above one cent normally", () => {
+    expect(formatCost(0.01)).toBe("$0.01");
+    expect(formatCost(0.05)).toBe("$0.05");
   });
 });
 

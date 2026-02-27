@@ -28,8 +28,13 @@ describe("formatCost edge cases", () => {
     expect(formatCost(0)).toBe("$0.00");
   });
 
-  it("formats very small costs", () => {
+  it("formats very small costs above one cent", () => {
     expect(formatCost(0.01)).toBe("$0.01");
+  });
+
+  it("returns '< $0.01' for sub-cent costs", () => {
+    expect(formatCost(0.005)).toBe("< $0.01");
+    expect(formatCost(0.0001)).toBe("< $0.01");
   });
 
   it("formats whole dollar amounts", () => {
@@ -39,6 +44,11 @@ describe("formatCost edge cases", () => {
   it("formats costs with many decimal places (rounds to 2)", () => {
     expect(formatCost(3.456)).toBe("$3.46");
     expect(formatCost(3.454)).toBe("$3.45");
+  });
+
+  it("returns null for negative costs", () => {
+    expect(formatCost(-293)).toBeNull();
+    expect(formatCost(-0.005)).toBeNull();
   });
 });
 

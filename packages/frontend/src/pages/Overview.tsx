@@ -367,7 +367,7 @@ const Overview: Component = () => {
                       <span class="chart-card__label">Cost</span>
                       <div class="chart-card__value-row">
                         <span class="chart-card__value">
-                          {formatCost(d().summary?.cost_today?.value ?? 0)}
+                          {formatCost(d().summary?.cost_today?.value ?? 0) ?? '$0.00'}
                         </span>
                         {trendBadge(d().summary?.cost_today?.trend_pct ?? 0)}
                       </div>
@@ -495,7 +495,7 @@ const Overview: Component = () => {
                             </td>
                             <td style="font-family: var(--font-mono);">
                               {item.cost != null
-                                ? formatCost(item.cost)
+                                ? (formatCost(item.cost) ?? '\u2014')
                                 : '\u2014'}
                             </td>
                             <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
@@ -567,7 +567,7 @@ const Overview: Component = () => {
                               </div>
                             </td>
                             <td style="font-weight: 600;">
-                              {formatCost(row.estimated_cost)}
+                              {formatCost(row.estimated_cost) ?? '\u2014'}
                             </td>
                           </tr>
                         )}

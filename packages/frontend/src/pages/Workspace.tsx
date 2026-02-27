@@ -219,7 +219,7 @@ const Workspace: Component = () => {
                     <div class="agent-card__stat">
                       <span class="agent-card__stat-label">Cost</span>
                       <span class="agent-card__stat-value">
-                        {formatCost(agent.total_cost)}
+                        {formatCost(agent.total_cost) ?? '$0.00'}
                       </span>
                     </div>
                   </div>

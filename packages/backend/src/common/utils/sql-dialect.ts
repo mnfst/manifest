@@ -66,6 +66,15 @@ export function sqlCastFloat(col: string, dialect: DbDialect): string {
 }
 
 /**
+ * Returns a SQL expression that treats negative costs as NULL.
+ * Negative costs indicate failed pricing lookups and should not be
+ * included in aggregations or displayed as real dollar amounts.
+ */
+export function sqlSanitizeCost(col: string): string {
+  return `CASE WHEN ${col} >= 0 THEN ${col} ELSE NULL END`;
+}
+
+/**
  * Convert Postgres-style $1, $2 placeholders to ? for SQLite.
  * Pass-through for Postgres.
  */
