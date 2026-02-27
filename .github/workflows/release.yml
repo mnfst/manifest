@@ -43,6 +43,9 @@ jobs:
           VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[0].version')
           TAG="$(echo "$PUBLISHED_PACKAGES" | jq -r '.[0].name')@${VERSION}"
 
+          git tag "$TAG" || true
+          git push origin "$TAG"
+
           BODY=$(awk -v ver="## ${VERSION}" \
             '$0 == ver { found=1; next } found && /^## / { exit } found { print }' \
             packages/openclaw-plugin/CHANGELOG.md)
