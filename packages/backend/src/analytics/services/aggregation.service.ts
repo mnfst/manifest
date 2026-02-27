@@ -6,7 +6,7 @@ import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
 import { MetricWithTrend, computeTrend, addTenantFilter, formatTimestamp } from './query-helpers';
 import {
-  DbDialect, detectDialect, computeCutoff, sqlCastFloat,
+  DbDialect, detectDialect, computeCutoff, sqlCastFloat, sqlSanitizeCost,
 } from '../../common/utils/sql-dialect';
 
 export { MetricWithTrend };
@@ -82,16 +82,17 @@ export class AggregationService {
     const cutoff = computeCutoff(interval);
     const prevCutoff = computeCutoff(prevInterval);
 
+    const safeCost = sqlSanitizeCost('at.cost_usd');
     const currentQb = this.turnRepo
       .createQueryBuilder('at')
-      .select('COALESCE(SUM(at.cost_usd), 0)', 'total')
+      .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(currentQb, userId, agentName);
     const currentRow = await currentQb.getRawOne();
 
     const prevQb = this.turnRepo
       .createQueryBuilder('at')
-      .select('COALESCE(SUM(at.cost_usd), 0)', 'total')
+      .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
       .where('at.timestamp >= :prevCutoff', { prevCutoff })
       .andWhere('at.timestamp < :cutoff', { cutoff });
     addTenantFilter(prevQb, userId, agentName);
@@ -236,8 +237,8 @@ export class AggregationService {
     const countResult = await countQb.getRawOne();
     const totalCount = Number(countResult?.total ?? 0);
 
-    // Data (with cursor)
-    const costExpr = sqlCastFloat('at.cost_usd', this.dialect);
+    // Data (with cursor) — treat negative costs as NULL (invalid pricing)
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
     const dataQb = baseQb.clone()
       .select('at.id', 'id')
       .addSelect('at.timestamp', 'timestamp')

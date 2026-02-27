@@ -232,8 +232,8 @@ const MessageLog: Component = () => {
                           </span>
                         )}
                       </td>
-                      <td style="font-family: var(--font-mono);">
-                        {item.cost != null ? formatCost(item.cost) : "\u2014"}
+                      <td style="font-family: var(--font-mono);" title={item.cost != null && item.cost > 0 && item.cost < 0.01 ? `$${item.cost.toFixed(6)}` : undefined}>
+                        {item.cost != null ? (formatCost(item.cost) ?? "\u2014") : "\u2014"}
                       </td>
                       <td style="font-family: var(--font-mono);">
                         {item.total_tokens != null ? formatNumber(item.total_tokens) : "\u2014"}

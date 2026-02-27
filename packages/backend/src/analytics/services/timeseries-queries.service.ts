@@ -7,7 +7,7 @@ import { rangeToInterval } from '../../common/utils/range.util';
 import { addTenantFilter, downsample } from './query-helpers';
 import {
   DbDialect, detectDialect, computeCutoff,
-  sqlHourBucket, sqlDateBucket, sqlCastFloat,
+  sqlHourBucket, sqlDateBucket, sqlCastFloat, sqlSanitizeCost,
 } from '../../common/utils/sql-dialect';
 
 @Injectable()
@@ -75,7 +75,7 @@ export class TimeseriesQueriesService {
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .select(hourExpr, 'hour')
-      .addSelect('COALESCE(SUM(at.cost_usd), 0)', 'cost')
+      .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName);
     const rows = await qb.groupBy('hour').orderBy('hour', 'ASC').getRawMany();
@@ -94,7 +94,7 @@ export class TimeseriesQueriesService {
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .select(dateExpr, 'date')
-      .addSelect('COALESCE(SUM(at.cost_usd), 0)', 'cost')
+      .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName);
     const rows = await qb.groupBy('date').orderBy('date', 'ASC').getRawMany();
@@ -170,7 +170,7 @@ export class TimeseriesQueriesService {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
-    const costExpr = sqlCastFloat('at.cost_usd', this.dialect);
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
@@ -199,7 +199,7 @@ export class TimeseriesQueriesService {
       .createQueryBuilder('at')
       .select("COALESCE(at.model, 'unknown')", 'model')
       .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
-      .addSelect('COALESCE(SUM(at.cost_usd), 0)', 'estimated_cost')
+      .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'estimated_cost')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL')
       .andWhere("at.model != ''");
@@ -226,7 +226,7 @@ export class TimeseriesQueriesService {
       .orderBy('a.created_at', 'DESC')
       .getMany();
 
-    const costExpr = sqlCastFloat('at.cost_usd', this.dialect);
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
     const statsQb = this.turnRepo
       .createQueryBuilder('at')
       .select('at.agent_name', 'agent_name')

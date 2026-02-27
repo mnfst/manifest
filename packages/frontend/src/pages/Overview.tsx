@@ -372,7 +372,7 @@ const Overview: Component = () => {
                       <span class="chart-card__label">Cost</span>
                       <div class="chart-card__value-row">
                         <span class="chart-card__value">
-                          {formatCost(d().summary?.cost_today?.value ?? 0)}
+                          {formatCost(d().summary?.cost_today?.value ?? 0) ?? '$0.00'}
                         </span>
                         {trendBadge(d().summary?.cost_today?.trend_pct ?? 0, d().summary?.cost_today?.value ?? 0)}
                       </div>
@@ -498,9 +498,9 @@ const Overview: Component = () => {
                                 </span>
                               )}
                             </td>
-                            <td style="font-family: var(--font-mono);">
+                            <td style="font-family: var(--font-mono);" title={item.cost != null && item.cost > 0 && item.cost < 0.01 ? `$${item.cost.toFixed(6)}` : undefined}>
                               {item.cost != null
-                                ? formatCost(item.cost)
+                                ? (formatCost(item.cost) ?? '\u2014')
                                 : '\u2014'}
                             </td>
                             <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
@@ -571,8 +571,8 @@ const Overview: Component = () => {
                                 </span>
                               </div>
                             </td>
-                            <td style="font-weight: 600;">
-                              {formatCost(row.estimated_cost)}
+                            <td style="font-weight: 600;" title={row.estimated_cost > 0 && row.estimated_cost < 0.01 ? `$${row.estimated_cost.toFixed(6)}` : undefined}>
+                              {formatCost(row.estimated_cost) ?? '\u2014'}
                             </td>
                           </tr>
                         )}
