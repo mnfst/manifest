@@ -1,5 +1,11 @@
 # manifest
 
+## 5.14.1
+
+### Patch Changes
+
+- 825083e: Show cloud email info card on Limits page and move provider setup to local mode only
+
 ## 5.14.0
 
 ### Minor Changes
