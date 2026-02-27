@@ -1,5 +1,11 @@
 # manifest
 
+## 5.13.1
+
+### Patch Changes
+
+- 7f990a2: Fix OG image and Twitter card meta tags to use absolute URLs for proper social media previews
+
 ## 5.13.0
 
 ### Minor Changes
