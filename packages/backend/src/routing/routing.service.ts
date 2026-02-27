@@ -307,7 +307,19 @@ export class RoutingService {
         if (match) return assignment.override_model;
       }
       // Provider disconnected or model unknown — fall through to auto
+      this.logger.warn(
+        `Override ${assignment.override_model} falling through to auto ` +
+        `for user=${userId} tier=${assignment.tier} ` +
+        `(auto=${assignment.auto_assigned_model})`,
+      );
     }
+
+    if (assignment.auto_assigned_model === null) {
+      this.logger.warn(
+        `auto_assigned_model is null for user=${userId} tier=${assignment.tier}`,
+      );
+    }
+
     return assignment.auto_assigned_model;
   }
 }
