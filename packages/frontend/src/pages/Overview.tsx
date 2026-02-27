@@ -112,14 +112,19 @@ const Overview: Component = () => {
     }
   })
 
-  const trendBadge = (pct: number) => {
-    if (pct === 0) return null;
-    const cls = pct > 0 ? 'trend trend--up' : 'trend trend--down'
-    const sign = pct > 0 ? '+' : ''
+  const trendBadge = (pct: number, value?: number) => {
+    if (pct === 0) return null
+    // Don't show trend when the metric value itself is effectively zero
+    if (value !== undefined && Math.abs(value) < 0.005) return null
+    // Clamp absurd percentages (safety net for floating-point edge cases)
+    const clamped = Math.max(-999, Math.min(999, Math.round(pct)))
+    if (clamped === 0) return null
+    const cls = clamped > 0 ? 'trend trend--up' : 'trend trend--down'
+    const sign = clamped > 0 ? '+' : ''
     return (
       <span class={cls}>
         {sign}
-        {pct}%
+        {clamped}%
       </span>
     )
   }
@@ -369,7 +374,7 @@ const Overview: Component = () => {
                         <span class="chart-card__value">
                           {formatCost(d().summary?.cost_today?.value ?? 0)}
                         </span>
-                        {trendBadge(d().summary?.cost_today?.trend_pct ?? 0)}
+                        {trendBadge(d().summary?.cost_today?.trend_pct ?? 0, d().summary?.cost_today?.value ?? 0)}
                       </div>
                     </div>
                     <div
@@ -387,7 +392,7 @@ const Overview: Component = () => {
                         <span class="chart-card__value">
                           {formatNumber(d().summary?.tokens_today?.value ?? 0)}
                         </span>
-                        {trendBadge(d().summary?.tokens_today?.trend_pct ?? 0)}
+                        {trendBadge(d().summary?.tokens_today?.trend_pct ?? 0, d().summary?.tokens_today?.value ?? 0)}
                       </div>
                     </div>
                     <div
@@ -402,7 +407,7 @@ const Overview: Component = () => {
                         <span class="chart-card__value">
                           {d().summary?.messages?.value ?? 0}
                         </span>
-                        {trendBadge(d().summary?.messages?.trend_pct ?? 0)}
+                        {trendBadge(d().summary?.messages?.trend_pct ?? 0, d().summary?.messages?.value ?? 0)}
                       </div>
                     </div>
                   </div>

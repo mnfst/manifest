@@ -42,7 +42,7 @@ const CostChart: Component<CostChartProps> = (props) => {
         height: 260,
         padding: [16, 16, 0, 0],
         cursor: createCursorSnap(bgColor, c1),
-        scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: (_u, _min, max) => [0, max * 1.15] } },
+        scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.15 : 1] } },
         axes,
         series: [
           {},

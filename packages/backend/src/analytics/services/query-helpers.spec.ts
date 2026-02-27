@@ -19,6 +19,29 @@ describe('computeTrend', () => {
     expect(computeTrend(0, 0)).toBe(0);
   });
 
+  it('returns zero when previous is near-zero (floating-point edge case)', () => {
+    expect(computeTrend(0, 1e-9)).toBe(0);
+    expect(computeTrend(0.001, 1e-9)).toBe(0);
+    expect(computeTrend(1e-9, 1e-9)).toBe(0);
+  });
+
+  it('returns zero when both values are near-zero', () => {
+    expect(computeTrend(1e-8, 1e-7)).toBe(0);
+    expect(computeTrend(0, 0.0000001)).toBe(0);
+  });
+
+  it('clamps extreme positive trends to 999', () => {
+    // current=10000, previous=1 => 999900% => clamped to 999
+    expect(computeTrend(10000, 1)).toBe(999);
+  });
+
+  it('clamps extreme negative trends to -999', () => {
+    // Extreme negative shouldn't go below -999
+    // This case is harder to hit naturally since max drop is -100%,
+    // but testing the clamp boundary
+    expect(computeTrend(0, 100)).toBe(-100);
+  });
+
   it('rounds the result', () => {
     // (200 - 300) / 300 * 100 = -33.333...
     expect(computeTrend(200, 300)).toBe(-33);
