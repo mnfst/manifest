@@ -32,6 +32,7 @@ export const ATTRS = {
   TOOL_SUCCESS: "tool.success",
   AGENT_NAME: "openclaw.agent.name",
   ROUTING_TIER: "manifest.routing.tier",
+  ROUTING_REASON: "manifest.routing.reason",
 } as const;
 
 // Environment variable names (fallback when plugin config is missing)

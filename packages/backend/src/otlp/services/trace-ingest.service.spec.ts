@@ -219,6 +219,104 @@ describe('TraceIngestService', () => {
     );
   });
 
+  it('persists routing_reason from manifest.routing.reason attribute', async () => {
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'manifest.routing.tier', value: { stringValue: 'simple' } },
+        { key: 'manifest.routing.reason', value: { stringValue: 'heartbeat' } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [{
+        resource: { attributes: [] },
+        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+      }],
+    };
+
+    await service.ingest(request, testCtx);
+
+    expect(mockTurnInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        routing_tier: 'simple',
+        routing_reason: 'heartbeat',
+      }),
+    );
+  });
+
+  it('rolls up routing_reason from llm_call child into parent agent_message', async () => {
+    const parentSpan = makeSpan({
+      spanId: 'span-parent',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'manifest.routing.tier', value: { stringValue: 'simple' } },
+        { key: 'manifest.routing.reason', value: { stringValue: 'heartbeat' } },
+      ],
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm',
+      parentSpanId: 'span-parent',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o-mini' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 50 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 10 } },
+        { key: 'manifest.routing.tier', value: { stringValue: 'simple' } },
+        { key: 'manifest.routing.reason', value: { stringValue: 'heartbeat' } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [{
+        resource: { attributes: [] },
+        scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+      }],
+    };
+
+    await service.ingest(request, testCtx);
+
+    // The rollup query should set routing_reason via COALESCE
+    expect(mockExecute).toHaveBeenCalled();
+  });
+
+  it('passes reason parameter in rollUpMessageAggregates query builder', async () => {
+    const parentSpan = makeSpan({
+      spanId: 'span-msg',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm2',
+      parentSpanId: 'span-msg',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o-mini' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 20 } },
+        { key: 'manifest.routing.reason', value: { stringValue: 'scored' } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [{
+        resource: { attributes: [] },
+        scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+      }],
+    };
+
+    // Access the mockQb through the repo to verify setParameter calls
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    // Verify setParameter was called with 'reason'
+    expect(mockQb.setParameter).toHaveBeenCalledWith('reason', 'scored');
+  });
+
   it('handles missing resourceSpans', async () => {
     const result = await service.ingest({ resourceSpans: undefined as never }, testCtx);
     expect(result.accepted).toBe(0);
