@@ -125,13 +125,14 @@ describe('ProxyService', () => {
     // Check momentum was recorded
     expect(momentum.getRecentTiers('sess-1')).toEqual(['standard']);
 
-    // Verify forward was called correctly
+    // Verify forward was called correctly (signal is undefined when not provided)
     expect(providerClient.forward).toHaveBeenCalledWith(
       'OpenAI',
       'sk-test',
       'gpt-4o',
       body,
       false,
+      undefined,
     );
   });
 
@@ -207,6 +208,35 @@ describe('ProxyService', () => {
       'gpt-4o',
       bodyWithTools,
       false,
+      undefined,
+    );
+  });
+
+  it('passes AbortSignal through to providerClient.forward', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'standard',
+      model: 'gpt-4o',
+      provider: 'OpenAI',
+      confidence: 0.8,
+      score: 0.1,
+      reason: 'scored',
+    });
+    routingService.getProviderApiKey.mockResolvedValue('sk-test');
+    providerClient.forward.mockResolvedValue({
+      response: new Response('{}', { status: 200 }),
+      isGoogle: false,
+    });
+
+    const abortController = new AbortController();
+    await service.proxyRequest('user-1', body, 'default', undefined, undefined, abortController.signal);
+
+    expect(providerClient.forward).toHaveBeenCalledWith(
+      'OpenAI',
+      'sk-test',
+      'gpt-4o',
+      body,
+      false,
+      abortController.signal,
     );
   });
 
@@ -269,6 +299,7 @@ describe('ProxyService', () => {
         'gpt-4o-mini',
         heartbeatBody,
         false,
+        undefined,
       );
     });
 
@@ -420,6 +451,7 @@ describe('ProxyService', () => {
         'gpt-4o-mini',
         bodyWithSystem,
         false,
+        undefined,
       );
     });
 
@@ -494,26 +526,20 @@ describe('ProxyService', () => {
       expect(limitCheck.checkLimits).not.toHaveBeenCalled();
     });
 
-    it('throws 429 with dollar formatting when cost limit is exceeded', async () => {
-      limitCheck.checkLimits.mockResolvedValue({
-        ruleId: 'r2',
-        metricType: 'cost',
-        threshold: 10,
-        actual: 12.5,
-        period: 'month',
-      });
+    it('does not check limits when only tenantId is provided without agentName', async () => {
+      setupSuccessMocks();
 
-      try {
-        await service.proxyRequest('user-1', body, 'default', 'tenant-1', 'my-agent');
-        fail('Expected HttpException');
-      } catch (err) {
-        expect((err as HttpException).getStatus()).toBe(429);
-        const response = (err as HttpException).getResponse() as Record<string, unknown>;
-        const error = response.error as Record<string, unknown>;
-        expect(error.message).toContain('$12.50');
-        expect(error.message).toContain('$10.00');
-        expect(error.message).toContain('per month');
-      }
+      await service.proxyRequest('user-1', body, 'default', 'tenant-1');
+
+      expect(limitCheck.checkLimits).not.toHaveBeenCalled();
+    });
+
+    it('does not check limits when only agentName is provided without tenantId', async () => {
+      setupSuccessMocks();
+
+      await service.proxyRequest('user-1', body, 'default', undefined, 'my-agent');
+
+      expect(limitCheck.checkLimits).not.toHaveBeenCalled();
     });
 
     it('proceeds normally when no limit is exceeded', async () => {
@@ -524,6 +550,126 @@ describe('ProxyService', () => {
 
       expect(limitCheck.checkLimits).toHaveBeenCalledWith('tenant-1', 'my-agent');
       expect(result.meta.model).toBe('gpt-4o');
+    });
+
+    it('formats cost limit error with dollar sign and 2 decimal places', async () => {
+      limitCheck.checkLimits.mockResolvedValue({
+        ruleId: 'r2',
+        metricType: 'cost',
+        threshold: 10.0,
+        actual: 12.5,
+        period: 'month',
+      });
+
+      try {
+        await service.proxyRequest('user-1', body, 'default', 'tenant-1', 'my-agent');
+        fail('Expected HttpException');
+      } catch (err) {
+        const response = (err as HttpException).getResponse() as Record<string, unknown>;
+        const error = response.error as Record<string, unknown>;
+        expect(error.message).toContain('$12.50');
+        expect(error.message).toContain('$10.00');
+        expect(error.message).toContain('per month');
+      }
+    });
+
+    it('formats token limit error with locale string', async () => {
+      limitCheck.checkLimits.mockResolvedValue({
+        ruleId: 'r3',
+        metricType: 'tokens',
+        threshold: 100000,
+        actual: 105000,
+        period: 'day',
+      });
+
+      try {
+        await service.proxyRequest('user-1', body, 'default', 'tenant-1', 'my-agent');
+        fail('Expected HttpException');
+      } catch (err) {
+        const response = (err as HttpException).getResponse() as Record<string, unknown>;
+        const error = response.error as Record<string, unknown>;
+        // toLocaleString formats numbers with commas
+        expect(error.message).toContain('105,000');
+        expect(error.message).toContain('100,000');
+        expect(error.message).toContain('per day');
+      }
+    });
+  });
+
+  describe('max_tokens forwarding', () => {
+    it('passes max_tokens to the resolver', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+      });
+
+      const bodyWithMaxTokens = {
+        messages: [{ role: 'user', content: 'Hello' }],
+        max_tokens: 4096,
+        stream: false,
+      };
+
+      await service.proxyRequest('user-1', bodyWithMaxTokens, 'default');
+
+      expect(resolveService.resolve).toHaveBeenCalledWith(
+        'user-1',
+        expect.any(Array),
+        undefined,
+        undefined,
+        4096,
+        undefined,
+      );
+    });
+  });
+
+  describe('scoring edge cases', () => {
+    it('handles body where all messages are system/developer (empty scoring list)', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'simple',
+        model: 'gpt-4o-mini',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        score: -0.3,
+        reason: 'short_message',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+      });
+
+      const bodyWithOnlySystem = {
+        messages: [
+          { role: 'system', content: 'You are helpful' },
+          { role: 'developer', content: 'Internal instructions' },
+        ],
+        stream: false,
+      };
+
+      await service.proxyRequest('user-1', bodyWithOnlySystem, 'default');
+
+      // Scorer receives empty array after filtering
+      const scoredMessages = resolveService.resolve.mock.calls[0][1];
+      expect(scoredMessages).toEqual([]);
+
+      // But the full body is forwarded to the provider
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'OpenAI',
+        'sk-test',
+        'gpt-4o-mini',
+        bodyWithOnlySystem,
+        false,
+        undefined,
+      );
     });
   });
 
@@ -553,8 +699,8 @@ describe('ProxyService', () => {
         'llama3',
         body,
         false,
+        undefined,
       );
     });
   });
 });
-

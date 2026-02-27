@@ -60,6 +60,8 @@ export async function pipeStream(
   try {
     let done = false;
     while (!done) {
+      if (dest.writableEnded) break;
+
       const result = await reader.read();
       done = result.done;
 

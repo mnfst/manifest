@@ -167,6 +167,70 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('AbortSignal passthrough', () => {
+    it('uses timeout signal when no client signal provided', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openai', 'sk-test', 'gpt-4o', body, false);
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.signal).toBeDefined();
+      expect(fetchOptions.signal.aborted).toBe(false);
+    });
+
+    it('combines client signal with timeout signal', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const abortController = new AbortController();
+      await client.forward('openai', 'sk-test', 'gpt-4o', body, false, abortController.signal);
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.signal).toBeDefined();
+      expect(fetchOptions.signal.aborted).toBe(false);
+
+      // Aborting the client signal should abort the combined signal
+      abortController.abort();
+      expect(fetchOptions.signal.aborted).toBe(true);
+    });
+
+    it('passes already-aborted signal correctly', async () => {
+      const abortController = new AbortController();
+      abortController.abort();
+
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openai', 'sk-test', 'gpt-4o', body, false, abortController.signal);
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.signal.aborted).toBe(true);
+    });
+
+    it('always provides a signal to fetch even without client signal', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openai', 'sk-test', 'gpt-4o', body, false);
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.signal).toBeDefined();
+      // The signal should be the timeout signal (not undefined)
+      expect(fetchOptions.signal).toBeInstanceOf(AbortSignal);
+    });
+
+    it('provides signal for Google provider as well', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const ac = new AbortController();
+      await client.forward('google', 'AIza-test', 'gemini-2.0-flash', body, false, ac.signal);
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.signal).toBeDefined();
+      expect(fetchOptions.signal.aborted).toBe(false);
+
+      ac.abort();
+      expect(fetchOptions.signal.aborted).toBe(true);
+    });
+  });
+
   describe('convertGoogleResponse', () => {
     it('delegates to fromGoogleResponse', () => {
       const googleBody = {
@@ -203,11 +267,65 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('URL masking', () => {
+    it('masks API key in Google URL for debug logging', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      // Spy on the logger to verify the masked URL
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const debugSpy = jest.spyOn((client as any).logger, 'debug');
+
+      await client.forward('google', 'AIzaSyABCDEF12345', 'gemini-2.0-flash', body, false);
+
+      expect(debugSpy).toHaveBeenCalledWith(
+        expect.stringContaining('key=***'),
+      );
+      expect(debugSpy).toHaveBeenCalledWith(
+        expect.not.stringContaining('AIzaSyABCDEF12345'),
+      );
+
+      debugSpy.mockRestore();
+    });
+  });
+
+  describe('Request body construction', () => {
+    it('includes model and stream in request body for OpenAI providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openai', 'sk-test', 'gpt-4o', body, true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('gpt-4o');
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.messages).toEqual(body.messages);
+      expect(sentBody.temperature).toBe(0.7);
+    });
+
+    it('does not include model or stream for Google provider (uses Gemini format)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('google', 'AIza-test', 'gemini-2.0-flash', body, true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBeUndefined();
+      expect(sentBody.stream).toBeUndefined();
+      expect(sentBody.contents).toBeDefined();
+    });
+  });
+
   describe('Error handling', () => {
     it('throws for unknown provider', async () => {
       await expect(
         client.forward('unknown-provider', 'key', 'model', body, false),
       ).rejects.toThrow('No endpoint configured for provider');
+    });
+
+    it('propagates fetch errors', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        client.forward('openai', 'sk-test', 'gpt-4o', body, false),
+      ).rejects.toThrow('Network error');
     });
   });
 });

@@ -46,6 +46,7 @@ export class ProxyService {
     sessionKey: string,
     tenantId?: string,
     agentName?: string,
+    signal?: AbortSignal,
   ): Promise<ProxyResult> {
     const messages = body.messages;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -140,6 +141,7 @@ export class ProxyService {
       resolved.model,
       body,
       stream,
+      signal,
     );
 
     // Record momentum

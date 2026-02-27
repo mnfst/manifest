@@ -15,7 +15,7 @@ export interface ForwardResult {
   isGoogle: boolean;
 }
 
-const PROVIDER_TIMEOUT_MS = 600_000;
+const PROVIDER_TIMEOUT_MS = 180_000;
 
 @Injectable()
 export class ProviderClient {
@@ -27,6 +27,7 @@ export class ProviderClient {
     model: string,
     body: Record<string, unknown>,
     stream: boolean,
+    signal?: AbortSignal,
   ): Promise<ForwardResult> {
     const endpointKey = resolveEndpointKey(provider);
     if (!endpointKey) {
@@ -54,11 +55,16 @@ export class ProviderClient {
     const safeUrl = url.replace(/key=[^&]+/, 'key=***');
     this.logger.debug(`Forwarding to ${endpointKey}: ${safeUrl}`);
 
+    const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
+    const fetchSignal = signal
+      ? AbortSignal.any([timeoutSignal, signal])
+      : timeoutSignal;
+
     const response = await fetch(url, {
       method: 'POST',
       headers,
       body: JSON.stringify(requestBody),
-      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+      signal: fetchSignal,
     });
 
     return { response, isGoogle };

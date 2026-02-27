@@ -17,9 +17,12 @@ import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ProxyService } from './proxy.service';
+import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
 import { initSseHeaders, pipeStream } from './stream-writer';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
+
+const MAX_SEEN_USERS = 10_000;
 
 @Controller('v1')
 @Public()
@@ -34,6 +37,7 @@ export class ProxyController {
 
   constructor(
     private readonly proxyService: ProxyService,
+    private readonly rateLimiter: ProxyRateLimiter,
     private readonly providerClient: ProviderClient,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
@@ -49,14 +53,22 @@ export class ProxyController {
     const sessionKey = (req.headers['x-session-key'] as string) || 'default';
     const isStream = body.stream === true;
     let headersSent = false;
+    let slotAcquired = false;
+
+    const clientAbort = new AbortController();
+    res.on('close', () => clientAbort.abort());
 
     try {
+      this.rateLimiter.checkLimit(userId);
+      this.rateLimiter.acquireSlot(userId);
+      slotAcquired = true;
       const { forward, meta } = await this.proxyService.proxyRequest(
         userId,
         body,
         sessionKey,
         tenantId,
         agentName,
+        clientAbort.signal,
       );
 
       this.trackFirstProxyRequest(userId, meta);
@@ -121,6 +133,11 @@ export class ProxyController {
         res.json(responseBody);
       }
     } catch (err: unknown) {
+      if (clientAbort.signal.aborted) {
+        if (!res.writableEnded) res.end();
+        return;
+      }
+
       const message = err instanceof Error ? err.message : String(err);
       const status = err instanceof HttpException ? err.getStatus() : 500;
       this.logger.error(`Proxy error: ${message}`);
@@ -141,6 +158,8 @@ export class ProxyController {
       res.status(status).json({
         error: { message: clientMessage, type: 'proxy_error' },
       });
+    } finally {
+      if (slotAcquired) this.rateLimiter.releaseSlot(userId);
     }
   }
 
@@ -190,6 +209,10 @@ export class ProxyController {
     meta: { provider: string; model: string; tier: string },
   ): void {
     if (this.seenUsers.has(userId)) return;
+    if (this.seenUsers.size >= MAX_SEEN_USERS) {
+      const oldest = this.seenUsers.values().next().value as string;
+      this.seenUsers.delete(oldest);
+    }
     this.seenUsers.add(userId);
     trackCloudEvent('routing_first_proxy_request', userId, {
       provider: meta.provider,
