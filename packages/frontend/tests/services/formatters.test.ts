@@ -68,22 +68,22 @@ describe("formatMetricType", () => {
 });
 
 describe("formatTime", () => {
-  it("formats a UTC timestamp", () => {
+  it("formats a UTC timestamp with date and time", () => {
     const result = formatTime("2024-01-15T09:22:41Z");
-    expect(result).toMatch(/\d{2}:\d{2}:\d{2}/);
+    expect(result).toMatch(/\w+ \d+, \d{2}:\d{2}:\d{2}/);
   });
   it("handles space-separated timestamp", () => {
     const result = formatTime("2024-01-15 09:22:41");
-    expect(result).toMatch(/\d{2}:\d{2}:\d{2}/);
+    expect(result).toMatch(/\w+ \d+, \d{2}:\d{2}:\d{2}/);
   });
 });
 
 describe("formatRelativeTime", () => {
-  it("returns time string for today", () => {
+  it("returns date+time string for today", () => {
     const now = new Date();
     const ts = now.toISOString();
     const result = formatRelativeTime(ts);
-    expect(result).toMatch(/\d{2}:\d{2}:\d{2}/);
+    expect(result).toMatch(/\w+ \d+, \d{2}:\d{2}:\d{2}/);
   });
   it("returns Yesterday for yesterday", () => {
     const yesterday = new Date(Date.now() - 86_400_000 - 1000);

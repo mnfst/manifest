@@ -306,7 +306,7 @@ const Overview: Component = () => {
                 <table class="data-table">
                   <thead>
                     <tr>
-                      <th>Time</th>
+                      <th>Date</th>
                       <th>Message</th>
                       <th>Cost</th>
                       <th>Model</th>
@@ -468,7 +468,7 @@ const Overview: Component = () => {
                   <table class="data-table">
                     <thead>
                       <tr>
-                        <th>Time</th>
+                        <th>Date</th>
                         <th>Message</th>
                         <th>Cost</th>
                         <th>Model</th>

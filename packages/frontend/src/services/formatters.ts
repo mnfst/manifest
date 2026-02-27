@@ -27,17 +27,22 @@ export function formatTrend(pct: number): string {
 }
 
 /**
- * Format a timestamp to a short time string (e.g., 09:22:41).
+ * Format a timestamp to a date + time string (e.g., Feb 27, 09:22:41).
  */
 export function formatTime(ts: string): string {
   const normalized = ts.replace(" ", "T");
   const d = new Date(normalized.endsWith("Z") ? normalized : normalized + "Z");
-  return d.toLocaleTimeString("en-US", {
+  const date = d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+  const time = d.toLocaleTimeString("en-US", {
     hour12: false,
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
   });
+  return `${date}, ${time}`;
 }
 
 /**
