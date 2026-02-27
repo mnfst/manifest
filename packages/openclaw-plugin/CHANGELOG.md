@@ -1,5 +1,12 @@
 # manifest
 
+## 5.15.1
+
+### Patch Changes
+
+- 4d18c10: fix: use success color for cloud mode badge in header
+- 06a3e2c: Add diagnostic warn-level logging to blind proxy resolve chain (proxy, resolve, and routing services) to trace "No model available" errors
+
 ## 5.15.0
 
 ### Minor Changes
