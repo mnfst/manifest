@@ -125,12 +125,15 @@ describe("Limits page", () => {
     });
   });
 
-  it("shows routing CTA banner when routing disabled in cloud mode", () => {
+  it("shows routing CTA banner when routing disabled in cloud mode", async () => {
     mockRoutingStatus = { enabled: false };
     mockIsLocalMode = false;
 
     const { container } = render(() => <Limits />);
-    expect(container.textContent).toContain("Enable routing to set hard limits");
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Enable routing to set hard limits");
+    });
   });
 
   it("hides routing CTA banner when routing enabled", async () => {
