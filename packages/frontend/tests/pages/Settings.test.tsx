@@ -76,9 +76,9 @@ describe("Settings", () => {
     expect(input.value).toBe("test-agent");
   });
 
-  it("renders Integration tab", () => {
+  it("renders Agent setup tab", () => {
     render(() => <Settings />);
-    expect(screen.getByText("Integration")).toBeDefined();
+    expect(screen.getByText("Agent setup")).toBeDefined();
   });
 
   it("does not render LLM Providers tab", () => {
@@ -89,7 +89,7 @@ describe("Settings", () => {
   it("renders only two tab buttons", () => {
     render(() => <Settings />);
     expect(screen.getByText("General")).toBeDefined();
-    expect(screen.getByText("Integration")).toBeDefined();
+    expect(screen.getByText("Agent setup")).toBeDefined();
   });
 
   it("renders Danger zone", () => {
@@ -104,7 +104,7 @@ describe("Settings", () => {
 
   it("shows key prefix after loading", async () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Integration"));
+    fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
       expect(container.textContent).toContain("mnfst_abc");
     });
@@ -118,7 +118,7 @@ describe("Settings", () => {
 
   it("has rotate key button", async () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Integration"));
+    fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
       const rotateBtn = Array.from(container.querySelectorAll("button")).find(
         (b) => b.textContent?.includes("Rotate key"),
@@ -181,7 +181,7 @@ describe("Settings", () => {
   it("clicking Rotate key calls rotateAgentKey", async () => {
     mockRotateAgentKey.mockResolvedValue({ apiKey: "mnfst_new_rotated_key" });
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Integration"));
+    fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Rotate key");
     });
@@ -197,7 +197,7 @@ describe("Settings", () => {
   it("shows rotated key after successful rotation", async () => {
     mockRotateAgentKey.mockResolvedValue({ apiKey: "mnfst_new_rotated_key" });
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Integration"));
+    fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Rotate key");
     });
@@ -257,13 +257,13 @@ describe("Settings", () => {
 
   it("shows OTLP ingest key label", () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Integration"));
+    fireEvent.click(screen.getByText("Agent setup"));
     expect(container.textContent).toContain("OTLP ingest key");
   });
 
   it("shows setup steps after loading", async () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Integration"));
+    fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="setup-install"]')).not.toBeNull();
     });
