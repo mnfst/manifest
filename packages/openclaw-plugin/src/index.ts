@@ -59,16 +59,16 @@ module.exports = {
       return;
     }
 
+    // Derive the base origin from the OTLP endpoint (strip /otlp suffix).
+    // Used by both dev and cloud modes to build the provider baseUrl.
+    const baseOrigin = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, "");
+
     // Dev mode: connect to an external server without API key
     if (config.mode === "dev") {
       logger.info("[manifest] Dev mode — connecting to external server...");
 
-      const endpointUrl = new URL(config.endpoint);
-      const host = endpointUrl.hostname;
-      const port = parseInt(endpointUrl.port, 10) || (endpointUrl.protocol === "https:" ? 443 : 80);
-
       const devPlaceholderKey = "dev-no-auth";
-      injectProviderConfig(api, host, port, devPlaceholderKey, logger);
+      injectProviderConfig(api, `${baseOrigin}/v1`, devPlaceholderKey, logger);
       injectAuthProfile(devPlaceholderKey, logger);
 
       const { tracer, meter } = initTelemetry(config, logger);
@@ -80,8 +80,7 @@ module.exports = {
         registerTools(api, config, logger);
       }
 
-      const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, "");
-      logger.info(`[manifest]   Dashboard: ${baseUrl}`);
+      logger.info(`[manifest]   Dashboard: ${baseOrigin}`);
 
       api.registerService({
         id: "manifest-dev",
@@ -108,6 +107,11 @@ module.exports = {
 
     // Cloud mode
     logger.info("[manifest] Initializing observability pipeline...");
+
+    // Sync the provider config file so the gateway uses the correct
+    // baseUrl and apiKey for proxy requests after restarts.
+    injectProviderConfig(api, `${baseOrigin}/v1`, config.apiKey, logger);
+    injectAuthProfile(config.apiKey, logger);
 
     const { tracer, meter } = initTelemetry(config, logger);
     initMetrics(meter);
