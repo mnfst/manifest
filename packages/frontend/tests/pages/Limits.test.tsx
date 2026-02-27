@@ -88,6 +88,7 @@ describe("Limits page", () => {
   it("renders breadcrumb with agent name", () => {
     const { container } = render(() => <Limits />);
     expect(container.textContent).toContain("test-agent");
+    expect(container.textContent).toContain("Email alerts & hard limits");
   });
 
   it("renders Create rule button", () => {
@@ -98,6 +99,7 @@ describe("Limits page", () => {
   it("renders empty state when no rules", () => {
     render(() => <Limits />);
     expect(screen.getByText("No rules yet")).toBeDefined();
+    expect(screen.getByText("Create a rule to receive email alerts or block requests when thresholds are exceeded.")).toBeDefined();
   });
 
   it("renders rules table when rules exist", async () => {
@@ -166,6 +168,18 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
     expect(container.querySelector('[data-testid="email-setup"]')).toBeNull();
     expect(container.querySelector('[data-testid="provider-banner"]')).toBeNull();
+  });
+
+  it("hides cloud email info in local mode", () => {
+    mockIsLocalMode = true;
+    const { container } = render(() => <Limits />);
+    expect(container.querySelector('[data-testid="cloud-email-info"]')).toBeNull();
+  });
+
+  it("passes session email to cloud email info", () => {
+    mockIsLocalMode = false;
+    const { container } = render(() => <Limits />);
+    expect(container.textContent).toContain("user@example.com");
   });
 
   it("passes routingEnabled to modal", async () => {
