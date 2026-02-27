@@ -843,7 +843,7 @@ describe("registerHooks", () => {
       );
     });
 
-    it("does not resolve routing in cloud mode even when model is auto", async () => {
+    it("resolves routing in cloud mode when model is auto", async () => {
       jest.clearAllMocks();
       const cloudApi = createMockApi();
       const cloudTracer = createMockTracer();
@@ -851,8 +851,17 @@ describe("registerHooks", () => {
       initMetrics(cloudMeter as any);
       registerHooks(cloudApi, cloudTracer as any, config, mockLogger);
 
+      mockResolveRouting.mockResolvedValueOnce({
+        tier: "standard",
+        model: "gpt-4o",
+        provider: "OpenAI",
+        reason: "scored",
+      });
+
       cloudApi.emit("message_received", { sessionKey: "cloud-sess" });
       cloudApi.emit("before_agent_start", { sessionKey: "cloud-sess" });
+
+      const turnSpan = cloudTracer.spans[1];
 
       cloudApi.emit("agent_end", {
         sessionKey: "cloud-sess",
@@ -868,7 +877,21 @@ describe("registerHooks", () => {
 
       await new Promise((r) => setTimeout(r, 50));
 
-      expect(mockResolveRouting).not.toHaveBeenCalled();
+      expect(mockResolveRouting).toHaveBeenCalled();
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.MODEL]: "gpt-4o",
+          [ATTRS.PROVIDER]: "OpenAI",
+        }),
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "standard",
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "scored",
+      );
     });
 
     it("overrides routing reason to heartbeat when HEARTBEAT_OK is in messages and model is auto", async () => {
