@@ -1,5 +1,14 @@
 # manifest
 
+## 5.15.4
+
+### Patch Changes
+
+- 2d23e99: Show date alongside time in message log and overview tables
+- cad8f13: Update page meta titles to use "Page - Manifest" format consistently across all pages
+- 58c3adf: Fix cloud mode telemetry recording model as "auto" instead of the actual model name by removing the cloud mode exclusion from routing resolution in agent_end hook
+- adac3c3: Move Settings to the last position in the sidebar MANAGE group and rename the "Integration" tab to "Agent setup"
+
 ## 5.15.3
 
 ### Patch Changes
