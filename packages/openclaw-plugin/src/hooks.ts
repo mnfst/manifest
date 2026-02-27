@@ -66,6 +66,21 @@ export function initMetrics(meter: Meter): void {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+/**
+ * Register an event handler using the best available gateway API.
+ * Current gateways (v2026.2.x) dispatch via api.on(); newer versions
+ * may use api.registerHook() with metadata. Try api.on() first since
+ * it's confirmed to work, fall back to registerHook() for forward compat.
+ */
+function hookOn(api: any, event: string, handler: (...args: any[]) => any): void {
+  if (typeof api.on === "function") {
+    api.on(event, handler);
+  } else if (typeof api.registerHook === "function") {
+    api.registerHook(event, handler);
+  }
+}
+
 export function registerHooks(
   api: any,
   tracer: Tracer,
@@ -74,7 +89,7 @@ export function registerHooks(
 ): void {
   // --- message_received ---
   // Creates the root span for the entire request lifecycle.
-  api.registerHook("message_received", (event: any) => {
+  hookOn(api, "message_received", (event: any) => {
     const sessionKey =
       event.sessionKey || event.session?.key || `agent:${event.agent || "main"}:main`;
     const channel = event.channel || "unknown";
@@ -90,14 +105,11 @@ export function registerHooks(
     activeSpans.set(sessionKey, { root: rootSpan });
     messagesReceived.add(1, { [ATTRS.CHANNEL]: channel });
     logger.debug(`[manifest] Root span started for session=${sessionKey}`);
-  }, {
-    name: "manifest.message-received",
-    description: "Creates root OTLP span for the request lifecycle",
   });
 
   // --- before_agent_start ---
   // Creates a child span under the root for the agent turn.
-  api.registerHook("before_agent_start", (event: any) => {
+  hookOn(api, "before_agent_start", (event: any) => {
     const sessionKey =
       event.sessionKey ||
       event.session?.key ||
@@ -130,14 +142,11 @@ export function registerHooks(
     logger.debug(
       `[manifest] Agent turn started: agent=${agentName}, session=${sessionKey}`,
     );
-  }, {
-    name: "manifest.agent-turn-start",
-    description: "Creates a child span for the agent turn",
   });
 
   // --- tool_result_persist ---
   // Records tool metrics and creates a child span.
-  api.registerHook("tool_result_persist", (event: any) => {
+  hookOn(api, "tool_result_persist", (event: any) => {
     const toolName = event.toolName || event.tool || "unknown";
     const durationMs = event.durationMs || 0;
     const success = event.error == null;
@@ -172,16 +181,13 @@ export function registerHooks(
 
     toolCalls.add(1, { [ATTRS.TOOL_NAME]: toolName });
     toolDuration.record(durationMs, { [ATTRS.TOOL_NAME]: toolName });
-  }, {
-    name: "manifest.tool-result",
-    description: "Records tool metrics and creates a tool span",
   });
 
   // --- agent_end ---
   // Records LLM metrics and closes all spans.
   // Event shape: { messages: Message[], success: boolean, durationMs: number }
   // Usage data lives on each assistant message, not at the top level.
-  api.registerHook("agent_end", async (event: any) => {
+  hookOn(api, "agent_end", async (event: any) => {
     const sessionKey =
       event.sessionKey ||
       event.session?.key ||
@@ -283,9 +289,6 @@ export function registerHooks(
       `[manifest] agent_end tokens: in=${inputTokens}, out=${outputTokens}, cache=${cacheReadTokens}`,
     );
     logger.debug(`[manifest] Trace completed for session=${sessionKey}`);
-  }, {
-    name: "manifest.agent-end",
-    description: "Records LLM metrics, resolves routing, and closes all spans",
   });
 
   logger.debug("[manifest] All hooks registered");

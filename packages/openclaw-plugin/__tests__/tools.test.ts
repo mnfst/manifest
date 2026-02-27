@@ -19,11 +19,19 @@ const config: ManifestConfig = {
   host: "127.0.0.1",
 };
 
+interface MockTool {
+  name: string;
+  execute: Function;
+  handler: Function;
+  parameters: unknown;
+  description: string;
+}
+
 function createMockApi() {
-  const tools = new Map<string, { name: string; execute: Function; parameters: unknown; description: string }>();
+  const tools = new Map<string, MockTool>();
   return {
     tools,
-    registerTool: jest.fn((tool: { name: string; execute: Function; parameters: unknown; description: string }, _opts?: unknown) => {
+    registerTool: jest.fn((tool: MockTool, _opts?: unknown) => {
       tools.set(tool.name, tool);
     }),
   };
@@ -256,6 +264,74 @@ describe("registerTools", () => {
 
       expect(result).toEqual({
         content: [{ type: "text", text: expect.stringContaining("Cannot reach endpoint") }],
+      });
+    });
+  });
+
+  describe("legacy handler compatibility", () => {
+    it("manifest_usage handler returns legacy format on success", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ total_tokens: 500 }),
+      });
+
+      const tool = api.tools.get("manifest_usage")!;
+      const result = await tool.handler({ period: "today" });
+
+      expect(result).toEqual({ result: { total_tokens: 500 } });
+    });
+
+    it("manifest_usage handler returns legacy error format", async () => {
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 503 });
+
+      const tool = api.tools.get("manifest_usage")!;
+      const result = await tool.handler({ period: "today" });
+
+      expect(result).toEqual({ error: "API returned 503" });
+    });
+
+    it("manifest_costs handler returns legacy format on success", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ total_cost_usd: 1.23 }),
+      });
+
+      const tool = api.tools.get("manifest_costs")!;
+      const result = await tool.handler({ period: "week" });
+
+      expect(result).toEqual({ result: { total_cost_usd: 1.23 } });
+    });
+
+    it("manifest_health handler returns legacy format on success", async () => {
+      mockFetch
+        .mockResolvedValueOnce({ ok: true, status: 200 })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ agentName: "test-agent" }),
+        });
+
+      const tool = api.tools.get("manifest_health")!;
+      const result = await tool.handler();
+
+      expect(result).toEqual({
+        result: {
+          endpointReachable: true,
+          authValid: true,
+          agentName: "test-agent",
+          status: "ok",
+        },
+      });
+    });
+
+    it("manifest_health handler returns legacy error on failure", async () => {
+      mockFetch.mockRejectedValueOnce(new Error("ECONNREFUSED"));
+
+      const tool = api.tools.get("manifest_health")!;
+      const result = await tool.handler();
+
+      expect(result).toEqual({
+        error: expect.stringContaining("Cannot reach endpoint"),
       });
     });
   });

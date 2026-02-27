@@ -53,12 +53,12 @@ function createMockMeter() {
   };
 }
 
-// --- Mock API (hook registry) ---
+// --- Mock API (event emitter) ---
 function createMockApi() {
   const handlers = new Map<string, (event: unknown) => void>();
   return {
     handlers,
-    registerHook: jest.fn((event: string, handler: (event: unknown) => void, _metadata?: unknown) => {
+    on: jest.fn((event: string, handler: (event: unknown) => void) => {
       handlers.set(event, handler);
     }),
     emit(event: string, data: unknown) {
@@ -156,23 +156,27 @@ describe("registerHooks", () => {
     registerHooks(api, tracer as any, config, mockLogger);
   });
 
-  it("registers all four event handlers with metadata", () => {
-    expect(api.registerHook).toHaveBeenCalledWith(
-      "message_received", expect.any(Function),
-      expect.objectContaining({ name: "manifest.message-received" }),
-    );
-    expect(api.registerHook).toHaveBeenCalledWith(
-      "before_agent_start", expect.any(Function),
-      expect.objectContaining({ name: "manifest.agent-turn-start" }),
-    );
-    expect(api.registerHook).toHaveBeenCalledWith(
-      "tool_result_persist", expect.any(Function),
-      expect.objectContaining({ name: "manifest.tool-result" }),
-    );
-    expect(api.registerHook).toHaveBeenCalledWith(
-      "agent_end", expect.any(Function),
-      expect.objectContaining({ name: "manifest.agent-end" }),
-    );
+  it("registers all four event handlers", () => {
+    expect(api.on).toHaveBeenCalledWith("message_received", expect.any(Function));
+    expect(api.on).toHaveBeenCalledWith("before_agent_start", expect.any(Function));
+    expect(api.on).toHaveBeenCalledWith("tool_result_persist", expect.any(Function));
+    expect(api.on).toHaveBeenCalledWith("agent_end", expect.any(Function));
+  });
+
+  it("falls back to registerHook when api.on is not available", () => {
+    const fallbackApi = {
+      handlers: new Map<string, (event: unknown) => void>(),
+      registerHook: jest.fn((event: string, handler: (event: unknown) => void) => {
+        fallbackApi.handlers.set(event, handler);
+      }),
+    };
+    const fbTracer = createMockTracer();
+    const fbMeter = createMockMeter();
+    initMetrics(fbMeter as any);
+    registerHooks(fallbackApi as any, fbTracer as any, config, mockLogger);
+
+    expect(fallbackApi.registerHook).toHaveBeenCalledWith("message_received", expect.any(Function));
+    expect(fallbackApi.registerHook).toHaveBeenCalledWith("agent_end", expect.any(Function));
   });
 
   it("logs that hooks are registered", () => {
