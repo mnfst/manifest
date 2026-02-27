@@ -508,7 +508,7 @@ describe('PricingSyncService', () => {
     expect(mockUpsert.mock.calls[0][0]).not.toHaveProperty('provider');
   });
 
-  it('stores context_length as context_window when present', async () => {
+  it('stores context_length as context_window when present (new model)', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -529,6 +529,29 @@ describe('PricingSyncService', () => {
       }),
       ['model_name'],
     );
+  });
+
+  it('stores context_length as context_window for existing models', async () => {
+    mockFindOneBy.mockResolvedValue({ model_name: 'gpt-4o', provider: 'OpenAI' });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', context_length: 128000, pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // Canonical upsert includes context_window
+    const canonicalCall = mockUpsert.mock.calls.find(
+      (call) => call[0].model_name === 'gpt-4o',
+    );
+    expect(canonicalCall).toBeDefined();
+    expect(canonicalCall![0]).toMatchObject({
+      context_window: 128000,
+    });
+    expect(canonicalCall![0]).not.toHaveProperty('provider');
   });
 
   it('omits context_window when context_length is missing (uses DB default)', async () => {
