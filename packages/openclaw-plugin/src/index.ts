@@ -3,6 +3,7 @@ import { initTelemetry, shutdownTelemetry, PluginLogger } from "./telemetry";
 import { registerHooks, initMetrics } from "./hooks";
 import { registerRouting } from "./routing";
 import { registerTools } from "./tools";
+import { registerCommand } from "./command";
 import { verifyConnection } from "./verify";
 import { registerLocalMode, injectProviderConfig, injectAuthProfile } from "./local-mode";
 import { trackPluginEvent } from "./product-telemetry";
@@ -79,6 +80,7 @@ module.exports = {
       if (typeof api.registerTool === "function") {
         registerTools(api, config, logger);
       }
+      registerCommand(api, config, logger);
 
       logger.info(`[manifest]   Dashboard: ${baseOrigin}`);
 
@@ -125,6 +127,7 @@ module.exports = {
         "[manifest] Agent tools not available in this OpenClaw version",
       );
     }
+    registerCommand(api, config, logger);
 
     api.registerService({
       id: "manifest-telemetry",

@@ -240,6 +240,7 @@ describe("registerRouting", () => {
     expect(api.registerProvider).toHaveBeenCalledWith(
       expect.objectContaining({
         id: "manifest",
+        label: "Manifest Router",
         models: ["auto"],
       }),
     );

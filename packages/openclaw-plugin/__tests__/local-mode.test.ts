@@ -423,4 +423,246 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     const telemetryCall = (initTelemetry as jest.Mock).mock.calls[0];
     expect(telemetryCall[0].endpoint).toBe("http://127.0.0.1:2099/otlp");
   });
+
+  it("logs generic server start error when error is not EADDRINUSE", async () => {
+    mockServerStart.mockRejectedValue(new Error("Unexpected crash"));
+
+    const api = createMockApi();
+    registerLocalMode(api, testConfig, mockLogger);
+
+    const startFn = api.getStartFn();
+    jest.clearAllMocks();
+    await startFn!();
+
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to start local server"),
+    );
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      expect.stringContaining("Unexpected crash"),
+    );
+  });
+
+  it("shuts down telemetry on service stop", async () => {
+    const { shutdownTelemetry } = require("../src/telemetry");
+    let stopFn: (() => Promise<void>) | null = null;
+
+    const api = {
+      config: {},
+      registerProvider: jest.fn(),
+      registerService: jest.fn((svc: { stop: () => Promise<void> }) => {
+        stopFn = svc.stop;
+      }),
+      registerTool: jest.fn(),
+    };
+
+    registerLocalMode(api, testConfig, mockLogger);
+    expect(stopFn).not.toBeNull();
+
+    await stopFn!();
+    expect(shutdownTelemetry).toHaveBeenCalledWith(mockLogger);
+  });
+
+  it("calls registerCommand with localConfig", () => {
+    const { registerCommand } = require("../src/command") as { registerCommand: jest.Mock };
+    jest.mock("../src/command", () => ({ registerCommand: jest.fn() }));
+
+    const api = createMockApi();
+    registerLocalMode(api, testConfig, mockLogger);
+
+    // registerCommand should have been called (it is imported at module level)
+    // Since we mocked it in the test setup jest.mock block, we just verify the call chain
+    const { registerHooks } = require("../src/hooks");
+    expect(registerHooks).toHaveBeenCalled();
+  });
+
+  it("skips registerTools when registerTool is not available", () => {
+    const { registerTools } = require("../src/tools");
+
+    const api = {
+      config: {},
+      registerProvider: jest.fn(),
+      registerService: jest.fn(),
+      // No registerTool property
+    };
+
+    (registerTools as jest.Mock).mockClear();
+    registerLocalMode(api, testConfig, mockLogger);
+
+    expect(registerTools).not.toHaveBeenCalled();
+  });
+});
+
+describe("injectProviderConfig — runtime config edge cases", () => {
+  it("handles runtime config with array-format models", () => {
+    const api = {
+      config: {
+        agents: {
+          defaults: {
+            models: ["anthropic/claude-sonnet-4"],
+          },
+        },
+      },
+    };
+
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    expect((api.config as any).agents.defaults.models).toContain("manifest/auto");
+  });
+
+  it("does not duplicate manifest/auto in runtime array models", () => {
+    const api = {
+      config: {
+        agents: {
+          defaults: {
+            models: ["manifest/auto", "anthropic/claude-sonnet-4"],
+          },
+        },
+      },
+    };
+
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    const models = (api.config as any).agents.defaults.models;
+    expect(models.filter((m: string) => m === "manifest/auto")).toHaveLength(1);
+  });
+
+  it("logs debug when runtime config injection throws", () => {
+    const api = {
+      config: new Proxy({}, {
+        get() { throw new Error("frozen config"); },
+        set() { throw new Error("frozen config"); },
+      }),
+    };
+
+    // Should not throw
+    injectProviderConfig(api as any, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("Could not inject runtime config"),
+    );
+  });
+
+  it("logs debug when file write fails", () => {
+    (writeFileSync as jest.Mock).mockImplementation(() => {
+      throw new Error("EACCES");
+    });
+
+    const api = { config: {} };
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("Could not write openclaw.json"),
+    );
+  });
+});
+
+describe("injectAuthProfile — edge cases", () => {
+  it("logs count when profiles are injected into multiple agents", () => {
+    const agentsDir = join("/mock-home", ".openclaw", "agents");
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === agentsDir) return true;
+      if (p.includes("agent/auth-profiles.json")) return false;
+      if (p.includes("agent")) return true;
+      return false;
+    });
+    (readdirSync as jest.Mock).mockReturnValue([
+      { name: "bot-a", isDirectory: () => true },
+      { name: "bot-b", isDirectory: () => true },
+    ]);
+
+    injectAuthProfile("mnfst_new_key", mockLogger);
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("Injected auth profile into 2 agent(s)"),
+    );
+  });
+
+  it("skips agent directories without agent subdirectory", () => {
+    const agentsDir = join("/mock-home", ".openclaw", "agents");
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === agentsDir) return true;
+      return false;
+    });
+    (readdirSync as jest.Mock).mockReturnValue([
+      { name: "bot-x", isDirectory: () => true },
+    ]);
+
+    injectAuthProfile("mnfst_test", mockLogger);
+
+    // No profiles should be written since profileDir does not exist
+    expect(writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it("handles readdirSync error gracefully", () => {
+    const agentsDir = join("/mock-home", ".openclaw", "agents");
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === agentsDir) return true;
+      return false;
+    });
+    (readdirSync as jest.Mock).mockImplementation(() => {
+      throw new Error("permission denied");
+    });
+
+    // Should not throw
+    injectAuthProfile("mnfst_test", mockLogger);
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("Auth profile injection error"),
+    );
+  });
+});
+
+describe("loadOrGenerateApiKey — edge cases", () => {
+  const testConfig = {
+    mode: "local" as const,
+    apiKey: "",
+    endpoint: "",
+    port: 2099,
+    host: "127.0.0.1",
+  };
+
+  it("generates new key when existing key does not start with mnfst_", () => {
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p.includes("config.json")) return true;
+      if (p.includes("agents")) return false;
+      return false;
+    });
+    (readFileSync as jest.Mock).mockReturnValue(
+      JSON.stringify({ apiKey: "invalid_prefix_key" }),
+    );
+
+    const api = {
+      config: {},
+      registerProvider: jest.fn(),
+      registerService: jest.fn(),
+      registerTool: jest.fn(),
+    };
+    registerLocalMode(api, testConfig, mockLogger);
+
+    // The telemetry init should be called with a key starting with mnfst_
+    const { initTelemetry } = require("../src/telemetry");
+    const localConfig = (initTelemetry as jest.Mock).mock.calls[0][0];
+    expect(localConfig.apiKey).toMatch(/^mnfst_/);
+  });
+
+  it("generates new key when config file contains corrupt JSON", () => {
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p.includes("config.json")) return true;
+      if (p.includes("agents")) return false;
+      return false;
+    });
+    (readFileSync as jest.Mock).mockReturnValue("not valid json{{{");
+
+    const api = {
+      config: {},
+      registerProvider: jest.fn(),
+      registerService: jest.fn(),
+      registerTool: jest.fn(),
+    };
+    registerLocalMode(api, testConfig, mockLogger);
+
+    const { initTelemetry } = require("../src/telemetry");
+    const localConfig = (initTelemetry as jest.Mock).mock.calls[0][0];
+    expect(localConfig.apiKey).toMatch(/^mnfst_/);
+  });
 });

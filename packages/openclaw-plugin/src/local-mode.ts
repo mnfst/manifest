@@ -16,6 +16,7 @@ import { initTelemetry, shutdownTelemetry } from "./telemetry";
 import { registerHooks, initMetrics } from "./hooks";
 import { registerRouting } from "./routing";
 import { registerTools } from "./tools";
+import { registerCommand } from "./command";
 import { API_KEY_PREFIX } from "./constants";
 
 const CONFIG_DIR = join(homedir(), ".openclaw", "manifest");
@@ -81,6 +82,10 @@ function atomicWriteJson(path: string, data: unknown): void {
   writeFileSync(tmp, JSON.stringify(data, null, 2), { mode: 0o600 });
   renameSync(tmp, path);
 }
+
+// TODO: Replace direct file mutation with api.config persistent API
+// when OpenClaw documents a write-through config mechanism.
+// See: https://docs.openclaw.ai/tools/plugin#configuration
 
 /**
  * Injects the Manifest provider configuration into OpenClaw's config file
@@ -271,6 +276,7 @@ export function registerLocalMode(
   if (typeof api.registerTool === "function") {
     registerTools(api, localConfig, logger);
   }
+  registerCommand(api, localConfig, logger);
 
   logger.info(`[manifest] 🦚 View your Manifest Dashboard -> http://${host}:${port}`);
 

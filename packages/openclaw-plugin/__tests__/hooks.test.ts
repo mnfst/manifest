@@ -53,12 +53,12 @@ function createMockMeter() {
   };
 }
 
-// --- Mock API (event emitter) ---
+// --- Mock API (hook registry) ---
 function createMockApi() {
   const handlers = new Map<string, (event: unknown) => void>();
   return {
     handlers,
-    on: jest.fn((event: string, handler: (event: unknown) => void) => {
+    registerHook: jest.fn((event: string, handler: (event: unknown) => void, _metadata?: unknown) => {
       handlers.set(event, handler);
     }),
     emit(event: string, data: unknown) {
@@ -156,11 +156,23 @@ describe("registerHooks", () => {
     registerHooks(api, tracer as any, config, mockLogger);
   });
 
-  it("registers all four event handlers", () => {
-    expect(api.on).toHaveBeenCalledWith("message_received", expect.any(Function));
-    expect(api.on).toHaveBeenCalledWith("before_agent_start", expect.any(Function));
-    expect(api.on).toHaveBeenCalledWith("tool_result_persist", expect.any(Function));
-    expect(api.on).toHaveBeenCalledWith("agent_end", expect.any(Function));
+  it("registers all four event handlers with metadata", () => {
+    expect(api.registerHook).toHaveBeenCalledWith(
+      "message_received", expect.any(Function),
+      expect.objectContaining({ name: "manifest.message-received" }),
+    );
+    expect(api.registerHook).toHaveBeenCalledWith(
+      "before_agent_start", expect.any(Function),
+      expect.objectContaining({ name: "manifest.agent-turn-start" }),
+    );
+    expect(api.registerHook).toHaveBeenCalledWith(
+      "tool_result_persist", expect.any(Function),
+      expect.objectContaining({ name: "manifest.tool-result" }),
+    );
+    expect(api.registerHook).toHaveBeenCalledWith(
+      "agent_end", expect.any(Function),
+      expect.objectContaining({ name: "manifest.agent-end" }),
+    );
   });
 
   it("logs that hooks are registered", () => {
@@ -681,6 +693,81 @@ describe("registerHooks", () => {
       expect(turnSpan.setAttribute).toHaveBeenCalledWith(
         ATTRS.ROUTING_TIER,
         "simple",
+      );
+    });
+
+    it("does not detect heartbeat when user message content is neither string nor array", () => {
+      api.emit("message_received", { sessionKey: "hb-nonstr-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-nonstr-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-nonstr-sess",
+        messages: [
+          { role: "user", content: 12345 },
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        expect.anything(),
+      );
+    });
+
+    it("does not detect heartbeat for null message objects", () => {
+      api.emit("message_received", { sessionKey: "hb-null-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-null-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-null-sess",
+        messages: [
+          null,
+          { role: "assistant", model: "gpt-4o", usage: { input: 10, output: 5 } },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        expect.anything(),
+      );
+    });
+
+    it("does not detect heartbeat when array content part has non-text type", () => {
+      api.emit("message_received", { sessionKey: "hb-imgcontent" });
+      api.emit("before_agent_start", { sessionKey: "hb-imgcontent" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-imgcontent",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "image", url: "HEARTBEAT_OK.png" },
+            ],
+          },
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "heartbeat",
       );
     });
 
