@@ -165,7 +165,7 @@ export function registerRouting(
   try {
     api.registerProvider({
       id: "manifest",
-      name: "Manifest Router",
+      label: "Manifest Router",
       api: "openai-completions",
       baseUrl,
       apiKey: config.apiKey,
