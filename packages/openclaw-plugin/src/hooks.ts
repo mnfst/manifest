@@ -196,6 +196,7 @@ export function registerHooks(
     let finalModel = model;
     let finalProvider = provider;
     let routingTier: string | null = null;
+    let routingReason: string | null = null;
 
     if (finalModel === "auto" && config.mode !== "cloud") {
       const resolved = await resolveRouting(config, messages, sessionKey, logger);
@@ -203,7 +204,26 @@ export function registerHooks(
         finalModel = resolved.model;
         finalProvider = resolved.provider;
         routingTier = resolved.tier;
+        routingReason = resolved.reason || null;
       }
+    }
+
+    // Detect heartbeat from messages — if any user message contains
+    // HEARTBEAT_OK, override the reason so it's identifiable in telemetry.
+    // Content can be a string or array of content parts (multi-modal format).
+    const hasHeartbeat = messages.some((m: any) => {
+      if (!m || m.role !== "user") return false;
+      if (typeof m.content === "string") return m.content.includes("HEARTBEAT_OK");
+      if (Array.isArray(m.content)) {
+        return m.content.some(
+          (p: any) => p.type === "text" && typeof p.text === "string" && p.text.includes("HEARTBEAT_OK"),
+        );
+      }
+      return false;
+    });
+    if (hasHeartbeat) {
+      routingReason = "heartbeat";
+      routingTier = "simple";
     }
 
     const active = activeSpans.get(sessionKey);
@@ -219,6 +239,17 @@ export function registerHooks(
       });
       if (routingTier) {
         active.turn.setAttribute(ATTRS.ROUTING_TIER, routingTier);
+      }
+      if (routingReason) {
+        active.turn.setAttribute(ATTRS.ROUTING_REASON, routingReason);
+      }
+      if (event.success === false) {
+        const errMsg =
+          event.error?.message || event.errorMessage || "Agent turn failed";
+        active.turn.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: typeof errMsg === "string" ? errMsg.slice(0, 500) : String(errMsg),
+        });
       }
       active.turn.end();
     }

@@ -23,6 +23,10 @@ describe("formatCost", () => {
     expect(formatCost(0)).toBe("$0.00");
     expect(formatCost(17.5)).toBe("$17.50");
   });
+  it("clamps negative costs to $0.00", () => {
+    expect(formatCost(-1527)).toBe("$0.00");
+    expect(formatCost(-0.01)).toBe("$0.00");
+  });
 });
 
 describe("formatTrend", () => {
@@ -42,6 +46,7 @@ describe("formatStatus", () => {
     expect(formatStatus("ok")).toBe("Success");
     expect(formatStatus("retry")).toBe("Retried");
     expect(formatStatus("error")).toBe("Failed");
+    expect(formatStatus("rate_limited")).toBe("Rate Limited");
   });
   it("handles case insensitive", () => {
     expect(formatStatus("OK")).toBe("Success");

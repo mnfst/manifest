@@ -37,6 +37,7 @@ import { EncryptApiKeys1771900000000 } from './migrations/1771900000000-EncryptA
 import { MakeApiKeyNullable1772000000000 } from './migrations/1772000000000-MakeApiKeyNullable';
 import { AddRoutingTier1772100000000 } from './migrations/1772100000000-AddRoutingTier';
 import { AddLimitAction1772200000000 } from './migrations/1772200000000-AddLimitAction';
+import { AddRoutingReason1772300000000 } from './migrations/1772300000000-AddRoutingReason';
 
 const entities = [
   AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing,
@@ -62,6 +63,7 @@ const migrations = [
   MakeApiKeyNullable1772000000000,
   AddRoutingTier1772100000000,
   AddLimitAction1772200000000,
+  AddRoutingReason1772300000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';

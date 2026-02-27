@@ -34,6 +34,7 @@ interface RecentMessage {
   agent_name: string | null
   model: string | null
   routing_tier?: string
+  routing_reason?: string
   input_tokens: number | null
   output_tokens: number | null
   total_tokens: number | null
@@ -484,6 +485,13 @@ const Overview: Component = () => {
                             </td>
                             <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                               {item.id.slice(0, 8)}
+                              {item.routing_reason === 'heartbeat' && (
+                                <span title="Heartbeat" style="display: inline-flex; align-items: center; margin-left: 4px; color: hsl(var(--muted-foreground)); opacity: 0.7;">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                                  </svg>
+                                </span>
+                              )}
                             </td>
                             <td style="font-family: var(--font-mono);">
                               {item.cost != null
