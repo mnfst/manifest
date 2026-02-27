@@ -1,5 +1,11 @@
 # manifest
 
+## 5.13.0
+
+### Minor Changes
+
+- 2010691: Fix heartbeat routing detection and add routing_reason to OTLP pipeline with heartbeat icon in dashboard
+
 ## 5.12.0
 
 ### Minor Changes
