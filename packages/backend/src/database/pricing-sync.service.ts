@@ -162,15 +162,22 @@ export class PricingSyncService implements OnModuleInit {
         const contextWindow = model.context_length;
 
         await this.pricingHistory.recordChange(existing, incoming, 'sync');
-        await this.pricingRepo.upsert(
-          {
-            ...incoming,
-            ...(contextWindow != null && { context_window: contextWindow }),
-            updated_at: now,
-          },
-          ['model_name'],
-        );
-        updated++;
+
+        let upserted = false;
+        if (existing) {
+          // Seeded model — update pricing only, preserve provider
+          await this.pricingRepo.upsert(
+            {
+              model_name: canonical,
+              input_price_per_token: prompt,
+              output_price_per_token: completion,
+              ...(contextWindow != null && { context_window: contextWindow }),
+              updated_at: now,
+            },
+            ['model_name'],
+          );
+          upserted = true;
+        }
 
         // Store an OpenRouter copy with the full vendor-prefixed ID
         const hasVendorPrefix =
@@ -188,12 +195,14 @@ export class PricingSyncService implements OnModuleInit {
               },
               ['model_name'],
             );
+            upserted = true;
           } catch (copyErr) {
             this.logger.warn(
               `Failed to store OpenRouter copy for ${model.id}: ${copyErr instanceof Error ? copyErr.message : copyErr}`,
             );
           }
         }
+        if (upserted) updated++;
       } catch (err) {
         failed++;
         this.logger.warn(
