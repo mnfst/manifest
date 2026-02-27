@@ -1,5 +1,17 @@
 # manifest
 
+## 5.16.1
+
+### Patch Changes
+
+- 3eb3723: Fix cost display showing $0.00 for sub-cent costs and negative costs
+  - Small positive costs (< $0.01) now display as "< $0.01" instead of misleading "$0.00"
+  - Negative costs (from failed pricing lookups) now display as "—" (unknown) instead of "$0.00"
+  - Backend aggregation queries (SUM) now exclude negative costs to prevent corrupted totals
+  - Added sqlSanitizeCost helper to filter invalid cost data at the query level
+
+- 72873f6: Fix plugin hooks not firing on current gateways by using api.on() instead of api.registerHook(), add backwards-compatible handler/execute and name/label fields for tools and provider registration
+
 ## 5.16.0
 
 ### Minor Changes
