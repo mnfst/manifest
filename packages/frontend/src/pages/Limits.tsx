@@ -98,7 +98,7 @@ const Limits: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>{agentName()} - Limits | Manifest</Title>
+      <Title>{agentName()} Limits - Manifest</Title>
       <Meta name="description" content={`Configure limits and alerts for ${agentName()}.`} />
 
       <div class="page-header">

@@ -133,10 +133,10 @@ const Overview: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>{params.agentName} - Overview | Manifest</Title>
+      <Title>{decodeURIComponent(params.agentName)} Overview - Manifest</Title>
       <Meta
         name="description"
-        content={`Monitor ${params.agentName} performance — costs, tokens, and activity.`}
+        content={`Monitor ${decodeURIComponent(params.agentName)} performance — costs, tokens, and activity.`}
       />
       <div class="page-header">
         <div>

@@ -136,7 +136,7 @@ const Routing: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>{agentName()} - Routing | Manifest</Title>
+      <Title>{agentName()} Routing - Manifest</Title>
       <Meta name="description" content={`Configure model routing for ${agentName()}.`} />
 
       <div class="page-header routing-page-header">

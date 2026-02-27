@@ -65,8 +65,8 @@ const MessageLog: Component = () => {
 
   return (
     <div class="container--full">
-      <Title>{params.agentName} - Messages | Manifest</Title>
-      <Meta name="description" content={`Browse all messages sent and received by ${params.agentName}. Filter by status, model, or cost.`} />
+      <Title>{decodeURIComponent(params.agentName)} Messages - Manifest</Title>
+      <Meta name="description" content={`Browse all messages sent and received by ${decodeURIComponent(params.agentName)}. Filter by status, model, or cost.`} />
       <div class="page-header">
         <div>
           <h1>Messages</h1>

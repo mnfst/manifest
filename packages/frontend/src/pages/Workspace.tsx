@@ -122,7 +122,7 @@ const Workspace: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>My Agents | Manifest</Title>
+      <Title>My Agents - Manifest</Title>
       <Meta name="description" content="View and manage all your AI agents. Monitor usage, messages, and costs." />
       <div class="page-header">
         <div>
