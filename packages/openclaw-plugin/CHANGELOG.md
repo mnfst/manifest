@@ -1,5 +1,12 @@
 # manifest
 
+## 5.15.3
+
+### Patch Changes
+
+- ad7add0: Rebrand log prefix from [Nest] to [Manifest] and improve test coverage across backend and frontend
+- 3d55b51: Fix proxy config desync: call injectProviderConfig in cloud mode so models.providers.manifest stays in sync with the plugin API key on gateway restart
+
 ## 5.15.2
 
 ### Patch Changes
