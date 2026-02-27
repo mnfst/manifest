@@ -79,6 +79,30 @@ export function createCursorSnap(bgColor: string, pointColor: string): uPlot.Cur
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+export function formatLegendTimestamp(_u: uPlot, epochSec: number): string {
+  if (epochSec == null) return "---";
+  const d = new Date(epochSec * 1000);
+  const mon = MONTHS[d.getUTCMonth()]!;
+  const day = d.getUTCDate();
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mm = String(d.getUTCMinutes()).padStart(2, "0");
+  const ss = String(d.getUTCSeconds()).padStart(2, "0");
+  return `${mon} ${day}, ${hh}:${mm}:${ss}`;
+}
+
+export function formatLegendCost(_u: uPlot, val: number): string {
+  if (val == null) return "---";
+  if (val > 0 && val < 0.01) return "< $0.01";
+  return `$${val.toFixed(2)}`;
+}
+
+export function formatLegendTokens(_u: uPlot, val: number): string {
+  if (val == null) return "---";
+  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
+  if (val >= 1_000) return `${(val / 1_000).toFixed(1)}k`;
+  return val.toString();
+}
+
 const RANGE_MAP: Record<string, number> = {
   "1h": 3600,
   "6h": 21600,

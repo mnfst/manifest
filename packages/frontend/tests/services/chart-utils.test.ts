@@ -23,6 +23,9 @@ import {
   createBaseAxes,
   rangeToSeconds,
   formatAxisTimestamp,
+  formatLegendTimestamp,
+  formatLegendCost,
+  formatLegendTokens,
   parseTimestamps,
   timeScaleRange,
   useChartLifecycle,
@@ -109,6 +112,85 @@ describe("formatAxisTimestamp", () => {
       const epoch = Date.UTC(2024, m, 10) / 1000;
       expect(formatAxisTimestamp(epoch, 604800)).toBe(`${months[m]} 10`);
     }
+  });
+});
+
+// ---------- formatLegendTimestamp ----------
+
+describe("formatLegendTimestamp", () => {
+  it("formats epoch seconds as 'Mon DD, HH:MM:SS'", () => {
+    const epoch = Date.UTC(2026, 1, 27, 9, 13, 59) / 1000;
+    expect(formatLegendTimestamp(null as any, epoch)).toBe("Feb 27, 09:13:59");
+  });
+
+  it("pads single-digit hours, minutes, and seconds", () => {
+    const epoch = Date.UTC(2024, 0, 5, 3, 7, 2) / 1000;
+    expect(formatLegendTimestamp(null as any, epoch)).toBe("Jan 5, 03:07:02");
+  });
+
+  it("handles midnight correctly", () => {
+    const epoch = Date.UTC(2024, 11, 25, 0, 0, 0) / 1000;
+    expect(formatLegendTimestamp(null as any, epoch)).toBe("Dec 25, 00:00:00");
+  });
+
+  it("returns '---' for null value", () => {
+    expect(formatLegendTimestamp(null as any, null as any)).toBe("---");
+  });
+
+  it("returns '---' for undefined value", () => {
+    expect(formatLegendTimestamp(null as any, undefined as any)).toBe("---");
+  });
+});
+
+// ---------- formatLegendCost ----------
+
+describe("formatLegendCost", () => {
+  it("formats cost with dollar sign and two decimals", () => {
+    expect(formatLegendCost(null as any, 15.5)).toBe("$15.50");
+  });
+
+  it("formats zero cost", () => {
+    expect(formatLegendCost(null as any, 0)).toBe("$0.00");
+  });
+
+  it("formats sub-cent cost as '< $0.01'", () => {
+    expect(formatLegendCost(null as any, 0.005)).toBe("< $0.01");
+  });
+
+  it("returns '---' for null value", () => {
+    expect(formatLegendCost(null as any, null as any)).toBe("---");
+  });
+
+  it("returns '---' for undefined value", () => {
+    expect(formatLegendCost(null as any, undefined as any)).toBe("---");
+  });
+});
+
+// ---------- formatLegendTokens ----------
+
+describe("formatLegendTokens", () => {
+  it("formats thousands with k suffix", () => {
+    expect(formatLegendTokens(null as any, 20000)).toBe("20.0k");
+  });
+
+  it("formats millions with M suffix", () => {
+    expect(formatLegendTokens(null as any, 1500000)).toBe("1.5M");
+  });
+
+  it("keeps small numbers as-is", () => {
+    expect(formatLegendTokens(null as any, 500)).toBe("500");
+  });
+
+  it("formats zero", () => {
+    expect(formatLegendTokens(null as any, 0)).toBe("0");
+  });
+
+  it("returns '---' for null value", () => {
+    expect(formatLegendTokens(null as any, null as any)).toBe("---");
+  });
+
+  it("returns '---' for undefined value", () => {
+    expect(formatLegendTokens(null as any, undefined as any)).toBe("---");
   });
 });
 

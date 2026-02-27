@@ -8,6 +8,8 @@ import {
   createBaseAxes,
   parseTimestamps,
   timeScaleRange,
+  formatLegendTimestamp,
+  formatLegendTokens,
 } from "../services/chart-utils.js";
 
 interface TokenChartProps {
@@ -38,11 +40,15 @@ const TokenChart: Component<TokenChartProps> = (props) => {
         padding: [16, 16, 0, 0],
         cursor: createCursorSnap(bgColor, inputColor),
         scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.1 : 100] } },
-        axes: createBaseAxes(axisColor, gridColor, props.range),
+        axes: (() => {
+          const a = createBaseAxes(axisColor, gridColor, props.range);
+          a[1] = { ...a[1]!, values: (u: uPlot, vals: number[]) => vals.map((v) => formatLegendTokens(u, v)) };
+          return a;
+        })(),
         series: [
-          {},
-          { label: "Sent to AI", stroke: inputColor, width: 2.5, fill: makeGradientFillFromVar("--bar-input", 0.25) },
-          { label: "Received from AI", stroke: outputColor, width: 2, fill: makeGradientFillFromVar("--bar-output", 0.15) },
+          { value: formatLegendTimestamp },
+          { label: "Sent to AI", stroke: inputColor, width: 2.5, fill: makeGradientFillFromVar("--bar-input", 0.25), value: formatLegendTokens },
+          { label: "Received from AI", stroke: outputColor, width: 2, fill: makeGradientFillFromVar("--bar-output", 0.15), value: formatLegendTokens },
         ],
       }, [
         parseTimestamps(props.data),
