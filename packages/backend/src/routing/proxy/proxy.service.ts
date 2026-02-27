@@ -114,6 +114,11 @@ export class ProxyService {
         );
 
     if (!resolved.model || !resolved.provider) {
+      this.logger.warn(
+        `No model available for user=${userId}: ` +
+        `tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} ` +
+        `confidence=${resolved.confidence} reason=${resolved.reason}`,
+      );
       throw new BadRequestException(
         'No model available. Connect a provider in the Manifest dashboard.',
       );

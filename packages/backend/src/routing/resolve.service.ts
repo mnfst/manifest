@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RoutingService } from './routing.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { scoreRequest, ScorerInput, MomentumInput } from './scorer';
@@ -7,6 +7,8 @@ import { ResolveResponse } from './dto/resolve-response';
 
 @Injectable()
 export class ResolveService {
+  private readonly logger = new Logger(ResolveService.name);
+
   constructor(
     private readonly routingService: RoutingService,
     private readonly pricingCache: ModelPricingCacheService,
@@ -30,6 +32,10 @@ export class ResolveService {
     const assignment = tiers.find((t) => t.tier === result.tier);
 
     if (!assignment) {
+      this.logger.warn(
+        `No tier assignment found for user=${userId} tier=${result.tier} ` +
+        `(available tiers: ${tiers.map((t) => t.tier).join(', ') || 'none'})`,
+      );
       return {
         tier: result.tier,
         model: null,
@@ -43,6 +49,10 @@ export class ResolveService {
     const model = await this.routingService.getEffectiveModel(userId, assignment);
 
     if (!model) {
+      this.logger.warn(
+        `getEffectiveModel returned null for user=${userId} tier=${result.tier} ` +
+        `override=${assignment.override_model} auto=${assignment.auto_assigned_model}`,
+      );
       return {
         tier: result.tier,
         model: null,
@@ -54,6 +64,13 @@ export class ResolveService {
     }
 
     const pricing = this.pricingCache.getByModel(model);
+
+    if (!pricing) {
+      this.logger.warn(
+        `Pricing cache miss for model=${model} (user=${userId} tier=${result.tier}). ` +
+        `Provider will be null.`,
+      );
+    }
 
     return {
       tier: result.tier,
