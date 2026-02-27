@@ -1,7 +1,7 @@
 /* @refresh reload */
 import { render } from "solid-js/web";
 import { Router, Route } from "@solidjs/router";
-import { MetaProvider } from "@solidjs/meta";
+import { MetaProvider, Title } from "@solidjs/meta";
 import App from "./App.jsx";
 import AuthLayout from "./layouts/AuthLayout.jsx";
 import Workspace from "./pages/Workspace.jsx";
@@ -39,6 +39,7 @@ if (!root) {
 render(
   () => (
     <MetaProvider>
+      <Title>Manifest</Title>
       <ToastContainer />
       <Router>
         <Route path="/" component={App}>
