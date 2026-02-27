@@ -1,5 +1,12 @@
 # manifest
 
+## 5.14.0
+
+### Minor Changes
+
+- 5bc9f02: Harden blind proxy: per-user rate limiting (60 req/60s), concurrency control (max 10), client disconnect abort propagation, reduced provider timeout (3min), bounded telemetry sets
+- 4e36a94: Unify proxy: replace Google native adapter with OpenAI-compatible endpoint, merge blind proxy into single `/v1/chat/completions` endpoint with tier header
+
 ## 5.13.1
 
 ### Patch Changes
