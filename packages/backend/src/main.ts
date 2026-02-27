@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ConsoleLogger, Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import * as express from 'express';
 import { AppModule } from './app.module';
@@ -11,7 +11,10 @@ const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
 export async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false,
+    logger: new ConsoleLogger({ prefix: 'Manifest' }),
+  });
   app.enableShutdownHooks();
   app.useGlobalFilters(new SpaFallbackFilter());
 

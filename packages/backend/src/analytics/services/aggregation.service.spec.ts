@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { Brackets, DataSource } from 'typeorm';
 import { AggregationService } from './aggregation.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
@@ -22,23 +22,38 @@ describe('AggregationService', () => {
     mockAgentGetOne = jest.fn().mockResolvedValue(null);
     mockAgentDelete = jest.fn().mockResolvedValue({});
 
-    const mockQb = {
-      select: jest.fn().mockReturnThis(),
-      addSelect: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      orWhere: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      addOrderBy: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      clone: jest.fn().mockReturnThis(),
-      leftJoin: jest.fn().mockReturnThis(),
+    const mockQb: Record<string, jest.Mock> = {
+      select: jest.fn(),
+      addSelect: jest.fn(),
+      where: jest.fn(),
+      andWhere: jest.fn(),
+      orWhere: jest.fn(),
+      groupBy: jest.fn(),
+      orderBy: jest.fn(),
+      addOrderBy: jest.fn(),
+      limit: jest.fn(),
+      clone: jest.fn(),
+      leftJoin: jest.fn(),
       getRawOne: mockGetRawOne,
       getRawMany: mockGetRawMany,
       getMany: jest.fn().mockResolvedValue([]),
       getOne: jest.fn().mockResolvedValue(null),
     };
+
+    // Wire up return-this for chainable methods and invoke Brackets callbacks
+    const chainableMethods = [
+      'select', 'addSelect', 'where', 'andWhere', 'orWhere',
+      'groupBy', 'orderBy', 'addOrderBy', 'limit', 'clone', 'leftJoin',
+    ];
+    for (const method of chainableMethods) {
+      mockQb[method].mockImplementation((...args: unknown[]) => {
+        const arg = args[0];
+        if (arg instanceof Brackets && typeof (arg as any).whereFactory === 'function') {
+          (arg as any).whereFactory(mockQb);
+        }
+        return mockQb;
+      });
+    }
 
     mockTransaction = jest.fn().mockImplementation(async (cb: Function) => cb());
 
@@ -383,6 +398,248 @@ describe('AggregationService', () => {
       expect(result.items).toEqual([]);
       expect(result.next_cursor).toBeNull();
       expect(result.models).toEqual([]);
+    });
+
+    it('should apply cursor-based pagination when cursor has pipe separator', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 50 });
+      mockGetRawMany
+        .mockResolvedValueOnce([
+          { id: 'msg-10', timestamp: '2026-02-16 08:00:00', model: 'gpt-4o', cost: 0.01 },
+        ])
+        .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+      const result = await service.getMessages({
+        range: '24h',
+        userId: 'test-user',
+        limit: 20,
+        cursor: '2026-02-16 09:00:00|msg-5',
+      });
+
+      expect(result.total_count).toBe(50);
+      expect(result.items).toHaveLength(1);
+      expect(result.next_cursor).toBeNull();
+    });
+
+    it('should ignore cursor without pipe separator', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 10 });
+      mockGetRawMany
+        .mockResolvedValueOnce([
+          { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.getMessages({
+        range: '24h',
+        userId: 'test-user',
+        limit: 20,
+        cursor: 'invalid-cursor-no-pipe',
+      });
+
+      expect(result.total_count).toBe(10);
+      expect(result.items).toHaveLength(1);
+    });
+
+    it('should query without range cutoff when range is omitted', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 5 });
+      mockGetRawMany
+        .mockResolvedValueOnce([
+          { id: 'msg-1', timestamp: '2026-01-01 00:00:00', model: 'gpt-4o' },
+        ])
+        .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+      const result = await service.getMessages({
+        userId: 'test-user',
+        limit: 20,
+      });
+
+      expect(result.total_count).toBe(5);
+      expect(result.items).toHaveLength(1);
+      expect(result.models).toEqual(['gpt-4o']);
+    });
+
+    it('should apply all optional filter parameters', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 3 });
+      mockGetRawMany
+        .mockResolvedValueOnce([
+          { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o', cost: 0.05 },
+        ])
+        .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+      const result = await service.getMessages({
+        range: '24h',
+        userId: 'test-user',
+        limit: 20,
+        status: 'success',
+        service_type: 'chat',
+        model: 'gpt-4o',
+        cost_min: 0.01,
+        cost_max: 1.00,
+        agent_name: 'my-agent',
+      });
+
+      expect(result.total_count).toBe(3);
+      expect(result.items).toHaveLength(1);
+    });
+
+    it('should handle null total from count query', async () => {
+      mockGetRawOne.mockResolvedValueOnce(null);
+      mockGetRawMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.getMessages({
+        range: '24h',
+        userId: 'test-user',
+        limit: 20,
+      });
+
+      expect(result.total_count).toBe(0);
+    });
+
+    it('should handle cost_min of 0 as a valid filter', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+      mockGetRawMany
+        .mockResolvedValueOnce([
+          { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o', cost: 0 },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.getMessages({
+        range: '24h',
+        userId: 'test-user',
+        limit: 20,
+        cost_min: 0,
+      });
+
+      expect(result.total_count).toBe(1);
+      expect(result.items).toHaveLength(1);
+    });
+
+    it('should handle cost_max of 0 as a valid filter', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 0 });
+      mockGetRawMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.getMessages({
+        range: '24h',
+        userId: 'test-user',
+        limit: 20,
+        cost_max: 0,
+      });
+
+      expect(result.total_count).toBe(0);
+    });
+  });
+
+  describe('hasAnyData', () => {
+    it('should pass agentName to tenant filter when provided', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ '?column?': 1 });
+      const result = await service.hasAnyData('test-user', 'my-agent');
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('getTokenSummary', () => {
+    it('should pass agentName to tenant filter when provided', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ total: 100 })
+        .mockResolvedValueOnce({ total: 50 })
+        .mockResolvedValueOnce({ inp: 60, out: 40 });
+
+      const result = await service.getTokenSummary('24h', 'test-user', 'my-agent');
+      expect(result.tokens_today.value).toBe(100);
+    });
+
+    it('should handle null query results gracefully', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+
+      const result = await service.getTokenSummary('24h', 'test-user');
+      expect(result.tokens_today.value).toBe(0);
+      expect(result.input_tokens).toBe(0);
+      expect(result.output_tokens).toBe(0);
+    });
+  });
+
+  describe('getCostSummary', () => {
+    it('should pass agentName to tenant filter when provided', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ total: 2.5 })
+        .mockResolvedValueOnce({ total: 1.0 });
+
+      const result = await service.getCostSummary('7d', 'test-user', 'my-agent');
+      expect(result.value).toBe(2.5);
+    });
+
+    it('should handle null query results gracefully', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+
+      const result = await service.getCostSummary('24h', 'test-user');
+      expect(result.value).toBe(0);
+      expect(result.trend_pct).toBe(0);
+    });
+  });
+
+  describe('getMessageCount', () => {
+    it('should pass agentName to tenant filter when provided', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ total: 50 })
+        .mockResolvedValueOnce({ total: 40 });
+
+      const result = await service.getMessageCount('24h', 'test-user', 'my-agent');
+      expect(result.value).toBe(50);
+    });
+
+    it('should handle null query results gracefully', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+
+      const result = await service.getMessageCount('24h', 'test-user');
+      expect(result.value).toBe(0);
+      expect(result.trend_pct).toBe(0);
+    });
+  });
+
+  describe('renameAgent', () => {
+    it('should short-circuit without update when slug unchanged and displayName is undefined', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
+
+      await service.renameAgent('test-user', 'my-agent', 'my-agent');
+
+      // No transaction and no display_name update should occur
+      expect(mockTransaction).not.toHaveBeenCalled();
+    });
+
+    it('should rename without display_name when displayName is undefined', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'old-agent' });
+      mockAgentGetOne.mockResolvedValueOnce(null);
+
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockManagerQb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+
+      mockTransaction.mockImplementation(async (cb: Function) => {
+        const manager = {
+          createQueryBuilder: jest.fn().mockReturnValue(mockManagerQb),
+        };
+        return cb(manager);
+      });
+
+      await service.renameAgent('test-user', 'old-agent', 'new-agent');
+
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
+      // Agent update should only have name, not display_name
+      expect(mockManagerQb.set).toHaveBeenCalledWith({ name: 'new-agent' });
     });
   });
 });

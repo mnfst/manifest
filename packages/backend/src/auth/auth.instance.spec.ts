@@ -13,16 +13,19 @@ jest.mock('@react-email/render', () => ({
   ),
 }));
 jest.mock('../notifications/emails/verify-email', () => ({
-  VerifyEmailEmail: jest.fn(),
+  VerifyEmailEmail: jest.fn().mockReturnValue('verify-email-element'),
 }));
 jest.mock('../notifications/emails/reset-password', () => ({
-  ResetPasswordEmail: jest.fn(),
+  ResetPasswordEmail: jest.fn().mockReturnValue('reset-password-element'),
 }));
 jest.mock('../notifications/services/email-providers/send-email', () => ({
   sendEmail: jest.fn(),
 }));
 jest.mock('../common/utils/product-telemetry', () => ({
   trackCloudEvent: jest.fn(),
+}));
+jest.mock('../common/constants/local-mode.constants', () => ({
+  getLocalAuthSecret: jest.fn().mockReturnValue('local-secret-32-chars-or-more-here'),
 }));
 
 describe('auth.instance', () => {
@@ -159,6 +162,16 @@ describe('auth.instance', () => {
       const config = mockBetterAuth.mock.calls[0][0];
       expect(config.trustedOrigins).toContain('http://localhost:4000');
     });
+
+    it('does not include 127.0.0.1 origins in cloud mode', () => {
+      delete process.env['MANIFEST_MODE'];
+      process.env['PORT'] = '3001';
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.trustedOrigins).not.toContain('http://127.0.0.1:3001');
+      expect(config.trustedOrigins).not.toContain('http://127.0.0.1:3000');
+    });
   });
 
   describe('social providers', () => {
@@ -254,6 +267,185 @@ describe('auth.instance', () => {
       await hook({ id: 'test-user-123' });
 
       expect(trackCloudEvent).toHaveBeenCalledWith('user_registered', 'test-user-123');
+    });
+  });
+
+  describe('sendResetPassword callback', () => {
+    it('renders the reset password email and calls sendEmail', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { ResetPasswordEmail } = require('../notifications/emails/reset-password') as {
+        ResetPasswordEmail: jest.Mock;
+      };
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { sendEmail } = require('../notifications/services/email-providers/send-email') as {
+        sendEmail: jest.Mock;
+      };
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { render } = require('@react-email/render') as { render: jest.Mock };
+
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      const sendResetPassword = config.emailAndPassword.sendResetPassword;
+
+      const mockUser = { name: 'Jane Doe', email: 'jane@example.com' };
+      const mockUrl = 'https://app.example.com/reset?token=abc123';
+
+      await sendResetPassword({ user: mockUser, url: mockUrl });
+
+      expect(ResetPasswordEmail).toHaveBeenCalledWith({
+        userName: 'Jane Doe',
+        resetUrl: mockUrl,
+      });
+      expect(render).toHaveBeenCalledTimes(2);
+      expect(render).toHaveBeenCalledWith('reset-password-element');
+      expect(render).toHaveBeenCalledWith('reset-password-element', { plainText: true });
+      expect(sendEmail).toHaveBeenCalledWith({
+        to: 'jane@example.com',
+        subject: 'Reset your password',
+        html: '<html>rendered</html>',
+        text: 'plain text version',
+      });
+    });
+  });
+
+  describe('sendVerificationEmail callback', () => {
+    it('renders the verification email and calls sendEmail', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { VerifyEmailEmail } = require('../notifications/emails/verify-email') as {
+        VerifyEmailEmail: jest.Mock;
+      };
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { sendEmail } = require('../notifications/services/email-providers/send-email') as {
+        sendEmail: jest.Mock;
+      };
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { render } = require('@react-email/render') as { render: jest.Mock };
+
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      const sendVerificationEmail = config.emailVerification.sendVerificationEmail;
+
+      const mockUser = { name: 'John Doe', email: 'john@example.com' };
+      const mockUrl = 'https://app.example.com/verify?token=xyz789';
+
+      await sendVerificationEmail({ user: mockUser, url: mockUrl });
+
+      expect(VerifyEmailEmail).toHaveBeenCalledWith({
+        userName: 'John Doe',
+        verificationUrl: mockUrl,
+      });
+      expect(render).toHaveBeenCalledWith('verify-email-element');
+      expect(render).toHaveBeenCalledWith('verify-email-element', { plainText: true });
+      expect(sendEmail).toHaveBeenCalledWith({
+        to: 'john@example.com',
+        subject: 'Verify your email address',
+        html: '<html>rendered</html>',
+        text: 'plain text version',
+      });
+    });
+
+    it('sends verification email on sign-up in cloud mode', () => {
+      delete process.env['MANIFEST_MODE'];
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.emailVerification.sendOnSignUp).toBe(true);
+    });
+
+    it('enables autoSignInAfterVerification', () => {
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.emailVerification.autoSignInAfterVerification).toBe(true);
+    });
+  });
+
+  describe('local mode', () => {
+    beforeEach(() => {
+      process.env['MANIFEST_MODE'] = 'local';
+    });
+
+    it('exports auth as null', () => {
+      const mod = loadModule();
+      expect(mod.auth).toBeNull();
+    });
+
+    it('does not call betterAuth', () => {
+      loadModule();
+      expect(mockBetterAuth).not.toHaveBeenCalled();
+    });
+
+    it('skips secret validation even without BETTER_AUTH_SECRET', () => {
+      process.env['NODE_ENV'] = 'development';
+      delete process.env['BETTER_AUTH_SECRET'];
+      expect(() => loadModule()).not.toThrow();
+    });
+  });
+
+  describe('database connection', () => {
+    it('uses DATABASE_URL from environment', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { Pool } = require('pg') as { Pool: jest.Mock };
+      process.env['DATABASE_URL'] = 'postgresql://test:test@db:5432/testdb';
+
+      loadModule();
+
+      expect(Pool).toHaveBeenCalledWith({
+        connectionString: 'postgresql://test:test@db:5432/testdb',
+      });
+    });
+
+    it('falls back to default DATABASE_URL when not set', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { Pool } = require('pg') as { Pool: jest.Mock };
+      delete process.env['DATABASE_URL'];
+
+      loadModule();
+
+      expect(Pool).toHaveBeenCalledWith({
+        connectionString: 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
+      });
+    });
+
+    it('does not create a database connection in local mode', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { Pool } = require('pg') as { Pool: jest.Mock };
+      Pool.mockClear();
+      process.env['MANIFEST_MODE'] = 'local';
+
+      loadModule();
+
+      expect(Pool).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('baseURL configuration', () => {
+    it('uses BETTER_AUTH_URL when set', () => {
+      process.env['BETTER_AUTH_URL'] = 'https://auth.example.com';
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.baseURL).toBe('https://auth.example.com');
+    });
+
+    it('falls back to localhost with PORT when BETTER_AUTH_URL is not set', () => {
+      delete process.env['BETTER_AUTH_URL'];
+      process.env['PORT'] = '4000';
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.baseURL).toBe('http://localhost:4000');
+    });
+
+    it('falls back to localhost:3001 when neither BETTER_AUTH_URL nor PORT is set', () => {
+      delete process.env['BETTER_AUTH_URL'];
+      delete process.env['PORT'];
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.baseURL).toBe('http://localhost:3001');
     });
   });
 
