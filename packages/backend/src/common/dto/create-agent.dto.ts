@@ -5,6 +5,6 @@ export class CreateAgentDto {
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(100)
-  @Matches(/^[a-zA-Z0-9_-]+$/, { message: 'Agent name must contain only letters, numbers, dashes, and underscores' })
+  @Matches(/^[a-zA-Z0-9 _-]+$/, { message: 'Agent name must contain only letters, numbers, spaces, dashes, and underscores' })
   name!: string;
 }

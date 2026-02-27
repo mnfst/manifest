@@ -272,6 +272,7 @@ export class TimeseriesQueriesService {
       const stats = statsMap.get(name);
       return {
         agent_name: name,
+        display_name: a.display_name ?? name,
         message_count: Number(stats?.['message_count'] ?? 0),
         last_active: String(stats?.['last_active'] ?? a.created_at ?? ''),
         total_cost: Number(stats?.['total_cost'] ?? 0),
