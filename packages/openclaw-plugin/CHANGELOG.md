@@ -1,5 +1,23 @@
 # manifest
 
+## 5.13.1
+
+### Patch Changes
+
+- 7f990a2: Fix OG image and Twitter card meta tags to use absolute URLs for proper social media previews
+
+## 5.13.0
+
+### Minor Changes
+
+- 2010691: Fix heartbeat routing detection and add routing_reason to OTLP pipeline with heartbeat icon in dashboard
+
+## 5.12.0
+
+### Minor Changes
+
+- f307102: Store OpenRouter copies in pricing sync with full vendor-prefixed model IDs
+
 ## 5.11.1
 
 ### Patch Changes

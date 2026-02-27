@@ -22,7 +22,9 @@ jobs:
       - run: npm ci
       - run: npm run build
       - uses: changesets/action@v1
+        id: changesets
         with:
+          createGithubReleases: false
           publish: npm run release
           version: npm run version-packages
           title: "chore: version packages"
@@ -31,3 +33,26 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
+
+      - name: Create GitHub Release
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[0].version')
+          TAG="$(echo "$PUBLISHED_PACKAGES" | jq -r '.[0].name')@${VERSION}"
+
+          git tag "$TAG" || true
+          git push origin "$TAG"
+
+          BODY=$(awk -v ver="## ${VERSION}" \
+            '$0 == ver { found=1; next } found && /^## / { exit } found { print }' \
+            packages/openclaw-plugin/CHANGELOG.md)
+
+          BODY=$(echo "$BODY" | sed \
+            -e 's/^### Major Changes$/### 💥 Major Changes/' \
+            -e 's/^### Minor Changes$/### ✨ Minor Changes/' \
+            -e 's/^### Patch Changes$/### 🐛 Patch Changes/')
+
+          gh release create "$TAG" --title "v${VERSION}" --notes "$BODY" --verify-tag

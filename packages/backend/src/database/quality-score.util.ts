@@ -14,6 +14,8 @@ export const QUALITY_OVERRIDES: ReadonlyMap<string, number> = new Map([
   ['grok-2', 3],
   ['mistral-large', 3],
   ['kimi-k2', 3],
+  // Meta-router — computed score from price data doesn't reflect frontier capability
+  ['openrouter/auto', 5],
 ]);
 
 const MINI_VARIANT = /\b(mini|nano|haiku|micro)\b/i;

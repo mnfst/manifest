@@ -78,13 +78,26 @@ export class ProxyController {
         'X-Manifest-Model': meta.model,
         'X-Manifest-Provider': meta.provider,
         'X-Manifest-Confidence': String(meta.confidence),
+        'X-Manifest-Reason': meta.reason,
       };
 
       const providerResponse = forward.response;
 
       if (!providerResponse.ok) {
         const errorBody = await providerResponse.text();
-        res.status(providerResponse.status);
+        const errorStatus = providerResponse.status;
+
+        this.recordProviderError(
+          req.ingestionContext,
+          errorStatus,
+          errorBody,
+          meta.model,
+          meta.tier,
+        ).catch((e) =>
+          this.logger.warn(`Failed to record provider error: ${e}`),
+        );
+
+        res.status(errorStatus);
         for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
         const contentType = providerResponse.headers.get('content-type');
         if (contentType) res.setHeader('Content-Type', contentType);
@@ -129,9 +142,10 @@ export class ProxyController {
       const status = err instanceof HttpException ? err.getStatus() : 500;
       this.logger.error(`Proxy error: ${message}`);
 
-      if (status === 429) {
-        this.recordRateLimited(req.ingestionContext, message).catch((e) =>
-          this.logger.warn(`Failed to record rate_limited message: ${e}`),
+      if (status === 429 || status === 403 || status >= 500) {
+        this.recordProviderError(req.ingestionContext, status, message).catch(
+          (e) =>
+            this.logger.warn(`Failed to record provider error: ${e}`),
         );
       }
 
@@ -149,27 +163,40 @@ export class ProxyController {
     }
   }
 
-  private async recordRateLimited(ctx: IngestionContext, errorMessage: string): Promise<void> {
-    const key = `${ctx.tenantId}:${ctx.agentId}`;
-    const now = Date.now();
-    const lastRecorded = this.rateLimitCooldown.get(key) ?? 0;
-    if (now - lastRecorded < this.RATE_LIMIT_COOLDOWN_MS) return;
-    this.rateLimitCooldown.set(key, now);
+  private async recordProviderError(
+    ctx: IngestionContext,
+    httpStatus: number,
+    errorMessage: string,
+    model?: string,
+    tier?: string,
+  ): Promise<void> {
+    if (httpStatus === 429) {
+      const key = `${ctx.tenantId}:${ctx.agentId}`;
+      const now = Date.now();
+      const lastRecorded = this.rateLimitCooldown.get(key) ?? 0;
+      if (now - lastRecorded < this.RATE_LIMIT_COOLDOWN_MS) return;
+      this.rateLimitCooldown.set(key, now);
 
-    if (this.rateLimitCooldown.size > this.MAX_COOLDOWN_ENTRIES) {
-      for (const [k, v] of this.rateLimitCooldown) {
-        if (now - v >= this.RATE_LIMIT_COOLDOWN_MS) this.rateLimitCooldown.delete(k);
+      if (this.rateLimitCooldown.size > this.MAX_COOLDOWN_ENTRIES) {
+        for (const [k, v] of this.rateLimitCooldown) {
+          if (now - v >= this.RATE_LIMIT_COOLDOWN_MS)
+            this.rateLimitCooldown.delete(k);
+        }
       }
     }
+
+    const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
     await this.messageRepo.insert({
       id: uuid(),
       tenant_id: ctx.tenantId,
       agent_id: ctx.agentId,
       timestamp: new Date().toISOString(),
-      status: 'rate_limited',
-      error_message: errorMessage,
+      status: messageStatus,
+      error_message: errorMessage.slice(0, 500),
       agent_name: ctx.agentName,
+      model: model ?? null,
+      routing_tier: tier ?? null,
       input_tokens: 0,
       output_tokens: 0,
       cache_read_tokens: 0,

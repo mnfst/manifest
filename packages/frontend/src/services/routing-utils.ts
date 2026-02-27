@@ -16,6 +16,7 @@ const PROVIDER_ALIASES: Record<string, string> = {
   meta: "meta",
   cohere: "cohere",
   ollama: "ollama",
+  openrouter: "openrouter",
 };
 
 export function resolveProviderId(dbProvider: string): string | undefined {
@@ -30,6 +31,7 @@ export function resolveProviderId(dbProvider: string): string | undefined {
  * Cloud models have recognizable prefixes.
  */
 const MODEL_PREFIX_MAP: [RegExp, string][] = [
+  [/^openrouter\//, "openrouter"],
   [/^claude-/, "anthropic"],
   [/^gpt-|^o[134]-|^o[134] |^chatgpt-/, "openai"],
   [/^gemini-/, "gemini"],
@@ -38,6 +40,7 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^mistral-|^codestral|^pixtral|^open-mistral/, "mistral"],
   [/^kimi-|^moonshot-/, "moonshot"],
   [/^qwen[23]|^qwq-/, "qwen"],
+  [/^[a-z][\w-]*\//, "openrouter"],
 ];
 
 export function inferProviderFromModel(model: string): string | undefined {

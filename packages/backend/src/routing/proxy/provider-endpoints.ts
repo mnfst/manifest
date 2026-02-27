@@ -52,6 +52,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
       `/v1beta/models/${model}:generateContent`,
     format: 'google',
   },
+  openrouter: {
+    baseUrl: 'https://openrouter.ai',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/api/v1/chat/completions',
+    format: 'openai',
+  },
   ollama: {
     baseUrl: OLLAMA_HOST,
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),

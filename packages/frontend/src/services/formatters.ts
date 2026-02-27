@@ -15,7 +15,7 @@ export function formatNumber(n: number): string {
  * Format a USD cost value (e.g., $6.18, $17.50).
  */
 export function formatCost(n: number): string {
-  return `$${n.toFixed(2)}`;
+  return `$${Math.max(0, n).toFixed(2)}`;
 }
 
 /**
