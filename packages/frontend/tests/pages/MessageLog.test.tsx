@@ -114,7 +114,7 @@ describe("MessageLog", () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Time");
+      expect(container.textContent).toContain("Date");
       expect(container.textContent).toContain("Cost");
       expect(container.textContent).toContain("Total Tokens");
       expect(container.textContent).toContain("Model");

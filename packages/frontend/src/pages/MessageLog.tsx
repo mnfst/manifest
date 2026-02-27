@@ -173,7 +173,7 @@ const MessageLog: Component = () => {
                 <table class="data-table">
                   <thead>
                     <tr>
-                      <th>Time</th>
+                      <th>Date</th>
                       <th>Message</th>
                       <th>Cost</th>
                       <th>Total Tokens</th>
@@ -205,7 +205,7 @@ const MessageLog: Component = () => {
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Time</th>
+                  <th>Date</th>
                   <th>Message</th>
                   <th>Cost</th>
                   <th>Total Tokens<InfoTooltip text="Tokens are units of text that AI models process. More tokens = higher cost." /></th>
