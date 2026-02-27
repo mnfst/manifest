@@ -1,5 +1,16 @@
 # manifest
 
+## 5.17.0
+
+### Minor Changes
+
+- 2b62c9f: Change default plugin mode from local to cloud. Cloud mode is now the default when no mode is configured. Set mode to "local" explicitly for the zero-config embedded server.
+
+### Patch Changes
+
+- 9f02a7e: Fix chart legend formatting: cost displays in dollars, tokens in kilo-tokens, and timestamps as "Feb 27, 09:13:59". Token chart Y-axis now shows abbreviated values.
+- bd1f47d: Fix browser tab title stuck on "Manifest" by removing static `<title>` from index.html and using @solidjs/meta's Title component as the sole title manager
+
 ## 5.16.1
 
 ### Patch Changes
