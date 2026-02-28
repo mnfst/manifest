@@ -38,7 +38,7 @@
     "prebuild": "rm -rf dist public",
     "build": "tsx build.ts && tsc -p tsconfig.server.json && node scripts/copy-assets.js",
     "dev": "tsx watch build.ts",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run build && cp ../../README.md README.md",
     "typecheck": "tsc --noEmit",
     "test": "jest"
   },

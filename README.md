@@ -141,6 +141,7 @@ Manifest is open source under the [MIT license](LICENSE). See [CONTRIBUTING.md](
 
 ## Quick Links
 
+- [GitHub](https://github.com/mnfst/manifest)
 - [Docs](https://manifest.build/docs)
 - [Discord](https://discord.com/invite/FepAked3W7)
 - [Discussions](https://github.com/mnfst/manifest/discussions)
