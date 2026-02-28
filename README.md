@@ -37,9 +37,9 @@ OpenClaw costs
 
 ## What do you get?
 
-- 🔀 **Routes every request to the right model** — and cuts costs up to 90%
-- 📊 **Track your expenses** — real-time dashboard that shows tokens and costs
-- 🔔 **Get notified** — set up alerts if your consumption exceeds a certain volume
+- 🔀 **Routes every request to the right model** — and cuts costs up to 70%
+- 📊 **Track your expenses** — real-time dashboard that shows tokens and costs per model
+- 🔔 **Set limits** — set up alerts (soft or hard) if your consumption exceeds a certain volume
 
 ## Why Manifest
 
@@ -51,6 +51,22 @@ Unlike almost all alternatives, everything stays on your machine. No suspicious 
 
 ## Quick Start
 
+### Cloud vs Local
+
+Manifest is available in cloud and local versions. While both versions install the same OpenClaw Plugin, the local version stores the telemetry data on your computer and the cloud version uses our secure platform.
+
+#### Use cloud if
+- You want a quick install
+- You want to access the dashboard from different devices
+- You want to connect multiple agents
+
+#### Use local if
+- You don't want the telemetry data to move from your computer
+- You don’t need multi-device access
+- You don't want to subscribe to a cloud service
+
+If you don't know which version to chose, start with the **cloud version**.
+
 ### Cloud (default)
 
 ```bash
@@ -61,7 +77,7 @@ openclaw gateway restart
 
 Sign up at [app.manifest.build](https://app.manifest.build) to get your API key.
 
-### Local (zero config)
+### Local
 
 ```bash
 openclaw plugins install manifest
@@ -78,6 +94,23 @@ Dashboard opens at **http://127.0.0.1:2099**. Telemetry from your agents flows i
 - **No coding required** — Simple install as OpenClaw plugin
 - **OTLP-native** — standard OpenTelemetry ingestion (traces, metrics, logs)
 
+## Privacy by architecture
+
+**In local mode, your data stays on your machine.** All agent messages, token counts, costs, and telemetry are stored locally. In cloud mode, only OpenTelemetry metadata (model, tokens, latency) is sent — message content is never collected.
+
+**In cloud mode, the blind proxy physically cannot read your prompts** This is fundamentally different from services saying "trust us."
+
+The only thing Manifest collects is anonymous product analytics (hashed machine ID, OS platform, package version, event names) to help improve the project. No personally identifiable information or agent data is included.
+
+**Opting out:**
+
+```bash
+MANIFEST_TELEMETRY_OPTOUT=1
+```
+
+Or add `"telemetryOptOut": true` to `~/.openclaw/manifest/config.json`.
+
+
 ## Manifest vs OpenRouter
 
 |              | Manifest                                                   | OpenRouter                                                    |
@@ -87,20 +120,6 @@ Dashboard opens at **http://127.0.0.1:2099**. Telemetry from your agents flows i
 | Source code  | MIT licensed, fully open                                   | Proprietary                                                   |
 | Data privacy | 100% local routing and logging                    | Your prompts and responses pass through a third party         |
 | Transparency | Open scoring algorithm — see exactly why a model is chosen | Black box routing, no visibility into how models are selected |
-
-## Privacy
-
-**In local mode, your data stays on your machine.** All agent messages, token counts, costs, and telemetry are stored locally. In cloud mode, only OpenTelemetry metadata (model, tokens, latency) is sent — message content is never collected.
-
-Manifest collects anonymous product analytics (hashed machine ID, OS platform, package version, event names) to help improve the project. No personally identifiable information or agent data is included.
-
-**Opting out:**
-
-```bash
-MANIFEST_TELEMETRY_OPTOUT=1
-```
-
-Or add `"telemetryOptOut": true` to `~/.openclaw/manifest/config.json`.
 
 ## Configuration
 
