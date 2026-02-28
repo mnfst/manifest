@@ -19,6 +19,7 @@ interface MessageItem {
   agent_name: string | null;
   model: string | null;
   routing_tier?: string;
+  routing_reason?: string;
   input_tokens: number | null;
   output_tokens: number | null;
   total_tokens: number | null;
@@ -64,8 +65,8 @@ const MessageLog: Component = () => {
 
   return (
     <div class="container--full">
-      <Title>{params.agentName} - Messages | Manifest</Title>
-      <Meta name="description" content={`Browse all messages sent and received by ${params.agentName}. Filter by status, model, or cost.`} />
+      <Title>{decodeURIComponent(params.agentName)} Messages - Manifest</Title>
+      <Meta name="description" content={`Browse all messages sent and received by ${decodeURIComponent(params.agentName)}. Filter by status, model, or cost.`} />
       <div class="page-header">
         <div>
           <h1>Messages</h1>
@@ -172,7 +173,7 @@ const MessageLog: Component = () => {
                 <table class="data-table">
                   <thead>
                     <tr>
-                      <th>Time</th>
+                      <th>Date</th>
                       <th>Message</th>
                       <th>Cost</th>
                       <th>Total Tokens</th>
@@ -204,7 +205,7 @@ const MessageLog: Component = () => {
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Time</th>
+                  <th>Date</th>
                   <th>Message</th>
                   <th>Cost</th>
                   <th>Total Tokens<InfoTooltip text="Tokens are units of text that AI models process. More tokens = higher cost." /></th>
@@ -223,9 +224,16 @@ const MessageLog: Component = () => {
                       </td>
                       <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                         {item.id.slice(0, 8)}
+                        {item.routing_reason === 'heartbeat' && (
+                          <span title="Heartbeat" style="display: inline-flex; align-items: center; margin-left: 4px; color: hsl(var(--muted-foreground)); opacity: 0.7;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                            </svg>
+                          </span>
+                        )}
                       </td>
-                      <td style="font-family: var(--font-mono);">
-                        {item.cost != null ? formatCost(item.cost) : "\u2014"}
+                      <td style="font-family: var(--font-mono);" title={item.cost != null && item.cost > 0 && item.cost < 0.01 ? `$${item.cost.toFixed(6)}` : undefined}>
+                        {item.cost != null ? (formatCost(item.cost) ?? "\u2014") : "\u2014"}
                       </td>
                       <td style="font-family: var(--font-mono);">
                         {item.total_tokens != null ? formatNumber(item.total_tokens) : "\u2014"}
@@ -242,8 +250,8 @@ const MessageLog: Component = () => {
                             <span title={inferProviderName(item.model)} style="display: inline-flex; flex-shrink: 0;">{providerIcon(inferProviderFromModel(item.model)!, 14)}</span>
                           )}
                           {item.model ?? "\u2014"}
+                          {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
                         </span>
-                        {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
                       </td>
                       <td>
                         <span class={`status-badge status-badge--${item.status}`}>

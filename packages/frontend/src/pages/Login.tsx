@@ -97,7 +97,7 @@ const Login: Component = () => {
 
   return (
     <>
-      <Title>Sign In | Manifest</Title>
+      <Title>Sign In - Manifest</Title>
       <Meta name="description" content="Sign in to Manifest to monitor your AI agents." />
       <Show when={localRedirecting()}>
         <div class="auth-header">

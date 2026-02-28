@@ -17,9 +17,12 @@ import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ProxyService } from './proxy.service';
+import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
 import { initSseHeaders, pipeStream } from './stream-writer';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
+
+const MAX_SEEN_USERS = 10_000;
 
 @Controller('v1')
 @Public()
@@ -34,6 +37,7 @@ export class ProxyController {
 
   constructor(
     private readonly proxyService: ProxyService,
+    private readonly rateLimiter: ProxyRateLimiter,
     private readonly providerClient: ProviderClient,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
@@ -49,14 +53,22 @@ export class ProxyController {
     const sessionKey = (req.headers['x-session-key'] as string) || 'default';
     const isStream = body.stream === true;
     let headersSent = false;
+    let slotAcquired = false;
+
+    const clientAbort = new AbortController();
+    res.on('close', () => clientAbort.abort());
 
     try {
+      this.rateLimiter.checkLimit(userId);
+      this.rateLimiter.acquireSlot(userId);
+      slotAcquired = true;
       const { forward, meta } = await this.proxyService.proxyRequest(
         userId,
         body,
         sessionKey,
         tenantId,
         agentName,
+        clientAbort.signal,
       );
 
       this.trackFirstProxyRequest(userId, meta);
@@ -66,13 +78,26 @@ export class ProxyController {
         'X-Manifest-Model': meta.model,
         'X-Manifest-Provider': meta.provider,
         'X-Manifest-Confidence': String(meta.confidence),
+        'X-Manifest-Reason': meta.reason,
       };
 
       const providerResponse = forward.response;
 
       if (!providerResponse.ok) {
         const errorBody = await providerResponse.text();
-        res.status(providerResponse.status);
+        const errorStatus = providerResponse.status;
+
+        this.recordProviderError(
+          req.ingestionContext,
+          errorStatus,
+          errorBody,
+          meta.model,
+          meta.tier,
+        ).catch((e) =>
+          this.logger.warn(`Failed to record provider error: ${e}`),
+        );
+
+        res.status(errorStatus);
         for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
         const contentType = providerResponse.headers.get('content-type');
         if (contentType) res.setHeader('Content-Type', contentType);
@@ -108,13 +133,19 @@ export class ProxyController {
         res.json(responseBody);
       }
     } catch (err: unknown) {
+      if (clientAbort.signal.aborted) {
+        if (!res.writableEnded) res.end();
+        return;
+      }
+
       const message = err instanceof Error ? err.message : String(err);
       const status = err instanceof HttpException ? err.getStatus() : 500;
       this.logger.error(`Proxy error: ${message}`);
 
-      if (status === 429) {
-        this.recordRateLimited(req.ingestionContext, message).catch((e) =>
-          this.logger.warn(`Failed to record rate_limited message: ${e}`),
+      if (status === 429 || status === 403 || status >= 500) {
+        this.recordProviderError(req.ingestionContext, status, message).catch(
+          (e) =>
+            this.logger.warn(`Failed to record provider error: ${e}`),
         );
       }
 
@@ -127,30 +158,45 @@ export class ProxyController {
       res.status(status).json({
         error: { message: clientMessage, type: 'proxy_error' },
       });
+    } finally {
+      if (slotAcquired) this.rateLimiter.releaseSlot(userId);
     }
   }
 
-  private async recordRateLimited(ctx: IngestionContext, errorMessage: string): Promise<void> {
-    const key = `${ctx.tenantId}:${ctx.agentId}`;
-    const now = Date.now();
-    const lastRecorded = this.rateLimitCooldown.get(key) ?? 0;
-    if (now - lastRecorded < this.RATE_LIMIT_COOLDOWN_MS) return;
-    this.rateLimitCooldown.set(key, now);
+  private async recordProviderError(
+    ctx: IngestionContext,
+    httpStatus: number,
+    errorMessage: string,
+    model?: string,
+    tier?: string,
+  ): Promise<void> {
+    if (httpStatus === 429) {
+      const key = `${ctx.tenantId}:${ctx.agentId}`;
+      const now = Date.now();
+      const lastRecorded = this.rateLimitCooldown.get(key) ?? 0;
+      if (now - lastRecorded < this.RATE_LIMIT_COOLDOWN_MS) return;
+      this.rateLimitCooldown.set(key, now);
 
-    if (this.rateLimitCooldown.size > this.MAX_COOLDOWN_ENTRIES) {
-      for (const [k, v] of this.rateLimitCooldown) {
-        if (now - v >= this.RATE_LIMIT_COOLDOWN_MS) this.rateLimitCooldown.delete(k);
+      if (this.rateLimitCooldown.size > this.MAX_COOLDOWN_ENTRIES) {
+        for (const [k, v] of this.rateLimitCooldown) {
+          if (now - v >= this.RATE_LIMIT_COOLDOWN_MS)
+            this.rateLimitCooldown.delete(k);
+        }
       }
     }
+
+    const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
     await this.messageRepo.insert({
       id: uuid(),
       tenant_id: ctx.tenantId,
       agent_id: ctx.agentId,
       timestamp: new Date().toISOString(),
-      status: 'rate_limited',
-      error_message: errorMessage,
+      status: messageStatus,
+      error_message: errorMessage.slice(0, 500),
       agent_name: ctx.agentName,
+      model: model ?? null,
+      routing_tier: tier ?? null,
       input_tokens: 0,
       output_tokens: 0,
       cache_read_tokens: 0,
@@ -163,6 +209,10 @@ export class ProxyController {
     meta: { provider: string; model: string; tier: string },
   ): void {
     if (this.seenUsers.has(userId)) return;
+    if (this.seenUsers.size >= MAX_SEEN_USERS) {
+      const oldest = this.seenUsers.values().next().value as string;
+      this.seenUsers.delete(oldest);
+    }
     this.seenUsers.add(userId);
     trackCloudEvent('routing_first_proxy_request', userId, {
       provider: meta.provider,

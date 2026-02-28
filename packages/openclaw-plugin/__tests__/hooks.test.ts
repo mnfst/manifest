@@ -2,10 +2,17 @@ import { SpanKind, SpanStatusCode } from "@opentelemetry/api";
 import { initMetrics, registerHooks } from "../src/hooks";
 import { SPANS, METRICS, ATTRS } from "../src/constants";
 import { ManifestConfig } from "../src/config";
+import { resolveRouting } from "../src/routing";
+
+jest.mock("../src/routing", () => ({
+  resolveRouting: jest.fn(),
+}));
+const mockResolveRouting = resolveRouting as jest.MockedFunction<typeof resolveRouting>;
 
 // --- Mock span ---
 function createMockSpan() {
   return {
+    setAttribute: jest.fn(),
     setAttributes: jest.fn(),
     setStatus: jest.fn(),
     end: jest.fn(),
@@ -75,6 +82,22 @@ const config: ManifestConfig = {
   host: "127.0.0.1",
 };
 
+const localConfig: ManifestConfig = {
+  mode: "local",
+  apiKey: "",
+  endpoint: "http://localhost:38238/otlp",
+  port: 2099,
+  host: "127.0.0.1",
+};
+
+const devConfig: ManifestConfig = {
+  mode: "dev",
+  apiKey: "",
+  endpoint: "http://localhost:38238/otlp",
+  port: 2099,
+  host: "127.0.0.1",
+};
+
 describe("initMetrics", () => {
   it("creates all expected counters and histograms", () => {
     const meter = createMockMeter();
@@ -138,6 +161,22 @@ describe("registerHooks", () => {
     expect(api.on).toHaveBeenCalledWith("before_agent_start", expect.any(Function));
     expect(api.on).toHaveBeenCalledWith("tool_result_persist", expect.any(Function));
     expect(api.on).toHaveBeenCalledWith("agent_end", expect.any(Function));
+  });
+
+  it("falls back to registerHook when api.on is not available", () => {
+    const fallbackApi = {
+      handlers: new Map<string, (event: unknown) => void>(),
+      registerHook: jest.fn((event: string, handler: (event: unknown) => void) => {
+        fallbackApi.handlers.set(event, handler);
+      }),
+    };
+    const fbTracer = createMockTracer();
+    const fbMeter = createMockMeter();
+    initMetrics(fbMeter as any);
+    registerHooks(fallbackApi as any, fbTracer as any, config, mockLogger);
+
+    expect(fallbackApi.registerHook).toHaveBeenCalledWith("message_received", expect.any(Function));
+    expect(fallbackApi.registerHook).toHaveBeenCalledWith("agent_end", expect.any(Function));
   });
 
   it("logs that hooks are registered", () => {
@@ -528,6 +567,61 @@ describe("registerHooks", () => {
       });
     });
 
+    it("sets ERROR status on turn span when event.success is false", () => {
+      api.emit("message_received", { sessionKey: "sess-err" });
+      api.emit("before_agent_start", { sessionKey: "sess-err" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-err",
+        success: false,
+        error: { message: "403 Key limit exceeded" },
+        messages: [],
+      });
+
+      expect(turnSpan.setStatus).toHaveBeenCalledWith({
+        code: SpanStatusCode.ERROR,
+        message: "403 Key limit exceeded",
+      });
+      expect(turnSpan.end).toHaveBeenCalled();
+    });
+
+    it("uses fallback error message when event.error is absent", () => {
+      api.emit("message_received", { sessionKey: "sess-err2" });
+      api.emit("before_agent_start", { sessionKey: "sess-err2" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-err2",
+        success: false,
+        messages: [],
+      });
+
+      expect(turnSpan.setStatus).toHaveBeenCalledWith({
+        code: SpanStatusCode.ERROR,
+        message: "Agent turn failed",
+      });
+    });
+
+    it("does not set ERROR status when event.success is true", () => {
+      api.emit("message_received", { sessionKey: "sess-ok" });
+      api.emit("before_agent_start", { sessionKey: "sess-ok" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-ok",
+        success: true,
+        messages: [
+          { role: "assistant", model: "gpt-4o", usage: { input: 10, output: 5 } },
+        ],
+      });
+
+      expect(turnSpan.setStatus).not.toHaveBeenCalled();
+    });
+
     it("does not end root span when it is the same as turn span", () => {
       // When before_agent_start fires without a prior message_received,
       // root and turn are the same span object
@@ -541,6 +635,393 @@ describe("registerHooks", () => {
 
       // end() should be called once (for turn), not twice
       expect(turnSpan.end).toHaveBeenCalledTimes(1);
+    });
+
+    it("sets ROUTING_REASON and ROUTING_TIER for heartbeat when messages contain HEARTBEAT_OK", () => {
+      api.emit("message_received", { sessionKey: "hb-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-sess",
+        messages: [
+          { role: "user", content: "Check tasks and reply HEARTBEAT_OK if nothing needs attention." },
+          {
+            role: "assistant",
+            model: "gpt-4o-mini",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "heartbeat",
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "simple",
+      );
+    });
+
+    it("sets ROUTING_REASON and ROUTING_TIER for heartbeat when HEARTBEAT_OK is in array content", () => {
+      api.emit("message_received", { sessionKey: "hb-arr-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-arr-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-arr-sess",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Check tasks and reply HEARTBEAT_OK if nothing needs attention." },
+            ],
+          },
+          {
+            role: "assistant",
+            model: "gpt-4o-mini",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "heartbeat",
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "simple",
+      );
+    });
+
+    it("does not detect heartbeat when user message content is neither string nor array", () => {
+      api.emit("message_received", { sessionKey: "hb-nonstr-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-nonstr-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-nonstr-sess",
+        messages: [
+          { role: "user", content: 12345 },
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        expect.anything(),
+      );
+    });
+
+    it("does not detect heartbeat for null message objects", () => {
+      api.emit("message_received", { sessionKey: "hb-null-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-null-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-null-sess",
+        messages: [
+          null,
+          { role: "assistant", model: "gpt-4o", usage: { input: 10, output: 5 } },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        expect.anything(),
+      );
+    });
+
+    it("does not detect heartbeat when array content part has non-text type", () => {
+      api.emit("message_received", { sessionKey: "hb-imgcontent" });
+      api.emit("before_agent_start", { sessionKey: "hb-imgcontent" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-imgcontent",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "image", url: "HEARTBEAT_OK.png" },
+            ],
+          },
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "heartbeat",
+      );
+    });
+
+    it("does not set ROUTING_REASON when no heartbeat sentinel", () => {
+      api.emit("message_received", { sessionKey: "no-hb-sess" });
+      api.emit("before_agent_start", { sessionKey: "no-hb-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "no-hb-sess",
+        messages: [
+          { role: "user", content: "Hello, how are you?" },
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 100, output: 50 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        expect.anything(),
+      );
+    });
+
+    it("uses event.errorMessage as fallback when event.error is absent", () => {
+      api.emit("message_received", { sessionKey: "sess-errmsg" });
+      api.emit("before_agent_start", { sessionKey: "sess-errmsg" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-errmsg",
+        success: false,
+        errorMessage: "Provider returned 503",
+        messages: [],
+      });
+
+      expect(turnSpan.setStatus).toHaveBeenCalledWith({
+        code: SpanStatusCode.ERROR,
+        message: "Provider returned 503",
+      });
+    });
+
+    it("truncates long error messages to 500 characters", () => {
+      api.emit("message_received", { sessionKey: "sess-longmsg" });
+      api.emit("before_agent_start", { sessionKey: "sess-longmsg" });
+
+      const turnSpan = tracer.spans[1];
+      const longMsg = "x".repeat(600);
+
+      api.emit("agent_end", {
+        sessionKey: "sess-longmsg",
+        success: false,
+        error: { message: longMsg },
+        messages: [],
+      });
+
+      expect(turnSpan.setStatus).toHaveBeenCalledWith({
+        code: SpanStatusCode.ERROR,
+        message: "x".repeat(500),
+      });
+    });
+  });
+
+  describe("agent_end with routing resolution", () => {
+    let localApi: ReturnType<typeof createMockApi>;
+    let localTracer: ReturnType<typeof createMockTracer>;
+    let localMeter: ReturnType<typeof createMockMeter>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      localApi = createMockApi();
+      localTracer = createMockTracer();
+      localMeter = createMockMeter();
+      initMetrics(localMeter as any);
+      registerHooks(localApi, localTracer as any, localConfig, mockLogger);
+    });
+
+    it("sets ROUTING_REASON from resolved routing when model is auto in local mode", async () => {
+      mockResolveRouting.mockResolvedValueOnce({
+        tier: "standard",
+        model: "gpt-4o",
+        provider: "OpenAI",
+        reason: "scored",
+      });
+
+      localApi.emit("message_received", { sessionKey: "route-sess" });
+      localApi.emit("before_agent_start", { sessionKey: "route-sess" });
+
+      const turnSpan = localTracer.spans[1];
+
+      localApi.emit("agent_end", {
+        sessionKey: "route-sess",
+        messages: [
+          {
+            role: "assistant",
+            model: "auto",
+            provider: "manifest",
+            usage: { input: 100, output: 50 },
+          },
+        ],
+      });
+
+      // Wait for async agent_end handler
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(mockResolveRouting).toHaveBeenCalled();
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "standard",
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "scored",
+      );
+    });
+
+    it("resolves routing in dev mode when model is auto", async () => {
+      jest.clearAllMocks();
+      const devApi = createMockApi();
+      const devTracer = createMockTracer();
+      const devMeter = createMockMeter();
+      initMetrics(devMeter as any);
+      registerHooks(devApi, devTracer as any, devConfig, mockLogger);
+
+      mockResolveRouting.mockResolvedValueOnce({
+        tier: "complex",
+        model: "claude-sonnet-4",
+        provider: "Anthropic",
+        reason: "multi-step",
+      });
+
+      devApi.emit("message_received", { sessionKey: "dev-sess" });
+      devApi.emit("before_agent_start", { sessionKey: "dev-sess" });
+
+      const turnSpan = devTracer.spans[1];
+
+      devApi.emit("agent_end", {
+        sessionKey: "dev-sess",
+        messages: [
+          {
+            role: "assistant",
+            model: "auto",
+            provider: "manifest",
+            usage: { input: 200, output: 100 },
+          },
+        ],
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(mockResolveRouting).toHaveBeenCalled();
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "multi-step",
+      );
+    });
+
+    it("resolves routing in cloud mode when model is auto", async () => {
+      jest.clearAllMocks();
+      const cloudApi = createMockApi();
+      const cloudTracer = createMockTracer();
+      const cloudMeter = createMockMeter();
+      initMetrics(cloudMeter as any);
+      registerHooks(cloudApi, cloudTracer as any, config, mockLogger);
+
+      mockResolveRouting.mockResolvedValueOnce({
+        tier: "standard",
+        model: "gpt-4o",
+        provider: "OpenAI",
+        reason: "scored",
+      });
+
+      cloudApi.emit("message_received", { sessionKey: "cloud-sess" });
+      cloudApi.emit("before_agent_start", { sessionKey: "cloud-sess" });
+
+      const turnSpan = cloudTracer.spans[1];
+
+      cloudApi.emit("agent_end", {
+        sessionKey: "cloud-sess",
+        messages: [
+          {
+            role: "assistant",
+            model: "auto",
+            provider: "manifest",
+            usage: { input: 50, output: 25 },
+          },
+        ],
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(mockResolveRouting).toHaveBeenCalled();
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.MODEL]: "gpt-4o",
+          [ATTRS.PROVIDER]: "OpenAI",
+        }),
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "standard",
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "scored",
+      );
+    });
+
+    it("overrides routing reason to heartbeat when HEARTBEAT_OK is in messages and model is auto", async () => {
+      mockResolveRouting.mockResolvedValueOnce({
+        tier: "standard",
+        model: "gpt-4o-mini",
+        provider: "OpenAI",
+        reason: "scored",
+      });
+
+      localApi.emit("message_received", { sessionKey: "hb-route" });
+      localApi.emit("before_agent_start", { sessionKey: "hb-route" });
+
+      const turnSpan = localTracer.spans[1];
+
+      localApi.emit("agent_end", {
+        sessionKey: "hb-route",
+        messages: [
+          { role: "user", content: "HEARTBEAT_OK check" },
+          {
+            role: "assistant",
+            model: "auto",
+            provider: "manifest",
+            usage: { input: 20, output: 5 },
+          },
+        ],
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      // Heartbeat overrides the routing reason
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "heartbeat",
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "simple",
+      );
     });
   });
 });

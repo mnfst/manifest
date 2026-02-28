@@ -34,6 +34,7 @@ interface RecentMessage {
   agent_name: string | null
   model: string | null
   routing_tier?: string
+  routing_reason?: string
   input_tokens: number | null
   output_tokens: number | null
   total_tokens: number | null
@@ -111,14 +112,19 @@ const Overview: Component = () => {
     }
   })
 
-  const trendBadge = (pct: number) => {
-    if (pct === 0) return null;
-    const cls = pct > 0 ? 'trend trend--up' : 'trend trend--down'
-    const sign = pct > 0 ? '+' : ''
+  const trendBadge = (pct: number, value?: number) => {
+    if (pct === 0) return null
+    // Don't show trend when the metric value itself is effectively zero
+    if (value !== undefined && Math.abs(value) < 0.005) return null
+    // Clamp absurd percentages (safety net for floating-point edge cases)
+    const clamped = Math.max(-999, Math.min(999, Math.round(pct)))
+    if (clamped === 0) return null
+    const cls = clamped > 0 ? 'trend trend--up' : 'trend trend--down'
+    const sign = clamped > 0 ? '+' : ''
     return (
       <span class={cls}>
         {sign}
-        {pct}%
+        {clamped}%
       </span>
     )
   }
@@ -132,10 +138,10 @@ const Overview: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>{params.agentName} - Overview | Manifest</Title>
+      <Title>{decodeURIComponent(params.agentName)} Overview - Manifest</Title>
       <Meta
         name="description"
-        content={`Monitor ${params.agentName} performance — costs, tokens, and activity.`}
+        content={`Monitor ${decodeURIComponent(params.agentName)} performance — costs, tokens, and activity.`}
       />
       <div class="page-header">
         <div>
@@ -305,7 +311,7 @@ const Overview: Component = () => {
                 <table class="data-table">
                   <thead>
                     <tr>
-                      <th>Time</th>
+                      <th>Date</th>
                       <th>Message</th>
                       <th>Cost</th>
                       <th>Model</th>
@@ -366,9 +372,9 @@ const Overview: Component = () => {
                       <span class="chart-card__label">Cost</span>
                       <div class="chart-card__value-row">
                         <span class="chart-card__value">
-                          {formatCost(d().summary?.cost_today?.value ?? 0)}
+                          {formatCost(d().summary?.cost_today?.value ?? 0) ?? '$0.00'}
                         </span>
-                        {trendBadge(d().summary?.cost_today?.trend_pct ?? 0)}
+                        {trendBadge(d().summary?.cost_today?.trend_pct ?? 0, d().summary?.cost_today?.value ?? 0)}
                       </div>
                     </div>
                     <div
@@ -386,7 +392,7 @@ const Overview: Component = () => {
                         <span class="chart-card__value">
                           {formatNumber(d().summary?.tokens_today?.value ?? 0)}
                         </span>
-                        {trendBadge(d().summary?.tokens_today?.trend_pct ?? 0)}
+                        {trendBadge(d().summary?.tokens_today?.trend_pct ?? 0, d().summary?.tokens_today?.value ?? 0)}
                       </div>
                     </div>
                     <div
@@ -401,7 +407,7 @@ const Overview: Component = () => {
                         <span class="chart-card__value">
                           {d().summary?.messages?.value ?? 0}
                         </span>
-                        {trendBadge(d().summary?.messages?.trend_pct ?? 0)}
+                        {trendBadge(d().summary?.messages?.trend_pct ?? 0, d().summary?.messages?.value ?? 0)}
                       </div>
                     </div>
                   </div>
@@ -467,7 +473,7 @@ const Overview: Component = () => {
                   <table class="data-table">
                     <thead>
                       <tr>
-                        <th>Time</th>
+                        <th>Date</th>
                         <th>Message</th>
                         <th>Cost</th>
                         <th>Model</th>
@@ -484,10 +490,17 @@ const Overview: Component = () => {
                             </td>
                             <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                               {item.id.slice(0, 8)}
+                              {item.routing_reason === 'heartbeat' && (
+                                <span title="Heartbeat" style="display: inline-flex; align-items: center; margin-left: 4px; color: hsl(var(--muted-foreground)); opacity: 0.7;">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                                  </svg>
+                                </span>
+                              )}
                             </td>
-                            <td style="font-family: var(--font-mono);">
+                            <td style="font-family: var(--font-mono);" title={item.cost != null && item.cost > 0 && item.cost < 0.01 ? `$${item.cost.toFixed(6)}` : undefined}>
                               {item.cost != null
-                                ? formatCost(item.cost)
+                                ? (formatCost(item.cost) ?? '\u2014')
                                 : '\u2014'}
                             </td>
                             <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
@@ -496,8 +509,8 @@ const Overview: Component = () => {
                                   <span title={inferProviderName(item.model)} style="display: inline-flex; flex-shrink: 0;">{providerIcon(inferProviderFromModel(item.model)!, 14)}</span>
                                 )}
                                 {item.model ?? '\u2014'}
+                                {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
                               </span>
-                              {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
                             </td>
                             <td style="font-family: var(--font-mono);">
                               {item.total_tokens != null
@@ -558,8 +571,8 @@ const Overview: Component = () => {
                                 </span>
                               </div>
                             </td>
-                            <td style="font-weight: 600;">
-                              {formatCost(row.estimated_cost)}
+                            <td style="font-weight: 600;" title={row.estimated_cost > 0 && row.estimated_cost < 0.01 ? `$${row.estimated_cost.toFixed(6)}` : undefined}>
+                              {formatCost(row.estimated_cost) ?? '\u2014'}
                             </td>
                           </tr>
                         )}

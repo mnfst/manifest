@@ -21,7 +21,7 @@ openclaw config set plugins.entries.manifest.config.mode dev
 openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp
 
 # 3. Restart the gateway
-openclaw gateway --force
+openclaw gateway restart
 ```
 
 No API key needed. The dashboard shows an orange **Dev** badge in the header when running in local mode. Dev mode uses the OTLP loopback bypass — the `OtlpAuthGuard` trusts same-machine connections without Bearer token auth.
@@ -36,13 +36,13 @@ openclaw config set plugins.entries.manifest.config.mode dev
 openclaw config set plugins.entries.manifest.config.endpoint http://localhost:<PORT>/otlp
 
 # Force restart the gateway (kills existing process and starts fresh)
-openclaw gateway --force
+openclaw gateway restart
 ```
 
 **Important notes:**
 - The OpenClaw config lives at `~/.openclaw/openclaw.json`. The gateway may restore certain fields (like `apiKey`) on restart — editing the file directly doesn't always stick.
 - In dev mode, the gateway sends `Authorization: Bearer dev-no-auth` to the proxy. The `OtlpAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in local mode, so this works without real API keys.
-- After restarting the backend server, **always restart the gateway too** (`openclaw gateway --force`) — the OTLP pipeline doesn't automatically reconnect.
+- After restarting the backend server, **always restart the gateway too** (`openclaw gateway restart`) — the OTLP pipeline doesn't automatically reconnect.
 - The gateway batches OTLP telemetry and sends it every ~10-30 seconds. New messages may take a moment to appear in the dashboard.
 
 ## Active Technologies

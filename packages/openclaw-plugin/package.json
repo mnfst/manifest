@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "5.11.1",
+  "version": "5.17.0",
   "description": "Observability plugin for OpenClaw — traces, metrics, and cost tracking for your AI agent",
   "main": "dist/index.js",
   "license": "MIT",
@@ -45,6 +45,8 @@
   "keywords": [
     "openclaw",
     "openclaw-plugin",
+    "openclaw-extension",
+    "openclaw-observability",
     "clawdbot",
     "moltbot",
     "manifest",

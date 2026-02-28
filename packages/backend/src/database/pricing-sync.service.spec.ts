@@ -49,12 +49,13 @@ describe('PricingSyncService', () => {
       mockModuleRef,
     );
     jest.clearAllMocks();
+    mockFindOneBy.mockResolvedValue(null);
     mockGetAll.mockReturnValue([]);
     mockGetUnresolved.mockResolvedValue([]);
     mockCount.mockResolvedValue(0);
   });
 
-  it('upserts all models with valid pricing', async () => {
+  it('creates only OpenRouter copies for new models not in seeder', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -67,8 +68,40 @@ describe('PricingSyncService', () => {
 
     const updated = await service.syncPricing();
     expect(updated).toBe(2);
+    // No canonical entries for new models — only 2 OpenRouter copies
     expect(mockUpsert).toHaveBeenCalledTimes(2);
     expect(mockRecordChange).toHaveBeenCalledTimes(2);
+  });
+
+  it('updates pricing but preserves provider for existing models', async () => {
+    const existing = {
+      model_name: 'gpt-4o',
+      provider: 'OpenAI',
+      input_price_per_token: 0.000001,
+    };
+    mockFindOneBy.mockResolvedValue(existing);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // Canonical upsert should NOT include provider
+    const canonicalCall = mockUpsert.mock.calls.find(
+      (call) => call[0].model_name === 'gpt-4o',
+    );
+    expect(canonicalCall).toBeDefined();
+    expect(canonicalCall![0]).not.toHaveProperty('provider');
+    expect(canonicalCall![0]).toMatchObject({
+      model_name: 'gpt-4o',
+      input_price_per_token: 0.0000025,
+      output_price_per_token: 0.00001,
+    });
   });
 
   it('skips models with zero pricing', async () => {
@@ -184,6 +217,8 @@ describe('PricingSyncService', () => {
       }),
       'sync',
     );
+    // Only OpenRouter copy (canonical skipped for new models)
+    expect(mockUpsert).toHaveBeenCalledTimes(1);
   });
 
   it('passes existing model to recordChange when found', async () => {
@@ -364,9 +399,17 @@ describe('PricingSyncService', () => {
         provider: 'Unknown',
       });
     });
+
+    it('preserves full ID for openrouter/ models', () => {
+      expect(service.deriveNames('openrouter/auto')).toEqual({
+        canonical: 'openrouter/auto',
+        provider: 'OpenRouter',
+      });
+    });
   });
 
   it('maps Zhipu provider correctly', async () => {
+    mockFindOneBy.mockResolvedValue({ model_name: 'glm-4-plus', provider: 'Zhipu' });
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -377,16 +420,24 @@ describe('PricingSyncService', () => {
     });
 
     await service.syncPricing();
+    // Canonical upsert preserves existing provider (no provider field)
+    const canonicalCall = mockUpsert.mock.calls.find(
+      (call) => call[0].model_name === 'glm-4-plus',
+    );
+    expect(canonicalCall).toBeDefined();
+    expect(canonicalCall![0]).not.toHaveProperty('provider');
+    // Also stores OpenRouter copy
     expect(mockUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        model_name: 'glm-4-plus',
-        provider: 'Zhipu',
+        model_name: 'zhipuai/glm-4-plus',
+        provider: 'OpenRouter',
       }),
       ['model_name'],
     );
   });
 
   it('maps Amazon provider correctly', async () => {
+    mockFindOneBy.mockResolvedValue({ model_name: 'nova-pro', provider: 'Amazon' });
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -397,16 +448,210 @@ describe('PricingSyncService', () => {
     });
 
     await service.syncPricing();
+    // Canonical upsert preserves existing provider (no provider field)
+    const canonicalCall = mockUpsert.mock.calls.find(
+      (call) => call[0].model_name === 'nova-pro',
+    );
+    expect(canonicalCall).toBeDefined();
+    expect(canonicalCall![0]).not.toHaveProperty('provider');
+    // Also stores OpenRouter copy
     expect(mockUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        model_name: 'nova-pro',
-        provider: 'Amazon',
+        model_name: 'amazon/nova-pro',
+        provider: 'OpenRouter',
       }),
       ['model_name'],
     );
   });
 
+  it('skips openrouter/auto entirely when not in seeder', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openrouter/auto', pricing: { prompt: '0.000003', completion: '0.000015' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    // Not in seeder and no vendor prefix → no upserts
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('updates openrouter/auto pricing when already seeded', async () => {
+    mockFindOneBy.mockResolvedValue({
+      model_name: 'openrouter/auto',
+      provider: 'OpenRouter',
+    });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openrouter/auto', pricing: { prompt: '0.000003', completion: '0.000015' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'openrouter/auto',
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000015,
+      }),
+      ['model_name'],
+    );
+    // Provider is preserved (not included in upsert)
+    expect(mockUpsert.mock.calls[0][0]).not.toHaveProperty('provider');
+  });
+
+  it('stores context_length as context_window when present (new model)', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', context_length: 128000, pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // New model — only OpenRouter copy (canonical skipped)
+    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'openai/gpt-4o',
+        provider: 'OpenRouter',
+        context_window: 128000,
+      }),
+      ['model_name'],
+    );
+  });
+
+  it('stores context_length as context_window for existing models', async () => {
+    mockFindOneBy.mockResolvedValue({ model_name: 'gpt-4o', provider: 'OpenAI' });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', context_length: 128000, pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // Canonical upsert includes context_window
+    const canonicalCall = mockUpsert.mock.calls.find(
+      (call) => call[0].model_name === 'gpt-4o',
+    );
+    expect(canonicalCall).toBeDefined();
+    expect(canonicalCall![0]).toMatchObject({
+      context_window: 128000,
+    });
+    expect(canonicalCall![0]).not.toHaveProperty('provider');
+  });
+
+  it('omits context_window when context_length is missing (uses DB default)', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // No upsert call should include context_window
+    for (const call of mockUpsert.mock.calls) {
+      expect(call[0]).not.toHaveProperty('context_window');
+    }
+  });
+
+  it('stores OpenRouter copy with full vendor-prefixed ID', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'anthropic/claude-opus-4', pricing: { prompt: '0.000015', completion: '0.000075' } },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // New model — only OpenRouter copy (no canonical entry)
+    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'anthropic/claude-opus-4',
+        provider: 'OpenRouter',
+        input_price_per_token: 0.000015,
+        output_price_per_token: 0.000075,
+      }),
+      ['model_name'],
+    );
+  });
+
+  it('logs warning when OpenRouter copy upsert fails', async () => {
+    mockFindOneBy.mockResolvedValue({
+      model_name: 'claude-opus-4',
+      provider: 'Anthropic',
+    });
+    mockUpsert
+      .mockResolvedValueOnce(undefined) // canonical upsert succeeds
+      .mockRejectedValueOnce(new Error('unique constraint violated')); // OpenRouter copy fails
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'anthropic/claude-opus-4', pricing: { prompt: '0.000015', completion: '0.000075' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    // Model still counts as updated (canonical upsert succeeded)
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
+  });
+
+  it('skips bare models (no slash) when not in seeder', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'bare-model', pricing: { prompt: '0.000001', completion: '0.000001' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    // Not in seeder, no vendor prefix → no upserts
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('skips models with negative pricing', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openrouter/bodybuilder', pricing: { prompt: '-1', completion: '-1' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
   it('maps Qwen/Alibaba provider correctly', async () => {
+    mockFindOneBy.mockResolvedValue({ model_name: 'qwen3-235b-a22b', provider: 'Alibaba' });
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -417,10 +662,17 @@ describe('PricingSyncService', () => {
     });
 
     await service.syncPricing();
+    // Canonical upsert preserves existing provider (no provider field)
+    const canonicalCall = mockUpsert.mock.calls.find(
+      (call) => call[0].model_name === 'qwen3-235b-a22b',
+    );
+    expect(canonicalCall).toBeDefined();
+    expect(canonicalCall![0]).not.toHaveProperty('provider');
+    // Also stores OpenRouter copy
     expect(mockUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        model_name: 'qwen3-235b-a22b',
-        provider: 'Alibaba',
+        model_name: 'qwen/qwen3-235b-a22b',
+        provider: 'OpenRouter',
       }),
       ['model_name'],
     );

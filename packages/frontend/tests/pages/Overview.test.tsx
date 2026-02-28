@@ -133,6 +133,41 @@ describe("Overview", () => {
     });
   });
 
+  it("hides trend badges when metric values are zero", async () => {
+    const zeroData = {
+      ...overviewData,
+      summary: {
+        ...overviewData.summary,
+        cost_today: { value: 0, trend_pct: -34497259 },
+        tokens_today: { value: 0, trend_pct: 500, sub_values: { input: 0, output: 0 } },
+        messages: { value: 0, trend_pct: -100 },
+      },
+    };
+    mockGetOverview.mockResolvedValue(zeroData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("$0.00");
+      const trends = container.querySelectorAll(".trend");
+      expect(trends.length).toBe(0);
+    });
+  });
+
+  it("clamps absurdly large trend percentages", async () => {
+    const absurdData = {
+      ...overviewData,
+      summary: {
+        ...overviewData.summary,
+        cost_today: { value: 5.0, trend_pct: 5000000 },
+      },
+    };
+    mockGetOverview.mockResolvedValue(absurdData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("+999%");
+      expect(container.textContent).not.toContain("5000000%");
+    });
+  });
+
   it("shows recent messages table", async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);

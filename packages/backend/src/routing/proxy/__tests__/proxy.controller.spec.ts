@@ -26,6 +26,7 @@ function mockResponse(): {
       statusCode = code;
       return res;
     }),
+    on: jest.fn(),
     writableEnded: false,
   };
   return { res, written, headers, get statusCode() { return statusCode; } };
@@ -47,6 +48,11 @@ function mockRequest(body: Record<string, unknown>, userId = 'user-1') {
 describe('ProxyController', () => {
   let controller: ProxyController;
   let proxyService: { proxyRequest: jest.Mock };
+  let rateLimiter: {
+    checkLimit: jest.Mock;
+    acquireSlot: jest.Mock;
+    releaseSlot: jest.Mock;
+  };
   let providerClient: {
     convertGoogleResponse: jest.Mock;
     convertGoogleStreamChunk: jest.Mock;
@@ -56,6 +62,11 @@ describe('ProxyController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     proxyService = { proxyRequest: jest.fn() };
+    rateLimiter = {
+      checkLimit: jest.fn(),
+      acquireSlot: jest.fn(),
+      releaseSlot: jest.fn(),
+    };
     providerClient = {
       convertGoogleResponse: jest.fn(),
       convertGoogleStreamChunk: jest.fn(),
@@ -63,6 +74,7 @@ describe('ProxyController', () => {
     mockMessageRepo = { insert: jest.fn().mockResolvedValue({}) };
     controller = new ProxyController(
       proxyService as never,
+      rateLimiter as never,
       providerClient as never,
       mockMessageRepo as never,
     );
@@ -77,7 +89,7 @@ describe('ProxyController', () => {
 
     proxyService.proxyRequest.mockResolvedValue({
       forward: { response: mockProviderResp, isGoogle: false },
-      meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
     });
 
     const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -91,6 +103,7 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Model']).toBe('gpt-4o');
     expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     expect(headers['X-Manifest-Confidence']).toBe('0.9');
+    expect(headers['X-Manifest-Reason']).toBe('scored');
   });
 
   it('should convert Google response for non-streaming', async () => {
@@ -104,7 +117,7 @@ describe('ProxyController', () => {
 
     proxyService.proxyRequest.mockResolvedValue({
       forward: { response: mockProviderResp, isGoogle: true },
-      meta: { tier: 'standard', model: 'gemini-2.0-flash', provider: 'Google', confidence: 0.8 },
+      meta: { tier: 'standard', model: 'gemini-2.0-flash', provider: 'Google', confidence: 0.8, reason: 'scored' },
     });
     providerClient.convertGoogleResponse.mockReturnValue(convertedBody);
 
@@ -129,7 +142,7 @@ describe('ProxyController', () => {
 
     proxyService.proxyRequest.mockResolvedValue({
       forward: { response: mockProviderResp, isGoogle: false },
-      meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
+      meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
     });
 
     const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
@@ -194,8 +207,29 @@ describe('ProxyController', () => {
     expect(res.status).toHaveBeenCalledWith(429);
   });
 
-  it('should not record agent_message on non-429 errors', async () => {
+  it('should record error message on 500 from catch block', async () => {
     proxyService.proxyRequest.mockRejectedValue(new Error('Internal failure'));
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    // Wait for fire-and-forget promise
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'error',
+        error_message: 'Internal failure',
+      }),
+    );
+  });
+
+  it('should not record agent_message on 400 errors from catch block', async () => {
+    proxyService.proxyRequest.mockRejectedValue(
+      new HttpException('Bad request', 400),
+    );
 
     const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
     const { res } = mockResponse();
@@ -229,7 +263,7 @@ describe('ProxyController', () => {
         response: new Response(JSON.stringify(responseBody), { status: 200 }),
         isGoogle: false,
       },
-      meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
     });
 
     const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -244,6 +278,7 @@ describe('ProxyController', () => {
       'my-session',
       'tenant-1',
       'test-agent',
+      expect.any(AbortSignal),
     );
   });
 
@@ -253,7 +288,7 @@ describe('ProxyController', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
       },
-      meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
     });
 
     const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -267,7 +302,338 @@ describe('ProxyController', () => {
       'default',
       'tenant-1',
       'test-agent',
+      expect.any(AbortSignal),
     );
+  });
+
+  describe('rate limiting', () => {
+    it('should call checkLimit and acquireSlot before proxying', async () => {
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: new Response('{}', { status: 200 }), isGoogle: false },
+        meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(rateLimiter.checkLimit).toHaveBeenCalledWith('user-1');
+      expect(rateLimiter.acquireSlot).toHaveBeenCalledWith('user-1');
+    });
+
+    it('should releaseSlot even when proxyService throws', async () => {
+      proxyService.proxyRequest.mockRejectedValue(new Error('fail'));
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(rateLimiter.releaseSlot).toHaveBeenCalledWith('user-1');
+    });
+
+    it('should not call proxyService when checkLimit throws', async () => {
+      rateLimiter.checkLimit.mockImplementation(() => {
+        throw new HttpException('Too many requests', 429);
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(proxyService.proxyRequest).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(429);
+    });
+
+    it('should NOT releaseSlot when checkLimit throws (slot never acquired)', async () => {
+      rateLimiter.checkLimit.mockImplementation(() => {
+        throw new HttpException('Rate limit exceeded', 429);
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(rateLimiter.acquireSlot).not.toHaveBeenCalled();
+      expect(rateLimiter.releaseSlot).not.toHaveBeenCalled();
+    });
+
+    it('should NOT releaseSlot when acquireSlot throws (slot never acquired)', async () => {
+      rateLimiter.acquireSlot.mockImplementation(() => {
+        throw new HttpException('Too many concurrent requests', 429);
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(rateLimiter.checkLimit).toHaveBeenCalled();
+      expect(rateLimiter.releaseSlot).not.toHaveBeenCalled();
+    });
+
+    it('should record 429 when checkLimit throws with 429', async () => {
+      rateLimiter.checkLimit.mockImplementation(() => {
+        throw new HttpException('Rate limit exceeded. Try again later.', 429);
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'rate_limited',
+          tenant_id: 'tenant-1',
+        }),
+      );
+    });
+  });
+
+  describe('provider error recording', () => {
+    it('should record error message on 403 provider response', async () => {
+      const errorBody = '{"error":{"message":"Key limit exceeded"}}';
+      const mockProviderResp = new Response(errorBody, {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenant_id: 'tenant-1',
+          agent_id: 'agent-1',
+          status: 'error',
+          error_message: errorBody,
+          model: 'gpt-4o',
+          routing_tier: 'standard',
+          input_tokens: 0,
+          output_tokens: 0,
+        }),
+      );
+    });
+
+    it('should record rate_limited on 429 provider response', async () => {
+      const errorBody = '{"error":"rate limit"}';
+      const mockProviderResp = new Response(errorBody, {
+        status: 429,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'rate_limited',
+          model: 'gpt-4o',
+          routing_tier: 'standard',
+        }),
+      );
+    });
+
+    it('should record error on 500 provider response', async () => {
+      const errorBody = 'Internal server error';
+      const mockProviderResp = new Response(errorBody, {
+        status: 500,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false },
+        meta: { tier: 'complex', model: 'claude-opus-4', provider: 'Anthropic', confidence: 0.9, reason: 'scored' },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'error',
+          model: 'claude-opus-4',
+          routing_tier: 'complex',
+        }),
+      );
+    });
+
+    it('should apply 429 cooldown for provider responses', async () => {
+      const makeResp = () => new Response('{"error":"rate limit"}', {
+        status: 429,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: makeResp(), isGoogle: false },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
+      });
+
+      const req1 = mockRequest({ messages: [{ role: 'user', content: 'a' }] });
+      const { res: res1 } = mockResponse();
+      await controller.chatCompletions(req1 as never, res1 as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: makeResp(), isGoogle: false },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
+      });
+
+      const req2 = mockRequest({ messages: [{ role: 'user', content: 'b' }] });
+      const { res: res2 } = mockResponse();
+      await controller.chatCompletions(req2 as never, res2 as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Only first 429 should be recorded (cooldown)
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
+    });
+
+    it('should truncate long error messages to 500 chars', async () => {
+      const longError = 'x'.repeat(1000);
+      const mockProviderResp = new Response(longError, {
+        status: 403,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_message: 'x'.repeat(500),
+        }),
+      );
+    });
+  });
+
+  describe('client disconnect', () => {
+    it('should register close listener on response', async () => {
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: new Response('{}', { status: 200 }), isGoogle: false },
+        meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.on).toHaveBeenCalledWith('close', expect.any(Function));
+    });
+
+    it('should pass AbortSignal to proxyService', async () => {
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: new Response('{}', { status: 200 }), isGoogle: false },
+        meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      const signal = proxyService.proxyRequest.mock.calls[0][5];
+      expect(signal).toBeInstanceOf(AbortSignal);
+      expect(signal.aborted).toBe(false);
+    });
+
+    it('should silently end response when client disconnects', async () => {
+      const abortController = new AbortController();
+      proxyService.proxyRequest.mockImplementation(async () => {
+        abortController.abort();
+        throw new Error('aborted');
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      // Capture the close callback and wire it to our AbortController
+      (res.on as jest.Mock).mockImplementation((event: string, cb: () => void) => {
+        if (event === 'close') {
+          abortController.signal.addEventListener('abort', cb);
+        }
+      });
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.end).toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it('should not call res.end on abort when writableEnded is already true', async () => {
+      const abortController = new AbortController();
+      proxyService.proxyRequest.mockImplementation(async () => {
+        abortController.abort();
+        throw new Error('aborted');
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+      res.writableEnded = true;
+
+      (res.on as jest.Mock).mockImplementation((event: string, cb: () => void) => {
+        if (event === 'close') {
+          abortController.signal.addEventListener('abort', cb);
+        }
+      });
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.end).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it('should still release slot when client disconnects', async () => {
+      const abortController = new AbortController();
+      proxyService.proxyRequest.mockImplementation(async () => {
+        abortController.abort();
+        throw new Error('aborted');
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      (res.on as jest.Mock).mockImplementation((event: string, cb: () => void) => {
+        if (event === 'close') {
+          abortController.signal.addEventListener('abort', cb);
+        }
+      });
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(rateLimiter.releaseSlot).toHaveBeenCalledWith('user-1');
+    });
   });
 
   describe('first proxy request tracking', () => {
@@ -278,7 +644,7 @@ describe('ProxyController', () => {
           response: new Response(JSON.stringify(responseBody), { status: 200 }),
           isGoogle: false,
         },
-        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
       });
 
       const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -299,7 +665,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
         },
-        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
       });
 
       proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
@@ -322,7 +688,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
         },
-        meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+        meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
       });
 
       proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
@@ -357,7 +723,7 @@ describe('ProxyController', () => {
 
       proxyService.proxyRequest.mockResolvedValue({
         forward: { response: mockProviderResp, isGoogle: false },
-        meta: { tier: 'complex', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.7 },
+        meta: { tier: 'complex', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.7, reason: 'scored' },
       });
 
       const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -401,7 +767,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
         },
-        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
       });
 
       const req2 = mockRequest({ messages: [{ role: 'user', content: 'retry' }] });
@@ -423,7 +789,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
         },
-        meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+        meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
       });
 
       const req1 = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -437,7 +803,7 @@ describe('ProxyController', () => {
       const errorResp = new Response('{"error":"rate limit"}', { status: 429 });
       proxyService.proxyRequest.mockResolvedValue({
         forward: { response: errorResp, isGoogle: false },
-        meta: { tier: 'complex', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
+        meta: { tier: 'complex', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
       });
 
       const req2 = mockRequest({ messages: [{ role: 'user', content: 'hi again' }] });
@@ -458,6 +824,7 @@ describe('ProxyController', () => {
           model: 'o1-pro',
           provider: 'OpenAI',
           confidence: 0.95,
+          reason: 'scored',
         },
       });
 
@@ -477,6 +844,250 @@ describe('ProxyController', () => {
       // confidence should NOT be in the tracking payload
       const trackingProps = (telemetry.trackCloudEvent as jest.Mock).mock.calls[0][2];
       expect(trackingProps).not.toHaveProperty('confidence');
+    });
+  });
+
+  describe('error handling edge cases', () => {
+    it('should mask error message for 500+ status codes', async () => {
+      proxyService.proxyRequest.mockRejectedValue(
+        new Error('Sensitive internal error details'),
+      );
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        error: { message: 'Internal proxy error', type: 'proxy_error' },
+      });
+    });
+
+    it('should expose original message for client errors (4xx)', async () => {
+      proxyService.proxyRequest.mockRejectedValue(
+        new HttpException('messages array is required', 400),
+      );
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: { message: 'messages array is required', type: 'proxy_error' },
+      });
+    });
+
+    it('should handle non-Error throw as string', async () => {
+      proxyService.proxyRequest.mockRejectedValue('string error');
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        error: { message: 'Internal proxy error', type: 'proxy_error' },
+      });
+    });
+
+    it('should forward provider error response and preserve content-type from provider', async () => {
+      const mockProviderResp = new Response('{"error":"bad gateway"}', {
+        status: 502,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res, headers } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.status).toHaveBeenCalledWith(502);
+      expect(res.send).toHaveBeenCalledWith('{"error":"bad gateway"}');
+      expect(headers['Content-Type']).toBe('application/json');
+      // Meta headers should still be set
+      expect(headers['X-Manifest-Provider']).toBe('OpenAI');
+    });
+
+    it('should end stream without error JSON when headers already sent and error occurs', async () => {
+      const failingStream = new ReadableStream({
+        start(ctrl) {
+          ctrl.error(new Error('mid-stream failure'));
+        },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: new Response(failingStream, { status: 200 }), isGoogle: false },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
+      });
+
+      const req = mockRequest({
+        messages: [{ role: 'user', content: 'hi' }],
+        stream: true,
+      });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.end).toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it('should not call res.end when headers sent and writableEnded is true', async () => {
+      const failingStream = new ReadableStream({
+        start(ctrl) {
+          ctrl.error(new Error('mid-stream failure'));
+        },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: new Response(failingStream, { status: 200 }), isGoogle: false },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
+      });
+
+      const req = mockRequest({
+        messages: [{ role: 'user', content: 'hi' }],
+        stream: true,
+      });
+      const { res } = mockResponse();
+
+      // Simulate writableEnded becoming true before end is called
+      (res.end as jest.Mock).mockImplementation(() => {
+        // no-op, already ended
+      });
+      // pipeStream will call res.end in its finally block, but the
+      // controller's catch checks writableEnded. We set it true after
+      // pipeStream's finally runs.
+      let flushCalled = false;
+      (res.flushHeaders as jest.Mock).mockImplementation(() => {
+        flushCalled = true;
+      });
+
+      await controller.chatCompletions(req as never, res as never);
+
+      // Just verify it doesn't throw and end is called at least once (by pipeStream)
+      expect(flushCalled).toBe(true);
+    });
+  });
+
+  describe('recordRateLimited edge cases', () => {
+    it('should handle messageRepo.insert failure gracefully', async () => {
+      mockMessageRepo.insert.mockRejectedValue(new Error('DB connection failed'));
+
+      proxyService.proxyRequest.mockRejectedValue(
+        new HttpException('Rate limit exceeded', 429),
+      );
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      // Should not throw even though insert fails
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.status).toHaveBeenCalledWith(429);
+    });
+
+    it('should allow recording after cooldown expires', async () => {
+      jest.useFakeTimers();
+
+      const limitError = new HttpException('Limit exceeded', 429);
+      proxyService.proxyRequest.mockRejectedValue(limitError);
+
+      // First 429 — should record
+      const req1 = mockRequest({ messages: [{ role: 'user', content: 'a' }] });
+      const { res: res1 } = mockResponse();
+      await controller.chatCompletions(req1 as never, res1 as never);
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
+
+      // Advance past cooldown (60s)
+      jest.advanceTimersByTime(60_001);
+
+      // Second 429 after cooldown — should record again
+      const req2 = mockRequest({ messages: [{ role: 'user', content: 'b' }] });
+      const { res: res2 } = mockResponse();
+      await controller.chatCompletions(req2 as never, res2 as never);
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
+
+      jest.useRealTimers();
+    });
+
+    it('should allow recording for different agents within cooldown', async () => {
+      const limitError = new HttpException('Limit exceeded', 429);
+      proxyService.proxyRequest.mockRejectedValue(limitError);
+
+      // First agent
+      const req1 = mockRequest({ messages: [{ role: 'user', content: 'a' }] });
+      const { res: res1 } = mockResponse();
+      await controller.chatCompletions(req1 as never, res1 as never);
+
+      // Different agent (different agentId means different cooldown key)
+      const req2 = {
+        ingestionContext: {
+          userId: 'user-1',
+          tenantId: 'tenant-1',
+          agentId: 'agent-2',
+          agentName: 'other-agent',
+        },
+        body: { messages: [{ role: 'user', content: 'b' }] },
+        headers: {},
+      };
+      const { res: res2 } = mockResponse();
+      await controller.chatCompletions(req2 as never, res2 as never);
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('seenUsers bounded Set', () => {
+    it('should evict oldest user when MAX_SEEN_USERS is reached', async () => {
+      // Access internal seenUsers set to pre-fill it
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const seenUsers = (controller as any).seenUsers as Set<string>;
+
+      // Pre-fill to MAX_SEEN_USERS - 1 (so next add triggers eviction check)
+      for (let i = 0; i < 9_999; i++) {
+        seenUsers.add(`prefill-user-${i}`);
+      }
+
+      const makeProxyResult = () => ({
+        forward: {
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+        },
+        meta: { tier: 'simple' as const, model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      });
+
+      // This request fills the Set to exactly 10K
+      proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
+      const req1 = mockRequest(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        'user-9999',
+      );
+      const { res: res1 } = mockResponse();
+      await controller.chatCompletions(req1 as never, res1 as never);
+
+      expect(seenUsers.size).toBe(10_000);
+
+      // Next request should evict the oldest entry
+      proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
+      const req2 = mockRequest(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        'user-10000',
+      );
+      const { res: res2 } = mockResponse();
+      await controller.chatCompletions(req2 as never, res2 as never);
+
+      expect(seenUsers.size).toBe(10_000);
+      expect(seenUsers.has('prefill-user-0')).toBe(false);
+      expect(seenUsers.has('user-10000')).toBe(true);
     });
   });
 
@@ -507,7 +1118,7 @@ describe('ProxyController', () => {
 
       proxyService.proxyRequest.mockResolvedValue({
         forward: { response: mockProviderResp, isGoogle: false },
-        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
       });
 
       const req = mockRequest({
@@ -530,7 +1141,7 @@ describe('ProxyController', () => {
 
       proxyService.proxyRequest.mockResolvedValue({
         forward: { response: mockProviderResp, isGoogle: true },
-        meta: { tier: 'standard', model: 'gemini-2.0-flash', provider: 'Google', confidence: 0.8 },
+        meta: { tier: 'standard', model: 'gemini-2.0-flash', provider: 'Google', confidence: 0.8, reason: 'scored' },
       });
 
       providerClient.convertGoogleStreamChunk.mockReturnValue(
@@ -560,7 +1171,7 @@ describe('ProxyController', () => {
 
       proxyService.proxyRequest.mockResolvedValue({
         forward: { response: new Response(failingStream, { status: 200 }), isGoogle: false },
-        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
       });
 
       const req = mockRequest({

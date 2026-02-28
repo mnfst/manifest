@@ -12,8 +12,18 @@ export function formatTimestamp(d: Date): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(d.getMilliseconds(), 3)}`;
 }
 
+/**
+ * Compute the percentage change between two values.
+ * Returns 0 when values are too small for a meaningful comparison,
+ * and clamps the result to ±999 to avoid absurd display values
+ * caused by near-zero floating-point denominators.
+ */
 export function computeTrend(current: number, previous: number): number {
-  return previous === 0 ? 0 : Math.round(((current - previous) / previous) * 100);
+  const EPS = 1e-6;
+  if (Math.abs(previous) < EPS) return 0;
+  if (Math.abs(current) < EPS && Math.abs(previous) < EPS) return 0;
+  const pct = Math.round(((current - previous) / previous) * 100);
+  return Math.max(-999, Math.min(999, pct));
 }
 
 export function downsample(data: number[], targetLen: number): number[] {

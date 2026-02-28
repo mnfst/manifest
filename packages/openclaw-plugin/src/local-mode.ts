@@ -16,6 +16,7 @@ import { initTelemetry, shutdownTelemetry } from "./telemetry";
 import { registerHooks, initMetrics } from "./hooks";
 import { registerRouting } from "./routing";
 import { registerTools } from "./tools";
+import { registerCommand } from "./command";
 import { API_KEY_PREFIX } from "./constants";
 
 const CONFIG_DIR = join(homedir(), ".openclaw", "manifest");
@@ -82,18 +83,23 @@ function atomicWriteJson(path: string, data: unknown): void {
   renameSync(tmp, path);
 }
 
+// TODO: Replace direct file mutation with api.config persistent API
+// when OpenClaw documents a write-through config mechanism.
+// See: https://docs.openclaw.ai/tools/plugin#configuration
+
 /**
  * Injects the Manifest provider configuration into OpenClaw's config file
  * and runtime config so that `manifest/auto` is recognized as a valid model.
+ *
+ * `baseUrl` must include the `/v1` path (e.g. `http://127.0.0.1:2099/v1`
+ * or `https://app.manifest.build/v1`).
  */
 export function injectProviderConfig(
   api: any,
-  host: string,
-  port: number,
+  baseUrl: string,
   apiKey: string,
   logger: PluginLogger,
 ): void {
-  const baseUrl = `http://${host}:${port}/v1`;
 
   const providerConfig = {
     baseUrl,
@@ -237,7 +243,7 @@ export function registerLocalMode(
   logger.debug("[manifest] Local mode — starting embedded server...");
 
   // Inject provider config BEFORE routing registration
-  injectProviderConfig(api, host, port, apiKey, logger);
+  injectProviderConfig(api, `http://${host}:${port}/v1`, apiKey, logger);
   injectAuthProfile(apiKey, logger);
 
   // Load the embedded server module
@@ -270,6 +276,7 @@ export function registerLocalMode(
   if (typeof api.registerTool === "function") {
     registerTools(api, localConfig, logger);
   }
+  registerCommand(api, localConfig, logger);
 
   logger.info(`[manifest] 🦚 View your Manifest Dashboard -> http://${host}:${port}`);
 

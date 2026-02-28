@@ -1,7 +1,6 @@
-import { createSignal, createResource, For, Show, onMount, type Component } from "solid-js";
-import { useParams, useNavigate } from "@solidjs/router";
+import { createSignal, createResource, For, Show, type Component } from "solid-js";
+import { useParams } from "@solidjs/router";
 import { Title, Meta } from "@solidjs/meta";
-import { checkLocalMode } from "../services/local-mode.js";
 import { STAGES, PROVIDERS, getModelLabel } from "../services/providers.js";
 import { providerIcon } from "../components/ProviderIcon.js";
 import ProviderSelectModal from "../components/ProviderSelectModal.js";
@@ -35,13 +34,7 @@ function providerIdForModel(model: string, apiModels: AvailableModel[]): string 
 
 const Routing: Component = () => {
   const params = useParams<{ agentName: string }>();
-  const navigate = useNavigate();
   const agentName = () => decodeURIComponent(params.agentName);
-
-  onMount(async () => {
-    const local = await checkLocalMode();
-    if (!local) navigate(`/agents/${params.agentName}`, { replace: true });
-  });
 
   const [tiers, { refetch: refetchTiers }] = createResource(getTierAssignments);
   const [models, { refetch: refetchModels }] = createResource(getAvailableModels);
@@ -143,7 +136,7 @@ const Routing: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>{agentName()} - Routing | Manifest</Title>
+      <Title>{agentName()} Routing - Manifest</Title>
       <Meta name="description" content={`Configure model routing for ${agentName()}.`} />
 
       <div class="page-header routing-page-header">

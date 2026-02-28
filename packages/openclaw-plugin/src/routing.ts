@@ -55,7 +55,7 @@ export async function resolveRouting(
   messages: unknown[],
   sessionKey: string,
   logger: PluginLogger,
-): Promise<{ tier: string; model: string; provider: string } | null> {
+): Promise<{ tier: string; model: string; provider: string; reason: string } | null> {
   ensureCleanupTimer();
 
   const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, "");
@@ -136,6 +136,7 @@ export async function resolveRouting(
       tier: data.tier,
       model: data.model,
       provider: data.provider ?? "unknown",
+      reason: data.reason ?? "",
     };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -165,6 +166,7 @@ export function registerRouting(
     api.registerProvider({
       id: "manifest",
       name: "Manifest Router",
+      label: "Manifest Router",
       api: "openai-completions",
       baseUrl,
       apiKey: config.apiKey,

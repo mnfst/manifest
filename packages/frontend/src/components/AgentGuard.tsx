@@ -7,6 +7,7 @@ import { isLocalMode, checkLocalMode } from "../services/local-mode.js";
 
 interface Agent {
   agent_name: string;
+  display_name?: string;
 }
 
 interface AgentsData {

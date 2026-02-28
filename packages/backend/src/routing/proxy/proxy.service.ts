@@ -20,6 +20,7 @@ export interface RoutingMeta {
   model: string;
   provider: string;
   confidence: number;
+  reason: string;
 }
 
 export interface ProxyResult {
@@ -45,6 +46,7 @@ export class ProxyService {
     sessionKey: string,
     tenantId?: string,
     agentName?: string,
+    signal?: AbortSignal,
   ): Promise<ProxyResult> {
     const messages = body.messages;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -80,19 +82,22 @@ export class ProxyService {
       .filter((m) => !SCORING_EXCLUDED_ROLES.has(m.role))
       .slice(-SCORING_RECENT_MESSAGES);
 
-    // Heartbeat detection: OpenClaw heartbeats include "HEARTBEAT_OK" in the
-    // user prompt. These are cheap status checks — bypass the scorer entirely.
-    let lastUserMsg: ScorerMessage | undefined;
-    for (let i = scoringMessages.length - 1; i >= 0; i--) {
-      if (scoringMessages[i].role === 'user') {
-        lastUserMsg = scoringMessages[i];
-        break;
+    // Heartbeat detection: OpenClaw heartbeats include "HEARTBEAT_OK" in a
+    // user message. The sentinel may appear in an earlier message (not just the
+    // last one) because the agent appends its own messages after. Check ALL
+    // user messages so the detection works regardless of position.
+    // Content can be a string or array of content parts (multi-modal format).
+    const isHeartbeat = scoringMessages.some((m) => {
+      if (m.role !== 'user') return false;
+      if (typeof m.content === 'string') return m.content.includes('HEARTBEAT_OK');
+      if (Array.isArray(m.content)) {
+        return m.content.some(
+          (p: { type?: string; text?: string }) =>
+            p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
+        );
       }
-    }
-    const isHeartbeat =
-      lastUserMsg &&
-      typeof lastUserMsg.content === 'string' &&
-      lastUserMsg.content.includes('HEARTBEAT_OK');
+      return false;
+    });
 
     // Resolve model via scorer (using filtered messages, no tools —
     // tool presence always inflates scores since gateways send tools
@@ -109,6 +114,11 @@ export class ProxyService {
         );
 
     if (!resolved.model || !resolved.provider) {
+      this.logger.warn(
+        `No model available for user=${userId}: ` +
+        `tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} ` +
+        `confidence=${resolved.confidence} reason=${resolved.reason}`,
+      );
       throw new BadRequestException(
         'No model available. Connect a provider in the Manifest dashboard.',
       );
@@ -136,6 +146,7 @@ export class ProxyService {
       resolved.model,
       body,
       stream,
+      signal,
     );
 
     // Record momentum
@@ -148,6 +159,7 @@ export class ProxyService {
         model: resolved.model,
         provider: resolved.provider,
         confidence: resolved.confidence,
+        reason: resolved.reason,
       },
     };
   }

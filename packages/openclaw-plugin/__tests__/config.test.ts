@@ -83,9 +83,9 @@ describe("parseConfig", () => {
     expect(result.endpoint).toBe(DEFAULTS.ENDPOINT);
   });
 
-  it("defaults mode to local", () => {
+  it("defaults mode to cloud", () => {
     const result = parseConfig({ apiKey: "mnfst_abc" });
-    expect(result.mode).toBe("local");
+    expect(result.mode).toBe("cloud");
   });
 
   it("parses explicit mode: cloud", () => {
@@ -111,24 +111,24 @@ describe("parseConfig", () => {
     expect(result.mode).toBe("dev");
   });
 
-  it("falls back to local for unknown mode string", () => {
+  it("falls back to cloud for unknown mode string", () => {
     const result = parseConfig({ mode: "hybrid" });
-    expect(result.mode).toBe("local");
+    expect(result.mode).toBe("cloud");
   });
 
-  it("falls back to local when mode is a non-string value", () => {
+  it("falls back to cloud when mode is a non-string value", () => {
     const result = parseConfig({ mode: 42 });
-    expect(result.mode).toBe("local");
+    expect(result.mode).toBe("cloud");
   });
 
-  it("defaults to local with zero config (empty object)", () => {
+  it("defaults to cloud with zero config (empty object)", () => {
     const result = parseConfig({});
-    expect(result.mode).toBe("local");
+    expect(result.mode).toBe("cloud");
   });
 
-  it("defaults to local with null input", () => {
+  it("defaults to cloud with null input", () => {
     const result = parseConfig(null);
-    expect(result.mode).toBe("local");
+    expect(result.mode).toBe("cloud");
   });
 
   it("preserves mode: cloud through nested config wrapper", () => {

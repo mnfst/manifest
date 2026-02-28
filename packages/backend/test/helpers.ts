@@ -137,8 +137,8 @@ export async function createTestApp(): Promise<INestApplication> {
     [TEST_TENANT_ID, TEST_USER_ID, 'Test Org', now, now],
   );
   await ds.query(
-    sql(`INSERT INTO agents (id, name, description, is_active, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,true,$4,$5,$6)`),
-    [TEST_AGENT_ID, 'test-agent', 'Test agent', TEST_TENANT_ID, now, now],
+    sql(`INSERT INTO agents (id, name, display_name, description, is_active, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6,$7)`),
+    [TEST_AGENT_ID, 'test-agent', 'Test Agent', 'Test agent', TEST_TENANT_ID, now, now],
   );
   await ds.query(
     sql(`INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`),

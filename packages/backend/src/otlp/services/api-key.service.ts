@@ -30,6 +30,7 @@ export class ApiKeyGeneratorService {
     organizationName?: string;
     email?: string;
     agentDescription?: string;
+    displayName?: string;
   }): Promise<{ tenantId: string; agentId: string; apiKey: string }> {
     const existing = await this.tenantRepo.findOne({
       where: { name: params.tenantName },
@@ -53,6 +54,7 @@ export class ApiKeyGeneratorService {
     await this.agentRepo.insert({
       id: agentId,
       name: params.agentName,
+      display_name: params.displayName ?? null,
       description: params.agentDescription ?? null,
       is_active: true,
       tenant_id: tenantId,

@@ -245,6 +245,33 @@ describe('ApiKeyGeneratorService', () => {
       );
     });
 
+    it('should default display_name to null when omitted', async () => {
+      mockTenantFindOne.mockResolvedValue(null);
+
+      await service.onboardAgent(defaultParams);
+
+      expect(mockAgentInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          display_name: null,
+        }),
+      );
+    });
+
+    it('should store displayName when provided', async () => {
+      mockTenantFindOne.mockResolvedValue(null);
+
+      await service.onboardAgent({
+        ...defaultParams,
+        displayName: 'My Cool Agent',
+      });
+
+      expect(mockAgentInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          display_name: 'My Cool Agent',
+        }),
+      );
+    });
+
     it('should pass agent description when provided', async () => {
       mockTenantFindOne.mockResolvedValue(null);
 

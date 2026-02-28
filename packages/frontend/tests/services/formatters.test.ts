@@ -23,6 +23,20 @@ describe("formatCost", () => {
     expect(formatCost(0)).toBe("$0.00");
     expect(formatCost(17.5)).toBe("$17.50");
   });
+  it("returns null for negative costs (invalid pricing)", () => {
+    expect(formatCost(-1527)).toBeNull();
+    expect(formatCost(-0.01)).toBeNull();
+    expect(formatCost(-9909)).toBeNull();
+  });
+  it("returns '< $0.01' for sub-cent positive costs", () => {
+    expect(formatCost(0.002836)).toBe("< $0.01");
+    expect(formatCost(0.009)).toBe("< $0.01");
+    expect(formatCost(0.001)).toBe("< $0.01");
+  });
+  it("formats costs at or above one cent normally", () => {
+    expect(formatCost(0.01)).toBe("$0.01");
+    expect(formatCost(0.05)).toBe("$0.05");
+  });
 });
 
 describe("formatTrend", () => {
@@ -42,6 +56,7 @@ describe("formatStatus", () => {
     expect(formatStatus("ok")).toBe("Success");
     expect(formatStatus("retry")).toBe("Retried");
     expect(formatStatus("error")).toBe("Failed");
+    expect(formatStatus("rate_limited")).toBe("Rate Limited");
   });
   it("handles case insensitive", () => {
     expect(formatStatus("OK")).toBe("Success");
@@ -63,22 +78,22 @@ describe("formatMetricType", () => {
 });
 
 describe("formatTime", () => {
-  it("formats a UTC timestamp", () => {
+  it("formats a UTC timestamp with date and time", () => {
     const result = formatTime("2024-01-15T09:22:41Z");
-    expect(result).toMatch(/\d{2}:\d{2}:\d{2}/);
+    expect(result).toMatch(/\w+ \d+, \d{2}:\d{2}:\d{2}/);
   });
   it("handles space-separated timestamp", () => {
     const result = formatTime("2024-01-15 09:22:41");
-    expect(result).toMatch(/\d{2}:\d{2}:\d{2}/);
+    expect(result).toMatch(/\w+ \d+, \d{2}:\d{2}:\d{2}/);
   });
 });
 
 describe("formatRelativeTime", () => {
-  it("returns time string for today", () => {
+  it("returns date+time string for today", () => {
     const now = new Date();
     const ts = now.toISOString();
     const result = formatRelativeTime(ts);
-    expect(result).toMatch(/\d{2}:\d{2}:\d{2}/);
+    expect(result).toMatch(/\w+ \d+, \d{2}:\d{2}:\d{2}/);
   });
   it("returns Yesterday for yesterday", () => {
     const yesterday = new Date(Date.now() - 86_400_000 - 1000);

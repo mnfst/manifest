@@ -8,6 +8,8 @@ import {
   createBaseAxes,
   parseTimestamps,
   timeScaleRange,
+  formatLegendTimestamp,
+  formatLegendCost,
 } from "../services/chart-utils.js";
 
 interface CostChartProps {
@@ -42,11 +44,11 @@ const CostChart: Component<CostChartProps> = (props) => {
         height: 260,
         padding: [16, 16, 0, 0],
         cursor: createCursorSnap(bgColor, c1),
-        scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: (_u, _min, max) => [0, max * 1.15] } },
+        scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.15 : 1] } },
         axes,
         series: [
-          {},
-          { label: "Cost", stroke: c1, width: 2.5, fill: makeGradientFillFromVar("--chart-1", 0.25) },
+          { value: formatLegendTimestamp },
+          { label: "Cost", stroke: c1, width: 2.5, fill: makeGradientFillFromVar("--chart-1", 0.25), value: formatLegendCost },
         ],
       }, [
         parseTimestamps(props.data),

@@ -11,6 +11,7 @@ const KNOWN_PROVIDERS = [
   "xai",
   "qwen",
   "moonshot",
+  "openrouter",
   "ollama",
 ];
 

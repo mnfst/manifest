@@ -56,8 +56,9 @@ const Settings: Component = () => {
 
     setSaving(true);
     try {
-      await renameAgent(agentName(), newName);
-      navigate(`/agents/${encodeURIComponent(newName)}/settings`, { replace: true, state: { newAgent: true } });
+      const result = await renameAgent(agentName(), newName);
+      const slug = result?.name ?? newName;
+      navigate(`/agents/${encodeURIComponent(slug)}/settings`, { replace: true, state: { newAgent: true } });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
@@ -81,13 +82,13 @@ const Settings: Component = () => {
     }
   };
 
-  const TABS = () => isLocalMode() ? [] as const : ["General", "Integration"] as const;
-  type Tab = "General" | "Integration";
+  const TABS = () => isLocalMode() ? [] as const : ["General", "Agent setup"] as const;
+  type Tab = "General" | "Agent setup";
   const [tab, setTab] = createSignal<Tab>("General");
 
   return (
     <div class="container--sm">
-      <Title>{agentName()} - Settings | Manifest</Title>
+      <Title>{agentName()} Settings - Manifest</Title>
       <Meta name="description" content={`Configure settings for ${agentName()}.`} />
       <div class="page-header">
         <div>
@@ -165,8 +166,8 @@ const Settings: Component = () => {
         </Show>
       </Show>
 
-      {/* -- Tab: Integration ------------------------- */}
-      <Show when={tab() === "Integration"}>
+      {/* -- Tab: Agent setup ------------------------- */}
+      <Show when={tab() === "Agent setup"}>
         <h3 class="settings-section__title">API Key</h3>
 
         <div class="settings-card">

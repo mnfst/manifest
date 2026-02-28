@@ -68,7 +68,7 @@ const Register: Component = () => {
 
   return (
     <>
-      <Title>Sign Up | Manifest</Title>
+      <Title>Sign Up - Manifest</Title>
       <Meta name="description" content="Create a Manifest account to start monitoring your AI agents." />
       <Show when={emailSent()} fallback={
         <>

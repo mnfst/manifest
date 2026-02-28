@@ -106,13 +106,30 @@ describe('RoutingService', () => {
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'Anthropic',
       } as ModelPricing);
-      mockProviderRepo.findOne.mockResolvedValue({
-        provider: 'anthropic',
-        is_active: true,
-      });
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true },
+      ]);
 
       const result = await service.getEffectiveModel('u1', assignment);
       expect(result).toBe('claude-opus-4-6');
+    });
+
+    it('should match provider case-insensitively', async () => {
+      const assignment = {
+        override_model: 'gpt-4o-mini',
+        auto_assigned_model: 'gpt-oss-20b',
+      } as TierAssignment;
+
+      mockPricingCache.getByModel.mockReturnValue({
+        provider: 'OpenAI',
+      } as ModelPricing);
+      // DB stores "OpenAI" with different case than pricing lowercase
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'OpenAI', is_active: true },
+      ]);
+
+      const result = await service.getEffectiveModel('u1', assignment);
+      expect(result).toBe('gpt-4o-mini');
     });
 
     it('should fall back to auto when provider is disconnected', async () => {
@@ -124,7 +141,7 @@ describe('RoutingService', () => {
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'Anthropic',
       } as ModelPricing);
-      mockProviderRepo.findOne.mockResolvedValue(null); // provider not found
+      mockProviderRepo.find.mockResolvedValue([]); // no active providers
 
       const result = await service.getEffectiveModel('u1', assignment);
       expect(result).toBe('gpt-4o');
@@ -745,6 +762,18 @@ describe('RoutingService', () => {
 
       const result = await service.getProviderApiKey('u1', 'openai');
       expect(result).toBeNull();
+    });
+
+    it('should return empty string for Ollama provider without DB lookup', async () => {
+      const result = await service.getProviderApiKey('u1', 'Ollama');
+      expect(result).toBe('');
+      expect(mockProviderRepo.find).not.toHaveBeenCalled();
+    });
+
+    it('should return empty string for ollama in any case', async () => {
+      const result = await service.getProviderApiKey('u1', 'OLLAMA');
+      expect(result).toBe('');
+      expect(mockProviderRepo.find).not.toHaveBeenCalled();
     });
   });
 });

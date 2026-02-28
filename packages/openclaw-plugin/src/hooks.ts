@@ -66,6 +66,21 @@ export function initMetrics(meter: Meter): void {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+/**
+ * Register an event handler using the best available gateway API.
+ * Current gateways (v2026.2.x) dispatch via api.on(); newer versions
+ * may use api.registerHook() with metadata. Try api.on() first since
+ * it's confirmed to work, fall back to registerHook() for forward compat.
+ */
+function hookOn(api: any, event: string, handler: (...args: any[]) => any): void {
+  if (typeof api.on === "function") {
+    api.on(event, handler);
+  } else if (typeof api.registerHook === "function") {
+    api.registerHook(event, handler);
+  }
+}
+
 export function registerHooks(
   api: any,
   tracer: Tracer,
@@ -74,7 +89,7 @@ export function registerHooks(
 ): void {
   // --- message_received ---
   // Creates the root span for the entire request lifecycle.
-  api.on("message_received", (event: any) => {
+  hookOn(api, "message_received", (event: any) => {
     const sessionKey =
       event.sessionKey || event.session?.key || `agent:${event.agent || "main"}:main`;
     const channel = event.channel || "unknown";
@@ -94,7 +109,7 @@ export function registerHooks(
 
   // --- before_agent_start ---
   // Creates a child span under the root for the agent turn.
-  api.on("before_agent_start", (event: any) => {
+  hookOn(api, "before_agent_start", (event: any) => {
     const sessionKey =
       event.sessionKey ||
       event.session?.key ||
@@ -131,7 +146,7 @@ export function registerHooks(
 
   // --- tool_result_persist ---
   // Records tool metrics and creates a child span.
-  api.on("tool_result_persist", (event: any) => {
+  hookOn(api, "tool_result_persist", (event: any) => {
     const toolName = event.toolName || event.tool || "unknown";
     const durationMs = event.durationMs || 0;
     const success = event.error == null;
@@ -172,7 +187,7 @@ export function registerHooks(
   // Records LLM metrics and closes all spans.
   // Event shape: { messages: Message[], success: boolean, durationMs: number }
   // Usage data lives on each assistant message, not at the top level.
-  api.on("agent_end", async (event: any) => {
+  hookOn(api, "agent_end", async (event: any) => {
     const sessionKey =
       event.sessionKey ||
       event.session?.key ||
@@ -196,14 +211,34 @@ export function registerHooks(
     let finalModel = model;
     let finalProvider = provider;
     let routingTier: string | null = null;
+    let routingReason: string | null = null;
 
-    if (finalModel === "auto" && config.mode !== "cloud") {
+    if (finalModel === "auto") {
       const resolved = await resolveRouting(config, messages, sessionKey, logger);
       if (resolved) {
         finalModel = resolved.model;
         finalProvider = resolved.provider;
         routingTier = resolved.tier;
+        routingReason = resolved.reason || null;
       }
+    }
+
+    // Detect heartbeat from messages — if any user message contains
+    // HEARTBEAT_OK, override the reason so it's identifiable in telemetry.
+    // Content can be a string or array of content parts (multi-modal format).
+    const hasHeartbeat = messages.some((m: any) => {
+      if (!m || m.role !== "user") return false;
+      if (typeof m.content === "string") return m.content.includes("HEARTBEAT_OK");
+      if (Array.isArray(m.content)) {
+        return m.content.some(
+          (p: any) => p.type === "text" && typeof p.text === "string" && p.text.includes("HEARTBEAT_OK"),
+        );
+      }
+      return false;
+    });
+    if (hasHeartbeat) {
+      routingReason = "heartbeat";
+      routingTier = "simple";
     }
 
     const active = activeSpans.get(sessionKey);
@@ -219,6 +254,17 @@ export function registerHooks(
       });
       if (routingTier) {
         active.turn.setAttribute(ATTRS.ROUTING_TIER, routingTier);
+      }
+      if (routingReason) {
+        active.turn.setAttribute(ATTRS.ROUTING_REASON, routingReason);
+      }
+      if (event.success === false) {
+        const errMsg =
+          event.error?.message || event.errorMessage || "Agent turn failed";
+        active.turn.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: typeof errMsg === "string" ? errMsg.slice(0, 500) : String(errMsg),
+        });
       }
       active.turn.end();
     }

@@ -6,7 +6,7 @@ import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
 import { MetricWithTrend, computeTrend, addTenantFilter, formatTimestamp } from './query-helpers';
 import {
-  DbDialect, detectDialect, computeCutoff, sqlCastFloat,
+  DbDialect, detectDialect, computeCutoff, sqlCastFloat, sqlSanitizeCost,
 } from '../../common/utils/sql-dialect';
 
 export { MetricWithTrend };
@@ -82,16 +82,17 @@ export class AggregationService {
     const cutoff = computeCutoff(interval);
     const prevCutoff = computeCutoff(prevInterval);
 
+    const safeCost = sqlSanitizeCost('at.cost_usd');
     const currentQb = this.turnRepo
       .createQueryBuilder('at')
-      .select('COALESCE(SUM(at.cost_usd), 0)', 'total')
+      .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(currentQb, userId, agentName);
     const currentRow = await currentQb.getRawOne();
 
     const prevQb = this.turnRepo
       .createQueryBuilder('at')
-      .select('COALESCE(SUM(at.cost_usd), 0)', 'total')
+      .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
       .where('at.timestamp >= :prevCutoff', { prevCutoff })
       .andWhere('at.timestamp < :cutoff', { cutoff });
     addTenantFilter(prevQb, userId, agentName);
@@ -142,7 +143,7 @@ export class AggregationService {
     await this.agentRepo.delete(agent.id);
   }
 
-  async renameAgent(userId: string, currentName: string, newName: string): Promise<void> {
+  async renameAgent(userId: string, currentName: string, newName: string, displayName?: string): Promise<void> {
     const agent = await this.agentRepo
       .createQueryBuilder('a')
       .leftJoin('a.tenant', 't')
@@ -152,6 +153,19 @@ export class AggregationService {
 
     if (!agent) {
       throw new NotFoundException(`Agent "${currentName}" not found`);
+    }
+
+    // If only display_name changes (same slug), short-circuit
+    if (newName === currentName) {
+      if (displayName !== undefined) {
+        await this.agentRepo
+          .createQueryBuilder()
+          .update('agents')
+          .set({ display_name: displayName })
+          .where('id = :id', { id: agent.id })
+          .execute();
+      }
+      return;
     }
 
     const duplicate = await this.agentRepo
@@ -166,10 +180,13 @@ export class AggregationService {
     }
 
     await this.dataSource.transaction(async (manager) => {
+      const agentUpdate: Record<string, unknown> = { name: newName };
+      if (displayName !== undefined) agentUpdate['display_name'] = displayName;
+
       await manager
         .createQueryBuilder()
         .update('agents')
-        .set({ name: newName })
+        .set(agentUpdate)
         .where('id = :id', { id: agent.id })
         .execute();
 
@@ -220,8 +237,8 @@ export class AggregationService {
     const countResult = await countQb.getRawOne();
     const totalCount = Number(countResult?.total ?? 0);
 
-    // Data (with cursor)
-    const costExpr = sqlCastFloat('at.cost_usd', this.dialect);
+    // Data (with cursor) — treat negative costs as NULL (invalid pricing)
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
     const dataQb = baseQb.clone()
       .select('at.id', 'id')
       .addSelect('at.timestamp', 'timestamp')
@@ -234,7 +251,8 @@ export class AggregationService {
       .addSelect('at.status', 'status')
       .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
       .addSelect(costExpr, 'cost')
-      .addSelect('at.routing_tier', 'routing_tier');
+      .addSelect('at.routing_tier', 'routing_tier')
+      .addSelect('at.routing_reason', 'routing_reason');
 
     if (params.cursor) {
       const sepIdx = params.cursor.indexOf('|');

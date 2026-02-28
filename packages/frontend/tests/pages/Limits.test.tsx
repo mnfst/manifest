@@ -58,6 +58,18 @@ vi.mock("../../src/components/ProviderBanner.js", () => ({
   ),
 }));
 
+vi.mock("../../src/components/CloudEmailInfo.js", () => ({
+  default: (props: any) => (
+    <div data-testid="cloud-email-info">CloudEmailInfo: {props.email}</div>
+  ),
+}));
+
+vi.mock("../../src/services/auth-client.js", () => ({
+  authClient: {
+    useSession: () => () => ({ data: { user: { email: "user@example.com" } } }),
+  },
+}));
+
 import Limits from "../../src/pages/Limits";
 
 describe("Limits page", () => {
@@ -76,6 +88,7 @@ describe("Limits page", () => {
   it("renders breadcrumb with agent name", () => {
     const { container } = render(() => <Limits />);
     expect(container.textContent).toContain("test-agent");
+    expect(container.textContent).toContain("Email alerts & hard limits");
   });
 
   it("renders Create rule button", () => {
@@ -86,6 +99,7 @@ describe("Limits page", () => {
   it("renders empty state when no rules", () => {
     render(() => <Limits />);
     expect(screen.getByText("No rules yet")).toBeDefined();
+    expect(screen.getByText("Create a rule to receive email alerts or block requests when thresholds are exceeded.")).toBeDefined();
   });
 
   it("renders rules table when rules exist", async () => {
@@ -105,18 +119,21 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByText("Alert")).toBeDefined();
+      expect(screen.getByText("Email alert")).toBeDefined();
       expect(screen.getByText("Limit")).toBeDefined();
       expect(container.querySelectorAll("table tbody tr").length).toBe(2);
     });
   });
 
-  it("shows routing CTA banner when routing disabled in cloud mode", () => {
+  it("shows routing CTA banner when routing disabled in cloud mode", async () => {
     mockRoutingStatus = { enabled: false };
     mockIsLocalMode = false;
 
     const { container } = render(() => <Limits />);
-    expect(container.textContent).toContain("Enable routing to set hard limits");
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Enable routing to set hard limits");
+    });
   });
 
   it("hides routing CTA banner when routing enabled", async () => {
@@ -137,17 +154,35 @@ describe("Limits page", () => {
     expect(container.textContent).not.toContain("Enable routing to set hard limits");
   });
 
-  it("shows email provider setup in cloud mode", () => {
+  it("shows cloud email info in cloud mode", () => {
     mockIsLocalMode = false;
+    render(() => <Limits />);
+    expect(screen.getByTestId("cloud-email-info")).toBeDefined();
+  });
+
+  it("shows email provider setup in local mode", () => {
+    mockIsLocalMode = true;
     render(() => <Limits />);
     expect(screen.getByTestId("email-setup")).toBeDefined();
   });
 
-  it("hides email provider section in local mode", () => {
-    mockIsLocalMode = true;
+  it("hides email provider setup in cloud mode", () => {
+    mockIsLocalMode = false;
     const { container } = render(() => <Limits />);
     expect(container.querySelector('[data-testid="email-setup"]')).toBeNull();
     expect(container.querySelector('[data-testid="provider-banner"]')).toBeNull();
+  });
+
+  it("hides cloud email info in local mode", () => {
+    mockIsLocalMode = true;
+    const { container } = render(() => <Limits />);
+    expect(container.querySelector('[data-testid="cloud-email-info"]')).toBeNull();
+  });
+
+  it("passes session email to cloud email info", () => {
+    mockIsLocalMode = false;
+    const { container } = render(() => <Limits />);
+    expect(container.textContent).toContain("user@example.com");
   });
 
   it("passes routingEnabled to modal", async () => {
@@ -268,9 +303,9 @@ describe("Limits page", () => {
     });
   });
 
-  it("shows provider banner when email provider is configured", async () => {
+  it("shows provider banner when email provider is configured in local mode", async () => {
     mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = false;
+    mockIsLocalMode = true;
 
     render(() => <Limits />);
 

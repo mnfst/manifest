@@ -48,21 +48,14 @@ const Sidebar: Component = () => {
         </A>
 
         <div class="sidebar__section-label">MANAGE</div>
-        <Show when={!isLocalMode()}>
-          <A href={path("/settings")} class="sidebar__link" classList={{ active: isActive("/settings") }} aria-current={isActive("/settings") ? "page" : undefined}>
-            Settings
-          </A>
-        </Show>
-        <Show when={isLocalMode()}>
-          <A
-            href={path("/routing")}
-            class="sidebar__link"
-            classList={{ active: isActive("/routing") }}
-            aria-current={isActive("/routing") ? "page" : undefined}
-          >
-            Routing
-          </A>
-        </Show>
+        <A
+          href={path("/routing")}
+          class="sidebar__link"
+          classList={{ active: isActive("/routing") }}
+          aria-current={isActive("/routing") ? "page" : undefined}
+        >
+          Routing
+        </A>
         <A
           href={path("/limits")}
           class="sidebar__link"
@@ -71,6 +64,11 @@ const Sidebar: Component = () => {
         >
           Limits
         </A>
+        <Show when={!isLocalMode()}>
+          <A href={path("/settings")} class="sidebar__link" classList={{ active: isActive("/settings") }} aria-current={isActive("/settings") ? "page" : undefined}>
+            Settings
+          </A>
+        </Show>
       </Show>
 
       <Show when={getAgentName()}>

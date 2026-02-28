@@ -2,8 +2,10 @@ import { createSignal, createResource, For, Show, type Component } from "solid-j
 import { useParams } from "@solidjs/router";
 import { Title, Meta } from "@solidjs/meta";
 import { isLocalMode } from "../services/local-mode.js";
+import { authClient } from "../services/auth-client.js";
 import ProviderBanner from "../components/ProviderBanner.js";
 import EmailProviderSetup from "../components/EmailProviderSetup.js";
+import CloudEmailInfo from "../components/CloudEmailInfo.js";
 import LimitRuleModal from "../components/LimitRuleModal.js";
 import { toast } from "../services/toast-store.js";
 import {
@@ -39,6 +41,7 @@ const Limits: Component = () => {
   );
   const [emailProvider, { refetch: refetchProvider }] = createResource(getEmailProvider);
   const [routingStatus] = createResource(getRoutingStatus);
+  const session = authClient.useSession();
   const [showModal, setShowModal] = createSignal(false);
 
   const routingEnabled = () => routingStatus()?.enabled ?? false;
@@ -95,13 +98,13 @@ const Limits: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>{agentName()} - Limits | Manifest</Title>
+      <Title>{agentName()} Limits - Manifest</Title>
       <Meta name="description" content={`Configure limits and alerts for ${agentName()}.`} />
 
       <div class="page-header">
         <div>
           <h1>Limits</h1>
-          <span class="breadcrumb">{agentName()} &rsaquo; Alerts &amp; hard limits</span>
+          <span class="breadcrumb">{agentName()} &rsaquo; Email alerts &amp; hard limits</span>
         </div>
         <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
           + Create rule
@@ -118,7 +121,7 @@ const Limits: Component = () => {
         </div>
       </Show>
 
-      <Show when={!routingEnabled() && !isLocalMode()}>
+      <Show when={routingStatus() && !routingEnabled() && !isLocalMode()}>
         <div class="limits-routing-cta">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
@@ -131,6 +134,12 @@ const Limits: Component = () => {
       </Show>
 
       <Show when={!isLocalMode()}>
+        <div class="panel" style="margin-bottom: var(--gap-lg);">
+          <CloudEmailInfo email={session().data?.user?.email ?? ""} />
+        </div>
+      </Show>
+
+      <Show when={isLocalMode()}>
         <div class="panel" style="margin-bottom: var(--gap-lg);">
           <Show
             when={emailProvider()}
@@ -152,7 +161,7 @@ const Limits: Component = () => {
           fallback={
             <div class="empty-state">
               <div class="empty-state__title">No rules yet</div>
-              <p>Create a rule to get notified or block requests when limits are exceeded.</p>
+              <p>Create a rule to receive email alerts or block requests when thresholds are exceeded.</p>
             </div>
           }
         >
@@ -184,7 +193,7 @@ const Limits: Component = () => {
                         }>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                         </Show>
-                        {rule.action === "block" ? "Limit" : "Alert"}
+                        {rule.action === "block" ? "Limit" : "Email alert"}
                       </span>
                     </td>
                     <td style="text-transform: capitalize;">{rule.metric_type}</td>

@@ -13,8 +13,12 @@ export function formatNumber(n: number): string {
 
 /**
  * Format a USD cost value (e.g., $6.18, $17.50).
+ * Returns null for negative costs (invalid/unknown pricing).
+ * Returns "< $0.01" for small sub-cent positive costs to avoid misleading "$0.00".
  */
-export function formatCost(n: number): string {
+export function formatCost(n: number): string | null {
+  if (n < 0) return null;
+  if (n > 0 && n < 0.01) return "< $0.01";
   return `$${n.toFixed(2)}`;
 }
 
@@ -27,17 +31,22 @@ export function formatTrend(pct: number): string {
 }
 
 /**
- * Format a timestamp to a short time string (e.g., 09:22:41).
+ * Format a timestamp to a date + time string (e.g., Feb 27, 09:22:41).
  */
 export function formatTime(ts: string): string {
   const normalized = ts.replace(" ", "T");
   const d = new Date(normalized.endsWith("Z") ? normalized : normalized + "Z");
-  return d.toLocaleTimeString("en-US", {
+  const date = d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+  const time = d.toLocaleTimeString("en-US", {
     hour12: false,
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
   });
+  return `${date}, ${time}`;
 }
 
 /**

@@ -3,6 +3,7 @@ import { initTelemetry, shutdownTelemetry, PluginLogger } from "./telemetry";
 import { registerHooks, initMetrics } from "./hooks";
 import { registerRouting } from "./routing";
 import { registerTools } from "./tools";
+import { registerCommand } from "./command";
 import { verifyConnection } from "./verify";
 import { registerLocalMode, injectProviderConfig, injectAuthProfile } from "./local-mode";
 import { trackPluginEvent } from "./product-telemetry";
@@ -38,7 +39,9 @@ module.exports = {
           "[manifest] Cloud mode requires an API key:\n" +
             "  openclaw config set plugins.entries.manifest.config.apiKey mnfst_YOUR_KEY\n" +
             "  openclaw gateway restart\n\n" +
-            "Tip: Remove the mode setting to use local mode instead (zero config).",
+            "Tip: Set mode to local for a zero-config embedded server:\n" +
+            "  openclaw config set plugins.entries.manifest.config.mode local\n" +
+            "  openclaw gateway restart",
         );
       } else {
         logger.error(`[manifest] Configuration error:\n${error}`);
@@ -59,16 +62,16 @@ module.exports = {
       return;
     }
 
+    // Derive the base origin from the OTLP endpoint (strip /otlp suffix).
+    // Used by both dev and cloud modes to build the provider baseUrl.
+    const baseOrigin = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, "");
+
     // Dev mode: connect to an external server without API key
     if (config.mode === "dev") {
       logger.info("[manifest] Dev mode — connecting to external server...");
 
-      const endpointUrl = new URL(config.endpoint);
-      const host = endpointUrl.hostname;
-      const port = parseInt(endpointUrl.port, 10) || (endpointUrl.protocol === "https:" ? 443 : 80);
-
       const devPlaceholderKey = "dev-no-auth";
-      injectProviderConfig(api, host, port, devPlaceholderKey, logger);
+      injectProviderConfig(api, `${baseOrigin}/v1`, devPlaceholderKey, logger);
       injectAuthProfile(devPlaceholderKey, logger);
 
       const { tracer, meter } = initTelemetry(config, logger);
@@ -79,9 +82,9 @@ module.exports = {
       if (typeof api.registerTool === "function") {
         registerTools(api, config, logger);
       }
+      registerCommand(api, config, logger);
 
-      const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, "");
-      logger.info(`[manifest]   Dashboard: ${baseUrl}`);
+      logger.info(`[manifest]   Dashboard: ${baseOrigin}`);
 
       api.registerService({
         id: "manifest-dev",
@@ -109,6 +112,11 @@ module.exports = {
     // Cloud mode
     logger.info("[manifest] Initializing observability pipeline...");
 
+    // Sync the provider config file so the gateway uses the correct
+    // baseUrl and apiKey for proxy requests after restarts.
+    injectProviderConfig(api, `${baseOrigin}/v1`, config.apiKey, logger);
+    injectAuthProfile(config.apiKey, logger);
+
     const { tracer, meter } = initTelemetry(config, logger);
     initMetrics(meter);
     registerHooks(api, tracer, config, logger);
@@ -121,6 +129,7 @@ module.exports = {
         "[manifest] Agent tools not available in this OpenClaw version",
       );
     }
+    registerCommand(api, config, logger);
 
     api.registerService({
       id: "manifest-telemetry",

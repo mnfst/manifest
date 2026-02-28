@@ -111,6 +111,7 @@ describe("resolveRouting", () => {
       tier: "complex",
       model: "gpt-4o",
       provider: "OpenAI",
+      reason: "multi-step reasoning",
     });
   });
 
@@ -152,6 +153,26 @@ describe("resolveRouting", () => {
 
     const result = await resolveRouting(cloudConfig, messages, "sess-6", mockLogger);
     expect(result?.provider).toBe("unknown");
+  });
+
+  it("defaults reason to empty string when not in response", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ tier: "simple", model: "gpt-4o-mini", provider: "OpenAI" }),
+    });
+
+    const result = await resolveRouting(cloudConfig, messages, "sess-reason-1", mockLogger);
+    expect(result?.reason).toBe("");
+  });
+
+  it("passes through reason from response", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ tier: "complex", model: "claude-opus-4", provider: "Anthropic", reason: "multi-step reasoning" }),
+    });
+
+    const result = await resolveRouting(cloudConfig, messages, "sess-reason-2", mockLogger);
+    expect(result?.reason).toBe("multi-step reasoning");
   });
 
   it("strips /otlp from endpoint when building resolve URL", async () => {
@@ -219,6 +240,7 @@ describe("registerRouting", () => {
     expect(api.registerProvider).toHaveBeenCalledWith(
       expect.objectContaining({
         id: "manifest",
+        label: "Manifest Router",
         models: ["auto"],
       }),
     );

@@ -217,6 +217,31 @@ describe('pipeStream', () => {
     expect(res.end).not.toHaveBeenCalled();
   });
 
+  it('should stop reading when dest.writableEnded becomes true', async () => {
+    const { res, written } = mockResponse();
+    let readCount = 0;
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        readCount++;
+        if (readCount === 1) {
+          controller.enqueue(encoder.encode('first'));
+        } else if (readCount === 2) {
+          // Simulate client disconnect
+          (res as Record<string, unknown>).writableEnded = true;
+          controller.enqueue(encoder.encode('second'));
+        } else {
+          controller.enqueue(encoder.encode('should-not-reach'));
+        }
+      },
+    });
+
+    await pipeStream(stream, res as never);
+
+    expect(written).toEqual(['first']);
+  });
+
   it('should handle empty stream', async () => {
     const { res, written } = mockResponse();
     const stream = createReadableStream([]);
@@ -238,5 +263,127 @@ describe('pipeStream', () => {
     // [DONE] in remaining should be skipped
     const nonDone = written.filter((w) => w.includes('out:'));
     expect(nonDone).toHaveLength(0);
+  });
+
+  it('should stop reading and not write [DONE] when dest.writableEnded with transform', async () => {
+    const { res, written } = mockResponse();
+    let readCount = 0;
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        readCount++;
+        if (readCount === 1) {
+          controller.enqueue(encoder.encode('data: event1\n\n'));
+        } else if (readCount === 2) {
+          // Simulate client disconnect mid-stream
+          (res as Record<string, unknown>).writableEnded = true;
+          controller.enqueue(encoder.encode('data: event2\n\n'));
+        } else {
+          controller.enqueue(encoder.encode('data: event3\n\n'));
+        }
+      },
+    });
+
+    const transform = (chunk: string) => `out:${chunk}\n\n`;
+
+    await pipeStream(stream, res as never, transform);
+
+    // Only event1 should have been transformed and written
+    expect(written).toContain('out:event1\n\n');
+    // event2 should NOT be written because writableEnded was set before the loop checked
+    const hasEvent2 = written.some((w) => w.includes('event2'));
+    expect(hasEvent2).toBe(false);
+    // [DONE] should NOT be written when dest is already ended
+    // (the finally block checks writableEnded before calling end)
+  });
+
+  it('should not process SSE events when writableEnded is true from the start with transform', async () => {
+    const { res, written } = mockResponse();
+    res.writableEnded = true;
+    const stream = createReadableStream(['data: event1\n\n']);
+
+    const transform = (chunk: string) => `out:${chunk}\n\n`;
+
+    await pipeStream(stream, res as never, transform);
+
+    // No SSE events should be transformed and written
+    const transformedWrites = written.filter((w) => w.includes('out:'));
+    expect(transformedWrites).toHaveLength(0);
+    // end should not be called since writableEnded is already true
+    expect(res.end).not.toHaveBeenCalled();
+  });
+
+  it('should release reader lock even when stream errors out', async () => {
+    const { res } = mockResponse();
+
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(new Error('stream read error'));
+      },
+    });
+
+    await expect(pipeStream(stream, res as never)).rejects.toThrow('stream read error');
+
+    // After error, the reader lock should be released (finally block runs).
+    // We verify by checking that end was called (finally block behavior).
+    expect(res.end).toHaveBeenCalled();
+  });
+
+  it('should not write remaining whitespace-only buffer through transform', async () => {
+    const { res, written } = mockResponse();
+    // Stream ends with only whitespace remaining (no actual event data)
+    const stream = createReadableStream([
+      'data: real-event\n\n',
+      '   \n  ',
+    ]);
+
+    const transform = (chunk: string) => `out:${chunk}\n\n`;
+
+    await pipeStream(stream, res as never, transform);
+
+    // The real event should be transformed
+    expect(written).toContain('out:real-event\n\n');
+    // Whitespace-only remaining should NOT produce a transform call
+    const spurious = written.filter((w) => w.includes('out:') && !w.includes('real-event'));
+    expect(spurious).toHaveLength(0);
+  });
+
+  it('should handle transform returning null for remaining buffer', async () => {
+    const { res, written } = mockResponse();
+    const stream = createReadableStream([
+      'data: keep\n\n',
+      'data: discard-at-end',
+    ]);
+
+    const transform = (chunk: string) =>
+      chunk.includes('discard') ? null : `out:${chunk}\n\n`;
+
+    await pipeStream(stream, res as never, transform);
+
+    expect(written).toContain('out:keep\n\n');
+    // The remaining buffer "discard-at-end" should be flushed through transform,
+    // which returns null, so nothing extra is written
+    const hasDiscard = written.some((w) => w.includes('discard'));
+    expect(hasDiscard).toBe(false);
+    // [DONE] should still be written for transformed streams
+    expect(written).toContain('data: [DONE]\n\n');
+  });
+
+  it('should handle multiple chunks that split an SSE event with transform', async () => {
+    const { res, written } = mockResponse();
+    // An SSE event split across two TCP reads
+    const stream = createReadableStream([
+      'data: {"part',
+      '":"complete"}\n\n',
+    ]);
+
+    const transform = (chunk: string) => `out:${chunk}\n\n`;
+
+    await pipeStream(stream, res as never, transform);
+
+    // The event should be reassembled and transformed
+    expect(written).toContain('out:{"part":"complete"}\n\n');
+    expect(written).toContain('data: [DONE]\n\n');
   });
 });

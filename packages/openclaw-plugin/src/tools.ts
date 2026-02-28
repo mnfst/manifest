@@ -9,8 +9,7 @@ const RANGE_MAP: Record<string, string> = {
 };
 
 interface ToolResult {
-  result?: unknown;
-  error?: string;
+  content: Array<{ type: "text"; text: string }>;
 }
 
 async function callApi(
@@ -25,12 +24,26 @@ async function callApi(
       ? { Authorization: `Bearer ${apiKey}` }
       : {};
     const res = await fetch(url, { headers });
-    if (!res.ok) return { error: `API returned ${res.status}` };
-    return { result: await res.json() };
+    if (!res.ok) {
+      return { content: [{ type: "text", text: JSON.stringify({ error: `API returned ${res.status}` }) }] };
+    }
+    const data = await res.json();
+    return { content: [{ type: "text", text: JSON.stringify(data) }] };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.error(`[manifest] API call failed: ${msg}`);
-    return { error: msg };
+    return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }] };
+  }
+}
+
+/** Convert new content format to legacy { result?, error? } for older gateways */
+function toLegacy(r: ToolResult): { result?: unknown; error?: string } {
+  try {
+    const parsed = JSON.parse(r.content[0].text);
+    if (parsed.error) return { error: parsed.error };
+    return { result: parsed };
+  } catch {
+    return { result: r.content[0].text };
   }
 }
 
@@ -59,11 +72,15 @@ export function registerTools(
         },
       },
     },
-    handler: async (params: { period?: string }): Promise<ToolResult> => {
+    async handler(params: { period?: string }) {
+      const range = RANGE_MAP[params.period || "today"] || "24h";
+      return toLegacy(await callApi(baseUrl, `/api/v1/agent/usage?range=${range}`, config.apiKey, logger));
+    },
+    async execute(_id: unknown, params: { period?: string }): Promise<ToolResult> {
       const range = RANGE_MAP[params.period || "today"] || "24h";
       return callApi(baseUrl, `/api/v1/agent/usage?range=${range}`, config.apiKey, logger);
     },
-  });
+  }, { optional: true });
 
   api.registerTool({
     name: "manifest_costs",
@@ -81,11 +98,15 @@ export function registerTools(
         },
       },
     },
-    handler: async (params: { period?: string }): Promise<ToolResult> => {
+    async handler(params: { period?: string }) {
+      const range = RANGE_MAP[params.period || "week"] || "7d";
+      return toLegacy(await callApi(baseUrl, `/api/v1/agent/costs?range=${range}`, config.apiKey, logger));
+    },
+    async execute(_id: unknown, params: { period?: string }): Promise<ToolResult> {
       const range = RANGE_MAP[params.period || "week"] || "7d";
       return callApi(baseUrl, `/api/v1/agent/costs?range=${range}`, config.apiKey, logger);
     },
-  });
+  }, { optional: true });
 
   api.registerTool({
     name: "manifest_health",
@@ -93,7 +114,7 @@ export function registerTools(
       "Check whether Manifest observability is connected and working. " +
       "Use when the user asks if monitoring is set up or wants a connectivity test.",
     parameters: { type: "object", properties: {} },
-    handler: async (): Promise<ToolResult> => {
+    async handler() {
       const check = await verifyConnection(config);
       if (check.error) return { error: check.error };
       return {
@@ -105,7 +126,21 @@ export function registerTools(
         },
       };
     },
-  });
+    async execute() {
+      const check = await verifyConnection(config);
+      if (check.error) {
+        return { content: [{ type: "text", text: JSON.stringify({ error: check.error }) }] };
+      }
+      return {
+        content: [{ type: "text", text: JSON.stringify({
+          endpointReachable: check.endpointReachable,
+          authValid: check.authValid,
+          agentName: check.agentName,
+          status: "ok",
+        }) }],
+      };
+    },
+  }, { optional: true });
 
   logger.debug(
     "[manifest] Registered agent tools: manifest_usage, manifest_costs, manifest_health",

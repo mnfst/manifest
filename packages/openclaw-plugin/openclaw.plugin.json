@@ -1,7 +1,7 @@
 {
   "id": "manifest",
+  "kind": "observability",
   "name": "Manifest — Agent Observability",
-  "version": "5.0.0",
   "description": "Traces, metrics, and cost tracking for your OpenClaw agent. Zero-config local dashboard included.",
   "author": "MNFST Inc.",
   "homepage": "https://manifest.build",
@@ -12,8 +12,8 @@
       "mode": {
         "type": "string",
         "enum": ["cloud", "local", "dev"],
-        "default": "local",
-        "description": "Run mode: 'local' starts an embedded server (zero config), 'cloud' sends to app.manifest.build, 'dev' connects to a dev server without API key"
+        "default": "cloud",
+        "description": "Run mode: 'cloud' sends telemetry to app.manifest.build (default), 'local' starts an embedded server (zero config), 'dev' connects to a dev server without API key"
       },
       "apiKey": {
         "type": "string",
@@ -39,7 +39,7 @@
   "uiHints": {
     "mode": {
       "label": "Mode",
-      "description": "Choose 'local' for a self-contained server with sql.js (default), or 'cloud' to send data to app.manifest.build"
+      "description": "Choose 'cloud' to send data to app.manifest.build (default), or 'local' for a self-contained server with sql.js"
     },
     "apiKey": {
       "label": "API Key",

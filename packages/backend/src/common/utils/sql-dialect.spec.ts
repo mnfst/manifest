@@ -9,6 +9,7 @@ import {
   sqlCastFloat,
   portableSql,
   sqlCastInterval,
+  sqlSanitizeCost,
 } from './sql-dialect';
 
 describe('sql-dialect', () => {
@@ -208,6 +209,18 @@ describe('sql-dialect', () => {
       expect(sqlCastInterval('interval', 'postgres')).toBe(
         'CAST(:interval AS interval)',
       );
+    });
+  });
+
+  describe('sqlSanitizeCost', () => {
+    it('returns a CASE expression that nullifies negative costs', () => {
+      const result = sqlSanitizeCost('at.cost_usd');
+      expect(result).toBe('CASE WHEN at.cost_usd >= 0 THEN at.cost_usd ELSE NULL END');
+    });
+
+    it('works with different column names', () => {
+      const result = sqlSanitizeCost('cost');
+      expect(result).toBe('CASE WHEN cost >= 0 THEN cost ELSE NULL END');
     });
   });
 });

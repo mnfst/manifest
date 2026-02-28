@@ -15,6 +15,7 @@ import { ResolveService } from './resolve.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { ProxyService } from './proxy/proxy.service';
 import { ProviderClient } from './proxy/provider-client';
+import { ProxyRateLimiter } from './proxy/proxy-rate-limiter';
 import { SessionMomentumService } from './proxy/session-momentum.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -33,6 +34,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     OtlpAuthGuard,
     ProxyService,
     ProviderClient,
+    ProxyRateLimiter,
     SessionMomentumService,
     OllamaSyncService,
   ],

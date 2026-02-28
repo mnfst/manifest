@@ -45,10 +45,10 @@ describe("Workspace", () => {
     mockCheckLocalMode = vi.fn().mockResolvedValue(false);
     mockGetAgents.mockResolvedValue({
       agents: [
-        { agent_name: "demo-agent", message_count: 42, last_active: "2024-01-01", total_cost: 5.5, total_tokens: 15000, sparkline: [1, 2, 3] },
+        { agent_name: "demo-agent", display_name: "Demo Agent", message_count: 42, last_active: "2024-01-01", total_cost: 5.5, total_tokens: 15000, sparkline: [1, 2, 3] },
       ],
     });
-    mockCreateAgent.mockResolvedValue({ apiKey: "test-key" });
+    mockCreateAgent.mockResolvedValue({ agent: { name: "new-agent", display_name: "new-agent" }, apiKey: "test-key" });
   });
 
   it("renders My Agents heading", async () => {
@@ -62,10 +62,10 @@ describe("Workspace", () => {
     expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders agent cards when data loads", async () => {
+  it("renders agent cards with display name when data loads", async () => {
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("demo-agent");
+      expect(container.textContent).toContain("Demo Agent");
     });
   });
 

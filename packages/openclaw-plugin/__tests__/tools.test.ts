@@ -19,11 +19,19 @@ const config: ManifestConfig = {
   host: "127.0.0.1",
 };
 
+interface MockTool {
+  name: string;
+  execute: Function;
+  handler: Function;
+  parameters: unknown;
+  description: string;
+}
+
 function createMockApi() {
-  const tools = new Map<string, { name: string; handler: Function; parameters: unknown; description: string }>();
+  const tools = new Map<string, MockTool>();
   return {
     tools,
-    registerTool: jest.fn((tool: { name: string; handler: Function; parameters: unknown; description: string }) => {
+    registerTool: jest.fn((tool: MockTool, _opts?: unknown) => {
       tools.set(tool.name, tool);
     }),
   };
@@ -45,6 +53,12 @@ describe("registerTools", () => {
     expect(api.tools.has("manifest_health")).toBe(true);
   });
 
+  it("registers all tools with optional flag", () => {
+    for (const call of api.registerTool.mock.calls) {
+      expect(call[1]).toEqual({ optional: true });
+    }
+  });
+
   it("logs registered tool names", () => {
     expect(mockLogger.debug).toHaveBeenCalledWith(
       expect.stringContaining("manifest_usage"),
@@ -58,8 +72,8 @@ describe("registerTools", () => {
         json: async () => ({ total_tokens: 500 }),
       });
 
-      const handler = api.tools.get("manifest_usage")!.handler;
-      const result = await handler({ period: "today" });
+      const tool = api.tools.get("manifest_usage")!;
+      const result = await tool.execute("test-id", { period: "today" });
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://localhost:3001/api/v1/agent/usage?range=24h",
@@ -67,7 +81,9 @@ describe("registerTools", () => {
           headers: { Authorization: "Bearer mnfst_test_key" },
         }),
       );
-      expect(result).toEqual({ result: { total_tokens: 500 } });
+      expect(result).toEqual({
+        content: [{ type: "text", text: JSON.stringify({ total_tokens: 500 }) }],
+      });
     });
 
     it("maps 'week' to range=7d", async () => {
@@ -76,8 +92,8 @@ describe("registerTools", () => {
         json: async () => ({}),
       });
 
-      const handler = api.tools.get("manifest_usage")!.handler;
-      await handler({ period: "week" });
+      const tool = api.tools.get("manifest_usage")!;
+      await tool.execute("test-id", { period: "week" });
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("range=7d"),
@@ -91,8 +107,8 @@ describe("registerTools", () => {
         json: async () => ({}),
       });
 
-      const handler = api.tools.get("manifest_usage")!.handler;
-      await handler({ period: "month" });
+      const tool = api.tools.get("manifest_usage")!;
+      await tool.execute("test-id", { period: "month" });
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("range=30d"),
@@ -106,8 +122,8 @@ describe("registerTools", () => {
         json: async () => ({}),
       });
 
-      const handler = api.tools.get("manifest_usage")!.handler;
-      await handler({});
+      const tool = api.tools.get("manifest_usage")!;
+      await tool.execute("test-id", {});
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("range=24h"),
@@ -118,21 +134,51 @@ describe("registerTools", () => {
     it("returns error on non-ok response", async () => {
       mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
-      const handler = api.tools.get("manifest_usage")!.handler;
-      const result = await handler({ period: "today" });
+      const tool = api.tools.get("manifest_usage")!;
+      const result = await tool.execute("test-id", { period: "today" });
 
-      expect(result).toEqual({ error: "API returned 500" });
+      expect(result).toEqual({
+        content: [{ type: "text", text: JSON.stringify({ error: "API returned 500" }) }],
+      });
     });
 
     it("returns error on network failure", async () => {
       mockFetch.mockRejectedValueOnce(new Error("ECONNREFUSED"));
 
-      const handler = api.tools.get("manifest_usage")!.handler;
-      const result = await handler({ period: "today" });
+      const tool = api.tools.get("manifest_usage")!;
+      const result = await tool.execute("test-id", { period: "today" });
 
-      expect(result).toEqual({ error: "ECONNREFUSED" });
+      expect(result).toEqual({
+        content: [{ type: "text", text: JSON.stringify({ error: "ECONNREFUSED" }) }],
+      });
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining("ECONNREFUSED"),
+      );
+    });
+
+    it("returns stringified error on non-Error throw", async () => {
+      mockFetch.mockRejectedValueOnce("raw-string-error");
+
+      const tool = api.tools.get("manifest_usage")!;
+      const result = await tool.execute("test-id", { period: "today" });
+
+      expect(result).toEqual({
+        content: [{ type: "text", text: JSON.stringify({ error: "raw-string-error" }) }],
+      });
+    });
+
+    it("uses fallback range when period is unrecognized", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      const tool = api.tools.get("manifest_usage")!;
+      await tool.execute("test-id", { period: "quarter" });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining("range=24h"),
+        expect.any(Object),
       );
     });
   });
@@ -144,14 +190,16 @@ describe("registerTools", () => {
         json: async () => ({ total_cost_usd: 2.45 }),
       });
 
-      const handler = api.tools.get("manifest_costs")!.handler;
-      const result = await handler({ period: "week" });
+      const tool = api.tools.get("manifest_costs")!;
+      const result = await tool.execute("test-id", { period: "week" });
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://localhost:3001/api/v1/agent/costs?range=7d",
         expect.any(Object),
       );
-      expect(result).toEqual({ result: { total_cost_usd: 2.45 } });
+      expect(result).toEqual({
+        content: [{ type: "text", text: JSON.stringify({ total_cost_usd: 2.45 }) }],
+      });
     });
 
     it("defaults to 7d when no period given", async () => {
@@ -160,8 +208,23 @@ describe("registerTools", () => {
         json: async () => ({}),
       });
 
-      const handler = api.tools.get("manifest_costs")!.handler;
-      await handler({});
+      const tool = api.tools.get("manifest_costs")!;
+      await tool.execute("test-id", {});
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining("range=7d"),
+        expect.any(Object),
+      );
+    });
+
+    it("uses fallback range for unrecognized period", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      const tool = api.tools.get("manifest_costs")!;
+      await tool.execute("test-id", { period: "year" });
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("range=7d"),
@@ -180,8 +243,76 @@ describe("registerTools", () => {
           json: async () => ({ agentName: "test-agent" }),
         });
 
-      const handler = api.tools.get("manifest_health")!.handler;
-      const result = await handler();
+      const tool = api.tools.get("manifest_health")!;
+      const result = await tool.execute();
+
+      expect(result).toEqual({
+        content: [{ type: "text", text: JSON.stringify({
+          endpointReachable: true,
+          authValid: true,
+          agentName: "test-agent",
+          status: "ok",
+        }) }],
+      });
+    });
+
+    it("returns error when connection fails", async () => {
+      mockFetch.mockRejectedValueOnce(new Error("ECONNREFUSED"));
+
+      const tool = api.tools.get("manifest_health")!;
+      const result = await tool.execute();
+
+      expect(result).toEqual({
+        content: [{ type: "text", text: expect.stringContaining("Cannot reach endpoint") }],
+      });
+    });
+  });
+
+  describe("legacy handler compatibility", () => {
+    it("manifest_usage handler returns legacy format on success", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ total_tokens: 500 }),
+      });
+
+      const tool = api.tools.get("manifest_usage")!;
+      const result = await tool.handler({ period: "today" });
+
+      expect(result).toEqual({ result: { total_tokens: 500 } });
+    });
+
+    it("manifest_usage handler returns legacy error format", async () => {
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 503 });
+
+      const tool = api.tools.get("manifest_usage")!;
+      const result = await tool.handler({ period: "today" });
+
+      expect(result).toEqual({ error: "API returned 503" });
+    });
+
+    it("manifest_costs handler returns legacy format on success", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ total_cost_usd: 1.23 }),
+      });
+
+      const tool = api.tools.get("manifest_costs")!;
+      const result = await tool.handler({ period: "week" });
+
+      expect(result).toEqual({ result: { total_cost_usd: 1.23 } });
+    });
+
+    it("manifest_health handler returns legacy format on success", async () => {
+      mockFetch
+        .mockResolvedValueOnce({ ok: true, status: 200 })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ agentName: "test-agent" }),
+        });
+
+      const tool = api.tools.get("manifest_health")!;
+      const result = await tool.handler();
 
       expect(result).toEqual({
         result: {
@@ -193,11 +324,11 @@ describe("registerTools", () => {
       });
     });
 
-    it("returns error when connection fails", async () => {
+    it("manifest_health handler returns legacy error on failure", async () => {
       mockFetch.mockRejectedValueOnce(new Error("ECONNREFUSED"));
 
-      const handler = api.tools.get("manifest_health")!.handler;
-      const result = await handler();
+      const tool = api.tools.get("manifest_health")!;
+      const result = await tool.handler();
 
       expect(result).toEqual({
         error: expect.stringContaining("Cannot reach endpoint"),
@@ -212,8 +343,8 @@ describe("registerTools", () => {
         json: async () => ({}),
       });
 
-      const handler = api.tools.get("manifest_usage")!.handler;
-      await handler({ period: "today" });
+      const tool = api.tools.get("manifest_usage")!;
+      await tool.execute("test-id", { period: "today" });
 
       const url = mockFetch.mock.calls[0][0];
       expect(url).toBe("http://localhost:3001/api/v1/agent/usage?range=24h");
@@ -245,8 +376,8 @@ describe("registerTools — no apiKey (dev mode)", () => {
       json: async () => ({ total_tokens: 100 }),
     });
 
-    const handler = devApi.tools.get("manifest_usage")!.handler;
-    await handler({ period: "today" });
+    const tool = devApi.tools.get("manifest_usage")!;
+    await tool.execute("test-id", { period: "today" });
 
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/agent/usage"),

@@ -21,6 +21,9 @@ export class Agent {
   name!: string;
 
   @Column('varchar', { nullable: true })
+  display_name!: string | null;
+
+  @Column('varchar', { nullable: true })
   description!: string | null;
 
   @Column('boolean', { default: true })

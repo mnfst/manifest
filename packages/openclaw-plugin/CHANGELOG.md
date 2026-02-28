@@ -1,5 +1,106 @@
 # manifest
 
+## 5.17.0
+
+### Minor Changes
+
+- 2b62c9f: Change default plugin mode from local to cloud. Cloud mode is now the default when no mode is configured. Set mode to "local" explicitly for the zero-config embedded server.
+
+### Patch Changes
+
+- 9f02a7e: Fix chart legend formatting: cost displays in dollars, tokens in kilo-tokens, and timestamps as "Feb 27, 09:13:59". Token chart Y-axis now shows abbreviated values.
+- bd1f47d: Fix browser tab title stuck on "Manifest" by removing static `<title>` from index.html and using @solidjs/meta's Title component as the sole title manager
+
+## 5.16.1
+
+### Patch Changes
+
+- 3eb3723: Fix cost display showing $0.00 for sub-cent costs and negative costs
+  - Small positive costs (< $0.01) now display as "< $0.01" instead of misleading "$0.00"
+  - Negative costs (from failed pricing lookups) now display as "—" (unknown) instead of "$0.00"
+  - Backend aggregation queries (SUM) now exclude negative costs to prevent corrupted totals
+  - Added sqlSanitizeCost helper to filter invalid cost data at the query level
+
+- 72873f6: Fix plugin hooks not firing on current gateways by using api.on() instead of api.registerHook(), add backwards-compatible handler/execute and name/label fields for tools and provider registration
+
+## 5.16.0
+
+### Minor Changes
+
+- c9e0d63: Align OpenClaw plugin API with official docs: migrate hooks to registerHook with metadata, rename tool handler to execute with content return format, add optional flag to tools, change provider name to label, add /manifest slash command, and update plugin manifest metadata.
+
+### Patch Changes
+
+- f399e97: Fix absurd trend percentages (e.g. -34497259%) when overview metrics are zero or near-zero. Backend computeTrend() now uses epsilon comparison and clamps output to ±999%. Frontend trendBadge() suppresses badges when the metric value itself is effectively zero. Chart Y-axes no longer collapse when all data points are zero.
+- 2ee3b2e: Fix routing CTA banner flicker on Limits page by waiting for routing status to load before rendering
+- 9a6ded6: Fix tier label alignment in message tables to display inline with model name
+
+## 5.15.4
+
+### Patch Changes
+
+- 2d23e99: Show date alongside time in message log and overview tables
+- cad8f13: Update page meta titles to use "Page - Manifest" format consistently across all pages
+- 58c3adf: Fix cloud mode telemetry recording model as "auto" instead of the actual model name by removing the cloud mode exclusion from routing resolution in agent_end hook
+- adac3c3: Move Settings to the last position in the sidebar MANAGE group and rename the "Integration" tab to "Agent setup"
+
+## 5.15.3
+
+### Patch Changes
+
+- ad7add0: Rebrand log prefix from [Nest] to [Manifest] and improve test coverage across backend and frontend
+- 3d55b51: Fix proxy config desync: call injectProviderConfig in cloud mode so models.providers.manifest stays in sync with the plugin API key on gateway restart
+
+## 5.15.2
+
+### Patch Changes
+
+- 6632ae8: Fix OpenRouter sync misattributing non-native models to providers. The sync now defers to the curated seeder for native provider assignments — existing models get pricing updates only (provider preserved), while new discoveries are added as OpenRouter-only entries.
+
+## 5.15.1
+
+### Patch Changes
+
+- 4d18c10: fix: use success color for cloud mode badge in header
+- 06a3e2c: Add diagnostic warn-level logging to blind proxy resolve chain (proxy, resolve, and routing services) to trace "No model available" errors
+
+## 5.15.0
+
+### Minor Changes
+
+- d11e062: Allow spaces in agent names by adding a display_name column. User input like "My Cool Agent" is auto-slugified to "my-cool-agent" for URLs and internal references, while the original name is stored as display_name and shown in the UI.
+
+## 5.14.1
+
+### Patch Changes
+
+- 825083e: Show cloud email info card on Limits page and move provider setup to local mode only
+
+## 5.14.0
+
+### Minor Changes
+
+- 5bc9f02: Harden blind proxy: per-user rate limiting (60 req/60s), concurrency control (max 10), client disconnect abort propagation, reduced provider timeout (3min), bounded telemetry sets
+- 4e36a94: Unify proxy: replace Google native adapter with OpenAI-compatible endpoint, merge blind proxy into single `/v1/chat/completions` endpoint with tier header
+
+## 5.13.1
+
+### Patch Changes
+
+- 7f990a2: Fix OG image and Twitter card meta tags to use absolute URLs for proper social media previews
+
+## 5.13.0
+
+### Minor Changes
+
+- 2010691: Fix heartbeat routing detection and add routing_reason to OTLP pipeline with heartbeat icon in dashboard
+
+## 5.12.0
+
+### Minor Changes
+
+- f307102: Store OpenRouter copies in pricing sync with full vendor-prefixed model IDs
+
 ## 5.11.1
 
 ### Patch Changes

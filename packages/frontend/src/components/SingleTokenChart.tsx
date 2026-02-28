@@ -7,6 +7,7 @@ import {
   createCursorSnap,
   createBaseAxes,
   timeScaleRange,
+  formatLegendTimestamp,
 } from "../services/chart-utils.js";
 
 interface SingleTokenChartProps {
@@ -37,10 +38,10 @@ const SingleTokenChart: Component<SingleTokenChartProps> = (props) => {
         height: 260,
         padding: [16, 16, 0, 0],
         cursor: createCursorSnap(bgColor, color),
-        scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: (_u, _min, max) => [0, max * 1.1] } },
+        scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.1 : 10] } },
         axes: createBaseAxes(axisColor, gridColor, props.range),
         series: [
-          {},
+          { value: formatLegendTimestamp },
           { label: props.label, stroke: color, width: 2.5, fill: makeGradientFillFromVar(props.colorVar, 0.25) },
         ],
       }, [

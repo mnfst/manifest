@@ -294,20 +294,32 @@ export class RoutingService {
     assignment: TierAssignment,
   ): Promise<string | null> {
     if (assignment.override_model !== null) {
-      // Belt-and-suspenders: verify the provider is still connected
+      // Belt-and-suspenders: verify the provider is still connected.
+      // Use the same case-insensitive matching as getProviderApiKey —
+      // the DB may store "OpenAI" while pricing has "openai" or vice-versa.
       const pricing = this.pricingCache.getByModel(assignment.override_model);
       if (pricing) {
-        const provider = await this.providerRepo.findOne({
-          where: {
-            user_id: userId,
-            provider: pricing.provider.toLowerCase(),
-            is_active: true,
-          },
+        const names = expandProviderNames([pricing.provider]);
+        const records = await this.providerRepo.find({
+          where: { user_id: userId, is_active: true },
         });
-        if (provider) return assignment.override_model;
+        const match = records.find((r) => names.has(r.provider.toLowerCase()));
+        if (match) return assignment.override_model;
       }
       // Provider disconnected or model unknown — fall through to auto
+      this.logger.warn(
+        `Override ${assignment.override_model} falling through to auto ` +
+        `for user=${userId} tier=${assignment.tier} ` +
+        `(auto=${assignment.auto_assigned_model})`,
+      );
     }
+
+    if (assignment.auto_assigned_model === null) {
+      this.logger.warn(
+        `auto_assigned_model is null for user=${userId} tier=${assignment.tier}`,
+      );
+    }
+
     return assignment.auto_assigned_model;
   }
 }
