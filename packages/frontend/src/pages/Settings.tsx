@@ -93,7 +93,7 @@ const Settings: Component = () => {
       <div class="page-header">
         <div>
           <h1>Settings</h1>
-          <span class="breadcrumb">{agentName()} &rsaquo; Configure your agent and connect it to Manifest</span>
+          <span class="breadcrumb">{agentName()} &rsaquo; Rename your agent, manage API keys, and view setup instructions</span>
         </div>
       </div>
 
@@ -150,7 +150,7 @@ const Settings: Component = () => {
             <div class="settings-card__row">
               <div class="settings-card__label">
                 <span class="settings-card__label-title">Delete this agent</span>
-                <span class="settings-card__label-desc">Permanently remove this agent and all its activity data. This action cannot be undone.</span>
+                <span class="settings-card__label-desc">Permanently delete this agent, its API key, and all recorded messages and analytics. This action cannot be undone.</span>
               </div>
               <div class="settings-card__control">
                 <button
@@ -174,7 +174,7 @@ const Settings: Component = () => {
           <div class="settings-card__row">
             <div class="settings-card__label">
               <span class="settings-card__label-title">OTLP ingest key</span>
-              <span class="settings-card__label-desc">Used by your agent to send telemetry data. Rotating creates a new key and invalidates the old one.</span>
+              <span class="settings-card__label-desc">This key authenticates your agent's OTLP telemetry to Manifest. Rotating it generates a new key and immediately invalidates the current one.</span>
             </div>
             <div class="settings-card__control" style="display: flex; align-items: center; gap: 8px;">
               <Show when={isLocalMode() && apiKeyData()?.apiKey} fallback={

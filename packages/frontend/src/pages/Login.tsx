@@ -108,7 +108,7 @@ const Login: Component = () => {
       <Show when={!localRedirecting()}>
         <div class="auth-header">
           <h1 class="auth-header__title">Welcome back</h1>
-          <p class="auth-header__subtitle">Track your agent activity and costs</p>
+          <p class="auth-header__subtitle">Monitor your AI agent's LLM usage, costs, and performance</p>
         </div>
 
         <SocialButtons />

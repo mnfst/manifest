@@ -104,7 +104,7 @@ const Sidebar: Component = () => {
           Feedback
         </span>
         <p class="sidebar__feedback-hint">
-          Help us improve Manifest by sharing your ideas and feature requests.
+          Help shape Manifest's roadmap &mdash; share feature ideas, report bugs, or suggest improvements.
         </p>
       </a>
     </nav>

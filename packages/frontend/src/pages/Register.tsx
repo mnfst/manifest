@@ -74,7 +74,7 @@ const Register: Component = () => {
         <>
           <div class="auth-header">
             <h1 class="auth-header__title">Create an account</h1>
-            <p class="auth-header__subtitle">Get started with Manifest</p>
+            <p class="auth-header__subtitle">Start monitoring your AI agents in minutes</p>
           </div>
 
           <SocialButtons />

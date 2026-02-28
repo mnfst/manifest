@@ -56,9 +56,9 @@ const SetupModal: Component<{ open: boolean; agentName: string; apiKey?: string 
           </div>
           <p class="modal-card__desc">
             <Show when={isLocal()} fallback={
-              <>Follow these steps to connect your agent to Manifest. Once your first messages come in, <strong>this dashboard unlocks automatically</strong>.</>
+              <>Follow these steps to send telemetry from your agent to Manifest. Once your first messages arrive, <strong>your dashboard populates automatically</strong>.</>
             }>
-              <>Your local server is running. Just verify telemetry is flowing and you're all set.</>
+              <>Your local server is running. Configure the OpenClaw plugin and verify that telemetry data is flowing.</>
             </Show>
           </p>
 

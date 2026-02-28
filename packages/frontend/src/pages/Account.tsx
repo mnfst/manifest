@@ -57,7 +57,7 @@ const Account: Component = () => {
         <div class="page-header">
           <div>
             <h1>Account Preferences</h1>
-            <span class="breadcrumb">Manage your account, profile and preferences</span>
+            <span class="breadcrumb">Your profile, workspace details, and display preferences</span>
           </div>
         </div>
 
@@ -79,7 +79,7 @@ const Account: Component = () => {
           <div class="settings-card__row">
             <div class="settings-card__label">
               <span class="settings-card__label-title">Email</span>
-              <span class="settings-card__label-desc">Used for account notifications.</span>
+              <span class="settings-card__label-desc">Used for account notifications and limit alerts.</span>
             </div>
             <div class="settings-card__control">
               <label for="email" class="sr-only">Email</label>
@@ -87,7 +87,7 @@ const Account: Component = () => {
             </div>
           </div>
           <div class="settings-card__footer">
-            <button class="btn btn--outline" style="font-size: var(--font-size-sm);">Save</button>
+            <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">Profile information is managed through your authentication provider.</span>
           </div>
         </div>
 

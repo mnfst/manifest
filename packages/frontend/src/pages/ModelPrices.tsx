@@ -145,7 +145,7 @@ const ModelPrices: Component = () => {
       <div class="page-header">
         <div>
           <h1>Model Prices</h1>
-          <span class="breadcrumb">What each AI model costs to use</span>
+          <span class="breadcrumb">Compare per-token pricing across all supported LLM providers and models</span>
         </div>
         <Show when={data()?.lastSyncedAt}>
           <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
@@ -189,7 +189,7 @@ const ModelPrices: Component = () => {
           <Show when={sortedModels().length > 0} fallback={
             <div class="model-filter__empty">
               <p class="model-filter__empty-title">No models match your filters</p>
-              <p class="model-filter__empty-hint">Try a different search term or clear the provider filter.</p>
+              <p class="model-filter__empty-hint">Try selecting a different provider or model, or clear all filters to see every model.</p>
               <button class="btn btn--outline" onClick={clearFilters} type="button">
                 Clear filters
               </button>

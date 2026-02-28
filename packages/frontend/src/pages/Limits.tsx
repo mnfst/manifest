@@ -104,7 +104,7 @@ const Limits: Component = () => {
       <div class="page-header">
         <div>
           <h1>Limits</h1>
-          <span class="breadcrumb">{agentName()} &rsaquo; Email alerts &amp; hard limits</span>
+          <span class="breadcrumb">{agentName()} &rsaquo; Get notified or block requests when token or cost thresholds are exceeded</span>
         </div>
         <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
           + Create rule
@@ -117,7 +117,7 @@ const Limits: Component = () => {
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
             <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
-          <span>One or more hard limits have been triggered. Proxy requests for this agent may be blocked.</span>
+          <span>One or more hard limits have been triggered &mdash; new proxy requests for this agent will be blocked until the usage resets in the next period.</span>
         </div>
       </Show>
 
@@ -128,7 +128,7 @@ const Limits: Component = () => {
           </svg>
           <div>
             <strong>Enable routing to set hard limits</strong>
-            <p>Hard limits block proxy requests when consumption exceeds a threshold. You can still use email alerts without routing.</p>
+            <p>Hard limits automatically block proxy requests when usage exceeds a threshold. Email alerts work without routing &mdash; only hard limits require it.</p>
           </div>
         </div>
       </Show>
@@ -161,7 +161,7 @@ const Limits: Component = () => {
           fallback={
             <div class="empty-state">
               <div class="empty-state__title">No rules yet</div>
-              <p>Create a rule to receive email alerts or block requests when thresholds are exceeded.</p>
+              <p>Set up email alerts to get notified when usage spikes, or create hard limits to automatically block requests that exceed your budget.</p>
             </div>
           }
         >
