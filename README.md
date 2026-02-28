@@ -114,29 +114,37 @@ Or add `"telemetryOptOut": true` to `~/.openclaw/manifest/config.json`.
 | Data privacy | 100% local routing and logging                    | Your prompts and responses pass through a third party         |
 | Transparency | Open scoring algorithm — see exactly why a model is chosen | Black box routing, no visibility into how models are selected |
 
-## Configuration
+## Supported Providers
 
-Cloud mode is the default. For local mode (zero config), set `mode` to `local`.
+Manifest supports **300+ models** across all major LLM providers. Every provider supports smart routing, real-time cost tracking, and OTLP telemetry.
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `mode` | `string` | `cloud` | `cloud` sends telemetry to app.manifest.build (default). `local` runs an embedded server on your machine. `dev` connects to a local backend without API key. |
-| `apiKey` | `string` | env `MANIFEST_API_KEY` | Agent API key (must start with `mnfst_`). Required for cloud mode, auto-generated in local mode. |
-| `endpoint` | `string` | `https://app.manifest.build/otlp` | OTLP endpoint URL. Only relevant for cloud and dev modes. |
-| `port` | `number` | `2099` | Port for the embedded dashboard server (local mode only). |
-| `host` | `string` | `127.0.0.1` | Bind address for the embedded server (local mode only). |
-
-```bash
-# Switch to local mode
-openclaw config set plugins.entries.manifest.config.mode local
-openclaw gateway restart
-```
+| Provider | Models |
+|----------|--------|
+| [OpenAI](https://platform.openai.com/) | `gpt-5.3`, `gpt-4.1`, `o3`, `o4-mini` + 54 more |
+| [Anthropic](https://www.anthropic.com/) | `claude-opus-4-6`, `claude-sonnet-4.5`, `claude-haiku-4.5` + 14 more |
+| [Google Gemini](https://ai.google.dev/) | `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-3-pro` + 19 more |
+| [DeepSeek](https://www.deepseek.com/) | `deepseek-v3`, `deepseek-r1` + 11 more |
+| [xAI](https://x.ai/) | `grok-4`, `grok-3`, `grok-3-mini` + 8 more |
+| [Mistral AI](https://mistral.ai/) | `mistral-large`, `codestral`, `devstral` + 26 more |
+| [Qwen (Alibaba)](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) | `qwen3-235b`, `qwen3-coder`, `qwq-32b` + 42 more |
+| [Kimi (Moonshot)](https://kimi.ai/) | `kimi-k2`, `kimi-k2.5` + 3 more |
+| [Amazon Nova](https://aws.amazon.com/ai/nova/) | `nova-pro`, `nova-lite`, `nova-micro` + 5 more |
+| [Zhipu AI](https://www.zhipuai.cn/) | `glm-5`, `glm-4.6`, `glm-4-plus` + 9 more |
+| [OpenRouter](https://openrouter.ai/) | 300+ models from all providers |
+| [Ollama](https://ollama.com/) | Run any model locally (Llama, Gemma, Mistral, …) |
 
 ## Contributing
 
 Manifest is open source under the [MIT license](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) for the development setup, architecture notes, and workflow. Join the conversation on [Discord](https://discord.gg/FepAked3W7).
 
 > **Want a hosted version instead?** Check out [app.manifest.build](https://app.manifest.build)
+
+## Quick Links
+
+- [GitHub](https://github.com/mnfst/manifest)
+- [Docs](https://manifest.build/docs)
+- [Discord](https://discord.com/invite/FepAked3W7)
+- [Discussions](https://github.com/mnfst/manifest/discussions)
 
 ## License
 

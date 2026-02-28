@@ -1,171 +1,72 @@
-# Manifest
+# OpenClaw Plugin — Contributor Guide
 
-Cut your AI agent costs by up to 70%. Manifest is an open-source [OpenClaw](https://github.com/open-claw/open-claw) plugin that combines **intelligent LLM routing** with **real-time cost observability**.
+> **Note:** This README is for contributors working on the plugin source code. When the npm package is published, this file is automatically replaced by the [root project README](../../README.md) so that [npmjs.com/package/manifest](https://www.npmjs.com/package/manifest) shows the main project documentation.
 
-Instead of sending every request to the most expensive model, Manifest scores each query in under 2ms and routes it to the most cost-effective model that can handle it. Simple lookups go to fast, cheap models. Complex reasoning goes to frontier models. You see exactly where every dollar goes in a local dashboard.
+## Overview
 
-## Quick start
+The `packages/openclaw-plugin` directory contains the OpenClaw plugin that powers Manifest's LLM routing and observability. It registers as an OpenClaw extension and hooks into the gateway lifecycle to intercept, route, score, and trace every LLM request.
 
-### Cloud (default)
+## Source Files
 
-```bash
-openclaw plugins install manifest
-openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
-openclaw gateway restart
-```
-
-Sign up at [app.manifest.build](https://app.manifest.build) to get your API key.
-
-### Local (zero config)
-
-```bash
-openclaw plugins install manifest
-openclaw config set plugins.entries.manifest.config.mode local
-openclaw gateway restart
-```
-
-Open `http://127.0.0.1:2099` — your dashboard is live with sql.js storage, no accounts or external services needed.
-
-## How the LLM router works
-
-Manifest registers as an OpenAI-compatible provider in OpenClaw under the model name `auto`. When a request comes in:
-
-1. **Score** — The plugin analyzes the conversation locally (last 10 user/assistant messages, excluding system prompts) and assigns a complexity tier.
-2. **Route** — The tier maps to the cheapest model that meets the quality bar: simple tasks go to small models, complex tasks go to frontier models.
-3. **Momentum** — Recent tier history (last 5 turns, 30-min window) is factored in so mid-conversation complexity shifts are handled smoothly.
-4. **Observe** — Every routed request is traced with the resolved model, provider, tier, token counts, and cost — visible in your dashboard.
-
-The entire scoring step adds < 2ms of latency. If the resolve call fails, the request falls through to the default model with no interruption.
-
-### Enable routing
-
-Routing activates automatically when the plugin is enabled. Point your OpenClaw config to use the `manifest` provider with model `auto`:
-
-```yaml
-# openclaw.config.yaml
-models:
-  - provider: manifest
-    model: auto
-```
-
-## Cost observability
-
-The dashboard tracks every LLM call in real time:
-
-- **Token usage** — input, output, and cache-read tokens broken down by model and provider
-- **Cost breakdown** — per-model spend in USD with trend indicators
-- **Message log** — paginated history with latency, tokens, and tool calls per request
-- **Agent overview** — aggregated metrics across all your agents
-
-### Agent self-query tools
-
-The plugin registers three tools your agent can call to query its own telemetry:
-
-| Tool | Returns |
+| File | Purpose |
 |------|---------|
-| `manifest_usage` | Token consumption (input, output, cache, trend %) |
-| `manifest_costs` | Cost breakdown by model in USD |
-| `manifest_health` | Connectivity check |
+| `index.ts` | Plugin entry point — registers hooks, routing, tools, and commands with the OpenClaw API |
+| `config.ts` | Configuration parsing and validation (`mode`, `apiKey`, `endpoint`, etc.) |
+| `hooks.ts` | OpenClaw lifecycle hooks (`message_received`, `before_agent_start`, `tool_result_persist`, `agent_end`) |
+| `routing.ts` | LLM router — scores queries across 23 dimensions and selects the optimal model/provider |
+| `telemetry.ts` | OpenTelemetry SDK setup — creates traces, spans, and metrics for each request |
+| `telemetry-config.ts` | OTLP exporter configuration (endpoints, headers, batching) |
+| `tools.ts` | Agent self-query tools (`manifest_usage`, `manifest_costs`, `manifest_health`) |
+| `command.ts` | CLI command registration for `openclaw manifest ...` |
+| `local-mode.ts` | Local mode bootstrap — starts the embedded NestJS server and injects provider config |
+| `server.ts` | Embedded server entry point (imports and starts the backend in local/dev mode) |
+| `product-telemetry.ts` | Anonymous product analytics (opt-out via `MANIFEST_TELEMETRY_OPTOUT=1`) |
+| `verify.ts` | Connection verification — checks endpoint reachability on startup |
+| `constants.ts` | Shared constants (endpoints, defaults, version) |
 
-```
-User: "How much have I spent today?"
-  → manifest_costs({ period: "today" })
-  → { total_usd: 0.42, by_model: { "gpt-4o": 0.38, "gpt-4o-mini": 0.04 } }
-```
+## How it Works
 
-## Data privacy
+1. **Register** — OpenClaw loads `dist/index.js` and calls `register(api)`. The plugin parses config, initializes OpenTelemetry, and registers lifecycle hooks.
+2. **Hook** — On each request, lifecycle hooks create OpenTelemetry spans and record token counts, latency, tool calls, and costs.
+3. **Route** — When model is `auto`, the router scores the conversation (last 10 messages, momentum from last 5 turns) and selects the cheapest model that meets the quality bar. Adds <2ms latency.
+4. **Export** — Spans and metrics are batched and exported via OTLP to the configured endpoint (cloud, local embedded server, or self-hosted).
 
-- **Local mode**: Everything stays on your machine. sql.js database, no network calls.
-- **Cloud mode**: Only OpenTelemetry metadata (model, tokens, latency) is sent. Message content is never collected.
-
-## Configuration
-
-Cloud mode is the default. For local mode (zero config), set `mode` to `local`.
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `mode` | string | `cloud` | `cloud` sends telemetry to app.manifest.build (default). `local` runs an embedded server on your machine. `dev` connects to a local backend without API key management. |
-| `apiKey` | string | env `MANIFEST_API_KEY` | Agent API key (must start with `mnfst_`). Required for cloud mode, auto-generated in local mode. |
-| `endpoint` | string | `https://app.manifest.build/otlp` | OTLP endpoint URL. Only relevant for cloud and dev modes. |
-| `port` | number | `2099` | Port for the embedded dashboard server (local mode only). |
-| `host` | string | `127.0.0.1` | Bind address for the embedded server (local mode only). |
-
-### Local mode
+## Build
 
 ```bash
-openclaw config set plugins.entries.manifest.config.mode local
-openclaw gateway restart
+npm run build     # esbuild bundle + tsc server + copy assets
+npm run dev       # Watch mode (rebuild on change)
+npm test          # Jest tests
+npm run typecheck # Type-check without emitting
 ```
 
-### Self-hosted
+The build produces:
 
-Point to your own Manifest instance:
+```
+dist/index.js          Single-file esbuild bundle (~1.4 MB, zero runtime OTel deps)
+dist/server.js         Embedded NestJS server (local mode)
+dist/backend/          Backend compiled output
+public/                Frontend dashboard assets
+openclaw.plugin.json   Plugin manifest + config schema
+skills/                Bundled agent skills
+```
+
+### Why a single-file bundle?
+
+OpenClaw loads its own `@opentelemetry/api`. If the plugin brings a second copy, the two registries conflict and traces break. Bundling everything into one file with esbuild avoids the dual-registry problem entirely.
+
+## Local Testing
 
 ```bash
-openclaw config set plugins.entries.manifest.config.endpoint "http://localhost:3001/otlp/v1"
-```
-
-## OpenTelemetry trace structure
-
-The plugin hooks into four OpenClaw lifecycle events and produces standard OpenTelemetry traces:
-
-| Event | What happens |
-|-------|-------------|
-| `message_received` | Root span created, message counter incremented |
-| `before_agent_start` | Child span for the agent turn |
-| `tool_result_persist` | Tool span with duration, success/error tracking |
-| `agent_end` | Spans closed, token/cost metrics recorded, routing resolved |
-
-```
-openclaw.request (SERVER)
-  └── openclaw.agent.turn (INTERNAL)     model=gpt-4o-mini, tier=simple
-        ├── tool.web_search               duration=320ms
-        └── tool.summarize                duration=45ms
-```
-
-## Architecture
-
-The plugin bundles all OpenTelemetry dependencies into a single file via esbuild. This avoids the dual-registry problem when OpenClaw's own `@opentelemetry/api` and the plugin's copy coexist. Zero runtime dependencies.
-
-```
-Published package:
-  dist/index.js          Single-file bundle (~1.4 MB)
-  dist/server.js         Embedded NestJS server (local mode)
-  dist/backend/          Backend compiled output
-  public/                Frontend dashboard assets
-  openclaw.plugin.json   Plugin manifest + config schema
-  skills/                Bundled agent skills
-```
-
-## Development
-
-```bash
-npm run build     # Build the bundle
-npm run dev       # Watch mode
-npm test          # Run tests
-npm run typecheck # Type-check
-```
-
-Local testing against OpenClaw:
-
-```bash
+# Install plugin from local source
 openclaw plugins install -l ./packages/openclaw-plugin
+
+# Restart gateway to load the plugin
 openclaw gateway restart
+
 # Dashboard at http://127.0.0.1:2099
 ```
 
-## Troubleshooting
+## npm Publish
 
-**No spans appearing?**
-- In cloud mode, check your API key starts with `mnfst_`
-- Verify the endpoint is reachable: `curl -I http://your-endpoint/v1/traces`
-- Disable `diagnostics-otel` if enabled: `openclaw plugins disable diagnostics-otel`
-
-**Stale code after update?**
-```bash
-rm -rf /tmp/jiti && openclaw gateway restart
-```
-
-## License
-
-[MIT](LICENSE.md)
+On publish (`npm publish` or via the release workflow), the `prepublishOnly` script copies the root `../../README.md` over this file so that the npm package page shows the main project README instead of this contributor guide.
