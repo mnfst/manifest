@@ -9,15 +9,8 @@
     🦞 Take control of your
 OpenClaw costs
 </p>
-<p align="center">
-  <a href="https://app.manifest.build">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset=".github/assets/home-gh-dark.png" />
-      <source media="(prefers-color-scheme: light)" srcset=".github/assets/home-gh-light.png" />
-      <img src=".github/assets/home-gh-light.png" alt="Manifest dashboard" />
-    </picture>
-  </a>
-</p>
+
+![manifest-gh](https://github.com/user-attachments/assets/7dd74fc2-f7d6-4558-a95a-014ed754a125)
 
 <p align="center">
   <a href="https://github.com/mnfst/manifest/stargazers"><img src="https://img.shields.io/github/stars/mnfst/manifest?style=flat" alt="GitHub stars" /></a>
