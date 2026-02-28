@@ -1,5 +1,5 @@
 ---
-'manifest': patch
+"manifest": patch
 ---
 
 Remove unused variables
