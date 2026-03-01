@@ -51,8 +51,9 @@ vi.mock("../../src/components/LimitRuleModal.js", () => ({
 
 vi.mock("../../src/components/ProviderBanner.js", () => ({
   default: (props: any) => (
-    <div data-testid="provider-banner">
+    <div data-testid="provider-banner" data-provider={props.config?.provider}>
       ProviderBanner
+      <button data-testid="mock-edit" onClick={() => props.onEdit()}>Edit</button>
       <button data-testid="mock-remove" onClick={() => props.onRemove()}>Remove</button>
     </div>
   ),
@@ -60,7 +61,14 @@ vi.mock("../../src/components/ProviderBanner.js", () => ({
 
 vi.mock("../../src/components/EmailProviderModal.js", () => ({
   default: (props: any) => (
-    <div data-testid="email-provider-modal" data-open={props.open}>
+    <div
+      data-testid="email-provider-modal"
+      data-open={props.open}
+      data-provider={props.initialProvider}
+      data-key-prefix={props.existingKeyPrefix ?? ""}
+      data-domain={props.existingDomain ?? ""}
+      data-notification-email={props.existingNotificationEmail ?? ""}
+    >
       EmailProviderModal
     </div>
   ),
@@ -648,6 +656,39 @@ describe("Limits page", () => {
       const desc = document.querySelector(".modal-card__desc") as HTMLElement;
       expect(desc.textContent).toContain("cost");
       expect(desc.textContent).toContain("$25.50");
+    });
+  });
+
+  it("passes provider config to EmailProviderModal when edit is clicked", async () => {
+    mockEmailProvider = {
+      provider: "mailgun",
+      domain: "mg.example.com",
+      keyPrefix: "key-abc",
+      notificationEmail: "alerts@example.com",
+      is_active: true,
+    };
+    mockIsLocalMode = true;
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("provider-banner")).toBeDefined();
+    });
+
+    // Verify ProviderBanner receives config
+    const banner = screen.getByTestId("provider-banner");
+    expect(banner.getAttribute("data-provider")).toBe("mailgun");
+
+    // Click Edit to open EmailProviderModal
+    fireEvent.click(screen.getByTestId("mock-edit"));
+
+    await vi.waitFor(() => {
+      const modal = screen.getByTestId("email-provider-modal");
+      expect(modal.getAttribute("data-open")).toBe("true");
+      expect(modal.getAttribute("data-provider")).toBe("mailgun");
+      expect(modal.getAttribute("data-key-prefix")).toBe("key-abc");
+      expect(modal.getAttribute("data-domain")).toBe("mg.example.com");
+      expect(modal.getAttribute("data-notification-email")).toBe("alerts@example.com");
     });
   });
 

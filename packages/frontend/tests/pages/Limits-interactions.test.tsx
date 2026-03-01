@@ -51,7 +51,16 @@ vi.mock("../../src/components/LimitRuleModal.js", () => ({
 vi.mock("../../src/components/ProviderBanner.js", () => ({
   default: (props: any) => (
     <div data-testid="provider-banner">
+      <button data-testid="mock-edit" onClick={() => props.onEdit()}>Edit</button>
       <button data-testid="mock-remove" onClick={() => props.onRemove()}>Remove</button>
+    </div>
+  ),
+}));
+
+vi.mock("../../src/components/EmailProviderModal.js", () => ({
+  default: (props: any) => (
+    <div data-testid="email-provider-modal" data-open={props.open}>
+      EmailProviderModal
     </div>
   ),
 }));
@@ -134,6 +143,164 @@ describe("Limits page interactions", () => {
     await vi.waitFor(() => {
       expect(deleteNotificationRule).toHaveBeenCalledWith("r1");
       expect(toast.success).toHaveBeenCalledWith("Rule deleted");
+    });
+  });
+
+  it("closes kebab menu when clicking the same kebab button again", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+
+    // First click opens menu
+    fireEvent.click(screen.getByLabelText("Rule options"));
+    await vi.waitFor(() => {
+      expect(document.querySelector(".rule-menu__dropdown")).not.toBeNull();
+    });
+
+    // Second click on same button closes menu
+    fireEvent.click(screen.getByLabelText("Rule options"));
+    await vi.waitFor(() => {
+      expect(document.querySelector(".rule-menu__dropdown")).toBeNull();
+    });
+  });
+
+  it("calls updateNotificationRule when saving an edited rule", async () => {
+    const { updateNotificationRule } = await import("../../src/services/api.js");
+    const { toast } = await import("../../src/services/toast-store.js");
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    // Open kebab menu and click Edit
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+    fireEvent.click(screen.getByLabelText("Rule options"));
+    await vi.waitFor(() => expect(screen.getByText("Edit")).toBeDefined());
+    fireEvent.click(screen.getByText("Edit"));
+
+    // Now editRule is set — clicking save should call updateNotificationRule
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("limit-modal").getAttribute("data-open")).toBe("true");
+    });
+    fireEvent.click(screen.getByTestId("mock-save"));
+
+    await vi.waitFor(() => {
+      expect(updateNotificationRule).toHaveBeenCalledWith("r1", expect.objectContaining({
+        metric_type: "tokens",
+        threshold: 100,
+      }));
+      expect(toast.success).toHaveBeenCalledWith("Rule updated");
+    });
+  });
+
+  it("handles error in handleSave gracefully", async () => {
+    const { createNotificationRule } = await import("../../src/services/api.js");
+    (createNotificationRule as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("fail"));
+
+    render(() => <Limits />);
+    fireEvent.click(screen.getByText("+ Create rule"));
+    fireEvent.click(screen.getByTestId("mock-save"));
+
+    // Should not throw — error is caught
+    await vi.waitFor(() => {
+      expect(createNotificationRule).toHaveBeenCalled();
+    });
+  });
+
+  it("handles error in handleDelete gracefully", async () => {
+    const { deleteNotificationRule } = await import("../../src/services/api.js");
+    (deleteNotificationRule as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("fail"));
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+    fireEvent.click(screen.getByLabelText("Rule options"));
+    await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
+    fireEvent.click(screen.getByText("Delete"));
+
+    await vi.waitFor(() => {
+      expect(document.querySelector(".confirm-modal__confirm-row")).not.toBeNull();
+    });
+
+    const checkbox = document.querySelector('.confirm-modal__confirm-row input[type="checkbox"]') as HTMLInputElement;
+    fireEvent.click(checkbox);
+    const deleteBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
+    fireEvent.click(deleteBtn);
+
+    // Should not throw — error is caught
+    await vi.waitFor(() => {
+      expect(deleteNotificationRule).toHaveBeenCalledWith("r1");
+    });
+  });
+
+  it("handles error in handleRemoveProvider gracefully", async () => {
+    const { removeEmailProvider } = await import("../../src/services/api.js");
+    (removeEmailProvider as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("fail"));
+    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
+    mockIsLocalMode = true;
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      fireEvent.click(screen.getByTestId("mock-remove"));
+    });
+
+    await vi.waitFor(() => {
+      const title = document.querySelector(".modal-card__title") as HTMLElement;
+      expect(title.textContent).toBe("Remove provider");
+    });
+
+    const removeBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
+    fireEvent.click(removeBtn);
+
+    // Should not throw — error is caught
+    await vi.waitFor(() => {
+      expect(removeEmailProvider).toHaveBeenCalled();
+    });
+  });
+
+  it("opens edit provider modal and passes provider config props", async () => {
+    mockEmailProvider = {
+      provider: "mailgun",
+      domain: "mg.example.com",
+      keyPrefix: "key-abc",
+      notificationEmail: "alerts@example.com",
+      is_active: true,
+    };
+    mockIsLocalMode = true;
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("provider-banner")).toBeDefined();
+    });
+
+    // Click Edit on provider banner
+    fireEvent.click(screen.getByTestId("mock-edit"));
+
+    await vi.waitFor(() => {
+      const modal = screen.getByTestId("email-provider-modal");
+      expect(modal.getAttribute("data-open")).toBe("true");
     });
   });
 

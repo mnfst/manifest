@@ -77,17 +77,6 @@ const Limits: Component = () => {
 
   onCleanup(() => document.removeEventListener("click", handleDocClick));
 
-  const handleCreate = async (data: LimitRuleData) => {
-    try {
-      await createNotificationRule({ agent_name: agentName(), ...data });
-      await refetchRules();
-      setShowModal(false);
-      toast.success("Rule created");
-    } catch {
-      // error toast from fetchMutate
-    }
-  };
-
   const handleEdit = (rule: NotificationRule) => {
     closeMenu();
     setEditRule(rule);
