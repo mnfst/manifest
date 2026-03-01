@@ -1,4 +1,5 @@
 import { createSignal, createEffect, Show, type Component } from "solid-js";
+import { Portal } from "solid-js/web";
 import { setEmailProvider, testEmailProvider, testSavedEmailProvider } from "../services/api.js";
 import { authClient } from "../services/auth-client.js";
 import { isLocalMode } from "../services/local-mode.js";
@@ -36,7 +37,7 @@ const EmailProviderModal: Component<Props> = (props) => {
 
   const session = authClient.useSession();
 
-  const hasExistingKey = () => props.editMode && !!props.existingKeyPrefix;
+  const hasExistingKey = () => props.editMode && !!props.existingKeyPrefix && provider() === props.initialProvider;
 
   const maskedKey = () => {
     const prefix = props.existingKeyPrefix ?? "";
@@ -47,7 +48,8 @@ const EmailProviderModal: Component<Props> = (props) => {
     if (props.open) {
       setProvider(props.initialProvider);
       setApiKey("");
-      setEditingKey(!hasExistingKey());
+      const hasKey = props.editMode && !!props.existingKeyPrefix;
+      setEditingKey(!hasKey);
       setDomain(props.existingDomain ?? "");
       const defaultEmail = props.existingNotificationEmail ?? (!isLocalMode() ? session()?.data?.user?.email ?? "" : "");
       setNotificationEmail(defaultEmail);
@@ -237,6 +239,7 @@ const EmailProviderModal: Component<Props> = (props) => {
   };
 
   return (
+    <Portal>
     <Show when={props.open}>
       <div class="modal-overlay" onClick={() => props.onClose()}>
         <div
@@ -286,7 +289,7 @@ const EmailProviderModal: Component<Props> = (props) => {
 
           <label class="modal-card__field-label">API Key</label>
           <Show
-            when={editingKey()}
+            when={editingKey() || !hasExistingKey()}
             fallback={
               <div class="masked-key">
                 <span class="masked-key__value">{maskedKey()}</span>
@@ -362,6 +365,7 @@ const EmailProviderModal: Component<Props> = (props) => {
         </div>
       </div>
     </Show>
+    </Portal>
   );
 };
 

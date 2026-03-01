@@ -1,24 +1,69 @@
-import { createSignal, Show, type Component } from "solid-js";
+import { createSignal, createEffect, Show, type Component } from "solid-js";
+import { Portal } from "solid-js/web";
+import AlertIcon from "./AlertIcon.js";
+import LimitIcon from "./LimitIcon.js";
+
+export interface LimitRuleData {
+  metric_type: string;
+  threshold: number;
+  period: string;
+  action: string;
+}
 
 interface Props {
   open: boolean;
-  routingEnabled: boolean;
   onClose: () => void;
-  onSave: (data: { metric_type: string; threshold: number; period: string; action: string }) => void;
+  onSave: (data: LimitRuleData) => void;
+  editData?: LimitRuleData | null;
+  hasProvider?: boolean;
 }
 
 const LimitRuleModal: Component<Props> = (props) => {
-  const [action, setAction] = createSignal<string>("notify");
+  const [selectedTypes, setSelectedTypes] = createSignal<Set<string>>(new Set(["notify"]));
   const [metricType, setMetricType] = createSignal<string>("tokens");
   const [threshold, setThreshold] = createSignal<string>("");
   const [period, setPeriod] = createSignal<string>("day");
 
+  const toggleType = (type: string) => {
+    setSelectedTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        if (next.size > 1) next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  };
+
+  const actionValue = () => {
+    const s = selectedTypes();
+    if (s.has("notify") && s.has("block")) return "both";
+    if (s.has("block")) return "block";
+    return "notify";
+  };
+
   const reset = () => {
-    setAction("notify");
+    setSelectedTypes(new Set(["notify"]));
     setMetricType("tokens");
     setThreshold("");
     setPeriod("day");
   };
+
+  createEffect(() => {
+    if (props.open && props.editData) {
+      const d = props.editData;
+      setMetricType(d.metric_type);
+      setThreshold(String(d.threshold));
+      setPeriod(d.period);
+      const types = new Set<string>();
+      if (d.action === "notify" || d.action === "both") types.add("notify");
+      if (d.action === "block" || d.action === "both") types.add("block");
+      setSelectedTypes(types);
+    } else if (props.open) {
+      reset();
+    }
+  });
 
   const handleSave = () => {
     const val = Number(threshold());
@@ -27,7 +72,7 @@ const LimitRuleModal: Component<Props> = (props) => {
       metric_type: metricType(),
       threshold: val,
       period: period(),
-      action: action(),
+      action: actionValue(),
     });
     reset();
   };
@@ -37,7 +82,10 @@ const LimitRuleModal: Component<Props> = (props) => {
     props.onClose();
   };
 
+  const isEdit = () => !!props.editData;
+
   return (
+    <Portal>
     <Show when={props.open}>
       <div class="modal-overlay" onClick={() => handleClose()}>
         <div
@@ -47,7 +95,9 @@ const LimitRuleModal: Component<Props> = (props) => {
           aria-labelledby="limit-modal-title"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 class="modal-card__title" id="limit-modal-title">Create rule</h2>
+          <h2 class="modal-card__title" id="limit-modal-title">
+            {isEdit() ? "Edit rule" : "Create rule"}
+          </h2>
           <p class="modal-card__desc">
             Set up an email alert or hard limit for this agent's usage.
           </p>
@@ -56,26 +106,33 @@ const LimitRuleModal: Component<Props> = (props) => {
           <div class="limit-type-selector">
             <button
               class="limit-type-option"
-              classList={{ "limit-type-option--active": action() === "notify" }}
-              onClick={() => setAction("notify")}
+              classList={{ "limit-type-option--active": selectedTypes().has("notify") }}
+              onClick={() => toggleType("notify")}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-              Email Alert
+              <AlertIcon size={16} />
+              <span class="limit-type-option__label">Email Alert</span>
+              <Show when={selectedTypes().has("notify")}>
+                <svg class="limit-type-option__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+              </Show>
             </button>
             <button
               class="limit-type-option"
-              classList={{
-                "limit-type-option--active": action() === "block",
-                "limit-type-option--disabled": !props.routingEnabled,
-              }}
-              disabled={!props.routingEnabled}
-              onClick={() => props.routingEnabled && setAction("block")}
-              title={props.routingEnabled ? undefined : "Enable routing to use hard limits"}
+              classList={{ "limit-type-option--active": selectedTypes().has("block") }}
+              onClick={() => toggleType("block")}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-              Hard Limit
+              <LimitIcon size={16} />
+              <span class="limit-type-option__label">Hard Limit</span>
+              <Show when={selectedTypes().has("block")}>
+                <svg class="limit-type-option__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+              </Show>
             </button>
           </div>
+
+          <Show when={selectedTypes().has("notify") && props.hasProvider === false}>
+            <p class="limit-type-hint">
+              Email alerts require an email provider. You can set one up once you're done creating your rule.
+            </p>
+          </Show>
 
           <label class="modal-card__field-label">Metric</label>
           <select
@@ -122,12 +179,13 @@ const LimitRuleModal: Component<Props> = (props) => {
               disabled={!threshold() || Number(threshold()) <= 0}
               onClick={handleSave}
             >
-              Create rule
+              {isEdit() ? "Save changes" : "Create rule"}
             </button>
           </div>
         </div>
       </div>
     </Show>
+    </Portal>
   );
 };
 

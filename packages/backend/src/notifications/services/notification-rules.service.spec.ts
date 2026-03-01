@@ -226,7 +226,7 @@ describe('NotificationRulesService', () => {
   });
 
   describe('getAllActiveRules', () => {
-    it('returns only active notify rules', async () => {
+    it('returns active notify and both rules', async () => {
       const rules = [{ id: 'r1', is_active: true, action: 'notify' }];
       mockQuery.mockResolvedValueOnce(rules);
 
@@ -234,28 +234,28 @@ describe('NotificationRulesService', () => {
       expect(result).toEqual(rules);
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('is_active = $1'),
-        [true, 'notify'],
+        [true, 'notify', 'both'],
       );
     });
 
-    it('filters out block rules', async () => {
+    it('uses IN clause to include both action', async () => {
       mockQuery.mockResolvedValueOnce([]);
       await service.getAllActiveRules();
       const sql = mockQuery.mock.calls[0][0] as string;
-      expect(sql).toContain('action = $2');
+      expect(sql).toContain('action IN ($2, $3)');
     });
   });
 
   describe('getActiveBlockRules', () => {
-    it('returns block rules for tenant and agent', async () => {
+    it('returns block and both rules for tenant and agent', async () => {
       const rules = [{ id: 'r1', action: 'block' }];
       mockQuery.mockResolvedValueOnce(rules);
 
       const result = await service.getActiveBlockRules('tenant-1', 'my-agent');
       expect(result).toEqual(rules);
       expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('action = $4'),
-        ['tenant-1', 'my-agent', true, 'block'],
+        expect.stringContaining('action IN ($4, $5)'),
+        ['tenant-1', 'my-agent', true, 'block', 'both'],
       );
     });
 
@@ -373,6 +373,25 @@ describe('NotificationRulesService', () => {
       const insertCall = mockQuery.mock.calls[1];
       const params = insertCall[1] as unknown[];
       expect(params).toContain('block');
+    });
+
+    it('accepts both as action value', async () => {
+      mockQuery
+        .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }])
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce([{ id: 'new-rule' }]);
+
+      await service.createRule('user-1', {
+        agent_name: 'my-agent',
+        metric_type: 'tokens',
+        threshold: 50000,
+        period: 'day',
+        action: 'both',
+      });
+
+      const insertCall = mockQuery.mock.calls[1];
+      const params = insertCall[1] as unknown[];
+      expect(params).toContain('both');
     });
   });
 });

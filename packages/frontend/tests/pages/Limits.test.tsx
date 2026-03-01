@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@solidjs/testing-library";
+import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: "test-agent" }),
@@ -40,7 +40,7 @@ vi.mock("../../src/components/EmailProviderSetup.js", () => ({
 
 vi.mock("../../src/components/LimitRuleModal.js", () => ({
   default: (props: any) => (
-    <div data-testid="limit-modal" data-open={props.open} data-routing={props.routingEnabled}>
+    <div data-testid="limit-modal" data-open={props.open} data-edit={!!props.editData}>
       LimitRuleModal
       <button data-testid="mock-save" onClick={() => props.onSave({ metric_type: "tokens", threshold: 100, period: "day", action: "notify" })}>
         Save
@@ -51,9 +51,25 @@ vi.mock("../../src/components/LimitRuleModal.js", () => ({
 
 vi.mock("../../src/components/ProviderBanner.js", () => ({
   default: (props: any) => (
-    <div data-testid="provider-banner">
+    <div data-testid="provider-banner" data-provider={props.config?.provider}>
       ProviderBanner
+      <button data-testid="mock-edit" onClick={() => props.onEdit()}>Edit</button>
       <button data-testid="mock-remove" onClick={() => props.onRemove()}>Remove</button>
+    </div>
+  ),
+}));
+
+vi.mock("../../src/components/EmailProviderModal.js", () => ({
+  default: (props: any) => (
+    <div
+      data-testid="email-provider-modal"
+      data-open={props.open}
+      data-provider={props.initialProvider}
+      data-key-prefix={props.existingKeyPrefix ?? ""}
+      data-domain={props.existingDomain ?? ""}
+      data-notification-email={props.existingNotificationEmail ?? ""}
+    >
+      EmailProviderModal
     </div>
   ),
 }));
@@ -119,8 +135,7 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByText("Email alert")).toBeDefined();
-      expect(screen.getByText("Limit")).toBeDefined();
+      expect(container.querySelectorAll(".limit-type-icon").length).toBeGreaterThanOrEqual(2);
       expect(container.querySelectorAll("table tbody tr").length).toBe(2);
     });
   });
@@ -185,13 +200,12 @@ describe("Limits page", () => {
     expect(container.textContent).toContain("user@example.com");
   });
 
-  it("passes routingEnabled to modal", async () => {
-    mockRoutingStatus = { enabled: true };
+  it("renders modal component", async () => {
     render(() => <Limits />);
 
     await vi.waitFor(() => {
       const modal = screen.getByTestId("limit-modal");
-      expect(modal.getAttribute("data-routing")).toBe("true");
+      expect(modal).toBeDefined();
     });
   });
 
@@ -265,7 +279,7 @@ describe("Limits page", () => {
     });
   });
 
-  it("renders period labels correctly", async () => {
+  it("renders merged threshold with period labels", async () => {
     mockRules = [
       { id: "r1", agent_name: "test-agent", metric_type: "tokens", threshold: 100, period: "hour", action: "notify", is_active: true, trigger_count: 0, created_at: "2026-01-01" },
       { id: "r2", agent_name: "test-agent", metric_type: "tokens", threshold: 200, period: "week", action: "notify", is_active: true, trigger_count: 0, created_at: "2026-01-01" },
@@ -274,8 +288,8 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Per hour");
-      expect(container.textContent).toContain("Per week");
+      expect(container.textContent).toContain("per hour");
+      expect(container.textContent).toContain("per week");
     });
   });
 
@@ -314,7 +328,7 @@ describe("Limits page", () => {
     });
   });
 
-  it("renders delete button and defaults action to alert when not set", async () => {
+  it("renders kebab menu and defaults action to alert when not set", async () => {
     mockRules = [{
       id: "r1", agent_name: "test-agent", metric_type: "tokens",
       threshold: 50000, period: "day",
@@ -324,9 +338,374 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Delete rule")).toBeDefined();
-      expect(container.querySelector(".limit-type-badge--alert")).not.toBeNull();
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(container.querySelector(".limit-type-icon")).not.toBeNull();
       expect(container.textContent).toContain("7");
+    });
+  });
+
+  it("shows both icons for rules with action both", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "both",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    const { container } = render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(container.querySelectorAll(".limit-type-icon").length).toBe(2);
+    });
+  });
+
+  it("opens dropdown menu when kebab button is clicked", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    const { container } = render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByLabelText("Rule options"));
+
+    await vi.waitFor(() => {
+      expect(document.querySelector(".rule-menu__dropdown")).not.toBeNull();
+      expect(screen.getByText("Edit")).toBeDefined();
+      expect(screen.getByText("Delete")).toBeDefined();
+    });
+  });
+
+  it("opens delete confirmation modal with checkbox", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByLabelText("Rule options"));
+
+    await vi.waitFor(() => {
+      expect(screen.getByText("Delete")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByText("Delete"));
+
+    await vi.waitFor(() => {
+      const title = document.querySelector(".modal-card__title") as HTMLElement;
+      expect(title.textContent).toBe("Delete rule");
+      expect(screen.getByText("I understand this action is irreversible")).toBeDefined();
+
+      const deleteBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
+      expect(deleteBtn.disabled).toBe(true);
+    });
+  });
+
+  it("enables delete button only after confirmation checkbox", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByLabelText("Rule options"));
+    await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
+    fireEvent.click(screen.getByText("Delete"));
+
+    await vi.waitFor(() => {
+      expect(document.querySelector(".btn--danger")).not.toBeNull();
+    });
+
+    const checkbox = document.querySelector('.confirm-modal__confirm-row input[type="checkbox"]') as HTMLInputElement;
+    fireEvent.click(checkbox);
+
+    await vi.waitFor(() => {
+      const deleteBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
+      expect(deleteBtn.disabled).toBe(false);
+    });
+  });
+
+  it("opens edit modal when Edit is clicked from kebab menu", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByLabelText("Rule options"));
+    await vi.waitFor(() => expect(screen.getByText("Edit")).toBeDefined());
+    fireEvent.click(screen.getByText("Edit"));
+
+    await vi.waitFor(() => {
+      const modal = screen.getByTestId("limit-modal");
+      expect(modal.getAttribute("data-open")).toBe("true");
+      expect(modal.getAttribute("data-edit")).toBe("true");
+    });
+  });
+
+  // --- Remove provider confirmation modal tests ---
+
+  it("opens remove provider modal on ProviderBanner remove click", async () => {
+    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
+    mockIsLocalMode = true;
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("provider-banner")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByTestId("mock-remove"));
+
+    await vi.waitFor(() => {
+      const titles = document.querySelectorAll(".modal-card__title");
+      const removeTitle = Array.from(titles).find((t) => t.textContent === "Remove provider");
+      expect(removeTitle).toBeDefined();
+    });
+  });
+
+  it("shows email warning in remove provider modal when notify rules exist", async () => {
+    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
+    mockIsLocalMode = true;
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("mock-remove")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByTestId("mock-remove"));
+
+    await vi.waitFor(() => {
+      const descs = document.querySelectorAll(".modal-card__desc");
+      const removeDesc = Array.from(descs).find((d) => d.textContent?.includes("disconnect your email provider"));
+      expect(removeDesc?.textContent).toContain("Email alerts won't be sent");
+    });
+  });
+
+  it("shows email warning in remove provider modal for action 'both' rules", async () => {
+    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
+    mockIsLocalMode = true;
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "both",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("mock-remove")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByTestId("mock-remove"));
+
+    await vi.waitFor(() => {
+      const descs = document.querySelectorAll(".modal-card__desc");
+      const removeDesc = Array.from(descs).find((d) => d.textContent?.includes("disconnect your email provider"));
+      expect(removeDesc?.textContent).toContain("Email alerts won't be sent");
+    });
+  });
+
+  it("does not show email warning in remove provider modal when only block rules exist", async () => {
+    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
+    mockIsLocalMode = true;
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "block",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("mock-remove")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByTestId("mock-remove"));
+
+    await vi.waitFor(() => {
+      const descs = document.querySelectorAll(".modal-card__desc");
+      const removeDesc = Array.from(descs).find((d) => d.textContent?.includes("disconnect your email provider"));
+      expect(removeDesc?.textContent).not.toContain("Email alerts won't be sent");
+    });
+  });
+
+  it("does not show email warning in remove provider modal when no rules exist", async () => {
+    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
+    mockIsLocalMode = true;
+    mockRules = [];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("mock-remove")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByTestId("mock-remove"));
+
+    await vi.waitFor(() => {
+      const descs = document.querySelectorAll(".modal-card__desc");
+      const removeDesc = Array.from(descs).find((d) => d.textContent?.includes("disconnect your email provider"));
+      expect(removeDesc?.textContent).not.toContain("Email alerts won't be sent");
+    });
+  });
+
+  it("closes remove provider modal on cancel", async () => {
+    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
+    mockIsLocalMode = true;
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("mock-remove")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByTestId("mock-remove"));
+
+    await vi.waitFor(() => {
+      const titles = document.querySelectorAll(".modal-card__title");
+      const removeTitle = Array.from(titles).find((t) => t.textContent === "Remove provider");
+      expect(removeTitle).toBeDefined();
+    });
+
+    // Click Cancel
+    const cancelBtn = Array.from(document.querySelectorAll(".btn--ghost")).find(
+      (b) => b.textContent === "Cancel",
+    ) as HTMLButtonElement;
+    fireEvent.click(cancelBtn);
+
+    await vi.waitFor(() => {
+      const titles = document.querySelectorAll(".modal-card__title");
+      const removeTitle = Array.from(titles).find((t) => t.textContent === "Remove provider");
+      expect(removeTitle).toBeUndefined();
+    });
+  });
+
+  // --- Delete rule modal content tests ---
+
+  it("shows 'token' (singular) in delete modal for tokens metric type", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByLabelText("Rule options"));
+    await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
+    fireEvent.click(screen.getByText("Delete"));
+
+    await vi.waitFor(() => {
+      const desc = document.querySelector(".modal-card__desc") as HTMLElement;
+      expect(desc.textContent).toContain("token");
+      expect(desc.textContent).not.toContain("tokens");
+    });
+  });
+
+  it("shows 'cost' with formatted threshold in delete modal for cost metric type", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "cost",
+      threshold: 25.5, period: "month", action: "block",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByLabelText("Rule options"));
+    await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
+    fireEvent.click(screen.getByText("Delete"));
+
+    await vi.waitFor(() => {
+      const desc = document.querySelector(".modal-card__desc") as HTMLElement;
+      expect(desc.textContent).toContain("cost");
+      expect(desc.textContent).toContain("$25.50");
+    });
+  });
+
+  it("passes provider config to EmailProviderModal when edit is clicked", async () => {
+    mockEmailProvider = {
+      provider: "mailgun",
+      domain: "mg.example.com",
+      keyPrefix: "key-abc",
+      notificationEmail: "alerts@example.com",
+      is_active: true,
+    };
+    mockIsLocalMode = true;
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("provider-banner")).toBeDefined();
+    });
+
+    // Verify ProviderBanner receives config
+    const banner = screen.getByTestId("provider-banner");
+    expect(banner.getAttribute("data-provider")).toBe("mailgun");
+
+    // Click Edit to open EmailProviderModal
+    fireEvent.click(screen.getByTestId("mock-edit"));
+
+    await vi.waitFor(() => {
+      const modal = screen.getByTestId("email-provider-modal");
+      expect(modal.getAttribute("data-open")).toBe("true");
+      expect(modal.getAttribute("data-provider")).toBe("mailgun");
+      expect(modal.getAttribute("data-key-prefix")).toBe("key-abc");
+      expect(modal.getAttribute("data-domain")).toBe("mg.example.com");
+      expect(modal.getAttribute("data-notification-email")).toBe("alerts@example.com");
+    });
+  });
+
+  it("shows no-provider warning tag for email rules without provider in local mode", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+    mockIsLocalMode = true;
+    mockEmailProvider = null;
+
+    const { container } = render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(container.querySelector(".limit-warn-tag")).not.toBeNull();
+      expect(container.textContent).toContain("No provider");
     });
   });
 

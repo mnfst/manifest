@@ -64,26 +64,26 @@ describe("EmailProviderSetup", () => {
   });
 
   it("opens modal when Resend card is clicked", async () => {
-    const { container } = render(() => <EmailProviderSetup onConfigured={onConfigured} />);
+    render(() => <EmailProviderSetup onConfigured={onConfigured} />);
     fireEvent.click(screen.getByText("Resend"));
     await vi.waitFor(() => {
-      expect(container.querySelector(".modal-overlay")).not.toBeNull();
+      expect(document.querySelector(".modal-overlay")).not.toBeNull();
     });
   });
 
   it("opens modal when Mailgun card is clicked", async () => {
-    const { container } = render(() => <EmailProviderSetup onConfigured={onConfigured} />);
+    render(() => <EmailProviderSetup onConfigured={onConfigured} />);
     fireEvent.click(screen.getByText("Mailgun"));
     await vi.waitFor(() => {
-      expect(container.querySelector(".modal-overlay")).not.toBeNull();
+      expect(document.querySelector(".modal-overlay")).not.toBeNull();
     });
   });
 
   it("opens modal when SendGrid card is clicked", async () => {
-    const { container } = render(() => <EmailProviderSetup onConfigured={onConfigured} />);
+    render(() => <EmailProviderSetup onConfigured={onConfigured} />);
     fireEvent.click(screen.getByText("SendGrid"));
     await vi.waitFor(() => {
-      expect(container.querySelector(".modal-overlay")).not.toBeNull();
+      expect(document.querySelector(".modal-overlay")).not.toBeNull();
     });
   });
 });

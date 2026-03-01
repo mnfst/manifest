@@ -172,7 +172,7 @@
 
 .modal-card__input {
   width: 100%;
-  height: 2.5rem;
+  height: 2.25rem;
   padding: 0 12px;
   background: hsl(var(--background));
   color: hsl(var(--foreground));

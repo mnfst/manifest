@@ -34,7 +34,7 @@ export class NotificationRule {
   period!: 'hour' | 'day' | 'week' | 'month';
 
   @Column('varchar', { default: 'notify' })
-  action!: 'notify' | 'block';
+  action!: 'notify' | 'block' | 'both';
 
   @Column('boolean', { default: true })
   is_active!: boolean;

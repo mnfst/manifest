@@ -94,7 +94,7 @@ export class NotificationsController {
     @CurrentUser() user: AuthUser,
   ) {
     const rule = await this.rulesService.createRule(user.id, dto);
-    if (rule.action === 'block') {
+    if (rule.action === 'block' || rule.action === 'both') {
       this.limitCheck.invalidateCache(rule.tenant_id, rule.agent_name);
     }
     return rule;

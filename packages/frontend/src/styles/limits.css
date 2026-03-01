@@ -1,23 +1,149 @@
-/* ── Limit Type Badge ─────────────────────────────── */
-.limit-type-badge {
+/* ── Limit Type Icons (table listing) ─────────────── */
+.limit-type-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.limit-type-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--foreground));
+  cursor: default;
+}
+
+
+/* ── "No provider" warning tag ─────────────────────── */
+.limit-warn-tag {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  margin-left: 6px;
   padding: 2px 8px;
   border-radius: 9999px;
   font-size: var(--font-size-xs);
   font-weight: 500;
+  background: hsl(36 80% 50% / 0.12);
+  color: hsl(36 80% 50%);
   white-space: nowrap;
+  vertical-align: middle;
 }
 
-.limit-type-badge--alert {
-  background: hsl(var(--chart-1) / 0.1);
-  color: hsl(var(--chart-1));
+/* ── Rule row kebab menu ───────────────────────────── */
+.rule-menu__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.limit-type-badge--hard {
-  background: hsl(var(--chart-5) / 0.15);
-  color: hsl(var(--chart-5));
+.rule-menu__btn:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+.rule-menu__dropdown {
+  min-width: 140px;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px hsl(var(--foreground) / 0.08);
+  padding: 4px;
+  z-index: 100;
+  animation: fadeIn 100ms ease-out;
+}
+
+.rule-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.rule-menu__item:hover {
+  background: hsl(var(--accent));
+}
+
+.rule-menu__item--danger:hover {
+  background: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--destructive));
+}
+
+/* ── Delete Confirmation Modal ─────────────────────── */
+.confirm-modal__warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: var(--gap-md);
+  padding: 12px 14px;
+  background: hsl(var(--destructive) / 0.06);
+  border: 1px solid hsl(var(--destructive) / 0.18);
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+  line-height: 1.5;
+}
+
+.confirm-modal__warning svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: hsl(var(--destructive));
+}
+
+.confirm-modal__confirm-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--gap-md);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  user-select: none;
+}
+
+.confirm-modal__confirm-row input[type="checkbox"] {
+  accent-color: hsl(var(--destructive));
+}
+
+.confirm-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--gap-sm);
+  padding-top: var(--gap-md);
+  border-top: 1px solid hsl(var(--border));
+}
+
+.btn--danger {
+  background: hsl(var(--destructive));
+  color: #fff;
+  border: none;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: hsl(var(--destructive) / 0.85);
+}
+
+.btn--danger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ── Warning Banner ──────────────────────────────── */
@@ -67,11 +193,24 @@
   color: hsl(var(--muted-foreground));
 }
 
+/* ── Disabled panel (no provider) ───────────────── */
+.panel--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.limits-provider-hint {
+  padding: 8px 0 12px;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+}
+
 /* ── Modal Row (threshold + period side-by-side) ─── */
 .limit-modal__row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--gap-md);
+  margin-top: var(--gap-md);
 }
 
 .limit-modal__row .modal-card__field-label {
@@ -88,6 +227,8 @@
   flex: 1;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  text-align: left;
   gap: 8px;
   padding: 10px 14px;
   background: hsl(var(--background));
@@ -103,8 +244,8 @@
     color var(--transition-fast);
 }
 
-.limit-type-option:hover:not(:disabled) {
-  border-color: hsl(var(--foreground) / 0.3);
+.limit-type-option:hover:not(:disabled):not(.limit-type-option--active) {
+  border-color: hsl(var(--muted-foreground) / 0.4);
 }
 
 .limit-type-option--active {
@@ -112,7 +253,19 @@
   color: hsl(var(--foreground));
 }
 
-.limit-type-option--disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+.limit-type-option__label {
+  flex: 1;
 }
+
+.limit-type-option__check {
+  flex-shrink: 0;
+  color: hsl(var(--primary));
+}
+
+.limit-type-hint {
+  margin: 8px 0 0;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+}
+

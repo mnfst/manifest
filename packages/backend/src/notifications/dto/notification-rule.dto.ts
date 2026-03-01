@@ -17,8 +17,8 @@ export class CreateNotificationRuleDto {
   period!: 'hour' | 'day' | 'week' | 'month';
 
   @IsOptional()
-  @IsIn(['notify', 'block'])
-  action?: 'notify' | 'block';
+  @IsIn(['notify', 'block', 'both'])
+  action?: 'notify' | 'block' | 'both';
 }
 
 export class UpdateNotificationRuleDto {
@@ -42,6 +42,6 @@ export class UpdateNotificationRuleDto {
   is_active?: boolean;
 
   @IsOptional()
-  @IsIn(['notify', 'block'])
-  action?: 'notify' | 'block';
+  @IsIn(['notify', 'block', 'both'])
+  action?: 'notify' | 'block' | 'both';
 }

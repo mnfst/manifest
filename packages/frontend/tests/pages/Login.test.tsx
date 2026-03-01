@@ -160,6 +160,19 @@ describe("Login", () => {
     });
   });
 
+  it("falls back to login form when local session check returns non-ok", async () => {
+    const { checkLocalMode } = await import("../../src/services/local-mode.js");
+    (checkLocalMode as ReturnType<typeof vi.fn>).mockResolvedValueOnce(true);
+    // fetch is already stubbed with { ok: false } in beforeEach
+
+    const { container } = render(() => <Login />);
+
+    // After local mode check + failed session fetch, login form is shown
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Welcome back");
+    });
+  });
+
   it("shows resend error when sendVerificationEmail fails", async () => {
     mockSignInEmail.mockResolvedValue({ error: { message: "Email is not verified", code: "EMAIL_NOT_VERIFIED" } });
     mockSendVerificationEmail.mockResolvedValue({ error: { message: "Rate limited" } });

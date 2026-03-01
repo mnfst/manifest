@@ -72,8 +72,7 @@ const Account: Component = () => {
               <span class="settings-card__label-desc">Name shown throughout the dashboard.</span>
             </div>
             <div class="settings-card__control">
-              <label for="display-name" class="sr-only">Display name</label>
-              <input class="settings-card__input" type="text" id="display-name" value={userName()} readonly />
+              <input class="settings-card__input" type="text" aria-label="Display name" value={userName()} readonly />
             </div>
           </div>
           <div class="settings-card__row">
@@ -82,8 +81,7 @@ const Account: Component = () => {
               <span class="settings-card__label-desc">Used for account notifications.</span>
             </div>
             <div class="settings-card__control">
-              <label for="email" class="sr-only">Email</label>
-              <input class="settings-card__input" type="email" id="email" value={userEmail()} readonly />
+              <input class="settings-card__input" type="email" aria-label="Email" value={userEmail()} readonly />
             </div>
           </div>
           <div class="settings-card__footer">
@@ -121,11 +119,10 @@ const Account: Component = () => {
               <span class="settings-card__label-desc">Name shown throughout the dashboard.</span>
             </div>
             <div class="settings-card__control">
-              <label for="local-display-name" class="sr-only">Display name</label>
               <input
                 class="settings-card__input"
                 type="text"
-                id="local-display-name"
+                aria-label="Display name"
                 value={localName()}
                 onInput={(e) => setLocalName(e.currentTarget.value)}
                 onBlur={() => setDisplayName(localName())}
