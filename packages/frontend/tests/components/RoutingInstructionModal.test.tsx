@@ -62,12 +62,19 @@ describe("RoutingInstructionModal", () => {
     expect(container.querySelector(".routing-modal__inline-picker")).not.toBeNull();
   });
 
-  it("does not show terminal until a model is selected in disable mode", () => {
+  it("shows terminal with placeholder before model is selected in disable mode", () => {
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="disable" onClose={() => {}} />
     ));
-    expect(container.querySelector(".modal-terminal")).toBeNull();
-    expect(container.textContent).toContain("Select a model above to see the command");
+    expect(container.querySelector(".modal-terminal")).not.toBeNull();
+    expect(container.textContent).toContain("<provider/model>");
+  });
+
+  it("explains that this restores direct model access in disable mode", () => {
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="disable" onClose={() => {}} />
+    ));
+    expect(container.textContent).toContain("restore direct model access");
   });
 
   it("updates command when a model is selected from dropdown", async () => {
@@ -87,9 +94,9 @@ describe("RoutingInstructionModal", () => {
     fireEvent.click(gpt4oButton!);
 
     await vi.waitFor(() => {
-      expect(container.querySelector(".modal-terminal")).not.toBeNull();
+      expect(container.textContent).toContain("openai/gpt-4o");
     });
-    expect(container.textContent).toContain("openai/gpt-4o");
+    expect(container.textContent).not.toContain("<provider/model>");
   });
 
   it("does not show model picker in enable mode", () => {
