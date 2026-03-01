@@ -40,7 +40,7 @@ vi.mock("../../src/components/EmailProviderSetup.js", () => ({
 
 vi.mock("../../src/components/LimitRuleModal.js", () => ({
   default: (props: any) => (
-    <div data-testid="limit-modal" data-open={props.open} data-routing={props.routingEnabled}>
+    <div data-testid="limit-modal" data-open={props.open}>
       <button data-testid="mock-save" onClick={() => props.onSave({ metric_type: "tokens", threshold: 100, period: "day", action: "notify" })}>
         Save
       </button>
@@ -97,28 +97,7 @@ describe("Limits page interactions", () => {
     });
   });
 
-  it("calls updateNotificationRule when toggle is clicked", async () => {
-    const { updateNotificationRule } = await import("../../src/services/api.js");
-    mockRules = [{
-      id: "r1", agent_name: "test-agent", metric_type: "tokens",
-      threshold: 50000, period: "day", action: "notify",
-      is_active: true, trigger_count: 0, created_at: "2026-01-01",
-    }];
-
-    const { container } = render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      const toggle = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
-      expect(toggle).not.toBeNull();
-      fireEvent.click(toggle);
-    });
-
-    await vi.waitFor(() => {
-      expect(updateNotificationRule).toHaveBeenCalledWith("r1", { is_active: false });
-    });
-  });
-
-  it("calls deleteNotificationRule and shows toast on delete", async () => {
+  it("calls deleteNotificationRule via kebab menu and confirmation modal", async () => {
     const { deleteNotificationRule } = await import("../../src/services/api.js");
     const { toast } = await import("../../src/services/toast-store.js");
     mockRules = [{
@@ -129,9 +108,28 @@ describe("Limits page interactions", () => {
 
     render(() => <Limits />);
 
+    // Open kebab menu
     await vi.waitFor(() => {
-      fireEvent.click(screen.getByLabelText("Delete rule"));
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
     });
+    fireEvent.click(screen.getByLabelText("Rule options"));
+
+    // Click Delete in dropdown
+    await vi.waitFor(() => {
+      expect(screen.getByText("Delete")).toBeDefined();
+    });
+    fireEvent.click(screen.getByText("Delete"));
+
+    // Confirm deletion: check the checkbox then click Delete rule
+    await vi.waitFor(() => {
+      expect(document.querySelector(".confirm-modal__confirm-row")).not.toBeNull();
+    });
+
+    const checkbox = document.querySelector('.confirm-modal__confirm-row input[type="checkbox"]') as HTMLInputElement;
+    fireEvent.click(checkbox);
+
+    const deleteBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
+    fireEvent.click(deleteBtn);
 
     await vi.waitFor(() => {
       expect(deleteNotificationRule).toHaveBeenCalledWith("r1");

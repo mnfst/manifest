@@ -1,4 +1,5 @@
 import { createSignal, createEffect, Show, type Component } from "solid-js";
+import { Portal } from "solid-js/web";
 import { setEmailProvider, testEmailProvider, testSavedEmailProvider } from "../services/api.js";
 import { authClient } from "../services/auth-client.js";
 import { isLocalMode } from "../services/local-mode.js";
@@ -237,6 +238,7 @@ const EmailProviderModal: Component<Props> = (props) => {
   };
 
   return (
+    <Portal>
     <Show when={props.open}>
       <div class="modal-overlay" onClick={() => props.onClose()}>
         <div
@@ -362,6 +364,7 @@ const EmailProviderModal: Component<Props> = (props) => {
         </div>
       </div>
     </Show>
+    </Portal>
   );
 };
 

@@ -217,6 +217,19 @@ describe('NotificationsController', () => {
       expect(limitCheck.invalidateCache).not.toHaveBeenCalled();
     });
 
+    it('invalidates cache when creating a both rule', async () => {
+      const bothRule = { ...mockRule, action: 'both' };
+      rulesService.createRule.mockResolvedValue(bothRule);
+
+      const dto = {
+        agent_name: 'my-agent', metric_type: 'tokens' as const,
+        threshold: 100000, period: 'day' as const, action: 'both' as const,
+      };
+      await controller.createRule(dto, mockUser);
+
+      expect(limitCheck.invalidateCache).toHaveBeenCalledWith('t-1', 'my-agent');
+    });
+
     it('always invalidates cache on update', async () => {
       rulesService.updateRule.mockResolvedValue({ ...mockRule, threshold: 200 });
 

@@ -110,8 +110,8 @@ export class NotificationRulesService {
 
   async getAllActiveRules() {
     return this.ds.query(
-      this.sql(`SELECT * FROM notification_rules WHERE is_active = $1 AND action = $2`),
-      [this.dialect === 'sqlite' ? 1 : true, 'notify'],
+      this.sql(`SELECT * FROM notification_rules WHERE is_active = $1 AND action IN ($2, $3)`),
+      [this.dialect === 'sqlite' ? 1 : true, 'notify', 'both'],
     );
   }
 
@@ -120,9 +120,9 @@ export class NotificationRulesService {
       this.sql(
         `SELECT * FROM notification_rules
          WHERE tenant_id = $1 AND agent_name = $2
-         AND is_active = $3 AND action = $4`,
+         AND is_active = $3 AND action IN ($4, $5)`,
       ),
-      [tenantId, agentName, this.dialect === 'sqlite' ? 1 : true, 'block'],
+      [tenantId, agentName, this.dialect === 'sqlite' ? 1 : true, 'block', 'both'],
     );
   }
 

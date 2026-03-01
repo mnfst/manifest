@@ -125,7 +125,7 @@ export interface NotificationRule {
   metric_type: "tokens" | "cost";
   threshold: number;
   period: "hour" | "day" | "week" | "month";
-  action: "notify" | "block";
+  action: "notify" | "block" | "both";
   is_active: boolean | number;
   trigger_count: number;
   created_at: string;

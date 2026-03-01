@@ -11,16 +11,20 @@ describe("LimitRuleModal", () => {
     mockOnSave = vi.fn();
   });
 
+  // Portal renders in document.body, so use document.querySelector for DOM queries
+  const q = (sel: string) => document.querySelector(sel);
+  const qa = (sel: string) => document.querySelectorAll(sel);
+
   it("renders nothing when closed", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={false} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={false} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    expect(container.querySelector(".modal-overlay")).toBeNull();
+    expect(q(".modal-overlay")).toBeNull();
   });
 
   it("renders modal when open", () => {
     render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
     expect(screen.getByRole("dialog")).toBeDefined();
     expect(screen.getByText("Set up an email alert or hard limit for this agent's usage.")).toBeDefined();
@@ -28,80 +32,76 @@ describe("LimitRuleModal", () => {
 
   it("shows description text", () => {
     render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
     expect(screen.getByText("Set up an email alert or hard limit for this agent's usage.")).toBeDefined();
   });
 
   it("renders Alert and Hard Limit type buttons", () => {
     render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
     expect(screen.getByText("Email Alert")).toBeDefined();
     expect(screen.getByText("Hard Limit")).toBeDefined();
   });
 
-  it("defaults to notify action", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+  it("defaults to notify action (Email Alert active)", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    const alertBtn = container.querySelector(".limit-type-option--active");
-    expect(alertBtn?.textContent).toContain("Email Alert");
+    const activeButtons = qa(".limit-type-option--active");
+    expect(activeButtons.length).toBe(1);
+    expect(activeButtons[0].textContent).toContain("Email Alert");
   });
 
-  it("allows selecting block action when routing is enabled", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+  it("allows selecting block action by adding then deselecting", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    const buttons = container.querySelectorAll(".limit-type-option");
-    fireEvent.click(buttons[1]); // Hard Limit button
+    const buttons = qa(".limit-type-option");
 
-    const active = container.querySelector(".limit-type-option--active");
-    expect(active?.textContent).toContain("Hard Limit");
+    // Click Hard Limit — adds it (now both selected)
+    fireEvent.click(buttons[1]);
+    expect(qa(".limit-type-option--active").length).toBe(2);
+
+    // Click Email Alert to deselect — only Hard Limit remains
+    fireEvent.click(buttons[0]);
+    const activeButtons = qa(".limit-type-option--active");
+    expect(activeButtons.length).toBe(1);
+    expect(activeButtons[0].textContent).toContain("Hard Limit");
   });
 
-  it("disables Hard Limit button when routing is not enabled", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={false} onClose={mockOnClose} onSave={mockOnSave} />
+  it("allows selecting both types", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    const buttons = container.querySelectorAll(".limit-type-option");
-    const hardLimitBtn = buttons[1] as HTMLButtonElement;
-    expect(hardLimitBtn.disabled).toBe(true);
+    const buttons = qa(".limit-type-option");
+
+    // Email Alert is already selected, click Hard Limit to add it
+    fireEvent.click(buttons[1]);
+
+    const activeButtons = qa(".limit-type-option--active");
+    expect(activeButtons.length).toBe(2);
   });
 
-  it("shows disabled class on Hard Limit when routing is off", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={false} onClose={mockOnClose} onSave={mockOnSave} />
+  it("prevents deselecting the last type", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    const disabledBtn = container.querySelector(".limit-type-option--disabled");
-    expect(disabledBtn).not.toBeNull();
-    expect(disabledBtn?.textContent).toContain("Hard Limit");
-  });
+    const buttons = qa(".limit-type-option");
 
-  it("shows tooltip on disabled Hard Limit button", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={false} onClose={mockOnClose} onSave={mockOnSave} />
-    ));
-    const disabledBtn = container.querySelector(".limit-type-option--disabled") as HTMLButtonElement;
-    expect(disabledBtn.title).toBe("Enable routing to use hard limits");
-  });
-
-  it("does not switch to block when clicking disabled Hard Limit", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={false} onClose={mockOnClose} onSave={mockOnSave} />
-    ));
-    const buttons = container.querySelectorAll(".limit-type-option");
-    fireEvent.click(buttons[1]); // Hard Limit (disabled)
-
-    const active = container.querySelector(".limit-type-option--active");
-    expect(active?.textContent).toContain("Email Alert"); // still Email Alert
+    // Only Email Alert is selected, clicking it again should keep it
+    fireEvent.click(buttons[0]);
+    const activeButtons = qa(".limit-type-option--active");
+    expect(activeButtons.length).toBe(1);
+    expect(activeButtons[0].textContent).toContain("Email Alert");
   });
 
   it("renders metric select with Tokens and Cost options", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    const selects = container.querySelectorAll("select");
+    const selects = qa("select");
     const metricSelect = selects[0] as HTMLSelectElement;
     expect(metricSelect.options.length).toBe(2);
     expect(metricSelect.options[0].text).toBe("Tokens");
@@ -109,42 +109,42 @@ describe("LimitRuleModal", () => {
   });
 
   it("renders period select with four options", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    const selects = container.querySelectorAll("select");
+    const selects = qa("select");
     const periodSelect = selects[1] as HTMLSelectElement;
     expect(periodSelect.options.length).toBe(4);
   });
 
   it("disables Create rule button when threshold is empty", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    const btn = container.querySelector(".btn--primary") as HTMLButtonElement;
+    const btn = q(".btn--primary") as HTMLButtonElement;
     expect(btn.disabled).toBe(true);
   });
 
   it("enables Create rule button when threshold is valid", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    const input = container.querySelector('input[type="number"]') as HTMLInputElement;
+    const input = q('input[type="number"]') as HTMLInputElement;
     fireEvent.input(input, { target: { value: "50000" } });
 
-    const btn = container.querySelector(".btn--primary") as HTMLButtonElement;
+    const btn = q(".btn--primary") as HTMLButtonElement;
     expect(btn.disabled).toBe(false);
   });
 
   it("calls onSave with correct data when Create rule is clicked", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
 
-    const input = container.querySelector('input[type="number"]') as HTMLInputElement;
+    const input = q('input[type="number"]') as HTMLInputElement;
     fireEvent.input(input, { target: { value: "50000" } });
 
-    const btn = container.querySelector(".btn--primary") as HTMLButtonElement;
+    const btn = q(".btn--primary") as HTMLButtonElement;
     fireEvent.click(btn);
 
     expect(mockOnSave).toHaveBeenCalledWith({
@@ -155,19 +155,20 @@ describe("LimitRuleModal", () => {
     });
   });
 
-  it("calls onSave with block action when Hard Limit selected", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+  it("calls onSave with block action when only Hard Limit selected", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
 
-    // Select Hard Limit
-    const typeButtons = container.querySelectorAll(".limit-type-option");
+    const typeButtons = qa(".limit-type-option");
+    // Add Hard Limit then remove Email Alert
     fireEvent.click(typeButtons[1]);
+    fireEvent.click(typeButtons[0]);
 
-    const input = container.querySelector('input[type="number"]') as HTMLInputElement;
+    const input = q('input[type="number"]') as HTMLInputElement;
     fireEvent.input(input, { target: { value: "10" } });
 
-    const btn = container.querySelector(".btn--primary") as HTMLButtonElement;
+    const btn = q(".btn--primary") as HTMLButtonElement;
     fireEvent.click(btn);
 
     expect(mockOnSave).toHaveBeenCalledWith({
@@ -178,43 +179,66 @@ describe("LimitRuleModal", () => {
     });
   });
 
-  it("does not call onSave when threshold is zero", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+  it("calls onSave with both action when both types selected", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
 
-    const input = container.querySelector('input[type="number"]') as HTMLInputElement;
+    // Email Alert is already active, add Hard Limit
+    const typeButtons = qa(".limit-type-option");
+    fireEvent.click(typeButtons[1]);
+
+    const input = q('input[type="number"]') as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "10" } });
+
+    const btn = q(".btn--primary") as HTMLButtonElement;
+    fireEvent.click(btn);
+
+    expect(mockOnSave).toHaveBeenCalledWith({
+      metric_type: "tokens",
+      threshold: 10,
+      period: "day",
+      action: "both",
+    });
+  });
+
+  it("does not call onSave when threshold is zero", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
+    ));
+
+    const input = q('input[type="number"]') as HTMLInputElement;
     fireEvent.input(input, { target: { value: "0" } });
 
-    const btn = container.querySelector(".btn--primary") as HTMLButtonElement;
+    const btn = q(".btn--primary") as HTMLButtonElement;
     fireEvent.click(btn);
 
     expect(mockOnSave).not.toHaveBeenCalled();
   });
 
   it("does not call onSave when threshold is NaN", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
 
-    const input = container.querySelector('input[type="number"]') as HTMLInputElement;
+    const input = q('input[type="number"]') as HTMLInputElement;
     fireEvent.input(input, { target: { value: "abc" } });
 
-    const btn = container.querySelector(".btn--primary") as HTMLButtonElement;
+    const btn = q(".btn--primary") as HTMLButtonElement;
     fireEvent.click(btn);
 
     expect(mockOnSave).not.toHaveBeenCalled();
   });
 
   it("resets form after save", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
 
-    const input = container.querySelector('input[type="number"]') as HTMLInputElement;
+    const input = q('input[type="number"]') as HTMLInputElement;
     fireEvent.input(input, { target: { value: "50000" } });
 
-    const btn = container.querySelector(".btn--primary") as HTMLButtonElement;
+    const btn = q(".btn--primary") as HTMLButtonElement;
     fireEvent.click(btn);
 
     // After save, threshold should be reset
@@ -222,11 +246,11 @@ describe("LimitRuleModal", () => {
   });
 
   it("calls onClose and resets form when overlay is clicked", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
 
-    const overlay = container.querySelector(".modal-overlay");
+    const overlay = q(".modal-overlay");
     fireEvent.click(overlay!);
 
     expect(mockOnClose).toHaveBeenCalled();
@@ -234,7 +258,7 @@ describe("LimitRuleModal", () => {
 
   it("does not close when clicking inside the modal card", () => {
     render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
 
     const card = screen.getByRole("dialog");
@@ -244,39 +268,37 @@ describe("LimitRuleModal", () => {
   });
 
   it("changes placeholder based on metric type", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
 
-    // Default is tokens
-    const input = container.querySelector('input[type="number"]') as HTMLInputElement;
+    const input = q('input[type="number"]') as HTMLInputElement;
     expect(input.placeholder).toBe("e.g. 50000");
 
-    // Switch to cost
-    const selects = container.querySelectorAll("select");
+    const selects = qa("select");
     fireEvent.change(selects[0], { target: { value: "cost" } });
     expect(input.placeholder).toBe("e.g. 10.00");
   });
 
   it("changes step based on metric type", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
 
-    const input = container.querySelector('input[type="number"]') as HTMLInputElement;
+    const input = q('input[type="number"]') as HTMLInputElement;
     expect(input.step).toBe("1"); // tokens
 
-    const selects = container.querySelectorAll("select");
+    const selects = qa("select");
     fireEvent.change(selects[0], { target: { value: "cost" } });
     expect(input.step).toBe("0.01"); // cost
   });
 
   it("submits on Enter key in threshold input", () => {
-    const { container } = render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
 
-    const input = container.querySelector('input[type="number"]') as HTMLInputElement;
+    const input = q('input[type="number"]') as HTMLInputElement;
     fireEvent.input(input, { target: { value: "100" } });
     fireEvent.keyDown(input, { key: "Enter" });
 
@@ -285,11 +307,58 @@ describe("LimitRuleModal", () => {
 
   it("has correct aria attributes on dialog", () => {
     render(() => (
-      <LimitRuleModal open={true} routingEnabled={true} onClose={mockOnClose} onSave={mockOnSave} />
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
 
     const dialog = screen.getByRole("dialog");
     expect(dialog.getAttribute("aria-modal")).toBe("true");
     expect(dialog.getAttribute("aria-labelledby")).toBe("limit-modal-title");
+  });
+
+  it("shows Edit rule title and Save changes button in edit mode", () => {
+    render(() => (
+      <LimitRuleModal
+        open={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        editData={{ metric_type: "cost", threshold: 25, period: "week", action: "block" }}
+      />
+    ));
+    expect(screen.getByText("Edit rule")).toBeDefined();
+    expect(screen.getByText("Save changes")).toBeDefined();
+  });
+
+  it("pre-fills form fields from editData", () => {
+    render(() => (
+      <LimitRuleModal
+        open={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        editData={{ metric_type: "cost", threshold: 25.5, period: "week", action: "both" }}
+      />
+    ));
+
+    const input = q('input[type="number"]') as HTMLInputElement;
+    expect(input.value).toBe("25.5");
+
+    const selects = qa("select");
+    expect((selects[0] as HTMLSelectElement).value).toBe("cost");
+    expect((selects[1] as HTMLSelectElement).value).toBe("week");
+
+    const activeButtons = qa(".limit-type-option--active");
+    expect(activeButtons.length).toBe(2);
+  });
+
+  it("shows Create rule title when editData is null", () => {
+    render(() => (
+      <LimitRuleModal
+        open={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        editData={null}
+      />
+    ));
+    const title = q("#limit-modal-title") as HTMLElement;
+    expect(title.textContent).toBe("Create rule");
   });
 });

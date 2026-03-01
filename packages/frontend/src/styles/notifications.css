@@ -38,6 +38,12 @@
   font-size: var(--font-size-sm);
 }
 
+/* Flush variant: table bleeds to panel edges */
+.notif-table--flush {
+  margin: 0 calc(-1 * var(--gap-lg));
+  width: calc(100% + 2 * var(--gap-lg));
+}
+
 .notif-table thead th {
   text-align: left;
   font-weight: 500;
@@ -61,6 +67,10 @@
 
 .notif-table__mono {
   font-family: var(--font-mono);
+}
+
+.notif-table__period {
+  color: hsl(var(--muted-foreground));
 }
 
 .notif-table__row--disabled td {
@@ -140,7 +150,6 @@
 /* ── Modal Select ─────────────────────────────────── */
 .notification-modal__select {
   width: 100%;
-  height: 2.5rem;
 }
 
 /* ── Provider Setup (inline on page) ─────────────── */
