@@ -154,3 +154,50 @@
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));
 }
+
+/* ── Inline model picker (used inside instruction modal) ── */
+.routing-modal__inline-picker {
+  position: relative;
+  margin-bottom: 0;
+}
+
+.routing-modal__inline-picker .routing-modal__list {
+  max-height: 240px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  margin-top: 8px;
+}
+
+.routing-modal__inline-picker .routing-modal__group-header {
+  background: hsl(var(--background));
+}
+
+.routing-modal__selected-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 16px;
+  background: hsl(var(--muted) / 0.4);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.routing-modal__selected-display:hover {
+  background: hsl(var(--muted) / 0.6);
+  border-color: hsl(var(--border) / 0.8);
+}
+
+.routing-modal__selected-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.routing-modal__selected-hint {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
