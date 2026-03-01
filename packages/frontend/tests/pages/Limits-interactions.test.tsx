@@ -137,7 +137,7 @@ describe("Limits page interactions", () => {
     });
   });
 
-  it("calls removeEmailProvider when provider banner remove is clicked", async () => {
+  it("calls removeEmailProvider after confirmation modal", async () => {
     const { removeEmailProvider } = await import("../../src/services/api.js");
     const { toast } = await import("../../src/services/toast-store.js");
     mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
@@ -145,9 +145,20 @@ describe("Limits page interactions", () => {
 
     render(() => <Limits />);
 
+    // Click Remove on the provider banner — opens confirmation modal
     await vi.waitFor(() => {
       fireEvent.click(screen.getByTestId("mock-remove"));
     });
+
+    // Wait for "Remove provider" confirmation modal to appear
+    await vi.waitFor(() => {
+      const title = document.querySelector(".modal-card__title") as HTMLElement;
+      expect(title.textContent).toBe("Remove provider");
+    });
+
+    // Click the danger button to confirm removal
+    const removeBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
+    fireEvent.click(removeBtn);
 
     await vi.waitFor(() => {
       expect(removeEmailProvider).toHaveBeenCalled();

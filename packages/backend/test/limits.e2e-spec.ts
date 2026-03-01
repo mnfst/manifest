@@ -97,6 +97,24 @@ describe('Limits API', () => {
     expect(res.body.action).toBe('notify');
   });
 
+  it('POST /api/v1/notifications creates a rule with action "both"', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/v1/notifications')
+      .set('x-api-key', TEST_API_KEY)
+      .send({
+        agent_name: AGENT_NAME,
+        metric_type: 'cost',
+        threshold: 50,
+        period: 'week',
+        action: 'both',
+      })
+      .expect(201);
+
+    expect(res.body).toHaveProperty('id');
+    expect(res.body.action).toBe('both');
+    expect(Number(res.body.threshold)).toBe(50);
+  });
+
   it('GET /api/v1/routing/status returns routing status', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/routing/status')

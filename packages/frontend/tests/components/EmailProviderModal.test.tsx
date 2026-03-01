@@ -30,6 +30,9 @@ vi.mock("../../src/services/toast-store.js", () => ({
 
 import EmailProviderModal from "../../src/components/EmailProviderModal";
 
+// Portal renders into document.body, so use document.querySelector for all DOM queries
+const q = (sel: string) => document.querySelector(sel);
+
 describe("EmailProviderModal", () => {
   const defaultProps = {
     open: true,
@@ -46,8 +49,8 @@ describe("EmailProviderModal", () => {
   });
 
   it("does not render when closed", () => {
-    const { container } = render(() => <EmailProviderModal {...defaultProps} open={false} />);
-    expect(container.querySelector(".modal-overlay")).toBeNull();
+    render(() => <EmailProviderModal {...defaultProps} open={false} />);
+    expect(q(".modal-overlay")).toBeNull();
   });
 
   it("renders modal when open", () => {
@@ -73,9 +76,8 @@ describe("EmailProviderModal", () => {
   });
 
   it("shows password input for API key in create mode", () => {
-    const { container } = render(() => <EmailProviderModal {...defaultProps} />);
-    const input = container.querySelector('input[type="password"]');
-    expect(input).toBeDefined();
+    render(() => <EmailProviderModal {...defaultProps} />);
+    expect(q('input[type="password"]')).not.toBeNull();
   });
 
   it("shows Notification email field", () => {
@@ -99,23 +101,23 @@ describe("EmailProviderModal", () => {
   });
 
   it("buttons are disabled when API key is empty", () => {
-    const { container } = render(() => <EmailProviderModal {...defaultProps} />);
-    const primaryBtn = container.querySelector(".btn--primary") as HTMLButtonElement;
+    render(() => <EmailProviderModal {...defaultProps} />);
+    const primaryBtn = q(".btn--primary") as HTMLButtonElement;
     expect(primaryBtn.disabled).toBe(true);
   });
 
   it("buttons become enabled when API key is entered", async () => {
-    const { container } = render(() => <EmailProviderModal {...defaultProps} />);
-    const input = container.querySelector('input[type="password"]')!;
+    render(() => <EmailProviderModal {...defaultProps} />);
+    const input = q('input[type="password"]')!;
     fireEvent.input(input, { target: { value: "re_testkey12345" } });
     await vi.waitFor(() => {
-      const primaryBtn = container.querySelector(".btn--primary") as HTMLButtonElement;
+      const primaryBtn = q(".btn--primary") as HTMLButtonElement;
       expect(primaryBtn.disabled).toBe(false);
     });
   });
 
   it("shows domain field when Mailgun is selected", async () => {
-    const { container } = render(() => <EmailProviderModal {...defaultProps} />);
+    render(() => <EmailProviderModal {...defaultProps} />);
     const mailgunBtn = screen.getByText("Mailgun");
     fireEvent.click(mailgunBtn);
     await vi.waitFor(() => {
@@ -124,20 +126,20 @@ describe("EmailProviderModal", () => {
   });
 
   it("does not show domain field for Resend", () => {
-    const { container } = render(() => <EmailProviderModal {...defaultProps} />);
-    expect(container.textContent).not.toContain("Sending domain");
+    render(() => <EmailProviderModal {...defaultProps} />);
+    expect(document.body.textContent).not.toContain("Sending domain");
   });
 
   it("calls onClose when overlay is clicked", () => {
-    const { container } = render(() => <EmailProviderModal {...defaultProps} />);
-    const overlay = container.querySelector(".modal-overlay")!;
+    render(() => <EmailProviderModal {...defaultProps} />);
+    const overlay = q(".modal-overlay")!;
     fireEvent.click(overlay);
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
   it("calls onClose on Escape key", () => {
-    const { container } = render(() => <EmailProviderModal {...defaultProps} />);
-    const input = container.querySelector('input[type="password"]')!;
+    render(() => <EmailProviderModal {...defaultProps} />);
+    const input = q('input[type="password"]')!;
     fireEvent.keyDown(input, { key: "Escape" });
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
@@ -145,11 +147,11 @@ describe("EmailProviderModal", () => {
   // --- Masked key (edit mode with existing key) ---
 
   it("shows masked key in edit mode with existing key prefix", () => {
-    const { container } = render(() => (
+    render(() => (
       <EmailProviderModal {...defaultProps} editMode={true} existingKeyPrefix="re_abc12" />
     ));
-    expect(container.textContent).toContain("re_abc12");
-    expect(container.querySelector(".masked-key")).toBeDefined();
+    expect(document.body.textContent).toContain("re_abc12");
+    expect(q(".masked-key")).not.toBeNull();
   });
 
   it("shows Change button in edit mode with existing key", () => {
@@ -160,32 +162,32 @@ describe("EmailProviderModal", () => {
   });
 
   it("does not show password input when masked key is displayed", () => {
-    const { container } = render(() => (
+    render(() => (
       <EmailProviderModal {...defaultProps} editMode={true} existingKeyPrefix="re_abc12" />
     ));
-    expect(container.querySelector('input[type="password"]')).toBeNull();
+    expect(q('input[type="password"]')).toBeNull();
   });
 
   it("shows password input after clicking Change", async () => {
-    const { container } = render(() => (
+    render(() => (
       <EmailProviderModal {...defaultProps} editMode={true} existingKeyPrefix="re_abc12" />
     ));
     fireEvent.click(screen.getByText("Change"));
     await vi.waitFor(() => {
-      expect(container.querySelector('input[type="password"]')).not.toBeNull();
+      expect(q('input[type="password"]')).not.toBeNull();
     });
   });
 
   it("buttons are NOT disabled in edit mode with existing key (no new key required)", () => {
-    const { container } = render(() => (
+    render(() => (
       <EmailProviderModal {...defaultProps} editMode={true} existingKeyPrefix="re_abc12" />
     ));
-    const primaryBtn = container.querySelector(".btn--primary") as HTMLButtonElement;
+    const primaryBtn = q(".btn--primary") as HTMLButtonElement;
     expect(primaryBtn.disabled).toBe(false);
   });
 
   it("calls testSavedEmailProvider when testing with existing key", async () => {
-    const { container } = render(() => (
+    render(() => (
       <EmailProviderModal
         {...defaultProps}
         editMode={true}
@@ -201,10 +203,10 @@ describe("EmailProviderModal", () => {
   });
 
   it("calls testEmailProvider (not saved) when a new key is entered", async () => {
-    const { container } = render(() => (
+    render(() => (
       <EmailProviderModal {...defaultProps} />
     ));
-    const input = container.querySelector('input[type="password"]')!;
+    const input = q('input[type="password"]')!;
     fireEvent.input(input, { target: { value: "re_testkey12345" } });
     const testBtn = screen.getByText("Send test email");
     fireEvent.click(testBtn);
@@ -233,10 +235,10 @@ describe("EmailProviderModal", () => {
   });
 
   it("save with new key sends apiKey to backend", async () => {
-    const { container } = render(() => (
+    render(() => (
       <EmailProviderModal {...defaultProps} />
     ));
-    const input = container.querySelector('input[type="password"]')!;
+    const input = q('input[type="password"]')!;
     fireEvent.input(input, { target: { value: "re_testkey12345" } });
     const saveBtn = screen.getByText("Test & Connect");
     fireEvent.click(saveBtn);
@@ -247,55 +249,201 @@ describe("EmailProviderModal", () => {
     });
   });
 
+  // --- Provider switching security (API key leak prevention) ---
+
+  it("does NOT show masked key when switching to a different provider", async () => {
+    render(() => (
+      <EmailProviderModal
+        {...defaultProps}
+        editMode={true}
+        initialProvider="resend"
+        existingKeyPrefix="re_abc12"
+      />
+    ));
+
+    // Initially shows masked key for Resend
+    expect(q(".masked-key")).not.toBeNull();
+
+    // Switch to Mailgun
+    fireEvent.click(screen.getByText("Mailgun"));
+
+    await vi.waitFor(() => {
+      // Masked key should NOT be shown for a different provider
+      expect(q(".masked-key")).toBeNull();
+    });
+  });
+
+  it("shows empty password input after switching to different provider", async () => {
+    render(() => (
+      <EmailProviderModal
+        {...defaultProps}
+        editMode={true}
+        initialProvider="resend"
+        existingKeyPrefix="re_abc12"
+      />
+    ));
+
+    // Switch to SendGrid
+    fireEvent.click(screen.getByText("SendGrid"));
+
+    await vi.waitFor(() => {
+      const input = q('input[type="password"]') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      expect(input.value).toBe("");
+    });
+  });
+
+  it("re-shows masked key when switching back to original provider", async () => {
+    render(() => (
+      <EmailProviderModal
+        {...defaultProps}
+        editMode={true}
+        initialProvider="resend"
+        existingKeyPrefix="re_abc12"
+      />
+    ));
+
+    // Switch away
+    fireEvent.click(screen.getByText("Mailgun"));
+    await vi.waitFor(() => {
+      expect(q(".masked-key")).toBeNull();
+    });
+
+    // Switch back
+    fireEvent.click(screen.getByText("Resend"));
+    await vi.waitFor(() => {
+      expect(q(".masked-key")).not.toBeNull();
+      expect(document.body.textContent).toContain("re_abc12");
+    });
+  });
+
+  it("save button is disabled when switched to different provider without entering key", async () => {
+    render(() => (
+      <EmailProviderModal
+        {...defaultProps}
+        editMode={true}
+        initialProvider="resend"
+        existingKeyPrefix="re_abc12"
+      />
+    ));
+
+    // Initially enabled (keeping existing key)
+    const primaryBtn = q(".btn--primary") as HTMLButtonElement;
+    expect(primaryBtn.disabled).toBe(false);
+
+    // Switch to Mailgun — no key entered yet
+    fireEvent.click(screen.getByText("Mailgun"));
+
+    await vi.waitFor(() => {
+      const btn = q(".btn--primary") as HTMLButtonElement;
+      expect(btn.disabled).toBe(true);
+    });
+  });
+
+  it("calls testEmailProvider (not testSavedEmailProvider) when provider differs from initial", async () => {
+    render(() => (
+      <EmailProviderModal
+        {...defaultProps}
+        editMode={true}
+        initialProvider="resend"
+        existingKeyPrefix="re_abc12"
+        existingNotificationEmail="user@test.com"
+      />
+    ));
+
+    // Switch to SendGrid and enter a new key
+    fireEvent.click(screen.getByText("SendGrid"));
+    await vi.waitFor(() => {
+      expect(q('input[type="password"]')).not.toBeNull();
+    });
+    const input = q('input[type="password"]')!;
+    fireEvent.input(input, { target: { value: "SG.newkeyhere12345" } });
+
+    fireEvent.click(screen.getByText("Send test email"));
+
+    await vi.waitFor(() => {
+      expect(mockTestEmailProvider).toHaveBeenCalled();
+      expect(mockTestSavedEmailProvider).not.toHaveBeenCalled();
+    });
+  });
+
+  it("sends new apiKey to backend when saving with a different provider", async () => {
+    render(() => (
+      <EmailProviderModal
+        {...defaultProps}
+        editMode={true}
+        initialProvider="resend"
+        existingKeyPrefix="re_abc12"
+        existingNotificationEmail="user@test.com"
+      />
+    ));
+
+    // Switch to SendGrid and enter a new key
+    fireEvent.click(screen.getByText("SendGrid"));
+    await vi.waitFor(() => {
+      expect(q('input[type="password"]')).not.toBeNull();
+    });
+    const input = q('input[type="password"]')!;
+    fireEvent.input(input, { target: { value: "SG.newkeyhere12345" } });
+
+    fireEvent.click(screen.getByText("Test & Save"));
+
+    await vi.waitFor(() => {
+      expect(mockSetEmailProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: "sendgrid", apiKey: "SG.newkeyhere12345" }),
+      );
+    });
+  });
+
   it("pre-populates notification email from props", () => {
-    const { container } = render(() => (
+    render(() => (
       <EmailProviderModal {...defaultProps} existingNotificationEmail="custom@email.com" />
     ));
-    const emailInput = container.querySelector('input[type="email"]') as HTMLInputElement;
+    const emailInput = q('input[type="email"]') as HTMLInputElement;
     expect(emailInput.value).toBe("custom@email.com");
   });
 
   it("pre-populates domain from props", () => {
-    const { container } = render(() => (
+    render(() => (
       <EmailProviderModal {...defaultProps} initialProvider="mailgun" existingDomain="mg.example.com" />
     ));
-    const domainInput = container.querySelector('input[type="text"]') as HTMLInputElement;
+    const domainInput = q('input[type="text"]') as HTMLInputElement;
     expect(domainInput.value).toBe("mg.example.com");
   });
 
   it("shows validation error for empty API key on save attempt", async () => {
-    const { container } = render(() => <EmailProviderModal {...defaultProps} />);
-    // Enter and clear to trigger validation
-    const input = container.querySelector('input[type="password"]')!;
+    render(() => <EmailProviderModal {...defaultProps} />);
+    // Enter short key to trigger validation
+    const input = q('input[type="password"]')!;
     fireEvent.input(input, { target: { value: "short" } });
-    const saveBtn = container.querySelector(".btn--primary")!;
+    const saveBtn = q(".btn--primary")!;
     fireEvent.click(saveBtn);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("API key must be at least 8 characters");
+      expect(document.body.textContent).toContain("API key must be at least 8 characters");
     });
   });
 
   it("shows validation error for invalid Resend key prefix", async () => {
-    const { container } = render(() => <EmailProviderModal {...defaultProps} />);
-    const input = container.querySelector('input[type="password"]')!;
+    render(() => <EmailProviderModal {...defaultProps} />);
+    const input = q('input[type="password"]')!;
     fireEvent.input(input, { target: { value: "wrong_prefix_key" } });
-    const saveBtn = container.querySelector(".btn--primary")!;
+    const saveBtn = q(".btn--primary")!;
     fireEvent.click(saveBtn);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Resend API key must start with re_");
+      expect(document.body.textContent).toContain("Resend API key must start with re_");
     });
   });
 
   it("shows validation error for invalid SendGrid key prefix", async () => {
-    const { container } = render(() => (
+    render(() => (
       <EmailProviderModal {...defaultProps} initialProvider="sendgrid" />
     ));
-    const input = container.querySelector('input[type="password"]')!;
+    const input = q('input[type="password"]')!;
     fireEvent.input(input, { target: { value: "wrong_prefix_key" } });
-    const saveBtn = container.querySelector(".btn--primary")!;
+    const saveBtn = q(".btn--primary")!;
     fireEvent.click(saveBtn);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("SendGrid API key must start with SG.");
+      expect(document.body.textContent).toContain("SendGrid API key must start with SG.");
     });
   });
 });

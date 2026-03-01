@@ -349,6 +349,65 @@ describe("LimitRuleModal", () => {
     expect(activeButtons.length).toBe(2);
   });
 
+  // --- Checkmark SVG and hasProvider hint tests ---
+
+  it("shows checkmark SVG on selected type button", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
+    ));
+    // Email Alert is selected by default
+    const checks = qa(".limit-type-option__check");
+    expect(checks.length).toBe(1);
+    // The check should be inside the active button
+    const activeBtn = q(".limit-type-option--active")!;
+    expect(activeBtn.querySelector(".limit-type-option__check")).not.toBeNull();
+  });
+
+  it("shows checkmarks on both buttons when both selected", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
+    ));
+    const buttons = qa(".limit-type-option");
+    // Add Hard Limit
+    fireEvent.click(buttons[1]);
+    const checks = qa(".limit-type-option__check");
+    expect(checks.length).toBe(2);
+  });
+
+  it("hides checkmark on deselected button", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
+    ));
+    const buttons = qa(".limit-type-option");
+    // Add Hard Limit (both selected)
+    fireEvent.click(buttons[1]);
+    expect(qa(".limit-type-option__check").length).toBe(2);
+
+    // Deselect Email Alert
+    fireEvent.click(buttons[0]);
+    const checks = qa(".limit-type-option__check");
+    expect(checks.length).toBe(1);
+    // Only Hard Limit button should have the check
+    expect(buttons[1].querySelector(".limit-type-option__check")).not.toBeNull();
+    expect(buttons[0].querySelector(".limit-type-option__check")).toBeNull();
+  });
+
+  it("shows hint when hasProvider is false and notify is selected", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} hasProvider={false} />
+    ));
+    const hint = q(".limit-type-hint");
+    expect(hint).not.toBeNull();
+    expect(hint!.textContent).toContain("Email alerts require an email provider");
+  });
+
+  it("does not show hint when hasProvider is true", () => {
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} hasProvider={true} />
+    ));
+    expect(q(".limit-type-hint")).toBeNull();
+  });
+
   it("shows Create rule title when editData is null", () => {
     render(() => (
       <LimitRuleModal
