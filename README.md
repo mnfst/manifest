@@ -58,7 +58,7 @@ Manifest is available in cloud and local versions. While both versions install t
 - You don’t need multi-device access
 - You don't want to subscribe to a cloud service
 
-If you don't know which version to chose, start with the **cloud version**.
+If you don't know which version to choose, start with the **cloud version**.
 
 ### Cloud (default)
 
