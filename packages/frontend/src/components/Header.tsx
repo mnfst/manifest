@@ -1,4 +1,4 @@
-import { A, useNavigate } from "@solidjs/router";
+import { A, useLocation, useNavigate } from "@solidjs/router";
 import { Show, createSignal, onCleanup, onMount, type Component } from "solid-js";
 import { useAgentName } from "../services/routing.js";
 import { authClient } from "../services/auth-client.js";
@@ -10,6 +10,7 @@ const STAR_DISMISSED_KEY = "github-star-dismissed";
 
 const Header: Component = () => {
   const getAgentName = useAgentName();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = createSignal(false);
   const [starCount, setStarCount] = createSignal<number | null>(null);
   const [starDismissed, setStarDismissed] = createSignal(
@@ -51,6 +52,13 @@ const Header: Component = () => {
     }
     return user()?.name ?? "User";
   };
+  const docsUrl = () => {
+    const p = location.pathname;
+    if (p.includes("/limits")) return "https://manifest.build/docs/set-limits";
+    if (p.includes("/routing")) return "https://manifest.build/docs/routing";
+    return "https://manifest.build/docs/introduction";
+  };
+
   const initials = () => {
     const name = effectiveName();
     return name.charAt(0).toUpperCase();
@@ -94,6 +102,18 @@ const Header: Component = () => {
         </Show>
       </div>
       <div class="header__right">
+        <a
+          href={docsUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="header__docs-link"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg>
+          Docs
+        </a>
         <Show when={!starDismissed()}>
           <div class="header__star-separator" />
           <div class="header__github-star">
