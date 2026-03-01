@@ -106,6 +106,13 @@ describe("RoutingInstructionModal", () => {
     expect(container.querySelector(".routing-modal__inline-picker")).toBeNull();
   });
 
+  it("shows restart command in disable mode", () => {
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="disable" onClose={() => {}} />
+    ));
+    expect(container.textContent).toContain("openclaw gateway restart");
+  });
+
   it("shows restart command in enable mode", () => {
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" onClose={() => {}} />

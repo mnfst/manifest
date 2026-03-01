@@ -108,6 +108,43 @@ describe("ModelSelectDropdown", () => {
     ));
     expect(container.textContent).toContain("Loading models...");
   });
+
+  it("shows selected display after selecting a model, and reopens on click", async () => {
+    const onSelect = vi.fn();
+    const { container } = await renderAndWait({ onSelect });
+
+    // Click a model to select it
+    const buttons = container.querySelectorAll(".routing-modal__model");
+    const gpt4oButton = Array.from(buttons).find((btn) =>
+      btn.textContent?.includes("GPT-4o") && !btn.textContent?.includes("Mini"),
+    );
+    fireEvent.click(gpt4oButton!);
+
+    // After selection, the dropdown closes and shows the selected display
+    // Re-render with selectedValue set (simulating parent state update)
+    const { container: container2 } = render(() => (
+      <ModelSelectDropdown selectedValue="openai/gpt-4o" onSelect={onSelect} />
+    ));
+
+    // Wait for data to load, then select a model to close the picker
+    await vi.waitFor(() => {
+      expect(container2.querySelector(".routing-modal__list")).not.toBeNull();
+    });
+    const btns2 = container2.querySelectorAll(".routing-modal__model");
+    fireEvent.click(btns2[0]!);
+
+    // Now the selected display should be visible
+    await vi.waitFor(() => {
+      expect(container2.querySelector(".routing-modal__selected-display")).not.toBeNull();
+    });
+    expect(container2.textContent).toContain("Click to change");
+
+    // Click it to reopen
+    fireEvent.click(container2.querySelector(".routing-modal__selected-display")!);
+    await vi.waitFor(() => {
+      expect(container2.querySelector(".routing-modal__search")).not.toBeNull();
+    });
+  });
 });
 
 describe("computeCliValue", () => {
@@ -128,5 +165,14 @@ describe("labelForModel", () => {
 
   it("returns the name as-is for unknown models", () => {
     expect(labelForModel("unknown-model-xyz")).toBe("unknown-model-xyz");
+  });
+
+  it("resolves slash-prefixed model names by stripping the prefix", () => {
+    expect(labelForModel("openai/gpt-4o")).toBe("GPT-4o");
+    expect(labelForModel("anthropic/claude-sonnet-4")).toBe("Claude Sonnet 4");
+  });
+
+  it("returns bare name for unknown slash-prefixed models", () => {
+    expect(labelForModel("vendor/unknown-xyz")).toBe("unknown-xyz");
   });
 });
