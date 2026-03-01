@@ -1,5 +1,16 @@
 # manifest
 
+## 5.18.0
+
+### Minor Changes
+
+- 1f5eed1: Replace hardcoded model buttons with searchable model picker in Deactivate Routing modal
+
+### Patch Changes
+
+- 11a56e4: Add context-aware Docs link to header
+- 1c90071: Add test coverage for Limits UI redesign: icon components, provider switching security, confirmation modals, and action "both" e2e test
+
 ## 5.17.0
 
 ### Minor Changes
