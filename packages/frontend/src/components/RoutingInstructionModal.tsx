@@ -1,14 +1,8 @@
 import { Show, createSignal, type Component } from "solid-js";
 import { CopyButton } from "./SetupStepInstall.jsx";
+import ModelSelectDropdown from "./ModelSelectDropdown.jsx";
 
 const ENABLE_CMD = `openclaw config set agents.defaults.model.primary manifest/auto\nopenclaw gateway restart`;
-
-const FALLBACK_MODELS = [
-  { label: "GPT-4o", value: "openai/gpt-4o" },
-  { label: "Claude Sonnet 4", value: "anthropic/claude-sonnet-4" },
-  { label: "Gemini 2.5 Flash", value: "google/gemini-2.5-flash" },
-  { label: "GPT-4o Mini", value: "openai/gpt-4o-mini" },
-];
 
 interface Props {
   open: boolean;
@@ -17,12 +11,19 @@ interface Props {
 }
 
 const RoutingInstructionModal: Component<Props> = (props) => {
-  const [selectedModel, setSelectedModel] = createSignal(FALLBACK_MODELS[0]?.value ?? "openai/gpt-4o");
+  const [selectedModel, setSelectedModel] = createSignal<string | null>(null);
+  const [selectedLabel, setSelectedLabel] = createSignal<string | null>(null);
   const isEnable = () => props.mode === "enable";
   const title = () => (isEnable() ? "Activate routing" : "Deactivate routing");
+  const modelOrPlaceholder = () => selectedModel() ?? "<provider/model>";
   const disableCmd = () =>
-    `openclaw config set agents.defaults.model.primary ${selectedModel()}\nopenclaw gateway restart`;
+    `openclaw config set agents.defaults.model.primary ${modelOrPlaceholder()}\nopenclaw gateway restart`;
   const command = () => (isEnable() ? ENABLE_CMD : disableCmd());
+
+  const handleModelSelect = (cliValue: string, displayLabel: string) => {
+    setSelectedModel(cliValue);
+    setSelectedLabel(displayLabel);
+  };
 
   return (
     <Show when={props.open}>
@@ -60,22 +61,20 @@ const RoutingInstructionModal: Component<Props> = (props) => {
 
           <Show when={!isEnable()}>
             <p style="margin: 0 0 14px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-              1. Pick the model to switch back to.
+              This will stop routing requests through Manifest and restore direct model access in your OpenClaw agent.
             </p>
 
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
-              {FALLBACK_MODELS.map((m) => (
-                <button
-                  class={`btn btn--sm ${selectedModel() === m.value ? "btn--primary" : "btn--outline"}`}
-                  onClick={() => setSelectedModel(m.value)}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
+            <p style="margin: 0 0 8px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+              1. Pick the model your agent should use directly:
+            </p>
 
-            <p style="margin: 0 0 14px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-              2. Now run this command in your agent's terminal to restore direct model access:
+            <ModelSelectDropdown
+              selectedValue={selectedModel()}
+              onSelect={handleModelSelect}
+            />
+
+            <p style="margin: 14px 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+              2. Run this command in your agent's terminal to restore direct model access:
             </p>
           </Show>
 
@@ -96,7 +95,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
                 <>
                   <div>
                     <span class="modal-terminal__prompt">$</span>
-                    <span class="modal-terminal__code">openclaw config set agents.defaults.model.primary {selectedModel()}</span>
+                    <span class="modal-terminal__code">openclaw config set agents.defaults.model.primary {modelOrPlaceholder()}</span>
                   </div>
                   <div style="margin-top: 8px;">
                     <span class="modal-terminal__prompt">$</span>
