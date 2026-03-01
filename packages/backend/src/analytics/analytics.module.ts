@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
+import { HealthModule } from '../health/health.module';
 import { OtlpModule } from '../otlp/otlp.module';
 import { AggregationService } from './services/aggregation.service';
 import { TimeseriesQueriesService } from './services/timeseries-queries.service';
@@ -18,6 +19,7 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
   imports: [
     TypeOrmModule.forFeature([AgentMessage, Agent, Tenant]),
     OtlpModule,
+    HealthModule,
   ],
   controllers: [
     OverviewController,
@@ -29,4 +31,4 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
   ],
   providers: [AggregationService, TimeseriesQueriesService, AgentAnalyticsService],
 })
-export class AnalyticsModule {}
+export class AnalyticsModule { }

@@ -4,6 +4,7 @@ import { OverviewController } from './overview.controller';
 import { AggregationService } from '../services/aggregation.service';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
 import { CacheInvalidationService } from '../../common/services/cache-invalidation.service';
+import { ProviderHealthService } from '../../health/provider-health.service';
 
 function mockAggregation(): Record<string, jest.Mock> {
   return {
@@ -32,14 +33,22 @@ function mockTimeseries(): Record<string, jest.Mock> {
   };
 }
 
+function mockHealthService(): Record<string, jest.Mock> {
+  return {
+    getSummary: jest.fn().mockReturnValue({ total: 2, healthy: 2, issues: 0 }),
+  };
+}
+
 describe('OverviewController', () => {
   let controller: OverviewController;
   let agg: Record<string, jest.Mock>;
   let ts: Record<string, jest.Mock>;
+  let hs: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     agg = mockAggregation();
     ts = mockTimeseries();
+    hs = mockHealthService();
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -47,6 +56,7 @@ describe('OverviewController', () => {
       providers: [
         { provide: AggregationService, useValue: agg },
         { provide: TimeseriesQueriesService, useValue: ts },
+        { provide: ProviderHealthService, useValue: hs },
         { provide: CacheInvalidationService, useValue: { trackKey: jest.fn() } },
       ],
     }).compile();
@@ -90,11 +100,11 @@ describe('OverviewController', () => {
     expect(agg.getMessageCount).toHaveBeenCalledWith('24h', 'u1', 'bot-1');
   });
 
-  it('includes services_hit placeholder in summary', async () => {
+  it('includes dynamic services_hit in summary', async () => {
     const user = { id: 'u1' };
     const result = await controller.getOverview({ range: '24h' }, user as never);
 
-    expect(result.summary.services_hit).toEqual({ total: 0, healthy: 0, issues: 0 });
+    expect(result.summary.services_hit).toEqual({ total: 2, healthy: 2, issues: 0 });
   });
 
   it('includes has_data boolean in response', async () => {
