@@ -54,6 +54,7 @@ const Limits: Component = () => {
   const [menuPos, setMenuPos] = createSignal<{ top: number; left: number }>({ top: 0, left: 0 });
   const [deleteTarget, setDeleteTarget] = createSignal<NotificationRule | null>(null);
   const [deleteConfirmed, setDeleteConfirmed] = createSignal(false);
+  const [showRemoveProvider, setShowRemoveProvider] = createSignal(false);
 
   const routingEnabled = () => routingStatus()?.enabled ?? false;
   const hasProvider = () => !isLocalMode() || !!emailProvider();
@@ -131,10 +132,17 @@ const Limits: Component = () => {
     setDeleteConfirmed(false);
   };
 
+  const hasEmailRules = () => {
+    const r = rules();
+    if (!r) return false;
+    return r.some((rule) => rule.action === "notify" || rule.action === "both");
+  };
+
   const handleRemoveProvider = async () => {
     try {
       await removeEmailProvider();
       await refetchProvider();
+      setShowRemoveProvider(false);
       toast.success("Email provider removed");
     } catch {
       // error toast from fetchMutate
@@ -205,7 +213,7 @@ const Limits: Component = () => {
             <ProviderBanner
               config={emailProvider()!}
               onEdit={() => setShowEditProvider(true)}
-              onRemove={handleRemoveProvider}
+              onRemove={() => setShowRemoveProvider(true)}
             />
           </Show>
         </div>
@@ -349,6 +357,41 @@ const Limits: Component = () => {
                   onClick={handleDelete}
                 >
                   Delete rule
+                </button>
+              </div>
+            </div>
+          </div>
+        </Show>
+      </Portal>
+
+      {/* Remove provider confirmation modal */}
+      <Portal>
+        <Show when={showRemoveProvider()}>
+          <div class="modal-overlay" onClick={() => setShowRemoveProvider(false)}>
+            <div
+              class="modal-card"
+              role="dialog"
+              aria-modal="true"
+              style="max-width: 440px;"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 class="modal-card__title">Remove provider</h2>
+              <p class="modal-card__desc">
+                This will disconnect your email provider.
+                <Show when={hasEmailRules()}>
+                  {" "}Email alerts won't be sent until you set up a new one.
+                </Show>
+              </p>
+
+              <div class="confirm-modal__footer">
+                <button class="btn btn--ghost" onClick={() => setShowRemoveProvider(false)}>
+                  Cancel
+                </button>
+                <button
+                  class="btn btn--danger"
+                  onClick={handleRemoveProvider}
+                >
+                  Remove
                 </button>
               </div>
             </div>

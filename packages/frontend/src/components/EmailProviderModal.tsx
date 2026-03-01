@@ -37,7 +37,7 @@ const EmailProviderModal: Component<Props> = (props) => {
 
   const session = authClient.useSession();
 
-  const hasExistingKey = () => props.editMode && !!props.existingKeyPrefix;
+  const hasExistingKey = () => props.editMode && !!props.existingKeyPrefix && provider() === props.initialProvider;
 
   const maskedKey = () => {
     const prefix = props.existingKeyPrefix ?? "";
@@ -48,7 +48,8 @@ const EmailProviderModal: Component<Props> = (props) => {
     if (props.open) {
       setProvider(props.initialProvider);
       setApiKey("");
-      setEditingKey(!hasExistingKey());
+      const hasKey = props.editMode && !!props.existingKeyPrefix;
+      setEditingKey(!hasKey);
       setDomain(props.existingDomain ?? "");
       const defaultEmail = props.existingNotificationEmail ?? (!isLocalMode() ? session()?.data?.user?.email ?? "" : "");
       setNotificationEmail(defaultEmail);
@@ -288,7 +289,7 @@ const EmailProviderModal: Component<Props> = (props) => {
 
           <label class="modal-card__field-label">API Key</label>
           <Show
-            when={editingKey()}
+            when={editingKey() || !hasExistingKey()}
             fallback={
               <div class="masked-key">
                 <span class="masked-key__value">{maskedKey()}</span>
