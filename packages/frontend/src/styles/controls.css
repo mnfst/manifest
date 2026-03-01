@@ -489,6 +489,32 @@
   background: hsl(var(--accent));
 }
 
+/* ── Docs Link ───────────────────────────────────── */
+.header__docs-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  font-family: var(--font-family);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.header__docs-link:hover {
+  border-color: hsl(var(--ring) / 0.3);
+  background: hsl(var(--muted));
+}
+
 /* ── GitHub Star Button ──────────────────────────── */
 .header__github-star {
   position: relative;
