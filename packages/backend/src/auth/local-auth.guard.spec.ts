@@ -7,7 +7,6 @@ jest.mock('../common/constants/local-mode.constants', () => ({
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { LocalAuthGuard } from './local-auth.guard';
-import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
 import { readLocalNotificationEmail } from '../common/constants/local-mode.constants';
 
 function createMockContext(overrides: {

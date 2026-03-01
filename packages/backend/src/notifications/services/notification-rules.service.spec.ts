@@ -511,7 +511,7 @@ describe('NotificationRulesService (SQLite dialect)', () => {
 
     await service.deleteRule('user-1', 'r1');
 
-    const deleteCall = mockQuery.mock.calls[2]; // verifyOwnership(2 queries) then DELETE
+    // verifyOwnership(2 queries) then DELETE
     // The DELETE should use ? placeholder
     const allCalls = mockQuery.mock.calls.map((c: unknown[]) => c[0] as string);
     const deleteQuery = allCalls.find((sql) => sql.includes('DELETE'));

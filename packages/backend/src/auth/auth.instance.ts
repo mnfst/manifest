@@ -30,7 +30,6 @@ if (!isLocalMode && nodeEnv !== 'test' && (!betterAuthSecret || betterAuthSecret
   throw new Error('BETTER_AUTH_SECRET must be set to a value of at least 32 characters');
 }
 
-import { getLocalAuthSecret } from '../common/constants/local-mode.constants';
 
 function buildTrustedOrigins(): string[] {
   const origins: string[] = [];

@@ -7,14 +7,12 @@ describe('AgentAnalyticsService', () => {
   let service: AgentAnalyticsService;
   let mockGetRawOne: jest.Mock;
   let mockGetRawMany: jest.Mock;
-  let qbCallIndex: number;
 
   const scope = { tenantId: 't1', agentId: 'a1' };
 
   beforeEach(async () => {
     mockGetRawOne = jest.fn();
     mockGetRawMany = jest.fn();
-    qbCallIndex = 0;
 
     const mockQb = {
       select: jest.fn().mockReturnThis(),
