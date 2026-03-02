@@ -272,7 +272,7 @@ describe("Settings", () => {
   it("shows breadcrumb with agent name", () => {
     const { container } = render(() => <Settings />);
     expect(container.textContent).toContain("test-agent");
-    expect(container.textContent).toContain("Configure your agent");
+    expect(container.textContent).toContain("Rename your agent");
   });
 
   describe("local mode", () => {

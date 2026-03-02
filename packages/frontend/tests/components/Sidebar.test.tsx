@@ -118,7 +118,7 @@ describe("Sidebar with agent", () => {
 
   it("shows feedback hint text", () => {
     const { container } = render(() => <Sidebar />);
-    expect(container.textContent).toContain("Help us improve Manifest");
+    expect(container.textContent).toContain("Help shape Manifest");
   });
 
   it("feedback link is external with correct attributes", () => {

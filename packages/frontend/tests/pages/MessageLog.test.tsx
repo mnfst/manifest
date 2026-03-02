@@ -81,7 +81,7 @@ describe("MessageLog", () => {
   it("renders breadcrumb subtitle", () => {
     mockGetMessages.mockResolvedValue(messagesData);
     render(() => <MessageLog />);
-    expect(screen.getByText("Every message sent and received by your agent")).toBeDefined();
+    expect(screen.getByText(/Full log of every LLM call/)).toBeDefined();
   });
 
   it("shows loading skeleton while fetching", () => {
