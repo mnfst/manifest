@@ -19,6 +19,7 @@
     "uplot": "^1.6.31"
   },
   "devDependencies": {
+    "@codecov/vite-plugin": "^1.9.1",
     "@solidjs/testing-library": "^0.8.0",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^3.2.4",

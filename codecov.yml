@@ -20,5 +20,10 @@ flags:
   plugin:
     paths:
       - packages/openclaw-plugin/src/
+bundle_analysis:
+  warning_threshold: "5%"
+  status: "informational"
 comment:
   layout: "reach,diff,flags"
+  require_bundle_changes: true
+  bundle_change_threshold: "1Kb"
