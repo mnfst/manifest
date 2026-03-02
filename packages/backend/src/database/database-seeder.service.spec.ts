@@ -30,6 +30,7 @@ describe('DatabaseSeederService', () => {
   let mockApiKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockPricingRepo: ReturnType<typeof makeMockRepo>;
   let mockSecurityRepo: ReturnType<typeof makeMockRepo>;
+  let mockMessageRepo: ReturnType<typeof makeMockRepo>;
   let mockPricingCache: { reload: jest.Mock };
   const originalSeedData = process.env['SEED_DATA'];
   const originalManifestMode = process.env['MANIFEST_MODE'];
@@ -45,6 +46,7 @@ describe('DatabaseSeederService', () => {
     mockApiKeyRepo = makeMockRepo();
     mockPricingRepo = makeMockRepo();
     mockSecurityRepo = makeMockRepo();
+    mockMessageRepo = makeMockRepo();
     mockPricingCache = { reload: jest.fn().mockResolvedValue(undefined) };
 
     service = new DatabaseSeederService(
@@ -56,6 +58,7 @@ describe('DatabaseSeederService', () => {
       mockApiKeyRepo as never,
       mockPricingRepo as never,
       mockSecurityRepo as never,
+      mockMessageRepo as never,
       mockPricingCache as never,
     );
 

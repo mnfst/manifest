@@ -105,7 +105,7 @@ function buildModeServices() {
         };
       },
     }),
-    TypeOrmModule.forFeature([Tenant, Agent, AgentApiKey, ApiKey, ModelPricing, SecurityEvent]),
+    TypeOrmModule.forFeature([Tenant, Agent, AgentApiKey, AgentMessage, ApiKey, ModelPricing, SecurityEvent]),
     ModelPricesModule,
   ],
   providers: buildModeServices(),

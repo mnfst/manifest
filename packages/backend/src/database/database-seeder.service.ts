@@ -9,8 +9,10 @@ import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { SecurityEvent } from '../entities/security-event.entity';
+import { AgentMessage } from '../entities/agent-message.entity';
 import { sha256, keyPrefix } from '../common/utils/hash.util';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { seedAgentMessages } from './seed-messages';
 
 const SEED_API_KEY = 'dev-api-key-manifest-001';
 const SEED_OTLP_KEY = 'mnfst_dev-otlp-key-001';
@@ -30,6 +32,7 @@ export class DatabaseSeederService implements OnModuleInit {
     @InjectRepository(ApiKey) private readonly apiKeyRepo: Repository<ApiKey>,
     @InjectRepository(ModelPricing) private readonly pricingRepo: Repository<ModelPricing>,
     @InjectRepository(SecurityEvent) private readonly securityRepo: Repository<SecurityEvent>,
+    @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
     private readonly pricingCache: ModelPricingCacheService,
   ) {}
 
@@ -47,6 +50,7 @@ export class DatabaseSeederService implements OnModuleInit {
       await this.seedApiKey();
       await this.seedTenantAndAgent();
       await this.seedSecurityEvents();
+      await this.seedAgentMessages();
       this.logger.log('Seeded demo data (dev/test only, SEED_DATA=true)');
     }
   }
@@ -313,5 +317,11 @@ export class DatabaseSeederService implements OnModuleInit {
         user_id: userId,
       });
     }
+  }
+
+  private async seedAgentMessages() {
+    const userId = await this.getAdminUserId();
+    if (!userId) return;
+    await seedAgentMessages(this.messageRepo, userId, this.logger);
   }
 }
