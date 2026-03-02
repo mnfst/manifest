@@ -15,7 +15,7 @@ beforeAll(async () => {
   const sql = (q: string) => portableSql(q, dialect);
   const now = sqlNow();
 
-  // Seed model pricing so costs can be calculated (use INSERT OR IGNORE for SQLite since helpers.ts already seeds gpt-4o)
+  // Seed model pricing so costs can be calculated (use INSERT OR IGNORE for sql.js since helpers.ts already seeds gpt-4o)
   const insertOrIgnore = dialect === 'sqlite' ? 'INSERT OR IGNORE' : 'INSERT';
   const onConflict = dialect === 'sqlite' ? '' : ' ON CONFLICT (model_name) DO NOTHING';
   await ds.query(
@@ -31,7 +31,7 @@ beforeAll(async () => {
   await app.get(ModelPricingCacheService).reload();
 
   // Seed agent_messages directly (with pre-calculated cost_usd) using the same
-  // timestamp format as sqlNow() so that date comparisons work in both PG & SQLite.
+  // timestamp format as sqlNow() so that date comparisons work in both PG & sql.js.
   const costUsd1 = 5000 * 0.0000025 + 2000 * 0.00001; // 0.0325
   const costUsd2 = 3000 * 0.0000025 + 1000 * 0.00001; // 0.0175
   await ds.query(
