@@ -410,6 +410,20 @@ describe('PricingSyncService', () => {
         provider: 'OpenRouter',
       });
     });
+
+    it('maps MiniMax provider correctly', () => {
+      expect(service.deriveNames('minimax/minimax-m2.5')).toEqual({
+        canonical: 'minimax-m2.5',
+        provider: 'MiniMax',
+      });
+    });
+
+    it('maps Z.ai provider correctly', () => {
+      expect(service.deriveNames('z-ai/glm-5')).toEqual({
+        canonical: 'glm-5',
+        provider: 'Z.ai',
+      });
+    });
   });
 
   it('maps Zhipu provider correctly', async () => {

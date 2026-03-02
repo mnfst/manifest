@@ -3,6 +3,7 @@ import { PROVIDERS, validateApiKey } from "../services/providers.js";
 import { providerIcon } from "./ProviderIcon.js";
 import { connectProvider, disconnectProvider, type RoutingProvider } from "../services/api.js";
 import { toast } from "../services/toast-store.js";
+import { isLocalMode } from "../services/local-mode.js";
 
 interface Props {
   providers: RoutingProvider[];
@@ -158,14 +159,16 @@ const ProviderSelectModal: Component<Props> = (props) => {
           </div>
 
           <div class="provider-modal__list">
-            <For each={PROVIDERS}>
+            <For each={isLocalMode() ? PROVIDERS : [...PROVIDERS].sort((a, b) => (a.localOnly ? 1 : 0) - (b.localOnly ? 1 : 0))}>
               {(prov) => {
                 const connected = () => isConnected(prov.id) || isNoKeyConnected(prov.id);
+                const disabled = () => !!prov.localOnly && !isLocalMode();
 
                 return (
                   <button
                     class="provider-toggle"
-                    onClick={() => openDetail(prov.id)}
+                    disabled={disabled()}
+                    onClick={() => !disabled() && openDetail(prov.id)}
                   >
                     <span class="provider-toggle__icon">
                       {providerIcon(prov.id, 20) ?? (
@@ -179,13 +182,18 @@ const ProviderSelectModal: Component<Props> = (props) => {
                     </span>
                     <span class="provider-toggle__info">
                       <span class="provider-toggle__name">{prov.name}</span>
+                      <Show when={disabled()}>
+                        <span class="provider-toggle__local-only">Only available on Manifest Local</span>
+                      </Show>
                     </span>
-                    <span
-                      class="provider-toggle__switch"
-                      classList={{ "provider-toggle__switch--on": connected() }}
-                    >
-                      <span class="provider-toggle__switch-thumb" />
-                    </span>
+                    <Show when={!disabled()}>
+                      <span
+                        class="provider-toggle__switch"
+                        classList={{ "provider-toggle__switch--on": connected() }}
+                      >
+                        <span class="provider-toggle__switch-thumb" />
+                      </span>
+                    </Show>
                   </button>
                 );
               }}

@@ -45,6 +45,18 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
   },
+  minimax: {
+    baseUrl: 'https://api.minimax.io',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
+  zai: {
+    baseUrl: 'https://api.z.ai',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/api/paas/v4/chat/completions',
+    format: 'openai',
+  },
   google: {
     baseUrl: 'https://generativelanguage.googleapis.com',
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),
@@ -73,6 +85,7 @@ export function resolveEndpointKey(provider: string): string | null {
 
   const aliases: Record<string, string> = {
     gemini: 'google',
+    'z.ai': 'zai',
   };
   return aliases[lower] ?? null;
 }
