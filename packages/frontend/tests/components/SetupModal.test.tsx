@@ -151,7 +151,7 @@ describe("SetupModal", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
-    expect(container.textContent).toContain("Follow these steps to connect your agent");
+    expect(container.textContent).toContain("Follow these steps to send telemetry from your agent");
   });
 
   it("closes on overlay click", () => {

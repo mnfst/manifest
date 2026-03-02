@@ -142,7 +142,7 @@ const Routing: Component = () => {
       <div class="page-header routing-page-header">
         <div>
           <h1>Routing</h1>
-          <span class="breadcrumb">{agentName()} &rsaquo; Assign a model to each tier</span>
+          <span class="breadcrumb">{agentName()} &rsaquo; Route requests to different models based on complexity</span>
         </div>
         <Show when={isEnabled()}>
           <button class="btn btn--primary btn--sm" onClick={() => setShowProviderModal(true)}>
@@ -167,8 +167,8 @@ const Routing: Component = () => {
               </div>
               <h2 class="routing-enable-card__title">Smart model routing</h2>
               <p class="routing-enable-card__desc">
-                Automatically assign the best model to each complexity tier.
-                Select which providers you want to use and Manifest will optimize your routing.
+                Route each request to the best model for its complexity level &mdash; use cheaper models for simple tasks
+                and more capable models for complex ones. Connect your LLM providers and Manifest handles the rest.
               </p>
               <button class="btn btn--primary" onClick={handleEnable}>
                 Enable Routing
@@ -297,7 +297,7 @@ const Routing: Component = () => {
               Disable routing?
             </h2>
             <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-              All saved API keys and tier assignments will be removed. You will need to reconnect your providers if you re-enable routing later.
+              All provider API keys and tier-to-model assignments will be permanently removed. If you re-enable routing later, you will need to reconnect your providers and reconfigure each tier.
             </p>
             <div style="display: flex; justify-content: flex-end; gap: 8px;">
               <button class="btn btn--outline" onClick={() => setConfirmDisable(false)}>

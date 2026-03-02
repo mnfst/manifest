@@ -70,7 +70,7 @@ const MessageLog: Component = () => {
       <div class="page-header">
         <div>
           <h1>Messages</h1>
-          <span class="breadcrumb">Every message sent and received by your agent</span>
+          <span class="breadcrumb">Full log of every LLM call &mdash; filter by status, model, or cost</span>
         </div>
         <div class="header-controls">
           <Show when={!hasNoData()}>
@@ -149,7 +149,7 @@ const MessageLog: Component = () => {
           <Show when={(isLocalMode() && params.agentName === 'local-agent') || setupCompleted()} fallback={
             <div class="empty-state">
               <div class="empty-state__title">No messages recorded</div>
-              <p>Set up your agent and start chatting. Activity will appear here automatically.</p>
+              <p>Connect your agent to Manifest and send your first message. Each LLM call will be logged here with its cost, tokens, and status.</p>
               <button class="btn btn--primary" style="margin-top: var(--gap-md);" onClick={() => setSetupOpen(true)}>
                 Set up agent
               </button>
@@ -160,7 +160,7 @@ const MessageLog: Component = () => {
           }>
             <div class="waiting-banner">
               <i class="bxd bx-florist" />
-              <p>Your messages will appear a few seconds after your first exchange with your agent.</p>
+              <p>Waiting for data &mdash; messages will appear within seconds of your agent's first LLM call.</p>
             </div>
             <div class="demo-dashboard">
               <div class="panel">
@@ -177,8 +177,8 @@ const MessageLog: Component = () => {
                       <th>Message</th>
                       <th>Cost</th>
                       <th>Total Tokens</th>
-                      <th>Sent to AI</th>
-                      <th>Received from AI</th>
+                      <th>Input</th>
+                      <th>Output</th>
                       <th>Model</th>
                       <th>Status</th>
                     </tr>
@@ -209,8 +209,8 @@ const MessageLog: Component = () => {
                   <th>Message</th>
                   <th>Cost</th>
                   <th>Total Tokens<InfoTooltip text="Tokens are units of text that AI models process. More tokens = higher cost." /></th>
-                  <th>Sent to AI</th>
-                  <th>Received from AI</th>
+                  <th>Input<InfoTooltip text="Tokens sent to the model (your prompt). Also called 'input tokens'." /></th>
+                  <th>Output<InfoTooltip text="Tokens returned by the model (its response). Also called 'output tokens'." /></th>
                   <th>Model</th>
                   <th>Status</th>
                 </tr>

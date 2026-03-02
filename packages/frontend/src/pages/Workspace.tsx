@@ -79,7 +79,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
             Connect Agent
           </h2>
           <p class="modal-card__desc">
-            Give your agent a name to start monitoring its activity, costs, and messages.
+            Name your agent to start tracking its LLM usage, costs, and messages in real time.
           </p>
 
           <label class="modal-card__field-label">Agent name</label>
@@ -127,7 +127,7 @@ const Workspace: Component = () => {
       <div class="page-header">
         <div>
           <h1>My Agents</h1>
-          <span class="breadcrumb">All agents</span>
+          <span class="breadcrumb">View and manage all your connected AI agents</span>
         </div>
         <button class="btn btn--primary" onClick={() => setModalOpen(true)}>
           <svg
@@ -186,7 +186,7 @@ const Workspace: Component = () => {
           fallback={
             <div class="empty-state">
               <div class="empty-state__title">No agents yet</div>
-              <p>Connect your first agent to start tracking its activity.</p>
+              <p>Create an agent to start monitoring its LLM calls, token usage, and costs.</p>
               <button class="btn btn--primary" style="margin-top: var(--gap-md);" onClick={() => setModalOpen(true)}>
                 Connect your first agent
               </button>
@@ -205,7 +205,7 @@ const Workspace: Component = () => {
                   </div>
                   <div class="agent-card__stats">
                     <div class="agent-card__stat">
-                      <span class="agent-card__stat-label">Tokens</span>
+                      <span class="agent-card__stat-label">Total tokens</span>
                       <span class="agent-card__stat-value">
                         {formatNumber(agent.total_tokens)}
                       </span>
@@ -217,7 +217,7 @@ const Workspace: Component = () => {
                       </span>
                     </div>
                     <div class="agent-card__stat">
-                      <span class="agent-card__stat-label">Cost</span>
+                      <span class="agent-card__stat-label">Total cost</span>
                       <span class="agent-card__stat-value">
                         {formatCost(agent.total_cost) ?? '$0.00'}
                       </span>

@@ -103,7 +103,7 @@ describe("Overview", () => {
   it("renders breadcrumb subtitle", () => {
     mockGetOverview.mockResolvedValue(overviewData);
     render(() => <Overview />);
-    expect(screen.getByText("Monitor your agent's costs, tokens, and activity")).toBeDefined();
+    expect(screen.getByText(/Real-time summary of your agent/)).toBeDefined();
   });
 
   it("shows loading skeleton while fetching", () => {

@@ -61,7 +61,7 @@ describe("ModelPrices", () => {
 
   it("renders subtitle", () => {
     render(() => <ModelPrices />);
-    expect(screen.getByText("What each AI model costs to use")).toBeDefined();
+    expect(screen.getByText("Compare per-token pricing across all supported LLM providers and models")).toBeDefined();
   });
 
   it("renders model count", async () => {
