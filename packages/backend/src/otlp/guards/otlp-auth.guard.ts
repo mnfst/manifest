@@ -10,7 +10,7 @@ import { Repository } from 'typeorm';
 import { Request } from 'express';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
-import { sha256 } from '../../common/utils/hash.util';
+import { hashKey } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 import {
   LOCAL_TENANT_ID,
@@ -45,9 +45,7 @@ export class OtlpAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers['authorization'];
 
-    const isLocal =
-      process.env['MANIFEST_MODE'] === 'local' &&
-      LOOPBACK_IPS.has(request.ip ?? '');
+    const isLocal = process.env['MANIFEST_MODE'] === 'local' && LOOPBACK_IPS.has(request.ip ?? '');
 
     // In local mode, trust loopback connections without requiring an API key.
     // Also handles dev-mode gateways that send a dummy/non-mnfst token.
@@ -66,9 +64,7 @@ export class OtlpAuthGuard implements CanActivate {
       throw new UnauthorizedException('Authorization header required');
     }
 
-    const token = authHeader.startsWith('Bearer ')
-      ? authHeader.slice(7)
-      : authHeader;
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
 
     if (!token) {
       throw new UnauthorizedException('Empty token');
@@ -100,7 +96,7 @@ export class OtlpAuthGuard implements CanActivate {
       return true;
     }
 
-    const tokenHash = sha256(token);
+    const tokenHash = hashKey(token);
     const keyRecord = await this.keyRepo
       .createQueryBuilder('k')
       .leftJoinAndSelect('k.agent', 'a')
@@ -118,7 +114,8 @@ export class OtlpAuthGuard implements CanActivate {
       throw new UnauthorizedException('API key expired');
     }
 
-    this.keyRepo.update({ key_hash: tokenHash }, { last_used_at: () => 'CURRENT_TIMESTAMP' } as never)
+    this.keyRepo
+      .update({ key_hash: tokenHash }, { last_used_at: () => 'CURRENT_TIMESTAMP' } as never)
       .catch((err: Error) => this.logger.warn(`Failed to update last_used_at: ${err.message}`));
 
     this.evictExpired();

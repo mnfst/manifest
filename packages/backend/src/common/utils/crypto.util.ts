@@ -1,9 +1,4 @@
-import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes,
-  scryptSync,
-} from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
@@ -15,15 +10,14 @@ function deriveKey(secret: string, salt: Buffer): Buffer {
 }
 
 export function getEncryptionSecret(): string {
-  const key =
-    process.env['MANIFEST_ENCRYPTION_KEY'] ||
-    process.env['BETTER_AUTH_SECRET'];
+  const key = process.env['MANIFEST_ENCRYPTION_KEY'] || process.env['BETTER_AUTH_SECRET'];
   if (key && key.length >= 32) {
     return key;
   }
 
   // Local mode: use persistent local auth secret
   if (process.env['MANIFEST_MODE'] === 'local') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { getLocalAuthSecret } = require('../../common/constants/local-mode.constants');
     return getLocalAuthSecret();
   }
@@ -38,10 +32,7 @@ export function encrypt(plaintext: string, secret: string): string {
   const key = deriveKey(secret, salt);
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ALGORITHM, key, iv);
-  const encrypted = Buffer.concat([
-    cipher.update(plaintext, 'utf8'),
-    cipher.final(),
-  ]);
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
   const tag = cipher.getAuthTag();
   return [
     salt.toString('base64'),
@@ -64,10 +55,7 @@ export function decrypt(ciphertext: string, secret: string): string {
   const key = deriveKey(secret, salt);
   const decipher = createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(tag);
-  const decrypted = Buffer.concat([
-    decipher.update(encrypted),
-    decipher.final(),
-  ]);
+  const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
   return decrypted.toString('utf8');
 }
 

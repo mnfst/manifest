@@ -28,7 +28,15 @@ describe('OtlpAuthGuard', () => {
       getOne: mockGetOne,
     };
     mockCreateQueryBuilder = jest.fn().mockReturnValue(mockQb);
-    mockUpdate = jest.fn().mockResolvedValue({});
+    mockUpdate = jest.fn().mockImplementation((_criteria, updateObj) => {
+      // Invoke raw expression functions for coverage (e.g. () => 'CURRENT_TIMESTAMP')
+      if (updateObj) {
+        for (const val of Object.values(updateObj)) {
+          if (typeof val === 'function') (val as () => unknown)();
+        }
+      }
+      return Promise.resolve({});
+    });
     const mockRepo = { createQueryBuilder: mockCreateQueryBuilder, update: mockUpdate } as never;
     guard = new OtlpAuthGuard(mockRepo);
     guard.clearCache();
@@ -216,6 +224,50 @@ describe('OtlpAuthGuard', () => {
       const { ctx } = makeContext({}, '127.0.0.1');
       await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
     });
+  });
+
+  it('handles request.ip being undefined without crashing', async () => {
+    const origMode = process.env['MANIFEST_MODE'];
+    process.env['MANIFEST_MODE'] = 'local';
+    try {
+      const request: Record<string, unknown> = { headers: {}, ip: undefined };
+      const ctx = {
+        switchToHttp: () => ({
+          getRequest: () => request,
+        }),
+      } as unknown as ExecutionContext;
+      // ip is undefined → falls through to auth required
+      await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    } finally {
+      if (origMode === undefined) delete process.env['MANIFEST_MODE'];
+      else process.env['MANIFEST_MODE'] = origMode;
+    }
+  });
+
+  it('does not throw when last_used_at update fails', async () => {
+    mockGetOne.mockResolvedValue({
+      tenant_id: 'tenant-1',
+      agent_id: 'agent-1',
+      expires_at: null,
+      agent: { name: 'test-agent' },
+      tenant: { name: 'user-1' },
+    });
+    mockUpdate.mockImplementation((_criteria, updateObj) => {
+      if (updateObj) {
+        for (const val of Object.values(updateObj)) {
+          if (typeof val === 'function') (val as () => unknown)();
+        }
+      }
+      return Promise.reject(new Error('DB write error'));
+    });
+
+    const { ctx, req } = makeContext({ authorization: 'Bearer mnfst_update-fail-key' });
+    const result = await guard.canActivate(ctx);
+
+    expect(result).toBe(true);
+    expect(req.ingestionContext).toBeDefined();
+    // The guard swallows update errors via .catch()
+    expect(mockUpdate).toHaveBeenCalled();
   });
 
   it('invalidateCache removes a specific key from cache', async () => {

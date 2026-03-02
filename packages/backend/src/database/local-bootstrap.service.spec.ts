@@ -86,6 +86,7 @@ describe('LocalBootstrapService', () => {
       expect(mockPricingRepo.upsert).toHaveBeenCalled();
       expect(mockPricingCache.reload).toHaveBeenCalled();
       // Verify tenant name equals LOCAL_USER_ID (guard/bootstrap consistency)
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { LOCAL_USER_ID } = require('../common/constants/local-mode.constants');
       const tenantInsertArg = mockTenantRepo.insert.mock.calls[0][0];
       expect(tenantInsertArg.name).toBe(LOCAL_USER_ID);
@@ -140,6 +141,7 @@ describe('LocalBootstrapService', () => {
 
   describe('config reading', () => {
     it('does not register API key when config file missing', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { existsSync } = require('fs');
       (existsSync as jest.Mock).mockReturnValue(false);
 
@@ -149,6 +151,7 @@ describe('LocalBootstrapService', () => {
     });
 
     it('registers API key when config file exists with apiKey', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { existsSync, readFileSync } = require('fs');
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(
@@ -169,6 +172,7 @@ describe('LocalBootstrapService', () => {
     });
 
     it('skips API key registration when key hash already exists', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { existsSync, readFileSync } = require('fs');
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(

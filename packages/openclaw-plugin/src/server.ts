@@ -2,7 +2,9 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { readFileSync } from 'fs';
 
-const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8')) as { version: string };
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8')) as {
+  version: string;
+};
 export const version = pkg.version;
 
 const LOCAL_DEFAULT_PORT = 2099;
@@ -34,6 +36,7 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
 
   // Generate a random persistent secret for local mode
   if (!process.env['BETTER_AUTH_SECRET']) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const constants = require(`${BACKEND_DIR}/common/constants/local-mode.constants`);
     process.env['BETTER_AUTH_SECRET'] = constants.getLocalAuthSecret();
   }
@@ -41,6 +44,7 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
   const backendMain = await import(`${BACKEND_DIR}/main`);
   const app = await backendMain.bootstrap();
 
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { trackEvent } = require(`${BACKEND_DIR}/common/utils/product-telemetry`);
   trackEvent('server_started', { package_version: version });
 

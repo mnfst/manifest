@@ -5,7 +5,7 @@ import { ApiKeyGeneratorService } from './api-key.service';
 import { Tenant } from '../../entities/tenant.entity';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
-import { sha256, keyPrefix } from '../../common/utils/hash.util';
+import { hashKey, keyPrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 
 jest.mock('uuid', () => ({ v4: jest.fn() }));
@@ -102,9 +102,7 @@ describe('ApiKeyGeneratorService', () => {
     mockedRandomBytes.mockReset();
 
     // Default: randomBytes returns a deterministic buffer
-    mockedRandomBytes.mockReturnValue(
-      Buffer.from('a'.repeat(32), 'utf8'),
-    );
+    mockedRandomBytes.mockReturnValue(Buffer.from('a'.repeat(32), 'utf8'));
     // Default: sequential UUIDs for the new-tenant path
     // Order: tenantId, agentId, keyId
     mockedUuidv4
@@ -173,11 +171,10 @@ describe('ApiKeyGeneratorService', () => {
       await service.onboardAgent(defaultParams);
 
       const insertCall = mockKeyInsert.mock.calls[0][0];
-      const expectedRawKey =
-        'mnfst_' + Buffer.from('a'.repeat(32), 'utf8').toString('base64url');
+      const expectedRawKey = 'mnfst_' + Buffer.from('a'.repeat(32), 'utf8').toString('base64url');
 
       expect(insertCall.key).toBeNull();
-      expect(insertCall.key_hash).toBe(sha256(expectedRawKey));
+      expect(insertCall.key_hash).toBe(hashKey(expectedRawKey));
       expect(insertCall.key_prefix).toBe(keyPrefix(expectedRawKey));
     });
 
@@ -292,9 +289,7 @@ describe('ApiKeyGeneratorService', () => {
 
       await service.onboardAgent(defaultParams);
 
-      expect(mockKeyInsert).toHaveBeenCalledWith(
-        expect.objectContaining({ is_active: true }),
-      );
+      expect(mockKeyInsert).toHaveBeenCalledWith(expect.objectContaining({ is_active: true }));
     });
 
     it('should generate a key starting with mnfst_ prefix', async () => {
@@ -342,12 +337,10 @@ describe('ApiKeyGeneratorService', () => {
     it('should throw NotFoundException when no active key is found', async () => {
       mockKeyGetOne.mockResolvedValue(null);
 
-      await expect(
-        service.getKeyForAgent('user-1', 'agent-a'),
-      ).rejects.toThrow(NotFoundException);
-      await expect(
-        service.getKeyForAgent('user-1', 'agent-a'),
-      ).rejects.toThrow('No active API key found for this agent');
+      await expect(service.getKeyForAgent('user-1', 'agent-a')).rejects.toThrow(NotFoundException);
+      await expect(service.getKeyForAgent('user-1', 'agent-a')).rejects.toThrow(
+        'No active API key found for this agent',
+      );
     });
 
     it('should query by userId and agentName with is_active filter', async () => {
@@ -360,10 +353,9 @@ describe('ApiKeyGeneratorService', () => {
       expect(mockKeyQb.where).toHaveBeenCalledWith('t.name = :userId', {
         userId: 'user-99',
       });
-      expect(mockKeyQb.andWhere).toHaveBeenCalledWith(
-        'a.name = :agentName',
-        { agentName: 'bot-x' },
-      );
+      expect(mockKeyQb.andWhere).toHaveBeenCalledWith('a.name = :agentName', {
+        agentName: 'bot-x',
+      });
       expect(mockKeyQb.andWhere).toHaveBeenCalledWith('k.is_active = true');
     });
 
@@ -396,12 +388,12 @@ describe('ApiKeyGeneratorService', () => {
     it('should throw NotFoundException when agent is not found', async () => {
       mockAgentGetOne.mockResolvedValue(null);
 
-      await expect(
-        service.rotateKey('user-1', 'nonexistent-agent'),
-      ).rejects.toThrow(NotFoundException);
-      await expect(
-        service.rotateKey('user-1', 'nonexistent-agent'),
-      ).rejects.toThrow('Agent not found or access denied');
+      await expect(service.rotateKey('user-1', 'nonexistent-agent')).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.rotateKey('user-1', 'nonexistent-agent')).rejects.toThrow(
+        'Agent not found or access denied',
+      );
     });
 
     it('should delete existing keys for the agent before creating a new one', async () => {
@@ -418,11 +410,10 @@ describe('ApiKeyGeneratorService', () => {
       await service.rotateKey('user-1', 'my-agent');
 
       const insertCall = mockKeyInsert.mock.calls[0][0];
-      const expectedRawKey =
-        'mnfst_' + Buffer.from('a'.repeat(32), 'utf8').toString('base64url');
+      const expectedRawKey = 'mnfst_' + Buffer.from('a'.repeat(32), 'utf8').toString('base64url');
 
       expect(insertCall.key).toBeNull();
-      expect(insertCall.key_hash).toBe(sha256(expectedRawKey));
+      expect(insertCall.key_hash).toBe(hashKey(expectedRawKey));
       expect(insertCall.key_prefix).toBe(keyPrefix(expectedRawKey));
       expect(insertCall.is_active).toBe(true);
       expect(insertCall.tenant_id).toBe('tenant-id-1');
@@ -456,14 +447,8 @@ describe('ApiKeyGeneratorService', () => {
       await service.rotateKey('user-7', 'bot-z');
 
       expect(mockAgentQb.leftJoin).toHaveBeenCalledWith('a.tenant', 't');
-      expect(mockAgentQb.where).toHaveBeenCalledWith(
-        'a.name = :agentName',
-        { agentName: 'bot-z' },
-      );
-      expect(mockAgentQb.andWhere).toHaveBeenCalledWith(
-        't.name = :userId',
-        { userId: 'user-7' },
-      );
+      expect(mockAgentQb.where).toHaveBeenCalledWith('a.name = :agentName', { agentName: 'bot-z' });
+      expect(mockAgentQb.andWhere).toHaveBeenCalledWith('t.name = :userId', { userId: 'user-7' });
     });
 
     it('should delete old keys before inserting the new one', async () => {

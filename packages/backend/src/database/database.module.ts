@@ -41,15 +41,31 @@ import { AddRoutingReason1772300000000 } from './migrations/1772300000000-AddRou
 import { AddAgentDisplayName1772400000000 } from './migrations/1772400000000-AddAgentDisplayName';
 
 const entities = [
-  AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing,
-  ModelPricingHistory, UnresolvedModel,
-  TokenUsageSnapshot, CostSnapshot, AgentLog,
-  ApiKey, Tenant, Agent, AgentApiKey,
-  NotificationRule, NotificationLog,
+  AgentMessage,
+  LlmCall,
+  ToolExecution,
+  SecurityEvent,
+  ModelPricing,
+  ModelPricingHistory,
+  UnresolvedModel,
+  TokenUsageSnapshot,
+  CostSnapshot,
+  AgentLog,
+  ApiKey,
+  Tenant,
+  Agent,
+  AgentApiKey,
+  NotificationRule,
+  NotificationLog,
   EmailProviderConfig,
-  UserProvider, TierAssignment,
+  UserProvider,
+  TierAssignment,
 ];
 
+// Migration execution order is determined by array order below.
+// Three timestamp pairs collide (1771600000000, 1771700000000, 1771800000000)
+// but cannot be renamed since they are already applied in production databases.
+// Future migrations MUST use unique timestamps (e.g. Date.now()).
 const migrations = [
   InitialSchema1771464895790,
   HashApiKeys1771500000000,
@@ -105,7 +121,15 @@ function buildModeServices() {
         };
       },
     }),
-    TypeOrmModule.forFeature([Tenant, Agent, AgentApiKey, AgentMessage, ApiKey, ModelPricing, SecurityEvent]),
+    TypeOrmModule.forFeature([
+      Tenant,
+      Agent,
+      AgentApiKey,
+      AgentMessage,
+      ApiKey,
+      ModelPricing,
+      SecurityEvent,
+    ]),
     ModelPricesModule,
   ],
   providers: buildModeServices(),

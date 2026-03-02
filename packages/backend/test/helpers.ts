@@ -11,7 +11,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { DataSource } from 'typeorm';
 import { appConfig } from '../src/config/app.config';
 import { IS_PUBLIC_KEY } from '../src/common/decorators/public.decorator';
-import { sha256, keyPrefix } from '../src/common/utils/hash.util';
+import { hashKey, keyPrefix } from '../src/common/utils/hash.util';
 import { portableSql, detectDialect } from '../src/common/utils/sql-dialect';
 import { AgentMessage } from '../src/entities/agent-message.entity';
 import { LlmCall } from '../src/entities/llm-call.entity';
@@ -128,7 +128,7 @@ export async function createTestApp(): Promise<INestApplication> {
   // Seed test API key (hashed)
   await ds.query(
     sql(`INSERT INTO api_keys (id, key, key_hash, key_prefix, user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6)`),
-    ['test-key-id', sha256(TEST_API_KEY), keyPrefix(TEST_API_KEY), TEST_USER_ID, 'Test Key', now],
+    ['test-key-id', hashKey(TEST_API_KEY), keyPrefix(TEST_API_KEY), TEST_USER_ID, 'Test Key', now],
   );
 
   // Seed test tenant, agent, and OTLP key (hashed)
@@ -142,7 +142,7 @@ export async function createTestApp(): Promise<INestApplication> {
   );
   await ds.query(
     sql(`INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`),
-    ['test-otlp-key-id', sha256(TEST_OTLP_KEY), keyPrefix(TEST_OTLP_KEY), 'Test OTLP Key', TEST_TENANT_ID, TEST_AGENT_ID, now],
+    ['test-otlp-key-id', hashKey(TEST_OTLP_KEY), keyPrefix(TEST_OTLP_KEY), 'Test OTLP Key', TEST_TENANT_ID, TEST_AGENT_ID, now],
   );
 
   // Seed model pricing so cost calculations work in e2e tests

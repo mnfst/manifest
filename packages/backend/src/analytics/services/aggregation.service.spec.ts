@@ -42,8 +42,17 @@ describe('AggregationService', () => {
 
     // Wire up return-this for chainable methods and invoke Brackets callbacks
     const chainableMethods = [
-      'select', 'addSelect', 'where', 'andWhere', 'orWhere',
-      'groupBy', 'orderBy', 'addOrderBy', 'limit', 'clone', 'leftJoin',
+      'select',
+      'addSelect',
+      'where',
+      'andWhere',
+      'orWhere',
+      'groupBy',
+      'orderBy',
+      'addOrderBy',
+      'limit',
+      'clone',
+      'leftJoin',
     ];
     for (const method of chainableMethods) {
       mockQb[method].mockImplementation((...args: unknown[]) => {
@@ -55,7 +64,9 @@ describe('AggregationService', () => {
       });
     }
 
-    mockTransaction = jest.fn().mockImplementation(async (cb: Function) => cb());
+    mockTransaction = jest
+      .fn()
+      .mockImplementation(async (cb: (...args: unknown[]) => unknown) => cb());
 
     const mockAgentQb = {
       select: jest.fn().mockReturnThis(),
@@ -97,7 +108,10 @@ describe('AggregationService', () => {
           },
         },
         { provide: TimeseriesQueriesService, useValue: mockTimeseries },
-        { provide: DataSource, useValue: { options: { type: 'postgres' }, transaction: mockTransaction } },
+        {
+          provide: DataSource,
+          useValue: { options: { type: 'postgres' }, transaction: mockTransaction },
+        },
       ],
     }).compile();
 
@@ -151,9 +165,7 @@ describe('AggregationService', () => {
 
   describe('getCostSummary', () => {
     it('returns cost with trend', async () => {
-      mockGetRawOne
-        .mockResolvedValueOnce({ total: 1.5 })
-        .mockResolvedValueOnce({ total: 1.0 });
+      mockGetRawOne.mockResolvedValueOnce({ total: 1.5 }).mockResolvedValueOnce({ total: 1.0 });
 
       const result = await service.getCostSummary('7d', 'test-user');
       expect(result.value).toBe(1.5);
@@ -163,9 +175,7 @@ describe('AggregationService', () => {
 
   describe('getMessageCount', () => {
     it('returns message count with trend', async () => {
-      mockGetRawOne
-        .mockResolvedValueOnce({ total: 100 })
-        .mockResolvedValueOnce({ total: 80 });
+      mockGetRawOne.mockResolvedValueOnce({ total: 100 }).mockResolvedValueOnce({ total: 80 });
 
       const result = await service.getMessageCount('24h', 'test-user');
       expect(result.value).toBe(100);
@@ -185,9 +195,9 @@ describe('AggregationService', () => {
     it('should throw NotFoundException when agent not found', async () => {
       mockAgentGetOne.mockResolvedValueOnce(null);
 
-      await expect(
-        service.deleteAgent('test-user', 'nonexistent'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.deleteAgent('test-user', 'nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -195,9 +205,9 @@ describe('AggregationService', () => {
     it('should throw NotFoundException when agent not found', async () => {
       mockAgentGetOne.mockResolvedValueOnce(null);
 
-      await expect(
-        service.renameAgent('test-user', 'nonexistent', 'new-name'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.renameAgent('test-user', 'nonexistent', 'new-name')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw ConflictException when new name already exists', async () => {
@@ -206,9 +216,9 @@ describe('AggregationService', () => {
       // Second call: check for duplicate — found
       mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-2', name: 'taken-name' });
 
-      await expect(
-        service.renameAgent('test-user', 'old-agent', 'taken-name'),
-      ).rejects.toThrow(ConflictException);
+      await expect(service.renameAgent('test-user', 'old-agent', 'taken-name')).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should rename agent and update all related tables in a transaction', async () => {
@@ -225,7 +235,7 @@ describe('AggregationService', () => {
         execute: mockExecute,
       };
 
-      mockTransaction.mockImplementation(async (cb: Function) => {
+      mockTransaction.mockImplementation(async (cb: (...args: unknown[]) => unknown) => {
         const manager = {
           createQueryBuilder: jest.fn().mockReturnValue(mockManagerQb),
         };
@@ -243,12 +253,13 @@ describe('AggregationService', () => {
 
       // Verify agents table update was called with agent id
       expect(mockManagerQb.update).toHaveBeenCalledWith('agents');
-      expect(mockManagerQb.set).toHaveBeenCalledWith({ name: 'new-agent', display_name: 'New Agent' });
+      expect(mockManagerQb.set).toHaveBeenCalledWith({
+        name: 'new-agent',
+        display_name: 'New Agent',
+      });
 
       // Verify all 5 related tables were updated
-      const updateCalls = mockManagerQb.update.mock.calls.map(
-        (c: unknown[]) => c[0],
-      );
+      const updateCalls = mockManagerQb.update.mock.calls.map((c: unknown[]) => c[0]);
       expect(updateCalls).toContain('agents');
       expect(updateCalls).toContain('agent_messages');
       expect(updateCalls).toContain('notification_rules');
@@ -314,10 +325,7 @@ describe('AggregationService', () => {
         { id: 'msg-2', timestamp: '2026-02-16 09:00:00', model: 'claude-opus-4-6', cost: 0.05 },
       ]);
       // models query
-      mockGetRawMany.mockResolvedValueOnce([
-        { model: 'claude-opus-4-6' },
-        { model: 'gpt-4o' },
-      ]);
+      mockGetRawMany.mockResolvedValueOnce([{ model: 'claude-opus-4-6' }, { model: 'gpt-4o' }]);
 
       const result = await service.getMessages({
         range: '24h',
@@ -358,9 +366,7 @@ describe('AggregationService', () => {
     it('returns null next_cursor when no more items', async () => {
       mockGetRawOne.mockResolvedValueOnce({ total: 2 });
       mockGetRawMany
-        .mockResolvedValueOnce([
-          { id: 'msg-1', timestamp: '2026-02-16 10:00:00' },
-        ])
+        .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00' }])
         .mockResolvedValueOnce([]);
 
       const result = await service.getMessages({
@@ -380,9 +386,7 @@ describe('AggregationService', () => {
       ];
 
       mockGetRawOne.mockResolvedValueOnce({ total: 10 });
-      mockGetRawMany
-        .mockResolvedValueOnce(rows)
-        .mockResolvedValueOnce([]);
+      mockGetRawMany.mockResolvedValueOnce(rows).mockResolvedValueOnce([]);
 
       const result = await service.getMessages({
         range: '24h',
@@ -398,9 +402,7 @@ describe('AggregationService', () => {
 
     it('handles empty result set', async () => {
       mockGetRawOne.mockResolvedValueOnce({ total: 0 });
-      mockGetRawMany
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       const result = await service.getMessages({
         range: '24h',
@@ -437,9 +439,7 @@ describe('AggregationService', () => {
     it('should ignore cursor without pipe separator', async () => {
       mockGetRawOne.mockResolvedValueOnce({ total: 10 });
       mockGetRawMany
-        .mockResolvedValueOnce([
-          { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' },
-        ])
+        .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
         .mockResolvedValueOnce([]);
 
       const result = await service.getMessages({
@@ -456,9 +456,7 @@ describe('AggregationService', () => {
     it('should query without range cutoff when range is omitted', async () => {
       mockGetRawOne.mockResolvedValueOnce({ total: 5 });
       mockGetRawMany
-        .mockResolvedValueOnce([
-          { id: 'msg-1', timestamp: '2026-01-01 00:00:00', model: 'gpt-4o' },
-        ])
+        .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-01-01 00:00:00', model: 'gpt-4o' }])
         .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
       const result = await service.getMessages({
@@ -487,7 +485,7 @@ describe('AggregationService', () => {
         service_type: 'chat',
         model: 'gpt-4o',
         cost_min: 0.01,
-        cost_max: 1.00,
+        cost_max: 1.0,
         agent_name: 'my-agent',
       });
 
@@ -497,9 +495,7 @@ describe('AggregationService', () => {
 
     it('should handle null total from count query', async () => {
       mockGetRawOne.mockResolvedValueOnce(null);
-      mockGetRawMany
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       const result = await service.getMessages({
         range: '24h',
@@ -531,9 +527,7 @@ describe('AggregationService', () => {
 
     it('should handle cost_max of 0 as a valid filter', async () => {
       mockGetRawOne.mockResolvedValueOnce({ total: 0 });
-      mockGetRawMany
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       const result = await service.getMessages({
         range: '24h',
@@ -580,18 +574,14 @@ describe('AggregationService', () => {
 
   describe('getCostSummary', () => {
     it('should pass agentName to tenant filter when provided', async () => {
-      mockGetRawOne
-        .mockResolvedValueOnce({ total: 2.5 })
-        .mockResolvedValueOnce({ total: 1.0 });
+      mockGetRawOne.mockResolvedValueOnce({ total: 2.5 }).mockResolvedValueOnce({ total: 1.0 });
 
       const result = await service.getCostSummary('7d', 'test-user', 'my-agent');
       expect(result.value).toBe(2.5);
     });
 
     it('should handle null query results gracefully', async () => {
-      mockGetRawOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+      mockGetRawOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
 
       const result = await service.getCostSummary('24h', 'test-user');
       expect(result.value).toBe(0);
@@ -601,18 +591,14 @@ describe('AggregationService', () => {
 
   describe('getMessageCount', () => {
     it('should pass agentName to tenant filter when provided', async () => {
-      mockGetRawOne
-        .mockResolvedValueOnce({ total: 50 })
-        .mockResolvedValueOnce({ total: 40 });
+      mockGetRawOne.mockResolvedValueOnce({ total: 50 }).mockResolvedValueOnce({ total: 40 });
 
       const result = await service.getMessageCount('24h', 'test-user', 'my-agent');
       expect(result.value).toBe(50);
     });
 
     it('should handle null query results gracefully', async () => {
-      mockGetRawOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+      mockGetRawOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
 
       const result = await service.getMessageCount('24h', 'test-user');
       expect(result.value).toBe(0);
@@ -642,7 +628,7 @@ describe('AggregationService', () => {
         execute: mockExecute,
       };
 
-      mockTransaction.mockImplementation(async (cb: Function) => {
+      mockTransaction.mockImplementation(async (cb: (...args: unknown[]) => unknown) => {
         const manager = {
           createQueryBuilder: jest.fn().mockReturnValue(mockManagerQb),
         };
@@ -750,11 +736,10 @@ describe('AggregationService (sql.js / local mode)', () => {
     await service.getMessages({ range: '24h', userId: 'u1', limit: 20 });
 
     // Verify addSelect was called with SQLite float cast
-    const addSelectCalls = mockAddSelect.mock.calls.map(
-      (c: unknown[]) => c[0],
-    );
+    const addSelectCalls = mockAddSelect.mock.calls.map((c: unknown[]) => c[0]);
     const hasCastReal = addSelectCalls.some(
-      (expr: unknown) => typeof expr === 'string' && expr.includes('CAST') && expr.includes('AS REAL'),
+      (expr: unknown) =>
+        typeof expr === 'string' && expr.includes('CAST') && expr.includes('AS REAL'),
     );
     expect(hasCastReal).toBe(true);
   });

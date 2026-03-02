@@ -3,7 +3,7 @@ import { scryptSync } from 'crypto';
 const HASH_SALT = 'manifest-api-key-salt';
 const KEY_LENGTH = 32;
 
-export function sha256(input: string): string {
+export function hashKey(input: string): string {
   return scryptSync(input, HASH_SALT, KEY_LENGTH).toString('hex');
 }
 

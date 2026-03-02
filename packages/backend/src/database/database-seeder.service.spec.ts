@@ -1,4 +1,4 @@
-import { keyPrefix, sha256 } from '../common/utils/hash.util';
+import { keyPrefix, hashKey } from '../common/utils/hash.util';
 import { DatabaseSeederService } from './database-seeder.service';
 
 // Mock auth.instance before importing the service
@@ -190,21 +190,21 @@ describe('DatabaseSeederService', () => {
       expect(mockApiKeyRepo.insert).toHaveBeenCalledWith({
         id: 'seed-api-key-001',
         key: null,
-        key_hash: sha256('dev-api-key-manifest-001'),
+        key_hash: hashKey('dev-api-key-manifest-001'),
         key_prefix: keyPrefix('dev-api-key-manifest-001'),
         user_id: 'admin-user-id',
         name: 'Development API Key',
       });
     });
 
-    it('should store the correct sha256 hash value', async () => {
+    it('should store the correct hashKey hash value', async () => {
       mockApiKeyRepo.count.mockResolvedValue(0);
 
       await service.onModuleInit();
 
       const insertCall = mockApiKeyRepo.insert.mock.calls[0][0];
       expect(insertCall.key_hash).toMatch(/^[0-9a-f]{64}$/);
-      expect(insertCall.key_hash).toBe(sha256('dev-api-key-manifest-001'));
+      expect(insertCall.key_hash).toBe(hashKey('dev-api-key-manifest-001'));
     });
 
     it('should store the correct key prefix (first 12 chars)', async () => {
@@ -277,7 +277,7 @@ describe('DatabaseSeederService', () => {
       expect(mockAgentKeyRepo.insert).toHaveBeenCalledWith({
         id: 'seed-otlp-key-001',
         key: null,
-        key_hash: sha256('mnfst_dev-otlp-key-001'),
+        key_hash: hashKey('mnfst_dev-otlp-key-001'),
         key_prefix: keyPrefix('mnfst_dev-otlp-key-001'),
         label: 'Demo OTLP ingest key',
         tenant_id: 'seed-tenant-001',
@@ -465,6 +465,17 @@ describe('DatabaseSeederService', () => {
 
       await expect(service.onModuleInit()).resolves.toBeUndefined();
       // signUpEmail was called because checkBetterAuthUser returned false
+      expect(auth.api.signUpEmail).toHaveBeenCalled();
+    });
+
+    it('should handle non-Error thrown by checkBetterAuthUser', async () => {
+      // When a non-Error value is thrown, the ternary falls through to `err`
+      mockDataSource.query
+        .mockRejectedValueOnce('string error') // checkBetterAuthUser
+        .mockResolvedValueOnce({}) // UPDATE emailVerified
+        .mockResolvedValue([{ id: 'admin-id' }]); // getAdminUserId calls
+
+      await expect(service.onModuleInit()).resolves.toBeUndefined();
       expect(auth.api.signUpEmail).toHaveBeenCalled();
     });
 

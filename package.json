@@ -39,11 +39,16 @@
     "build:plugin": "npm run build --workspace=packages/openclaw-plugin",
     "publish:plugin": "npm publish --access public --workspace=packages/openclaw-plugin",
     "check:api-prefix": "node scripts/check-api-prefix.js",
-    "lint": "eslint packages/backend/src packages/frontend/src",
+    "lint": "eslint packages/backend/src packages/frontend/src packages/openclaw-plugin/src",
     "format": "prettier --write 'packages/*/src/**/*.{ts,tsx,css}'",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "packages/*/src/**/*.{ts,tsx}": ["eslint --fix", "prettier --write"],
+    "packages/*/src/**/*.css": ["prettier --write"]
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.0",
@@ -51,6 +56,8 @@
     "@typescript-eslint/parser": "^8.56.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.1",
     "prettier": "^3.8.1",
     "turbo": "^2"
   }

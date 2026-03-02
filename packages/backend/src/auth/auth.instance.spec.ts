@@ -8,9 +8,11 @@ const mockBetterAuth = jest.fn().mockReturnValue({
 jest.mock('better-auth', () => ({ betterAuth: mockBetterAuth }));
 jest.mock('pg', () => ({ Pool: jest.fn() }));
 jest.mock('@react-email/render', () => ({
-  render: jest.fn().mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
-    Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
-  ),
+  render: jest
+    .fn()
+    .mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
+      Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
+    ),
 }));
 jest.mock('../notifications/emails/verify-email', () => ({
   VerifyEmailEmail: jest.fn().mockReturnValue('verify-email-element'),
@@ -108,8 +110,7 @@ describe('auth.instance', () => {
 
   it('requires email verification in production', () => {
     process.env['NODE_ENV'] = 'production';
-    process.env['BETTER_AUTH_SECRET'] =
-      'a]3kF9!xLm2@pQzR7^wYu4&vN6*cE0hT';
+    process.env['BETTER_AUTH_SECRET'] = 'a]3kF9!xLm2@pQzR7^wYu4&vN6*cE0hT';
     loadModule();
 
     const config = mockBetterAuth.mock.calls[0][0];
@@ -150,9 +151,7 @@ describe('auth.instance', () => {
       loadModule();
 
       const config = mockBetterAuth.mock.calls[0][0];
-      expect(config.trustedOrigins).toContain(
-        'https://frontend.example.com',
-      );
+      expect(config.trustedOrigins).toContain('https://frontend.example.com');
     });
 
     it('includes FRONTEND_PORT origin when set', () => {
@@ -161,6 +160,20 @@ describe('auth.instance', () => {
 
       const config = mockBetterAuth.mock.calls[0][0];
       expect(config.trustedOrigins).toContain('http://localhost:4000');
+    });
+
+    it('does not include localhost origins in production mode', () => {
+      process.env['NODE_ENV'] = 'production';
+      process.env['BETTER_AUTH_SECRET'] = 'a]3kF9!xLm2@pQzR7^wYu4&vN6*cE0hT';
+      delete process.env['BETTER_AUTH_URL'];
+      delete process.env['CORS_ORIGIN'];
+      delete process.env['FRONTEND_PORT'];
+      process.env['PORT'] = '3001';
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.trustedOrigins).not.toContain('http://localhost:3000');
+      expect(config.trustedOrigins).not.toContain('http://localhost:3001');
     });
 
     it('does not include 127.0.0.1 origins in cloud mode', () => {
@@ -236,15 +249,14 @@ describe('auth.instance', () => {
       );
     });
 
-    it('uses fallback secret in test env when BETTER_AUTH_SECRET is empty', () => {
+    it('uses getLocalAuthSecret fallback in test env when BETTER_AUTH_SECRET is empty', () => {
       process.env['NODE_ENV'] = 'test';
       process.env['BETTER_AUTH_SECRET'] = '';
       loadModule();
 
       const config = mockBetterAuth.mock.calls[0][0];
-      expect(config.secret).toBe(
-        'test-only-fallback-secret-not-for-production',
-      );
+      // Should use getLocalAuthSecret() instead of a hardcoded string
+      expect(config.secret).toBe('local-secret-32-chars-or-more-here');
     });
   });
 
@@ -259,7 +271,9 @@ describe('auth.instance', () => {
 
     it('calls trackCloudEvent with user_registered on user create', async () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { trackCloudEvent } = require('../common/utils/product-telemetry') as { trackCloudEvent: jest.Mock };
+      const { trackCloudEvent } = require('../common/utils/product-telemetry') as {
+        trackCloudEvent: jest.Mock;
+      };
       loadModule();
 
       const config = mockBetterAuth.mock.calls[0][0];

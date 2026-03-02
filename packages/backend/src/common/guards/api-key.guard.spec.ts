@@ -2,7 +2,7 @@ import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ApiKeyGuard } from './api-key.guard';
-import { sha256 } from '../utils/hash.util';
+import { hashKey } from '../utils/hash.util';
 
 function makeContext(headers: Record<string, string | undefined>): ExecutionContext {
   return {
@@ -27,7 +27,15 @@ describe('ApiKeyGuard', () => {
 
   beforeEach(() => {
     mockFindOne = jest.fn().mockResolvedValue(null);
-    mockUpdate = jest.fn().mockResolvedValue({});
+    mockUpdate = jest.fn().mockImplementation((_criteria, updateObj) => {
+      // Invoke raw expression functions for coverage (e.g. () => 'CURRENT_TIMESTAMP')
+      if (updateObj) {
+        for (const val of Object.values(updateObj)) {
+          if (typeof val === 'function') (val as () => unknown)();
+        }
+      }
+      return Promise.resolve({});
+    });
     configGet = jest.fn().mockReturnValue('');
     reflector = { getAllAndOverride: jest.fn().mockReturnValue(false) } as unknown as Reflector;
     const configService = { get: configGet } as unknown as ConfigService;
@@ -52,7 +60,7 @@ describe('ApiKeyGuard', () => {
 
     const result = await guard.canActivate(ctx);
     expect(result).toBe(true);
-    expect(mockFindOne).toHaveBeenCalledWith({ where: { key_hash: sha256('valid-db-key') } });
+    expect(mockFindOne).toHaveBeenCalledWith({ where: { key_hash: hashKey('valid-db-key') } });
     expect(mockUpdate).toHaveBeenCalled();
   });
 
@@ -105,6 +113,23 @@ describe('ApiKeyGuard', () => {
     const ctx = makeContext({ 'x-api-key': 'much-longer-key-value' });
 
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+  });
+
+  it('does not throw when last_used_at update fails', async () => {
+    mockFindOne.mockResolvedValueOnce({ user_id: 'user-789' });
+    mockUpdate.mockImplementationOnce((_criteria, updateObj) => {
+      if (updateObj) {
+        for (const val of Object.values(updateObj)) {
+          if (typeof val === 'function') (val as () => unknown)();
+        }
+      }
+      return Promise.reject(new Error('DB write error'));
+    });
+    const ctx = makeContext({ 'x-api-key': 'key-that-triggers-update-fail' });
+
+    const result = await guard.canActivate(ctx);
+    expect(result).toBe(true);
+    expect(mockUpdate).toHaveBeenCalled();
   });
 
   it('skips API key validation when request.user is already set', async () => {
