@@ -1,5 +1,24 @@
 # manifest
 
+## 5.19.0
+
+### Minor Changes
+
+- 9a5a974: Add OpenRouter free models and free filter to model picker
+- 8833067: Add dual Y-axis to token chart and seed demo agent messages
+- 6d0ba92: Add prompt caching support for Anthropic (native Messages API), Google Gemini (explicit caching), and OpenRouter Anthropic models. Auto-injects cache_control breakpoints on system prompts and tool definitions. Forwards xAI conversation ID header for improved Grok caching.
+
+### Patch Changes
+
+- 5c135ac: Add MiniMax and Z.ai as supported providers with models (MiniMax M2.5/M2.1/M2/M1, Z.ai GLM 5/4.7/4.6/4.5)
+- dce41ad: Add Codecov JavaScript Bundle Analysis to CI for frontend bundle size tracking
+- 9a5a974: Show error details on hover for failed message status badges
+- 37e9bf1: Fix logo 404 on npmjs.com by using absolute GitHub URLs in README
+- b3e8ea5: Improve dashboard text clarity across all pages: better breadcrumbs, more descriptive empty states, clearer column headers, and improved onboarding copy
+- aec5017: fix: remove hardcoded fallback secret, restrict trusted origins, rename misleading sha256 to hashKey, sync plugin version, extend ESLint coverage, add CI lint job, set up Husky pre-commit hooks
+- b95d3c4: Reduce npm package size by filtering source maps and declarations from backend dist, excluding og-image.png from frontend copy, and disabling server source maps
+- 3480435: Remove outdated better-sqlite3 references and rename sqlitePath config to dbPath
+
 ## 5.18.0
 
 ### Minor Changes
