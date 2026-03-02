@@ -253,6 +253,9 @@ export class AggregationService {
       .addSelect(costExpr, 'cost')
       .addSelect('at.routing_tier', 'routing_tier')
       .addSelect('at.routing_reason', 'routing_reason')
+      .addSelect('at.cache_read_tokens', 'cache_read_tokens')
+      .addSelect('at.cache_creation_tokens', 'cache_creation_tokens')
+      .addSelect('at.duration_ms', 'duration_ms')
       .addSelect('at.error_message', 'error_message');
 
     if (params.cursor) {

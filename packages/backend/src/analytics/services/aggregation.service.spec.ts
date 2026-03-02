@@ -291,6 +291,20 @@ describe('AggregationService', () => {
   });
 
   describe('getMessages', () => {
+    it('returns items with cache and duration fields', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+      mockGetRawMany.mockResolvedValueOnce([
+        { id: 'msg-c', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o', cost: 0.01, cache_read_tokens: 500, cache_creation_tokens: 100, duration_ms: 1200 },
+      ]);
+      mockGetRawMany.mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+      const result = await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+
+      expect(result.items[0]).toHaveProperty('cache_read_tokens', 500);
+      expect(result.items[0]).toHaveProperty('cache_creation_tokens', 100);
+      expect(result.items[0]).toHaveProperty('duration_ms', 1200);
+    });
+
     it('returns paginated messages with total count and models list', async () => {
       // count query
       mockGetRawOne.mockResolvedValueOnce({ total: 42 });

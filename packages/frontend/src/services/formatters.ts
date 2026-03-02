@@ -76,6 +76,14 @@ export function formatMetricType(metricType: string): string {
 }
 
 /**
+ * Format a duration in milliseconds (e.g., "423ms", "1.2s").
+ */
+export function formatDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+/**
  * Extract a human-readable error from a raw error_message string.
  * Provider APIs return JSON like {"error":{"message":"...","code":401}}.
  * Caught exceptions produce plain strings like "timeout".

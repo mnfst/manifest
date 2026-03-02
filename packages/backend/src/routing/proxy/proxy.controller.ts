@@ -117,6 +117,12 @@ export class ProxyController {
             res,
             (chunk) => this.providerClient.convertGoogleStreamChunk(chunk, meta.model),
           );
+        } else if (forward.isAnthropic) {
+          await pipeStream(
+            providerResponse.body,
+            res,
+            this.providerClient.createAnthropicStreamTransformer(meta.model),
+          );
         } else {
           await pipeStream(providerResponse.body, res);
         }
@@ -126,6 +132,9 @@ export class ProxyController {
         if (forward.isGoogle) {
           const googleData = await providerResponse.json() as Record<string, unknown>;
           responseBody = this.providerClient.convertGoogleResponse(googleData, meta.model);
+        } else if (forward.isAnthropic) {
+          const anthropicData = await providerResponse.json() as Record<string, unknown>;
+          responseBody = this.providerClient.convertAnthropicResponse(anthropicData, meta.model);
         } else {
           responseBody = await providerResponse.json();
         }

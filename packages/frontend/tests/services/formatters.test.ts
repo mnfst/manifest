@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatNumber, formatCost, formatTrend, formatStatus, formatMetricType, formatErrorMessage, formatRelativeTime, formatTime } from "../../src/services/formatters";
+import { formatNumber, formatCost, formatTrend, formatStatus, formatMetricType, formatErrorMessage, formatRelativeTime, formatTime, formatDuration } from "../../src/services/formatters";
 
 describe("formatNumber", () => {
   it("formats millions", () => {
@@ -111,6 +111,19 @@ describe("formatTime", () => {
   it("handles space-separated timestamp", () => {
     const result = formatTime("2024-01-15 09:22:41");
     expect(result).toMatch(/\w+ \d+, \d{2}:\d{2}:\d{2}/);
+  });
+});
+
+describe("formatDuration", () => {
+  it("formats sub-second durations in milliseconds", () => {
+    expect(formatDuration(0)).toBe("0ms");
+    expect(formatDuration(423)).toBe("423ms");
+    expect(formatDuration(999)).toBe("999ms");
+  });
+  it("formats durations at or above one second", () => {
+    expect(formatDuration(1000)).toBe("1.0s");
+    expect(formatDuration(1200)).toBe("1.2s");
+    expect(formatDuration(5500)).toBe("5.5s");
   });
 });
 

@@ -19,7 +19,7 @@ describe('Google Adapter', () => {
       ]);
     });
 
-    it('extracts system instruction', () => {
+    it('extracts system instruction with cache_control', () => {
       const body = {
         messages: [
           { role: 'system', content: 'You are helpful.' },
@@ -29,7 +29,7 @@ describe('Google Adapter', () => {
       const result = toGoogleRequest(body, 'gemini-2.0-flash');
 
       expect(result.systemInstruction).toEqual({
-        parts: [{ text: 'You are helpful.' }],
+        parts: [{ text: 'You are helpful.', cache_control: { type: 'ephemeral' } }],
       });
       // System message should not appear in contents
       expect(result.contents).toEqual([
@@ -101,7 +101,7 @@ describe('Google Adapter', () => {
       expect(result.systemInstruction).toBeUndefined();
     });
 
-    it('joins multiple system messages into one instruction', () => {
+    it('joins multiple system messages into one instruction with cache_control', () => {
       const body = {
         messages: [
           { role: 'system', content: 'You are helpful.' },
@@ -111,9 +111,10 @@ describe('Google Adapter', () => {
       };
       const result = toGoogleRequest(body, 'gemini-2.0-flash');
 
-      const sysText = (result.systemInstruction as { parts: Array<{ text: string }> }).parts[0].text;
-      expect(sysText).toContain('You are helpful.');
-      expect(sysText).toContain('Be concise.');
+      const instruction = result.systemInstruction as { parts: Array<{ text: string; cache_control?: unknown }> };
+      expect(instruction.parts[0].text).toContain('You are helpful.');
+      expect(instruction.parts[0].text).toContain('Be concise.');
+      expect(instruction.parts[0].cache_control).toEqual({ type: 'ephemeral' });
     });
 
     it('handles array content blocks in messages', () => {
@@ -253,6 +254,74 @@ describe('Google Adapter', () => {
       const usage = result.usage as Record<string, number>;
       expect(usage.prompt_tokens).toBe(10);
       expect(usage.completion_tokens).toBe(5);
+    });
+
+    it('extracts cachedContentTokenCount from usage', () => {
+      const google = {
+        candidates: [{
+          content: { parts: [{ text: 'Hello!' }] },
+          finishReason: 'STOP',
+        }],
+        usageMetadata: {
+          promptTokenCount: 100,
+          candidatesTokenCount: 50,
+          totalTokenCount: 150,
+          cachedContentTokenCount: 80,
+        },
+      };
+
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const usage = result.usage as Record<string, unknown>;
+      expect(usage.cache_read_tokens).toBe(80);
+      expect(usage.prompt_tokens).toBe(100);
+
+      const details = usage.prompt_tokens_details as { cached_tokens: number };
+      expect(details.cached_tokens).toBe(80);
+    });
+
+    it('defaults cachedContentTokenCount to 0 when absent', () => {
+      const google = {
+        candidates: [{
+          content: { parts: [{ text: 'Hello!' }] },
+          finishReason: 'STOP',
+        }],
+        usageMetadata: {
+          promptTokenCount: 10,
+          candidatesTokenCount: 5,
+          totalTokenCount: 15,
+        },
+      };
+
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const usage = result.usage as Record<string, unknown>;
+      expect(usage.cache_read_tokens).toBe(0);
+
+      const details = usage.prompt_tokens_details as { cached_tokens: number };
+      expect(details.cached_tokens).toBe(0);
+    });
+
+    it('includes prompt_tokens_details with large cached token counts', () => {
+      const google = {
+        candidates: [{
+          content: { parts: [{ text: 'Hello!' }] },
+          finishReason: 'STOP',
+        }],
+        usageMetadata: {
+          promptTokenCount: 50000,
+          candidatesTokenCount: 1000,
+          totalTokenCount: 51000,
+          cachedContentTokenCount: 45000,
+        },
+      };
+
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const usage = result.usage as Record<string, unknown>;
+      expect(usage.cache_read_tokens).toBe(45000);
+      expect(usage.prompt_tokens).toBe(50000);
+      expect(usage.total_tokens).toBe(51000);
+
+      const details = usage.prompt_tokens_details as { cached_tokens: number };
+      expect(details.cached_tokens).toBe(45000);
     });
 
     it('handles function call response', () => {

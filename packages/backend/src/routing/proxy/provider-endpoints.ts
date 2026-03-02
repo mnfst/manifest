@@ -4,7 +4,7 @@ export interface ProviderEndpoint {
   baseUrl: string;
   buildHeaders: (apiKey: string) => Record<string, string>;
   buildPath: (model: string) => string;
-  format: 'openai' | 'google';
+  format: 'openai' | 'google' | 'anthropic';
 }
 
 const openaiHeaders = (apiKey: string) => ({
@@ -13,6 +13,12 @@ const openaiHeaders = (apiKey: string) => ({
 });
 
 const openaiPath = () => '/v1/chat/completions';
+
+const anthropicHeaders = (apiKey: string) => ({
+  'x-api-key': apiKey,
+  'Content-Type': 'application/json',
+  'anthropic-version': '2023-06-01',
+});
 
 export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   openai: {
@@ -23,9 +29,9 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   anthropic: {
     baseUrl: 'https://api.anthropic.com',
-    buildHeaders: openaiHeaders,
-    buildPath: openaiPath,
-    format: 'openai',
+    buildHeaders: anthropicHeaders,
+    buildPath: () => '/v1/messages',
+    format: 'anthropic',
   },
   deepseek: {
     baseUrl: 'https://api.deepseek.com',

@@ -204,6 +204,9 @@ export function registerHooks(
     const usage = lastAssistant?.usage || event.usage || {};
     const inputTokens = usage.input || usage.inputTokens || 0;
     const outputTokens = usage.output || usage.outputTokens || 0;
+
+    // Gateway provides cache read via usage.cacheRead (from OpenAI prompt_tokens_details.cached_tokens).
+    // Cache creation is not available from the gateway's event data (Anthropic-specific).
     const cacheReadTokens = usage.cacheRead || usage.cacheReadTokens || 0;
     const cacheWriteTokens = usage.cacheWrite || usage.cacheWriteTokens || 0;
 
