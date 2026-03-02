@@ -1,8 +1,16 @@
 import { defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
+import { codecovVitePlugin } from "@codecov/vite-plugin";
 
 export default defineConfig({
-  plugins: [solidPlugin()],
+  plugins: [
+    solidPlugin(),
+    codecovVitePlugin({
+      enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
+      bundleName: "manifest-frontend",
+      uploadToken: process.env.CODECOV_TOKEN,
+    }),
+  ],
   server: {
     port: 3000,
     proxy: {

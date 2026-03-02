@@ -96,6 +96,8 @@ jobs:
       - run: npm test --workspace=packages/frontend -- --coverage
       - run: npx vite build
         working-directory: packages/frontend
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Upload frontend coverage to Codecov
         if: always()
         uses: codecov/codecov-action@v5
