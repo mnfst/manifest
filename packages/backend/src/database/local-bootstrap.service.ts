@@ -7,6 +7,7 @@ import { homedir } from 'os';
 import { Tenant } from '../entities/tenant.entity';
 import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
+import { AgentMessage } from '../entities/agent-message.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { sha256, keyPrefix } from '../common/utils/hash.util';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
@@ -19,6 +20,7 @@ import {
   LOCAL_AGENT_NAME,
 } from '../common/constants/local-mode.constants';
 import { trackEvent } from '../common/utils/product-telemetry';
+import { seedAgentMessages } from './seed-messages';
 
 @Injectable()
 export class LocalBootstrapService implements OnModuleInit {
@@ -28,6 +30,7 @@ export class LocalBootstrapService implements OnModuleInit {
     @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
     @InjectRepository(Agent) private readonly agentRepo: Repository<Agent>,
     @InjectRepository(AgentApiKey) private readonly agentKeyRepo: Repository<AgentApiKey>,
+    @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
     @InjectRepository(ModelPricing) private readonly pricingRepo: Repository<ModelPricing>,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly pricingSync: PricingSyncService,
@@ -37,6 +40,11 @@ export class LocalBootstrapService implements OnModuleInit {
     await this.seedModelPricing();
     await this.pricingCache.reload();
     await this.ensureTenantAndAgent();
+    await seedAgentMessages(this.messageRepo, LOCAL_USER_ID, this.logger, {
+      tenantId: LOCAL_TENANT_ID,
+      agentId: LOCAL_AGENT_ID,
+      agentName: LOCAL_AGENT_NAME,
+    });
     this.logger.log('Local mode bootstrap complete');
 
     // Fetch fresh prices from OpenRouter in the background
