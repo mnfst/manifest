@@ -27,6 +27,10 @@ describe('model-name-normalizer', () => {
       expect(stripProviderPrefix('accounts/fireworks/models/llama-v3')).toBe('llama-v3');
     });
 
+    it('strips minimax/ prefix', () => {
+      expect(stripProviderPrefix('minimax/minimax-m2.5')).toBe('minimax-m2.5');
+    });
+
     it('returns name unchanged when no prefix matches', () => {
       expect(stripProviderPrefix('gpt-4o')).toBe('gpt-4o');
     });
@@ -72,6 +76,12 @@ describe('model-name-normalizer', () => {
       const map = buildAliasMap(['deepseek-v3', 'deepseek-r1']);
       expect(map.get('deepseek-chat')).toBe('deepseek-v3');
       expect(map.get('deepseek-reasoner')).toBe('deepseek-r1');
+    });
+
+    it('includes MiniMax mixed-case aliases', () => {
+      const map = buildAliasMap(['minimax-m2.5', 'minimax-m1']);
+      expect(map.get('MiniMax-M2.5')).toBe('minimax-m2.5');
+      expect(map.get('MiniMax-M1')).toBe('minimax-m1');
     });
   });
 
@@ -138,6 +148,16 @@ describe('model-name-normalizer', () => {
 
     it('returns undefined for unknown prefixed model', () => {
       expect(resolveModelName('openai/nonexistent', aliasMap)).toBeUndefined();
+    });
+
+    it('resolves MiniMax mixed-case alias', () => {
+      const map = buildAliasMap(['minimax-m2.5', 'minimax-m1']);
+      expect(resolveModelName('MiniMax-M2.5', map)).toBe('minimax-m2.5');
+    });
+
+    it('resolves minimax/ prefixed model', () => {
+      const map = buildAliasMap(['minimax-m2.5']);
+      expect(resolveModelName('minimax/minimax-m2.5', map)).toBe('minimax-m2.5');
     });
   });
 });

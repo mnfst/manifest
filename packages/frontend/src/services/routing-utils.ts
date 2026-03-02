@@ -39,6 +39,7 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^grok-/, "xai"],
   [/^mistral-|^codestral|^pixtral|^open-mistral/, "mistral"],
   [/^kimi-|^moonshot-/, "moonshot"],
+  [/^minimax-/i, "minimax"],
   [/^qwen[23]|^qwq-/, "qwen"],
   [/^[a-z][\w-]*\//, "openrouter"],
 ];

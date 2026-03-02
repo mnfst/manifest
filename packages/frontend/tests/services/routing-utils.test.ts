@@ -47,6 +47,7 @@ describe("resolveProviderId", () => {
     expect(resolveProviderId("Mistral AI")).toBe("mistral");
     expect(resolveProviderId("xAI")).toBe("xai");
     expect(resolveProviderId("Kimi")).toBe("moonshot");
+    expect(resolveProviderId("MiniMax")).toBe("minimax");
   });
 
   it("returns undefined for unknown provider", () => {
@@ -110,6 +111,11 @@ describe("inferProviderFromModel", () => {
     expect(inferProviderFromModel("moonshot-v1-128k")).toBe("moonshot");
   });
 
+  it("detects MiniMax models", () => {
+    expect(inferProviderFromModel("minimax-m2.5")).toBe("minimax");
+    expect(inferProviderFromModel("MiniMax-M1")).toBe("minimax");
+  });
+
   it("detects Qwen models", () => {
     expect(inferProviderFromModel("qwen3-235b-a22b")).toBe("qwen");
     expect(inferProviderFromModel("qwq-32b")).toBe("qwen");
@@ -140,6 +146,10 @@ describe("inferProviderName", () => {
 
   it("returns Ollama for colon-tagged models", () => {
     expect(inferProviderName("llama3:latest")).toBe("Ollama");
+  });
+
+  it("returns MiniMax for minimax models", () => {
+    expect(inferProviderName("minimax-m2.5")).toBe("MiniMax");
   });
 
   it("returns undefined for unrecognized models", () => {

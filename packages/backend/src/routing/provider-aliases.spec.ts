@@ -35,6 +35,11 @@ describe('expandProviderNames', () => {
     expect(result.has('xai')).toBe(true);
   });
 
+  it('should handle minimax alias', () => {
+    const result = expandProviderNames(['minimax']);
+    expect(result.has('minimax')).toBe(true);
+  });
+
   it('should not expand unknown providers (fallback ?? [])', () => {
     const result = expandProviderNames(['deepseek']);
     expect(result.has('deepseek')).toBe(true);

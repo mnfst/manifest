@@ -66,6 +66,23 @@ describe("validateApiKey", () => {
     const validKey = "sk-" + "a".repeat(60);
     expect(validateApiKey(openai, validKey)).toEqual({ valid: true });
   });
+
+  it("validates MiniMax key prefix and length", () => {
+    const minimax = getProvider("minimax")!;
+    expect(validateApiKey(minimax, "")).toEqual({
+      valid: false,
+      error: "API key is required",
+    });
+    expect(validateApiKey(minimax, "wrong-prefix-key-that-is-long-enough-for-validation")).toEqual({
+      valid: false,
+      error: 'MiniMax keys start with "sk-api-"',
+    });
+    expect(validateApiKey(minimax, "sk-api-short")).toEqual({
+      valid: false,
+      error: "Key is too short (minimum 30 characters)",
+    });
+    expect(validateApiKey(minimax, "sk-api-" + "a".repeat(30))).toEqual({ valid: true });
+  });
 });
 
 /* ── getModelLabel ──────────────────────────────── */
@@ -129,16 +146,23 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 10 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(10);
+  it("has 11 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(11);
   });
 
-  it("Ollama provider requires no API key and has dynamic models", () => {
-    const ollama = PROVIDERS.find((p) => p.id === "ollama");
+  it("providers are sorted alphabetically by name", () => {
+    const names = PROVIDERS.map((p) => p.name);
+    const sorted = [...names].sort((a, b) => a.localeCompare(b));
+    expect(names).toEqual(sorted);
+  });
+
+  it("Ollama is marked localOnly with no key required", () => {
+    const ollama = PROVIDERS.find((p) => p.id === "ollama")!;
     expect(ollama).toBeDefined();
-    expect(ollama!.noKeyRequired).toBe(true);
-    expect(ollama!.models).toEqual([]);
-    expect(ollama!.minKeyLength).toBe(0);
+    expect(ollama.noKeyRequired).toBe(true);
+    expect(ollama.localOnly).toBe(true);
+    expect(ollama.models).toEqual([]);
+    expect(ollama.minKeyLength).toBe(0);
   });
 
   it("each provider has required fields", () => {

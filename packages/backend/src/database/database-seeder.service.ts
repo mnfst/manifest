@@ -229,6 +229,17 @@ export class DatabaseSeederService implements OnModuleInit {
       ['liquid/lfm-2.5-1.2b-instruct:free',       'OpenRouter', 0,          0,          32768,   false, false],
       ['arcee-ai/trinity-mini:free',              'OpenRouter', 0,          0,          131072,  false, false],
       ['nvidia/nemotron-3-nano-30b-a3b:free',     'OpenRouter', 0,          0,          256000,  false, true],
+      ['minimax/minimax-m2.5',                    'OpenRouter', 0.000000295, 0.0000012,  196608,  true,  true],
+      ['minimax/minimax-m1',                      'OpenRouter', 0.0000004,   0.0000022,  1000000, true,  true],
+      // MiniMax
+      ['minimax-m2.5',           'MiniMax',   0.000000295, 0.0000012,  196608,  true,  true],
+      ['minimax-m2.5-highspeed', 'MiniMax',   0.000000295, 0.0000012,  196608,  true,  true],
+      ['minimax-m2.1',           'MiniMax',   0.00000027,  0.00000095, 196608,  true,  true],
+      ['minimax-m2.1-highspeed', 'MiniMax',   0.00000027,  0.00000095, 196608,  true,  true],
+      ['minimax-m2',             'MiniMax',   0.000000255, 0.000001,   196608,  true,  true],
+      ['minimax-m2-her',         'MiniMax',   0.0000003,   0.0000012,  65536,   false, false],
+      ['minimax-m1',             'MiniMax',   0.0000004,   0.0000022,  1000000, true,  true],
+      ['minimax-01',             'MiniMax',   0.0000002,   0.0000011,  1000192, false, false],
       // Zhipu (GLM)
       ['glm-4-plus',                 'Zhipu',     0.0000005,  0.0000005,  128000,  false, true],
       ['glm-4-flash',                'Zhipu',     0.00000005, 0.00000005, 128000,  false, false],

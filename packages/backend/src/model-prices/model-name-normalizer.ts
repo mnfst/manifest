@@ -17,6 +17,15 @@ const KNOWN_ALIASES: ReadonlyArray<readonly [string, string]> = [
   ['deepseek-chat', 'deepseek-v3'],
   ['deepseek-chat-v3-0324', 'deepseek-v3'],
   ['deepseek-reasoner', 'deepseek-r1'],
+  // MiniMax mixed-case aliases
+  ['MiniMax-M2.5', 'minimax-m2.5'],
+  ['MiniMax-M2.5-highspeed', 'minimax-m2.5-highspeed'],
+  ['MiniMax-M2.1', 'minimax-m2.1'],
+  ['MiniMax-M2.1-highspeed', 'minimax-m2.1-highspeed'],
+  ['MiniMax-M2', 'minimax-m2'],
+  ['MiniMax-M2-her', 'minimax-m2-her'],
+  ['MiniMax-M1', 'minimax-m1'],
+  ['MiniMax-01', 'minimax-01'],
 ];
 
 const PROVIDER_PREFIXES = [
@@ -30,6 +39,7 @@ const PROVIDER_PREFIXES = [
   'zhipuai/',
   'amazon/',
   'xai/',
+  'minimax/',
   'accounts/fireworks/models/',
   'fireworks/',
   'together/',
