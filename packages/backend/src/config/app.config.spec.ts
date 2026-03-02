@@ -42,14 +42,14 @@ describe('appConfig', () => {
   it('sanitizes MANIFEST_DB_PATH with path.resolve', async () => {
     process.env['MANIFEST_DB_PATH'] = './relative/../db.sqlite';
     const config = await loadConfig();
-    expect(config.sqlitePath).not.toContain('..');
-    expect(config.sqlitePath).toMatch(/db\.sqlite$/);
+    expect(config.dbPath).not.toContain('..');
+    expect(config.dbPath).toMatch(/db\.sqlite$/);
   });
 
   it('returns empty string for empty MANIFEST_DB_PATH', async () => {
     delete process.env['MANIFEST_DB_PATH'];
     const config = await loadConfig();
-    expect(config.sqlitePath).toBe('');
+    expect(config.dbPath).toBe('');
   });
 
   it('defaults bindAddress to 127.0.0.1', async () => {

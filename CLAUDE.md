@@ -339,7 +339,7 @@ To add a new font or icon library:
 - **QueryBuilder API**: Analytics and ingestion services use TypeORM `Repository.createQueryBuilder()` instead of raw SQL. The `addTenantFilter()` helper in `query-helpers.ts` applies multi-tenant WHERE clauses. Only the database seeder and notification cron still use `DataSource.query()` with numbered `$1, $2, ...` placeholders.
 - **PostgreSQL time functions**: `NOW() - CAST(:interval AS interval)`, `to_char(date_trunc('hour', timestamp), ...)`, `timestamp::date`.
 - **Better Auth database**: In cloud mode, uses a `pg.Pool` instance passed directly to `betterAuth({ database: pool })`. In local mode, Better Auth is skipped entirely (`auth = null`) — `LocalAuthGuard` handles auth via loopback IP check, and simple Express handlers serve session data.
-- **Local mode SQLite**: Uses `sql.js` (WASM-based, zero native deps) instead of `better-sqlite3`. TypeORM driver type is `'sqljs'` with `autoSave: true` for file persistence.
+- **Local mode database**: Uses `sql.js` (WASM-based SQLite, zero native deps). TypeORM driver type is `'sqljs'` with `autoSave: true` for file persistence.
 - **PostgreSQL container**: `docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432 postgres:16`
 - **Validation**: Global `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`. Explicit `@Type()` decorators on numeric DTO fields.
 - **OTLP auth caching**: `OtlpAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.

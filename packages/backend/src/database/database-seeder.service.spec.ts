@@ -35,7 +35,7 @@ describe('DatabaseSeederService', () => {
   const originalManifestMode = process.env['MANIFEST_MODE'];
 
   beforeEach(() => {
-    // Ensure local mode doesn't short-circuit onModuleInit (SQLite CI sets MANIFEST_MODE=local)
+    // Ensure local mode doesn't short-circuit onModuleInit (sql.js CI sets MANIFEST_MODE=local)
     delete process.env['MANIFEST_MODE'];
     mockDataSource = { query: jest.fn() };
     mockConfigService = { get: jest.fn() };

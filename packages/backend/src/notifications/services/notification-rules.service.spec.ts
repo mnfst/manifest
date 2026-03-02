@@ -396,7 +396,7 @@ describe('NotificationRulesService', () => {
   });
 });
 
-describe('NotificationRulesService (SQLite dialect)', () => {
+describe('NotificationRulesService (sql.js / local mode)', () => {
   let service: NotificationRulesService;
   let mockQuery: jest.Mock;
 
@@ -446,7 +446,7 @@ describe('NotificationRulesService (SQLite dialect)', () => {
     expect(params).toHaveLength(12);
   });
 
-  it('converts is_active boolean to 1/0 for sqlite in updateRule', async () => {
+  it('converts is_active boolean to 1/0 for sql.js in updateRule', async () => {
     mockQuery
       .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
       .mockResolvedValueOnce(undefined) // UPDATE
@@ -457,11 +457,11 @@ describe('NotificationRulesService (SQLite dialect)', () => {
     const updateCall = mockQuery.mock.calls[1];
     const params = updateCall[1] as unknown[];
 
-    // is_active should be 0 (not false) for SQLite
+    // is_active should be 0 (not false) for sql.js
     expect(params).toContain(0);
   });
 
-  it('converts is_active true to 1 for sqlite in updateRule', async () => {
+  it('converts is_active true to 1 for sql.js in updateRule', async () => {
     mockQuery
       .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
       .mockResolvedValueOnce(undefined) // UPDATE
@@ -472,11 +472,11 @@ describe('NotificationRulesService (SQLite dialect)', () => {
     const updateCall = mockQuery.mock.calls[1];
     const params = updateCall[1] as unknown[];
 
-    // is_active should be 1 (not true) for SQLite
+    // is_active should be 1 (not true) for sql.js
     expect(params).toContain(1);
   });
 
-  it('uses ? placeholders in UPDATE for sqlite', async () => {
+  it('uses ? placeholders in UPDATE for sql.js', async () => {
     mockQuery
       .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
       .mockResolvedValueOnce(undefined) // UPDATE
@@ -492,7 +492,7 @@ describe('NotificationRulesService (SQLite dialect)', () => {
     expect(sql).toContain('UPDATE notification_rules');
   });
 
-  it('uses ? placeholders in getConsumption for sqlite', async () => {
+  it('uses ? placeholders in getConsumption for sql.js', async () => {
     mockQuery.mockResolvedValueOnce([{ total: 12345 }]);
 
     await service.getConsumption(
@@ -504,7 +504,7 @@ describe('NotificationRulesService (SQLite dialect)', () => {
     expect((sql.match(/\?/g) ?? []).length).toBe(4);
   });
 
-  it('uses ? placeholder in deleteRule for sqlite', async () => {
+  it('uses ? placeholder in deleteRule for sql.js', async () => {
     mockQuery
       .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
       .mockResolvedValueOnce(undefined); // DELETE

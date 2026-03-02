@@ -305,7 +305,7 @@ describe("Limits page", () => {
     });
   });
 
-  it("does not show disabled row for active rules (is_active=1, SQLite)", async () => {
+  it("does not show disabled row for active rules (is_active=1, sql.js local mode)", async () => {
     mockRules = [{
       id: "r1", agent_name: "test-agent", metric_type: "tokens",
       threshold: 50000, period: "day", action: "notify",
