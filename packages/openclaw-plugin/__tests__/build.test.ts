@@ -1,5 +1,5 @@
-import { readFileSync, existsSync } from "fs";
-import { resolve } from "path";
+import { readFileSync, existsSync, readdirSync } from "fs";
+import { resolve, join } from "path";
 
 const distPath = resolve(__dirname, "../dist/index.js");
 const pkgPath = resolve(__dirname, "../package.json");
@@ -68,6 +68,27 @@ describeIfBuilt("built bundle (dist/index.js)", () => {
 
   it("sets up __fromEnv in the banner for runtime env access", () => {
     expect(bundleContent).toContain("__fromEnv");
+  });
+
+  it("dist/backend/ contains no .js.map or .d.ts files", () => {
+    const backendDir = resolve(__dirname, "../dist/backend");
+    if (!existsSync(backendDir)) return;
+
+    const walk = (dir: string): string[] => {
+      const entries = readdirSync(dir, { withFileTypes: true });
+      return entries.flatMap((e) =>
+        e.isDirectory()
+          ? walk(join(dir, e.name))
+          : [join(dir, e.name)],
+      );
+    };
+
+    const files = walk(backendDir);
+    const sourceMaps = files.filter((f) => f.endsWith(".js.map"));
+    const declarations = files.filter((f) => f.endsWith(".d.ts"));
+
+    expect(sourceMaps).toEqual([]);
+    expect(declarations).toEqual([]);
   });
 });
 
