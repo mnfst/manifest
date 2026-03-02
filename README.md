@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-white.svg" />
-    <source media="(prefers-color-scheme: light)" srcset=".github/assets/logo-dark.svg" />
-    <img src=".github/assets/logo-dark.svg" alt="Manifest" height="53" title="Manifest"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mnfst/manifest/HEAD/.github/assets/logo-white.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/mnfst/manifest/HEAD/.github/assets/logo-dark.svg" />
+    <img src="https://raw.githubusercontent.com/mnfst/manifest/HEAD/.github/assets/logo-dark.svg" alt="Manifest" height="53" title="Manifest"/>
   </picture>
 </p>
 <p align="center">
@@ -58,7 +58,7 @@ Manifest is available in cloud and local versions. While both versions install t
 - You don’t need multi-device access
 - You don't want to subscribe to a cloud service
 
-If you don't know which version to chose, start with the **cloud version**.
+If you don't know which version to choose, start with the **cloud version**.
 
 ### Cloud (default)
 
@@ -127,9 +127,10 @@ Manifest supports **300+ models** across all major LLM providers. Every provider
 | [xAI](https://x.ai/) | `grok-4`, `grok-3`, `grok-3-mini` + 8 more |
 | [Mistral AI](https://mistral.ai/) | `mistral-large`, `codestral`, `devstral` + 26 more |
 | [Qwen (Alibaba)](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) | `qwen3-235b`, `qwen3-coder`, `qwq-32b` + 42 more |
+| [MiniMax](https://www.minimax.io/) | `minimax-m2.5`, `minimax-m1`, `minimax-m2` + 5 more |
 | [Kimi (Moonshot)](https://kimi.ai/) | `kimi-k2`, `kimi-k2.5` + 3 more |
 | [Amazon Nova](https://aws.amazon.com/ai/nova/) | `nova-pro`, `nova-lite`, `nova-micro` + 5 more |
-| [Zhipu AI](https://www.zhipuai.cn/) | `glm-5`, `glm-4.6`, `glm-4-plus` + 9 more |
+| [Z.ai (Zhipu)](https://z.ai/) | `glm-5`, `glm-4.7`, `glm-4.5` + 5 more |
 | [OpenRouter](https://openrouter.ai/) | 300+ models from all providers |
 | [Ollama](https://ollama.com/) | Run any model locally (Llama, Gemma, Mistral, …) |
 

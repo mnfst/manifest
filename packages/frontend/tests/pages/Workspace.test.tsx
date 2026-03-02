@@ -109,9 +109,9 @@ describe("Workspace", () => {
   it("shows agent card stat labels", async () => {
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Tokens");
+      expect(container.textContent).toContain("Total tokens");
       expect(container.textContent).toContain("Messages");
-      expect(container.textContent).toContain("Cost");
+      expect(container.textContent).toContain("Total cost");
     });
   });
 
@@ -148,12 +148,12 @@ describe("Workspace", () => {
     const { container } = render(() => <Workspace />);
     const btn = screen.getAllByText("Connect Agent")[0];
     fireEvent.click(btn);
-    expect(container.textContent).toContain("Give your agent a name");
+    expect(container.textContent).toContain("Name your agent to start tracking");
   });
 
   it("shows breadcrumb text", () => {
     const { container } = render(() => <Workspace />);
-    expect(container.textContent).toContain("All agents");
+    expect(container.textContent).toContain("View and manage all your connected AI agents");
   });
 
   it("shows connect button in empty state", async () => {

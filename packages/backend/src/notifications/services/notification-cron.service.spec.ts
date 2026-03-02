@@ -337,14 +337,14 @@ describe('NotificationCronService', () => {
   });
 });
 
-describe('NotificationCronService (SQLite dialect)', () => {
+describe('NotificationCronService (sql.js / local mode)', () => {
   let service: NotificationCronService;
   let mockQuery: jest.Mock;
   let mockGetAllActiveRules: jest.Mock;
   let mockGetConsumption: jest.Mock;
   let mockSendThresholdAlert: jest.Mock;
 
-  const sqliteRule = {
+  const localRule = {
     id: 'rule-1',
     tenant_id: 'tenant-1',
     agent_name: 'my-agent',
@@ -385,8 +385,8 @@ describe('NotificationCronService (SQLite dialect)', () => {
     service = module.get(NotificationCronService);
   });
 
-  it('uses ? placeholders in dedup query for sqlite', async () => {
-    mockGetAllActiveRules.mockResolvedValue([sqliteRule]);
+  it('uses ? placeholders in dedup query for sql.js', async () => {
+    mockGetAllActiveRules.mockResolvedValue([localRule]);
     mockQuery.mockResolvedValueOnce([{ 1: 1 }]); // dedup hit
 
     await service.checkThresholds();
@@ -399,8 +399,8 @@ describe('NotificationCronService (SQLite dialect)', () => {
     expect(sql).toContain('notification_logs');
   });
 
-  it('uses ? placeholders in INSERT notification_logs for sqlite', async () => {
-    mockGetAllActiveRules.mockResolvedValue([sqliteRule]);
+  it('uses ? placeholders in INSERT notification_logs for sql.js', async () => {
+    mockGetAllActiveRules.mockResolvedValue([localRule]);
     mockQuery
       .mockResolvedValueOnce([]) // no dedup
       .mockResolvedValueOnce([{ email: 'a@b.com' }]) // email
@@ -420,8 +420,8 @@ describe('NotificationCronService (SQLite dialect)', () => {
     expect(params).toHaveLength(9);
   });
 
-  it('uses ? placeholder in user email lookup for sqlite', async () => {
-    mockGetAllActiveRules.mockResolvedValue([sqliteRule]);
+  it('uses ? placeholder in user email lookup for sql.js', async () => {
+    mockGetAllActiveRules.mockResolvedValue([localRule]);
     mockQuery
       .mockResolvedValueOnce([]) // no dedup
       .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
@@ -436,8 +436,8 @@ describe('NotificationCronService (SQLite dialect)', () => {
     expect(emailCall[1]).toEqual(['user-1']);
   });
 
-  it('triggers notification correctly on sqlite dialect', async () => {
-    mockGetAllActiveRules.mockResolvedValue([sqliteRule]);
+  it('triggers notification correctly on sql.js dialect', async () => {
+    mockGetAllActiveRules.mockResolvedValue([localRule]);
     mockQuery
       .mockResolvedValueOnce([]) // no dedup
       .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email

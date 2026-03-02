@@ -7,6 +7,7 @@ import { homedir } from 'os';
 import { Tenant } from '../entities/tenant.entity';
 import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
+import { AgentMessage } from '../entities/agent-message.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { sha256, keyPrefix } from '../common/utils/hash.util';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
@@ -19,6 +20,7 @@ import {
   LOCAL_AGENT_NAME,
 } from '../common/constants/local-mode.constants';
 import { trackEvent } from '../common/utils/product-telemetry';
+import { seedAgentMessages } from './seed-messages';
 
 @Injectable()
 export class LocalBootstrapService implements OnModuleInit {
@@ -28,6 +30,7 @@ export class LocalBootstrapService implements OnModuleInit {
     @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
     @InjectRepository(Agent) private readonly agentRepo: Repository<Agent>,
     @InjectRepository(AgentApiKey) private readonly agentKeyRepo: Repository<AgentApiKey>,
+    @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
     @InjectRepository(ModelPricing) private readonly pricingRepo: Repository<ModelPricing>,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly pricingSync: PricingSyncService,
@@ -37,6 +40,11 @@ export class LocalBootstrapService implements OnModuleInit {
     await this.seedModelPricing();
     await this.pricingCache.reload();
     await this.ensureTenantAndAgent();
+    await seedAgentMessages(this.messageRepo, LOCAL_USER_ID, this.logger, {
+      tenantId: LOCAL_TENANT_ID,
+      agentId: LOCAL_AGENT_ID,
+      agentName: LOCAL_AGENT_NAME,
+    });
     this.logger.log('Local mode bootstrap complete');
 
     // Fetch fresh prices from OpenRouter in the background
@@ -156,6 +164,34 @@ export class LocalBootstrapService implements OnModuleInit {
       ['meta-llama/llama-4-maverick',            'OpenRouter', 0.0000003,  0.0000009,  128000,  false, true],
       ['mistralai/mistral-large',                'OpenRouter', 0.000002,   0.000006,   128000,  false, true],
       ['x-ai/grok-3',                            'OpenRouter', 0.000003,   0.000015,   131072,  true,  true],
+      // OpenRouter free models
+      ['openrouter/free',                         'OpenRouter', 0,          0,          200000,  true,  true],
+      ['stepfun/step-3.5-flash:free',             'OpenRouter', 0,          0,          256000,  false, true],
+      ['arcee-ai/trinity-large-preview:free',     'OpenRouter', 0,          0,          131072,  false, true],
+      ['upstage/solar-pro-3:free',                'OpenRouter', 0,          0,          128000,  false, true],
+      ['liquid/lfm-2.5-1.2b-thinking:free',       'OpenRouter', 0,          0,          32768,   true,  false],
+      ['liquid/lfm-2.5-1.2b-instruct:free',       'OpenRouter', 0,          0,          32768,   false, false],
+      ['arcee-ai/trinity-mini:free',              'OpenRouter', 0,          0,          131072,  false, false],
+      ['nvidia/nemotron-3-nano-30b-a3b:free',     'OpenRouter', 0,          0,          256000,  false, true],
+      // MiniMax
+      ['minimax-m2.5',           'MiniMax',   0.000000295, 0.0000012,  196608,  true,  true],
+      ['minimax-m2.5-highspeed', 'MiniMax',   0.000000295, 0.0000012,  196608,  true,  true],
+      ['minimax-m2.1',           'MiniMax',   0.00000027,  0.00000095, 196608,  true,  true],
+      ['minimax-m2.1-highspeed', 'MiniMax',   0.00000027,  0.00000095, 196608,  true,  true],
+      ['minimax-m2',             'MiniMax',   0.000000255, 0.000001,   196608,  true,  true],
+      ['minimax-m2-her',         'MiniMax',   0.0000003,   0.0000012,  65536,   false, false],
+      ['minimax-m1',             'MiniMax',   0.0000004,   0.0000022,  1000000, true,  true],
+      ['minimax-01',             'MiniMax',   0.0000002,   0.0000011,  1000192, false, false],
+      // Z.ai (GLM)
+      ['glm-5',                  'Z.ai',      0.00000095,  0.00000255, 204800,  true,  true],
+      ['glm-4.7',                'Z.ai',      0.0000003,   0.0000014,  202752,  true,  true],
+      ['glm-4.7-flash',          'Z.ai',      0.00000006,  0.0000004,  202752,  false, false],
+      ['glm-4.6',                'Z.ai',      0.00000035,  0.00000171, 202752,  true,  true],
+      ['glm-4.6v',               'Z.ai',      0.0000003,   0.0000009,  131072,  false, false],
+      ['glm-4.5',                'Z.ai',      0.00000055,  0.000002,   131000,  true,  true],
+      ['glm-4.5-air',            'Z.ai',      0.00000013,  0.00000085, 131072,  false, false],
+      ['glm-4.5-flash',          'Z.ai',      0,           0,          131072,  false, false],
+      // Zhipu (GLM) — legacy
       ['glm-4-plus',                 'Zhipu',     0.0000005,  0.0000005,  128000,  false, true],
       ['glm-4-flash',                'Zhipu',     0.00000005, 0.00000005, 128000,  false, false],
       ['nova-pro',                   'Amazon',    0.0000008,  0.0000032,  300000,  false, true],

@@ -31,6 +31,7 @@ vi.mock("../../src/services/formatters.js", () => ({
   formatStatus: (s: string) => s,
   formatTime: (t: string) => t,
   formatDuration: (ms: number) => ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`,
+  formatErrorMessage: (s: string) => s,
 }));
 
 vi.mock("../../src/components/SetupModal.jsx", () => ({
@@ -82,7 +83,7 @@ describe("MessageLog", () => {
   it("renders breadcrumb subtitle", () => {
     mockGetMessages.mockResolvedValue(messagesData);
     render(() => <MessageLog />);
-    expect(screen.getByText("Every message sent and received by your agent")).toBeDefined();
+    expect(screen.getByText(/Full log of every LLM call/)).toBeDefined();
   });
 
   it("shows loading skeleton while fetching", () => {
@@ -234,6 +235,51 @@ describe("MessageLog", () => {
     render(() => <MessageLog />);
     await vi.waitFor(() => {
       expect(mockGetMessages).toHaveBeenCalled();
+    });
+  });
+
+  describe("error tooltip", () => {
+    it("shows tooltip when error_message is present on a failed row", async () => {
+      const dataWithError = {
+        ...messagesData,
+        items: [
+          { id: "msg-err12345", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "gpt-4o", input_tokens: 0, output_tokens: 0, total_tokens: 0, cost: 0, status: "error", error_message: "401 Unauthorized: invalid API key" },
+        ],
+      };
+      mockGetMessages.mockResolvedValue(dataWithError);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const tooltip = container.querySelector(".status-badge-tooltip");
+        expect(tooltip).not.toBeNull();
+        const bubble = container.querySelector(".status-badge-tooltip__bubble");
+        expect(bubble).not.toBeNull();
+        expect(bubble!.textContent).toBe("401 Unauthorized: invalid API key");
+      });
+    });
+
+    it("does not show tooltip when error_message is absent", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("msg-1234");
+        const tooltip = container.querySelector(".status-badge-tooltip");
+        expect(tooltip).toBeNull();
+      });
+    });
+
+    it("sets aria-label on the tooltip wrapper", async () => {
+      const dataWithError = {
+        ...messagesData,
+        items: [
+          { id: "msg-err99999", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "gpt-4o", input_tokens: 0, output_tokens: 0, total_tokens: 0, cost: 0, status: "error", error_message: "timeout" },
+        ],
+      };
+      mockGetMessages.mockResolvedValue(dataWithError);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const tooltip = container.querySelector(".status-badge-tooltip");
+        expect(tooltip?.getAttribute("aria-label")).toBe("timeout");
+      });
     });
   });
 

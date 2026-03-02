@@ -18,6 +18,7 @@ import TokenChart from '../components/TokenChart.jsx'
 import { getOverview } from '../services/api.js'
 import {
   formatCost,
+  formatErrorMessage,
   formatNumber,
   formatStatus,
   formatTime,
@@ -40,6 +41,7 @@ interface RecentMessage {
   total_tokens: number | null
   cost: number | null
   status: string
+  error_message?: string | null
 }
 
 interface OverviewData {
@@ -146,7 +148,7 @@ const Overview: Component = () => {
       <div class="page-header">
         <div>
           <h1>Overview</h1>
-          <span class="breadcrumb">Monitor your agent's costs, tokens, and activity</span>
+          <span class="breadcrumb">Real-time summary of your agent's spending, token consumption, and message history</span>
         </div>
         <div class="header-controls">
           <Show when={!isNewAgent()}>
@@ -262,7 +264,7 @@ const Overview: Component = () => {
           <Show when={(isLocalMode() && params.agentName === 'local-agent') || setupCompleted()} fallback={
             <div class="empty-state">
               <div class="empty-state__title">No activity yet</div>
-              <p>Set up your agent and start chatting. Activity will appear here automatically.</p>
+              <p>Connect your agent to Manifest and send your first message. Usage data will appear here automatically.</p>
               <button class="btn btn--primary" style="margin-top: var(--gap-md);" onClick={() => setSetupOpen(true)}>
                 Set up agent
               </button>
@@ -273,7 +275,7 @@ const Overview: Component = () => {
           }>
             <div class="waiting-banner">
               <i class="bxd bx-florist" />
-              <p>Your dashboard will populate a few seconds after your first exchange with your agent.</p>
+              <p>Waiting for data &mdash; your dashboard will populate within seconds of your agent's first LLM call.</p>
             </div>
             <div class="demo-dashboard">
               <div class="chart-card">
@@ -299,7 +301,7 @@ const Overview: Component = () => {
                 </div>
                 <div class="chart-card__body">
                   <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                    No data yet
+                    No data yet &mdash; activity will appear once your agent starts sending messages
                   </div>
                 </div>
               </div>
@@ -417,7 +419,7 @@ const Overview: Component = () => {
                         when={d().cost_usage?.length}
                         fallback={
                           <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                            No data
+                            No cost data for this time range
                           </div>
                         }
                       >
@@ -429,7 +431,7 @@ const Overview: Component = () => {
                         when={d().token_usage?.length}
                         fallback={
                           <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                            No data
+                            No token data for this time range
                           </div>
                         }
                       >
@@ -441,7 +443,7 @@ const Overview: Component = () => {
                         when={getMessageChartData().length}
                         fallback={
                           <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                            No data
+                            No message data for this time range
                           </div>
                         }
                       >
@@ -518,11 +520,23 @@ const Overview: Component = () => {
                                 : '\u2014'}
                             </td>
                             <td>
-                              <span class={`status-badge status-badge--${item.status}`}>
-                                {item.status === 'rate_limited'
-                                  ? <A href={`/agents/${encodeURIComponent(params.agentName)}/limits`}>{formatStatus(item.status)}</A>
-                                  : formatStatus(item.status)}
-                              </span>
+                              <Show when={item.error_message}
+                                fallback={
+                                  <span class={`status-badge status-badge--${item.status}`}>
+                                    {item.status === 'rate_limited'
+                                      ? <A href={`/agents/${encodeURIComponent(params.agentName)}/limits`}>{formatStatus(item.status)}</A>
+                                      : formatStatus(item.status)}
+                                  </span>
+                                }
+                              >
+                                <span class="status-badge-tooltip" tabindex="0" role="note"
+                                      aria-label={formatErrorMessage(item.error_message!)}>
+                                  <span class={`status-badge status-badge--${item.status}`}>
+                                    {formatStatus(item.status)}
+                                  </span>
+                                  <span class="status-badge-tooltip__bubble">{formatErrorMessage(item.error_message!)}</span>
+                                </span>
+                              </Show>
                             </td>
                           </tr>
                         )}
@@ -535,7 +549,7 @@ const Overview: Component = () => {
                 <div class="panel" style="margin-top: var(--gap-lg);">
                   <div class="panel__title">Cost by Model</div>
                   <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: -8px 0 12px;">
-                    How much each AI model is costing you
+                    Breakdown of spending per model for the selected time range
                   </p>
                   <table class="data-table">
                     <thead>

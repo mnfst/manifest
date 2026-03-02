@@ -51,6 +51,7 @@ export class ProxyController {
     const { userId, tenantId, agentName } = req.ingestionContext;
     const body = req.body as Record<string, unknown>;
     const sessionKey = (req.headers['x-session-key'] as string) || 'default';
+    const traceId = this.extractTraceId(req);
     const isStream = body.stream === true;
     let headersSent = false;
     let slotAcquired = false;
@@ -93,6 +94,7 @@ export class ProxyController {
           errorBody,
           meta.model,
           meta.tier,
+          traceId,
         ).catch((e) =>
           this.logger.warn(`Failed to record provider error: ${e}`),
         );
@@ -152,7 +154,7 @@ export class ProxyController {
       this.logger.error(`Proxy error: ${message}`);
 
       if (status === 429 || status === 403 || status >= 500) {
-        this.recordProviderError(req.ingestionContext, status, message).catch(
+        this.recordProviderError(req.ingestionContext, status, message, undefined, undefined, traceId).catch(
           (e) =>
             this.logger.warn(`Failed to record provider error: ${e}`),
         );
@@ -178,6 +180,7 @@ export class ProxyController {
     errorMessage: string,
     model?: string,
     tier?: string,
+    traceId?: string,
   ): Promise<void> {
     if (httpStatus === 429) {
       const key = `${ctx.tenantId}:${ctx.agentId}`;
@@ -200,6 +203,7 @@ export class ProxyController {
       id: uuid(),
       tenant_id: ctx.tenantId,
       agent_id: ctx.agentId,
+      trace_id: traceId ?? null,
       timestamp: new Date().toISOString(),
       status: messageStatus,
       error_message: errorMessage.slice(0, 500),
@@ -211,6 +215,13 @@ export class ProxyController {
       cache_read_tokens: 0,
       cache_creation_tokens: 0,
     });
+  }
+
+  private extractTraceId(req: Request): string | undefined {
+    const header = req.headers['traceparent'] as string | undefined;
+    if (!header) return undefined;
+    const parts = header.split('-');
+    return parts.length >= 2 ? parts[1] : undefined;
   }
 
   private trackFirstProxyRequest(

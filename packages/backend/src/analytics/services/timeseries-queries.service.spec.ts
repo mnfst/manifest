@@ -284,7 +284,7 @@ describe('TimeseriesQueriesService', () => {
   });
 });
 
-describe('TimeseriesQueriesService (SQLite dialect)', () => {
+describe('TimeseriesQueriesService (sql.js / local mode)', () => {
   let service: TimeseriesQueriesService;
   let mockSelect: jest.Mock;
   let mockAddSelect: jest.Mock;

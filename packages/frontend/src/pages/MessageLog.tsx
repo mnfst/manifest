@@ -3,7 +3,7 @@ import { A, useParams } from "@solidjs/router";
 import { Title, Meta } from "@solidjs/meta";
 import ErrorState from "../components/ErrorState.jsx";
 import { getMessages } from "../services/api.js";
-import { formatNumber, formatCost, formatTime, formatStatus, formatDuration } from "../services/formatters.js";
+import { formatNumber, formatCost, formatErrorMessage, formatTime, formatStatus, formatDuration } from "../services/formatters.js";
 import { inferProviderFromModel, inferProviderName } from "../services/routing-utils.js";
 import { providerIcon } from "../components/ProviderIcon.jsx";
 import Select from "../components/Select.jsx";
@@ -28,6 +28,7 @@ interface MessageItem {
   cache_read_tokens: number | null;
   cache_creation_tokens: number | null;
   duration_ms: number | null;
+  error_message?: string | null;
 }
 
 interface MessagesData {
@@ -73,7 +74,7 @@ const MessageLog: Component = () => {
       <div class="page-header">
         <div>
           <h1>Messages</h1>
-          <span class="breadcrumb">Every message sent and received by your agent</span>
+          <span class="breadcrumb">Full log of every LLM call &mdash; filter by status, model, or cost</span>
         </div>
         <div class="header-controls">
           <Show when={!hasNoData()}>
@@ -152,7 +153,7 @@ const MessageLog: Component = () => {
           <Show when={(isLocalMode() && params.agentName === 'local-agent') || setupCompleted()} fallback={
             <div class="empty-state">
               <div class="empty-state__title">No messages recorded</div>
-              <p>Set up your agent and start chatting. Activity will appear here automatically.</p>
+              <p>Connect your agent to Manifest and send your first message. Each LLM call will be logged here with its cost, tokens, and status.</p>
               <button class="btn btn--primary" style="margin-top: var(--gap-md);" onClick={() => setSetupOpen(true)}>
                 Set up agent
               </button>
@@ -163,7 +164,7 @@ const MessageLog: Component = () => {
           }>
             <div class="waiting-banner">
               <i class="bxd bx-florist" />
-              <p>Your messages will appear a few seconds after your first exchange with your agent.</p>
+              <p>Waiting for data &mdash; messages will appear within seconds of your agent's first LLM call.</p>
             </div>
             <div class="demo-dashboard">
               <div class="panel">
@@ -180,8 +181,8 @@ const MessageLog: Component = () => {
                       <th>Message</th>
                       <th>Cost</th>
                       <th>Total Tokens</th>
-                      <th>Sent to AI</th>
-                      <th>Received from AI</th>
+                      <th>Input</th>
+                      <th>Output</th>
                       <th>Model</th>
                       <th>Cache</th>
                       <th>Duration</th>
@@ -214,8 +215,8 @@ const MessageLog: Component = () => {
                   <th>Message</th>
                   <th>Cost</th>
                   <th>Total Tokens<InfoTooltip text="Tokens are units of text that AI models process. More tokens = higher cost." /></th>
-                  <th>Sent to AI</th>
-                  <th>Received from AI</th>
+                  <th>Input<InfoTooltip text="Tokens sent to the model (your prompt). Also called 'input tokens'." /></th>
+                  <th>Output<InfoTooltip text="Tokens returned by the model (its response). Also called 'output tokens'." /></th>
                   <th>Model</th>
                   <th>Cache</th>
                   <th>Duration</th>
@@ -269,11 +270,23 @@ const MessageLog: Component = () => {
                         {item.duration_ms != null ? formatDuration(item.duration_ms) : "\u2014"}
                       </td>
                       <td>
-                        <span class={`status-badge status-badge--${item.status}`}>
-                          {item.status === 'rate_limited'
-                            ? <A href={`/agents/${encodeURIComponent(params.agentName)}/limits`}>{formatStatus(item.status)}</A>
-                            : formatStatus(item.status)}
-                        </span>
+                        <Show when={item.error_message}
+                          fallback={
+                            <span class={`status-badge status-badge--${item.status}`}>
+                              {item.status === 'rate_limited'
+                                ? <A href={`/agents/${encodeURIComponent(params.agentName)}/limits`}>{formatStatus(item.status)}</A>
+                                : formatStatus(item.status)}
+                            </span>
+                          }
+                        >
+                          <span class="status-badge-tooltip" tabindex="0" role="note"
+                                aria-label={formatErrorMessage(item.error_message!)}>
+                            <span class={`status-badge status-badge--${item.status}`}>
+                              {formatStatus(item.status)}
+                            </span>
+                            <span class="status-badge-tooltip__bubble">{formatErrorMessage(item.error_message!)}</span>
+                          </span>
+                        </Show>
                       </td>
                     </tr>
                   )}

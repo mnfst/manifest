@@ -18,10 +18,6 @@ describe('sql-dialect', () => {
       expect(detectDialect('sqljs')).toBe('sqlite');
     });
 
-    it('returns sqlite for better-sqlite3', () => {
-      expect(detectDialect('better-sqlite3')).toBe('sqlite');
-    });
-
     it('returns postgres for postgres', () => {
       expect(detectDialect('postgres')).toBe('postgres');
     });

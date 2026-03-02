@@ -9,7 +9,7 @@ const Help: Component = () => {
       <div class="page-header">
         <div>
           <h1>Help & Support</h1>
-          <span class="breadcrumb">Get in touch with the Manifest team</span>
+          <span class="breadcrumb">Questions or issues? Reach out and we'll get back to you quickly</span>
         </div>
       </div>
 
@@ -17,7 +17,7 @@ const Help: Component = () => {
         <div class="settings-card__row">
           <div class="settings-card__label">
             <span class="settings-card__label-title">Schedule a Call</span>
-            <span class="settings-card__label-desc">Book a 30-min session with our team.</span>
+            <span class="settings-card__label-desc">Book a 30-min session with our team to discuss setup, integrations, or troubleshooting.</span>
           </div>
           <div class="settings-card__control">
             <a
@@ -35,7 +35,7 @@ const Help: Component = () => {
         <div class="settings-card__row">
           <div class="settings-card__label">
             <span class="settings-card__label-title">Email Support</span>
-            <span class="settings-card__label-desc">sebastien@manifest.build</span>
+            <span class="settings-card__label-desc">sebastien@manifest.build &mdash; we typically respond within 24 hours.</span>
           </div>
           <div class="settings-card__control">
             <a

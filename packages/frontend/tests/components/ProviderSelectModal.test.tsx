@@ -17,6 +17,11 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null,
 }));
 
+vi.mock("../../src/services/local-mode.js", () => ({
+  isLocalMode: () => false,
+  checkLocalMode: () => Promise.resolve(false),
+}));
+
 import ProviderSelectModal from "../../src/components/ProviderSelectModal";
 import { toast } from "../../src/services/toast-store.js";
 import type { RoutingProvider } from "../../src/services/api.js";

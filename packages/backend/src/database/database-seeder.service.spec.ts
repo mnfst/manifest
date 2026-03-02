@@ -30,12 +30,13 @@ describe('DatabaseSeederService', () => {
   let mockApiKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockPricingRepo: ReturnType<typeof makeMockRepo>;
   let mockSecurityRepo: ReturnType<typeof makeMockRepo>;
+  let mockMessageRepo: ReturnType<typeof makeMockRepo>;
   let mockPricingCache: { reload: jest.Mock };
   const originalSeedData = process.env['SEED_DATA'];
   const originalManifestMode = process.env['MANIFEST_MODE'];
 
   beforeEach(() => {
-    // Ensure local mode doesn't short-circuit onModuleInit (SQLite CI sets MANIFEST_MODE=local)
+    // Ensure local mode doesn't short-circuit onModuleInit (sql.js CI sets MANIFEST_MODE=local)
     delete process.env['MANIFEST_MODE'];
     mockDataSource = { query: jest.fn() };
     mockConfigService = { get: jest.fn() };
@@ -45,6 +46,7 @@ describe('DatabaseSeederService', () => {
     mockApiKeyRepo = makeMockRepo();
     mockPricingRepo = makeMockRepo();
     mockSecurityRepo = makeMockRepo();
+    mockMessageRepo = makeMockRepo();
     mockPricingCache = { reload: jest.fn().mockResolvedValue(undefined) };
 
     service = new DatabaseSeederService(
@@ -56,6 +58,7 @@ describe('DatabaseSeederService', () => {
       mockApiKeyRepo as never,
       mockPricingRepo as never,
       mockSecurityRepo as never,
+      mockMessageRepo as never,
       mockPricingCache as never,
     );
 
@@ -310,8 +313,8 @@ describe('DatabaseSeederService', () => {
 
       await service.onModuleInit();
 
-      // All curated models are always upserted (52 total)
-      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(52);
+      // All curated models are always upserted (80 total)
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(80);
     });
 
     it('should upsert with model_name as conflict key', async () => {

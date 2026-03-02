@@ -104,7 +104,7 @@ describe("Limits page", () => {
   it("renders breadcrumb with agent name", () => {
     const { container } = render(() => <Limits />);
     expect(container.textContent).toContain("test-agent");
-    expect(container.textContent).toContain("Email alerts & hard limits");
+    expect(container.textContent).toContain("Get notified or block requests when token or cost thresholds are exceeded");
   });
 
   it("renders Create rule button", () => {
@@ -115,7 +115,7 @@ describe("Limits page", () => {
   it("renders empty state when no rules", () => {
     render(() => <Limits />);
     expect(screen.getByText("No rules yet")).toBeDefined();
-    expect(screen.getByText("Create a rule to receive email alerts or block requests when thresholds are exceeded.")).toBeDefined();
+    expect(screen.getByText("Set up email alerts to get notified when usage spikes, or create hard limits to automatically block requests that exceed your budget.")).toBeDefined();
   });
 
   it("renders rules table when rules exist", async () => {
@@ -305,7 +305,7 @@ describe("Limits page", () => {
     });
   });
 
-  it("does not show disabled row for active rules (is_active=1, SQLite)", async () => {
+  it("does not show disabled row for active rules (is_active=1, sql.js local mode)", async () => {
     mockRules = [{
       id: "r1", agent_name: "test-agent", metric_type: "tokens",
       threshold: 50000, period: "day", action: "notify",

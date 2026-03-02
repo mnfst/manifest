@@ -82,7 +82,7 @@ function buildModeServices() {
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         if (isLocalMode) {
-          const dbPath = config.get<string>('app.sqlitePath') || ':memory:';
+          const dbPath = config.get<string>('app.dbPath') || ':memory:';
           return {
             type: 'sqljs' as const,
             location: dbPath === ':memory:' ? undefined : dbPath,
@@ -105,7 +105,7 @@ function buildModeServices() {
         };
       },
     }),
-    TypeOrmModule.forFeature([Tenant, Agent, AgentApiKey, ApiKey, ModelPricing, SecurityEvent]),
+    TypeOrmModule.forFeature([Tenant, Agent, AgentApiKey, AgentMessage, ApiKey, ModelPricing, SecurityEvent]),
     ModelPricesModule,
   ],
   providers: buildModeServices(),

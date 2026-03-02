@@ -8,6 +8,7 @@ import { ToolExecution } from '../../entities/tool-execution.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { OtlpExportTraceServiceRequest, OtlpSpan, OtlpResourceSpans } from '../interfaces';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
+import { In } from 'typeorm';
 import {
   extractAttributes,
   nanoToDatetime,
@@ -175,6 +176,20 @@ export class TraceIngestService {
     _spanMap: Map<string, SpanEntry>,
     ctx: IngestionContext,
   ): Promise<void> {
+    // Skip if the proxy already recorded an error for this trace (avoids duplicates)
+    const traceId = toHexString(span.traceId);
+    if (traceId) {
+      const existing = await this.turnRepo.findOne({
+        where: {
+          trace_id: traceId,
+          tenant_id: ctx.tenantId,
+          status: In(['error', 'rate_limited']),
+        },
+        select: ['id'],
+      });
+      if (existing) return;
+    }
+
     const cost = this.computeCost(attrs);
     await this.turnRepo.insert({
       id: entry.uuid,

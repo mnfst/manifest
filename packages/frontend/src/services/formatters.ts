@@ -84,6 +84,24 @@ export function formatDuration(ms: number): string {
 }
 
 /**
+ * Extract a human-readable error from a raw error_message string.
+ * Provider APIs return JSON like {"error":{"message":"...","code":401}}.
+ * Caught exceptions produce plain strings like "timeout".
+ */
+export function formatErrorMessage(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw);
+    const err = parsed?.error?.error ?? parsed?.error ?? parsed;
+    const msg = err?.message ?? err?.msg;
+    if (typeof msg === 'string' && msg.length > 0) {
+      const code = err?.code ?? err?.status ?? err?.type ?? parsed?.error?.code;
+      return code != null ? `${msg} (${code})` : msg;
+    }
+  } catch { /* not JSON, fall through */ }
+  return raw;
+}
+
+/**
  * Format a timestamp to relative display (e.g., "Yesterday", "09:14").
  */
 export function formatRelativeTime(ts: string): string {

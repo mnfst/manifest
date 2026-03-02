@@ -9,8 +9,10 @@ import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { SecurityEvent } from '../entities/security-event.entity';
+import { AgentMessage } from '../entities/agent-message.entity';
 import { sha256, keyPrefix } from '../common/utils/hash.util';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { seedAgentMessages } from './seed-messages';
 
 const SEED_API_KEY = 'dev-api-key-manifest-001';
 const SEED_OTLP_KEY = 'mnfst_dev-otlp-key-001';
@@ -30,6 +32,7 @@ export class DatabaseSeederService implements OnModuleInit {
     @InjectRepository(ApiKey) private readonly apiKeyRepo: Repository<ApiKey>,
     @InjectRepository(ModelPricing) private readonly pricingRepo: Repository<ModelPricing>,
     @InjectRepository(SecurityEvent) private readonly securityRepo: Repository<SecurityEvent>,
+    @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
     private readonly pricingCache: ModelPricingCacheService,
   ) {}
 
@@ -47,6 +50,7 @@ export class DatabaseSeederService implements OnModuleInit {
       await this.seedApiKey();
       await this.seedTenantAndAgent();
       await this.seedSecurityEvents();
+      await this.seedAgentMessages();
       this.logger.log('Seeded demo data (dev/test only, SEED_DATA=true)');
     }
   }
@@ -220,7 +224,39 @@ export class DatabaseSeederService implements OnModuleInit {
       ['meta-llama/llama-4-maverick',            'OpenRouter', 0.0000003,  0.0000009,  128000,  false, true],
       ['mistralai/mistral-large',                'OpenRouter', 0.000002,   0.000006,   128000,  false, true],
       ['x-ai/grok-3',                            'OpenRouter', 0.000003,   0.000015,   131072,  true,  true],
-      // Zhipu (GLM)
+      // OpenRouter free models
+      ['openrouter/free',                         'OpenRouter', 0,          0,          200000,  true,  true],
+      ['stepfun/step-3.5-flash:free',             'OpenRouter', 0,          0,          256000,  false, true],
+      ['arcee-ai/trinity-large-preview:free',     'OpenRouter', 0,          0,          131072,  false, true],
+      ['upstage/solar-pro-3:free',                'OpenRouter', 0,          0,          128000,  false, true],
+      ['liquid/lfm-2.5-1.2b-thinking:free',       'OpenRouter', 0,          0,          32768,   true,  false],
+      ['liquid/lfm-2.5-1.2b-instruct:free',       'OpenRouter', 0,          0,          32768,   false, false],
+      ['arcee-ai/trinity-mini:free',              'OpenRouter', 0,          0,          131072,  false, false],
+      ['nvidia/nemotron-3-nano-30b-a3b:free',     'OpenRouter', 0,          0,          256000,  false, true],
+      ['minimax/minimax-m2.5',                    'OpenRouter', 0.000000295, 0.0000012,  196608,  true,  true],
+      ['minimax/minimax-m1',                      'OpenRouter', 0.0000004,   0.0000022,  1000000, true,  true],
+      // MiniMax
+      ['minimax-m2.5',           'MiniMax',   0.000000295, 0.0000012,  196608,  true,  true],
+      ['minimax-m2.5-highspeed', 'MiniMax',   0.000000295, 0.0000012,  196608,  true,  true],
+      ['minimax-m2.1',           'MiniMax',   0.00000027,  0.00000095, 196608,  true,  true],
+      ['minimax-m2.1-highspeed', 'MiniMax',   0.00000027,  0.00000095, 196608,  true,  true],
+      ['minimax-m2',             'MiniMax',   0.000000255, 0.000001,   196608,  true,  true],
+      ['minimax-m2-her',         'MiniMax',   0.0000003,   0.0000012,  65536,   false, false],
+      ['minimax-m1',             'MiniMax',   0.0000004,   0.0000022,  1000000, true,  true],
+      ['minimax-01',             'MiniMax',   0.0000002,   0.0000011,  1000192, false, false],
+      // Z.ai (GLM)
+      ['glm-5',                  'Z.ai',      0.00000095,  0.00000255, 204800,  true,  true],
+      ['glm-4.7',                'Z.ai',      0.0000003,   0.0000014,  202752,  true,  true],
+      ['glm-4.7-flash',          'Z.ai',      0.00000006,  0.0000004,  202752,  false, false],
+      ['glm-4.6',                'Z.ai',      0.00000035,  0.00000171, 202752,  true,  true],
+      ['glm-4.6v',               'Z.ai',      0.0000003,   0.0000009,  131072,  false, false],
+      ['glm-4.5',                'Z.ai',      0.00000055,  0.000002,   131000,  true,  true],
+      ['glm-4.5-air',            'Z.ai',      0.00000013,  0.00000085, 131072,  false, false],
+      ['glm-4.5-flash',          'Z.ai',      0,           0,          131072,  false, false],
+      // OpenRouter Z.ai copies
+      ['z-ai/glm-5',                            'OpenRouter', 0.00000095,  0.00000255, 204800,  true,  true],
+      ['z-ai/glm-4.7',                          'OpenRouter', 0.0000003,   0.0000014,  202752,  true,  true],
+      // Zhipu (GLM) — legacy
       ['glm-4-plus',                 'Zhipu',     0.0000005,  0.0000005,  128000,  false, true],
       ['glm-4-flash',                'Zhipu',     0.00000005, 0.00000005, 128000,  false, false],
       // Amazon Nova
@@ -281,5 +317,11 @@ export class DatabaseSeederService implements OnModuleInit {
         user_id: userId,
       });
     }
+  }
+
+  private async seedAgentMessages() {
+    const userId = await this.getAdminUserId();
+    if (!userId) return;
+    await seedAgentMessages(this.messageRepo, userId, this.logger);
   }
 }

@@ -69,6 +69,12 @@
   color: hsl(var(--muted-foreground));
 }
 
+.provider-toggle__local-only {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+
 /* Toggle switch */
 .provider-toggle__switch {
   position: relative;

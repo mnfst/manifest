@@ -47,6 +47,7 @@ describe("resolveProviderId", () => {
     expect(resolveProviderId("Mistral AI")).toBe("mistral");
     expect(resolveProviderId("xAI")).toBe("xai");
     expect(resolveProviderId("Kimi")).toBe("moonshot");
+    expect(resolveProviderId("MiniMax")).toBe("minimax");
   });
 
   it("returns undefined for unknown provider", () => {
@@ -60,6 +61,17 @@ describe("inferProviderFromModel", () => {
   it("detects Ollama models by colon convention", () => {
     expect(inferProviderFromModel("qwen2.5:0.5b")).toBe("ollama");
     expect(inferProviderFromModel("llama3:latest")).toBe("ollama");
+  });
+
+  it("does not misclassify :free suffix as Ollama", () => {
+    expect(inferProviderFromModel("stepfun/step-3.5-flash:free")).toBe("openrouter");
+    expect(inferProviderFromModel("arcee-ai/trinity-large-preview:free")).toBe("openrouter");
+    expect(inferProviderFromModel("nvidia/nemotron-3-nano-30b-a3b:free")).toBe("openrouter");
+  });
+
+  it("still classifies :latest suffix as Ollama", () => {
+    expect(inferProviderFromModel("llama3:latest")).toBe("ollama");
+    expect(inferProviderFromModel("mistral:7b")).toBe("ollama");
   });
 
   it("detects Anthropic models", () => {
@@ -99,6 +111,17 @@ describe("inferProviderFromModel", () => {
     expect(inferProviderFromModel("moonshot-v1-128k")).toBe("moonshot");
   });
 
+  it("detects MiniMax models", () => {
+    expect(inferProviderFromModel("minimax-m2.5")).toBe("minimax");
+    expect(inferProviderFromModel("MiniMax-M1")).toBe("minimax");
+  });
+
+  it("detects Z.ai GLM models", () => {
+    expect(inferProviderFromModel("glm-5")).toBe("zai");
+    expect(inferProviderFromModel("glm-4.7-flash")).toBe("zai");
+    expect(inferProviderFromModel("glm-4.5")).toBe("zai");
+  });
+
   it("detects Qwen models", () => {
     expect(inferProviderFromModel("qwen3-235b-a22b")).toBe("qwen");
     expect(inferProviderFromModel("qwq-32b")).toBe("qwen");
@@ -129,6 +152,14 @@ describe("inferProviderName", () => {
 
   it("returns Ollama for colon-tagged models", () => {
     expect(inferProviderName("llama3:latest")).toBe("Ollama");
+  });
+
+  it("returns MiniMax for minimax models", () => {
+    expect(inferProviderName("minimax-m2.5")).toBe("MiniMax");
+  });
+
+  it("returns Z.ai for GLM models", () => {
+    expect(inferProviderName("glm-5")).toBe("Z.ai");
   });
 
   it("returns undefined for unrecognized models", () => {

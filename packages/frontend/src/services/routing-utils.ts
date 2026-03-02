@@ -39,13 +39,16 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^grok-/, "xai"],
   [/^mistral-|^codestral|^pixtral|^open-mistral/, "mistral"],
   [/^kimi-|^moonshot-/, "moonshot"],
+  [/^minimax-/i, "minimax"],
+  [/^glm-/, "zai"],
   [/^qwen[23]|^qwq-/, "qwen"],
   [/^[a-z][\w-]*\//, "openrouter"],
 ];
 
 export function inferProviderFromModel(model: string): string | undefined {
   // Ollama convention: models contain a colon tag like `:0.5b`, `:latest`
-  if (/:/.test(model)) return "ollama";
+  // Exception: OpenRouter `:free` suffix is not Ollama
+  if (/:/.test(model) && !model.endsWith(":free")) return "ollama";
   const lower = model.toLowerCase();
   for (const [re, id] of MODEL_PREFIX_MAP) {
     if (re.test(lower)) return id;

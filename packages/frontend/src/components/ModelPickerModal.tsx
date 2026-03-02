@@ -26,8 +26,12 @@ function labelForModel(name: string, labels: Map<string, string>): string {
   return name;
 }
 
+const isFreeModel = (m: AvailableModel): boolean =>
+  Number(m.input_price_per_token) === 0 && Number(m.output_price_per_token) === 0;
+
 const ModelPickerModal: Component<Props> = (props) => {
   const [search, setSearch] = createSignal("");
+  const [showFreeOnly, setShowFreeOnly] = createSignal(false);
 
   const providerLabelMap = (): Map<string, string> => {
     const map = new Map<string, string>();
@@ -44,7 +48,10 @@ const ModelPickerModal: Component<Props> = (props) => {
     type ModalModel = { value: string; label: string; pricing: AvailableModel };
     const groupMap = new Map<string, { provId: string; name: string; models: ModalModel[] }>();
 
+    const freeOnly = showFreeOnly();
+
     for (const m of props.models) {
+      if (freeOnly && !isFreeModel(m)) continue;
       const provId = resolveProviderId(m.provider);
       if (!provId) continue;
       if (!groupMap.has(provId)) {
@@ -60,6 +67,10 @@ const ModelPickerModal: Component<Props> = (props) => {
 
     const groups: { provId: string; name: string; models: ModalModel[] }[] = [];
     for (const group of groupMap.values()) {
+      // Sort openrouter/free to the top of its group
+      group.models.sort((a, b) =>
+        a.value === "openrouter/free" ? -1 : b.value === "openrouter/free" ? 1 : 0,
+      );
       if (q) {
         const nameMatch = group.name.toLowerCase().includes(q);
         const filtered = nameMatch
@@ -116,6 +127,17 @@ const ModelPickerModal: Component<Props> = (props) => {
             onInput={(e) => setSearch(e.currentTarget.value)}
             autofocus
           />
+        </div>
+
+        <div class="routing-modal__filter-bar">
+          <label class="routing-modal__filter-toggle">
+            <input
+              type="checkbox"
+              checked={showFreeOnly()}
+              onChange={(e) => setShowFreeOnly(e.currentTarget.checked)}
+            />
+            <span>Free models only</span>
+          </label>
         </div>
 
         <div class="routing-modal__list">

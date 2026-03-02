@@ -658,7 +658,7 @@ describe('AggregationService', () => {
   });
 });
 
-describe('AggregationService (SQLite dialect)', () => {
+describe('AggregationService (sql.js / local mode)', () => {
   let service: AggregationService;
   let mockSelect: jest.Mock;
   let mockAddSelect: jest.Mock;

@@ -8,6 +8,9 @@ const ALIASES: Record<string, string[]> = {
   qwen: ['alibaba'],
   alibaba: ['qwen'],
   moonshot: ['moonshot'],
+  minimax: ['minimax'],
+  zai: ['zai', 'z.ai'],
+  'z.ai': ['zai'],
   xai: ['xai'],
   ollama: ['ollama'],
 };

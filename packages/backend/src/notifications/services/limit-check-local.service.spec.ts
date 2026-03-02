@@ -6,7 +6,7 @@ import { EmailProviderConfigService } from './email-provider-config.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { DataSource } from 'typeorm';
 
-describe('LimitCheckService (SQLite dialect)', () => {
+describe('LimitCheckService (sql.js / local mode)', () => {
   let service: LimitCheckService;
   let mockQuery: jest.Mock;
   let mockGetActiveBlockRules: jest.Mock;
@@ -48,7 +48,7 @@ describe('LimitCheckService (SQLite dialect)', () => {
     ingestSubject.complete();
   });
 
-  it('uses ? placeholders in notification_logs check for SQLite', async () => {
+  it('uses ? placeholders in notification_logs check for sql.js', async () => {
     mockGetActiveBlockRules.mockResolvedValue([{
       id: 'r1', tenant_id: 't1', agent_name: 'a1', user_id: 'u1',
       metric_type: 'tokens', threshold: 100, period: 'day',
@@ -66,7 +66,7 @@ describe('LimitCheckService (SQLite dialect)', () => {
     expect(notifCheck).not.toContain('$1');
   });
 
-  it('uses ? placeholders in user email lookup for SQLite', async () => {
+  it('uses ? placeholders in user email lookup for sql.js', async () => {
     mockGetActiveBlockRules.mockResolvedValue([{
       id: 'r1', tenant_id: 't1', agent_name: 'a1', user_id: 'u1',
       metric_type: 'tokens', threshold: 100, period: 'day',
@@ -86,7 +86,7 @@ describe('LimitCheckService (SQLite dialect)', () => {
     }
   });
 
-  it('still returns LimitExceeded correctly in SQLite mode', async () => {
+  it('still returns LimitExceeded correctly in local mode', async () => {
     mockGetActiveBlockRules.mockResolvedValue([{
       id: 'r1', tenant_id: 't1', agent_name: 'a1', user_id: 'u1',
       metric_type: 'cost', threshold: 5, period: 'month',
