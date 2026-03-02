@@ -162,6 +162,20 @@ describe('auth.instance', () => {
       expect(config.trustedOrigins).toContain('http://localhost:4000');
     });
 
+    it('does not include localhost origins in production mode', () => {
+      process.env['NODE_ENV'] = 'production';
+      process.env['BETTER_AUTH_SECRET'] = 'a]3kF9!xLm2@pQzR7^wYu4&vN6*cE0hT';
+      delete process.env['BETTER_AUTH_URL'];
+      delete process.env['CORS_ORIGIN'];
+      delete process.env['FRONTEND_PORT'];
+      process.env['PORT'] = '3001';
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.trustedOrigins).not.toContain('http://localhost:3000');
+      expect(config.trustedOrigins).not.toContain('http://localhost:3001');
+    });
+
     it('does not include 127.0.0.1 origins in cloud mode', () => {
       delete process.env['MANIFEST_MODE'];
       process.env['PORT'] = '3001';

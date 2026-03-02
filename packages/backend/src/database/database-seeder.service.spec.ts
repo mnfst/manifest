@@ -468,6 +468,17 @@ describe('DatabaseSeederService', () => {
       expect(auth.api.signUpEmail).toHaveBeenCalled();
     });
 
+    it('should handle non-Error thrown by checkBetterAuthUser', async () => {
+      // When a non-Error value is thrown, the ternary falls through to `err`
+      mockDataSource.query
+        .mockRejectedValueOnce('string error') // checkBetterAuthUser
+        .mockResolvedValueOnce({}) // UPDATE emailVerified
+        .mockResolvedValue([{ id: 'admin-id' }]); // getAdminUserId calls
+
+      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      expect(auth.api.signUpEmail).toHaveBeenCalled();
+    });
+
     it('should propagate unhandled errors from seedAdminUser', async () => {
       // checkBetterAuthUser returns false, signUpEmail throws
       mockDataSource.query.mockResolvedValueOnce([]); // checkBetterAuthUser: no user
