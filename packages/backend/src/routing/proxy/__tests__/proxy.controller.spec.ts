@@ -32,7 +32,7 @@ function mockResponse(): {
   return { res, written, headers, get statusCode() { return statusCode; } };
 }
 
-function mockRequest(body: Record<string, unknown>, userId = 'user-1') {
+function mockRequest(body: Record<string, unknown>, userId = 'user-1', headers: Record<string, string> = {}) {
   return {
     ingestionContext: {
       userId,
@@ -41,7 +41,7 @@ function mockRequest(body: Record<string, unknown>, userId = 'user-1') {
       agentName: 'test-agent',
     },
     body,
-    headers: {},
+    headers,
   };
 }
 
@@ -509,6 +509,61 @@ describe('ProxyController', () => {
 
       // Only first 429 should be recorded (cooldown)
       expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
+    });
+
+    it('should store trace_id from traceparent header in error records', async () => {
+      const errorBody = '{"error":{"message":"Unauthorized"}}';
+      const mockProviderResp = new Response(errorBody, {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
+      });
+
+      const req = mockRequest(
+        { messages: [{ role: 'user', content: 'test' }] },
+        'user-1',
+        { traceparent: '00-abcdef1234567890abcdef1234567890-1234567890abcdef-01' },
+      );
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trace_id: 'abcdef1234567890abcdef1234567890',
+          status: 'error',
+        }),
+      );
+    });
+
+    it('should store null trace_id when traceparent header is absent', async () => {
+      const errorBody = '{"error":"bad"}';
+      const mockProviderResp = new Response(errorBody, {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trace_id: null,
+        }),
+      );
     });
 
     it('should truncate long error messages to 500 chars', async () => {

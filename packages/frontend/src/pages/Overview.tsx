@@ -18,6 +18,7 @@ import TokenChart from '../components/TokenChart.jsx'
 import { getOverview } from '../services/api.js'
 import {
   formatCost,
+  formatErrorMessage,
   formatNumber,
   formatStatus,
   formatTime,
@@ -40,6 +41,7 @@ interface RecentMessage {
   total_tokens: number | null
   cost: number | null
   status: string
+  error_message?: string | null
 }
 
 interface OverviewData {
@@ -518,11 +520,23 @@ const Overview: Component = () => {
                                 : '\u2014'}
                             </td>
                             <td>
-                              <span class={`status-badge status-badge--${item.status}`}>
-                                {item.status === 'rate_limited'
-                                  ? <A href={`/agents/${encodeURIComponent(params.agentName)}/limits`}>{formatStatus(item.status)}</A>
-                                  : formatStatus(item.status)}
-                              </span>
+                              <Show when={item.error_message}
+                                fallback={
+                                  <span class={`status-badge status-badge--${item.status}`}>
+                                    {item.status === 'rate_limited'
+                                      ? <A href={`/agents/${encodeURIComponent(params.agentName)}/limits`}>{formatStatus(item.status)}</A>
+                                      : formatStatus(item.status)}
+                                  </span>
+                                }
+                              >
+                                <span class="status-badge-tooltip" tabindex="0" role="note"
+                                      aria-label={formatErrorMessage(item.error_message!)}>
+                                  <span class={`status-badge status-badge--${item.status}`}>
+                                    {formatStatus(item.status)}
+                                  </span>
+                                  <span class="status-badge-tooltip__bubble">{formatErrorMessage(item.error_message!)}</span>
+                                </span>
+                              </Show>
                             </td>
                           </tr>
                         )}

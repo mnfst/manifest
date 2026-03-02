@@ -104,7 +104,7 @@ describe('PricingSyncService', () => {
     });
   });
 
-  it('skips models with zero pricing', async () => {
+  it('syncs free models with zero pricing', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -115,8 +115,16 @@ describe('PricingSyncService', () => {
     });
 
     const updated = await service.syncPricing();
-    expect(updated).toBe(0);
-    expect(mockUpsert).not.toHaveBeenCalled();
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'openai/gpt-4o',
+        provider: 'OpenRouter',
+        input_price_per_token: 0,
+        output_price_per_token: 0,
+      }),
+      ['model_name'],
+    );
   });
 
   it('skips models with missing pricing field', async () => {
@@ -185,11 +193,7 @@ describe('PricingSyncService', () => {
   it('does not reload cache when no models were updated', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: async () => ({
-        data: [
-          { id: 'openai/gpt-4o', pricing: { prompt: '0', completion: '0' } },
-        ],
-      }),
+      json: async () => ({ data: [] }),
     });
 
     await service.syncPricing();

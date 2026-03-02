@@ -16,6 +16,8 @@ export const QUALITY_OVERRIDES: ReadonlyMap<string, number> = new Map([
   ['kimi-k2', 3],
   // Meta-router — computed score from price data doesn't reflect frontier capability
   ['openrouter/auto', 5],
+  // Free meta-router — mid-range quality
+  ['openrouter/free', 3],
 ]);
 
 const MINI_VARIANT = /\b(mini|nano|haiku|micro)\b/i;

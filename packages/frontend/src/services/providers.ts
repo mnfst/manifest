@@ -37,6 +37,14 @@ export const PROVIDERS: ProviderDef[] = [
     keyPlaceholder: "sk-or-...",
     models: [
       { label: "Auto (best for prompt)", value: "openrouter/auto" },
+      { label: "Free Models Router", value: "openrouter/free" },
+      { label: "Step 3.5 Flash (Free)", value: "stepfun/step-3.5-flash:free" },
+      { label: "Trinity Large Preview (Free)", value: "arcee-ai/trinity-large-preview:free" },
+      { label: "Solar Pro 3 (Free)", value: "upstage/solar-pro-3:free" },
+      { label: "LFM 2.5 1.2B Thinking (Free)", value: "liquid/lfm-2.5-1.2b-thinking:free" },
+      { label: "LFM 2.5 1.2B Instruct (Free)", value: "liquid/lfm-2.5-1.2b-instruct:free" },
+      { label: "Trinity Mini (Free)", value: "arcee-ai/trinity-mini:free" },
+      { label: "Nemotron 3 Nano 30B (Free)", value: "nvidia/nemotron-3-nano-30b-a3b:free" },
     ],
   },
   {

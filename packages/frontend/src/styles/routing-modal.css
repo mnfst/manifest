@@ -58,6 +58,26 @@
   color: hsl(var(--muted-foreground) / 0.7);
 }
 
+.routing-modal__filter-bar {
+  display: flex;
+  padding: 8px 24px 0;
+  flex-shrink: 0;
+}
+
+.routing-modal__filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+
+.routing-modal__filter-toggle input[type="checkbox"] {
+  accent-color: hsl(var(--primary));
+  cursor: pointer;
+}
+
 .routing-modal__list {
   overflow-y: auto;
   flex: 1;
