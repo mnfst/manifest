@@ -8,11 +8,20 @@ import {
   fromGoogleResponse,
   transformGoogleStreamChunk,
 } from './google-adapter';
+import {
+  toAnthropicRequest,
+  fromAnthropicResponse,
+  transformAnthropicStreamChunk,
+  createAnthropicStreamTransformer,
+} from './anthropic-adapter';
+import { injectOpenRouterCacheControl } from './cache-injection';
 
 export interface ForwardResult {
   response: Response;
   /** True when we converted from Google format (needs SSE transform). */
   isGoogle: boolean;
+  /** True when we converted from Anthropic format (needs SSE transform). */
+  isAnthropic: boolean;
 }
 
 const PROVIDER_TIMEOUT_MS = 180_000;
@@ -28,6 +37,7 @@ export class ProviderClient {
     body: Record<string, unknown>,
     stream: boolean,
     signal?: AbortSignal,
+    extraHeaders?: Record<string, string>,
   ): Promise<ForwardResult> {
     const endpointKey = resolveEndpointKey(provider);
     if (!endpointKey) {
@@ -36,6 +46,7 @@ export class ProviderClient {
 
     const endpoint = PROVIDER_ENDPOINTS[endpointKey];
     const isGoogle = endpoint.format === 'google';
+    const isAnthropic = endpoint.format === 'anthropic';
 
     let url: string;
     let headers: Record<string, string>;
@@ -46,10 +57,25 @@ export class ProviderClient {
       if (stream) url += '&alt=sse';
       headers = endpoint.buildHeaders(apiKey);
       requestBody = toGoogleRequest(body, model);
+    } else if (isAnthropic) {
+      url = `${endpoint.baseUrl}${endpoint.buildPath(model)}`;
+      headers = endpoint.buildHeaders(apiKey);
+      requestBody = toAnthropicRequest(body, model);
+      requestBody.model = model;
+      if (stream) requestBody.stream = true;
     } else {
       url = `${endpoint.baseUrl}${endpoint.buildPath(model)}`;
       headers = endpoint.buildHeaders(apiKey);
       requestBody = { ...body, model, stream };
+
+      // Inject cache_control for OpenRouter requests targeting Anthropic models
+      if (endpointKey === 'openrouter' && model.startsWith('anthropic/')) {
+        injectOpenRouterCacheControl(requestBody);
+      }
+    }
+
+    if (extraHeaders) {
+      headers = { ...headers, ...extraHeaders };
     }
 
     const safeUrl = url.replace(/key=[^&]+/, 'key=***');
@@ -67,7 +93,7 @@ export class ProviderClient {
       signal: fetchSignal,
     });
 
-    return { response, isGoogle };
+    return { response, isGoogle, isAnthropic };
   }
 
   /** Convert a Google non-streaming response to OpenAI format. */
@@ -81,5 +107,23 @@ export class ProviderClient {
   /** Convert a Google SSE chunk to OpenAI SSE format. */
   convertGoogleStreamChunk(chunk: string, model: string): string | null {
     return transformGoogleStreamChunk(chunk, model);
+  }
+
+  /** Convert an Anthropic non-streaming response to OpenAI format. */
+  convertAnthropicResponse(
+    anthropicBody: Record<string, unknown>,
+    model: string,
+  ): Record<string, unknown> {
+    return fromAnthropicResponse(anthropicBody, model);
+  }
+
+  /** Convert an Anthropic SSE chunk to OpenAI SSE format. */
+  convertAnthropicStreamChunk(chunk: string, model: string): string | null {
+    return transformAnthropicStreamChunk(chunk, model);
+  }
+
+  /** Create a stateful Anthropic stream transformer that tracks usage across events. */
+  createAnthropicStreamTransformer(model: string): (chunk: string) => string | null {
+    return createAnthropicStreamTransformer(model);
   }
 }

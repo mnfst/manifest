@@ -109,7 +109,7 @@ describe('ProxyService', () => {
     const mockResponse = new Response('{}', { status: 200 });
     providerClient.forward.mockResolvedValue({
       response: mockResponse,
-      isGoogle: false,
+      isGoogle: false, isAnthropic: false,
     });
 
     const result = await service.proxyRequest('user-1', body, 'sess-1');
@@ -133,6 +133,7 @@ describe('ProxyService', () => {
       body,
       false,
       undefined,
+      undefined,
     );
   });
 
@@ -152,7 +153,7 @@ describe('ProxyService', () => {
     routingService.getProviderApiKey.mockResolvedValue('sk-ant');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
-      isGoogle: false,
+      isGoogle: false, isAnthropic: false,
     });
 
     await service.proxyRequest('user-1', body, 'sess-1');
@@ -179,7 +180,7 @@ describe('ProxyService', () => {
     routingService.getProviderApiKey.mockResolvedValue('sk-test');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
-      isGoogle: false,
+      isGoogle: false, isAnthropic: false,
     });
 
     const bodyWithTools = {
@@ -209,6 +210,7 @@ describe('ProxyService', () => {
       bodyWithTools,
       false,
       undefined,
+      undefined,
     );
   });
 
@@ -224,7 +226,7 @@ describe('ProxyService', () => {
     routingService.getProviderApiKey.mockResolvedValue('sk-test');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
-      isGoogle: false,
+      isGoogle: false, isAnthropic: false,
     });
 
     const abortController = new AbortController();
@@ -237,6 +239,7 @@ describe('ProxyService', () => {
       body,
       false,
       abortController.signal,
+      undefined,
     );
   });
 
@@ -265,7 +268,7 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       });
 
       const result = await service.proxyRequest('user-1', heartbeatBody, 'sess-1');
@@ -288,7 +291,7 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       });
 
       await service.proxyRequest('user-1', heartbeatBody, 'sess-1');
@@ -299,6 +302,7 @@ describe('ProxyService', () => {
         'gpt-4o-mini',
         heartbeatBody,
         false,
+        undefined,
         undefined,
       );
     });
@@ -328,7 +332,7 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       });
 
       const result = await service.proxyRequest('user-1', buriedHeartbeatBody, 'sess-1');
@@ -364,7 +368,7 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       });
 
       const result = await service.proxyRequest('user-1', arrayContentBody, 'sess-1');
@@ -386,7 +390,7 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       });
 
       await service.proxyRequest('user-1', body, 'default');
@@ -408,7 +412,7 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       });
     };
 
@@ -452,6 +456,7 @@ describe('ProxyService', () => {
         bodyWithSystem,
         false,
         undefined,
+        undefined,
       );
     });
 
@@ -490,7 +495,7 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       });
     };
 
@@ -609,7 +614,7 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       });
 
       const bodyWithMaxTokens = {
@@ -644,7 +649,7 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       });
 
       const bodyWithOnlySystem = {
@@ -669,6 +674,7 @@ describe('ProxyService', () => {
         bodyWithOnlySystem,
         false,
         undefined,
+        undefined,
       );
     });
   });
@@ -687,7 +693,7 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       });
 
       const result = await service.proxyRequest('user-1', body, 'default');
@@ -699,6 +705,7 @@ describe('ProxyService', () => {
         'llama3',
         body,
         false,
+        undefined,
         undefined,
       );
     });

@@ -3,7 +3,7 @@ import { A, useParams } from "@solidjs/router";
 import { Title, Meta } from "@solidjs/meta";
 import ErrorState from "../components/ErrorState.jsx";
 import { getMessages } from "../services/api.js";
-import { formatNumber, formatCost, formatTime, formatStatus } from "../services/formatters.js";
+import { formatNumber, formatCost, formatTime, formatStatus, formatDuration } from "../services/formatters.js";
 import { inferProviderFromModel, inferProviderName } from "../services/routing-utils.js";
 import { providerIcon } from "../components/ProviderIcon.jsx";
 import Select from "../components/Select.jsx";
@@ -25,6 +25,9 @@ interface MessageItem {
   total_tokens: number | null;
   status: string;
   cost: number | null;
+  cache_read_tokens: number | null;
+  cache_creation_tokens: number | null;
+  duration_ms: number | null;
 }
 
 interface MessagesData {
@@ -180,12 +183,14 @@ const MessageLog: Component = () => {
                       <th>Sent to AI</th>
                       <th>Received from AI</th>
                       <th>Model</th>
+                      <th>Cache</th>
+                      <th>Duration</th>
                       <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td colspan="8" style="text-align: center; color: hsl(var(--muted-foreground)); padding: var(--gap-lg);">
+                      <td colspan="10" style="text-align: center; color: hsl(var(--muted-foreground)); padding: var(--gap-lg);">
                         Messages will appear here
                       </td>
                     </tr>
@@ -212,6 +217,8 @@ const MessageLog: Component = () => {
                   <th>Sent to AI</th>
                   <th>Received from AI</th>
                   <th>Model</th>
+                  <th>Cache</th>
+                  <th>Duration</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -252,6 +259,14 @@ const MessageLog: Component = () => {
                           {item.model ?? "\u2014"}
                           {item.routing_tier && <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>}
                         </span>
+                      </td>
+                      <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                        {(item.cache_read_tokens ?? 0) > 0 || (item.cache_creation_tokens ?? 0) > 0
+                          ? `Read: ${formatNumber(item.cache_read_tokens ?? 0)} / Write: ${formatNumber(item.cache_creation_tokens ?? 0)}`
+                          : "\u2014"}
+                      </td>
+                      <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                        {item.duration_ms != null ? formatDuration(item.duration_ms) : "\u2014"}
                       </td>
                       <td>
                         <span class={`status-badge status-badge--${item.status}`}>

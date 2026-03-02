@@ -252,7 +252,10 @@ export class AggregationService {
       .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
       .addSelect(costExpr, 'cost')
       .addSelect('at.routing_tier', 'routing_tier')
-      .addSelect('at.routing_reason', 'routing_reason');
+      .addSelect('at.routing_reason', 'routing_reason')
+      .addSelect('at.cache_read_tokens', 'cache_read_tokens')
+      .addSelect('at.cache_creation_tokens', 'cache_creation_tokens')
+      .addSelect('at.duration_ms', 'duration_ms');
 
     if (params.cursor) {
       const sepIdx = params.cursor.indexOf('|');

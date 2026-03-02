@@ -122,7 +122,9 @@ export function toGoogleRequest(
   const result: Record<string, unknown> = { contents };
 
   if (systemText) {
-    result.systemInstruction = { parts: [{ text: systemText }] };
+    result.systemInstruction = {
+      parts: [{ text: systemText, cache_control: { type: 'ephemeral' } }],
+    };
   }
 
   const tools = convertTools(body.tools as Record<string, unknown>[] | undefined);
@@ -191,6 +193,9 @@ export function fromGoogleResponse(
           prompt_tokens: usage.promptTokenCount ?? 0,
           completion_tokens: usage.candidatesTokenCount ?? 0,
           total_tokens: usage.totalTokenCount ?? 0,
+          prompt_tokens_details: { cached_tokens: usage.cachedContentTokenCount ?? 0 },
+          cache_read_tokens: usage.cachedContentTokenCount ?? 0,
+          cache_creation_tokens: 0,
         }
       : undefined,
   };

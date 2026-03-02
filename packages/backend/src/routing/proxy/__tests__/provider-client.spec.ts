@@ -20,7 +20,7 @@ describe('ProviderClient', () => {
     it('builds correct URL and headers for openai', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      await client.forward('openai', 'sk-test', 'gpt-4o', body, false);
+      const result = await client.forward('openai', 'sk-test', 'gpt-4o', body, false);
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.openai.com/v1/chat/completions',
@@ -37,26 +37,18 @@ describe('ProviderClient', () => {
       expect(sentBody.model).toBe('gpt-4o');
       expect(sentBody.stream).toBe(false);
       expect(sentBody.temperature).toBe(0.7);
-    });
-
-    it('builds correct URL for anthropic', async () => {
-      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
-      await client.forward('anthropic', 'sk-ant', 'claude-sonnet-4', body, false);
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.anthropic.com/v1/chat/completions',
-        expect.any(Object),
-      );
+      expect(result.isAnthropic).toBe(false);
     });
 
     it('builds correct URL for deepseek', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
-      await client.forward('deepseek', 'sk-ds', 'deepseek-chat', body, false);
+      const result = await client.forward('deepseek', 'sk-ds', 'deepseek-chat', body, false);
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.deepseek.com/v1/chat/completions',
         expect.any(Object),
       );
+      expect(result.isAnthropic).toBe(false);
     });
 
     it('builds correct URL for mistral', async () => {
@@ -107,6 +99,90 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Anthropic provider', () => {
+    it('uses native Messages API path and x-api-key header', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward(
+        'anthropic',
+        'sk-ant-test',
+        'claude-sonnet-4-20250514',
+        body,
+        false,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.anthropic.com/v1/messages',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'x-api-key': 'sk-ant-test',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          },
+        }),
+      );
+
+      expect(result.isAnthropic).toBe(true);
+      expect(result.isGoogle).toBe(false);
+    });
+
+    it('does not include anthropic-beta header (caching is GA)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'anthropic',
+        'sk-ant-test',
+        'claude-sonnet-4-20250514',
+        body,
+        false,
+      );
+
+      const headers = mockFetch.mock.calls[0][1].headers;
+      expect(headers['anthropic-beta']).toBeUndefined();
+    });
+
+    it('includes top-level cache_control in Anthropic request body', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('anthropic', 'sk-ant', 'claude-sonnet-4-20250514', body, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('converts request body to Anthropic format with model', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('anthropic', 'sk-ant', 'claude-sonnet-4-20250514', body, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('claude-sonnet-4-20250514');
+      expect(sentBody.messages).toBeDefined();
+      expect(sentBody.max_tokens).toBeDefined();
+      // toAnthropicRequest correctly maps temperature from the original body
+      expect(sentBody.temperature).toBe(0.7);
+    });
+
+    it('sets stream=true in body when streaming', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('anthropic', 'sk-ant', 'claude-sonnet-4-20250514', body, true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+    });
+
+    it('does not set stream when not streaming', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('anthropic', 'sk-ant', 'claude-sonnet-4-20250514', body, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBeUndefined();
+    });
+  });
+
   describe('Google provider', () => {
     it('uses query param auth and Gemini path', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
@@ -125,6 +201,7 @@ describe('ProviderClient', () => {
       expect(url).toContain('key=AIza-test');
       expect(url).not.toContain('alt=sse');
       expect(result.isGoogle).toBe(true);
+      expect(result.isAnthropic).toBe(false);
     });
 
     it('adds alt=sse for streaming', async () => {
@@ -146,6 +223,89 @@ describe('ProviderClient', () => {
       // Should not have OpenAI-style fields
       expect(sentBody.model).toBeUndefined();
       expect(sentBody.stream).toBeUndefined();
+    });
+  });
+
+  describe('OpenRouter Anthropic cache injection', () => {
+    it('injects cache_control for anthropic/ models on openrouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Hi' },
+        ],
+      };
+      await client.forward(
+        'openrouter',
+        'sk-or',
+        'anthropic/claude-sonnet-4-20250514',
+        bodyWithSystem,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const sysMsg = sentBody.messages[0];
+      expect(Array.isArray(sysMsg.content)).toBe(true);
+      expect(sysMsg.content[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('does not inject cache_control for non-anthropic models on openrouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Hi' },
+        ],
+      };
+      await client.forward(
+        'openrouter',
+        'sk-or',
+        'openai/gpt-4o',
+        bodyWithSystem,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(typeof sentBody.messages[0].content).toBe('string');
+    });
+  });
+
+  describe('Extra headers', () => {
+    it('merges extraHeaders into outgoing request', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'xai',
+        'sk-xai',
+        'grok-2',
+        body,
+        false,
+        undefined,
+        { 'x-grok-conv-id': 'session-123' },
+      );
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.headers['x-grok-conv-id']).toBe('session-123');
+    });
+
+    it('does not override base headers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'openai',
+        'sk-test',
+        'gpt-4o',
+        body,
+        false,
+        undefined,
+        { 'X-Custom': 'value' },
+      );
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.headers['Authorization']).toBe('Bearer sk-test');
+      expect(fetchOptions.headers['X-Custom']).toBe('value');
     });
   });
 
@@ -263,6 +423,40 @@ describe('ProviderClient', () => {
 
     it('returns null for empty chunk', () => {
       const result = client.convertGoogleStreamChunk('', 'gemini-2.0-flash');
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('convertAnthropicResponse', () => {
+    it('delegates to fromAnthropicResponse', () => {
+      const anthropicBody = {
+        content: [{ type: 'text', text: 'Hello' }],
+        stop_reason: 'end_turn',
+        usage: { input_tokens: 10, output_tokens: 5 },
+      };
+      const result = client.convertAnthropicResponse(anthropicBody, 'claude-sonnet-4-20250514');
+
+      expect(result.object).toBe('chat.completion');
+      expect(result.model).toBe('claude-sonnet-4-20250514');
+      const choices = result.choices as Array<{ message: { content: string } }>;
+      expect(choices[0].message.content).toBe('Hello');
+    });
+  });
+
+  describe('convertAnthropicStreamChunk', () => {
+    it('delegates to transformAnthropicStreamChunk', () => {
+      const chunk = 'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hi"}}';
+      const result = client.convertAnthropicStreamChunk(chunk, 'claude-sonnet-4-20250514');
+
+      expect(result).toContain('data: ');
+      expect(result).toContain('"chat.completion.chunk"');
+    });
+
+    it('returns null for ping chunk', () => {
+      const result = client.convertAnthropicStreamChunk(
+        'event: ping\n{"type":"ping"}',
+        'claude-sonnet-4-20250514',
+      );
       expect(result).toBeNull();
     });
   });

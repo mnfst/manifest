@@ -140,6 +140,11 @@ export class ProxyService {
     );
 
     // Forward to real provider
+    const extraHeaders: Record<string, string> = {};
+    if (resolved.provider === 'xai') {
+      extraHeaders['x-grok-conv-id'] = sessionKey;
+    }
+
     const forward = await this.providerClient.forward(
       resolved.provider,
       apiKey,
@@ -147,6 +152,7 @@ export class ProxyService {
       body,
       stream,
       signal,
+      Object.keys(extraHeaders).length > 0 ? extraHeaders : undefined,
     );
 
     // Record momentum

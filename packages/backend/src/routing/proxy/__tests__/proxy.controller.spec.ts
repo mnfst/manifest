@@ -56,6 +56,8 @@ describe('ProxyController', () => {
   let providerClient: {
     convertGoogleResponse: jest.Mock;
     convertGoogleStreamChunk: jest.Mock;
+    convertAnthropicResponse: jest.Mock;
+    convertAnthropicStreamChunk: jest.Mock;
   };
   let mockMessageRepo: { insert: jest.Mock };
 
@@ -70,6 +72,8 @@ describe('ProxyController', () => {
     providerClient = {
       convertGoogleResponse: jest.fn(),
       convertGoogleStreamChunk: jest.fn(),
+      convertAnthropicResponse: jest.fn(),
+      convertAnthropicStreamChunk: jest.fn(),
     };
     mockMessageRepo = { insert: jest.fn().mockResolvedValue({}) };
     controller = new ProxyController(
@@ -88,7 +92,7 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false },
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
       meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
     });
 
@@ -116,7 +120,7 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: true },
+      forward: { response: mockProviderResp, isGoogle: true, isAnthropic: false },
       meta: { tier: 'standard', model: 'gemini-2.0-flash', provider: 'Google', confidence: 0.8, reason: 'scored' },
     });
     providerClient.convertGoogleResponse.mockReturnValue(convertedBody);
@@ -133,6 +137,37 @@ describe('ProxyController', () => {
     expect(res.json).toHaveBeenCalledWith(convertedBody);
   });
 
+  it('should convert Anthropic response for non-streaming', async () => {
+    const anthropicBody = {
+      content: [{ type: 'text', text: 'hello' }],
+      stop_reason: 'end_turn',
+      usage: { input_tokens: 10, output_tokens: 5 },
+    };
+    const convertedBody = { choices: [{ message: { content: 'hello' } }] };
+
+    const mockProviderResp = new Response(JSON.stringify(anthropicBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: true },
+      meta: { tier: 'complex', model: 'claude-sonnet-4-20250514', provider: 'Anthropic', confidence: 0.9, reason: 'scored' },
+    });
+    providerClient.convertAnthropicResponse.mockReturnValue(convertedBody);
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(providerClient.convertAnthropicResponse).toHaveBeenCalledWith(
+      anthropicBody,
+      'claude-sonnet-4-20250514',
+    );
+    expect(res.json).toHaveBeenCalledWith(convertedBody);
+  });
+
   it('should forward provider error status and body', async () => {
     const errorBody = '{"error": "rate limit"}';
     const mockProviderResp = new Response(errorBody, {
@@ -141,7 +176,7 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false },
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
       meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
     });
 
@@ -261,7 +296,7 @@ describe('ProxyController', () => {
     proxyService.proxyRequest.mockResolvedValue({
       forward: {
         response: new Response(JSON.stringify(responseBody), { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       },
       meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
     });
@@ -286,7 +321,7 @@ describe('ProxyController', () => {
     proxyService.proxyRequest.mockResolvedValue({
       forward: {
         response: new Response('{}', { status: 200 }),
-        isGoogle: false,
+        isGoogle: false, isAnthropic: false,
       },
       meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
     });
@@ -309,7 +344,7 @@ describe('ProxyController', () => {
   describe('rate limiting', () => {
     it('should call checkLimit and acquireSlot before proxying', async () => {
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: new Response('{}', { status: 200 }), isGoogle: false },
+        forward: { response: new Response('{}', { status: 200 }), isGoogle: false, isAnthropic: false },
         meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
       });
 
@@ -403,7 +438,7 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false },
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
       });
 
@@ -435,7 +470,7 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false },
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
       });
 
@@ -462,7 +497,7 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false },
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
         meta: { tier: 'complex', model: 'claude-opus-4', provider: 'Anthropic', confidence: 0.9, reason: 'scored' },
       });
 
@@ -488,7 +523,7 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: makeResp(), isGoogle: false },
+        forward: { response: makeResp(), isGoogle: false, isAnthropic: false },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
       });
 
@@ -498,7 +533,7 @@ describe('ProxyController', () => {
       await new Promise((r) => setTimeout(r, 10));
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: makeResp(), isGoogle: false },
+        forward: { response: makeResp(), isGoogle: false, isAnthropic: false },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
       });
 
@@ -519,7 +554,7 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false },
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
       });
 
@@ -540,7 +575,7 @@ describe('ProxyController', () => {
   describe('client disconnect', () => {
     it('should register close listener on response', async () => {
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: new Response('{}', { status: 200 }), isGoogle: false },
+        forward: { response: new Response('{}', { status: 200 }), isGoogle: false, isAnthropic: false },
         meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
       });
 
@@ -554,7 +589,7 @@ describe('ProxyController', () => {
 
     it('should pass AbortSignal to proxyService', async () => {
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: new Response('{}', { status: 200 }), isGoogle: false },
+        forward: { response: new Response('{}', { status: 200 }), isGoogle: false, isAnthropic: false },
         meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
       });
 
@@ -642,7 +677,7 @@ describe('ProxyController', () => {
       proxyService.proxyRequest.mockResolvedValue({
         forward: {
           response: new Response(JSON.stringify(responseBody), { status: 200 }),
-          isGoogle: false,
+          isGoogle: false, isAnthropic: false,
         },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
       });
@@ -663,7 +698,7 @@ describe('ProxyController', () => {
       const makeProxyResult = () => ({
         forward: {
           response: new Response('{}', { status: 200 }),
-          isGoogle: false,
+          isGoogle: false, isAnthropic: false,
         },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
       });
@@ -686,7 +721,7 @@ describe('ProxyController', () => {
       const makeProxyResult = () => ({
         forward: {
           response: new Response('{}', { status: 200 }),
-          isGoogle: false,
+          isGoogle: false, isAnthropic: false,
         },
         meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
       });
@@ -722,7 +757,7 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false },
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
         meta: { tier: 'complex', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.7, reason: 'scored' },
       });
 
@@ -765,7 +800,7 @@ describe('ProxyController', () => {
       proxyService.proxyRequest.mockResolvedValue({
         forward: {
           response: new Response('{}', { status: 200 }),
-          isGoogle: false,
+          isGoogle: false, isAnthropic: false,
         },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
       });
@@ -787,7 +822,7 @@ describe('ProxyController', () => {
       proxyService.proxyRequest.mockResolvedValue({
         forward: {
           response: new Response('{}', { status: 200 }),
-          isGoogle: false,
+          isGoogle: false, isAnthropic: false,
         },
         meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9, reason: 'scored' },
       });
@@ -802,7 +837,7 @@ describe('ProxyController', () => {
       // Second request: provider 429 error, but user already seen
       const errorResp = new Response('{"error":"rate limit"}', { status: 429 });
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: errorResp, isGoogle: false },
+        forward: { response: errorResp, isGoogle: false, isAnthropic: false },
         meta: { tier: 'complex', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
       });
 
@@ -817,7 +852,7 @@ describe('ProxyController', () => {
       proxyService.proxyRequest.mockResolvedValue({
         forward: {
           response: new Response('{}', { status: 200 }),
-          isGoogle: false,
+          isGoogle: false, isAnthropic: false,
         },
         meta: {
           tier: 'reasoning',
@@ -901,7 +936,7 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false },
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
       });
 
@@ -925,7 +960,7 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: new Response(failingStream, { status: 200 }), isGoogle: false },
+        forward: { response: new Response(failingStream, { status: 200 }), isGoogle: false, isAnthropic: false },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
       });
 
@@ -949,7 +984,7 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: new Response(failingStream, { status: 200 }), isGoogle: false },
+        forward: { response: new Response(failingStream, { status: 200 }), isGoogle: false, isAnthropic: false },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
       });
 
@@ -1060,7 +1095,7 @@ describe('ProxyController', () => {
       const makeProxyResult = () => ({
         forward: {
           response: new Response('{}', { status: 200 }),
-          isGoogle: false,
+          isGoogle: false, isAnthropic: false,
         },
         meta: { tier: 'simple' as const, model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
       });
@@ -1117,7 +1152,7 @@ describe('ProxyController', () => {
       ]);
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false },
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
       });
 
@@ -1140,7 +1175,7 @@ describe('ProxyController', () => {
       ]);
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: true },
+        forward: { response: mockProviderResp, isGoogle: true, isAnthropic: false },
         meta: { tier: 'standard', model: 'gemini-2.0-flash', provider: 'Google', confidence: 0.8, reason: 'scored' },
       });
 
@@ -1170,7 +1205,7 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: new Response(failingStream, { status: 200 }), isGoogle: false },
+        forward: { response: new Response(failingStream, { status: 200 }), isGoogle: false, isAnthropic: false },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8, reason: 'scored' },
       });
 

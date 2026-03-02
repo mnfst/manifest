@@ -30,6 +30,7 @@ vi.mock("../../src/services/formatters.js", () => ({
   formatNumber: (v: number) => String(v),
   formatStatus: (s: string) => s,
   formatTime: (t: string) => t,
+  formatDuration: (ms: number) => ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`,
 }));
 
 vi.mock("../../src/components/SetupModal.jsx", () => ({
@@ -56,8 +57,8 @@ import MessageLog from "../../src/pages/MessageLog";
 
 const messagesData = {
   items: [
-    { id: "msg-12345678", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "gpt-4o", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok" },
-    { id: "msg-87654321", timestamp: "2026-02-18T09:00:00Z", agent_name: "test-agent", model: "claude-3.5-sonnet", input_tokens: 200, output_tokens: 100, total_tokens: 300, cost: 0.02, status: "error" },
+    { id: "msg-12345678", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "gpt-4o", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok", cache_read_tokens: 500, cache_creation_tokens: 100, duration_ms: 1200 },
+    { id: "msg-87654321", timestamp: "2026-02-18T09:00:00Z", agent_name: "test-agent", model: "claude-3.5-sonnet", input_tokens: 200, output_tokens: 100, total_tokens: 300, cost: 0.02, status: "error", cache_read_tokens: null, cache_creation_tokens: null, duration_ms: null },
   ],
   next_cursor: null,
   total_count: 2,
@@ -118,6 +119,8 @@ describe("MessageLog", () => {
       expect(container.textContent).toContain("Cost");
       expect(container.textContent).toContain("Total Tokens");
       expect(container.textContent).toContain("Model");
+      expect(container.textContent).toContain("Cache");
+      expect(container.textContent).toContain("Duration");
       expect(container.textContent).toContain("Status");
     });
   });
@@ -154,6 +157,75 @@ describe("MessageLog", () => {
     await vi.waitFor(() => {
       const inputs = container.querySelectorAll(".cost-range-filter__input");
       expect(inputs.length).toBe(2);
+    });
+  });
+
+  it("shows cache tokens when present", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Read: 500 / Write: 100");
+    });
+  });
+
+  it("shows dash for null cache tokens", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const rows = container.querySelectorAll("tbody tr");
+      expect(rows.length).toBe(2);
+    });
+  });
+
+  it("shows dash for zero cache tokens", async () => {
+    const dataWithZeroCache = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], cache_read_tokens: 0, cache_creation_tokens: 0 },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithZeroCache);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      // Zero cache tokens should show dash, not "Read: 0 / Write: 0"
+      expect(container.textContent).not.toContain("Read: 0 / Write: 0");
+    });
+  });
+
+  it("shows formatted duration", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("1.2s");
+    });
+  });
+
+  it("shows dash for null duration", async () => {
+    const dataWithNullDuration = {
+      ...messagesData,
+      items: [messagesData.items[1]], // second item has duration_ms: null
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithNullDuration);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("claude-3.5-sonnet");
+    });
+  });
+
+  it("shows sub-second duration in ms format", async () => {
+    const dataWithMsDuration = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], duration_ms: 423 },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithMsDuration);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("423ms");
     });
   });
 

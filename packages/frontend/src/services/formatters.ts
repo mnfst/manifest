@@ -76,6 +76,14 @@ export function formatMetricType(metricType: string): string {
 }
 
 /**
+ * Format a duration in milliseconds (e.g., "423ms", "1.2s").
+ */
+export function formatDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+/**
  * Format a timestamp to relative display (e.g., "Yesterday", "09:14").
  */
 export function formatRelativeTime(ts: string): string {
