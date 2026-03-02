@@ -90,6 +90,23 @@ describeIfBuilt("built bundle (dist/index.js)", () => {
     expect(sourceMaps).toEqual([]);
     expect(declarations).toEqual([]);
   });
+
+  it("public/ contains no og-image.png", () => {
+    const publicDir = resolve(__dirname, "../dist/public");
+    if (!existsSync(publicDir)) return;
+
+    const files = readdirSync(publicDir);
+    expect(files).not.toContain("og-image.png");
+  });
+
+  it("public/fonts/ contains no latin-ext font files", () => {
+    const fontsDir = resolve(__dirname, "../dist/public/fonts");
+    if (!existsSync(fontsDir)) return;
+
+    const files = readdirSync(fontsDir);
+    const latinExtFiles = files.filter((f) => f.includes("latin-ext"));
+    expect(latinExtFiles).toEqual([]);
+  });
 });
 
 describe("build configuration", () => {
