@@ -417,6 +417,13 @@ describe('PricingSyncService', () => {
         provider: 'MiniMax',
       });
     });
+
+    it('maps Z.ai provider correctly', () => {
+      expect(service.deriveNames('z-ai/glm-5')).toEqual({
+        canonical: 'glm-5',
+        provider: 'Z.ai',
+      });
+    });
   });
 
   it('maps Zhipu provider correctly', async () => {

@@ -130,7 +130,7 @@ Manifest supports **300+ models** across all major LLM providers. Every provider
 | [MiniMax](https://www.minimax.io/) | `minimax-m2.5`, `minimax-m1`, `minimax-m2` + 5 more |
 | [Kimi (Moonshot)](https://kimi.ai/) | `kimi-k2`, `kimi-k2.5` + 3 more |
 | [Amazon Nova](https://aws.amazon.com/ai/nova/) | `nova-pro`, `nova-lite`, `nova-micro` + 5 more |
-| [Zhipu AI](https://www.zhipuai.cn/) | `glm-5`, `glm-4.6`, `glm-4-plus` + 9 more |
+| [Z.ai (Zhipu)](https://z.ai/) | `glm-5`, `glm-4.7`, `glm-4.5` + 5 more |
 | [OpenRouter](https://openrouter.ai/) | 300+ models from all providers |
 | [Ollama](https://ollama.com/) | Run any model locally (Llama, Gemma, Mistral, …) |
 

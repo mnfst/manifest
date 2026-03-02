@@ -36,6 +36,7 @@ const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   cohere: 'Cohere',
   xai: 'xAI',
   minimax: 'MiniMax',
+  'z-ai': 'Z.ai',
   openrouter: 'OpenRouter',
 };
 

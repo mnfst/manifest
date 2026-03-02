@@ -83,6 +83,19 @@ describe("validateApiKey", () => {
     });
     expect(validateApiKey(minimax, "sk-api-" + "a".repeat(30))).toEqual({ valid: true });
   });
+
+  it("validates Z.ai key with no prefix and minimum length", () => {
+    const zai = getProvider("zai")!;
+    expect(validateApiKey(zai, "")).toEqual({
+      valid: false,
+      error: "API key is required",
+    });
+    expect(validateApiKey(zai, "short")).toEqual({
+      valid: false,
+      error: "Key is too short (minimum 30 characters)",
+    });
+    expect(validateApiKey(zai, "a".repeat(30))).toEqual({ valid: true });
+  });
 });
 
 /* ── getModelLabel ──────────────────────────────── */
@@ -146,8 +159,8 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 11 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(11);
+  it("has 12 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(12);
   });
 
   it("providers are sorted alphabetically by name", () => {

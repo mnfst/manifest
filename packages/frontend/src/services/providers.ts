@@ -257,6 +257,26 @@ export const PROVIDERS: ProviderDef[] = [
       { label: "Grok 2 Mini", value: "grok-2-mini" },
     ],
   },
+  {
+    id: "zai",
+    name: "Z.ai",
+    color: "#2d2d2d",
+    initial: "Z",
+    subtitle: "GLM 5, GLM 4.7, GLM 4.5",
+    keyPrefix: "",
+    minKeyLength: 30,
+    keyPlaceholder: "API key",
+    models: [
+      { label: "GLM 5", value: "glm-5" },
+      { label: "GLM 4.7", value: "glm-4.7" },
+      { label: "GLM 4.7 Flash", value: "glm-4.7-flash" },
+      { label: "GLM 4.6", value: "glm-4.6" },
+      { label: "GLM 4.6V", value: "glm-4.6v" },
+      { label: "GLM 4.5", value: "glm-4.5" },
+      { label: "GLM 4.5 Air", value: "glm-4.5-air" },
+      { label: "GLM 4.5 Flash", value: "glm-4.5-flash" },
+    ],
+  },
 ];
 
 /* ── Pipeline stage definitions ────────────────────── */

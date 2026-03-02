@@ -85,6 +85,14 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── Z.ai (Zhipu) ─────────────────────────────── */
+    case "zai":
+      return (
+        <svg style={s} viewBox="0 0 24 24" fill="#2d2d2d" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M4.5 4.5h15v3.75H9.375L19.5 16.5v3H4.5v-3.75h10.125L4.5 7.5z" />
+        </svg>
+      );
+
     /* ── OpenRouter ─────────────────────────────────── */
     case "openrouter":
       return (

@@ -116,6 +116,12 @@ describe("inferProviderFromModel", () => {
     expect(inferProviderFromModel("MiniMax-M1")).toBe("minimax");
   });
 
+  it("detects Z.ai GLM models", () => {
+    expect(inferProviderFromModel("glm-5")).toBe("zai");
+    expect(inferProviderFromModel("glm-4.7-flash")).toBe("zai");
+    expect(inferProviderFromModel("glm-4.5")).toBe("zai");
+  });
+
   it("detects Qwen models", () => {
     expect(inferProviderFromModel("qwen3-235b-a22b")).toBe("qwen");
     expect(inferProviderFromModel("qwq-32b")).toBe("qwen");
@@ -150,6 +156,10 @@ describe("inferProviderName", () => {
 
   it("returns MiniMax for minimax models", () => {
     expect(inferProviderName("minimax-m2.5")).toBe("MiniMax");
+  });
+
+  it("returns Z.ai for GLM models", () => {
+    expect(inferProviderName("glm-5")).toBe("Z.ai");
   });
 
   it("returns undefined for unrecognized models", () => {

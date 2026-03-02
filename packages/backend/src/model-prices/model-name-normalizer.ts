@@ -40,6 +40,7 @@ const PROVIDER_PREFIXES = [
   'amazon/',
   'xai/',
   'minimax/',
+  'z-ai/',
   'accounts/fireworks/models/',
   'fireworks/',
   'together/',

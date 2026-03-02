@@ -174,6 +174,16 @@ export class LocalBootstrapService implements OnModuleInit {
       ['minimax-m2-her',         'MiniMax',   0.0000003,   0.0000012,  65536,   false, false],
       ['minimax-m1',             'MiniMax',   0.0000004,   0.0000022,  1000000, true,  true],
       ['minimax-01',             'MiniMax',   0.0000002,   0.0000011,  1000192, false, false],
+      // Z.ai (GLM)
+      ['glm-5',                  'Z.ai',      0.00000095,  0.00000255, 204800,  true,  true],
+      ['glm-4.7',                'Z.ai',      0.0000003,   0.0000014,  202752,  true,  true],
+      ['glm-4.7-flash',          'Z.ai',      0.00000006,  0.0000004,  202752,  false, false],
+      ['glm-4.6',                'Z.ai',      0.00000035,  0.00000171, 202752,  true,  true],
+      ['glm-4.6v',               'Z.ai',      0.0000003,   0.0000009,  131072,  false, false],
+      ['glm-4.5',                'Z.ai',      0.00000055,  0.000002,   131000,  true,  true],
+      ['glm-4.5-air',            'Z.ai',      0.00000013,  0.00000085, 131072,  false, false],
+      ['glm-4.5-flash',          'Z.ai',      0,           0,          131072,  false, false],
+      // Zhipu (GLM) — legacy
       ['glm-4-plus',                 'Zhipu',     0.0000005,  0.0000005,  128000,  false, true],
       ['glm-4-flash',                'Zhipu',     0.00000005, 0.00000005, 128000,  false, false],
       ['nova-pro',                   'Amazon',    0.0000008,  0.0000032,  300000,  false, true],

@@ -40,6 +40,18 @@ describe('expandProviderNames', () => {
     expect(result.has('minimax')).toBe(true);
   });
 
+  it('should expand zai to include z.ai', () => {
+    const result = expandProviderNames(['zai']);
+    expect(result.has('zai')).toBe(true);
+    expect(result.has('z.ai')).toBe(true);
+  });
+
+  it('should expand z.ai to include zai', () => {
+    const result = expandProviderNames(['z.ai']);
+    expect(result.has('z.ai')).toBe(true);
+    expect(result.has('zai')).toBe(true);
+  });
+
   it('should not expand unknown providers (fallback ?? [])', () => {
     const result = expandProviderNames(['deepseek']);
     expect(result.has('deepseek')).toBe(true);

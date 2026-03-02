@@ -31,6 +31,10 @@ describe('model-name-normalizer', () => {
       expect(stripProviderPrefix('minimax/minimax-m2.5')).toBe('minimax-m2.5');
     });
 
+    it('strips z-ai/ prefix', () => {
+      expect(stripProviderPrefix('z-ai/glm-5')).toBe('glm-5');
+    });
+
     it('returns name unchanged when no prefix matches', () => {
       expect(stripProviderPrefix('gpt-4o')).toBe('gpt-4o');
     });
