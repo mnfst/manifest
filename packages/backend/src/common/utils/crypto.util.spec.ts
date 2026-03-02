@@ -43,6 +43,7 @@ describe('getEncryptionSecret', () => {
     process.env['BETTER_AUTH_SECRET'] = 'short';
     process.env['MANIFEST_MODE'] = 'local';
     const mockSecret = 'local-secret-' + 'x'.repeat(32);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { getLocalAuthSecret } = require('../../common/constants/local-mode.constants');
     (getLocalAuthSecret as jest.Mock).mockReturnValue(mockSecret);
     expect(getEncryptionSecret()).toBe(mockSecret);
@@ -51,6 +52,7 @@ describe('getEncryptionSecret', () => {
   it('calls getLocalAuthSecret in local mode when no env key is set', () => {
     process.env['MANIFEST_MODE'] = 'local';
     const mockSecret = 'local-fallback-' + 'y'.repeat(32);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { getLocalAuthSecret } = require('../../common/constants/local-mode.constants');
     (getLocalAuthSecret as jest.Mock).mockReturnValue(mockSecret);
     expect(getEncryptionSecret()).toBe(mockSecret);
@@ -64,9 +66,7 @@ describe('getEncryptionSecret', () => {
 
   it('throws when key exists but is shorter than 32 chars and not in local mode', () => {
     process.env['BETTER_AUTH_SECRET'] = 'only-31-chars-long-xxxxxxxxxx!';
-    expect(() => getEncryptionSecret()).toThrow(
-      'Encryption secret required.',
-    );
+    expect(() => getEncryptionSecret()).toThrow('Encryption secret required.');
   });
 });
 

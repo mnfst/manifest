@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Tenant } from '../../entities/tenant.entity';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
-import { sha256, keyPrefix } from '../../common/utils/hash.util';
+import { hashKey, keyPrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 
 @Injectable()
@@ -65,7 +65,7 @@ export class ApiKeyGeneratorService {
     await this.keyRepo.insert({
       id: keyId,
       key: null,
-      key_hash: sha256(rawKey),
+      key_hash: hashKey(rawKey),
       key_prefix: keyPrefix(rawKey),
       label: `${params.agentName} ingest key`,
       tenant_id: tenantId,
@@ -76,10 +76,7 @@ export class ApiKeyGeneratorService {
     return { tenantId, agentId, apiKey: rawKey };
   }
 
-  async getKeyForAgent(
-    userId: string,
-    agentName: string,
-  ): Promise<{ keyPrefix: string }> {
+  async getKeyForAgent(userId: string, agentName: string): Promise<{ keyPrefix: string }> {
     const keyRecord = await this.keyRepo
       .createQueryBuilder('k')
       .leftJoin('k.agent', 'a')
@@ -111,7 +108,7 @@ export class ApiKeyGeneratorService {
     await this.keyRepo.insert({
       id: keyId,
       key: null,
-      key_hash: sha256(rawKey),
+      key_hash: hashKey(rawKey),
       key_prefix: keyPrefix(rawKey),
       label: `${agent.name} ingest key (rotated)`,
       tenant_id: agent.tenant_id,

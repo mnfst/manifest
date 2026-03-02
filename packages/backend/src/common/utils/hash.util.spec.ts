@@ -1,21 +1,21 @@
-import { sha256, keyPrefix } from './hash.util';
+import { hashKey, keyPrefix } from './hash.util';
 
-describe('sha256', () => {
+describe('hashKey', () => {
   it('returns a hex string', () => {
-    const hash = sha256('test-key');
+    const hash = hashKey('test-key');
     expect(hash).toMatch(/^[0-9a-f]+$/);
   });
 
   it('returns consistent output for same input', () => {
-    expect(sha256('my-key')).toBe(sha256('my-key'));
+    expect(hashKey('my-key')).toBe(hashKey('my-key'));
   });
 
   it('returns different output for different input', () => {
-    expect(sha256('key-1')).not.toBe(sha256('key-2'));
+    expect(hashKey('key-1')).not.toBe(hashKey('key-2'));
   });
 
   it('returns 64 hex chars (32 bytes)', () => {
-    expect(sha256('any-input')).toHaveLength(64);
+    expect(hashKey('any-input')).toHaveLength(64);
   });
 });
 

@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-02-24
+Last updated: 2026-03-02
 
 ## IMPORTANT: Local Mode First
 
@@ -69,8 +69,10 @@ packages/
 │   │   │   └── current-user.decorator.ts    # @CurrentUser() param decorator
 │   │   ├── database/
 │   │   │   ├── database.module.ts           # TypeORM PostgreSQL config
-│   │   │   └── database-seeder.service.ts   # Seeds model_pricing + demo data
-│   │   ├── entities/                        # TypeORM entities (14 files)
+│   │   │   ├── database-seeder.service.ts   # Seeds model_pricing + demo data
+│   │   │   ├── local-bootstrap.service.ts   # Seeds local mode (SQLite)
+│   │   │   └── datasource.ts               # CLI DataSource for migration commands
+│   │   ├── entities/                        # TypeORM entities (19 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
@@ -79,7 +81,10 @@ packages/
 │   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
 │   │   │   ├── decorators/public.decorator.ts
 │   │   │   ├── dto/range-query.dto.ts
-│   │   │   └── utils/range.util.ts
+│   │   │   ├── utils/range.util.ts
+│   │   │   ├── utils/hash.util.ts           # API key hashing (scrypt KDF)
+│   │   │   ├── utils/crypto.util.ts         # AES-256-GCM encryption
+│   │   │   └── utils/sql-dialect.ts         # Cross-DB SQL helpers (Postgres/SQLite)
 │   │   ├── health/                          # @Public() health check
 │   │   ├── telemetry/                       # POST /api/v1/telemetry (JSON ingestion)
 │   │   ├── analytics/                       # Dashboard analytics
@@ -88,6 +93,11 @@ packages/
 │   │   ├── otlp/                            # OTLP ingestion (traces, metrics, logs)
 │   │   │   ├── guards/otlp-auth.guard.ts    # Bearer token auth (agent API keys)
 │   │   │   └── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
+│   │   ├── routing/                         # LLM routing (providers, tiers, proxy)
+│   │   ├── model-prices/                    # Model pricing management + sync
+│   │   ├── notifications/                   # Alert rules, email providers, cron
+│   │   ├── github/                          # GitHub stars endpoint
+│   │   ├── sse/                             # Server-Sent Events for real-time updates
 │   │   └── security/                        # GET /api/v1/security
 │   └── test/                                # E2E tests (supertest)
 ├── frontend/
@@ -104,7 +114,10 @@ packages/
 │   │   │   ├── Overview.tsx                 # Agent dashboard
 │   │   │   ├── MessageLog.tsx               # Paginated messages
 │   │   │   ├── Account.tsx                  # User profile (session data)
-│   │   │   └── Settings.tsx                 # Agent settings
+│   │   │   ├── Settings.tsx                 # Agent settings
+│   │   │   ├── Routing.tsx                  # LLM routing config
+│   │   │   ├── Notifications.tsx            # Alert rule management
+│   │   │   └── ModelPrices.tsx              # Model pricing table
 │   │   ├── services/
 │   │   │   ├── auth-client.ts               # Better Auth SolidJS client
 │   │   │   ├── api.ts                       # API functions (credentials: include)
@@ -219,6 +232,8 @@ npm run migration:create -- src/database/migrations/Name  # Create empty migrati
 
 New migrations must be imported in `database.module.ts` and added to the `migrations` array.
 
+**Important**: Always use unique timestamps for new migrations. Never reuse a timestamp from an existing migration file.
+
 ## Authentication Architecture
 
 ### Guard Chain
@@ -281,7 +296,18 @@ All analytics queries filter by user via `addTenantFilter(qb, userId)` from `que
 | GET | `/api/v1/agents` | Session/API Key | Agent list with sparklines |
 | POST | `/api/v1/agents` | Session/API Key | Create agent + OTLP key |
 | DELETE | `/api/v1/agents/:name` | Session/API Key | Delete agent |
+| GET | `/api/v1/agents/:name/key` | Session/API Key | Get agent OTLP key |
+| POST | `/api/v1/agents/:name/rotate-key` | Session/API Key | Rotate OTLP key |
+| PATCH | `/api/v1/agents/:name` | Session/API Key | Rename agent |
 | GET | `/api/v1/security` | Session/API Key | Security score + events |
+| GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
+| GET/POST/PATCH/DELETE | `/api/v1/notifications` | Session/API Key | Notification rules CRUD |
+| GET/POST/DELETE | `/api/v1/notifications/email-provider` | Session/API Key | Email provider config |
+| GET/POST/PUT/DELETE | `/api/v1/routing/*` | Session/API Key | Routing config |
+| POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
+| POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
+| GET | `/api/v1/events` | Session | SSE real-time events |
+| GET | `/api/v1/github/stars` | Public | GitHub star count |
 | POST | `/otlp/v1/traces` | Bearer (mnfst_*) | OTLP trace ingestion |
 | POST | `/otlp/v1/metrics` | Bearer (mnfst_*) | OTLP metric ingestion |
 | POST | `/otlp/v1/logs` | Bearer (mnfst_*) | OTLP log ingestion |
@@ -309,6 +335,9 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` — Discord OAuth (optional)
 - `PLUGIN_OTLP_ENDPOINT` — Custom OTLP endpoint for plugin setup UI.
 - `SEED_DATA` — Set `true` to seed demo data on startup.
+- `MANIFEST_MODE` — `local` or `cloud` (default: `cloud`). Switches between SQLite/loopback auth and PostgreSQL/Better Auth.
+- `MANIFEST_DB_PATH` — SQLite file path for local mode (default: in-memory).
+- `MANIFEST_TELEMETRY_OPTOUT` — Set `1` to disable anonymous product analytics.
 
 ## Domain Terminology
 
@@ -331,6 +360,8 @@ To add a new font or icon library:
 3. Reference the local CSS in `index.html` (e.g. `<link href="/fonts/..." />`)
 4. Do **not** add external domains to the CSP directives
 
+**Exception**: `connectSrc` includes `https://eu.i.posthog.com` for anonymous product analytics. This is the only external domain allowed. Opt-out via `MANIFEST_TELEMETRY_OPTOUT=1`.
+
 ## Architecture Notes
 
 - **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/otlp/*`) are excluded.
@@ -344,6 +375,10 @@ To add a new font or icon library:
 - **Validation**: Global `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`. Explicit `@Type()` decorators on numeric DTO fields.
 - **OTLP auth caching**: `OtlpAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.
 - **Database migrations**: TypeORM migrations are version-controlled in `src/database/migrations/`. `synchronize` is permanently `false`. Migrations auto-run on boot (`migrationsRun: true`) wrapped in a single transaction. The CLI DataSource is at `src/database/datasource.ts`. Better Auth manages its own tables separately via `ctx.runMigrations()`.
+- **Product analytics**: Anonymous usage tracking via PostHog (`eu.i.posthog.com`). Opt-out via `MANIFEST_TELEMETRY_OPTOUT=1`. Frontend: `services/analytics.ts`. Backend: `common/utils/product-telemetry.ts`.
+- **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
+- **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SMTP email providers.
+- **LLM Routing**: Tier-based model routing with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`.
 
 ## Releases & Changesets
 

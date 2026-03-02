@@ -2,7 +2,7 @@ import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ApiKeyGuard } from './api-key.guard';
-import { sha256 } from '../utils/hash.util';
+import { hashKey } from '../utils/hash.util';
 
 function makeContext(headers: Record<string, string | undefined>): ExecutionContext {
   return {
@@ -52,7 +52,7 @@ describe('ApiKeyGuard', () => {
 
     const result = await guard.canActivate(ctx);
     expect(result).toBe(true);
-    expect(mockFindOne).toHaveBeenCalledWith({ where: { key_hash: sha256('valid-db-key') } });
+    expect(mockFindOne).toHaveBeenCalledWith({ where: { key_hash: hashKey('valid-db-key') } });
     expect(mockUpdate).toHaveBeenCalled();
   });
 

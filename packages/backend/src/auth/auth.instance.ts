@@ -16,7 +16,8 @@ function createDatabaseConnection() {
   }
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Pool } = require('pg');
-  const databaseUrl = process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase';
+  const databaseUrl =
+    process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase';
   return new Pool({ connectionString: databaseUrl });
 }
 
@@ -40,7 +41,9 @@ function buildTrustedOrigins(): string[] {
   if (process.env['CORS_ORIGIN']) {
     origins.push(process.env['CORS_ORIGIN']);
   }
-  origins.push(`http://localhost:3000`, `http://localhost:${port}`);
+  if (isDev || isLocalMode) {
+    origins.push(`http://localhost:3000`, `http://localhost:${port}`);
+  }
   if (isLocalMode) {
     origins.push(`http://127.0.0.1:${port}`, `http://127.0.0.1:3000`);
   }
@@ -57,7 +60,7 @@ export const auth: ReturnType<typeof betterAuth> | null = isLocalMode
       database: database!,
       baseURL: process.env['BETTER_AUTH_URL'] ?? `http://localhost:${port}`,
       basePath: '/api/auth',
-      secret: betterAuthSecret || 'test-only-fallback-secret-not-for-production',
+      secret: betterAuthSecret || getLocalAuthSecret(),
       logger: { level: 'debug' },
       telemetry: { enabled: false },
       account: {

@@ -7,7 +7,7 @@ export default [
     ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', '**/*.js', '**/*.mjs'],
   },
   {
-    files: ['packages/backend/src/**/*.ts', 'packages/frontend/src/**/*.ts', 'packages/frontend/src/**/*.tsx'],
+    files: ['packages/backend/src/**/*.ts', 'packages/frontend/src/**/*.ts', 'packages/frontend/src/**/*.tsx', 'packages/openclaw-plugin/src/**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

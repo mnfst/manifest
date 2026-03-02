@@ -13,7 +13,7 @@ import { Request } from 'express';
 import { timingSafeEqual } from 'crypto';
 import { ApiKey } from '../../entities/api-key.entity';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import { sha256 } from '../utils/hash.util';
+import { hashKey } from '../utils/hash.util';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -46,12 +46,13 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     // Try DB-based API key lookup first (multi-tenant)
-    const hash = sha256(apiKey);
+    const hash = hashKey(apiKey);
     const found = await this.apiKeyRepo.findOne({ where: { key_hash: hash } });
 
     if (found) {
       (request as Request & { apiKeyUserId: string }).apiKeyUserId = String(found.user_id);
-      this.apiKeyRepo.update({ key_hash: hash }, { last_used_at: () => 'CURRENT_TIMESTAMP' } as never)
+      this.apiKeyRepo
+        .update({ key_hash: hash }, { last_used_at: () => 'CURRENT_TIMESTAMP' } as never)
         .catch(() => {});
       return true;
     }
