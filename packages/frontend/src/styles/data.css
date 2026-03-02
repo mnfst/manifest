@@ -89,6 +89,37 @@
   text-decoration: underline;
 }
 
+/* ── Status Badge Error Tooltip ──────────────────── */
+.status-badge-tooltip {
+  position: relative;
+  display: inline-flex;
+  cursor: help;
+}
+.status-badge-tooltip__bubble {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  padding: 8px 12px;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: normal;
+  width: max-content;
+  max-width: 320px;
+  box-shadow: 0 2px 8px hsl(var(--foreground) / 0.08);
+  z-index: 50;
+  pointer-events: none;
+}
+.status-badge-tooltip:hover .status-badge-tooltip__bubble,
+.status-badge-tooltip:focus .status-badge-tooltip__bubble {
+  display: block;
+}
+
 /* ── Tier Badges ──────────────────────────────────── */
 .tier-badge {
   display: inline-flex;

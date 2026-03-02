@@ -62,6 +62,17 @@ describe("inferProviderFromModel", () => {
     expect(inferProviderFromModel("llama3:latest")).toBe("ollama");
   });
 
+  it("does not misclassify :free suffix as Ollama", () => {
+    expect(inferProviderFromModel("stepfun/step-3.5-flash:free")).toBe("openrouter");
+    expect(inferProviderFromModel("arcee-ai/trinity-large-preview:free")).toBe("openrouter");
+    expect(inferProviderFromModel("nvidia/nemotron-3-nano-30b-a3b:free")).toBe("openrouter");
+  });
+
+  it("still classifies :latest suffix as Ollama", () => {
+    expect(inferProviderFromModel("llama3:latest")).toBe("ollama");
+    expect(inferProviderFromModel("mistral:7b")).toBe("ollama");
+  });
+
   it("detects Anthropic models", () => {
     expect(inferProviderFromModel("claude-opus-4")).toBe("anthropic");
     expect(inferProviderFromModel("claude-3-5-sonnet-latest")).toBe("anthropic");

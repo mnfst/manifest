@@ -134,9 +134,9 @@ export class PricingSyncService implements OnModuleInit {
 
     for (const model of data) {
       try {
-        const prompt = Number(model.pricing?.prompt ?? 0);
-        const completion = Number(model.pricing?.completion ?? 0);
-        if (prompt === 0 && completion === 0) continue;
+        if (!model.pricing) continue;
+        const prompt = Number(model.pricing.prompt ?? 0);
+        const completion = Number(model.pricing.completion ?? 0);
         if (!Number.isFinite(prompt) || !Number.isFinite(completion)) {
           this.logger.warn(`Skipping ${model.id}: non-finite pricing`);
           failed++;

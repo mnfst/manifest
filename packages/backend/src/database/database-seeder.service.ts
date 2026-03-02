@@ -220,6 +220,15 @@ export class DatabaseSeederService implements OnModuleInit {
       ['meta-llama/llama-4-maverick',            'OpenRouter', 0.0000003,  0.0000009,  128000,  false, true],
       ['mistralai/mistral-large',                'OpenRouter', 0.000002,   0.000006,   128000,  false, true],
       ['x-ai/grok-3',                            'OpenRouter', 0.000003,   0.000015,   131072,  true,  true],
+      // OpenRouter free models
+      ['openrouter/free',                         'OpenRouter', 0,          0,          200000,  true,  true],
+      ['stepfun/step-3.5-flash:free',             'OpenRouter', 0,          0,          256000,  false, true],
+      ['arcee-ai/trinity-large-preview:free',     'OpenRouter', 0,          0,          131072,  false, true],
+      ['upstage/solar-pro-3:free',                'OpenRouter', 0,          0,          128000,  false, true],
+      ['liquid/lfm-2.5-1.2b-thinking:free',       'OpenRouter', 0,          0,          32768,   true,  false],
+      ['liquid/lfm-2.5-1.2b-instruct:free',       'OpenRouter', 0,          0,          32768,   false, false],
+      ['arcee-ai/trinity-mini:free',              'OpenRouter', 0,          0,          131072,  false, false],
+      ['nvidia/nemotron-3-nano-30b-a3b:free',     'OpenRouter', 0,          0,          256000,  false, true],
       // Zhipu (GLM)
       ['glm-4-plus',                 'Zhipu',     0.0000005,  0.0000005,  128000,  false, true],
       ['glm-4-flash',                'Zhipu',     0.00000005, 0.00000005, 128000,  false, false],

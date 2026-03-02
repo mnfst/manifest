@@ -12,6 +12,7 @@ const testCtx: IngestionContext = { tenantId: 'test-tenant', agentId: 'test-agen
 describe('TraceIngestService', () => {
   let service: TraceIngestService;
   let mockTurnInsert: jest.Mock;
+  let mockTurnFindOne: jest.Mock;
   let mockLlmInsert: jest.Mock;
   let mockToolInsert: jest.Mock;
   let mockPricingGetByModel: jest.Mock;
@@ -19,6 +20,7 @@ describe('TraceIngestService', () => {
 
   beforeEach(async () => {
     mockTurnInsert = jest.fn().mockResolvedValue({});
+    mockTurnFindOne = jest.fn().mockResolvedValue(null);
     mockLlmInsert = jest.fn().mockResolvedValue({});
     mockToolInsert = jest.fn().mockResolvedValue({});
     mockPricingGetByModel = jest.fn().mockReturnValue(undefined);
@@ -39,6 +41,7 @@ describe('TraceIngestService', () => {
           provide: getRepositoryToken(AgentMessage),
           useValue: {
             insert: mockTurnInsert,
+            findOne: mockTurnFindOne,
             createQueryBuilder: jest.fn().mockReturnValue(mockQb),
           },
         },
@@ -1095,6 +1098,71 @@ describe('TraceIngestService', () => {
         error_message: null,
       }),
     );
+  });
+
+  it('skips agent_message insert when proxy error already recorded for same trace_id', async () => {
+    mockTurnFindOne.mockResolvedValue({ id: 'existing-error-id' });
+
+    const span = makeSpan({
+      traceId: 'trace-with-proxy-error',
+      name: 'openclaw.agent.turn',
+    });
+
+    const request = {
+      resourceSpans: [{
+        resource: { attributes: [] },
+        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+      }],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnFindOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          trace_id: 'trace-with-proxy-error',
+          tenant_id: 'test-tenant',
+        }),
+      }),
+    );
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('inserts agent_message when no proxy error exists for trace_id', async () => {
+    mockTurnFindOne.mockResolvedValue(null);
+
+    const span = makeSpan({
+      traceId: 'trace-no-error',
+      name: 'openclaw.agent.turn',
+    });
+
+    const request = {
+      resourceSpans: [{
+        resource: { attributes: [] },
+        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+      }],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnFindOne).toHaveBeenCalled();
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips dedup check when trace_id is empty', async () => {
+    const span = makeSpan({
+      traceId: '',
+      name: 'openclaw.agent.turn',
+    });
+
+    const request = {
+      resourceSpans: [{
+        resource: { attributes: [] },
+        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+      }],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnFindOne).not.toHaveBeenCalled();
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
   it('defaults llm_call cache tokens to 0 when attributes are absent', async () => {

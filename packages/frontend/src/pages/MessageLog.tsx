@@ -3,7 +3,7 @@ import { A, useParams } from "@solidjs/router";
 import { Title, Meta } from "@solidjs/meta";
 import ErrorState from "../components/ErrorState.jsx";
 import { getMessages } from "../services/api.js";
-import { formatNumber, formatCost, formatTime, formatStatus } from "../services/formatters.js";
+import { formatNumber, formatCost, formatErrorMessage, formatTime, formatStatus } from "../services/formatters.js";
 import { inferProviderFromModel, inferProviderName } from "../services/routing-utils.js";
 import { providerIcon } from "../components/ProviderIcon.jsx";
 import Select from "../components/Select.jsx";
@@ -25,6 +25,7 @@ interface MessageItem {
   total_tokens: number | null;
   status: string;
   cost: number | null;
+  error_message?: string | null;
 }
 
 interface MessagesData {
@@ -254,11 +255,23 @@ const MessageLog: Component = () => {
                         </span>
                       </td>
                       <td>
-                        <span class={`status-badge status-badge--${item.status}`}>
-                          {item.status === 'rate_limited'
-                            ? <A href={`/agents/${encodeURIComponent(params.agentName)}/limits`}>{formatStatus(item.status)}</A>
-                            : formatStatus(item.status)}
-                        </span>
+                        <Show when={item.error_message}
+                          fallback={
+                            <span class={`status-badge status-badge--${item.status}`}>
+                              {item.status === 'rate_limited'
+                                ? <A href={`/agents/${encodeURIComponent(params.agentName)}/limits`}>{formatStatus(item.status)}</A>
+                                : formatStatus(item.status)}
+                            </span>
+                          }
+                        >
+                          <span class="status-badge-tooltip" tabindex="0" role="note"
+                                aria-label={formatErrorMessage(item.error_message!)}>
+                            <span class={`status-badge status-badge--${item.status}`}>
+                              {formatStatus(item.status)}
+                            </span>
+                            <span class="status-badge-tooltip__bubble">{formatErrorMessage(item.error_message!)}</span>
+                          </span>
+                        </Show>
                       </td>
                     </tr>
                   )}

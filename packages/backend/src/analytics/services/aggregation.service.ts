@@ -252,7 +252,8 @@ export class AggregationService {
       .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
       .addSelect(costExpr, 'cost')
       .addSelect('at.routing_tier', 'routing_tier')
-      .addSelect('at.routing_reason', 'routing_reason');
+      .addSelect('at.routing_reason', 'routing_reason')
+      .addSelect('at.error_message', 'error_message');
 
     if (params.cursor) {
       const sepIdx = params.cursor.indexOf('|');

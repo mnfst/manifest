@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatNumber, formatCost, formatTrend, formatStatus, formatMetricType, formatRelativeTime, formatTime } from "../../src/services/formatters";
+import { formatNumber, formatCost, formatTrend, formatStatus, formatMetricType, formatErrorMessage, formatRelativeTime, formatTime } from "../../src/services/formatters";
 
 describe("formatNumber", () => {
   it("formats millions", () => {
@@ -74,6 +74,32 @@ describe("formatMetricType", () => {
   });
   it("returns original for unknown type", () => {
     expect(formatMetricType("latency")).toBe("latency");
+  });
+});
+
+describe("formatErrorMessage", () => {
+  it("extracts message and code from OpenRouter JSON", () => {
+    const raw = '{"error":{"message":"Missing Authentication header","code":401}}';
+    expect(formatErrorMessage(raw)).toBe("Missing Authentication header (401)");
+  });
+  it("extracts message and code from OpenAI-style JSON", () => {
+    const raw = '{"error":{"message":"Invalid API key","type":"invalid_request_error","code":"invalid_api_key"}}';
+    expect(formatErrorMessage(raw)).toBe("Invalid API key (invalid_api_key)");
+  });
+  it("extracts message from Anthropic nested JSON", () => {
+    const raw = '{"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"}}';
+    expect(formatErrorMessage(raw)).toBe("invalid x-api-key (authentication_error)");
+  });
+  it("extracts message without code when code is absent", () => {
+    const raw = '{"error":{"message":"Something went wrong"}}';
+    expect(formatErrorMessage(raw)).toBe("Something went wrong");
+  });
+  it("returns raw string for plain text errors", () => {
+    expect(formatErrorMessage("timeout")).toBe("timeout");
+    expect(formatErrorMessage("connection refused")).toBe("connection refused");
+  });
+  it("returns raw string for invalid JSON", () => {
+    expect(formatErrorMessage("{bad json")).toBe("{bad json");
   });
 });
 
