@@ -5,7 +5,10 @@ const frontendDist = join(__dirname, '..', '..', 'frontend', 'dist');
 const frontendTarget = join(__dirname, '..', 'public');
 
 if (existsSync(frontendDist)) {
-  cpSync(frontendDist, frontendTarget, { recursive: true });
+  cpSync(frontendDist, frontendTarget, {
+    recursive: true,
+    filter: (src) => !src.endsWith('og-image.png'),
+  });
   console.log('Copied frontend assets to public/');
 } else {
   console.warn('Frontend dist not found — skipping asset copy. Build frontend first.');
@@ -15,7 +18,10 @@ const backendDist = join(__dirname, '..', '..', 'backend', 'dist');
 const backendTarget = join(__dirname, '..', 'dist', 'backend');
 
 if (existsSync(backendDist)) {
-  cpSync(backendDist, backendTarget, { recursive: true });
+  cpSync(backendDist, backendTarget, {
+    recursive: true,
+    filter: (src) => !src.endsWith('.js.map') && !src.endsWith('.d.ts'),
+  });
   // The health controller reads package.json via join(__dirname, '..', '..', 'package.json').
   // When embedded, __dirname is dist/backend/health/, so '../..' resolves to dist/.
   // Copy backend package.json there so the health endpoint can read the version.
