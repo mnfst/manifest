@@ -1,93 +1,165 @@
 ---
 name: manifest
-description: Install and configure the Manifest observability plugin for OpenClaw agents. Use when the user wants to set up Manifest telemetry, connect an agent to Manifest, configure an API key or endpoint, troubleshoot plugin connection issues, or check if the Manifest plugin is running.
-metadata: {"openclaw":{"requires":{"bins":["openclaw"]}}}
+description: Set up and use Manifest — the open-source LLM router and observability plugin for OpenClaw. Use when the user asks to install Manifest, set up cost tracking, configure LLM routing, monitor agent costs/tokens, understand what Manifest does, check Manifest status, troubleshoot the plugin, or wants to reduce OpenClaw costs. Also triggers on "manifest setup", "install manifest", "how much am I spending", "track my costs", "route to cheaper models", "manifest dashboard", "manifest help".
 ---
 
-# Manifest Setup
+# Manifest — LLM Router & Observability for OpenClaw
 
-Follow these steps **in order**. Do not skip ahead.
+Manifest is an OpenClaw plugin that:
 
-## Step 1 — Stop the gateway
+- **Routes every request** to the most cost-effective model via a 23-dimension scoring algorithm (<2ms latency)
+- **Tracks costs and tokens** in a real-time dashboard
+- **Sets limits** with email alerts and hard spending caps
 
-Stop the gateway first to avoid hot-reload issues during configuration.
+## Setup (Cloud — default)
 
-Show the user the command below and ask for confirmation before running it.
-
-```bash
-openclaw gateway stop
-```
-
-## Step 2 — Install the plugin
-
-Show the user the command below and ask for confirmation before running it.
+Three commands, no coding:
 
 ```bash
 openclaw plugins install manifest
-```
-
-If it fails, check that OpenClaw is installed and the CLI is available in the PATH.
-
-## Step 3 — Get an API key
-
-Ask the user:
-
-> To connect your agent, you need a Manifest API key. Here's how to get one:
->
-> 1. Go to **https://app.manifest.build** and create an account (or sign in)
-> 2. Once logged in, click **"Connect Agent"** to create a new agent
-> 3. Copy the API key that starts with `mnfst_`
-> 4. Paste it here
-
-Wait for a key starting with `mnfst_`. If the key doesn't match, tell the user the format looks incorrect and ask them to try again.
-
-> **Note:** Your API key will be stored in `~/.openclaw/openclaw.json` under `plugins.entries.manifest.config.apiKey`. It persists on disk until you remove it.
-
-## Step 4 — Configure the plugin
-
-Show the user the command below and ask for confirmation before running it.
-
-```bash
-openclaw config set plugins.entries.manifest.config.apiKey "USER_API_KEY"
-```
-
-Replace `USER_API_KEY` with the actual key the user provided.
-
-Ask the user if they have a custom endpoint. If not, the default (`https://app.manifest.build/api/v1/otlp`) is used automatically. If they do:
-
-Show the user the command below and ask for confirmation before running it.
-
-```bash
-openclaw config set plugins.entries.manifest.config.endpoint "USER_ENDPOINT"
-```
-
-## Step 5 — Start the gateway
-
-Show the user the command below and ask for confirmation before running it.
-
-```bash
+openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
 openclaw gateway restart
 ```
 
-## Step 6 — Verify
+Get the API key at [app.manifest.build](https://app.manifest.build) → create an account → create an agent → copy the `mnfst_*` key.
 
-Wait 3 seconds for the gateway to fully start, then check the logs:
+After restart, the plugin auto-configures:
+
+- Registers `manifest/auto` as the default model
+- Injects the `manifest` provider into `~/.openclaw/openclaw.json`
+- Starts exporting OTLP telemetry to `app.manifest.build`
+- Exposes three agent tools: `manifest_usage`, `manifest_costs`, `manifest_health`
+
+Dashboard at [app.manifest.build](https://app.manifest.build). Telemetry arrives within 10-30 seconds (batched OTLP export).
+
+### Verify connection
 
 ```bash
-grep "manifest" ~/.openclaw/logs/gateway.log | tail -5
+openclaw manifest
 ```
 
-Look for:
+Shows: mode, endpoint reachability, auth validity, agent name.
 
-```
-[manifest] Observability pipeline active
+## Setup (Local — offline alternative)
+
+Use local mode only when data must never leave the machine.
+
+```bash
+openclaw plugins install manifest
+openclaw config set plugins.entries.manifest.config.mode local
+openclaw gateway restart
 ```
 
-If it appears, tell the user setup is complete. If not, check the error messages and troubleshoot.
+Dashboard opens at **http://127.0.0.1:2099**. Data stored locally in `~/.openclaw/manifest/manifest.db`. No account or API key needed.
+
+To expose over Tailscale: `tailscale serve --bg 2099`
+
+## What Manifest Answers
+
+Manifest answers these questions about your OpenClaw agents — via the dashboard or directly in-conversation via agent tools:
+
+**Spending & budget**
+
+- How much have I spent today / this week / this month?
+- What's my cost breakdown by model?
+- Which model consumes the biggest share of my budget?
+- Am I approaching my spending limit?
+
+**Token consumption**
+
+- How many tokens has my agent used (input vs. output)?
+- What's my token trend compared to the previous period?
+- How much cache am I reading vs. writing?
+
+**Activity & performance**
+
+- How many LLM calls has my agent made?
+- How long do LLM calls take (latency)?
+- Are there errors or rate limits occurring? What are the error messages?
+- Which skills/tools are running and how often?
+
+**Routing intelligence**
+
+- What routing tier (simple/standard/complex/reasoning) was each request assigned?
+- Why was a specific tier chosen?
+- What model pricing is available across all providers?
+
+**Connectivity**
+
+- Is Manifest connected and healthy?
+- Is telemetry flowing correctly?
+
+## Agent Tools
+
+Three tools are available to the agent in-conversation:
+
+| Tool              | Trigger phrases                                 | What it returns                                                             |
+| ----------------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
+| `manifest_usage`  | "how many tokens", "token usage", "consumption" | Total, input, output, cache-read tokens + action count for today/week/month |
+| `manifest_costs`  | "how much spent", "costs", "money burned"       | Cost breakdown by model in USD for today/week/month                         |
+| `manifest_health` | "is monitoring working", "connectivity test"    | Endpoint reachable, auth valid, agent name, status                          |
+
+Each accepts a `period` parameter: `"today"`, `"week"`, or `"month"`.
+
+## LLM Routing
+
+When the model is set to `manifest/auto`, the router scores each conversation across 23 dimensions and assigns one of 4 tiers:
+
+| Tier          | Use case                                | Examples                                                |
+| ------------- | --------------------------------------- | ------------------------------------------------------- |
+| **Simple**    | Greetings, confirmations, short lookups | "hi", "yes", "what time is it"                          |
+| **Standard**  | General tasks, balanced quality/cost    | "summarize this", "write a test"                        |
+| **Complex**   | Multi-step reasoning, nuanced analysis  | "compare these architectures", "debug this stack trace" |
+| **Reasoning** | Formal logic, proofs, critical planning | "prove this theorem", "design a migration strategy"     |
+
+Each tier maps to a model. Default models are auto-assigned per provider, but overridable in the dashboard under **Routing**.
+
+Short-circuit rules:
+
+- Messages <50 chars with no tools → **Simple**
+- Formal logic keywords → **Reasoning**
+- Tools present → floor at **Standard**
+- Context >50k tokens → floor at **Complex**
+
+## Dashboard Pages
+
+| Page             | What it shows                                                                 |
+| ---------------- | ----------------------------------------------------------------------------- |
+| **Workspace**    | All connected agents as cards with sparkline activity charts                  |
+| **Overview**     | Per-agent cost, tokens, messages with trend badges and time-series charts     |
+| **Messages**     | Full paginated message log with filters (status, model, cost range)           |
+| **Routing**      | 4-tier model config, provider connections, enable/disable routing             |
+| **Limits**       | Email alerts and hard spending caps (tokens or cost, per hour/day/week/month) |
+| **Settings**     | Agent rename, delete, OTLP key management                                     |
+| **Model Prices** | Sortable table of 300+ model prices across all providers                      |
+
+## Supported Providers
+
+Anthropic, OpenAI, Google Gemini, DeepSeek, xAI, Mistral AI, Qwen, MiniMax, Kimi, Amazon Nova, Z.ai, OpenRouter, Ollama. 300+ models total.
+
+## Uninstall
+
+```bash
+openclaw plugins uninstall manifest
+openclaw gateway restart
+```
+
+This removes the plugin, provider config, and auth profiles. Set a new default model after uninstalling.
 
 ## Troubleshooting
 
-- **"Missing apiKey"**: Re-run step 4.
-- **"Invalid apiKey format"**: The key must start with `mnfst_`.
-- **Connection refused**: The endpoint is unreachable. Check the URL or ask if they self-host.
-- **Duplicate OTel registration**: Disable the conflicting built-in plugin: `openclaw plugins disable diagnostics-otel`
+**Telemetry not appearing**: The gateway batches OTLP data every 10-30 seconds. Wait, then check `openclaw manifest` for connection status.
+
+**Auth errors in cloud mode**: Verify the API key starts with `mnfst_` and matches the key in the dashboard under Settings → Agent setup.
+
+**Port conflict in local mode**: If port 2099 is busy, the plugin checks if the existing process is Manifest and reuses it. To change the port: `openclaw config set plugins.entries.manifest.config.port <PORT>`.
+
+**Plugin conflicts**: Manifest conflicts with the built-in `diagnostics-otel` plugin. Disable it before enabling Manifest.
+
+**After backend restart**: Always restart the gateway too (`openclaw gateway restart`) — the OTLP pipeline doesn't auto-reconnect.
+
+## Privacy
+
+- **Cloud mode**: Only OpenTelemetry metadata (model, tokens, latency) is sent. Message content is never collected. The proxy physically cannot read prompts.
+- **Local mode**: All data stays on your machine.
+- **Product analytics**: Anonymous usage stats (opt out: `MANIFEST_TELEMETRY_OPTOUT=1` or `"telemetryOptOut": true` in `~/.openclaw/manifest/config.json`).
