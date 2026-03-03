@@ -1,6 +1,7 @@
 ---
 name: manifest
 description: Set up and use Manifest — the open-source LLM router and observability plugin for OpenClaw. Use when the user asks to install Manifest, set up cost tracking, configure LLM routing, monitor agent costs/tokens, understand what Manifest does, check Manifest status, troubleshoot the plugin, or wants to reduce OpenClaw costs. Also triggers on "manifest setup", "install manifest", "how much am I spending", "track my costs", "route to cheaper models", "manifest dashboard", "manifest help".
+metadata: {"openclaw":{"requires":{"bins":["openclaw"],"credentials":["mnfst_* API key (cloud mode only)"]},"configPaths":["~/.openclaw/openclaw.json","~/.openclaw/manifest/"]}}
 ---
 
 # Manifest — LLM Router & Observability for OpenClaw
@@ -10,6 +11,8 @@ Manifest is an OpenClaw plugin that:
 - **Routes every request** to the most cost-effective model via a 23-dimension scoring algorithm (<2ms latency)
 - **Tracks costs and tokens** in a real-time dashboard
 - **Sets limits** with email alerts and hard spending caps
+
+Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT licensed. Homepage: [manifest.build](https://manifest.build)
 
 ## Setup (Cloud — default)
 
@@ -52,7 +55,7 @@ openclaw gateway restart
 
 Dashboard opens at **http://127.0.0.1:2099**. Data stored locally in `~/.openclaw/manifest/manifest.db`. No account or API key needed.
 
-To expose over Tailscale: `tailscale serve --bg 2099`
+To expose over Tailscale (requires Tailscale on both devices, only accessible within your Tailnet): `tailscale serve --bg 2099`
 
 ## What Manifest Answers
 
@@ -100,6 +103,8 @@ Three tools are available to the agent in-conversation:
 | `manifest_health` | "is monitoring working", "connectivity test"    | Endpoint reachable, auth valid, agent name, status                          |
 
 Each accepts a `period` parameter: `"today"`, `"week"`, or `"month"`.
+
+All three tools are read-only — they query the agent's own usage data and never send message content.
 
 ## LLM Routing
 
@@ -160,6 +165,14 @@ This removes the plugin, provider config, and auth profiles. Set a new default m
 
 ## Privacy
 
-- **Cloud mode**: Only OpenTelemetry metadata (model, tokens, latency) is sent. Message content is never collected. The proxy physically cannot read prompts.
-- **Local mode**: All data stays on your machine.
-- **Product analytics**: Anonymous usage stats (opt out: `MANIFEST_TELEMETRY_OPTOUT=1` or `"telemetryOptOut": true` in `~/.openclaw/manifest/config.json`).
+**OTLP telemetry (sent to endpoint):**
+
+Fields collected per LLM call: session key, agent name, model name, provider name, token counts (input, output, cache-read, cache-write), tool names, tool success/failure, tool duration, error messages (truncated to classification, no content), message channel, and service metadata. **Not collected**: user prompts, assistant responses, tool input/output, or any message content.
+
+**Routing caveat — `manifest/auto` sends message content:**
+
+When the model is set to `manifest/auto`, the last 10 non-system messages (including their content) are sent to `POST /api/v1/routing/resolve` for complexity scoring. This is a separate REST call used only for tier assignment — it is not part of OTLP telemetry. To avoid sending content, disable routing in the dashboard and use a fixed model instead.
+
+**Local mode**: All data stays on your machine. No external calls are made.
+
+**Product analytics**: Anonymous usage stats sent to PostHog (hashed machine ID only, no PII). Opt out: `MANIFEST_TELEMETRY_OPTOUT=1` or `"telemetryOptOut": true` in `~/.openclaw/manifest/config.json`.
