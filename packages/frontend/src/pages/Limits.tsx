@@ -1,18 +1,18 @@
-import { createSignal, createResource, For, Show, onCleanup, type Component } from "solid-js";
-import { useParams } from "@solidjs/router";
-import { Title, Meta } from "@solidjs/meta";
-import { Portal } from "solid-js/web";
-import { isLocalMode } from "../services/local-mode.js";
-import { authClient } from "../services/auth-client.js";
-import ProviderBanner from "../components/ProviderBanner.js";
-import EmailProviderSetup from "../components/EmailProviderSetup.js";
-import CloudEmailInfo from "../components/CloudEmailInfo.js";
-import LimitRuleModal from "../components/LimitRuleModal.js";
-import type { LimitRuleData } from "../components/LimitRuleModal.js";
-import EmailProviderModal from "../components/EmailProviderModal.js";
-import LimitIcon from "../components/LimitIcon.js";
-import AlertIcon from "../components/AlertIcon.js";
-import { toast } from "../services/toast-store.js";
+import { createSignal, createResource, For, Show, onCleanup, type Component } from 'solid-js';
+import { useParams } from '@solidjs/router';
+import { Title, Meta } from '@solidjs/meta';
+import { Portal } from 'solid-js/web';
+import { isLocalMode } from '../services/local-mode.js';
+import { authClient } from '../services/auth-client.js';
+import ProviderBanner from '../components/ProviderBanner.js';
+import EmailProviderSetup from '../components/EmailProviderSetup.js';
+import CloudEmailInfo from '../components/CloudEmailInfo.js';
+import LimitRuleModal from '../components/LimitRuleModal.js';
+import type { LimitRuleData } from '../components/LimitRuleModal.js';
+import EmailProviderModal from '../components/EmailProviderModal.js';
+import LimitIcon from '../components/LimitIcon.js';
+import AlertIcon from '../components/AlertIcon.js';
+import { toast } from '../services/toast-store.js';
 import {
   getNotificationRules,
   createNotificationRule,
@@ -22,18 +22,18 @@ import {
   removeEmailProvider,
   getRoutingStatus,
   type NotificationRule,
-} from "../services/api.js";
+} from '../services/api.js';
 
 function formatThreshold(rule: NotificationRule): string {
-  if (rule.metric_type === "cost") return `$${Number(rule.threshold).toFixed(2)}`;
+  if (rule.metric_type === 'cost') return `$${Number(rule.threshold).toFixed(2)}`;
   return Number(rule.threshold).toLocaleString();
 }
 
 const PERIOD_LABELS: Record<string, string> = {
-  hour: "Per hour",
-  day: "Per day",
-  week: "Per week",
-  month: "Per month",
+  hour: 'Per hour',
+  day: 'Per day',
+  week: 'Per week',
+  month: 'Per month',
 };
 
 const Limits: Component = () => {
@@ -45,7 +45,7 @@ const Limits: Component = () => {
     (name) => getNotificationRules(name),
   );
   const [emailProvider, { refetch: refetchProvider }] = createResource(getEmailProvider);
-  const [routingStatus] = createResource(getRoutingStatus);
+  const [routingStatus] = createResource(() => agentName(), getRoutingStatus);
   const session = authClient.useSession();
   const [showModal, setShowModal] = createSignal(false);
   const [showEditProvider, setShowEditProvider] = createSignal(false);
@@ -71,11 +71,11 @@ const Limits: Component = () => {
       const rect = btn.getBoundingClientRect();
       setMenuPos({ top: rect.bottom + 4, left: rect.right });
       setOpenMenuId(ruleId);
-      setTimeout(() => document.addEventListener("click", handleDocClick, { once: true }), 0);
+      setTimeout(() => document.addEventListener('click', handleDocClick, { once: true }), 0);
     }
   };
 
-  onCleanup(() => document.removeEventListener("click", handleDocClick));
+  onCleanup(() => document.removeEventListener('click', handleDocClick));
 
   const handleEdit = (rule: NotificationRule) => {
     closeMenu();
@@ -88,10 +88,10 @@ const Limits: Component = () => {
     try {
       if (editing) {
         await updateNotificationRule(editing.id, { ...data });
-        toast.success("Rule updated");
+        toast.success('Rule updated');
       } else {
         await createNotificationRule({ agent_name: agentName(), ...data });
-        toast.success("Rule created");
+        toast.success('Rule created');
       }
       await refetchRules();
       setShowModal(false);
@@ -113,7 +113,7 @@ const Limits: Component = () => {
     try {
       await deleteNotificationRule(target.id);
       await refetchRules();
-      toast.success("Rule deleted");
+      toast.success('Rule deleted');
     } catch {
       // error toast from fetchMutate
     }
@@ -124,7 +124,7 @@ const Limits: Component = () => {
   const hasEmailRules = () => {
     const r = rules();
     if (!r) return false;
-    return r.some((rule) => rule.action === "notify" || rule.action === "both");
+    return r.some((rule) => rule.action === 'notify' || rule.action === 'both');
   };
 
   const handleRemoveProvider = async () => {
@@ -132,23 +132,28 @@ const Limits: Component = () => {
       await removeEmailProvider();
       await refetchProvider();
       setShowRemoveProvider(false);
-      toast.success("Email provider removed");
+      toast.success('Email provider removed');
     } catch {
       // error toast from fetchMutate
     }
   };
 
   const isActive = (rule: NotificationRule) =>
-    typeof rule.is_active === "number" ? !!rule.is_active : rule.is_active;
+    typeof rule.is_active === 'number' ? !!rule.is_active : rule.is_active;
 
   const blockRulesExceeded = () => {
     const r = rules();
     if (!r) return false;
-    return r.some((rule) => (rule.action === "block" || rule.action === "both") && isActive(rule) && Number(rule.trigger_count) > 0);
+    return r.some(
+      (rule) =>
+        (rule.action === 'block' || rule.action === 'both') &&
+        isActive(rule) &&
+        Number(rule.trigger_count) > 0,
+    );
   };
 
-  const hasEmailAction = (action: string) => action === "notify" || action === "both";
-  const hasBlockAction = (action: string) => action === "block" || action === "both";
+  const hasEmailAction = (action: string) => action === 'notify' || action === 'both';
+  const hasBlockAction = (action: string) => action === 'block' || action === 'both';
 
   return (
     <div class="container--sm">
@@ -158,38 +163,74 @@ const Limits: Component = () => {
       <div class="page-header">
         <div>
           <h1>Limits</h1>
-          <span class="breadcrumb">{agentName()} &rsaquo; Get notified or block requests when token or cost thresholds are exceeded</span>
+          <span class="breadcrumb">
+            {agentName()} &rsaquo; Get notified or block requests when token or cost thresholds are
+            exceeded
+          </span>
         </div>
-        <button class="btn btn--primary btn--sm" onClick={() => { setEditRule(null); setShowModal(true); }}>
+        <button
+          class="btn btn--primary btn--sm"
+          onClick={() => {
+            setEditRule(null);
+            setShowModal(true);
+          }}
+        >
           + Create rule
         </button>
       </div>
 
       <Show when={blockRulesExceeded()}>
         <div class="limits-warning-banner">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-            <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
-          <span>One or more hard limits have been triggered &mdash; new proxy requests for this agent will be blocked until the usage resets in the next period.</span>
+          <span>
+            One or more hard limits have been triggered &mdash; new proxy requests for this agent
+            will be blocked until the usage resets in the next period.
+          </span>
         </div>
       </Show>
 
       <Show when={routingStatus() && !routingEnabled() && !isLocalMode()}>
         <div class="limits-routing-cta">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
           <div>
             <strong>Enable routing to set hard limits</strong>
-            <p>Hard limits automatically block proxy requests when usage exceeds a threshold. Email alerts work without routing &mdash; only hard limits require it.</p>
+            <p>
+              Hard limits automatically block proxy requests when usage exceeds a threshold. Email
+              alerts work without routing &mdash; only hard limits require it.
+            </p>
           </div>
         </div>
       </Show>
 
       <Show when={!isLocalMode()}>
         <div style="margin-bottom: var(--gap-lg);">
-          <CloudEmailInfo email={session().data?.user?.email ?? ""} />
+          <CloudEmailInfo email={session().data?.user?.email ?? ''} />
         </div>
       </Show>
 
@@ -215,7 +256,10 @@ const Limits: Component = () => {
           fallback={
             <div class="empty-state">
               <div class="empty-state__title">No rules yet</div>
-              <p>Set up email alerts to get notified when usage spikes, or create hard limits to automatically block requests that exceed your budget.</p>
+              <p>
+                Set up email alerts to get notified when usage spikes, or create hard limits to
+                automatically block requests that exceed your budget.
+              </p>
             </div>
           }
         >
@@ -231,24 +275,34 @@ const Limits: Component = () => {
             <tbody>
               <For each={rules()}>
                 {(rule) => (
-                  <tr classList={{ "notif-table__row--disabled": !isActive(rule) }}>
+                  <tr classList={{ 'notif-table__row--disabled': !isActive(rule) }}>
                     <td>
                       <div class="limit-type-icons">
-                        <Show when={hasEmailAction(rule.action ?? "notify")}>
+                        <Show when={hasEmailAction(rule.action ?? 'notify')}>
                           <span class="limit-type-icon" title="Email Alert">
                             <AlertIcon size={14} />
                           </span>
                         </Show>
-                        <Show when={hasBlockAction(rule.action ?? "notify")}>
+                        <Show when={hasBlockAction(rule.action ?? 'notify')}>
                           <span class="limit-type-icon" title="Hard Limit">
                             <LimitIcon size={14} />
                           </span>
                         </Show>
-                        <Show when={hasEmailAction(rule.action ?? "notify") && !hasProvider()}>
+                        <Show when={hasEmailAction(rule.action ?? 'notify') && !hasProvider()}>
                           <span class="limit-warn-tag">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
                               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                              <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+                              <line x1="12" y1="9" x2="12" y2="13" />
+                              <line x1="12" y1="17" x2="12.01" y2="17" />
                             </svg>
                             No provider
                           </span>
@@ -256,9 +310,10 @@ const Limits: Component = () => {
                       </div>
                     </td>
                     <td>
-                      <span class="notif-table__mono">{formatThreshold(rule)}</span>
-                      {" "}
-                      <span class="notif-table__period">{(PERIOD_LABELS[rule.period] ?? rule.period).toLowerCase()}</span>
+                      <span class="notif-table__mono">{formatThreshold(rule)}</span>{' '}
+                      <span class="notif-table__period">
+                        {(PERIOD_LABELS[rule.period] ?? rule.period).toLowerCase()}
+                      </span>
                     </td>
                     <td class="notif-table__mono">{rule.trigger_count ?? 0}</td>
                     <td>
@@ -293,14 +348,46 @@ const Limits: Component = () => {
             return (
               <div
                 class="rule-menu__dropdown"
-                style={{ position: "fixed", top: `${menuPos().top}px`, left: `${menuPos().left}px`, transform: "translateX(-100%)" }}
+                style={{
+                  position: 'fixed',
+                  top: `${menuPos().top}px`,
+                  left: `${menuPos().left}px`,
+                  transform: 'translateX(-100%)',
+                }}
               >
                 <button class="rule-menu__item" onClick={() => handleEdit(rule)}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
                   Edit
                 </button>
-                <button class="rule-menu__item rule-menu__item--danger" onClick={() => openDeleteConfirm(rule)}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                <button
+                  class="rule-menu__item rule-menu__item--danger"
+                  onClick={() => openDeleteConfirm(rule)}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
                   Delete
                 </button>
               </div>
@@ -312,7 +399,13 @@ const Limits: Component = () => {
       {/* Delete confirmation modal */}
       <Portal>
         <Show when={deleteTarget()}>
-          <div class="modal-overlay" onClick={() => { setDeleteTarget(null); setDeleteConfirmed(false); }}>
+          <div
+            class="modal-overlay"
+            onClick={() => {
+              setDeleteTarget(null);
+              setDeleteConfirmed(false);
+            }}
+          >
             <div
               class="modal-card"
               role="dialog"
@@ -322,8 +415,12 @@ const Limits: Component = () => {
             >
               <h2 class="modal-card__title">Delete rule</h2>
               <p class="modal-card__desc">
-                This will permanently delete the <span style="font-weight: 600;">{deleteTarget()!.metric_type === "tokens" ? "token" : "cost"}</span> rule
-                ({formatThreshold(deleteTarget()!)} {PERIOD_LABELS[deleteTarget()!.period]?.toLowerCase() ?? deleteTarget()!.period}).
+                This will permanently delete the{' '}
+                <span style="font-weight: 600;">
+                  {deleteTarget()!.metric_type === 'tokens' ? 'token' : 'cost'}
+                </span>{' '}
+                rule ({formatThreshold(deleteTarget()!)}{' '}
+                {PERIOD_LABELS[deleteTarget()!.period]?.toLowerCase() ?? deleteTarget()!.period}).
                 This action cannot be undone.
               </p>
 
@@ -337,7 +434,13 @@ const Limits: Component = () => {
               </label>
 
               <div class="confirm-modal__footer">
-                <button class="btn btn--ghost" onClick={() => { setDeleteTarget(null); setDeleteConfirmed(false); }}>
+                <button
+                  class="btn btn--ghost"
+                  onClick={() => {
+                    setDeleteTarget(null);
+                    setDeleteConfirmed(false);
+                  }}
+                >
                   Cancel
                 </button>
                 <button
@@ -368,7 +471,8 @@ const Limits: Component = () => {
               <p class="modal-card__desc">
                 This will disconnect your email provider.
                 <Show when={hasEmailRules()}>
-                  {" "}Email alerts won't be sent until you set up a new one.
+                  {' '}
+                  Email alerts won't be sent until you set up a new one.
                 </Show>
               </p>
 
@@ -376,10 +480,7 @@ const Limits: Component = () => {
                 <button class="btn btn--ghost" onClick={() => setShowRemoveProvider(false)}>
                   Cancel
                 </button>
-                <button
-                  class="btn btn--danger"
-                  onClick={handleRemoveProvider}
-                >
+                <button class="btn btn--danger" onClick={handleRemoveProvider}>
                   Remove
                 </button>
               </div>
@@ -390,20 +491,27 @@ const Limits: Component = () => {
 
       <LimitRuleModal
         open={showModal()}
-        onClose={() => { setShowModal(false); setEditRule(null); }}
+        onClose={() => {
+          setShowModal(false);
+          setEditRule(null);
+        }}
         onSave={handleSave}
         hasProvider={hasProvider()}
-        editData={editRule() ? {
-          metric_type: editRule()!.metric_type,
-          threshold: Number(editRule()!.threshold),
-          period: editRule()!.period,
-          action: editRule()!.action ?? "notify",
-        } : null}
+        editData={
+          editRule()
+            ? {
+                metric_type: editRule()!.metric_type,
+                threshold: Number(editRule()!.threshold),
+                period: editRule()!.period,
+                action: editRule()!.action ?? 'notify',
+              }
+            : null
+        }
       />
 
       <EmailProviderModal
         open={showEditProvider()}
-        initialProvider={emailProvider()?.provider ?? "resend"}
+        initialProvider={emailProvider()?.provider ?? 'resend'}
         editMode={true}
         existingKeyPrefix={emailProvider()?.keyPrefix ?? null}
         existingDomain={emailProvider()?.domain ?? null}

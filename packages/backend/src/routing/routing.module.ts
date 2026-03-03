@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
+import { Agent } from '../entities/agent.entity';
+import { Tenant } from '../entities/tenant.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
@@ -22,7 +24,15 @@ import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserProvider, TierAssignment, AgentApiKey, AgentMessage, ModelPricing]),
+    TypeOrmModule.forFeature([
+      UserProvider,
+      TierAssignment,
+      Agent,
+      Tenant,
+      AgentApiKey,
+      AgentMessage,
+      ModelPricing,
+    ]),
     ModelPricesModule,
     NotificationsModule,
   ],

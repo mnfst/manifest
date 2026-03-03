@@ -41,6 +41,7 @@ export class ProxyService {
   ) {}
 
   async proxyRequest(
+    agentId: string,
     userId: string,
     body: Record<string, unknown>,
     sessionKey: string,
@@ -56,19 +57,24 @@ export class ProxyService {
     if (tenantId && agentName) {
       const exceeded = await this.limitCheck.checkLimits(tenantId, agentName);
       if (exceeded) {
-        const fmt = exceeded.metricType === 'cost'
-          ? `$${exceeded.actual.toFixed(2)}`
-          : exceeded.actual.toLocaleString();
-        const threshFmt = exceeded.metricType === 'cost'
-          ? `$${exceeded.threshold.toFixed(2)}`
-          : exceeded.threshold.toLocaleString();
-        throw new HttpException({
-          error: {
-            message: `Limit exceeded: ${exceeded.metricType} usage (${fmt}) exceeds ${threshFmt} per ${exceeded.period}`,
-            type: 'rate_limit_exceeded',
-            code: 'limit_exceeded',
+        const fmt =
+          exceeded.metricType === 'cost'
+            ? `$${exceeded.actual.toFixed(2)}`
+            : exceeded.actual.toLocaleString();
+        const threshFmt =
+          exceeded.metricType === 'cost'
+            ? `$${exceeded.threshold.toFixed(2)}`
+            : exceeded.threshold.toLocaleString();
+        throw new HttpException(
+          {
+            error: {
+              message: `Limit exceeded: ${exceeded.metricType} usage (${fmt}) exceeds ${threshFmt} per ${exceeded.period}`,
+              type: 'rate_limit_exceeded',
+              code: 'limit_exceeded',
+            },
           },
-        }, 429);
+          429,
+        );
       }
     }
 
@@ -103,9 +109,9 @@ export class ProxyService {
     // tool presence always inflates scores since gateways send tools
     // with every request regardless of user intent)
     const resolved = isHeartbeat
-      ? await this.resolveService.resolveForTier(userId, 'simple')
+      ? await this.resolveService.resolveForTier(agentId, 'simple')
       : await this.resolveService.resolve(
-          userId,
+          agentId,
           scoringMessages,
           undefined,
           undefined,
@@ -115,9 +121,9 @@ export class ProxyService {
 
     if (!resolved.model || !resolved.provider) {
       this.logger.warn(
-        `No model available for user=${userId}: ` +
-        `tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} ` +
-        `confidence=${resolved.confidence} reason=${resolved.reason}`,
+        `No model available for agent=${agentId}: ` +
+          `tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} ` +
+          `confidence=${resolved.confidence} reason=${resolved.reason}`,
       );
       throw new BadRequestException(
         'No model available. Connect a provider in the Manifest dashboard.',
@@ -125,10 +131,7 @@ export class ProxyService {
     }
 
     // Get the provider's API key
-    const apiKey = await this.routingService.getProviderApiKey(
-      userId,
-      resolved.provider,
-    );
+    const apiKey = await this.routingService.getProviderApiKey(agentId, resolved.provider);
     if (apiKey === null) {
       throw new BadRequestException(
         `No API key found for provider: ${resolved.provider}. Re-connect the provider with an API key.`,

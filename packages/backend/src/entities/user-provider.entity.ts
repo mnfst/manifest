@@ -2,13 +2,16 @@ import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('user_providers')
-@Index(['user_id', 'provider'], { unique: true })
+@Index(['agent_id', 'provider'], { unique: true })
 export class UserProvider {
   @PrimaryColumn('varchar')
   id!: string;
 
   @Column('varchar')
   user_id!: string;
+
+  @Column('varchar')
+  agent_id!: string;
 
   @Column('varchar')
   provider!: string;

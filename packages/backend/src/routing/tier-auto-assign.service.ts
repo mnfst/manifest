@@ -26,23 +26,19 @@ export class TierAutoAssignService {
     private readonly tierRepo: Repository<TierAssignment>,
   ) {}
 
-  async recalculate(userId: string): Promise<void> {
+  async recalculate(agentId: string): Promise<void> {
     const providers = await this.providerRepo.find({
-      where: { user_id: userId, is_active: true },
+      where: { agent_id: agentId, is_active: true },
     });
-    const activeProviders = expandProviderNames(
-      providers.map((p) => p.provider),
-    );
+    const activeProviders = expandProviderNames(providers.map((p) => p.provider));
 
     const allModels = this.pricingCache.getAll();
-    const available = allModels.filter((m) =>
-      activeProviders.has(m.provider.toLowerCase()),
-    );
+    const available = allModels.filter((m) => activeProviders.has(m.provider.toLowerCase()));
 
     for (const tier of TIERS) {
       const best = this.pickBest(available, tier);
       const existing = await this.tierRepo.findOne({
-        where: { user_id: userId, tier },
+        where: { agent_id: agentId, tier },
       });
 
       if (existing) {
@@ -52,7 +48,8 @@ export class TierAutoAssignService {
       } else {
         await this.tierRepo.insert({
           id: randomUUID(),
-          user_id: userId,
+          user_id: '',
+          agent_id: agentId,
           tier,
           override_model: null,
           auto_assigned_model: best?.model_name ?? null,
@@ -60,7 +57,7 @@ export class TierAutoAssignService {
       }
     }
 
-    this.logger.log(`Recalculated tier assignments for user ${userId}`);
+    this.logger.log(`Recalculated tier assignments for agent ${agentId}`);
   }
 
   /**
@@ -81,9 +78,7 @@ export class TierAutoAssignService {
     const quality = (m: ModelPricing) => m.quality_score ?? 3;
 
     // Sort by price ascending (cheapest first, including free local models)
-    const byPrice = [...models].sort(
-      (a, b) => totalPrice(a) - totalPrice(b),
-    );
+    const byPrice = [...models].sort((a, b) => totalPrice(a) - totalPrice(b));
 
     if (byPrice.length === 0) return null;
 
@@ -105,28 +100,20 @@ export class TierAutoAssignService {
 
       case 'complex': {
         // Best quality first, then cheapest as tiebreaker
-        const byQuality = [...byPrice].sort(
-          (a, b) => quality(b) - quality(a),
-        );
+        const byQuality = [...byPrice].sort((a, b) => quality(b) - quality(a));
         picked = byQuality[0];
         break;
       }
 
       case 'reasoning': {
         // Among reasoning-capable: best quality, then cheapest
-        const reasoningModels = byPrice.filter(
-          (m) => m.capability_reasoning,
-        );
+        const reasoningModels = byPrice.filter((m) => m.capability_reasoning);
         if (reasoningModels.length > 0) {
-          const byQuality = [...reasoningModels].sort(
-            (a, b) => quality(b) - quality(a),
-          );
+          const byQuality = [...reasoningModels].sort((a, b) => quality(b) - quality(a));
           picked = byQuality[0];
         } else {
           // Fallback to COMPLEX logic
-          const byQuality = [...byPrice].sort(
-            (a, b) => quality(b) - quality(a),
-          );
+          const byQuality = [...byPrice].sort((a, b) => quality(b) - quality(a));
           picked = byQuality[0];
         }
         break;

@@ -19,9 +19,9 @@ export class ResolveController {
     @Body() body: ResolveRequestDto,
     @Req() req: Request & { ingestionContext: IngestionContext },
   ): Promise<ResolveResponse> {
-    const { userId } = req.ingestionContext;
+    const { agentId } = req.ingestionContext;
     return this.resolveService.resolve(
-      userId,
+      agentId,
       body.messages as { role: string; content?: unknown; [k: string]: unknown }[],
       body.tools,
       body.tool_choice,

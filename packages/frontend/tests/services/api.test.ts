@@ -460,28 +460,28 @@ describe("fetchMutate error handling", () => {
 });
 
 describe("getProviders", () => {
-  it("fetches /routing/providers", async () => {
+  it("fetches /routing/:agentName/providers", async () => {
     const payload = [{ id: "1", provider: "openai", is_active: true, connected_at: "2026-01-01" }];
     mockOk(payload);
 
-    const result = await getProviders();
+    const result = await getProviders("my-agent");
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
-      "http://localhost:3000/api/v1/routing/providers",
+      "http://localhost:3000/api/v1/routing/my-agent/providers",
       { credentials: "include" },
     );
   });
 });
 
 describe("connectProvider", () => {
-  it("POSTs to /routing/providers with provider only (no apiKey)", async () => {
+  it("POSTs to /routing/:agentName/providers with provider only (no apiKey)", async () => {
     const payload = { id: "1", provider: "openai", is_active: true };
     mockMutateOk(payload);
 
-    const result = await connectProvider({ provider: "openai" });
+    const result = await connectProvider("my-agent", { provider: "openai" });
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/routing/providers",
+      "/api/v1/routing/my-agent/providers",
       expect.objectContaining({
         method: "POST",
         credentials: "include",
@@ -495,9 +495,9 @@ describe("connectProvider", () => {
     const payload = { id: "1", provider: "openai", is_active: true };
     mockMutateOk(payload);
 
-    await connectProvider({ provider: "openai", apiKey: "sk-test" });
+    await connectProvider("my-agent", { provider: "openai", apiKey: "sk-test" });
     expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/routing/providers",
+      "/api/v1/routing/my-agent/providers",
       expect.objectContaining({
         body: JSON.stringify({ provider: "openai", apiKey: "sk-test" }),
       }),
@@ -508,33 +508,33 @@ describe("connectProvider", () => {
     const { toast } = await import("../../src/services/toast-store.js");
     mockMutateError(400, "Invalid provider");
 
-    await expect(connectProvider({ provider: "" })).rejects.toThrow("Invalid provider");
+    await expect(connectProvider("my-agent", { provider: "" })).rejects.toThrow("Invalid provider");
     expect(toast.error).toHaveBeenCalledWith("Invalid provider");
   });
 });
 
 describe("deactivateAllProviders", () => {
-  it("POSTs to /routing/providers/deactivate-all", async () => {
+  it("POSTs to /routing/:agentName/providers/deactivate-all", async () => {
     mockMutateOk({ ok: true });
 
-    const result = await deactivateAllProviders();
+    const result = await deactivateAllProviders("my-agent");
     expect(result).toEqual({ ok: true });
     expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/routing/providers/deactivate-all",
+      "/api/v1/routing/my-agent/providers/deactivate-all",
       expect.objectContaining({ method: "POST", credentials: "include" }),
     );
   });
 });
 
 describe("disconnectProvider", () => {
-  it("sends DELETE to /routing/providers/:provider", async () => {
+  it("sends DELETE to /routing/:agentName/providers/:provider", async () => {
     const payload = { ok: true, notifications: [] };
     mockMutateOk(payload);
 
-    const result = await disconnectProvider("openai");
+    const result = await disconnectProvider("my-agent", "openai");
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/routing/providers/openai",
+      "/api/v1/routing/my-agent/providers/openai",
       expect.objectContaining({ method: "DELETE", credentials: "include" }),
     );
   });
@@ -542,35 +542,35 @@ describe("disconnectProvider", () => {
   it("encodes provider name in URL", async () => {
     mockMutateOk({ ok: true, notifications: [] });
 
-    await disconnectProvider("my provider");
+    await disconnectProvider("my-agent", "my provider");
     const url = mockFetch.mock.calls[0]?.[0] as string;
-    expect(url).toContain("/routing/providers/my%20provider");
+    expect(url).toContain("/routing/my-agent/providers/my%20provider");
   });
 });
 
 describe("getTierAssignments", () => {
-  it("fetches /routing/tiers", async () => {
+  it("fetches /routing/:agentName/tiers", async () => {
     const payload = [{ id: "1", tier: "tier-1", override_model: null, auto_assigned_model: "gpt-4" }];
     mockOk(payload);
 
-    const result = await getTierAssignments();
+    const result = await getTierAssignments("my-agent");
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
-      "http://localhost:3000/api/v1/routing/tiers",
+      "http://localhost:3000/api/v1/routing/my-agent/tiers",
       { credentials: "include" },
     );
   });
 });
 
 describe("overrideTier", () => {
-  it("PUTs to /routing/tiers/:tier with JSON body", async () => {
+  it("PUTs to /routing/:agentName/tiers/:tier with JSON body", async () => {
     const payload = { id: "1", tier: "tier-1", override_model: "gpt-4o", auto_assigned_model: null, updated_at: "2026-01-01" };
     mockMutateOk(payload);
 
-    const result = await overrideTier("tier-1", "gpt-4o");
+    const result = await overrideTier("my-agent", "tier-1", "gpt-4o");
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/routing/tiers/tier-1",
+      "/api/v1/routing/my-agent/tiers/tier-1",
       expect.objectContaining({
         method: "PUT",
         credentials: "include",
@@ -583,19 +583,19 @@ describe("overrideTier", () => {
   it("encodes tier name in URL", async () => {
     mockMutateOk({});
 
-    await overrideTier("tier 1", "gpt-4o");
+    await overrideTier("my-agent", "tier 1", "gpt-4o");
     const url = mockFetch.mock.calls[0]?.[0] as string;
-    expect(url).toContain("/routing/tiers/tier%201");
+    expect(url).toContain("/routing/my-agent/tiers/tier%201");
   });
 });
 
 describe("resetTier", () => {
-  it("sends DELETE to /routing/tiers/:tier", async () => {
+  it("sends DELETE to /routing/:agentName/tiers/:tier", async () => {
     mockMutateOk();
 
-    await resetTier("tier-1");
+    await resetTier("my-agent", "tier-1");
     expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/routing/tiers/tier-1",
+      "/api/v1/routing/my-agent/tiers/tier-1",
       expect.objectContaining({ method: "DELETE", credentials: "include" }),
     );
   });
@@ -603,33 +603,33 @@ describe("resetTier", () => {
   it("encodes tier name in URL", async () => {
     mockMutateOk();
 
-    await resetTier("tier/special");
+    await resetTier("my-agent", "tier/special");
     const url = mockFetch.mock.calls[0]?.[0] as string;
-    expect(url).toContain("/routing/tiers/tier%2Fspecial");
+    expect(url).toContain("/routing/my-agent/tiers/tier%2Fspecial");
   });
 });
 
 describe("resetAllTiers", () => {
-  it("POSTs to /routing/tiers/reset-all", async () => {
+  it("POSTs to /routing/:agentName/tiers/reset-all", async () => {
     mockMutateOk();
 
-    await resetAllTiers();
+    await resetAllTiers("my-agent");
     expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/routing/tiers/reset-all",
+      "/api/v1/routing/my-agent/tiers/reset-all",
       expect.objectContaining({ method: "POST", credentials: "include" }),
     );
   });
 });
 
 describe("getAvailableModels", () => {
-  it("fetches /routing/available-models", async () => {
+  it("fetches /routing/:agentName/available-models", async () => {
     const payload = [{ model_name: "gpt-4o", provider: "openai", input_price_per_token: 0.01 }];
     mockOk(payload);
 
-    const result = await getAvailableModels();
+    const result = await getAvailableModels("my-agent");
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
-      "http://localhost:3000/api/v1/routing/available-models",
+      "http://localhost:3000/api/v1/routing/my-agent/available-models",
       { credentials: "include" },
     );
   });

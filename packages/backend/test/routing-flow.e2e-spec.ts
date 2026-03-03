@@ -83,10 +83,10 @@ describe('Routing disabled → null model (OpenClaw uses Gemini default)', () =>
 
 describe('Routing enabled → scorer routes by query complexity', () => {
   beforeAll(async () => {
-    await auth(api().post('/api/v1/routing/providers'))
+    await auth(api().post('/api/v1/routing/test-agent/providers'))
       .send({ provider: 'openai' })
       .expect(201);
-    await auth(api().post('/api/v1/routing/providers'))
+    await auth(api().post('/api/v1/routing/test-agent/providers'))
       .send({ provider: 'anthropic' })
       .expect(201);
   });
@@ -210,7 +210,7 @@ describe('Routing enabled → scorer routes by query complexity', () => {
 
 describe('Routing disabled after deactivation → falls back to null', () => {
   it('deactivating all providers removes model assignments', async () => {
-    await auth(api().post('/api/v1/routing/providers/deactivate-all'))
+    await auth(api().post('/api/v1/routing/test-agent/providers/deactivate-all'))
       .expect(201);
 
     const res = await bearer(api().post('/api/v1/routing/resolve'))
@@ -224,7 +224,7 @@ describe('Routing disabled after deactivation → falls back to null', () => {
   });
 
   it('re-enabling providers restores model routing', async () => {
-    await auth(api().post('/api/v1/routing/providers'))
+    await auth(api().post('/api/v1/routing/test-agent/providers'))
       .send({ provider: 'openai' })
       .expect(201);
 

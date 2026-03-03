@@ -1,13 +1,13 @@
-import { createSignal, createResource, For, Show, type Component } from "solid-js";
-import { useParams } from "@solidjs/router";
-import { Title, Meta } from "@solidjs/meta";
-import { STAGES, PROVIDERS, getModelLabel } from "../services/providers.js";
-import { providerIcon } from "../components/ProviderIcon.js";
-import ProviderSelectModal from "../components/ProviderSelectModal.js";
-import RoutingInstructionModal from "../components/RoutingInstructionModal.js";
-import ModelPickerModal from "../components/ModelPickerModal.js";
-import { toast } from "../services/toast-store.js";
-import { pricePerM, resolveProviderId } from "../services/routing-utils.js";
+import { createSignal, createResource, For, Show, type Component } from 'solid-js';
+import { useParams } from '@solidjs/router';
+import { Title, Meta } from '@solidjs/meta';
+import { STAGES, PROVIDERS, getModelLabel } from '../services/providers.js';
+import { providerIcon } from '../components/ProviderIcon.js';
+import ProviderSelectModal from '../components/ProviderSelectModal.js';
+import RoutingInstructionModal from '../components/RoutingInstructionModal.js';
+import ModelPickerModal from '../components/ModelPickerModal.js';
+import { toast } from '../services/toast-store.js';
+import { pricePerM, resolveProviderId } from '../services/routing-utils.js';
 import {
   getTierAssignments,
   getAvailableModels,
@@ -18,14 +18,22 @@ import {
   resetAllTiers,
   type TierAssignment,
   type AvailableModel,
-} from "../services/api.js";
+} from '../services/api.js';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
-  const m = apiModels.find((x) => x.model_name === model)
-    ?? apiModels.find((x) => x.model_name.startsWith(model + "-"));
+  const m =
+    apiModels.find((x) => x.model_name === model) ??
+    apiModels.find((x) => x.model_name.startsWith(model + '-'));
   if (m) return resolveProviderId(m.provider);
   for (const prov of PROVIDERS) {
-    if (prov.models.some((pm) => pm.value === model || model.startsWith(pm.value + "-") || pm.value.startsWith(model + "-"))) {
+    if (
+      prov.models.some(
+        (pm) =>
+          pm.value === model ||
+          model.startsWith(pm.value + '-') ||
+          pm.value.startsWith(model + '-'),
+      )
+    ) {
       return prov.id;
     }
   }
@@ -36,20 +44,27 @@ const Routing: Component = () => {
   const params = useParams<{ agentName: string }>();
   const agentName = () => decodeURIComponent(params.agentName);
 
-  const [tiers, { refetch: refetchTiers }] = createResource(getTierAssignments);
-  const [models, { refetch: refetchModels }] = createResource(getAvailableModels);
-  const [connectedProviders, { refetch: refetchProviders }] = createResource(getProviders);
+  const [tiers, { refetch: refetchTiers }] = createResource(() => agentName(), getTierAssignments);
+  const [models, { refetch: refetchModels }] = createResource(
+    () => agentName(),
+    getAvailableModels,
+  );
+  const [connectedProviders, { refetch: refetchProviders }] = createResource(
+    () => agentName(),
+    getProviders,
+  );
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
   const [showProviderModal, setShowProviderModal] = createSignal(false);
   const [disabling, setDisabling] = createSignal(false);
   const [confirmDisable, setConfirmDisable] = createSignal(false);
-  const [instructionModal, setInstructionModal] = createSignal<"enable" | "disable" | null>(null);
+  const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
 
-  const isEnabled = () =>
-    connectedProviders()?.some((p) => p.is_active) ?? false;
+  const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
 
   const activeProviderIds = () =>
-    connectedProviders()?.filter((p) => p.is_active).map((p) => p.provider) ?? [];
+    connectedProviders()
+      ?.filter((p) => p.is_active)
+      .map((p) => p.provider) ?? [];
 
   const getTier = (tierId: string): TierAssignment | undefined =>
     tiers()?.find((t) => t.tier === tierId);
@@ -59,8 +74,10 @@ const Routing: Component = () => {
 
   const modelInfo = (modelName: string): AvailableModel | undefined => {
     const all = models() ?? [];
-    return all.find((m) => m.model_name === modelName)
-      ?? all.find((m) => m.model_name.startsWith(modelName + "-"));
+    return (
+      all.find((m) => m.model_name === modelName) ??
+      all.find((m) => m.model_name.startsWith(modelName + '-'))
+    );
   };
 
   const labelFor = (modelName: string): string => {
@@ -74,16 +91,16 @@ const Routing: Component = () => {
 
   const priceLabel = (modelName: string): string => {
     const info = modelInfo(modelName);
-    if (!info) return "";
+    if (!info) return '';
     return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out per 1M`;
   };
 
   const handleOverride = async (tierId: string, modelName: string) => {
     setDropdownTier(null);
     try {
-      await overrideTier(tierId, modelName);
+      await overrideTier(agentName(), tierId, modelName);
       await refetchTiers();
-      toast.success("Routing updated");
+      toast.success('Routing updated');
     } catch {
       // error toast from fetchMutate
     }
@@ -91,9 +108,9 @@ const Routing: Component = () => {
 
   const handleReset = async (tierId: string) => {
     try {
-      await resetTier(tierId);
+      await resetTier(agentName(), tierId);
       await refetchTiers();
-      toast.success("Reset to auto");
+      toast.success('Reset to auto');
     } catch {
       // error toast from fetchMutate
     }
@@ -101,9 +118,9 @@ const Routing: Component = () => {
 
   const handleResetAll = async () => {
     try {
-      await resetAllTiers();
+      await resetAllTiers(agentName());
       await refetchTiers();
-      toast.success("All tiers reset to auto");
+      toast.success('All tiers reset to auto');
     } catch {
       // error toast from fetchMutate
     }
@@ -114,9 +131,9 @@ const Routing: Component = () => {
   const handleDisable = async () => {
     setDisabling(true);
     try {
-      await deactivateAllProviders();
+      await deactivateAllProviders(agentName());
       await Promise.all([refetchProviders(), refetchTiers(), refetchModels()]);
-      setInstructionModal("disable");
+      setInstructionModal('disable');
     } catch {
       // error toast from fetchMutate
     } finally {
@@ -128,7 +145,7 @@ const Routing: Component = () => {
     const wasEnabled = isEnabled();
     await Promise.all([refetchProviders(), refetchTiers(), refetchModels()]);
     if (!wasEnabled && isEnabled()) {
-      setInstructionModal("enable");
+      setInstructionModal('enable');
     }
   };
 
@@ -142,7 +159,9 @@ const Routing: Component = () => {
       <div class="page-header routing-page-header">
         <div>
           <h1>Routing</h1>
-          <span class="breadcrumb">{agentName()} &rsaquo; Route requests to different models based on complexity</span>
+          <span class="breadcrumb">
+            {agentName()} &rsaquo; Route requests to different models based on complexity
+          </span>
         </div>
         <Show when={isEnabled()}>
           <button class="btn btn--primary btn--sm" onClick={() => setShowProviderModal(true)}>
@@ -151,24 +170,40 @@ const Routing: Component = () => {
         </Show>
       </div>
 
-      <Show when={!tiers.loading && !connectedProviders.loading} fallback={
-        <div class="panel" style="padding: var(--gap-xl);">
-          <div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />
-        </div>
-      }>
+      <Show
+        when={!tiers.loading && !connectedProviders.loading}
+        fallback={
+          <div class="panel" style="padding: var(--gap-xl);">
+            <div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />
+          </div>
+        }
+      >
         <Show
           when={isEnabled()}
           fallback={
             <div class="routing-enable-card">
               <div class="routing-enable-card__icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                  <path d="M2 17l10 5 10-5" />
+                  <path d="M2 12l10 5 10-5" />
                 </svg>
               </div>
               <h2 class="routing-enable-card__title">Smart model routing</h2>
               <p class="routing-enable-card__desc">
-                Route each request to the best model for its complexity level &mdash; use cheaper models for simple tasks
-                and more capable models for complex ones. Connect your LLM providers and Manifest handles the rest.
+                Route each request to the best model for its complexity level &mdash; use cheaper
+                models for simple tasks and more capable models for complex ones. Connect your LLM
+                providers and Manifest handles the rest.
               </p>
               <button class="btn btn--primary" onClick={handleEnable}>
                 Enable Routing
@@ -190,7 +225,7 @@ const Routing: Component = () => {
               </For>
             </span>
             <span class="routing-providers-info__label">
-              {activeProviderIds().length} provider{activeProviderIds().length !== 1 ? "s" : ""}
+              {activeProviderIds().length} provider{activeProviderIds().length !== 1 ? 's' : ''}
             </span>
           </div>
 
@@ -198,8 +233,12 @@ const Routing: Component = () => {
             <For each={STAGES}>
               {(stage) => {
                 const tier = () => getTier(stage.id);
-                const eff = () => { const t = tier(); return t ? effectiveModel(t) : null; };
-                const isManual = () => tier()?.override_model !== null && tier()?.override_model !== undefined;
+                const eff = () => {
+                  const t = tier();
+                  return t ? effectiveModel(t) : null;
+                };
+                const isManual = () =>
+                  tier()?.override_model !== null && tier()?.override_model !== undefined;
 
                 return (
                   <div class="routing-card">
@@ -208,32 +247,64 @@ const Routing: Component = () => {
                       <span class="routing-card__desc">{stage.desc}</span>
                     </div>
                     <div class="routing-card__body">
-                      <Show when={eff()} fallback={
-                        <div class="routing-card__empty">
-                          <span class="routing-card__empty-text">No model available</span>
-                          <button class="routing-card__empty-link" onClick={() => setDropdownTier(stage.id)}>Select model</button>
-                        </div>
-                      }>
-                        {(modelName) => (<>
-                          <div class="routing-card__override">
-                            {(() => {
-                              const provId = providerIdForModel(modelName(), models() ?? []);
-                              return (<Show when={provId}>{(pid) => (<span class="routing-card__override-icon">{providerIcon(pid(), 16)}</span>)}</Show>);
-                            })()}
-                            <span class="routing-card__main">{labelFor(modelName())}</span>
-                            <Show when={!isManual()}><span class="routing-card__auto-tag">auto</span></Show>
+                      <Show
+                        when={eff()}
+                        fallback={
+                          <div class="routing-card__empty">
+                            <span class="routing-card__empty-text">No model available</span>
+                            <button
+                              class="routing-card__empty-link"
+                              onClick={() => setDropdownTier(stage.id)}
+                            >
+                              Select model
+                            </button>
                           </div>
-                          <span class="routing-card__sub">{priceLabel(modelName())}</span>
-                        </>)}
+                        }
+                      >
+                        {(modelName) => (
+                          <>
+                            <div class="routing-card__override">
+                              {(() => {
+                                const provId = providerIdForModel(modelName(), models() ?? []);
+                                return (
+                                  <Show when={provId}>
+                                    {(pid) => (
+                                      <span class="routing-card__override-icon">
+                                        {providerIcon(pid(), 16)}
+                                      </span>
+                                    )}
+                                  </Show>
+                                );
+                              })()}
+                              <span class="routing-card__main">{labelFor(modelName())}</span>
+                              <Show when={!isManual()}>
+                                <span class="routing-card__auto-tag">auto</span>
+                              </Show>
+                            </div>
+                            <span class="routing-card__sub">{priceLabel(modelName())}</span>
+                          </>
+                        )}
                       </Show>
                     </div>
                     <Show when={eff()}>
                       <div class="routing-card__actions">
-                        <Show when={isManual()} fallback={
-                          <button class="routing-action" onClick={() => setDropdownTier(stage.id)}>Override</button>
-                        }>
-                          <button class="routing-action" onClick={() => setDropdownTier(stage.id)}>Edit</button>
-                          <button class="routing-action" onClick={() => handleReset(stage.id)}>Reset</button>
+                        <Show
+                          when={isManual()}
+                          fallback={
+                            <button
+                              class="routing-action"
+                              onClick={() => setDropdownTier(stage.id)}
+                            >
+                              Override
+                            </button>
+                          }
+                        >
+                          <button class="routing-action" onClick={() => setDropdownTier(stage.id)}>
+                            Edit
+                          </button>
+                          <button class="routing-action" onClick={() => handleReset(stage.id)}>
+                            Reset
+                          </button>
                         </Show>
                       </div>
                     </Show>
@@ -244,16 +315,27 @@ const Routing: Component = () => {
           </div>
 
           <div class="routing-footer">
-            <button class="routing-disable-btn" onClick={() => setConfirmDisable(true)} disabled={disabling()}>
-              {disabling() ? "Disabling..." : "Disable Routing"}
+            <button
+              class="routing-disable-btn"
+              onClick={() => setConfirmDisable(true)}
+              disabled={disabling()}
+            >
+              {disabling() ? 'Disabling...' : 'Disable Routing'}
             </button>
             <Show when={hasOverrides()}>
-              <button class="btn btn--outline" style="font-size: var(--font-size-sm);" onClick={handleResetAll}>
+              <button
+                class="btn btn--outline"
+                style="font-size: var(--font-size-sm);"
+                onClick={handleResetAll}
+              >
                 Reset all to auto
               </button>
             </Show>
             <div style="flex: 1;" />
-            <button class="routing-footer__instructions" onClick={() => setInstructionModal("enable")}>
+            <button
+              class="routing-footer__instructions"
+              onClick={() => setInstructionModal('enable')}
+            >
               Setup instructions
             </button>
           </div>
@@ -274,6 +356,7 @@ const Routing: Component = () => {
 
       <Show when={showProviderModal()}>
         <ProviderSelectModal
+          agentName={agentName()}
           providers={connectedProviders() ?? []}
           onClose={() => setShowProviderModal(false)}
           onUpdate={handleProviderUpdate}
@@ -282,22 +365,28 @@ const Routing: Component = () => {
 
       <RoutingInstructionModal
         open={instructionModal() !== null}
-        mode={instructionModal() ?? "enable"}
+        mode={instructionModal() ?? 'enable'}
         onClose={() => setInstructionModal(null)}
       />
 
       <Show when={confirmDisable()}>
         <div
           class="modal-overlay"
-          onClick={(e) => { if (e.target === e.currentTarget) setConfirmDisable(false); }}
-          onKeyDown={(e) => { if (e.key === "Escape") setConfirmDisable(false); }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setConfirmDisable(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setConfirmDisable(false);
+          }}
         >
           <div class="modal-card" style="max-width: 420px;">
             <h2 style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;">
               Disable routing?
             </h2>
             <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-              All provider API keys and tier-to-model assignments will be permanently removed. If you re-enable routing later, you will need to reconnect your providers and reconfigure each tier.
+              All provider API keys and tier-to-model assignments will be permanently removed. If
+              you re-enable routing later, you will need to reconnect your providers and reconfigure
+              each tier.
             </p>
             <div style="display: flex; justify-content: flex-end; gap: 8px;">
               <button class="btn btn--outline" onClick={() => setConfirmDisable(false)}>
@@ -311,7 +400,7 @@ const Routing: Component = () => {
                   await handleDisable();
                 }}
               >
-                {disabling() ? "Disabling..." : "Disable"}
+                {disabling() ? 'Disabling...' : 'Disable'}
               </button>
             </div>
           </div>

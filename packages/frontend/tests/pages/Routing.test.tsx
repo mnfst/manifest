@@ -242,7 +242,7 @@ describe("Routing — enabled state (providers active)", () => {
     fireEvent.click(modelButtons[modelButtons.length - 1]);
 
     await waitFor(() => {
-      expect(overrideTier).toHaveBeenCalledWith("simple", "claude-opus-4-6");
+      expect(overrideTier).toHaveBeenCalledWith("test-agent", "simple", "claude-opus-4-6");
     });
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("Routing updated");
@@ -265,7 +265,7 @@ describe("Routing — enabled state (providers active)", () => {
     fireEvent.click(resetBtn);
 
     await waitFor(() => {
-      expect(resetTier).toHaveBeenCalledWith("complex");
+      expect(resetTier).toHaveBeenCalledWith("test-agent", "complex");
     });
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("Reset to auto");

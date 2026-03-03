@@ -62,21 +62,21 @@ describe("ProviderSelectModal", () => {
 
   it("renders modal with title", () => {
     render(() => (
-      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
     expect(screen.getByText("Connect providers")).toBeDefined();
   });
 
   it("renders subtitle description", () => {
     render(() => (
-      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
     expect(screen.getByText("Add your API keys to enable routing through each provider")).toBeDefined();
   });
 
   it("renders all provider names from the PROVIDERS list", () => {
     render(() => (
-      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
     expect(screen.getByText("OpenAI")).toBeDefined();
     expect(screen.getByText("Anthropic")).toBeDefined();
@@ -91,6 +91,7 @@ describe("ProviderSelectModal", () => {
         providers={[connectedProvider]}
         onClose={onClose}
         onUpdate={onUpdate}
+        agentName="test-agent"
       />
     ));
     const onSwitches = container.querySelectorAll(".provider-toggle__switch--on");
@@ -99,7 +100,7 @@ describe("ProviderSelectModal", () => {
 
   it("shows toggle switch in 'off' state for disconnected providers", () => {
     const { container } = render(() => (
-      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
     const allSwitches = container.querySelectorAll(".provider-toggle__switch");
     const onSwitches = container.querySelectorAll(".provider-toggle__switch--on");
@@ -109,7 +110,7 @@ describe("ProviderSelectModal", () => {
 
   it("calls onClose when Done button is clicked", () => {
     render(() => (
-      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
     fireEvent.click(screen.getByText("Done"));
     expect(onClose).toHaveBeenCalledOnce();
@@ -117,7 +118,7 @@ describe("ProviderSelectModal", () => {
 
   it("calls onClose when close button is clicked", () => {
     render(() => (
-      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
     fireEvent.click(screen.getByLabelText("Close"));
     expect(onClose).toHaveBeenCalledOnce();
@@ -125,7 +126,7 @@ describe("ProviderSelectModal", () => {
 
   it("calls onClose when clicking overlay background", () => {
     const { container } = render(() => (
-      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
     const overlay = container.querySelector(".modal-overlay")!;
     fireEvent.click(overlay);
@@ -134,7 +135,7 @@ describe("ProviderSelectModal", () => {
 
   it("does not close when clicking inside the modal card", () => {
     const { container } = render(() => (
-      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
     const card = container.querySelector(".modal-card")!;
     fireEvent.click(card);
@@ -143,7 +144,7 @@ describe("ProviderSelectModal", () => {
 
   it("calls onClose on Escape key", () => {
     const { container } = render(() => (
-      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
     const overlay = container.querySelector(".modal-overlay")!;
     fireEvent.keyDown(overlay, { key: "Escape" });
@@ -153,7 +154,7 @@ describe("ProviderSelectModal", () => {
   describe("detail view navigation", () => {
     it("shows API key input when provider row is clicked", async () => {
       render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       expect(screen.getByLabelText("OpenAI API key")).toBeDefined();
@@ -161,7 +162,7 @@ describe("ProviderSelectModal", () => {
 
     it("returns to list view when back button is clicked", async () => {
       render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       expect(screen.getByLabelText("OpenAI API key")).toBeDefined();
@@ -178,6 +179,7 @@ describe("ProviderSelectModal", () => {
           providers={[connectedProvider]}
           onClose={onClose}
           onUpdate={onUpdate}
+          agentName="test-agent"
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
@@ -190,6 +192,7 @@ describe("ProviderSelectModal", () => {
           providers={[connectedProvider]}
           onClose={onClose}
           onUpdate={onUpdate}
+          agentName="test-agent"
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
@@ -202,6 +205,7 @@ describe("ProviderSelectModal", () => {
           providers={[]}
           onClose={onClose}
           onUpdate={onUpdate}
+          agentName="test-agent"
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
@@ -214,6 +218,7 @@ describe("ProviderSelectModal", () => {
           providers={[connectedProvider]}
           onClose={onClose}
           onUpdate={onUpdate}
+          agentName="test-agent"
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
@@ -224,7 +229,7 @@ describe("ProviderSelectModal", () => {
   describe("connecting a provider", () => {
     it("connects a provider when valid API key is entered and Connect clicked", async () => {
       render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
@@ -232,7 +237,7 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("Connect"));
 
       await waitFor(() => {
-        expect(mockConnectProvider).toHaveBeenCalledWith({
+        expect(mockConnectProvider).toHaveBeenCalledWith("test-agent", {
           provider: "openai",
           apiKey: VALID_OPENAI_KEY,
         });
@@ -243,7 +248,7 @@ describe("ProviderSelectModal", () => {
 
     it("does not connect when API key is empty", () => {
       render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
 
@@ -253,7 +258,7 @@ describe("ProviderSelectModal", () => {
 
     it("shows validation error for invalid key prefix", async () => {
       render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
@@ -266,7 +271,7 @@ describe("ProviderSelectModal", () => {
 
     it("shows validation error for key that is too short", async () => {
       render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
@@ -279,7 +284,7 @@ describe("ProviderSelectModal", () => {
 
     it("clears validation error on input change", async () => {
       render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
@@ -295,7 +300,7 @@ describe("ProviderSelectModal", () => {
 
     it("connects on Enter key in API key input", async () => {
       render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
@@ -315,13 +320,14 @@ describe("ProviderSelectModal", () => {
           providers={[connectedProvider]}
           onClose={onClose}
           onUpdate={onUpdate}
+          agentName="test-agent"
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByLabelText("Disconnect provider"));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith("openai");
+        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "openai");
       });
       expect(onUpdate).toHaveBeenCalled();
     });
@@ -336,6 +342,7 @@ describe("ProviderSelectModal", () => {
           providers={[connectedProvider]}
           onClose={onClose}
           onUpdate={onUpdate}
+          agentName="test-agent"
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
@@ -356,6 +363,7 @@ describe("ProviderSelectModal", () => {
           providers={[connectedProvider]}
           onClose={onClose}
           onUpdate={onUpdate}
+          agentName="test-agent"
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
@@ -373,7 +381,7 @@ describe("ProviderSelectModal", () => {
       mockConnectProvider.mockRejectedValue(new Error("Failed"));
 
       render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
@@ -394,6 +402,7 @@ describe("ProviderSelectModal", () => {
           providers={[connectedProvider]}
           onClose={onClose}
           onUpdate={onUpdate}
+          agentName="test-agent"
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
@@ -410,6 +419,7 @@ describe("ProviderSelectModal", () => {
           providers={[connectedProvider]}
           onClose={onClose}
           onUpdate={onUpdate}
+          agentName="test-agent"
         />
       ));
       fireEvent.click(screen.getByText("OpenAI"));
@@ -420,7 +430,7 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("Save"));
 
       await waitFor(() => {
-        expect(mockConnectProvider).toHaveBeenCalledWith({
+        expect(mockConnectProvider).toHaveBeenCalledWith("test-agent", {
           provider: "openai",
           apiKey: VALID_OPENAI_KEY,
         });

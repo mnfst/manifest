@@ -1,6 +1,6 @@
-import { toast } from "./toast-store.js";
+import { toast } from './toast-store.js';
 
-const BASE_URL = "/api/v1";
+const BASE_URL = '/api/v1';
 
 async function fetchJson<T>(path: string, params?: Record<string, string | undefined>): Promise<T> {
   const url = new URL(`${BASE_URL}${path}`, window.location.origin);
@@ -10,16 +10,16 @@ async function fetchJson<T>(path: string, params?: Record<string, string | undef
     }
   }
 
-  const res = await fetch(url.toString(), { credentials: "include" });
+  const res = await fetch(url.toString(), { credentials: 'include' });
   if (res.status === 401) {
     // Session expired or user logged out — silently redirect to login
-    if (window.location.pathname !== "/login") {
-      window.location.href = "/login";
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login';
     }
     return new Promise<T>(() => {}); // hang forever, page is redirecting
   }
   if (!res.ok) {
-    const body = await res.text().catch(() => "");
+    const body = await res.text().catch(() => '');
     throw new Error(body || `API error: ${res.status} ${res.statusText}`);
   }
   return res.json() as Promise<T>;
@@ -28,8 +28,8 @@ async function fetchJson<T>(path: string, params?: Record<string, string | undef
 async function parseErrorMessage(res: Response): Promise<string> {
   try {
     const body = await res.json();
-    if (typeof body.message === "string") return body.message;
-    if (Array.isArray(body.message)) return body.message.join(", ");
+    if (typeof body.message === 'string') return body.message;
+    if (Array.isArray(body.message)) return body.message.join(', ');
   } catch {
     // not JSON — fall through
   }
@@ -37,7 +37,7 @@ async function parseErrorMessage(res: Response): Promise<string> {
 }
 
 async function fetchMutate<T = void>(url: string, options: RequestInit): Promise<T> {
-  const res = await fetch(url, { credentials: "include", ...options });
+  const res = await fetch(url, { credentials: 'include', ...options });
   if (!res.ok) {
     const message = await parseErrorMessage(res);
     toast.error(message);
@@ -49,90 +49,103 @@ async function fetchMutate<T = void>(url: string, options: RequestInit): Promise
 }
 
 export function getAgents() {
-  return fetchJson("/agents");
+  return fetchJson('/agents');
 }
 
-export function getOverview(range = "24h", agentName?: string) {
-  return fetchJson("/overview", { range, ...(agentName ? { agent_name: agentName } : {}) });
+export function getOverview(range = '24h', agentName?: string) {
+  return fetchJson('/overview', { range, ...(agentName ? { agent_name: agentName } : {}) });
 }
 
-export function getTokens(range = "24h", agentName?: string) {
-  return fetchJson("/tokens", { range, ...(agentName ? { agent_name: agentName } : {}) });
+export function getTokens(range = '24h', agentName?: string) {
+  return fetchJson('/tokens', { range, ...(agentName ? { agent_name: agentName } : {}) });
 }
 
-export function getCosts(range = "24h", agentName?: string) {
-  return fetchJson("/costs", { range, ...(agentName ? { agent_name: agentName } : {}) });
+export function getCosts(range = '24h', agentName?: string) {
+  return fetchJson('/costs', { range, ...(agentName ? { agent_name: agentName } : {}) });
 }
 
-export function getMessages(params: {
-  range?: string;
-  status?: string;
-  service_type?: string;
-  cursor?: string;
-  limit?: string;
-  agent_name?: string;
-} = {}) {
-  return fetchJson("/messages", params);
+export function getMessages(
+  params: {
+    range?: string;
+    status?: string;
+    service_type?: string;
+    cursor?: string;
+    limit?: string;
+    agent_name?: string;
+  } = {},
+) {
+  return fetchJson('/messages', params);
 }
 
-export function getSecurity(range = "24h") {
-  return fetchJson("/security", { range });
+export function getSecurity(range = '24h') {
+  return fetchJson('/security', { range });
 }
 
 export function getHealth() {
-  return fetchJson("/health");
+  return fetchJson('/health');
 }
 
 export function getAgentKey(agentName: string) {
-  return fetchJson<{ keyPrefix: string; apiKey?: string; pluginEndpoint?: string }>(`/agents/${encodeURIComponent(agentName)}/key`);
+  return fetchJson<{ keyPrefix: string; apiKey?: string; pluginEndpoint?: string }>(
+    `/agents/${encodeURIComponent(agentName)}/key`,
+  );
 }
 
 export function rotateAgentKey(agentName: string) {
-  return fetchMutate<{ apiKey: string }>(`${BASE_URL}/agents/${encodeURIComponent(agentName)}/rotate-key`, {
-    method: "POST",
-  });
+  return fetchMutate<{ apiKey: string }>(
+    `${BASE_URL}/agents/${encodeURIComponent(agentName)}/rotate-key`,
+    {
+      method: 'POST',
+    },
+  );
 }
 
 export function renameAgent(currentName: string, newName: string) {
-  return fetchMutate<{ renamed: boolean; name: string }>(`${BASE_URL}/agents/${encodeURIComponent(currentName)}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: newName }),
-  });
+  return fetchMutate<{ renamed: boolean; name: string }>(
+    `${BASE_URL}/agents/${encodeURIComponent(currentName)}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName }),
+    },
+  );
 }
 
 export function deleteAgent(agentName: string) {
   return fetchMutate(`${BASE_URL}/agents/${encodeURIComponent(agentName)}`, {
-    method: "DELETE",
+    method: 'DELETE',
   });
 }
 
 export function getModelPrices() {
-  return fetchJson("/model-prices");
+  return fetchJson('/model-prices');
 }
 
 export function createAgent(name: string) {
-  return fetchMutate<{ agent: { id: string; name: string }; apiKey: string }>(`${BASE_URL}/agents`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
-  });
+  return fetchMutate<{ agent: { id: string; name: string }; apiKey: string }>(
+    `${BASE_URL}/agents`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    },
+  );
 }
 
 export interface NotificationRule {
   id: string;
   agent_name: string;
-  metric_type: "tokens" | "cost";
+  metric_type: 'tokens' | 'cost';
   threshold: number;
-  period: "hour" | "day" | "week" | "month";
-  action: "notify" | "block" | "both";
+  period: 'hour' | 'day' | 'week' | 'month';
+  action: 'notify' | 'block' | 'both';
   is_active: boolean | number;
   trigger_count: number;
   created_at: string;
 }
 
 export function getNotificationRules(agentName: string) {
-  return fetchJson<NotificationRule[]>("/notifications", { agent_name: agentName });
+  return fetchJson<NotificationRule[]>('/notifications', { agent_name: agentName });
 }
 
 export function createNotificationRule(data: {
@@ -143,23 +156,23 @@ export function createNotificationRule(data: {
   action?: string;
 }) {
   return fetchMutate(`${BASE_URL}/notifications`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
 }
 
 export function updateNotificationRule(id: string, data: Record<string, unknown>) {
   return fetchMutate(`${BASE_URL}/notifications/${encodeURIComponent(id)}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
 }
 
 export function deleteNotificationRule(id: string) {
   return fetchMutate(`${BASE_URL}/notifications/${encodeURIComponent(id)}`, {
-    method: "DELETE",
+    method: 'DELETE',
   });
 }
 
@@ -172,49 +185,67 @@ export interface EmailProviderConfig {
 }
 
 export async function getEmailProvider(): Promise<EmailProviderConfig | null> {
-  const data = await fetchJson<EmailProviderConfig & { configured?: boolean }>("/notifications/email-provider");
+  const data = await fetchJson<EmailProviderConfig & { configured?: boolean }>(
+    '/notifications/email-provider',
+  );
   if ('configured' in data && data.configured === false) return null;
   return data;
 }
 
-export function setEmailProvider(data: { provider: string; apiKey?: string; domain?: string; notificationEmail?: string }) {
+export function setEmailProvider(data: {
+  provider: string;
+  apiKey?: string;
+  domain?: string;
+  notificationEmail?: string;
+}) {
   return fetchMutate(`${BASE_URL}/notifications/email-provider`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
 }
 
 export function removeEmailProvider() {
   return fetchMutate(`${BASE_URL}/notifications/email-provider`, {
-    method: "DELETE",
+    method: 'DELETE',
   });
 }
 
-export function testEmailProvider(data: { provider: string; apiKey: string; domain?: string; to: string }) {
-  return fetchMutate<{ success: boolean; error?: string }>(`${BASE_URL}/notifications/email-provider/test`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+export function testEmailProvider(data: {
+  provider: string;
+  apiKey: string;
+  domain?: string;
+  to: string;
+}) {
+  return fetchMutate<{ success: boolean; error?: string }>(
+    `${BASE_URL}/notifications/email-provider/test`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    },
+  );
 }
 
 export function testSavedEmailProvider(to: string) {
-  return fetchMutate<{ success: boolean; error?: string }>(`${BASE_URL}/notifications/email-provider/test-saved`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ to }),
-  });
+  return fetchMutate<{ success: boolean; error?: string }>(
+    `${BASE_URL}/notifications/email-provider/test-saved`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to }),
+    },
+  );
 }
 
 export function getNotificationEmailForProvider() {
-  return fetchJson<{ email: string | null }>("/notifications/notification-email");
+  return fetchJson<{ email: string | null }>('/notifications/notification-email');
 }
 
 export function saveNotificationEmailForProvider(email: string) {
   return fetchMutate<{ saved: boolean }>(`${BASE_URL}/notifications/notification-email`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
   });
 }
@@ -229,45 +260,53 @@ export interface EmailConfig {
 }
 
 export function getEmailConfig() {
-  return fetchJson<EmailConfig>("/email-config");
+  return fetchJson<EmailConfig>('/email-config');
 }
 
-export function saveEmailConfig(data: { provider: string; apiKey: string; domain?: string; fromEmail?: string }) {
+export function saveEmailConfig(data: {
+  provider: string;
+  apiKey: string;
+  domain?: string;
+  fromEmail?: string;
+}) {
   return fetchMutate(`${BASE_URL}/email-config`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
 }
 
-export function testEmailConfig(data: { provider: string; apiKey: string; domain?: string; fromEmail?: string }, toEmail: string) {
+export function testEmailConfig(
+  data: { provider: string; apiKey: string; domain?: string; fromEmail?: string },
+  toEmail: string,
+) {
   return fetchMutate<{ success: boolean; error?: string }>(`${BASE_URL}/email-config/test`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...data, toEmail }),
   });
 }
 
 export function clearEmailConfig() {
-  return fetchMutate(`${BASE_URL}/email-config`, { method: "DELETE" });
+  return fetchMutate(`${BASE_URL}/email-config`, { method: 'DELETE' });
 }
 
 export function getNotificationEmail() {
-  return fetchJson<{ email: string | null; isDefault: boolean }>("/notification-email");
+  return fetchJson<{ email: string | null; isDefault: boolean }>('/notification-email');
 }
 
 export function saveNotificationEmail(email: string) {
   return fetchMutate(`${BASE_URL}/notification-email`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
   });
 }
 
 /* -- Routing: Status -- */
 
-export function getRoutingStatus() {
-  return fetchJson<{ enabled: boolean }>("/routing/status");
+export function getRoutingStatus(agentName: string) {
+  return fetchJson<{ enabled: boolean }>(`/routing/${encodeURIComponent(agentName)}/status`);
 }
 
 /* -- Routing: Providers -- */
@@ -281,32 +320,32 @@ export interface RoutingProvider {
   connected_at: string;
 }
 
-export function getProviders() {
-  return fetchJson<RoutingProvider[]>("/routing/providers");
+export function getProviders(agentName: string) {
+  return fetchJson<RoutingProvider[]>(`/routing/${encodeURIComponent(agentName)}/providers`);
 }
 
-export function connectProvider(data: { provider: string; apiKey?: string }) {
+export function connectProvider(agentName: string, data: { provider: string; apiKey?: string }) {
   return fetchMutate<{ id: string; provider: string; is_active: boolean }>(
-    `${BASE_URL}/routing/providers`,
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers`,
     {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     },
   );
 }
 
-export function deactivateAllProviders() {
+export function deactivateAllProviders(agentName: string) {
   return fetchMutate<{ ok: boolean }>(
-    `${BASE_URL}/routing/providers/deactivate-all`,
-    { method: "POST" },
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers/deactivate-all`,
+    { method: 'POST' },
   );
 }
 
-export function disconnectProvider(provider: string) {
+export function disconnectProvider(agentName: string, provider: string) {
   return fetchMutate<{ ok: boolean; notifications: string[] }>(
-    `${BASE_URL}/routing/providers/${encodeURIComponent(provider)}`,
-    { method: "DELETE" },
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers/${encodeURIComponent(provider)}`,
+    { method: 'DELETE' },
   );
 }
 
@@ -314,37 +353,40 @@ export function disconnectProvider(provider: string) {
 
 export interface TierAssignment {
   id: string;
-  user_id: string;
+  agent_id: string;
   tier: string;
   override_model: string | null;
   auto_assigned_model: string | null;
   updated_at: string;
 }
 
-export function getTierAssignments() {
-  return fetchJson<TierAssignment[]>("/routing/tiers");
+export function getTierAssignments(agentName: string) {
+  return fetchJson<TierAssignment[]>(`/routing/${encodeURIComponent(agentName)}/tiers`);
 }
 
-export function overrideTier(tier: string, model: string) {
+export function overrideTier(agentName: string, tier: string, model: string) {
   return fetchMutate<TierAssignment>(
-    `${BASE_URL}/routing/tiers/${encodeURIComponent(tier)}`,
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}`,
     {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model }),
     },
   );
 }
 
-export function resetTier(tier: string) {
-  return fetchMutate(`${BASE_URL}/routing/tiers/${encodeURIComponent(tier)}`, {
-    method: "DELETE",
-  });
+export function resetTier(agentName: string, tier: string) {
+  return fetchMutate(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}`,
+    {
+      method: 'DELETE',
+    },
+  );
 }
 
-export function resetAllTiers() {
-  return fetchMutate(`${BASE_URL}/routing/tiers/reset-all`, {
-    method: "POST",
+export function resetAllTiers(agentName: string) {
+  return fetchMutate(`${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/reset-all`, {
+    method: 'POST',
   });
 }
 
@@ -361,6 +403,6 @@ export interface AvailableModel {
   quality_score: number;
 }
 
-export function getAvailableModels() {
-  return fetchJson<AvailableModel[]>("/routing/available-models");
+export function getAvailableModels(agentName: string) {
+  return fetchJson<AvailableModel[]>(`/routing/${encodeURIComponent(agentName)}/available-models`);
 }
