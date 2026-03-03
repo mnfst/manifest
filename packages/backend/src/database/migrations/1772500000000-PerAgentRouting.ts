@@ -6,7 +6,13 @@ export class PerAgentRouting1772500000000 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "user_providers" ADD COLUMN "agent_id" varchar`);
     await queryRunner.query(`ALTER TABLE "tier_assignments" ADD COLUMN "agent_id" varchar`);
 
-    // 2. Data migration: copy each row for every agent under the user's tenant
+    // 2. Drop old unique indexes BEFORE fan-out, otherwise inserting multiple
+    //    rows with the same (user_id, provider) for different agents violates
+    //    the old constraint.
+    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_user_providers_user_provider"`);
+    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_tier_assignments_user_tier"`);
+
+    // 3. Data migration: copy each row for every agent under the user's tenant
     // user_providers: for each existing row, insert a copy per agent
     await queryRunner.query(`
       INSERT INTO "user_providers" ("id", "user_id", "agent_id", "provider", "api_key_encrypted", "is_active", "connected_at", "updated_at")
@@ -42,17 +48,13 @@ export class PerAgentRouting1772500000000 implements MigrationInterface {
       WHERE ta."agent_id" IS NULL
     `);
 
-    // 3. Delete original rows (where agent_id IS NULL)
+    // 4. Delete original rows (where agent_id IS NULL)
     await queryRunner.query(`DELETE FROM "user_providers" WHERE "agent_id" IS NULL`);
     await queryRunner.query(`DELETE FROM "tier_assignments" WHERE "agent_id" IS NULL`);
 
-    // 4. Set agent_id to NOT NULL
+    // 5. Set agent_id to NOT NULL
     await queryRunner.query(`ALTER TABLE "user_providers" ALTER COLUMN "agent_id" SET NOT NULL`);
     await queryRunner.query(`ALTER TABLE "tier_assignments" ALTER COLUMN "agent_id" SET NOT NULL`);
-
-    // 5. Drop old unique indexes
-    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_user_providers_user_provider"`);
-    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_tier_assignments_user_tier"`);
 
     // 6. Create new unique indexes on (agent_id, provider) and (agent_id, tier)
     await queryRunner.query(`
