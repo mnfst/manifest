@@ -1,17 +1,17 @@
-import { parseConfig, validateConfig, ManifestConfig } from "./config";
-import { initTelemetry, shutdownTelemetry, PluginLogger } from "./telemetry";
-import { registerHooks, initMetrics } from "./hooks";
-import { registerRouting } from "./routing";
-import { registerTools } from "./tools";
-import { registerCommand } from "./command";
-import { verifyConnection } from "./verify";
-import { registerLocalMode, injectProviderConfig, injectAuthProfile } from "./local-mode";
-import { trackPluginEvent } from "./product-telemetry";
+import { parseConfig, validateConfig, ManifestConfig } from './config';
+import { initTelemetry, shutdownTelemetry, PluginLogger } from './telemetry';
+import { registerHooks, initMetrics } from './hooks';
+import { registerRouting } from './routing';
+import { registerTools } from './tools';
+import { registerCommand } from './command';
+import { verifyConnection } from './verify';
+import { registerLocalMode, injectProviderConfig, injectAuthProfile } from './local-mode';
+import { trackPluginEvent } from './product-telemetry';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 module.exports = {
-  id: "manifest",
-  name: "Manifest — Agent Observability",
+  id: 'manifest',
+  name: 'Manifest — Agent Observability',
 
   register(api: any) {
     const logger: PluginLogger = api.logger || {
@@ -22,26 +22,26 @@ module.exports = {
     };
 
     const config: ManifestConfig = parseConfig(api.pluginConfig);
-    if (config.mode !== "dev") {
-      trackPluginEvent("plugin_registered");
-      trackPluginEvent("plugin_mode_selected", { mode: config.mode });
+    if (config.mode !== 'dev') {
+      trackPluginEvent('plugin_registered', undefined, config.mode);
+      trackPluginEvent('plugin_mode_selected', { mode: config.mode }, config.mode);
     }
 
-    if (config.mode === "local") {
+    if (config.mode === 'local') {
       registerLocalMode(api, config, logger);
       return;
     }
 
     const error = validateConfig(config);
     if (error) {
-      if (config.mode === "cloud" && !config.apiKey) {
+      if (config.mode === 'cloud' && !config.apiKey) {
         logger.info(
-          "[manifest] Cloud mode requires an API key:\n" +
-            "  openclaw config set plugins.entries.manifest.config.apiKey mnfst_YOUR_KEY\n" +
-            "  openclaw gateway restart\n\n" +
-            "Tip: Set mode to local for a zero-config embedded server:\n" +
-            "  openclaw config set plugins.entries.manifest.config.mode local\n" +
-            "  openclaw gateway restart",
+          '[manifest] Cloud mode requires an API key:\n' +
+            '  openclaw config set plugins.entries.manifest.config.apiKey mnfst_YOUR_KEY\n' +
+            '  openclaw gateway restart\n\n' +
+            'Tip: Set mode to local for a zero-config embedded server:\n' +
+            '  openclaw config set plugins.entries.manifest.config.mode local\n' +
+            '  openclaw gateway restart',
         );
       } else {
         logger.error(`[manifest] Configuration error:\n${error}`);
@@ -51,26 +51,26 @@ module.exports = {
 
     // Detect built-in diagnostics-otel conflict
     const entries = api.config?.plugins?.entries || {};
-    if (entries["diagnostics-otel"]?.enabled) {
+    if (entries['diagnostics-otel']?.enabled) {
       logger.error(
         "[manifest] ERROR: Built-in 'diagnostics-otel' is also enabled. " +
-          "This causes duplicate OTel registration errors. " +
-          "Disable it now:\n" +
-          "  openclaw plugins disable diagnostics-otel\n" +
-          "Then restart the gateway.",
+          'This causes duplicate OTel registration errors. ' +
+          'Disable it now:\n' +
+          '  openclaw plugins disable diagnostics-otel\n' +
+          'Then restart the gateway.',
       );
       return;
     }
 
     // Derive the base origin from the OTLP endpoint (strip /otlp suffix).
     // Used by both dev and cloud modes to build the provider baseUrl.
-    const baseOrigin = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, "");
+    const baseOrigin = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, '');
 
     // Dev mode: connect to an external server without API key
-    if (config.mode === "dev") {
-      logger.info("[manifest] Dev mode — connecting to external server...");
+    if (config.mode === 'dev') {
+      logger.info('[manifest] Dev mode — connecting to external server...');
 
-      const devPlaceholderKey = "dev-no-auth";
+      const devPlaceholderKey = 'dev-no-auth';
       injectProviderConfig(api, `${baseOrigin}/v1`, devPlaceholderKey, logger);
       injectAuthProfile(devPlaceholderKey, logger);
 
@@ -79,7 +79,7 @@ module.exports = {
       registerHooks(api, tracer, config, logger);
       registerRouting(api, config, logger);
 
-      if (typeof api.registerTool === "function") {
+      if (typeof api.registerTool === 'function') {
         registerTools(api, config, logger);
       }
       registerCommand(api, config, logger);
@@ -87,19 +87,21 @@ module.exports = {
       logger.info(`[manifest]   Dashboard: ${baseOrigin}`);
 
       api.registerService({
-        id: "manifest-dev",
+        id: 'manifest-dev',
         start: () => {
-          logger.info("[manifest] Dev mode pipeline active");
+          logger.info('[manifest] Dev mode pipeline active');
           logger.info(`[manifest]   Endpoint=${config.endpoint}`);
 
-          verifyConnection(config).then((check) => {
-            if (check.error) {
-              logger.warn?.(`[manifest] Connection check failed: ${check.error}`);
-              return;
-            }
-            const agent = check.agentName ? ` (agent: ${check.agentName})` : "";
-            logger.info(`[manifest] Connection verified${agent}`);
-          }).catch(() => {});
+          verifyConnection(config)
+            .then((check) => {
+              if (check.error) {
+                logger.warn?.(`[manifest] Connection check failed: ${check.error}`);
+                return;
+              }
+              const agent = check.agentName ? ` (agent: ${check.agentName})` : '';
+              logger.info(`[manifest] Connection verified${agent}`);
+            })
+            .catch(() => {});
         },
         stop: async () => {
           await shutdownTelemetry(logger);
@@ -110,7 +112,7 @@ module.exports = {
     }
 
     // Cloud mode
-    logger.info("[manifest] Initializing observability pipeline...");
+    logger.info('[manifest] Initializing observability pipeline...');
 
     // Sync the provider config file so the gateway uses the correct
     // baseUrl and apiKey for proxy requests after restarts.
@@ -122,32 +124,32 @@ module.exports = {
     registerHooks(api, tracer, config, logger);
     registerRouting(api, config, logger);
 
-    if (typeof api.registerTool === "function") {
+    if (typeof api.registerTool === 'function') {
       registerTools(api, config, logger);
     } else {
-      logger.info(
-        "[manifest] Agent tools not available in this OpenClaw version",
-      );
+      logger.info('[manifest] Agent tools not available in this OpenClaw version');
     }
     registerCommand(api, config, logger);
 
     api.registerService({
-      id: "manifest-telemetry",
+      id: 'manifest-telemetry',
       start: () => {
-        logger.info("[manifest] Observability pipeline active");
+        logger.info('[manifest] Observability pipeline active');
         logger.info(`[manifest]   Endpoint=${config.endpoint}`);
 
         // Non-blocking connection verify after startup
-        verifyConnection(config).then((check) => {
-          if (check.error) {
-            logger.warn?.(`[manifest] Connection check failed: ${check.error}`);
-            return;
-          }
-          const agent = check.agentName ? ` (agent: ${check.agentName})` : "";
-          logger.info(`[manifest] Connection verified${agent}`);
-        }).catch(() => {
-          // Swallow — startup should never fail on verify
-        });
+        verifyConnection(config)
+          .then((check) => {
+            if (check.error) {
+              logger.warn?.(`[manifest] Connection check failed: ${check.error}`);
+              return;
+            }
+            const agent = check.agentName ? ` (agent: ${check.agentName})` : '';
+            logger.info(`[manifest] Connection verified${agent}`);
+          })
+          .catch(() => {
+            // Swallow — startup should never fail on verify
+          });
       },
       stop: async () => {
         await shutdownTelemetry(logger);
