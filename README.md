@@ -80,6 +80,12 @@ openclaw gateway restart
 
 Dashboard opens at **http://127.0.0.1:2099**. Telemetry from your agents flows in automatically.
 
+To use tailsacle to proxy it to your network (needs Tailscale installed in both devices).
+
+```
+tailscale serve --bg 2099
+```
+
 ## Features
 
 - **LLM Router** — scores each query and calls the most suitable model
