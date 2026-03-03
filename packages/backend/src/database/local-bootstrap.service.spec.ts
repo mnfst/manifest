@@ -1,6 +1,7 @@
 // Mock typeorm to avoid path-scurry native dependency issue
 jest.mock('typeorm', () => ({
   Repository: jest.fn(),
+  IsNull: jest.fn().mockReturnValue({ _type: 'isNull' }),
 }));
 
 jest.mock('@nestjs/typeorm', () => ({
@@ -36,6 +37,8 @@ jest.mock('../entities/agent.entity', () => ({ Agent: jest.fn() }));
 jest.mock('../entities/agent-api-key.entity', () => ({ AgentApiKey: jest.fn() }));
 jest.mock('../entities/agent-message.entity', () => ({ AgentMessage: jest.fn() }));
 jest.mock('../entities/model-pricing.entity', () => ({ ModelPricing: jest.fn() }));
+jest.mock('../entities/user-provider.entity', () => ({ UserProvider: jest.fn() }));
+jest.mock('../entities/tier-assignment.entity', () => ({ TierAssignment: jest.fn() }));
 
 import { LocalBootstrapService } from './local-bootstrap.service';
 import { trackEvent } from '../common/utils/product-telemetry';
@@ -45,6 +48,8 @@ function makeMockRepo() {
     count: jest.fn().mockResolvedValue(0),
     insert: jest.fn().mockResolvedValue({}),
     upsert: jest.fn().mockResolvedValue({}),
+    find: jest.fn().mockResolvedValue([]),
+    save: jest.fn().mockResolvedValue({}),
   };
 }
 
@@ -55,6 +60,8 @@ describe('LocalBootstrapService', () => {
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
   let mockPricingRepo: ReturnType<typeof makeMockRepo>;
+  let mockProviderRepo: ReturnType<typeof makeMockRepo>;
+  let mockTierRepo: ReturnType<typeof makeMockRepo>;
   let mockPricingCache: { reload: jest.Mock };
   let mockPricingSync: { syncPricing: jest.Mock };
 
@@ -65,6 +72,8 @@ describe('LocalBootstrapService', () => {
     mockAgentKeyRepo = makeMockRepo();
     mockMessageRepo = makeMockRepo();
     mockPricingRepo = makeMockRepo();
+    mockProviderRepo = makeMockRepo();
+    mockTierRepo = makeMockRepo();
     mockPricingCache = { reload: jest.fn().mockResolvedValue(undefined) };
     mockPricingSync = { syncPricing: jest.fn().mockResolvedValue(undefined) };
 
@@ -74,6 +83,8 @@ describe('LocalBootstrapService', () => {
       mockAgentKeyRepo as never,
       mockMessageRepo as never,
       mockPricingRepo as never,
+      mockProviderRepo as never,
+      mockTierRepo as never,
       mockPricingCache as never,
       mockPricingSync as never,
     );
@@ -191,6 +202,62 @@ describe('LocalBootstrapService', () => {
       mockPricingSync.syncPricing.mockRejectedValue(new Error('network error'));
 
       await expect(service.onModuleInit()).resolves.not.toThrow();
+    });
+  });
+
+  describe('fixupRoutingAgentIds', () => {
+    it('updates orphaned provider rows to LOCAL_AGENT_ID', async () => {
+      const orphanedProvider = { id: 'p1', provider: 'openai', agent_id: null };
+      mockProviderRepo.find.mockResolvedValue([orphanedProvider]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      await service.onModuleInit();
+
+      expect(mockProviderRepo.find).toHaveBeenCalledWith({
+        where: { agent_id: expect.anything() },
+      });
+      expect(orphanedProvider.agent_id).toBe('local-agent-001');
+      expect(mockProviderRepo.save).toHaveBeenCalledWith(orphanedProvider);
+    });
+
+    it('updates orphaned tier rows to LOCAL_AGENT_ID', async () => {
+      const orphanedTier = { id: 't1', tier: 'simple', agent_id: null };
+      mockProviderRepo.find.mockResolvedValue([]);
+      mockTierRepo.find.mockResolvedValue([orphanedTier]);
+
+      await service.onModuleInit();
+
+      expect(mockTierRepo.find).toHaveBeenCalledWith({
+        where: { agent_id: expect.anything() },
+      });
+      expect(orphanedTier.agent_id).toBe('local-agent-001');
+      expect(mockTierRepo.save).toHaveBeenCalledWith(orphanedTier);
+    });
+
+    it('updates both orphaned providers and tiers', async () => {
+      const provider1 = { id: 'p1', provider: 'openai', agent_id: null };
+      const provider2 = { id: 'p2', provider: 'anthropic', agent_id: null };
+      const tier1 = { id: 't1', tier: 'simple', agent_id: null };
+      mockProviderRepo.find.mockResolvedValue([provider1, provider2]);
+      mockTierRepo.find.mockResolvedValue([tier1]);
+
+      await service.onModuleInit();
+
+      expect(provider1.agent_id).toBe('local-agent-001');
+      expect(provider2.agent_id).toBe('local-agent-001');
+      expect(tier1.agent_id).toBe('local-agent-001');
+      expect(mockProviderRepo.save).toHaveBeenCalledTimes(2);
+      expect(mockTierRepo.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('does nothing when no orphaned rows exist', async () => {
+      mockProviderRepo.find.mockResolvedValue([]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      await service.onModuleInit();
+
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
+      expect(mockTierRepo.save).not.toHaveBeenCalled();
     });
   });
 });

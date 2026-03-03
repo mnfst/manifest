@@ -1,6 +1,13 @@
-import { IsString, IsIn, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsIn, IsNotEmpty, IsOptional, Matches } from 'class-validator';
 
 const VALID_TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
+
+export class AgentNameParamDto {
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^[a-zA-Z0-9_-]+$/, { message: 'Invalid agent name' })
+  agentName!: string;
+}
 
 export class TierParamDto {
   @IsIn(VALID_TIERS)

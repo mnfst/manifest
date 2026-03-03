@@ -42,11 +42,11 @@ describe('RoutingService', () => {
   describe('getTiers (lazy init)', () => {
     it('should return existing rows when they exist', async () => {
       const rows = [
-        { user_id: 'u1', tier: 'simple', override_model: null, auto_assigned_model: 'gpt-4o' },
+        { agent_id: 'a1', tier: 'simple', override_model: null, auto_assigned_model: 'gpt-4o' },
       ];
       mockTierRepo.find.mockResolvedValue(rows);
 
-      const result = await service.getTiers('u1');
+      const result = await service.getTiers('a1');
       expect(result).toBe(rows);
       expect(mockTierRepo.insert).not.toHaveBeenCalled();
     });
@@ -56,7 +56,7 @@ describe('RoutingService', () => {
       mockTierRepo.find.mockResolvedValueOnce([]);
       mockProviderRepo.find.mockResolvedValue([]);
 
-      const result = await service.getTiers('u1');
+      const result = await service.getTiers('a1');
 
       expect(mockTierRepo.insert).toHaveBeenCalledTimes(4);
       const tiers = mockTierRepo.insert.mock.calls.map(
@@ -66,31 +66,30 @@ describe('RoutingService', () => {
       expect(result).toHaveLength(4);
     });
 
-    it('should recalculate and re-fetch when user has active providers', async () => {
+    it('should recalculate and re-fetch when agent has active providers', async () => {
       mockTierRepo.find
         .mockResolvedValueOnce([]) // initial: no rows
-        .mockResolvedValueOnce([  // after recalculate
+        .mockResolvedValueOnce([
+          // after recalculate
           { tier: 'simple', auto_assigned_model: 'gpt-4o' },
           { tier: 'standard', auto_assigned_model: 'gpt-4o' },
           { tier: 'complex', auto_assigned_model: 'gpt-4o' },
           { tier: 'reasoning', auto_assigned_model: 'gpt-4o' },
         ]);
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'openai', is_active: true },
-      ]);
+      mockProviderRepo.find.mockResolvedValue([{ provider: 'openai', is_active: true }]);
 
-      const result = await service.getTiers('u1');
+      const result = await service.getTiers('a1');
 
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(result).toHaveLength(4);
       expect(result[0].auto_assigned_model).toBe('gpt-4o');
     });
 
-    it('should not recalculate when user has no active providers', async () => {
+    it('should not recalculate when agent has no active providers', async () => {
       mockTierRepo.find.mockResolvedValueOnce([]);
       mockProviderRepo.find.mockResolvedValue([]);
 
-      await service.getTiers('u1');
+      await service.getTiers('a1');
 
       expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
     });
@@ -106,11 +105,9 @@ describe('RoutingService', () => {
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'Anthropic',
       } as ModelPricing);
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true },
-      ]);
+      mockProviderRepo.find.mockResolvedValue([{ provider: 'anthropic', is_active: true }]);
 
-      const result = await service.getEffectiveModel('u1', assignment);
+      const result = await service.getEffectiveModel('a1', assignment);
       expect(result).toBe('claude-opus-4-6');
     });
 
@@ -124,11 +121,9 @@ describe('RoutingService', () => {
         provider: 'OpenAI',
       } as ModelPricing);
       // DB stores "OpenAI" with different case than pricing lowercase
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'OpenAI', is_active: true },
-      ]);
+      mockProviderRepo.find.mockResolvedValue([{ provider: 'OpenAI', is_active: true }]);
 
-      const result = await service.getEffectiveModel('u1', assignment);
+      const result = await service.getEffectiveModel('a1', assignment);
       expect(result).toBe('gpt-4o-mini');
     });
 
@@ -143,7 +138,7 @@ describe('RoutingService', () => {
       } as ModelPricing);
       mockProviderRepo.find.mockResolvedValue([]); // no active providers
 
-      const result = await service.getEffectiveModel('u1', assignment);
+      const result = await service.getEffectiveModel('a1', assignment);
       expect(result).toBe('gpt-4o');
     });
 
@@ -155,7 +150,7 @@ describe('RoutingService', () => {
 
       mockPricingCache.getByModel.mockReturnValue(undefined);
 
-      const result = await service.getEffectiveModel('u1', assignment);
+      const result = await service.getEffectiveModel('a1', assignment);
       expect(result).toBe('gpt-4o');
     });
 
@@ -165,7 +160,7 @@ describe('RoutingService', () => {
         auto_assigned_model: 'gpt-4o',
       } as TierAssignment;
 
-      const result = await service.getEffectiveModel('u1', assignment);
+      const result = await service.getEffectiveModel('a1', assignment);
       expect(result).toBe('gpt-4o');
     });
 
@@ -175,7 +170,7 @@ describe('RoutingService', () => {
         auto_assigned_model: null,
       } as TierAssignment;
 
-      const result = await service.getEffectiveModel('u1', assignment);
+      const result = await service.getEffectiveModel('a1', assignment);
       expect(result).toBeNull();
     });
   });
@@ -183,23 +178,23 @@ describe('RoutingService', () => {
   /* ── getProviders ── */
 
   describe('getProviders', () => {
-    it('should return all providers for a user', async () => {
+    it('should return all providers for an agent', async () => {
       const providers = [
-        { id: 'p1', user_id: 'u1', provider: 'openai', is_active: true },
-        { id: 'p2', user_id: 'u1', provider: 'anthropic', is_active: false },
+        { id: 'p1', agent_id: 'a1', provider: 'openai', is_active: true },
+        { id: 'p2', agent_id: 'a1', provider: 'anthropic', is_active: false },
       ];
       mockProviderRepo.find.mockResolvedValue(providers);
 
-      const result = await service.getProviders('u1');
+      const result = await service.getProviders('a1');
 
-      expect(mockProviderRepo.find).toHaveBeenCalledWith({ where: { user_id: 'u1' } });
+      expect(mockProviderRepo.find).toHaveBeenCalledWith({ where: { agent_id: 'a1' } });
       expect(result).toBe(providers);
     });
 
-    it('should return empty array when user has no providers', async () => {
+    it('should return empty array when agent has no providers', async () => {
       mockProviderRepo.find.mockResolvedValue([]);
 
-      const result = await service.getProviders('u1');
+      const result = await service.getProviders('a1');
       expect(result).toEqual([]);
     });
   });
@@ -210,10 +205,11 @@ describe('RoutingService', () => {
     it('should create a new provider when none exists (with apiKey)', async () => {
       mockProviderRepo.findOne.mockResolvedValue(null);
 
-      const result = await service.upsertProvider('u1', 'openai', 'enc-key');
+      const result = await service.upsertProvider('a1', 'u1', 'openai', 'enc-key');
 
       expect(mockProviderRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
+          agent_id: 'a1',
           user_id: 'u1',
           provider: 'openai',
           is_active: true,
@@ -222,7 +218,7 @@ describe('RoutingService', () => {
       const inserted = mockProviderRepo.insert.mock.calls[0][0];
       expect(inserted.api_key_encrypted).not.toBe('enc-key');
       expect(inserted.api_key_encrypted).toContain(':');
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(result.provider.provider).toBe('openai');
       expect(result.provider.is_active).toBe(true);
       expect(result.isNew).toBe(true);
@@ -231,11 +227,11 @@ describe('RoutingService', () => {
     it('should create a new provider without apiKey (null encrypted)', async () => {
       mockProviderRepo.findOne.mockResolvedValue(null);
 
-      const result = await service.upsertProvider('u1', 'openai');
+      const result = await service.upsertProvider('a1', 'u1', 'openai');
 
       const inserted = mockProviderRepo.insert.mock.calls[0][0];
       expect(inserted.api_key_encrypted).toBeNull();
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(result.provider.provider).toBe('openai');
       expect(result.provider.is_active).toBe(true);
       expect(result.isNew).toBe(true);
@@ -245,13 +241,14 @@ describe('RoutingService', () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',
         user_id: 'u1',
+        agent_id: 'a1',
         provider: 'openai',
         api_key_encrypted: 'old-key',
         is_active: false,
       });
       mockProviderRepo.findOne.mockResolvedValue(existing);
 
-      const result = await service.upsertProvider('u1', 'openai', 'new-key');
+      const result = await service.upsertProvider('a1', 'u1', 'openai', 'new-key');
 
       expect(mockProviderRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -262,7 +259,7 @@ describe('RoutingService', () => {
       expect(saved.api_key_encrypted).not.toBe('new-key');
       expect(saved.api_key_encrypted).toContain(':');
       expect(mockProviderRepo.insert).not.toHaveBeenCalled();
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(result.provider.api_key_encrypted).toContain(':');
       expect(result.provider.is_active).toBe(true);
       expect(result.isNew).toBe(false);
@@ -272,24 +269,25 @@ describe('RoutingService', () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',
         user_id: 'u1',
+        agent_id: 'a1',
         provider: 'openai',
         api_key_encrypted: 'old-encrypted',
         is_active: false,
       });
       mockProviderRepo.findOne.mockResolvedValue(existing);
 
-      const result = await service.upsertProvider('u1', 'openai');
+      const result = await service.upsertProvider('a1', 'u1', 'openai');
 
       expect(result.provider.is_active).toBe(true);
       expect(result.provider.api_key_encrypted).toBe('old-encrypted');
       expect(result.isNew).toBe(false);
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
     });
 
     it('should return object with exactly provider and isNew keys', async () => {
       mockProviderRepo.findOne.mockResolvedValue(null);
 
-      const result = await service.upsertProvider('u1', 'openai', 'key');
+      const result = await service.upsertProvider('a1', 'u1', 'openai', 'key');
 
       expect(Object.keys(result).sort()).toEqual(['isNew', 'provider']);
       expect(result.provider).toBeDefined();
@@ -300,7 +298,7 @@ describe('RoutingService', () => {
       mockProviderRepo.findOne.mockResolvedValue(null);
 
       const before = new Date().toISOString();
-      const result = await service.upsertProvider('u1', 'openai', 'key');
+      const result = await service.upsertProvider('a1', 'u1', 'openai', 'key');
       const after = new Date().toISOString();
 
       const inserted = mockProviderRepo.insert.mock.calls[0][0];
@@ -318,6 +316,7 @@ describe('RoutingService', () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',
         user_id: 'u1',
+        agent_id: 'a1',
         provider: 'openai',
         api_key_encrypted: 'old-encrypted',
         is_active: false,
@@ -327,7 +326,7 @@ describe('RoutingService', () => {
       mockProviderRepo.findOne.mockResolvedValue(existing);
 
       const before = new Date().toISOString();
-      await service.upsertProvider('u1', 'openai', 'new-key');
+      await service.upsertProvider('a1', 'u1', 'openai', 'new-key');
 
       const saved = mockProviderRepo.save.mock.calls[0][0];
       expect(saved.connected_at).toBe(originalConnectedAt);
@@ -337,15 +336,13 @@ describe('RoutingService', () => {
     it('should generate a UUID id for new provider', async () => {
       mockProviderRepo.findOne.mockResolvedValue(null);
 
-      await service.upsertProvider('u1', 'openai', 'key');
+      await service.upsertProvider('a1', 'u1', 'openai', 'key');
 
       const inserted = mockProviderRepo.insert.mock.calls[0][0];
       expect(inserted.id).toBeDefined();
       expect(typeof inserted.id).toBe('string');
       // UUID v4 format: 8-4-4-4-12
-      expect(inserted.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-      );
+      expect(inserted.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     });
   });
 
@@ -355,47 +352,44 @@ describe('RoutingService', () => {
     it('should throw NotFoundException when provider does not exist', async () => {
       mockProviderRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.removeProvider('u1', 'nonexistent')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.removeProvider('a1', 'nonexistent')).rejects.toThrow(NotFoundException);
     });
 
     it('should deactivate provider and recalculate', async () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',
-        user_id: 'u1',
+        agent_id: 'a1',
         provider: 'openai',
         is_active: true,
       });
       mockProviderRepo.findOne.mockResolvedValue(existing);
       mockTierRepo.find.mockResolvedValue([]); // no overrides
 
-      const result = await service.removeProvider('u1', 'openai');
+      const result = await service.removeProvider('a1', 'openai');
 
       expect(existing.is_active).toBe(false);
       expect(mockProviderRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ is_active: false }),
       );
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(result.notifications).toEqual([]);
     });
 
     it('should invalidate overrides belonging to the removed provider', async () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',
-        user_id: 'u1',
+        agent_id: 'a1',
         provider: 'openai',
         is_active: true,
       });
       mockProviderRepo.findOne.mockResolvedValue(existing);
 
       const override = Object.assign(new TierAssignment(), {
-        user_id: 'u1',
+        agent_id: 'a1',
         tier: 'complex',
         override_model: 'gpt-4o',
       });
-      mockTierRepo.find
-        .mockResolvedValueOnce([override]); // overrides query
+      mockTierRepo.find.mockResolvedValueOnce([override]); // overrides query
       mockTierRepo.findOne.mockResolvedValue({
         auto_assigned_model: 'claude-opus-4-6',
       });
@@ -404,7 +398,7 @@ describe('RoutingService', () => {
         provider: 'OpenAI',
       } as ModelPricing);
 
-      const result = await service.removeProvider('u1', 'openai');
+      const result = await service.removeProvider('a1', 'openai');
 
       expect(override.override_model).toBeNull();
       expect(mockTierRepo.save).toHaveBeenCalledWith(
@@ -419,14 +413,14 @@ describe('RoutingService', () => {
     it('should build notification without fallback model when auto is null', async () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',
-        user_id: 'u1',
+        agent_id: 'a1',
         provider: 'openai',
         is_active: true,
       });
       mockProviderRepo.findOne.mockResolvedValue(existing);
 
       const override = Object.assign(new TierAssignment(), {
-        user_id: 'u1',
+        agent_id: 'a1',
         tier: 'simple',
         override_model: 'gpt-4o',
       });
@@ -436,7 +430,7 @@ describe('RoutingService', () => {
       });
       mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as ModelPricing);
 
-      const result = await service.removeProvider('u1', 'openai');
+      const result = await service.removeProvider('a1', 'openai');
 
       expect(result.notifications[0]).toContain('automatic mode.');
       expect(result.notifications[0]).not.toContain('(');
@@ -445,14 +439,14 @@ describe('RoutingService', () => {
     it('should not invalidate overrides from other providers', async () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',
-        user_id: 'u1',
+        agent_id: 'a1',
         provider: 'openai',
         is_active: true,
       });
       mockProviderRepo.findOne.mockResolvedValue(existing);
 
       const override = Object.assign(new TierAssignment(), {
-        user_id: 'u1',
+        agent_id: 'a1',
         tier: 'complex',
         override_model: 'claude-opus-4-6',
       });
@@ -461,7 +455,7 @@ describe('RoutingService', () => {
         provider: 'Anthropic',
       } as ModelPricing);
 
-      const result = await service.removeProvider('u1', 'openai');
+      const result = await service.removeProvider('a1', 'openai');
 
       expect(override.override_model).toBe('claude-opus-4-6'); // not cleared
       expect(result.notifications).toEqual([]);
@@ -474,13 +468,13 @@ describe('RoutingService', () => {
     it('should update existing tier row', async () => {
       const existing = Object.assign(new TierAssignment(), {
         id: 't1',
-        user_id: 'u1',
+        agent_id: 'a1',
         tier: 'complex',
         override_model: null,
       });
       mockTierRepo.findOne.mockResolvedValue(existing);
 
-      const result = await service.setOverride('u1', 'complex', 'claude-opus-4-6');
+      const result = await service.setOverride('a1', 'u1', 'complex', 'claude-opus-4-6');
 
       expect(existing.override_model).toBe('claude-opus-4-6');
       expect(mockTierRepo.save).toHaveBeenCalledWith(
@@ -492,10 +486,11 @@ describe('RoutingService', () => {
     it('should create new tier row when none exists', async () => {
       mockTierRepo.findOne.mockResolvedValue(null);
 
-      const result = await service.setOverride('u1', 'reasoning', 'o1-pro');
+      const result = await service.setOverride('a1', 'u1', 'reasoning', 'o1-pro');
 
       expect(mockTierRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
+          agent_id: 'a1',
           user_id: 'u1',
           tier: 'reasoning',
           override_model: 'o1-pro',
@@ -512,13 +507,13 @@ describe('RoutingService', () => {
     it('should clear override on existing tier', async () => {
       const existing = Object.assign(new TierAssignment(), {
         id: 't1',
-        user_id: 'u1',
+        agent_id: 'a1',
         tier: 'simple',
         override_model: 'gpt-4o',
       });
       mockTierRepo.findOne.mockResolvedValue(existing);
 
-      await service.clearOverride('u1', 'simple');
+      await service.clearOverride('a1', 'simple');
 
       expect(existing.override_model).toBeNull();
       expect(mockTierRepo.save).toHaveBeenCalledWith(
@@ -529,7 +524,7 @@ describe('RoutingService', () => {
     it('should be a no-op when tier does not exist', async () => {
       mockTierRepo.findOne.mockResolvedValue(null);
 
-      await service.clearOverride('u1', 'nonexistent');
+      await service.clearOverride('a1', 'nonexistent');
 
       expect(mockTierRepo.save).not.toHaveBeenCalled();
     });
@@ -538,11 +533,11 @@ describe('RoutingService', () => {
   /* ── resetAllOverrides ── */
 
   describe('resetAllOverrides', () => {
-    it('should update all tiers for the user', async () => {
-      await service.resetAllOverrides('u1');
+    it('should update all tiers for the agent', async () => {
+      await service.resetAllOverrides('a1');
 
       expect(mockTierRepo.update).toHaveBeenCalledWith(
-        { user_id: 'u1' },
+        { agent_id: 'a1' },
         expect.objectContaining({ override_model: null }),
       );
     });
@@ -552,17 +547,17 @@ describe('RoutingService', () => {
 
   describe('deactivateAllProviders', () => {
     it('should deactivate all providers, clear overrides, and recalculate', async () => {
-      await service.deactivateAllProviders('u1');
+      await service.deactivateAllProviders('a1');
 
       expect(mockProviderRepo.update).toHaveBeenCalledWith(
-        { user_id: 'u1' },
+        { agent_id: 'a1' },
         expect.objectContaining({ is_active: false }),
       );
       expect(mockTierRepo.update).toHaveBeenCalledWith(
-        { user_id: 'u1' },
+        { agent_id: 'a1' },
         expect.objectContaining({ override_model: null }),
       );
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
     });
   });
 
@@ -584,14 +579,14 @@ describe('RoutingService', () => {
       expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
     });
 
-    it('should clear overrides and recalculate for affected users', async () => {
+    it('should clear overrides and recalculate for affected agents', async () => {
       const tier1 = Object.assign(new TierAssignment(), {
-        user_id: 'u1',
+        agent_id: 'a1',
         tier: 'complex',
         override_model: 'old-model',
       });
       const tier2 = Object.assign(new TierAssignment(), {
-        user_id: 'u2',
+        agent_id: 'a2',
         tier: 'simple',
         override_model: 'old-model',
       });
@@ -602,18 +597,18 @@ describe('RoutingService', () => {
       expect(tier1.override_model).toBeNull();
       expect(tier2.override_model).toBeNull();
       expect(mockTierRepo.save).toHaveBeenCalledTimes(2);
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u2');
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a2');
     });
 
-    it('should recalculate each user only once', async () => {
+    it('should recalculate each agent only once', async () => {
       const tier1 = Object.assign(new TierAssignment(), {
-        user_id: 'u1',
+        agent_id: 'a1',
         tier: 'complex',
         override_model: 'model-a',
       });
       const tier2 = Object.assign(new TierAssignment(), {
-        user_id: 'u1',
+        agent_id: 'a1',
         tier: 'simple',
         override_model: 'model-b',
       });
@@ -621,9 +616,9 @@ describe('RoutingService', () => {
 
       await service.invalidateOverridesForRemovedModels(['model-a', 'model-b']);
 
-      // Same user — should only recalculate once
+      // Same agent — should only recalculate once
       expect(mockAutoAssign.recalculate).toHaveBeenCalledTimes(1);
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('u1');
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
     });
   });
 
@@ -641,9 +636,7 @@ describe('RoutingService', () => {
     });
 
     it('should return first 8 chars of decrypted key', async () => {
-      const { encrypt, getEncryptionSecret } = await import(
-        '../common/utils/crypto.util'
-      );
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
       const secret = getEncryptionSecret();
       const encrypted = encrypt('sk-abcdefghijklmnop', secret);
 
@@ -652,9 +645,7 @@ describe('RoutingService', () => {
     });
 
     it('should return custom length prefix', async () => {
-      const { encrypt, getEncryptionSecret } = await import(
-        '../common/utils/crypto.util'
-      );
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
       const secret = getEncryptionSecret();
       const encrypted = encrypt('sk-abcdefghijklmnop', secret);
 
@@ -663,16 +654,11 @@ describe('RoutingService', () => {
     });
 
     it('should return null and log warning when decrypt throws', () => {
-      const warnSpy = jest.spyOn(
-        (service as any).logger,
-        'warn',
-      );
+      const warnSpy = jest.spyOn((service as any).logger, 'warn');
 
       const result = service.getKeyPrefix('invalid:encrypted:data');
       expect(result).toBeNull();
-      expect(warnSpy).toHaveBeenCalledWith(
-        'Failed to decrypt API key for prefix extraction',
-      );
+      expect(warnSpy).toHaveBeenCalledWith('Failed to decrypt API key for prefix extraction');
     });
   });
 
@@ -686,56 +672,56 @@ describe('RoutingService', () => {
 
       mockProviderRepo.find.mockResolvedValue([
         {
-          user_id: 'u1',
+          agent_id: 'a1',
           provider: 'openai',
           is_active: true,
           api_key_encrypted: encrypted,
         },
       ]);
 
-      const result = await service.getProviderApiKey('u1', 'openai');
+      const result = await service.getProviderApiKey('a1', 'openai');
       expect(result).toBe('sk-test-key');
     });
 
     it('should return null when no active provider matches', async () => {
       mockProviderRepo.find.mockResolvedValue([
         {
-          user_id: 'u1',
+          agent_id: 'a1',
           provider: 'anthropic',
           is_active: true,
           api_key_encrypted: 'enc',
         },
       ]);
 
-      const result = await service.getProviderApiKey('u1', 'openai');
+      const result = await service.getProviderApiKey('a1', 'openai');
       expect(result).toBeNull();
     });
 
     it('should return null when match has no encrypted key', async () => {
       mockProviderRepo.find.mockResolvedValue([
         {
-          user_id: 'u1',
+          agent_id: 'a1',
           provider: 'openai',
           is_active: true,
           api_key_encrypted: null,
         },
       ]);
 
-      const result = await service.getProviderApiKey('u1', 'openai');
+      const result = await service.getProviderApiKey('a1', 'openai');
       expect(result).toBeNull();
     });
 
     it('should return null when decryption fails', async () => {
       mockProviderRepo.find.mockResolvedValue([
         {
-          user_id: 'u1',
+          agent_id: 'a1',
           provider: 'openai',
           is_active: true,
           api_key_encrypted: 'invalid:encrypted:data:format',
         },
       ]);
 
-      const result = await service.getProviderApiKey('u1', 'openai');
+      const result = await service.getProviderApiKey('a1', 'openai');
       expect(result).toBeNull();
     });
 
@@ -746,32 +732,32 @@ describe('RoutingService', () => {
 
       mockProviderRepo.find.mockResolvedValue([
         {
-          user_id: 'u1',
+          agent_id: 'a1',
           provider: 'gemini',
           is_active: true,
           api_key_encrypted: encrypted,
         },
       ]);
 
-      const result = await service.getProviderApiKey('u1', 'google');
+      const result = await service.getProviderApiKey('a1', 'google');
       expect(result).toBe('AIza-test');
     });
 
     it('should return null when no records exist', async () => {
       mockProviderRepo.find.mockResolvedValue([]);
 
-      const result = await service.getProviderApiKey('u1', 'openai');
+      const result = await service.getProviderApiKey('a1', 'openai');
       expect(result).toBeNull();
     });
 
     it('should return empty string for Ollama provider without DB lookup', async () => {
-      const result = await service.getProviderApiKey('u1', 'Ollama');
+      const result = await service.getProviderApiKey('a1', 'Ollama');
       expect(result).toBe('');
       expect(mockProviderRepo.find).not.toHaveBeenCalled();
     });
 
     it('should return empty string for ollama in any case', async () => {
-      const result = await service.getProviderApiKey('u1', 'OLLAMA');
+      const result = await service.getProviderApiKey('a1', 'OLLAMA');
       expect(result).toBe('');
       expect(mockProviderRepo.find).not.toHaveBeenCalled();
     });

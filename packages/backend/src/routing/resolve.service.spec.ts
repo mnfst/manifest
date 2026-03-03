@@ -31,10 +31,7 @@ describe('ResolveService', () => {
     mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
     mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
-    const result = await service.resolve(
-      'user-1',
-      [{ role: 'user', content: 'hello' }],
-    );
+    const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
     expect(result.tier).toBe('simple');
     expect(result.model).toBe('gpt-4o-mini');
@@ -45,10 +42,7 @@ describe('ResolveService', () => {
   it('should return null model when no effective model available', async () => {
     mockRoutingService.getEffectiveModel.mockResolvedValue(null);
 
-    const result = await service.resolve(
-      'user-1',
-      [{ role: 'user', content: 'hello' }],
-    );
+    const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
     expect(result.tier).toBe('simple');
     expect(result.model).toBeNull();
@@ -58,10 +52,7 @@ describe('ResolveService', () => {
   it('should return null model when no tier assignment found', async () => {
     mockRoutingService.getTiers.mockResolvedValue([]);
 
-    const result = await service.resolve(
-      'user-1',
-      [{ role: 'user', content: 'hello' }],
-    );
+    const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
     expect(result.model).toBeNull();
     expect(result.provider).toBeNull();
@@ -82,7 +73,7 @@ describe('ResolveService', () => {
       },
     ];
 
-    const result = await service.resolve('user-1', messages);
+    const result = await service.resolve('agent-1', messages);
 
     expect(['complex', 'standard', 'reasoning']).toContain(result.tier);
     expect(result.model).toBe('claude-sonnet-4');
@@ -93,7 +84,7 @@ describe('ResolveService', () => {
     mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
     const result = await service.resolve(
-      'user-1',
+      'agent-1',
       [{ role: 'user', content: 'continue' }],
       undefined,
       undefined,
@@ -109,10 +100,7 @@ describe('ResolveService', () => {
     mockRoutingService.getEffectiveModel.mockResolvedValue('unknown-model');
     mockPricingCache.getByModel.mockReturnValue(undefined);
 
-    const result = await service.resolve(
-      'user-1',
-      [{ role: 'user', content: 'hello' }],
-    );
+    const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
     expect(result.model).toBe('unknown-model');
     expect(result.provider).toBeNull();
@@ -123,7 +111,7 @@ describe('ResolveService', () => {
       mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
       mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
-      const result = await service.resolveForTier('user-1', 'simple');
+      const result = await service.resolveForTier('agent-1', 'simple');
 
       expect(result.tier).toBe('simple');
       expect(result.model).toBe('gpt-4o-mini');
@@ -136,7 +124,7 @@ describe('ResolveService', () => {
     it('should return null model when tier has no assignment', async () => {
       mockRoutingService.getTiers.mockResolvedValue([]);
 
-      const result = await service.resolveForTier('user-1', 'simple');
+      const result = await service.resolveForTier('agent-1', 'simple');
 
       expect(result.tier).toBe('simple');
       expect(result.model).toBeNull();
@@ -147,7 +135,7 @@ describe('ResolveService', () => {
     it('should return null model when effective model is null', async () => {
       mockRoutingService.getEffectiveModel.mockResolvedValue(null);
 
-      const result = await service.resolveForTier('user-1', 'simple');
+      const result = await service.resolveForTier('agent-1', 'simple');
 
       expect(result.tier).toBe('simple');
       expect(result.model).toBeNull();
@@ -160,7 +148,7 @@ describe('ResolveService', () => {
     mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
     const result = await service.resolve(
-      'user-1',
+      'agent-1',
       [{ role: 'user', content: 'hi' }],
       [{ name: 'search' }],
       'auto',

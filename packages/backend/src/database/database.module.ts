@@ -39,6 +39,7 @@ import { AddRoutingTier1772100000000 } from './migrations/1772100000000-AddRouti
 import { AddLimitAction1772200000000 } from './migrations/1772200000000-AddLimitAction';
 import { AddRoutingReason1772300000000 } from './migrations/1772300000000-AddRoutingReason';
 import { AddAgentDisplayName1772400000000 } from './migrations/1772400000000-AddAgentDisplayName';
+import { PerAgentRouting1772500000000 } from './migrations/1772500000000-PerAgentRouting';
 
 const entities = [
   AgentMessage,
@@ -82,6 +83,7 @@ const migrations = [
   AddLimitAction1772200000000,
   AddRoutingReason1772300000000,
   AddAgentDisplayName1772400000000,
+  PerAgentRouting1772500000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -129,6 +131,8 @@ function buildModeServices() {
       ApiKey,
       ModelPricing,
       SecurityEvent,
+      UserProvider,
+      TierAssignment,
     ]),
     ModelPricesModule,
   ],

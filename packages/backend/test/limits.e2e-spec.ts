@@ -117,7 +117,7 @@ describe('Limits API', () => {
 
   it('GET /api/v1/routing/status returns routing status', async () => {
     const res = await request(app.getHttpServer())
-      .get('/api/v1/routing/status')
+      .get('/api/v1/routing/test-agent/status')
       .set('x-api-key', TEST_API_KEY)
       .expect(200);
 

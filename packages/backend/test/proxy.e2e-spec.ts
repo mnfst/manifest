@@ -31,7 +31,7 @@ beforeAll(async () => {
 
   // Connect OpenAI provider with a fake API key via API
   await request(app.getHttpServer())
-    .post('/api/v1/routing/providers')
+    .post('/api/v1/routing/test-agent/providers')
     .set('x-api-key', TEST_API_KEY)
     .send({ provider: 'openai', apiKey: 'sk-fake-test-key' })
     .expect(201);

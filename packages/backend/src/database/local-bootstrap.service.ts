@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
@@ -9,6 +9,8 @@ import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
+import { UserProvider } from '../entities/user-provider.entity';
+import { TierAssignment } from '../entities/tier-assignment.entity';
 import { hashKey, keyPrefix } from '../common/utils/hash.util';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { PricingSyncService } from './pricing-sync.service';
@@ -32,6 +34,8 @@ export class LocalBootstrapService implements OnModuleInit {
     @InjectRepository(AgentApiKey) private readonly agentKeyRepo: Repository<AgentApiKey>,
     @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
     @InjectRepository(ModelPricing) private readonly pricingRepo: Repository<ModelPricing>,
+    @InjectRepository(UserProvider) private readonly providerRepo: Repository<UserProvider>,
+    @InjectRepository(TierAssignment) private readonly tierRepo: Repository<TierAssignment>,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly pricingSync: PricingSyncService,
   ) {}
@@ -40,6 +44,7 @@ export class LocalBootstrapService implements OnModuleInit {
     await this.seedModelPricing();
     await this.pricingCache.reload();
     await this.ensureTenantAndAgent();
+    await this.fixupRoutingAgentIds();
     await seedAgentMessages(this.messageRepo, LOCAL_USER_ID, this.logger, {
       tenantId: LOCAL_TENANT_ID,
       agentId: LOCAL_AGENT_ID,
@@ -108,6 +113,33 @@ export class LocalBootstrapService implements OnModuleInit {
       agent_id: LOCAL_AGENT_ID,
       is_active: true,
     });
+  }
+
+  private async fixupRoutingAgentIds() {
+    // Fix routing rows missing agent_id (from pre-migration SQLite DBs).
+    // SQLite uses synchronize:true so the column is added automatically but
+    // existing rows will have NULL agent_id.
+    const orphanedProviders = await this.providerRepo.find({
+      where: { agent_id: IsNull() as unknown as string },
+    });
+    for (const row of orphanedProviders) {
+      row.agent_id = LOCAL_AGENT_ID;
+      await this.providerRepo.save(row);
+    }
+
+    const orphanedTiers = await this.tierRepo.find({
+      where: { agent_id: IsNull() as unknown as string },
+    });
+    for (const row of orphanedTiers) {
+      row.agent_id = LOCAL_AGENT_ID;
+      await this.tierRepo.save(row);
+    }
+
+    if (orphanedProviders.length > 0 || orphanedTiers.length > 0) {
+      this.logger.log(
+        `Fixed ${orphanedProviders.length} provider(s) and ${orphanedTiers.length} tier(s) with missing agent_id`,
+      );
+    }
   }
 
   private async seedModelPricing() {

@@ -1,25 +1,16 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
+import { Agent } from '../entities/agent.entity';
+import { Tenant } from '../entities/tenant.entity';
 import { RoutingService } from './routing.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { expandProviderNames } from './provider-aliases';
 import { trackCloudEvent } from '../common/utils/product-telemetry';
-import {
-  TierParamDto,
-  ProviderParamDto,
-  ConnectProviderDto,
-  SetOverrideDto,
-} from './dto/routing.dto';
+import { AgentNameParamDto, ConnectProviderDto, SetOverrideDto } from './dto/routing.dto';
 
 @Controller('api/v1/routing')
 export class RoutingController {
@@ -27,22 +18,38 @@ export class RoutingController {
     private readonly routingService: RoutingService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly ollamaSync: OllamaSyncService,
+    @InjectRepository(Agent)
+    private readonly agentRepo: Repository<Agent>,
+    @InjectRepository(Tenant)
+    private readonly tenantRepo: Repository<Tenant>,
   ) {}
+
+  private async resolveAgent(userId: string, agentName: string): Promise<Agent> {
+    const tenant = await this.tenantRepo.findOne({ where: { name: userId } });
+    if (!tenant) throw new NotFoundException(`Tenant not found`);
+    const agent = await this.agentRepo.findOne({
+      where: { tenant_id: tenant.id, name: agentName },
+    });
+    if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
+    return agent;
+  }
 
   /* ── Status ── */
 
-  @Get('status')
-  async getStatus(@CurrentUser() user: AuthUser) {
-    const providers = await this.routingService.getProviders(user.id);
+  @Get(':agentName/status')
+  async getStatus(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgent(user.id, params.agentName);
+    const providers = await this.routingService.getProviders(agent.id);
     const enabled = providers.some((p) => p.is_active);
     return { enabled };
   }
 
   /* ── Providers ── */
 
-  @Get('providers')
-  async getProviders(@CurrentUser() user: AuthUser) {
-    const providers = await this.routingService.getProviders(user.id);
+  @Get(':agentName/providers')
+  async getProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgent(user.id, params.agentName);
+    const providers = await this.routingService.getProviders(agent.id);
     return providers.map((p) => ({
       id: p.id,
       provider: p.provider,
@@ -53,22 +60,25 @@ export class RoutingController {
     }));
   }
 
-  @Post('providers')
+  @Post(':agentName/providers')
   async upsertProvider(
     @CurrentUser() user: AuthUser,
+    @Param() params: AgentNameParamDto,
     @Body() body: ConnectProviderDto,
   ) {
+    const agent = await this.resolveAgent(user.id, params.agentName);
+
     // Sync Ollama models before connecting so tier assignment has data
     if (body.provider.toLowerCase() === 'ollama') {
       await this.ollamaSync.sync();
     }
 
-    const { provider: result, isNew } =
-      await this.routingService.upsertProvider(
-        user.id,
-        body.provider,
-        body.apiKey,
-      );
+    const { provider: result, isNew } = await this.routingService.upsertProvider(
+      agent.id,
+      user.id,
+      body.provider,
+      body.apiKey,
+    );
 
     if (isNew) {
       trackCloudEvent('routing_provider_connected', user.id, {
@@ -83,21 +93,21 @@ export class RoutingController {
     };
   }
 
-  @Post('providers/deactivate-all')
-  async deactivateAllProviders(@CurrentUser() user: AuthUser) {
-    await this.routingService.deactivateAllProviders(user.id);
+  @Post(':agentName/providers/deactivate-all')
+  async deactivateAllProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgent(user.id, params.agentName);
+    await this.routingService.deactivateAllProviders(agent.id);
     return { ok: true };
   }
 
-  @Delete('providers/:provider')
+  @Delete(':agentName/providers/:provider')
   async removeProvider(
     @CurrentUser() user: AuthUser,
-    @Param() params: ProviderParamDto,
+    @Param('agentName') agentName: string,
+    @Param('provider') provider: string,
   ) {
-    const { notifications } = await this.routingService.removeProvider(
-      user.id,
-      params.provider,
-    );
+    const agent = await this.resolveAgent(user.id, agentName);
+    const { notifications } = await this.routingService.removeProvider(agent.id, provider);
     return { ok: true, notifications };
   }
 
@@ -110,40 +120,47 @@ export class RoutingController {
 
   /* ── Tiers ── */
 
-  @Get('tiers')
-  async getTiers(@CurrentUser() user: AuthUser) {
-    return this.routingService.getTiers(user.id);
+  @Get(':agentName/tiers')
+  async getTiers(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgent(user.id, params.agentName);
+    return this.routingService.getTiers(agent.id, user.id);
   }
 
-  @Put('tiers/:tier')
+  @Put(':agentName/tiers/:tier')
   async setOverride(
     @CurrentUser() user: AuthUser,
-    @Param() params: TierParamDto,
+    @Param('agentName') agentName: string,
+    @Param('tier') tier: string,
     @Body() body: SetOverrideDto,
   ) {
-    return this.routingService.setOverride(user.id, params.tier, body.model);
+    const agent = await this.resolveAgent(user.id, agentName);
+    return this.routingService.setOverride(agent.id, user.id, tier, body.model);
   }
 
-  @Delete('tiers/:tier')
+  @Delete(':agentName/tiers/:tier')
   async clearOverride(
     @CurrentUser() user: AuthUser,
-    @Param() params: TierParamDto,
+    @Param('agentName') agentName: string,
+    @Param('tier') tier: string,
   ) {
-    await this.routingService.clearOverride(user.id, params.tier);
+    const agent = await this.resolveAgent(user.id, agentName);
+    await this.routingService.clearOverride(agent.id, tier);
     return { ok: true };
   }
 
-  @Post('tiers/reset-all')
-  async resetAllOverrides(@CurrentUser() user: AuthUser) {
-    await this.routingService.resetAllOverrides(user.id);
+  @Post(':agentName/tiers/reset-all')
+  async resetAllOverrides(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgent(user.id, params.agentName);
+    await this.routingService.resetAllOverrides(agent.id);
     return { ok: true };
   }
 
   /* ── Available models ── */
 
-  @Get('available-models')
-  async getAvailableModels(@CurrentUser() user: AuthUser) {
-    const providers = await this.routingService.getProviders(user.id);
+  @Get(':agentName/available-models')
+  async getAvailableModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgent(user.id, params.agentName);
+    const providers = await this.routingService.getProviders(agent.id);
     const activeProviders = expandProviderNames(
       providers.filter((p) => p.is_active).map((p) => p.provider),
     );

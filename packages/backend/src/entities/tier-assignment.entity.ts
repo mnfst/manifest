@@ -2,13 +2,16 @@ import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('tier_assignments')
-@Index(['user_id', 'tier'], { unique: true })
+@Index(['agent_id', 'tier'], { unique: true })
 export class TierAssignment {
   @PrimaryColumn('varchar')
   id!: string;
 
   @Column('varchar')
   user_id!: string;
+
+  @Column('varchar')
+  agent_id!: string;
 
   @Column('varchar')
   tier!: string;

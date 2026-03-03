@@ -19,12 +19,10 @@ describe('ResolveController', () => {
     mockResolveService = {
       resolve: jest.fn().mockResolvedValue(mockResponse),
     };
-    controller = new ResolveController(
-      mockResolveService as unknown as ResolveService,
-    );
+    controller = new ResolveController(mockResolveService as unknown as ResolveService);
   });
 
-  it('should pass userId from ingestionContext to service', async () => {
+  it('should pass agentId from ingestionContext to service', async () => {
     const req = {
       ingestionContext: {
         userId: 'user-42',
@@ -34,13 +32,10 @@ describe('ResolveController', () => {
       },
     } as never;
 
-    await controller.resolve(
-      { messages: [{ role: 'user', content: 'hi' }] } as never,
-      req,
-    );
+    await controller.resolve({ messages: [{ role: 'user', content: 'hi' }] } as never, req);
 
     expect(mockResolveService.resolve).toHaveBeenCalledWith(
-      'user-42',
+      'a1',
       [{ role: 'user', content: 'hi' }],
       undefined,
       undefined,
@@ -64,7 +59,7 @@ describe('ResolveController', () => {
     await controller.resolve(body as never, req);
 
     expect(mockResolveService.resolve).toHaveBeenCalledWith(
-      'user-1',
+      'a',
       body.messages,
       body.tools,
       'auto',

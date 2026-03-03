@@ -15,7 +15,7 @@ export class ResolveService {
   ) {}
 
   async resolve(
-    userId: string,
+    agentId: string,
     messages: ScorerInput['messages'],
     tools?: ScorerInput['tools'],
     toolChoice?: unknown,
@@ -28,13 +28,13 @@ export class ResolveService {
 
     const result = scoreRequest(input, undefined, momentum);
 
-    const tiers = await this.routingService.getTiers(userId);
+    const tiers = await this.routingService.getTiers(agentId);
     const assignment = tiers.find((t) => t.tier === result.tier);
 
     if (!assignment) {
       this.logger.warn(
-        `No tier assignment found for user=${userId} tier=${result.tier} ` +
-        `(available tiers: ${tiers.map((t) => t.tier).join(', ') || 'none'})`,
+        `No tier assignment found for agent=${agentId} tier=${result.tier} ` +
+          `(available tiers: ${tiers.map((t) => t.tier).join(', ') || 'none'})`,
       );
       return {
         tier: result.tier,
@@ -46,12 +46,12 @@ export class ResolveService {
       };
     }
 
-    const model = await this.routingService.getEffectiveModel(userId, assignment);
+    const model = await this.routingService.getEffectiveModel(agentId, assignment);
 
     if (!model) {
       this.logger.warn(
-        `getEffectiveModel returned null for user=${userId} tier=${result.tier} ` +
-        `override=${assignment.override_model} auto=${assignment.auto_assigned_model}`,
+        `getEffectiveModel returned null for agent=${agentId} tier=${result.tier} ` +
+          `override=${assignment.override_model} auto=${assignment.auto_assigned_model}`,
       );
       return {
         tier: result.tier,
@@ -67,8 +67,8 @@ export class ResolveService {
 
     if (!pricing) {
       this.logger.warn(
-        `Pricing cache miss for model=${model} (user=${userId} tier=${result.tier}). ` +
-        `Provider will be null.`,
+        `Pricing cache miss for model=${model} (agent=${agentId} tier=${result.tier}). ` +
+          `Provider will be null.`,
       );
     }
 
@@ -82,15 +82,15 @@ export class ResolveService {
     };
   }
 
-  async resolveForTier(userId: string, tier: Tier): Promise<ResolveResponse> {
-    const tiers = await this.routingService.getTiers(userId);
+  async resolveForTier(agentId: string, tier: Tier): Promise<ResolveResponse> {
+    const tiers = await this.routingService.getTiers(agentId);
     const assignment = tiers.find((t) => t.tier === tier);
 
     if (!assignment) {
       return { tier, model: null, provider: null, confidence: 1, score: 0, reason: 'heartbeat' };
     }
 
-    const model = await this.routingService.getEffectiveModel(userId, assignment);
+    const model = await this.routingService.getEffectiveModel(agentId, assignment);
     const pricing = model ? this.pricingCache.getByModel(model) : null;
 
     return {
