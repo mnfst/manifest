@@ -1,5 +1,19 @@
 # manifest
 
+## 5.20.0
+
+### Minor Changes
+
+- d0b865d: Make routing configuration per-agent instead of per-user. Each agent now has its own independent set of provider connections (with encrypted API keys) and tier-to-model assignments. Dashboard routing API endpoints include the agent name in the URL path. Existing user-level routing configuration is automatically migrated to all agents under each user.
+
+### Patch Changes
+
+- 353e274: Fix per-agent routing migration failing on users with multiple agents. Drop old unique indexes before the fan-out INSERT to prevent duplicate key violations on (user_id, provider).
+- 8d4efbe: Fix PostHog funnel distinct_id mismatch in cloud mode by emitting plugin_registered from backend with hashed user ID, and pass explicit mode to plugin telemetry events
+- 49bf6ee: Fix security scan warnings in bundled skill: add metadata, source provenance, explicit privacy fields, routing content caveat, and read-only tools note
+- 3171e39: Update npm package description and keywords to reflect all features: LLM routing, cost optimization, multi-provider support, privacy-first architecture, and real-time analytics
+- bf26917: Rewrite bundled agent skill with complete setup guide, routing docs, and dashboard reference
+
 ## 5.19.0
 
 ### Minor Changes
