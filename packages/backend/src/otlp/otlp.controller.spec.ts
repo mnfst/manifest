@@ -62,7 +62,12 @@ describe('OtlpController', () => {
       headers: { 'content-type': contentType },
       body,
       rawBody,
-      ingestionContext: { tenantId: 'test-tenant', agentId: 'test-agent', agentName: 'test-agent', userId: 'test-user' },
+      ingestionContext: {
+        tenantId: 'test-tenant',
+        agentId: 'test-agent',
+        agentName: 'test-agent',
+        userId: 'test-user',
+      },
     } as never;
   }
 
@@ -139,11 +144,12 @@ describe('OtlpController', () => {
       delete process.env['MANIFEST_MODE'];
       await controller.ingestTraces(makeReq('application/json', {}, undefined));
 
-      expect(trackCloudEvent).toHaveBeenCalledWith(
-        'first_telemetry_received',
-        'test-user',
-        { agent_id_hash: 'test-age' },
-      );
+      expect(trackCloudEvent).toHaveBeenCalledWith('plugin_registered', 'test-user', {
+        source: 'backend',
+      });
+      expect(trackCloudEvent).toHaveBeenCalledWith('first_telemetry_received', 'test-user', {
+        agent_id_hash: 'test-age',
+      });
       expect(trackEvent).not.toHaveBeenCalled();
     });
 
@@ -152,10 +158,9 @@ describe('OtlpController', () => {
       (existsSync as jest.Mock).mockReturnValue(false);
       await controller.ingestTraces(makeReq('application/json', {}, undefined));
 
-      expect(trackEvent).toHaveBeenCalledWith(
-        'first_telemetry_received',
-        { agent_id_hash: 'test-age' },
-      );
+      expect(trackEvent).toHaveBeenCalledWith('first_telemetry_received', {
+        agent_id_hash: 'test-age',
+      });
       expect(trackCloudEvent).not.toHaveBeenCalled();
     });
 
@@ -173,7 +178,111 @@ describe('OtlpController', () => {
       await controller.ingestTraces(makeReq('application/json', {}, undefined));
       await controller.ingestTraces(makeReq('application/json', {}, undefined));
 
-      expect(trackCloudEvent).toHaveBeenCalledTimes(1);
+      // 2 calls on first ingest (plugin_registered + first_telemetry_received), 0 on second
+      expect(trackCloudEvent).toHaveBeenCalledTimes(2);
+    });
+
+    it('emits plugin_registered with source backend via metrics ingestion', async () => {
+      delete process.env['MANIFEST_MODE'];
+      await controller.ingestMetrics(makeReq('application/json', {}, undefined));
+
+      expect(trackCloudEvent).toHaveBeenCalledWith('plugin_registered', 'test-user', {
+        source: 'backend',
+      });
+      expect(trackCloudEvent).toHaveBeenCalledWith('first_telemetry_received', 'test-user', {
+        agent_id_hash: 'test-age',
+      });
+    });
+
+    it('emits plugin_registered with source backend via logs ingestion', async () => {
+      delete process.env['MANIFEST_MODE'];
+      await controller.ingestLogs(makeReq('application/json', {}, undefined));
+
+      expect(trackCloudEvent).toHaveBeenCalledWith('plugin_registered', 'test-user', {
+        source: 'backend',
+      });
+      expect(trackCloudEvent).toHaveBeenCalledWith('first_telemetry_received', 'test-user', {
+        agent_id_hash: 'test-age',
+      });
+    });
+
+    it('deduplicates across different ingestion methods for the same agent', async () => {
+      delete process.env['MANIFEST_MODE'];
+      await controller.ingestTraces(makeReq('application/json', {}, undefined));
+      await controller.ingestMetrics(makeReq('application/json', {}, undefined));
+      await controller.ingestLogs(makeReq('application/json', {}, undefined));
+
+      // Only the first call (traces) should trigger events
+      expect(trackCloudEvent).toHaveBeenCalledTimes(2);
+    });
+
+    it('tracks separately for different agentIds in cloud mode', async () => {
+      delete process.env['MANIFEST_MODE'];
+
+      const reqAgent1 = {
+        headers: { 'content-type': 'application/json' },
+        body: {},
+        rawBody: undefined,
+        ingestionContext: {
+          tenantId: 'tenant-1',
+          agentId: 'agent-1',
+          agentName: 'agent-1',
+          userId: 'user-1',
+        },
+      } as never;
+
+      const reqAgent2 = {
+        headers: { 'content-type': 'application/json' },
+        body: {},
+        rawBody: undefined,
+        ingestionContext: {
+          tenantId: 'tenant-1',
+          agentId: 'agent-2',
+          agentName: 'agent-2',
+          userId: 'user-1',
+        },
+      } as never;
+
+      await controller.ingestTraces(reqAgent1);
+      await controller.ingestTraces(reqAgent2);
+
+      // 2 events per agent = 4 total
+      expect(trackCloudEvent).toHaveBeenCalledTimes(4);
+    });
+
+    it('uses userId as the distinct_id key for trackCloudEvent', async () => {
+      delete process.env['MANIFEST_MODE'];
+
+      const req = {
+        headers: { 'content-type': 'application/json' },
+        body: {},
+        rawBody: undefined,
+        ingestionContext: {
+          tenantId: 'my-tenant',
+          agentId: 'my-agent',
+          agentName: 'my-agent',
+          userId: 'user-abc-123',
+        },
+      } as never;
+
+      await controller.ingestTraces(req);
+
+      expect(trackCloudEvent).toHaveBeenCalledWith('plugin_registered', 'user-abc-123', {
+        source: 'backend',
+      });
+      expect(trackCloudEvent).toHaveBeenCalledWith('first_telemetry_received', 'user-abc-123', {
+        agent_id_hash: 'my-agent',
+      });
+    });
+
+    it('does not emit events when no data is accepted', async () => {
+      delete process.env['MANIFEST_MODE'];
+      mockTraceIngest.ingest.mockResolvedValue({ accepted: 0 });
+
+      await controller.ingestTraces(makeReq('application/json', {}, undefined));
+
+      expect(trackCloudEvent).not.toHaveBeenCalled();
+      expect(trackEvent).not.toHaveBeenCalled();
     });
   });
 });

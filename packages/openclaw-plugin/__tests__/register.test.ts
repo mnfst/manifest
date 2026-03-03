@@ -106,9 +106,45 @@ describe("register — mode routing", () => {
     const api = makeApi();
     plugin.register(api);
 
+    expect(trackPluginEvent).toHaveBeenCalledWith("plugin_registered", undefined, "local");
     expect(trackPluginEvent).toHaveBeenCalledWith("plugin_mode_selected", {
       mode: "local",
+    }, "local");
+  });
+
+  it("passes config.mode as third argument to trackPluginEvent in cloud mode", () => {
+    (parseConfig as jest.Mock).mockReturnValue({
+      mode: "cloud",
+      apiKey: "mnfst_abc",
+      endpoint: "https://app.manifest.build/otlp",
+      port: 2099,
+      host: "127.0.0.1",
     });
+    (validateConfig as jest.Mock).mockReturnValue(null);
+
+    const api = makeApi();
+    plugin.register(api);
+
+    expect(trackPluginEvent).toHaveBeenCalledWith("plugin_registered", undefined, "cloud");
+    expect(trackPluginEvent).toHaveBeenCalledWith("plugin_mode_selected", {
+      mode: "cloud",
+    }, "cloud");
+  });
+
+  it("calls trackPluginEvent exactly twice for non-dev modes", () => {
+    (parseConfig as jest.Mock).mockReturnValue({
+      mode: "cloud",
+      apiKey: "mnfst_abc",
+      endpoint: "https://app.manifest.build/otlp",
+      port: 2099,
+      host: "127.0.0.1",
+    });
+    (validateConfig as jest.Mock).mockReturnValue(null);
+
+    const api = makeApi();
+    plugin.register(api);
+
+    expect(trackPluginEvent).toHaveBeenCalledTimes(2);
   });
 });
 
