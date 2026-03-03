@@ -91,7 +91,7 @@ Dashboard opens at **http://127.0.0.1:2099**. Telemetry from your agents flows i
 
 **In local mode, your data stays on your machine.** All agent messages, token counts, costs, and telemetry are stored locally. In cloud mode, only OpenTelemetry metadata (model, tokens, latency) is sent — message content is never collected.
 
-**In cloud mode, the blind proxy physically cannot read your prompts** This is fundamentally different from services saying "trust us."
+**In cloud mode, the blind proxy physically cannot read your prompts.** This is fundamentally different from services saying "trust us."
 
 The only thing Manifest collects is anonymous product analytics (hashed machine ID, OS platform, package version, event names) to help improve the project. No personally identifiable information or agent data is included.
 
