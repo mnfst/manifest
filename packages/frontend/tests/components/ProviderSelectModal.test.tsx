@@ -162,6 +162,17 @@ describe("ProviderSelectModal", () => {
       expect(screen.getByLabelText("OpenAI API key")).toBeDefined();
     });
 
+    it("shows where-to-get API key link for selected provider", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+
+      const link = screen.getByRole("link", { name: "Where to get your OpenAI API key" });
+      expect(link.getAttribute("href")).toBe("https://platform.openai.com/api-keys");
+      expect(link.getAttribute("target")).toBe("_blank");
+    });
+
     it("returns to list view when back button is clicked", async () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />

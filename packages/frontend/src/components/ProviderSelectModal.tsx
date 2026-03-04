@@ -11,6 +11,18 @@ import { toast } from '../services/toast-store.js';
 import { isLocalMode } from '../services/local-mode.js';
 import CustomProviderForm from './CustomProviderForm.js';
 
+const PROVIDER_API_KEY_URLS: Record<string, string> = {
+  anthropic: 'https://console.anthropic.com/settings/keys',
+  deepseek: 'https://platform.deepseek.com/api_keys',
+  gemini: 'https://aistudio.google.com/apikey',
+  mistral: 'https://console.mistral.ai/api-keys/',
+  moonshot: 'https://platform.moonshot.ai/',
+  openai: 'https://platform.openai.com/api-keys',
+  openrouter: 'https://openrouter.ai/keys',
+  qwen: 'https://www.alibabacloud.com/help/en/model-studio/developer-reference/get-api-key',
+  xai: 'https://docs.x.ai/docs/api-reference',
+};
+
 interface Props {
   agentName: string;
   providers: RoutingProvider[];
@@ -341,6 +353,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
               const provDef = PROVIDERS.find((p) => p.id === provId)!;
               const connected = () => isConnected(provId) || isNoKeyConnected(provId);
               const isOllama = provDef.noKeyRequired;
+              const whereToGetUrl = PROVIDER_API_KEY_URLS[provId];
 
               return (
                 <div class="provider-detail">
@@ -449,6 +462,18 @@ const ProviderSelectModal: Component<Props> = (props) => {
                       <Show when={validationError()}>
                         <div class="provider-detail__error">{validationError()}</div>
                       </Show>
+                      <Show when={whereToGetUrl}>
+                        <p class="provider-detail__key-help">
+                          <a
+                            class="provider-detail__key-help-link"
+                            href={whereToGetUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Get {provDef.name} API key
+                          </a>
+                        </p>
+                      </Show>
                     </div>
                     <button
                       class="btn btn--primary provider-detail__action"
@@ -525,6 +550,18 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         />
                         <Show when={validationError()}>
                           <div class="provider-detail__error">{validationError()}</div>
+                        </Show>
+                        <Show when={whereToGetUrl}>
+                          <p class="provider-detail__key-help">
+                            <a
+                              class="provider-detail__key-help-link"
+                              href={whereToGetUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Get {provDef.name} API key
+                            </a>
+                          </p>
                         </Show>
                         <button
                           class="btn btn--primary provider-detail__action"
