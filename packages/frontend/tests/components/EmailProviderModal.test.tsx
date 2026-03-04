@@ -79,7 +79,7 @@ describe("EmailProviderModal", () => {
 
   it("shows where-to-get API key link for selected provider", () => {
     render(() => <EmailProviderModal {...defaultProps} />);
-    const link = screen.getByRole("link", { name: "Where to get your Resend API key" });
+    const link = screen.getByRole("link", { name: "Get Resend API key" });
     expect(link.getAttribute("href")).toBe("https://resend.com/api-keys");
     expect(link.getAttribute("target")).toBe("_blank");
   });

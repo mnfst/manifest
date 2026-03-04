@@ -168,7 +168,7 @@ describe("ProviderSelectModal", () => {
       ));
       fireEvent.click(screen.getByText("OpenAI"));
 
-      const link = screen.getByRole("link", { name: "Where to get your OpenAI API key" });
+      const link = screen.getByRole("link", { name: "Get OpenAI API key" });
       expect(link.getAttribute("href")).toBe("https://platform.openai.com/api-keys");
       expect(link.getAttribute("target")).toBe("_blank");
     });
