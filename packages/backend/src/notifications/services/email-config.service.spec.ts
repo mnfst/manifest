@@ -9,9 +9,11 @@ jest.mock('./email-providers/resolve-provider', () => ({
 }));
 
 jest.mock('@react-email/render', () => ({
-  render: jest.fn().mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
-    Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
-  ),
+  render: jest
+    .fn()
+    .mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
+      Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
+    ),
 }));
 
 jest.mock('../emails/test-email', () => ({
@@ -120,6 +122,24 @@ describe('EmailConfigService (local mode)', () => {
     });
   });
 
+  describe('testConfig with fallback apiKey from saved config', () => {
+    it('reads apiKey from saved local config when dto.apiKey is empty', async () => {
+      (readLocalEmailConfig as jest.Mock).mockReturnValue({
+        provider: 'resend',
+        apiKey: 'saved-local-key',
+      });
+      const mockSend = jest.fn().mockResolvedValue(true);
+      (createProvider as jest.Mock).mockReturnValue({ send: mockSend });
+
+      const result = await service.testConfig({ provider: 'resend', apiKey: '' }, 'user@test.com');
+
+      expect(result).toEqual({ success: true });
+      expect(createProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ apiKey: 'saved-local-key' }),
+      );
+    });
+  });
+
   describe('clearConfig', () => {
     it('clears local email config', () => {
       service.clearConfig();
@@ -154,11 +174,30 @@ describe('EmailConfigService (cloud mode)', () => {
   });
 
   it('saveConfig throws BadRequestException', () => {
-    expect(() => service.saveConfig({ provider: 'resend', apiKey: 'key' }))
-      .toThrow(BadRequestException);
+    expect(() => service.saveConfig({ provider: 'resend', apiKey: 'key' })).toThrow(
+      BadRequestException,
+    );
   });
 
   it('clearConfig throws BadRequestException', () => {
     expect(() => service.clearConfig()).toThrow(BadRequestException);
+  });
+
+  it('testConfig falls back to MAILGUN_API_KEY env var when apiKey is empty', async () => {
+    process.env['MAILGUN_API_KEY'] = 'env-mailgun-key';
+    service = new EmailConfigService();
+
+    const mockSend = jest.fn().mockResolvedValue(true);
+    (createProvider as jest.Mock).mockReturnValue({ send: mockSend });
+
+    const result = await service.testConfig(
+      { provider: 'mailgun', apiKey: '', domain: 'mg.test.com' },
+      'user@test.com',
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(createProvider).toHaveBeenCalledWith(
+      expect.objectContaining({ apiKey: 'env-mailgun-key' }),
+    );
   });
 });

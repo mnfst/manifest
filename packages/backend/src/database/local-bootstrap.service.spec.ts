@@ -193,4 +193,20 @@ describe('LocalBootstrapService', () => {
       await expect(service.onModuleInit()).resolves.not.toThrow();
     });
   });
+
+  describe('readApiKeyFromConfig error handling', () => {
+    it('returns null when config file read throws', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { existsSync, readFileSync } = require('fs');
+      (existsSync as jest.Mock).mockReturnValue(true);
+      (readFileSync as jest.Mock).mockImplementation(() => {
+        throw new Error('permission denied');
+      });
+
+      await service.onModuleInit();
+
+      // API key registration should be skipped because readApiKeyFromConfig returned null
+      expect(mockAgentKeyRepo.insert).not.toHaveBeenCalled();
+    });
+  });
 });

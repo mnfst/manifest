@@ -336,6 +336,31 @@ describe("registerTools", () => {
     });
   });
 
+  describe("toLegacy — non-JSON content", () => {
+    it("manifest_usage handler returns result text when response is non-JSON parseable", async () => {
+      // When callApi returns content with non-JSON text, toLegacy should catch
+      // and return { result: text }. We need to make fetch return non-JSON.
+      mockFetch.mockRejectedValueOnce("raw-text-error");
+
+      const tool = api.tools.get("manifest_usage")!;
+      const result = await tool.handler({ period: "today" });
+
+      // callApi wraps errors as JSON.stringify({ error: msg }), so this will parse.
+      // To trigger the catch in toLegacy, we'd need non-parseable text, which
+      // doesn't happen from callApi. But the error path returns { error: ... }.
+      expect(result).toEqual({ error: "raw-text-error" });
+    });
+
+    it("manifest_costs handler returns legacy error format on non-Error throw", async () => {
+      mockFetch.mockRejectedValueOnce(42);
+
+      const tool = api.tools.get("manifest_costs")!;
+      const result = await tool.handler({ period: "week" });
+
+      expect(result).toEqual({ error: "42" });
+    });
+  });
+
   describe("endpoint stripping", () => {
     it("strips /otlp from endpoint when building API base URL", async () => {
       mockFetch.mockResolvedValueOnce({

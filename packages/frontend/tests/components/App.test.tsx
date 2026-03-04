@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { render } from "@solidjs/testing-library";
 
+let mockPathname = "/";
 vi.mock("@solidjs/router", () => ({
-  useLocation: () => ({ pathname: "/" }),
+  useLocation: () => ({ pathname: mockPathname }),
 }));
 
 vi.mock("../../src/components/Header.jsx", () => ({
@@ -82,6 +83,15 @@ describe("dashboard_loaded event", () => {
     unmount();
     render(() => <App />);
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("App sidebar visibility", () => {
+  it("shows sidebar on agent paths", () => {
+    mockPathname = "/agents/test-agent";
+    const { container } = render(() => <App />);
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
+    mockPathname = "/";
   });
 });
 

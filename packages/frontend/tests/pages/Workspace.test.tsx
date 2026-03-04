@@ -164,6 +164,80 @@ describe("Workspace", () => {
     });
   });
 
+  it("creates agent via Enter key in modal", async () => {
+    mockCreateAgent.mockResolvedValue({ agent: { name: "new-agent" }, apiKey: "test-key" });
+    const { container } = render(() => <Workspace />);
+    const btn = screen.getAllByText("Connect Agent")[0];
+    fireEvent.click(btn);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "new-agent" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    await vi.waitFor(() => {
+      expect(mockCreateAgent).toHaveBeenCalledWith("new-agent");
+    });
+  });
+
+  it("closes modal on Escape key", () => {
+    const { container } = render(() => <Workspace />);
+    const btn = screen.getAllByText("Connect Agent")[0];
+    fireEvent.click(btn);
+    expect(container.querySelector(".modal-card__input")).not.toBeNull();
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.keyDown(input, { key: "Escape" });
+    expect(container.querySelector(".modal-card__input")).toBeNull();
+  });
+
+  it("closes modal on overlay click", () => {
+    const { container } = render(() => <Workspace />);
+    const btn = screen.getAllByText("Connect Agent")[0];
+    fireEvent.click(btn);
+    expect(container.querySelector(".modal-card__input")).not.toBeNull();
+    const overlay = container.querySelector(".modal-overlay")!;
+    fireEvent.click(overlay);
+    expect(container.querySelector(".modal-card__input")).toBeNull();
+  });
+
+  it("navigates to agent page after successful creation", async () => {
+    mockCreateAgent.mockResolvedValue({ agent: { name: "my-new-agent" }, apiKey: "key-123" });
+    const { container } = render(() => <Workspace />);
+    const btn = screen.getAllByText("Connect Agent")[0];
+    fireEvent.click(btn);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "my-new-agent" } });
+    fireEvent.click(screen.getByText("Create"));
+    await vi.waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        "/agents/my-new-agent",
+        expect.objectContaining({ state: expect.objectContaining({ newAgent: true }) }),
+      );
+    });
+  });
+
+  it("handles create agent error gracefully", async () => {
+    mockCreateAgent.mockRejectedValueOnce(new Error("Failed"));
+    const { container } = render(() => <Workspace />);
+    const btn = screen.getAllByText("Connect Agent")[0];
+    fireEvent.click(btn);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "new-agent" } });
+    fireEvent.click(screen.getByText("Create"));
+    await vi.waitFor(() => {
+      expect(mockCreateAgent).toHaveBeenCalledWith("new-agent");
+    });
+    // Modal should still be visible after error
+    expect(container.querySelector(".modal-card__input")).not.toBeNull();
+  });
+
+  it("does not create agent with empty name", () => {
+    const { container } = render(() => <Workspace />);
+    const btn = screen.getAllByText("Connect Agent")[0];
+    fireEvent.click(btn);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "   " } });
+    const createBtn = screen.getByText("Create") as HTMLButtonElement;
+    expect(createBtn.disabled).toBe(true);
+  });
+
   describe("local mode", () => {
     it("redirects to /agents/local-agent in local mode", async () => {
       mockCheckLocalMode = vi.fn().mockResolvedValue(true);

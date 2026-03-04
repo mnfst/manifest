@@ -149,4 +149,13 @@ describe('ApiKeyGuard', () => {
     expect(result).toBe(true);
     expect(mockFindOne).not.toHaveBeenCalled();
   });
+
+  it('returns true when @Public() decorator is set', async () => {
+    (reflector.getAllAndOverride as jest.Mock).mockReturnValue(true);
+    const ctx = makeContext({});
+
+    const result = await guard.canActivate(ctx);
+    expect(result).toBe(true);
+    expect(mockFindOne).not.toHaveBeenCalled();
+  });
 });

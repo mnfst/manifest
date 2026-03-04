@@ -572,6 +572,99 @@ describe("register — fallback logger", () => {
   });
 });
 
+describe("register — api.config edge cases", () => {
+  it("handles api.config being undefined (no plugins entries)", () => {
+    (parseConfig as jest.Mock).mockReturnValue({
+      mode: "cloud",
+      apiKey: "mnfst_abc",
+      endpoint: "https://app.manifest.build/otlp",
+      port: 2099,
+      host: "127.0.0.1",
+    });
+    (validateConfig as jest.Mock).mockReturnValue(null);
+
+    const api = {
+      pluginConfig: {},
+      config: undefined,
+      logger: {
+        info: jest.fn(),
+        debug: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+      },
+      registerService: jest.fn(),
+      registerTool: jest.fn(),
+    };
+
+    plugin.register(api);
+
+    // Should not abort and should proceed to register the service
+    expect(api.registerService).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "manifest-telemetry" }),
+    );
+  });
+});
+
+describe("register — verify with no agentName", () => {
+  it("logs 'Connection verified' without agent suffix when agentName is null (dev mode)", async () => {
+    const devConfig = {
+      mode: "dev" as const,
+      apiKey: "",
+      endpoint: "http://localhost:38238/otlp",
+      port: 2099,
+      host: "127.0.0.1",
+    };
+    (parseConfig as jest.Mock).mockReturnValue(devConfig);
+    (validateConfig as jest.Mock).mockReturnValue(null);
+    (verifyConnection as jest.Mock).mockResolvedValue({
+      error: null,
+      agentName: null,
+      endpointReachable: true,
+      authValid: true,
+    });
+
+    const api = makeApi();
+    plugin.register(api);
+
+    const serviceCall = api.registerService.mock.calls[0][0];
+    serviceCall.start();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(api.logger.info).toHaveBeenCalledWith(
+      "[manifest] Connection verified",
+    );
+  });
+
+  it("logs 'Connection verified' without agent suffix when agentName is null (cloud mode)", async () => {
+    const cloudConfig = {
+      mode: "cloud" as const,
+      apiKey: "mnfst_abc",
+      endpoint: "https://app.manifest.build/otlp",
+      port: 2099,
+      host: "127.0.0.1",
+    };
+    (parseConfig as jest.Mock).mockReturnValue(cloudConfig);
+    (validateConfig as jest.Mock).mockReturnValue(null);
+    (verifyConnection as jest.Mock).mockResolvedValue({
+      error: null,
+      agentName: null,
+      endpointReachable: true,
+      authValid: true,
+    });
+
+    const api = makeApi();
+    plugin.register(api);
+
+    const serviceCall = api.registerService.mock.calls[0][0];
+    serviceCall.start();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(api.logger.info).toHaveBeenCalledWith(
+      "[manifest] Connection verified",
+    );
+  });
+});
+
 describe("register — diagnostics-otel conflict", () => {
   it("aborts registration when diagnostics-otel is enabled", () => {
     (parseConfig as jest.Mock).mockReturnValue({

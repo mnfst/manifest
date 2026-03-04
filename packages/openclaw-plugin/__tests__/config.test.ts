@@ -145,6 +145,36 @@ describe("parseConfig", () => {
     expect(result.host).toBe("127.0.0.1");
   });
 
+  it("parses custom port when provided as a positive number", () => {
+    const result = parseConfig({ port: 8080 });
+    expect(result.port).toBe(8080);
+  });
+
+  it("ignores non-positive port and defaults to 2099", () => {
+    const result = parseConfig({ port: -1 });
+    expect(result.port).toBe(2099);
+  });
+
+  it("ignores non-number port and defaults to 2099", () => {
+    const result = parseConfig({ port: "8080" });
+    expect(result.port).toBe(2099);
+  });
+
+  it("parses custom host when provided as a non-empty string", () => {
+    const result = parseConfig({ host: "0.0.0.0" });
+    expect(result.host).toBe("0.0.0.0");
+  });
+
+  it("ignores empty host string and defaults to 127.0.0.1", () => {
+    const result = parseConfig({ host: "" });
+    expect(result.host).toBe("127.0.0.1");
+  });
+
+  it("ignores non-string host and defaults to 127.0.0.1", () => {
+    const result = parseConfig({ host: 42 });
+    expect(result.host).toBe("127.0.0.1");
+  });
+
   it("handles null/undefined input gracefully", () => {
     const result = parseConfig(null);
     expect(result.apiKey).toBe("");

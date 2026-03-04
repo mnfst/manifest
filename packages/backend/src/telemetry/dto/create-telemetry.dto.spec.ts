@@ -65,6 +65,24 @@ describe('TelemetryEventDto', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 
+  it('transforms and validates nested security_event via @Type', async () => {
+    const plain = {
+      timestamp: '2024-01-01T00:00:00Z',
+      description: 'test event',
+      service_type: 'agent',
+      status: 'ok',
+      security_event: {
+        severity: 'critical',
+        category: 'injection',
+        description: 'SQL injection attempt',
+      },
+    };
+    const dto = plainToInstance(TelemetryEventDto, plain);
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.security_event).toBeInstanceOf(SecurityEventDto);
+  });
+
   it('rejects negative output_tokens', async () => {
     const dto = plainToInstance(TelemetryEventDto, {
       timestamp: '2024-01-01T00:00:00Z',

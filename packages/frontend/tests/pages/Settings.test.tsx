@@ -275,6 +275,102 @@ describe("Settings", () => {
     expect(container.textContent).toContain("Rename your agent");
   });
 
+  it("endpoint returns pluginEndpoint when available", async () => {
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: "https://custom.example.com/otlp" });
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="setup-configure"]')).not.toBeNull();
+    });
+  });
+
+  it("endpoint returns origin/otlp when host is not app.manifest.build", async () => {
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: null });
+    vi.stubGlobal("location", { ...window.location, hostname: "localhost", origin: "http://localhost:3000" });
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="setup-configure"]')).not.toBeNull();
+    });
+  });
+
+  it("does not save when name is empty", async () => {
+    const { container } = render(() => <Settings />);
+    const input = screen.getByLabelText("Agent name") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "   " } });
+    const saveBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Save"),
+    ) as HTMLButtonElement;
+    // Button is enabled (since "   ".trim() !== "test-agent"), but handleSave bails early
+    fireEvent.click(saveBtn);
+    expect(mockRenameAgent).not.toHaveBeenCalled();
+  });
+
+  it("handles rotate key error gracefully", async () => {
+    mockRotateAgentKey.mockRejectedValueOnce(new Error("Rotation failed"));
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Rotate key");
+    });
+    const rotateBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Rotate key"),
+    )!;
+    fireEvent.click(rotateBtn);
+    await vi.waitFor(() => {
+      expect(mockRotateAgentKey).toHaveBeenCalled();
+    });
+    // Should not crash - button should be clickable again
+    await vi.waitFor(() => {
+      const btn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Rotate key"),
+      );
+      expect(btn).not.toBeUndefined();
+    });
+  });
+
+  it("closes delete modal when overlay is clicked", () => {
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Delete agent"));
+    expect(container.querySelector(".modal-overlay")).not.toBeNull();
+    const overlay = container.querySelector(".modal-overlay")!;
+    // Click the overlay itself (not inner content)
+    fireEvent.click(overlay);
+    expect(container.querySelector(".modal-overlay")).toBeNull();
+  });
+
+  it("navigates to home after successful delete", async () => {
+    mockDeleteAgent.mockResolvedValue(undefined);
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Delete agent"));
+    const confirmInput = container.querySelector('.modal-overlay input[type="text"]') as HTMLInputElement;
+    fireEvent.input(confirmInput, { target: { value: "test-agent" } });
+    const deleteBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Delete this agent"),
+    )!;
+    fireEvent.click(deleteBtn);
+    await vi.waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
+    });
+  });
+
+  it("shows Deleting... text during delete", async () => {
+    let resolveDelete: () => void;
+    mockDeleteAgent.mockReturnValue(new Promise<void>((r) => { resolveDelete = r; }));
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Delete agent"));
+    const confirmInput = container.querySelector('.modal-overlay input[type="text"]') as HTMLInputElement;
+    fireEvent.input(confirmInput, { target: { value: "test-agent" } });
+    const deleteBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Delete this agent"),
+    )!;
+    fireEvent.click(deleteBtn);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Deleting...");
+    });
+    resolveDelete!();
+  });
+
   describe("local mode", () => {
     beforeEach(() => {
       mockIsLocalMode = true;

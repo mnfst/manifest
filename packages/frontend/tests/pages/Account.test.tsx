@@ -19,9 +19,10 @@ vi.mock("../../src/services/auth-client.js", () => ({
   },
 }));
 
+let mockIsLocalMode = false;
 vi.mock("../../src/services/local-mode.js", () => ({
   checkLocalMode: vi.fn().mockResolvedValue(false),
-  isLocalMode: () => false,
+  isLocalMode: () => mockIsLocalMode,
 }));
 
 vi.stubGlobal("navigator", {
@@ -43,12 +44,19 @@ Object.defineProperty(window, "matchMedia", {
   })),
 });
 
+const mockSetDisplayName = vi.fn();
+vi.mock("../../src/services/display-name.js", () => ({
+  displayName: () => "Local User",
+  setDisplayName: (...args: unknown[]) => mockSetDisplayName(...args),
+}));
+
 import Account from "../../src/pages/Account";
 
 describe("Account", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    mockIsLocalMode = false;
   });
 
   it("renders Account Preferences heading", () => {
@@ -131,5 +139,48 @@ describe("Account", () => {
     render(() => <Account />);
     // Component should read and apply stored theme
     expect(localStorage.getItem("theme")).toBe("dark");
+  });
+
+  describe("local mode", () => {
+    beforeEach(() => {
+      mockIsLocalMode = true;
+    });
+
+    it("shows Profile section in local mode", () => {
+      render(() => <Account />);
+      expect(screen.getByText("Profile")).toBeDefined();
+    });
+
+    it("shows editable display name input in local mode", () => {
+      render(() => <Account />);
+      const inputs = screen.getAllByLabelText("Display name") as HTMLInputElement[];
+      const editableInput = inputs.find((i) => !i.readOnly);
+      expect(editableInput).toBeDefined();
+      expect(editableInput!.value).toBe("Local User");
+    });
+
+    it("updates display name on blur in local mode", () => {
+      render(() => <Account />);
+      const inputs = screen.getAllByLabelText("Display name") as HTMLInputElement[];
+      const editableInput = inputs.find((i) => !i.readOnly)!;
+      fireEvent.input(editableInput, { target: { value: "New Name" } });
+      fireEvent.blur(editableInput);
+      expect(mockSetDisplayName).toHaveBeenCalledWith("New Name");
+    });
+
+    it("updates display name on Enter key in local mode", () => {
+      render(() => <Account />);
+      const inputs = screen.getAllByLabelText("Display name") as HTMLInputElement[];
+      const editableInput = inputs.find((i) => !i.readOnly)!;
+      fireEvent.input(editableInput, { target: { value: "Enter Name" } });
+      fireEvent.keyDown(editableInput, { key: "Enter" });
+      expect(mockSetDisplayName).toHaveBeenCalledWith("Enter Name");
+    });
+
+    it("hides cloud-only sections in local mode", () => {
+      const { container } = render(() => <Account />);
+      expect(container.textContent).not.toContain("Workspace");
+      expect(container.textContent).not.toContain("Profile information");
+    });
   });
 });

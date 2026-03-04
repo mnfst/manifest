@@ -270,6 +270,73 @@ describe('OtlpAuthGuard', () => {
     expect(mockUpdate).toHaveBeenCalled();
   });
 
+  it('evicts oldest cache entry when cache exceeds MAX_CACHE_SIZE', async () => {
+    // Fill the cache to MAX_CACHE_SIZE
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cache = (guard as any).cache as Map<string, unknown>;
+    const MAX = (guard as any).MAX_CACHE_SIZE;
+    for (let i = 0; i < MAX; i++) {
+      cache.set(`mnfst_fill-key-${i}`, {
+        tenantId: 't',
+        agentId: 'a',
+        agentName: 'n',
+        userId: 'u',
+        expiresAt: Date.now() + 600000,
+      });
+    }
+    expect(cache.size).toBe(MAX);
+
+    mockGetOne.mockResolvedValue({
+      tenant_id: 'tenant-1',
+      agent_id: 'agent-1',
+      expires_at: null,
+      agent: { name: 'test-agent' },
+      tenant: { name: 'user-1' },
+    });
+
+    const { ctx } = makeContext({ authorization: 'Bearer mnfst_overflow-key' });
+    await guard.canActivate(ctx);
+
+    // Oldest entry should have been evicted
+    expect(cache.has('mnfst_fill-key-0')).toBe(false);
+    // New entry should exist
+    expect(cache.has('mnfst_overflow-key')).toBe(true);
+  });
+
+  it('evicts expired cache entries before adding new ones', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cache = (guard as any).cache as Map<string, unknown>;
+    cache.set('mnfst_expired-entry', {
+      tenantId: 't',
+      agentId: 'a',
+      agentName: 'n',
+      userId: 'u',
+      expiresAt: Date.now() - 1000, // already expired
+    });
+    cache.set('mnfst_valid-entry', {
+      tenantId: 't',
+      agentId: 'a',
+      agentName: 'n',
+      userId: 'u',
+      expiresAt: Date.now() + 600000,
+    });
+
+    mockGetOne.mockResolvedValue({
+      tenant_id: 'tenant-1',
+      agent_id: 'agent-1',
+      expires_at: null,
+      agent: { name: 'test-agent' },
+      tenant: { name: 'user-1' },
+    });
+
+    const { ctx } = makeContext({ authorization: 'Bearer mnfst_trigger-evict' });
+    await guard.canActivate(ctx);
+
+    expect(cache.has('mnfst_expired-entry')).toBe(false);
+    expect(cache.has('mnfst_valid-entry')).toBe(true);
+    expect(cache.has('mnfst_trigger-evict')).toBe(true);
+  });
+
   it('invalidateCache removes a specific key from cache', async () => {
     mockGetOne.mockResolvedValue({
       tenant_id: 'tenant-1',

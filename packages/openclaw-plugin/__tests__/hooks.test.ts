@@ -245,6 +245,19 @@ describe("registerHooks", () => {
       );
     });
 
+    it("falls back to default sessionKey when no sessionKey, session, or agent", () => {
+      api.emit("message_received", {});
+
+      expect(tracer.startSpan).toHaveBeenCalledWith(
+        SPANS.REQUEST,
+        expect.objectContaining({
+          attributes: expect.objectContaining({
+            [ATTRS.SESSION_KEY]: "agent:main:main",
+          }),
+        }),
+      );
+    });
+
     it("defaults channel to 'unknown'", () => {
       api.emit("message_received", { sessionKey: "sess-1" });
 
@@ -292,6 +305,37 @@ describe("registerHooks", () => {
         SPANS.AGENT_TURN,
         expect.objectContaining({
           kind: SpanKind.INTERNAL,
+        }),
+        expect.anything(),
+      );
+    });
+
+    it("derives sessionKey from event.session.key when sessionKey is absent", () => {
+      api.emit("before_agent_start", {
+        session: { key: "nested-key" },
+        agent: "bot",
+      });
+
+      expect(tracer.startSpan).toHaveBeenCalledWith(
+        SPANS.AGENT_TURN,
+        expect.objectContaining({
+          attributes: expect.objectContaining({
+            [ATTRS.SESSION_KEY]: "nested-key",
+          }),
+        }),
+        expect.anything(),
+      );
+    });
+
+    it("falls back to agent-derived sessionKey when no sessionKey or session.key", () => {
+      api.emit("before_agent_start", { agent: "custom-bot" });
+
+      expect(tracer.startSpan).toHaveBeenCalledWith(
+        SPANS.AGENT_TURN,
+        expect.objectContaining({
+          attributes: expect.objectContaining({
+            [ATTRS.SESSION_KEY]: "agent:custom-bot:main",
+          }),
         }),
         expect.anything(),
       );
@@ -393,6 +437,53 @@ describe("registerHooks", () => {
         expect.any(Object),
         expect.anything(),
       );
+    });
+
+    it("defaults toolName to 'unknown' when both toolName and tool are absent", () => {
+      api.emit("tool_result_persist", {
+        sessionKey: "sess-1",
+        durationMs: 10,
+      });
+
+      expect(tracer.startSpan).toHaveBeenCalledWith(
+        "tool.unknown",
+        expect.any(Object),
+        expect.anything(),
+      );
+    });
+
+    it("defaults sessionKey to 'unknown' when absent", () => {
+      api.emit("tool_result_persist", {
+        toolName: "test_tool",
+        durationMs: 5,
+      });
+
+      expect(tracer.startSpan).toHaveBeenCalledWith(
+        "tool.test_tool",
+        expect.objectContaining({
+          attributes: expect.objectContaining({
+            [ATTRS.SESSION_KEY]: "unknown",
+          }),
+        }),
+        expect.anything(),
+      );
+    });
+
+    it("uses context.active() when no active turn span exists for session", () => {
+      // No prior message_received or before_agent_start for this session
+      api.emit("tool_result_persist", {
+        sessionKey: "no-prior-sess",
+        toolName: "orphan_tool",
+        durationMs: 20,
+      });
+
+      expect(tracer.startSpan).toHaveBeenCalledWith(
+        "tool.orphan_tool",
+        expect.any(Object),
+        expect.anything(),
+      );
+      const span = tracer.spans[tracer.spans.length - 1];
+      expect(span.end).toHaveBeenCalled();
     });
 
     it("ends the tool span immediately", () => {
@@ -800,6 +891,80 @@ describe("registerHooks", () => {
       );
     });
 
+    it("derives sessionKey from event.session.key in agent_end", () => {
+      api.emit("message_received", { session: { key: "nested-agent-end" } });
+      api.emit("before_agent_start", { session: { key: "nested-agent-end" } });
+
+      api.emit("agent_end", {
+        session: { key: "nested-agent-end" },
+        messages: [
+          { role: "assistant", model: "test", usage: { input: 10, output: 5 } },
+        ],
+      });
+
+      const llmReqCounter = meter.counters.get(METRICS.LLM_REQUESTS);
+      expect(llmReqCounter?.add).toHaveBeenCalled();
+    });
+
+    it("falls back to agent-derived sessionKey in agent_end when no sessionKey or session.key", () => {
+      api.emit("message_received", { agent: "my-bot" });
+      api.emit("before_agent_start", { agent: "my-bot" });
+
+      api.emit("agent_end", {
+        agent: "my-bot",
+        messages: [],
+      });
+
+      const llmReqCounter = meter.counters.get(METRICS.LLM_REQUESTS);
+      expect(llmReqCounter?.add).toHaveBeenCalled();
+    });
+
+    it("defaults messages to empty array when not provided", () => {
+      api.emit("message_received", { sessionKey: "no-msgs" });
+      api.emit("before_agent_start", { sessionKey: "no-msgs" });
+
+      api.emit("agent_end", {
+        sessionKey: "no-msgs",
+      });
+
+      const llmReqCounter = meter.counters.get(METRICS.LLM_REQUESTS);
+      expect(llmReqCounter?.add).toHaveBeenCalledWith(1, {
+        [ATTRS.MODEL]: "unknown",
+        [ATTRS.PROVIDER]: "unknown",
+      });
+    });
+
+    it("converts non-string error message to string", () => {
+      api.emit("message_received", { sessionKey: "sess-nonstr-err" });
+      api.emit("before_agent_start", { sessionKey: "sess-nonstr-err" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-nonstr-err",
+        success: false,
+        error: { message: 12345 },
+        messages: [],
+      });
+
+      expect(turnSpan.setStatus).toHaveBeenCalledWith({
+        code: SpanStatusCode.ERROR,
+        message: "12345",
+      });
+    });
+
+    it("handles agent_end when no active spans exist for session", () => {
+      // No prior message_received or before_agent_start
+      api.emit("agent_end", {
+        sessionKey: "orphan-end",
+        messages: [],
+      });
+
+      // Should still record metrics without crashing
+      const llmReqCounter = meter.counters.get(METRICS.LLM_REQUESTS);
+      expect(llmReqCounter?.add).toHaveBeenCalled();
+    });
+
     it("uses event.errorMessage as fallback when event.error is absent", () => {
       api.emit("message_received", { sessionKey: "sess-errmsg" });
       api.emit("before_agent_start", { sessionKey: "sess-errmsg" });
@@ -982,6 +1147,37 @@ describe("registerHooks", () => {
       expect(turnSpan.setAttribute).toHaveBeenCalledWith(
         ATTRS.ROUTING_REASON,
         "scored",
+      );
+    });
+
+    it("keeps model as 'auto' when resolveRouting returns null", async () => {
+      mockResolveRouting.mockResolvedValueOnce(null);
+
+      localApi.emit("message_received", { sessionKey: "null-route" });
+      localApi.emit("before_agent_start", { sessionKey: "null-route" });
+
+      const turnSpan = localTracer.spans[1];
+
+      localApi.emit("agent_end", {
+        sessionKey: "null-route",
+        messages: [
+          {
+            role: "assistant",
+            model: "auto",
+            provider: "manifest",
+            usage: { input: 50, output: 25 },
+          },
+        ],
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(mockResolveRouting).toHaveBeenCalled();
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.MODEL]: "auto",
+          [ATTRS.PROVIDER]: "manifest",
+        }),
       );
     });
 

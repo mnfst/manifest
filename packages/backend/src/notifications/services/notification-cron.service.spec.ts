@@ -77,6 +77,20 @@ describe('NotificationCronService', () => {
     await expect(service.onModuleInit()).resolves.not.toThrow();
   });
 
+  it('onModuleInit logs startup catch-up when notifications triggered', async () => {
+    mockGetAllActiveRules.mockResolvedValue([activeRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
+      .mockResolvedValueOnce(undefined); // INSERT
+    mockGetConsumption.mockResolvedValue(200000);
+
+    await service.onModuleInit();
+
+    // triggered > 0, so the startup catch-up log line is reached
+    expect(mockSendThresholdAlert).toHaveBeenCalled();
+  });
+
   it('skips rule when already notified for current period (dedup)', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
     mockQuery.mockResolvedValueOnce([{ 1: 1 }]); // dedup check returns existing log

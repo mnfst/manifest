@@ -23,4 +23,18 @@ describe("sse", () => {
     cleanup();
     expect(mockEventSource.close).toHaveBeenCalled();
   });
+
+  it("increments pingCount when ping event is received", async () => {
+    const { connectSse, pingCount } = await import("../../src/services/sse");
+    const before = pingCount();
+    connectSse();
+    // Find the ping listener and invoke it
+    const pingCall = mockEventSource.addEventListener.mock.calls.find(
+      (c: any[]) => c[0] === "ping",
+    );
+    expect(pingCall).toBeDefined();
+    const handler = pingCall[1];
+    handler();
+    expect(pingCount()).toBe(before + 1);
+  });
 });

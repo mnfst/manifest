@@ -499,5 +499,19 @@ describe('DatabaseSeederService', () => {
 
       expect(mockApiKeyRepo.insert).not.toHaveBeenCalled();
     });
+
+    it('should return null when getAdminUserId query throws', async () => {
+      // checkBetterAuthUser: user exists (skip signUpEmail)
+      mockDataSource.query.mockResolvedValueOnce([{ id: 'x' }]);
+      // getAdminUserId throws (e.g. table doesn't exist)
+      mockDataSource.query.mockRejectedValueOnce(new Error('relation "user" does not exist'));
+
+      mockApiKeyRepo.count.mockResolvedValue(0);
+
+      await service.onModuleInit();
+
+      // API key insert should be skipped because getAdminUserId returned null
+      expect(mockApiKeyRepo.insert).not.toHaveBeenCalled();
+    });
   });
 });

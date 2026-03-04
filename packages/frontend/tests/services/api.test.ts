@@ -938,6 +938,19 @@ describe("saveNotificationEmail", () => {
   });
 });
 
+describe("getRoutingStatus", () => {
+  it("fetches /routing/status", async () => {
+    const payload = { enabled: true };
+    mockOk(payload);
+
+    const { getRoutingStatus } = await import("../../src/services/api.js");
+    const result = await getRoutingStatus();
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/routing/status");
+  });
+});
+
 describe("fetchJson 401 redirect", () => {
   it("redirects to /login on 401 response", async () => {
     const loc = { origin: "http://localhost:3000", pathname: "/overview", href: "" };

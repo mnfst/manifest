@@ -211,6 +211,16 @@ describe("resolveRouting", () => {
     ]);
   });
 
+  it("returns null on non-Error fetch rejection", async () => {
+    mockFetch.mockRejectedValueOnce("string-error");
+
+    const result = await resolveRouting(cloudConfig, messages, "sess-str-err", mockLogger);
+    expect(result).toBeNull();
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("string-error"),
+    );
+  });
+
   it("updates momentum on successful resolve", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -261,6 +271,15 @@ describe("registerRouting", () => {
 
     expect(mockLogger.debug).toHaveBeenCalledWith(
       expect.stringContaining("registerProvider failed"),
+    );
+  });
+
+  it("handles non-Error thrown by registerProvider", () => {
+    const api = { registerProvider: jest.fn(() => { throw "string-provider-error"; }) };
+    registerRouting(api, cloudConfig, mockLogger);
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("string-provider-error"),
     );
   });
 });

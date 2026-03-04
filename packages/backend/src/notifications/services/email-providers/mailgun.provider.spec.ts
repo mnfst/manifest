@@ -56,7 +56,11 @@ describe('MailgunProvider', () => {
   });
 
   it('returns false on non-ok response', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 401, text: async () => 'Unauthorized' });
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 401,
+      text: async () => 'Unauthorized',
+    });
     const provider = new MailgunProvider(config);
 
     const result = await provider.send({ to: 'user@test.com', subject: 'Test', html: '<p>Hi</p>' });
@@ -75,7 +79,12 @@ describe('MailgunProvider', () => {
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
     const provider = new MailgunProvider(config);
 
-    await provider.send({ to: 'user@test.com', subject: 'Test', html: '<p>Hi</p>', from: 'Custom <custom@test.com>' });
+    await provider.send({
+      to: 'user@test.com',
+      subject: 'Test',
+      html: '<p>Hi</p>',
+      from: 'Custom <custom@test.com>',
+    });
 
     const body = (global.fetch as jest.Mock).mock.calls[0][1].body as URLSearchParams;
     expect(body.get('from')).toBe('Custom <custom@test.com>');
@@ -85,7 +94,12 @@ describe('MailgunProvider', () => {
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
     const provider = new MailgunProvider(config);
 
-    await provider.send({ to: 'user@test.com', subject: 'Test', html: '<p>Hi</p>', text: 'Hi plain' });
+    await provider.send({
+      to: 'user@test.com',
+      subject: 'Test',
+      html: '<p>Hi</p>',
+      text: 'Hi plain',
+    });
 
     const body = (global.fetch as jest.Mock).mock.calls[0][1].body as URLSearchParams;
     expect(body.get('text')).toBe('Hi plain');
@@ -110,6 +124,25 @@ describe('MailgunProvider', () => {
     const body = (global.fetch as jest.Mock).mock.calls[0][1].body as URLSearchParams;
     expect(body.get('h:Reply-To')).toBe('noreply@test.com');
     expect(body.get('o:tag')).toBe('manifest');
+  });
+
+  it('returns false when domain is undefined (falls back to empty string)', async () => {
+    const { domain: _, ...configWithoutDomain } = config;
+    const provider = new MailgunProvider(configWithoutDomain as EmailProviderConfig);
+    const result = await provider.send({ to: 'a@b.com', subject: 'Hi', html: '<p>Hello</p>' });
+    expect(result).toBe(false);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('uses default fromEmail when config.fromEmail is undefined', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
+    const { fromEmail: _, ...configWithoutFrom } = config;
+    const provider = new MailgunProvider(configWithoutFrom as EmailProviderConfig);
+
+    await provider.send({ to: 'user@test.com', subject: 'Test', html: '<p>Hi</p>' });
+
+    const body = (global.fetch as jest.Mock).mock.calls[0][1].body as URLSearchParams;
+    expect(body.get('from')).toContain('noreply@manifest.build');
   });
 
   it('rejects domain with path traversal characters', async () => {

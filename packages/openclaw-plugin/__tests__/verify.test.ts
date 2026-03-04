@@ -149,6 +149,29 @@ describe("verifyConnection", () => {
     expect(result.error).toContain("Auth check failed");
   });
 
+  it("handles non-Error thrown by health check fetch", async () => {
+    mockFetch.mockRejectedValueOnce("string-health-error");
+
+    const result = await verifyConnection(baseConfig);
+
+    expect(result.endpointReachable).toBe(false);
+    expect(result.error).toContain("Cannot reach endpoint");
+    expect(result.error).toContain("string-health-error");
+  });
+
+  it("handles non-Error thrown by usage check fetch", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, status: 200 })
+      .mockRejectedValueOnce("string-usage-error");
+
+    const result = await verifyConnection(baseConfig);
+
+    expect(result.endpointReachable).toBe(true);
+    expect(result.authValid).toBe(false);
+    expect(result.error).toContain("Auth check failed");
+    expect(result.error).toContain("string-usage-error");
+  });
+
   it("handles missing agentName in response", async () => {
     mockFetch
       .mockResolvedValueOnce({ ok: true, status: 200 })

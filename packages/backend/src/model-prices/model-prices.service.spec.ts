@@ -9,7 +9,7 @@ describe('ModelPricesService', () => {
     const mockDataSource = { query: mockQuery } as never;
     const mockTracker = { getUnresolved: jest.fn().mockResolvedValue([]) } as never;
     const mockHistory = { getHistory: jest.fn().mockResolvedValue([]) } as never;
-    const mockSync = { syncPricing: jest.fn().mockResolvedValue(0) } as never;
+    const mockSync = { syncPricing: jest.fn().mockResolvedValue(5) } as never;
     service = new ModelPricesService(mockDataSource, mockTracker, mockHistory, mockSync);
   });
 
@@ -17,14 +17,25 @@ describe('ModelPricesService', () => {
     it('should return transformed models with per-million pricing', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_token: 0.0000025, output_price_per_token: 0.00001, updated_at: '2025-06-01' },
+          {
+            model_name: 'gpt-4o',
+            provider: 'OpenAI',
+            input_price_per_token: 0.0000025,
+            output_price_per_token: 0.00001,
+            updated_at: '2025-06-01',
+          },
         ])
         .mockResolvedValueOnce([{ last_synced: '2025-06-01' }]);
 
       const result = await service.getAll();
 
       expect(result.models).toEqual([
-        { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_million: 2.5, output_price_per_million: 10 },
+        {
+          model_name: 'gpt-4o',
+          provider: 'OpenAI',
+          input_price_per_million: 2.5,
+          output_price_per_million: 10,
+        },
       ]);
       expect(result.lastSyncedAt).toBe('2025-06-01');
     });
@@ -32,7 +43,13 @@ describe('ModelPricesService', () => {
     it('should use "Unknown" when provider is empty', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'test-model', provider: '', input_price_per_token: 0.000001, output_price_per_token: 0.000002, updated_at: null },
+          {
+            model_name: 'test-model',
+            provider: '',
+            input_price_per_token: 0.000001,
+            output_price_per_token: 0.000002,
+            updated_at: null,
+          },
         ])
         .mockResolvedValueOnce([{ last_synced: null }]);
 
@@ -42,9 +59,7 @@ describe('ModelPricesService', () => {
     });
 
     it('should return null lastSyncedAt when no updated_at values', async () => {
-      mockQuery
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([{ last_synced: null }]);
+      mockQuery.mockResolvedValueOnce([]).mockResolvedValueOnce([{ last_synced: null }]);
 
       const result = await service.getAll();
 
@@ -53,9 +68,7 @@ describe('ModelPricesService', () => {
     });
 
     it('should handle missing last_synced row gracefully', async () => {
-      mockQuery
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+      mockQuery.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       const result = await service.getAll();
 
@@ -65,7 +78,13 @@ describe('ModelPricesService', () => {
     it('should correctly calculate per-million prices for very small token prices', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'cheap-model', provider: 'Test', input_price_per_token: 0.00000006, output_price_per_token: 0.00000024, updated_at: null },
+          {
+            model_name: 'cheap-model',
+            provider: 'Test',
+            input_price_per_token: 0.00000006,
+            output_price_per_token: 0.00000024,
+            updated_at: null,
+          },
         ])
         .mockResolvedValueOnce([{ last_synced: null }]);
 
@@ -78,8 +97,20 @@ describe('ModelPricesService', () => {
     it('should return multiple models sorted by provider', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'claude-opus-4-6', provider: 'Anthropic', input_price_per_token: 0.000015, output_price_per_token: 0.000075, updated_at: '2025-06-01' },
-          { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_token: 0.0000025, output_price_per_token: 0.00001, updated_at: '2025-06-01' },
+          {
+            model_name: 'claude-opus-4-6',
+            provider: 'Anthropic',
+            input_price_per_token: 0.000015,
+            output_price_per_token: 0.000075,
+            updated_at: '2025-06-01',
+          },
+          {
+            model_name: 'gpt-4o',
+            provider: 'OpenAI',
+            input_price_per_token: 0.0000025,
+            output_price_per_token: 0.00001,
+            updated_at: '2025-06-01',
+          },
         ])
         .mockResolvedValueOnce([{ last_synced: '2025-06-01' }]);
 
@@ -88,6 +119,49 @@ describe('ModelPricesService', () => {
       expect(result.models).toHaveLength(2);
       expect(result.models[0].model_name).toBe('claude-opus-4-6');
       expect(result.models[1].model_name).toBe('gpt-4o');
+    });
+  });
+
+  describe('triggerSync', () => {
+    it('calls pricingSync.syncPricing and returns result', async () => {
+      const result = await service.triggerSync();
+      expect(result).toEqual({ updated: 5 });
+    });
+  });
+
+  describe('getUnresolved', () => {
+    it('delegates to unresolvedTracker', async () => {
+      const result = await service.getUnresolved();
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getHistory', () => {
+    it('returns history with per-million pricing', async () => {
+      const mockHistory = {
+        getHistory: jest
+          .fn()
+          .mockResolvedValue([
+            {
+              model_name: 'gpt-4o',
+              input_price_per_token: 0.0000025,
+              output_price_per_token: 0.00001,
+              changed_at: '2025-06-01',
+              source: 'sync',
+            },
+          ]),
+      } as never;
+      const svc = new ModelPricesService(
+        { query: jest.fn() } as never,
+        { getUnresolved: jest.fn() } as never,
+        mockHistory,
+        { syncPricing: jest.fn() } as never,
+      );
+
+      const result = await svc.getHistory('gpt-4o');
+      expect(result).toHaveLength(1);
+      expect(result[0].input_price_per_million).toBeCloseTo(2.5, 4);
+      expect(result[0].output_price_per_million).toBeCloseTo(10, 4);
     });
   });
 });

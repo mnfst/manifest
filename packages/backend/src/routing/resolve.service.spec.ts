@@ -31,10 +31,7 @@ describe('ResolveService', () => {
     mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
     mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
-    const result = await service.resolve(
-      'user-1',
-      [{ role: 'user', content: 'hello' }],
-    );
+    const result = await service.resolve('user-1', [{ role: 'user', content: 'hello' }]);
 
     expect(result.tier).toBe('simple');
     expect(result.model).toBe('gpt-4o-mini');
@@ -45,10 +42,7 @@ describe('ResolveService', () => {
   it('should return null model when no effective model available', async () => {
     mockRoutingService.getEffectiveModel.mockResolvedValue(null);
 
-    const result = await service.resolve(
-      'user-1',
-      [{ role: 'user', content: 'hello' }],
-    );
+    const result = await service.resolve('user-1', [{ role: 'user', content: 'hello' }]);
 
     expect(result.tier).toBe('simple');
     expect(result.model).toBeNull();
@@ -58,13 +52,23 @@ describe('ResolveService', () => {
   it('should return null model when no tier assignment found', async () => {
     mockRoutingService.getTiers.mockResolvedValue([]);
 
-    const result = await service.resolve(
-      'user-1',
-      [{ role: 'user', content: 'hello' }],
-    );
+    const result = await service.resolve('user-1', [{ role: 'user', content: 'hello' }]);
 
     expect(result.model).toBeNull();
     expect(result.provider).toBeNull();
+  });
+
+  it('should log warning with available tier names when scored tier has no assignment', async () => {
+    // Only provide 'complex' tier, not 'simple' — so when the scorer returns 'simple', it won't find it
+    mockRoutingService.getTiers.mockResolvedValue([
+      { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
+    ]);
+
+    const result = await service.resolve('user-1', [{ role: 'user', content: 'hello' }]);
+
+    expect(result.model).toBeNull();
+    expect(result.provider).toBeNull();
+    expect(result.tier).toBe('simple');
   });
 
   it('should resolve complex tier for elaborate messages', async () => {
@@ -109,10 +113,7 @@ describe('ResolveService', () => {
     mockRoutingService.getEffectiveModel.mockResolvedValue('unknown-model');
     mockPricingCache.getByModel.mockReturnValue(undefined);
 
-    const result = await service.resolve(
-      'user-1',
-      [{ role: 'user', content: 'hello' }],
-    );
+    const result = await service.resolve('user-1', [{ role: 'user', content: 'hello' }]);
 
     expect(result.model).toBe('unknown-model');
     expect(result.provider).toBeNull();

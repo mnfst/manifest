@@ -17,10 +17,10 @@ import { SessionGuard } from './session.guard';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { auth } = require('./auth.instance');
 
-function createMockContext(overrides: {
-  ip?: string;
-  headers?: Record<string, string>;
-}): { context: ExecutionContext; request: Record<string, unknown> } {
+function createMockContext(overrides: { ip?: string; headers?: Record<string, string> }): {
+  context: ExecutionContext;
+  request: Record<string, unknown>;
+} {
   const request: Record<string, unknown> = {
     ip: overrides.ip ?? '127.0.0.1',
     headers: overrides.headers ?? {},
@@ -94,5 +94,23 @@ describe('SessionGuard', () => {
 
     expect(result).toBe(true);
     expect(request['user']).toBeUndefined();
+  });
+
+  it('returns true when auth is null (local mode)', async () => {
+    // Temporarily set auth to null to simulate local mode
+    const originalAuth = auth;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const authModule = require('./auth.instance') as { auth: typeof auth | null };
+    authModule.auth = null;
+
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    const { context } = createMockContext({});
+
+    const result = await guard.canActivate(context);
+
+    expect(result).toBe(true);
+
+    // Restore
+    authModule.auth = originalAuth;
   });
 });

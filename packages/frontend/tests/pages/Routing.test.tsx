@@ -373,6 +373,67 @@ describe("Routing — disabled state (no active providers)", () => {
   });
 });
 
+describe("Routing — disable confirmation modal", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    mockDeactivateAllProviders.mockResolvedValue({ ok: true });
+  });
+
+  it("cancels disable routing when Cancel is clicked", async () => {
+    render(() => <Routing />);
+    const disableBtn = await screen.findByText("Disable Routing");
+    fireEvent.click(disableBtn);
+    const cancelBtn = await screen.findByText("Cancel");
+    fireEvent.click(cancelBtn);
+    await waitFor(() => {
+      expect(screen.queryByText("All provider API keys and tier-to-model assignments")).toBeNull();
+    });
+    expect(mockDeactivateAllProviders).not.toHaveBeenCalled();
+  });
+
+  it("closes confirm modal on overlay click", async () => {
+    const { container } = render(() => <Routing />);
+    const disableBtn = await screen.findByText("Disable Routing");
+    fireEvent.click(disableBtn);
+    await screen.findByText("Disable routing?");
+    // Click the overlay (last modal-overlay)
+    const overlays = container.querySelectorAll(".modal-overlay");
+    const confirmOverlay = overlays[overlays.length - 1];
+    fireEvent.click(confirmOverlay);
+    await waitFor(() => {
+      expect(screen.queryByText("Disable routing?")).toBeNull();
+    });
+  });
+
+  it("closes confirm modal on Escape key", async () => {
+    const { container } = render(() => <Routing />);
+    const disableBtn = await screen.findByText("Disable Routing");
+    fireEvent.click(disableBtn);
+    await screen.findByText("Disable routing?");
+    const overlays = container.querySelectorAll(".modal-overlay");
+    const confirmOverlay = overlays[overlays.length - 1];
+    fireEvent.keyDown(confirmOverlay, { key: "Escape" });
+    await waitFor(() => {
+      expect(screen.queryByText("Disable routing?")).toBeNull();
+    });
+  });
+
+  it("shows 'Select model' button in empty tier card", async () => {
+    const { getTierAssignments } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
+    ]);
+    render(() => <Routing />);
+    expect(await screen.findByText("Select model")).toBeDefined();
+  });
+});
+
 describe("Routing — helper functions", () => {
   beforeEach(() => {
     vi.clearAllMocks();

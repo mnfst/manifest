@@ -53,15 +53,15 @@ describe('ProxyService', () => {
   };
 
   it('throws BadRequestException when messages are missing', async () => {
-    await expect(
-      service.proxyRequest('user-1', {}, 'default'),
-    ).rejects.toThrow(BadRequestException);
+    await expect(service.proxyRequest('user-1', {}, 'default')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('throws BadRequestException when messages array is empty', async () => {
-    await expect(
-      service.proxyRequest('user-1', { messages: [] }, 'default'),
-    ).rejects.toThrow(BadRequestException);
+    await expect(service.proxyRequest('user-1', { messages: [] }, 'default')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('throws when no model is resolved', async () => {
@@ -74,9 +74,9 @@ describe('ProxyService', () => {
       reason: 'ambiguous',
     });
 
-    await expect(
-      service.proxyRequest('user-1', body, 'default'),
-    ).rejects.toThrow('No model available');
+    await expect(service.proxyRequest('user-1', body, 'default')).rejects.toThrow(
+      'No model available',
+    );
   });
 
   it('throws when no API key found for provider', async () => {
@@ -90,9 +90,9 @@ describe('ProxyService', () => {
     });
     routingService.getProviderApiKey.mockResolvedValue(null);
 
-    await expect(
-      service.proxyRequest('user-1', body, 'default'),
-    ).rejects.toThrow('No API key found');
+    await expect(service.proxyRequest('user-1', body, 'default')).rejects.toThrow(
+      'No API key found',
+    );
   });
 
   it('resolves, forwards, and records momentum on success', async () => {
@@ -109,7 +109,8 @@ describe('ProxyService', () => {
     const mockResponse = new Response('{}', { status: 200 });
     providerClient.forward.mockResolvedValue({
       response: mockResponse,
-      isGoogle: false, isAnthropic: false,
+      isGoogle: false,
+      isAnthropic: false,
     });
 
     const result = await service.proxyRequest('user-1', body, 'sess-1');
@@ -153,7 +154,8 @@ describe('ProxyService', () => {
     routingService.getProviderApiKey.mockResolvedValue('sk-ant');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
-      isGoogle: false, isAnthropic: false,
+      isGoogle: false,
+      isAnthropic: false,
     });
 
     await service.proxyRequest('user-1', body, 'sess-1');
@@ -180,7 +182,8 @@ describe('ProxyService', () => {
     routingService.getProviderApiKey.mockResolvedValue('sk-test');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
-      isGoogle: false, isAnthropic: false,
+      isGoogle: false,
+      isAnthropic: false,
     });
 
     const bodyWithTools = {
@@ -226,11 +229,19 @@ describe('ProxyService', () => {
     routingService.getProviderApiKey.mockResolvedValue('sk-test');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
-      isGoogle: false, isAnthropic: false,
+      isGoogle: false,
+      isAnthropic: false,
     });
 
     const abortController = new AbortController();
-    await service.proxyRequest('user-1', body, 'default', undefined, undefined, abortController.signal);
+    await service.proxyRequest(
+      'user-1',
+      body,
+      'default',
+      undefined,
+      undefined,
+      abortController.signal,
+    );
 
     expect(providerClient.forward).toHaveBeenCalledWith(
       'OpenAI',
@@ -249,8 +260,7 @@ describe('ProxyService', () => {
         { role: 'system', content: 'You are a helpful assistant.' },
         {
           role: 'user',
-          content:
-            'Check tasks and reply HEARTBEAT_OK if nothing needs attention.',
+          content: 'Check tasks and reply HEARTBEAT_OK if nothing needs attention.',
         },
       ],
       stream: false,
@@ -268,7 +278,8 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false, isAnthropic: false,
+        isGoogle: false,
+        isAnthropic: false,
       });
 
       const result = await service.proxyRequest('user-1', heartbeatBody, 'sess-1');
@@ -291,7 +302,8 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false, isAnthropic: false,
+        isGoogle: false,
+        isAnthropic: false,
       });
 
       await service.proxyRequest('user-1', heartbeatBody, 'sess-1');
@@ -332,7 +344,8 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false, isAnthropic: false,
+        isGoogle: false,
+        isAnthropic: false,
       });
 
       const result = await service.proxyRequest('user-1', buriedHeartbeatBody, 'sess-1');
@@ -350,7 +363,10 @@ describe('ProxyService', () => {
           {
             role: 'user',
             content: [
-              { type: 'text', text: 'Check tasks and reply HEARTBEAT_OK if nothing needs attention.' },
+              {
+                type: 'text',
+                text: 'Check tasks and reply HEARTBEAT_OK if nothing needs attention.',
+              },
             ],
           },
         ],
@@ -368,7 +384,8 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false, isAnthropic: false,
+        isGoogle: false,
+        isAnthropic: false,
       });
 
       const result = await service.proxyRequest('user-1', arrayContentBody, 'sess-1');
@@ -390,7 +407,8 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false, isAnthropic: false,
+        isGoogle: false,
+        isAnthropic: false,
       });
 
       await service.proxyRequest('user-1', body, 'default');
@@ -412,7 +430,8 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false, isAnthropic: false,
+        isGoogle: false,
+        isAnthropic: false,
       });
     };
 
@@ -495,7 +514,8 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false, isAnthropic: false,
+        isGoogle: false,
+        isAnthropic: false,
       });
     };
 
@@ -614,7 +634,8 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false, isAnthropic: false,
+        isGoogle: false,
+        isAnthropic: false,
       });
 
       const bodyWithMaxTokens = {
@@ -649,7 +670,8 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false, isAnthropic: false,
+        isGoogle: false,
+        isAnthropic: false,
       });
 
       const bodyWithOnlySystem = {
@@ -679,6 +701,66 @@ describe('ProxyService', () => {
     });
   });
 
+  describe('non-string non-array message content in heartbeat detection', () => {
+    it('does not detect heartbeat when content is numeric', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      const bodyWithNumericContent = {
+        messages: [{ role: 'user', content: 42 }],
+        stream: false,
+      };
+
+      await service.proxyRequest('user-1', bodyWithNumericContent, 'default');
+
+      // Should use normal resolve, not resolveForTier (heartbeat)
+      expect(resolveService.resolve).toHaveBeenCalled();
+    });
+  });
+
+  describe('xai provider extra headers', () => {
+    it('passes x-grok-conv-id header for xai provider', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'grok-2',
+        provider: 'xai',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-xai');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      await service.proxyRequest('user-1', body, 'my-session-key');
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'xai',
+        'sk-xai',
+        'grok-2',
+        body,
+        false,
+        undefined,
+        { 'x-grok-conv-id': 'my-session-key' },
+      );
+    });
+  });
+
   describe('empty-string API key passthrough', () => {
     it('allows empty-string API key (Ollama) without throwing', async () => {
       resolveService.resolve.mockResolvedValue({
@@ -693,7 +775,8 @@ describe('ProxyService', () => {
       routingService.getProviderApiKey.mockResolvedValue('');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
-        isGoogle: false, isAnthropic: false,
+        isGoogle: false,
+        isAnthropic: false,
       });
 
       const result = await service.proxyRequest('user-1', body, 'default');

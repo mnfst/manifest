@@ -4,4 +4,8 @@ module.exports = {
   testEnvironment: "node",
   roots: ["<rootDir>/__tests__"],
   testMatch: ["**/*.test.ts"],
+  collectCoverageFrom: [
+    "src/**/*.{ts,js}",
+    "!stubs/**",
+  ],
 };

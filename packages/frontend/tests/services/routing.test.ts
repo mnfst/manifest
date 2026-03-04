@@ -11,4 +11,7 @@ describe("agentPath", () => {
   it("returns root when agent is null", () => {
     expect(agentPath(null, "/overview")).toBe("/");
   });
+  it("builds path with empty sub string", () => {
+    expect(agentPath("my-agent", "")).toBe("/agents/my-agent");
+  });
 });

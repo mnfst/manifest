@@ -154,6 +154,71 @@ describe("Sidebar without agent", () => {
   });
 });
 
+describe("Sidebar active link states", () => {
+  it("marks Messages link active when on messages path", () => {
+    mockAgentName = "test-agent";
+    mockPathname = "/agents/test-agent/messages";
+    mockIsLocalMode = false;
+    const { container } = render(() => <Sidebar />);
+    const messagesLink = container.querySelector('a[href="/agents/test-agent/messages"]');
+    expect(messagesLink?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Routing link active when on routing path", () => {
+    mockAgentName = "test-agent";
+    mockPathname = "/agents/test-agent/routing";
+    mockIsLocalMode = false;
+    const { container } = render(() => <Sidebar />);
+    const routingLink = container.querySelector('a[href="/agents/test-agent/routing"]');
+    expect(routingLink?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Limits link active when on limits path", () => {
+    mockAgentName = "test-agent";
+    mockPathname = "/agents/test-agent/limits";
+    mockIsLocalMode = false;
+    const { container } = render(() => <Sidebar />);
+    const limitsLink = container.querySelector('a[href="/agents/test-agent/limits"]');
+    expect(limitsLink?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Model Prices link active when on model-prices path", () => {
+    mockAgentName = "test-agent";
+    mockPathname = "/agents/test-agent/model-prices";
+    mockIsLocalMode = false;
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/agents/test-agent/model-prices"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Help link active when on help path", () => {
+    mockAgentName = "test-agent";
+    mockPathname = "/agents/test-agent/help";
+    mockIsLocalMode = false;
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/agents/test-agent/help"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Settings link active when on settings path", () => {
+    mockAgentName = "test-agent";
+    mockPathname = "/agents/test-agent/settings";
+    mockIsLocalMode = false;
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/agents/test-agent/settings"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Agents link active on root path", () => {
+    mockAgentName = null;
+    mockPathname = "/";
+    mockIsLocalMode = false;
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+});
+
 describe("Sidebar in local mode", () => {
   beforeAll(() => {
     mockAgentName = null;

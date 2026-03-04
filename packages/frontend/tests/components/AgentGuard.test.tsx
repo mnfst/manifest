@@ -79,6 +79,17 @@ describe("AgentGuard", () => {
     });
   });
 
+  it("shows nothing while agents are loading", () => {
+    mockGetAgents.mockReturnValue(new Promise(() => {}));
+    const { container } = render(() => (
+      <AgentGuard>
+        <div data-testid="child">Child content</div>
+      </AgentGuard>
+    ));
+    // Loading state renders null fallback
+    expect(container.querySelector('[data-testid="child"]')).toBeNull();
+  });
+
   it("renders children immediately in local mode without calling getAgents", async () => {
     mockIsLocalMode.mockReturnValue(true);
     mockCheckLocalMode.mockResolvedValue(true);

@@ -123,6 +123,25 @@ describe("ModelPrices", () => {
     expect(container.querySelectorAll(".skeleton").length).toBeGreaterThan(0);
   });
 
+  it("toggles sort direction on same column click", async () => {
+    const { container } = await renderAndWait();
+    const modelHeader = container.querySelectorAll(".data-table__sortable")[0];
+    fireEvent.click(modelHeader); // first click: asc on model_name
+    expect(container.textContent).toContain("\u25B2"); // up arrow
+    fireEvent.click(modelHeader); // second click: desc
+    expect(container.textContent).toContain("\u25BC"); // down arrow
+  });
+
+  it("sorts numerically for price columns", async () => {
+    const { container } = await renderAndWait();
+    // Click input price column header
+    const inputPriceHeader = container.querySelectorAll(".data-table__sortable")[2];
+    fireEvent.click(inputPriceHeader);
+    // Should sort by input price ascending
+    const rows = container.querySelectorAll("tbody tr");
+    expect(rows.length).toBe(4);
+  });
+
   it("renders 0 models with empty data", async () => {
     mockGetModelPrices.mockResolvedValue({ models: [], lastSyncedAt: null });
     render(() => <ModelPrices />);

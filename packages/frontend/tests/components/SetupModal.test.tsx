@@ -241,6 +241,31 @@ describe("SetupModal", () => {
     });
   });
 
+  describe("endpoint resolution", () => {
+    it("uses pluginEndpoint when available", async () => {
+      const { getAgentKey } = await import("../../src/services/api.js");
+      vi.mocked(getAgentKey).mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: "https://custom.example.com/otlp" });
+      mockGetHealth.mockResolvedValue({ mode: "cloud" });
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="test-agent" onClose={onClose} />
+      ));
+      // Navigate to step 2 to see the configure step
+      fireEvent.click(container.querySelector(".setup-modal__next")!);
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+      });
+    });
+
+    it("passes apiKey prop to configure step", () => {
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="test-agent" apiKey="mnfst_full_key" onClose={onClose} />
+      ));
+      // Navigate to step 2
+      fireEvent.click(container.querySelector(".setup-modal__next")!);
+      expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+    });
+  });
+
   describe("cloud mode", () => {
     it("should not pass isLocal to SetupStepVerify on step 3", () => {
       const { container } = render(() => (

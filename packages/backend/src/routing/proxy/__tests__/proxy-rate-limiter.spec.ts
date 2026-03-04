@@ -24,9 +24,7 @@ describe('ProxyRateLimiter', () => {
         limiter.checkLimit('user-1');
       }
 
-      expect(() => limiter.checkLimit('user-1')).toThrow(
-        HttpException,
-      );
+      expect(() => limiter.checkLimit('user-1')).toThrow(HttpException);
     });
 
     it('throws with correct status and message on rate exceeded', () => {
@@ -50,9 +48,7 @@ describe('ProxyRateLimiter', () => {
       for (let i = 0; i < 60; i++) {
         limiter.checkLimit('user-1');
       }
-      expect(() => limiter.checkLimit('user-1')).toThrow(
-        HttpException,
-      );
+      expect(() => limiter.checkLimit('user-1')).toThrow(HttpException);
 
       jest.advanceTimersByTime(60_001);
 
@@ -65,9 +61,7 @@ describe('ProxyRateLimiter', () => {
         limiter.checkLimit('user-1');
       }
 
-      expect(() => limiter.checkLimit('user-1')).toThrow(
-        HttpException,
-      );
+      expect(() => limiter.checkLimit('user-1')).toThrow(HttpException);
       expect(() => limiter.checkLimit('user-2')).not.toThrow();
     });
 
@@ -175,6 +169,30 @@ describe('ProxyRateLimiter', () => {
 
       jest.useRealTimers();
     });
+
+    it('directly evicts expired entries via timer callback', () => {
+      jest.useFakeTimers();
+      // Create a new limiter with fake timers so setInterval is captured
+      const timedLimiter = new ProxyRateLimiter();
+
+      timedLimiter.checkLimit('expired-user-1');
+      timedLimiter.checkLimit('expired-user-2');
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rates = (timedLimiter as any).rates as Map<string, unknown>;
+      expect(rates.has('expired-user-1')).toBe(true);
+      expect(rates.has('expired-user-2')).toBe(true);
+
+      // Advance past RATE_WINDOW_MS (60s) + CLEANUP_INTERVAL_MS (60s)
+      jest.advanceTimersByTime(121_000);
+
+      // The interval callback should have fired and evicted expired entries
+      expect(rates.has('expired-user-1')).toBe(false);
+      expect(rates.has('expired-user-2')).toBe(false);
+
+      timedLimiter.onModuleDestroy();
+      jest.useRealTimers();
+    });
   });
 
   describe('acquireSlot / releaseSlot', () => {
@@ -189,9 +207,7 @@ describe('ProxyRateLimiter', () => {
         limiter.acquireSlot('user-1');
       }
 
-      expect(() => limiter.acquireSlot('user-1')).toThrow(
-        HttpException,
-      );
+      expect(() => limiter.acquireSlot('user-1')).toThrow(HttpException);
     });
 
     it('throws with correct status and message on concurrency exceeded', () => {
@@ -205,7 +221,9 @@ describe('ProxyRateLimiter', () => {
       } catch (err) {
         expect(err).toBeInstanceOf(HttpException);
         expect((err as HttpException).getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
-        expect((err as HttpException).message).toBe('Too many concurrent requests. Try again later.');
+        expect((err as HttpException).message).toBe(
+          'Too many concurrent requests. Try again later.',
+        );
       }
     });
 
@@ -224,9 +242,7 @@ describe('ProxyRateLimiter', () => {
         limiter.acquireSlot('user-1');
       }
 
-      expect(() => limiter.acquireSlot('user-1')).toThrow(
-        HttpException,
-      );
+      expect(() => limiter.acquireSlot('user-1')).toThrow(HttpException);
       expect(() => limiter.acquireSlot('user-2')).not.toThrow();
     });
 

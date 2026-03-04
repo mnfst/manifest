@@ -62,9 +62,41 @@ describe('SecurityService', () => {
     expect(result.critical_events_count).toBe(0);
   });
 
+  it('returns critical risk level for very low score', async () => {
+    mockGetRawMany.mockResolvedValueOnce([
+      { severity: 'critical', cnt: 5 },
+      { severity: 'warning', cnt: 10 },
+    ]);
+    mockGetMany.mockResolvedValueOnce([]);
+
+    const result = await service.getSecurityOverview('24h', 'test-user');
+    // 100 - 5*15 - 10*5 = -25 → clamped to 0
+    expect(result.score.value).toBe(0);
+    expect(result.score.risk_level).toBe('critical');
+  });
+
+  it('returns moderate risk level', async () => {
+    mockGetRawMany.mockResolvedValueOnce([
+      { severity: 'critical', cnt: 1 },
+      { severity: 'warning', cnt: 5 },
+    ]);
+    mockGetMany.mockResolvedValueOnce([]);
+
+    const result = await service.getSecurityOverview('24h', 'test-user');
+    // 100 - 1*15 - 5*5 = 60
+    expect(result.score.value).toBe(60);
+    expect(result.score.risk_level).toBe('moderate');
+  });
+
   it('returns events from query', async () => {
     const fakeEvents = [
-      { id: '1', timestamp: '2026-01-01', severity: 'critical', category: 'test', description: 'desc' },
+      {
+        id: '1',
+        timestamp: '2026-01-01',
+        severity: 'critical',
+        category: 'test',
+        description: 'desc',
+      },
     ];
     mockGetRawMany.mockResolvedValueOnce([{ severity: 'critical', cnt: 1 }]);
     mockGetMany.mockResolvedValueOnce(fakeEvents);

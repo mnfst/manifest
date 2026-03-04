@@ -1,4 +1,6 @@
 import { UnsupportedMediaTypeException } from '@nestjs/common';
+import * as protobuf from 'protobufjs';
+import { OTLP_PROTO_SCHEMA } from '../proto/otlp-proto-defs';
 import { OtlpDecoderService } from './otlp-decoder.service';
 
 describe('OtlpDecoderService', () => {
@@ -35,21 +37,37 @@ describe('OtlpDecoderService', () => {
     });
 
     it('throws UnsupportedMediaTypeException for unsupported content type', () => {
-      expect(() => service.decodeTraces('text/plain', {})).toThrow(
+      expect(() => service.decodeTraces('text/plain', {})).toThrow(UnsupportedMediaTypeException);
+    });
+
+    it('throws UnsupportedMediaTypeException for empty protobuf body', () => {
+      expect(() => service.decodeTraces('application/x-protobuf', {}, Buffer.alloc(0))).toThrow(
         UnsupportedMediaTypeException,
       );
     });
 
-    it('throws UnsupportedMediaTypeException for empty protobuf body', () => {
-      expect(() =>
-        service.decodeTraces('application/x-protobuf', {}, Buffer.alloc(0)),
-      ).toThrow(UnsupportedMediaTypeException);
+    it('throws UnsupportedMediaTypeException when rawBody is undefined for protobuf', () => {
+      expect(() => service.decodeTraces('application/x-protobuf', {}, undefined)).toThrow(
+        UnsupportedMediaTypeException,
+      );
     });
 
-    it('throws UnsupportedMediaTypeException when rawBody is undefined for protobuf', () => {
-      expect(() =>
-        service.decodeTraces('application/x-protobuf', {}, undefined),
-      ).toThrow(UnsupportedMediaTypeException);
+    it('decodes valid protobuf body for traces', () => {
+      const { root } = protobuf.parse(OTLP_PROTO_SCHEMA);
+      const traceType = root.lookupType('ExportTraceServiceRequest');
+      const message = traceType.create({
+        resourceSpans: [
+          {
+            resource: { attributes: [] },
+            scopeSpans: [],
+          },
+        ],
+      });
+      const rawBody = Buffer.from(traceType.encode(message).finish());
+
+      const result = service.decodeTraces('application/x-protobuf', {}, rawBody);
+      expect(result).toBeDefined();
+      expect(result.resourceSpans).toHaveLength(1);
     });
   });
 
@@ -61,9 +79,7 @@ describe('OtlpDecoderService', () => {
     });
 
     it('throws for unsupported content type', () => {
-      expect(() => service.decodeMetrics('text/xml', {})).toThrow(
-        UnsupportedMediaTypeException,
-      );
+      expect(() => service.decodeMetrics('text/xml', {})).toThrow(UnsupportedMediaTypeException);
     });
   });
 

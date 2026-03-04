@@ -291,6 +291,116 @@ describe("Overview", () => {
     });
   });
 
+  it("shows setup modal when location state has newAgent", async () => {
+    mockLocationState = { newAgent: true, newApiKey: "mnfst_abc123" };
+    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const modal = container.querySelector('[data-testid="setup-modal"]');
+      expect(modal?.getAttribute("data-open")).toBe("true");
+    });
+  });
+
+  it("shows waiting banner after setup completed", async () => {
+    localStorage.setItem("setup_completed_test-agent", "1");
+    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("dashboard will populate");
+    });
+  });
+
+  it("does not open setup modal when setup_dismissed flag is set", async () => {
+    localStorage.setItem("setup_dismissed_test-agent", "1");
+    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const modal = container.querySelector('[data-testid="setup-modal"]');
+      expect(modal?.getAttribute("data-open")).toBe("false");
+    });
+  });
+
+  it("shows no cost data message when cost_usage is empty", async () => {
+    const dataNoUsage = { ...overviewData, cost_usage: [] };
+    mockGetOverview.mockResolvedValue(dataNoUsage);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("No cost data for this time range");
+    });
+  });
+
+  it("shows no token data message when token_usage is empty", async () => {
+    const dataNoUsage = { ...overviewData, token_usage: [] };
+    mockGetOverview.mockResolvedValue(dataNoUsage);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="cost-chart"]')).not.toBeNull();
+    });
+    // Switch to tokens view
+    const stats = container.querySelectorAll(".chart-card__stat--clickable");
+    fireEvent.click(stats[1]);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("No token data for this time range");
+    });
+  });
+
+  it("shows no message data message when message_usage is empty", async () => {
+    const dataNoUsage = { ...overviewData, message_usage: [] };
+    mockGetOverview.mockResolvedValue(dataNoUsage);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const stats = container.querySelectorAll(".chart-card__stat--clickable");
+      fireEvent.click(stats[2]); // messages
+    });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("No message data for this time range");
+    });
+  });
+
+  it("shows heartbeat icon for routing_reason heartbeat", async () => {
+    const dataWithHeartbeat = {
+      ...overviewData,
+      recent_activity: [
+        { id: "msg-heartbeat1", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "gpt-4o", input_tokens: 0, output_tokens: 0, total_tokens: 0, cost: 0, status: "ok", routing_reason: "heartbeat" },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithHeartbeat);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      // Heartbeat icon is an SVG with a polyline
+      expect(container.querySelector("polyline[points='22 12 18 12 15 21 9 3 6 12 2 12']")).not.toBeNull();
+    });
+  });
+
+  it("shows tier badge for routed messages", async () => {
+    const dataWithTier = {
+      ...overviewData,
+      recent_activity: [
+        { id: "msg-tier12345", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "gpt-4o", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok", routing_tier: "simple" },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithTier);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.querySelector(".tier-badge--simple")).not.toBeNull();
+    });
+  });
+
+  it("shows rate_limited status as a link to limits page", async () => {
+    const dataWithRateLimited = {
+      ...overviewData,
+      recent_activity: [
+        { id: "msg-rl1234567", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "gpt-4o", input_tokens: 0, output_tokens: 0, total_tokens: 0, cost: 0, status: "rate_limited" },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithRateLimited);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const link = container.querySelector('a[href="/agents/test-agent/limits"]');
+      expect(link).not.toBeNull();
+    });
+  });
+
   describe("local mode", () => {
     it("should auto-complete setup for local-agent in local mode", async () => {
       mockAgentName = "local-agent";

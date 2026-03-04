@@ -692,6 +692,33 @@ describe("Limits page", () => {
     });
   });
 
+  it("passes hasProvider=false to modal when no email provider in local mode", async () => {
+    mockIsLocalMode = true;
+    mockEmailProvider = null;
+    render(() => <Limits />);
+    await vi.waitFor(() => {
+      const modal = screen.getByTestId("limit-modal");
+      expect(modal).toBeDefined();
+    });
+    // Open the create modal
+    fireEvent.click(screen.getByText("+ Create rule"));
+    await vi.waitFor(() => {
+      const modal = screen.getByTestId("limit-modal");
+      expect(modal.getAttribute("data-open")).toBe("true");
+    });
+  });
+
+  it("passes hasProvider=true to modal in cloud mode", async () => {
+    mockIsLocalMode = false;
+    mockEmailProvider = null;
+    render(() => <Limits />);
+    fireEvent.click(screen.getByText("+ Create rule"));
+    await vi.waitFor(() => {
+      const modal = screen.getByTestId("limit-modal");
+      expect(modal.getAttribute("data-open")).toBe("true");
+    });
+  });
+
   it("shows no-provider warning tag for email rules without provider in local mode", async () => {
     mockRules = [{
       id: "r1", agent_name: "test-agent", metric_type: "tokens",

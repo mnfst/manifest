@@ -87,9 +87,7 @@ describe('UnresolvedModelTrackerService', () => {
 
       await service.flush();
 
-      expect(mockRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ occurrence_count: 7 }),
-      );
+      expect(mockRepo.save).toHaveBeenCalledWith(expect.objectContaining({ occurrence_count: 7 }));
     });
 
     it('should set first_seen and last_seen as Date objects for new entries', async () => {
@@ -116,9 +114,7 @@ describe('UnresolvedModelTrackerService', () => {
       await service.flush();
 
       expect(existing.last_seen).toBeInstanceOf(Date);
-      expect(existing.last_seen.getTime()).toBeGreaterThan(
-        new Date('2024-01-01').getTime(),
-      );
+      expect(existing.last_seen.getTime()).toBeGreaterThan(new Date('2024-01-01').getTime());
     });
 
     it('should clear pending entries after flush', async () => {
@@ -191,6 +187,27 @@ describe('UnresolvedModelTrackerService', () => {
       mockRepo.findOneBy.mockRejectedValue(new Error('DB down'));
 
       await expect(service.flush()).rejects.toThrow('DB down');
+    });
+  });
+
+  describe('timer callback error handling', () => {
+    it('should catch flush errors in the interval callback', () => {
+      jest.useFakeTimers();
+
+      // Create a fresh service with a repo that will fail on flush
+      const failRepo = {
+        ...mockRepo,
+        findOneBy: jest.fn().mockRejectedValue(new Error('Timer flush error')),
+      };
+      const timerService = new UnresolvedModelTrackerService(failRepo as never);
+
+      timerService.track('error-model');
+
+      // Advance timer to trigger flush callback — error should be caught, not thrown
+      expect(() => jest.advanceTimersByTime(60_000)).not.toThrow();
+
+      timerService.onModuleDestroy();
+      jest.useRealTimers();
     });
   });
 });
