@@ -142,16 +142,14 @@ export class ProxyController {
       const status = err instanceof HttpException ? err.getStatus() : 500;
       this.logger.error(`Proxy error: ${message}`);
 
-      if (status === 429 || status === 403 || status >= 500) {
-        this.recordProviderError(
-          req.ingestionContext,
-          status,
-          message,
-          undefined,
-          undefined,
-          traceId,
-        ).catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
-      }
+      this.recordProviderError(
+        req.ingestionContext,
+        status,
+        message,
+        undefined,
+        undefined,
+        traceId,
+      ).catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
 
       if (headersSent) {
         if (!res.writableEnded) res.end();

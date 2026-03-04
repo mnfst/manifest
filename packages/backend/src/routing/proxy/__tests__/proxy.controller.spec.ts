@@ -303,7 +303,7 @@ describe('ProxyController', () => {
     );
   });
 
-  it('should not record agent_message on 400 errors from catch block', async () => {
+  it('should record agent_message on 400 errors from catch block', async () => {
     proxyService.proxyRequest.mockRejectedValue(new HttpException('Bad request', 400));
 
     const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -311,7 +311,12 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'error',
+        error_message: 'Bad request',
+      }),
+    );
   });
 
   it('should only record one rate_limited message per 60s cooldown', async () => {
