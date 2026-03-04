@@ -72,7 +72,7 @@ describe("VersionIndicator", () => {
     const { container } = render(() => <VersionIndicator />);
     const cmd = container.querySelector(".version-indicator__command");
     expect(cmd).not.toBeNull();
-    expect(cmd!.textContent).toContain("openclaw plugins upgrade manifest");
+    expect(cmd!.textContent).toContain("openclaw plugins update");
   });
 
   it("renders copy button in tooltip", () => {
