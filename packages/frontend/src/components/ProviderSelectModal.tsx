@@ -309,7 +309,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          Where to get your {provDef.name} API key
+                          Get {provDef.name} API key
                         </a>
                       </p>
                     </Show>
@@ -384,7 +384,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            Where to get your {provDef.name} API key
+                            Get {provDef.name} API key
                           </a>
                         </p>
                       </Show>

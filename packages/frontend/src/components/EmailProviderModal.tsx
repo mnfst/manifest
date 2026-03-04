@@ -333,7 +333,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Where to get your {PROVIDER_NAMES[provider()] ?? provider()} API key
+                Get {PROVIDER_NAMES[provider()] ?? provider()} API key
               </a>
             </p>
           </Show>
