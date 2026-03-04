@@ -1,7 +1,9 @@
 jest.mock('@react-email/render', () => ({
-  render: jest.fn().mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
-    Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
-  ),
+  render: jest
+    .fn()
+    .mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
+      Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
+    ),
 }));
 
 jest.mock('./email-providers/send-email', () => ({
@@ -40,6 +42,7 @@ describe('NotificationEmailService', () => {
       actualValue: 1500,
       period: 'hour',
       timestamp: '2024-01-01T00:00:00Z',
+      agentUrl: 'http://localhost:3001/agents/demo-agent',
     });
 
     expect(result).toBe(true);
@@ -63,6 +66,7 @@ describe('NotificationEmailService', () => {
       actualValue: 75,
       period: 'day',
       timestamp: '2024-01-01T12:00:00Z',
+      agentUrl: 'http://localhost:3001/agents/demo-agent',
     });
 
     expect(result).toBe(false);
@@ -81,6 +85,7 @@ describe('NotificationEmailService', () => {
         actualValue: 1500,
         period: 'hour',
         timestamp: '2024-01-01T00:00:00Z',
+        agentUrl: 'http://localhost:3001/agents/demo-agent',
       },
       {
         provider: 'resend',
@@ -115,6 +120,7 @@ describe('NotificationEmailService', () => {
         actualValue: 75,
         period: 'day',
         timestamp: '2024-01-01T12:00:00Z',
+        agentUrl: 'http://localhost:3001/agents/demo-agent',
       },
       {
         provider: 'sendgrid',
@@ -144,6 +150,7 @@ describe('NotificationEmailService', () => {
         actualValue: 1500,
         period: 'hour',
         timestamp: '2024-01-01T00:00:00Z',
+        agentUrl: 'http://localhost:3001/agents/demo-agent',
       },
       {
         provider: 'resend',

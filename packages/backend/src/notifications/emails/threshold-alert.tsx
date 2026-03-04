@@ -8,6 +8,9 @@ import {
   Text,
   Preview,
   Hr,
+  Link,
+  Img,
+  Button,
 } from '@react-email/components';
 
 export interface ThresholdAlertProps {
@@ -17,6 +20,21 @@ export interface ThresholdAlertProps {
   actualValue: number;
   period: string;
   timestamp: string;
+  agentUrl: string;
+  logoUrl?: string;
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatTimestamp(raw: string): string {
+  const [datePart, timePart] = raw.split(' ');
+  if (!datePart || !timePart) return raw;
+  const [, month, day] = datePart.split('-');
+  if (!month || !day) return raw;
+  const monthIdx = parseInt(month, 10) - 1;
+  const monthName = MONTHS[monthIdx] ?? month;
+  const dayNum = parseInt(day, 10);
+  return `${monthName} ${dayNum}, ${timePart}`;
 }
 
 function formatValue(value: number, metric: string): string {
@@ -25,8 +43,16 @@ function formatValue(value: number, metric: string): string {
 }
 
 export function ThresholdAlertEmail(props: ThresholdAlertProps) {
-  const { agentName, metricType, threshold, actualValue, period, timestamp } =
-    props;
+  const {
+    agentName,
+    metricType,
+    threshold,
+    actualValue,
+    period,
+    timestamp,
+    agentUrl,
+    logoUrl = 'https://app.manifest.build/manifest-logo.png',
+  } = props;
 
   return (
     <Html>
@@ -38,7 +64,7 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
         <Container style={container}>
           {/* Logo */}
           <Section style={logoSection}>
-            <Text style={logo}>manifest</Text>
+            <Img src={logoUrl} alt="Manifest" width="140" height="32" style={logoImg} />
           </Section>
 
           {/* Main content */}
@@ -52,35 +78,33 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
               {agentName} exceeded the {metricType} limit
             </Text>
             <Text style={paragraph}>
-              Your agent <strong>{agentName}</strong> has exceeded the{' '}
-              <strong>{metricType}</strong> threshold for the current{' '}
-              <strong>{period}</strong> period.
+              Your agent <strong>{agentName}</strong> has exceeded the <strong>{metricType}</strong>{' '}
+              threshold for the current <strong>{period}</strong> period.
             </Text>
 
             {/* Stats row */}
             <Section style={statsRow}>
               <Section style={statBox}>
                 <Text style={statLabel}>Threshold</Text>
-                <Text style={statValue}>
-                  {formatValue(threshold, metricType)}
-                </Text>
+                <Text style={statValue}>{formatValue(threshold, metricType)}</Text>
               </Section>
               <Section style={statBoxAlert}>
                 <Text style={statLabel}>Actual usage</Text>
-                <Text style={statValueAlert}>
-                  {formatValue(actualValue, metricType)}
-                </Text>
+                <Text style={statValueAlert}>{formatValue(actualValue, metricType)}</Text>
               </Section>
             </Section>
 
             {/* Meta info */}
             <Section style={metaRow}>
-              <Text style={metaText}>
-                Period: {period}
-              </Text>
-              <Text style={metaText}>
-                Triggered: {timestamp}
-              </Text>
+              <Text style={metaText}>Period: {period}</Text>
+              <Text style={metaText}>Triggered: {formatTimestamp(timestamp)}</Text>
+            </Section>
+
+            {/* CTA Button */}
+            <Section style={ctaContainer}>
+              <Button style={ctaButton} href={agentUrl}>
+                View Agent Dashboard →
+              </Button>
             </Section>
           </Section>
 
@@ -88,11 +112,13 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
           <Hr style={divider} />
           <Section style={footer}>
             <Text style={footerNote}>
-              You are receiving this because you set up a notification rule in
-              Manifest.
+              You are receiving this because you set up a notification rule in Manifest.
             </Text>
             <Text style={footerMuted}>
-              manifest.build
+              © 2026 MNFST Inc. All rights reserved.{' '}
+              <Link href="https://manifest.build" style={footerLink}>
+                manifest.build
+              </Link>
             </Text>
           </Section>
         </Container>
@@ -129,12 +155,8 @@ const logoSection: React.CSSProperties = {
   paddingBottom: '32px',
 };
 
-const logo: React.CSSProperties = {
-  fontSize: '22px',
-  fontWeight: 700,
-  letterSpacing: '-0.03em',
-  color: '#22110C',
-  margin: 0,
+const logoImg: React.CSSProperties = {
+  margin: '0 auto',
 };
 
 const card: React.CSSProperties = {
@@ -231,6 +253,22 @@ const metaText: React.CSSProperties = {
   margin: '0 0 2px',
 };
 
+const ctaContainer: React.CSSProperties = {
+  textAlign: 'center' as const,
+  marginTop: '28px',
+};
+
+const ctaButton: React.CSSProperties = {
+  backgroundColor: '#0f172a',
+  color: '#ffffff',
+  fontSize: '14px',
+  fontWeight: 600,
+  padding: '12px 28px',
+  borderRadius: '8px',
+  textDecoration: 'none',
+  display: 'inline-block',
+};
+
 const divider: React.CSSProperties = {
   borderColor: brandBorder,
   borderTop: 'none',
@@ -252,4 +290,9 @@ const footerMuted: React.CSSProperties = {
   fontSize: '12px',
   color: '#94a3b8',
   margin: 0,
+};
+
+const footerLink: React.CSSProperties = {
+  color: '#94a3b8',
+  textDecoration: 'underline',
 };
