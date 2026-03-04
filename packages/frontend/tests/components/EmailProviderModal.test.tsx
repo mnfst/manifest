@@ -75,6 +75,13 @@ describe("EmailProviderModal", () => {
     expect(screen.getByText("API Key")).toBeDefined();
   });
 
+  it("shows where-to-get API key link for selected provider", () => {
+    render(() => <EmailProviderModal {...defaultProps} />);
+    const link = screen.getByRole("link", { name: "Where to get your Resend API key" });
+    expect(link.getAttribute("href")).toBe("https://resend.com/api-keys");
+    expect(link.getAttribute("target")).toBe("_blank");
+  });
+
   it("shows password input for API key in create mode", () => {
     render(() => <EmailProviderModal {...defaultProps} />);
     expect(q('input[type="password"]')).not.toBeNull();
