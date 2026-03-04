@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@solidjs/testing-library";
+import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 let mockAgentName = "test-agent";
 vi.mock("@solidjs/router", () => ({
@@ -52,6 +52,18 @@ vi.mock("../../src/components/Select.jsx", () => ({
 
 vi.mock("../../src/components/ErrorState.jsx", () => ({
   default: (props: any) => <div data-testid="error-state">{props.title}</div>,
+}));
+
+vi.mock("../../src/components/Pagination.jsx", () => ({
+  default: (props: any) => {
+    const total = props.totalItems();
+    return total > props.pageSize ? (
+      <div data-testid="pagination">
+        <button data-testid="pagination-prev" onClick={props.onPrevious} disabled={props.currentPage() <= 1}>Previous</button>
+        <button data-testid="pagination-next" onClick={props.onNext} disabled={!props.hasNextPage()}>Next</button>
+      </div>
+    ) : null;
+  },
 }));
 
 import MessageLog from "../../src/pages/MessageLog";
@@ -140,6 +152,37 @@ describe("MessageLog", () => {
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("No messages recorded");
+    });
+  });
+
+  it("shows 'no messages match' when filters return 0 results", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const selects = container.querySelectorAll('[data-testid="select"]');
+      expect(selects.length).toBeGreaterThanOrEqual(2);
+    });
+    const selects = container.querySelectorAll('[data-testid="select"]');
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: ["gpt-4o"] });
+    await fireEvent.change(selects[0], { target: { value: "error" } });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("No messages match your filters");
+    });
+  });
+
+  it("does not show waiting banner when filters return 0 results", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const selects = container.querySelectorAll('[data-testid="select"]');
+      expect(selects.length).toBeGreaterThanOrEqual(2);
+    });
+    const selects = container.querySelectorAll('[data-testid="select"]');
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: ["gpt-4o"] });
+    await fireEvent.change(selects[0], { target: { value: "error" } });
+    await vi.waitFor(() => {
+      expect(container.textContent).not.toContain("Waiting for data");
+      expect(container.textContent).not.toContain("No messages recorded");
     });
   });
 
@@ -279,6 +322,44 @@ describe("MessageLog", () => {
       await vi.waitFor(() => {
         const tooltip = container.querySelector(".status-badge-tooltip");
         expect(tooltip?.getAttribute("aria-label")).toBe("timeout");
+      });
+    });
+  });
+
+  describe("pagination", () => {
+    it("shows pagination when total_count exceeds page size", async () => {
+      const bigData = { ...messagesData, total_count: 120, next_cursor: "cursor-2" };
+      mockGetMessages.mockResolvedValue(bigData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="pagination"]')).not.toBeNull();
+      });
+    });
+
+    it("hides pagination when total_count is within page size", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("2 total");
+        expect(container.querySelector('[data-testid="pagination"]')).toBeNull();
+      });
+    });
+
+    it("Next calls getMessages with cursor after navigating", async () => {
+      const bigData = { ...messagesData, total_count: 120, next_cursor: "cursor-for-page-2" };
+      mockGetMessages.mockResolvedValue(bigData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="pagination-next"]')).not.toBeNull();
+      });
+      mockGetMessages.mockClear();
+      mockGetMessages.mockResolvedValue({ ...messagesData, total_count: 120, next_cursor: null });
+      const nextBtn = container.querySelector('[data-testid="pagination-next"]') as HTMLButtonElement;
+      nextBtn.click();
+      await vi.waitFor(() => {
+        expect(mockGetMessages).toHaveBeenCalledWith(
+          expect.objectContaining({ cursor: "cursor-for-page-2" }),
+        );
       });
     });
   });
