@@ -20,7 +20,7 @@ describe('GET /api/v1/health', () => {
 
     expect(res.body).toHaveProperty('status', 'healthy');
     expect(res.body).toHaveProperty('uptime_seconds');
-    expect(res.body).toHaveProperty('version', '0.1.0');
+    expect(res.body).toHaveProperty('version', '0.0.0');
     expect(typeof res.body.uptime_seconds).toBe('number');
   });
 });

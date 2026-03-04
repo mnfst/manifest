@@ -1,14 +1,10 @@
-jest.mock('fs', () => ({
-  readFileSync: jest.fn().mockReturnValue(JSON.stringify({ version: '1.2.3' })),
-}));
-
 import { HealthController } from './health.controller';
 import { VersionCheckService } from './version-check.service';
 
 function createMockVersionCheck(overrides: Partial<VersionCheckService> = {}): VersionCheckService {
   return {
     onModuleInit: jest.fn(),
-    getCurrentVersion: jest.fn().mockReturnValue('1.2.3'),
+    getCurrentVersion: jest.fn().mockReturnValue('5.20.0'),
     getUpdateInfo: jest.fn().mockReturnValue({}),
     isNewer: jest.fn().mockReturnValue(false),
     fetchLatestVersion: jest.fn().mockResolvedValue(null),
@@ -21,6 +17,7 @@ describe('HealthController', () => {
   let mockVersionCheck: VersionCheckService;
 
   beforeEach(() => {
+    delete process.env['MANIFEST_MODE'];
     mockVersionCheck = createMockVersionCheck();
     controller = new HealthController(mockVersionCheck);
   });
@@ -30,9 +27,16 @@ describe('HealthController', () => {
     expect(result.status).toBe('healthy');
   });
 
-  it('returns version from package.json', () => {
+  it('returns plugin version in local mode', () => {
+    process.env['MANIFEST_MODE'] = 'local';
     const result = controller.getHealth();
-    expect(result.version).toBe('1.2.3');
+    expect(result.version).toBe('5.20.0');
+  });
+
+  it('omits version in cloud mode', () => {
+    delete process.env['MANIFEST_MODE'];
+    const result = controller.getHealth();
+    expect(result).not.toHaveProperty('version');
   });
 
   it('returns uptime in seconds', () => {
@@ -48,11 +52,9 @@ describe('HealthController', () => {
   });
 
   it('returns local mode when MANIFEST_MODE=local', () => {
-    const orig = process.env['MANIFEST_MODE'];
     process.env['MANIFEST_MODE'] = 'local';
     const result = controller.getHealth();
     expect(result.mode).toBe('local');
-    process.env['MANIFEST_MODE'] = orig;
   });
 
   it('includes update info when available', () => {
