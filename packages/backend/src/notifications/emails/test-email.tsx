@@ -8,9 +8,16 @@ import {
   Text,
   Preview,
   Hr,
+  Img,
+  Link,
 } from '@react-email/components';
 
-export function TestEmail() {
+interface TestEmailProps {
+  logoUrl?: string;
+}
+
+export function TestEmail(props: TestEmailProps = {}) {
+  const { logoUrl = 'https://app.manifest.build/manifest-logo.png' } = props;
   return (
     <Html>
       <Head />
@@ -19,7 +26,7 @@ export function TestEmail() {
         <Container style={container}>
           {/* Logo */}
           <Section style={logoSection}>
-            <Text style={logo}>manifest</Text>
+            <Img src={logoUrl} alt="Manifest" width="140" height="32" style={logoImg} />
           </Section>
 
           {/* Main content */}
@@ -30,22 +37,24 @@ export function TestEmail() {
 
             <Text style={heading}>Email is working</Text>
             <Text style={paragraph}>
-              This is a test email from Manifest. If you're reading this, your
-              email provider configuration is working correctly.
+              This is a test email from Manifest. If you're reading this, your email provider
+              configuration is working correctly.
             </Text>
             <Text style={paragraph}>
-              Notification emails — such as threshold alerts — will be delivered
-              to this address.
+              Notification emails, like threshold alerts, will be delivered to this address.
             </Text>
           </Section>
 
           {/* Footer */}
           <Hr style={divider} />
           <Section style={footer}>
-            <Text style={footerNote}>
-              This is a one-time test email sent from Manifest.
+            <Text style={footerNote}>This is a one-time test email sent from Manifest.</Text>
+            <Text style={footerMuted}>
+              © 2026 MNFST Inc. All rights reserved.{' '}
+              <Link href="https://manifest.build" style={footerLink}>
+                manifest.build
+              </Link>
             </Text>
-            <Text style={footerMuted}>manifest.build</Text>
           </Section>
         </Container>
       </Body>
@@ -80,12 +89,8 @@ const logoSection: React.CSSProperties = {
   paddingBottom: '32px',
 };
 
-const logo: React.CSSProperties = {
-  fontSize: '22px',
-  fontWeight: 700,
-  letterSpacing: '-0.03em',
-  color: '#22110C',
-  margin: 0,
+const logoImg: React.CSSProperties = {
+  margin: '0 auto',
 };
 
 const card: React.CSSProperties = {
@@ -149,4 +154,9 @@ const footerMuted: React.CSSProperties = {
   fontSize: '12px',
   color: '#94a3b8',
   margin: 0,
+};
+
+const footerLink: React.CSSProperties = {
+  color: '#94a3b8',
+  textDecoration: 'underline',
 };

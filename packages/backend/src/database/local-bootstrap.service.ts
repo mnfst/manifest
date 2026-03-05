@@ -200,13 +200,6 @@ export class LocalBootstrapService implements OnModuleInit {
       ['x-ai/grok-3', 'OpenRouter', 0.000003, 0.000015, 131072, true, true],
       // OpenRouter free models
       ['openrouter/free', 'OpenRouter', 0, 0, 200000, true, true],
-      ['stepfun/step-3.5-flash:free', 'OpenRouter', 0, 0, 256000, false, true],
-      ['arcee-ai/trinity-large-preview:free', 'OpenRouter', 0, 0, 131072, false, true],
-      ['upstage/solar-pro-3:free', 'OpenRouter', 0, 0, 128000, false, true],
-      ['liquid/lfm-2.5-1.2b-thinking:free', 'OpenRouter', 0, 0, 32768, true, false],
-      ['liquid/lfm-2.5-1.2b-instruct:free', 'OpenRouter', 0, 0, 32768, false, false],
-      ['arcee-ai/trinity-mini:free', 'OpenRouter', 0, 0, 131072, false, false],
-      ['nvidia/nemotron-3-nano-30b-a3b:free', 'OpenRouter', 0, 0, 256000, false, true],
       // MiniMax
       ['minimax-m2.5', 'MiniMax', 0.000000295, 0.0000012, 196608, true, true],
       ['minimax-m2.5-highspeed', 'MiniMax', 0.000000295, 0.0000012, 196608, true, true],

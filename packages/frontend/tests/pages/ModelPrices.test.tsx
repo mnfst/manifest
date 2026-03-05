@@ -19,6 +19,18 @@ vi.mock("../../src/services/toast-store.js", () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
 
+vi.mock("../../src/components/Pagination.jsx", () => ({
+  default: (props: any) => {
+    const total = props.totalItems();
+    return total > props.pageSize ? (
+      <div data-testid="pagination">
+        <button data-testid="pagination-prev" onClick={props.onPrevious}>Previous</button>
+        <button data-testid="pagination-next" onClick={props.onNext}>Next</button>
+      </div>
+    ) : null;
+  },
+}));
+
 import ModelPrices from "../../src/pages/ModelPrices";
 
 const modelData = {
@@ -347,6 +359,40 @@ describe("ModelPrices - autocomplete filter", () => {
     });
   });
 
+  it("shows pagination when models exceed page size", async () => {
+    const manyModels = Array.from({ length: 30 }, (_, i) => ({
+      model_name: `model-${i}`,
+      provider: "TestProvider",
+      input_price_per_million: 1,
+      output_price_per_million: 2,
+    }));
+    mockGetModelPrices.mockResolvedValue({ models: manyModels, lastSyncedAt: null });
+    const { container } = render(() => <ModelPrices />);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="pagination"]')).not.toBeNull();
+    });
+  });
+
+  it("only renders pageSize items per page", async () => {
+    const manyModels = Array.from({ length: 30 }, (_, i) => ({
+      model_name: `model-${String(i).padStart(2, "0")}`,
+      provider: "TestProvider",
+      input_price_per_million: 1,
+      output_price_per_million: 2,
+    }));
+    mockGetModelPrices.mockResolvedValue({ models: manyModels, lastSyncedAt: null });
+    const { container } = render(() => <ModelPrices />);
+    await vi.waitFor(() => {
+      const rows = container.querySelectorAll("tbody tr");
+      expect(rows.length).toBe(25);
+    });
+  });
+
+  it("hides pagination when all models fit on one page", async () => {
+    const { container } = await renderAndWait();
+    expect(container.querySelector('[data-testid="pagination"]')).toBeNull();
+  });
+
   it("does not show already-selected providers in dropdown", async () => {
     const { container } = await renderAndWait();
     // Select OpenAI
@@ -370,16 +416,16 @@ describe("ModelPrices - autocomplete filter", () => {
     });
   });
 
-  it("renders provider icon as img for known providers", async () => {
+  it("renders provider icon for known providers", async () => {
     const { container } = await renderAndWait();
     await typeInSearch(container, "open");
     await vi.waitFor(() => {
       expect(container.querySelector(".model-filter__dropdown")).not.toBeNull();
     });
-    const iconImg = container.querySelector(".model-filter__dropdown .model-filter__provider-icon");
-    expect(iconImg).not.toBeNull();
-    expect(iconImg?.tagName.toLowerCase()).toBe("img");
-    expect((iconImg as HTMLImageElement)?.src).toContain("/icons/providers/openai.svg");
+    const icon = container.querySelector(".model-filter__dropdown .model-filter__provider-icon");
+    expect(icon).not.toBeNull();
+    // Inline SVG icon rendered via providerIcon()
+    expect(icon?.querySelector("svg")).not.toBeNull();
   });
 
   it("shows group labels in dropdown", async () => {

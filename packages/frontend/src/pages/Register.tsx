@@ -1,16 +1,16 @@
-import { A } from "@solidjs/router";
-import { Title, Meta } from "@solidjs/meta";
-import { type Component, createSignal, Show } from "solid-js";
-import SocialButtons from "../components/SocialButtons.jsx";
-import { authClient } from "../services/auth-client.js";
+import { A } from '@solidjs/router';
+import { Title, Meta } from '@solidjs/meta';
+import { type Component, createSignal, Show } from 'solid-js';
+import SocialButtons from '../components/SocialButtons.jsx';
+import { authClient } from '../services/auth-client.js';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
 const Register: Component = () => {
-  const [name, setName] = createSignal("");
-  const [email, setEmail] = createSignal("");
-  const [password, setPassword] = createSignal("");
-  const [error, setError] = createSignal("");
+  const [name, setName] = createSignal('');
+  const [email, setEmail] = createSignal('');
+  const [password, setPassword] = createSignal('');
+  const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
   const [emailSent, setEmailSent] = createSignal(false);
   const [resendCooldown, setResendCooldown] = createSignal(0);
@@ -30,7 +30,7 @@ const Register: Component = () => {
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
 
     const { error: authError } = await authClient.signUp.email({
@@ -42,7 +42,7 @@ const Register: Component = () => {
     setLoading(false);
 
     if (authError) {
-      setError(authError.message ?? "Registration failed");
+      setError(authError.message ?? 'Registration failed');
       return;
     }
 
@@ -55,11 +55,11 @@ const Register: Component = () => {
 
     const { error: resendError } = await authClient.sendVerificationEmail({
       email: email(),
-      callbackURL: "/",
+      callbackURL: '/',
     });
 
     if (resendError) {
-      setError(resendError.message ?? "Failed to resend verification email");
+      setError(resendError.message ?? 'Failed to resend verification email');
       return;
     }
 
@@ -69,71 +69,84 @@ const Register: Component = () => {
   return (
     <>
       <Title>Sign Up - Manifest</Title>
-      <Meta name="description" content="Create a Manifest account to start monitoring your AI agents." />
-      <Show when={emailSent()} fallback={
-        <>
-          <div class="auth-header">
-            <h1 class="auth-header__title">Create an account</h1>
-            <p class="auth-header__subtitle">Start monitoring your AI agents in minutes</p>
-          </div>
+      <Meta
+        name="description"
+        content="Create a Manifest account to start monitoring your AI agents."
+      />
+      <Show
+        when={emailSent()}
+        fallback={
+          <>
+            <div class="auth-header">
+              <h1 class="auth-header__title">Create an account</h1>
+              <p class="auth-header__subtitle">Monitor your AI agents' costs and usage</p>
+            </div>
 
-          <SocialButtons />
+            <SocialButtons />
 
-          <div class="auth-divider">
-            <span class="auth-divider__text">or</span>
-          </div>
+            <div class="auth-divider">
+              <span class="auth-divider__text">or</span>
+            </div>
 
-          <form class="auth-form" onSubmit={handleSubmit}>
-            {error() && <div class="auth-form__error">{error()}</div>}
-            <label class="auth-form__label">
-              Name
-              <input
-                class="auth-form__input"
-                type="text"
-                placeholder="Your name"
-                value={name()}
-                onInput={(e) => setName(e.currentTarget.value)}
-                required
-              />
-            </label>
-            <label class="auth-form__label">
-              Email
-              <input
-                class="auth-form__input"
-                type="email"
-                placeholder="you@example.com"
-                value={email()}
-                onInput={(e) => setEmail(e.currentTarget.value)}
-                required
-              />
-            </label>
-            <label class="auth-form__label">
-              Password
-              <input
-                class="auth-form__input"
-                type="password"
-                placeholder="Create a password"
-                value={password()}
-                onInput={(e) => setPassword(e.currentTarget.value)}
-                required
-                minLength={8}
-              />
-            </label>
-            <button class="auth-form__submit" type="submit" disabled={loading()}>
-              {loading() ? "Creating account..." : "Create account"}
-            </button>
-          </form>
-          <p class="auth-terms">
-            By signing up, you agree to our{" "}
-            <a href="#" class="auth-terms__link">Terms</a> and{" "}
-            <a href="#" class="auth-terms__link">Privacy Policy</a>
-          </p>
-          <div class="auth-footer">
-            <span>Already have an account? </span>
-            <A href="/login" class="auth-footer__link">Sign in</A>
-          </div>
-        </>
-      }>
+            <form class="auth-form" onSubmit={handleSubmit}>
+              {error() && <div class="auth-form__error">{error()}</div>}
+              <label class="auth-form__label">
+                Name
+                <input
+                  class="auth-form__input"
+                  type="text"
+                  placeholder="Your name"
+                  value={name()}
+                  onInput={(e) => setName(e.currentTarget.value)}
+                  required
+                />
+              </label>
+              <label class="auth-form__label">
+                Email
+                <input
+                  class="auth-form__input"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email()}
+                  onInput={(e) => setEmail(e.currentTarget.value)}
+                  required
+                />
+              </label>
+              <label class="auth-form__label">
+                Password
+                <input
+                  class="auth-form__input"
+                  type="password"
+                  placeholder="Create a password"
+                  value={password()}
+                  onInput={(e) => setPassword(e.currentTarget.value)}
+                  required
+                  minLength={8}
+                />
+              </label>
+              <button class="auth-form__submit" type="submit" disabled={loading()}>
+                {loading() ? 'Creating account...' : 'Create account'}
+              </button>
+            </form>
+            <p class="auth-terms">
+              By signing up, you agree to our{' '}
+              <a href="#" class="auth-terms__link">
+                Terms
+              </a>{' '}
+              and{' '}
+              <a href="#" class="auth-terms__link">
+                Privacy Policy
+              </a>
+            </p>
+            <div class="auth-footer">
+              <span>Already have an account? </span>
+              <A href="/login" class="auth-footer__link">
+                Sign in
+              </A>
+            </div>
+          </>
+        }
+      >
         <div class="auth-header">
           <h1 class="auth-header__title">Check your email</h1>
           <p class="auth-header__subtitle">
@@ -151,14 +164,14 @@ const Register: Component = () => {
             onClick={handleResend}
             disabled={resendCooldown() > 0}
           >
-            {resendCooldown() > 0
-              ? `Resend in ${resendCooldown()}s`
-              : "Resend verification email"}
+            {resendCooldown() > 0 ? `Resend in ${resendCooldown()}s` : 'Resend verification email'}
           </button>
         </div>
 
         <div class="auth-footer">
-          <A href="/login" class="auth-footer__link">Back to sign in</A>
+          <A href="/login" class="auth-footer__link">
+            Back to sign in
+          </A>
         </div>
       </Show>
     </>

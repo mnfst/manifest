@@ -9,15 +9,18 @@ import {
   Button,
   Preview,
   Hr,
+  Img,
+  Link,
 } from '@react-email/components';
 
 export interface ResetPasswordEmailProps {
   userName: string;
   resetUrl: string;
+  logoUrl?: string;
 }
 
 export function ResetPasswordEmail(props: ResetPasswordEmailProps) {
-  const { userName, resetUrl } = props;
+  const { userName, resetUrl, logoUrl = 'https://app.manifest.build/manifest-logo.png' } = props;
 
   return (
     <Html>
@@ -27,15 +30,15 @@ export function ResetPasswordEmail(props: ResetPasswordEmailProps) {
         <Container style={container}>
           {/* Logo */}
           <Section style={logoSection}>
-            <Text style={logo}>manifest</Text>
+            <Img src={logoUrl} alt="Manifest" width="140" height="32" style={logoImg} />
           </Section>
 
           {/* Main content */}
           <Section style={card}>
             <Text style={heading}>Reset your password</Text>
             <Text style={paragraph}>
-              Hi {userName}, we received a request to reset your password. Click
-              the button below to choose a new one.
+              Hi {userName}, we received a request to reset your password. Click the button below to
+              choose a new one.
             </Text>
 
             <Section style={buttonContainer}>
@@ -45,16 +48,15 @@ export function ResetPasswordEmail(props: ResetPasswordEmailProps) {
             </Section>
 
             <Text style={hint}>
-              This link expires in 1 hour. If you didn't request a password
-              reset, you can safely ignore this email.
+              This link expires in 1 hour. If you didn't request a password reset, you can safely
+              ignore this email.
             </Text>
           </Section>
 
           {/* Fallback link */}
           <Section style={fallbackSection}>
             <Text style={fallbackText}>
-              If the button above doesn't work, copy and paste this link into
-              your browser:
+              If the button above doesn't work, copy and paste this link into your browser:
             </Text>
             <Text style={fallbackUrl}>{resetUrl}</Text>
           </Section>
@@ -63,7 +65,10 @@ export function ResetPasswordEmail(props: ResetPasswordEmailProps) {
           <Hr style={divider} />
           <Section style={footer}>
             <Text style={footerMuted}>
-              manifest.build
+              © 2026 MNFST Inc. All rights reserved.{' '}
+              <Link href="https://manifest.build" style={footerLink}>
+                manifest.build
+              </Link>
             </Text>
           </Section>
         </Container>
@@ -102,12 +107,8 @@ const logoSection: React.CSSProperties = {
   paddingBottom: '32px',
 };
 
-const logo: React.CSSProperties = {
-  fontSize: '22px',
-  fontWeight: 700,
-  letterSpacing: '-0.03em',
-  color: '#22110C',
-  margin: 0,
+const logoImg: React.CSSProperties = {
+  margin: '0 auto',
 };
 
 const card: React.CSSProperties = {
@@ -188,4 +189,9 @@ const footerMuted: React.CSSProperties = {
   fontSize: '12px',
   color: '#94a3b8',
   margin: 0,
+};
+
+const footerLink: React.CSSProperties = {
+  color: '#94a3b8',
+  textDecoration: 'underline',
 };

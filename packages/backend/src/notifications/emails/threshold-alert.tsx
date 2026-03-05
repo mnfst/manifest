@@ -22,6 +22,8 @@ export interface ThresholdAlertProps {
   timestamp: string;
   agentUrl: string;
   logoUrl?: string;
+  alertType?: 'soft' | 'hard';
+  periodResetDate?: string;
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -52,7 +54,14 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
     timestamp,
     agentUrl,
     logoUrl = 'https://app.manifest.build/manifest-logo.png',
+    alertType = 'hard',
+    periodResetDate,
   } = props;
+
+  const isSoft = alertType === 'soft';
+  const accentColor = isSoft ? '#ea580c' : '#dc2626';
+  const accentBg = isSoft ? '#fff7ed' : '#fef2f2';
+  const accentBorder = isSoft ? '#fed7aa' : '#fecaca';
 
   return (
     <Html>
@@ -71,7 +80,9 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
           <Section style={card}>
             {/* Alert badge */}
             <Section style={alertBadgeContainer}>
-              <Text style={alertBadge}>Threshold exceeded</Text>
+              <Text style={{ ...alertBadge, color: accentColor, backgroundColor: accentBg }}>
+                {isSoft ? 'Warning' : 'Threshold exceeded'}
+              </Text>
             </Section>
 
             <Text style={heading}>
@@ -82,15 +93,33 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
               threshold for the current <strong>{period}</strong> period.
             </Text>
 
+            {/* Context message */}
+            {isSoft ? (
+              <Text style={paragraph}>Requests are still being processed normally.</Text>
+            ) : (
+              <Section
+                style={{ ...hardLimitBox, backgroundColor: accentBg, borderColor: accentBorder }}
+              >
+                <Text style={{ ...hardLimitText, color: accentColor }}>
+                  Requests are now blocked until the next period resets
+                  {periodResetDate ? ` on ${formatTimestamp(periodResetDate)}` : ''}.
+                </Text>
+              </Section>
+            )}
+
             {/* Stats row */}
             <Section style={statsRow}>
               <Section style={statBox}>
                 <Text style={statLabel}>Threshold</Text>
                 <Text style={statValue}>{formatValue(threshold, metricType)}</Text>
               </Section>
-              <Section style={statBoxAlert}>
+              <Section
+                style={{ ...statBoxAlert, backgroundColor: accentBg, borderColor: accentBorder }}
+              >
                 <Text style={statLabel}>Actual usage</Text>
-                <Text style={statValueAlert}>{formatValue(actualValue, metricType)}</Text>
+                <Text style={{ ...statValueAlert, color: accentColor }}>
+                  {formatValue(actualValue, metricType)}
+                </Text>
               </Section>
             </Section>
 
@@ -176,8 +205,6 @@ const alertBadge: React.CSSProperties = {
   fontWeight: 600,
   textTransform: 'uppercase' as const,
   letterSpacing: '0.05em',
-  color: '#dc2626',
-  backgroundColor: '#fef2f2',
   padding: '4px 10px',
   borderRadius: '6px',
   margin: 0,
@@ -212,10 +239,23 @@ const statBox: React.CSSProperties = {
 };
 
 const statBoxAlert: React.CSSProperties = {
-  backgroundColor: '#fef2f2',
   borderRadius: '8px',
   padding: '16px 20px',
-  border: '1px solid #fecaca',
+  border: '1px solid',
+};
+
+const hardLimitBox: React.CSSProperties = {
+  padding: '12px 16px',
+  borderRadius: '8px',
+  border: '1px solid',
+  marginBottom: '28px',
+};
+
+const hardLimitText: React.CSSProperties = {
+  fontSize: '14px',
+  fontWeight: 700,
+  margin: 0,
+  lineHeight: '1.5',
 };
 
 const statLabel: React.CSSProperties = {
@@ -238,7 +278,6 @@ const statValue: React.CSSProperties = {
 const statValueAlert: React.CSSProperties = {
   fontSize: '24px',
   fontWeight: 700,
-  color: '#dc2626',
   margin: 0,
   letterSpacing: '-0.02em',
 };

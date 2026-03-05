@@ -7,12 +7,18 @@ import { ToolExecution } from '../../entities/tool-execution.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 
-const testCtx: IngestionContext = { tenantId: 'test-tenant', agentId: 'test-agent', agentName: 'test-agent', userId: 'test-user' };
+const testCtx: IngestionContext = {
+  tenantId: 'test-tenant',
+  agentId: 'test-agent',
+  agentName: 'test-agent',
+  userId: 'test-user',
+};
 
 describe('TraceIngestService', () => {
   let service: TraceIngestService;
   let mockTurnInsert: jest.Mock;
   let mockTurnFindOne: jest.Mock;
+  let mockTurnFind: jest.Mock;
   let mockLlmInsert: jest.Mock;
   let mockToolInsert: jest.Mock;
   let mockPricingGetByModel: jest.Mock;
@@ -21,6 +27,7 @@ describe('TraceIngestService', () => {
   beforeEach(async () => {
     mockTurnInsert = jest.fn().mockResolvedValue({});
     mockTurnFindOne = jest.fn().mockResolvedValue(null);
+    mockTurnFind = jest.fn().mockResolvedValue([]);
     mockLlmInsert = jest.fn().mockResolvedValue({});
     mockToolInsert = jest.fn().mockResolvedValue({});
     mockPricingGetByModel = jest.fn().mockReturnValue(undefined);
@@ -42,6 +49,7 @@ describe('TraceIngestService', () => {
           useValue: {
             insert: mockTurnInsert,
             findOne: mockTurnFindOne,
+            find: mockTurnFind,
             createQueryBuilder: jest.fn().mockReturnValue(mockQb),
           },
         },
@@ -73,20 +81,24 @@ describe('TraceIngestService', () => {
     expect(result.accepted).toBe(0);
   });
 
-  it('ingests an agent_message span (no gen_ai.system or tool.name)', async () => {
+  it('ingests an agent_message span (openclaw.agent.turn name)', async () => {
     const request = {
-      resourceSpans: [{
-        resource: {
-          attributes: [
-            { key: 'service.name', value: { stringValue: 'agent' } },
-            { key: 'agent.name', value: { stringValue: 'bot-1' } },
+      resourceSpans: [
+        {
+          resource: {
+            attributes: [
+              { key: 'service.name', value: { stringValue: 'agent' } },
+              { key: 'agent.name', value: { stringValue: 'bot-1' } },
+            ],
+          },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [makeSpan({ name: 'openclaw.agent.turn' })],
+            },
           ],
         },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [makeSpan()],
-        }],
-      }],
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -114,13 +126,17 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [makeSpan(), span],
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [makeSpan(), span],
+            },
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -141,19 +157,21 @@ describe('TraceIngestService', () => {
     const span = makeSpan({
       spanId: 'span-tool',
       parentSpanId: 'span-llm',
-      attributes: [
-        { key: 'tool.name', value: { stringValue: 'web_search' } },
-      ],
+      attributes: [{ key: 'tool.name', value: { stringValue: 'web_search' } }],
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [span],
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [span],
+            },
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -174,6 +192,7 @@ describe('TraceIngestService', () => {
     });
 
     const span = makeSpan({
+      name: 'openclaw.agent.turn',
       attributes: [
         { key: 'gen_ai.request.model', value: { stringValue: 'claude-opus-4-6' } },
         { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
@@ -182,10 +201,12 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -201,14 +222,17 @@ describe('TraceIngestService', () => {
 
   it('handles error status on spans', async () => {
     const span = makeSpan({
+      name: 'openclaw.agent.turn',
       status: { code: 2, message: 'something went wrong' },
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -232,10 +256,12 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -272,10 +298,12 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -304,10 +332,12 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
     };
 
     // Access the mockQb through the repo to verify setParameter calls
@@ -332,10 +362,34 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(1);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+    expect(mockLlmInsert).not.toHaveBeenCalled();
+    expect(mockToolInsert).not.toHaveBeenCalled();
+  });
+
+  it('skips unknown/unrecognized spans as root_request', async () => {
+    const span = makeSpan({
+      spanId: 'span-unknown',
+      name: 'http.client.request',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -351,10 +405,12 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -365,10 +421,12 @@ describe('TraceIngestService', () => {
 
   it('handles missing scopeSpans gracefully', async () => {
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: undefined as never,
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: undefined as never,
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -377,13 +435,17 @@ describe('TraceIngestService', () => {
 
   it('handles missing spans array within scopeSpans gracefully', async () => {
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: undefined as never,
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: undefined as never,
+            },
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -392,14 +454,17 @@ describe('TraceIngestService', () => {
 
   it('sets error_message to null when status code is not 2', async () => {
     const span = makeSpan({
+      name: 'openclaw.agent.turn',
       status: { code: 1, message: 'should be ignored' },
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -427,16 +492,16 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [rootSpan, llmSpan] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [rootSpan, llmSpan] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
-    expect(mockLlmInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ turn_id: null }),
-    );
+    expect(mockLlmInsert).toHaveBeenCalledWith(expect.objectContaining({ turn_id: null }));
   });
 
   it('sets null llmCallId when tool parent is not an llm_call', async () => {
@@ -448,41 +513,43 @@ describe('TraceIngestService', () => {
     const toolSpan = makeSpan({
       spanId: 'span-tool',
       parentSpanId: 'span-parent',
-      attributes: [
-        { key: 'tool.name', value: { stringValue: 'bash' } },
-      ],
+      attributes: [{ key: 'tool.name', value: { stringValue: 'bash' } }],
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, toolSpan] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, toolSpan] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ llm_call_id: null }),
-    );
+    expect(mockToolInsert).toHaveBeenCalledWith(expect.objectContaining({ llm_call_id: null }));
   });
 
   it('uses tool.name from resource attributes for tool_execution classification', async () => {
     const request = {
-      resourceSpans: [{
-        resource: {
-          attributes: [
-            { key: 'tool.name', value: { stringValue: 'resource-tool' } },
+      resourceSpans: [
+        {
+          resource: {
+            attributes: [{ key: 'tool.name', value: { stringValue: 'resource-tool' } }],
+          },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [
+                makeSpan({
+                  spanId: 'span-t',
+                  name: 'span-level-name',
+                  attributes: [],
+                }),
+              ],
+            },
           ],
         },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [makeSpan({
-            spanId: 'span-t',
-            name: 'span-level-name',
-            attributes: [],
-          })],
-        }],
-      }],
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -495,16 +562,16 @@ describe('TraceIngestService', () => {
     const toolSpan = makeSpan({
       spanId: 'span-tool-err',
       status: { code: 2, message: 'tool failed' },
-      attributes: [
-        { key: 'tool.name', value: { stringValue: 'broken_tool' } },
-      ],
+      attributes: [{ key: 'tool.name', value: { stringValue: 'broken_tool' } }],
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [toolSpan] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [toolSpan] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -520,16 +587,16 @@ describe('TraceIngestService', () => {
     const toolSpan = makeSpan({
       spanId: 'span-tool-ok',
       status: { code: 0 },
-      attributes: [
-        { key: 'tool.name', value: { stringValue: 'good_tool' } },
-      ],
+      attributes: [{ key: 'tool.name', value: { stringValue: 'good_tool' } }],
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [toolSpan] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [toolSpan] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -558,10 +625,12 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [rootSpan, llmSpan] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [rootSpan, llmSpan] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -580,16 +649,16 @@ describe('TraceIngestService', () => {
     const llmSpan = makeSpan({
       spanId: 'span-llm-no-tokens',
       parentSpanId: 'span-msg',
-      attributes: [
-        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
-      ],
+      attributes: [{ key: 'gen_ai.system', value: { stringValue: 'openai' } }],
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -620,13 +689,17 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [parentSpan, llmSpan],
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [parentSpan, llmSpan],
+            },
+          ],
+        },
+      ],
     };
 
     const repoInstance = (service as any).turnRepo;
@@ -661,13 +734,17 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [parentSpan, llmSpan],
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [parentSpan, llmSpan],
+            },
+          ],
+        },
+      ],
     };
 
     const repoInstance = (service as any).turnRepo;
@@ -676,33 +753,31 @@ describe('TraceIngestService', () => {
     await service.ingest(request, testCtx);
 
     expect(mockExecute).toHaveBeenCalled();
-    expect(mockQb.set).toHaveBeenCalledWith(
-      expect.objectContaining({ cost_usd: null }),
-    );
+    expect(mockQb.set).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
   });
 
   it('returns null cost when model has no tokens', async () => {
     const span = makeSpan({
-      attributes: [
-        { key: 'gen_ai.response.model', value: { stringValue: 'gpt-4o' } },
-      ],
+      name: 'openclaw.agent.turn',
+      attributes: [{ key: 'gen_ai.response.model', value: { stringValue: 'gpt-4o' } }],
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ cost_usd: null }),
-    );
+    expect(mockTurnInsert).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
   });
 
   it('returns null cost when no model attribute is present', async () => {
     const span = makeSpan({
+      name: 'openclaw.agent.turn',
       attributes: [
         { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
         { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
@@ -710,22 +785,23 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ cost_usd: null }),
-    );
+    expect(mockTurnInsert).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
   });
 
   it('returns null cost when model exists but pricing is not found', async () => {
     mockPricingGetByModel.mockReturnValue(undefined);
 
     const span = makeSpan({
+      name: 'openclaw.agent.turn',
       attributes: [
         { key: 'gen_ai.request.model', value: { stringValue: 'unknown-model' } },
         { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
@@ -734,16 +810,16 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ cost_usd: null }),
-    );
+    expect(mockTurnInsert).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
   });
 
   it('uses gen_ai.response.model as fallback when gen_ai.request.model is absent', async () => {
@@ -753,6 +829,7 @@ describe('TraceIngestService', () => {
     });
 
     const span = makeSpan({
+      name: 'openclaw.agent.turn',
       attributes: [
         { key: 'gen_ai.response.model', value: { stringValue: 'claude-3-haiku' } },
         { key: 'gen_ai.usage.input_tokens', value: { intValue: 10 } },
@@ -761,10 +838,12 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -795,13 +874,17 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [parentSpan, llmSpan],
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [parentSpan, llmSpan],
+            },
+          ],
+        },
+      ],
     };
 
     const repoInstance = (service as any).turnRepo;
@@ -831,13 +914,17 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [parentSpan, llmSpan],
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [parentSpan, llmSpan],
+            },
+          ],
+        },
+      ],
     };
 
     const repoInstance = (service as any).turnRepo;
@@ -871,13 +958,17 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [parentSpan, llmSpan],
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [parentSpan, llmSpan],
+            },
+          ],
+        },
+      ],
     };
 
     const repoInstance = (service as any).turnRepo;
@@ -906,10 +997,12 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [llmSpan] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [llmSpan] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -919,13 +1012,15 @@ describe('TraceIngestService', () => {
   });
 
   it('uses ctx.agentName when agent.name attribute is absent', async () => {
-    const span = makeSpan();
+    const span = makeSpan({ name: 'openclaw.agent.turn' });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -952,13 +1047,17 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [parentSpan, llmSpan],
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [parentSpan, llmSpan],
+            },
+          ],
+        },
+      ],
     };
 
     const repoInstance = (service as any).turnRepo;
@@ -967,9 +1066,7 @@ describe('TraceIngestService', () => {
     await service.ingest(request, testCtx);
 
     // model is null so cost should be null
-    expect(mockQb.set).toHaveBeenCalledWith(
-      expect.objectContaining({ cost_usd: null }),
-    );
+    expect(mockQb.set).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
   });
 
   it('persists llm_call cache tokens from span attributes', async () => {
@@ -992,13 +1089,17 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [parentSpan, llmSpan],
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [parentSpan, llmSpan],
+            },
+          ],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -1012,14 +1113,17 @@ describe('TraceIngestService', () => {
 
   it('sets null error_message when error status has no message field', async () => {
     const span = makeSpan({
+      name: 'openclaw.agent.turn',
       status: { code: 2 },
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -1040,27 +1144,27 @@ describe('TraceIngestService', () => {
     const llmSpan = makeSpan({
       spanId: 'span-llm-parent',
       parentSpanId: 'span-msg-parent',
-      attributes: [
-        { key: 'gen_ai.system', value: { stringValue: 'anthropic' } },
-      ],
+      attributes: [{ key: 'gen_ai.system', value: { stringValue: 'anthropic' } }],
     });
 
     const toolSpan = makeSpan({
       spanId: 'span-tool-child',
       parentSpanId: 'span-llm-parent',
-      attributes: [
-        { key: 'tool.name', value: { stringValue: 'file_read' } },
-      ],
+      attributes: [{ key: 'tool.name', value: { stringValue: 'file_read' } }],
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [parentSpan, llmSpan, toolSpan],
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [parentSpan, llmSpan, toolSpan],
+            },
+          ],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -1079,16 +1183,16 @@ describe('TraceIngestService', () => {
     const toolSpan = makeSpan({
       spanId: 'span-tool-err-nomsg',
       status: { code: 2 },
-      attributes: [
-        { key: 'tool.name', value: { stringValue: 'bad_tool' } },
-      ],
+      attributes: [{ key: 'tool.name', value: { stringValue: 'bad_tool' } }],
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [toolSpan] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [toolSpan] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -1109,10 +1213,12 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -1136,10 +1242,12 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
@@ -1147,22 +1255,53 @@ describe('TraceIngestService', () => {
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
-  it('skips dedup check when trace_id is empty', async () => {
+  it('skips trace_id dedup check when trace_id is empty but runs timestamp-based fallback', async () => {
     const span = makeSpan({
       traceId: '',
       name: 'openclaw.agent.turn',
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);
+    // trace_id-based dedup is skipped; fallback calls find() for recent errors
     expect(mockTurnFindOne).not.toHaveBeenCalled();
+    expect(mockTurnFind).toHaveBeenCalledTimes(1);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('deduplicates agent_message when proxy error exists near span timestamp', async () => {
+    // findOne (trace_id check) returns null; find (timestamp fallback) returns a nearby error
+    mockTurnFindOne.mockResolvedValue(null);
+    // Return an error with a timestamp close to the span's start time
+    const nearbyTs = new Date(Number(BigInt('1708000000000000000') / 1_000_000n)).toISOString();
+    mockTurnFind.mockResolvedValue([{ id: 'proxy-error-id', timestamp: nearbyTs }]);
+
+    const span = makeSpan({
+      traceId: 'trace-with-delayed-otlp',
+      name: 'openclaw.agent.turn',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnFindOne).toHaveBeenCalledTimes(1); // trace_id check
+    expect(mockTurnFind).toHaveBeenCalledTimes(1); // timestamp fallback
+    expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
   it('defaults llm_call cache tokens to 0 when attributes are absent', async () => {
@@ -1181,13 +1320,17 @@ describe('TraceIngestService', () => {
     });
 
     const request = {
-      resourceSpans: [{
-        resource: { attributes: [] },
-        scopeSpans: [{
-          scope: { name: 'test' },
-          spans: [parentSpan, llmSpan],
-        }],
-      }],
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [parentSpan, llmSpan],
+            },
+          ],
+        },
+      ],
     };
 
     await service.ingest(request, testCtx);

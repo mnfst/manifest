@@ -200,8 +200,8 @@ const Limits: Component = () => {
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
           <span>
-            One or more hard limits have been triggered &mdash; new proxy requests for this agent
-            will be blocked until the usage resets in the next period.
+            One or more hard limits triggered. New proxy requests for this agent will be blocked
+            until the usage resets in the next period.
           </span>
         </div>
       </Show>
@@ -260,10 +260,7 @@ const Limits: Component = () => {
           fallback={
             <div class="empty-state">
               <div class="empty-state__title">No rules yet</div>
-              <p>
-                Set up email alerts to get notified when usage spikes, or create hard limits to
-                automatically block requests that exceed your budget.
-              </p>
+              <p>Set up alerts for usage spikes, or hard limits to block requests over budget.</p>
             </div>
           }
         >

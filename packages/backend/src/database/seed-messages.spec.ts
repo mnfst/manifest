@@ -66,9 +66,7 @@ describe('seedAgentMessages', () => {
       await seedAgentMessages(mockRepo as never, 'user-1', logger);
 
       expect(logger.log).toHaveBeenCalledTimes(1);
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.stringMatching(/^Seeded \d+ agent messages$/),
-      );
+      expect(logger.log).toHaveBeenCalledWith(expect.stringMatching(/^Seeded \d+ agent messages$/));
     });
 
     it('should generate approximately 695 messages over 7 days', async () => {
@@ -102,12 +100,7 @@ describe('seedAgentMessages', () => {
         agentName: 'my-agent',
       };
 
-      await seedAgentMessages(
-        mockRepo as never,
-        'user-2',
-        logger,
-        customCtx,
-      );
+      await seedAgentMessages(mockRepo as never, 'user-2', logger, customCtx);
 
       const messages = collectInsertedMessages(mockRepo);
       expect(messages.length).toBeGreaterThan(0);

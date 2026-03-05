@@ -1,5 +1,5 @@
-import { createSignal, type Component } from "solid-js";
-import EmailProviderModal from "./EmailProviderModal.jsx";
+import { createSignal, type Component } from 'solid-js';
+import EmailProviderModal from './EmailProviderModal.jsx';
 
 interface Props {
   onConfigured: () => void;
@@ -7,7 +7,7 @@ interface Props {
 
 const EmailProviderSetup: Component<Props> = (props) => {
   const [modalOpen, setModalOpen] = createSignal(false);
-  const [selectedProvider, setSelectedProvider] = createSignal<string>("resend");
+  const [selectedProvider, setSelectedProvider] = createSignal<string>('resend');
 
   const openModal = (provider: string) => {
     setSelectedProvider(provider);
@@ -22,25 +22,25 @@ const EmailProviderSetup: Component<Props> = (props) => {
       </p>
 
       <div class="provider-setup-grid">
-        <button class="provider-setup-card" onClick={() => openModal("resend")}>
+        <button class="provider-setup-card" onClick={() => openModal('resend')}>
           <img src="/logos/resend.svg" alt="" class="provider-setup-card__logo" />
           <div>
             <div class="provider-setup-card__name">Resend</div>
-            <div class="provider-setup-card__desc">Modern email API</div>
+            <div class="provider-setup-card__desc">Email API</div>
           </div>
         </button>
-        <button class="provider-setup-card" onClick={() => openModal("mailgun")}>
+        <button class="provider-setup-card" onClick={() => openModal('mailgun')}>
           <img src="/logos/mailgun.svg" alt="" class="provider-setup-card__logo" />
           <div>
             <div class="provider-setup-card__name">Mailgun</div>
-            <div class="provider-setup-card__desc">Reliable email service</div>
+            <div class="provider-setup-card__desc">Transactional email</div>
           </div>
         </button>
-        <button class="provider-setup-card" onClick={() => openModal("sendgrid")}>
+        <button class="provider-setup-card" onClick={() => openModal('sendgrid')}>
           <img src="/logos/sendgrid.svg" alt="" class="provider-setup-card__logo" />
           <div>
             <div class="provider-setup-card__name">SendGrid</div>
-            <div class="provider-setup-card__desc">Scalable email delivery</div>
+            <div class="provider-setup-card__desc">Email delivery</div>
           </div>
         </button>
       </div>

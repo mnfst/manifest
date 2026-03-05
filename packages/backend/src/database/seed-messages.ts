@@ -18,12 +18,21 @@ export async function seedAgentMessages(
   messageRepo: Repository<AgentMessage>,
   userId: string,
   logger: Logger,
-  ctx: SeedContext = { tenantId: 'seed-tenant-001', agentId: 'seed-agent-001', agentName: 'demo-agent' },
+  ctx: SeedContext = {
+    tenantId: 'seed-tenant-001',
+    agentId: 'seed-agent-001',
+    agentName: 'demo-agent',
+  },
 ): Promise<void> {
   const count = await messageRepo.count();
   if (count > 0) return;
 
-  const models = ['claude-sonnet-4-5-20250929', 'gpt-4o', 'claude-haiku-4-5-20251001', 'gemini-2.5-flash'];
+  const models = [
+    'claude-sonnet-4-5-20250929',
+    'gpt-4o',
+    'claude-haiku-4-5-20251001',
+    'gemini-2.5-flash',
+  ];
   const now = Date.now();
   const messages: Array<Partial<AgentMessage>> = [];
   let idx = 0;
@@ -33,9 +42,10 @@ export async function seedAgentMessages(
     const hourBase = now - h * 3600000;
     // Fewer messages at night (hours 0-7 UTC), more during work hours
     const utcHour = new Date(hourBase).getUTCHours();
-    const msgCount = utcHour >= 8 && utcHour <= 22
-      ? 4 + Math.floor(seededRandom(h) * 5)
-      : Math.floor(seededRandom(h + 500) * 3);
+    const msgCount =
+      utcHour >= 8 && utcHour <= 22
+        ? 4 + Math.floor(seededRandom(h) * 5)
+        : Math.floor(seededRandom(h + 500) * 3);
 
     for (let m = 0; m < msgCount; m++) {
       idx++;

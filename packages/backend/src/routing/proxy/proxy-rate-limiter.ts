@@ -1,12 +1,7 @@
-import {
-  Injectable,
-  OnModuleDestroy,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, OnModuleDestroy, HttpException, HttpStatus } from '@nestjs/common';
 
 const RATE_WINDOW_MS = 60_000;
-const RATE_MAX_REQUESTS = 60;
+const RATE_MAX_REQUESTS = 200;
 const MAX_RATE_ENTRIES = 50_000;
 const CONCURRENCY_MAX = 10;
 const CLEANUP_INTERVAL_MS = 60_000;
@@ -33,7 +28,29 @@ export class ProxyRateLimiter implements OnModuleDestroy {
     clearInterval(this.cleanupTimer);
   }
 
+  /**
+   * Check if the user is over the rate limit. Does NOT increment the counter.
+   * Call `recordSuccess()` after a successful provider response to increment.
+   */
   checkLimit(userId: string): void {
+    const now = Date.now();
+    const entry = this.rates.get(userId);
+
+    if (!entry || now - entry.windowStart >= RATE_WINDOW_MS) return;
+
+    if (entry.count >= RATE_MAX_REQUESTS) {
+      throw new HttpException(
+        'Rate limit exceeded. Try again later.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+  }
+
+  /**
+   * Increment the rate counter after a successful provider response.
+   * Failed upstream responses are not counted against the user's limit.
+   */
+  recordSuccess(userId: string): void {
     const now = Date.now();
     let entry = this.rates.get(userId);
 
@@ -42,14 +59,6 @@ export class ProxyRateLimiter implements OnModuleDestroy {
     }
 
     entry.count++;
-    if (entry.count > RATE_MAX_REQUESTS) {
-      this.rates.set(userId, entry);
-      throw new HttpException(
-        'Rate limit exceeded. Try again later.',
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
-    }
-
     this.rates.set(userId, entry);
     this.evictLruIfNeeded();
   }

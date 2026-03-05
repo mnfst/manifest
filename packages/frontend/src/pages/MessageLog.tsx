@@ -1,7 +1,16 @@
-import { createSignal, createResource, Show, For, type Component } from 'solid-js';
+import {
+  createSignal,
+  createResource,
+  createEffect,
+  on,
+  Show,
+  For,
+  type Component,
+} from 'solid-js';
 import { A, useParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
+import Pagination from '../components/Pagination.jsx';
 import { getMessages } from '../services/api.js';
 import {
   formatNumber,
@@ -19,6 +28,7 @@ import { isLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import SetupModal from '../components/SetupModal.jsx';
+import { createCursorPagination } from '../services/cursor-pagination.js';
 import '../styles/overview.css';
 
 interface MessageItem {
@@ -57,6 +67,13 @@ const MessageLog: Component = () => {
     !!localStorage.getItem(`setup_completed_${params.agentName}`) ||
       (isLocalMode() === true && params.agentName === 'local-agent'),
   );
+
+  const pager = createCursorPagination(50);
+
+  createEffect(
+    on([statusFilter, modelFilter, costMin, costMax], () => pager.resetPage(), { defer: true }),
+  );
+
   const [data, { refetch }] = createResource(
     () => ({
       status: statusFilter(),
@@ -65,6 +82,8 @@ const MessageLog: Component = () => {
       costMax: costMax(),
       agentName: params.agentName,
       _ping: pingCount(),
+      cursor: pager.currentCursor(),
+      limit: pager.pageSize,
     }),
     (p) => {
       const q: Record<string, string> = {};
@@ -73,13 +92,37 @@ const MessageLog: Component = () => {
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
       if (p.agentName) q.agent_name = p.agentName;
+      if (p.cursor) q.cursor = p.cursor;
+      q.limit = String(p.limit);
       return getMessages(q) as Promise<MessagesData>;
     },
   );
 
+  createEffect(
+    on(
+      () => data(),
+      (d) => {
+        if (d) pager.recordResponse(d.next_cursor);
+      },
+    ),
+  );
+
+  const hasActiveFilters = () =>
+    statusFilter() !== '' || modelFilter() !== '' || costMin() !== '' || costMax() !== '';
+
   const hasNoData = () => {
     const d = data();
     return d && d.total_count === 0;
+  };
+
+  const isFilteredEmpty = () => hasNoData() && hasActiveFilters();
+  const isAgentEmpty = () => hasNoData() && !hasActiveFilters();
+
+  const clearFilters = () => {
+    setStatusFilter('');
+    setModelFilter('');
+    setCostMin('');
+    setCostMax('');
   };
 
   return (
@@ -95,11 +138,11 @@ const MessageLog: Component = () => {
         <div>
           <h1>Messages</h1>
           <span class="breadcrumb">
-            Full log of every LLM call &mdash; filter by status, model, or cost
+            Full log of every LLM call. Filter by status, model, or cost.
           </span>
         </div>
         <div class="header-controls">
-          <Show when={!hasNoData()}>
+          <Show when={!isAgentEmpty()}>
             <Select
               value={statusFilter()}
               onChange={setStatusFilter}
@@ -143,7 +186,7 @@ const MessageLog: Component = () => {
           </Show>
           <Show
             when={
-              hasNoData() &&
+              isAgentEmpty() &&
               !(isLocalMode() && params.agentName === 'local-agent') &&
               !setupCompleted()
             }
@@ -181,79 +224,95 @@ const MessageLog: Component = () => {
         }
       >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
-          <Show
-            when={!hasNoData()}
-            fallback={
-              <Show
-                when={(isLocalMode() && params.agentName === 'local-agent') || setupCompleted()}
-                fallback={
-                  <div class="empty-state">
-                    <div class="empty-state__title">No messages recorded</div>
-                    <p>
-                      Connect your agent to Manifest and send your first message. Each LLM call will
-                      be logged here with its cost, tokens, and status.
-                    </p>
-                    <button
-                      class="btn btn--primary"
-                      style="margin-top: var(--gap-md);"
-                      onClick={() => setSetupOpen(true)}
-                    >
-                      Set up agent
-                    </button>
-                    <div class="empty-state__img-wrapper">
-                      <img src="/example-messages.svg" alt="" class="empty-state__img" />
-                    </div>
-                  </div>
-                }
-              >
-                <div class="waiting-banner">
-                  <i class="bxd bx-florist" />
-                  <p>
-                    Waiting for data &mdash; messages will appear within seconds of your agent's
-                    first LLM call.
-                  </p>
-                </div>
-                <div class="demo-dashboard">
-                  <div class="panel">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
-                      <div class="panel__title" style="margin-bottom: 0;">
-                        Messages
-                      </div>
-                      <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                        0 total
-                      </span>
-                    </div>
-                    <table class="data-table">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Message</th>
-                          <th>Cost</th>
-                          <th>Total Tokens</th>
-                          <th>Input</th>
-                          <th>Output</th>
-                          <th>Model</th>
-                          <th>Cache</th>
-                          <th>Duration</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td
-                            colspan="10"
-                            style="text-align: center; color: hsl(var(--muted-foreground)); padding: var(--gap-lg);"
-                          >
-                            Messages will appear here
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+          <Show when={isAgentEmpty()}>
+            <Show
+              when={(isLocalMode() && params.agentName === 'local-agent') || setupCompleted()}
+              fallback={
+                <div class="empty-state">
+                  <div class="empty-state__title">No messages recorded</div>
+                  <p>Connect your agent and send a message. Each LLM call gets logged here.</p>
+                  <button
+                    class="btn btn--primary"
+                    style="margin-top: var(--gap-md);"
+                    onClick={() => setSetupOpen(true)}
+                  >
+                    Set up agent
+                  </button>
+                  <div class="empty-state__img-wrapper">
+                    <img src="/example-messages.svg" alt="" class="empty-state__img" />
                   </div>
                 </div>
-              </Show>
-            }
-          >
+              }
+            >
+              <div class="waiting-banner">
+                <i class="bxd bx-florist" />
+                <p>
+                  Waiting for data. Messages will show up within seconds of your agent's first LLM
+                  call.
+                </p>
+              </div>
+              <div class="demo-dashboard">
+                <div class="panel">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
+                    <div class="panel__title" style="margin-bottom: 0;">
+                      Messages
+                    </div>
+                    <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                      0 total
+                    </span>
+                  </div>
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Message</th>
+                        <th>Cost</th>
+                        <th>Total Tokens</th>
+                        <th>Input</th>
+                        <th>Output</th>
+                        <th>Model</th>
+                        <th>Cache</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td
+                          colspan="10"
+                          style="text-align: center; color: hsl(var(--muted-foreground)); padding: var(--gap-lg);"
+                        >
+                          Messages will appear here
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </Show>
+          </Show>
+          <Show when={isFilteredEmpty()}>
+            <div class="panel">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
+                <div class="panel__title" style="margin-bottom: 0;">
+                  Messages
+                </div>
+                <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                  0 results
+                </span>
+              </div>
+              <div class="model-filter__empty">
+                <p class="model-filter__empty-title">No messages match your filters</p>
+                <p class="model-filter__empty-hint">
+                  Try adjusting your status, model, or cost filters to see more results.
+                </p>
+                <button class="btn btn--outline" onClick={clearFilters} type="button">
+                  Clear filters
+                </button>
+              </div>
+            </div>
+          </Show>
+          <Show when={!hasNoData()}>
             <div class="panel">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
                 <div class="panel__title" style="margin-bottom: 0;">
@@ -400,6 +459,15 @@ const MessageLog: Component = () => {
                   </For>
                 </tbody>
               </table>
+              <Pagination
+                currentPage={pager.currentPage}
+                totalItems={() => data()?.total_count ?? 0}
+                pageSize={pager.pageSize}
+                hasNextPage={pager.hasNextPage}
+                isLoading={() => data.loading}
+                onPrevious={pager.previousPage}
+                onNext={pager.nextPage}
+              />
             </div>
           </Show>
         </Show>

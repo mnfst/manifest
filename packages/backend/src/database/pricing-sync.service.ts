@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository } from 'typeorm';
+import { In, MoreThan, Repository } from 'typeorm';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { PricingHistoryService } from './pricing-history.service';
@@ -40,6 +40,8 @@ const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   openrouter: 'OpenRouter',
 };
 
+const SUPPORTED_PREFIXES = new Set(Object.keys(PROVIDER_DISPLAY_NAMES));
+
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/models';
 
 const FRESHNESS_HOURS = 12;
@@ -75,15 +77,14 @@ export class PricingSyncService implements OnModuleInit {
   async syncPricing(): Promise<number> {
     this.logger.log('Starting daily model pricing sync from OpenRouter...');
 
-    const modelsBefore = new Set(
-      this.pricingCache.getAll().map((m) => m.model_name),
-    );
+    const modelsBefore = new Set(this.pricingCache.getAll().map((m) => m.model_name));
 
     const data = await this.fetchOpenRouterModels();
     if (!data) return 0;
 
     const updated = await this.syncAllModels(data);
     await this.resolveUnresolvedModels(data);
+    await this.removeUnsupportedModels();
 
     this.logger.log(`Pricing sync complete: ${updated} models updated`);
     if (updated > 0) {
@@ -91,17 +92,13 @@ export class PricingSyncService implements OnModuleInit {
     }
 
     // Detect removed models and invalidate routing overrides
-    const modelsAfter = new Set(
-      this.pricingCache.getAll().map((m) => m.model_name),
-    );
+    const modelsAfter = new Set(this.pricingCache.getAll().map((m) => m.model_name));
     const removed = [...modelsBefore].filter((m) => !modelsAfter.has(m));
 
     if (removed.length > 0) {
       this.logger.warn(`Models removed after sync: ${removed.join(', ')}`);
       try {
-        const { RoutingService } = await import(
-          '../routing/routing.service'
-        );
+        const { RoutingService } = await import('../routing/routing.service');
         const routingService = this.moduleRef.get(RoutingService, {
           strict: false,
         });
@@ -150,6 +147,13 @@ export class PricingSyncService implements OnModuleInit {
           continue;
         }
 
+        if (!model.id.startsWith('openrouter/')) {
+          const slashIdx = model.id.indexOf('/');
+          if (slashIdx === -1 || !SUPPORTED_PREFIXES.has(model.id.substring(0, slashIdx))) {
+            continue;
+          }
+        }
+
         const { canonical, provider } = this.deriveNames(model.id);
         const existing = await this.pricingRepo.findOneBy({
           model_name: canonical,
@@ -182,8 +186,7 @@ export class PricingSyncService implements OnModuleInit {
         }
 
         // Store an OpenRouter copy with the full vendor-prefixed ID
-        const hasVendorPrefix =
-          model.id.includes('/') && !model.id.startsWith('openrouter/');
+        const hasVendorPrefix = model.id.includes('/') && !model.id.startsWith('openrouter/');
         if (hasVendorPrefix) {
           try {
             await this.pricingRepo.upsert(
@@ -243,9 +246,23 @@ export class PricingSyncService implements OnModuleInit {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  private async resolveUnresolvedModels(
-    data: OpenRouterModel[],
-  ): Promise<void> {
+  private async removeUnsupportedModels(): Promise<void> {
+    const all = await this.pricingRepo.find({ select: ['model_name'] });
+    const toDelete: string[] = [];
+    for (const row of all) {
+      const slashIdx = row.model_name.indexOf('/');
+      if (slashIdx === -1) continue;
+      const prefix = row.model_name.substring(0, slashIdx);
+      if (prefix === 'openrouter') continue;
+      if (!SUPPORTED_PREFIXES.has(prefix)) toDelete.push(row.model_name);
+    }
+    if (toDelete.length > 0) {
+      await this.pricingRepo.delete({ model_name: In(toDelete) });
+      this.logger.log(`Removed ${toDelete.length} models from unsupported providers`);
+    }
+  }
+
+  private async resolveUnresolvedModels(data: OpenRouterModel[]): Promise<void> {
     const unresolved = await this.unresolvedTracker.getUnresolved();
     if (unresolved.length === 0) return;
 
@@ -260,18 +277,12 @@ export class PricingSyncService implements OnModuleInit {
     for (const entry of unresolved) {
       const resolvedName = this.tryResolve(entry.model_name, knownNames);
       if (resolvedName) {
-        await this.unresolvedTracker.markResolved(
-          entry.model_name,
-          resolvedName,
-        );
+        await this.unresolvedTracker.markResolved(entry.model_name, resolvedName);
       }
     }
   }
 
-  private tryResolve(
-    modelName: string,
-    knownNames: Set<string>,
-  ): string | null {
+  private tryResolve(modelName: string, knownNames: Set<string>): string | null {
     if (knownNames.has(modelName)) return modelName;
 
     const stripped = this.stripPrefix(modelName);
