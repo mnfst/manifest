@@ -4,6 +4,7 @@ import { VerifyEmailEmail } from '../notifications/emails/verify-email';
 import { ResetPasswordEmail } from '../notifications/emails/reset-password';
 import { sendEmail } from '../notifications/services/email-providers/send-email';
 import { trackCloudEvent } from '../common/utils/product-telemetry';
+import { getLocalAuthSecret } from '../common/constants/local-mode.constants';
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const port = process.env['PORT'] ?? '3001';
