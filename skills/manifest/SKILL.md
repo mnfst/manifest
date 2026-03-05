@@ -1,6 +1,6 @@
 ---
 name: manifest
-description: Set up and use Manifest — the open-source LLM router and observability plugin for OpenClaw. Use when the user asks to install Manifest, set up cost tracking, configure LLM routing, monitor agent costs/tokens, understand what Manifest does, check Manifest status, troubleshoot the plugin, or wants to reduce OpenClaw costs. Also triggers on "manifest setup", "install manifest", "how much am I spending", "track my costs", "route to cheaper models", "manifest dashboard", "manifest help".
+description: Smart LLM Router for OpenClaw. Save up to 70% by routing every request to the right model. No coding required.
 metadata: {"openclaw":{"requires":{"bins":["openclaw"],"env":["MANIFEST_API_KEY"],"config":["plugins.entries.manifest.config.apiKey"]},"primaryEnv":"MANIFEST_API_KEY","homepage":"https://github.com/mnfst/manifest"}}
 ---
 
@@ -47,12 +47,12 @@ Shows: mode, endpoint reachability, auth validity, agent name.
 
 On plugin registration, Manifest writes to these files:
 
-| File | Change | Reversible |
-|------|--------|------------|
-| `~/.openclaw/openclaw.json` | Adds `models.providers.manifest` provider entry; adds `manifest/auto` to `agents.defaults.models` allowlist | Yes — `openclaw plugins uninstall manifest` |
-| `~/.openclaw/agents/*/agent/auth-profiles.json` | Adds `manifest:default` auth profile | Yes — uninstall removes it |
-| `~/.openclaw/manifest/config.json` | Stores auto-generated API key (local mode only, file mode 0600) | Yes — delete `~/.openclaw/manifest/` |
-| `~/.openclaw/manifest/manifest.db` | SQLite database (local mode only) | Yes — delete the file |
+| File                                            | Change                                                                                                      | Reversible                                  |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `~/.openclaw/openclaw.json`                     | Adds `models.providers.manifest` provider entry; adds `manifest/auto` to `agents.defaults.models` allowlist | Yes — `openclaw plugins uninstall manifest` |
+| `~/.openclaw/agents/*/agent/auth-profiles.json` | Adds `manifest:default` auth profile                                                                        | Yes — uninstall removes it                  |
+| `~/.openclaw/manifest/config.json`              | Stores auto-generated API key (local mode only, file mode 0600)                                             | Yes — delete `~/.openclaw/manifest/`        |
+| `~/.openclaw/manifest/manifest.db`              | SQLite database (local mode only)                                                                           | Yes — delete the file                       |
 
 No other files are modified. The plugin does not change your current default model.
 
@@ -65,6 +65,7 @@ No other files are modified. The plugin does not change your current default mod
 - **Author**: MNFST Inc.
 
 Verify before installing:
+
 ```bash
 npm view manifest repository.url
 npm view manifest dist.integrity
@@ -194,12 +195,12 @@ This removes the plugin, provider config, and auth profiles. After uninstalling,
 
 ### External Endpoints
 
-| Endpoint | When | Data Sent |
-|----------|------|-----------|
-| `{endpoint}/v1/traces` | Every LLM call (batched 10-30s) | OTLP spans (see fields below) |
-| `{endpoint}/v1/metrics` | Every 10-30s | Counters: request count, token totals, tool call counts — grouped by model/provider |
-| `{endpoint}/api/v1/routing/resolve` | Only when model is `manifest/auto` | Last 10 non-system/non-developer messages (`{role, content}` only) |
-| `https://eu.i.posthog.com` | On plugin register | Hashed machine ID, OS, Node version, plugin version, mode. No PII. Opt out: `MANIFEST_TELEMETRY_OPTOUT=1` |
+| Endpoint                            | When                               | Data Sent                                                                                                 |
+| ----------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `{endpoint}/v1/traces`              | Every LLM call (batched 10-30s)    | OTLP spans (see fields below)                                                                             |
+| `{endpoint}/v1/metrics`             | Every 10-30s                       | Counters: request count, token totals, tool call counts — grouped by model/provider                       |
+| `{endpoint}/api/v1/routing/resolve` | Only when model is `manifest/auto` | Last 10 non-system/non-developer messages (`{role, content}` only)                                        |
+| `https://eu.i.posthog.com`          | On plugin register                 | Hashed machine ID, OS, Node version, plugin version, mode. No PII. Opt out: `MANIFEST_TELEMETRY_OPTOUT=1` |
 
 ### OTLP Span Fields
 
