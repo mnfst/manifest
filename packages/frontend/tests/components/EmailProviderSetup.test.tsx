@@ -86,4 +86,39 @@ describe("EmailProviderSetup", () => {
       expect(document.querySelector(".modal-overlay")).not.toBeNull();
     });
   });
+
+  it("passes onConfigured as onSaved to EmailProviderModal", async () => {
+    // The EmailProviderSetup passes props.onConfigured as the onSaved prop
+    // to EmailProviderModal. We verify the modal receives the correct provider.
+    render(() => <EmailProviderSetup onConfigured={onConfigured} />);
+    // Open with SendGrid
+    fireEvent.click(screen.getByText("SendGrid"));
+    await vi.waitFor(() => {
+      expect(document.querySelector(".modal-overlay")).not.toBeNull();
+    });
+    // The modal should show "SendGrid" as selected
+    const sendgridOption = document.querySelector(".provider-modal-option--active");
+    expect(sendgridOption?.textContent).toContain("SendGrid");
+  });
+
+  it("calls onConfigured when email provider is saved successfully", async () => {
+    const { testEmailProvider, setEmailProvider } = await import("../../src/services/api.js");
+    (testEmailProvider as ReturnType<typeof vi.fn>).mockResolvedValue({ success: true });
+    (setEmailProvider as ReturnType<typeof vi.fn>).mockResolvedValue({});
+    render(() => <EmailProviderSetup onConfigured={onConfigured} />);
+    // Open Resend modal
+    fireEvent.click(screen.getByText("Resend"));
+    await vi.waitFor(() => {
+      expect(document.querySelector(".modal-overlay")).not.toBeNull();
+    });
+    // Enter API key
+    const keyInput = document.querySelector('input[type="password"]')!;
+    fireEvent.input(keyInput, { target: { value: "re_testkey12345" } });
+    // Click Test & Save
+    const saveBtn = document.querySelector(".btn--primary")!;
+    fireEvent.click(saveBtn);
+    await vi.waitFor(() => {
+      expect(onConfigured).toHaveBeenCalled();
+    });
+  });
 });

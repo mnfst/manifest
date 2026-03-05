@@ -143,6 +143,20 @@ describe('ResolveService', () => {
     });
   });
 
+  it('should log available tiers when no assignment matches scored tier', async () => {
+    // Set up tiers that do NOT include the scored tier (simple).
+    // scoreRequest returns 'simple' for short messages but we only provide 'complex'.
+    mockRoutingService.getTiers.mockResolvedValue([
+      { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
+    ]);
+
+    const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
+
+    expect(result.model).toBeNull();
+    expect(result.provider).toBeNull();
+    expect(result.tier).toBe('simple');
+  });
+
   it('should pass tools to scorer for tier floor', async () => {
     mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o');
     mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });

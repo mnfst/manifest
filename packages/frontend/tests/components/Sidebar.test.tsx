@@ -6,7 +6,17 @@ let mockPathname = "/agents/test-agent";
 let mockIsLocalMode: boolean | null = true;
 
 vi.mock("@solidjs/router", () => ({
-  A: (props: any) => <a href={props.href} class={props.class} aria-current={props["aria-current"]}>{props.children}</a>,
+  A: (props: any) => {
+    // Access classList to trigger coverage of classList expressions
+    const cl = props.classList;
+    const classes = [props.class || ""];
+    if (cl) {
+      for (const [key, val] of Object.entries(cl)) {
+        if (val) classes.push(key);
+      }
+    }
+    return <a href={props.href} class={classes.join(" ").trim()} aria-current={props["aria-current"]}>{props.children}</a>;
+  },
   useLocation: () => ({ pathname: mockPathname }),
 }));
 
@@ -151,6 +161,55 @@ describe("Sidebar without agent", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.textContent).not.toContain("Overview");
     expect(container.textContent).not.toContain("Messages");
+  });
+});
+
+describe("Sidebar active states for sub-paths", () => {
+  beforeAll(() => {
+    mockAgentName = "test-agent";
+    mockIsLocalMode = false;
+  });
+
+  it("marks routing link as active on routing path", () => {
+    mockPathname = "/agents/test-agent/routing";
+    const { container } = render(() => <Sidebar />);
+    const routingLink = container.querySelector('a[href="/agents/test-agent/routing"]');
+    expect(routingLink?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks limits link as active on limits path", () => {
+    mockPathname = "/agents/test-agent/limits";
+    const { container } = render(() => <Sidebar />);
+    const limitsLink = container.querySelector('a[href="/agents/test-agent/limits"]');
+    expect(limitsLink?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks settings link as active on settings path", () => {
+    mockPathname = "/agents/test-agent/settings";
+    const { container } = render(() => <Sidebar />);
+    const settingsLink = container.querySelector('a[href="/agents/test-agent/settings"]');
+    expect(settingsLink?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks model-prices link as active on model-prices path", () => {
+    mockPathname = "/agents/test-agent/model-prices";
+    const { container } = render(() => <Sidebar />);
+    const pricesLink = container.querySelector('a[href="/agents/test-agent/model-prices"]');
+    expect(pricesLink?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks help link as active on help path", () => {
+    mockPathname = "/agents/test-agent/help";
+    const { container } = render(() => <Sidebar />);
+    const helpLink = container.querySelector('a[href="/agents/test-agent/help"]');
+    expect(helpLink?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks messages link as active on messages path", () => {
+    mockPathname = "/agents/test-agent/messages";
+    const { container } = render(() => <Sidebar />);
+    const messagesLink = container.querySelector('a[href="/agents/test-agent/messages"]');
+    expect(messagesLink?.getAttribute("aria-current")).toBe("page");
   });
 });
 

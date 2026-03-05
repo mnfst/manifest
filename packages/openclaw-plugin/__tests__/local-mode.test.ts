@@ -612,6 +612,35 @@ describe("injectAuthProfile — edge cases", () => {
   });
 });
 
+describe("readJsonSafe — corrupt JSON", () => {
+  it("returns empty object when file contains invalid JSON", () => {
+    // readJsonSafe is called by injectProviderConfig when reading openclaw.json.
+    // When the file exists but contains corrupt JSON, readJsonSafe should catch
+    // the parse error and return {} (line 72 in local-mode.ts).
+    const openclawConfig = join("/mock-home", ".openclaw", "openclaw.json");
+
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === openclawConfig) return true;
+      // Return false for config dir checks to avoid side effects
+      return false;
+    });
+    (readFileSync as jest.Mock).mockReturnValue("<<<not valid json>>>");
+
+    const api = { config: {} };
+    // injectProviderConfig calls readJsonSafe(OPENCLAW_CONFIG) internally.
+    // With corrupt JSON, readJsonSafe returns {} and the function proceeds
+    // to build a fresh config object.
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    // The function should still write a valid config (built from scratch)
+    expect(writeFileSync).toHaveBeenCalled();
+    const writtenData = JSON.parse(
+      (writeFileSync as jest.Mock).mock.calls[0][1],
+    );
+    expect(writtenData.models.providers.manifest).toBeDefined();
+  });
+});
+
 describe("loadOrGenerateApiKey — edge cases", () => {
   const testConfig = {
     mode: "local" as const,
@@ -664,5 +693,85 @@ describe("loadOrGenerateApiKey — edge cases", () => {
     const { initTelemetry } = require("../src/telemetry");
     const localConfig = (initTelemetry as jest.Mock).mock.calls[0][0];
     expect(localConfig.apiKey).toMatch(/^mnfst_/);
+  });
+});
+
+// This test must run LAST because jest.resetModules() clears all cached mocks.
+// Tests after this point cannot rely on the top-level jest.mock() module cache.
+describe("registerLocalMode — server module load failure", () => {
+  it("logs error and returns early when require('./server') throws", () => {
+    jest.resetModules();
+
+    jest.doMock("fs");
+    jest.doMock("os", () => ({ homedir: jest.fn(() => "/mock-home") }));
+    jest.doMock("crypto", () => ({
+      randomBytes: jest.fn(() => ({
+        toString: () => "abcdef1234567890abcdef1234567890abcdef1234567890",
+      })),
+    }));
+    jest.doMock("../src/telemetry", () => ({
+      initTelemetry: jest.fn(() => ({ tracer: {}, meter: {} })),
+      shutdownTelemetry: jest.fn(),
+    }));
+    jest.doMock("../src/hooks", () => ({
+      registerHooks: jest.fn(),
+      initMetrics: jest.fn(),
+    }));
+    jest.doMock("../src/tools", () => ({ registerTools: jest.fn() }));
+    jest.doMock("../src/routing", () => ({ registerRouting: jest.fn() }));
+    jest.doMock("../src/command", () => ({ registerCommand: jest.fn() }));
+
+    // Make the server module throw when required
+    jest.doMock("../src/server", () => {
+      throw new Error("Cannot find module './server'");
+    });
+
+    const fs = require("fs");
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (typeof p === "string" && p.includes("config.json")) return true;
+      return false;
+    });
+    (fs.readFileSync as jest.Mock).mockReturnValue(
+      JSON.stringify({ apiKey: "mnfst_local_existing" }),
+    );
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {});
+    (fs.mkdirSync as jest.Mock).mockImplementation(() => {});
+    (fs.renameSync as jest.Mock).mockImplementation(() => {});
+    (fs.readdirSync as jest.Mock).mockReturnValue([]);
+
+    const { registerLocalMode: isolatedRegisterLocalMode } =
+      require("../src/local-mode");
+
+    const isolatedLogger = {
+      info: jest.fn(),
+      debug: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+    };
+
+    const api = {
+      config: {},
+      registerProvider: jest.fn(),
+      registerService: jest.fn(),
+      registerTool: jest.fn(),
+    };
+
+    const cfg = {
+      mode: "local" as const,
+      apiKey: "",
+      endpoint: "",
+      port: 2099,
+      host: "127.0.0.1",
+    };
+
+    isolatedRegisterLocalMode(api, cfg, isolatedLogger);
+
+    expect(isolatedLogger.error).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to load embedded server"),
+    );
+    expect(isolatedLogger.error).toHaveBeenCalledWith(
+      expect.stringContaining("Cannot find module"),
+    );
+    expect(api.registerService).not.toHaveBeenCalled();
   });
 });

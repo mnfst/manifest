@@ -1,3 +1,8 @@
+jest.mock('../../common/constants/local-mode.constants', () => ({
+  LOCAL_EMAIL: 'local@manifest.local',
+  readLocalNotificationEmail: jest.fn().mockReturnValue(null),
+}));
+
 import { Subject } from 'rxjs';
 import { LimitCheckService } from './limit-check.service';
 import { NotificationRulesService } from './notification-rules.service';
@@ -5,6 +10,7 @@ import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { DataSource } from 'typeorm';
+import { readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
 
 describe('LimitCheckService', () => {
   let service: LimitCheckService;
@@ -361,6 +367,28 @@ describe('LimitCheckService', () => {
       const result = await service.checkLimits('tenant-1', 'my-agent');
       expect(result).not.toBeNull();
       expect(result!.period).toBe('day');
+    });
+
+    it('uses local config notification email in local mode when no provider config email', async () => {
+      const originalMode = process.env['MANIFEST_MODE'];
+      process.env['MANIFEST_MODE'] = 'local';
+      (readLocalNotificationEmail as jest.Mock).mockReturnValue('local-user@real.com');
+
+      mockQuery
+        .mockResolvedValueOnce([])  // notification_logs check
+        .mockResolvedValueOnce([]); // INSERT log
+
+      await service.checkLimits('tenant-1', 'my-agent');
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(mockSendThresholdAlert).toHaveBeenCalledWith(
+        'local-user@real.com',
+        expect.objectContaining({ agentName: 'my-agent' }),
+        undefined,
+      );
+
+      process.env['MANIFEST_MODE'] = originalMode;
+      (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
     });
   });
 });

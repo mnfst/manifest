@@ -81,6 +81,31 @@ describe('SessionMomentumService', () => {
     expect(service.getRecentTiers('b')).toEqual(['complex']);
   });
 
+  it('fires the cleanup interval callback to evict stale sessions', () => {
+    jest.useFakeTimers();
+
+    const timedService = new SessionMomentumService();
+    timedService.recordTier('stale-session', 'simple');
+
+    // Manually expire the session
+    const sessions = (timedService as unknown as {
+      sessions: Map<string, { tiers: string[]; lastUpdated: number }>;
+    }).sessions;
+    sessions.get('stale-session')!.lastUpdated = Date.now() - 31 * 60 * 1000;
+
+    timedService.recordTier('fresh-session', 'complex');
+
+    // Advance past the cleanup interval (5 minutes)
+    jest.advanceTimersByTime(5 * 60 * 1000 + 1);
+
+    // The interval callback should have triggered evictStale
+    expect(timedService.getRecentTiers('stale-session')).toBeUndefined();
+    expect(timedService.getRecentTiers('fresh-session')).toEqual(['complex']);
+
+    timedService.onModuleDestroy();
+    jest.useRealTimers();
+  });
+
   it('isolates different session keys', () => {
     service.recordTier('a', 'simple');
     service.recordTier('b', 'complex');

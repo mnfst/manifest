@@ -164,6 +164,53 @@ describe("Workspace", () => {
     });
   });
 
+  it("handles createAgent error gracefully", async () => {
+    mockCreateAgent.mockRejectedValue(new Error("Failed to create"));
+    const { container } = render(() => <Workspace />);
+    const btn = screen.getAllByText("Connect Agent")[0];
+    fireEvent.click(btn);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "new-agent" } });
+    fireEvent.click(screen.getByText("Create"));
+    await vi.waitFor(() => {
+      expect(mockCreateAgent).toHaveBeenCalled();
+    });
+  });
+
+  it("creates agent on Enter key press", async () => {
+    const { container } = render(() => <Workspace />);
+    const btn = screen.getAllByText("Connect Agent")[0];
+    fireEvent.click(btn);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "enter-agent" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    await vi.waitFor(() => {
+      expect(mockCreateAgent).toHaveBeenCalledWith("enter-agent");
+    });
+  });
+
+  it("closes modal and clears input on Escape key", () => {
+    const { container } = render(() => <Workspace />);
+    const btn = screen.getAllByText("Connect Agent")[0];
+    fireEvent.click(btn);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "test" } });
+    fireEvent.keyDown(input, { key: "Escape" });
+    // Modal should be closed (no modal input visible)
+    expect(container.querySelector(".modal-card__input")).toBeNull();
+  });
+
+  it("closes modal on overlay click", () => {
+    const { container } = render(() => <Workspace />);
+    const btn = screen.getAllByText("Connect Agent")[0];
+    fireEvent.click(btn);
+    expect(container.querySelector(".modal-overlay")).not.toBeNull();
+    const overlay = container.querySelector(".modal-overlay")!;
+    fireEvent.click(overlay);
+    // Modal should be closed after overlay click
+    expect(container.querySelector(".modal-card__input")).toBeNull();
+  });
+
   describe("local mode", () => {
     it("redirects to /agents/local-agent in local mode", async () => {
       mockCheckLocalMode = vi.fn().mockResolvedValue(true);

@@ -25,7 +25,12 @@ vi.mock("../../src/services/agent-display-name.js", () => ({
 }));
 
 vi.mock("../../src/components/ErrorState.jsx", () => ({
-  default: (props: any) => <div data-testid="error-state">{props.title || "Error"}</div>,
+  default: (props: any) => (
+    <div data-testid="error-state" data-error={String(props.error ?? "")}>
+      {props.title || "Error"}
+      <button data-testid="retry" onClick={() => props.onRetry?.()}>Retry</button>
+    </div>
+  ),
 }));
 
 vi.mock("@solidjs/meta", () => ({
@@ -97,5 +102,17 @@ describe("AgentGuard", () => {
       expect(screen.getByTestId("child")).toBeDefined();
     });
     expect(mockGetAgents).not.toHaveBeenCalled();
+  });
+
+  it("calls getAgents (covers the fetcher path)", async () => {
+    mockGetAgents.mockResolvedValue({ agents: [] });
+    render(() => (
+      <AgentGuard>
+        <div data-testid="child">Child</div>
+      </AgentGuard>
+    ));
+    await vi.waitFor(() => {
+      expect(mockGetAgents).toHaveBeenCalled();
+    });
   });
 });

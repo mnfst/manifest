@@ -1,4 +1,6 @@
+import { getMetadataArgsStorage } from 'typeorm';
 import { Tenant } from './tenant.entity';
+import { Agent } from './agent.entity';
 
 describe('Tenant entity', () => {
   it('creates an instance with all fields', () => {
@@ -27,5 +29,23 @@ describe('Tenant entity', () => {
     t.email = null;
     expect(t.organization_name).toBeNull();
     expect(t.email).toBeNull();
+  });
+
+  describe('TypeORM relation callbacks', () => {
+    it('OneToMany callback resolves to Agent with inverse side', () => {
+      const relations = getMetadataArgsStorage().relations.filter(
+        (r) => r.target === Tenant,
+      );
+      const oneToMany = relations.find((r) => r.relationType === 'one-to-many');
+      expect(oneToMany).toBeDefined();
+      const resolved = (oneToMany!.type as () => unknown)();
+      expect(resolved).toBe(Agent);
+
+      // Invoke the inverse side callback
+      const agent = new Agent();
+      agent.tenant = new Tenant();
+      const inverseFn = oneToMany!.inverseSideProperty as (obj: Agent) => unknown;
+      expect(inverseFn(agent)).toBe(agent.tenant);
+    });
   });
 });

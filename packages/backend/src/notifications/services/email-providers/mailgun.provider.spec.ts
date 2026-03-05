@@ -55,6 +55,13 @@ describe('MailgunProvider', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it('returns false when domain is undefined (defaults to empty string)', async () => {
+    const provider = new MailgunProvider({ ...config, domain: undefined });
+    const result = await provider.send({ to: 'a@b.com', subject: 'Hi', html: '<p>Hello</p>' });
+    expect(result).toBe(false);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it('returns false on non-ok response', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 401, text: async () => 'Unauthorized' });
     const provider = new MailgunProvider(config);

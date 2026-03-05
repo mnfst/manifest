@@ -17,9 +17,10 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null,
 }));
 
+let mockLocalMode = false;
 vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => false,
-  checkLocalMode: () => Promise.resolve(false),
+  isLocalMode: () => mockLocalMode,
+  checkLocalMode: () => Promise.resolve(mockLocalMode),
 }));
 
 import ProviderSelectModal from "../../src/components/ProviderSelectModal";
@@ -54,6 +55,7 @@ describe("ProviderSelectModal", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockLocalMode = false;
     onClose = vi.fn();
     onUpdate = vi.fn();
     mockConnectProvider.mockResolvedValue({});
@@ -437,5 +439,181 @@ describe("ProviderSelectModal", () => {
       });
       expect(toast.success).toHaveBeenCalledWith("OpenAI key updated");
     });
+
+    it("shows validation error for invalid key in edit mode", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[connectedProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Change"));
+
+      const input = screen.getByLabelText("New OpenAI API key");
+      fireEvent.input(input, { target: { value: "bad-key" } });
+      fireEvent.click(screen.getByText("Save"));
+
+      expect(screen.getByText('OpenAI keys start with "sk-"')).toBeDefined();
+      expect(mockConnectProvider).not.toHaveBeenCalled();
+    });
+
+    it("handles update key error gracefully", async () => {
+      mockConnectProvider.mockRejectedValue(new Error("Server error"));
+      render(() => (
+        <ProviderSelectModal
+          providers={[connectedProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Change"));
+
+      const input = screen.getByLabelText("New OpenAI API key");
+      fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
+      fireEvent.click(screen.getByText("Save"));
+
+      await waitFor(() => {
+        expect(mockConnectProvider).toHaveBeenCalled();
+      });
+    });
+
+    it("triggers handleUpdateKey on Enter key in edit input", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[connectedProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Change"));
+
+      const input = screen.getByLabelText("New OpenAI API key");
+      fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      await waitFor(() => {
+        expect(mockConnectProvider).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe("ollama (no key required)", () => {
+    const ollamaConnected: RoutingProvider = {
+      id: "p3",
+      provider: "ollama",
+      is_active: true,
+      has_api_key: false,
+      connected_at: "2025-01-01",
+    };
+
+    beforeEach(() => {
+      // Ollama is localOnly, so we need local mode enabled
+      mockLocalMode = true;
+    });
+
+    it("shows 'No API key required' for Ollama", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Ollama"));
+      expect(screen.getByText("No API key required for local models")).toBeDefined();
+    });
+
+    it("shows Connect button for disconnected Ollama", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Ollama"));
+      expect(screen.getByText("Connect")).toBeDefined();
+    });
+
+    it("shows Disconnect button for connected Ollama", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[ollamaConnected]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Ollama"));
+      expect(screen.getByText("Disconnect")).toBeDefined();
+    });
+
+    it("connects Ollama without API key", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Ollama"));
+      fireEvent.click(screen.getByText("Connect"));
+
+      await waitFor(() => {
+        expect(mockConnectProvider).toHaveBeenCalledWith("test-agent", {
+          provider: "ollama",
+          apiKey: undefined,
+        });
+      });
+    });
+
+    it("disconnects connected Ollama", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[ollamaConnected]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Ollama"));
+      fireEvent.click(screen.getByText("Disconnect"));
+
+      await waitFor(() => {
+        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "ollama");
+      });
+    });
+  });
+
+  it("shows default masked key when provider has no key_prefix", () => {
+    const noPrefix: RoutingProvider = {
+      id: "p4",
+      provider: "openai",
+      is_active: true,
+      has_api_key: true,
+      connected_at: "2025-01-01",
+    };
+    render(() => (
+      <ProviderSelectModal
+        providers={[noPrefix]}
+        onClose={onClose}
+        onUpdate={onUpdate}
+        agentName="test-agent"
+      />
+    ));
+    fireEvent.click(screen.getByText("OpenAI"));
+    // Input value contains dots fallback since no key_prefix
+    const maskedInput = screen.getByLabelText("Current API key (masked)") as HTMLInputElement;
+    expect(maskedInput.value).toContain("••••••••••••");
   });
 });

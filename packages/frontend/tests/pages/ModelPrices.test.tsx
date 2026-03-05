@@ -7,7 +7,7 @@ vi.mock("@solidjs/router", () => ({
 
 vi.mock("@solidjs/meta", () => ({
   Title: (props: any) => <title>{props.children}</title>,
-  Meta: () => null,
+  Meta: (props: any) => <meta name={props.name ?? ""} content={props.content ?? ""} />,
 }));
 
 const mockGetModelPrices = vi.fn();
@@ -22,8 +22,10 @@ vi.mock("../../src/services/toast-store.js", () => ({
 vi.mock("../../src/components/Pagination.jsx", () => ({
   default: (props: any) => {
     const total = props.totalItems();
+    const _currentPage = props.currentPage;
+    const _hasNextPage = props.hasNextPage;
     return total > props.pageSize ? (
-      <div data-testid="pagination">
+      <div data-testid="pagination" data-page={_currentPage?.()} data-has-next={String(_hasNextPage?.() ?? "")}>
         <button data-testid="pagination-prev" onClick={props.onPrevious}>Previous</button>
         <button data-testid="pagination-next" onClick={props.onNext}>Next</button>
       </div>
@@ -119,6 +121,14 @@ describe("ModelPrices", () => {
     const { container } = await renderAndWait();
     fireEvent.click(container.querySelectorAll(".data-table__sortable")[0]);
     // Should still contain both models
+    expect(container.textContent).toContain("gpt-4o");
+  });
+
+  it("toggles sort direction when same header clicked twice", async () => {
+    const { container } = await renderAndWait();
+    const header = container.querySelectorAll(".data-table__sortable")[0];
+    fireEvent.click(header); // first click: sets key, asc
+    fireEvent.click(header); // second click: same key, toggles to desc
     expect(container.textContent).toContain("gpt-4o");
   });
 
@@ -257,6 +267,28 @@ describe("ModelPrices - autocomplete filter", () => {
       expect(container.querySelectorAll(".model-filter__tag").length).toBe(1);
     });
     // Remove it
+    const removeBtn = container.querySelector(".model-filter__tag-remove")!;
+    await fireEvent.click(removeBtn);
+    await vi.waitFor(() => {
+      expect(container.querySelectorAll(".model-filter__tag").length).toBe(0);
+      expect(container.textContent).toContain("4 models");
+    });
+  });
+
+  it("removes model tag when clicking its remove button", async () => {
+    const { container } = await renderAndWait();
+    // Add a model tag
+    await typeInSearch(container, "claude");
+    await vi.waitFor(() => {
+      expect(container.querySelector(".model-filter__dropdown")).not.toBeNull();
+    });
+    const items = container.querySelectorAll(".model-filter__dropdown-item");
+    const claudeItem = Array.from(items).find((el) => el.textContent?.includes("claude-3.5-sonnet"));
+    await fireEvent.click(claudeItem!);
+    await vi.waitFor(() => {
+      expect(container.querySelectorAll(".model-filter__tag").length).toBe(1);
+    });
+    // Remove the model tag
     const removeBtn = container.querySelector(".model-filter__tag-remove")!;
     await fireEvent.click(removeBtn);
     await vi.waitFor(() => {

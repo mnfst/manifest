@@ -221,6 +221,53 @@ describe('MetricIngestService', () => {
     }
   });
 
+  it('handles missing scopeMetrics array within a resourceMetric', async () => {
+    const request = {
+      resourceMetrics: [{
+        resource: { attributes: [] },
+        scopeMetrics: undefined as never,
+      }],
+    };
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(0);
+    expect(mockTokenInsert).not.toHaveBeenCalled();
+    expect(mockCostInsert).not.toHaveBeenCalled();
+  });
+
+  it('handles missing metrics array within a scopeMetric', async () => {
+    const request = {
+      resourceMetrics: [{
+        resource: { attributes: [] },
+        scopeMetrics: [{
+          scope: { name: 'test' },
+          metrics: undefined as never,
+        }],
+      }],
+    };
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(0);
+    expect(mockTokenInsert).not.toHaveBeenCalled();
+    expect(mockCostInsert).not.toHaveBeenCalled();
+  });
+
+  it('falls back to empty dataPoints when neither gauge nor sum are present', async () => {
+    const request = {
+      resourceMetrics: [{
+        resource: { attributes: [] },
+        scopeMetrics: [{
+          scope: { name: 'test' },
+          metrics: [{
+            name: 'gen_ai.usage.input_tokens',
+            // No gauge or sum property
+          }],
+        }],
+      }],
+    };
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(0);
+    expect(mockTokenInsert).not.toHaveBeenCalled();
+  });
+
   it('recognizes all cost metric names', async () => {
     const costMetrics = ['gen_ai.usage.cost', 'gen_ai.cost.usd'];
 

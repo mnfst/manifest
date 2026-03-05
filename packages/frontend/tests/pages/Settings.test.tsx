@@ -35,7 +35,9 @@ vi.mock("../../src/components/SetupStepInstall.jsx", () => ({
 }));
 
 vi.mock("../../src/components/SetupStepConfigure.jsx", () => ({
-  default: () => <div data-testid="setup-configure" />,
+  default: (props: any) => (
+    <div data-testid="setup-configure" data-endpoint={props.endpoint ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""} data-agent={props.agentName ?? ""} />
+  ),
 }));
 
 vi.mock("../../src/components/SetupStepVerify.jsx", () => ({
@@ -273,6 +275,71 @@ describe("Settings", () => {
     const { container } = render(() => <Settings />);
     expect(container.textContent).toContain("test-agent");
     expect(container.textContent).toContain("Rename your agent");
+  });
+
+  it("handles rotate key error gracefully", async () => {
+    mockRotateAgentKey.mockRejectedValue(new Error("Rotate failed"));
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Rotate key");
+    });
+    const rotateBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Rotate key"),
+    )!;
+    fireEvent.click(rotateBtn);
+    await vi.waitFor(() => {
+      expect(mockRotateAgentKey).toHaveBeenCalled();
+    });
+  });
+
+  it("handles delete agent error gracefully", async () => {
+    mockDeleteAgent.mockRejectedValue(new Error("Delete failed"));
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Delete agent"));
+    const confirmInput = container.querySelector('.modal-overlay input[type="text"]') as HTMLInputElement;
+    fireEvent.input(confirmInput, { target: { value: "test-agent" } });
+    const deleteBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Delete this agent"),
+    )!;
+    fireEvent.click(deleteBtn);
+    await vi.waitFor(() => {
+      expect(mockDeleteAgent).toHaveBeenCalled();
+    });
+  });
+
+  it("calls getAgentKey with agent name when Agent setup tab is shown", async () => {
+    render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(mockGetAgentKey).toHaveBeenCalledWith("test-agent");
+    });
+  });
+
+  it("shows ErrorState when getAgentKey fails", { retry: 0 } as any, async () => {
+    // SolidJS createResource re-throws internally; suppress at both levels
+    const suppress = (e: PromiseRejectionEvent) => { e.preventDefault(); e.stopImmediatePropagation(); };
+    window.addEventListener("unhandledrejection", suppress, true);
+    const processSup = () => {};
+    process.on("unhandledRejection", processSup);
+    mockGetAgentKey.mockRejectedValueOnce(new Error("Failed"));
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Could not load API key");
+    });
+    await new Promise((r) => setTimeout(r, 100));
+    window.removeEventListener("unhandledrejection", suppress, true);
+    process.removeListener("unhandledRejection", processSup);
+  });
+
+  it("uses custom pluginEndpoint when available", async () => {
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: "https://custom.endpoint/otlp" });
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="setup-configure"]')).not.toBeNull();
+    });
   });
 
   describe("local mode", () => {

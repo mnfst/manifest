@@ -65,4 +65,16 @@ describe('appConfig', () => {
     expect(config.throttleTtl).toBe(60000);
     expect(config.throttleLimit).toBe(100);
   });
+
+  it('defaults nodeEnv to development when NODE_ENV is not set', async () => {
+    delete process.env['NODE_ENV'];
+    const config = await loadConfig();
+    expect(config.nodeEnv).toBe('development');
+  });
+
+  it('reads NODE_ENV from env', async () => {
+    process.env['NODE_ENV'] = 'production';
+    const config = await loadConfig();
+    expect(config.nodeEnv).toBe('production');
+  });
 });

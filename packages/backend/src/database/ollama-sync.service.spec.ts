@@ -94,6 +94,30 @@ describe('OllamaSyncService', () => {
       expect(result).toEqual({ count: 0 });
     });
 
+    it('should abort fetch when setTimeout callback fires', async () => {
+      jest.useFakeTimers();
+      // Make fetch hang until the signal is aborted, simulating real AbortController
+      global.fetch = jest.fn().mockImplementation((_url: string, opts?: RequestInit) => {
+        return new Promise<Response>((_resolve, reject) => {
+          if (opts?.signal) {
+            opts.signal.addEventListener('abort', () => {
+              reject(new DOMException('aborted', 'AbortError'));
+            });
+          }
+        });
+      });
+
+      const syncPromise = service.sync();
+
+      // Advance timers to trigger the 3000ms abort timeout callback
+      jest.advanceTimersByTime(3000);
+
+      const result = await syncPromise;
+      expect(result).toEqual({ count: 0 });
+
+      jest.useRealTimers();
+    });
+
     it('should return count 0 on non-ok HTTP response', async () => {
       global.fetch = mockFetchNonOk(500);
 

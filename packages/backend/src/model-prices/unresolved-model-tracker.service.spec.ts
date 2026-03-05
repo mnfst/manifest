@@ -193,4 +193,31 @@ describe('UnresolvedModelTrackerService', () => {
       await expect(service.flush()).rejects.toThrow('DB down');
     });
   });
+
+  describe('setInterval auto-flush', () => {
+    it('should catch and log errors when automatic flush fails', () => {
+      jest.useFakeTimers();
+
+      // Create a service where flush will fail
+      const failRepo = {
+        findOneBy: jest.fn().mockRejectedValue(new Error('interval DB fail')),
+        find: jest.fn().mockResolvedValue([]),
+        create: jest.fn((data) => ({ ...data })),
+        save: jest.fn().mockResolvedValue(undefined),
+        update: jest.fn().mockResolvedValue(undefined),
+      };
+      const intervalService = new UnresolvedModelTrackerService(failRepo as never);
+
+      // Track a model so flush has work to do
+      intervalService.track('auto-flush-model');
+
+      // Advance past FLUSH_INTERVAL_MS (60000) to trigger the setInterval callback
+      jest.advanceTimersByTime(60000);
+
+      // The error is caught internally (lines 20-21), so no unhandled rejection
+      // Clean up
+      intervalService.onModuleDestroy();
+      jest.useRealTimers();
+    });
+  });
 });

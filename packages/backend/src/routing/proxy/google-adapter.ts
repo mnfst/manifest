@@ -32,12 +32,6 @@ function mapRole(role: string): string {
 }
 
 function messageToContent(msg: OpenAIMessage): GeminiContent | null {
-  if (msg.role === 'system') {
-    // System messages become user parts
-    const text = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
-    return { role: 'user', parts: [{ text }] };
-  }
-
   const parts: GeminiPart[] = [];
 
   if (typeof msg.content === 'string') {
