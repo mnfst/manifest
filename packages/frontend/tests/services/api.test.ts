@@ -39,6 +39,11 @@ import {
   clearEmailConfig,
   getNotificationEmail,
   saveNotificationEmail,
+  getCustomProviders,
+  createCustomProvider,
+  updateCustomProvider,
+  deleteCustomProvider,
+  getRoutingStatus,
 } from "../../src/services/api.js";
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -935,6 +940,150 @@ describe("saveNotificationEmail", () => {
         body: JSON.stringify({ email: "new@example.com" }),
       }),
     );
+  });
+});
+
+describe("getRoutingStatus", () => {
+  it("fetches /routing/:agentName/status", async () => {
+    mockOk({ enabled: true });
+
+    const result = await getRoutingStatus("my-agent");
+    expect(result).toEqual({ enabled: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:3000/api/v1/routing/my-agent/status",
+      { credentials: "include" },
+    );
+  });
+});
+
+describe("getCustomProviders", () => {
+  it("fetches /routing/:agentName/custom-providers", async () => {
+    const payload = [
+      { id: "cp-1", name: "Groq", base_url: "https://api.groq.com/v1", has_api_key: true, models: [], created_at: "2026-03-04" },
+    ];
+    mockOk(payload);
+
+    const result = await getCustomProviders("my-agent");
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:3000/api/v1/routing/my-agent/custom-providers",
+      { credentials: "include" },
+    );
+  });
+
+  it("encodes agent name in URL", async () => {
+    mockOk([]);
+
+    await getCustomProviders("agent/special name");
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/routing/agent%2Fspecial%20name/custom-providers");
+  });
+});
+
+describe("createCustomProvider", () => {
+  it("POSTs to /routing/:agentName/custom-providers with JSON body", async () => {
+    const payload = { id: "cp-1", name: "Groq", base_url: "https://api.groq.com/v1", has_api_key: true, models: [{ model_name: "llama" }], created_at: "2026-03-04" };
+    mockMutateOk(payload);
+
+    const data = {
+      name: "Groq",
+      base_url: "https://api.groq.com/v1",
+      apiKey: "gsk_test",
+      models: [{ model_name: "llama" }],
+    };
+    const result = await createCustomProvider("my-agent", data);
+
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/my-agent/custom-providers",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    );
+  });
+
+  it("throws and shows toast on error", async () => {
+    const { toast } = await import("../../src/services/toast-store.js");
+    mockMutateError(409, "Name already exists");
+
+    await expect(
+      createCustomProvider("my-agent", { name: "Dup", base_url: "http://localhost", models: [] }),
+    ).rejects.toThrow("Name already exists");
+    expect(toast.error).toHaveBeenCalledWith("Name already exists");
+  });
+});
+
+describe("updateCustomProvider", () => {
+  it("PUTs to /routing/:agentName/custom-providers/:id with JSON body", async () => {
+    const payload = {
+      id: "cp-1",
+      name: "Updated Groq",
+      base_url: "https://api.groq.com/v1",
+      has_api_key: true,
+      models: [{ model_name: "llama-3.1-70b" }],
+      created_at: "2026-03-04",
+    };
+    mockMutateOk(payload);
+
+    const data = {
+      name: "Updated Groq",
+      base_url: "https://api.groq.com/v1",
+      models: [{ model_name: "llama-3.1-70b" }],
+    };
+    const result = await updateCustomProvider("my-agent", "cp-1", data);
+
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/my-agent/custom-providers/cp-1",
+      expect.objectContaining({
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    );
+  });
+
+  it("encodes agent name and id in URL", async () => {
+    mockMutateOk({});
+
+    await updateCustomProvider("agent/special", "id/special", { name: "Test" });
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/routing/agent%2Fspecial/custom-providers/id%2Fspecial");
+  });
+
+  it("throws and shows toast on error", async () => {
+    const { toast } = await import("../../src/services/toast-store.js");
+    mockMutateError(400, "Name already exists");
+
+    await expect(
+      updateCustomProvider("my-agent", "cp-1", { name: "Dup" }),
+    ).rejects.toThrow("Name already exists");
+    expect(toast.error).toHaveBeenCalledWith("Name already exists");
+  });
+});
+
+describe("deleteCustomProvider", () => {
+  it("sends DELETE to /routing/:agentName/custom-providers/:id", async () => {
+    mockMutateOk({ ok: true });
+
+    const result = await deleteCustomProvider("my-agent", "cp-1");
+    expect(result).toEqual({ ok: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/my-agent/custom-providers/cp-1",
+      expect.objectContaining({ method: "DELETE", credentials: "include" }),
+    );
+  });
+
+  it("encodes agent name and id in URL", async () => {
+    mockMutateOk({ ok: true });
+
+    await deleteCustomProvider("agent/special", "id/special");
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/routing/agent%2Fspecial/custom-providers/id%2Fspecial");
   });
 });
 

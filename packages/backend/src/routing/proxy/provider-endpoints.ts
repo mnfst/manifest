@@ -66,8 +66,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   google: {
     baseUrl: 'https://generativelanguage.googleapis.com',
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),
-    buildPath: (model: string) =>
-      `/v1beta/models/${model}:generateContent`,
+    buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
   },
   openrouter: {
@@ -84,10 +83,25 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
 };
 
+/** Build a ProviderEndpoint for a custom provider with the given base URL. */
+export function buildCustomEndpoint(baseUrl: string): ProviderEndpoint {
+  // Strip trailing /v1 (or /v1/) since openaiPath already includes /v1
+  const normalized = baseUrl.replace(/\/v1\/?$/, '');
+  return {
+    baseUrl: normalized,
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  };
+}
+
 /** Resolve a pricing-DB provider name to a provider endpoint key. */
 export function resolveEndpointKey(provider: string): string | null {
   const lower = provider.toLowerCase();
   if (PROVIDER_ENDPOINTS[lower]) return lower;
+
+  // Custom providers use their own dynamic endpoint
+  if (lower.startsWith('custom:')) return lower;
 
   const aliases: Record<string, string> = {
     gemini: 'google',

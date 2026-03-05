@@ -7,7 +7,8 @@ const ALIASES: Record<string, string[]> = {
   google: ['gemini'],
   qwen: ['alibaba'],
   alibaba: ['qwen'],
-  moonshot: ['moonshot'],
+  moonshot: ['moonshot', 'kimi'],
+  kimi: ['moonshot'],
   minimax: ['minimax'],
   zai: ['zai', 'z.ai'],
   'z.ai': ['zai'],
@@ -21,6 +22,8 @@ export function expandProviderNames(names: Iterable<string>): Set<string> {
   for (const name of names) {
     const lower = name.toLowerCase();
     expanded.add(lower);
+    // Custom providers use exact keys — no alias expansion
+    if (lower.startsWith('custom:')) continue;
     for (const alias of ALIASES[lower] ?? []) {
       expanded.add(alias);
     }

@@ -53,6 +53,9 @@ vi.mock("../../src/services/api.js", () => ({
   overrideTier: vi.fn().mockResolvedValue({}),
   resetTier: vi.fn().mockResolvedValue({}),
   resetAllTiers: vi.fn().mockResolvedValue({}),
+  getCustomProviders: vi.fn().mockResolvedValue([]),
+  updateCustomProvider: vi.fn().mockResolvedValue({}),
+  deleteCustomProvider: vi.fn().mockResolvedValue({ ok: true }),
 }));
 
 import Routing from "../../src/pages/Routing";

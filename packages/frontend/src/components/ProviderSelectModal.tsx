@@ -1,19 +1,30 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import { PROVIDERS, validateApiKey } from '../services/providers.js';
 import { providerIcon } from './ProviderIcon.js';
-import { connectProvider, disconnectProvider, type RoutingProvider } from '../services/api.js';
+import {
+  connectProvider,
+  disconnectProvider,
+  type RoutingProvider,
+  type CustomProviderData,
+} from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { isLocalMode } from '../services/local-mode.js';
+import CustomProviderForm from './CustomProviderForm.js';
 
 interface Props {
   agentName: string;
   providers: RoutingProvider[];
+  customProviders?: CustomProviderData[];
   onClose: () => void;
   onUpdate: () => void;
 }
 
 const ProviderSelectModal: Component<Props> = (props) => {
   const [selectedProvider, setSelectedProvider] = createSignal<string | null>(null);
+  const [showCustomForm, setShowCustomForm] = createSignal(false);
+  const [editingCustomProvider, setEditingCustomProvider] = createSignal<CustomProviderData | null>(
+    null,
+  );
   const [busy, setBusy] = createSignal(false);
   const [keyInput, setKeyInput] = createSignal('');
   const [editing, setEditing] = createSignal(false);
@@ -50,9 +61,21 @@ const ProviderSelectModal: Component<Props> = (props) => {
   const goBack = () => {
     setDirection('back');
     setSelectedProvider(null);
+    setShowCustomForm(false);
+    setEditingCustomProvider(null);
     setKeyInput('');
     setEditing(false);
     setValidationError(null);
+  };
+
+  const openCustomForm = () => {
+    setDirection('forward');
+    setShowCustomForm(true);
+  };
+
+  const openEditCustom = (cp: CustomProviderData) => {
+    setDirection('forward');
+    setEditingCustomProvider(cp);
   };
 
   const handleConnect = async (provId: string) => {
@@ -142,8 +165,27 @@ const ProviderSelectModal: Component<Props> = (props) => {
         aria-modal="true"
         aria-labelledby="provider-modal-title"
       >
+        {/* ── Custom Provider Form View (create or edit) ── */}
+        <Show when={showCustomForm() || editingCustomProvider()}>
+          <div class="provider-modal__view provider-modal__view--from-right">
+            <CustomProviderForm
+              agentName={props.agentName}
+              initialData={editingCustomProvider() ?? undefined}
+              onCreated={() => {
+                goBack();
+                props.onUpdate();
+              }}
+              onBack={goBack}
+              onDeleted={() => {
+                goBack();
+                props.onUpdate();
+              }}
+            />
+          </div>
+        </Show>
+
         {/* ── List View ── */}
-        <Show when={selectedProvider() === null}>
+        <Show when={selectedProvider() === null && !showCustomForm() && !editingCustomProvider()}>
           <div
             class="provider-modal__view"
             classList={{ 'provider-modal__view--from-left': direction() === 'back' }}
@@ -223,6 +265,64 @@ const ProviderSelectModal: Component<Props> = (props) => {
                   );
                 }}
               </For>
+              <a
+                class="provider-modal__request-link"
+                href="https://github.com/mnfst/manifest/discussions/973"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Request new model
+              </a>
+            </div>
+
+            <div class="custom-provider-section">
+              <div class="custom-provider-section__header">Custom providers</div>
+              <For each={props.customProviders ?? []}>
+                {(cp) => (
+                  <button class="provider-toggle" onClick={() => openEditCustom(cp)}>
+                    <span class="provider-toggle__icon">
+                      <span
+                        class="provider-card__logo-letter"
+                        style={{ background: 'var(--custom-provider-color)' }}
+                      >
+                        {cp.name.charAt(0).toUpperCase()}
+                      </span>
+                    </span>
+                    <span class="provider-toggle__info">
+                      <span class="provider-toggle__name">{cp.name}</span>
+                      <span class="provider-toggle__local-only">
+                        {cp.models.length} model{cp.models.length !== 1 ? 's' : ''}
+                      </span>
+                    </span>
+                  </button>
+                )}
+              </For>
+              <button
+                class="provider-toggle"
+                onClick={openCustomForm}
+                style="color: hsl(var(--primary));"
+              >
+                <span class="provider-toggle__icon" style="color: hsl(var(--primary));">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8v8" />
+                    <path d="M8 12h8" />
+                  </svg>
+                </span>
+                <span class="provider-toggle__info">
+                  <span class="provider-toggle__name">Add custom provider</span>
+                </span>
+              </button>
             </div>
 
             <div class="provider-modal__footer">
@@ -234,7 +334,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
         </Show>
 
         {/* ── Detail View ── */}
-        <Show when={selectedProvider() !== null}>
+        <Show when={selectedProvider() !== null && !showCustomForm() && !editingCustomProvider()}>
           <div class="provider-modal__view provider-modal__view--from-right">
             {(() => {
               const provId = selectedProvider()!;

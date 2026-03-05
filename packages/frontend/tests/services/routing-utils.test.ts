@@ -4,6 +4,7 @@ import {
   resolveProviderId,
   inferProviderFromModel,
   inferProviderName,
+  stripCustomPrefix,
 } from "../../src/services/routing-utils";
 
 /* ── pricePerM ─────────────────────────────────── */
@@ -11,6 +12,14 @@ import {
 describe("pricePerM", () => {
   it('returns "Free" for zero price', () => {
     expect(pricePerM(0)).toBe("Free");
+  });
+
+  it('returns "\u2014" for null price (unknown)', () => {
+    expect(pricePerM(null)).toBe("\u2014");
+  });
+
+  it('returns "\u2014" for undefined price', () => {
+    expect(pricePerM(undefined)).toBe("\u2014");
   });
 
   it('returns "$0.00" for very small non-zero price', () => {
@@ -46,12 +55,17 @@ describe("resolveProviderId", () => {
   it("resolves by display name (case-insensitive)", () => {
     expect(resolveProviderId("Mistral AI")).toBe("mistral");
     expect(resolveProviderId("xAI")).toBe("xai");
-    expect(resolveProviderId("Kimi")).toBe("moonshot");
+    expect(resolveProviderId("Moonshot")).toBe("moonshot");
     expect(resolveProviderId("MiniMax")).toBe("minimax");
   });
 
   it("returns undefined for unknown provider", () => {
     expect(resolveProviderId("nonexistent")).toBeUndefined();
+  });
+
+  it("returns custom: prefixed providers as-is", () => {
+    expect(resolveProviderId("custom:abc-123")).toBe("custom:abc-123");
+    expect(resolveProviderId("custom:some-uuid")).toBe("custom:some-uuid");
   });
 });
 
@@ -139,6 +153,11 @@ describe("inferProviderFromModel", () => {
   it("returns undefined for unrecognized models", () => {
     expect(inferProviderFromModel("some-random-model")).toBeUndefined();
   });
+
+  it("detects custom provider models", () => {
+    expect(inferProviderFromModel("custom:abc-123/llama-3.1-70b")).toBe("custom");
+    expect(inferProviderFromModel("custom:uuid/model-name")).toBe("custom");
+  });
 });
 
 /* ── inferProviderName ────────────────────────── */
@@ -164,5 +183,27 @@ describe("inferProviderName", () => {
 
   it("returns undefined for unrecognized models", () => {
     expect(inferProviderName("unknown-model")).toBeUndefined();
+  });
+});
+
+/* ── stripCustomPrefix ─────────────────────────── */
+
+describe("stripCustomPrefix", () => {
+  it("strips custom:<uuid>/ prefix from model name", () => {
+    expect(stripCustomPrefix("custom:abc-123/llama-3.1-70b")).toBe("llama-3.1-70b");
+    expect(stripCustomPrefix("custom:some-uuid/gpt-4o")).toBe("gpt-4o");
+  });
+
+  it("handles model names with slashes after the prefix", () => {
+    expect(stripCustomPrefix("custom:uuid-456/openai/gpt-oss-120b")).toBe("openai/gpt-oss-120b");
+  });
+
+  it("returns the original string when no custom prefix", () => {
+    expect(stripCustomPrefix("gpt-4o")).toBe("gpt-4o");
+    expect(stripCustomPrefix("claude-opus-4")).toBe("claude-opus-4");
+  });
+
+  it("returns the original string for malformed custom prefix", () => {
+    expect(stripCustomPrefix("custom:no-slash")).toBe("custom:no-slash");
   });
 });

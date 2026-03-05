@@ -253,6 +253,21 @@ export class RoutingService {
     // Ollama runs locally — no API key needed
     if (provider.toLowerCase() === 'ollama') return '';
 
+    // Custom providers: exact match on provider key, allow empty key for local endpoints
+    if (provider.startsWith('custom:')) {
+      const record = await this.providerRepo.findOne({
+        where: { agent_id: agentId, provider, is_active: true },
+      });
+      if (!record) return null;
+      if (!record.api_key_encrypted) return '';
+      try {
+        return decrypt(record.api_key_encrypted, getEncryptionSecret());
+      } catch {
+        this.logger.warn(`Failed to decrypt API key for custom provider ${provider}`);
+        return null;
+      }
+    }
+
     const names = expandProviderNames([provider]);
     const records = await this.providerRepo.find({
       where: { agent_id: agentId, is_active: true },

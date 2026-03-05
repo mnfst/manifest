@@ -7,12 +7,15 @@ import { Tenant } from '../entities/tenant.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
+import { CustomProvider } from '../entities/custom-provider.entity';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { OtlpAuthGuard } from '../otlp/guards/otlp-auth.guard';
 import { RoutingController } from './routing.controller';
+import { CustomProviderController } from './custom-provider.controller';
 import { ResolveController } from './resolve.controller';
 import { ProxyController } from './proxy/proxy.controller';
 import { RoutingService } from './routing.service';
+import { CustomProviderService } from './custom-provider.service';
 import { ResolveService } from './resolve.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { ProxyService } from './proxy/proxy.service';
@@ -32,13 +35,15 @@ import { NotificationsModule } from '../notifications/notifications.module';
       AgentApiKey,
       AgentMessage,
       ModelPricing,
+      CustomProvider,
     ]),
     ModelPricesModule,
     NotificationsModule,
   ],
-  controllers: [RoutingController, ResolveController, ProxyController],
+  controllers: [RoutingController, CustomProviderController, ResolveController, ProxyController],
   providers: [
     RoutingService,
+    CustomProviderService,
     ResolveService,
     TierAutoAssignService,
     OtlpAuthGuard,
@@ -48,6 +53,6 @@ import { NotificationsModule } from '../notifications/notifications.module';
     SessionMomentumService,
     OllamaSyncService,
   ],
-  exports: [RoutingService, TierAutoAssignService],
+  exports: [RoutingService, CustomProviderService, TierAutoAssignService],
 })
 export class RoutingModule {}

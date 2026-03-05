@@ -32,13 +32,22 @@ const MINI_VARIANT = /\b(mini|nano|haiku|micro)\b/i;
  *   2 = cost-optimized: has code capability
  *   1 = ultra-low: no code, very cheap
  */
-export function computeQualityScore(model: Pick<
-  ModelPricing,
-  'model_name' | 'input_price_per_token' | 'output_price_per_token' |
-  'capability_reasoning' | 'capability_code' | 'context_window'
->): number {
+export function computeQualityScore(
+  model: Pick<
+    ModelPricing,
+    | 'model_name'
+    | 'input_price_per_token'
+    | 'output_price_per_token'
+    | 'capability_reasoning'
+    | 'capability_code'
+    | 'context_window'
+  >,
+): number {
   const override = QUALITY_OVERRIDES.get(model.model_name);
   if (override !== undefined) return override;
+
+  // Null-price models (unknown pricing, e.g. custom providers without price info)
+  if (model.input_price_per_token == null || model.output_price_per_token == null) return 2;
 
   const totalPerM =
     (Number(model.input_price_per_token) + Number(model.output_price_per_token)) * 1_000_000;
@@ -67,8 +76,8 @@ export function computeQualityScore(model: Pick<
 
   // Q3: Mid-range — mid-price code (not mini), cheap dual-cap, or reasoning minis
   if (totalPerM >= 3.0 && hasCode && !isMini) return 3;
-  if (totalPerM >= 0.50 && hasBoth && !isMini) return 3;
-  if (hasReasoning && isMini && totalPerM >= 0.50) return 3;
+  if (totalPerM >= 0.5 && hasBoth && !isMini) return 3;
+  if (hasReasoning && isMini && totalPerM >= 0.5) return 3;
 
   // Q2: Cost-optimized — has code capability
   if (hasCode) return 2;

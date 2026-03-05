@@ -17,14 +17,25 @@ describe('ModelPricesService', () => {
     it('should return transformed models with per-million pricing', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_token: 0.0000025, output_price_per_token: 0.00001, updated_at: '2025-06-01' },
+          {
+            model_name: 'gpt-4o',
+            provider: 'OpenAI',
+            input_price_per_token: 0.0000025,
+            output_price_per_token: 0.00001,
+            updated_at: '2025-06-01',
+          },
         ])
         .mockResolvedValueOnce([{ last_synced: '2025-06-01' }]);
 
       const result = await service.getAll();
 
       expect(result.models).toEqual([
-        { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_million: 2.5, output_price_per_million: 10 },
+        {
+          model_name: 'gpt-4o',
+          provider: 'OpenAI',
+          input_price_per_million: 2.5,
+          output_price_per_million: 10,
+        },
       ]);
       expect(result.lastSyncedAt).toBe('2025-06-01');
     });
@@ -32,7 +43,13 @@ describe('ModelPricesService', () => {
     it('should use "Unknown" when provider is empty', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'test-model', provider: '', input_price_per_token: 0.000001, output_price_per_token: 0.000002, updated_at: null },
+          {
+            model_name: 'test-model',
+            provider: '',
+            input_price_per_token: 0.000001,
+            output_price_per_token: 0.000002,
+            updated_at: null,
+          },
         ])
         .mockResolvedValueOnce([{ last_synced: null }]);
 
@@ -42,9 +59,7 @@ describe('ModelPricesService', () => {
     });
 
     it('should return null lastSyncedAt when no updated_at values', async () => {
-      mockQuery
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([{ last_synced: null }]);
+      mockQuery.mockResolvedValueOnce([]).mockResolvedValueOnce([{ last_synced: null }]);
 
       const result = await service.getAll();
 
@@ -53,9 +68,7 @@ describe('ModelPricesService', () => {
     });
 
     it('should handle missing last_synced row gracefully', async () => {
-      mockQuery
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+      mockQuery.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       const result = await service.getAll();
 
@@ -65,7 +78,13 @@ describe('ModelPricesService', () => {
     it('should correctly calculate per-million prices for very small token prices', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'cheap-model', provider: 'Test', input_price_per_token: 0.00000006, output_price_per_token: 0.00000024, updated_at: null },
+          {
+            model_name: 'cheap-model',
+            provider: 'Test',
+            input_price_per_token: 0.00000006,
+            output_price_per_token: 0.00000024,
+            updated_at: null,
+          },
         ])
         .mockResolvedValueOnce([{ last_synced: null }]);
 
@@ -75,11 +94,61 @@ describe('ModelPricesService', () => {
       expect(result.models[0].output_price_per_million).toBeCloseTo(0.24, 5);
     });
 
+    it('should pass through null prices as null', async () => {
+      mockQuery
+        .mockResolvedValueOnce([
+          {
+            model_name: 'custom-model',
+            provider: 'custom:abc',
+            input_price_per_token: null,
+            output_price_per_token: null,
+            updated_at: null,
+          },
+        ])
+        .mockResolvedValueOnce([{ last_synced: null }]);
+
+      const result = await service.getAll();
+
+      expect(result.models[0].input_price_per_million).toBeNull();
+      expect(result.models[0].output_price_per_million).toBeNull();
+    });
+
+    it('should handle mixed null and non-null prices', async () => {
+      mockQuery
+        .mockResolvedValueOnce([
+          {
+            model_name: 'partial-model',
+            provider: 'custom:abc',
+            input_price_per_token: 0.000001,
+            output_price_per_token: null,
+            updated_at: null,
+          },
+        ])
+        .mockResolvedValueOnce([{ last_synced: null }]);
+
+      const result = await service.getAll();
+
+      expect(result.models[0].input_price_per_million).toBeCloseTo(1.0, 5);
+      expect(result.models[0].output_price_per_million).toBeNull();
+    });
+
     it('should return multiple models sorted by provider', async () => {
       mockQuery
         .mockResolvedValueOnce([
-          { model_name: 'claude-opus-4-6', provider: 'Anthropic', input_price_per_token: 0.000015, output_price_per_token: 0.000075, updated_at: '2025-06-01' },
-          { model_name: 'gpt-4o', provider: 'OpenAI', input_price_per_token: 0.0000025, output_price_per_token: 0.00001, updated_at: '2025-06-01' },
+          {
+            model_name: 'claude-opus-4-6',
+            provider: 'Anthropic',
+            input_price_per_token: 0.000015,
+            output_price_per_token: 0.000075,
+            updated_at: '2025-06-01',
+          },
+          {
+            model_name: 'gpt-4o',
+            provider: 'OpenAI',
+            input_price_per_token: 0.0000025,
+            output_price_per_token: 0.00001,
+            updated_at: '2025-06-01',
+          },
         ])
         .mockResolvedValueOnce([{ last_synced: '2025-06-01' }]);
 

@@ -50,7 +50,8 @@ export async function seedAgentMessages(
     for (let m = 0; m < msgCount; m++) {
       idx++;
       const model = models[idx % models.length]!;
-      const ts = new Date(hourBase + Math.floor(seededRandom(idx) * 3500000)).toISOString();
+      const rawTs = hourBase + Math.floor(seededRandom(idx) * 3500000);
+      const ts = new Date(Math.min(rawTs, now)).toISOString();
 
       // Input tokens 5-25x larger than output (realistic for LLM usage)
       const inputBase = 800 + Math.floor(seededRandom(idx * 3) * 14000);

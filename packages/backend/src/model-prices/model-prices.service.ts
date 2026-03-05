@@ -7,8 +7,8 @@ import { PricingSyncService } from '../database/pricing-sync.service';
 interface ModelPriceRow {
   model_name: string;
   provider: string;
-  input_price_per_token: number;
-  output_price_per_token: number;
+  input_price_per_token: number | null;
+  output_price_per_token: number | null;
   updated_at: string | null;
 }
 
@@ -37,8 +37,10 @@ export class ModelPricesService {
       models: rows.map((r) => ({
         model_name: r.model_name,
         provider: r.provider || 'Unknown',
-        input_price_per_million: Number(r.input_price_per_token) * 1_000_000,
-        output_price_per_million: Number(r.output_price_per_token) * 1_000_000,
+        input_price_per_million:
+          r.input_price_per_token != null ? Number(r.input_price_per_token) * 1_000_000 : null,
+        output_price_per_million:
+          r.output_price_per_token != null ? Number(r.output_price_per_token) * 1_000_000 : null,
       })),
       lastSyncedAt,
     };

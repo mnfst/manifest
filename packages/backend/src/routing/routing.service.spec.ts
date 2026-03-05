@@ -761,5 +761,55 @@ describe('RoutingService', () => {
       expect(result).toBe('');
       expect(mockProviderRepo.find).not.toHaveBeenCalled();
     });
+
+    it('should return decrypted key for custom: provider with encrypted key', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const encrypted = encrypt('custom-api-key-123', secret);
+
+      mockProviderRepo.findOne.mockResolvedValue({
+        agent_id: 'a1',
+        provider: 'custom:cp-uuid',
+        is_active: true,
+        api_key_encrypted: encrypted,
+      });
+
+      const result = await service.getProviderApiKey('a1', 'custom:cp-uuid');
+      expect(result).toBe('custom-api-key-123');
+      expect(mockProviderRepo.findOne).toHaveBeenCalledWith({
+        where: { agent_id: 'a1', provider: 'custom:cp-uuid', is_active: true },
+      });
+    });
+
+    it('should return empty string for custom: provider without encrypted key', async () => {
+      mockProviderRepo.findOne.mockResolvedValue({
+        agent_id: 'a1',
+        provider: 'custom:cp-uuid',
+        is_active: true,
+        api_key_encrypted: null,
+      });
+
+      const result = await service.getProviderApiKey('a1', 'custom:cp-uuid');
+      expect(result).toBe('');
+    });
+
+    it('should return null for custom: provider not found', async () => {
+      mockProviderRepo.findOne.mockResolvedValue(null);
+
+      const result = await service.getProviderApiKey('a1', 'custom:cp-missing');
+      expect(result).toBeNull();
+    });
+
+    it('should return null for custom: provider when decrypt fails', async () => {
+      mockProviderRepo.findOne.mockResolvedValue({
+        agent_id: 'a1',
+        provider: 'custom:cp-uuid',
+        is_active: true,
+        api_key_encrypted: 'invalid:encrypted:data:format',
+      });
+
+      const result = await service.getProviderApiKey('a1', 'custom:cp-uuid');
+      expect(result).toBeNull();
+    });
   });
 });

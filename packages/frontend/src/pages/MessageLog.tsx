@@ -11,7 +11,7 @@ import { A, useParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
 import Pagination from '../components/Pagination.jsx';
-import { getMessages } from '../services/api.js';
+import { getMessages, getCustomProviders, type CustomProviderData } from '../services/api.js';
 import {
   formatNumber,
   formatCost,
@@ -20,7 +20,11 @@ import {
   formatStatus,
   formatDuration,
 } from '../services/formatters.js';
-import { inferProviderFromModel, inferProviderName } from '../services/routing-utils.js';
+import {
+  inferProviderFromModel,
+  inferProviderName,
+  stripCustomPrefix,
+} from '../services/routing-utils.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import Select from '../components/Select.jsx';
 import InfoTooltip from '../components/InfoTooltip.jsx';
@@ -66,6 +70,19 @@ const MessageLog: Component = () => {
     !!localStorage.getItem(`setup_completed_${params.agentName}`) ||
       (isLocalMode() === true && params.agentName === 'local-agent'),
   );
+
+  const [customProviders] = createResource(
+    () => params.agentName,
+    (name) => getCustomProviders(decodeURIComponent(name)),
+  );
+
+  /** Map custom:<uuid> → provider display name */
+  const customProviderName = (model: string): string | undefined => {
+    const match = model.match(/^custom:([^/]+)\//);
+    if (!match) return undefined;
+    const id = match[1];
+    return customProviders()?.find((cp: CustomProviderData) => cp.id === id)?.name;
+  };
 
   const pager = createCursorPagination(50);
 
@@ -156,7 +173,7 @@ const MessageLog: Component = () => {
               onChange={setModelFilter}
               options={[
                 { label: 'All models', value: '' },
-                ...(data()?.models ?? []).map((m) => ({ label: m, value: m })),
+                ...(data()?.models ?? []).map((m) => ({ label: stripCustomPrefix(m), value: m })),
               ]}
             />
             <div class="cost-range-filter">
@@ -394,15 +411,38 @@ const MessageLog: Component = () => {
                         </td>
                         <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                           <span style="display: inline-flex; align-items: center; gap: 4px;">
-                            {item.model && inferProviderFromModel(item.model) && (
+                            {item.model && inferProviderFromModel(item.model) === 'custom' ? (
+                              (() => {
+                                const provName = customProviderName(item.model!);
+                                const letter = (provName ?? stripCustomPrefix(item.model!))
+                                  .charAt(0)
+                                  .toUpperCase();
+                                return (
+                                  <span
+                                    class="provider-card__logo-letter"
+                                    title={provName}
+                                    style={{
+                                      background: 'var(--custom-provider-color)',
+                                      width: '16px',
+                                      height: '16px',
+                                      'font-size': '9px',
+                                      'flex-shrink': '0',
+                                      'border-radius': '50%',
+                                    }}
+                                  >
+                                    {letter}
+                                  </span>
+                                );
+                              })()
+                            ) : item.model && inferProviderFromModel(item.model) ? (
                               <span
                                 title={inferProviderName(item.model)}
                                 style="display: inline-flex; flex-shrink: 0;"
                               >
                                 {providerIcon(inferProviderFromModel(item.model)!, 14)}
                               </span>
-                            )}
-                            {item.model ?? '\u2014'}
+                            ) : null}
+                            {item.model ? stripCustomPrefix(item.model) : '\u2014'}
                             {item.routing_tier && (
                               <span class={`tier-badge tier-badge--${item.routing_tier}`}>
                                 {item.routing_tier}

@@ -71,8 +71,14 @@ export class TelemetryService {
     let costUsd: number | null = null;
     if (event.model) {
       const pricing = this.pricingCache.getByModel(event.model);
-      if (pricing) {
-        costUsd = inputTok * Number(pricing.input_price_per_token) + outputTok * Number(pricing.output_price_per_token);
+      if (
+        pricing &&
+        pricing.input_price_per_token != null &&
+        pricing.output_price_per_token != null
+      ) {
+        costUsd =
+          inputTok * Number(pricing.input_price_per_token) +
+          outputTok * Number(pricing.output_price_per_token);
       }
     }
 

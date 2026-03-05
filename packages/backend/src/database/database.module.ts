@@ -21,6 +21,7 @@ import { NotificationLog } from '../entities/notification-log.entity';
 import { EmailProviderConfig } from '../entities/email-provider-config.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
+import { CustomProvider } from '../entities/custom-provider.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { LocalBootstrapService } from './local-bootstrap.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
@@ -40,6 +41,8 @@ import { AddLimitAction1772200000000 } from './migrations/1772200000000-AddLimit
 import { AddRoutingReason1772300000000 } from './migrations/1772300000000-AddRoutingReason';
 import { AddAgentDisplayName1772400000000 } from './migrations/1772400000000-AddAgentDisplayName';
 import { PerAgentRouting1772500000000 } from './migrations/1772500000000-PerAgentRouting';
+import { AddCustomProviders1772668898071 } from './migrations/1772668898071-AddCustomProviders';
+import { NullablePricing1772682112419 } from './migrations/1772682112419-NullablePricing';
 
 const entities = [
   AgentMessage,
@@ -61,6 +64,7 @@ const entities = [
   EmailProviderConfig,
   UserProvider,
   TierAssignment,
+  CustomProvider,
 ];
 
 // Migration execution order is determined by array order below.
@@ -84,6 +88,8 @@ const migrations = [
   AddRoutingReason1772300000000,
   AddAgentDisplayName1772400000000,
   PerAgentRouting1772500000000,
+  AddCustomProviders1772668898071,
+  NullablePricing1772682112419,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -133,6 +139,7 @@ function buildModeServices() {
       SecurityEvent,
       UserProvider,
       TierAssignment,
+      CustomProvider,
     ]),
     ModelPricesModule,
   ],

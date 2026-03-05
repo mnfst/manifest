@@ -73,7 +73,8 @@ export class TierAutoAssignService {
     if (models.length === 0) return null;
 
     const totalPrice = (m: ModelPricing) =>
-      Number(m.input_price_per_token) + Number(m.output_price_per_token);
+      (m.input_price_per_token != null ? Number(m.input_price_per_token) : 0) +
+      (m.output_price_per_token != null ? Number(m.output_price_per_token) : 0);
 
     const quality = (m: ModelPricing) => m.quality_score ?? 3;
 
