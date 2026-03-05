@@ -42,6 +42,7 @@ jest.mock('../entities/tier-assignment.entity', () => ({ TierAssignment: jest.fn
 
 import { LocalBootstrapService } from './local-bootstrap.service';
 import { trackEvent } from '../common/utils/product-telemetry';
+import { existsSync, readFileSync } from 'fs';
 
 function makeMockRepo() {
   return {
@@ -176,8 +177,7 @@ describe('LocalBootstrapService', () => {
     });
 
     it('registers API key when config file exists with apiKey', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { existsSync, readFileSync } = require('fs');
+
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(
         JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
@@ -198,8 +198,7 @@ describe('LocalBootstrapService', () => {
     });
 
     it('skips API key registration when key hash already exists', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { existsSync, readFileSync } = require('fs');
+
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(
         JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
@@ -212,7 +211,7 @@ describe('LocalBootstrapService', () => {
     });
 
     it('reconciles API key even when tenant already exists', async () => {
-      const { existsSync, readFileSync } = require('fs');
+
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(
         JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
