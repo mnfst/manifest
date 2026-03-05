@@ -17,7 +17,8 @@ export class NotificationEmailService {
     const element = ThresholdAlertEmail(props);
     const html = await render(element);
     const text = await render(element, { plainText: true });
-    const subject = `Alert: ${props.agentName} exceeded ${props.metricType} threshold`;
+    const prefix = props.alertType === 'soft' ? 'Warning' : 'Alert';
+    const subject = `${prefix}: ${props.agentName} exceeded ${props.metricType} threshold`;
 
     if (providerConfig) {
       const defaultFrom = process.env['NOTIFICATION_FROM_EMAIL'] ?? 'noreply@manifest.build';

@@ -161,4 +161,66 @@ describe('NotificationEmailService', () => {
 
     expect(result).toBe(false);
   });
+
+  it('uses "Warning:" subject prefix for soft alerts', async () => {
+    (sendEmail as jest.Mock).mockResolvedValue(true);
+
+    await service.sendThresholdAlert('user@test.com', {
+      agentName: 'demo-agent',
+      metricType: 'tokens',
+      threshold: 1000,
+      actualValue: 1500,
+      period: 'hour',
+      timestamp: '2024-01-01T00:00:00Z',
+      agentUrl: 'http://localhost:3001/agents/demo-agent',
+      alertType: 'soft',
+    });
+
+    expect(sendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Warning: demo-agent exceeded tokens threshold',
+      }),
+    );
+  });
+
+  it('uses "Alert:" subject prefix for hard alerts', async () => {
+    (sendEmail as jest.Mock).mockResolvedValue(true);
+
+    await service.sendThresholdAlert('user@test.com', {
+      agentName: 'demo-agent',
+      metricType: 'cost',
+      threshold: 50,
+      actualValue: 75,
+      period: 'day',
+      timestamp: '2024-01-01T12:00:00Z',
+      agentUrl: 'http://localhost:3001/agents/demo-agent',
+      alertType: 'hard',
+    });
+
+    expect(sendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Alert: demo-agent exceeded cost threshold',
+      }),
+    );
+  });
+
+  it('defaults to "Alert:" subject when alertType is not set', async () => {
+    (sendEmail as jest.Mock).mockResolvedValue(true);
+
+    await service.sendThresholdAlert('user@test.com', {
+      agentName: 'demo-agent',
+      metricType: 'tokens',
+      threshold: 1000,
+      actualValue: 1500,
+      period: 'hour',
+      timestamp: '2024-01-01T00:00:00Z',
+      agentUrl: 'http://localhost:3001/agents/demo-agent',
+    });
+
+    expect(sendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Alert: demo-agent exceeded tokens threshold',
+      }),
+    );
+  });
 });

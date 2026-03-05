@@ -6,7 +6,7 @@ import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
-import { computePeriodBoundaries } from '../../common/utils/period.util';
+import { computePeriodBoundaries, computePeriodResetDate } from '../../common/utils/period.util';
 import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
 import {
   LOCAL_EMAIL,
@@ -143,6 +143,8 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
           period: rule.period,
           timestamp: now,
           agentUrl: `${baseUrl}/agents/${encodeURIComponent(rule.agent_name)}`,
+          alertType: 'hard',
+          periodResetDate: computePeriodResetDate(rule.period),
         },
         providerConfig ?? undefined,
       );

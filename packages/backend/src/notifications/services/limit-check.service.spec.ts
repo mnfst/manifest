@@ -205,7 +205,15 @@ describe('LimitCheckService', () => {
 
       expect(mockSendThresholdAlert).toHaveBeenCalledWith(
         'test@example.com',
-        expect.objectContaining({ agentName: 'my-agent', metricType: 'tokens', threshold: 50000, actualValue: 60000, period: 'day' }),
+        expect.objectContaining({
+          agentName: 'my-agent',
+          metricType: 'tokens',
+          threshold: 50000,
+          actualValue: 60000,
+          period: 'day',
+          alertType: 'hard',
+          periodResetDate: expect.any(String),
+        }),
         undefined,
       );
       const insertCall = mockQuery.mock.calls.find(

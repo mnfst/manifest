@@ -111,6 +111,7 @@ export class NotificationCronService implements OnModuleInit {
           period: rule.period,
           timestamp: now,
           agentUrl: `${baseUrl}/agents/${encodeURIComponent(rule.agent_name)}`,
+          alertType: 'soft',
         },
         providerConfig ?? undefined,
       );
