@@ -3,7 +3,7 @@
  *
  * Strategies (tried in order):
  *  1. Exact match against canonical names
- *  2. Known alias lookup (e.g. "deepseek-chat" → "deepseek-v3")
+ *  2. Known alias lookup (e.g. "deepseek-v3" → "deepseek-chat")
  *  3. Strip provider prefix (e.g. "anthropic/claude-opus-4-6" → "claude-opus-4-6")
  *  4. Strip date suffix (e.g. "gpt-4.1-2025-04-14" → "gpt-4.1")
  *  5. Strip both prefix and date suffix
@@ -14,9 +14,9 @@ const KNOWN_ALIASES: ReadonlyArray<readonly [string, string]> = [
   ['claude-sonnet-4.5', 'claude-sonnet-4-5-20250929'],
   ['claude-sonnet-4', 'claude-sonnet-4-20250514'],
   ['claude-haiku-4.5', 'claude-haiku-4-5-20251001'],
-  ['deepseek-chat', 'deepseek-v3'],
-  ['deepseek-chat-v3-0324', 'deepseek-v3'],
-  ['deepseek-reasoner', 'deepseek-r1'],
+  ['deepseek-v3', 'deepseek-chat'],
+  ['deepseek-chat-v3-0324', 'deepseek-chat'],
+  ['deepseek-r1', 'deepseek-reasoner'],
   // MiniMax mixed-case aliases
   ['MiniMax-M2.5', 'minimax-m2.5'],
   ['MiniMax-M2.5-highspeed', 'minimax-m2.5-highspeed'],

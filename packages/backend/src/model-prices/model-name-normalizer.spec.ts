@@ -77,9 +77,9 @@ describe('model-name-normalizer', () => {
     });
 
     it('includes deepseek aliases', () => {
-      const map = buildAliasMap(['deepseek-v3', 'deepseek-r1']);
-      expect(map.get('deepseek-chat')).toBe('deepseek-v3');
-      expect(map.get('deepseek-reasoner')).toBe('deepseek-r1');
+      const map = buildAliasMap(['deepseek-chat', 'deepseek-reasoner']);
+      expect(map.get('deepseek-v3')).toBe('deepseek-chat');
+      expect(map.get('deepseek-r1')).toBe('deepseek-reasoner');
     });
 
     it('includes MiniMax mixed-case aliases', () => {
@@ -95,8 +95,8 @@ describe('model-name-normalizer', () => {
       'claude-sonnet-4-5-20250929',
       'gpt-4o',
       'gpt-4.1',
-      'deepseek-v3',
-      'deepseek-r1',
+      'deepseek-chat',
+      'deepseek-reasoner',
       'glm-4-plus',
       'nova-pro',
     ];
@@ -126,16 +126,16 @@ describe('model-name-normalizer', () => {
       expect(resolveModelName('openai/gpt-4.1-2025-04-14', aliasMap)).toBe('gpt-4.1');
     });
 
-    it('resolves deepseek-chat to deepseek-v3', () => {
-      expect(resolveModelName('deepseek-chat', aliasMap)).toBe('deepseek-v3');
+    it('resolves deepseek-v3 to deepseek-chat', () => {
+      expect(resolveModelName('deepseek-v3', aliasMap)).toBe('deepseek-chat');
     });
 
-    it('resolves deepseek-reasoner to deepseek-r1', () => {
-      expect(resolveModelName('deepseek-reasoner', aliasMap)).toBe('deepseek-r1');
+    it('resolves deepseek-r1 to deepseek-reasoner', () => {
+      expect(resolveModelName('deepseek-r1', aliasMap)).toBe('deepseek-reasoner');
     });
 
     it('resolves prefixed deepseek alias', () => {
-      expect(resolveModelName('deepseek/deepseek-chat', aliasMap)).toBe('deepseek-v3');
+      expect(resolveModelName('deepseek/deepseek-v3', aliasMap)).toBe('deepseek-chat');
     });
 
     it('resolves zhipuai/ prefixed model', () => {

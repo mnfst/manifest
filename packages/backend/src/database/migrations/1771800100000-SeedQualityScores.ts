@@ -24,8 +24,8 @@ export class SeedQualityScores1771800100000 implements MigrationInterface {
       ['gemini-2.5-flash-lite', 1],
       ['gemini-2.0-flash', 2],
       // DeepSeek
-      ['deepseek-v3', 2],
-      ['deepseek-r1', 4],
+      ['deepseek-chat', 2],
+      ['deepseek-reasoner', 4],
       // Moonshot
       ['kimi-k2', 3],
       // Alibaba

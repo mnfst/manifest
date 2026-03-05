@@ -64,7 +64,7 @@ describe('computeQualityScore', () => {
     it('should score 3 for reasoning-only non-mini models', () => {
       const model = makeModel({
         ...zeroPriceBase,
-        model_name: 'deepseek-r1',
+        model_name: 'deepseek-reasoner',
         capability_reasoning: true,
         capability_code: false,
       });

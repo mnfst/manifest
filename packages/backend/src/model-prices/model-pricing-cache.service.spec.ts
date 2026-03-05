@@ -178,12 +178,12 @@ describe('ModelPricingCacheService', () => {
       expect(service.getByModel('openai/gpt-4.1-2025-04-14')).toBe(pricing);
     });
 
-    it('should resolve deepseek-chat to deepseek-v3', async () => {
-      const pricing = makePricing('deepseek-v3');
+    it('should resolve deepseek-v3 to deepseek-chat', async () => {
+      const pricing = makePricing('deepseek-chat');
       mockFind.mockResolvedValue([pricing]);
       await service.onModuleInit();
 
-      expect(service.getByModel('deepseek-chat')).toBe(pricing);
+      expect(service.getByModel('deepseek-v3')).toBe(pricing);
     });
 
     it('should track unresolved models on cache miss', async () => {

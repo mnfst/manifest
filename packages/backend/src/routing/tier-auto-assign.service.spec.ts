@@ -272,8 +272,8 @@ describe('TierAutoAssignService', () => {
         output_price_per_token: 0.0000003,
         quality_score: 1,
       });
-      const deepseekV3 = makeModel({
-        model_name: 'deepseek-v3',
+      const deepseekChat = makeModel({
+        model_name: 'deepseek-chat',
         provider: 'DeepSeek',
         input_price_per_token: 0.00000014,
         output_price_per_token: 0.00000028,
@@ -299,10 +299,10 @@ describe('TierAutoAssignService', () => {
         capability_code: true,
       });
 
-      const models = [nano, deepseekV3, opus, sonnet];
+      const models = [nano, deepseekChat, opus, sonnet];
 
       expect(service.pickBest(models, 'simple')!.model_name).toBe('gpt-4.1-nano');
-      expect(service.pickBest(models, 'standard')!.model_name).toBe('deepseek-v3');
+      expect(service.pickBest(models, 'standard')!.model_name).toBe('deepseek-chat');
       expect(service.pickBest(models, 'complex')!.model_name).toBe('claude-opus-4');
       expect(service.pickBest(models, 'reasoning')!.model_name).toBe('claude-opus-4');
     });
