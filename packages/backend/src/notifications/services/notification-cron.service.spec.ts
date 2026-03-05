@@ -117,6 +117,7 @@ describe('NotificationCronService', () => {
         metricType: 'tokens',
         threshold: 100000,
         actualValue: 150000,
+        alertType: 'soft',
       }),
       undefined,
     );
@@ -453,6 +454,7 @@ describe('NotificationCronService (sql.js / local mode)', () => {
         metricType: 'tokens',
         threshold: 100000,
         actualValue: 150000,
+        alertType: 'soft',
       }),
       undefined,
     );

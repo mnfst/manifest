@@ -3,6 +3,8 @@ export interface PeriodBoundaries {
   periodEnd: string;
 }
 
+const fmt = (d: Date) => d.toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+
 export function computePeriodBoundaries(period: string): PeriodBoundaries {
   const now = new Date();
   let start: Date;
@@ -28,7 +30,32 @@ export function computePeriodBoundaries(period: string): PeriodBoundaries {
   }
 
   const end = new Date(now.getTime());
-  const fmt = (d: Date) => d.toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
-
   return { periodStart: fmt(start), periodEnd: fmt(end) };
+}
+
+export function computePeriodResetDate(period: string): string {
+  const now = new Date();
+  let reset: Date;
+
+  switch (period) {
+    case 'hour':
+      reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() + 1));
+      break;
+    case 'day':
+      reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+      break;
+    case 'week': {
+      const dayOfWeek = now.getUTCDay();
+      const daysUntilMonday = ((8 - dayOfWeek) % 7) || 7;
+      reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
+      break;
+    }
+    case 'month':
+      reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+      break;
+    default:
+      reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() + 1));
+  }
+
+  return fmt(reset);
 }
