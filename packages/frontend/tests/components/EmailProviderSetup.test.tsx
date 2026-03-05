@@ -52,9 +52,9 @@ describe("EmailProviderSetup", () => {
 
   it("renders provider descriptions", () => {
     render(() => <EmailProviderSetup onConfigured={onConfigured} />);
-    expect(screen.getByText("Modern email API")).toBeDefined();
-    expect(screen.getByText("Reliable email service")).toBeDefined();
-    expect(screen.getByText("Scalable email delivery")).toBeDefined();
+    expect(screen.getByText("Email API")).toBeDefined();
+    expect(screen.getByText("Transactional email")).toBeDefined();
+    expect(screen.getByText("Email delivery")).toBeDefined();
   });
 
   it("renders provider logos", () => {

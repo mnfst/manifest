@@ -135,7 +135,7 @@ const MessageLog: Component = () => {
         <div>
           <h1>Messages</h1>
           <span class="breadcrumb">
-            Full log of every LLM call &mdash; filter by status, model, or cost
+            Full log of every LLM call. Filter by status, model, or cost.
           </span>
         </div>
         <div class="header-controls">
@@ -227,10 +227,7 @@ const MessageLog: Component = () => {
               fallback={
                 <div class="empty-state">
                   <div class="empty-state__title">No messages recorded</div>
-                  <p>
-                    Connect your agent to Manifest and send your first message. Each LLM call will
-                    be logged here with its cost, tokens, and status.
-                  </p>
+                  <p>Connect your agent and send a message. Each LLM call gets logged here.</p>
                   <button
                     class="btn btn--primary"
                     style="margin-top: var(--gap-md);"
@@ -247,8 +244,8 @@ const MessageLog: Component = () => {
               <div class="waiting-banner">
                 <i class="bxd bx-florist" />
                 <p>
-                  Waiting for data &mdash; messages will appear within seconds of your agent's first
-                  LLM call.
+                  Waiting for data. Messages will show up within seconds of your agent's first LLM
+                  call.
                 </p>
               </div>
               <div class="demo-dashboard">

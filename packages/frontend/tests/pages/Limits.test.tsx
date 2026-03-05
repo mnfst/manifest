@@ -115,7 +115,7 @@ describe("Limits page", () => {
   it("renders empty state when no rules", () => {
     render(() => <Limits />);
     expect(screen.getByText("No rules yet")).toBeDefined();
-    expect(screen.getByText("Set up email alerts to get notified when usage spikes, or create hard limits to automatically block requests that exceed your budget.")).toBeDefined();
+    expect(screen.getByText("Set up alerts for usage spikes, or hard limits to block requests over budget.")).toBeDefined();
   });
 
   it("renders rules table when rules exist", async () => {
@@ -247,7 +247,7 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("One or more hard limits have been triggered");
+      expect(container.textContent).toContain("One or more hard limits triggered");
     });
   });
 
@@ -261,7 +261,7 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(container.textContent).not.toContain("One or more hard limits have been triggered");
+      expect(container.textContent).not.toContain("One or more hard limits triggered");
     });
   });
 
@@ -275,7 +275,7 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(container.textContent).not.toContain("One or more hard limits have been triggered");
+      expect(container.textContent).not.toContain("One or more hard limits triggered");
     });
   });
 

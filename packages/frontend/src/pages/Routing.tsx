@@ -201,9 +201,8 @@ const Routing: Component = () => {
               </div>
               <h2 class="routing-enable-card__title">Smart model routing</h2>
               <p class="routing-enable-card__desc">
-                Route each request to the best model for its complexity level &mdash; use cheaper
-                models for simple tasks and more capable models for complex ones. Connect your LLM
-                providers and Manifest handles the rest.
+                Send simple tasks to cheap models, complex ones to better models. Connect your LLM
+                providers to get started.
               </p>
               <button class="btn btn--primary" onClick={handleEnable}>
                 Enable Routing

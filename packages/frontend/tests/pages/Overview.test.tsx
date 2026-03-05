@@ -104,7 +104,7 @@ describe("Overview", () => {
   it("renders breadcrumb subtitle", () => {
     mockGetOverview.mockResolvedValue(overviewData);
     render(() => <Overview />);
-    expect(screen.getByText(/Real-time summary of your agent/)).toBeDefined();
+    expect(screen.getByText(/Real-time summary of spending/)).toBeDefined();
   });
 
   it("shows loading skeleton while fetching", () => {
@@ -319,7 +319,7 @@ describe("Overview", () => {
       mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain("dashboard will populate");
+        expect(container.textContent).toContain("dashboard will update");
       });
     });
 
