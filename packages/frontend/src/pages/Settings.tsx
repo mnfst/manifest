@@ -1,19 +1,15 @@
-import { createSignal, createResource, Show, For, type Component } from "solid-js";
-import { useParams, useNavigate, useLocation } from "@solidjs/router";
-import { Title, Meta } from "@solidjs/meta";
-import ErrorState from "../components/ErrorState.jsx";
-import SetupStepInstall from "../components/SetupStepInstall.jsx";
-import SetupStepConfigure from "../components/SetupStepConfigure.jsx";
-import SetupStepVerify from "../components/SetupStepVerify.jsx";
-import { CopyButton } from "../components/SetupStepInstall.jsx";
-import {
-  getAgentKey,
-  deleteAgent,
-  renameAgent,
-  rotateAgentKey,
-} from "../services/api.js";
-import { toast } from "../services/toast-store.js";
-import { isLocalMode } from "../services/local-mode.js";
+import { createSignal, createResource, Show, For, type Component } from 'solid-js';
+import { useParams, useNavigate, useLocation } from '@solidjs/router';
+import { Title, Meta } from '@solidjs/meta';
+import ErrorState from '../components/ErrorState.jsx';
+import SetupStepInstall from '../components/SetupStepInstall.jsx';
+import SetupStepConfigure from '../components/SetupStepConfigure.jsx';
+import SetupStepVerify from '../components/SetupStepVerify.jsx';
+import { CopyButton } from '../components/SetupStepInstall.jsx';
+import { getAgentKey, deleteAgent, renameAgent, rotateAgentKey } from '../services/api.js';
+import { toast } from '../services/toast-store.js';
+import { isLocalMode } from '../services/local-mode.js';
+import { agentDisplayName } from '../services/agent-display-name.js';
 
 const Settings: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -30,7 +26,7 @@ const Settings: Component = () => {
   const [saving, setSaving] = createSignal(false);
   const [saved, setSaved] = createSignal(false);
   const [showDeleteModal, setShowDeleteModal] = createSignal(false);
-  const [deleteConfirmName, setDeleteConfirmName] = createSignal("");
+  const [deleteConfirmName, setDeleteConfirmName] = createSignal('');
   const [deleting, setDeleting] = createSignal(false);
   const [rotating, setRotating] = createSignal(false);
   const [rotatedKey, setRotatedKey] = createSignal<string | null>(
@@ -46,7 +42,7 @@ const Settings: Component = () => {
     const custom = apiKeyData()?.pluginEndpoint;
     if (custom) return custom;
     const host = window.location.hostname;
-    if (host === "app.manifest.build") return null;
+    if (host === 'app.manifest.build') return null;
     return `${window.location.origin}/otlp`;
   };
 
@@ -58,7 +54,10 @@ const Settings: Component = () => {
     try {
       const result = await renameAgent(agentName(), newName);
       const slug = result?.name ?? newName;
-      navigate(`/agents/${encodeURIComponent(slug)}/settings`, { replace: true, state: { newAgent: true } });
+      navigate(`/agents/${encodeURIComponent(slug)}/settings`, {
+        replace: true,
+        state: { newAgent: true },
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
@@ -73,7 +72,7 @@ const Settings: Component = () => {
     try {
       const result = await rotateAgentKey(agentName());
       setRotatedKey(result.apiKey);
-      toast.success("API key rotated successfully");
+      toast.success('API key rotated successfully');
       refetchKey();
     } catch {
       // error toast handled by fetchMutate
@@ -82,18 +81,24 @@ const Settings: Component = () => {
     }
   };
 
-  const TABS = () => isLocalMode() ? [] as const : ["General", "Agent setup"] as const;
-  type Tab = "General" | "Agent setup";
-  const [tab, setTab] = createSignal<Tab>("General");
+  const TABS = () => (isLocalMode() ? ([] as const) : (['General', 'Agent setup'] as const));
+  type Tab = 'General' | 'Agent setup';
+  const [tab, setTab] = createSignal<Tab>('General');
 
   return (
     <div class="container--sm">
-      <Title>{agentName()} Settings - Manifest</Title>
-      <Meta name="description" content={`Configure settings for ${agentName()}.`} />
+      <Title>{agentDisplayName() ?? agentName()} Settings - Manifest</Title>
+      <Meta
+        name="description"
+        content={`Configure settings for ${agentDisplayName() ?? agentName()}.`}
+      />
       <div class="page-header">
         <div>
           <h1>Settings</h1>
-          <span class="breadcrumb">{agentName()} &rsaquo; Rename your agent, manage API keys, and view setup instructions</span>
+          <span class="breadcrumb">
+            {agentDisplayName() ?? agentName()} &rsaquo; Rename your agent, manage API keys, and
+            view setup instructions
+          </span>
         </div>
       </div>
 
@@ -103,7 +108,7 @@ const Settings: Component = () => {
             {(t) => (
               <button
                 class="panel__tab"
-                classList={{ "panel__tab--active": tab() === t }}
+                classList={{ 'panel__tab--active': tab() === t }}
                 onClick={() => setTab(t)}
               >
                 {t}
@@ -114,12 +119,14 @@ const Settings: Component = () => {
       </Show>
 
       {/* -- Tab: General ----------------------------- */}
-      <Show when={tab() === "General"}>
+      <Show when={tab() === 'General'}>
         <div class="settings-card">
           <div class="settings-card__row">
             <div class="settings-card__label">
               <span class="settings-card__label-title">Agent name</span>
-              <span class="settings-card__label-desc">The display name for this agent across the dashboard.</span>
+              <span class="settings-card__label-desc">
+                The display name for this agent across the dashboard.
+              </span>
             </div>
             <div class="settings-card__control">
               <input
@@ -138,7 +145,7 @@ const Settings: Component = () => {
               onClick={handleSave}
               disabled={saving() || name().trim() === agentName()}
             >
-              <span aria-live="polite">{saved() ? "Saved" : saving() ? "Saving..." : "Save"}</span>
+              <span aria-live="polite">{saved() ? 'Saved' : saving() ? 'Saving...' : 'Save'}</span>
             </button>
           </div>
         </div>
@@ -150,13 +157,19 @@ const Settings: Component = () => {
             <div class="settings-card__row">
               <div class="settings-card__label">
                 <span class="settings-card__label-title">Delete this agent</span>
-                <span class="settings-card__label-desc">Permanently delete this agent, its API key, and all recorded messages and analytics. This action cannot be undone.</span>
+                <span class="settings-card__label-desc">
+                  Permanently delete this agent, its API key, and all recorded messages and
+                  analytics. This action cannot be undone.
+                </span>
               </div>
               <div class="settings-card__control">
                 <button
                   class="btn btn--danger"
                   style="font-size: var(--font-size-sm);"
-                  onClick={() => { setShowDeleteModal(true); setDeleteConfirmName(""); }}
+                  onClick={() => {
+                    setShowDeleteModal(true);
+                    setDeleteConfirmName('');
+                  }}
                 >
                   Delete agent
                 </button>
@@ -167,21 +180,30 @@ const Settings: Component = () => {
       </Show>
 
       {/* -- Tab: Agent setup ------------------------- */}
-      <Show when={tab() === "Agent setup"}>
+      <Show when={tab() === 'Agent setup'}>
         <h3 class="settings-section__title">API Key</h3>
 
         <div class="settings-card">
           <div class="settings-card__row">
             <div class="settings-card__label">
               <span class="settings-card__label-title">OTLP ingest key</span>
-              <span class="settings-card__label-desc">This key authenticates your agent's OTLP telemetry to Manifest. Rotating it generates a new key and immediately invalidates the current one.</span>
+              <span class="settings-card__label-desc">
+                This key authenticates your agent's OTLP telemetry to Manifest. Rotating it
+                generates a new key and immediately invalidates the current one.
+              </span>
             </div>
-            <div class="settings-card__control" style="display: flex; align-items: center; gap: 8px;">
-              <Show when={isLocalMode() && apiKeyData()?.apiKey} fallback={
-                <code style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-                  {apiKeyData()?.keyPrefix ?? "..."}...
-                </code>
-              }>
+            <div
+              class="settings-card__control"
+              style="display: flex; align-items: center; gap: 8px;"
+            >
+              <Show
+                when={isLocalMode() && apiKeyData()?.apiKey}
+                fallback={
+                  <code style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                    {apiKeyData()?.keyPrefix ?? '...'}...
+                  </code>
+                }
+              >
                 <code style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); word-break: break-all;">
                   {apiKeyData()!.apiKey!}
                 </code>
@@ -193,7 +215,7 @@ const Settings: Component = () => {
                 onClick={handleRotate}
                 disabled={rotating()}
               >
-                {rotating() ? "Rotating..." : "Rotate key"}
+                {rotating() ? 'Rotating...' : 'Rotate key'}
               </button>
             </div>
           </div>
@@ -212,19 +234,25 @@ const Settings: Component = () => {
 
         <h3 class="settings-section__title">Setup</h3>
 
-        <Show when={!apiKeyData.loading} fallback={
-          <div class="setup-steps">
-            <div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />
-          </div>
-        }>
-          <Show when={!apiKeyData.error} fallback={
-            <ErrorState
-              error={apiKeyData.error}
-              title="Could not load API key"
-              message="Failed to fetch your agent's API key. Please try again."
-              onRetry={refetchKey}
-            />
-          }>
+        <Show
+          when={!apiKeyData.loading}
+          fallback={
+            <div class="setup-steps">
+              <div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />
+            </div>
+          }
+        >
+          <Show
+            when={!apiKeyData.error}
+            fallback={
+              <ErrorState
+                error={apiKeyData.error}
+                title="Could not load API key"
+                message="Failed to fetch your agent's API key. Please try again."
+                onRetry={refetchKey}
+              />
+            }
+          >
             <div class="settings-card" style="padding: var(--gap-lg);">
               <SetupStepInstall stepNumber={1} />
               <SetupStepConfigure
@@ -242,7 +270,12 @@ const Settings: Component = () => {
 
       {/* -- Delete Agent Modal ----------------------- */}
       <Show when={showDeleteModal()}>
-        <div class="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
+        <div
+          class="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowDeleteModal(false);
+          }}
+        >
           <div class="modal-card" style="max-width: 440px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
               <h3 style="margin: 0; font-size: var(--font-size-lg);">Delete {agentName()}</h3>
@@ -251,11 +284,25 @@ const Settings: Component = () => {
                 onClick={() => setShowDeleteModal(false)}
                 aria-label="Close"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
               </button>
             </div>
             <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-md);">
-              This will permanently delete the <strong style="color: hsl(var(--foreground));">{agentName()}</strong> agent and all its telemetry data. This action cannot be undone.
+              This will permanently delete the{' '}
+              <strong style="color: hsl(var(--foreground));">{agentName()}</strong> agent and all
+              its telemetry data. This action cannot be undone.
             </p>
             <label style="display: block; font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: var(--gap-sm);">
               To confirm, type <strong>"{agentName()}"</strong> in the box below
@@ -277,13 +324,13 @@ const Settings: Component = () => {
                 try {
                   await deleteAgent(agentName());
                   toast.success(`Agent "${agentName()}" deleted`);
-                  navigate("/", { replace: true });
+                  navigate('/', { replace: true });
                 } catch {
                   setDeleting(false);
                 }
               }}
             >
-              {deleting() ? "Deleting..." : "Delete this agent"}
+              {deleting() ? 'Deleting...' : 'Delete this agent'}
             </button>
           </div>
         </div>

@@ -13,6 +13,7 @@ import EmailProviderModal from '../components/EmailProviderModal.js';
 import LimitIcon from '../components/LimitIcon.js';
 import AlertIcon from '../components/AlertIcon.js';
 import { toast } from '../services/toast-store.js';
+import { agentDisplayName } from '../services/agent-display-name.js';
 import {
   getNotificationRules,
   createNotificationRule,
@@ -157,15 +158,18 @@ const Limits: Component = () => {
 
   return (
     <div class="container--sm">
-      <Title>{agentName()} Limits - Manifest</Title>
-      <Meta name="description" content={`Configure limits and alerts for ${agentName()}.`} />
+      <Title>{agentDisplayName() ?? agentName()} Limits - Manifest</Title>
+      <Meta
+        name="description"
+        content={`Configure limits and alerts for ${agentDisplayName() ?? agentName()}.`}
+      />
 
       <div class="page-header">
         <div>
           <h1>Limits</h1>
           <span class="breadcrumb">
-            {agentName()} &rsaquo; Get notified or block requests when token or cost thresholds are
-            exceeded
+            {agentDisplayName() ?? agentName()} &rsaquo; Get notified or block requests when token
+            or cost thresholds are exceeded
           </span>
         </div>
         <button

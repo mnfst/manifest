@@ -1,9 +1,10 @@
-import { useParams, useLocation } from "@solidjs/router";
-import { createResource, createMemo, Show, type ParentComponent } from "solid-js";
-import ErrorState from "./ErrorState.jsx";
-import NotFound from "../pages/NotFound.jsx";
-import { getAgents } from "../services/api.js";
-import { isLocalMode, checkLocalMode } from "../services/local-mode.js";
+import { useParams, useLocation } from '@solidjs/router';
+import { createResource, createMemo, Show, onCleanup, type ParentComponent } from 'solid-js';
+import ErrorState from './ErrorState.jsx';
+import NotFound from '../pages/NotFound.jsx';
+import { getAgents } from '../services/api.js';
+import { isLocalMode, checkLocalMode } from '../services/local-mode.js';
+import { setAgentDisplayName } from '../services/agent-display-name.js';
 
 interface Agent {
   agent_name: string;
@@ -25,36 +26,44 @@ const AgentGuard: ParentComponent = (props) => {
 
   const [data, { refetch }] = createResource(
     // Only fetch agents in cloud mode (mode resolved and not local)
-    () => mode() === false ? true : false,
+    () => (mode() === false ? true : false),
     () => getAgents() as Promise<AgentsData>,
   );
 
   const agentExists = createMemo(() => {
     // Local mode: agent is guaranteed to exist (bootstrapped by LocalBootstrapService)
-    if (isLocalMode()) return true;
+    if (isLocalMode()) {
+      setAgentDisplayName(null);
+      return true;
+    }
     if (location.state?.newAgent) return true;
     const list = data()?.agents;
     if (!list) return true; // still loading or no data yet — don't block
-    return list.some(
-      (a) => a.agent_name === decodeURIComponent(params.agentName),
-    );
+    const agent = list.find((a) => a.agent_name === decodeURIComponent(params.agentName));
+    if (agent) {
+      setAgentDisplayName(agent.display_name ?? agent.agent_name);
+    }
+    return !!agent;
   });
+
+  onCleanup(() => setAgentDisplayName(null));
 
   return (
     <Show when={mode() !== undefined} fallback={null}>
-      <Show when={isLocalMode()} fallback={
-        <Show when={!data.loading} fallback={null}>
-          <Show when={!data.error} fallback={
-            <ErrorState error={data.error} onRetry={refetch} />
-          }>
-            <Show when={data()?.agents}>
-              <Show when={agentExists()} fallback={<NotFound />}>
-                {props.children}
+      <Show
+        when={isLocalMode()}
+        fallback={
+          <Show when={!data.loading} fallback={null}>
+            <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
+              <Show when={data()?.agents}>
+                <Show when={agentExists()} fallback={<NotFound />}>
+                  {props.children}
+                </Show>
               </Show>
             </Show>
           </Show>
-        </Show>
-      }>
+        }
+      >
         {props.children}
       </Show>
     </Show>

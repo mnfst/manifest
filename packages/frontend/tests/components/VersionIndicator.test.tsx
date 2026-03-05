@@ -104,4 +104,10 @@ describe("VersionIndicator", () => {
     const el = container.querySelector(".version-indicator");
     expect(el!.getAttribute("aria-label")).toBe("Update available: v6.0.0");
   });
+
+  it("hides indicator when version is 0.0.0 (dev mode)", () => {
+    mockSignal[1]({ version: "0.0.0" });
+    const { container } = render(() => <VersionIndicator />);
+    expect(container.querySelector(".version-indicator")).toBeNull();
+  });
 });

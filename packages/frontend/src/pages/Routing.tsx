@@ -8,6 +8,7 @@ import RoutingInstructionModal from '../components/RoutingInstructionModal.js';
 import ModelPickerModal from '../components/ModelPickerModal.js';
 import { toast } from '../services/toast-store.js';
 import { pricePerM, resolveProviderId } from '../services/routing-utils.js';
+import { agentDisplayName } from '../services/agent-display-name.js';
 import {
   getTierAssignments,
   getAvailableModels,
@@ -153,14 +154,18 @@ const Routing: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>{agentName()} Routing - Manifest</Title>
-      <Meta name="description" content={`Configure model routing for ${agentName()}.`} />
+      <Title>{agentDisplayName() ?? agentName()} Routing - Manifest</Title>
+      <Meta
+        name="description"
+        content={`Configure model routing for ${agentDisplayName() ?? agentName()}.`}
+      />
 
       <div class="page-header routing-page-header">
         <div>
           <h1>Routing</h1>
           <span class="breadcrumb">
-            {agentName()} &rsaquo; Route requests to different models based on complexity
+            {agentDisplayName() ?? agentName()} &rsaquo; Route requests to different models based on
+            complexity
           </span>
         </div>
         <Show when={isEnabled()}>
