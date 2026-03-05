@@ -11,10 +11,11 @@ vi.mock("../../src/services/api.js", () => ({
   testSavedEmailProvider: (...args: unknown[]) => mockTestSavedEmailProvider(...args),
 }));
 
+let mockUserEmail: string | null = "user@test.com";
 vi.mock("../../src/services/auth-client.js", () => ({
   authClient: {
     useSession: () => () => ({
-      data: { user: { email: "user@test.com" } },
+      data: mockUserEmail ? { user: { email: mockUserEmail } } : null,
       isPending: false,
     }),
   },
@@ -43,6 +44,7 @@ describe("EmailProviderModal", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUserEmail = "user@test.com";
     mockTestEmailProvider.mockResolvedValue({ success: true });
     mockTestSavedEmailProvider.mockResolvedValue({ success: true });
     mockSetEmailProvider.mockResolvedValue({});
@@ -444,6 +446,252 @@ describe("EmailProviderModal", () => {
     fireEvent.click(saveBtn);
     await vi.waitFor(() => {
       expect(document.body.textContent).toContain("SendGrid API key must start with SG.");
+    });
+  });
+
+  it("defaults notification email from session when no existing email", () => {
+    render(() => (
+      <EmailProviderModal {...defaultProps} />
+    ));
+    const emailInput = q('input[type="email"]') as HTMLInputElement;
+    expect(emailInput.value).toBe("user@test.com");
+  });
+
+  it("shows domain validation error for invalid domain format on Mailgun", async () => {
+    render(() => (
+      <EmailProviderModal {...defaultProps} initialProvider="mailgun" />
+    ));
+    const keyInput = q('input[type="password"]')!;
+    fireEvent.input(keyInput, { target: { value: "key-abcdefgh" } });
+    const domainInput = q('input[type="text"]')!;
+    fireEvent.input(domainInput, { target: { value: "invalid domain!" } });
+    const saveBtn = q(".btn--primary")!;
+    fireEvent.click(saveBtn);
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain("Invalid domain format");
+    });
+  });
+
+  it("shows domain validation error for empty domain on Mailgun", async () => {
+    render(() => (
+      <EmailProviderModal {...defaultProps} initialProvider="mailgun" />
+    ));
+    const keyInput = q('input[type="password"]')!;
+    fireEvent.input(keyInput, { target: { value: "key-abcdefgh" } });
+    // Enter a domain then clear it to bypass the disabled state,
+    // or trigger validation via Enter key which bypasses disabled check
+    const domainInput = q('input[type="text"]')!;
+    fireEvent.input(domainInput, { target: { value: "d" } });
+    fireEvent.input(domainInput, { target: { value: "" } });
+    // Use Enter key to trigger handleSave (which calls validateFields)
+    fireEvent.keyDown(keyInput, { key: "Enter" });
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain("Domain is required");
+    });
+  });
+
+  it("blocks save for non-mailgun provider with invalid domain format", async () => {
+    // Start with mailgun and set invalid domain via props, then switch to resend
+    render(() => (
+      <EmailProviderModal {...defaultProps} initialProvider="mailgun" existingDomain="invalid domain!" />
+    ));
+    // Switch to resend -- domain value persists internally but input is hidden
+    fireEvent.click(screen.getByText("Resend"));
+    await vi.waitFor(() => {
+      expect(q('input[type="password"]')).not.toBeNull();
+    });
+    const keyInput = q('input[type="password"]')!;
+    fireEvent.input(keyInput, { target: { value: "re_abcdefghij" } });
+    // Trigger validation via Enter key -- should fail validation silently (domain error set but hidden)
+    fireEvent.keyDown(keyInput, { key: "Enter" });
+    // Wait a bit and verify testEmailProvider was NOT called (validation failed)
+    await new Promise((r) => setTimeout(r, 100));
+    expect(mockTestEmailProvider).not.toHaveBeenCalled();
+  });
+
+  it("handles test email failure from API gracefully", async () => {
+    mockTestEmailProvider.mockResolvedValue({ success: false, error: "Bad credentials" });
+    const { toast } = await import("../../src/services/toast-store.js");
+    render(() => (
+      <EmailProviderModal {...defaultProps} />
+    ));
+    const input = q('input[type="password"]')!;
+    fireEvent.input(input, { target: { value: "re_testkey12345" } });
+    const testBtn = screen.getByText("Send test email");
+    fireEvent.click(testBtn);
+    await vi.waitFor(() => {
+      expect((toast.error as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith("Bad credentials");
+    });
+  });
+
+  it("handles test email network error gracefully", async () => {
+    mockTestEmailProvider.mockRejectedValue(new Error("Network error"));
+    render(() => (
+      <EmailProviderModal {...defaultProps} />
+    ));
+    const input = q('input[type="password"]')!;
+    fireEvent.input(input, { target: { value: "re_testkey12345" } });
+    const testBtn = screen.getByText("Send test email");
+    fireEvent.click(testBtn);
+    // Should not throw, just silently fail
+    await vi.waitFor(() => {
+      expect(mockTestEmailProvider).toHaveBeenCalled();
+    });
+  });
+
+  it("handles save error from setEmailProvider gracefully", async () => {
+    mockTestEmailProvider.mockResolvedValue({ success: true });
+    mockSetEmailProvider.mockRejectedValue(new Error("Save failed"));
+    render(() => (
+      <EmailProviderModal {...defaultProps} />
+    ));
+    const input = q('input[type="password"]')!;
+    fireEvent.input(input, { target: { value: "re_testkey12345" } });
+    const saveBtn = q(".btn--primary")!;
+    fireEvent.click(saveBtn);
+    // Should not throw
+    await vi.waitFor(() => {
+      expect(mockSetEmailProvider).toHaveBeenCalled();
+    });
+  });
+
+  it("triggers Enter key to save", async () => {
+    render(() => <EmailProviderModal {...defaultProps} />);
+    const input = q('input[type="password"]')!;
+    fireEvent.input(input, { target: { value: "re_testkey12345" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    // handleSave is called, validation passes, then testEmailProvider runs async
+    await vi.waitFor(() => {
+      expect(mockTestEmailProvider).toHaveBeenCalled();
+    });
+  });
+
+  it("shows placeholder for mailgun key", () => {
+    render(() => (
+      <EmailProviderModal {...defaultProps} initialProvider="mailgun" />
+    ));
+    const input = q('input[type="password"]') as HTMLInputElement;
+    expect(input.placeholder).toBe("key-xxxx...");
+  });
+
+  it("shows API key required error when submitting with empty key", async () => {
+    render(() => <EmailProviderModal {...defaultProps} />);
+    // Use Enter key to bypass disabled button
+    const input = q('input[type="password"]')!;
+    fireEvent.keyDown(input, { key: "Enter" });
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain("API key is required");
+    });
+  });
+
+  it("clears domain error when valid domain entered on Mailgun", async () => {
+    render(() => (
+      <EmailProviderModal {...defaultProps} initialProvider="mailgun" />
+    ));
+    const keyInput = q('input[type="password"]')!;
+    fireEvent.input(keyInput, { target: { value: "key-abcdefgh" } });
+    const domainInput = q('input[type="text"]')!;
+    fireEvent.input(domainInput, { target: { value: "mg.example.com" } });
+    const saveBtn = q(".btn--primary")!;
+    fireEvent.click(saveBtn);
+    await vi.waitFor(() => {
+      expect(document.body.textContent).not.toContain("Domain is required");
+      expect(document.body.textContent).not.toContain("Invalid domain format");
+    });
+  });
+
+  it("shows default error when testSavedEmailProvider returns null error message", async () => {
+    mockTestSavedEmailProvider.mockResolvedValue({ success: false, error: null });
+    const { toast } = await import("../../src/services/toast-store.js");
+    render(() => (
+      <EmailProviderModal
+        {...defaultProps}
+        editMode={true}
+        existingKeyPrefix="re_abc12"
+        existingNotificationEmail="user@test.com"
+      />
+    ));
+    const testBtn = screen.getByText("Send test email");
+    fireEvent.click(testBtn);
+    await vi.waitFor(() => {
+      expect((toast.error as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
+        "Email test failed — check your credentials",
+      );
+    });
+  });
+
+  it("shows error when testSavedEmailProvider returns failure", async () => {
+    mockTestSavedEmailProvider.mockResolvedValue({ success: false, error: "Saved test failed" });
+    const { toast } = await import("../../src/services/toast-store.js");
+    render(() => (
+      <EmailProviderModal
+        {...defaultProps}
+        editMode={true}
+        existingKeyPrefix="re_abc12"
+        existingNotificationEmail="user@test.com"
+      />
+    ));
+    const testBtn = screen.getByText("Send test email");
+    fireEvent.click(testBtn);
+    await vi.waitFor(() => {
+      expect((toast.error as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith("Saved test failed");
+    });
+  });
+
+  it("handles testSavedEmailProvider network error gracefully", async () => {
+    mockTestSavedEmailProvider.mockRejectedValue(new Error("Network error"));
+    render(() => (
+      <EmailProviderModal
+        {...defaultProps}
+        editMode={true}
+        existingKeyPrefix="re_abc12"
+        existingNotificationEmail="user@test.com"
+      />
+    ));
+    const testBtn = screen.getByText("Send test email");
+    fireEvent.click(testBtn);
+    await vi.waitFor(() => {
+      expect(mockTestSavedEmailProvider).toHaveBeenCalled();
+    });
+  });
+
+  it("shows error when no recipient email on runTest path", async () => {
+    mockUserEmail = null;
+    const { toast } = await import("../../src/services/toast-store.js");
+    render(() => <EmailProviderModal {...defaultProps} />);
+    const input = q('input[type="password"]')!;
+    fireEvent.input(input, { target: { value: "re_testkey12345" } });
+    // Clear notification email (should be empty since session has no email)
+    const emailInput = q('input[type="email"]') as HTMLInputElement;
+    fireEvent.input(emailInput, { target: { value: "" } });
+    const saveBtn = q(".btn--primary")!;
+    fireEvent.click(saveBtn);
+    await vi.waitFor(() => {
+      expect((toast.error as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
+        "Enter a notification email to send the test to",
+      );
+    });
+  });
+
+  it("shows error when no recipient email on runTestSaved path", async () => {
+    mockUserEmail = null;
+    const { toast } = await import("../../src/services/toast-store.js");
+    render(() => (
+      <EmailProviderModal
+        {...defaultProps}
+        editMode={true}
+        existingKeyPrefix="re_abc12"
+      />
+    ));
+    // Clear notification email
+    const emailInput = q('input[type="email"]') as HTMLInputElement;
+    fireEvent.input(emailInput, { target: { value: "" } });
+    const saveBtn = q(".btn--primary")!;
+    fireEvent.click(saveBtn);
+    await vi.waitFor(() => {
+      expect((toast.error as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
+        "Enter a notification email to send the test to",
+      );
     });
   });
 });

@@ -161,6 +161,20 @@ describe('LocalBootstrapService', () => {
       expect(mockAgentKeyRepo.insert).not.toHaveBeenCalled();
     });
 
+    it('returns null when readFileSync throws (catches error in readApiKeyFromConfig)', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { existsSync, readFileSync } = require('fs');
+      (existsSync as jest.Mock).mockReturnValue(true);
+      (readFileSync as jest.Mock).mockImplementation(() => {
+        throw new Error('EACCES: permission denied');
+      });
+
+      await service.onModuleInit();
+
+      // readApiKeyFromConfig returns null on error, so no key registration
+      expect(mockAgentKeyRepo.insert).not.toHaveBeenCalled();
+    });
+
     it('registers API key when config file exists with apiKey', async () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { existsSync, readFileSync } = require('fs');

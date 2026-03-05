@@ -64,12 +64,58 @@ describe('SecurityService', () => {
 
   it('returns events from query', async () => {
     const fakeEvents = [
-      { id: '1', timestamp: '2026-01-01', severity: 'critical', category: 'test', description: 'desc' },
+      {
+        id: '1',
+        timestamp: '2026-01-01',
+        severity: 'critical',
+        category: 'test',
+        description: 'desc',
+      },
     ];
     mockGetRawMany.mockResolvedValueOnce([{ severity: 'critical', cnt: 1 }]);
     mockGetMany.mockResolvedValueOnce(fakeEvents);
 
     const result = await service.getSecurityOverview('24h', 'test-user');
     expect(result.events).toEqual(fakeEvents);
+  });
+
+  it('returns critical risk level when score drops below 30', async () => {
+    // 100 - 5*15 - 3*5 = 100 - 75 - 15 = 10 (< 30 => critical)
+    mockGetRawMany.mockResolvedValueOnce([
+      { severity: 'critical', cnt: 5 },
+      { severity: 'warning', cnt: 3 },
+    ]);
+    mockGetMany.mockResolvedValueOnce([]);
+
+    const result = await service.getSecurityOverview('24h', 'test-user');
+    expect(result.score.value).toBe(10);
+    expect(result.score.risk_level).toBe('critical');
+  });
+
+  it('returns moderate risk level when score is between 60 and 79', async () => {
+    // 100 - 1*15 - 2*5 = 100 - 15 - 10 = 75 => moderate? No, 75 >= 60 but < 80.
+    // Actually 75 is >= 60 so moderate is wrong—let me recalculate.
+    // threshold_low=80, threshold_moderate=60, threshold_high=30
+    // value >= 80 => low, value >= 60 => moderate, value >= 30 => high, else critical
+    // 100 - 2*15 - 1*5 = 100 - 30 - 5 = 65 => moderate (>= 60 but < 80)
+    mockGetRawMany.mockResolvedValueOnce([
+      { severity: 'critical', cnt: 2 },
+      { severity: 'warning', cnt: 1 },
+    ]);
+    mockGetMany.mockResolvedValueOnce([]);
+
+    const result = await service.getSecurityOverview('24h', 'test-user');
+    expect(result.score.value).toBe(65);
+    expect(result.score.risk_level).toBe('moderate');
+  });
+
+  it('clamps score to 0 when penalties exceed 100', async () => {
+    // 100 - 7*15 = 100 - 105 => clamped to 0 => critical
+    mockGetRawMany.mockResolvedValueOnce([{ severity: 'critical', cnt: 7 }]);
+    mockGetMany.mockResolvedValueOnce([]);
+
+    const result = await service.getSecurityOverview('24h', 'test-user');
+    expect(result.score.value).toBe(0);
+    expect(result.score.risk_level).toBe('critical');
   });
 });

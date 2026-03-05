@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-03-02
+Last updated: 2026-03-05
 
 ## IMPORTANT: Local Mode First
 
@@ -429,11 +429,21 @@ Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. C
 ### Thresholds
 
 - **Project coverage** (`codecov/project`): Must not drop more than **1%** below the base branch (`target: auto`, `threshold: 1%`).
-- **Patch coverage** (`codecov/patch`): New/changed lines must have at least **auto - 5%** coverage (`target: auto`, `threshold: 5%`). In practice, aim for **>90%** patch coverage.
+- **Patch coverage** (`codecov/patch`): New/changed lines must have at least **auto - 5%** coverage (`target: auto`, `threshold: 5%`).
 
-### CRITICAL: Write Tests for New Code
+### CRITICAL: 100% Line Coverage Required
 
-**Every new source file or modified function must have corresponding tests.** Codecov will fail the PR if changed lines are not covered. This applies to:
+**Every PR must maintain 100% line coverage across all three packages.** The codebase currently has full line coverage and every PR must preserve it. This means:
+
+- All new source files must have corresponding tests with 100% line coverage
+- All modified functions must have tests covering every line, including error paths
+- **Patch coverage must be 100%** — no new uncovered lines allowed
+- Run coverage locally before creating a PR:
+  - `cd packages/backend && npx jest --coverage`
+  - `cd packages/frontend && npx vitest run --coverage`
+  - `cd packages/openclaw-plugin && npx jest --coverage`
+
+This applies to:
 
 - New services, guards, controllers, or utilities in `packages/backend/src/`
 - New components or functions in `packages/frontend/src/`

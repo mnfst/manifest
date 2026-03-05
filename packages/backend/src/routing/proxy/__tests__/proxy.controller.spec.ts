@@ -601,6 +601,36 @@ describe('ProxyController', () => {
       );
     });
 
+    it('should handle messageRepo.insert failure gracefully on provider error', async () => {
+      mockMessageRepo.insert.mockRejectedValue(new Error('DB write failed'));
+
+      const mockProviderResp = new Response('{"error":"bad request"}', {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-4o',
+          provider: 'OpenAI',
+          confidence: 0.8,
+          reason: 'scored',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      // Should not throw even though insert fails
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith('{"error":"bad request"}');
+    });
+
     it('should apply 429 cooldown for provider responses', async () => {
       const makeResp = () =>
         new Response('{"error":"rate limit"}', {
@@ -697,6 +727,39 @@ describe('ProxyController', () => {
       });
 
       const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trace_id: null,
+        }),
+      );
+    });
+
+    it('should store null trace_id when traceparent has less than 2 parts', async () => {
+      const errorBody = '{"error":"bad"}';
+      const mockProviderResp = new Response(errorBody, {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-4o',
+          provider: 'OpenAI',
+          confidence: 0.8,
+          reason: 'scored',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] }, 'user-1', {
+        traceparent: 'invalidnodashes',
+      });
       const { res } = mockResponse();
 
       await controller.chatCompletions(req as never, res as never);
@@ -1308,6 +1371,50 @@ describe('ProxyController', () => {
     });
   });
 
+  describe('rateLimitCooldown eviction', () => {
+    it('should evict expired cooldown entries when map exceeds max size', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cooldownMap = (controller as any).rateLimitCooldown as Map<string, number>;
+      const now = Date.now();
+
+      // Pre-fill with MAX_COOLDOWN_ENTRIES + 1 expired entries to exceed the limit.
+      // Use keys that do NOT match the request's tenant-1:agent-1 key.
+      for (let i = 0; i < 1001; i++) {
+        cooldownMap.set(`t-${i}:a-${i}`, now - 120_000); // expired (>60s ago)
+      }
+
+      expect(cooldownMap.size).toBe(1001);
+
+      // Trigger a 429 provider error - this adds the tenant-1:agent-1 key,
+      // bringing size to 1002, which triggers eviction of expired entries
+      const mockProviderResp = new Response('{"error":"rate limit"}', {
+        status: 429,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-4o',
+          provider: 'OpenAI',
+          confidence: 0.8,
+          reason: 'scored',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 50));
+
+      // All 1001 expired entries should have been evicted, leaving only the fresh one
+      expect(cooldownMap.size).toBe(1);
+      expect(cooldownMap.has('tenant-1:agent-1')).toBe(true);
+    });
+  });
+
   describe('seenUsers bounded Set', () => {
     it('should evict oldest user when MAX_SEEN_USERS is reached', async () => {
       // Access internal seenUsers set to pre-fill it
@@ -1395,6 +1502,48 @@ describe('ProxyController', () => {
       expect(headers['Content-Type']).toBe('text/event-stream');
       expect(headers['X-Manifest-Tier']).toBe('standard');
       expect(written.length).toBeGreaterThan(0);
+    });
+
+    it('should transform Anthropic streaming through createAnthropicStreamTransformer', async () => {
+      const mockProviderResp = createMockStreamResponse([
+        'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}\n\n',
+        'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"text_delta","text":"hi"}}\n\n',
+      ]);
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: true },
+        meta: {
+          tier: 'standard',
+          model: 'claude-sonnet-4-20250514',
+          provider: 'Anthropic',
+          confidence: 0.8,
+          reason: 'scored',
+        },
+      });
+
+      const mockTransformer = jest.fn((chunk: string) => {
+        if (chunk.includes('message_start'))
+          return 'data: {"choices":[{"delta":{"role":"assistant"}}]}\n\n';
+        if (chunk.includes('text_delta'))
+          return 'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n';
+        return null;
+      });
+      (providerClient as Record<string, jest.Mock>).createAnthropicStreamTransformer = jest
+        .fn()
+        .mockReturnValue(mockTransformer);
+
+      const req = mockRequest({
+        messages: [{ role: 'user', content: 'test' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(
+        (providerClient as Record<string, jest.Mock>).createAnthropicStreamTransformer,
+      ).toHaveBeenCalledWith('claude-sonnet-4-20250514');
+      expect(written.some((w) => w.includes('content'))).toBe(true);
     });
 
     it('should transform Google streaming through convertGoogleStreamChunk', async () => {

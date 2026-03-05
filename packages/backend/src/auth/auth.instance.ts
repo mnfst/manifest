@@ -4,6 +4,7 @@ import { VerifyEmailEmail } from '../notifications/emails/verify-email';
 import { ResetPasswordEmail } from '../notifications/emails/reset-password';
 import { sendEmail } from '../notifications/services/email-providers/send-email';
 import { trackCloudEvent } from '../common/utils/product-telemetry';
+import { getLocalAuthSecret } from '../common/constants/local-mode.constants';
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const port = process.env['PORT'] ?? '3001';
@@ -30,8 +31,6 @@ const nodeEnv = process.env['NODE_ENV'] ?? '';
 if (!isLocalMode && nodeEnv !== 'test' && (!betterAuthSecret || betterAuthSecret.length < 32)) {
   throw new Error('BETTER_AUTH_SECRET must be set to a value of at least 32 characters');
 }
-
-import { getLocalAuthSecret } from '../common/constants/local-mode.constants';
 
 function buildTrustedOrigins(): string[] {
   const origins: string[] = [];

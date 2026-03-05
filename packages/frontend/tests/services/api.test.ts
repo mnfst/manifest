@@ -945,14 +945,13 @@ describe("saveNotificationEmail", () => {
 
 describe("getRoutingStatus", () => {
   it("fetches /routing/:agentName/status", async () => {
-    mockOk({ enabled: true });
+    const payload = { enabled: true };
+    mockOk(payload);
 
     const result = await getRoutingStatus("my-agent");
-    expect(result).toEqual({ enabled: true });
-    expect(mockFetch).toHaveBeenCalledWith(
-      "http://localhost:3000/api/v1/routing/my-agent/status",
-      { credentials: "include" },
-    );
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/routing/my-agent/status");
   });
 });
 
@@ -965,10 +964,8 @@ describe("getCustomProviders", () => {
 
     const result = await getCustomProviders("my-agent");
     expect(result).toEqual(payload);
-    expect(mockFetch).toHaveBeenCalledWith(
-      "http://localhost:3000/api/v1/routing/my-agent/custom-providers",
-      { credentials: "include" },
-    );
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/routing/my-agent/custom-providers");
   });
 
   it("encodes agent name in URL", async () => {

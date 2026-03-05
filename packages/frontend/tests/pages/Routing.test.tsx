@@ -13,7 +13,7 @@ vi.mock("../../src/services/local-mode.js", () => ({
 
 vi.mock("@solidjs/meta", () => ({
   Title: (props: any) => <title>{props.children}</title>,
-  Meta: () => null,
+  Meta: (props: any) => <meta name={props.name ?? ""} content={props.content ?? ""} />,
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -26,7 +26,7 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
 
 vi.mock("../../src/components/ProviderSelectModal.js", () => ({
   default: (props: any) => (
-    <div data-testid="provider-modal">
+    <div data-testid="provider-modal" data-agent={props.agentName ?? ""} data-providers={JSON.stringify(props.providers ?? [])}>
       <button onClick={props.onClose}>Done</button>
       <button onClick={props.onUpdate} data-testid="trigger-update">Update</button>
     </div>
@@ -440,6 +440,70 @@ describe("Routing — helper functions", () => {
 
     await waitFor(() => {
       expect(mockDeactivateAllProviders).toHaveBeenCalled();
+    });
+  });
+
+  it("closes confirm disable modal on overlay click", async () => {
+    render(() => <Routing />);
+    const disableBtn = await screen.findByText("Disable Routing");
+    fireEvent.click(disableBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Disable routing?")).toBeDefined();
+    });
+    // Click overlay (the modal-overlay element)
+    const overlays = document.querySelectorAll(".modal-overlay");
+    const confirmOverlay = Array.from(overlays).find(
+      (o) => o.textContent?.includes("Disable routing?"),
+    )!;
+    fireEvent.click(confirmOverlay);
+    await waitFor(() => {
+      expect(screen.queryByText("Disable routing?")).toBeNull();
+    });
+  });
+
+  it("closes confirm disable modal on Escape key", async () => {
+    render(() => <Routing />);
+    const disableBtn = await screen.findByText("Disable Routing");
+    fireEvent.click(disableBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Disable routing?")).toBeDefined();
+    });
+    const overlays = document.querySelectorAll(".modal-overlay");
+    const confirmOverlay = Array.from(overlays).find(
+      (o) => o.textContent?.includes("Disable routing?"),
+    )!;
+    fireEvent.keyDown(confirmOverlay, { key: "Escape" });
+    await waitFor(() => {
+      expect(screen.queryByText("Disable routing?")).toBeNull();
+    });
+  });
+
+  it("resolves model label via PROVIDERS fallback for unknown API models", async () => {
+    // Override getAvailableModels with a model whose provider doesn't match API data
+    const { getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getAvailableModels).mockResolvedValueOnce([
+      { model_name: "gpt-4o-mini", provider: "UnknownVendor", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ]);
+
+    render(() => <Routing />);
+    // The model should still be found via PROVIDERS fallback (gpt-4o-mini is in OpenAI's model list)
+    await waitFor(() => {
+      expect(screen.getByText("Simple")).toBeDefined();
+    });
+  });
+
+  it("returns undefined from providerIdForModel when model matches nothing", async () => {
+    // Use a completely unknown model name that matches no API model and no PROVIDERS entry
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: "totally-unknown-model-xyz", auto_assigned_model: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValueOnce([]);
+
+    render(() => <Routing />);
+    // The override model name should render (no provider icon since providerIdForModel returns undefined)
+    await waitFor(() => {
+      expect(screen.getByText("Simple")).toBeDefined();
     });
   });
 });

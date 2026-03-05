@@ -24,15 +24,18 @@ describe('SessionMomentumService', () => {
     service.recordTier('sess-1', 'simple');
     service.recordTier('sess-1', 'complex');
     service.recordTier('sess-1', 'reasoning');
-    expect(service.getRecentTiers('sess-1')).toEqual([
-      'reasoning',
-      'complex',
-      'simple',
-    ]);
+    expect(service.getRecentTiers('sess-1')).toEqual(['reasoning', 'complex', 'simple']);
   });
 
   it('caps at 5 entries', () => {
-    for (const tier of ['simple', 'standard', 'complex', 'reasoning', 'simple', 'complex'] as const) {
+    for (const tier of [
+      'simple',
+      'standard',
+      'complex',
+      'reasoning',
+      'simple',
+      'complex',
+    ] as const) {
       service.recordTier('sess-1', tier);
     }
     const tiers = service.getRecentTiers('sess-1')!;
@@ -44,7 +47,8 @@ describe('SessionMomentumService', () => {
     service.recordTier('sess-1', 'simple');
 
     // Manually expire by reaching into the internals
-    const sessions = (service as unknown as { sessions: Map<string, { lastUpdated: number }> }).sessions;
+    const sessions = (service as unknown as { sessions: Map<string, { lastUpdated: number }> })
+      .sessions;
     const entry = sessions.get('sess-1')!;
     entry.lastUpdated = Date.now() - 31 * 60 * 1000; // 31 minutes ago
 
@@ -56,9 +60,11 @@ describe('SessionMomentumService', () => {
     service.recordTier('stale', 'complex');
 
     // Manually expire the 'stale' session
-    const sessions = (service as unknown as {
-      sessions: Map<string, { tiers: string[]; lastUpdated: number }>;
-    }).sessions;
+    const sessions = (
+      service as unknown as {
+        sessions: Map<string, { tiers: string[]; lastUpdated: number }>;
+      }
+    ).sessions;
     const staleEntry = sessions.get('stale')!;
     staleEntry.lastUpdated = Date.now() - 31 * 60 * 1000; // 31 minutes ago
 
@@ -79,6 +85,33 @@ describe('SessionMomentumService', () => {
     // Both should survive since they are fresh
     expect(service.getRecentTiers('a')).toEqual(['simple']);
     expect(service.getRecentTiers('b')).toEqual(['complex']);
+  });
+
+  it('fires the cleanup interval callback to evict stale sessions', () => {
+    jest.useFakeTimers();
+
+    const timedService = new SessionMomentumService();
+    timedService.recordTier('stale-session', 'simple');
+
+    // Manually expire the session
+    const sessions = (
+      timedService as unknown as {
+        sessions: Map<string, { tiers: string[]; lastUpdated: number }>;
+      }
+    ).sessions;
+    sessions.get('stale-session')!.lastUpdated = Date.now() - 31 * 60 * 1000;
+
+    timedService.recordTier('fresh-session', 'complex');
+
+    // Advance past the cleanup interval (5 minutes)
+    jest.advanceTimersByTime(5 * 60 * 1000 + 1);
+
+    // The interval callback should have triggered evictStale
+    expect(timedService.getRecentTiers('stale-session')).toBeUndefined();
+    expect(timedService.getRecentTiers('fresh-session')).toEqual(['complex']);
+
+    timedService.onModuleDestroy();
+    jest.useRealTimers();
   });
 
   it('isolates different session keys', () => {

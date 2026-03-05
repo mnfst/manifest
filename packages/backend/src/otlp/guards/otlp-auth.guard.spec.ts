@@ -270,6 +270,85 @@ describe('OtlpAuthGuard', () => {
     expect(mockUpdate).toHaveBeenCalled();
   });
 
+  it('evicts the first cache entry when cache reaches MAX_CACHE_SIZE', async () => {
+    // Fill the cache to MAX_CACHE_SIZE by inserting many valid keys.
+    // The guard has MAX_CACHE_SIZE = 10_000, but we can manipulate the
+    // internal cache directly for a targeted test.
+    const internalCache = (guard as any).cache as Map<string, unknown>;
+
+    // Fill to exactly MAX_CACHE_SIZE so the next insert triggers eviction
+    for (let i = 0; i < 10_000; i++) {
+      internalCache.set(`mnfst_filler-${i}`, {
+        tenantId: 't',
+        agentId: 'a',
+        agentName: 'n',
+        userId: 'u',
+        expiresAt: Date.now() + 999_999,
+      });
+    }
+    expect(internalCache.size).toBe(10_000);
+
+    // Now authenticate a new key, which will add to cache and exceed MAX_CACHE_SIZE
+    mockGetOne.mockResolvedValue({
+      tenant_id: 'tenant-max',
+      agent_id: 'agent-max',
+      expires_at: null,
+      agent: { name: 'test-agent-max' },
+      tenant: { name: 'user-max' },
+    });
+
+    const { ctx } = makeContext({ authorization: 'Bearer mnfst_overflow-key' });
+    const result = await guard.canActivate(ctx);
+
+    expect(result).toBe(true);
+    // The first filler key should have been evicted
+    expect(internalCache.has('mnfst_filler-0')).toBe(false);
+    // The new key should be in the cache
+    expect(internalCache.has('mnfst_overflow-key')).toBe(true);
+  });
+
+  it('evictExpired removes entries whose expiresAt has passed', async () => {
+    const internalCache = (guard as any).cache as Map<string, unknown>;
+
+    // Insert an expired entry
+    internalCache.set('mnfst_expired-cache', {
+      tenantId: 't',
+      agentId: 'a',
+      agentName: 'n',
+      userId: 'u',
+      expiresAt: Date.now() - 1000, // expired 1 second ago
+    });
+    // Insert a valid entry
+    internalCache.set('mnfst_valid-cache', {
+      tenantId: 't2',
+      agentId: 'a2',
+      agentName: 'n2',
+      userId: 'u2',
+      expiresAt: Date.now() + 999_999,
+    });
+
+    expect(internalCache.size).toBe(2);
+
+    // Trigger evictExpired by authenticating a new key (evictExpired is called during canActivate)
+    mockGetOne.mockResolvedValue({
+      tenant_id: 'tenant-evict',
+      agent_id: 'agent-evict',
+      expires_at: null,
+      agent: { name: 'test-agent-evict' },
+      tenant: { name: 'user-evict' },
+    });
+
+    const { ctx } = makeContext({ authorization: 'Bearer mnfst_trigger-evict-key' });
+    await guard.canActivate(ctx);
+
+    // The expired entry should have been removed
+    expect(internalCache.has('mnfst_expired-cache')).toBe(false);
+    // The valid entry should still be there
+    expect(internalCache.has('mnfst_valid-cache')).toBe(true);
+    // The new key should also be cached
+    expect(internalCache.has('mnfst_trigger-evict-key')).toBe(true);
+  });
+
   it('invalidateCache removes a specific key from cache', async () => {
     mockGetOne.mockResolvedValue({
       tenant_id: 'tenant-1',

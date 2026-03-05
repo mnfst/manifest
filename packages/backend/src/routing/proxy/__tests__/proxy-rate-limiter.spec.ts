@@ -159,6 +159,37 @@ describe('ProxyRateLimiter', () => {
 
       jest.useRealTimers();
     });
+
+    it('evicts expired entries when evictExpired is called directly', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rates = (limiter as any).rates as Map<string, { count: number; windowStart: number }>;
+
+      // Insert entries with old timestamps (expired)
+      rates.set('old-user', { count: 5, windowStart: Date.now() - 120_000 });
+      rates.set('fresh-user', { count: 2, windowStart: Date.now() });
+
+      expect(rates.size).toBe(2);
+
+      // Call evictExpired directly
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (limiter as any).evictExpired();
+
+      expect(rates.has('old-user')).toBe(false);
+      expect(rates.has('fresh-user')).toBe(true);
+      expect(rates.size).toBe(1);
+    });
+
+    it('does not evict entries within the rate window', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rates = (limiter as any).rates as Map<string, { count: number; windowStart: number }>;
+
+      rates.set('recent-user', { count: 3, windowStart: Date.now() - 30_000 }); // 30s ago, within 60s window
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (limiter as any).evictExpired();
+
+      expect(rates.has('recent-user')).toBe(true);
+    });
   });
 
   describe('acquireSlot / releaseSlot', () => {
@@ -234,6 +265,42 @@ describe('ProxyRateLimiter', () => {
         expect(() => limiter.acquireSlot('user-1')).not.toThrow();
       }
       expect(() => limiter.acquireSlot('user-1')).toThrow(HttpException);
+    });
+  });
+
+  describe('cleanup timer callback', () => {
+    it('fires the interval callback to evict expired entries', () => {
+      jest.useFakeTimers();
+
+      const timedLimiter = new ProxyRateLimiter();
+
+      // Record some entries
+      timedLimiter.recordSuccess('user-old');
+
+      // Manually expire the entry by manipulating the internal map
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rates = (timedLimiter as any).rates as Map<
+        string,
+        { count: number; windowStart: number }
+      >;
+      rates.get('user-old')!.windowStart = Date.now() - 120_000;
+
+      timedLimiter.recordSuccess('user-new');
+      // Set user-new's windowStart so it survives the 60001ms time advance.
+      // After advancing, Date.now() increases by 60001, so we need:
+      //   (Date.now() + 60001) - windowStart < 60000
+      // Setting windowStart = Date.now() + 2 gives 59999 < 60000.
+      rates.get('user-new')!.windowStart = Date.now() + 2;
+
+      // Advance past the cleanup interval (60s)
+      jest.advanceTimersByTime(60_001);
+
+      // The interval callback should have triggered evictExpired
+      expect(rates.has('user-old')).toBe(false);
+      expect(rates.has('user-new')).toBe(true);
+
+      timedLimiter.onModuleDestroy();
+      jest.useRealTimers();
     });
   });
 

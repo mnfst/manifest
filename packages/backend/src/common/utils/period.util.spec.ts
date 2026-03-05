@@ -81,7 +81,9 @@ describe('computePeriodResetDate', () => {
     const reset = new Date(result.replace(' ', 'T') + 'Z');
     expect(reset.getUTCHours()).toBe(0);
     expect(reset.getUTCMinutes()).toBe(0);
-    const expectedDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+    const expectedDate = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
+    );
     expect(reset.getUTCDate()).toBe(expectedDate.getUTCDate());
   });
 
@@ -102,6 +104,22 @@ describe('computePeriodResetDate', () => {
     expect(reset.getUTCHours()).toBe(0);
     const expectedMonth = (now.getUTCMonth() + 1) % 12;
     expect(reset.getUTCMonth()).toBe(expectedMonth);
+  });
+
+  it('week on a Monday: daysUntilMonday falls back to 7', () => {
+    // 2026-03-02 is a Monday (UTC day = 1)
+    const monday = new Date(Date.UTC(2026, 2, 2, 12, 0, 0));
+    jest.useFakeTimers();
+    jest.setSystemTime(monday);
+
+    const result = computePeriodResetDate('week');
+    const reset = new Date(result.replace(' ', 'T') + 'Z');
+
+    // Should be next Monday, exactly 7 days later
+    expect(reset.getUTCDay()).toBe(1);
+    expect(reset.getUTCDate()).toBe(monday.getUTCDate() + 7);
+
+    jest.useRealTimers();
   });
 
   it('unknown period: defaults to hour-like behavior', () => {

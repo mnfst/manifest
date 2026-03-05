@@ -81,8 +81,6 @@ export class TierAutoAssignService {
     // Sort by price ascending (cheapest first, including free local models)
     const byPrice = [...models].sort((a, b) => totalPrice(a) - totalPrice(b));
 
-    if (byPrice.length === 0) return null;
-
     let picked: ModelPricing;
 
     switch (tier) {

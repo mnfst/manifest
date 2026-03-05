@@ -20,7 +20,11 @@ export interface VerifyEmailProps {
 }
 
 export function VerifyEmailEmail(props: VerifyEmailProps) {
-  const { userName, verificationUrl, logoUrl = 'https://app.manifest.build/manifest-logo.png' } = props;
+  const {
+    userName,
+    verificationUrl,
+    logoUrl = 'https://app.manifest.build/manifest-logo.png',
+  } = props;
 
   return (
     <Html>
@@ -37,8 +41,8 @@ export function VerifyEmailEmail(props: VerifyEmailProps) {
           <Section style={card}>
             <Text style={heading}>Verify your email</Text>
             <Text style={paragraph}>
-              Hi {userName}, thanks for signing up. Please confirm your email
-              address by clicking the button below.
+              Hi {userName}, thanks for signing up. Please confirm your email address by clicking
+              the button below.
             </Text>
 
             <Section style={buttonContainer}>
@@ -55,8 +59,7 @@ export function VerifyEmailEmail(props: VerifyEmailProps) {
           {/* Fallback link */}
           <Section style={fallbackSection}>
             <Text style={fallbackText}>
-              If the button above doesn't work, copy and paste this link into
-              your browser:
+              If the button above doesn't work, copy and paste this link into your browser:
             </Text>
             <Text style={fallbackUrl}>{verificationUrl}</Text>
           </Section>

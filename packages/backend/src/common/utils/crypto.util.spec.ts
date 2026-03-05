@@ -118,4 +118,19 @@ describe('isEncrypted', () => {
   it('returns false when parts are not valid base64', () => {
     expect(isEncrypted('not!base64:not!base64:not!base64:not!base64')).toBe(false);
   });
+
+  it('returns false when Buffer.from throws (catch branch)', () => {
+    const originalFrom = Buffer.from.bind(Buffer);
+    const mockFrom = jest.fn().mockImplementation((value: unknown, encoding?: string) => {
+      if (encoding === 'base64') throw new Error('mocked');
+      return originalFrom(value as string, encoding as BufferEncoding);
+    });
+    Buffer.from = mockFrom as unknown as typeof Buffer.from;
+
+    try {
+      expect(isEncrypted('a:b:c:d')).toBe(false);
+    } finally {
+      Buffer.from = originalFrom as unknown as typeof Buffer.from;
+    }
+  });
 });

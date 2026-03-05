@@ -38,6 +38,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
+    expect(resolveEndpointKey('zai')).toBe('zai');
   });
 
   it('is case-insensitive', () => {
@@ -71,5 +72,25 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('google');
     expect(known).toContain('openrouter');
     expect(known).toContain('ollama');
+  });
+});
+
+describe('PROVIDER_ENDPOINTS', () => {
+  it('zai buildPath returns correct path', () => {
+    const path = PROVIDER_ENDPOINTS['zai'].buildPath('test-model');
+    expect(path).toBe('/api/paas/v4/chat/completions');
+  });
+
+  it('ollama buildHeaders returns Content-Type only', () => {
+    const headers = PROVIDER_ENDPOINTS['ollama'].buildHeaders('');
+    expect(headers).toEqual({ 'Content-Type': 'application/json' });
+  });
+
+  it('ollama uses openai format', () => {
+    expect(PROVIDER_ENDPOINTS['ollama'].format).toBe('openai');
+  });
+
+  it('zai uses openai format', () => {
+    expect(PROVIDER_ENDPOINTS['zai'].format).toBe('openai');
   });
 });

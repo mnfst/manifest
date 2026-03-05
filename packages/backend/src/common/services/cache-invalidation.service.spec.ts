@@ -136,6 +136,24 @@ describe('CacheInvalidationService', () => {
     });
   });
 
+  describe('periodic cleanup timer', () => {
+    it('should clear all tracked keys when cleanup interval fires', () => {
+      service.onModuleInit();
+
+      service.trackKey('user-1', 'key-a');
+      service.trackKey('user-2', 'key-b');
+
+      // Advance past the 60s cleanup interval
+      jest.advanceTimersByTime(60_000);
+
+      // After cleanup, emitting should not trigger any deletions
+      eventBus.emit('user-1');
+      jest.advanceTimersByTime(1000);
+
+      expect(mockDel).not.toHaveBeenCalled();
+    });
+  });
+
   describe('onModuleDestroy', () => {
     it('should unsubscribe from event bus on destroy', () => {
       service.onModuleInit();

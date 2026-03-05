@@ -60,7 +60,11 @@ describe('SendGridProvider', () => {
   });
 
   it('returns false on non-ok response', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 403, text: async () => 'Forbidden' });
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 403,
+      text: async () => 'Forbidden',
+    });
     const provider = new SendGridProvider(config);
 
     const result = await provider.send({ to: 'user@test.com', subject: 'Test', html: '<p>Hi</p>' });
@@ -79,7 +83,12 @@ describe('SendGridProvider', () => {
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
     const provider = new SendGridProvider(config);
 
-    await provider.send({ to: 'user@test.com', subject: 'Test', html: '<p>Hi</p>', from: 'Manifest <custom@test.com>' });
+    await provider.send({
+      to: 'user@test.com',
+      subject: 'Test',
+      html: '<p>Hi</p>',
+      from: 'Manifest <custom@test.com>',
+    });
 
     const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
     expect(body.from.email).toBe('custom@test.com');
@@ -89,7 +98,12 @@ describe('SendGridProvider', () => {
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
     const provider = new SendGridProvider(config);
 
-    await provider.send({ to: 'user@test.com', subject: 'Test', html: '<p>Hi</p>', text: 'Hi plain' });
+    await provider.send({
+      to: 'user@test.com',
+      subject: 'Test',
+      html: '<p>Hi</p>',
+      text: 'Hi plain',
+    });
 
     const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
     expect(body.content).toEqual([
@@ -106,5 +120,20 @@ describe('SendGridProvider', () => {
 
     const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
     expect(body.content).toEqual([{ type: 'text/html', value: '<p>Hi</p>' }]);
+  });
+
+  it('uses plain email string as from when no angle brackets present', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
+    const provider = new SendGridProvider(config);
+
+    await provider.send({
+      to: 'user@test.com',
+      subject: 'Test',
+      html: '<p>Hi</p>',
+      from: 'plain@example.com',
+    });
+
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(body.from.email).toBe('plain@example.com');
   });
 });

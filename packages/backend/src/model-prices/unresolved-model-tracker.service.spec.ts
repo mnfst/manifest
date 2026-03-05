@@ -87,9 +87,7 @@ describe('UnresolvedModelTrackerService', () => {
 
       await service.flush();
 
-      expect(mockRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ occurrence_count: 7 }),
-      );
+      expect(mockRepo.save).toHaveBeenCalledWith(expect.objectContaining({ occurrence_count: 7 }));
     });
 
     it('should set first_seen and last_seen as Date objects for new entries', async () => {
@@ -116,9 +114,7 @@ describe('UnresolvedModelTrackerService', () => {
       await service.flush();
 
       expect(existing.last_seen).toBeInstanceOf(Date);
-      expect(existing.last_seen.getTime()).toBeGreaterThan(
-        new Date('2024-01-01').getTime(),
-      );
+      expect(existing.last_seen.getTime()).toBeGreaterThan(new Date('2024-01-01').getTime());
     });
 
     it('should clear pending entries after flush', async () => {
@@ -191,6 +187,33 @@ describe('UnresolvedModelTrackerService', () => {
       mockRepo.findOneBy.mockRejectedValue(new Error('DB down'));
 
       await expect(service.flush()).rejects.toThrow('DB down');
+    });
+  });
+
+  describe('setInterval auto-flush', () => {
+    it('should catch and log errors when automatic flush fails', () => {
+      jest.useFakeTimers();
+
+      // Create a service where flush will fail
+      const failRepo = {
+        findOneBy: jest.fn().mockRejectedValue(new Error('interval DB fail')),
+        find: jest.fn().mockResolvedValue([]),
+        create: jest.fn((data) => ({ ...data })),
+        save: jest.fn().mockResolvedValue(undefined),
+        update: jest.fn().mockResolvedValue(undefined),
+      };
+      const intervalService = new UnresolvedModelTrackerService(failRepo as never);
+
+      // Track a model so flush has work to do
+      intervalService.track('auto-flush-model');
+
+      // Advance past FLUSH_INTERVAL_MS (60000) to trigger the setInterval callback
+      jest.advanceTimersByTime(60000);
+
+      // The error is caught internally (lines 20-21), so no unhandled rejection
+      // Clean up
+      intervalService.onModuleDestroy();
+      jest.useRealTimers();
     });
   });
 });

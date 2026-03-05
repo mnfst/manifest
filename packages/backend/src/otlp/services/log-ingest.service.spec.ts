@@ -4,7 +4,12 @@ import { LogIngestService } from './log-ingest.service';
 import { AgentLog } from '../../entities/agent-log.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 
-const testCtx: IngestionContext = { tenantId: 'test-tenant', agentId: 'test-agent', agentName: 'test-agent', userId: 'test-user' };
+const testCtx: IngestionContext = {
+  tenantId: 'test-tenant',
+  agentId: 'test-agent',
+  agentName: 'test-agent',
+  userId: 'test-user',
+};
 
 describe('LogIngestService', () => {
   let service: LogIngestService;
@@ -31,20 +36,26 @@ describe('LogIngestService', () => {
 
   it('ingests a single log record', async () => {
     const request = {
-      resourceLogs: [{
-        resource: {
-          attributes: [{ key: 'agent.name', value: { stringValue: 'bot-1' } }],
+      resourceLogs: [
+        {
+          resource: {
+            attributes: [{ key: 'agent.name', value: { stringValue: 'bot-1' } }],
+          },
+          scopeLogs: [
+            {
+              scope: { name: 'test' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: 'info',
+                  body: { stringValue: 'Test log message' },
+                  attributes: [],
+                },
+              ],
+            },
+          ],
         },
-        scopeLogs: [{
-          scope: { name: 'test' },
-          logRecords: [{
-            timeUnixNano: '1708000000000000000',
-            severityText: 'info',
-            body: { stringValue: 'Test log message' },
-            attributes: [],
-          }],
-        }],
-      }],
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -61,17 +72,23 @@ describe('LogIngestService', () => {
 
   it('falls back to severityNumber when severityText is absent', async () => {
     const request = {
-      resourceLogs: [{
-        resource: { attributes: [] },
-        scopeLogs: [{
-          scope: { name: 'test' },
-          logRecords: [{
-            timeUnixNano: '1708000000000000000',
-            severityNumber: 17,
-            body: { stringValue: 'Error occurred' },
-          }],
-        }],
-      }],
+      resourceLogs: [
+        {
+          resource: { attributes: [] },
+          scopeLogs: [
+            {
+              scope: { name: 'test' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityNumber: 17,
+                  body: { stringValue: 'Error occurred' },
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -83,24 +100,38 @@ describe('LogIngestService', () => {
 
   it('ingests multiple log records across scopes', async () => {
     const request = {
-      resourceLogs: [{
-        resource: { attributes: [] },
-        scopeLogs: [
-          {
-            scope: { name: 'scope1' },
-            logRecords: [
-              { timeUnixNano: '1708000000000000000', severityText: 'info', body: { stringValue: 'msg1' } },
-              { timeUnixNano: '1708000000000000000', severityText: 'warn', body: { stringValue: 'msg2' } },
-            ],
-          },
-          {
-            scope: { name: 'scope2' },
-            logRecords: [
-              { timeUnixNano: '1708000000000000000', severityText: 'error', body: { stringValue: 'msg3' } },
-            ],
-          },
-        ],
-      }],
+      resourceLogs: [
+        {
+          resource: { attributes: [] },
+          scopeLogs: [
+            {
+              scope: { name: 'scope1' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: 'info',
+                  body: { stringValue: 'msg1' },
+                },
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: 'warn',
+                  body: { stringValue: 'msg2' },
+                },
+              ],
+            },
+            {
+              scope: { name: 'scope2' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: 'error',
+                  body: { stringValue: 'msg3' },
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -110,17 +141,23 @@ describe('LogIngestService', () => {
 
   it('serializes non-string body as JSON', async () => {
     const request = {
-      resourceLogs: [{
-        resource: { attributes: [] },
-        scopeLogs: [{
-          scope: { name: 'test' },
-          logRecords: [{
-            timeUnixNano: '1708000000000000000',
-            severityText: 'info',
-            body: { intValue: 42 },
-          }],
-        }],
-      }],
+      resourceLogs: [
+        {
+          resource: { attributes: [] },
+          scopeLogs: [
+            {
+              scope: { name: 'test' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: 'info',
+                  body: { intValue: 42 },
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -132,19 +169,25 @@ describe('LogIngestService', () => {
 
   it('handles traceId and spanId when present', async () => {
     const request = {
-      resourceLogs: [{
-        resource: { attributes: [] },
-        scopeLogs: [{
-          scope: { name: 'test' },
-          logRecords: [{
-            timeUnixNano: '1708000000000000000',
-            severityText: 'info',
-            body: { stringValue: 'msg' },
-            traceId: 'abc123',
-            spanId: 'def456',
-          }],
-        }],
-      }],
+      resourceLogs: [
+        {
+          resource: { attributes: [] },
+          scopeLogs: [
+            {
+              scope: { name: 'test' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: 'info',
+                  body: { stringValue: 'msg' },
+                  traceId: 'abc123',
+                  spanId: 'def456',
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -159,5 +202,209 @@ describe('LogIngestService', () => {
     const request = { resourceLogs: undefined as never };
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(0);
+  });
+
+  it('handles missing scopeLogs array within a resourceLog', async () => {
+    const request = {
+      resourceLogs: [
+        {
+          resource: { attributes: [] },
+          scopeLogs: undefined as never,
+        },
+      ],
+    };
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(0);
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it('handles missing logRecords array within a scopeLog', async () => {
+    const request = {
+      resourceLogs: [
+        {
+          resource: { attributes: [] },
+          scopeLogs: [
+            {
+              scope: { name: 'test' },
+              logRecords: undefined as never,
+            },
+          ],
+        },
+      ],
+    };
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(0);
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it('uses severity from severityNumber when both severityText is null', async () => {
+    const request = {
+      resourceLogs: [
+        {
+          resource: { attributes: [] },
+          scopeLogs: [
+            {
+              scope: { name: 'test' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: null as never,
+                  severityNumber: 9,
+                  body: { stringValue: 'info-level log' },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(1);
+    const insertArg = mockInsert.mock.calls[0][0];
+    expect(insertArg.severity).toBe('info');
+  });
+
+  it('sets body to null when log body is falsy', async () => {
+    const request = {
+      resourceLogs: [
+        {
+          resource: { attributes: [] },
+          scopeLogs: [
+            {
+              scope: { name: 'test' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: 'info',
+                  body: null as never,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(1);
+    const insertArg = mockInsert.mock.calls[0][0];
+    expect(insertArg.body).toBeNull();
+  });
+
+  it('sets attributes to null when log attributes are empty', async () => {
+    const request = {
+      resourceLogs: [
+        {
+          resource: { attributes: [] },
+          scopeLogs: [
+            {
+              scope: { name: 'test' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: 'info',
+                  body: { stringValue: 'msg' },
+                  attributes: [],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(1);
+    const insertArg = mockInsert.mock.calls[0][0];
+    expect(insertArg.attributes).toBeNull();
+  });
+
+  it('stores non-empty attributes as JSON string', async () => {
+    const request = {
+      resourceLogs: [
+        {
+          resource: { attributes: [] },
+          scopeLogs: [
+            {
+              scope: { name: 'test' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: 'warn',
+                  body: { stringValue: 'msg' },
+                  attributes: [{ key: 'env', value: { stringValue: 'production' } }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(1);
+    const insertArg = mockInsert.mock.calls[0][0];
+    expect(insertArg.attributes).toBe(JSON.stringify({ env: 'production' }));
+  });
+
+  it('uses agent.name from log attributes over resource attributes', async () => {
+    const request = {
+      resourceLogs: [
+        {
+          resource: {
+            attributes: [{ key: 'agent.name', value: { stringValue: 'resource-bot' } }],
+          },
+          scopeLogs: [
+            {
+              scope: { name: 'test' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: 'info',
+                  body: { stringValue: 'msg' },
+                  attributes: [{ key: 'agent.name', value: { stringValue: 'log-level-bot' } }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(1);
+    const insertArg = mockInsert.mock.calls[0][0];
+    expect(insertArg.agent_name).toBe('log-level-bot');
+  });
+
+  it('falls back to service.name when agent.name is absent from resource', async () => {
+    const request = {
+      resourceLogs: [
+        {
+          resource: {
+            attributes: [{ key: 'service.name', value: { stringValue: 'my-service' } }],
+          },
+          scopeLogs: [
+            {
+              scope: { name: 'test' },
+              logRecords: [
+                {
+                  timeUnixNano: '1708000000000000000',
+                  severityText: 'info',
+                  body: { stringValue: 'msg' },
+                  attributes: [],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = await service.ingest(request, testCtx);
+    expect(result.accepted).toBe(1);
+    const insertArg = mockInsert.mock.calls[0][0];
+    expect(insertArg.agent_name).toBe('my-service');
   });
 });

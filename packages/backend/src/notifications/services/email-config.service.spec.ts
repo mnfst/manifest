@@ -9,9 +9,11 @@ jest.mock('./email-providers/resolve-provider', () => ({
 }));
 
 jest.mock('@react-email/render', () => ({
-  render: jest.fn().mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
-    Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
-  ),
+  render: jest
+    .fn()
+    .mockImplementation((_el: unknown, opts?: { plainText?: boolean }) =>
+      Promise.resolve(opts?.plainText ? 'plain text version' : '<html>rendered</html>'),
+    ),
 }));
 
 jest.mock('../emails/test-email', () => ({
@@ -118,6 +120,30 @@ describe('EmailConfigService (local mode)', () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain('Invalid provider');
     });
+
+    it('falls back to saved local API key when none provided', async () => {
+      const mockSend = jest.fn().mockResolvedValue(true);
+      (createProvider as jest.Mock).mockReturnValue({ send: mockSend });
+      (readLocalEmailConfig as jest.Mock).mockReturnValue({ apiKey: 'saved-local-key' });
+
+      const result = await service.testConfig({ provider: 'resend', apiKey: '' }, 'user@test.com');
+
+      expect(result).toEqual({ success: true });
+      expect(createProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ apiKey: 'saved-local-key' }),
+      );
+    });
+
+    it('falls back to empty string when no saved local config exists', async () => {
+      const mockSend = jest.fn().mockResolvedValue(true);
+      (createProvider as jest.Mock).mockReturnValue({ send: mockSend });
+      (readLocalEmailConfig as jest.Mock).mockReturnValue(null);
+
+      const result = await service.testConfig({ provider: 'resend', apiKey: '' }, 'user@test.com');
+
+      expect(result).toEqual({ success: true });
+      expect(createProvider).toHaveBeenCalledWith(expect.objectContaining({ apiKey: '' }));
+    });
   });
 
   describe('clearConfig', () => {
@@ -154,11 +180,35 @@ describe('EmailConfigService (cloud mode)', () => {
   });
 
   it('saveConfig throws BadRequestException', () => {
-    expect(() => service.saveConfig({ provider: 'resend', apiKey: 'key' }))
-      .toThrow(BadRequestException);
+    expect(() => service.saveConfig({ provider: 'resend', apiKey: 'key' })).toThrow(
+      BadRequestException,
+    );
   });
 
   it('clearConfig throws BadRequestException', () => {
     expect(() => service.clearConfig()).toThrow(BadRequestException);
+  });
+
+  it('testConfig falls back to MAILGUN_API_KEY env var when no apiKey provided in cloud mode', async () => {
+    process.env['MAILGUN_API_KEY'] = 'mg-env-key';
+    const mockSend = jest.fn().mockResolvedValue(true);
+    (createProvider as jest.Mock).mockReturnValue({ send: mockSend });
+
+    const result = await service.testConfig({ provider: 'mailgun', apiKey: '' }, 'user@test.com');
+
+    expect(result).toEqual({ success: true });
+    expect(createProvider).toHaveBeenCalledWith(expect.objectContaining({ apiKey: 'mg-env-key' }));
+    delete process.env['MAILGUN_API_KEY'];
+  });
+
+  it('testConfig falls back to empty string when MAILGUN_API_KEY not set in cloud mode', async () => {
+    delete process.env['MAILGUN_API_KEY'];
+    const mockSend = jest.fn().mockResolvedValue(true);
+    (createProvider as jest.Mock).mockReturnValue({ send: mockSend });
+
+    const result = await service.testConfig({ provider: 'mailgun', apiKey: '' }, 'user@test.com');
+
+    expect(result).toEqual({ success: true });
+    expect(createProvider).toHaveBeenCalledWith(expect.objectContaining({ apiKey: '' }));
   });
 });

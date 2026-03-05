@@ -315,6 +315,69 @@ describe('PricingSyncService', () => {
     expect(mockMarkResolved).not.toHaveBeenCalled();
   });
 
+  it('resolves unresolved model by stripping vendor prefix', async () => {
+    // Unresolved model has vendor prefix 'openai/gpt-4o' but known names include 'gpt-4o'
+    mockGetUnresolved.mockResolvedValue([{ model_name: 'openai/gpt-4o', resolved: false }]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } }],
+      }),
+    });
+
+    await service.syncPricing();
+    // The unresolved name 'openai/gpt-4o' is in knownNames directly (full vendor-prefixed ID)
+    // so it resolves on the first check. For the stripped prefix path, we need a model
+    // not in knownNames directly but whose stripped version is.
+    expect(mockMarkResolved).toHaveBeenCalledWith('openai/gpt-4o', 'openai/gpt-4o');
+  });
+
+  it('resolves unresolved model by stripping vendor prefix when full name is not known', async () => {
+    // Unresolved model uses a non-standard prefix 'custom/gpt-4o'.
+    // This is NOT directly in knownNames. But stripping the prefix gives 'gpt-4o',
+    // which IS in knownNames (as canonical derived from 'openai/gpt-4o').
+    mockGetUnresolved.mockResolvedValue([{ model_name: 'custom/gpt-4o', resolved: false }]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } }],
+      }),
+    });
+
+    await service.syncPricing();
+    // tryResolve: 'custom/gpt-4o' not in knownNames (line 286 => false)
+    // stripped: 'gpt-4o' IS in knownNames => return stripped (line 289)
+    expect(mockMarkResolved).toHaveBeenCalledWith('custom/gpt-4o', 'gpt-4o');
+  });
+
+  it('resolves by stripping date suffix from unresolved model name', async () => {
+    // Regex matches -YYYY-MM-DD at end, so use 'claude-sonnet-4-2025-05-14'
+    mockGetUnresolved.mockResolvedValue([
+      { model_name: 'claude-sonnet-4-2025-05-14', resolved: false },
+    ]);
+
+    // OpenRouter data has 'anthropic/claude-sonnet-4' => canonical 'claude-sonnet-4'
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'anthropic/claude-sonnet-4',
+            pricing: { prompt: '0.000003', completion: '0.000015' },
+          },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // tryResolve: 'claude-sonnet-4-2025-05-14' not in knownNames
+    // stripped: 'claude-sonnet-4-2025-05-14' (no prefix) not in knownNames
+    // noDate: 'claude-sonnet-4' IS in knownNames => resolves
+    expect(mockMarkResolved).toHaveBeenCalledWith('claude-sonnet-4-2025-05-14', 'claude-sonnet-4');
+  });
+
   it('skips models from unsupported providers', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
@@ -399,6 +462,20 @@ describe('PricingSyncService', () => {
       await service.onModuleInit();
       await new Promise((r) => setTimeout(r, 10));
       expect(mockUpsert).not.toHaveBeenCalled();
+    });
+
+    it('logs error when startup syncPricing rejects (covers catch on line 72)', async () => {
+      mockCount.mockResolvedValue(0);
+      // Make pricingCache.getAll throw so syncPricing itself rejects
+      // (this is before the try-catch in fetchOpenRouterModels)
+      mockGetAll.mockImplementation(() => {
+        throw new Error('cache not ready');
+      });
+
+      await service.onModuleInit();
+      // Give the async .catch time to execute
+      await new Promise((r) => setTimeout(r, 10));
+      // The error is caught by the .catch on line 71-73; no unhandled rejection
     });
   });
 
@@ -692,6 +769,65 @@ describe('PricingSyncService', () => {
     const updated = await service.syncPricing();
     expect(updated).toBe(0);
     expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('skips models with non-finite (NaN) pricing', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'openai/gpt-nan', pricing: { prompt: 'not-a-number', completion: '0.001' } }],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('skips models with Infinity pricing', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'openai/gpt-inf', pricing: { prompt: 'Infinity', completion: '0.001' } }],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('catches and counts per-model errors in syncAllModels', async () => {
+    // findOneBy throws for a specific model, triggering the catch block (lines 211-216)
+    mockFindOneBy.mockRejectedValueOnce(new Error('DB constraint error'));
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'openai/exploding-model', pricing: { prompt: '0.001', completion: '0.001' } },
+          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    // First model failed, second succeeded (OpenRouter copy only)
+    expect(updated).toBe(1);
+  });
+
+  it('handles non-Error thrown in per-model catch block', async () => {
+    mockFindOneBy.mockRejectedValueOnce('string error');
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'openai/bad-model', pricing: { prompt: '0.001', completion: '0.001' } }],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
   });
 
   it('maps Qwen/Alibaba provider correctly', async () => {

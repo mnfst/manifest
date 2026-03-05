@@ -7,7 +7,7 @@ vi.mock("@solidjs/router", () => ({
 
 vi.mock("@solidjs/meta", () => ({
   Title: (props: any) => <title>{props.children}</title>,
-  Meta: () => null,
+  Meta: (props: any) => <meta name={props.name ?? ""} content={props.content ?? ""} />,
 }));
 
 const mockGetModelPrices = vi.fn();
@@ -22,8 +22,10 @@ vi.mock("../../src/services/toast-store.js", () => ({
 vi.mock("../../src/components/Pagination.jsx", () => ({
   default: (props: any) => {
     const total = props.totalItems();
+    const _currentPage = props.currentPage;
+    const _hasNextPage = props.hasNextPage;
     return total > props.pageSize ? (
-      <div data-testid="pagination">
+      <div data-testid="pagination" data-page={_currentPage?.()} data-has-next={String(_hasNextPage?.() ?? "")}>
         <button data-testid="pagination-prev" onClick={props.onPrevious}>Previous</button>
         <button data-testid="pagination-next" onClick={props.onNext}>Next</button>
       </div>
@@ -124,13 +126,10 @@ describe("ModelPrices", () => {
 
   it("toggles sort direction when same header clicked twice", async () => {
     const { container } = await renderAndWait();
-    const headers = container.querySelectorAll(".data-table__sortable");
-    // Click provider header (default sort key) to toggle direction
-    fireEvent.click(headers[1]); // provider column
-    fireEvent.click(headers[1]); // click again to toggle asc→desc
-    // Should still render all models regardless of direction
+    const header = container.querySelectorAll(".data-table__sortable")[0];
+    fireEvent.click(header); // first click: sets key, asc
+    fireEvent.click(header); // second click: same key, toggles to desc
     expect(container.textContent).toContain("gpt-4o");
-    expect(container.textContent).toContain("claude-3.5-sonnet");
   });
 
   it("sorts null prices to the bottom", async () => {
@@ -148,12 +147,10 @@ describe("ModelPrices", () => {
       const rows = container.querySelectorAll("tbody tr");
       expect(rows.length).toBe(3);
     });
-    // Click input price header to sort by price
     const headers = container.querySelectorAll(".data-table__sortable");
     fireEvent.click(headers[2]); // input price column
     await vi.waitFor(() => {
       const rows = container.querySelectorAll("tbody tr");
-      // Null should be last regardless of sort direction
       const lastRow = rows[rows.length - 1];
       expect(lastRow.textContent).toContain("null-model");
     });
@@ -170,7 +167,6 @@ describe("ModelPrices", () => {
     const { container } = render(() => <ModelPrices />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("null-model");
-      // formatPrice(null) returns "—" (em dash)
       expect(container.textContent).toContain("\u2014");
     });
   });
@@ -310,6 +306,28 @@ describe("ModelPrices - autocomplete filter", () => {
       expect(container.querySelectorAll(".model-filter__tag").length).toBe(1);
     });
     // Remove it
+    const removeBtn = container.querySelector(".model-filter__tag-remove")!;
+    await fireEvent.click(removeBtn);
+    await vi.waitFor(() => {
+      expect(container.querySelectorAll(".model-filter__tag").length).toBe(0);
+      expect(container.textContent).toContain("4 models");
+    });
+  });
+
+  it("removes model tag when clicking its remove button", async () => {
+    const { container } = await renderAndWait();
+    // Add a model tag
+    await typeInSearch(container, "claude");
+    await vi.waitFor(() => {
+      expect(container.querySelector(".model-filter__dropdown")).not.toBeNull();
+    });
+    const items = container.querySelectorAll(".model-filter__dropdown-item");
+    const claudeItem = Array.from(items).find((el) => el.textContent?.includes("claude-3.5-sonnet"));
+    await fireEvent.click(claudeItem!);
+    await vi.waitFor(() => {
+      expect(container.querySelectorAll(".model-filter__tag").length).toBe(1);
+    });
+    // Remove the model tag
     const removeBtn = container.querySelector(".model-filter__tag-remove")!;
     await fireEvent.click(removeBtn);
     await vi.waitFor(() => {

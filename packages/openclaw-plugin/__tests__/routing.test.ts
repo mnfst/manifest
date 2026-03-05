@@ -232,6 +232,77 @@ describe("resolveRouting", () => {
   });
 });
 
+describe("momentum cleanup timer", () => {
+  it("removes expired momentum entries when the cleanup interval fires", async () => {
+    // Use jest.isolateModules to get a fresh module with cleanupStarted = false
+    // so that the setInterval is created under our fake timer control.
+    jest.useFakeTimers();
+
+    const freshResolveRouting = await new Promise<typeof resolveRouting>((resolve) => {
+      jest.isolateModules(() => {
+        const mod = require("../src/routing");
+        resolve(mod.resolveRouting);
+      });
+    });
+
+    const messages = [{ role: "user", content: "hello" }];
+
+    // First call: seed a momentum entry
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        tier: "simple",
+        model: "gpt-4o-mini",
+        provider: "OpenAI",
+        confidence: 0.9,
+        score: 2,
+        reason: "test",
+      }),
+    });
+    await freshResolveRouting(cloudConfig, messages, "cleanup-sess", mockLogger);
+
+    // Verify momentum was stored by making a second call
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        tier: "complex",
+        model: "gpt-4o",
+        provider: "OpenAI",
+        confidence: 0.9,
+        score: 8,
+        reason: "test",
+      }),
+    });
+    await freshResolveRouting(cloudConfig, messages, "cleanup-sess", mockLogger);
+    const bodyBefore = JSON.parse(mockFetch.mock.calls[1][1].body);
+    expect(bodyBefore.recentTiers).toBeDefined();
+
+    // Advance past the momentum TTL (30 min) plus the cleanup interval (5 min)
+    // so the interval callback runs and finds the entry expired.
+    jest.advanceTimersByTime(36 * 60 * 1000);
+
+    // Now make another call — momentum should have been cleaned up
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        tier: "simple",
+        model: "gpt-4o-mini",
+        provider: "OpenAI",
+        confidence: 0.9,
+        score: 2,
+        reason: "test",
+      }),
+    });
+    await freshResolveRouting(cloudConfig, messages, "cleanup-sess", mockLogger);
+
+    const bodyAfter = JSON.parse(mockFetch.mock.calls[2][1].body);
+    // recentTiers should be absent because the momentum entry was cleaned up
+    expect(bodyAfter.recentTiers).toBeUndefined();
+
+    jest.useRealTimers();
+  });
+});
+
 describe("registerRouting", () => {
   it("registers provider when registerProvider is available", () => {
     const api = { registerProvider: jest.fn() };

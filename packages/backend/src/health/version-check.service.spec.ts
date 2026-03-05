@@ -2,7 +2,9 @@ import { ConfigService } from '@nestjs/config';
 import { VersionCheckService } from './version-check.service';
 
 function createMockConfig(): ConfigService {
-  return { get: (key: string, fallback?: string) => process.env[key] ?? fallback } as unknown as ConfigService;
+  return {
+    get: (key: string, fallback?: string) => process.env[key] ?? fallback,
+  } as unknown as ConfigService;
 }
 
 describe('VersionCheckService', () => {
@@ -131,6 +133,39 @@ describe('VersionCheckService', () => {
       await service.fetchLatestVersion();
       expect(mockFetch).toHaveBeenCalledTimes(1);
     });
+
+    it('returns null when version field is missing from response', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({}),
+      });
+      const result = await service.fetchLatestVersion();
+      expect(result).toBeNull();
+    });
+
+    it('fires the abort timeout callback when fetch hangs', async () => {
+      jest.useFakeTimers();
+      // Make fetch hang until the signal is aborted, simulating real AbortController
+      mockFetch.mockImplementation((_url: string, opts?: RequestInit) => {
+        return new Promise<Response>((_resolve, reject) => {
+          if (opts?.signal) {
+            opts.signal.addEventListener('abort', () => {
+              reject(new DOMException('aborted', 'AbortError'));
+            });
+          }
+        });
+      });
+
+      const fetchPromise = service.fetchLatestVersion();
+
+      // Advance past the 5000ms timeout to trigger controller.abort()
+      jest.advanceTimersByTime(5000);
+
+      const result = await fetchPromise;
+      expect(result).toBeNull();
+
+      jest.useRealTimers();
+    });
   });
 
   describe('onModuleInit', () => {
@@ -158,6 +193,25 @@ describe('VersionCheckService', () => {
       // Give the non-blocking fetch time to complete
       await new Promise((r) => setTimeout(r, 50));
       expect(mockFetch).toHaveBeenCalled();
+    });
+
+    it('swallows rejection from fetchLatestVersion via catch callback', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      // Override fetchLatestVersion to return a rejected promise so the
+      // .catch(() => {}) handler on line 22 is exercised
+      jest.spyOn(service, 'fetchLatestVersion').mockRejectedValue(new Error('unexpected'));
+
+      await service.onModuleInit();
+      // Give the non-blocking catch time to execute
+      await new Promise((r) => setTimeout(r, 50));
+      // No unhandled rejection — the empty catch callback absorbed it
+    });
+
+    it('does not fetch when telemetry optout is set to true string', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      process.env['MANIFEST_TELEMETRY_OPTOUT'] = 'true';
+      await service.onModuleInit();
+      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 });

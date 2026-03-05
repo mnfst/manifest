@@ -77,6 +77,23 @@ describe('NotificationCronService', () => {
     await expect(service.onModuleInit()).resolves.not.toThrow();
   });
 
+  it('onModuleInit logs startup catch-up count when triggers occur', async () => {
+    mockGetAllActiveRules.mockResolvedValue([activeRule]);
+    mockQuery
+      .mockResolvedValueOnce([]) // no dedup
+      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // resolve email
+      .mockResolvedValueOnce(undefined); // INSERT log
+    mockGetConsumption.mockResolvedValue(200000);
+
+    const loggerSpy = jest.spyOn(service['logger'], 'log').mockImplementation();
+    await service.onModuleInit();
+
+    expect(loggerSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Startup catch-up: 1 notification(s) triggered'),
+    );
+    loggerSpy.mockRestore();
+  });
+
   it('skips rule when already notified for current period (dedup)', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
     mockQuery.mockResolvedValueOnce([{ 1: 1 }]); // dedup check returns existing log

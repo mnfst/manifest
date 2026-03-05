@@ -436,6 +436,33 @@ describe('RoutingService', () => {
       expect(result.notifications[0]).not.toContain('(');
     });
 
+    it('should use raw tier name when tier is not in TIER_LABELS', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'openai',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+
+      const override = Object.assign(new TierAssignment(), {
+        agent_id: 'a1',
+        tier: 'custom_tier',
+        override_model: 'gpt-4o',
+      });
+      mockTierRepo.find.mockResolvedValueOnce([override]);
+      mockTierRepo.findOne.mockResolvedValue({
+        auto_assigned_model: null,
+      });
+      mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as ModelPricing);
+
+      const result = await service.removeProvider('a1', 'openai');
+
+      // Since 'custom_tier' is not in TIER_LABELS, the raw tier name should be used
+      expect(result.notifications[0]).toContain('custom_tier');
+      expect(result.notifications[0]).toContain('automatic mode.');
+    });
+
     it('should not invalidate overrides from other providers', async () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',

@@ -1304,6 +1304,56 @@ describe('TraceIngestService', () => {
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
+  it('invokes COALESCE expressions for model, routing_tier, and routing_reason in rollup', async () => {
+    mockPricingGetByModel.mockReturnValue(undefined);
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-coalesce',
+      name: 'openclaw.agent.turn',
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-coalesce',
+      parentSpanId: 'span-msg-coalesce',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 10 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 5 } },
+        { key: 'manifest.routing.tier', value: { stringValue: 'complex' } },
+        { key: 'manifest.routing.reason', value: { stringValue: 'fallback' } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [parentSpan, llmSpan],
+            },
+          ],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    // Extract the set() call arguments and invoke the function values to cover lines 208-210
+    const setArg = mockQb.set.mock.calls[0][0];
+    expect(typeof setArg.model).toBe('function');
+    expect(setArg.model()).toBe('COALESCE(model, :model)');
+    expect(typeof setArg.routing_tier).toBe('function');
+    expect(setArg.routing_tier()).toBe('COALESCE(routing_tier, :tier)');
+    expect(typeof setArg.routing_reason).toBe('function');
+    expect(setArg.routing_reason()).toBe('COALESCE(routing_reason, :reason)');
+  });
+
   it('defaults llm_call cache tokens to 0 when attributes are absent', async () => {
     const parentSpan = makeSpan({
       spanId: 'span-parent-nct',

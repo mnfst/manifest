@@ -8,9 +8,13 @@ function mockResponse(): {
   const written: string[] = [];
   const headers: Record<string, string> = {};
   const res = {
-    setHeader: jest.fn((k: string, v: string) => { headers[k] = v; }),
+    setHeader: jest.fn((k: string, v: string) => {
+      headers[k] = v;
+    }),
     flushHeaders: jest.fn(),
-    write: jest.fn((chunk: string) => { written.push(chunk); }),
+    write: jest.fn((chunk: string) => {
+      written.push(chunk);
+    }),
     end: jest.fn(),
     writableEnded: false,
   };
@@ -141,9 +145,7 @@ describe('pipeStream', () => {
 
   it('should apply transform to SSE events', async () => {
     const { res, written } = mockResponse();
-    const stream = createReadableStream([
-      'data: chunk1\n\ndata: chunk2\n\n',
-    ]);
+    const stream = createReadableStream(['data: chunk1\n\ndata: chunk2\n\n']);
 
     const transform = (chunk: string) => `transformed:${chunk}\n\n`;
 
@@ -157,12 +159,9 @@ describe('pipeStream', () => {
 
   it('should skip null results from transform', async () => {
     const { res, written } = mockResponse();
-    const stream = createReadableStream([
-      'data: skip\n\ndata: keep\n\n',
-    ]);
+    const stream = createReadableStream(['data: skip\n\ndata: keep\n\n']);
 
-    const transform = (chunk: string) =>
-      chunk === 'skip' ? null : `result:${chunk}\n\n`;
+    const transform = (chunk: string) => (chunk === 'skip' ? null : `result:${chunk}\n\n`);
 
     await pipeStream(stream, res as never, transform);
 
@@ -173,10 +172,7 @@ describe('pipeStream', () => {
   it('should flush remaining buffer through transform', async () => {
     const { res, written } = mockResponse();
     // Partial event without trailing \n\n, then stream closes
-    const stream = createReadableStream([
-      'data: first\n\n',
-      'data: leftover',
-    ]);
+    const stream = createReadableStream(['data: first\n\n', 'data: leftover']);
 
     const transform = (chunk: string) => `out:${chunk}\n\n`;
 
@@ -333,10 +329,7 @@ describe('pipeStream', () => {
   it('should not write remaining whitespace-only buffer through transform', async () => {
     const { res, written } = mockResponse();
     // Stream ends with only whitespace remaining (no actual event data)
-    const stream = createReadableStream([
-      'data: real-event\n\n',
-      '   \n  ',
-    ]);
+    const stream = createReadableStream(['data: real-event\n\n', '   \n  ']);
 
     const transform = (chunk: string) => `out:${chunk}\n\n`;
 
@@ -351,13 +344,9 @@ describe('pipeStream', () => {
 
   it('should handle transform returning null for remaining buffer', async () => {
     const { res, written } = mockResponse();
-    const stream = createReadableStream([
-      'data: keep\n\n',
-      'data: discard-at-end',
-    ]);
+    const stream = createReadableStream(['data: keep\n\n', 'data: discard-at-end']);
 
-    const transform = (chunk: string) =>
-      chunk.includes('discard') ? null : `out:${chunk}\n\n`;
+    const transform = (chunk: string) => (chunk.includes('discard') ? null : `out:${chunk}\n\n`);
 
     await pipeStream(stream, res as never, transform);
 
@@ -370,13 +359,26 @@ describe('pipeStream', () => {
     expect(written).toContain('data: [DONE]\n\n');
   });
 
+  it('should flush remaining buffer line without data: prefix through transform', async () => {
+    const { res, written } = mockResponse();
+    // Remaining buffer has a line without "data: " prefix (e.g., raw JSON)
+    const stream = createReadableStream(['data: first\n\n', '{"raw":"remaining"}']);
+
+    const transform = (chunk: string) => `out:${chunk}\n\n`;
+
+    await pipeStream(stream, res as never, transform);
+
+    expect(written).toContain('out:first\n\n');
+    // The remaining buffer '{"raw":"remaining"}' should be flushed through
+    // transform as-is (no "data: " prefix stripping)
+    expect(written).toContain('out:{"raw":"remaining"}\n\n');
+    expect(written).toContain('data: [DONE]\n\n');
+  });
+
   it('should handle multiple chunks that split an SSE event with transform', async () => {
     const { res, written } = mockResponse();
     // An SSE event split across two TCP reads
-    const stream = createReadableStream([
-      'data: {"part',
-      '":"complete"}\n\n',
-    ]);
+    const stream = createReadableStream(['data: {"part', '":"complete"}\n\n']);
 
     const transform = (chunk: string) => `out:${chunk}\n\n`;
 
