@@ -20,6 +20,7 @@ import { inferProviderFromModel, inferProviderName } from '../services/routing-u
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { isLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
+import { agentDisplayName } from '../services/agent-display-name.js';
 import '../styles/overview.css';
 
 interface RecentMessage {
@@ -135,10 +136,12 @@ const Overview: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>{decodeURIComponent(params.agentName)} Overview - Manifest</Title>
+      <Title>
+        {agentDisplayName() ?? decodeURIComponent(params.agentName)} Overview - Manifest
+      </Title>
       <Meta
         name="description"
-        content={`Monitor ${decodeURIComponent(params.agentName)} performance — costs, tokens, and activity.`}
+        content={`Monitor ${agentDisplayName() ?? decodeURIComponent(params.agentName)} performance — costs, tokens, and activity.`}
       />
       <div class="page-header">
         <div>

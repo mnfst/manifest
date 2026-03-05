@@ -137,4 +137,10 @@ describe("VersionIndicator", () => {
     fireEvent.click(copyBtn);
     expect(writeTextMock).toHaveBeenCalled();
   });
+
+  it("hides indicator when version is 0.0.0 (dev mode)", () => {
+    mockSignal[1]({ version: "0.0.0" });
+    const { container } = render(() => <VersionIndicator />);
+    expect(container.querySelector(".version-indicator")).toBeNull();
+  });
 });

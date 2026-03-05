@@ -63,12 +63,14 @@ function messageToContent(msg: OpenAIMessage): GeminiContent | null {
   if (msg.role === 'tool' && typeof msg.content === 'string') {
     return {
       role: 'user',
-      parts: [{
-        functionResponse: {
-          name: (msg.tool_call_id as string) || 'unknown',
-          response: { result: msg.content },
+      parts: [
+        {
+          functionResponse: {
+            name: (msg.tool_call_id as string) || 'unknown',
+            response: { result: msg.content },
+          },
         },
-      }],
+      ],
     };
   }
 
@@ -79,15 +81,19 @@ function messageToContent(msg: OpenAIMessage): GeminiContent | null {
 function convertTools(tools?: Record<string, unknown>[]): Record<string, unknown>[] | undefined {
   if (!tools || tools.length === 0) return undefined;
 
-  const declarations = tools.map((t) => {
-    const fn = t.function as { name: string; description?: string; parameters?: unknown } | undefined;
-    if (!fn) return null;
-    return {
-      name: fn.name,
-      description: fn.description,
-      parameters: fn.parameters,
-    };
-  }).filter(Boolean);
+  const declarations = tools
+    .map((t) => {
+      const fn = t.function as
+        | { name: string; description?: string; parameters?: unknown }
+        | undefined;
+      if (!fn) return null;
+      return {
+        name: fn.name,
+        description: fn.description,
+        parameters: fn.parameters,
+      };
+    })
+    .filter(Boolean);
 
   if (declarations.length === 0) return undefined;
   return [{ functionDeclarations: declarations }];
@@ -117,7 +123,7 @@ export function toGoogleRequest(
 
   if (systemText) {
     result.systemInstruction = {
-      parts: [{ text: systemText, cache_control: { type: 'ephemeral' } }],
+      parts: [{ text: systemText }],
     };
   }
 
@@ -209,10 +215,7 @@ function mapFinishReason(candidate: Record<string, unknown>): string {
 
 /* ── Stream chunk conversion ── */
 
-export function transformGoogleStreamChunk(
-  chunk: string,
-  model: string,
-): string | null {
+export function transformGoogleStreamChunk(chunk: string, model: string): string | null {
   if (!chunk.trim()) return null;
 
   let data: Record<string, unknown>;

@@ -47,7 +47,9 @@ describe('LimitCheckService', () => {
     } as unknown as EmailProviderConfigService;
 
     ingestSubject = new Subject<string>();
-    const ingestBus = { all: () => ingestSubject.asObservable() } as unknown as IngestEventBusService;
+    const ingestBus = {
+      all: () => ingestSubject.asObservable(),
+    } as unknown as IngestEventBusService;
 
     service = new LimitCheckService(ds, rulesService, emailService, emailProviderConfig, ingestBus);
     service.onModuleInit();
@@ -64,10 +66,17 @@ describe('LimitCheckService', () => {
   });
 
   it('returns null when consumption is below threshold', async () => {
-    mockGetActiveBlockRules.mockResolvedValue([{
-      id: 'r1', tenant_id: 'tenant-1', agent_name: 'my-agent', user_id: 'u1',
-      metric_type: 'tokens', threshold: 50000, period: 'day',
-    }]);
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-1',
+        agent_name: 'my-agent',
+        user_id: 'u1',
+        metric_type: 'tokens',
+        threshold: 50000,
+        period: 'day',
+      },
+    ]);
     mockGetConsumption.mockResolvedValue(30000);
 
     const result = await service.checkLimits('tenant-1', 'my-agent');
@@ -75,10 +84,17 @@ describe('LimitCheckService', () => {
   });
 
   it('returns LimitExceeded when consumption meets threshold', async () => {
-    mockGetActiveBlockRules.mockResolvedValue([{
-      id: 'r1', tenant_id: 'tenant-1', agent_name: 'my-agent', user_id: 'u1',
-      metric_type: 'tokens', threshold: 50000, period: 'day',
-    }]);
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-1',
+        agent_name: 'my-agent',
+        user_id: 'u1',
+        metric_type: 'tokens',
+        threshold: 50000,
+        period: 'day',
+      },
+    ]);
     mockGetConsumption.mockResolvedValue(50000);
 
     const result = await service.checkLimits('tenant-1', 'my-agent');
@@ -90,10 +106,17 @@ describe('LimitCheckService', () => {
   });
 
   it('returns LimitExceeded when consumption exceeds threshold', async () => {
-    mockGetActiveBlockRules.mockResolvedValue([{
-      id: 'r1', tenant_id: 'tenant-1', agent_name: 'my-agent', user_id: 'u1',
-      metric_type: 'cost', threshold: 10, period: 'month',
-    }]);
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-1',
+        agent_name: 'my-agent',
+        user_id: 'u1',
+        metric_type: 'cost',
+        threshold: 10,
+        period: 'month',
+      },
+    ]);
     mockGetConsumption.mockResolvedValue(15.5);
 
     const result = await service.checkLimits('tenant-1', 'my-agent');
@@ -104,12 +127,28 @@ describe('LimitCheckService', () => {
 
   it('returns first exceeded rule when multiple rules exist', async () => {
     mockGetActiveBlockRules.mockResolvedValue([
-      { id: 'r1', tenant_id: 't', agent_name: 'a', user_id: 'u1', metric_type: 'tokens', threshold: 100000, period: 'day' },
-      { id: 'r2', tenant_id: 't', agent_name: 'a', user_id: 'u1', metric_type: 'cost', threshold: 5, period: 'day' },
+      {
+        id: 'r1',
+        tenant_id: 't',
+        agent_name: 'a',
+        user_id: 'u1',
+        metric_type: 'tokens',
+        threshold: 100000,
+        period: 'day',
+      },
+      {
+        id: 'r2',
+        tenant_id: 't',
+        agent_name: 'a',
+        user_id: 'u1',
+        metric_type: 'cost',
+        threshold: 5,
+        period: 'day',
+      },
     ]);
     mockGetConsumption
       .mockResolvedValueOnce(50000) // below r1 threshold
-      .mockResolvedValueOnce(10);   // above r2 threshold
+      .mockResolvedValueOnce(10); // above r2 threshold
 
     const result = await service.checkLimits('t', 'a');
     expect(result).not.toBeNull();
@@ -126,10 +165,17 @@ describe('LimitCheckService', () => {
   });
 
   it('caches consumption values for 60s', async () => {
-    mockGetActiveBlockRules.mockResolvedValue([{
-      id: 'r1', tenant_id: 'tenant-1', agent_name: 'my-agent', user_id: 'u1',
-      metric_type: 'tokens', threshold: 100000, period: 'day',
-    }]);
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-1',
+        agent_name: 'my-agent',
+        user_id: 'u1',
+        metric_type: 'tokens',
+        threshold: 100000,
+        period: 'day',
+      },
+    ]);
     mockGetConsumption.mockResolvedValue(5000);
 
     await service.checkLimits('tenant-1', 'my-agent');
@@ -139,10 +185,17 @@ describe('LimitCheckService', () => {
   });
 
   it('invalidateCache clears rules and consumption for tenant+agent', async () => {
-    mockGetActiveBlockRules.mockResolvedValue([{
-      id: 'r1', tenant_id: 'tenant-1', agent_name: 'my-agent', user_id: 'u1',
-      metric_type: 'tokens', threshold: 100000, period: 'day',
-    }]);
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-1',
+        agent_name: 'my-agent',
+        user_id: 'u1',
+        metric_type: 'tokens',
+        threshold: 100000,
+        period: 'day',
+      },
+    ]);
     mockGetConsumption.mockResolvedValue(5000);
 
     await service.checkLimits('tenant-1', 'my-agent');
@@ -156,10 +209,17 @@ describe('LimitCheckService', () => {
   });
 
   it('clears consumption cache when ingest event fires', async () => {
-    mockGetActiveBlockRules.mockResolvedValue([{
-      id: 'r1', tenant_id: 'tenant-1', agent_name: 'my-agent', user_id: 'u1',
-      metric_type: 'tokens', threshold: 100000, period: 'day',
-    }]);
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-1',
+        agent_name: 'my-agent',
+        user_id: 'u1',
+        metric_type: 'tokens',
+        threshold: 100000,
+        period: 'day',
+      },
+    ]);
     mockGetConsumption.mockResolvedValue(5000);
 
     await service.checkLimits('tenant-1', 'my-agent');
@@ -189,8 +249,13 @@ describe('LimitCheckService', () => {
 
   describe('email notification on block', () => {
     const rule = {
-      id: 'r1', tenant_id: 'tenant-1', agent_name: 'my-agent', user_id: 'u1',
-      metric_type: 'tokens' as const, threshold: 50000, period: 'day' as const,
+      id: 'r1',
+      tenant_id: 'tenant-1',
+      agent_name: 'my-agent',
+      user_id: 'u1',
+      metric_type: 'tokens' as const,
+      threshold: 50000,
+      period: 'day' as const,
     };
 
     beforeEach(() => {
@@ -202,9 +267,9 @@ describe('LimitCheckService', () => {
 
     it('sends email and logs when limit exceeded first time', async () => {
       mockQuery
-        .mockResolvedValueOnce([])                              // notification_logs check
+        .mockResolvedValueOnce([]) // notification_logs check
         .mockResolvedValueOnce([{ email: 'test@example.com' }]) // user email
-        .mockResolvedValueOnce([]);                             // INSERT
+        .mockResolvedValueOnce([]); // INSERT
 
       await service.checkLimits('tenant-1', 'my-agent');
       await new Promise((r) => setTimeout(r, 50));
@@ -223,7 +288,8 @@ describe('LimitCheckService', () => {
         undefined,
       );
       const insertCall = mockQuery.mock.calls.find(
-        (c: unknown[]) => typeof c[0] === 'string' && c[0].includes('INSERT INTO notification_logs'),
+        (c: unknown[]) =>
+          typeof c[0] === 'string' && c[0].includes('INSERT INTO notification_logs'),
       );
       expect(insertCall).toBeDefined();
     });
@@ -241,7 +307,8 @@ describe('LimitCheckService', () => {
       await new Promise((r) => setTimeout(r, 50));
       expect(mockSendThresholdAlert).not.toHaveBeenCalled();
       const insertCall = mockQuery.mock.calls.find(
-        (c: unknown[]) => typeof c[0] === 'string' && c[0].includes('INSERT INTO notification_logs'),
+        (c: unknown[]) =>
+          typeof c[0] === 'string' && c[0].includes('INSERT INTO notification_logs'),
       );
       expect(insertCall).toBeDefined();
     });
@@ -253,22 +320,33 @@ describe('LimitCheckService', () => {
       await new Promise((r) => setTimeout(r, 50));
       expect(mockSendThresholdAlert).toHaveBeenCalled();
       const insertCall = mockQuery.mock.calls.find(
-        (c: unknown[]) => typeof c[0] === 'string' && c[0].includes('INSERT INTO notification_logs'),
+        (c: unknown[]) =>
+          typeof c[0] === 'string' && c[0].includes('INSERT INTO notification_logs'),
       );
       expect(insertCall).toBeUndefined();
     });
 
     it('uses email provider config when available', async () => {
-      const providerConfig = { provider: 'resend', apiKey: 'key', notificationEmail: 'custom@example.com' };
+      const providerConfig = {
+        provider: 'resend',
+        apiKey: 'key',
+        notificationEmail: 'custom@example.com',
+      };
       mockGetFullConfig.mockResolvedValue(providerConfig);
       mockQuery.mockResolvedValueOnce([]);
       await service.checkLimits('tenant-1', 'my-agent');
       await new Promise((r) => setTimeout(r, 50));
-      expect(mockSendThresholdAlert).toHaveBeenCalledWith('custom@example.com', expect.anything(), providerConfig);
+      expect(mockSendThresholdAlert).toHaveBeenCalledWith(
+        'custom@example.com',
+        expect.anything(),
+        providerConfig,
+      );
     });
 
     it('suppresses email for LOCAL_EMAIL users', async () => {
-      mockQuery.mockResolvedValueOnce([]).mockResolvedValueOnce([{ email: 'local@manifest.local' }]);
+      mockQuery
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ email: 'local@manifest.local' }]);
       await service.checkLimits('tenant-1', 'my-agent');
       await new Promise((r) => setTimeout(r, 50));
       expect(mockSendThresholdAlert).not.toHaveBeenCalled();
@@ -279,7 +357,9 @@ describe('LimitCheckService', () => {
       mockQuery.mockRejectedValueOnce(new Error('DB down'));
       await service.checkLimits('tenant-1', 'my-agent');
       await new Promise((r) => setTimeout(r, 50));
-      expect(loggerSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to send block notification'));
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to send block notification'),
+      );
       loggerSpy.mockRestore();
     });
 
@@ -311,5 +391,4 @@ describe('LimitCheckService', () => {
       (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
     });
   });
-
 });

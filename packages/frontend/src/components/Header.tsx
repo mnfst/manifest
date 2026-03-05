@@ -4,6 +4,7 @@ import { useAgentName } from '../services/routing.js';
 import { authClient } from '../services/auth-client.js';
 import { checkLocalMode, isLocalMode } from '../services/local-mode.js';
 import { displayName } from '../services/display-name.js';
+import { agentDisplayName } from '../services/agent-display-name.js';
 
 const GITHUB_REPO = 'mnfst/manifest';
 const STAR_DISMISSED_KEY = 'github-star-dismissed';
@@ -101,7 +102,7 @@ const Header: Component = () => {
             </A>
           </Show>
           <span class="header__separator">/</span>
-          <span class="header__breadcrumb-current">{getAgentName()}</span>
+          <span class="header__breadcrumb-current">{agentDisplayName() ?? getAgentName()}</span>
         </Show>
       </div>
       <div class="header__right">

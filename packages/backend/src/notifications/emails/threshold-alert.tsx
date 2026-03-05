@@ -97,7 +97,9 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
             {isSoft ? (
               <Text style={paragraph}>Requests are still being processed normally.</Text>
             ) : (
-              <Section style={{ ...hardLimitBox, backgroundColor: accentBg, borderColor: accentBorder }}>
+              <Section
+                style={{ ...hardLimitBox, backgroundColor: accentBg, borderColor: accentBorder }}
+              >
                 <Text style={{ ...hardLimitText, color: accentColor }}>
                   Requests are now blocked until the next period resets
                   {periodResetDate ? ` on ${formatTimestamp(periodResetDate)}` : ''}.
@@ -111,9 +113,13 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
                 <Text style={statLabel}>Threshold</Text>
                 <Text style={statValue}>{formatValue(threshold, metricType)}</Text>
               </Section>
-              <Section style={{ ...statBoxAlert, backgroundColor: accentBg, borderColor: accentBorder }}>
+              <Section
+                style={{ ...statBoxAlert, backgroundColor: accentBg, borderColor: accentBorder }}
+              >
                 <Text style={statLabel}>Actual usage</Text>
-                <Text style={{ ...statValueAlert, color: accentColor }}>{formatValue(actualValue, metricType)}</Text>
+                <Text style={{ ...statValueAlert, color: accentColor }}>
+                  {formatValue(actualValue, metricType)}
+                </Text>
               </Section>
             </Section>
 
