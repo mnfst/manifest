@@ -66,10 +66,11 @@ export class TraceIngestService {
   private classifySpan(attrs: AttributeMap, spanName?: string): SpanEntry['type'] {
     if (spanName === 'openclaw.agent.turn' || (spanName && spanName.startsWith('manifest.')))
       return 'agent_message';
-    if (spanName === 'openclaw.request') return 'root_request';
     if (attrString(attrs, 'gen_ai.system')) return 'llm_call';
     if (attrString(attrs, 'tool.name')) return 'tool_execution';
-    return 'agent_message';
+    // Skip root spans, HTTP auto-instrumentation, and any other unknown spans.
+    // Only explicitly recognized spans above should create agent_messages.
+    return 'root_request';
   }
 
   private buildSpanMap(spans: OtlpSpan[], resourceAttrs: AttributeMap): Map<string, SpanEntry> {
@@ -88,10 +89,19 @@ export class TraceIngestService {
     spanMap: Map<string, SpanEntry>,
     ctx: IngestionContext,
   ): Promise<void> {
-    const messageAggregates = new Map<string, {
-      input: number; output: number; cacheRead: number; cacheCreation: number;
-      model: string | null; tier: string | null; reason: string | null; cost: number;
-    }>();
+    const messageAggregates = new Map<
+      string,
+      {
+        input: number;
+        output: number;
+        cacheRead: number;
+        cacheCreation: number;
+        model: string | null;
+        tier: string | null;
+        reason: string | null;
+        cost: number;
+      }
+    >();
 
     for (const span of spans) {
       const spanId = toHexString(span.spanId);
@@ -116,26 +126,63 @@ export class TraceIngestService {
     span: OtlpSpan,
     attrs: AttributeMap,
     spanMap: Map<string, SpanEntry>,
-    aggregates: Map<string, { input: number; output: number; cacheRead: number; cacheCreation: number; model: string | null; tier: string | null; reason: string | null; cost: number }>,
+    aggregates: Map<
+      string,
+      {
+        input: number;
+        output: number;
+        cacheRead: number;
+        cacheCreation: number;
+        model: string | null;
+        tier: string | null;
+        reason: string | null;
+        cost: number;
+      }
+    >,
   ): void {
     const parentId = toHexString(span.parentSpanId);
     const parentEntry = spanMap.get(parentId);
     if (!parentEntry || parentEntry.type !== 'agent_message') return;
 
     const messageId = parentEntry.uuid;
-    const agg = aggregates.get(messageId) ?? { input: 0, output: 0, cacheRead: 0, cacheCreation: 0, model: null, tier: null, reason: null, cost: 0 };
+    const agg = aggregates.get(messageId) ?? {
+      input: 0,
+      output: 0,
+      cacheRead: 0,
+      cacheCreation: 0,
+      model: null,
+      tier: null,
+      reason: null,
+      cost: 0,
+    };
     agg.input += attrNumber(attrs, 'gen_ai.usage.input_tokens') ?? 0;
     agg.output += attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0;
     agg.cacheRead += attrNumber(attrs, 'gen_ai.usage.cache_read_input_tokens') ?? 0;
     agg.cacheCreation += attrNumber(attrs, 'gen_ai.usage.cache_creation_input_tokens') ?? 0;
-    if (!agg.model) agg.model = attrString(attrs, 'gen_ai.request.model') || attrString(attrs, 'gen_ai.response.model') || null;
+    if (!agg.model)
+      agg.model =
+        attrString(attrs, 'gen_ai.request.model') ||
+        attrString(attrs, 'gen_ai.response.model') ||
+        null;
     if (!agg.tier) agg.tier = attrString(attrs, 'manifest.routing.tier') || null;
     if (!agg.reason) agg.reason = attrString(attrs, 'manifest.routing.reason') || null;
     aggregates.set(messageId, agg);
   }
 
   private async rollUpMessageAggregates(
-    aggregates: Map<string, { input: number; output: number; cacheRead: number; cacheCreation: number; model: string | null; tier: string | null; reason: string | null; cost: number }>,
+    aggregates: Map<
+      string,
+      {
+        input: number;
+        output: number;
+        cacheRead: number;
+        cacheCreation: number;
+        model: string | null;
+        tier: string | null;
+        reason: string | null;
+        cost: number;
+      }
+    >,
   ): Promise<void> {
     for (const [messageId, agg] of aggregates) {
       if (agg.input === 0 && agg.output === 0) continue;
@@ -144,7 +191,9 @@ export class TraceIngestService {
       if (agg.model) {
         const pricing = this.pricingCache.getByModel(agg.model);
         if (pricing) {
-          cost = agg.input * Number(pricing.input_price_per_token) + agg.output * Number(pricing.output_price_per_token);
+          cost =
+            agg.input * Number(pricing.input_price_per_token) +
+            agg.output * Number(pricing.output_price_per_token);
         }
       }
 
@@ -176,7 +225,9 @@ export class TraceIngestService {
     _spanMap: Map<string, SpanEntry>,
     ctx: IngestionContext,
   ): Promise<void> {
-    // Skip if the proxy already recorded an error for this trace (avoids duplicates)
+    // Skip if the proxy already recorded an error for this trace (avoids duplicates).
+    // Two strategies: (1) match by trace_id, (2) match by agent + timestamp proximity.
+    // Strategy 2 covers cases where the proxy doesn't have the traceparent header.
     const traceId = toHexString(span.traceId);
     if (traceId) {
       const existing = await this.turnRepo.findOne({
@@ -189,6 +240,26 @@ export class TraceIngestService {
       });
       if (existing) return;
     }
+
+    // Fallback dedup: fetch recent errors for this agent and check timestamp proximity.
+    // Uses the span's own timestamp (not Date.now()) because OTLP batches arrive
+    // 10-30s after the actual event. Compares in JS to avoid SQLite Between issues.
+    const spanTime = new Date(nanoToDatetime(span.startTimeUnixNano)).getTime();
+    const recentErrors = await this.turnRepo.find({
+      where: {
+        tenant_id: ctx.tenantId,
+        agent_id: ctx.agentId,
+        status: In(['error', 'rate_limited']),
+      },
+      select: ['id', 'timestamp'],
+      order: { timestamp: 'DESC' },
+      take: 5,
+    });
+    const hasNearbyError = recentErrors.some((e) => {
+      const errorTime = new Date(e.timestamp).getTime();
+      return Math.abs(errorTime - spanTime) <= 30_000;
+    });
+    if (hasNearbyError) return;
 
     const cost = this.computeCost(attrs);
     await this.turnRepo.insert({
@@ -210,7 +281,8 @@ export class TraceIngestService {
       description: span.name,
       service_type: attrString(attrs, 'service.name') ?? 'agent',
       agent_name: attrString(attrs, 'agent.name') ?? ctx.agentName,
-      model: attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model'),
+      model:
+        attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model'),
       routing_tier: attrString(attrs, 'manifest.routing.tier'),
       routing_reason: attrString(attrs, 'manifest.routing.reason'),
       skill_name: attrString(attrs, 'skill.name'),
@@ -273,7 +345,8 @@ export class TraceIngestService {
   }
 
   private computeCost(attrs: AttributeMap): number | null {
-    const model = attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model');
+    const model =
+      attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model');
     if (!model) return null;
 
     const inputTok = attrNumber(attrs, 'gen_ai.usage.input_tokens') ?? 0;
@@ -283,6 +356,9 @@ export class TraceIngestService {
     const pricing = this.pricingCache.getByModel(model);
     if (!pricing) return null;
 
-    return inputTok * Number(pricing.input_price_per_token) + outputTok * Number(pricing.output_price_per_token);
+    return (
+      inputTok * Number(pricing.input_price_per_token) +
+      outputTok * Number(pricing.output_price_per_token)
+    );
   }
 }
