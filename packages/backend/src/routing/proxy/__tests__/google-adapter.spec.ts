@@ -170,6 +170,28 @@ describe('Google Adapter', () => {
       });
     });
 
+    it('uses unknown as fallback name when tool_call_id is missing', () => {
+      const body = {
+        messages: [
+          { role: 'user', content: 'Do something' },
+          {
+            role: 'tool',
+            content: '{"ok": true}',
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const contents = result.contents as Array<{
+        role: string;
+        parts: Array<Record<string, unknown>>;
+      }>;
+      expect(contents[1].parts[0].functionResponse).toEqual({
+        name: 'unknown',
+        response: { result: '{"ok": true}' },
+      });
+    });
+
     it('skips messages that produce no parts', () => {
       const body = {
         messages: [
