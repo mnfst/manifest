@@ -35,6 +35,7 @@ jest.mock('../common/utils/product-telemetry', () => ({
 jest.mock('../entities/tenant.entity', () => ({ Tenant: jest.fn() }));
 jest.mock('../entities/agent.entity', () => ({ Agent: jest.fn() }));
 jest.mock('../entities/agent-api-key.entity', () => ({ AgentApiKey: jest.fn() }));
+jest.mock('../entities/agent-message.entity', () => ({ AgentMessage: jest.fn() }));
 jest.mock('../entities/model-pricing.entity', () => ({ ModelPricing: jest.fn() }));
 jest.mock('../entities/user-provider.entity', () => ({ UserProvider: jest.fn() }));
 jest.mock('../entities/tier-assignment.entity', () => ({ TierAssignment: jest.fn() }));
@@ -57,6 +58,7 @@ describe('LocalBootstrapService', () => {
   let mockTenantRepo: ReturnType<typeof makeMockRepo>;
   let mockAgentRepo: ReturnType<typeof makeMockRepo>;
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
+  let mockMessageRepo: ReturnType<typeof makeMockRepo>;
   let mockPricingRepo: ReturnType<typeof makeMockRepo>;
   let mockProviderRepo: ReturnType<typeof makeMockRepo>;
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
@@ -68,6 +70,7 @@ describe('LocalBootstrapService', () => {
     mockTenantRepo = makeMockRepo();
     mockAgentRepo = makeMockRepo();
     mockAgentKeyRepo = makeMockRepo();
+    mockMessageRepo = makeMockRepo();
     mockPricingRepo = makeMockRepo();
     mockProviderRepo = makeMockRepo();
     mockTierRepo = makeMockRepo();
@@ -78,6 +81,7 @@ describe('LocalBootstrapService', () => {
       mockTenantRepo as never,
       mockAgentRepo as never,
       mockAgentKeyRepo as never,
+      mockMessageRepo as never,
       mockPricingRepo as never,
       mockProviderRepo as never,
       mockTierRepo as never,
