@@ -1,5 +1,36 @@
 # manifest
 
+## 5.21.0
+
+### Minor Changes
+
+- 5174f14: Add custom OpenAI-compatible provider support for LLM routing
+- 98503ad: Improve threshold alert email: format timestamps as MMM DD HH:MM:SS, add View Agent Dashboard button, update footer with copyright, replace text logo with PNG image. Remove Cloud badge from header.
+- 84f9388: Add pagination to Messages and Model Prices pages with shared Pagination component, cursor-based and client-side pagination primitives, filter empty state improvements, and unified provider icon system in filter bar
+- 33d5c4e: Unify all email templates with PNG logo and copyright footer; differentiate soft (warning) and hard (blocking) threshold alerts with distinct colors and messaging
+
+### Patch Changes
+
+- 4930390: Remove broken models from catalog and add Moonshot provider endpoint
+  - Remove models that don't exist or return errors: gpt-5.3, gpt-5.3-codex, gpt-5.3-mini, grok-2, minimax-m2-her, minimax-01, nova-pro, nova-lite, nova-micro
+  - Rename mistral-large to mistral-large-latest and codestral to codestral-latest
+  - Add Moonshot provider endpoint for kimi-k2 model
+
+- 972477f: Filter model prices to supported providers only during pricing sync
+- d6f679e: Fix duplicate/ghost messages in dashboard
+  - Remove dummy seed data (seed-messages, demo security events, admin user)
+  - Record all proxy errors (not just 429/403/500+) so 400 errors show as Failed
+  - Fix ghost duplicate messages: unknown OTLP spans no longer create agent_messages
+  - Add timestamp-based dedup to prevent OTLP spans from duplicating proxy error records
+
+- 28cbb68: fix: remove Anthropic-specific cache_control from Google Gemini system instruction parts
+- 2ad97c3: Fix ClawHub trust scanner flags by updating SKILL.md metadata to use standard fields, adding Configuration Changes and Install Provenance sections, and rewriting the Privacy section with exhaustive data manifest
+- 32d656e: Remove unused variables
+- d04f4c7: Fix version indicator: show plugin version in local mode, hide in cloud mode, fix upgrade command
+- e2c631e: Achieve 100% line coverage across backend, frontend, and plugin test suites
+- cecc2e8: Rewrite user-facing text to remove AI writing patterns (em dashes, promotional language, verbose empty states)
+- 767121b: Update manifest skill description to be concise
+
 ## 5.20.0
 
 ### Minor Changes
