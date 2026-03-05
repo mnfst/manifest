@@ -2,6 +2,7 @@ import { BadRequestException, HttpException } from '@nestjs/common';
 import { ProxyService } from '../proxy.service';
 import { ResolveService } from '../../resolve.service';
 import { RoutingService } from '../../routing.service';
+import { CustomProviderService } from '../../custom-provider.service';
 import { ProviderClient } from '../provider-client';
 import { SessionMomentumService } from '../session-momentum.service';
 import { LimitCheckService } from '../../../notifications/services/limit-check.service';
@@ -10,6 +11,7 @@ describe('ProxyService', () => {
   let service: ProxyService;
   let resolveService: jest.Mocked<ResolveService>;
   let routingService: jest.Mocked<RoutingService>;
+  let customProviderService: jest.Mocked<CustomProviderService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let momentum: SessionMomentumService;
   let limitCheck: jest.Mocked<LimitCheckService>;
@@ -34,9 +36,14 @@ describe('ProxyService', () => {
       invalidateCache: jest.fn(),
     } as unknown as jest.Mocked<LimitCheckService>;
 
+    customProviderService = {
+      getById: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<CustomProviderService>;
+
     service = new ProxyService(
       resolveService,
       routingService,
+      customProviderService,
       providerClient,
       momentum,
       limitCheck,
@@ -135,6 +142,7 @@ describe('ProxyService', () => {
       false,
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -214,6 +222,7 @@ describe('ProxyService', () => {
       false,
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -251,6 +260,7 @@ describe('ProxyService', () => {
       body,
       false,
       abortController.signal,
+      undefined,
       undefined,
     );
   });
@@ -315,6 +325,7 @@ describe('ProxyService', () => {
         'gpt-4o-mini',
         heartbeatBody,
         false,
+        undefined,
         undefined,
         undefined,
       );
@@ -396,6 +407,39 @@ describe('ProxyService', () => {
       expect(result.meta.reason).toBe('heartbeat');
     });
 
+    it('does not treat non-string non-array content as heartbeat', async () => {
+      const objectContentBody = {
+        messages: [
+          {
+            role: 'user',
+            content: { type: 'image_url', image_url: 'data:image/png;base64,...' },
+          },
+        ],
+        stream: false,
+      };
+
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      const result = await service.proxyRequest('agent-1', 'user-1', objectContentBody, 'default');
+
+      // Should NOT be routed as heartbeat
+      expect(resolveService.resolve).toHaveBeenCalled();
+      expect(result.meta.reason).toBe('scored');
+    });
+
     it('does not detect heartbeat when user content is null (non-string, non-array)', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'simple',
@@ -413,9 +457,7 @@ describe('ProxyService', () => {
       });
 
       const bodyWithNullContent = {
-        messages: [
-          { role: 'user', content: null },
-        ],
+        messages: [{ role: 'user', content: null }],
         stream: false,
       };
 
@@ -504,6 +546,7 @@ describe('ProxyService', () => {
         'gpt-4o-mini',
         bodyWithSystem,
         false,
+        undefined,
         undefined,
         undefined,
       );
@@ -721,6 +764,7 @@ describe('ProxyService', () => {
         false,
         undefined,
         { 'x-grok-conv-id': 'my-session' },
+        undefined,
       );
     });
   });
@@ -797,6 +841,118 @@ describe('ProxyService', () => {
         false,
         undefined,
         undefined,
+        undefined,
+      );
+    });
+  });
+
+  describe('custom provider resolution', () => {
+    it('builds custom endpoint and strips model prefix for custom provider', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'custom:cp-uuid/llama-3.1-70b',
+        provider: 'custom:cp-uuid',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('gsk_test');
+      customProviderService.getById.mockResolvedValue({
+        id: 'cp-uuid',
+        agent_id: 'agent-1',
+        user_id: 'user-1',
+        base_url: 'https://api.groq.com/openai/v1',
+        name: 'Groq',
+        models: [],
+        created_at: '2026-03-04T00:00:00Z',
+      } as never);
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+
+      expect(customProviderService.getById).toHaveBeenCalledWith('cp-uuid');
+      // Forward should use the raw model name (without custom prefix)
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'custom:cp-uuid',
+        'gsk_test',
+        'llama-3.1-70b',
+        body,
+        false,
+        undefined,
+        undefined,
+        expect.objectContaining({
+          baseUrl: 'https://api.groq.com/openai',
+          format: 'openai',
+        }),
+      );
+      expect(result.meta.provider).toBe('custom:cp-uuid');
+    });
+
+    it('falls back to normal forwarding when custom provider not found in DB', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'custom:cp-missing/model',
+        provider: 'custom:cp-missing',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('key');
+      customProviderService.getById.mockResolvedValue(null);
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+
+      // No custom endpoint — forward without it
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'custom:cp-missing',
+        'key',
+        'custom:cp-missing/model',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+      );
+    });
+  });
+
+  describe('xai extra headers', () => {
+    it('adds x-grok-conv-id header for xai provider', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'complex',
+        model: 'grok-2',
+        provider: 'xai',
+        confidence: 0.9,
+        score: 0.2,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-xai');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess-key-123');
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'xai',
+        'sk-xai',
+        'grok-2',
+        body,
+        false,
+        undefined,
+        { 'x-grok-conv-id': 'sess-key-123' },
+        undefined,
       );
     });
   });
@@ -828,6 +984,7 @@ describe('ProxyService', () => {
         'llama3',
         body,
         false,
+        undefined,
         undefined,
         undefined,
       );

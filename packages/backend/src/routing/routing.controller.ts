@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -6,6 +6,8 @@ import { AuthUser } from '../auth/auth.instance';
 import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { RoutingService } from './routing.service';
+import { resolveAgent } from './resolve-agent.util';
+import { CustomProviderService } from './custom-provider.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { expandProviderNames } from './provider-aliases';
@@ -16,6 +18,7 @@ import { AgentNameParamDto, ConnectProviderDto, SetOverrideDto } from './dto/rou
 export class RoutingController {
   constructor(
     private readonly routingService: RoutingService,
+    private readonly customProviderService: CustomProviderService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly ollamaSync: OllamaSyncService,
     @InjectRepository(Agent)
@@ -24,14 +27,8 @@ export class RoutingController {
     private readonly tenantRepo: Repository<Tenant>,
   ) {}
 
-  private async resolveAgent(userId: string, agentName: string): Promise<Agent> {
-    const tenant = await this.tenantRepo.findOne({ where: { name: userId } });
-    if (!tenant) throw new NotFoundException(`Tenant not found`);
-    const agent = await this.agentRepo.findOne({
-      where: { tenant_id: tenant.id, name: agentName },
-    });
-    if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
-    return agent;
+  private resolveAgent(userId: string, agentName: string): Promise<Agent> {
+    return resolveAgent(this.tenantRepo, this.agentRepo, userId, agentName);
   }
 
   /* ── Status ── */
@@ -165,18 +162,32 @@ export class RoutingController {
       providers.filter((p) => p.is_active).map((p) => p.provider),
     );
 
+    // Build display name map for custom providers
+    const customProviders = await this.customProviderService.list(agent.id);
+    const cpNameMap = new Map<string, string>();
+    for (const cp of customProviders) {
+      cpNameMap.set(CustomProviderService.providerKey(cp.id), cp.name);
+    }
+
     const models = this.pricingCache.getAll();
     return models
       .filter((m) => activeProviders.has(m.provider.toLowerCase()))
-      .map((m) => ({
-        model_name: m.model_name,
-        provider: m.provider,
-        input_price_per_token: m.input_price_per_token,
-        output_price_per_token: m.output_price_per_token,
-        context_window: m.context_window,
-        capability_reasoning: m.capability_reasoning,
-        capability_code: m.capability_code,
-        quality_score: m.quality_score,
-      }));
+      .map((m) => {
+        const isCustom = CustomProviderService.isCustom(m.provider);
+        return {
+          model_name: m.model_name,
+          provider: m.provider,
+          input_price_per_token: m.input_price_per_token,
+          output_price_per_token: m.output_price_per_token,
+          context_window: m.context_window,
+          capability_reasoning: m.capability_reasoning,
+          capability_code: m.capability_code,
+          quality_score: m.quality_score,
+          ...(isCustom && {
+            display_name: CustomProviderService.rawModelName(m.model_name),
+            provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
+          }),
+        };
+      });
   }
 }

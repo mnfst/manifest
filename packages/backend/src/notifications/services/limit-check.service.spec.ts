@@ -375,7 +375,7 @@ describe('LimitCheckService', () => {
       (readLocalNotificationEmail as jest.Mock).mockReturnValue('local-user@real.com');
 
       mockQuery
-        .mockResolvedValueOnce([])  // notification_logs check
+        .mockResolvedValueOnce([]) // notification_logs check
         .mockResolvedValueOnce([]); // INSERT log
 
       await service.checkLimits('tenant-1', 'my-agent');

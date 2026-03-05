@@ -87,9 +87,7 @@ describe('UnresolvedModelTrackerService', () => {
 
       await service.flush();
 
-      expect(mockRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ occurrence_count: 7 }),
-      );
+      expect(mockRepo.save).toHaveBeenCalledWith(expect.objectContaining({ occurrence_count: 7 }));
     });
 
     it('should set first_seen and last_seen as Date objects for new entries', async () => {
@@ -116,9 +114,7 @@ describe('UnresolvedModelTrackerService', () => {
       await service.flush();
 
       expect(existing.last_seen).toBeInstanceOf(Date);
-      expect(existing.last_seen.getTime()).toBeGreaterThan(
-        new Date('2024-01-01').getTime(),
-      );
+      expect(existing.last_seen.getTime()).toBeGreaterThan(new Date('2024-01-01').getTime());
     });
 
     it('should clear pending entries after flush', async () => {

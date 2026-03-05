@@ -317,9 +317,7 @@ describe('PricingSyncService', () => {
 
   it('resolves unresolved model by stripping vendor prefix', async () => {
     // Unresolved model has vendor prefix 'openai/gpt-4o' but known names include 'gpt-4o'
-    mockGetUnresolved.mockResolvedValue([
-      { model_name: 'openai/gpt-4o', resolved: false },
-    ]);
+    mockGetUnresolved.mockResolvedValue([{ model_name: 'openai/gpt-4o', resolved: false }]);
 
     mockFetch.mockResolvedValue({
       ok: true,
@@ -339,16 +337,12 @@ describe('PricingSyncService', () => {
     // Unresolved model uses a non-standard prefix 'custom/gpt-4o'.
     // This is NOT directly in knownNames. But stripping the prefix gives 'gpt-4o',
     // which IS in knownNames (as canonical derived from 'openai/gpt-4o').
-    mockGetUnresolved.mockResolvedValue([
-      { model_name: 'custom/gpt-4o', resolved: false },
-    ]);
+    mockGetUnresolved.mockResolvedValue([{ model_name: 'custom/gpt-4o', resolved: false }]);
 
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        data: [
-          { id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } },
-        ],
+        data: [{ id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } }],
       }),
     });
 
@@ -369,7 +363,10 @@ describe('PricingSyncService', () => {
       ok: true,
       json: async () => ({
         data: [
-          { id: 'anthropic/claude-sonnet-4', pricing: { prompt: '0.000003', completion: '0.000015' } },
+          {
+            id: 'anthropic/claude-sonnet-4',
+            pricing: { prompt: '0.000003', completion: '0.000015' },
+          },
         ],
       }),
     });
@@ -378,10 +375,7 @@ describe('PricingSyncService', () => {
     // tryResolve: 'claude-sonnet-4-2025-05-14' not in knownNames
     // stripped: 'claude-sonnet-4-2025-05-14' (no prefix) not in knownNames
     // noDate: 'claude-sonnet-4' IS in knownNames => resolves
-    expect(mockMarkResolved).toHaveBeenCalledWith(
-      'claude-sonnet-4-2025-05-14',
-      'claude-sonnet-4',
-    );
+    expect(mockMarkResolved).toHaveBeenCalledWith('claude-sonnet-4-2025-05-14', 'claude-sonnet-4');
   });
 
   it('skips models from unsupported providers', async () => {
@@ -781,9 +775,7 @@ describe('PricingSyncService', () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        data: [
-          { id: 'openai/gpt-nan', pricing: { prompt: 'not-a-number', completion: '0.001' } },
-        ],
+        data: [{ id: 'openai/gpt-nan', pricing: { prompt: 'not-a-number', completion: '0.001' } }],
       }),
     });
 
@@ -796,9 +788,7 @@ describe('PricingSyncService', () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        data: [
-          { id: 'openai/gpt-inf', pricing: { prompt: 'Infinity', completion: '0.001' } },
-        ],
+        data: [{ id: 'openai/gpt-inf', pricing: { prompt: 'Infinity', completion: '0.001' } }],
       }),
     });
 
@@ -832,9 +822,7 @@ describe('PricingSyncService', () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        data: [
-          { id: 'openai/bad-model', pricing: { prompt: '0.001', completion: '0.001' } },
-        ],
+        data: [{ id: 'openai/bad-model', pricing: { prompt: '0.001', completion: '0.001' } }],
       }),
     });
 

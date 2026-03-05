@@ -44,9 +44,7 @@ describe('AgentApiKey entity', () => {
 
   describe('TypeORM relation callbacks', () => {
     it('ManyToOne callback resolves to Tenant', () => {
-      const relations = getMetadataArgsStorage().relations.filter(
-        (r) => r.target === AgentApiKey,
-      );
+      const relations = getMetadataArgsStorage().relations.filter((r) => r.target === AgentApiKey);
       const manyToOne = relations.find((r) => r.relationType === 'many-to-one');
       expect(manyToOne).toBeDefined();
       const resolved = (manyToOne!.type as () => unknown)();
@@ -54,9 +52,7 @@ describe('AgentApiKey entity', () => {
     });
 
     it('OneToOne callback resolves to Agent with inverse side', () => {
-      const relations = getMetadataArgsStorage().relations.filter(
-        (r) => r.target === AgentApiKey,
-      );
+      const relations = getMetadataArgsStorage().relations.filter((r) => r.target === AgentApiKey);
       const oneToOne = relations.find((r) => r.relationType === 'one-to-one');
       expect(oneToOne).toBeDefined();
       const resolved = (oneToOne!.type as () => unknown)();

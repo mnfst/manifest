@@ -192,9 +192,12 @@ const Settings: Component = () => {
                 generates a new key and immediately invalidates the current one.
               </span>
             </div>
-            <div class="settings-card__control" style="display: flex; align-items: center; gap: 8px;">
+            <div
+              class="settings-card__control"
+              style="display: flex; align-items: center; gap: 8px;"
+            >
               <code style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-                {apiKeyData()?.keyPrefix ?? "..."}...
+                {apiKeyData()?.keyPrefix ?? '...'}...
               </code>
               <button
                 class="btn btn--outline"

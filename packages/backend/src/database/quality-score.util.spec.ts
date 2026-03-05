@@ -138,6 +138,46 @@ describe('computeQualityScore', () => {
     });
   });
 
+  /* ── Null-price models (unknown pricing) ── */
+
+  describe('null-price models', () => {
+    it('should score 2 for models with null input price', () => {
+      const model = makeModel({
+        model_name: 'custom-model',
+        input_price_per_token: null as unknown as number,
+        output_price_per_token: 0.000015,
+      });
+      expect(computeQualityScore(model)).toBe(2);
+    });
+
+    it('should score 2 for models with null output price', () => {
+      const model = makeModel({
+        model_name: 'custom-model',
+        input_price_per_token: 0.000005,
+        output_price_per_token: null as unknown as number,
+      });
+      expect(computeQualityScore(model)).toBe(2);
+    });
+
+    it('should score 2 for models with both prices null', () => {
+      const model = makeModel({
+        model_name: 'custom-model',
+        input_price_per_token: null as unknown as number,
+        output_price_per_token: null as unknown as number,
+      });
+      expect(computeQualityScore(model)).toBe(2);
+    });
+
+    it('should apply override even when prices are null', () => {
+      const model = makeModel({
+        model_name: 'openrouter/auto',
+        input_price_per_token: null as unknown as number,
+        output_price_per_token: null as unknown as number,
+      });
+      expect(computeQualityScore(model)).toBe(5);
+    });
+  });
+
   /* ── Paid models: Q5 frontier ── */
 
   describe('Q5 frontier', () => {

@@ -5,7 +5,12 @@ import { TokenUsageSnapshot } from '../../entities/token-usage-snapshot.entity';
 import { CostSnapshot } from '../../entities/cost-snapshot.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 
-const testCtx: IngestionContext = { tenantId: 'test-tenant', agentId: 'test-agent', agentName: 'test-agent', userId: 'test-user' };
+const testCtx: IngestionContext = {
+  tenantId: 'test-tenant',
+  agentId: 'test-agent',
+  agentName: 'test-agent',
+  userId: 'test-user',
+};
 
 describe('MetricIngestService', () => {
   let service: MetricIngestService;
@@ -34,23 +39,31 @@ describe('MetricIngestService', () => {
 
   it('ingests token metric data points as token snapshots', async () => {
     const request = {
-      resourceMetrics: [{
-        resource: {
-          attributes: [{ key: 'agent.name', value: { stringValue: 'bot-1' } }],
-        },
-        scopeMetrics: [{
-          scope: { name: 'test' },
-          metrics: [{
-            name: 'gen_ai.usage.input_tokens',
-            gauge: {
-              dataPoints: [{
-                timeUnixNano: '1708000000000000000',
-                asInt: 500,
-              }],
+      resourceMetrics: [
+        {
+          resource: {
+            attributes: [{ key: 'agent.name', value: { stringValue: 'bot-1' } }],
+          },
+          scopeMetrics: [
+            {
+              scope: { name: 'test' },
+              metrics: [
+                {
+                  name: 'gen_ai.usage.input_tokens',
+                  gauge: {
+                    dataPoints: [
+                      {
+                        timeUnixNano: '1708000000000000000',
+                        asInt: 500,
+                      },
+                    ],
+                  },
+                },
+              ],
             },
-          }],
-        }],
-      }],
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -67,26 +80,37 @@ describe('MetricIngestService', () => {
 
   it('ingests cost metric data points as cost snapshots', async () => {
     const request = {
-      resourceMetrics: [{
-        resource: {
-          attributes: [{ key: 'agent.name', value: { stringValue: 'bot-1' } }],
-        },
-        scopeMetrics: [{
-          scope: { name: 'test' },
-          metrics: [{
-            name: 'gen_ai.usage.cost',
-            gauge: {
-              dataPoints: [{
-                timeUnixNano: '1708000000000000000',
-                asDouble: 0.025,
-                attributes: [
-                  { key: 'gen_ai.request.model', value: { stringValue: 'claude-opus-4-6' } },
-                ],
-              }],
+      resourceMetrics: [
+        {
+          resource: {
+            attributes: [{ key: 'agent.name', value: { stringValue: 'bot-1' } }],
+          },
+          scopeMetrics: [
+            {
+              scope: { name: 'test' },
+              metrics: [
+                {
+                  name: 'gen_ai.usage.cost',
+                  gauge: {
+                    dataPoints: [
+                      {
+                        timeUnixNano: '1708000000000000000',
+                        asDouble: 0.025,
+                        attributes: [
+                          {
+                            key: 'gen_ai.request.model',
+                            value: { stringValue: 'claude-opus-4-6' },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              ],
             },
-          }],
-        }],
-      }],
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -104,21 +128,29 @@ describe('MetricIngestService', () => {
 
   it('ignores metrics that are not token or cost metrics', async () => {
     const request = {
-      resourceMetrics: [{
-        resource: { attributes: [] },
-        scopeMetrics: [{
-          scope: { name: 'test' },
-          metrics: [{
-            name: 'http.server.request.duration',
-            gauge: {
-              dataPoints: [{
-                timeUnixNano: '1708000000000000000',
-                asDouble: 150.5,
-              }],
+      resourceMetrics: [
+        {
+          resource: { attributes: [] },
+          scopeMetrics: [
+            {
+              scope: { name: 'test' },
+              metrics: [
+                {
+                  name: 'http.server.request.duration',
+                  gauge: {
+                    dataPoints: [
+                      {
+                        timeUnixNano: '1708000000000000000',
+                        asDouble: 150.5,
+                      },
+                    ],
+                  },
+                },
+              ],
             },
-          }],
-        }],
-      }],
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -129,23 +161,31 @@ describe('MetricIngestService', () => {
 
   it('handles sum-type metrics (not just gauges)', async () => {
     const request = {
-      resourceMetrics: [{
-        resource: { attributes: [] },
-        scopeMetrics: [{
-          scope: { name: 'test' },
-          metrics: [{
-            name: 'gen_ai.usage.output_tokens',
-            sum: {
-              dataPoints: [{
-                timeUnixNano: '1708000000000000000',
-                asInt: 300,
-              }],
-              aggregationTemporality: 1,
-              isMonotonic: true,
+      resourceMetrics: [
+        {
+          resource: { attributes: [] },
+          scopeMetrics: [
+            {
+              scope: { name: 'test' },
+              metrics: [
+                {
+                  name: 'gen_ai.usage.output_tokens',
+                  sum: {
+                    dataPoints: [
+                      {
+                        timeUnixNano: '1708000000000000000',
+                        asInt: 300,
+                      },
+                    ],
+                    aggregationTemporality: 1,
+                    isMonotonic: true,
+                  },
+                },
+              ],
             },
-          }],
-        }],
-      }],
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -160,22 +200,28 @@ describe('MetricIngestService', () => {
 
   it('handles multiple data points in a single metric', async () => {
     const request = {
-      resourceMetrics: [{
-        resource: { attributes: [] },
-        scopeMetrics: [{
-          scope: { name: 'test' },
-          metrics: [{
-            name: 'gen_ai.usage.total_tokens',
-            gauge: {
-              dataPoints: [
-                { timeUnixNano: '1708000000000000000', asInt: 100 },
-                { timeUnixNano: '1708000001000000000', asInt: 200 },
-                { timeUnixNano: '1708000002000000000', asInt: 300 },
+      resourceMetrics: [
+        {
+          resource: { attributes: [] },
+          scopeMetrics: [
+            {
+              scope: { name: 'test' },
+              metrics: [
+                {
+                  name: 'gen_ai.usage.total_tokens',
+                  gauge: {
+                    dataPoints: [
+                      { timeUnixNano: '1708000000000000000', asInt: 100 },
+                      { timeUnixNano: '1708000001000000000', asInt: 200 },
+                      { timeUnixNano: '1708000002000000000', asInt: 300 },
+                    ],
+                  },
+                },
               ],
             },
-          }],
-        }],
-      }],
+          ],
+        },
+      ],
     };
 
     const result = await service.ingest(request, testCtx);
@@ -202,16 +248,22 @@ describe('MetricIngestService', () => {
       mockTokenInsert.mockClear();
       mockCostInsert.mockClear();
       const request = {
-        resourceMetrics: [{
-          resource: { attributes: [] },
-          scopeMetrics: [{
-            scope: { name: 'test' },
-            metrics: [{
-              name,
-              gauge: { dataPoints: [{ timeUnixNano: '1708000000000000000', asInt: 1 }] },
-            }],
-          }],
-        }],
+        resourceMetrics: [
+          {
+            resource: { attributes: [] },
+            scopeMetrics: [
+              {
+                scope: { name: 'test' },
+                metrics: [
+                  {
+                    name,
+                    gauge: { dataPoints: [{ timeUnixNano: '1708000000000000000', asInt: 1 }] },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       };
 
       const result = await service.ingest(request, testCtx);
@@ -223,10 +275,12 @@ describe('MetricIngestService', () => {
 
   it('handles missing scopeMetrics array within a resourceMetric', async () => {
     const request = {
-      resourceMetrics: [{
-        resource: { attributes: [] },
-        scopeMetrics: undefined as never,
-      }],
+      resourceMetrics: [
+        {
+          resource: { attributes: [] },
+          scopeMetrics: undefined as never,
+        },
+      ],
     };
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(0);
@@ -236,13 +290,17 @@ describe('MetricIngestService', () => {
 
   it('handles missing metrics array within a scopeMetric', async () => {
     const request = {
-      resourceMetrics: [{
-        resource: { attributes: [] },
-        scopeMetrics: [{
-          scope: { name: 'test' },
-          metrics: undefined as never,
-        }],
-      }],
+      resourceMetrics: [
+        {
+          resource: { attributes: [] },
+          scopeMetrics: [
+            {
+              scope: { name: 'test' },
+              metrics: undefined as never,
+            },
+          ],
+        },
+      ],
     };
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(0);
@@ -252,16 +310,22 @@ describe('MetricIngestService', () => {
 
   it('falls back to empty dataPoints when neither gauge nor sum are present', async () => {
     const request = {
-      resourceMetrics: [{
-        resource: { attributes: [] },
-        scopeMetrics: [{
-          scope: { name: 'test' },
-          metrics: [{
-            name: 'gen_ai.usage.input_tokens',
-            // No gauge or sum property
-          }],
-        }],
-      }],
+      resourceMetrics: [
+        {
+          resource: { attributes: [] },
+          scopeMetrics: [
+            {
+              scope: { name: 'test' },
+              metrics: [
+                {
+                  name: 'gen_ai.usage.input_tokens',
+                  // No gauge or sum property
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(0);
@@ -275,16 +339,24 @@ describe('MetricIngestService', () => {
       mockTokenInsert.mockClear();
       mockCostInsert.mockClear();
       const request = {
-        resourceMetrics: [{
-          resource: { attributes: [] },
-          scopeMetrics: [{
-            scope: { name: 'test' },
-            metrics: [{
-              name,
-              gauge: { dataPoints: [{ timeUnixNano: '1708000000000000000', asDouble: 0.01 }] },
-            }],
-          }],
-        }],
+        resourceMetrics: [
+          {
+            resource: { attributes: [] },
+            scopeMetrics: [
+              {
+                scope: { name: 'test' },
+                metrics: [
+                  {
+                    name,
+                    gauge: {
+                      dataPoints: [{ timeUnixNano: '1708000000000000000', asDouble: 0.01 }],
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       };
 
       const result = await service.ingest(request, testCtx);

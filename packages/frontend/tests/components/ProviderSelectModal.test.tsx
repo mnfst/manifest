@@ -504,6 +504,99 @@ describe("ProviderSelectModal", () => {
     });
   });
 
+  describe("custom providers", () => {
+    const customProviderData = [
+      { id: "cp-1", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [{ model_name: "llama-3.1-70b" }, { model_name: "llama-3.1-8b" }], created_at: "2025-01-01" },
+    ];
+
+    it("renders custom provider list items", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          customProviders={customProviderData}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      expect(screen.getByText("Groq")).toBeDefined();
+      expect(screen.getByText("2 models")).toBeDefined();
+    });
+
+    it("renders custom provider icon letter", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          customProviders={customProviderData}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      const letter = document.querySelector(".custom-provider-section .provider-card__logo-letter");
+      expect(letter).not.toBeNull();
+      expect(letter!.textContent).toBe("G");
+    });
+
+    it("shows Add custom provider button", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      expect(screen.getByText("Add custom provider")).toBeDefined();
+    });
+
+    it("opens custom provider form when Add button is clicked", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Add custom provider"));
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure")).toBeDefined();
+      });
+    });
+
+    it("opens edit form when custom provider is clicked", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          customProviders={customProviderData}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Groq"));
+      await waitFor(() => {
+        const nameInput = screen.getByDisplayValue("Groq");
+        expect(nameInput).toBeDefined();
+      });
+    });
+
+    it("singularizes model count for single model", () => {
+      const singleModel = [{ ...customProviderData[0], models: [{ model_name: "llama" }] }];
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          customProviders={singleModel}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      expect(screen.getByText("1 model")).toBeDefined();
+    });
+  });
+
   describe("ollama (no key required)", () => {
     const ollamaConnected: RoutingProvider = {
       id: "p3",
@@ -514,7 +607,6 @@ describe("ProviderSelectModal", () => {
     };
 
     beforeEach(() => {
-      // Ollama is localOnly, so we need local mode enabled
       mockLocalMode = true;
     });
 
@@ -612,7 +704,6 @@ describe("ProviderSelectModal", () => {
       />
     ));
     fireEvent.click(screen.getByText("OpenAI"));
-    // Input value contains dots fallback since no key_prefix
     const maskedInput = screen.getByLabelText("Current API key (masked)") as HTMLInputElement;
     expect(maskedInput.value).toContain("••••••••••••");
   });

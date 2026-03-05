@@ -20,6 +20,7 @@ vi.mock("@solidjs/meta", () => ({
 const mockGetOverview = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getOverview: (...args: unknown[]) => mockGetOverview(...args),
+  getCustomProviders: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("../../src/services/sse.js", () => ({
@@ -36,6 +37,7 @@ vi.mock("../../src/services/formatters.js", () => ({
 vi.mock("../../src/services/routing-utils.js", () => ({
   inferProviderFromModel: () => null,
   inferProviderName: () => "",
+  stripCustomPrefix: (m: string) => m,
 }));
 
 vi.mock("../../src/components/ProviderIcon.jsx", () => ({

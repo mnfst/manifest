@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { RoutingController } from './routing.controller';
 import { RoutingService } from './routing.service';
+import { CustomProviderService } from './custom-provider.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { ModelPricing } from '../entities/model-pricing.entity';
@@ -17,6 +18,7 @@ const TEST_AGENT_ID = 'agent-001';
 describe('RoutingController', () => {
   let controller: RoutingController;
   let mockRoutingService: Record<string, jest.Mock>;
+  let mockCustomProviderService: Record<string, jest.Mock>;
   let mockPricingCache: Record<string, jest.Mock>;
   let mockOllamaSync: Record<string, jest.Mock>;
   let mockAgentRepo: Record<string, jest.Mock>;
@@ -47,9 +49,13 @@ describe('RoutingController', () => {
     mockAgentRepo = {
       findOne: jest.fn().mockResolvedValue({ id: TEST_AGENT_ID, name: 'test-agent' }),
     };
+    mockCustomProviderService = {
+      list: jest.fn().mockResolvedValue([]),
+    };
 
     controller = new RoutingController(
       mockRoutingService as unknown as RoutingService,
+      mockCustomProviderService as unknown as CustomProviderService,
       mockPricingCache as unknown as ModelPricingCacheService,
       mockOllamaSync as unknown as OllamaSyncService,
       mockAgentRepo as never,
@@ -456,6 +462,57 @@ describe('RoutingController', () => {
 
       expect(result).toHaveLength(2);
       expect(result.map((m) => m.model_name).sort()).toEqual(['gpt-4o', 'grok-3']);
+    });
+
+    it('should include display_name and provider_display_name for custom provider models', async () => {
+      mockRoutingService.getProviders.mockResolvedValue([
+        { provider: 'custom:cp-uuid', is_active: true },
+      ]);
+      mockCustomProviderService.list.mockResolvedValue([{ id: 'cp-uuid', name: 'Groq' }]);
+      mockPricingCache.getAll.mockReturnValue([
+        makePricing({
+          model_name: 'custom:cp-uuid/llama-3.1-70b',
+          provider: 'custom:cp-uuid',
+        }),
+      ]);
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].display_name).toBe('llama-3.1-70b');
+      expect(result[0].provider_display_name).toBe('Groq');
+    });
+
+    it('should fall back to provider key when custom provider name not in map', async () => {
+      mockRoutingService.getProviders.mockResolvedValue([
+        { provider: 'custom:cp-orphan', is_active: true },
+      ]);
+      mockCustomProviderService.list.mockResolvedValue([]); // no custom providers found
+      mockPricingCache.getAll.mockReturnValue([
+        makePricing({
+          model_name: 'custom:cp-orphan/model-x',
+          provider: 'custom:cp-orphan',
+        }),
+      ]);
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].display_name).toBe('model-x');
+      expect(result[0].provider_display_name).toBe('custom:cp-orphan');
+    });
+
+    it('should not include display_name for non-custom providers', async () => {
+      mockRoutingService.getProviders.mockResolvedValue([{ provider: 'openai', is_active: true }]);
+      mockPricingCache.getAll.mockReturnValue([
+        makePricing({ model_name: 'gpt-4o', provider: 'OpenAI' }),
+      ]);
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).not.toHaveProperty('display_name');
+      expect(result[0]).not.toHaveProperty('provider_display_name');
     });
   });
 

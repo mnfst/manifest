@@ -29,7 +29,11 @@ describe('Anthropic Adapter', () => {
       };
       const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
 
-      const system = result.system as Array<{ type: string; text: string; cache_control?: unknown }>;
+      const system = result.system as Array<{
+        type: string;
+        text: string;
+        cache_control?: unknown;
+      }>;
       expect(system).toHaveLength(1);
       expect(system[0].text).toBe('You are helpful.');
       expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
@@ -151,11 +155,13 @@ describe('Anthropic Adapter', () => {
           {
             role: 'assistant',
             content: null,
-            tool_calls: [{
-              id: 'call_1',
-              type: 'function',
-              function: { name: 'web_search', arguments: '{"query":"cats"}' },
-            }],
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'web_search', arguments: '{"query":"cats"}' },
+              },
+            ],
           },
         ],
       };
@@ -175,9 +181,7 @@ describe('Anthropic Adapter', () => {
 
     it('converts tool role messages to user messages with tool_result', () => {
       const body = {
-        messages: [
-          { role: 'tool', tool_call_id: 'call_1', content: '{"results": ["cat1"]}' },
-        ],
+        messages: [{ role: 'tool', tool_call_id: 'call_1', content: '{"results": ["cat1"]}' }],
       };
       const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
 
@@ -193,14 +197,16 @@ describe('Anthropic Adapter', () => {
 
     it('handles array content blocks in user messages', () => {
       const body = {
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'text', text: 'First' },
-            { type: 'text', text: 'Second' },
-            { type: 'image', source: { data: 'base64' } },
-          ],
-        }],
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'First' },
+              { type: 'text', text: 'Second' },
+              { type: 'image', source: { data: 'base64' } },
+            ],
+          },
+        ],
       };
       const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
 
@@ -226,7 +232,11 @@ describe('Anthropic Adapter', () => {
       };
       const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
 
-      const system = result.system as Array<{ type: string; text: string; cache_control?: unknown }>;
+      const system = result.system as Array<{
+        type: string;
+        text: string;
+        cache_control?: unknown;
+      }>;
       expect(system).toHaveLength(2);
       expect(system[0].text).toBe('Instruction 1');
       expect(system[1].text).toBe('Instruction 2');
@@ -257,9 +267,7 @@ describe('Anthropic Adapter', () => {
 
     it('converts tool message with non-string content via JSON.stringify', () => {
       const body = {
-        messages: [
-          { role: 'tool', tool_call_id: 'call_1', content: { result: 'data' } },
-        ],
+        messages: [{ role: 'tool', tool_call_id: 'call_1', content: { result: 'data' } }],
       };
       const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
       const messages = result.messages as Array<{ role: string; content: unknown }>;
@@ -270,9 +278,7 @@ describe('Anthropic Adapter', () => {
 
     it('converts tool message with null content', () => {
       const body = {
-        messages: [
-          { role: 'tool', tool_call_id: 'call_1', content: null },
-        ],
+        messages: [{ role: 'tool', tool_call_id: 'call_1', content: null }],
       };
       const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
       const messages = result.messages as Array<{ role: string; content: unknown }>;
@@ -282,9 +288,7 @@ describe('Anthropic Adapter', () => {
 
     it('converts tool message without tool_call_id to unknown', () => {
       const body = {
-        messages: [
-          { role: 'tool', content: 'result text' },
-        ],
+        messages: [{ role: 'tool', content: 'result text' }],
       };
       const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
       const messages = result.messages as Array<{ role: string; content: unknown }>;
@@ -298,11 +302,13 @@ describe('Anthropic Adapter', () => {
           {
             role: 'assistant',
             content: 'Let me call a tool.',
-            tool_calls: [{
-              id: 'call_1',
-              type: 'function',
-              function: { name: 'noop', arguments: '' },
-            }],
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'noop', arguments: '' },
+              },
+            ],
           },
         ],
       };
@@ -358,7 +364,10 @@ describe('Anthropic Adapter', () => {
       expect(result.object).toBe('chat.completion');
       expect(result.model).toBe('claude-sonnet-4-20250514');
 
-      const choices = result.choices as Array<{ message: Record<string, unknown>; finish_reason: string }>;
+      const choices = result.choices as Array<{
+        message: Record<string, unknown>;
+        finish_reason: string;
+      }>;
       expect(choices).toHaveLength(1);
       expect(choices[0].message.role).toBe('assistant');
       expect(choices[0].message.content).toBe('Hello!');
@@ -386,17 +395,22 @@ describe('Anthropic Adapter', () => {
 
     it('maps tool_use to tool_calls', () => {
       const resp = {
-        content: [{
-          type: 'tool_use',
-          id: 'toolu_1',
-          name: 'web_search',
-          input: { query: 'cats' },
-        }],
+        content: [
+          {
+            type: 'tool_use',
+            id: 'toolu_1',
+            name: 'web_search',
+            input: { query: 'cats' },
+          },
+        ],
         stop_reason: 'tool_use',
       };
       const result = fromAnthropicResponse(resp, 'claude-sonnet-4-20250514');
 
-      const choices = result.choices as Array<{ message: Record<string, unknown>; finish_reason: string }>;
+      const choices = result.choices as Array<{
+        message: Record<string, unknown>;
+        finish_reason: string;
+      }>;
       expect(choices[0].finish_reason).toBe('tool_calls');
 
       const toolCalls = choices[0].message.tool_calls as Array<Record<string, unknown>>;
@@ -567,12 +581,14 @@ describe('Anthropic Adapter', () => {
 
     it('handles tool_use block with null input', () => {
       const resp = {
-        content: [{
-          type: 'tool_use',
-          id: 'toolu_1',
-          name: 'test_tool',
-          input: null,
-        }],
+        content: [
+          {
+            type: 'tool_use',
+            id: 'toolu_1',
+            name: 'test_tool',
+            input: null,
+          },
+        ],
         stop_reason: 'tool_use',
       };
       const result = fromAnthropicResponse(resp, 'claude-sonnet-4-20250514');
@@ -599,7 +615,8 @@ describe('Anthropic Adapter', () => {
 
   describe('transformAnthropicStreamChunk', () => {
     it('converts text_delta to OpenAI chunk', () => {
-      const chunk = 'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello"}}';
+      const chunk =
+        'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello"}}';
       const result = transformAnthropicStreamChunk(chunk, 'claude-sonnet-4-20250514');
 
       expect(result).toContain('data: ');
@@ -611,7 +628,8 @@ describe('Anthropic Adapter', () => {
     });
 
     it('converts message_delta with stop_reason and usage to finish + usage chunks', () => {
-      const chunk = 'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":16}}';
+      const chunk =
+        'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":16}}';
       const result = transformAnthropicStreamChunk(chunk, 'claude-sonnet-4-20250514');
 
       // Result contains two SSE events: finish chunk + usage chunk
@@ -635,7 +653,8 @@ describe('Anthropic Adapter', () => {
     });
 
     it('converts message_start to initial role chunk', () => {
-      const chunk = 'event: message_start\n{"type":"message_start","message":{"id":"msg_01","role":"assistant"}}';
+      const chunk =
+        'event: message_start\n{"type":"message_start","message":{"id":"msg_01","role":"assistant"}}';
       const result = transformAnthropicStreamChunk(chunk, 'claude-sonnet-4-20250514');
 
       expect(result).toContain('data: ');
@@ -668,7 +687,8 @@ describe('Anthropic Adapter', () => {
     });
 
     it('returns null for input_json_delta (tool streaming)', () => {
-      const chunk = 'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"input_json_delta","partial_json":"{\\"q"}}';
+      const chunk =
+        'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"input_json_delta","partial_json":"{\\"q"}}';
       const result = transformAnthropicStreamChunk(chunk, 'claude-sonnet-4-20250514');
       expect(result).toBeNull();
     });
@@ -686,7 +706,8 @@ describe('Anthropic Adapter', () => {
     });
 
     it('handles message_delta without usage property', () => {
-      const chunk = 'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"end_turn"}}';
+      const chunk =
+        'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"end_turn"}}';
       const result = transformAnthropicStreamChunk(chunk, 'claude-sonnet-4-20250514');
       expect(result).not.toBeNull();
 
@@ -713,16 +734,19 @@ describe('Anthropic Adapter', () => {
       const transform = createAnthropicStreamTransformer('claude-sonnet-4-20250514');
 
       // message_start carries input token counts
-      const start = 'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":42,"cache_read_input_tokens":10,"cache_creation_input_tokens":5}}}';
+      const start =
+        'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":42,"cache_read_input_tokens":10,"cache_creation_input_tokens":5}}}';
       transform(start);
 
       // content delta
-      const delta = 'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hi"}}';
+      const delta =
+        'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hi"}}';
       const textResult = transform(delta);
       expect(textResult).toContain('"content":"Hi"');
 
       // message_delta carries output tokens — should combine with stored input tokens
-      const end = 'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":20}}';
+      const end =
+        'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":20}}';
       const result = transform(end);
 
       const parts = result!.split('\n\n').filter(Boolean);

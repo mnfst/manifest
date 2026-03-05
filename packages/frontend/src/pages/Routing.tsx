@@ -7,12 +7,13 @@ import ProviderSelectModal from '../components/ProviderSelectModal.js';
 import RoutingInstructionModal from '../components/RoutingInstructionModal.js';
 import ModelPickerModal from '../components/ModelPickerModal.js';
 import { toast } from '../services/toast-store.js';
-import { pricePerM, resolveProviderId } from '../services/routing-utils.js';
+import { pricePerM, resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import {
   getTierAssignments,
   getAvailableModels,
   getProviders,
+  getCustomProviders,
   deactivateAllProviders,
   overrideTier,
   resetTier,
@@ -54,6 +55,10 @@ const Routing: Component = () => {
     () => agentName(),
     getProviders,
   );
+  const [customProviders, { refetch: refetchCustomProviders }] = createResource(
+    () => agentName(),
+    getCustomProviders,
+  );
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
   const [showProviderModal, setShowProviderModal] = createSignal(false);
   const [disabling, setDisabling] = createSignal(false);
@@ -84,6 +89,11 @@ const Routing: Component = () => {
   const labelFor = (modelName: string): string => {
     const info = modelInfo(modelName);
     if (info) {
+      // Custom models: show "providerName / rawModelName"
+      if (info.display_name) {
+        const provName = info.provider_display_name;
+        return provName ? `${provName} / ${info.display_name}` : info.display_name;
+      }
       const provId = resolveProviderId(info.provider);
       if (provId) return getModelLabel(provId, modelName);
     }
@@ -133,7 +143,12 @@ const Routing: Component = () => {
     setDisabling(true);
     try {
       await deactivateAllProviders(agentName());
-      await Promise.all([refetchProviders(), refetchTiers(), refetchModels()]);
+      await Promise.all([
+        refetchProviders(),
+        refetchCustomProviders(),
+        refetchTiers(),
+        refetchModels(),
+      ]);
       setInstructionModal('disable');
     } catch {
       // error toast from fetchMutate
@@ -144,7 +159,12 @@ const Routing: Component = () => {
 
   const handleProviderUpdate = async () => {
     const wasEnabled = isEnabled();
-    await Promise.all([refetchProviders(), refetchTiers(), refetchModels()]);
+    await Promise.all([
+      refetchProviders(),
+      refetchCustomProviders(),
+      refetchTiers(),
+      refetchModels(),
+    ]);
     if (!wasEnabled && isEnabled()) {
       setInstructionModal('enable');
     }
@@ -219,6 +239,26 @@ const Routing: Component = () => {
             <span class="routing-providers-info__icons">
               <For each={activeProviderIds()}>
                 {(provId) => {
+                  if (provId.startsWith('custom:')) {
+                    const cp = customProviders()?.find((c) => `custom:${c.id}` === provId);
+                    const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
+                    return (
+                      <span class="routing-providers-info__icon" title={cp?.name ?? provId}>
+                        <span
+                          class="provider-card__logo-letter"
+                          style={{
+                            background: 'var(--custom-provider-color)',
+                            width: '16px',
+                            height: '16px',
+                            'font-size': '9px',
+                            'border-radius': '50%',
+                          }}
+                        >
+                          {letter}
+                        </span>
+                      </span>
+                    );
+                  }
                   const provDef = PROVIDERS.find((p) => p.id === provId);
                   return (
                     <span class="routing-providers-info__icon" title={provDef?.name ?? provId}>
@@ -270,6 +310,28 @@ const Routing: Component = () => {
                             <div class="routing-card__override">
                               {(() => {
                                 const provId = providerIdForModel(modelName(), models() ?? []);
+                                if (provId?.startsWith('custom:')) {
+                                  const cp = customProviders()?.find(
+                                    (c) => `custom:${c.id}` === provId,
+                                  );
+                                  const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
+                                  return (
+                                    <span class="routing-card__override-icon">
+                                      <span
+                                        class="provider-card__logo-letter"
+                                        style={{
+                                          background: 'var(--custom-provider-color)',
+                                          width: '16px',
+                                          height: '16px',
+                                          'font-size': '9px',
+                                          'border-radius': '50%',
+                                        }}
+                                      >
+                                        {letter}
+                                      </span>
+                                    </span>
+                                  );
+                                }
                                 return (
                                   <Show when={provId}>
                                     {(pid) => (
@@ -352,6 +414,7 @@ const Routing: Component = () => {
             tierId={tierId()}
             models={models() ?? []}
             tiers={tiers() ?? []}
+            customProviders={customProviders() ?? []}
             onSelect={handleOverride}
             onClose={() => setDropdownTier(null)}
           />
@@ -362,6 +425,7 @@ const Routing: Component = () => {
         <ProviderSelectModal
           agentName={agentName()}
           providers={connectedProviders() ?? []}
+          customProviders={customProviders() ?? []}
           onClose={() => setShowProviderModal(false)}
           onUpdate={handleProviderUpdate}
         />

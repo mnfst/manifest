@@ -17,8 +17,10 @@ vi.mock("@solidjs/meta", () => ({
 }));
 
 const mockGetMessages = vi.fn();
+const mockGetCustomProviders = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
+  getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
 }));
 
 vi.mock("../../src/services/sse.js", () => ({
@@ -88,6 +90,7 @@ describe("MessageLog", () => {
     localStorage.clear();
     mockAgentName = "test-agent";
     mockIsLocalMode = false;
+    mockGetCustomProviders.mockResolvedValue([]);
   });
 
   it("renders Messages heading", () => {
@@ -462,6 +465,109 @@ describe("MessageLog", () => {
       await vi.waitFor(() => {
         expect(container.textContent).toContain("No messages recorded");
       });
+    });
+  });
+
+  describe("custom provider models", () => {
+    const customMessagesData = {
+      items: [
+        { id: "msg-cp1", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "custom:abc-123/my-llama", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok", cache_read_tokens: null, cache_creation_tokens: null, duration_ms: 800 },
+      ],
+      next_cursor: null,
+      total_count: 1,
+      models: ["custom:abc-123/my-llama"],
+    };
+
+    it("renders custom provider icon letter in message rows", async () => {
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetMessages.mockResolvedValue(customMessagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const letter = container.querySelector(".provider-card__logo-letter");
+        expect(letter).not.toBeNull();
+        expect(letter!.textContent).toBe("G");
+      });
+    });
+
+    it("strips custom prefix from model name display", async () => {
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetMessages.mockResolvedValue(customMessagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("my-llama");
+        expect(container.textContent).not.toContain("custom:abc-123/");
+      });
+    });
+
+    it("falls back to model prefix when custom provider not found", async () => {
+      mockGetCustomProviders.mockResolvedValue([]);
+      mockGetMessages.mockResolvedValue(customMessagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("my-llama");
+      });
+    });
+  });
+
+  describe("clear filters", () => {
+    it("clears all filters when clear button is clicked", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const selects = container.querySelectorAll('[data-testid="select"]');
+        expect(selects.length).toBeGreaterThanOrEqual(2);
+      });
+
+      // Set a filter
+      const selects = container.querySelectorAll('[data-testid="select"]');
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: ["gpt-4o"] });
+      await fireEvent.change(selects[0], { target: { value: "error" } });
+
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No messages match your filters");
+      });
+
+      // Click clear filters
+      const clearBtn = container.querySelector(".message-log__clear-btn");
+      if (clearBtn) {
+        mockGetMessages.mockResolvedValue(messagesData);
+        fireEvent.click(clearBtn);
+        await vi.waitFor(() => {
+          expect(container.textContent).toContain("msg-1234");
+        });
+      }
+    });
+  });
+
+  it("renders meta description tag", () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    render(() => <MessageLog />);
+    // Meta is mocked as null, just ensure it renders without error
+    expect(screen.getByText("Messages")).toBeDefined();
+  });
+
+  it("renders routing tier badge when present", async () => {
+    const dataWithTier = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], routing_tier: "simple" },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithTier);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".tier-badge");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toBe("simple");
+    });
+  });
+
+  it("renders setup modal", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="setup-modal"]')).not.toBeNull();
     });
   });
 });

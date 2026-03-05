@@ -121,12 +121,10 @@ describe('isEncrypted', () => {
 
   it('returns false when Buffer.from throws (catch branch)', () => {
     const originalFrom = Buffer.from.bind(Buffer);
-    const mockFrom = jest.fn().mockImplementation(
-      (value: unknown, encoding?: string) => {
-        if (encoding === 'base64') throw new Error('mocked');
-        return originalFrom(value as string, encoding as BufferEncoding);
-      },
-    );
+    const mockFrom = jest.fn().mockImplementation((value: unknown, encoding?: string) => {
+      if (encoding === 'base64') throw new Error('mocked');
+      return originalFrom(value as string, encoding as BufferEncoding);
+    });
     Buffer.from = mockFrom as unknown as typeof Buffer.from;
 
     try {

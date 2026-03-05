@@ -37,34 +37,36 @@ describe('OtlpDecoderService', () => {
     });
 
     it('throws UnsupportedMediaTypeException for unsupported content type', () => {
-      expect(() => service.decodeTraces('text/plain', {})).toThrow(
+      expect(() => service.decodeTraces('text/plain', {})).toThrow(UnsupportedMediaTypeException);
+    });
+
+    it('throws UnsupportedMediaTypeException for empty protobuf body', () => {
+      expect(() => service.decodeTraces('application/x-protobuf', {}, Buffer.alloc(0))).toThrow(
         UnsupportedMediaTypeException,
       );
     });
 
-    it('throws UnsupportedMediaTypeException for empty protobuf body', () => {
-      expect(() =>
-        service.decodeTraces('application/x-protobuf', {}, Buffer.alloc(0)),
-      ).toThrow(UnsupportedMediaTypeException);
-    });
-
     it('throws UnsupportedMediaTypeException when rawBody is undefined for protobuf', () => {
-      expect(() =>
-        service.decodeTraces('application/x-protobuf', {}, undefined),
-      ).toThrow(UnsupportedMediaTypeException);
+      expect(() => service.decodeTraces('application/x-protobuf', {}, undefined)).toThrow(
+        UnsupportedMediaTypeException,
+      );
     });
 
     it('decodes a valid protobuf body', () => {
       const { root } = protobuf.parse(OTLP_PROTO_SCHEMA);
       const TraceType = root.lookupType('ExportTraceServiceRequest');
       const payload = {
-        resourceSpans: [{
-          resource: { attributes: [] },
-          scopeSpans: [{
-            scope: { name: 'test-scope' },
-            spans: [],
-          }],
-        }],
+        resourceSpans: [
+          {
+            resource: { attributes: [] },
+            scopeSpans: [
+              {
+                scope: { name: 'test-scope' },
+                spans: [],
+              },
+            ],
+          },
+        ],
       };
       const errMsg = TraceType.verify(payload);
       expect(errMsg).toBeNull();
@@ -86,9 +88,7 @@ describe('OtlpDecoderService', () => {
     });
 
     it('throws for unsupported content type', () => {
-      expect(() => service.decodeMetrics('text/xml', {})).toThrow(
-        UnsupportedMediaTypeException,
-      );
+      expect(() => service.decodeMetrics('text/xml', {})).toThrow(UnsupportedMediaTypeException);
     });
   });
 

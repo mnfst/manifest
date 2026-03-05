@@ -33,9 +33,7 @@ describe('Tenant entity', () => {
 
   describe('TypeORM relation callbacks', () => {
     it('OneToMany callback resolves to Agent with inverse side', () => {
-      const relations = getMetadataArgsStorage().relations.filter(
-        (r) => r.target === Tenant,
-      );
+      const relations = getMetadataArgsStorage().relations.filter((r) => r.target === Tenant);
       const oneToMany = relations.find((r) => r.relationType === 'one-to-many');
       expect(oneToMany).toBeDefined();
       const resolved = (oneToMany!.type as () => unknown)();

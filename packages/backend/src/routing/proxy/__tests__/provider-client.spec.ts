@@ -558,6 +558,99 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Custom endpoint', () => {
+    it('uses custom endpoint instead of resolving by provider name', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const customEndpoint = {
+        baseUrl: 'https://api.groq.com/openai/v1',
+        buildHeaders: (key: string) => ({
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        }),
+        buildPath: () => '/v1/chat/completions',
+        format: 'openai' as const,
+      };
+
+      const result = await client.forward(
+        'custom:abc-123',
+        'gsk_test',
+        'llama-3.1-70b',
+        body,
+        false,
+        undefined,
+        undefined,
+        customEndpoint,
+      );
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.groq.com/openai/v1/v1/chat/completions');
+      expect(result.isGoogle).toBe(false);
+      expect(result.isAnthropic).toBe(false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('llama-3.1-70b');
+      expect(sentBody.stream).toBe(false);
+    });
+
+    it('uses custom endpoint with streaming', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const customEndpoint = {
+        baseUrl: 'http://localhost:8000',
+        buildHeaders: (key: string) => ({
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        }),
+        buildPath: () => '/v1/chat/completions',
+        format: 'openai' as const,
+      };
+
+      await client.forward(
+        'custom:uuid',
+        '',
+        'my-model',
+        body,
+        true,
+        undefined,
+        undefined,
+        customEndpoint,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+    });
+
+    it('merges extraHeaders with custom endpoint headers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const customEndpoint = {
+        baseUrl: 'http://localhost:8000',
+        buildHeaders: (key: string) => ({
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        }),
+        buildPath: () => '/v1/chat/completions',
+        format: 'openai' as const,
+      };
+
+      await client.forward(
+        'custom:uuid',
+        'test-key',
+        'model',
+        body,
+        false,
+        undefined,
+        { 'X-Custom': 'value' },
+        customEndpoint,
+      );
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.headers['Authorization']).toBe('Bearer test-key');
+      expect(fetchOptions.headers['X-Custom']).toBe('value');
+    });
+  });
+
   describe('Error handling', () => {
     it('throws for unknown provider', async () => {
       await expect(client.forward('unknown-provider', 'key', 'model', body, false)).rejects.toThrow(

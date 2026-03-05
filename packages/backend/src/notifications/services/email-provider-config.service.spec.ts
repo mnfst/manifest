@@ -45,13 +45,17 @@ describe('EmailProviderConfigService', () => {
     });
 
     it('returns public config with keyPrefix', async () => {
-      const ds = createMockDataSource([[{
-        provider: 'resend',
-        domain: 'example.com',
-        api_key_encrypted: 're_abcdef123456',
-        is_active: 1,
-        notification_email: 'alerts@test.com',
-      }]]);
+      const ds = createMockDataSource([
+        [
+          {
+            provider: 'resend',
+            domain: 'example.com',
+            api_key_encrypted: 're_abcdef123456',
+            is_active: 1,
+            notification_email: 'alerts@test.com',
+          },
+        ],
+      ]);
       const service = new EmailProviderConfigService(ds);
       const result = await service.getConfig('user-1');
       expect(result).toEqual({
@@ -64,13 +68,17 @@ describe('EmailProviderConfigService', () => {
     });
 
     it('returns null domain and email when not set', async () => {
-      const ds = createMockDataSource([[{
-        provider: 'resend',
-        domain: undefined,
-        api_key_encrypted: 're_testkey1234',
-        is_active: 1,
-        notification_email: undefined,
-      }]]);
+      const ds = createMockDataSource([
+        [
+          {
+            provider: 'resend',
+            domain: undefined,
+            api_key_encrypted: 're_testkey1234',
+            is_active: 1,
+            notification_email: undefined,
+          },
+        ],
+      ]);
       const service = new EmailProviderConfigService(ds);
       const result = await service.getConfig('user-1');
       expect(result!.domain).toBeNull();
@@ -132,9 +140,9 @@ describe('EmailProviderConfigService', () => {
         [{ id: 'existing-id', api_key_encrypted: 'short' }], // existing with short key
       ]);
       const service = new EmailProviderConfigService(ds);
-      await expect(
-        service.upsert('user-1', { provider: 'mailgun' }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.upsert('user-1', { provider: 'mailgun' })).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws when no existing config and no API key', async () => {
@@ -142,9 +150,9 @@ describe('EmailProviderConfigService', () => {
         [], // no existing
       ]);
       const service = new EmailProviderConfigService(ds);
-      await expect(
-        service.upsert('user-1', { provider: 'resend' }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.upsert('user-1', { provider: 'resend' })).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws on invalid provider config', async () => {
@@ -199,12 +207,16 @@ describe('EmailProviderConfigService', () => {
     });
 
     it('returns full config with API key', async () => {
-      const ds = createMockDataSource([[{
-        provider: 'resend',
-        api_key_encrypted: 're_fullkey12345678',
-        domain: 'example.com',
-        notification_email: 'alerts@test.com',
-      }]]);
+      const ds = createMockDataSource([
+        [
+          {
+            provider: 'resend',
+            api_key_encrypted: 're_fullkey12345678',
+            domain: 'example.com',
+            notification_email: 'alerts@test.com',
+          },
+        ],
+      ]);
       const service = new EmailProviderConfigService(ds);
       const result = await service.getFullConfig('user-1');
       expect(result).toEqual({
@@ -216,12 +228,16 @@ describe('EmailProviderConfigService', () => {
     });
 
     it('returns null domain and email when not set', async () => {
-      const ds = createMockDataSource([[{
-        provider: 'resend',
-        api_key_encrypted: 're_fullkey12345678',
-        domain: undefined,
-        notification_email: undefined,
-      }]]);
+      const ds = createMockDataSource([
+        [
+          {
+            provider: 'resend',
+            api_key_encrypted: 're_fullkey12345678',
+            domain: undefined,
+            notification_email: undefined,
+          },
+        ],
+      ]);
       const service = new EmailProviderConfigService(ds);
       const result = await service.getFullConfig('user-1');
       expect(result!.domain).toBeNull();
@@ -276,12 +292,16 @@ describe('EmailProviderConfigService', () => {
     });
 
     it('calls testConfig with saved credentials', async () => {
-      const ds = createMockDataSource([[{
-        provider: 'resend',
-        api_key_encrypted: 're_savedkey12345678',
-        domain: null,
-        notification_email: null,
-      }]]);
+      const ds = createMockDataSource([
+        [
+          {
+            provider: 'resend',
+            api_key_encrypted: 're_savedkey12345678',
+            domain: null,
+            notification_email: null,
+          },
+        ],
+      ]);
       const service = new EmailProviderConfigService(ds);
       const result = await service.testSavedConfig('user-1', 'test@test.com');
       expect(result).toEqual({ success: true });

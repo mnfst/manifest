@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PROVIDER_ENDPOINTS, resolveEndpointKey } from './provider-endpoints';
+import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './provider-endpoints';
 import { toGoogleRequest, fromGoogleResponse, transformGoogleStreamChunk } from './google-adapter';
 import {
   toAnthropicRequest,
@@ -74,13 +74,22 @@ export class ProviderClient {
     stream: boolean,
     signal?: AbortSignal,
     extraHeaders?: Record<string, string>,
+    customEndpoint?: ProviderEndpoint,
   ): Promise<ForwardResult> {
-    const endpointKey = resolveEndpointKey(provider);
-    if (!endpointKey) {
-      throw new Error(`No endpoint configured for provider: ${provider}`);
-    }
+    let endpoint: ProviderEndpoint;
+    let endpointKey: string;
 
-    const endpoint = PROVIDER_ENDPOINTS[endpointKey];
+    if (customEndpoint) {
+      endpoint = customEndpoint;
+      endpointKey = 'custom';
+    } else {
+      const resolved = resolveEndpointKey(provider);
+      if (!resolved) {
+        throw new Error(`No endpoint configured for provider: ${provider}`);
+      }
+      endpointKey = resolved;
+      endpoint = PROVIDER_ENDPOINTS[endpointKey];
+    }
     const isGoogle = endpoint.format === 'google';
     const isAnthropic = endpoint.format === 'anthropic';
 

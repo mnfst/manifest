@@ -42,9 +42,10 @@ describe('TelemetryService', () => {
   });
 
   it('accepts valid events', async () => {
-    const result = await service.ingest([
-      makeEvent({ input_tokens: 100, output_tokens: 50 }),
-    ], 'test-user');
+    const result = await service.ingest(
+      [makeEvent({ input_tokens: 100, output_tokens: 50 })],
+      'test-user',
+    );
 
     expect(result.accepted).toBe(1);
     expect(result.rejected).toBe(0);
@@ -70,9 +71,7 @@ describe('TelemetryService', () => {
   });
 
   it('handles mixed success and failure', async () => {
-    mockTurnInsert
-      .mockResolvedValueOnce({})
-      .mockRejectedValueOnce(new Error('DB error'));
+    mockTurnInsert.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error('DB error'));
 
     const result = await service.ingest([makeEvent(), makeEvent()], 'test-user');
 
@@ -89,11 +88,7 @@ describe('TelemetryService', () => {
   });
 
   it('normalizes various timestamp formats to ISO-8601', async () => {
-    const formats = [
-      '2026-02-16 10:00:00',
-      '2026-02-16T10:00:00Z',
-      '2026-02-16T10:00:00+00:00',
-    ];
+    const formats = ['2026-02-16 10:00:00', '2026-02-16T10:00:00Z', '2026-02-16T10:00:00+00:00'];
 
     for (const ts of formats) {
       mockTurnInsert.mockClear();
@@ -147,13 +142,16 @@ describe('TelemetryService', () => {
       output_price_per_token: 0.000075,
     });
 
-    const result = await service.ingest([
-      makeEvent({
-        model: 'claude-opus-4-6',
-        input_tokens: 1000,
-        output_tokens: 500,
-      }),
-    ], 'test-user');
+    const result = await service.ingest(
+      [
+        makeEvent({
+          model: 'claude-opus-4-6',
+          input_tokens: 1000,
+          output_tokens: 500,
+        }),
+      ],
+      'test-user',
+    );
 
     expect(result.accepted).toBe(1);
     expect(mockPricingGetByModel).toHaveBeenCalledWith('claude-opus-4-6');

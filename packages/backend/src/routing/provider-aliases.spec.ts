@@ -71,4 +71,18 @@ describe('expandProviderNames', () => {
     const result = expandProviderNames([]);
     expect(result.size).toBe(0);
   });
+
+  it('should not alias-expand custom: prefixed providers', () => {
+    const result = expandProviderNames(['custom:cp-uuid-123']);
+    expect(result.has('custom:cp-uuid-123')).toBe(true);
+    // Should only contain the exact key — no alias expansion
+    expect(result.size).toBe(1);
+  });
+
+  it('should handle custom: providers mixed with regular providers', () => {
+    const result = expandProviderNames(['custom:cp-1', 'gemini']);
+    expect(result.has('custom:cp-1')).toBe(true);
+    expect(result.has('gemini')).toBe(true);
+    expect(result.has('google')).toBe(true);
+  });
 });

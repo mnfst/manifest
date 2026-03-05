@@ -19,8 +19,8 @@ import { createClientPagination } from '../services/pagination.js';
 interface ModelPrice {
   model_name: string;
   provider: string;
-  input_price_per_million: number;
-  output_price_per_million: number;
+  input_price_per_million: number | null;
+  output_price_per_million: number | null;
 }
 
 interface ModelPricesData {
@@ -31,7 +31,8 @@ interface ModelPricesData {
 type SortKey = 'model_name' | 'provider' | 'input_price_per_million' | 'output_price_per_million';
 type SortDir = 'asc' | 'desc';
 
-function formatPrice(price: number): string {
+function formatPrice(price: number | null): string {
+  if (price == null) return '\u2014';
   if (price < 0.01) return `$${price.toFixed(4)}`;
   if (price < 1) return `$${price.toFixed(3)}`;
   return `$${price.toFixed(2)}`;
@@ -91,6 +92,10 @@ const ModelPrices: Component = () => {
       if (typeof av === 'string' && typeof bv === 'string') {
         return dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
       }
+      // Sort nulls to the bottom regardless of sort direction
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
       return dir === 'asc' ? (av as number) - (bv as number) : (bv as number) - (av as number);
     });
   });

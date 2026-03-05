@@ -132,6 +132,45 @@ describe("ModelPrices", () => {
     expect(container.textContent).toContain("gpt-4o");
   });
 
+  it("sorts null prices to the bottom", async () => {
+    const dataWithNulls = {
+      models: [
+        { model_name: "free-model", provider: "OpenAI", input_price_per_million: 0, output_price_per_million: 0 },
+        { model_name: "null-model", provider: "Custom", input_price_per_million: null, output_price_per_million: null },
+        { model_name: "paid-model", provider: "Anthropic", input_price_per_million: 3, output_price_per_million: 15 },
+      ],
+      lastSyncedAt: "2026-02-18T10:00:00Z",
+    };
+    mockGetModelPrices.mockResolvedValue(dataWithNulls);
+    const { container } = render(() => <ModelPrices />);
+    await vi.waitFor(() => {
+      const rows = container.querySelectorAll("tbody tr");
+      expect(rows.length).toBe(3);
+    });
+    const headers = container.querySelectorAll(".data-table__sortable");
+    fireEvent.click(headers[2]); // input price column
+    await vi.waitFor(() => {
+      const rows = container.querySelectorAll("tbody tr");
+      const lastRow = rows[rows.length - 1];
+      expect(lastRow.textContent).toContain("null-model");
+    });
+  });
+
+  it("displays dash for null prices", async () => {
+    const dataWithNulls = {
+      models: [
+        { model_name: "null-model", provider: "Custom", input_price_per_million: null, output_price_per_million: null },
+      ],
+      lastSyncedAt: null,
+    };
+    mockGetModelPrices.mockResolvedValue(dataWithNulls);
+    const { container } = render(() => <ModelPrices />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("null-model");
+      expect(container.textContent).toContain("\u2014");
+    });
+  });
+
   it("shows last updated time", async () => {
     const { container } = render(() => <ModelPrices />);
     await vi.waitFor(() => {

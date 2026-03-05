@@ -8,7 +8,7 @@ import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import SingleTokenChart from '../components/SingleTokenChart.jsx';
 import TokenChart from '../components/TokenChart.jsx';
-import { getOverview } from '../services/api.js';
+import { getOverview, getCustomProviders, type CustomProviderData } from '../services/api.js';
 import {
   formatCost,
   formatErrorMessage,
@@ -16,7 +16,11 @@ import {
   formatStatus,
   formatTime,
 } from '../services/formatters.js';
-import { inferProviderFromModel, inferProviderName } from '../services/routing-utils.js';
+import {
+  inferProviderFromModel,
+  inferProviderName,
+  stripCustomPrefix,
+} from '../services/routing-utils.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { isLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
@@ -87,6 +91,18 @@ const Overview: Component = () => {
   const [setupCompleted, setSetupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
+  const [customProviders] = createResource(
+    () => params.agentName,
+    (name) => getCustomProviders(decodeURIComponent(name)),
+  );
+
+  const customProviderName = (model: string): string | undefined => {
+    const match = model.match(/^custom:([^/]+)\//);
+    if (!match) return undefined;
+    const id = match[1];
+    return customProviders()?.find((cp: CustomProviderData) => cp.id === id)?.name;
+  };
+
   const [data, { refetch }] = createResource(
     () => ({ range: range(), agentName: params.agentName, _ping: pingCount() }),
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
@@ -519,15 +535,38 @@ const Overview: Component = () => {
                               </td>
                               <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                                 <span style="display: inline-flex; align-items: center; gap: 4px;">
-                                  {item.model && inferProviderFromModel(item.model) && (
+                                  {item.model && inferProviderFromModel(item.model) === 'custom' ? (
+                                    (() => {
+                                      const provName = customProviderName(item.model!);
+                                      const letter = (provName ?? stripCustomPrefix(item.model!))
+                                        .charAt(0)
+                                        .toUpperCase();
+                                      return (
+                                        <span
+                                          class="provider-card__logo-letter"
+                                          title={provName}
+                                          style={{
+                                            background: 'var(--custom-provider-color)',
+                                            width: '16px',
+                                            height: '16px',
+                                            'font-size': '9px',
+                                            'flex-shrink': '0',
+                                            'border-radius': '50%',
+                                          }}
+                                        >
+                                          {letter}
+                                        </span>
+                                      );
+                                    })()
+                                  ) : item.model && inferProviderFromModel(item.model) ? (
                                     <span
                                       title={inferProviderName(item.model)}
                                       style="display: inline-flex; flex-shrink: 0;"
                                     >
                                       {providerIcon(inferProviderFromModel(item.model)!, 14)}
                                     </span>
-                                  )}
-                                  {item.model ?? '\u2014'}
+                                  ) : null}
+                                  {item.model ? stripCustomPrefix(item.model) : '\u2014'}
                                   {item.routing_tier && (
                                     <span class={`tier-badge tier-badge--${item.routing_tier}`}>
                                       {item.routing_tier}
@@ -600,15 +639,38 @@ const Overview: Component = () => {
                             <tr>
                               <td style="font-family: var(--font-mono); font-size: var(--font-size-sm);">
                                 <span style="display: inline-flex; align-items: center; gap: 4px;">
-                                  {row.model && inferProviderFromModel(row.model) && (
+                                  {row.model && inferProviderFromModel(row.model) === 'custom' ? (
+                                    (() => {
+                                      const provName = customProviderName(row.model);
+                                      const letter = (provName ?? stripCustomPrefix(row.model))
+                                        .charAt(0)
+                                        .toUpperCase();
+                                      return (
+                                        <span
+                                          class="provider-card__logo-letter"
+                                          title={provName}
+                                          style={{
+                                            background: 'var(--custom-provider-color)',
+                                            width: '16px',
+                                            height: '16px',
+                                            'font-size': '9px',
+                                            'flex-shrink': '0',
+                                            'border-radius': '50%',
+                                          }}
+                                        >
+                                          {letter}
+                                        </span>
+                                      );
+                                    })()
+                                  ) : row.model && inferProviderFromModel(row.model) ? (
                                     <span
                                       title={inferProviderName(row.model)}
                                       style="display: inline-flex; flex-shrink: 0;"
                                     >
                                       {providerIcon(inferProviderFromModel(row.model)!, 14)}
                                     </span>
-                                  )}
-                                  {row.model}
+                                  ) : null}
+                                  {row.model ? stripCustomPrefix(row.model) : row.model}
                                 </span>
                               </td>
                               <td>{formatNumber(row.tokens)}</td>

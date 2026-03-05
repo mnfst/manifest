@@ -27,10 +27,10 @@ describe('NotificationRulesService', () => {
 
       const result = await service.listRules('user-1', 'my-agent');
       expect(result).toEqual(rules);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('FROM notification_rules'),
-        ['user-1', 'my-agent'],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('FROM notification_rules'), [
+        'user-1',
+        'my-agent',
+      ]);
     });
   });
 
@@ -81,7 +81,9 @@ describe('NotificationRulesService', () => {
       mockQuery
         .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
         .mockResolvedValueOnce(undefined) // UPDATE
-        .mockResolvedValueOnce([{ id: 'r1', metric_type: 'cost', threshold: 500, period: 'week', is_active: false }]); // SELECT
+        .mockResolvedValueOnce([
+          { id: 'r1', metric_type: 'cost', threshold: 500, period: 'week', is_active: false },
+        ]); // SELECT
 
       const result = await service.updateRule('user-1', 'r1', {
         metric_type: 'cost',
@@ -127,9 +129,9 @@ describe('NotificationRulesService', () => {
     it('throws NotFoundException when rule not owned', async () => {
       mockQuery.mockResolvedValueOnce([]);
 
-      await expect(
-        service.updateRule('user-1', 'r-missing', { threshold: 999 }),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.updateRule('user-1', 'r-missing', { threshold: 999 })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -152,7 +154,11 @@ describe('NotificationRulesService', () => {
       mockQuery.mockResolvedValueOnce([{ total: 12345 }]);
 
       const result = await service.getConsumption(
-        'tenant-1', 'my-agent', 'tokens', '2026-02-17 00:00:00', '2026-02-17 14:00:00',
+        'tenant-1',
+        'my-agent',
+        'tokens',
+        '2026-02-17 00:00:00',
+        '2026-02-17 14:00:00',
       );
       expect(result).toBe(12345);
     });
@@ -161,7 +167,11 @@ describe('NotificationRulesService', () => {
       mockQuery.mockResolvedValueOnce([{ total: 3.45 }]);
 
       const result = await service.getConsumption(
-        'tenant-1', 'my-agent', 'cost', '2026-02-01 00:00:00', '2026-02-17 14:00:00',
+        'tenant-1',
+        'my-agent',
+        'cost',
+        '2026-02-01 00:00:00',
+        '2026-02-17 14:00:00',
       );
       expect(result).toBe(3.45);
     });
@@ -170,7 +180,11 @@ describe('NotificationRulesService', () => {
       mockQuery.mockResolvedValueOnce([{ total: 999 }]);
 
       await service.getConsumption(
-        'tenant-1', 'my-agent', 'tokens', '2026-02-17 00:00:00', '2026-02-17 14:00:00',
+        'tenant-1',
+        'my-agent',
+        'tokens',
+        '2026-02-17 00:00:00',
+        '2026-02-17 14:00:00',
       );
 
       const sql = mockQuery.mock.calls[0][0] as string;
@@ -182,7 +196,11 @@ describe('NotificationRulesService', () => {
       mockQuery.mockResolvedValueOnce([{ total: 1.23 }]);
 
       await service.getConsumption(
-        'tenant-1', 'my-agent', 'cost', '2026-02-01 00:00:00', '2026-02-17 14:00:00',
+        'tenant-1',
+        'my-agent',
+        'cost',
+        '2026-02-01 00:00:00',
+        '2026-02-17 14:00:00',
       );
 
       const sql = mockQuery.mock.calls[0][0] as string;
@@ -194,7 +212,11 @@ describe('NotificationRulesService', () => {
       mockQuery.mockResolvedValueOnce([{ total: 0 }]);
 
       await service.getConsumption(
-        'tenant-1', 'my-agent', 'tokens', '2026-02-17 00:00:00', '2026-02-17 14:00:00',
+        'tenant-1',
+        'my-agent',
+        'tokens',
+        '2026-02-17 00:00:00',
+        '2026-02-17 14:00:00',
       );
 
       const sql = mockQuery.mock.calls[0][0] as string;
@@ -202,7 +224,10 @@ describe('NotificationRulesService', () => {
       expect(sql).toContain('$1');
       expect(sql).toContain('$4');
       expect(params).toEqual([
-        'tenant-1', 'my-agent', '2026-02-17 00:00:00', '2026-02-17 14:00:00',
+        'tenant-1',
+        'my-agent',
+        '2026-02-17 00:00:00',
+        '2026-02-17 14:00:00',
       ]);
     });
 
@@ -210,7 +235,11 @@ describe('NotificationRulesService', () => {
       mockQuery.mockResolvedValueOnce([{ total: null }]);
 
       const result = await service.getConsumption(
-        'tenant-1', 'my-agent', 'tokens', '2026-02-17 00:00:00', '2026-02-17 14:00:00',
+        'tenant-1',
+        'my-agent',
+        'tokens',
+        '2026-02-17 00:00:00',
+        '2026-02-17 14:00:00',
       );
       expect(result).toBe(0);
     });
@@ -219,7 +248,11 @@ describe('NotificationRulesService', () => {
       mockQuery.mockResolvedValueOnce([]);
 
       const result = await service.getConsumption(
-        'tenant-1', 'my-agent', 'tokens', '2026-02-17 00:00:00', '2026-02-17 14:00:00',
+        'tenant-1',
+        'my-agent',
+        'tokens',
+        '2026-02-17 00:00:00',
+        '2026-02-17 14:00:00',
       );
       expect(result).toBe(0);
     });
@@ -232,10 +265,11 @@ describe('NotificationRulesService', () => {
 
       const result = await service.getAllActiveRules();
       expect(result).toEqual(rules);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('is_active = $1'),
-        [true, 'notify', 'both'],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('is_active = $1'), [
+        true,
+        'notify',
+        'both',
+      ]);
     });
 
     it('uses IN clause to include both action', async () => {
@@ -253,10 +287,13 @@ describe('NotificationRulesService', () => {
 
       const result = await service.getActiveBlockRules('tenant-1', 'my-agent');
       expect(result).toEqual(rules);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('action IN ($4, $5)'),
-        ['tenant-1', 'my-agent', true, 'block', 'both'],
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('action IN ($4, $5)'), [
+        'tenant-1',
+        'my-agent',
+        true,
+        'block',
+        'both',
+      ]);
     });
 
     it('filters by tenant_id and agent_name', async () => {
@@ -496,7 +533,11 @@ describe('NotificationRulesService (sql.js / local mode)', () => {
     mockQuery.mockResolvedValueOnce([{ total: 12345 }]);
 
     await service.getConsumption(
-      'tenant-1', 'my-agent', 'tokens', '2026-02-17 00:00:00', '2026-02-17 14:00:00',
+      'tenant-1',
+      'my-agent',
+      'tokens',
+      '2026-02-17 00:00:00',
+      '2026-02-17 14:00:00',
     );
 
     const sql = mockQuery.mock.calls[0][0] as string;
@@ -522,18 +563,22 @@ describe('NotificationRulesService (sql.js / local mode)', () => {
   it('uses integer 1 for is_active in getAllActiveRules for sql.js', async () => {
     mockQuery.mockResolvedValueOnce([]);
     await service.getAllActiveRules();
-    expect(mockQuery).toHaveBeenCalledWith(
-      expect.stringContaining('is_active'),
-      [1, 'notify', 'both'],
-    );
+    expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('is_active'), [
+      1,
+      'notify',
+      'both',
+    ]);
   });
 
   it('uses integer 1 for is_active in getActiveBlockRules for sql.js', async () => {
     mockQuery.mockResolvedValueOnce([]);
     await service.getActiveBlockRules('tenant-1', 'my-agent');
-    expect(mockQuery).toHaveBeenCalledWith(
-      expect.stringContaining('action IN'),
-      ['tenant-1', 'my-agent', 1, 'block', 'both'],
-    );
+    expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('action IN'), [
+      'tenant-1',
+      'my-agent',
+      1,
+      'block',
+      'both',
+    ]);
   });
 });

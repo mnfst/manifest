@@ -17,11 +17,7 @@ function makeMockCache() {
   };
 }
 
-function ollamaModel(
-  name: string,
-  family?: string,
-  parameterSize?: string,
-) {
+function ollamaModel(name: string, family?: string, parameterSize?: string) {
   return {
     name,
     details: {
@@ -61,10 +57,7 @@ describe('OllamaSyncService', () => {
   beforeEach(() => {
     mockRepo = makeMockRepo();
     mockCache = makeMockCache();
-    service = new OllamaSyncService(
-      mockRepo as never,
-      mockCache as never,
-    );
+    service = new OllamaSyncService(mockRepo as never, mockCache as never);
   });
 
   afterEach(() => {
@@ -75,9 +68,7 @@ describe('OllamaSyncService', () => {
 
   describe('network errors', () => {
     it('should return count 0 when Ollama is unreachable', async () => {
-      global.fetch = mockFetchFailure(
-        new Error('connect ECONNREFUSED 127.0.0.1:11434'),
-      );
+      global.fetch = mockFetchFailure(new Error('connect ECONNREFUSED 127.0.0.1:11434'));
 
       const result = await service.sync();
 
@@ -165,10 +156,7 @@ describe('OllamaSyncService', () => {
 
   describe('successful sync', () => {
     it('should upsert each model and reload cache', async () => {
-      const models = [
-        ollamaModel('llama3.2', 'llama'),
-        ollamaModel('codellama:latest', 'llama'),
-      ];
+      const models = [ollamaModel('llama3.2', 'llama'), ollamaModel('codellama:latest', 'llama')];
       global.fetch = mockFetchSuccess(models);
 
       const result = await service.sync();
@@ -179,9 +167,7 @@ describe('OllamaSyncService', () => {
     });
 
     it('should strip :latest tag from model names', async () => {
-      global.fetch = mockFetchSuccess([
-        ollamaModel('mistral:latest', 'mistral'),
-      ]);
+      global.fetch = mockFetchSuccess([ollamaModel('mistral:latest', 'mistral')]);
 
       await service.sync();
 
@@ -190,9 +176,7 @@ describe('OllamaSyncService', () => {
     });
 
     it('should not strip non-latest tags', async () => {
-      global.fetch = mockFetchSuccess([
-        ollamaModel('llama3.2:7b-instruct', 'llama'),
-      ]);
+      global.fetch = mockFetchSuccess([ollamaModel('llama3.2:7b-instruct', 'llama')]);
 
       await service.sync();
 
@@ -224,10 +208,7 @@ describe('OllamaSyncService', () => {
 
       await service.sync();
 
-      expect(mockRepo.upsert).toHaveBeenCalledWith(
-        expect.any(Object),
-        ['model_name'],
-      );
+      expect(mockRepo.upsert).toHaveBeenCalledWith(expect.any(Object), ['model_name']);
     });
 
     it('should set updated_at to a recent Date', async () => {
@@ -255,17 +236,14 @@ describe('OllamaSyncService', () => {
       'smallthinker',
     ];
 
-    it.each(reasoningModels)(
-      'should mark %s as reasoning',
-      async (name) => {
-        global.fetch = mockFetchSuccess([ollamaModel(name)]);
+    it.each(reasoningModels)('should mark %s as reasoning', async (name) => {
+      global.fetch = mockFetchSuccess([ollamaModel(name)]);
 
-        await service.sync();
+      await service.sync();
 
-        const arg = mockRepo.upsert.mock.calls[0][0] as Partial<ModelPricing>;
-        expect(arg.capability_reasoning).toBe(true);
-      },
-    );
+      const arg = mockRepo.upsert.mock.calls[0][0] as Partial<ModelPricing>;
+      expect(arg.capability_reasoning).toBe(true);
+    });
 
     it('should not mark non-reasoning models as reasoning', async () => {
       global.fetch = mockFetchSuccess([ollamaModel('llama3.2', 'llama')]);
@@ -291,17 +269,14 @@ describe('OllamaSyncService', () => {
       'qwen2.5-coder',
     ];
 
-    it.each(explicitCodeModels)(
-      'should mark %s as code-capable',
-      async (name) => {
-        global.fetch = mockFetchSuccess([ollamaModel(name)]);
+    it.each(explicitCodeModels)('should mark %s as code-capable', async (name) => {
+      global.fetch = mockFetchSuccess([ollamaModel(name)]);
 
-        await service.sync();
+      await service.sync();
 
-        const arg = mockRepo.upsert.mock.calls[0][0] as Partial<ModelPricing>;
-        expect(arg.capability_code).toBe(true);
-      },
-    );
+      const arg = mockRepo.upsert.mock.calls[0][0] as Partial<ModelPricing>;
+      expect(arg.capability_code).toBe(true);
+    });
 
     const generalFamilies = [
       ['llama3.2', 'llama'],
@@ -328,9 +303,7 @@ describe('OllamaSyncService', () => {
     );
 
     it('should not mark unknown family as code-capable', async () => {
-      global.fetch = mockFetchSuccess([
-        ollamaModel('tiny-llm', 'unknown-family'),
-      ]);
+      global.fetch = mockFetchSuccess([ollamaModel('tiny-llm', 'unknown-family')]);
 
       await service.sync();
 
@@ -368,9 +341,7 @@ describe('OllamaSyncService', () => {
     it.each(familyContextCases)(
       'should set context window to %d for family %s',
       async (family, expected) => {
-        global.fetch = mockFetchSuccess([
-          ollamaModel('test-model', family),
-        ]);
+        global.fetch = mockFetchSuccess([ollamaModel('test-model', family)]);
 
         await service.sync();
 
@@ -380,9 +351,7 @@ describe('OllamaSyncService', () => {
     );
 
     it('should default to 128000 for unknown family', async () => {
-      global.fetch = mockFetchSuccess([
-        ollamaModel('exotic-model', 'exotic-family'),
-      ]);
+      global.fetch = mockFetchSuccess([ollamaModel('exotic-model', 'exotic-family')]);
 
       await service.sync();
 
@@ -391,9 +360,7 @@ describe('OllamaSyncService', () => {
     });
 
     it('should default to 128000 when family is undefined', async () => {
-      global.fetch = mockFetchSuccess([
-        { name: 'no-details-model' },
-      ]);
+      global.fetch = mockFetchSuccess([{ name: 'no-details-model' }]);
 
       await service.sync();
 
@@ -437,9 +404,7 @@ describe('OllamaSyncService', () => {
     });
 
     it('should score 1 for model with no capabilities', async () => {
-      global.fetch = mockFetchSuccess([
-        ollamaModel('orca-mini', 'unknown'),
-      ]);
+      global.fetch = mockFetchSuccess([ollamaModel('orca-mini', 'unknown')]);
 
       await service.sync();
 
@@ -468,12 +433,7 @@ describe('OllamaSyncService', () => {
       const names = mockRepo.upsert.mock.calls.map(
         (c) => (c[0] as Partial<ModelPricing>).model_name,
       );
-      expect(names).toEqual([
-        'llama3.2',
-        'deepseek-r1',
-        'codestral',
-        'phi4',
-      ]);
+      expect(names).toEqual(['llama3.2', 'deepseek-r1', 'codestral', 'phi4']);
     });
 
     it('should reload cache exactly once after all upserts', async () => {
@@ -486,10 +446,8 @@ describe('OllamaSyncService', () => {
 
       expect(mockCache.reload).toHaveBeenCalledTimes(1);
       // reload must be called after the last upsert
-      const lastUpsertOrder =
-        mockRepo.upsert.mock.invocationCallOrder[1];
-      const reloadOrder =
-        mockCache.reload.mock.invocationCallOrder[0];
+      const lastUpsertOrder = mockRepo.upsert.mock.invocationCallOrder[1];
+      const reloadOrder = mockCache.reload.mock.invocationCallOrder[0];
       expect(reloadOrder).toBeGreaterThan(lastUpsertOrder);
     });
   });

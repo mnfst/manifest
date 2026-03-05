@@ -395,14 +395,86 @@ export function resetAllTiers(agentName: string) {
 export interface AvailableModel {
   model_name: string;
   provider: string;
-  input_price_per_token: number;
-  output_price_per_token: number;
+  input_price_per_token: number | null;
+  output_price_per_token: number | null;
   context_window: number;
   capability_reasoning: boolean;
   capability_code: boolean;
   quality_score: number;
+  display_name?: string;
+  provider_display_name?: string;
 }
 
 export function getAvailableModels(agentName: string) {
   return fetchJson<AvailableModel[]>(`/routing/${encodeURIComponent(agentName)}/available-models`);
+}
+
+/* -- Routing: Custom Providers -- */
+
+export interface CustomProviderModel {
+  model_name: string;
+  input_price_per_million_tokens?: number;
+  output_price_per_million_tokens?: number;
+  context_window?: number;
+}
+
+export interface CustomProviderData {
+  id: string;
+  name: string;
+  base_url: string;
+  has_api_key: boolean;
+  models: CustomProviderModel[];
+  created_at: string;
+}
+
+export function getCustomProviders(agentName: string) {
+  return fetchJson<CustomProviderData[]>(
+    `/routing/${encodeURIComponent(agentName)}/custom-providers`,
+  );
+}
+
+export function createCustomProvider(
+  agentName: string,
+  data: {
+    name: string;
+    base_url: string;
+    apiKey?: string;
+    models: CustomProviderModel[];
+  },
+) {
+  return fetchMutate<CustomProviderData>(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/custom-providers`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    },
+  );
+}
+
+export function updateCustomProvider(
+  agentName: string,
+  id: string,
+  data: {
+    name?: string;
+    base_url?: string;
+    apiKey?: string;
+    models?: CustomProviderModel[];
+  },
+) {
+  return fetchMutate<CustomProviderData>(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/custom-providers/${encodeURIComponent(id)}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    },
+  );
+}
+
+export function deleteCustomProvider(agentName: string, id: string) {
+  return fetchMutate<{ ok: boolean }>(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/custom-providers/${encodeURIComponent(id)}`,
+    { method: 'DELETE' },
+  );
 }

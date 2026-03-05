@@ -174,18 +174,15 @@ describe('seedAgentMessages', () => {
       }
     });
 
-    it('should generate timestamps within the last 7 days', () => {
+    it('should generate timestamps within the last 7 days and never in the future', () => {
       const now = Date.now();
       const sevenDaysAgo = now - 7 * 24 * 3600000;
-      // The random offset within each hour can push timestamps up to ~58 min
-      // past the hourBase, so timestamps from hour 0 (now) can be ~1 hour
-      // into the future. Use a generous margin.
-      const margin = 3600000;
+      const margin = 3600000; // hour-level margin for 7-day boundary
 
       for (const msg of messages) {
         const ts = new Date(msg.timestamp as string).getTime();
         expect(ts).toBeGreaterThanOrEqual(sevenDaysAgo - margin);
-        expect(ts).toBeLessThanOrEqual(now + margin);
+        expect(ts).toBeLessThanOrEqual(now);
       }
     });
 

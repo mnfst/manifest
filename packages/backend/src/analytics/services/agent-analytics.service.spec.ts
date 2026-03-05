@@ -79,9 +79,7 @@ describe('AgentAnalyticsService', () => {
 
   describe('getCosts', () => {
     it('returns cost breakdown by model', async () => {
-      mockGetRawOne
-        .mockResolvedValueOnce({ total: 2.5 })
-        .mockResolvedValueOnce({ total: 2.0 });
+      mockGetRawOne.mockResolvedValueOnce({ total: 2.5 }).mockResolvedValueOnce({ total: 2.0 });
       mockGetRawMany.mockResolvedValueOnce([
         { model: 'gpt-4o', cost_usd: 1.5, input_tokens: 5000, output_tokens: 2000 },
         { model: 'claude-sonnet-4-5', cost_usd: 1.0, input_tokens: 3000, output_tokens: 1000 },
@@ -98,9 +96,7 @@ describe('AgentAnalyticsService', () => {
     });
 
     it('handles empty model breakdown', async () => {
-      mockGetRawOne
-        .mockResolvedValueOnce({ total: 0 })
-        .mockResolvedValueOnce({ total: 0 });
+      mockGetRawOne.mockResolvedValueOnce({ total: 0 }).mockResolvedValueOnce({ total: 0 });
       mockGetRawMany.mockResolvedValueOnce([]);
 
       const result = await service.getCosts('24h', scope);

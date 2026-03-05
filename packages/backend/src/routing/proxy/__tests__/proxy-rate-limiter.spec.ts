@@ -279,7 +279,10 @@ describe('ProxyRateLimiter', () => {
 
       // Manually expire the entry by manipulating the internal map
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rates = (timedLimiter as any).rates as Map<string, { count: number; windowStart: number }>;
+      const rates = (timedLimiter as any).rates as Map<
+        string,
+        { count: number; windowStart: number }
+      >;
       rates.get('user-old')!.windowStart = Date.now() - 120_000;
 
       timedLimiter.recordSuccess('user-new');

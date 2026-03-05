@@ -190,7 +190,11 @@ export class TraceIngestService {
       let cost: number | null = null;
       if (agg.model) {
         const pricing = this.pricingCache.getByModel(agg.model);
-        if (pricing) {
+        if (
+          pricing &&
+          pricing.input_price_per_token != null &&
+          pricing.output_price_per_token != null
+        ) {
           cost =
             agg.input * Number(pricing.input_price_per_token) +
             agg.output * Number(pricing.output_price_per_token);

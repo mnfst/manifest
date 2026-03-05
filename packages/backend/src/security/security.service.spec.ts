@@ -64,7 +64,13 @@ describe('SecurityService', () => {
 
   it('returns events from query', async () => {
     const fakeEvents = [
-      { id: '1', timestamp: '2026-01-01', severity: 'critical', category: 'test', description: 'desc' },
+      {
+        id: '1',
+        timestamp: '2026-01-01',
+        severity: 'critical',
+        category: 'test',
+        description: 'desc',
+      },
     ];
     mockGetRawMany.mockResolvedValueOnce([{ severity: 'critical', cnt: 1 }]);
     mockGetMany.mockResolvedValueOnce(fakeEvents);
@@ -105,9 +111,7 @@ describe('SecurityService', () => {
 
   it('clamps score to 0 when penalties exceed 100', async () => {
     // 100 - 7*15 = 100 - 105 => clamped to 0 => critical
-    mockGetRawMany.mockResolvedValueOnce([
-      { severity: 'critical', cnt: 7 },
-    ]);
+    mockGetRawMany.mockResolvedValueOnce([{ severity: 'critical', cnt: 7 }]);
     mockGetMany.mockResolvedValueOnce([]);
 
     const result = await service.getSecurityOverview('24h', 'test-user');

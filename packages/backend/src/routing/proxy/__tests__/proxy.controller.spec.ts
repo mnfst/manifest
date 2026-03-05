@@ -1522,12 +1522,15 @@ describe('ProxyController', () => {
       });
 
       const mockTransformer = jest.fn((chunk: string) => {
-        if (chunk.includes('message_start')) return 'data: {"choices":[{"delta":{"role":"assistant"}}]}\n\n';
-        if (chunk.includes('text_delta')) return 'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n';
+        if (chunk.includes('message_start'))
+          return 'data: {"choices":[{"delta":{"role":"assistant"}}]}\n\n';
+        if (chunk.includes('text_delta'))
+          return 'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n';
         return null;
       });
-      (providerClient as Record<string, jest.Mock>).createAnthropicStreamTransformer =
-        jest.fn().mockReturnValue(mockTransformer);
+      (providerClient as Record<string, jest.Mock>).createAnthropicStreamTransformer = jest
+        .fn()
+        .mockReturnValue(mockTransformer);
 
       const req = mockRequest({
         messages: [{ role: 'user', content: 'test' }],

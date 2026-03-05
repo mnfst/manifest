@@ -1,0 +1,8 @@
+# This file exists so npm ignores .gitignore during publish.
+# Without it, npm would exclude public/assets/ (gitignored build artifacts)
+# from the package — but those assets are needed at runtime.
+# The "files" field in package.json controls what's published.
+src/
+scripts/
+build.ts
+tsconfig*.json

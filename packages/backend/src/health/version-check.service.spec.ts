@@ -2,7 +2,9 @@ import { ConfigService } from '@nestjs/config';
 import { VersionCheckService } from './version-check.service';
 
 function createMockConfig(): ConfigService {
-  return { get: (key: string, fallback?: string) => process.env[key] ?? fallback } as unknown as ConfigService;
+  return {
+    get: (key: string, fallback?: string) => process.env[key] ?? fallback,
+  } as unknown as ConfigService;
 }
 
 describe('VersionCheckService', () => {
@@ -197,9 +199,7 @@ describe('VersionCheckService', () => {
       process.env['MANIFEST_MODE'] = 'local';
       // Override fetchLatestVersion to return a rejected promise so the
       // .catch(() => {}) handler on line 22 is exercised
-      jest
-        .spyOn(service, 'fetchLatestVersion')
-        .mockRejectedValue(new Error('unexpected'));
+      jest.spyOn(service, 'fetchLatestVersion').mockRejectedValue(new Error('unexpected'));
 
       await service.onModuleInit();
       // Give the non-blocking catch time to execute
