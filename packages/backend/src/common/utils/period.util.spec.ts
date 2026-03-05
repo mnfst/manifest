@@ -81,7 +81,9 @@ describe('computePeriodResetDate', () => {
     const reset = new Date(result.replace(' ', 'T') + 'Z');
     expect(reset.getUTCHours()).toBe(0);
     expect(reset.getUTCMinutes()).toBe(0);
-    const expectedDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+    const expectedDate = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
+    );
     expect(reset.getUTCDate()).toBe(expectedDate.getUTCDate());
   });
 

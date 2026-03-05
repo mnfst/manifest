@@ -26,6 +26,7 @@ import Select from '../components/Select.jsx';
 import InfoTooltip from '../components/InfoTooltip.jsx';
 import { isLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
+import { agentDisplayName } from '../services/agent-display-name.js';
 import SetupModal from '../components/SetupModal.jsx';
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import '../styles/overview.css';
@@ -126,10 +127,12 @@ const MessageLog: Component = () => {
 
   return (
     <div class="container--full">
-      <Title>{decodeURIComponent(params.agentName)} Messages - Manifest</Title>
+      <Title>
+        {agentDisplayName() ?? decodeURIComponent(params.agentName)} Messages - Manifest
+      </Title>
       <Meta
         name="description"
-        content={`Browse all messages sent and received by ${decodeURIComponent(params.agentName)}. Filter by status, model, or cost.`}
+        content={`Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by status, model, or cost.`}
       />
       <div class="page-header">
         <div>

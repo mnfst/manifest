@@ -11,7 +11,9 @@ export function computePeriodBoundaries(period: string): PeriodBoundaries {
 
   switch (period) {
     case 'hour':
-      start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() - 1));
+      start = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() - 1),
+      );
       break;
     case 'day':
       start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -26,7 +28,9 @@ export function computePeriodBoundaries(period: string): PeriodBoundaries {
       start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
       break;
     default:
-      start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() - 1));
+      start = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() - 1),
+      );
   }
 
   const end = new Date(now.getTime());
@@ -39,22 +43,28 @@ export function computePeriodResetDate(period: string): string {
 
   switch (period) {
     case 'hour':
-      reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() + 1));
+      reset = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() + 1),
+      );
       break;
     case 'day':
       reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
       break;
     case 'week': {
       const dayOfWeek = now.getUTCDay();
-      const daysUntilMonday = ((8 - dayOfWeek) % 7) || 7;
-      reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
+      const daysUntilMonday = (8 - dayOfWeek) % 7 || 7;
+      reset = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday),
+      );
       break;
     }
     case 'month':
       reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
       break;
     default:
-      reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() + 1));
+      reset = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours() + 1),
+      );
   }
 
   return fmt(reset);

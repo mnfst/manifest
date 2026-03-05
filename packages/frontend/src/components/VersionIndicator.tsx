@@ -5,6 +5,7 @@ const UPGRADE_COMMAND = 'openclaw plugins update';
 
 const VersionIndicator = () => {
   const info = () => updateInfo();
+  const isDev = () => info()?.version === '0.0.0';
   const hasUpdate = () => info()?.updateAvailable === true;
   const [copied, setCopied] = createSignal(false);
 
@@ -19,7 +20,7 @@ const VersionIndicator = () => {
   }
 
   return (
-    <Show when={info()}>
+    <Show when={info() && !isDev()}>
       <div
         class="version-indicator"
         classList={{ 'version-indicator--update': hasUpdate() }}

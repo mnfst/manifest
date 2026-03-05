@@ -37,8 +37,8 @@ export function ResetPasswordEmail(props: ResetPasswordEmailProps) {
           <Section style={card}>
             <Text style={heading}>Reset your password</Text>
             <Text style={paragraph}>
-              Hi {userName}, we received a request to reset your password. Click
-              the button below to choose a new one.
+              Hi {userName}, we received a request to reset your password. Click the button below to
+              choose a new one.
             </Text>
 
             <Section style={buttonContainer}>
@@ -48,16 +48,15 @@ export function ResetPasswordEmail(props: ResetPasswordEmailProps) {
             </Section>
 
             <Text style={hint}>
-              This link expires in 1 hour. If you didn't request a password
-              reset, you can safely ignore this email.
+              This link expires in 1 hour. If you didn't request a password reset, you can safely
+              ignore this email.
             </Text>
           </Section>
 
           {/* Fallback link */}
           <Section style={fallbackSection}>
             <Text style={fallbackText}>
-              If the button above doesn't work, copy and paste this link into
-              your browser:
+              If the button above doesn't work, copy and paste this link into your browser:
             </Text>
             <Text style={fallbackUrl}>{resetUrl}</Text>
           </Section>

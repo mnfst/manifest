@@ -19,6 +19,11 @@ vi.mock("../../src/services/local-mode.js", () => ({
   checkLocalMode: () => mockCheckLocalMode(),
 }));
 
+const mockSetAgentDisplayName = vi.fn();
+vi.mock("../../src/services/agent-display-name.js", () => ({
+  setAgentDisplayName: (...args: unknown[]) => mockSetAgentDisplayName(...args),
+}));
+
 vi.mock("../../src/components/ErrorState.jsx", () => ({
   default: (props: any) => <div data-testid="error-state">{props.title || "Error"}</div>,
 }));
@@ -34,6 +39,7 @@ describe("AgentGuard", () => {
     vi.clearAllMocks();
     mockIsLocalMode.mockReturnValue(false);
     mockCheckLocalMode.mockResolvedValue(false);
+    mockSetAgentDisplayName.mockClear();
   });
 
   it("renders children when agent exists", async () => {

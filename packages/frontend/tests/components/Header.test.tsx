@@ -31,6 +31,11 @@ vi.mock("../../src/services/local-mode.js", () => ({
   isLocalMode: () => mockIsLocalMode,
 }));
 
+let mockAgentDisplayName: string | null = null;
+vi.mock("../../src/services/agent-display-name.js", () => ({
+  agentDisplayName: () => mockAgentDisplayName,
+}));
+
 import Header from "../../src/components/Header";
 
 beforeEach(() => {
@@ -38,6 +43,7 @@ beforeEach(() => {
   sessionStorage.clear();
   mockAgentName = null;
   mockIsLocalMode = false;
+  mockAgentDisplayName = null;
 });
 
 describe("Header", () => {
