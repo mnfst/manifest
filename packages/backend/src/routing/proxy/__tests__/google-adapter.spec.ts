@@ -1,25 +1,17 @@
-import {
-  toGoogleRequest,
-  fromGoogleResponse,
-  transformGoogleStreamChunk,
-} from '../google-adapter';
+import { toGoogleRequest, fromGoogleResponse, transformGoogleStreamChunk } from '../google-adapter';
 
 describe('Google Adapter', () => {
   describe('toGoogleRequest', () => {
     it('converts basic messages', () => {
       const body = {
-        messages: [
-          { role: 'user', content: 'Hello world' },
-        ],
+        messages: [{ role: 'user', content: 'Hello world' }],
       };
       const result = toGoogleRequest(body, 'gemini-2.0-flash');
 
-      expect(result.contents).toEqual([
-        { role: 'user', parts: [{ text: 'Hello world' }] },
-      ]);
+      expect(result.contents).toEqual([{ role: 'user', parts: [{ text: 'Hello world' }] }]);
     });
 
-    it('extracts system instruction with cache_control', () => {
+    it('extracts system instruction', () => {
       const body = {
         messages: [
           { role: 'system', content: 'You are helpful.' },
@@ -29,12 +21,10 @@ describe('Google Adapter', () => {
       const result = toGoogleRequest(body, 'gemini-2.0-flash');
 
       expect(result.systemInstruction).toEqual({
-        parts: [{ text: 'You are helpful.', cache_control: { type: 'ephemeral' } }],
+        parts: [{ text: 'You are helpful.' }],
       });
       // System message should not appear in contents
-      expect(result.contents).toEqual([
-        { role: 'user', parts: [{ text: 'Hi' }] },
-      ]);
+      expect(result.contents).toEqual([{ role: 'user', parts: [{ text: 'Hi' }] }]);
     });
 
     it('maps assistant role to model', () => {
@@ -68,24 +58,30 @@ describe('Google Adapter', () => {
     it('converts tools to functionDeclarations', () => {
       const body = {
         messages: [{ role: 'user', content: 'Search for cats' }],
-        tools: [{
-          type: 'function',
-          function: {
-            name: 'web_search',
-            description: 'Search the web',
-            parameters: { type: 'object', properties: { query: { type: 'string' } } },
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'web_search',
+              description: 'Search the web',
+              parameters: { type: 'object', properties: { query: { type: 'string' } } },
+            },
           },
-        }],
+        ],
       };
       const result = toGoogleRequest(body, 'gemini-2.0-flash');
 
-      expect(result.tools).toEqual([{
-        functionDeclarations: [{
-          name: 'web_search',
-          description: 'Search the web',
-          parameters: { type: 'object', properties: { query: { type: 'string' } } },
-        }],
-      }]);
+      expect(result.tools).toEqual([
+        {
+          functionDeclarations: [
+            {
+              name: 'web_search',
+              description: 'Search the web',
+              parameters: { type: 'object', properties: { query: { type: 'string' } } },
+            },
+          ],
+        },
+      ]);
     });
 
     it('skips system messages with non-string content from systemInstruction', () => {
@@ -101,7 +97,7 @@ describe('Google Adapter', () => {
       expect(result.systemInstruction).toBeUndefined();
     });
 
-    it('joins multiple system messages into one instruction with cache_control', () => {
+    it('joins multiple system messages into one instruction', () => {
       const body = {
         messages: [
           { role: 'system', content: 'You are helpful.' },
@@ -111,10 +107,9 @@ describe('Google Adapter', () => {
       };
       const result = toGoogleRequest(body, 'gemini-2.0-flash');
 
-      const instruction = result.systemInstruction as { parts: Array<{ text: string; cache_control?: unknown }> };
+      const instruction = result.systemInstruction as { parts: Array<{ text: string }> };
       expect(instruction.parts[0].text).toContain('You are helpful.');
       expect(instruction.parts[0].text).toContain('Be concise.');
-      expect(instruction.parts[0].cache_control).toEqual({ type: 'ephemeral' });
     });
 
     it('handles array content blocks in messages', () => {
@@ -145,11 +140,13 @@ describe('Google Adapter', () => {
           {
             role: 'assistant',
             content: null,
-            tool_calls: [{
-              id: 'call_1',
-              type: 'function',
-              function: { name: 'web_search', arguments: '{"query":"cats"}' },
-            }],
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'web_search', arguments: '{"query":"cats"}' },
+              },
+            ],
           },
           {
             role: 'tool',
@@ -160,7 +157,10 @@ describe('Google Adapter', () => {
       };
       const result = toGoogleRequest(body, 'gemini-2.0-flash');
 
-      const contents = result.contents as Array<{ role: string; parts: Array<Record<string, unknown>> }>;
+      const contents = result.contents as Array<{
+        role: string;
+        parts: Array<Record<string, unknown>>;
+      }>;
       // Tool response should be mapped to functionResponse
       const toolContent = contents[2];
       expect(toolContent.role).toBe('user');
@@ -209,11 +209,13 @@ describe('Google Adapter', () => {
           {
             role: 'assistant',
             content: null,
-            tool_calls: [{
-              id: 'call_1',
-              type: 'function',
-              function: { name: 'web_search', arguments: '{"query":"cats"}' },
-            }],
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'web_search', arguments: '{"query":"cats"}' },
+              },
+            ],
           },
         ],
       };
@@ -229,10 +231,12 @@ describe('Google Adapter', () => {
   describe('fromGoogleResponse', () => {
     it('converts basic text response', () => {
       const google = {
-        candidates: [{
-          content: { parts: [{ text: 'Hello!' }] },
-          finishReason: 'STOP',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'Hello!' }] },
+            finishReason: 'STOP',
+          },
+        ],
         usageMetadata: {
           promptTokenCount: 10,
           candidatesTokenCount: 5,
@@ -245,7 +249,10 @@ describe('Google Adapter', () => {
       expect(result.object).toBe('chat.completion');
       expect(result.model).toBe('gemini-2.0-flash');
 
-      const choices = result.choices as Array<{ message: Record<string, unknown>; finish_reason: string }>;
+      const choices = result.choices as Array<{
+        message: Record<string, unknown>;
+        finish_reason: string;
+      }>;
       expect(choices).toHaveLength(1);
       expect(choices[0].message.role).toBe('assistant');
       expect(choices[0].message.content).toBe('Hello!');
@@ -258,10 +265,12 @@ describe('Google Adapter', () => {
 
     it('extracts cachedContentTokenCount from usage', () => {
       const google = {
-        candidates: [{
-          content: { parts: [{ text: 'Hello!' }] },
-          finishReason: 'STOP',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'Hello!' }] },
+            finishReason: 'STOP',
+          },
+        ],
         usageMetadata: {
           promptTokenCount: 100,
           candidatesTokenCount: 50,
@@ -281,10 +290,12 @@ describe('Google Adapter', () => {
 
     it('defaults cachedContentTokenCount to 0 when absent', () => {
       const google = {
-        candidates: [{
-          content: { parts: [{ text: 'Hello!' }] },
-          finishReason: 'STOP',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'Hello!' }] },
+            finishReason: 'STOP',
+          },
+        ],
         usageMetadata: {
           promptTokenCount: 10,
           candidatesTokenCount: 5,
@@ -302,10 +313,12 @@ describe('Google Adapter', () => {
 
     it('includes prompt_tokens_details with large cached token counts', () => {
       const google = {
-        candidates: [{
-          content: { parts: [{ text: 'Hello!' }] },
-          finishReason: 'STOP',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'Hello!' }] },
+            finishReason: 'STOP',
+          },
+        ],
         usageMetadata: {
           promptTokenCount: 50000,
           candidatesTokenCount: 1000,
@@ -326,14 +339,18 @@ describe('Google Adapter', () => {
 
     it('handles function call response', () => {
       const google = {
-        candidates: [{
-          content: {
-            parts: [{
-              functionCall: { name: 'search', args: { query: 'cats' } },
-            }],
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  functionCall: { name: 'search', args: { query: 'cats' } },
+                },
+              ],
+            },
+            finishReason: 'STOP',
           },
-          finishReason: 'STOP',
-        }],
+        ],
       };
 
       const result = fromGoogleResponse(google, 'gemini-2.0-flash');
@@ -354,10 +371,12 @@ describe('Google Adapter', () => {
 
     it('maps SAFETY finish reason to content_filter', () => {
       const google = {
-        candidates: [{
-          content: { parts: [{ text: '' }] },
-          finishReason: 'SAFETY',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: '' }] },
+            finishReason: 'SAFETY',
+          },
+        ],
       };
       const result = fromGoogleResponse(google, 'gemini-2.0-flash');
       const choices = result.choices as Array<{ finish_reason: string }>;
@@ -366,10 +385,12 @@ describe('Google Adapter', () => {
 
     it('maps RECITATION finish reason to content_filter', () => {
       const google = {
-        candidates: [{
-          content: { parts: [{ text: '' }] },
-          finishReason: 'RECITATION',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: '' }] },
+            finishReason: 'RECITATION',
+          },
+        ],
       };
       const result = fromGoogleResponse(google, 'gemini-2.0-flash');
       const choices = result.choices as Array<{ finish_reason: string }>;
@@ -378,10 +399,12 @@ describe('Google Adapter', () => {
 
     it('maps unknown finish reason to stop', () => {
       const google = {
-        candidates: [{
-          content: { parts: [{ text: 'ok' }] },
-          finishReason: 'UNKNOWN_REASON',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'ok' }] },
+            finishReason: 'UNKNOWN_REASON',
+          },
+        ],
       };
       const result = fromGoogleResponse(google, 'gemini-2.0-flash');
       const choices = result.choices as Array<{ finish_reason: string }>;
@@ -390,9 +413,11 @@ describe('Google Adapter', () => {
 
     it('handles missing finishReason as stop', () => {
       const google = {
-        candidates: [{
-          content: { parts: [{ text: 'ok' }] },
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'ok' }] },
+          },
+        ],
       };
       const result = fromGoogleResponse(google, 'gemini-2.0-flash');
       const choices = result.choices as Array<{ finish_reason: string }>;
@@ -401,10 +426,12 @@ describe('Google Adapter', () => {
 
     it('omits usage when usageMetadata is absent', () => {
       const google = {
-        candidates: [{
-          content: { parts: [{ text: 'hi' }] },
-          finishReason: 'STOP',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'hi' }] },
+            finishReason: 'STOP',
+          },
+        ],
       };
       const result = fromGoogleResponse(google, 'gemini-2.0-flash');
       expect(result.usage).toBeUndefined();
@@ -418,10 +445,12 @@ describe('Google Adapter', () => {
 
     it('returns null content when parts have no text', () => {
       const google = {
-        candidates: [{
-          content: { parts: [{ functionCall: { name: 'test', args: {} } }] },
-          finishReason: 'STOP',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ functionCall: { name: 'test', args: {} } }] },
+            finishReason: 'STOP',
+          },
+        ],
       };
       const result = fromGoogleResponse(google, 'gemini-2.0-flash');
       const choices = result.choices as Array<{ message: Record<string, unknown> }>;
@@ -430,10 +459,12 @@ describe('Google Adapter', () => {
 
     it('maps MAX_TOKENS finish reason to length', () => {
       const google = {
-        candidates: [{
-          content: { parts: [{ text: 'truncated' }] },
-          finishReason: 'MAX_TOKENS',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'truncated' }] },
+            finishReason: 'MAX_TOKENS',
+          },
+        ],
       };
 
       const result = fromGoogleResponse(google, 'gemini-2.0-flash');
@@ -445,9 +476,11 @@ describe('Google Adapter', () => {
   describe('transformGoogleStreamChunk', () => {
     it('converts a text chunk to OpenAI SSE format', () => {
       const chunk = JSON.stringify({
-        candidates: [{
-          content: { parts: [{ text: 'Hi' }] },
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'Hi' }] },
+          },
+        ],
       });
 
       const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
