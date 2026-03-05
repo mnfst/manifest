@@ -98,6 +98,10 @@ export class ProxyController {
         return;
       }
 
+      // Only count successful provider responses against the rate limit.
+      // Failed upstream responses (retries by the gateway) are free.
+      this.rateLimiter.recordSuccess(userId);
+
       if (isStream && providerResponse.body) {
         initSseHeaders(res, metaHeaders);
         headersSent = true;

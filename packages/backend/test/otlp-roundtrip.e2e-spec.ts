@@ -30,7 +30,7 @@ function makeTracePayload() {
               {
                 traceId: 'aabb112233445566aabb112233445566',
                 spanId: 'cc11223344556677',
-                name: 'otlp-roundtrip-message',
+                name: 'openclaw.agent.turn',
                 kind: 1,
                 startTimeUnixNano: startNano,
                 endTimeUnixNano: endNano,

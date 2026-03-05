@@ -65,6 +65,7 @@ describe('ProxyController', () => {
   let proxyService: { proxyRequest: jest.Mock };
   let rateLimiter: {
     checkLimit: jest.Mock;
+    recordSuccess: jest.Mock;
     acquireSlot: jest.Mock;
     releaseSlot: jest.Mock;
   };
@@ -81,6 +82,7 @@ describe('ProxyController', () => {
     proxyService = { proxyRequest: jest.fn() };
     rateLimiter = {
       checkLimit: jest.fn(),
+      recordSuccess: jest.fn(),
       acquireSlot: jest.fn(),
       releaseSlot: jest.fn(),
     };

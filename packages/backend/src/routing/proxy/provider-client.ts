@@ -1,13 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  PROVIDER_ENDPOINTS,
-  resolveEndpointKey,
-} from './provider-endpoints';
-import {
-  toGoogleRequest,
-  fromGoogleResponse,
-  transformGoogleStreamChunk,
-} from './google-adapter';
+import { PROVIDER_ENDPOINTS, resolveEndpointKey } from './provider-endpoints';
+import { toGoogleRequest, fromGoogleResponse, transformGoogleStreamChunk } from './google-adapter';
 import {
   toAnthropicRequest,
   fromAnthropicResponse,
@@ -15,6 +8,49 @@ import {
   createAnthropicStreamTransformer,
 } from './anthropic-adapter';
 import { injectOpenRouterCacheControl } from './cache-injection';
+
+/**
+ * OpenAI-only fields that other providers reject as "extra inputs not permitted".
+ * Stripped before forwarding to non-OpenAI, non-OpenRouter providers.
+ */
+const OPENAI_ONLY_FIELDS = new Set([
+  'store',
+  'metadata',
+  'service_tier',
+  'stream_options',
+  'modalities',
+  'audio',
+  'prediction',
+  'reasoning_effort',
+]);
+
+/**
+ * Providers that accept the full OpenAI request schema without modification.
+ */
+const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+
+/**
+ * Strip OpenAI-specific fields and normalise `max_completion_tokens` → `max_tokens`
+ * for providers that use the OpenAI format but reject unknown fields.
+ */
+function sanitizeOpenAiBody(
+  body: Record<string, unknown>,
+  endpointKey: string,
+): Record<string, unknown> {
+  if (PASSTHROUGH_PROVIDERS.has(endpointKey)) return body;
+
+  const cleaned: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(body)) {
+    if (OPENAI_ONLY_FIELDS.has(key)) continue;
+    if (key === 'max_completion_tokens') {
+      // Convert to max_tokens unless already set
+      if (!('max_tokens' in body)) cleaned['max_tokens'] = value;
+      continue;
+    }
+    cleaned[key] = value;
+  }
+  return cleaned;
+}
 
 export interface ForwardResult {
   response: Response;
@@ -66,7 +102,8 @@ export class ProviderClient {
     } else {
       url = `${endpoint.baseUrl}${endpoint.buildPath(model)}`;
       headers = endpoint.buildHeaders(apiKey);
-      requestBody = { ...body, model, stream };
+      const sanitized = sanitizeOpenAiBody(body, endpointKey!);
+      requestBody = { ...sanitized, model, stream };
 
       // Inject cache_control for OpenRouter requests targeting Anthropic models
       if (endpointKey === 'openrouter' && model.startsWith('anthropic/')) {
@@ -82,9 +119,7 @@ export class ProviderClient {
     this.logger.debug(`Forwarding to ${endpointKey}: ${safeUrl}`);
 
     const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
-    const fetchSignal = signal
-      ? AbortSignal.any([timeoutSignal, signal])
-      : timeoutSignal;
+    const fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
 
     const response = await fetch(url, {
       method: 'POST',

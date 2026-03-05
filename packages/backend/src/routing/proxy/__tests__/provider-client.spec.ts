@@ -130,13 +130,7 @@ describe('ProviderClient', () => {
     it('does not include anthropic-beta header (caching is GA)', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      await client.forward(
-        'anthropic',
-        'sk-ant-test',
-        'claude-sonnet-4-20250514',
-        body,
-        false,
-      );
+      await client.forward('anthropic', 'sk-ant-test', 'claude-sonnet-4-20250514', body, false);
 
       const headers = mockFetch.mock.calls[0][1].headers;
       expect(headers['anthropic-beta']).toBeUndefined();
@@ -187,13 +181,7 @@ describe('ProviderClient', () => {
     it('uses query param auth and Gemini path', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      const result = await client.forward(
-        'google',
-        'AIza-test',
-        'gemini-2.0-flash',
-        body,
-        false,
-      );
+      const result = await client.forward('google', 'AIza-test', 'gemini-2.0-flash', body, false);
 
       const url = mockFetch.mock.calls[0][0] as string;
       expect(url).toContain('generativelanguage.googleapis.com');
@@ -259,13 +247,7 @@ describe('ProviderClient', () => {
           { role: 'user', content: 'Hi' },
         ],
       };
-      await client.forward(
-        'openrouter',
-        'sk-or',
-        'openai/gpt-4o',
-        bodyWithSystem,
-        false,
-      );
+      await client.forward('openrouter', 'sk-or', 'openai/gpt-4o', bodyWithSystem, false);
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(typeof sentBody.messages[0].content).toBe('string');
@@ -276,15 +258,9 @@ describe('ProviderClient', () => {
     it('merges extraHeaders into outgoing request', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      await client.forward(
-        'xai',
-        'sk-xai',
-        'grok-2',
-        body,
-        false,
-        undefined,
-        { 'x-grok-conv-id': 'session-123' },
-      );
+      await client.forward('xai', 'sk-xai', 'grok-2', body, false, undefined, {
+        'x-grok-conv-id': 'session-123',
+      });
 
       const fetchOptions = mockFetch.mock.calls[0][1];
       expect(fetchOptions.headers['x-grok-conv-id']).toBe('session-123');
@@ -293,15 +269,9 @@ describe('ProviderClient', () => {
     it('does not override base headers', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      await client.forward(
-        'openai',
-        'sk-test',
-        'gpt-4o',
-        body,
-        false,
-        undefined,
-        { 'X-Custom': 'value' },
-      );
+      await client.forward('openai', 'sk-test', 'gpt-4o', body, false, undefined, {
+        'X-Custom': 'value',
+      });
 
       const fetchOptions = mockFetch.mock.calls[0][1];
       expect(fetchOptions.headers['Authorization']).toBe('Bearer sk-test');
@@ -313,13 +283,7 @@ describe('ProviderClient', () => {
     it('resolves gemini to google endpoint', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      const result = await client.forward(
-        'gemini',
-        'AIza-test',
-        'gemini-2.0-flash',
-        body,
-        false,
-      );
+      const result = await client.forward('gemini', 'AIza-test', 'gemini-2.0-flash', body, false);
 
       const url = mockFetch.mock.calls[0][0] as string;
       expect(url).toContain('generativelanguage.googleapis.com');
@@ -394,10 +358,12 @@ describe('ProviderClient', () => {
   describe('convertGoogleResponse', () => {
     it('delegates to fromGoogleResponse', () => {
       const googleBody = {
-        candidates: [{
-          content: { parts: [{ text: 'Hello' }] },
-          finishReason: 'STOP',
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'Hello' }] },
+            finishReason: 'STOP',
+          },
+        ],
       };
       const result = client.convertGoogleResponse(googleBody, 'gemini-2.0-flash');
 
@@ -411,9 +377,11 @@ describe('ProviderClient', () => {
   describe('convertGoogleStreamChunk', () => {
     it('delegates to transformGoogleStreamChunk', () => {
       const chunk = JSON.stringify({
-        candidates: [{
-          content: { parts: [{ text: 'Hi' }] },
-        }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'Hi' }] },
+          },
+        ],
       });
       const result = client.convertGoogleStreamChunk(chunk, 'gemini-2.0-flash');
 
@@ -445,7 +413,8 @@ describe('ProviderClient', () => {
 
   describe('convertAnthropicStreamChunk', () => {
     it('delegates to transformAnthropicStreamChunk', () => {
-      const chunk = 'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hi"}}';
+      const chunk =
+        'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hi"}}';
       const result = client.convertAnthropicStreamChunk(chunk, 'claude-sonnet-4-20250514');
 
       expect(result).toContain('data: ');
@@ -471,12 +440,8 @@ describe('ProviderClient', () => {
 
       await client.forward('google', 'AIzaSyABCDEF12345', 'gemini-2.0-flash', body, false);
 
-      expect(debugSpy).toHaveBeenCalledWith(
-        expect.stringContaining('key=***'),
-      );
-      expect(debugSpy).toHaveBeenCalledWith(
-        expect.not.stringContaining('AIzaSyABCDEF12345'),
-      );
+      expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('key=***'));
+      expect(debugSpy).toHaveBeenCalledWith(expect.not.stringContaining('AIzaSyABCDEF12345'));
 
       debugSpy.mockRestore();
     });
@@ -507,19 +472,91 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Body sanitization for non-OpenAI providers', () => {
+    const bodyWithOpenAiFields = {
+      messages: [{ role: 'user', content: 'Hello' }],
+      temperature: 0.7,
+      store: false,
+      max_completion_tokens: 8192,
+      metadata: { user: 'test' },
+      service_tier: 'default',
+      stream_options: { include_usage: true },
+    };
+
+    it('strips OpenAI-only fields for Mistral', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('mistral', 'sk-mi', 'mistral-small', bodyWithOpenAiFields, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.store).toBeUndefined();
+      expect(sentBody.metadata).toBeUndefined();
+      expect(sentBody.service_tier).toBeUndefined();
+      expect(sentBody.stream_options).toBeUndefined();
+      expect(sentBody.messages).toEqual(bodyWithOpenAiFields.messages);
+      expect(sentBody.temperature).toBe(0.7);
+    });
+
+    it('converts max_completion_tokens to max_tokens for non-OpenAI providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('mistral', 'sk-mi', 'mistral-small', bodyWithOpenAiFields, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.max_completion_tokens).toBeUndefined();
+      expect(sentBody.max_tokens).toBe(8192);
+    });
+
+    it('does not overwrite existing max_tokens when converting', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithBoth = { ...bodyWithOpenAiFields, max_tokens: 4096 };
+      await client.forward('deepseek', 'sk-ds', 'deepseek-chat', bodyWithBoth, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.max_tokens).toBe(4096);
+      expect(sentBody.max_completion_tokens).toBeUndefined();
+    });
+
+    it('strips OpenAI-only fields for DeepSeek', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('deepseek', 'sk-ds', 'deepseek-chat', bodyWithOpenAiFields, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.store).toBeUndefined();
+      expect(sentBody.service_tier).toBeUndefined();
+    });
+
+    it('preserves all fields for OpenAI', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('openai', 'sk-test', 'gpt-4o', bodyWithOpenAiFields, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.store).toBe(false);
+      expect(sentBody.max_completion_tokens).toBe(8192);
+      expect(sentBody.metadata).toEqual({ user: 'test' });
+    });
+
+    it('preserves all fields for OpenRouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('openrouter', 'sk-or', 'openai/gpt-4o', bodyWithOpenAiFields, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.store).toBe(false);
+      expect(sentBody.max_completion_tokens).toBe(8192);
+    });
+  });
+
   describe('Error handling', () => {
     it('throws for unknown provider', async () => {
-      await expect(
-        client.forward('unknown-provider', 'key', 'model', body, false),
-      ).rejects.toThrow('No endpoint configured for provider');
+      await expect(client.forward('unknown-provider', 'key', 'model', body, false)).rejects.toThrow(
+        'No endpoint configured for provider',
+      );
     });
 
     it('propagates fetch errors', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
-      await expect(
-        client.forward('openai', 'sk-test', 'gpt-4o', body, false),
-      ).rejects.toThrow('Network error');
+      await expect(client.forward('openai', 'sk-test', 'gpt-4o', body, false)).rejects.toThrow(
+        'Network error',
+      );
     });
   });
 });
