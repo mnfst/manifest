@@ -11,8 +11,7 @@ export const QUALITY_OVERRIDES: ReadonlyMap<string, number> = new Map([
   ['claude-sonnet-4-20250514', 4],
   // Expensive code-only models that benchmark as mid-range, not tier-1.5
   ['gpt-4o', 3],
-  ['grok-2', 3],
-  ['mistral-large', 3],
+  ['mistral-large-latest', 3],
   ['kimi-k2', 3],
   // Meta-router — computed score from price data doesn't reflect frontier capability
   ['openrouter/auto', 5],
@@ -32,11 +31,17 @@ const MINI_VARIANT = /\b(mini|nano|haiku|micro)\b/i;
  *   2 = cost-optimized: has code capability
  *   1 = ultra-low: no code, very cheap
  */
-export function computeQualityScore(model: Pick<
-  ModelPricing,
-  'model_name' | 'input_price_per_token' | 'output_price_per_token' |
-  'capability_reasoning' | 'capability_code' | 'context_window'
->): number {
+export function computeQualityScore(
+  model: Pick<
+    ModelPricing,
+    | 'model_name'
+    | 'input_price_per_token'
+    | 'output_price_per_token'
+    | 'capability_reasoning'
+    | 'capability_code'
+    | 'context_window'
+  >,
+): number {
   const override = QUALITY_OVERRIDES.get(model.model_name);
   if (override !== undefined) return override;
 
@@ -67,8 +72,8 @@ export function computeQualityScore(model: Pick<
 
   // Q3: Mid-range — mid-price code (not mini), cheap dual-cap, or reasoning minis
   if (totalPerM >= 3.0 && hasCode && !isMini) return 3;
-  if (totalPerM >= 0.50 && hasBoth && !isMini) return 3;
-  if (hasReasoning && isMini && totalPerM >= 0.50) return 3;
+  if (totalPerM >= 0.5 && hasBoth && !isMini) return 3;
+  if (hasReasoning && isMini && totalPerM >= 0.5) return 3;
 
   // Q2: Cost-optimized — has code capability
   if (hasCode) return 2;

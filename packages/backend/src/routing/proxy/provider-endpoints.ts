@@ -57,6 +57,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
   },
+  moonshot: {
+    baseUrl: 'https://api.moonshot.cn',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
   zai: {
     baseUrl: 'https://api.z.ai',
     buildHeaders: openaiHeaders,
@@ -66,8 +72,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   google: {
     baseUrl: 'https://generativelanguage.googleapis.com',
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),
-    buildPath: (model: string) =>
-      `/v1beta/models/${model}:generateContent`,
+    buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
   },
   openrouter: {
