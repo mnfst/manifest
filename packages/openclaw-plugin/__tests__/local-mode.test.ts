@@ -363,11 +363,33 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     };
   }
 
-  it("logs reuse message when EADDRINUSE + healthy Manifest server", async () => {
+  it("skips embedded server when existing server is detected proactively", async () => {
+    globalThis.fetch = jest.fn().mockResolvedValue({ ok: true });
+
+    const api = createMockApi();
+    registerLocalMode(api, testConfig, mockLogger);
+
+    const startFn = api.getStartFn();
+    expect(startFn).not.toBeNull();
+
+    jest.clearAllMocks();
+    await startFn!();
+
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      expect.stringContaining("Reusing existing server"),
+    );
+    expect(mockServerStart).not.toHaveBeenCalled();
+    expect(mockLogger.error).not.toHaveBeenCalled();
+  });
+
+  it("logs reuse message when EADDRINUSE + healthy Manifest server (race condition)", async () => {
     mockServerStart.mockRejectedValue(
       new Error("listen EADDRINUSE: address already in use 127.0.0.1:2099"),
     );
-    globalThis.fetch = jest.fn().mockResolvedValue({ ok: true });
+    // Proactive check: not running yet; reactive check after EADDRINUSE: now running
+    globalThis.fetch = jest.fn()
+      .mockResolvedValueOnce({ ok: false })
+      .mockResolvedValueOnce({ ok: true });
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
@@ -386,7 +408,10 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
   it("logs port-change error when EADDRINUSE + non-Manifest process", async () => {
     mockServerStart.mockRejectedValue(new Error("listen EADDRINUSE"));
-    globalThis.fetch = jest.fn().mockResolvedValue({ ok: false });
+    // Proactive check: no server yet; reactive check after EADDRINUSE: non-Manifest process
+    globalThis.fetch = jest.fn()
+      .mockRejectedValueOnce(new Error("ECONNREFUSED"))
+      .mockResolvedValueOnce({ ok: false });
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
@@ -401,6 +426,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
   });
 
   it("starts normally when no port conflict", async () => {
+    globalThis.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
     mockServerStart.mockResolvedValue(undefined);
 
     const api = createMockApi();
@@ -425,6 +451,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
   });
 
   it("logs generic server start error when error is not EADDRINUSE", async () => {
+    globalThis.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
     mockServerStart.mockRejectedValue(new Error("Unexpected crash"));
 
     const api = createMockApi();

@@ -283,6 +283,13 @@ export function registerLocalMode(
   api.registerService({
     id: "manifest-local",
     start: async () => {
+      // Proactive check: skip embedded server if one is already running
+      const alreadyRunning = await checkExistingServer(host, port);
+      if (alreadyRunning) {
+        logger.info(`[manifest] Reusing existing server at http://${host}:${port}`);
+        return;
+      }
+
       try {
         await serverModule.start({ port, host, dbPath, quiet: true });
         logger.info(`[manifest] Local server running on http://${host}:${port}`);
