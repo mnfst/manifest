@@ -371,7 +371,7 @@ describe("MessageLog", () => {
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain("messages will appear");
+        expect(container.textContent).toContain("Messages will show up");
       });
     });
 

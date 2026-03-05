@@ -1,19 +1,12 @@
-import {
-  createResource,
-  createSignal,
-  onMount,
-  Show,
-  For,
-  type Component,
-} from "solid-js";
-import { A, useNavigate } from "@solidjs/router";
-import { Title, Meta } from "@solidjs/meta";
-import ErrorState from "../components/ErrorState.jsx";
-import { getAgents, createAgent } from "../services/api.js";
-import { toast } from "../services/toast-store.js";
-import { formatNumber, formatCost } from "../services/formatters.js";
-import Sparkline from "../components/Sparkline.jsx";
-import { checkLocalMode } from "../services/local-mode.js";
+import { createResource, createSignal, onMount, Show, For, type Component } from 'solid-js';
+import { A, useNavigate } from '@solidjs/router';
+import { Title, Meta } from '@solidjs/meta';
+import ErrorState from '../components/ErrorState.jsx';
+import { getAgents, createAgent } from '../services/api.js';
+import { toast } from '../services/toast-store.js';
+import { formatNumber, formatCost } from '../services/formatters.js';
+import Sparkline from '../components/Sparkline.jsx';
+import { checkLocalMode } from '../services/local-mode.js';
 
 interface Agent {
   agent_name: string;
@@ -29,11 +22,9 @@ interface AgentsData {
   agents: Agent[];
 }
 
-const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
-  props,
-) => {
+const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props) => {
   const navigate = useNavigate();
-  const [name, setName] = createSignal("");
+  const [name, setName] = createSignal('');
 
   const handleCreate = async () => {
     const agentName = name().trim();
@@ -42,7 +33,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
       const result = await createAgent(agentName);
       toast.success(`Agent "${agentName}" connected`);
       props.onClose();
-      setName("");
+      setName('');
       const slug = result?.agent?.name ?? agentName;
       const url = `/agents/${encodeURIComponent(slug)}`;
       navigate(url, { state: { newAgent: true, newApiKey: result?.apiKey } });
@@ -52,10 +43,10 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Enter") handleCreate();
-    if (e.key === "Escape") {
+    if (e.key === 'Enter') handleCreate();
+    if (e.key === 'Escape') {
       props.onClose();
-      setName("");
+      setName('');
     }
   };
 
@@ -65,7 +56,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
         class="modal-overlay"
         onClick={() => {
           props.onClose();
-          setName("");
+          setName('');
         }}
       >
         <div
@@ -94,11 +85,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (
           />
 
           <div class="modal-card__footer">
-            <button
-              class="btn btn--primary"
-              onClick={handleCreate}
-              disabled={!name().trim()}
-            >
+            <button class="btn btn--primary" onClick={handleCreate} disabled={!name().trim()}>
               Create
             </button>
           </div>
@@ -116,14 +103,17 @@ const Workspace: Component = () => {
   onMount(async () => {
     const local = await checkLocalMode();
     if (local) {
-      navigate("/agents/local-agent", { replace: true });
+      navigate('/agents/local-agent', { replace: true });
     }
   });
 
   return (
     <div class="container--md">
       <Title>My Agents - Manifest</Title>
-      <Meta name="description" content="View and manage all your AI agents. Monitor usage, messages, and costs." />
+      <Meta
+        name="description"
+        content="View and manage all your AI agents. Monitor usage, messages, and costs."
+      />
       <div class="page-header">
         <div>
           <h1>My Agents</h1>
@@ -154,19 +144,10 @@ const Workspace: Component = () => {
             <For each={[1, 2, 3, 4, 5, 6]}>
               {() => (
                 <div class="agent-card agent-card--skeleton">
-                  <div
-                    class="skeleton skeleton--text"
-                    style="width: 60%; height: 20px;"
-                  />
+                  <div class="skeleton skeleton--text" style="width: 60%; height: 20px;" />
                   <div style="display: flex; gap: 16px; margin-top: 12px;">
-                    <div
-                      class="skeleton skeleton--text"
-                      style="width: 30%; height: 14px;"
-                    />
-                    <div
-                      class="skeleton skeleton--text"
-                      style="width: 30%; height: 14px;"
-                    />
+                    <div class="skeleton skeleton--text" style="width: 30%; height: 14px;" />
+                    <div class="skeleton skeleton--text" style="width: 30%; height: 14px;" />
                   </div>
                   <div
                     class="skeleton skeleton--rect"
@@ -178,59 +159,56 @@ const Workspace: Component = () => {
           </div>
         }
       >
-        <Show when={!data.error} fallback={
-          <ErrorState error={data.error} onRetry={refetch} />
-        }>
-        <Show
-          when={data()?.agents?.length}
-          fallback={
-            <div class="empty-state">
-              <div class="empty-state__title">No agents yet</div>
-              <p>Create an agent to start monitoring its LLM calls, token usage, and costs.</p>
-              <button class="btn btn--primary" style="margin-top: var(--gap-md);" onClick={() => setModalOpen(true)}>
-                Connect your first agent
-              </button>
-            </div>
-          }
-        >
-          <div class="agents-grid">
-            <For each={data()!.agents}>
-              {(agent) => (
-                <A
-                  href={`/agents/${encodeURIComponent(agent.agent_name)}`}
-                  class="agent-card"
+        <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
+          <Show
+            when={data()?.agents?.length}
+            fallback={
+              <div class="empty-state">
+                <div class="empty-state__title">No agents yet</div>
+                <p>Create an agent to see its LLM calls, tokens, and costs.</p>
+                <button
+                  class="btn btn--primary"
+                  style="margin-top: var(--gap-md);"
+                  onClick={() => setModalOpen(true)}
                 >
-                  <div class="agent-card__top">
-                    <span class="agent-card__name">{agent.display_name ?? agent.agent_name}</span>
-                  </div>
-                  <div class="agent-card__stats">
-                    <div class="agent-card__stat">
-                      <span class="agent-card__stat-label">Total tokens</span>
-                      <span class="agent-card__stat-value">
-                        {formatNumber(agent.total_tokens)}
-                      </span>
+                  Connect your first agent
+                </button>
+              </div>
+            }
+          >
+            <div class="agents-grid">
+              <For each={data()!.agents}>
+                {(agent) => (
+                  <A href={`/agents/${encodeURIComponent(agent.agent_name)}`} class="agent-card">
+                    <div class="agent-card__top">
+                      <span class="agent-card__name">{agent.display_name ?? agent.agent_name}</span>
                     </div>
-                    <div class="agent-card__stat">
-                      <span class="agent-card__stat-label">Messages</span>
-                      <span class="agent-card__stat-value">
-                        {agent.message_count}
-                      </span>
+                    <div class="agent-card__stats">
+                      <div class="agent-card__stat">
+                        <span class="agent-card__stat-label">Total tokens</span>
+                        <span class="agent-card__stat-value">
+                          {formatNumber(agent.total_tokens)}
+                        </span>
+                      </div>
+                      <div class="agent-card__stat">
+                        <span class="agent-card__stat-label">Messages</span>
+                        <span class="agent-card__stat-value">{agent.message_count}</span>
+                      </div>
+                      <div class="agent-card__stat">
+                        <span class="agent-card__stat-label">Total cost</span>
+                        <span class="agent-card__stat-value">
+                          {formatCost(agent.total_cost) ?? '$0.00'}
+                        </span>
+                      </div>
                     </div>
-                    <div class="agent-card__stat">
-                      <span class="agent-card__stat-label">Total cost</span>
-                      <span class="agent-card__stat-value">
-                        {formatCost(agent.total_cost) ?? '$0.00'}
-                      </span>
+                    <div class="agent-card__chart">
+                      <Sparkline data={agent.sparkline} width={280} height={50} />
                     </div>
-                  </div>
-                  <div class="agent-card__chart">
-                    <Sparkline data={agent.sparkline} width={280} height={50} />
-                  </div>
-                </A>
-              )}
-            </For>
-          </div>
-        </Show>
+                  </A>
+                )}
+              </For>
+            </div>
+          </Show>
         </Show>
       </Show>
 

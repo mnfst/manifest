@@ -1,7 +1,7 @@
-import { A, useLocation } from "@solidjs/router";
-import { Show, type Component } from "solid-js";
-import { useAgentName, agentPath } from "../services/routing.js";
-import { isLocalMode } from "../services/local-mode.js";
+import { A, useLocation } from '@solidjs/router';
+import { Show, type Component } from 'solid-js';
+import { useAgentName, agentPath } from '../services/routing.js';
+import { isLocalMode } from '../services/local-mode.js';
 
 const Sidebar: Component = () => {
   const location = useLocation();
@@ -11,7 +11,7 @@ const Sidebar: Component = () => {
 
   const isActive = (sub: string) => {
     const p = path(sub);
-    if (sub === "") return location.pathname === p;
+    if (sub === '') return location.pathname === p;
     return location.pathname.startsWith(p);
   };
 
@@ -21,8 +21,8 @@ const Sidebar: Component = () => {
         <A
           href="/"
           class="sidebar__link"
-          classList={{ active: location.pathname === "/" }}
-          aria-current={location.pathname === "/" ? "page" : undefined}
+          classList={{ active: location.pathname === '/' }}
+          aria-current={location.pathname === '/' ? 'page' : undefined}
         >
           Agents
         </A>
@@ -31,41 +31,46 @@ const Sidebar: Component = () => {
       <Show when={getAgentName()}>
         <div class="sidebar__section-label">MONITORING</div>
         <A
-          href={path("")}
+          href={path('')}
           class="sidebar__link"
-          classList={{ active: isActive("") }}
-          aria-current={isActive("") ? "page" : undefined}
+          classList={{ active: isActive('') }}
+          aria-current={isActive('') ? 'page' : undefined}
         >
           Overview
         </A>
         <A
-          href={path("/messages")}
+          href={path('/messages')}
           class="sidebar__link"
-          classList={{ active: isActive("/messages") }}
-          aria-current={isActive("/messages") ? "page" : undefined}
+          classList={{ active: isActive('/messages') }}
+          aria-current={isActive('/messages') ? 'page' : undefined}
         >
           Messages
         </A>
 
         <div class="sidebar__section-label">MANAGE</div>
         <A
-          href={path("/routing")}
+          href={path('/routing')}
           class="sidebar__link"
-          classList={{ active: isActive("/routing") }}
-          aria-current={isActive("/routing") ? "page" : undefined}
+          classList={{ active: isActive('/routing') }}
+          aria-current={isActive('/routing') ? 'page' : undefined}
         >
           Routing
         </A>
         <A
-          href={path("/limits")}
+          href={path('/limits')}
           class="sidebar__link"
-          classList={{ active: isActive("/limits") }}
-          aria-current={isActive("/limits") ? "page" : undefined}
+          classList={{ active: isActive('/limits') }}
+          aria-current={isActive('/limits') ? 'page' : undefined}
         >
           Limits
         </A>
         <Show when={!isLocalMode()}>
-          <A href={path("/settings")} class="sidebar__link" classList={{ active: isActive("/settings") }} aria-current={isActive("/settings") ? "page" : undefined}>
+          <A
+            href={path('/settings')}
+            class="sidebar__link"
+            classList={{ active: isActive('/settings') }}
+            aria-current={isActive('/settings') ? 'page' : undefined}
+          >
             Settings
           </A>
         </Show>
@@ -74,18 +79,18 @@ const Sidebar: Component = () => {
       <Show when={getAgentName()}>
         <div class="sidebar__section-label">RESOURCES</div>
         <A
-          href={path("/model-prices")}
+          href={path('/model-prices')}
           class="sidebar__link"
-          classList={{ active: isActive("/model-prices") }}
-          aria-current={isActive("/model-prices") ? "page" : undefined}
+          classList={{ active: isActive('/model-prices') }}
+          aria-current={isActive('/model-prices') ? 'page' : undefined}
         >
           Model Prices
         </A>
         <A
-          href={path("/help")}
+          href={path('/help')}
           class="sidebar__link"
-          classList={{ active: isActive("/help") }}
-          aria-current={isActive("/help") ? "page" : undefined}
+          classList={{ active: isActive('/help') }}
+          aria-current={isActive('/help') ? 'page' : undefined}
         >
           Help
         </A>
@@ -103,9 +108,7 @@ const Sidebar: Component = () => {
           <i class="bxd bx-message-bubble-detail" />
           Feedback
         </span>
-        <p class="sidebar__feedback-hint">
-          Help shape Manifest's roadmap &mdash; share feature ideas, report bugs, or suggest improvements.
-        </p>
+        <p class="sidebar__feedback-hint">Share ideas or report bugs.</p>
       </a>
     </nav>
   );
