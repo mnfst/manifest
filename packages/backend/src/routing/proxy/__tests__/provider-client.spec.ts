@@ -53,7 +53,7 @@ describe('ProviderClient', () => {
 
     it('builds correct URL for mistral', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
-      await client.forward('mistral', 'sk-mi', 'mistral-large', body, false);
+      await client.forward('mistral', 'sk-mi', 'mistral-large-latest', body, false);
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.mistral.ai/v1/chat/completions',
@@ -61,9 +61,19 @@ describe('ProviderClient', () => {
       );
     });
 
+    it('builds correct URL for moonshot', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('moonshot', 'sk-moon', 'kimi-k2', body, false);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.moonshot.cn/v1/chat/completions',
+        expect.any(Object),
+      );
+    });
+
     it('builds correct URL for xai', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
-      await client.forward('xai', 'sk-xai', 'grok-2', body, false);
+      await client.forward('xai', 'sk-xai', 'grok-3', body, false);
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.x.ai/v1/chat/completions',
@@ -258,7 +268,7 @@ describe('ProviderClient', () => {
     it('merges extraHeaders into outgoing request', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      await client.forward('xai', 'sk-xai', 'grok-2', body, false, undefined, {
+      await client.forward('xai', 'sk-xai', 'grok-3', body, false, undefined, {
         'x-grok-conv-id': 'session-123',
       });
 

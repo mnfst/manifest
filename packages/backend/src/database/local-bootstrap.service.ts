@@ -162,9 +162,6 @@ export class LocalBootstrapService implements OnModuleInit {
       ['o3', 'OpenAI', 0.000002, 0.000008, 200000, true, true],
       ['o3-mini', 'OpenAI', 0.0000011, 0.0000044, 200000, true, true],
       ['o4-mini', 'OpenAI', 0.0000011, 0.0000044, 200000, true, true],
-      ['gpt-5.3', 'OpenAI', 0.00001, 0.00003, 200000, true, true],
-      ['gpt-5.3-codex', 'OpenAI', 0.00001, 0.00003, 200000, true, true],
-      ['gpt-5.3-mini', 'OpenAI', 0.0000015, 0.000006, 200000, true, true],
       ['gemini-2.5-pro', 'Google', 0.00000125, 0.00001, 1048576, true, true],
       ['gemini-2.5-flash', 'Google', 0.00000015, 0.0000006, 1048576, false, true],
       ['gemini-2.5-flash-lite', 'Google', 0.0000001, 0.0000004, 1048576, false, false],
@@ -177,14 +174,13 @@ export class LocalBootstrapService implements OnModuleInit {
       ['qwen-2.5-coder-32b-instruct', 'Alibaba', 0.00000018, 0.00000018, 131072, false, true],
       ['qwen3-235b-a22b', 'Alibaba', 0.0000003, 0.0000012, 131072, true, true],
       ['qwen3-32b', 'Alibaba', 0.0000001, 0.0000003, 131072, true, true],
-      ['mistral-large', 'Mistral', 0.000002, 0.000006, 128000, false, true],
+      ['mistral-large-latest', 'Mistral', 0.000002, 0.000006, 128000, false, true],
       ['mistral-small', 'Mistral', 0.0000002, 0.0000006, 128000, false, false],
-      ['codestral', 'Mistral', 0.0000003, 0.0000009, 256000, false, true],
+      ['codestral-latest', 'Mistral', 0.0000003, 0.0000009, 256000, false, true],
       ['grok-3', 'xAI', 0.000003, 0.000015, 131072, true, true],
       ['grok-3-mini', 'xAI', 0.0000003, 0.0000005, 131072, true, true],
       ['grok-3-fast', 'xAI', 0.000005, 0.000025, 131072, false, true],
       ['grok-3-mini-fast', 'xAI', 0.0000006, 0.000004, 131072, false, true],
-      ['grok-2', 'xAI', 0.000002, 0.00001, 131072, false, true],
       // OpenRouter
       ['openrouter/auto', 'OpenRouter', 0.000003, 0.000015, 200000, true, true],
       ['anthropic/claude-opus-4-6', 'OpenRouter', 0.000015, 0.000075, 200000, true, true],
@@ -206,9 +202,7 @@ export class LocalBootstrapService implements OnModuleInit {
       ['minimax-m2.1', 'MiniMax', 0.00000027, 0.00000095, 196608, true, true],
       ['minimax-m2.1-highspeed', 'MiniMax', 0.00000027, 0.00000095, 196608, true, true],
       ['minimax-m2', 'MiniMax', 0.000000255, 0.000001, 196608, true, true],
-      ['minimax-m2-her', 'MiniMax', 0.0000003, 0.0000012, 65536, false, false],
       ['minimax-m1', 'MiniMax', 0.0000004, 0.0000022, 1000000, true, true],
-      ['minimax-01', 'MiniMax', 0.0000002, 0.0000011, 1000192, false, false],
       // Z.ai (GLM)
       ['glm-5', 'Z.ai', 0.00000095, 0.00000255, 204800, true, true],
       ['glm-4.7', 'Z.ai', 0.0000003, 0.0000014, 202752, true, true],
@@ -221,9 +215,6 @@ export class LocalBootstrapService implements OnModuleInit {
       // Zhipu (GLM) — legacy
       ['glm-4-plus', 'Zhipu', 0.0000005, 0.0000005, 128000, false, true],
       ['glm-4-flash', 'Zhipu', 0.00000005, 0.00000005, 128000, false, false],
-      ['nova-pro', 'Amazon', 0.0000008, 0.0000032, 300000, false, true],
-      ['nova-lite', 'Amazon', 0.00000006, 0.00000024, 300000, false, true],
-      ['nova-micro', 'Amazon', 0.000000035, 0.00000014, 128000, false, false],
     ];
 
     for (const [name, provider, inputPrice, outputPrice, ctxWindow, reasoning, code] of models) {

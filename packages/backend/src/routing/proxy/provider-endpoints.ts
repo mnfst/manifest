@@ -57,6 +57,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
   },
+  moonshot: {
+    baseUrl: 'https://api.moonshot.cn',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
   zai: {
     baseUrl: 'https://api.z.ai',
     buildHeaders: openaiHeaders,

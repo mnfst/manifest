@@ -11,8 +11,7 @@ export const QUALITY_OVERRIDES: ReadonlyMap<string, number> = new Map([
   ['claude-sonnet-4-20250514', 4],
   // Expensive code-only models that benchmark as mid-range, not tier-1.5
   ['gpt-4o', 3],
-  ['grok-2', 3],
-  ['mistral-large', 3],
+  ['mistral-large-latest', 3],
   ['kimi-k2', 3],
   // Meta-router — computed score from price data doesn't reflect frontier capability
   ['openrouter/auto', 5],

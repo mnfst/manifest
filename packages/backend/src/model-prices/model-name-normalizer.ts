@@ -23,9 +23,10 @@ const KNOWN_ALIASES: ReadonlyArray<readonly [string, string]> = [
   ['MiniMax-M2.1', 'minimax-m2.1'],
   ['MiniMax-M2.1-highspeed', 'minimax-m2.1-highspeed'],
   ['MiniMax-M2', 'minimax-m2'],
-  ['MiniMax-M2-her', 'minimax-m2-her'],
   ['MiniMax-M1', 'minimax-m1'],
-  ['MiniMax-01', 'minimax-01'],
+  // Mistral version aliases
+  ['mistral-large', 'mistral-large-latest'],
+  ['codestral', 'codestral-latest'],
 ];
 
 const PROVIDER_PREFIXES = [
@@ -61,9 +62,7 @@ export function stripDateSuffix(name: string): string {
   return name.replace(DATE_SUFFIX_RE, '');
 }
 
-export function buildAliasMap(
-  canonicalNames: ReadonlyArray<string>,
-): Map<string, string> {
+export function buildAliasMap(canonicalNames: ReadonlyArray<string>): Map<string, string> {
   const map = new Map<string, string>();
 
   for (const name of canonicalNames) {
@@ -77,10 +76,7 @@ export function buildAliasMap(
   return map;
 }
 
-export function resolveModelName(
-  name: string,
-  aliasMap: Map<string, string>,
-): string | undefined {
+export function resolveModelName(name: string, aliasMap: Map<string, string>): string | undefined {
   const exact = aliasMap.get(name);
   if (exact) return exact;
 
