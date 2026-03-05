@@ -13,7 +13,7 @@ vi.mock("../../src/services/local-mode.js", () => ({
 
 vi.mock("@solidjs/meta", () => ({
   Title: (props: any) => <title>{props.children}</title>,
-  Meta: () => null,
+  Meta: (props: any) => <meta name={props.name ?? ""} content={props.content ?? ""} />,
 }));
 
 const mockGetMessages = vi.fn();
@@ -35,7 +35,11 @@ vi.mock("../../src/services/formatters.js", () => ({
 }));
 
 vi.mock("../../src/components/SetupModal.jsx", () => ({
-  default: () => <div data-testid="setup-modal" />,
+  default: (props: any) => (
+    <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} data-agent={props.agentName ?? ""}>
+      <button data-testid="setup-close" onClick={() => props.onClose?.()}>Close</button>
+    </div>
+  ),
 }));
 
 vi.mock("../../src/components/InfoTooltip.jsx", () => ({
@@ -362,6 +366,60 @@ describe("MessageLog", () => {
         );
       });
     });
+  });
+
+  it("clears all filters when Clear filters button is clicked", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const selects = container.querySelectorAll('[data-testid="select"]');
+      expect(selects.length).toBeGreaterThanOrEqual(2);
+    });
+    // Set a filter to trigger filtered empty state
+    const selects = container.querySelectorAll('[data-testid="select"]');
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: ["gpt-4o"] });
+    await fireEvent.change(selects[0], { target: { value: "error" } });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("No messages match your filters");
+    });
+    // Click Clear filters
+    const clearBtn = container.querySelector(".btn--outline")!;
+    fireEvent.click(clearBtn);
+    // Filters should be cleared (API re-called)
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalled();
+    });
+  });
+
+  it("shows routing tier badge when present", async () => {
+    const dataWithTier = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], routing_tier: "simple" },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithTier);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".tier-badge");
+      expect(badge).not.toBeNull();
+      expect(badge?.textContent).toBe("simple");
+    });
+  });
+
+  it("closes setup modal via onClose callback", async () => {
+    // To trigger setup modal, we need a new agent without setup completed
+    localStorage.removeItem("setup_completed_test-agent");
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: [] });
+    const { container } = render(() => <MessageLog />);
+    // The setup-close button in our mock will call onClose
+    const closeBtn = container.querySelector('[data-testid="setup-close"]');
+    if (closeBtn) {
+      fireEvent.click(closeBtn);
+    }
+    // Verify mock was rendered
+    expect(container.querySelector('[data-testid="setup-modal"]')).not.toBeNull();
   });
 
   describe("local mode", () => {

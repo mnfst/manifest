@@ -142,4 +142,59 @@ describe("RoutingInstructionModal", () => {
     ));
     expect(container.querySelector(".modal-terminal")).not.toBeNull();
   });
+
+  it("builds the disable command with placeholder model by default", () => {
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="disable" onClose={() => {}} />
+    ));
+    // The disableCmd function interpolates the selected model (or placeholder)
+    expect(container.textContent).toContain("openclaw config set agents.defaults.model.primary <provider/model>");
+    expect(container.textContent).toContain("openclaw gateway restart");
+  });
+
+  it("copies the disable command via copy button", async () => {
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="disable" onClose={() => {}} />
+    ));
+    const copyBtn = container.querySelector(".modal-terminal__copy");
+    expect(copyBtn).not.toBeNull();
+    fireEvent.click(copyBtn!);
+    await vi.waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalled();
+    });
+    // Verify the copied text contains the disable command
+    const copiedText = (navigator.clipboard.writeText as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(copiedText).toContain("openclaw config set agents.defaults.model.primary");
+    expect(copiedText).toContain("openclaw gateway restart");
+  });
+
+  it("closes on Escape key", () => {
+    const onClose = vi.fn();
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="disable" onClose={onClose} />
+    ));
+    const overlay = container.querySelector(".modal-overlay")!;
+    fireEvent.keyDown(overlay, { key: "Escape" });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("closes on overlay click", () => {
+    const onClose = vi.fn();
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="disable" onClose={onClose} />
+    ));
+    const overlay = container.querySelector(".modal-overlay")!;
+    fireEvent.click(overlay);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("closes when close button is clicked in disable mode", () => {
+    const onClose = vi.fn();
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="disable" onClose={onClose} />
+    ));
+    const closeBtn = container.querySelector('[aria-label="Close"]')!;
+    fireEvent.click(closeBtn);
+    expect(onClose).toHaveBeenCalled();
+  });
 });

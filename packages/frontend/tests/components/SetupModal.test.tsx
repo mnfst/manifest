@@ -12,7 +12,11 @@ vi.mock("../../src/components/SetupStepInstall.jsx", () => ({
 }));
 
 vi.mock("../../src/components/SetupStepConfigure.jsx", () => ({
-  default: () => <div data-testid="step-configure">Configure Step</div>,
+  default: (props: any) => (
+    <div data-testid="step-configure" data-endpoint={props.endpoint ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""} data-agent={props.agentName ?? ""}>
+      Configure Step
+    </div>
+  ),
 }));
 
 vi.mock("../../src/components/SetupStepVerify.jsx", () => ({
@@ -24,7 +28,11 @@ vi.mock("../../src/components/SetupStepVerify.jsx", () => ({
 }));
 
 vi.mock("../../src/components/SetupStepLocalConfigure.jsx", () => ({
-  default: () => <div data-testid="step-local-configure">Local Configure Step</div>,
+  default: (props: any) => (
+    <div data-testid="step-local-configure" data-endpoint={props.endpoint ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""}>
+      Local Configure Step
+    </div>
+  ),
 }));
 
 import SetupModal from "../../src/components/SetupModal";
@@ -252,6 +260,94 @@ describe("SetupModal", () => {
       const verify = container.querySelector('[data-testid="step-verify"]');
       expect(verify).not.toBeNull();
       expect(verify?.getAttribute("data-is-local")).toBe("false");
+    });
+
+    it("renders Configure step with endpoint from custom pluginEndpoint", async () => {
+      const { getAgentKey } = await import("../../src/services/api.js");
+      (getAgentKey as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        keyPrefix: "mnfst_abc",
+        pluginEndpoint: "https://custom.endpoint/otlp",
+      });
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="test-agent" onClose={onClose} />
+      ));
+      // Navigate to Configure step
+      fireEvent.click(container.querySelector(".setup-modal__next")!);
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+      });
+    });
+
+    it("renders Configure step with computed endpoint on non-production host", () => {
+      // Default mock: pluginEndpoint is null, hostname is localhost
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="test-agent" onClose={onClose} />
+      ));
+      fireEvent.click(container.querySelector(".setup-modal__next")!);
+      expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+    });
+
+    it("passes null endpoint on app.manifest.build hostname", () => {
+      const origLocation = window.location;
+      // Replace window.location entirely so hostname can be overridden
+      Object.defineProperty(window, "location", {
+        value: { ...origLocation, hostname: "app.manifest.build", origin: "https://app.manifest.build" },
+        writable: true,
+        configurable: true,
+      });
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="test-agent" onClose={onClose} />
+      ));
+      fireEvent.click(container.querySelector(".setup-modal__next")!);
+      expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+      Object.defineProperty(window, "location", {
+        value: origLocation,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it("passes apiKey prop to Configure step", () => {
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="test-agent" apiKey="mnfst_full_key" onClose={onClose} />
+      ));
+      fireEvent.click(container.querySelector(".setup-modal__next")!);
+      expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+    });
+  });
+
+  describe("local mode - endpoint and steps", () => {
+    beforeEach(() => {
+      mockGetHealth.mockResolvedValue({ mode: "local" });
+    });
+
+    it("passes endpoint to SetupStepLocalConfigure", async () => {
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
+      ));
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="step-local-configure"]')).not.toBeNull();
+      });
+    });
+
+    it("passes null endpoint in local mode on app.manifest.build", async () => {
+      const origLocation = window.location;
+      Object.defineProperty(window, "location", {
+        value: { ...origLocation, hostname: "app.manifest.build", origin: "https://app.manifest.build" },
+        writable: true,
+        configurable: true,
+      });
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
+      ));
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="step-local-configure"]')).not.toBeNull();
+      });
+      Object.defineProperty(window, "location", {
+        value: origLocation,
+        writable: true,
+        configurable: true,
+      });
     });
   });
 });

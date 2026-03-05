@@ -108,4 +108,10 @@ describe('validateProviderConfig', () => {
     const result = validateProviderConfig('mailgun', 'abcdefghij', 'example.com');
     expect(result.valid).toBe(true);
   });
+
+  it('rejects invalid domain format for Mailgun when domain is present but malformed', () => {
+    const result = validateProviderConfig('mailgun', 'key-12345678', 'not a domain');
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Invalid domain format');
+  });
 });

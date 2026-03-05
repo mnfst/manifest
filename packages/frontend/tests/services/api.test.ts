@@ -39,6 +39,7 @@ import {
   clearEmailConfig,
   getNotificationEmail,
   saveNotificationEmail,
+  getRoutingStatus,
 } from "../../src/services/api.js";
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -935,6 +936,18 @@ describe("saveNotificationEmail", () => {
         body: JSON.stringify({ email: "new@example.com" }),
       }),
     );
+  });
+});
+
+describe("getRoutingStatus", () => {
+  it("fetches /routing/:agentName/status", async () => {
+    const payload = { enabled: true };
+    mockOk(payload);
+
+    const result = await getRoutingStatus("my-agent");
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/routing/my-agent/status");
   });
 });
 

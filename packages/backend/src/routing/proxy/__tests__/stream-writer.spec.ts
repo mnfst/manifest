@@ -370,6 +370,25 @@ describe('pipeStream', () => {
     expect(written).toContain('data: [DONE]\n\n');
   });
 
+  it('should flush remaining buffer line without data: prefix through transform', async () => {
+    const { res, written } = mockResponse();
+    // Remaining buffer has a line without "data: " prefix (e.g., raw JSON)
+    const stream = createReadableStream([
+      'data: first\n\n',
+      '{"raw":"remaining"}',
+    ]);
+
+    const transform = (chunk: string) => `out:${chunk}\n\n`;
+
+    await pipeStream(stream, res as never, transform);
+
+    expect(written).toContain('out:first\n\n');
+    // The remaining buffer '{"raw":"remaining"}' should be flushed through
+    // transform as-is (no "data: " prefix stripping)
+    expect(written).toContain('out:{"raw":"remaining"}\n\n');
+    expect(written).toContain('data: [DONE]\n\n');
+  });
+
   it('should handle multiple chunks that split an SSE event with transform', async () => {
     const { res, written } = mockResponse();
     // An SSE event split across two TCP reads

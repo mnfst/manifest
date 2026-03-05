@@ -65,6 +65,39 @@ describe('TelemetryEventDto', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 
+  it('validates with a nested security_event', async () => {
+    const dto = plainToInstance(TelemetryEventDto, {
+      timestamp: '2024-01-01T00:00:00Z',
+      description: 'test event',
+      service_type: 'agent',
+      status: 'ok',
+      security_event: {
+        severity: 'warning',
+        category: 'prompt_injection',
+        description: 'Suspicious input detected',
+      },
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.security_event).toBeInstanceOf(SecurityEventDto);
+  });
+
+  it('rejects invalid nested security_event', async () => {
+    const dto = plainToInstance(TelemetryEventDto, {
+      timestamp: '2024-01-01T00:00:00Z',
+      description: 'test event',
+      service_type: 'agent',
+      status: 'ok',
+      security_event: {
+        severity: 'high',
+        category: 'test',
+        description: 'test',
+      },
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
   it('rejects negative output_tokens', async () => {
     const dto = plainToInstance(TelemetryEventDto, {
       timestamp: '2024-01-01T00:00:00Z',

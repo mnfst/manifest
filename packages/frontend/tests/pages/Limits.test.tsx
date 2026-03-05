@@ -40,10 +40,13 @@ vi.mock("../../src/components/EmailProviderSetup.js", () => ({
 
 vi.mock("../../src/components/LimitRuleModal.js", () => ({
   default: (props: any) => (
-    <div data-testid="limit-modal" data-open={props.open} data-edit={!!props.editData}>
+    <div data-testid="limit-modal" data-open={props.open} data-edit={!!props.editData} data-has-provider={String(props.hasProvider ?? "")}>
       LimitRuleModal
       <button data-testid="mock-save" onClick={() => props.onSave({ metric_type: "tokens", threshold: 100, period: "day", action: "notify" })}>
         Save
+      </button>
+      <button data-testid="mock-close" onClick={() => props.onClose()}>
+        MockClose
       </button>
     </div>
   ),
@@ -689,6 +692,95 @@ describe("Limits page", () => {
       expect(modal.getAttribute("data-key-prefix")).toBe("key-abc");
       expect(modal.getAttribute("data-domain")).toBe("mg.example.com");
       expect(modal.getAttribute("data-notification-email")).toBe("alerts@example.com");
+    });
+  });
+
+  it("closes delete modal when overlay is clicked", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByLabelText("Rule options"));
+    await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
+    fireEvent.click(screen.getByText("Delete"));
+
+    await vi.waitFor(() => {
+      expect(document.querySelector(".modal-card__title")).not.toBeNull();
+    });
+
+    // Click overlay to close
+    const overlay = document.querySelector(".modal-overlay") as HTMLElement;
+    fireEvent.click(overlay);
+
+    await vi.waitFor(() => {
+      const titles = document.querySelectorAll(".modal-card__title");
+      const deleteTitle = Array.from(titles).find((t) => t.textContent === "Delete rule");
+      expect(deleteTitle).toBeUndefined();
+    });
+  });
+
+  it("closes delete modal when Cancel button is clicked", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByLabelText("Rule options"));
+    await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
+    fireEvent.click(screen.getByText("Delete"));
+
+    await vi.waitFor(() => {
+      expect(document.querySelector(".modal-card__title")).not.toBeNull();
+    });
+
+    const cancelBtn = Array.from(document.querySelectorAll(".btn--ghost")).find(
+      (b) => b.textContent === "Cancel",
+    ) as HTMLButtonElement;
+    fireEvent.click(cancelBtn);
+
+    await vi.waitFor(() => {
+      const titles = document.querySelectorAll(".modal-card__title");
+      const deleteTitle = Array.from(titles).find((t) => t.textContent === "Delete rule");
+      expect(deleteTitle).toBeUndefined();
+    });
+  });
+
+  it("resets editRule and closes modal on LimitRuleModal onClose", async () => {
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    // Open the create rule modal
+    fireEvent.click(screen.getByText("+ Create rule"));
+    await vi.waitFor(() => {
+      const modal = screen.getByTestId("limit-modal");
+      expect(modal.getAttribute("data-open")).toBe("true");
+    });
+
+    // Close via the mocked close button
+    fireEvent.click(screen.getByTestId("mock-close"));
+    await vi.waitFor(() => {
+      const modal = screen.getByTestId("limit-modal");
+      expect(modal.getAttribute("data-open")).toBe("false");
     });
   });
 

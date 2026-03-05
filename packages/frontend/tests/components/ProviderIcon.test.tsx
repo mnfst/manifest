@@ -13,6 +13,8 @@ const KNOWN_PROVIDERS = [
   "moonshot",
   "openrouter",
   "ollama",
+  "minimax",
+  "zai",
 ];
 
 describe("providerIcon", () => {

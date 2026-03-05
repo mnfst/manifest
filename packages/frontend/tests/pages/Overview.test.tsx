@@ -16,7 +16,7 @@ vi.mock("../../src/services/local-mode.js", () => ({
 
 vi.mock("@solidjs/meta", () => ({
   Title: (props: any) => <title>{props.children}</title>,
-  Meta: () => null,
+  Meta: (props: any) => <meta name={props.name ?? ""} content={props.content ?? ""} />,
 }));
 
 const mockGetOverview = vi.fn();
@@ -49,7 +49,12 @@ vi.mock("../../src/components/SingleTokenChart.jsx", () => ({
 }));
 
 vi.mock("../../src/components/SetupModal.jsx", () => ({
-  default: (props: any) => <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} />,
+  default: (props: any) => (
+    <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} data-agent={props.agentName ?? ""} data-api-key={props.apiKey ?? ""}>
+      <button data-testid="setup-close" onClick={() => props.onClose?.()}>Close</button>
+      <button data-testid="setup-done" onClick={() => props.onDone?.()}>Done</button>
+    </div>
+  ),
 }));
 
 vi.mock("../../src/components/InfoTooltip.jsx", () => ({
@@ -343,6 +348,30 @@ describe("Overview", () => {
         const modal = container.querySelector('[data-testid="setup-modal"]');
         expect(modal?.getAttribute("data-open")).toBe("true");
       });
+    });
+  });
+
+  describe("SetupModal callbacks", () => {
+    it("sets localStorage and closes modal on onClose", async () => {
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const modal = container.querySelector('[data-testid="setup-modal"]');
+        expect(modal?.getAttribute("data-open")).toBe("true");
+      });
+      fireEvent.click(screen.getByTestId("setup-close"));
+      expect(localStorage.getItem("setup_dismissed_test-agent")).toBe("1");
+    });
+
+    it("sets localStorage on onDone", async () => {
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const modal = container.querySelector('[data-testid="setup-modal"]');
+        expect(modal?.getAttribute("data-open")).toBe("true");
+      });
+      fireEvent.click(screen.getByTestId("setup-done"));
+      expect(localStorage.getItem("setup_completed_test-agent")).toBe("1");
     });
   });
 });

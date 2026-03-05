@@ -71,6 +71,21 @@ describe("App", () => {
   });
 });
 
+describe("App with agent path", () => {
+  it("shows sidebar on /agents/ paths", async () => {
+    // Override the useLocation mock to return an agent path
+    const routerMock = await import("@solidjs/router");
+    const original = routerMock.useLocation;
+    (routerMock as any).useLocation = () => ({ pathname: "/agents/demo" });
+    try {
+      const { container } = render(() => <App />);
+      expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
+    } finally {
+      (routerMock as any).useLocation = original;
+    }
+  });
+});
+
 describe("dashboard_loaded event", () => {
   it("fires dashboard_loaded with mode cloud", () => {
     render(() => <App />);

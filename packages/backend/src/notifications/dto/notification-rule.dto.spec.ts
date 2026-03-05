@@ -60,4 +60,22 @@ describe('UpdateNotificationRuleDto', () => {
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });
+
+  it('transforms is_active via @Type(() => Boolean)', async () => {
+    const dto = plainToInstance(UpdateNotificationRuleDto, {
+      is_active: 'true',
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.is_active).toBe(true);
+  });
+
+  it('validates is_active as boolean after transform', async () => {
+    const dto = plainToInstance(UpdateNotificationRuleDto, {
+      is_active: false,
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.is_active).toBe(false);
+  });
 });

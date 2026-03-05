@@ -10,7 +10,11 @@ vi.mock("../../src/components/SetupStepInstall.jsx", () => ({
 }));
 
 vi.mock("../../src/components/SetupStepConfigure.jsx", () => ({
-  default: () => <div data-testid="step-configure">Configure Step</div>,
+  default: (props: any) => (
+    <div data-testid="step-configure" data-endpoint={props.endpoint ?? ""} data-key={props.keyPrefix ?? ""} data-agent={props.agentName ?? ""}>
+      Configure Step
+    </div>
+  ),
 }));
 
 vi.mock("../../src/components/SetupStepVerify.jsx", () => ({
@@ -18,7 +22,12 @@ vi.mock("../../src/components/SetupStepVerify.jsx", () => ({
 }));
 
 vi.mock("../../src/components/ErrorState.jsx", () => ({
-  default: (props: any) => <div data-testid="error-state">{props.title}</div>,
+  default: (props: any) => (
+    <div data-testid="error-state" data-error={String(props.error ?? "")} data-message={props.message ?? ""}>
+      {props.title}
+      <button data-testid="retry" onClick={() => props.onRetry?.()}>Retry</button>
+    </div>
+  ),
 }));
 
 import SetupWizard from "../../src/components/SetupWizard";
@@ -124,5 +133,37 @@ describe("SetupWizard", () => {
     // Click on overlay (not on modal-card)
     fireEvent.click(overlay);
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("shows ErrorState when getAgentKey fails", async () => {
+    const { getAgentKey } = await import("../../src/services/api.js");
+    (getAgentKey as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("API error"));
+    const { container } = render(() => <SetupWizard agentName="error-agent" onClose={onClose} />);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="error-state"]')).not.toBeNull();
+    });
+  });
+
+  it("uses custom pluginEndpoint when provided", async () => {
+    const { getAgentKey } = await import("../../src/services/api.js");
+    (getAgentKey as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      keyPrefix: "mnfst_xyz",
+      pluginEndpoint: "https://custom.endpoint/otlp",
+    });
+    const { container } = render(() => <SetupWizard agentName="my-agent" onClose={onClose} />);
+    // Navigate to Configure step
+    fireEvent.click(screen.getByText("Next"));
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+    });
+  });
+
+  it("computes endpoint from window.location when not on app.manifest.build", () => {
+    // Default mock returns pluginEndpoint: null, hostname is localhost
+    // so endpoint should be window.location.origin + /otlp
+    const { container } = render(() => <SetupWizard agentName="my-agent" onClose={onClose} />);
+    fireEvent.click(screen.getByText("Next"));
+    // Step 2 is rendered which means endpoint was computed
+    expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
   });
 });

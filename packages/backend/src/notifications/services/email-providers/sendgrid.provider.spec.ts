@@ -107,4 +107,14 @@ describe('SendGridProvider', () => {
     const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
     expect(body.content).toEqual([{ type: 'text/html', value: '<p>Hi</p>' }]);
   });
+
+  it('uses plain email string as from when no angle brackets present', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
+    const provider = new SendGridProvider(config);
+
+    await provider.send({ to: 'user@test.com', subject: 'Test', html: '<p>Hi</p>', from: 'plain@example.com' });
+
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(body.from.email).toBe('plain@example.com');
+  });
 });

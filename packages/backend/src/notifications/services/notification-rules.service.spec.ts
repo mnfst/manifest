@@ -518,4 +518,22 @@ describe('NotificationRulesService (sql.js / local mode)', () => {
     expect(deleteQuery).toContain('?');
     expect(deleteQuery).not.toContain('$1');
   });
+
+  it('uses integer 1 for is_active in getAllActiveRules for sql.js', async () => {
+    mockQuery.mockResolvedValueOnce([]);
+    await service.getAllActiveRules();
+    expect(mockQuery).toHaveBeenCalledWith(
+      expect.stringContaining('is_active'),
+      [1, 'notify', 'both'],
+    );
+  });
+
+  it('uses integer 1 for is_active in getActiveBlockRules for sql.js', async () => {
+    mockQuery.mockResolvedValueOnce([]);
+    await service.getActiveBlockRules('tenant-1', 'my-agent');
+    expect(mockQuery).toHaveBeenCalledWith(
+      expect.stringContaining('action IN'),
+      ['tenant-1', 'my-agent', 1, 'block', 'both'],
+    );
+  });
 });

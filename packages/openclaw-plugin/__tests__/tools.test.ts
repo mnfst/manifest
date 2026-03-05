@@ -336,6 +336,44 @@ describe("registerTools", () => {
     });
   });
 
+  describe("toLegacy — non-JSON fallback", () => {
+    it("returns raw text as result when JSON.parse fails inside toLegacy", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ total_tokens: 100 }),
+      });
+
+      // Make JSON.parse throw on the second call (first call is in callApi's
+      // res.json() which is handled by the runtime; the second is in toLegacy).
+      // callApi uses JSON.stringify to produce the text, then toLegacy calls
+      // JSON.parse on that text. We intercept JSON.parse to throw once.
+      const originalParse = JSON.parse;
+      let callCount = 0;
+      jest.spyOn(JSON, "parse").mockImplementation((text: string) => {
+        callCount++;
+        // The handler flow: callApi calls res.json() (no JSON.parse by us),
+        // then JSON.stringify(data), then toLegacy calls JSON.parse(text).
+        // We want the toLegacy JSON.parse call to throw.
+        // toLegacy is called with the result of callApi, so the JSON.parse
+        // inside toLegacy is our target. Let it throw on first call from toLegacy.
+        if (callCount === 1) {
+          throw new SyntaxError("Unexpected token");
+        }
+        return originalParse(text);
+      });
+
+      const tool = api.tools.get("manifest_usage")!;
+      const result = await tool.handler({ period: "today" });
+
+      // When JSON.parse fails, toLegacy returns { result: rawText }
+      expect(result).toEqual({
+        result: expect.any(String),
+      });
+
+      jest.restoreAllMocks();
+    });
+  });
+
   describe("endpoint stripping", () => {
     it("strips /otlp from endpoint when building API base URL", async () => {
       mockFetch.mockResolvedValueOnce({

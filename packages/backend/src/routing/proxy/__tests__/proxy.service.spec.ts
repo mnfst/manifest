@@ -396,6 +396,35 @@ describe('ProxyService', () => {
       expect(result.meta.reason).toBe('heartbeat');
     });
 
+    it('does not detect heartbeat when user content is null (non-string, non-array)', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'simple',
+        model: 'gpt-4o-mini',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        score: -0.3,
+        reason: 'short_message',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      const bodyWithNullContent = {
+        messages: [
+          { role: 'user', content: null },
+        ],
+        stream: false,
+      };
+
+      await service.proxyRequest('agent-1', 'user-1', bodyWithNullContent, 'default');
+
+      // Should use resolve (not resolveForTier) since heartbeat is not detected
+      expect(resolveService.resolve).toHaveBeenCalled();
+    });
+
     it('does not detect heartbeat when HEARTBEAT_OK is absent', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
@@ -665,7 +694,70 @@ describe('ProxyService', () => {
     });
   });
 
+  describe('xai extra headers', () => {
+    it('passes x-grok-conv-id header for xai provider', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'grok-2',
+        provider: 'xai',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-xai-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'my-session');
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'xai',
+        'sk-xai-test',
+        'grok-2',
+        body,
+        false,
+        undefined,
+        { 'x-grok-conv-id': 'my-session' },
+      );
+    });
+  });
+
   describe('scoring edge cases', () => {
+    it('skips assistant messages when checking for heartbeat', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      const bodyWithAssistant = {
+        messages: [
+          { role: 'user', content: 'Hello' },
+          { role: 'assistant', content: 'HEARTBEAT_OK assistant message' },
+          { role: 'user', content: 'Continue' },
+        ],
+        stream: false,
+      };
+
+      await service.proxyRequest('agent-1', 'user-1', bodyWithAssistant, 'default');
+
+      // Heartbeat check skips non-user messages, so HEARTBEAT_OK in assistant is ignored.
+      // resolve (not resolveForTier) should be called.
+      expect(resolveService.resolve).toHaveBeenCalled();
+    });
+
     it('handles body where all messages are system/developer (empty scoring list)', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'simple',

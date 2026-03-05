@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render } from "@solidjs/testing-library";
+import { render, fireEvent } from "@solidjs/testing-library";
 import type { UpdateInfo } from "../../src/services/local-mode";
 import { createSignal } from "solid-js";
 
@@ -103,5 +103,38 @@ describe("VersionIndicator", () => {
     const { container } = render(() => <VersionIndicator />);
     const el = container.querySelector(".version-indicator");
     expect(el!.getAttribute("aria-label")).toBe("Update available: v6.0.0");
+  });
+
+  it("copies upgrade command to clipboard when copy button is clicked", async () => {
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", {
+      clipboard: { writeText: writeTextMock },
+    });
+    mockSignal[1]({
+      version: "5.6.3",
+      latestVersion: "6.0.0",
+      updateAvailable: true,
+    });
+    const { container } = render(() => <VersionIndicator />);
+    const copyBtn = container.querySelector(".version-indicator__copy-btn")!;
+    fireEvent.click(copyBtn);
+    expect(writeTextMock).toHaveBeenCalledWith("openclaw plugins update");
+  });
+
+  it("handles clipboard write failure gracefully", async () => {
+    const writeTextMock = vi.fn().mockRejectedValue(new Error("Clipboard error"));
+    vi.stubGlobal("navigator", {
+      clipboard: { writeText: writeTextMock },
+    });
+    mockSignal[1]({
+      version: "5.6.3",
+      latestVersion: "6.0.0",
+      updateAvailable: true,
+    });
+    const { container } = render(() => <VersionIndicator />);
+    const copyBtn = container.querySelector(".version-indicator__copy-btn")!;
+    // Should not throw
+    fireEvent.click(copyBtn);
+    expect(writeTextMock).toHaveBeenCalled();
   });
 });

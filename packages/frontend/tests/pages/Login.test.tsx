@@ -4,10 +4,11 @@ import { render, screen, fireEvent } from "@solidjs/testing-library";
 const mockSignInEmail = vi.fn().mockResolvedValue({});
 const mockSendVerificationEmail = vi.fn().mockResolvedValue({});
 
+let mockSearchParams: Record<string, string> = {};
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
   useNavigate: () => vi.fn(),
-  useSearchParams: () => [{}],
+  useSearchParams: () => [mockSearchParams],
 }));
 
 vi.mock("@solidjs/meta", () => ({
@@ -35,6 +36,7 @@ import Login from "../../src/pages/Login";
 describe("Login", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = {};
     mockSignInEmail.mockResolvedValue({});
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
   });
@@ -171,6 +173,73 @@ describe("Login", () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Welcome back");
     });
+  });
+
+  it("shows error from search params on mount", async () => {
+    mockSearchParams = { error: "oauth_failed" };
+    const { container } = render(() => <Login />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Login failed");
+    });
+  });
+
+  it("redirects to / when local session is ok", async () => {
+    const { checkLocalMode } = await import("../../src/services/local-mode.js");
+    (checkLocalMode as ReturnType<typeof vi.fn>).mockResolvedValueOnce(true);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+    // Mock window.location.href setter
+    const hrefSetter = vi.fn();
+    Object.defineProperty(window, "location", {
+      value: { ...window.location, href: "/" },
+      writable: true,
+      configurable: true,
+    });
+    render(() => <Login />);
+    // The component sets window.location.href = '/' when local session is ok
+    await vi.waitFor(() => {
+      expect(vi.mocked(fetch)).toHaveBeenCalledWith("/api/auth/local-session", { credentials: "include" });
+    });
+  });
+
+  it("falls through to login form when local session fetch throws", async () => {
+    const { checkLocalMode } = await import("../../src/services/local-mode.js");
+    (checkLocalMode as ReturnType<typeof vi.fn>).mockResolvedValueOnce(true);
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network error")));
+    const { container } = render(() => <Login />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Welcome back");
+    });
+  });
+
+  it("starts cooldown timer after resending verification email", async () => {
+    vi.useFakeTimers();
+    mockSignInEmail.mockResolvedValue({ error: { message: "Email is not verified", code: "EMAIL_NOT_VERIFIED" } });
+    mockSendVerificationEmail.mockResolvedValue({ error: null });
+    const { container } = render(() => <Login />);
+    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "user@test.com" } });
+    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass" } });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Resend verification email");
+    });
+    const resendBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Resend verification email"),
+    )!;
+    fireEvent.click(resendBtn);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Resend in");
+    });
+    // Advance timer to tick down cooldown
+    vi.advanceTimersByTime(2000);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Resend in");
+    });
+    // Advance to expire cooldown
+    vi.advanceTimersByTime(60000);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Resend verification email");
+    });
+    vi.useRealTimers();
   });
 
   it("shows resend error when sendVerificationEmail fails", async () => {

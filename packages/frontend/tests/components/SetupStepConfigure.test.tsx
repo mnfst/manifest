@@ -55,4 +55,11 @@ describe("SetupStepConfigure", () => {
     const { container } = render(() => <SetupStepConfigure apiKey={null} keyPrefix={null} agentName="test-agent" endpoint={null} stepNumber={2} />);
     expect(container.textContent).toContain("2. Configure your agent");
   });
+
+  it("includes endpoint in env command when provided", () => {
+    const { container } = render(() => <SetupStepConfigure apiKey={null} keyPrefix={null} agentName="test-agent" endpoint="http://localhost:3001/otlp" />);
+    fireEvent.click(screen.getByText("Environment"));
+    expect(container.textContent).toContain("MANIFEST_ENDPOINT");
+    expect(container.textContent).toContain("http://localhost:3001/otlp");
+  });
 });

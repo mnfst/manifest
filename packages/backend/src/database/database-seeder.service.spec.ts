@@ -86,6 +86,17 @@ describe('DatabaseSeederService', () => {
   });
 
   describe('onModuleInit', () => {
+    it('should skip everything in local mode', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+
+      await service.onModuleInit();
+
+      // Nothing should be called — early return on line 41
+      expect(mockPricingRepo.upsert).not.toHaveBeenCalled();
+      expect(mockApiKeyRepo.count).not.toHaveBeenCalled();
+      expect(mockTenantRepo.count).not.toHaveBeenCalled();
+    });
+
     it('should run Better Auth migrations', async () => {
       const ctx = await auth.$context;
       await service.onModuleInit();
@@ -497,6 +508,32 @@ describe('DatabaseSeederService', () => {
 
       await service.onModuleInit();
 
+      expect(mockApiKeyRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('should handle getAdminUserId query failure with Error and return null', async () => {
+      // checkBetterAuthUser: user exists (skip signUpEmail)
+      mockDataSource.query.mockResolvedValueOnce([{ id: 'x' }]);
+      // getAdminUserId in seedApiKey: throws Error
+      mockDataSource.query.mockRejectedValueOnce(new Error('connection lost'));
+      mockApiKeyRepo.count.mockResolvedValue(0);
+
+      await service.onModuleInit();
+
+      // seedApiKey should skip insert because getAdminUserId returned null
+      expect(mockApiKeyRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('should handle getAdminUserId query failure with non-Error and return null', async () => {
+      // checkBetterAuthUser: user exists (skip signUpEmail)
+      mockDataSource.query.mockResolvedValueOnce([{ id: 'x' }]);
+      // getAdminUserId in seedApiKey: throws non-Error value
+      mockDataSource.query.mockRejectedValueOnce('string rejection');
+      mockApiKeyRepo.count.mockResolvedValue(0);
+
+      await service.onModuleInit();
+
+      // seedApiKey should skip insert because getAdminUserId returned null
       expect(mockApiKeyRepo.insert).not.toHaveBeenCalled();
     });
   });

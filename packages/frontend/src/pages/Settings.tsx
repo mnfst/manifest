@@ -177,16 +177,9 @@ const Settings: Component = () => {
               <span class="settings-card__label-desc">This key authenticates your agent's OTLP telemetry to Manifest. Rotating it generates a new key and immediately invalidates the current one.</span>
             </div>
             <div class="settings-card__control" style="display: flex; align-items: center; gap: 8px;">
-              <Show when={isLocalMode() && apiKeyData()?.apiKey} fallback={
-                <code style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-                  {apiKeyData()?.keyPrefix ?? "..."}...
-                </code>
-              }>
-                <code style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); word-break: break-all;">
-                  {apiKeyData()!.apiKey!}
-                </code>
-                <CopyButton text={apiKeyData()!.apiKey!} />
-              </Show>
+              <code style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                {apiKeyData()?.keyPrefix ?? "..."}...
+              </code>
               <button
                 class="btn btn--outline"
                 style="font-size: var(--font-size-sm);"

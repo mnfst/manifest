@@ -104,6 +104,43 @@ describe('TelemetryService', () => {
     }
   });
 
+  it('returns zero counts when events is not an array', async () => {
+    const result = await service.ingest('not-an-array' as never, 'test-user');
+    expect(result).toEqual({ accepted: 0, rejected: 0, errors: [] });
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('inserts a security event when event includes security_event', async () => {
+    const event = makeEvent({
+      security_event: {
+        severity: 'critical',
+        category: 'injection',
+        description: 'Prompt injection detected',
+      },
+    });
+
+    const result = await service.ingest([event], 'test-user');
+
+    expect(result.accepted).toBe(1);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+    expect(mockSecurityInsert).toHaveBeenCalledTimes(1);
+    expect(mockSecurityInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        severity: 'critical',
+        category: 'injection',
+        description: 'Prompt injection detected',
+        user_id: 'test-user',
+      }),
+    );
+  });
+
+  it('does not insert security event when event has no security_event', async () => {
+    const result = await service.ingest([makeEvent()], 'test-user');
+
+    expect(result.accepted).toBe(1);
+    expect(mockSecurityInsert).not.toHaveBeenCalled();
+  });
+
   it('looks up model pricing for cost calculation', async () => {
     mockPricingGetByModel.mockReturnValue({
       input_price_per_token: 0.000015,

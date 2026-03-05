@@ -127,6 +127,16 @@ describe('EmailProviderConfigService', () => {
       expect(result.notificationEmail).toBe('new@test.com');
     });
 
+    it('throws when existing config has invalid provider config on update without new API key', async () => {
+      const ds = createMockDataSource([
+        [{ id: 'existing-id', api_key_encrypted: 'short' }], // existing with short key
+      ]);
+      const service = new EmailProviderConfigService(ds);
+      await expect(
+        service.upsert('user-1', { provider: 'mailgun' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
     it('throws when no existing config and no API key', async () => {
       const ds = createMockDataSource([
         [], // no existing

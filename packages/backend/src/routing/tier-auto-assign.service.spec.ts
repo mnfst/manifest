@@ -306,6 +306,40 @@ describe('TierAutoAssignService', () => {
       expect(service.pickBest(models, 'complex')!.model_name).toBe('claude-opus-4');
       expect(service.pickBest(models, 'reasoning')!.model_name).toBe('claude-opus-4');
     });
+
+    it('should default quality_score to 3 when null', () => {
+      const noQuality = makeModel({
+        model_name: 'no-quality',
+        input_price_per_token: 0.000001,
+        output_price_per_token: 0.000002,
+        quality_score: null as unknown as number,
+      });
+      const highQ = makeModel({
+        model_name: 'high-q',
+        input_price_per_token: 0.00001,
+        output_price_per_token: 0.00003,
+        quality_score: 5,
+      });
+
+      // For complex tier: highest quality wins, null defaults to 3
+      const result = service.pickBest([noQuality, highQ], 'complex');
+      expect(result!.model_name).toBe('high-q');
+      expect(result!.score).toBe(5);
+    });
+
+    it('should treat null quality_score as 3 for standard tier filtering', () => {
+      const nullQ = makeModel({
+        model_name: 'null-q',
+        input_price_per_token: 0.0000001,
+        output_price_per_token: 0.0000004,
+        quality_score: null as unknown as number,
+      });
+
+      // Standard filters quality >= 2. null defaults to 3, so it should be eligible.
+      const result = service.pickBest([nullQ], 'standard');
+      expect(result!.model_name).toBe('null-q');
+      expect(result!.score).toBe(3);
+    });
   });
 
   describe('recalculate', () => {
@@ -330,6 +364,55 @@ describe('TierAutoAssignService', () => {
 
       expect(mockTierRepo.insert).toHaveBeenCalledTimes(4);
       for (const call of mockTierRepo.insert.mock.calls) {
+        expect(call[0].auto_assigned_model).toBeNull();
+      }
+    });
+
+    it('should save all 4 existing tiers when they already exist', async () => {
+      mockProviderRepo.find.mockResolvedValue([{ provider: 'openai', is_active: true }]);
+      const model = makeModel({ model_name: 'gpt-4o', provider: 'OpenAI' });
+      mockPricingCache.getAll.mockReturnValue([model]);
+
+      // All 4 tiers already exist
+      mockTierRepo.findOne.mockResolvedValue({
+        id: 'existing-id',
+        agent_id: 'agent-1',
+        tier: 'simple',
+        override_model: null,
+        auto_assigned_model: null,
+        updated_at: '2024-01-01',
+      });
+
+      await service.recalculate('agent-1');
+
+      // Should save (not insert) all 4 existing tiers
+      expect(mockTierRepo.save).toHaveBeenCalledTimes(4);
+      expect(mockTierRepo.insert).not.toHaveBeenCalled();
+      for (const call of mockTierRepo.save.mock.calls) {
+        expect(call[0].auto_assigned_model).toBe('gpt-4o');
+      }
+    });
+
+    it('should set auto_assigned_model to null when pickBest returns null for existing tier', async () => {
+      mockProviderRepo.find.mockResolvedValue([{ provider: 'openai', is_active: true }]);
+      // No models available (getAll returns empty array), so pickBest returns null
+      mockPricingCache.getAll.mockReturnValue([]);
+
+      // All 4 tiers already exist
+      mockTierRepo.findOne.mockResolvedValue({
+        id: 'existing-id',
+        agent_id: 'agent-1',
+        tier: 'simple',
+        override_model: null,
+        auto_assigned_model: 'old-model',
+        updated_at: '2024-01-01',
+      });
+
+      await service.recalculate('agent-1');
+
+      // Should save with null auto_assigned_model (best?.model_name ?? null)
+      expect(mockTierRepo.save).toHaveBeenCalledTimes(4);
+      for (const call of mockTierRepo.save.mock.calls) {
         expect(call[0].auto_assigned_model).toBeNull();
       }
     });

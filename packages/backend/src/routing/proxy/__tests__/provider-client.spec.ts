@@ -430,6 +430,20 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('createAnthropicStreamTransformer', () => {
+    it('creates a stateful transformer that processes Anthropic stream events', () => {
+      const transformer = client.createAnthropicStreamTransformer('claude-sonnet-4-20250514');
+      expect(typeof transformer).toBe('function');
+
+      // Test with a message_start event
+      const startChunk =
+        'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}';
+      const result = transformer(startChunk);
+      expect(result).toContain('data: ');
+      expect(result).toContain('"role":"assistant"');
+    });
+  });
+
   describe('URL masking', () => {
     it('masks API key in Google URL for debug logging', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));

@@ -82,4 +82,35 @@ describe("local-mode", () => {
 
     expect(telemetryOptOut()).toBe(false);
   });
+
+  it("sets updateInfo when version data is present in health response", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      json: () => Promise.resolve({
+        mode: "cloud",
+        version: "1.2.3",
+        latestVersion: "2.0.0",
+        updateAvailable: true,
+      }),
+    });
+
+    const { checkLocalMode, updateInfo } = await import("../../src/services/local-mode.js");
+    await checkLocalMode();
+
+    expect(updateInfo()).toEqual({
+      version: "1.2.3",
+      latestVersion: "2.0.0",
+      updateAvailable: true,
+    });
+  });
+
+  it("does not set updateInfo when version is absent", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      json: () => Promise.resolve({ mode: "cloud" }),
+    });
+
+    const { checkLocalMode, updateInfo } = await import("../../src/services/local-mode.js");
+    await checkLocalMode();
+
+    expect(updateInfo()).toBeNull();
+  });
 });

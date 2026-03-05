@@ -46,4 +46,15 @@ describe("CopyButton", () => {
     fireEvent.click(btn);
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("test-copy");
   });
+
+  it("handles clipboard write failure gracefully", () => {
+    vi.stubGlobal("navigator", {
+      clipboard: { writeText: vi.fn().mockRejectedValue(new Error("Not allowed")) },
+    });
+    const { container } = render(() => <CopyButton text="test-copy" />);
+    const btn = container.querySelector(".modal-terminal__copy")!;
+    // Should not throw
+    fireEvent.click(btn);
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("test-copy");
+  });
 });

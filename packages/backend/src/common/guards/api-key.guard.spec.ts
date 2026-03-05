@@ -132,6 +132,15 @@ describe('ApiKeyGuard', () => {
     expect(mockUpdate).toHaveBeenCalled();
   });
 
+  it('returns true immediately when route is marked @Public()', async () => {
+    (reflector.getAllAndOverride as jest.Mock).mockReturnValueOnce(true);
+    const ctx = makeContext({});
+
+    const result = await guard.canActivate(ctx);
+    expect(result).toBe(true);
+    expect(mockFindOne).not.toHaveBeenCalled();
+  });
+
   it('skips API key validation when request.user is already set', async () => {
     const ctx = {
       switchToHttp: () => ({
