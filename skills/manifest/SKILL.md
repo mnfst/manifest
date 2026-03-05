@@ -1,6 +1,6 @@
 ---
 name: manifest
-description: Smart LLM Routing for OpenClaw. Routes every request to the most cost-effective model.
+description: Smart LLM Router for OpenClaw. Save up to 70% by routing every request to the right model. No coding required.
 metadata: {"openclaw":{"requires":{"bins":["openclaw"],"env":["MANIFEST_API_KEY"],"config":["plugins.entries.manifest.config.apiKey"]},"primaryEnv":"MANIFEST_API_KEY","homepage":"https://github.com/mnfst/manifest"}}
 ---
 
