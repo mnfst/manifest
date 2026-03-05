@@ -602,6 +602,31 @@ describe("CustomProviderForm — edit mode", () => {
     vi.restoreAllMocks();
   });
 
+  it("handles delete error gracefully", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    mockDeleteCustomProvider.mockRejectedValue(new Error("delete failed"));
+
+    render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        onDeleted={onDeleted}
+        initialData={initialData}
+      />
+    ));
+
+    fireEvent.click(screen.getByText("Delete provider"));
+
+    await waitFor(() => {
+      expect(mockDeleteCustomProvider).toHaveBeenCalledWith("test-agent", "cp-1");
+    });
+    // Should not throw, should not call onDeleted
+    expect(onDeleted).not.toHaveBeenCalled();
+
+    vi.restoreAllMocks();
+  });
+
   it("does not delete when confirm is cancelled", async () => {
     vi.spyOn(window, "confirm").mockReturnValue(false);
 

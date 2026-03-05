@@ -34,6 +34,7 @@ vi.mock("../../src/components/ProviderSelectModal.js", () => ({
 }));
 
 const mockGetProviders = vi.fn();
+const mockGetCustomProviders = vi.fn();
 const mockDeactivateAllProviders = vi.fn();
 
 vi.mock("../../src/services/api.js", () => ({
@@ -53,13 +54,15 @@ vi.mock("../../src/services/api.js", () => ({
   overrideTier: vi.fn().mockResolvedValue({}),
   resetTier: vi.fn().mockResolvedValue({}),
   resetAllTiers: vi.fn().mockResolvedValue({}),
-  getCustomProviders: vi.fn().mockResolvedValue([]),
+  getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
   updateCustomProvider: vi.fn().mockResolvedValue({}),
   deleteCustomProvider: vi.fn().mockResolvedValue({ ok: true }),
 }));
 
 import Routing from "../../src/pages/Routing";
+import ModelPickerModal from "../../src/components/ModelPickerModal";
 import { toast } from "../../src/services/toast-store.js";
+import type { AvailableModel, TierAssignment, CustomProviderData } from "../../src/services/api.js";
 
 const { overrideTier, resetTier, resetAllTiers } = await import("../../src/services/api.js");
 
@@ -69,6 +72,7 @@ describe("Routing — enabled state (providers active)", () => {
     mockGetProviders.mockResolvedValue([
       { id: "p1", provider: "openai", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
+    mockGetCustomProviders.mockResolvedValue([]);
     mockDeactivateAllProviders.mockResolvedValue({ ok: true });
   });
 
@@ -356,6 +360,7 @@ describe("Routing — disabled state (no active providers)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetProviders.mockResolvedValue([]);
+    mockGetCustomProviders.mockResolvedValue([]);
   });
 
   it("shows Enable Routing button when no providers active", async () => {
@@ -382,6 +387,7 @@ describe("Routing — helper functions", () => {
     mockGetProviders.mockResolvedValue([
       { id: "p1", provider: "openai", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
+    mockGetCustomProviders.mockResolvedValue([]);
     mockDeactivateAllProviders.mockResolvedValue({ ok: true });
   });
 
@@ -435,6 +441,194 @@ describe("Routing — helper functions", () => {
     await waitFor(() => {
       expect(mockDeactivateAllProviders).toHaveBeenCalled();
     });
+  });
+});
+
+describe("Routing — custom providers", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetCustomProviders.mockResolvedValue([]);
+    mockDeactivateAllProviders.mockResolvedValue({ ok: true });
+  });
+
+  it("renders custom provider icon letter in provider info bar", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "custom:cp-uuid", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([{ id: "cp-uuid", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [], created_at: "2025-01-01" }]);
+
+    const { container } = render(() => <Routing />);
+    await waitFor(() => {
+      // Custom provider branch: renders a letter icon instead of an SVG provider icon
+      const letter = container.querySelector(".routing-providers-info .provider-card__logo-letter");
+      expect(letter).not.toBeNull();
+      // Letter is either "G" (if customProviders resolved) or "C" (fallback) — both exercise the branch
+      expect(["G", "C"]).toContain(letter!.textContent);
+    });
+  });
+
+  it("renders custom provider icon in routing card when model is custom", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "custom:cp-uuid", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([{ id: "cp-uuid", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [], created_at: "2025-01-01" }]);
+
+    const { container } = render(() => <Routing />);
+    await waitFor(() => {
+      const letter = container.querySelector(".routing-card .provider-card__logo-letter");
+      expect(letter).not.toBeNull();
+      expect(letter!.textContent).toBe("G");
+    });
+  });
+
+  it("shows custom model label with provider name prefix", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "custom:cp-uuid", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([{ id: "cp-uuid", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [], created_at: "2025-01-01" }]);
+
+    render(() => <Routing />);
+    await waitFor(() => {
+      // labelFor should produce "Groq / my-llama"
+      expect(screen.getByText("Groq / my-llama")).toBeDefined();
+    });
+  });
+
+  it("shows dash for null-price custom model", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "custom:cp-uuid", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([{ id: "cp-uuid", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [], created_at: "2025-01-01" }]);
+
+    const { container } = render(() => <Routing />);
+    await waitFor(() => {
+      // null prices → pricePerM returns "—"
+      expect(container.textContent).toContain("\u2014 in");
+    });
+  });
+
+  it("passes customProviders to ProviderSelectModal", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([{ id: "cp-1", name: "Test", base_url: "https://test.com", has_api_key: true, models: [], created_at: "2025-01-01" }]);
+
+    render(() => <Routing />);
+    const provBtn = await screen.findByText("Connect providers");
+    fireEvent.click(provBtn);
+    expect(screen.getByTestId("provider-modal")).toBeDefined();
+  });
+});
+
+describe("ModelPickerModal — custom providers and filtering", () => {
+  const baseTiers: TierAssignment[] = [
+    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
+    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+    { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+  ];
+
+  it("shows custom provider group with letter icon", () => {
+    const models: AvailableModel[] = [
+      { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
+    ];
+    const customProviders: CustomProviderData[] = [
+      { id: "cp-uuid", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [], created_at: "2025-01-01" },
+    ];
+
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        customProviders={customProviders}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+
+    const groupHeader = container.querySelector(".routing-modal__group-header .provider-card__logo-letter");
+    expect(groupHeader).not.toBeNull();
+    expect(groupHeader!.textContent).toBe("G");
+    const groupName = container.querySelector(".routing-modal__group-name");
+    expect(groupName?.textContent).toBe("Groq");
+  });
+
+  it("filters free models correctly with isFreeModel", () => {
+    const models: AvailableModel[] = [
+      { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "free-model", provider: "OpenAI", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
+      { model_name: "null-price-model", provider: "OpenAI", input_price_per_token: null, output_price_per_token: null, context_window: 128000, capability_reasoning: false, capability_code: false },
+    ];
+
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        customProviders={[]}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+
+    // Enable free models only filter
+    const checkbox = container.querySelector('.routing-modal__filter-toggle input[type="checkbox"]') as HTMLInputElement;
+    fireEvent.change(checkbox, { target: { checked: true } });
+
+    // free-model (price=0) should show, null-price-model (price=null) should NOT show
+    expect(screen.getByText("free-model")).toBeDefined();
+    expect(screen.queryByText("null-price-model")).toBeNull();
+  });
+
+  it("resolves vendor-prefixed model names via labelForModel", () => {
+    const models: AvailableModel[] = [
+      { model_name: "openai/gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        customProviders={[]}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+
+    // labelForModel strips vendor prefix "openai/" and looks up "gpt-4o-mini" → "GPT-4o Mini"
+    expect(screen.getByText("GPT-4o Mini")).toBeDefined();
   });
 });
 

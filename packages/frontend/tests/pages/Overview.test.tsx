@@ -20,8 +20,10 @@ vi.mock("@solidjs/meta", () => ({
 }));
 
 const mockGetOverview = vi.fn();
+const mockGetCustomProviders = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getOverview: (...args: unknown[]) => mockGetOverview(...args),
+  getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
 }));
 
 vi.mock("../../src/services/sse.js", () => ({
@@ -49,7 +51,12 @@ vi.mock("../../src/components/SingleTokenChart.jsx", () => ({
 }));
 
 vi.mock("../../src/components/SetupModal.jsx", () => ({
-  default: (props: any) => <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} />,
+  default: (props: any) => (
+    <div data-testid="setup-modal" data-open={props.open ? "true" : "false"}>
+      <button data-testid="setup-close" onClick={() => props.onClose()} />
+      <button data-testid="setup-done" onClick={() => props.onDone()} />
+    </div>
+  ),
 }));
 
 vi.mock("../../src/components/InfoTooltip.jsx", () => ({
@@ -93,6 +100,7 @@ describe("Overview", () => {
     mockAgentName = "test-agent";
     mockLocationState = null;
     mockIsLocalMode = false;
+    mockGetCustomProviders.mockResolvedValue([]);
   });
 
   it("renders Overview heading", () => {
@@ -287,6 +295,95 @@ describe("Overview", () => {
       await vi.waitFor(() => {
         const tooltip = container.querySelector(".status-badge-tooltip");
         expect(tooltip?.getAttribute("aria-label")).toBe("timeout");
+      });
+    });
+  });
+
+  describe("custom provider models", () => {
+    const customOverview = {
+      ...overviewData,
+      recent_activity: [
+        { id: "msg-cp1", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "custom:abc-123/my-llama", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok" },
+      ],
+      cost_by_model: [
+        { model: "custom:abc-123/my-llama", tokens: 30000, share_pct: 100, estimated_cost: 2.1 },
+      ],
+    };
+
+    it("renders custom provider icon letter in recent messages", async () => {
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetOverview.mockResolvedValue(customOverview);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const letter = container.querySelector(".provider-card__logo-letter");
+        expect(letter).not.toBeNull();
+        expect(letter!.textContent).toBe("G");
+      });
+    });
+
+    it("strips custom prefix from model name display", async () => {
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetOverview.mockResolvedValue(customOverview);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("my-llama");
+        expect(container.textContent).not.toContain("custom:abc-123/");
+      });
+    });
+
+    it("renders custom provider icon in cost by model table", async () => {
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetOverview.mockResolvedValue(customOverview);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const letters = container.querySelectorAll(".provider-card__logo-letter");
+        // At least one in recent messages and one in cost by model
+        expect(letters.length).toBeGreaterThanOrEqual(2);
+      });
+    });
+
+    it("falls back to model prefix when custom provider not found", async () => {
+      mockGetCustomProviders.mockResolvedValue([]);
+      mockGetOverview.mockResolvedValue(customOverview);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("my-llama");
+      });
+    });
+  });
+
+  describe("setup modal callbacks", () => {
+    it("closes setup modal and sets dismissed flag", async () => {
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const modal = container.querySelector('[data-testid="setup-modal"]');
+        expect(modal?.getAttribute("data-open")).toBe("true");
+      });
+
+      const closeBtn = container.querySelector('[data-testid="setup-close"]') as HTMLButtonElement;
+      fireEvent.click(closeBtn);
+
+      await vi.waitFor(() => {
+        expect(localStorage.getItem("setup_dismissed_test-agent")).toBe("1");
+        const modal = container.querySelector('[data-testid="setup-modal"]');
+        expect(modal?.getAttribute("data-open")).toBe("false");
+      });
+    });
+
+    it("marks setup as completed when onDone is called", async () => {
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const modal = container.querySelector('[data-testid="setup-modal"]');
+        expect(modal?.getAttribute("data-open")).toBe("true");
+      });
+
+      const doneBtn = container.querySelector('[data-testid="setup-done"]') as HTMLButtonElement;
+      fireEvent.click(doneBtn);
+
+      await vi.waitFor(() => {
+        expect(localStorage.getItem("setup_completed_test-agent")).toBe("1");
       });
     });
   });

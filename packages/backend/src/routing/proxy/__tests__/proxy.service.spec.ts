@@ -407,6 +407,39 @@ describe('ProxyService', () => {
       expect(result.meta.reason).toBe('heartbeat');
     });
 
+    it('does not treat non-string non-array content as heartbeat', async () => {
+      const objectContentBody = {
+        messages: [
+          {
+            role: 'user',
+            content: { type: 'image_url', image_url: 'data:image/png;base64,...' },
+          },
+        ],
+        stream: false,
+      };
+
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      const result = await service.proxyRequest('agent-1', 'user-1', objectContentBody, 'default');
+
+      // Should NOT be routed as heartbeat
+      expect(resolveService.resolve).toHaveBeenCalled();
+      expect(result.meta.reason).toBe('scored');
+    });
+
     it('does not detect heartbeat when HEARTBEAT_OK is absent', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',

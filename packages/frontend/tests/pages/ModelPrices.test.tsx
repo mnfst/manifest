@@ -122,6 +122,59 @@ describe("ModelPrices", () => {
     expect(container.textContent).toContain("gpt-4o");
   });
 
+  it("toggles sort direction when same header clicked twice", async () => {
+    const { container } = await renderAndWait();
+    const headers = container.querySelectorAll(".data-table__sortable");
+    // Click provider header (default sort key) to toggle direction
+    fireEvent.click(headers[1]); // provider column
+    fireEvent.click(headers[1]); // click again to toggle asc→desc
+    // Should still render all models regardless of direction
+    expect(container.textContent).toContain("gpt-4o");
+    expect(container.textContent).toContain("claude-3.5-sonnet");
+  });
+
+  it("sorts null prices to the bottom", async () => {
+    const dataWithNulls = {
+      models: [
+        { model_name: "free-model", provider: "OpenAI", input_price_per_million: 0, output_price_per_million: 0 },
+        { model_name: "null-model", provider: "Custom", input_price_per_million: null, output_price_per_million: null },
+        { model_name: "paid-model", provider: "Anthropic", input_price_per_million: 3, output_price_per_million: 15 },
+      ],
+      lastSyncedAt: "2026-02-18T10:00:00Z",
+    };
+    mockGetModelPrices.mockResolvedValue(dataWithNulls);
+    const { container } = render(() => <ModelPrices />);
+    await vi.waitFor(() => {
+      const rows = container.querySelectorAll("tbody tr");
+      expect(rows.length).toBe(3);
+    });
+    // Click input price header to sort by price
+    const headers = container.querySelectorAll(".data-table__sortable");
+    fireEvent.click(headers[2]); // input price column
+    await vi.waitFor(() => {
+      const rows = container.querySelectorAll("tbody tr");
+      // Null should be last regardless of sort direction
+      const lastRow = rows[rows.length - 1];
+      expect(lastRow.textContent).toContain("null-model");
+    });
+  });
+
+  it("displays dash for null prices", async () => {
+    const dataWithNulls = {
+      models: [
+        { model_name: "null-model", provider: "Custom", input_price_per_million: null, output_price_per_million: null },
+      ],
+      lastSyncedAt: null,
+    };
+    mockGetModelPrices.mockResolvedValue(dataWithNulls);
+    const { container } = render(() => <ModelPrices />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("null-model");
+      // formatPrice(null) returns "—" (em dash)
+      expect(container.textContent).toContain("\u2014");
+    });
+  });
+
   it("shows last updated time", async () => {
     const { container } = render(() => <ModelPrices />);
     await vi.waitFor(() => {

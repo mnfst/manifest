@@ -17,8 +17,10 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null,
 }));
 
+const mockIsLocalMode = vi.fn(() => false);
+
 vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => false,
+  isLocalMode: () => mockIsLocalMode(),
   checkLocalMode: () => Promise.resolve(false),
 }));
 
@@ -436,6 +438,187 @@ describe("ProviderSelectModal", () => {
         });
       });
       expect(toast.success).toHaveBeenCalledWith("OpenAI key updated");
+    });
+
+    it("shows validation error for invalid key update", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[connectedProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Change"));
+
+      const input = screen.getByLabelText("New OpenAI API key");
+      fireEvent.input(input, { target: { value: "bad-key" } });
+      fireEvent.click(screen.getByText("Save"));
+
+      await waitFor(() => {
+        const error = document.querySelector(".provider-detail__error");
+        expect(error).not.toBeNull();
+      });
+    });
+  });
+
+  describe("custom providers", () => {
+    const customProviderData = [
+      { id: "cp-1", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [{ model_name: "llama-3.1-70b" }, { model_name: "llama-3.1-8b" }], created_at: "2025-01-01" },
+    ];
+
+    it("renders custom provider list items", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          customProviders={customProviderData}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      expect(screen.getByText("Groq")).toBeDefined();
+      expect(screen.getByText("2 models")).toBeDefined();
+    });
+
+    it("renders custom provider icon letter", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          customProviders={customProviderData}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      const letter = document.querySelector(".custom-provider-section .provider-card__logo-letter");
+      expect(letter).not.toBeNull();
+      expect(letter!.textContent).toBe("G");
+    });
+
+    it("shows Add custom provider button", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      expect(screen.getByText("Add custom provider")).toBeDefined();
+    });
+
+    it("opens custom provider form when Add button is clicked", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Add custom provider"));
+      await waitFor(() => {
+        // CustomProviderForm renders — check for its form fields
+        expect(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure")).toBeDefined();
+      });
+    });
+
+    it("opens edit form when custom provider is clicked", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          customProviders={customProviderData}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Groq"));
+      await waitFor(() => {
+        // Edit form shows the existing name
+        const nameInput = screen.getByDisplayValue("Groq");
+        expect(nameInput).toBeDefined();
+      });
+    });
+
+    it("singularizes model count for single model", () => {
+      const singleModel = [{ ...customProviderData[0], models: [{ model_name: "llama" }] }];
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          customProviders={singleModel}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      expect(screen.getByText("1 model")).toBeDefined();
+    });
+  });
+
+  describe("Ollama (no-key provider)", () => {
+    const ollamaProvider: RoutingProvider = {
+      id: "p-ollama",
+      provider: "ollama",
+      is_active: true,
+      has_api_key: false,
+      connected_at: "2025-01-01",
+    };
+
+    beforeEach(() => {
+      mockIsLocalMode.mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      mockIsLocalMode.mockReturnValue(false);
+    });
+
+    it("shows no API key required message", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[ollamaProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Ollama"));
+      await waitFor(() => {
+        expect(screen.getByText("No API key required for local models")).toBeDefined();
+      });
+    });
+
+    it("shows Disconnect button when connected", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[ollamaProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Ollama"));
+      await waitFor(() => {
+        expect(screen.getByText("Disconnect")).toBeDefined();
+      });
+    });
+
+    it("shows Connect button when not connected", async () => {
+      const disconnectedOllama = { ...ollamaProvider, is_active: false };
+      render(() => (
+        <ProviderSelectModal
+          providers={[disconnectedOllama]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Ollama"));
+      await waitFor(() => {
+        expect(screen.getByText("Connect")).toBeDefined();
+      });
     });
   });
 });
