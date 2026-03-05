@@ -1,10 +1,9 @@
+import { Logger } from '@nestjs/common';
 import { SendEmailOptions, EmailProviderConfig } from './email-provider.interface';
 import { createProvider } from './resolve-provider';
 import { readLocalEmailConfig } from '../../../common/constants/local-mode.constants';
 
-const logger = {
-  warn: (msg: string) => console.warn(`[Email] ${msg}`),
-};
+const logger = new Logger('EmailService');
 
 function resolveConfig(): EmailProviderConfig | null {
   const isLocal = process.env['MANIFEST_MODE'] === 'local';

@@ -1,4 +1,8 @@
+import { Logger } from '@nestjs/common';
+
 export type DbDialect = 'postgres' | 'sqlite';
+
+const logger = new Logger('SqlDialect');
 
 export function detectDialect(dsType: string): DbDialect {
   return dsType === 'sqljs' ? 'sqlite' : 'postgres';
@@ -37,7 +41,7 @@ function intervalToMs(interval: string): number {
   const match = interval.match(/^(\d+)\s+(hour|hours|day|days)$/);
   if (!match) {
     // Unrecognized interval format — default to 24 hours
-    console.warn(`sql-dialect: unrecognized interval "${interval}", defaulting to 24 hours`);
+    logger.warn(`sql-dialect: unrecognized interval "${interval}", defaulting to 24 hours`);
     return 24 * 60 * 60 * 1000;
   }
   const n = parseInt(match[1], 10);
