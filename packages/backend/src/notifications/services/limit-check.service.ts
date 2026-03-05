@@ -8,7 +8,10 @@ import { EmailProviderConfigService } from './email-provider-config.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { computePeriodBoundaries } from '../../common/utils/period.util';
 import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
-import { LOCAL_EMAIL, readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
+import {
+  LOCAL_EMAIL,
+  readLocalNotificationEmail,
+} from '../../common/constants/local-mode.constants';
 
 interface BlockRule {
   id: string;
@@ -74,7 +77,11 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
     for (const rule of rules) {
       const { periodStart, periodEnd } = computePeriodBoundaries(rule.period);
       const actual = await this.getCachedConsumption(
-        tenantId, agentName, rule.metric_type, periodStart, periodEnd,
+        tenantId,
+        agentName,
+        rule.metric_type,
+        periodStart,
+        periodEnd,
       );
 
       if (actual >= rule.threshold) {
@@ -107,8 +114,10 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
 
   /** Send email + log (once per rule per period, fire-and-forget). */
   private async notifyLimitExceeded(
-    rule: BlockRule, actual: number,
-    periodStart: string, periodEnd: string,
+    rule: BlockRule,
+    actual: number,
+    periodStart: string,
+    periodEnd: string,
   ): Promise<void> {
     const alreadySent = await this.ds.query(
       this.sql(`SELECT 1 FROM notification_logs WHERE rule_id = $1 AND period_start = $2`),
@@ -122,6 +131,8 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
     let emailSent = false;
 
     if (email) {
+      const baseUrl =
+        process.env['BETTER_AUTH_URL'] ?? `http://localhost:${process.env['PORT'] ?? '3001'}`;
       emailSent = await this.emailService.sendThresholdAlert(
         email,
         {
@@ -131,6 +142,7 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
           actualValue: actual,
           period: rule.period,
           timestamp: now,
+          agentUrl: `${baseUrl}/agents/${encodeURIComponent(rule.agent_name)}`,
         },
         providerConfig ?? undefined,
       );
@@ -143,8 +155,17 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
            (id, rule_id, period_start, period_end, actual_value, threshold_value, metric_type, agent_name, sent_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         ),
-        [uuid(), rule.id, periodStart, periodEnd, actual, rule.threshold,
-         rule.metric_type, rule.agent_name, now],
+        [
+          uuid(),
+          rule.id,
+          periodStart,
+          periodEnd,
+          actual,
+          rule.threshold,
+          rule.metric_type,
+          rule.agent_name,
+          now,
+        ],
       );
     }
   }
@@ -160,10 +181,7 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
       if (configEmail) return configEmail;
     }
 
-    const rows = await this.ds.query(
-      this.sql(`SELECT email FROM "user" WHERE id = $1`),
-      [userId],
-    );
+    const rows = await this.ds.query(this.sql(`SELECT email FROM "user" WHERE id = $1`), [userId]);
     const email = rows[0]?.email ?? null;
     if (email === LOCAL_EMAIL) return null;
     return email;
@@ -182,9 +200,11 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async getCachedConsumption(
-    tenantId: string, agentName: string,
+    tenantId: string,
+    agentName: string,
     metricType: 'tokens' | 'cost',
-    periodStart: string, periodEnd: string,
+    periodStart: string,
+    periodEnd: string,
   ): Promise<number> {
     const key = `${tenantId}:${agentName}:${metricType}:${periodStart}`;
     const now = Date.now();
@@ -193,7 +213,11 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
 
     this.evictExpired(this.consumptionCache, now);
     const actual = await this.rulesService.getConsumption(
-      tenantId, agentName, metricType, periodStart, periodEnd,
+      tenantId,
+      agentName,
+      metricType,
+      periodStart,
+      periodEnd,
     );
     this.consumptionCache.set(key, { data: actual, expiresAt: now + CACHE_TTL_MS });
     return actual;

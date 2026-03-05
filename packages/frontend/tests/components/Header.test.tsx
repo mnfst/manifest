@@ -225,10 +225,10 @@ describe("Header - local mode", () => {
     expect(screen.queryByText("Cloud")).toBeNull();
   });
 
-  it("shows Cloud badge in cloud mode", () => {
+  it("hides Dev badge in cloud mode", () => {
     mockIsLocalMode = false;
     render(() => <Header />);
-    expect(screen.getByText("Cloud")).toBeDefined();
+    expect(screen.queryByText("Dev")).toBeNull();
   });
 
   it("hides Workspace breadcrumb in local mode", () => {

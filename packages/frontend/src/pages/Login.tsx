@@ -1,16 +1,16 @@
-import { A, useSearchParams } from "@solidjs/router";
-import { Title, Meta } from "@solidjs/meta";
-import { type Component, createSignal, onMount, Show } from "solid-js";
-import SocialButtons from "../components/SocialButtons.jsx";
-import { authClient } from "../services/auth-client.js";
-import { checkLocalMode } from "../services/local-mode.js";
+import { A, useSearchParams } from '@solidjs/router';
+import { Title, Meta } from '@solidjs/meta';
+import { type Component, createSignal, onMount, Show } from 'solid-js';
+import SocialButtons from '../components/SocialButtons.jsx';
+import { authClient } from '../services/auth-client.js';
+import { checkLocalMode } from '../services/local-mode.js';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
 const Login: Component = () => {
-  const [email, setEmail] = createSignal("");
-  const [password, setPassword] = createSignal("");
-  const [error, setError] = createSignal("");
+  const [email, setEmail] = createSignal('');
+  const [password, setPassword] = createSignal('');
+  const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
   const [needsVerification, setNeedsVerification] = createSignal(false);
   const [resendCooldown, setResendCooldown] = createSignal(0);
@@ -19,16 +19,16 @@ const Login: Component = () => {
 
   onMount(async () => {
     if (searchParams.error) {
-      setError("Login failed. Please try again or use a different method.");
+      setError('Login failed. Please try again or use a different method.');
     }
 
     const local = await checkLocalMode();
     if (local) {
       setLocalRedirecting(true);
       try {
-        const res = await fetch("/api/auth/local-session", { credentials: "include" });
+        const res = await fetch('/api/auth/local-session', { credentials: 'include' });
         if (res.ok) {
-          window.location.href = "/";
+          window.location.href = '/';
           return;
         }
       } catch {
@@ -53,46 +53,49 @@ const Login: Component = () => {
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setNeedsVerification(false);
     setLoading(true);
 
     const { error: authError } = await authClient.signIn.email({
       email: email(),
       password: password(),
-    })
+    });
 
-    setLoading(false)
+    setLoading(false);
 
     if (authError) {
-      const msg = authError.message ?? "";
-      if (msg.toLowerCase().includes("email is not verified") || authError.code === "EMAIL_NOT_VERIFIED") {
+      const msg = authError.message ?? '';
+      if (
+        msg.toLowerCase().includes('email is not verified') ||
+        authError.code === 'EMAIL_NOT_VERIFIED'
+      ) {
         setNeedsVerification(true);
-        setError("Please verify your email before signing in.");
+        setError('Please verify your email before signing in.');
         return;
       }
-      setError(msg || "Invalid email or password");
+      setError(msg || 'Invalid email or password');
       return;
     }
 
-    window.location.href = '/'
-  }
+    window.location.href = '/';
+  };
 
   const handleResendVerification = async () => {
     if (resendCooldown() > 0) return;
 
     const { error: resendError } = await authClient.sendVerificationEmail({
       email: email(),
-      callbackURL: "/",
+      callbackURL: '/',
     });
 
     if (resendError) {
-      setError(resendError.message ?? "Failed to resend verification email");
+      setError(resendError.message ?? 'Failed to resend verification email');
       return;
     }
 
     startCooldown();
-    setError("Verification email sent! Check your inbox.");
+    setError('Verification email sent! Check your inbox.');
   };
 
   return (
@@ -108,7 +111,7 @@ const Login: Component = () => {
       <Show when={!localRedirecting()}>
         <div class="auth-header">
           <h1 class="auth-header__title">Welcome back</h1>
-          <p class="auth-header__subtitle">Monitor your AI agent's LLM usage, costs, and performance</p>
+          <p class="auth-header__subtitle">Take control of your OpenClaw costs</p>
         </div>
 
         <SocialButtons />
@@ -128,7 +131,7 @@ const Login: Component = () => {
             >
               {resendCooldown() > 0
                 ? `Resend in ${resendCooldown()}s`
-                : "Resend verification email"}
+                : 'Resend verification email'}
             </button>
           </Show>
           <label class="auth-form__label">
@@ -170,7 +173,7 @@ const Login: Component = () => {
         </div>
       </Show>
     </>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
