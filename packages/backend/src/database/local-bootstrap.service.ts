@@ -60,31 +60,33 @@ export class LocalBootstrapService implements OnModuleInit {
 
   private async ensureTenantAndAgent() {
     const count = await this.tenantRepo.count({ where: { id: LOCAL_TENANT_ID } });
-    if (count > 0) return;
+    if (count === 0) {
+      await this.tenantRepo.insert({
+        id: LOCAL_TENANT_ID,
+        name: LOCAL_USER_ID,
+        organization_name: 'Local',
+        email: LOCAL_EMAIL,
+        is_active: true,
+      });
 
-    await this.tenantRepo.insert({
-      id: LOCAL_TENANT_ID,
-      name: LOCAL_USER_ID,
-      organization_name: 'Local',
-      email: LOCAL_EMAIL,
-      is_active: true,
-    });
+      await this.agentRepo.insert({
+        id: LOCAL_AGENT_ID,
+        name: LOCAL_AGENT_NAME,
+        description: 'Default local agent',
+        is_active: true,
+        tenant_id: LOCAL_TENANT_ID,
+      });
+      trackEvent('agent_created', { agent_name: LOCAL_AGENT_NAME });
 
-    await this.agentRepo.insert({
-      id: LOCAL_AGENT_ID,
-      name: LOCAL_AGENT_NAME,
-      description: 'Default local agent',
-      is_active: true,
-      tenant_id: LOCAL_TENANT_ID,
-    });
-    trackEvent('agent_created', { agent_name: LOCAL_AGENT_NAME });
+      this.logger.log(`Created tenant/agent for local mode`);
+    }
 
+    // Always reconcile the API key — it may have been regenerated
+    // since the tenant was first created.
     const apiKey = this.readApiKeyFromConfig();
     if (apiKey) {
       await this.registerApiKey(apiKey);
     }
-
-    this.logger.log(`Created tenant/agent for local mode`);
   }
 
   private readApiKeyFromConfig(): string | null {
@@ -103,16 +105,19 @@ export class LocalBootstrapService implements OnModuleInit {
     const existing = await this.agentKeyRepo.count({ where: { key_hash: hash } });
     if (existing > 0) return;
 
-    await this.agentKeyRepo.insert({
-      id: 'local-otlp-key-001',
-      key: null,
-      key_hash: hash,
-      key_prefix: keyPrefix(apiKey),
-      label: 'Local OTLP ingest key',
-      tenant_id: LOCAL_TENANT_ID,
-      agent_id: LOCAL_AGENT_ID,
-      is_active: true,
-    });
+    await this.agentKeyRepo.upsert(
+      {
+        id: 'local-otlp-key-001',
+        key: null,
+        key_hash: hash,
+        key_prefix: keyPrefix(apiKey),
+        label: 'Local OTLP ingest key',
+        tenant_id: LOCAL_TENANT_ID,
+        agent_id: LOCAL_AGENT_ID,
+        is_active: true,
+      },
+      ['id'],
+    );
   }
 
   private async fixupRoutingAgentIds() {

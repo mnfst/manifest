@@ -42,6 +42,7 @@ jest.mock('../entities/tier-assignment.entity', () => ({ TierAssignment: jest.fn
 
 import { LocalBootstrapService } from './local-bootstrap.service';
 import { trackEvent } from '../common/utils/product-telemetry';
+import { existsSync, readFileSync } from 'fs';
 
 function makeMockRepo() {
   return {
@@ -158,7 +159,7 @@ describe('LocalBootstrapService', () => {
 
       await service.onModuleInit();
 
-      expect(mockAgentKeyRepo.insert).not.toHaveBeenCalled();
+      expect(mockAgentKeyRepo.upsert).not.toHaveBeenCalled();
     });
 
     it('returns null when readFileSync throws (catches error in readApiKeyFromConfig)', async () => {
@@ -176,8 +177,7 @@ describe('LocalBootstrapService', () => {
     });
 
     it('registers API key when config file exists with apiKey', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { existsSync, readFileSync } = require('fs');
+
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(
         JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
@@ -185,7 +185,7 @@ describe('LocalBootstrapService', () => {
 
       await service.onModuleInit();
 
-      expect(mockAgentKeyRepo.insert).toHaveBeenCalledWith(
+      expect(mockAgentKeyRepo.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'local-otlp-key-001',
           label: 'Local OTLP ingest key',
@@ -193,12 +193,12 @@ describe('LocalBootstrapService', () => {
           agent_id: 'local-agent-001',
           is_active: true,
         }),
+        ['id'],
       );
     });
 
     it('skips API key registration when key hash already exists', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { existsSync, readFileSync } = require('fs');
+
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(
         JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
@@ -207,7 +207,28 @@ describe('LocalBootstrapService', () => {
 
       await service.onModuleInit();
 
-      expect(mockAgentKeyRepo.insert).not.toHaveBeenCalled();
+      expect(mockAgentKeyRepo.upsert).not.toHaveBeenCalled();
+    });
+
+    it('reconciles API key even when tenant already exists', async () => {
+
+      (existsSync as jest.Mock).mockReturnValue(true);
+      (readFileSync as jest.Mock).mockReturnValue(
+        JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
+      );
+      mockTenantRepo.count.mockResolvedValue(1);
+
+      await service.onModuleInit();
+
+      expect(mockTenantRepo.insert).not.toHaveBeenCalled();
+      expect(mockAgentKeyRepo.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'local-otlp-key-001',
+          tenant_id: 'local-tenant-001',
+          agent_id: 'local-agent-001',
+        }),
+        ['id'],
+      );
     });
   });
 
