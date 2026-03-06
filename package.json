@@ -50,6 +50,9 @@
     "packages/*/src/**/*.{ts,tsx}": ["eslint --fix", "prettier --write"],
     "packages/*/src/**/*.css": ["prettier --write"]
   },
+  "overrides": {
+    "multer": "^2.1.1"
+  },
   "devDependencies": {
     "@changesets/cli": "^2.29.0",
     "@typescript-eslint/eslint-plugin": "^8.56.0",
