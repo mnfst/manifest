@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Injectable,
   Logger,
+  OnModuleDestroy,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -30,16 +31,26 @@ interface CachedKey {
 }
 
 @Injectable()
-export class OtlpAuthGuard implements CanActivate {
+export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
   private readonly logger = new Logger(OtlpAuthGuard.name);
   private cache = new Map<string, CachedKey>();
   private readonly CACHE_TTL_MS = 5 * 60 * 1000;
   private readonly MAX_CACHE_SIZE = 10_000;
+  private readonly cleanupTimer: ReturnType<typeof setInterval>;
 
   constructor(
     @InjectRepository(AgentApiKey)
     private readonly keyRepo: Repository<AgentApiKey>,
-  ) {}
+  ) {
+    this.cleanupTimer = setInterval(() => this.evictExpired(), 60_000);
+    if (typeof this.cleanupTimer === 'object' && 'unref' in this.cleanupTimer) {
+      this.cleanupTimer.unref();
+    }
+  }
+
+  onModuleDestroy(): void {
+    clearInterval(this.cleanupTimer);
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
