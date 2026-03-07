@@ -12,5 +12,5 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   zai: 'https://z.ai/manage-apikey/apikey-list',
 };
 
-export const getRoutingProviderApiKeyUrl = (providerId: string): string | null =>
-  ROUTING_PROVIDER_API_KEY_URLS[providerId] ?? null;
+export const getRoutingProviderApiKeyUrl = (providerId: string): string | undefined =>
+  ROUTING_PROVIDER_API_KEY_URLS[providerId];
