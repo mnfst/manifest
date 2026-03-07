@@ -1271,9 +1271,10 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    // trace_id-based dedup is skipped; fallback calls find() for recent errors
+    // trace_id-based dedup is skipped; fallback calls find() for recent errors,
+    // then DB ghost fallback calls find() again for empty-ok spans
     expect(mockTurnFindOne).not.toHaveBeenCalled();
-    expect(mockTurnFind).toHaveBeenCalledTimes(1);
+    expect(mockTurnFind).toHaveBeenCalledTimes(2);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
@@ -1352,6 +1353,192 @@ describe('TraceIngestService', () => {
     expect(setArg.routing_tier()).toBe('COALESCE(routing_tier, :tier)');
     expect(typeof setArg.routing_reason).toBe('function');
     expect(setArg.routing_reason()).toBe('COALESCE(routing_reason, :reason)');
+  });
+
+  it('skips ghost span when data sibling exists in same batch', async () => {
+    const dataSpan = makeSpan({
+      spanId: 'span-data',
+      traceId: 'trace-data',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-opus-4-6' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 500 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 200 } },
+      ],
+    });
+
+    const ghostSpan = makeSpan({
+      spanId: 'span-ghost',
+      traceId: 'trace-ghost',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [dataSpan, ghostSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+    expect(mockTurnInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ trace_id: 'trace-data' }),
+    );
+  });
+
+  it('skips ghost span regardless of ordering (ghost first, data second)', async () => {
+    const ghostSpan = makeSpan({
+      spanId: 'span-ghost-first',
+      traceId: 'trace-ghost-first',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const dataSpan = makeSpan({
+      spanId: 'span-data-second',
+      traceId: 'trace-data-second',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [ghostSpan, dataSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+    expect(mockTurnInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ trace_id: 'trace-data-second' }),
+    );
+  });
+
+  it('does NOT skip empty ok span when no data sibling exists in batch', async () => {
+    const emptySpan = makeSpan({
+      spanId: 'span-empty-alone',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [emptySpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT skip empty error span even with data sibling', async () => {
+    const dataSpan = makeSpan({
+      spanId: 'span-data-err',
+      traceId: 'trace-data-err',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const errorSpan = makeSpan({
+      spanId: 'span-error',
+      traceId: 'trace-error',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 2, message: 'failed' },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [dataSpan, errorSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // Both should be inserted (error span is not ghost-filtered)
+    expect(mockTurnInsert).toHaveBeenCalledTimes(2);
+  });
+
+  it('skips ghost via DB fallback when data message already exists in DB', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 5000).toISOString();
+
+    // First find call returns [] (no errors), second find call returns data-bearing message
+    mockTurnFind
+      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([
+        { id: 'existing-data', timestamp: nearbyTs, input_tokens: 500, output_tokens: 200, model: 'gpt-4o' },
+      ]); // recentMessages (DB ghost fallback)
+
+    const ghostSpan = makeSpan({
+      spanId: 'span-cross-ghost',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [ghostSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnFind).toHaveBeenCalledTimes(2);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('inserts empty ok span via DB fallback when no nearby data message exists', async () => {
+    // First find call returns [] (no errors), second find call returns [] (no data messages)
+    mockTurnFind
+      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([]); // recentMessages (DB ghost fallback)
+
+    const emptySpan = makeSpan({
+      spanId: 'span-db-pass',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [emptySpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnFind).toHaveBeenCalledTimes(2);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
   it('defaults llm_call cache tokens to 0 when attributes are absent', async () => {
