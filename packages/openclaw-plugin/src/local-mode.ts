@@ -135,7 +135,37 @@ export function injectProviderConfig(
     logger.debug(`[manifest] Could not write openclaw.json: ${msg}`);
   }
 
-  // 2. Set runtime config for immediate availability
+  // 2. Remove stale manifest entries from per-agent models.json files.
+  //    OpenClaw caches models.json at startup (before plugins run), so
+  //    updating the file doesn't help for the current boot.  Removing the
+  //    entry forces the model resolver to fall through to the runtime
+  //    config (api.config.models.providers) which we set in step 3 below.
+  //    This also prevents cloud→local (or local→cloud) mode switches
+  //    from leaving a stale baseUrl behind.
+  try {
+    const agentsDir = join(OPENCLAW_DIR, "agents");
+    if (existsSync(agentsDir)) {
+      const agentDirs = readdirSync(agentsDir, { withFileTypes: true })
+        .filter((d) => d.isDirectory());
+
+      for (const dir of agentDirs) {
+        const modelsPath = join(agentsDir, dir.name, "agent", "models.json");
+        if (!existsSync(modelsPath)) continue;
+
+        const data = readJsonSafe(modelsPath);
+        if (!data.providers?.manifest) continue;
+
+        delete data.providers.manifest;
+        atomicWriteJson(modelsPath, data);
+        logger.debug(`[manifest] Removed stale manifest entry from models.json for agent ${dir.name}`);
+      }
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    logger.debug(`[manifest] Could not clean agent models.json: ${msg}`);
+  }
+
+  // 3. Set runtime config for immediate availability
   try {
     if (api.config) {
       if (!api.config.models) api.config.models = {};
