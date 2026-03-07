@@ -305,9 +305,13 @@ export class TraceIngestService {
 
     // DB-level ghost dedup: if this span is empty-ok, check if a data-bearing
     // message for the same agent already exists within 60s (cross-batch case).
+    // Scope by session_key when available to avoid cross-session false positives.
     if (this.isEmptyOkSpan(span, attrs)) {
+      const sessionKey = attrString(attrs, 'session.key');
+      const where: Record<string, string> = { tenant_id: ctx.tenantId, agent_id: ctx.agentId };
+      if (sessionKey) where.session_key = sessionKey;
       const recentMessages = await this.turnRepo.find({
-        where: { tenant_id: ctx.tenantId, agent_id: ctx.agentId },
+        where,
         select: ['id', 'timestamp', 'input_tokens', 'output_tokens', 'model'],
         order: { timestamp: 'DESC' },
         take: 5,

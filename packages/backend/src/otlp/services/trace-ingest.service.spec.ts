@@ -1514,6 +1514,148 @@ describe('TraceIngestService', () => {
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
+  it('treats span with only gen_ai.response.model as non-empty (not ghost)', async () => {
+    const responseModelSpan = makeSpan({
+      spanId: 'span-resp-model',
+      traceId: 'trace-resp-model',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.response.model', value: { stringValue: 'gpt-4o' } },
+      ],
+      status: { code: 1 },
+    });
+
+    const ghostSpan = makeSpan({
+      spanId: 'span-ghost-resp',
+      traceId: 'trace-ghost-resp',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [responseModelSpan, ghostSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // responseModelSpan is not empty (has model), ghostSpan is filtered as ghost
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+    expect(mockTurnInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ trace_id: 'trace-resp-model' }),
+    );
+  });
+
+  it('skips ghost via DB fallback when nearby message has model but 0 tokens', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 5000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([
+        { id: 'model-only', timestamp: nearbyTs, input_tokens: 0, output_tokens: 0, model: 'gpt-4o' },
+      ]); // recentMessages — has model but 0 tokens
+
+    const ghostSpan = makeSpan({
+      spanId: 'span-ghost-model-only',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [ghostSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnFind).toHaveBeenCalledTimes(2);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('scopes DB ghost fallback by session_key when available', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 5000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([
+        { id: 'session-data', timestamp: nearbyTs, input_tokens: 100, output_tokens: 50, model: 'gpt-4o' },
+      ]);
+
+    const ghostSpan = makeSpan({
+      spanId: 'span-session-ghost',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'session.key', value: { stringValue: 'session-abc' } },
+      ],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [ghostSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // Verify the second find() call includes session_key in where clause
+    const secondFindCall = mockTurnFind.mock.calls[1];
+    expect(secondFindCall[0].where).toEqual(
+      expect.objectContaining({ session_key: 'session-abc' }),
+    );
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('does NOT ghost-filter span with tokens but no model (not empty)', async () => {
+    const tokensNoModelSpan = makeSpan({
+      spanId: 'span-tokens-nomodel',
+      traceId: 'trace-tokens-nomodel',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+      status: { code: 1 },
+    });
+
+    const dataSpan = makeSpan({
+      spanId: 'span-data-alongside',
+      traceId: 'trace-data-alongside',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 200 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 100 } },
+      ],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [tokensNoModelSpan, dataSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // Both should be inserted — span with tokens is not empty, not ghost-filtered
+    expect(mockTurnInsert).toHaveBeenCalledTimes(2);
+  });
+
   it('inserts empty ok span via DB fallback when no nearby data message exists', async () => {
     // First find call returns [] (no errors), second find call returns [] (no data messages)
     mockTurnFind
