@@ -6,7 +6,11 @@ import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
 import { MetricWithTrend, computeTrend, addTenantFilter, formatTimestamp } from './query-helpers';
 import {
-  DbDialect, detectDialect, computeCutoff, sqlCastFloat, sqlSanitizeCost,
+  DbDialect,
+  detectDialect,
+  computeCutoff,
+  sqlCastFloat,
+  sqlSanitizeCost,
 } from '../../common/utils/sql-dialect';
 
 export { MetricWithTrend };
@@ -76,7 +80,11 @@ export class AggregationService {
     };
   }
 
-  async getCostSummary(range: string, userId: string, agentName?: string): Promise<MetricWithTrend> {
+  async getCostSummary(
+    range: string,
+    userId: string,
+    agentName?: string,
+  ): Promise<MetricWithTrend> {
     const interval = rangeToInterval(range);
     const prevInterval = rangeToPreviousInterval(range);
     const cutoff = computeCutoff(interval);
@@ -103,7 +111,11 @@ export class AggregationService {
     return { value: current, trend_pct: computeTrend(current, previous) };
   }
 
-  async getMessageCount(range: string, userId: string, agentName?: string): Promise<MetricWithTrend> {
+  async getMessageCount(
+    range: string,
+    userId: string,
+    agentName?: string,
+  ): Promise<MetricWithTrend> {
     const interval = rangeToInterval(range);
     const prevInterval = rangeToPreviousInterval(range);
     const cutoff = computeCutoff(interval);
@@ -143,7 +155,12 @@ export class AggregationService {
     await this.agentRepo.delete(agent.id);
   }
 
-  async renameAgent(userId: string, currentName: string, newName: string, displayName?: string): Promise<void> {
+  async renameAgent(
+    userId: string,
+    currentName: string,
+    newName: string,
+    displayName?: string,
+  ): Promise<void> {
     const agent = await this.agentRepo
       .createQueryBuilder('a')
       .leftJoin('a.tenant', 't')
@@ -190,15 +207,23 @@ export class AggregationService {
         .where('id = :id', { id: agent.id })
         .execute();
 
-      const tables = ['agent_messages', 'notification_rules', 'notification_logs', 'token_usage_snapshots', 'cost_snapshots'];
-      for (const table of tables) {
-        await manager
-          .createQueryBuilder()
-          .update(table)
-          .set({ agent_name: newName })
-          .where('agent_name = :currentName', { currentName })
-          .execute();
-      }
+      const tables = [
+        'agent_messages',
+        'notification_rules',
+        'notification_logs',
+        'token_usage_snapshots',
+        'cost_snapshots',
+      ];
+      await Promise.all(
+        tables.map((table) =>
+          manager
+            .createQueryBuilder()
+            .update(table)
+            .set({ agent_name: newName })
+            .where('agent_name = :currentName', { currentName })
+            .execute(),
+        ),
+      );
     });
   }
 
@@ -214,9 +239,7 @@ export class AggregationService {
     cursor?: string;
     agent_name?: string;
   }) {
-    const cutoff = params.range
-      ? computeCutoff(rangeToInterval(params.range))
-      : undefined;
+    const cutoff = params.range ? computeCutoff(rangeToInterval(params.range)) : undefined;
 
     const baseQb = this.turnRepo.createQueryBuilder('at');
     if (cutoff) {
@@ -226,11 +249,15 @@ export class AggregationService {
     addTenantFilter(baseQb, params.userId);
 
     if (params.status) baseQb.andWhere('at.status = :status', { status: params.status });
-    if (params.service_type) baseQb.andWhere('at.service_type = :serviceType', { serviceType: params.service_type });
+    if (params.service_type)
+      baseQb.andWhere('at.service_type = :serviceType', { serviceType: params.service_type });
     if (params.model) baseQb.andWhere('at.model = :model', { model: params.model });
-    if (params.cost_min !== undefined) baseQb.andWhere('at.cost_usd >= :costMin', { costMin: params.cost_min });
-    if (params.cost_max !== undefined) baseQb.andWhere('at.cost_usd <= :costMax', { costMax: params.cost_max });
-    if (params.agent_name) baseQb.andWhere('at.agent_name = :filterAgent', { filterAgent: params.agent_name });
+    if (params.cost_min !== undefined)
+      baseQb.andWhere('at.cost_usd >= :costMin', { costMin: params.cost_min });
+    if (params.cost_max !== undefined)
+      baseQb.andWhere('at.cost_usd <= :costMax', { costMax: params.cost_max });
+    if (params.agent_name)
+      baseQb.andWhere('at.agent_name = :filterAgent', { filterAgent: params.agent_name });
 
     // Count (without cursor)
     const countQb = baseQb.clone().select('COUNT(*)', 'total');
@@ -239,7 +266,8 @@ export class AggregationService {
 
     // Data (with cursor) — treat negative costs as NULL (invalid pricing)
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
-    const dataQb = baseQb.clone()
+    const dataQb = baseQb
+      .clone()
       .select('at.id', 'id')
       .addSelect('at.timestamp', 'timestamp')
       .addSelect('at.agent_name', 'agent_name')
@@ -265,15 +293,13 @@ export class AggregationService {
         const cursorId = params.cursor.substring(sepIdx + 1);
         dataQb.andWhere(
           new Brackets((sub) => {
-            sub
-              .where('at.timestamp < :cursorTs', { cursorTs })
-              .orWhere(
-                new Brackets((inner) => {
-                  inner
-                    .where('at.timestamp = :cursorTs2', { cursorTs2: cursorTs })
-                    .andWhere('at.id < :cursorId', { cursorId });
-                }),
-              );
+            sub.where('at.timestamp < :cursorTs', { cursorTs }).orWhere(
+              new Brackets((inner) => {
+                inner
+                  .where('at.timestamp = :cursorTs2', { cursorTs2: cursorTs })
+                  .andWhere('at.id < :cursorId', { cursorId });
+              }),
+            );
           }),
         );
       }
@@ -291,8 +317,7 @@ export class AggregationService {
     const ts = lastItem?.['timestamp'];
     const tsStr = ts instanceof Date ? formatTimestamp(ts) : String(ts ?? '');
     const lastId = lastItem?.['id'];
-    const nextCursor = hasMore && lastItem
-      ? `${tsStr}|${String(lastId)}` : null;
+    const nextCursor = hasMore && lastItem ? `${tsStr}|${String(lastId)}` : null;
 
     // Distinct models
     const modelsQb = this.turnRepo

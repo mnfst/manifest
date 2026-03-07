@@ -104,13 +104,13 @@ describe('TraceIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         tenant_id: 'test-tenant',
         agent_id: 'test-agent',
         agent_name: 'bot-1',
       }),
-    );
+    ]);
   });
 
   it('ingests an llm_call span (has gen_ai.system attribute)', async () => {
@@ -142,7 +142,7 @@ describe('TraceIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(2);
     expect(mockLlmInsert).toHaveBeenCalledTimes(1);
-    expect(mockLlmInsert).toHaveBeenCalledWith(
+    expect(mockLlmInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         tenant_id: 'test-tenant',
         gen_ai_system: 'anthropic',
@@ -150,7 +150,7 @@ describe('TraceIngestService', () => {
         input_tokens: 100,
         output_tokens: 50,
       }),
-    );
+    ]);
   });
 
   it('ingests a tool_execution span (has tool.name attribute)', async () => {
@@ -177,12 +177,12 @@ describe('TraceIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
     expect(mockToolInsert).toHaveBeenCalledTimes(1);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         tenant_id: 'test-tenant',
         tool_name: 'web_search',
       }),
-    );
+    ]);
   });
 
   it('computes cost from model pricing when available', async () => {
@@ -213,11 +213,11 @@ describe('TraceIngestService', () => {
 
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
     // cost = 100 * 0.001 + 50 * 0.002 = 0.2
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         cost_usd: expect.closeTo(0.2, 4),
       }),
-    );
+    ]);
   });
 
   it('handles error status on spans', async () => {
@@ -238,12 +238,12 @@ describe('TraceIngestService', () => {
     await service.ingest(request, testCtx);
 
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'error',
         error_message: 'something went wrong',
       }),
-    );
+    ]);
   });
 
   it('persists routing_reason from manifest.routing.reason attribute', async () => {
@@ -266,12 +266,12 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
 
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         routing_tier: 'simple',
         routing_reason: 'heartbeat',
       }),
-    );
+    ]);
   });
 
   it('rolls up routing_reason from llm_call child into parent agent_message', async () => {
@@ -468,12 +468,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'ok',
         error_message: null,
       }),
-    );
+    ]);
   });
 
   it('sets null messageId when llm_call parent is not an agent_message', async () => {
@@ -501,7 +501,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockLlmInsert).toHaveBeenCalledWith(expect.objectContaining({ turn_id: null }));
+    expect(mockLlmInsert).toHaveBeenCalledWith([expect.objectContaining({ turn_id: null })]);
   });
 
   it('sets null llmCallId when tool parent is not an llm_call', async () => {
@@ -526,7 +526,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(expect.objectContaining({ llm_call_id: null }));
+    expect(mockToolInsert).toHaveBeenCalledWith([expect.objectContaining({ llm_call_id: null })]);
   });
 
   it('uses tool.name from resource attributes for tool_execution classification', async () => {
@@ -553,9 +553,9 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({ tool_name: 'resource-tool' }),
-    );
+    ]);
   });
 
   it('sets error_message on tool_execution spans with error status', async () => {
@@ -575,12 +575,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'error',
         error_message: 'tool failed',
       }),
-    );
+    ]);
   });
 
   it('sets null error_message on tool_execution spans with ok status', async () => {
@@ -600,12 +600,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'ok',
         error_message: null,
       }),
-    );
+    ]);
   });
 
   it('does not accumulate to message when llm_call parent is not agent_message', async () => {
@@ -772,7 +772,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ cost_usd: null })]);
   });
 
   it('returns null cost when no model attribute is present', async () => {
@@ -794,7 +794,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ cost_usd: null })]);
   });
 
   it('returns null cost when model exists but pricing is not found', async () => {
@@ -819,7 +819,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ cost_usd: null })]);
   });
 
   it('uses gen_ai.response.model as fallback when gen_ai.request.model is absent', async () => {
@@ -848,12 +848,12 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
     expect(mockPricingGetByModel).toHaveBeenCalledWith('claude-3-haiku');
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         model: 'claude-3-haiku',
         cost_usd: expect.closeTo(0.02, 4),
       }),
-    );
+    ]);
   });
 
   it('uses fallback model from gen_ai.response.model in accumulation', async () => {
@@ -1024,9 +1024,9 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({ agent_name: 'test-agent' }),
-    );
+    ]);
   });
 
   it('sets null cost in rollup when model is null in aggregates', async () => {
@@ -1103,12 +1103,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockLlmInsert).toHaveBeenCalledWith(
+    expect(mockLlmInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         cache_read_tokens: 30,
         cache_creation_tokens: 20,
       }),
-    );
+    ]);
   });
 
   it('sets null error_message when error status has no message field', async () => {
@@ -1127,12 +1127,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'error',
         error_message: null,
       }),
-    );
+    ]);
   });
 
   it('sets llmCallId when tool parent is an llm_call', async () => {
@@ -1168,14 +1168,14 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         llm_call_id: expect.any(String),
         tool_name: 'file_read',
       }),
-    );
+    ]);
     // Verify llm_call_id is not null (it should be the uuid of the llm span entry)
-    const insertArg = mockToolInsert.mock.calls[0][0];
+    const insertArg = mockToolInsert.mock.calls[0][0][0];
     expect(insertArg.llm_call_id).not.toBeNull();
   });
 
@@ -1196,12 +1196,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'error',
         error_message: null,
       }),
-    );
+    ]);
   });
 
   it('skips agent_message insert when proxy error already recorded for same trace_id', async () => {
@@ -1384,13 +1384,13 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockLlmInsert).toHaveBeenCalledWith(
+    expect(mockLlmInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         input_tokens: 0,
         output_tokens: 0,
         cache_read_tokens: 0,
         cache_creation_tokens: 0,
       }),
-    );
+    ]);
   });
 });

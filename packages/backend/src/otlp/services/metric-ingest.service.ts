@@ -16,10 +16,7 @@ const TOKEN_METRIC_NAMES = new Set([
   'gen_ai.usage.cache_creation_tokens',
 ]);
 
-const COST_METRIC_NAMES = new Set([
-  'gen_ai.usage.cost',
-  'gen_ai.cost.usd',
-]);
+const COST_METRIC_NAMES = new Set(['gen_ai.usage.cost', 'gen_ai.cost.usd']);
 
 @Injectable()
 export class MetricIngestService {
@@ -38,7 +35,8 @@ export class MetricIngestService {
 
     for (const rm of request.resourceMetrics ?? []) {
       const resourceAttrs = extractAttributes(rm.resource?.attributes);
-      const agentName = attrString(resourceAttrs, 'agent.name') ?? attrString(resourceAttrs, 'service.name');
+      const agentName =
+        attrString(resourceAttrs, 'agent.name') ?? attrString(resourceAttrs, 'service.name');
 
       for (const sm of rm.scopeMetrics ?? []) {
         for (const metric of sm.metrics ?? []) {
@@ -64,26 +62,24 @@ export class MetricIngestService {
     agentName: string | null,
     ctx: IngestionContext,
   ): Promise<void> {
-    for (const pt of points) {
+    const rows = points.map((pt) => {
       const pointAttrs = extractAttributes(pt.attributes);
       const agent = attrString(pointAttrs, 'agent.name') ?? agentName;
-      const value = getNumericValue(pt);
-      const ts = nanoToDatetime(pt.timeUnixNano);
-
-      const fields = this.mapTokenField(metricName, value);
-      await this.tokenRepo.insert({
+      const fields = this.mapTokenField(metricName, getNumericValue(pt));
+      return {
         id: uuidv4(),
         tenant_id: ctx.tenantId,
         agent_id: ctx.agentId,
         agent_name: agent,
-        snapshot_time: ts,
+        snapshot_time: nanoToDatetime(pt.timeUnixNano),
         input_tokens: fields.input,
         output_tokens: fields.output,
         cache_read_tokens: fields.cacheRead,
         cache_creation_tokens: fields.cacheCreate,
         total_tokens: fields.total,
-      });
-    }
+      };
+    });
+    if (rows.length > 0) await this.tokenRepo.insert(rows);
   }
 
   private mapTokenField(name: string, value: number) {
@@ -101,20 +97,18 @@ export class MetricIngestService {
     agentName: string | null,
     ctx: IngestionContext,
   ): Promise<void> {
-    for (const pt of points) {
+    const rows = points.map((pt) => {
       const pointAttrs = extractAttributes(pt.attributes);
-      const agent = attrString(pointAttrs, 'agent.name') ?? agentName;
-      const model = attrString(pointAttrs, 'gen_ai.request.model');
-
-      await this.costRepo.insert({
+      return {
         id: uuidv4(),
         tenant_id: ctx.tenantId,
         agent_id: ctx.agentId,
-        agent_name: agent,
+        agent_name: attrString(pointAttrs, 'agent.name') ?? agentName,
         snapshot_time: nanoToDatetime(pt.timeUnixNano),
         cost_usd: getNumericValue(pt),
-        model,
-      });
-    }
+        model: attrString(pointAttrs, 'gen_ai.request.model'),
+      };
+    });
+    if (rows.length > 0) await this.costRepo.insert(rows);
   }
 }
