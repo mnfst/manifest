@@ -1,5 +1,17 @@
 # manifest
 
+## 5.22.0
+
+### Minor Changes
+
+- b6d774a: Add fallback model routing with automatic retry on provider failures
+
+### Patch Changes
+
+- fea384e: Add database indexes for dashboard query performance
+- 5a2500b: fix: recalculate tier assignments on local-mode startup and remove hardcoded model seed
+- 1082b7b: Web quality audit: font preloading, skip-to-content link, compression middleware, static asset caching, accessibility improvements
+
 ## 5.21.2
 
 ### Patch Changes
