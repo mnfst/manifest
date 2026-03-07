@@ -79,6 +79,23 @@ describe('ResolveAgentService', () => {
     expect(mockFindOne).toHaveBeenCalledTimes(1);
   });
 
+  it('evicts oldest entry when cache reaches MAX_ENTRIES', async () => {
+    const cache = (service as any).cache as Map<string, unknown>;
+    for (let i = 0; i < 5_000; i++) {
+      cache.set(`t-${i}:a-${i}`, { agent: { id: `a-${i}` }, expiresAt: Date.now() + 120_000 });
+    }
+    expect(cache.size).toBe(5_000);
+
+    const agent = { id: 'new-agent', name: 'new', tenant_id: 'tenant-123' } as Agent;
+    mockTenantResolve.mockResolvedValueOnce('tenant-123');
+    mockFindOne.mockResolvedValueOnce(agent);
+
+    await service.resolve('user-1', 'new');
+
+    expect(cache.size).toBe(5_000);
+    expect(cache.has('t-0:a-0')).toBe(false);
+  });
+
   it('cache expires after TTL (120_000ms)', async () => {
     jest.useFakeTimers();
     const agentV1 = { id: 'agent-1', name: 'my-agent', tenant_id: 'tenant-123' } as Agent;

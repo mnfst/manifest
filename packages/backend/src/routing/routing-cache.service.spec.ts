@@ -92,6 +92,21 @@ describe('RoutingCacheService', () => {
     });
   });
 
+  describe('setWithEviction', () => {
+    it('evicts oldest entry when cache reaches MAX_ENTRIES', () => {
+      const tiersMap = (service as any).tiers as Map<string, unknown>;
+      for (let i = 0; i < 5_000; i++) {
+        tiersMap.set(`agent-${i}`, { data: [], expiresAt: Date.now() + 120_000 });
+      }
+      expect(tiersMap.size).toBe(5_000);
+
+      service.setTiers('new-agent', [{ id: 'ta-new' }] as TierAssignment[]);
+
+      expect(tiersMap.size).toBe(5_000);
+      expect(tiersMap.has('agent-0')).toBe(false);
+    });
+  });
+
   describe('getApiKey', () => {
     it('returns undefined when not cached', () => {
       expect(service.getApiKey('agent-1', 'openai')).toBeUndefined();

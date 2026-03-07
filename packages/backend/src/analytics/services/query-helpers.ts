@@ -21,7 +21,6 @@ export function formatTimestamp(d: Date): string {
 export function computeTrend(current: number, previous: number): number {
   const EPS = 1e-6;
   if (Math.abs(previous) < EPS) return 0;
-  if (Math.abs(current) < EPS && Math.abs(previous) < EPS) return 0;
   const pct = Math.round(((current - previous) / previous) * 100);
   return Math.max(-999, Math.min(999, pct));
 }
