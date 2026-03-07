@@ -1,13 +1,10 @@
+import { Logger } from '@nestjs/common';
 import { EmailProvider, EmailProviderConfig, SendEmailOptions } from './email-provider.interface';
 
 const MAILGUN_BASE = 'https://api.mailgun.net';
 const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
 
-const logger = {
-  warn: (msg: string) => console.warn(`[Mailgun] ${msg}`),
-  error: (msg: string) => console.error(`[Mailgun] ${msg}`),
-  log: (msg: string) => console.log(`[Mailgun] ${msg}`),
-};
+const logger = new Logger('MailgunProvider');
 
 export class MailgunProvider implements EmailProvider {
   readonly name = 'mailgun';

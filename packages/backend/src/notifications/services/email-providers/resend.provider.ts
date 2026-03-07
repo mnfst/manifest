@@ -1,10 +1,7 @@
+import { Logger } from '@nestjs/common';
 import { EmailProvider, EmailProviderConfig, SendEmailOptions } from './email-provider.interface';
 
-const logger = {
-  warn: (msg: string) => console.warn(`[Resend] ${msg}`),
-  error: (msg: string) => console.error(`[Resend] ${msg}`),
-  log: (msg: string) => console.log(`[Resend] ${msg}`),
-};
+const logger = new Logger('ResendProvider');
 
 export class ResendProvider implements EmailProvider {
   readonly name = 'resend';

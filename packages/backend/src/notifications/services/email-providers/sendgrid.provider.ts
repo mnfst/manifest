@@ -1,10 +1,7 @@
+import { Logger } from '@nestjs/common';
 import { EmailProvider, EmailProviderConfig, SendEmailOptions } from './email-provider.interface';
 
-const logger = {
-  warn: (msg: string) => console.warn(`[SendGrid] ${msg}`),
-  error: (msg: string) => console.error(`[SendGrid] ${msg}`),
-  log: (msg: string) => console.log(`[SendGrid] ${msg}`),
-};
+const logger = new Logger('SendGridProvider');
 
 export class SendGridProvider implements EmailProvider {
   readonly name = 'sendgrid';
