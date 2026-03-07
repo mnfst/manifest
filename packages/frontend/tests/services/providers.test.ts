@@ -6,6 +6,7 @@ import {
   PROVIDERS,
   STAGES,
 } from "../../src/services/providers";
+import { ROUTING_PROVIDER_API_KEY_URLS } from "../../src/services/provider-api-key-urls";
 
 /* ── getProvider ────────────────────────────────── */
 
@@ -187,6 +188,13 @@ describe("PROVIDERS", () => {
       expect(p.subtitle).toBeTruthy();
       expect(Array.isArray(p.models)).toBe(true);
     }
+  });
+
+  it("requires an API key URL for every provider that needs one", () => {
+    const missingProviderIds = PROVIDERS.filter(
+      (provider) => !provider.noKeyRequired && !ROUTING_PROVIDER_API_KEY_URLS[provider.id],
+    ).map((provider) => provider.id);
+    expect(missingProviderIds).toEqual([]);
   });
 
   it("does not have API-key-specific fields", () => {

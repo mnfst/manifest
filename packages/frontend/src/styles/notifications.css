@@ -439,6 +439,16 @@
   line-height: 1.4;
 }
 
+.modal-card__field-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.modal-card__field-link:hover {
+  color: hsl(var(--foreground));
+}
+
 .modal-card__footer--split {
   display: flex;
   justify-content: space-between;

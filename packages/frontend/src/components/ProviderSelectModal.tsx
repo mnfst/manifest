@@ -7,6 +7,7 @@ import {
   type RoutingProvider,
   type CustomProviderData,
 } from '../services/api.js';
+import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { toast } from '../services/toast-store.js';
 import { isLocalMode } from '../services/local-mode.js';
 import CustomProviderForm from './CustomProviderForm.js';
@@ -341,6 +342,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
               const provDef = PROVIDERS.find((p) => p.id === provId)!;
               const connected = () => isConnected(provId) || isNoKeyConnected(provId);
               const isOllama = provDef.noKeyRequired;
+              const whereToGetUrl = getRoutingProviderApiKeyUrl(provId);
 
               return (
                 <div class="provider-detail">
@@ -449,6 +451,18 @@ const ProviderSelectModal: Component<Props> = (props) => {
                       <Show when={validationError()}>
                         <div class="provider-detail__error">{validationError()}</div>
                       </Show>
+                      <Show when={whereToGetUrl}>
+                        <p class="provider-detail__key-help">
+                          <a
+                            class="provider-detail__key-help-link"
+                            href={whereToGetUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Get {provDef.name} API key
+                          </a>
+                        </p>
+                      </Show>
                     </div>
                     <button
                       class="btn btn--primary provider-detail__action"
@@ -525,6 +539,18 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         />
                         <Show when={validationError()}>
                           <div class="provider-detail__error">{validationError()}</div>
+                        </Show>
+                        <Show when={whereToGetUrl}>
+                          <p class="provider-detail__key-help">
+                            <a
+                              class="provider-detail__key-help-link"
+                              href={whereToGetUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Get {provDef.name} API key
+                            </a>
+                          </p>
                         </Show>
                         <button
                           class="btn btn--primary provider-detail__action"

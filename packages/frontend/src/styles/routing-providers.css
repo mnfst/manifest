@@ -304,6 +304,21 @@
   margin-top: 4px;
 }
 
+.provider-detail__key-help {
+  margin: 6px 0 0;
+  font-size: var(--font-size-xs);
+}
+
+.provider-detail__key-help-link {
+  color: hsl(var(--muted-foreground));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.provider-detail__key-help-link:hover {
+  color: hsl(var(--foreground));
+}
+
 .provider-detail__key-row {
   display: flex;
   align-items: center;
