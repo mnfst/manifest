@@ -141,6 +141,7 @@ export class TraceIngestService {
           where: {
             trace_id: traceId,
             tenant_id: ctx.tenantId,
+            agent_id: ctx.agentId,
             fallback_from_model: Not(IsNull()),
           },
           select: ['id', 'model'],

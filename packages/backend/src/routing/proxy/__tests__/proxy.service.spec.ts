@@ -1121,7 +1121,7 @@ describe('ProxyService', () => {
       expect(result.meta.fallbackIndex).toBe(1);
     });
 
-    it('continues fallback chain through all error statuses', async () => {
+    it('continues fallback chain through retriable errors', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         model: 'gpt-4o',
@@ -1136,12 +1136,12 @@ describe('ProxyService', () => {
         .mockResolvedValueOnce('sk-b');
       providerClient.forward
         .mockResolvedValueOnce({
-          response: new Response('bad key', { status: 400 }),
+          response: new Response('overloaded', { status: 500 }),
           isGoogle: false,
           isAnthropic: false,
         })
         .mockResolvedValueOnce({
-          response: new Response('forbidden', { status: 403 }),
+          response: new Response('rate limited', { status: 429 }),
           isGoogle: false,
           isAnthropic: false,
         })
@@ -1165,9 +1165,69 @@ describe('ProxyService', () => {
         model: 'model-a',
         provider: 'ProvA',
         fallbackIndex: 0,
-        status: 403,
-        errorBody: 'forbidden',
+        status: 429,
+        errorBody: 'rate limited',
       });
+    });
+
+    it('stops fallback chain on non-retriable error', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-test')
+        .mockResolvedValueOnce('sk-a')
+        .mockResolvedValueOnce('sk-b');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('overloaded', { status: 500 }),
+          isGoogle: false,
+          isAnthropic: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('bad request', { status: 400 }),
+          isGoogle: false,
+          isAnthropic: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['model-a', 'model-b'] },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'ProvA' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      // Chain stopped at model-a's 400, model-b never tried
+      expect(result.forward.response.ok).toBe(false);
+      expect(providerClient.forward).toHaveBeenCalledTimes(2);
+      expect(result.failedFallbacks).toHaveLength(1);
+      expect(result.failedFallbacks![0].status).toBe(400);
+    });
+
+    it('does not attempt fallbacks when primary returns non-retriable error', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('bad request', { status: 400 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(routingService.getTiers).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(400);
     });
 
     it('returns all failed fallbacks when all fail', async () => {
@@ -1184,12 +1244,12 @@ describe('ProxyService', () => {
         .mockResolvedValueOnce('bad-ds-key');
       providerClient.forward
         .mockResolvedValueOnce({
-          response: new Response('invalid key', { status: 400 }),
+          response: new Response('server error', { status: 500 }),
           isGoogle: true,
           isAnthropic: false,
         })
         .mockResolvedValueOnce({
-          response: new Response('auth fail', { status: 401 }),
+          response: new Response('gateway timeout', { status: 504 }),
           isGoogle: false,
           isAnthropic: false,
         });
@@ -1201,14 +1261,14 @@ describe('ProxyService', () => {
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
 
       expect(result.forward.response.ok).toBe(false);
-      expect(result.forward.response.status).toBe(400);
+      expect(result.forward.response.status).toBe(500);
       expect(result.failedFallbacks).toHaveLength(1);
       expect(result.failedFallbacks![0]).toEqual({
         model: 'deepseek-chat',
         provider: 'DeepSeek',
         fallbackIndex: 0,
-        status: 401,
-        errorBody: 'auth fail',
+        status: 504,
+        errorBody: 'gateway timeout',
       });
     });
   });

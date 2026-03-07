@@ -342,7 +342,7 @@
     min-width: 0;
   }
 
-  .routing-card__actions {
+  .routing-card__right {
     align-self: flex-end;
   }
 
