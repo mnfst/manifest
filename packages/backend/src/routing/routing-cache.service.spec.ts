@@ -105,6 +105,19 @@ describe('RoutingCacheService', () => {
       expect(tiersMap.size).toBe(5_000);
       expect(tiersMap.has('agent-0')).toBe(false);
     });
+
+    it('does not evict when updating an existing key at capacity', () => {
+      const tiersMap = (service as any).tiers as Map<string, unknown>;
+      for (let i = 0; i < 5_000; i++) {
+        tiersMap.set(`agent-${i}`, { data: [], expiresAt: Date.now() + 120_000 });
+      }
+
+      service.setTiers('agent-0', [{ id: 'ta-updated' }] as TierAssignment[]);
+
+      expect(tiersMap.size).toBe(5_000);
+      expect(tiersMap.has('agent-0')).toBe(true);
+      expect(tiersMap.has('agent-1')).toBe(true);
+    });
   });
 
   describe('getApiKey', () => {

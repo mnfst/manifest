@@ -11,6 +11,7 @@ export class UserCacheInterceptor extends CacheInterceptor {
 
   protected trackBy(context: ExecutionContext): string | undefined {
     const request = context.switchToHttp().getRequest<Request>();
+    if (request.method !== 'GET') return undefined;
     const user = (request as unknown as Record<string, unknown>).user as
       | { id?: string }
       | undefined;

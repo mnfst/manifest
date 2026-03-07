@@ -25,11 +25,12 @@ export class TenantCacheService {
     if (cached && cached.expiresAt > Date.now()) {
       return cached.tenantId;
     }
+    if (cached) this.cache.delete(userId);
 
     const tenant = await this.tenantRepo.findOne({ where: { name: userId } });
     if (!tenant) return null;
 
-    if (this.cache.size >= MAX_ENTRIES) {
+    if (this.cache.size >= MAX_ENTRIES && !this.cache.has(userId)) {
       const firstKey = this.cache.keys().next().value;
       if (firstKey !== undefined) this.cache.delete(firstKey);
     }

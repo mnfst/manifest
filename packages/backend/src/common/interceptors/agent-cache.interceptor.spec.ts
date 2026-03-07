@@ -5,10 +5,11 @@ import { AgentCacheInterceptor } from './agent-cache.interceptor';
 function createMockContext(
   ingestionContext: { agentId?: string } | undefined,
   originalUrl: string,
+  method = 'GET',
 ): ExecutionContext {
   return {
     switchToHttp: () => ({
-      getRequest: () => ({ ingestionContext, originalUrl }),
+      getRequest: () => ({ ingestionContext, originalUrl, method }),
       getResponse: () => ({}),
     }),
     getHandler: () => ({}),
@@ -33,6 +34,12 @@ describe('AgentCacheInterceptor', () => {
       const ctx = createMockContext({ agentId: 'a1' }, '/api/v1/agent/usage?range=24h');
 
       expect(interceptor['trackBy'](ctx)).toBe('agent:a1:/api/v1/agent/usage?range=24h');
+    });
+
+    it('returns undefined for non-GET requests', () => {
+      const ctx = createMockContext({ agentId: 'a1' }, '/api/v1/agent/usage', 'POST');
+
+      expect(interceptor['trackBy'](ctx)).toBeUndefined();
     });
 
     it('returns undefined when ingestionContext is missing', () => {

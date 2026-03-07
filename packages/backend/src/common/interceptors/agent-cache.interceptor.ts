@@ -15,6 +15,7 @@ export class AgentCacheInterceptor extends CacheInterceptor {
 
   protected trackBy(context: ExecutionContext): string | undefined {
     const request = context.switchToHttp().getRequest<RequestWithIngestion>();
+    if (request.method !== 'GET') return undefined;
     const agentId = request.ingestionContext?.agentId;
     if (!agentId) return undefined;
 

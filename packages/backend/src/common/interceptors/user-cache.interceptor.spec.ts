@@ -5,10 +5,11 @@ import { UserCacheInterceptor } from './user-cache.interceptor';
 function createMockContext(
   user: { id?: string } | undefined,
   originalUrl: string,
+  method = 'GET',
 ): ExecutionContext {
   return {
     switchToHttp: () => ({
-      getRequest: () => ({ user, originalUrl }),
+      getRequest: () => ({ user, originalUrl, method }),
       getResponse: () => ({}),
     }),
     getHandler: () => ({}),
@@ -46,6 +47,14 @@ describe('UserCacheInterceptor', () => {
       const key = interceptor['trackBy'](context);
 
       expect(key).toBe('user-1:/api/v1/tokens?range=7d&agent=demo');
+    });
+
+    it('should return undefined for non-GET requests', () => {
+      const context = createMockContext({ id: 'user-abc' }, '/api/v1/overview', 'POST');
+
+      const key = interceptor['trackBy'](context);
+
+      expect(key).toBeUndefined();
     });
 
     it('should return undefined when user is not present', () => {

@@ -14,6 +14,7 @@ import {
 } from '../../common/utils/sql-dialect';
 
 const MODELS_CACHE_TTL_MS = 60_000;
+const MAX_CACHE_ENTRIES = 5_000;
 
 interface CachedModels {
   models: string[];
@@ -148,6 +149,7 @@ export class MessagesQueryService {
     if (cached && cached.expiresAt > Date.now()) {
       return cached.models;
     }
+    if (cached) this.modelsCache.delete(cacheKey);
 
     const cutoff = range ? computeCutoff(rangeToInterval(range)) : undefined;
     const modelsQb = this.turnRepo
@@ -162,6 +164,10 @@ export class MessagesQueryService {
     const modelsResult = await modelsQb.orderBy('at.model', 'ASC').getRawMany();
 
     const models = modelsResult.map((r: Record<string, unknown>) => String(r['model']));
+    if (this.modelsCache.size >= MAX_CACHE_ENTRIES && !this.modelsCache.has(cacheKey)) {
+      const firstKey = this.modelsCache.keys().next().value;
+      if (firstKey !== undefined) this.modelsCache.delete(firstKey);
+    }
     this.modelsCache.set(cacheKey, { models, expiresAt: Date.now() + MODELS_CACHE_TTL_MS });
     return models;
   }

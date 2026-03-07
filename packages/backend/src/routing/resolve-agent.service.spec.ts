@@ -36,7 +36,7 @@ describe('ResolveAgentService', () => {
   });
 
   it('throws NotFoundException when tenant not found', async () => {
-    mockTenantResolve.mockResolvedValueOnce(null);
+    mockTenantResolve.mockResolvedValue(null);
 
     await expect(service.resolve('user-1', 'my-agent')).rejects.toThrow(NotFoundException);
     await expect(service.resolve('user-1', 'my-agent')).rejects.toThrow('Tenant not found');

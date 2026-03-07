@@ -36,7 +36,7 @@ export class ResolveAgentService {
     });
     if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
 
-    if (this.cache.size >= MAX_ENTRIES) {
+    if (this.cache.size >= MAX_ENTRIES && !this.cache.has(cacheKey)) {
       const firstKey = this.cache.keys().next().value;
       if (firstKey !== undefined) this.cache.delete(firstKey);
     }

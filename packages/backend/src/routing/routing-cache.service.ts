@@ -19,7 +19,7 @@ function getOrExpire<T>(map: Map<string, CachedEntry<T>>, key: string): T | unde
 }
 
 function setWithEviction<T>(map: Map<string, CachedEntry<T>>, key: string, data: T): void {
-  if (map.size >= MAX_ENTRIES) {
+  if (map.size >= MAX_ENTRIES && !map.has(key)) {
     const firstKey = map.keys().next().value;
     if (firstKey !== undefined) map.delete(firstKey);
   }
@@ -49,12 +49,7 @@ export class RoutingCacheService {
   }
 
   getApiKey(agentId: string, provider: string): string | null | undefined {
-    const key = `${agentId}:${provider}`;
-    const cached = this.apiKeys.get(key);
-    if (!cached) return undefined;
-    if (cached.expiresAt > Date.now()) return cached.data;
-    this.apiKeys.delete(key);
-    return undefined;
+    return getOrExpire(this.apiKeys, `${agentId}:${provider}`);
   }
 
   setApiKey(agentId: string, provider: string, apiKey: string | null): void {

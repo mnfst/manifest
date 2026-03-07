@@ -136,8 +136,18 @@ describe('addTenantFilter', () => {
     addTenantFilter(qb, 'user-123', undefined, 'tenant-456');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
-    const firstCall = mockAndWhere.mock.calls[0];
-    expect(firstCall[0]).toBeInstanceOf(Brackets);
+    const brackets = mockAndWhere.mock.calls[0][0];
+    expect(brackets).toBeInstanceOf(Brackets);
+
+    const mockSub = {
+      where: jest.fn().mockReturnThis(),
+      orWhere: jest.fn().mockReturnThis(),
+    };
+    (brackets as any).whereFactory(mockSub);
+    expect(mockSub.where).toHaveBeenCalledWith('at.tenant_id = :tenantId', {
+      tenantId: 'tenant-456',
+    });
+    expect(mockSub.orWhere).toHaveBeenCalledWith('at.user_id = :userId', { userId: 'user-123' });
   });
 
   it('adds agent_name filter when agentName is provided', () => {

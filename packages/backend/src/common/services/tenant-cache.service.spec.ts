@@ -55,6 +55,42 @@ describe('TenantCacheService', () => {
     expect(mockFindOne).toHaveBeenCalledTimes(1);
   });
 
+  it('deletes expired cache entry on miss', async () => {
+    jest.useFakeTimers();
+    mockFindOne
+      .mockResolvedValueOnce({ id: 'tenant-abc', name: 'user-1' })
+      .mockResolvedValueOnce({ id: 'tenant-abc-v2', name: 'user-1' });
+
+    await service.resolve('user-1');
+    const cache = (service as any).cache as Map<string, unknown>;
+    expect(cache.has('user-1')).toBe(true);
+
+    jest.advanceTimersByTime(300_001);
+    await service.resolve('user-1');
+
+    // Stale entry was deleted and replaced with fresh one
+    expect(cache.has('user-1')).toBe(true);
+    expect(mockFindOne).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not evict when updating an existing key at capacity', async () => {
+    jest.useFakeTimers();
+    const cache = (service as any).cache as Map<string, unknown>;
+    for (let i = 0; i < 5000; i++) {
+      cache.set(`u-${i}`, { tenantId: `t-${i}`, expiresAt: Date.now() + 300_000 });
+    }
+
+    // Expire u-0's entry and re-resolve — should update in place, not evict another entry
+    jest.advanceTimersByTime(300_001);
+    mockFindOne.mockResolvedValueOnce({ id: 't-0-new', name: 'u-0' });
+    await service.resolve('u-0');
+
+    // u-0 was expired+deleted then re-added, so size should still be 5000
+    // and u-1 should still be present (not evicted)
+    expect(cache.size).toBe(5000);
+    expect(cache.has('u-1')).toBe(true);
+  });
+
   it('cache expires after TTL (300_000ms)', async () => {
     jest.useFakeTimers();
     mockFindOne

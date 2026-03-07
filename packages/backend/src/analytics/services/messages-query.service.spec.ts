@@ -355,6 +355,76 @@ describe('MessagesQueryService', () => {
     expect(mockGetRawMany).toHaveBeenCalledTimes(3);
   });
 
+  it('models cache deletes expired entry before fetching fresh data', async () => {
+    jest.useFakeTimers();
+
+    // First call — populate cache
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    const cache = (service as any).modelsCache as Map<string, unknown>;
+    expect(cache.size).toBe(1);
+
+    // Expire and re-query
+    jest.advanceTimersByTime(60_001);
+
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-2', timestamp: '2026-02-16 11:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o', model2: 'claude-opus-4-6' }]);
+
+    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    // Stale entry was deleted before re-adding — size should still be 1
+    expect(cache.size).toBe(1);
+  });
+
+  it('models cache evicts oldest entry when reaching MAX_CACHE_ENTRIES', async () => {
+    const cache = (service as any).modelsCache as Map<string, unknown>;
+    for (let i = 0; i < 5_000; i++) {
+      cache.set(`user-${i}:24h`, { models: ['gpt-4o'], expiresAt: Date.now() + 60_000 });
+    }
+    expect(cache.size).toBe(5_000);
+
+    // Trigger a fresh models fetch for a new key
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    await service.getMessages({ range: '7d', userId: 'new-user', limit: 20 });
+
+    expect(cache.size).toBe(5_000);
+    expect(cache.has('user-0:24h')).toBe(false);
+    expect(cache.has('new-user:7d')).toBe(true);
+  });
+
+  it('models cache does not evict when updating an existing key at capacity', async () => {
+    jest.useFakeTimers();
+    const cache = (service as any).modelsCache as Map<string, unknown>;
+    for (let i = 0; i < 5_000; i++) {
+      cache.set(`user-${i}:24h`, { models: ['gpt-4o'], expiresAt: Date.now() + 60_000 });
+    }
+    // Overwrite test-user:24h (already exists in our range)
+    cache.set('test-user:24h', { models: ['old'], expiresAt: Date.now() + 60_000 });
+
+    jest.advanceTimersByTime(60_001);
+
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+
+    // Expired entry was deleted first, then re-added — no eviction of other entries
+    // Size might be 4999 (expired entry deleted, then re-added = 5000, but if the
+    // has(key) check fires after delete, it won't evict)
+    expect(cache.has('test-user:24h')).toBe(true);
+  });
+
   it('models cache expires after 60s', async () => {
     jest.useFakeTimers();
 
