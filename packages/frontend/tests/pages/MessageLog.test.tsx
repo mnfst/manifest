@@ -570,4 +570,118 @@ describe("MessageLog", () => {
       expect(container.querySelector('[data-testid="setup-modal"]')).not.toBeNull();
     });
   });
+
+  it("renders fallback badge when fallback_from_model is present", async () => {
+    const dataWithFallback = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], fallback_from_model: "gpt-4o", fallback_index: 0 },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithFallback);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".tier-badge--fallback");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toBe("fallback");
+      expect(badge!.getAttribute("title")).toContain("gpt-4o");
+    });
+  });
+
+  it("does not render fallback badge when fallback_from_model is absent", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("gpt-4o");
+      const badge = container.querySelector(".tier-badge--fallback");
+      expect(badge).toBeNull();
+    });
+  });
+
+  it("renders fallback_error status with orange Handled badge", async () => {
+    const dataWithHandled = {
+      ...messagesData,
+      items: [
+        {
+          ...messagesData.items[0],
+          status: "fallback_error",
+          model: "gemini-flash",
+          error_message: "Provider returned HTTP 429, routed to fallback",
+        },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithHandled);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".status-badge--fallback_error");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toBe("fallback_error");
+    });
+  });
+
+  it("assigns row IDs for scroll targeting", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const row = container.querySelector("#msg-msg-12345678");
+      expect(row).not.toBeNull();
+    });
+  });
+
+  it("scrolls to fallback success when clicking Handled badge", async () => {
+    const dataWithChain = {
+      ...messagesData,
+      items: [
+        {
+          id: "success-1",
+          timestamp: "2026-02-18T10:00:00.200Z",
+          agent_name: "test-agent",
+          model: "deepseek-chat",
+          input_tokens: 500,
+          output_tokens: 100,
+          total_tokens: 600,
+          cost: 0.01,
+          status: "ok",
+          cache_read_tokens: 0,
+          cache_creation_tokens: 0,
+          duration_ms: 800,
+          fallback_from_model: "gemini-flash",
+          fallback_index: 0,
+        },
+        {
+          id: "primary-fail-1",
+          timestamp: "2026-02-18T10:00:00.000Z",
+          agent_name: "test-agent",
+          model: "gemini-flash",
+          input_tokens: 0,
+          output_tokens: 0,
+          total_tokens: 0,
+          cost: null,
+          status: "fallback_error",
+          cache_read_tokens: 0,
+          cache_creation_tokens: 0,
+          duration_ms: null,
+          error_message: "Provider returned HTTP 429, routed to fallback",
+        },
+      ],
+      total_count: 2,
+      models: ["deepseek-chat", "gemini-flash"],
+    };
+    mockGetMessages.mockResolvedValue(dataWithChain);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".status-badge--fallback_error");
+      expect(badge).not.toBeNull();
+    });
+    const successRow = container.querySelector("#msg-success-1");
+    const scrollSpy = vi.fn();
+    if (successRow) {
+      successRow.scrollIntoView = scrollSpy;
+    }
+    const badge = container.querySelector(".status-badge--fallback_error")!;
+    fireEvent.click(badge);
+    expect(scrollSpy).toHaveBeenCalled();
+  });
 });

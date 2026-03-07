@@ -44,6 +44,9 @@ import {
   updateCustomProvider,
   deleteCustomProvider,
   getRoutingStatus,
+  getFallbacks,
+  setFallbacks,
+  clearFallbacks,
 } from "../../src/services/api.js";
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -1081,6 +1084,49 @@ describe("deleteCustomProvider", () => {
     await deleteCustomProvider("agent/special", "id/special");
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain("/routing/agent%2Fspecial/custom-providers/id%2Fspecial");
+  });
+});
+
+describe("fallback API functions", () => {
+  it("getFallbacks fetches fallback models for a tier", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(["model-a", "model-b"]) });
+    const result = await getFallbacks("my-agent", "simple");
+    expect(result).toEqual(["model-a", "model-b"]);
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/routing/my-agent/tiers/simple/fallbacks"),
+      expect.objectContaining({ credentials: "include" }),
+    );
+  });
+
+  it("setFallbacks sends PUT with models array", async () => {
+    mockMutateOk(["model-a"]);
+    const result = await setFallbacks("my-agent", "standard", ["model-a"]);
+    expect(result).toEqual(["model-a"]);
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/routing/my-agent/tiers/standard/fallbacks"),
+      expect.objectContaining({
+        method: "PUT",
+        body: JSON.stringify({ models: ["model-a"] }),
+      }),
+    );
+  });
+
+  it("clearFallbacks sends DELETE", async () => {
+    mockMutateOk();
+    await clearFallbacks("my-agent", "complex");
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/routing/my-agent/tiers/complex/fallbacks"),
+      expect.objectContaining({ method: "DELETE" }),
+    );
+  });
+
+  it("getFallbacks encodes special characters in agent name", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) });
+    await getFallbacks("agent/special", "simple");
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/routing/agent%2Fspecial/tiers/simple/fallbacks"),
+      expect.anything(),
+    );
   });
 });
 

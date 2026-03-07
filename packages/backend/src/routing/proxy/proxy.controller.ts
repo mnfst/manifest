@@ -17,7 +17,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { ProxyService } from './proxy.service';
+import { ProxyService, FailedFallback } from './proxy.service';
 import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
 import { initSseHeaders, pipeStream } from './stream-writer';
@@ -74,7 +74,7 @@ export class ProxyController implements OnModuleDestroy {
       this.rateLimiter.checkLimit(userId);
       this.rateLimiter.acquireSlot(userId);
       slotAcquired = true;
-      const { forward, meta } = await this.proxyService.proxyRequest(
+      const { forward, meta, failedFallbacks } = await this.proxyService.proxyRequest(
         agentId,
         userId,
         body,
@@ -93,6 +93,10 @@ export class ProxyController implements OnModuleDestroy {
         'X-Manifest-Confidence': String(meta.confidence),
         'X-Manifest-Reason': meta.reason,
       };
+      if (meta.fallbackFromModel) {
+        metaHeaders['X-Manifest-Fallback-From'] = meta.fallbackFromModel;
+        metaHeaders['X-Manifest-Fallback-Index'] = String(meta.fallbackIndex ?? 0);
+      }
 
       const providerResponse = forward.response;
 
@@ -100,14 +104,36 @@ export class ProxyController implements OnModuleDestroy {
         const errorBody = await providerResponse.text();
         const errorStatus = providerResponse.status;
 
-        this.recordProviderError(
-          req.ingestionContext,
-          errorStatus,
-          errorBody,
-          meta.model,
-          meta.tier,
-          traceId,
-        ).catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
+        if (failedFallbacks && failedFallbacks.length > 0 && !meta.fallbackFromModel) {
+          // All fallbacks failed: primary is "handled" (orange), last fallback is "failed" (red).
+          const baseTime = Date.now();
+          this.recordFailedFallbacks(req.ingestionContext, meta.tier, meta.model, failedFallbacks, {
+            traceId,
+            baseTimeMs: baseTime,
+            markHandled: true,
+            lastAsError: true,
+          }).catch((e) => this.logger.warn(`Failed to record fallback errors: ${e}`));
+
+          const primaryTs = new Date(baseTime + (failedFallbacks.length + 1) * 100).toISOString();
+          this.recordPrimaryFailure(
+            req.ingestionContext,
+            meta.tier,
+            meta.model,
+            errorBody,
+            primaryTs,
+          ).catch((e) => this.logger.warn(`Failed to record primary failure: ${e}`));
+        } else {
+          this.recordProviderError(
+            req.ingestionContext,
+            errorStatus,
+            errorBody,
+            meta.model,
+            meta.tier,
+            traceId,
+            meta.fallbackFromModel,
+            meta.fallbackIndex,
+          ).catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
+        }
 
         res.status(errorStatus);
         for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
@@ -120,6 +146,43 @@ export class ProxyController implements OnModuleDestroy {
       // Only count successful provider responses against the rate limit.
       // Failed upstream responses (retries by the gateway) are free.
       this.rateLimiter.recordSuccess(userId);
+
+      // When a fallback was used, record the full chain with coordinated
+      // timestamps so messages appear in order: primary (earliest) → intermediate
+      // failures → fallback success (latest, appears first in list).
+      if (meta.fallbackFromModel) {
+        const baseTime = Date.now();
+        const failures = failedFallbacks ?? [];
+
+        this.recordPrimaryFailure(
+          req.ingestionContext,
+          meta.tier,
+          meta.fallbackFromModel,
+          meta.primaryErrorBody ?? `Provider returned HTTP ${meta.primaryErrorStatus ?? 500}`,
+          new Date(baseTime).toISOString(),
+        ).catch((e) => this.logger.warn(`Failed to record primary failure: ${e}`));
+
+        if (failures.length > 0) {
+          this.recordFailedFallbacks(
+            req.ingestionContext,
+            meta.tier,
+            meta.fallbackFromModel,
+            failures,
+            { baseTimeMs: baseTime, markHandled: true },
+          ).catch((e) => this.logger.warn(`Failed to record fallback errors: ${e}`));
+        }
+
+        const successTs = new Date(baseTime + (failures.length + 1) * 100).toISOString();
+        this.recordFallbackSuccess(
+          req.ingestionContext,
+          meta.model,
+          meta.tier,
+          traceId,
+          meta.fallbackFromModel,
+          meta.fallbackIndex ?? 0,
+          successTs,
+        ).catch((e) => this.logger.warn(`Failed to record fallback success: ${e}`));
+      }
 
       if (isStream && providerResponse.body) {
         initSseHeaders(res, metaHeaders);
@@ -195,6 +258,8 @@ export class ProxyController implements OnModuleDestroy {
     model?: string,
     tier?: string,
     traceId?: string,
+    fallbackFromModel?: string,
+    fallbackIndex?: number,
   ): Promise<void> {
     if (httpStatus === 429) {
       const key = `${ctx.tenantId}:${ctx.agentId}`;
@@ -227,6 +292,104 @@ export class ProxyController implements OnModuleDestroy {
       output_tokens: 0,
       cache_read_tokens: 0,
       cache_creation_tokens: 0,
+      fallback_from_model: fallbackFromModel ?? null,
+      fallback_index: fallbackIndex ?? null,
+    });
+  }
+
+  private async recordFailedFallbacks(
+    ctx: IngestionContext,
+    tier: string,
+    primaryModel: string,
+    failures: FailedFallback[],
+    opts?: { traceId?: string; baseTimeMs?: number; markHandled?: boolean; lastAsError?: boolean },
+  ): Promise<void> {
+    const { traceId, baseTimeMs, markHandled = false, lastAsError = false } = opts ?? {};
+    for (let i = 0; i < failures.length; i++) {
+      const f = failures[i];
+      const ts = baseTimeMs
+        ? new Date(baseTimeMs + (failures.length - i) * 100).toISOString()
+        : new Date().toISOString();
+      const isLast = i === failures.length - 1;
+      const useHandledStatus = markHandled && !(lastAsError && isLast);
+      const status = useHandledStatus
+        ? 'fallback_error'
+        : f.status === 429
+          ? 'rate_limited'
+          : 'error';
+      await this.messageRepo.insert({
+        id: uuid(),
+        tenant_id: ctx.tenantId,
+        agent_id: ctx.agentId,
+        trace_id: traceId ?? null,
+        timestamp: ts,
+        status,
+        error_message: f.errorBody.slice(0, 500),
+        agent_name: ctx.agentName,
+        model: f.model,
+        routing_tier: tier,
+        input_tokens: 0,
+        output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        fallback_from_model: primaryModel,
+        fallback_index: f.fallbackIndex,
+      });
+    }
+  }
+
+  private async recordPrimaryFailure(
+    ctx: IngestionContext,
+    tier: string,
+    model: string,
+    errorBody: string,
+    timestamp: string,
+  ): Promise<void> {
+    await this.messageRepo.insert({
+      id: uuid(),
+      tenant_id: ctx.tenantId,
+      agent_id: ctx.agentId,
+      trace_id: null,
+      timestamp,
+      status: 'fallback_error',
+      error_message: errorBody.slice(0, 500),
+      agent_name: ctx.agentName,
+      model,
+      routing_tier: tier,
+      input_tokens: 0,
+      output_tokens: 0,
+      cache_read_tokens: 0,
+      cache_creation_tokens: 0,
+      fallback_from_model: null,
+      fallback_index: null,
+    });
+  }
+
+  private async recordFallbackSuccess(
+    ctx: IngestionContext,
+    model: string,
+    tier: string,
+    traceId?: string,
+    fallbackFromModel?: string,
+    fallbackIndex?: number,
+    timestamp?: string,
+  ): Promise<void> {
+    await this.messageRepo.insert({
+      id: uuid(),
+      tenant_id: ctx.tenantId,
+      agent_id: ctx.agentId,
+      trace_id: traceId ?? null,
+      timestamp: timestamp ?? new Date().toISOString(),
+      status: 'ok',
+      agent_name: ctx.agentName,
+      model,
+      routing_tier: tier,
+      input_tokens: 0,
+      output_tokens: 0,
+      cache_read_tokens: 0,
+      cache_creation_tokens: 0,
+      fallback_from_model: fallbackFromModel ?? null,
+      fallback_index: fallbackIndex ?? null,
     });
   }
 

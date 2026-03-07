@@ -39,10 +39,10 @@ const mockDeactivateAllProviders = vi.fn();
 
 vi.mock("../../src/services/api.js", () => ({
   getTierAssignments: vi.fn().mockResolvedValue([
-    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "3", user_id: "u1", tier: "complex", override_model: "claude-opus-4-6", auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
+    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "3", user_id: "u1", tier: "complex", override_model: "claude-opus-4-6", auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
   ]),
   getAvailableModels: vi.fn().mockResolvedValue([
     { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
@@ -57,6 +57,8 @@ vi.mock("../../src/services/api.js", () => ({
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
   updateCustomProvider: vi.fn().mockResolvedValue({}),
   deleteCustomProvider: vi.fn().mockResolvedValue({ ok: true }),
+  setFallbacks: vi.fn().mockResolvedValue([]),
+  clearFallbacks: vi.fn().mockResolvedValue(undefined),
 }));
 
 import Routing from "../../src/pages/Routing";
@@ -64,7 +66,7 @@ import ModelPickerModal from "../../src/components/ModelPickerModal";
 import { toast } from "../../src/services/toast-store.js";
 import type { AvailableModel, TierAssignment, CustomProviderData } from "../../src/services/api.js";
 
-const { overrideTier, resetTier, resetAllTiers } = await import("../../src/services/api.js");
+const { overrideTier, resetTier, resetAllTiers, setFallbacks } = await import("../../src/services/api.js");
 
 describe("Routing — enabled state (providers active)", () => {
   beforeEach(() => {
@@ -105,6 +107,12 @@ describe("Routing — enabled state (providers active)", () => {
     render(() => <Routing />);
     const overrideButtons = await screen.findAllByText("Override");
     expect(overrideButtons.length).toBe(3);
+  });
+
+  it("renders Add fallback button in tier cards", async () => {
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    expect(addButtons.length).toBe(4); // one per tier
   });
 
   it("shows Edit and Reset buttons for override tiers", async () => {
@@ -364,10 +372,10 @@ describe("Routing — enabled state (providers active)", () => {
   it("shows 'No model available' when model is null", async () => {
     const { getTierAssignments } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValueOnce([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
 
     render(() => <Routing />);
@@ -526,7 +534,7 @@ describe("Routing — helper functions", () => {
     // Use a completely unknown model name that matches no API model and no PROVIDERS entry
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValueOnce([
-      { id: "1", user_id: "u1", tier: "simple", override_model: "totally-unknown-model-xyz", auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: "totally-unknown-model-xyz", auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValueOnce([]);
 
@@ -567,10 +575,10 @@ describe("Routing — custom providers", () => {
     ]);
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValue([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
       { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
@@ -591,10 +599,10 @@ describe("Routing — custom providers", () => {
     ]);
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValue([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
       { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
@@ -614,10 +622,10 @@ describe("Routing — custom providers", () => {
     ]);
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValue([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
       { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
@@ -646,10 +654,10 @@ describe("Routing — custom providers", () => {
 
 describe("ModelPickerModal — custom providers and filtering", () => {
   const baseTiers: TierAssignment[] = [
-    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-    { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
   ];
 
   it("shows custom provider group with letter icon", () => {
@@ -771,5 +779,154 @@ describe("Routing — handleProviderUpdate", () => {
     // Wait a tick, then verify no instruction modal appeared
     await new Promise((r) => setTimeout(r, 50));
     expect(screen.queryByText("Activate routing")).toBeNull();
+  });
+});
+
+describe("Routing — fallback management", () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([]);
+    mockDeactivateAllProviders.mockResolvedValue({ ok: true });
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    ]);
+  });
+
+  it("opens fallback picker when Add fallback is clicked", async () => {
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]);
+    // The model picker modal should open
+    expect(await screen.findByText("Select a model")).toBeDefined();
+  });
+
+  it("calls setFallbacks when a fallback model is picked", async () => {
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]); // simple tier
+    await screen.findByText("Select a model");
+
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    // Pick the claude-opus-4-6 button (only model in the fallback picker since gpt-4o-mini is the primary)
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      expect(setFallbacks).toHaveBeenCalledWith("test-agent", "simple", ["claude-opus-4-6"]);
+    });
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("Fallback added");
+    });
+  });
+
+  it("does not duplicate existing fallback model", async () => {
+    const { getTierAssignments } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: ["claude-opus-4-6"], updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]); // simple tier
+    await screen.findByText("Select a model");
+
+    // Both gpt-4o-mini (primary) and claude-opus-4-6 (existing fallback) are filtered out
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    expect(modalButtons.length).toBe(0);
+  });
+
+  it("handles setFallbacks error gracefully", async () => {
+    vi.mocked(setFallbacks).mockRejectedValueOnce(new Error("fail"));
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]);
+    await screen.findByText("Select a model");
+
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      expect(setFallbacks).toHaveBeenCalled();
+    });
+  });
+
+  it("renders fallback list when tier has fallback_models", async () => {
+    const { getTierAssignments } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: ["claude-opus-4-6"], updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+
+    const { container } = render(() => <Routing />);
+    await waitFor(() => {
+      const ranks = container.querySelectorAll(".fallback-list__rank");
+      expect(ranks.length).toBe(1);
+      expect(ranks[0].textContent).toBe("1.");
+    });
+  });
+
+  it("exercises FallbackList props (agentName, tier, customProviders) via remove", async () => {
+    const { getTierAssignments, getAvailableModels, clearFallbacks: mockClearFallbacks } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: ["custom:cp-1/my-llama"], updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValueOnce([
+      { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "custom:cp-1/my-llama", provider: "custom:cp-1", provider_display_name: "MyProvider", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([
+      { id: "cp-1", name: "MyProvider", base_url: "https://test.com", has_api_key: true, models: [], created_at: "2025-01-01" },
+    ]);
+
+    const { container } = render(() => <Routing />);
+    // Wait for fallback list to render with custom provider fallback
+    await waitFor(() => {
+      const removeButtons = container.querySelectorAll(".fallback-list__remove");
+      expect(removeButtons.length).toBe(1);
+      // Custom provider letter icon should render (accessing customProviders prop)
+      const letterIcon = container.querySelector(".fallback-list__item .provider-card__logo-letter");
+      expect(letterIcon).not.toBeNull();
+      expect(letterIcon!.textContent).toBe("M");
+    });
+
+    // Click the remove button — forces FallbackList to read props.agentName and props.tier
+    const removeBtn = container.querySelector(".fallback-list__remove") as HTMLButtonElement;
+    fireEvent.click(removeBtn);
+
+    await waitFor(() => {
+      // clearFallbacks is called when removing the only fallback
+      expect(mockClearFallbacks).toHaveBeenCalledWith("test-agent", "simple");
+    });
+  });
+
+  it("closes fallback picker when close button is clicked", async () => {
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]);
+    expect(await screen.findByText("Select a model")).toBeDefined();
+
+    const closeBtns = screen.getAllByLabelText("Close");
+    fireEvent.click(closeBtns[closeBtns.length - 1]);
+    await waitFor(() => {
+      expect(screen.queryByText("Select a model")).toBeNull();
+    });
   });
 });

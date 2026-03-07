@@ -357,6 +357,7 @@ export interface TierAssignment {
   tier: string;
   override_model: string | null;
   auto_assigned_model: string | null;
+  fallback_models: string[] | null;
   updated_at: string;
 }
 
@@ -388,6 +389,32 @@ export function resetAllTiers(agentName: string) {
   return fetchMutate(`${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/reset-all`, {
     method: 'POST',
   });
+}
+
+/* -- Routing: Fallbacks -- */
+
+export function getFallbacks(agentName: string, tier: string) {
+  return fetchJson<string[]>(
+    `/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}/fallbacks`,
+  );
+}
+
+export function setFallbacks(agentName: string, tier: string, models: string[]) {
+  return fetchMutate<string[]>(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}/fallbacks`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ models }),
+    },
+  );
+}
+
+export function clearFallbacks(agentName: string, tier: string) {
+  return fetchMutate(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}/fallbacks`,
+    { method: 'DELETE' },
+  );
 }
 
 /* -- Routing: Available Models -- */

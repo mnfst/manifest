@@ -1,4 +1,12 @@
-import { IsString, IsIn, IsNotEmpty, IsOptional, Matches } from 'class-validator';
+import {
+  IsString,
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  ArrayMaxSize,
+  Matches,
+} from 'class-validator';
 
 const VALID_TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
 
@@ -34,4 +42,12 @@ export class SetOverrideDto {
   @IsString()
   @IsNotEmpty()
   model!: string;
+}
+
+export class SetFallbacksDto {
+  @IsArray()
+  @ArrayMaxSize(5)
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  models!: string[];
 }

@@ -495,6 +495,118 @@ describe('RoutingService', () => {
       expect(result.notifications[0]).toContain('automatic mode.');
     });
 
+    it('should clean fallback models belonging to the removed provider', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'openai',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockTierRepo.find
+        .mockResolvedValueOnce([]) // overrides query
+        .mockResolvedValueOnce([
+          // allTiers query for fallback cleanup
+          Object.assign(new TierAssignment(), {
+            agent_id: 'a1',
+            tier: 'standard',
+            fallback_models: ['gpt-4o', 'claude-sonnet-4'],
+          }),
+        ]);
+      mockPricingCache.getByModel
+        .mockReturnValueOnce({ provider: 'OpenAI' }) // gpt-4o belongs to OpenAI
+        .mockReturnValueOnce({ provider: 'Anthropic' }); // claude-sonnet-4 does not
+
+      await service.removeProvider('a1', 'openai');
+
+      // The save for fallback cleanup should have only claude-sonnet-4
+      const fallbackSaveCall = mockTierRepo.save.mock.calls.find(
+        (c: unknown[]) => (c[0] as { fallback_models?: string[] }).fallback_models !== undefined,
+      );
+      expect(fallbackSaveCall).toBeDefined();
+      expect(
+        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
+      ).toEqual(['claude-sonnet-4']);
+    });
+
+    it('should skip tiers with null or empty fallback_models during cleanup', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'openai',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockTierRepo.find
+        .mockResolvedValueOnce([]) // overrides query
+        .mockResolvedValueOnce([
+          // allTiers query for fallback cleanup
+          Object.assign(new TierAssignment(), {
+            agent_id: 'a1',
+            tier: 'simple',
+            fallback_models: null, // null — should be skipped (line 115)
+          }),
+          Object.assign(new TierAssignment(), {
+            agent_id: 'a1',
+            tier: 'complex',
+            fallback_models: [], // empty — should be skipped (line 115)
+          }),
+          Object.assign(new TierAssignment(), {
+            agent_id: 'a1',
+            tier: 'standard',
+            fallback_models: ['gpt-4o', 'claude-sonnet-4'],
+          }),
+        ]);
+      mockPricingCache.getByModel
+        .mockReturnValueOnce({ provider: 'OpenAI' }) // gpt-4o belongs to OpenAI
+        .mockReturnValueOnce({ provider: 'Anthropic' }); // claude-sonnet-4 does not
+
+      await service.removeProvider('a1', 'openai');
+
+      // Only the standard tier (with actual fallback_models) should be saved
+      const fallbackSaveCall = mockTierRepo.save.mock.calls.find(
+        (c: unknown[]) => (c[0] as { fallback_models?: string[] }).fallback_models !== undefined,
+      );
+      expect(fallbackSaveCall).toBeDefined();
+      expect(
+        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
+      ).toEqual(['claude-sonnet-4']);
+    });
+
+    it('should set fallback_models to null when all belong to removed provider', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'openai',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockTierRepo.find
+        .mockResolvedValueOnce([]) // overrides query
+        .mockResolvedValueOnce([
+          Object.assign(new TierAssignment(), {
+            agent_id: 'a1',
+            tier: 'standard',
+            fallback_models: ['gpt-4o', 'gpt-4o-mini'],
+          }),
+        ]);
+      // Both models belong to OpenAI
+      mockPricingCache.getByModel
+        .mockReturnValueOnce({ provider: 'OpenAI' })
+        .mockReturnValueOnce({ provider: 'OpenAI' });
+
+      await service.removeProvider('a1', 'openai');
+
+      // All fallbacks removed → fallback_models set to null (line 121)
+      const fallbackSaveCall = mockTierRepo.save.mock.calls.find(
+        (c: unknown[]) => 'fallback_models' in (c[0] as Record<string, unknown>),
+      );
+      expect(fallbackSaveCall).toBeDefined();
+      expect(
+        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
+      ).toBeNull();
+    });
+
     it('should not invalidate overrides from other providers', async () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',
@@ -597,7 +709,7 @@ describe('RoutingService', () => {
 
       expect(mockTierRepo.update).toHaveBeenCalledWith(
         { agent_id: 'a1' },
-        expect.objectContaining({ override_model: null }),
+        expect.objectContaining({ override_model: null, fallback_models: null }),
       );
     });
   });
@@ -614,7 +726,7 @@ describe('RoutingService', () => {
       );
       expect(mockTierRepo.update).toHaveBeenCalledWith(
         { agent_id: 'a1' },
-        expect.objectContaining({ override_model: null }),
+        expect.objectContaining({ override_model: null, fallback_models: null }),
       );
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
     });
@@ -660,6 +772,47 @@ describe('RoutingService', () => {
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a2');
     });
 
+    it('should clean fallback models referencing removed models', async () => {
+      // First find: no overrides affected
+      mockTierRepo.find
+        .mockResolvedValueOnce([])
+        // Second find: allTiers with fallback_models containing removed model
+        .mockResolvedValueOnce([
+          Object.assign(new TierAssignment(), {
+            agent_id: 'a1',
+            tier: 'standard',
+            fallback_models: ['old-model', 'keep-model'],
+          }),
+        ]);
+
+      await service.invalidateOverridesForRemovedModels(['old-model']);
+
+      // Should save with only the kept model
+      expect(mockTierRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ fallback_models: ['keep-model'] }),
+      );
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
+    });
+
+    it('should set fallback_models to null when all fallbacks are removed', async () => {
+      mockTierRepo.find
+        .mockResolvedValueOnce([]) // no overrides
+        .mockResolvedValueOnce([
+          Object.assign(new TierAssignment(), {
+            agent_id: 'a1',
+            tier: 'simple',
+            fallback_models: ['removed-model'],
+          }),
+        ]);
+
+      await service.invalidateOverridesForRemovedModels(['removed-model']);
+
+      expect(mockTierRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ fallback_models: null }),
+      );
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
+    });
+
     it('should recalculate each agent only once', async () => {
       const tier1 = Object.assign(new TierAssignment(), {
         agent_id: 'a1',
@@ -678,6 +831,75 @@ describe('RoutingService', () => {
       // Same agent — should only recalculate once
       expect(mockAutoAssign.recalculate).toHaveBeenCalledTimes(1);
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
+    });
+  });
+
+  /* ── getFallbacks ── */
+
+  describe('getFallbacks', () => {
+    it('should return fallback_models when tier exists', async () => {
+      mockTierRepo.findOne.mockResolvedValue({ fallback_models: ['model-a', 'model-b'] });
+      const result = await service.getFallbacks('a1', 'standard');
+      expect(result).toEqual(['model-a', 'model-b']);
+    });
+
+    it('should return empty array when tier has no fallbacks', async () => {
+      mockTierRepo.findOne.mockResolvedValue({ fallback_models: null });
+      const result = await service.getFallbacks('a1', 'standard');
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array when tier does not exist', async () => {
+      mockTierRepo.findOne.mockResolvedValue(null);
+      const result = await service.getFallbacks('a1', 'nonexistent');
+      expect(result).toEqual([]);
+    });
+  });
+
+  /* ── setFallbacks ── */
+
+  describe('setFallbacks', () => {
+    it('should set fallback_models on existing tier', async () => {
+      const existing = { agent_id: 'a1', tier: 'standard', fallback_models: null };
+      mockTierRepo.findOne.mockResolvedValue(existing);
+      const result = await service.setFallbacks('a1', 'standard', ['model-a']);
+      expect(existing.fallback_models).toEqual(['model-a']);
+      expect(mockTierRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ fallback_models: ['model-a'] }),
+      );
+      expect(result).toEqual(['model-a']);
+    });
+
+    it('should return empty array when tier does not exist', async () => {
+      mockTierRepo.findOne.mockResolvedValue(null);
+      const result = await service.setFallbacks('a1', 'nonexistent', ['m']);
+      expect(result).toEqual([]);
+      expect(mockTierRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should set null when empty array provided', async () => {
+      const existing = { agent_id: 'a1', tier: 'standard', fallback_models: ['old'] };
+      mockTierRepo.findOne.mockResolvedValue(existing);
+      await service.setFallbacks('a1', 'standard', []);
+      expect(existing.fallback_models).toBeNull();
+    });
+  });
+
+  /* ── clearFallbacks ── */
+
+  describe('clearFallbacks', () => {
+    it('should clear fallback_models on existing tier', async () => {
+      const existing = { agent_id: 'a1', tier: 'standard', fallback_models: ['model-a'] };
+      mockTierRepo.findOne.mockResolvedValue(existing);
+      await service.clearFallbacks('a1', 'standard');
+      expect(existing.fallback_models).toBeNull();
+      expect(mockTierRepo.save).toHaveBeenCalled();
+    });
+
+    it('should be a no-op when tier does not exist', async () => {
+      mockTierRepo.findOne.mockResolvedValue(null);
+      await service.clearFallbacks('a1', 'nonexistent');
+      expect(mockTierRepo.save).not.toHaveBeenCalled();
     });
   });
 

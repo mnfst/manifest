@@ -45,6 +45,7 @@ import { AddCustomProviders1772668898071 } from './migrations/1772668898071-AddC
 import { NullablePricing1772682112419 } from './migrations/1772682112419-NullablePricing';
 import { AddPerformanceIndexes1772843035514 } from './migrations/1772843035514-AddPerformanceIndexes';
 import { AddDashboardIndexes1772905146384 } from './migrations/1772905146384-AddDashboardIndexes';
+import { AddFallbacks1772905260464 } from './migrations/1772905260464-AddFallbacks';
 
 const entities = [
   AgentMessage,
@@ -94,6 +95,7 @@ const migrations = [
   NullablePricing1772682112419,
   AddPerformanceIndexes1772843035514,
   AddDashboardIndexes1772905146384,
+  AddFallbacks1772905260464,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';

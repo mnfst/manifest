@@ -22,6 +22,9 @@ export class TierAssignment {
   @Column('varchar', { nullable: true })
   auto_assigned_model!: string | null;
 
+  @Column('simple-json', { nullable: true })
+  fallback_models!: string[] | null;
+
   @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;
 }
