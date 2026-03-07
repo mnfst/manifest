@@ -189,6 +189,18 @@ describe('sql-dialect', () => {
       );
     });
 
+    it('preserves $N placeholders inside single-quoted strings', () => {
+      const sql = "SELECT * FROM t WHERE id = $1 AND label = 'Price is $10'";
+      expect(portableSql(sql, 'sqlite')).toBe(
+        "SELECT * FROM t WHERE id = ? AND label = 'Price is $10'",
+      );
+    });
+
+    it('handles multiple quoted strings and placeholders', () => {
+      const sql = "SELECT $1, '$2', $3, 'value $4'";
+      expect(portableSql(sql, 'sqlite')).toBe("SELECT ?, '$2', ?, 'value $4'");
+    });
+
     it('handles SQL with no placeholders', () => {
       const sql = 'SELECT * FROM t WHERE is_active = true';
       expect(portableSql(sql, 'sqlite')).toBe(sql);

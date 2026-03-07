@@ -80,7 +80,11 @@ export function sqlSanitizeCost(col: string): string {
  */
 export function portableSql(sql: string, dialect: DbDialect): string {
   if (dialect === 'postgres') return sql;
-  return sql.replace(/\$\d+/g, '?');
+  // Match quoted strings first to skip them, then match $N placeholders.
+  return sql.replace(/\$\d+/g, (match) => {
+    if (match.startsWith('$')) return '?';
+    return match;
+  });
 }
 
 export function sqlCastInterval(paramName: string, dialect: DbDialect): string {
