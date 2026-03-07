@@ -31,19 +31,14 @@ describe('computeTrend', () => {
   });
 
   it('clamps extreme positive trends to 999', () => {
-    // current=10000, previous=1 => 999900% => clamped to 999
     expect(computeTrend(10000, 1)).toBe(999);
   });
 
   it('clamps extreme negative trends to -999', () => {
-    // Extreme negative shouldn't go below -999
-    // This case is harder to hit naturally since max drop is -100%,
-    // but testing the clamp boundary
     expect(computeTrend(0, 100)).toBe(-100);
   });
 
   it('rounds the result', () => {
-    // (200 - 300) / 300 * 100 = -33.333...
     expect(computeTrend(200, 300)).toBe(-33);
   });
 
@@ -67,7 +62,6 @@ describe('downsample', () => {
     const data = [1, 2, 3, 4, 5, 6];
     const result = downsample(data, 3);
     expect(result).toHaveLength(3);
-    // bucket 0: [1,2] = 3, bucket 1: [3,4] = 7, bucket 2: [5,6] = 11
     expect(result).toEqual([3, 7, 11]);
   });
 
@@ -86,7 +80,6 @@ describe('downsample', () => {
     const data = [1, 2, 3, 4, 5];
     const result = downsample(data, 2);
     expect(result).toHaveLength(2);
-    // Two buckets from 5 elements
     const sum = result[0]! + result[1]!;
     expect(sum).toBe(15);
   });
@@ -129,13 +122,32 @@ describe('addTenantFilter', () => {
     return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere };
   }
 
-  it('adds tenant subquery filter with userId parameter', () => {
+  it('adds tenant subquery filter with userId parameter (no tenantId)', () => {
     const { qb, mockAndWhere } = makeMockQb();
     addTenantFilter(qb, 'user-123');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
     const firstCall = mockAndWhere.mock.calls[0];
     expect(firstCall[0]).toBeInstanceOf(Brackets);
+  });
+
+  it('adds direct tenant_id filter when tenantId is provided', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    addTenantFilter(qb, 'user-123', undefined, 'tenant-456');
+
+    expect(mockAndWhere).toHaveBeenCalledTimes(1);
+    const brackets = mockAndWhere.mock.calls[0][0];
+    expect(brackets).toBeInstanceOf(Brackets);
+
+    const mockSub = {
+      where: jest.fn().mockReturnThis(),
+      orWhere: jest.fn().mockReturnThis(),
+    };
+    (brackets as any).whereFactory(mockSub);
+    expect(mockSub.where).toHaveBeenCalledWith('at.tenant_id = :tenantId', {
+      tenantId: 'tenant-456',
+    });
+    expect(mockSub.orWhere).toHaveBeenCalledWith('at.user_id = :userId', { userId: 'user-123' });
   });
 
   it('adds agent_name filter when agentName is provided', () => {
@@ -159,5 +171,12 @@ describe('addTenantFilter', () => {
     const { qb } = makeMockQb();
     const result = addTenantFilter(qb, 'user-123');
     expect(result).toBe(qb);
+  });
+
+  it('accepts both agentName and tenantId together', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    addTenantFilter(qb, 'user-123', 'my-agent', 'tenant-456');
+
+    expect(mockAndWhere).toHaveBeenCalledTimes(2);
   });
 });

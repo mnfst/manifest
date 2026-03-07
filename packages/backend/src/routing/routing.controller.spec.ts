@@ -1,10 +1,12 @@
 import { NotFoundException } from '@nestjs/common';
 import { RoutingController } from './routing.controller';
 import { RoutingService } from './routing.service';
+import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { ModelPricing } from '../entities/model-pricing.entity';
+import { Agent } from '../entities/agent.entity';
 import * as telemetry from '../common/utils/product-telemetry';
 
 jest.mock('../common/utils/product-telemetry', () => ({
@@ -21,8 +23,7 @@ describe('RoutingController', () => {
   let mockCustomProviderService: Record<string, jest.Mock>;
   let mockPricingCache: Record<string, jest.Mock>;
   let mockOllamaSync: Record<string, jest.Mock>;
-  let mockAgentRepo: Record<string, jest.Mock>;
-  let mockTenantRepo: Record<string, jest.Mock>;
+  let mockResolveAgent: Record<string, jest.Mock>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -42,11 +43,8 @@ describe('RoutingController', () => {
     mockOllamaSync = {
       sync: jest.fn().mockResolvedValue({ count: 0 }),
     };
-    mockTenantRepo = {
-      findOne: jest.fn().mockResolvedValue({ id: 'tenant-001', name: 'user-1' }),
-    };
-    mockAgentRepo = {
-      findOne: jest.fn().mockResolvedValue({ id: TEST_AGENT_ID, name: 'test-agent' }),
+    mockResolveAgent = {
+      resolve: jest.fn().mockResolvedValue({ id: TEST_AGENT_ID, name: 'test-agent' } as Agent),
     };
     mockCustomProviderService = {
       list: jest.fn().mockResolvedValue([]),
@@ -57,8 +55,7 @@ describe('RoutingController', () => {
       mockCustomProviderService as unknown as CustomProviderService,
       mockPricingCache as unknown as ModelPricingCacheService,
       mockOllamaSync as unknown as OllamaSyncService,
-      mockAgentRepo as never,
-      mockTenantRepo as never,
+      mockResolveAgent as unknown as ResolveAgentService,
     );
   });
 
@@ -519,47 +516,37 @@ describe('RoutingController', () => {
 
   describe('resolveAgent', () => {
     it('should throw NotFoundException when tenant is not found', async () => {
-      mockTenantRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(new NotFoundException('Tenant not found'));
 
       await expect(controller.getStatus(mockUser, mockAgentName)).rejects.toThrow(
         NotFoundException,
       );
-      expect(mockTenantRepo.findOne).toHaveBeenCalledWith({
-        where: { name: 'user-1' },
-      });
-      expect(mockAgentRepo.findOne).not.toHaveBeenCalled();
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
     });
 
     it('should throw NotFoundException when agent is not found', async () => {
-      mockTenantRepo.findOne.mockResolvedValue({ id: 'tenant-001', name: 'user-1' });
-      mockAgentRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(
+        new NotFoundException('Agent "nonexistent" not found'),
+      );
 
       await expect(
         controller.getProviders(mockUser, { agentName: 'nonexistent' } as never),
       ).rejects.toThrow(NotFoundException);
-      expect(mockAgentRepo.findOne).toHaveBeenCalledWith({
-        where: { tenant_id: 'tenant-001', name: 'nonexistent' },
-      });
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'nonexistent');
     });
 
     it('should resolve agent and pass its id to service methods', async () => {
-      mockTenantRepo.findOne.mockResolvedValue({ id: 'tenant-002', name: 'user-1' });
-      mockAgentRepo.findOne.mockResolvedValue({ id: 'agent-xyz', name: 'my-agent' });
+      mockResolveAgent.resolve.mockResolvedValue({ id: 'agent-xyz', name: 'my-agent' });
       mockRoutingService.getProviders.mockResolvedValue([]);
 
       await controller.getStatus(mockUser, { agentName: 'my-agent' } as never);
 
-      expect(mockTenantRepo.findOne).toHaveBeenCalledWith({
-        where: { name: 'user-1' },
-      });
-      expect(mockAgentRepo.findOne).toHaveBeenCalledWith({
-        where: { tenant_id: 'tenant-002', name: 'my-agent' },
-      });
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
       expect(mockRoutingService.getProviders).toHaveBeenCalledWith('agent-xyz');
     });
 
     it('should propagate NotFoundException through upsertProvider', async () => {
-      mockTenantRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(new NotFoundException('Tenant not found'));
 
       await expect(
         controller.upsertProvider(mockUser, mockAgentName, {
@@ -570,8 +557,9 @@ describe('RoutingController', () => {
     });
 
     it('should propagate NotFoundException through removeProvider', async () => {
-      mockTenantRepo.findOne.mockResolvedValue({ id: 'tenant-001', name: 'user-1' });
-      mockAgentRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(
+        new NotFoundException('Agent "missing-agent" not found'),
+      );
 
       await expect(controller.removeProvider(mockUser, 'missing-agent', 'openai')).rejects.toThrow(
         NotFoundException,
@@ -579,7 +567,7 @@ describe('RoutingController', () => {
     });
 
     it('should propagate NotFoundException through getTiers', async () => {
-      mockTenantRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(new NotFoundException('Tenant not found'));
 
       await expect(controller.getTiers(mockUser, mockAgentName)).rejects.toThrow(NotFoundException);
     });

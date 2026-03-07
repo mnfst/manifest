@@ -1,11 +1,20 @@
 import { Global, Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Tenant } from '../entities/tenant.entity';
 import { IngestEventBusService } from './services/ingest-event-bus.service';
-import { CacheInvalidationService } from './services/cache-invalidation.service';
+import { TenantCacheService } from './services/tenant-cache.service';
 import { UserCacheInterceptor } from './interceptors/user-cache.interceptor';
+import { AgentCacheInterceptor } from './interceptors/agent-cache.interceptor';
 
 @Global()
 @Module({
-  providers: [IngestEventBusService, CacheInvalidationService, UserCacheInterceptor],
-  exports: [IngestEventBusService, CacheInvalidationService, UserCacheInterceptor],
+  imports: [TypeOrmModule.forFeature([Tenant])],
+  providers: [
+    IngestEventBusService,
+    TenantCacheService,
+    UserCacheInterceptor,
+    AgentCacheInterceptor,
+  ],
+  exports: [IngestEventBusService, TenantCacheService, UserCacheInterceptor, AgentCacheInterceptor],
 })
 export class CommonModule {}

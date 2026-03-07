@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessagesController } from './messages.controller';
-import { AggregationService } from '../services/aggregation.service';
+import { MessagesQueryService } from '../services/messages-query.service';
 
 describe('MessagesController', () => {
   let controller: MessagesController;
@@ -18,7 +18,7 @@ describe('MessagesController', () => {
       controllers: [MessagesController],
       providers: [
         {
-          provide: AggregationService,
+          provide: MessagesQueryService,
           useValue: { getMessages: mockGetMessages },
         },
       ],
@@ -27,7 +27,7 @@ describe('MessagesController', () => {
     controller = module.get<MessagesController>(MessagesController);
   });
 
-  it('delegates to aggregation service with default values', async () => {
+  it('delegates to messages query service with default values', async () => {
     const user = { id: 'u1' };
     await controller.getMessages({} as never, user as never);
 

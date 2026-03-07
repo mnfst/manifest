@@ -15,6 +15,8 @@ import { CustomProviderController } from './custom-provider.controller';
 import { ResolveController } from './resolve.controller';
 import { ProxyController } from './proxy/proxy.controller';
 import { RoutingService } from './routing.service';
+import { RoutingCacheService } from './routing-cache.service';
+import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
 import { ResolveService } from './resolve.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
@@ -43,6 +45,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
   controllers: [RoutingController, CustomProviderController, ResolveController, ProxyController],
   providers: [
     RoutingService,
+    RoutingCacheService,
+    ResolveAgentService,
     CustomProviderService,
     ResolveService,
     TierAutoAssignService,
@@ -53,6 +57,6 @@ import { NotificationsModule } from '../notifications/notifications.module';
     SessionMomentumService,
     OllamaSyncService,
   ],
-  exports: [RoutingService, CustomProviderService, TierAutoAssignService],
+  exports: [RoutingService, CustomProviderService, TierAutoAssignService, ResolveAgentService],
 })
 export class RoutingModule {}

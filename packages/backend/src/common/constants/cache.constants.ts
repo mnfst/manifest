@@ -1,2 +1,3 @@
-export const DASHBOARD_CACHE_TTL_MS = 5_000;
+export const DASHBOARD_CACHE_TTL_MS = 30_000;
+export const AGENT_LIST_CACHE_TTL_MS = 60_000;
 export const MODEL_PRICES_CACHE_TTL_MS = 300_000;

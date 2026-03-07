@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { CacheModule } from '@nestjs/cache-manager';
 import { AgentAnalyticsController } from './agent-analytics.controller';
 import { AgentAnalyticsService } from '../services/agent-analytics.service';
 import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
@@ -30,6 +31,7 @@ describe('AgentAnalyticsController', () => {
     });
 
     const module: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register()],
       controllers: [AgentAnalyticsController],
       providers: [
         {

@@ -14,7 +14,6 @@ import { AgentsController } from './agents.controller';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
 import { AggregationService } from '../services/aggregation.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
-import { CacheInvalidationService } from '../../common/services/cache-invalidation.service';
 import { readLocalApiKey } from '../../common/constants/local-mode.constants';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
 
@@ -71,7 +70,6 @@ describe('AgentsController', () => {
           provide: ConfigService,
           useValue: { get: mockConfigGet },
         },
-        { provide: CacheInvalidationService, useValue: { trackKey: jest.fn() } },
       ],
     }).compile();
 
@@ -101,13 +99,16 @@ describe('AgentsController', () => {
     const user = { id: 'u1' };
     const result = await controller.getAgentKey(user as never, 'bot-1');
 
-    expect(result).toMatchObject({ keyPrefix: 'mnfst_test1234', pluginEndpoint: 'http://localhost:3001/otlp' });
+    expect(result).toMatchObject({
+      keyPrefix: 'mnfst_test1234',
+      pluginEndpoint: 'http://localhost:3001/otlp',
+    });
   });
 
   it('returns full apiKey in local mode', async () => {
     mockReadLocalApiKey.mockReturnValue('mnfst_full_local_key');
     mockConfigGet.mockImplementation((key: string, fallback?: string) =>
-      key === 'MANIFEST_MODE' ? 'local' : fallback ?? '',
+      key === 'MANIFEST_MODE' ? 'local' : (fallback ?? ''),
     );
     const user = { id: 'u1' };
     const result = await controller.getAgentKey(user as never, 'bot-1');
@@ -134,7 +135,9 @@ describe('AgentsController', () => {
 
   it('renames agent and returns success with slug', async () => {
     const user = { id: 'u1' };
-    const result = await controller.renameAgent(user as never, 'bot-1', { name: 'Bot Renamed' } as never);
+    const result = await controller.renameAgent(user as never, 'bot-1', {
+      name: 'Bot Renamed',
+    } as never);
 
     expect(result).toEqual({ renamed: true, name: 'bot-renamed', display_name: 'Bot Renamed' });
     expect(mockRenameAgent).toHaveBeenCalledWith('u1', 'bot-1', 'bot-renamed', 'Bot Renamed');
@@ -157,10 +160,12 @@ describe('AgentsController', () => {
 
   it('throws ForbiddenException when deleting in local mode', async () => {
     mockConfigGet.mockImplementation((key: string, fallback?: string) =>
-      key === 'MANIFEST_MODE' ? 'local' : fallback ?? '',
+      key === 'MANIFEST_MODE' ? 'local' : (fallback ?? ''),
     );
     const user = { id: 'u1' };
-    await expect(controller.deleteAgent(user as never, 'bot-1')).rejects.toThrow(ForbiddenException);
+    await expect(controller.deleteAgent(user as never, 'bot-1')).rejects.toThrow(
+      ForbiddenException,
+    );
     expect(mockDeleteAgent).not.toHaveBeenCalled();
   });
 
@@ -171,10 +176,15 @@ describe('AgentsController', () => {
       controllers: [AgentsController],
       providers: [
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
-        { provide: AggregationService, useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() } },
-        { provide: ApiKeyGeneratorService, useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() } },
+        {
+          provide: AggregationService,
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+        },
+        {
+          provide: ApiKeyGeneratorService,
+          useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
         { provide: ConfigService, useValue: { get: jest.fn() } },
-        { provide: CacheInvalidationService, useValue: { trackKey: jest.fn() } },
       ],
     }).compile();
 
@@ -184,11 +194,15 @@ describe('AgentsController', () => {
 
     expect(result.agent.name).toBe('my-agent');
     expect(result.agent.display_name).toBe('My Agent');
-    expect(mockOnboard).toHaveBeenCalledWith(expect.objectContaining({
-      agentName: 'my-agent',
-      displayName: 'My Agent',
-    }));
-    expect(trackCloudEvent).toHaveBeenCalledWith('agent_created', 'user-123', { agent_name: 'my-agent' });
+    expect(mockOnboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentName: 'my-agent',
+        displayName: 'My Agent',
+      }),
+    );
+    expect(trackCloudEvent).toHaveBeenCalledWith('agent_created', 'user-123', {
+      agent_name: 'my-agent',
+    });
   });
 
   it('rejects createAgent with empty slug', async () => {
@@ -198,16 +212,23 @@ describe('AgentsController', () => {
       controllers: [AgentsController],
       providers: [
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
-        { provide: AggregationService, useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() } },
-        { provide: ApiKeyGeneratorService, useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() } },
+        {
+          provide: AggregationService,
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+        },
+        {
+          provide: ApiKeyGeneratorService,
+          useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
         { provide: ConfigService, useValue: { get: jest.fn() } },
-        { provide: CacheInvalidationService, useValue: { trackKey: jest.fn() } },
       ],
     }).compile();
 
     const ctrl = module.get<AgentsController>(AgentsController);
     const user = { id: 'user-123', email: 'test@example.com' };
-    await expect(ctrl.createAgent(user as never, { name: '!!!' } as never)).rejects.toThrow(BadRequestException);
+    await expect(ctrl.createAgent(user as never, { name: '!!!' } as never)).rejects.toThrow(
+      BadRequestException,
+    );
     expect(mockOnboard).not.toHaveBeenCalled();
   });
 });

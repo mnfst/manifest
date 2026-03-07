@@ -1,42 +1,35 @@
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserCacheInterceptor } from './user-cache.interceptor';
-import { CacheInvalidationService } from '../services/cache-invalidation.service';
 
 function createMockContext(
   user: { id?: string } | undefined,
   originalUrl: string,
+  method = 'GET',
 ): ExecutionContext {
   return {
     switchToHttp: () => ({
-      getRequest: () => ({ user, originalUrl }),
+      getRequest: () => ({ user, originalUrl, method }),
       getResponse: () => ({}),
     }),
     getHandler: () => ({}),
     getClass: () => ({}),
     getArgs: () => [],
     getArgByIndex: () => ({}),
-    switchToRpc: () => ({} as never),
-    switchToWs: () => ({} as never),
+    switchToRpc: () => ({}) as never,
+    switchToWs: () => ({}) as never,
     getType: () => 'http',
   } as unknown as ExecutionContext;
 }
 
 describe('UserCacheInterceptor', () => {
   let interceptor: UserCacheInterceptor;
-  let mockTrackKey: jest.Mock;
 
   beforeEach(() => {
-    mockTrackKey = jest.fn();
-    const mockInvalidation = { trackKey: mockTrackKey } as unknown as CacheInvalidationService;
     const mockCacheManager = {} as never;
     const mockReflector = new Reflector();
 
-    interceptor = new UserCacheInterceptor(
-      mockCacheManager,
-      mockReflector,
-      mockInvalidation,
-    );
+    interceptor = new UserCacheInterceptor(mockCacheManager, mockReflector);
   });
 
   describe('trackBy', () => {
@@ -48,23 +41,20 @@ describe('UserCacheInterceptor', () => {
       expect(key).toBe('user-abc:/api/v1/overview');
     });
 
-    it('should call trackKey on the invalidation service', () => {
-      const context = createMockContext({ id: 'user-abc' }, '/api/v1/overview');
-
-      interceptor['trackBy'](context);
-
-      expect(mockTrackKey).toHaveBeenCalledWith('user-abc', 'user-abc:/api/v1/overview');
-    });
-
     it('should include query parameters in the cache key', () => {
-      const context = createMockContext(
-        { id: 'user-1' },
-        '/api/v1/tokens?range=7d&agent=demo',
-      );
+      const context = createMockContext({ id: 'user-1' }, '/api/v1/tokens?range=7d&agent=demo');
 
       const key = interceptor['trackBy'](context);
 
       expect(key).toBe('user-1:/api/v1/tokens?range=7d&agent=demo');
+    });
+
+    it('should return undefined for non-GET requests', () => {
+      const context = createMockContext({ id: 'user-abc' }, '/api/v1/overview', 'POST');
+
+      const key = interceptor['trackBy'](context);
+
+      expect(key).toBeUndefined();
     });
 
     it('should return undefined when user is not present', () => {
@@ -81,22 +71,6 @@ describe('UserCacheInterceptor', () => {
       const key = interceptor['trackBy'](context);
 
       expect(key).toBeUndefined();
-    });
-
-    it('should not call trackKey when user is absent', () => {
-      const context = createMockContext(undefined, '/api/v1/overview');
-
-      interceptor['trackBy'](context);
-
-      expect(mockTrackKey).not.toHaveBeenCalled();
-    });
-
-    it('should not call trackKey when user has no id', () => {
-      const context = createMockContext({}, '/api/v1/overview');
-
-      interceptor['trackBy'](context);
-
-      expect(mockTrackKey).not.toHaveBeenCalled();
     });
 
     it('should generate distinct keys for different URLs', () => {

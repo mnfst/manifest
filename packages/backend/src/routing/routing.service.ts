@@ -5,6 +5,7 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
+import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
 import { encrypt, decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { expandProviderNames } from './provider-aliases';
@@ -28,12 +29,18 @@ export class RoutingService {
     private readonly tierRepo: Repository<TierAssignment>,
     private readonly autoAssign: TierAutoAssignService,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly routingCache: RoutingCacheService,
   ) {}
 
   /* ── Providers ── */
 
   async getProviders(agentId: string): Promise<UserProvider[]> {
-    return this.providerRepo.find({ where: { agent_id: agentId } });
+    const cached = this.routingCache.getProviders(agentId);
+    if (cached) return cached;
+
+    const providers = await this.providerRepo.find({ where: { agent_id: agentId } });
+    this.routingCache.setProviders(agentId, providers);
+    return providers;
   }
 
   async upsertProvider(
@@ -58,6 +65,7 @@ export class RoutingService {
       existing.updated_at = new Date().toISOString();
       await this.providerRepo.save(existing);
       await this.autoAssign.recalculate(agentId);
+      this.routingCache.invalidateAgent(agentId);
       return { provider: existing, isNew: false };
     }
 
@@ -75,6 +83,7 @@ export class RoutingService {
 
     await this.providerRepo.insert(record);
     await this.autoAssign.recalculate(agentId);
+    this.routingCache.invalidateAgent(agentId);
     return { provider: record, isNew: true };
   }
 
@@ -105,6 +114,7 @@ export class RoutingService {
     existing.updated_at = new Date().toISOString();
     await this.providerRepo.save(existing);
     await this.autoAssign.recalculate(agentId);
+    this.routingCache.invalidateAgent(agentId);
 
     // Build notification messages
     const notifications: string[] = [];
@@ -133,6 +143,7 @@ export class RoutingService {
       { override_model: null, updated_at: new Date().toISOString() },
     );
     await this.autoAssign.recalculate(agentId);
+    this.routingCache.invalidateAgent(agentId);
   }
 
   /* ── Override invalidation (for pricing sync) ── */
@@ -159,6 +170,7 @@ export class RoutingService {
 
     for (const agentId of agentIds) {
       await this.autoAssign.recalculate(agentId);
+      this.routingCache.invalidateAgent(agentId);
     }
 
     this.logger.log(
@@ -169,6 +181,9 @@ export class RoutingService {
   /* ── Tier Assignments ── */
 
   async getTiers(agentId: string, userId?: string): Promise<TierAssignment[]> {
+    const cached = this.routingCache.getTiers(agentId);
+    if (cached) return cached;
+
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
 
     if (rows.length === 0) {
@@ -193,12 +208,16 @@ export class RoutingService {
       });
       if (providers.length > 0) {
         await this.autoAssign.recalculate(agentId);
-        return this.tierRepo.find({ where: { agent_id: agentId } });
+        const result = await this.tierRepo.find({ where: { agent_id: agentId } });
+        this.routingCache.setTiers(agentId, result);
+        return result;
       }
 
+      this.routingCache.setTiers(agentId, created);
       return created;
     }
 
+    this.routingCache.setTiers(agentId, rows);
     return rows;
   }
 
@@ -216,6 +235,7 @@ export class RoutingService {
       existing.override_model = model;
       existing.updated_at = new Date().toISOString();
       await this.tierRepo.save(existing);
+      this.routingCache.invalidateAgent(agentId);
       return existing;
     }
 
@@ -229,6 +249,7 @@ export class RoutingService {
     });
 
     await this.tierRepo.insert(record);
+    this.routingCache.invalidateAgent(agentId);
     return record;
   }
 
@@ -241,6 +262,7 @@ export class RoutingService {
     existing.override_model = null;
     existing.updated_at = new Date().toISOString();
     await this.tierRepo.save(existing);
+    this.routingCache.invalidateAgent(agentId);
   }
 
   async resetAllOverrides(agentId: string): Promise<void> {
@@ -248,6 +270,7 @@ export class RoutingService {
       { agent_id: agentId },
       { override_model: null, updated_at: new Date().toISOString() },
     );
+    this.routingCache.invalidateAgent(agentId);
   }
 
   /* ── Provider API key retrieval ── */
@@ -256,6 +279,15 @@ export class RoutingService {
     // Ollama runs locally — no API key needed
     if (provider.toLowerCase() === 'ollama') return '';
 
+    const cached = this.routingCache.getApiKey(agentId, provider);
+    if (cached !== undefined) return cached;
+
+    const result = await this.resolveProviderApiKey(agentId, provider);
+    this.routingCache.setApiKey(agentId, provider, result);
+    return result;
+  }
+
+  private async resolveProviderApiKey(agentId: string, provider: string): Promise<string | null> {
     // Custom providers: exact match on provider key, allow empty key for local endpoints
     if (provider.startsWith('custom:')) {
       const record = await this.providerRepo.findOne({
