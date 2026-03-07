@@ -96,7 +96,7 @@ openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38
 3. Restart the gateway:
 
 ```bash
-openclaw gateway --force
+openclaw gateway restart
 ```
 
 That's it — no API key needed. Telemetry from your agent flows directly to the local backend. Open `http://localhost:38238` to see the dashboard (you'll see an orange **Dev** badge in the header).
@@ -108,6 +108,45 @@ That's it — no API key needed. Telemetry from your agent flows directly to the
 - Debugging the plugin ↔ backend integration
 - Any time you need the full plugin + backend stack running locally
 
+## Development Skills
+
+Three [skills](https://skills.sh) automate common plugin development workflows. Install them to get `/slash-command` shortcuts for managing the OpenClaw gateway, or run the bundled scripts directly from the repo root.
+
+### Install (Claude Code)
+
+```bash
+npx skills add https://github.com/mnfst/manifest --skill manifest-status
+npx skills add https://github.com/mnfst/manifest --skill setup-manifest-plugin
+npx skills add https://github.com/mnfst/manifest --skill uninstall-manifest-plugin
+```
+
+### Standalone Usage
+
+The scripts work without Claude Code. Run them directly from the repo root:
+
+```bash
+bash skills/manifest-status/scripts/manifest_status.sh
+bash skills/setup-manifest-plugin/scripts/setup_manifest.sh 38238 --mode dev
+bash skills/uninstall-manifest-plugin/scripts/uninstall_manifest.sh
+```
+
+Requires `jq` and the `openclaw` CLI.
+
+### Available Skills
+
+| Skill | Command | What it does |
+| --- | --- | --- |
+| `manifest-status` | `/manifest-status` | Prints a diagnostic table of the current plugin configuration (mode, endpoint, keys, default model) |
+| `setup-manifest-plugin` | `/setup-manifest-plugin` | Configures the OpenClaw gateway to route through a local Manifest backend. Accepts a port and optional mode (`dev`/`local`/`cloud`). Restarts the gateway. |
+| `uninstall-manifest-plugin` | `/uninstall-manifest-plugin` | Removes the Manifest plugin, cleans up auth profiles and local data, detects available providers, and sets the best default model. |
+
+### Typical Workflow
+
+1. Start the backend in local mode on a specific port (e.g., `38238`)
+2. Run `/setup-manifest-plugin` with that port to configure the gateway
+3. Use `/manifest-status` to verify the configuration
+4. When done, run `/uninstall-manifest-plugin` to reset to direct provider access
+
 ## Available Scripts
 
 | Command | Description |
@@ -118,6 +157,7 @@ That's it — no API key needed. Telemetry from your agent flows directly to the
 | `npm test --workspace=packages/backend` | Run backend unit tests (Jest) |
 | `npm run test:e2e --workspace=packages/backend` | Run backend e2e tests (Jest + Supertest) |
 | `npm test --workspace=packages/frontend` | Run frontend tests (Vitest) |
+| `npm test --workspace=packages/openclaw-plugin` | Run plugin tests (Jest) |
 | `npm run build:plugin` | Build the OpenClaw plugin |
 
 ## Working with Individual Packages
@@ -150,7 +190,7 @@ The plugin exposes 5 user-facing settings via `openclaw.plugin.json`. Cloud mode
 |---------|------|---------|-------------|
 | `mode` | `string` | `cloud` | Controls the plugin's operating mode. `cloud` exports telemetry to `app.manifest.build` (default). `local` starts an embedded NestJS server backed by sql.js. `dev` connects to a local backend without API key management (uses OTLP loopback bypass). |
 | `apiKey` | `string` | env `MANIFEST_API_KEY` | OTLP ingest key (must start with `mnfst_`). Required in cloud mode. Auto-generated and persisted to `~/.openclaw/manifest/config.json` in local mode. Ignored in dev mode. |
-| `endpoint` | `string` | `https://app.manifest.build/otlp` | Base URL for the OTLP exporters. The SDK appends `/v1/traces`, `/v1/metrics`, `/v1/logs` automatically. Only used in cloud and dev modes — local mode overrides this to `http://{host}:{port}/otlp`. |
+| `endpoint` | `string` | `https://app.manifest.build/api/v1/otlp` | Base URL for the OTLP exporters. The SDK appends `/v1/traces`, `/v1/metrics`, `/v1/logs` automatically. Only used in cloud and dev modes — local mode overrides this to `http://{host}:{port}/otlp`. |
 | `port` | `number` | `2099` | Bind port for the embedded server (local mode only). Also used for the dashboard URL and the injected OpenAI-compatible provider config. |
 | `host` | `string` | `127.0.0.1` | Bind address for the embedded server (local mode only). |
 
@@ -180,6 +220,7 @@ Follow the prompts to select the affected packages and bump type (patch / minor 
 npm test --workspace=packages/backend
 npm run test:e2e --workspace=packages/backend
 npm test --workspace=packages/frontend
+npm test --workspace=packages/openclaw-plugin
 ```
 
 6. Verify the production build works:
@@ -199,8 +240,8 @@ This project uses [Changesets](https://github.com/changesets/changesets) for ver
 | Package | npm name | Needs changeset? |
 | --- | --- | --- |
 | `packages/openclaw-plugin` | `manifest` | Yes |
-| `packages/backend` | — | No (private) |
-| `packages/frontend` | — | No (private) |
+| `packages/backend` | — | Yes — bump `manifest` (backend compiles into the plugin) |
+| `packages/frontend` | — | Yes — bump `manifest` (frontend compiles into the plugin) |
 
 **Adding a changeset:**
 

@@ -1,5 +1,7 @@
 /* ── Reset ─────────────────────────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -8,13 +10,42 @@
 
 body {
   font-family: var(--font-family);
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-feature-settings:
+    'rlig' 1,
+    'calt' 1;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+/* ── Skip Link (a11y) ─────────────────────────────── */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 1000;
+  padding: var(--gap-sm) var(--gap-md);
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius);
+}
+
+.skip-link:focus {
+  position: fixed;
+  top: var(--gap-sm);
+  left: var(--gap-sm);
+  width: auto;
+  height: auto;
+  z-index: 1000;
 }
 
 /* ── Layout ────────────────────────────────────────── */
@@ -42,9 +73,17 @@ body {
 }
 
 /* ── Container sizes ───────────────────────────────── */
-.container--sm { max-width: 680px; margin-inline: auto; }
-.container--md { max-width: 1100px; margin-inline: auto; }
-.container--full { max-width: 100%; }
+.container--sm {
+  max-width: 680px;
+  margin-inline: auto;
+}
+.container--md {
+  max-width: 1100px;
+  margin-inline: auto;
+}
+.container--full {
+  max-width: 100%;
+}
 
 /* ── Page Header ───────────────────────────────────── */
 .page-header {

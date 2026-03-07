@@ -271,7 +271,11 @@ const MessageLog: Component = () => {
                     Set up agent
                   </button>
                   <div class="empty-state__img-wrapper">
-                    <img src="/example-messages.svg" alt="" class="empty-state__img" />
+                    <img
+                      src="/example-messages.svg"
+                      alt="Example message log showing LLM call history"
+                      class="empty-state__img"
+                    />
                   </div>
                 </div>
               }
@@ -402,6 +406,7 @@ const MessageLog: Component = () => {
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
+                                aria-hidden="true"
                               >
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                               </svg>

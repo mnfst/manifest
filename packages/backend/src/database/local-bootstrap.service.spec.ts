@@ -36,9 +36,13 @@ jest.mock('../entities/tenant.entity', () => ({ Tenant: jest.fn() }));
 jest.mock('../entities/agent.entity', () => ({ Agent: jest.fn() }));
 jest.mock('../entities/agent-api-key.entity', () => ({ AgentApiKey: jest.fn() }));
 jest.mock('../entities/agent-message.entity', () => ({ AgentMessage: jest.fn() }));
-jest.mock('../entities/model-pricing.entity', () => ({ ModelPricing: jest.fn() }));
 jest.mock('../entities/user-provider.entity', () => ({ UserProvider: jest.fn() }));
 jest.mock('../entities/tier-assignment.entity', () => ({ TierAssignment: jest.fn() }));
+
+// Mock tier-auto-assign to avoid deep import chain
+jest.mock('../routing/tier-auto-assign.service', () => ({
+  TierAutoAssignService: class TierAutoAssignService {},
+}));
 
 import { LocalBootstrapService } from './local-bootstrap.service';
 import { trackEvent } from '../common/utils/product-telemetry';
@@ -60,11 +64,12 @@ describe('LocalBootstrapService', () => {
   let mockAgentRepo: ReturnType<typeof makeMockRepo>;
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
-  let mockPricingRepo: ReturnType<typeof makeMockRepo>;
   let mockProviderRepo: ReturnType<typeof makeMockRepo>;
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
   let mockPricingCache: { reload: jest.Mock };
   let mockPricingSync: { syncPricing: jest.Mock };
+  let mockRecalculate: jest.Mock;
+  let mockModuleRef: { get: jest.Mock };
 
   beforeEach(() => {
     (trackEvent as jest.Mock).mockClear();
@@ -72,22 +77,23 @@ describe('LocalBootstrapService', () => {
     mockAgentRepo = makeMockRepo();
     mockAgentKeyRepo = makeMockRepo();
     mockMessageRepo = makeMockRepo();
-    mockPricingRepo = makeMockRepo();
     mockProviderRepo = makeMockRepo();
     mockTierRepo = makeMockRepo();
     mockPricingCache = { reload: jest.fn().mockResolvedValue(undefined) };
     mockPricingSync = { syncPricing: jest.fn().mockResolvedValue(undefined) };
+    mockRecalculate = jest.fn().mockResolvedValue(undefined);
+    mockModuleRef = { get: jest.fn().mockReturnValue({ recalculate: mockRecalculate }) };
 
     service = new LocalBootstrapService(
       mockTenantRepo as never,
       mockAgentRepo as never,
       mockAgentKeyRepo as never,
       mockMessageRepo as never,
-      mockPricingRepo as never,
       mockProviderRepo as never,
       mockTierRepo as never,
       mockPricingCache as never,
       mockPricingSync as never,
+      mockModuleRef as never,
     );
   });
 
@@ -95,7 +101,6 @@ describe('LocalBootstrapService', () => {
     it('runs full bootstrap sequence', async () => {
       await service.onModuleInit();
 
-      expect(mockPricingRepo.upsert).toHaveBeenCalled();
       expect(mockPricingCache.reload).toHaveBeenCalled();
       // Verify tenant name equals LOCAL_USER_ID (guard/bootstrap consistency)
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -141,14 +146,6 @@ describe('LocalBootstrapService', () => {
 
       expect(trackEvent).not.toHaveBeenCalled();
     });
-
-    it('skips model pricing seed when models already exist', async () => {
-      mockPricingRepo.count.mockResolvedValue(28);
-
-      await service.onModuleInit();
-
-      expect(mockPricingRepo.upsert).not.toHaveBeenCalled();
-    });
   });
 
   describe('config reading', () => {
@@ -177,7 +174,6 @@ describe('LocalBootstrapService', () => {
     });
 
     it('registers API key when config file exists with apiKey', async () => {
-
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(
         JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
@@ -198,7 +194,6 @@ describe('LocalBootstrapService', () => {
     });
 
     it('skips API key registration when key hash already exists', async () => {
-
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(
         JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
@@ -211,7 +206,6 @@ describe('LocalBootstrapService', () => {
     });
 
     it('reconciles API key even when tenant already exists', async () => {
-
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(
         JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
@@ -293,6 +287,34 @@ describe('LocalBootstrapService', () => {
 
       expect(mockProviderRepo.save).not.toHaveBeenCalled();
       expect(mockTierRepo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('recalculateTiersIfNeeded', () => {
+    it('recalculates tiers when active providers exist on startup', async () => {
+      mockProviderRepo.count.mockResolvedValue(2);
+
+      await service.onModuleInit();
+
+      expect(mockModuleRef.get).toHaveBeenCalled();
+      expect(mockRecalculate).toHaveBeenCalledWith('local-agent-001');
+    });
+
+    it('skips tier recalculation when no active providers', async () => {
+      mockProviderRepo.count.mockResolvedValue(0);
+
+      await service.onModuleInit();
+
+      expect(mockRecalculate).not.toHaveBeenCalled();
+    });
+
+    it('handles tier recalculation failure gracefully', async () => {
+      mockProviderRepo.count.mockResolvedValue(1);
+      mockModuleRef.get.mockImplementation(() => {
+        throw new Error('Module not found');
+      });
+
+      await expect(service.onModuleInit()).resolves.not.toThrow();
     });
   });
 });

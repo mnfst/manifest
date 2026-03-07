@@ -30,9 +30,26 @@ import { GithubModule } from './github/github.module';
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const sessionGuardClass = isLocalMode ? LocalAuthGuard : SessionGuard;
 
-const frontendPath = process.env['MANIFEST_FRONTEND_DIR'] || join(__dirname, '..', '..', 'frontend', 'dist');
+const frontendPath =
+  process.env['MANIFEST_FRONTEND_DIR'] || join(__dirname, '..', '..', 'frontend', 'dist');
+const ONE_YEAR_S = 365 * 24 * 60 * 60;
 const serveStaticImports = existsSync(frontendPath)
-  ? [ServeStaticModule.forRoot({ rootPath: frontendPath, exclude: ['/api/{*path}', '/otlp/{*path}', '/v1/{*path}'] })]
+  ? [
+      ServeStaticModule.forRoot({
+        rootPath: frontendPath,
+        exclude: ['/api/{*path}', '/otlp/{*path}', '/v1/{*path}'],
+        serveStaticOptions: {
+          maxAge: ONE_YEAR_S * 1000,
+          immutable: true,
+          setHeaders: (res: { setHeader: (name: string, value: string) => void }, path: string) => {
+            // index.html must never be cached (SPA entry point)
+            if (path.endsWith('.html') || path.endsWith('/index.html')) {
+              res.setHeader('Cache-Control', 'no-cache');
+            }
+          },
+        },
+      }),
+    ]
   : [];
 
 @Module({
