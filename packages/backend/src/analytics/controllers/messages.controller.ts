@@ -1,15 +1,10 @@
-import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
-import { CacheTTL } from '@nestjs/cache-manager';
+import { Controller, Get, Query } from '@nestjs/common';
 import { MessagesQueryDto } from '../dto/messages-query.dto';
 import { MessagesQueryService } from '../services/messages-query.service';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
-import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
-import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 
 @Controller('api/v1')
-@UseInterceptors(UserCacheInterceptor)
-@CacheTTL(DASHBOARD_CACHE_TTL_MS)
 export class MessagesController {
   constructor(private readonly messagesQuery: MessagesQueryService) {}
 

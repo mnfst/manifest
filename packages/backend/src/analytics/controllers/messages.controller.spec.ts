@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CacheModule } from '@nestjs/cache-manager';
 import { MessagesController } from './messages.controller';
 import { MessagesQueryService } from '../services/messages-query.service';
 
@@ -16,7 +15,6 @@ describe('MessagesController', () => {
     });
 
     const module: TestingModule = await Test.createTestingModule({
-      imports: [CacheModule.register()],
       controllers: [MessagesController],
       providers: [
         {
