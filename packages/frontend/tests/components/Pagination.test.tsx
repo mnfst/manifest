@@ -158,4 +158,21 @@ describe("Pagination", () => {
     expect(nav?.getAttribute("role")).toBe("navigation");
     expect(nav?.getAttribute("aria-label")).toBe("Pagination");
   });
+
+  it("buttons have descriptive aria-labels", () => {
+    render(() => (
+      <Pagination
+        currentPage={() => 1}
+        totalItems={() => 100}
+        pageSize={25}
+        hasNextPage={() => true}
+        onPrevious={() => {}}
+        onNext={() => {}}
+      />
+    ));
+    const prev = screen.getByText("Previous");
+    const next = screen.getByText("Next");
+    expect(prev.getAttribute("aria-label")).toBe("Go to previous page");
+    expect(next.getAttribute("aria-label")).toBe("Go to next page");
+  });
 });

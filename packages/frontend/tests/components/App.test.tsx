@@ -111,4 +111,17 @@ describe("App structure", () => {
     const main = container.querySelector('main[aria-label="Dashboard content"]');
     expect(main).not.toBeNull();
   });
+
+  it("renders skip-to-content link", () => {
+    const { container } = render(() => <App />);
+    const skipLink = container.querySelector('a.skip-link[href="#main-content"]');
+    expect(skipLink).not.toBeNull();
+    expect(skipLink?.textContent).toBe("Skip to main content");
+  });
+
+  it("main content has matching id for skip link", () => {
+    const { container } = render(() => <App />);
+    const main = container.querySelector("main#main-content");
+    expect(main).not.toBeNull();
+  });
 });

@@ -43,6 +43,7 @@
 }
 
 .info-tooltip:hover .info-tooltip__bubble,
-.info-tooltip:focus .info-tooltip__bubble {
+.info-tooltip:focus .info-tooltip__bubble,
+.info-tooltip--active .info-tooltip__bubble {
   display: block;
 }

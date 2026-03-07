@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ConsoleLogger, Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import compression from 'compression';
 import * as express from 'express';
 import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
@@ -34,6 +35,8 @@ export async function bootstrap() {
       },
     }),
   );
+
+  app.use(compression());
 
   const isDev = process.env['NODE_ENV'] !== 'production';
   if (isDev) {
