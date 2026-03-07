@@ -106,7 +106,7 @@ describe("inferProviderFromModel", () => {
 
   it("detects DeepSeek models", () => {
     expect(inferProviderFromModel("deepseek-chat")).toBe("deepseek");
-    expect(inferProviderFromModel("deepseek-r1")).toBe("deepseek");
+    expect(inferProviderFromModel("deepseek-reasoner")).toBe("deepseek");
   });
 
   it("detects xAI models", () => {

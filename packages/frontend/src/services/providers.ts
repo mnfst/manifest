@@ -82,10 +82,8 @@ export const PROVIDERS: ProviderDef[] = [
     keyPlaceholder: 'sk-...',
     models: [
       { label: 'DeepSeek V3', value: 'deepseek-chat' },
-      { label: 'DeepSeek V3', value: 'deepseek-v3' },
       { label: 'DeepSeek V3 (0324)', value: 'deepseek-chat-0324' },
       { label: 'DeepSeek R1', value: 'deepseek-reasoner' },
-      { label: 'DeepSeek R1', value: 'deepseek-r1' },
       { label: 'DeepSeek R1 (0528)', value: 'deepseek-reasoner-0528' },
       { label: 'DeepSeek Coder V2', value: 'deepseek-coder' },
       { label: 'DeepSeek R1 Distill Qwen 32B', value: 'deepseek-r1-distill-qwen-32b' },

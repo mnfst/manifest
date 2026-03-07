@@ -187,8 +187,8 @@ export class DatabaseSeederService implements OnModuleInit {
       ['gemini-2.5-flash-lite', 'Google', 0.0000001, 0.0000004, 1048576, false, false],
       ['gemini-2.0-flash', 'Google', 0.0000001, 0.0000004, 1048576, false, true],
       // DeepSeek
-      ['deepseek-v3', 'DeepSeek', 0.00000014, 0.00000028, 128000, false, true],
-      ['deepseek-r1', 'DeepSeek', 0.00000055, 0.00000219, 128000, true, false],
+      ['deepseek-chat', 'DeepSeek', 0.00000014, 0.00000028, 128000, false, true],
+      ['deepseek-reasoner', 'DeepSeek', 0.00000055, 0.00000219, 128000, true, false],
       // Moonshot (Kimi)
       ['kimi-k2', 'Moonshot', 0.0000006, 0.0000024, 262144, true, true],
       // Alibaba (Qwen)
