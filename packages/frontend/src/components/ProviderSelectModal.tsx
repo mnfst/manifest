@@ -7,21 +7,10 @@ import {
   type RoutingProvider,
   type CustomProviderData,
 } from '../services/api.js';
+import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { toast } from '../services/toast-store.js';
 import { isLocalMode } from '../services/local-mode.js';
 import CustomProviderForm from './CustomProviderForm.js';
-
-const PROVIDER_API_KEY_URLS: Record<string, string> = {
-  anthropic: 'https://console.anthropic.com/settings/keys',
-  deepseek: 'https://platform.deepseek.com/api_keys',
-  gemini: 'https://aistudio.google.com/apikey',
-  mistral: 'https://console.mistral.ai/api-keys/',
-  moonshot: 'https://platform.moonshot.ai/',
-  openai: 'https://platform.openai.com/api-keys',
-  openrouter: 'https://openrouter.ai/keys',
-  qwen: 'https://www.alibabacloud.com/help/en/model-studio/developer-reference/get-api-key',
-  xai: 'https://docs.x.ai/docs/api-reference',
-};
 
 interface Props {
   agentName: string;
@@ -353,7 +342,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
               const provDef = PROVIDERS.find((p) => p.id === provId)!;
               const connected = () => isConnected(provId) || isNoKeyConnected(provId);
               const isOllama = provDef.noKeyRequired;
-              const whereToGetUrl = PROVIDER_API_KEY_URLS[provId];
+              const whereToGetUrl = getRoutingProviderApiKeyUrl(provId);
 
               return (
                 <div class="provider-detail">
