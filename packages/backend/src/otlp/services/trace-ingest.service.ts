@@ -83,12 +83,49 @@ export class TraceIngestService {
     return map;
   }
 
+  private isEmptyOkSpan(span: OtlpSpan, attrs: AttributeMap): boolean {
+    if (spanStatusToString(span.status?.code) !== 'ok') return false;
+    if (attrString(attrs, 'gen_ai.request.model') || attrString(attrs, 'gen_ai.response.model'))
+      return false;
+    const input = attrNumber(attrs, 'gen_ai.usage.input_tokens') ?? 0;
+    const output = attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0;
+    return input === 0 && output === 0;
+  }
+
+  private filterGhostSpans(
+    spans: OtlpSpan[],
+    resourceAttrs: AttributeMap,
+    spanMap: Map<string, SpanEntry>,
+  ): Set<string> {
+    const ghostIds = new Set<string>();
+    const msgSpans: { spanId: string; time: number; empty: boolean }[] = [];
+
+    for (const span of spans) {
+      const spanId = toHexString(span.spanId);
+      const entry = spanMap.get(spanId);
+      if (entry?.type !== 'agent_message') continue;
+      const attrs = { ...resourceAttrs, ...extractAttributes(span.attributes) };
+      const time = new Date(nanoToDatetime(span.startTimeUnixNano)).getTime();
+      msgSpans.push({ spanId, time, empty: this.isEmptyOkSpan(span, attrs) });
+    }
+
+    for (const ms of msgSpans) {
+      if (!ms.empty) continue;
+      const hasSibling = msgSpans.some(
+        (other) => !other.empty && Math.abs(other.time - ms.time) <= 60_000,
+      );
+      if (hasSibling) ghostIds.add(ms.spanId);
+    }
+    return ghostIds;
+  }
+
   private async insertAll(
     spans: OtlpSpan[],
     resourceAttrs: AttributeMap,
     spanMap: Map<string, SpanEntry>,
     ctx: IngestionContext,
   ): Promise<void> {
+    const ghostSpanIds = this.filterGhostSpans(spans, resourceAttrs, spanMap);
     const messageAggregates = new Map<
       string,
       {
@@ -114,6 +151,7 @@ export class TraceIngestService {
 
       if (entry.type === 'root_request') continue;
       if (entry.type === 'agent_message') {
+        if (ghostSpanIds.has(spanId)) continue;
         const row = await this.buildAgentMessage(span, attrs, entry, ctx);
         if (row) agentMessageRows.push(row);
       } else if (entry.type === 'llm_call') {
@@ -274,6 +312,29 @@ export class TraceIngestService {
       return Math.abs(errorTime - spanTime) <= 30_000;
     });
     if (hasNearbyError) return null;
+
+    // DB-level ghost dedup: if this span is empty-ok, check if a data-bearing
+    // message for the same agent already exists within 60s (cross-batch case).
+    // Scope by session_key when available to avoid cross-session false positives.
+    if (this.isEmptyOkSpan(span, attrs)) {
+      const sessionKey = attrString(attrs, 'session.key');
+      const where: Record<string, string> = { tenant_id: ctx.tenantId, agent_id: ctx.agentId };
+      if (sessionKey) where.session_key = sessionKey;
+      const recentMessages = await this.turnRepo.find({
+        where,
+        select: ['id', 'timestamp', 'input_tokens', 'output_tokens', 'model'],
+        order: { timestamp: 'DESC' },
+        take: 5,
+      });
+      const hasNearbyData = recentMessages.some((m) => {
+        const mTime = new Date(m.timestamp).getTime();
+        return (
+          Math.abs(mTime - spanTime) <= 60_000 &&
+          ((m.input_tokens ?? 0) > 0 || (m.output_tokens ?? 0) > 0 || m.model != null)
+        );
+      });
+      if (hasNearbyData) return null;
+    }
 
     return {
       id: entry.uuid,
