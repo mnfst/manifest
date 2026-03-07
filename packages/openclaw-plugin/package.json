@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "5.21.0",
+  "version": "5.21.1",
   "description": "LLM router and observability plugin for OpenClaw — smart model routing, real-time cost tracking, and telemetry for your AI agents",
   "main": "dist/index.js",
   "license": "MIT",

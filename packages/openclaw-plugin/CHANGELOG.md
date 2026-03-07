@@ -1,5 +1,24 @@
 # manifest
 
+## 5.21.1
+
+### Patch Changes
+
+- a8c1c67: Add loading states to CRUD operations and backend performance improvements
+  - Add loading indicators to create agent, save/delete limit rules, remove email provider, and reset routing tiers to prevent double-submission
+  - Add database indexes on agent_messages, cost_snapshots, and security_event for faster queries
+  - Batch quality score updates and use upsert for custom provider pricing
+  - Store API key prefix at write time instead of decrypting at read time
+  - Batch insert optimizations for OTLP trace/metric/log ingestion and telemetry service
+  - Parallelize rollup UPDATEs and agent rename table updates
+
+- b6216d1: fix: use DeepSeek API model names as canonical names
+- d494998: Filter ghost duplicate messages in OTLP trace ingestion
+- 443cd19: Fix local API key reconciliation on boot to prevent 401 errors and clean stale models.json entries on mode switch
+- 23664a6: Upgrade @nestjs/platform-express to 11.1.16 to patch multer DoS vulnerability (CVE-2026-3520)
+- d96b659: Fix memory leaks causing OOM crashes under load: remove rawBody duplication on JSON requests, add SSE buffer size limit, add periodic cache eviction timers, and cap unbounded cache growth.
+- 6c87d1e: fix: local mode proactively detects existing server before starting embedded one
+
 ## 5.21.0
 
 ### Minor Changes
