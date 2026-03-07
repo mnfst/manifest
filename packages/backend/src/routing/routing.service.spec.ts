@@ -529,6 +529,84 @@ describe('RoutingService', () => {
       ).toEqual(['claude-sonnet-4']);
     });
 
+    it('should skip tiers with null or empty fallback_models during cleanup', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'openai',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockTierRepo.find
+        .mockResolvedValueOnce([]) // overrides query
+        .mockResolvedValueOnce([
+          // allTiers query for fallback cleanup
+          Object.assign(new TierAssignment(), {
+            agent_id: 'a1',
+            tier: 'simple',
+            fallback_models: null, // null — should be skipped (line 115)
+          }),
+          Object.assign(new TierAssignment(), {
+            agent_id: 'a1',
+            tier: 'complex',
+            fallback_models: [], // empty — should be skipped (line 115)
+          }),
+          Object.assign(new TierAssignment(), {
+            agent_id: 'a1',
+            tier: 'standard',
+            fallback_models: ['gpt-4o', 'claude-sonnet-4'],
+          }),
+        ]);
+      mockPricingCache.getByModel
+        .mockReturnValueOnce({ provider: 'OpenAI' }) // gpt-4o belongs to OpenAI
+        .mockReturnValueOnce({ provider: 'Anthropic' }); // claude-sonnet-4 does not
+
+      await service.removeProvider('a1', 'openai');
+
+      // Only the standard tier (with actual fallback_models) should be saved
+      const fallbackSaveCall = mockTierRepo.save.mock.calls.find(
+        (c: unknown[]) => (c[0] as { fallback_models?: string[] }).fallback_models !== undefined,
+      );
+      expect(fallbackSaveCall).toBeDefined();
+      expect(
+        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
+      ).toEqual(['claude-sonnet-4']);
+    });
+
+    it('should set fallback_models to null when all belong to removed provider', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'openai',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockTierRepo.find
+        .mockResolvedValueOnce([]) // overrides query
+        .mockResolvedValueOnce([
+          Object.assign(new TierAssignment(), {
+            agent_id: 'a1',
+            tier: 'standard',
+            fallback_models: ['gpt-4o', 'gpt-4o-mini'],
+          }),
+        ]);
+      // Both models belong to OpenAI
+      mockPricingCache.getByModel
+        .mockReturnValueOnce({ provider: 'OpenAI' })
+        .mockReturnValueOnce({ provider: 'OpenAI' });
+
+      await service.removeProvider('a1', 'openai');
+
+      // All fallbacks removed → fallback_models set to null (line 121)
+      const fallbackSaveCall = mockTierRepo.save.mock.calls.find(
+        (c: unknown[]) => 'fallback_models' in (c[0] as Record<string, unknown>),
+      );
+      expect(fallbackSaveCall).toBeDefined();
+      expect(
+        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
+      ).toBeNull();
+    });
+
     it('should not invalidate overrides from other providers', async () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',

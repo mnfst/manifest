@@ -880,6 +880,43 @@ describe("Routing — fallback management", () => {
     });
   });
 
+  it("exercises FallbackList props (agentName, tier, customProviders) via remove", async () => {
+    const { getTierAssignments, getAvailableModels, clearFallbacks: mockClearFallbacks } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: ["custom:cp-1/my-llama"], updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValueOnce([
+      { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "custom:cp-1/my-llama", provider: "custom:cp-1", provider_display_name: "MyProvider", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([
+      { id: "cp-1", name: "MyProvider", base_url: "https://test.com", has_api_key: true, models: [], created_at: "2025-01-01" },
+    ]);
+
+    const { container } = render(() => <Routing />);
+    // Wait for fallback list to render with custom provider fallback
+    await waitFor(() => {
+      const removeButtons = container.querySelectorAll(".fallback-list__remove");
+      expect(removeButtons.length).toBe(1);
+      // Custom provider letter icon should render (accessing customProviders prop)
+      const letterIcon = container.querySelector(".fallback-list__item .provider-card__logo-letter");
+      expect(letterIcon).not.toBeNull();
+      expect(letterIcon!.textContent).toBe("M");
+    });
+
+    // Click the remove button — forces FallbackList to read props.agentName and props.tier
+    const removeBtn = container.querySelector(".fallback-list__remove") as HTMLButtonElement;
+    fireEvent.click(removeBtn);
+
+    await waitFor(() => {
+      // clearFallbacks is called when removing the only fallback
+      expect(mockClearFallbacks).toHaveBeenCalledWith("test-agent", "simple");
+    });
+  });
+
   it("closes fallback picker when close button is clicked", async () => {
     render(() => <Routing />);
     const addButtons = await screen.findAllByText("+ Add fallback");

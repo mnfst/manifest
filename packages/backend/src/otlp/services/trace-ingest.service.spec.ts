@@ -1893,6 +1893,35 @@ describe('TraceIngestService', () => {
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
+  it('returns null from buildAgentMessage when existing error turn matches trace_id (dedup)', async () => {
+    // Pre-pass remap: findOne (fallback_from_model: Not(IsNull())) → null (no fallback record)
+    // buildAgentMessage: findOne (status: In(['error', 'rate_limited'])) → existing record
+    mockTurnFindOne
+      .mockResolvedValueOnce(null) // remapFallbackSpans — no fallback match
+      .mockResolvedValueOnce({ id: 'existing-error-turn' }); // buildAgentMessage — error dedup hit (line 390)
+
+    const span = makeSpan({
+      traceId: 'trace-error-dedup',
+      name: 'openclaw.agent.turn',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    // The first findOne (remap pre-pass) returned null, so span is NOT in fallbackSkipIds.
+    // The second findOne (buildAgentMessage line 382) returns a match, so line 390 returns null.
+    expect(mockTurnFindOne).toHaveBeenCalledTimes(2);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
   it('defaults llm_call cache tokens to 0 when attributes are absent', async () => {
     const parentSpan = makeSpan({
       spanId: 'span-parent-nct',

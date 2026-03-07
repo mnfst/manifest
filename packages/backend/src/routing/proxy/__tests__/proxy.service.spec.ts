@@ -1121,6 +1121,49 @@ describe('ProxyService', () => {
       expect(result.meta.fallbackIndex).toBe(1);
     });
 
+    it('skips fallback model when provider has no API key configured', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      // Primary key, then null for first fallback provider, then valid for second
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-test') // primary
+        .mockResolvedValueOnce(null) // first fallback: no API key
+        .mockResolvedValueOnce('sk-deepseek'); // second fallback
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('overloaded', { status: 500 }),
+          isGoogle: false,
+          isAnthropic: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['claude-sonnet-4', 'deepseek-chat'] },
+      ] as never);
+      pricingCache.getByModel
+        .mockReturnValueOnce({ provider: 'Anthropic' } as never) // first fallback has pricing
+        .mockReturnValueOnce({ provider: 'DeepSeek' } as never); // second fallback has pricing
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      // First fallback (claude-sonnet-4) skipped because getProviderApiKey returned null
+      // Second fallback (deepseek-chat) succeeded
+      expect(result.meta.model).toBe('deepseek-chat');
+      expect(result.meta.fallbackIndex).toBe(1);
+      // forward was called only twice: primary + second fallback (first was skipped)
+      expect(providerClient.forward).toHaveBeenCalledTimes(2);
+      expect(result.failedFallbacks).toHaveLength(0);
+    });
+
     it('continues fallback chain through retriable errors', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
