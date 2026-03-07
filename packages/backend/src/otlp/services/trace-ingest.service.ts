@@ -103,6 +103,10 @@ export class TraceIngestService {
       }
     >();
 
+    const agentMessageRows: Record<string, unknown>[] = [];
+    const llmCallRows: Record<string, unknown>[] = [];
+    const toolExecutionRows: Record<string, unknown>[] = [];
+
     for (const span of spans) {
       const spanId = toHexString(span.spanId);
       const entry = spanMap.get(spanId)!;
@@ -110,14 +114,21 @@ export class TraceIngestService {
 
       if (entry.type === 'root_request') continue;
       if (entry.type === 'agent_message') {
-        await this.insertAgentMessage(span, attrs, entry, spanMap, ctx);
+        const row = await this.buildAgentMessage(span, attrs, entry, ctx);
+        if (row) agentMessageRows.push(row);
       } else if (entry.type === 'llm_call') {
-        await this.insertLlmCall(span, attrs, entry, spanMap, ctx);
+        llmCallRows.push(this.buildLlmCall(span, attrs, entry, spanMap, ctx));
         this.accumulateToMessage(span, attrs, spanMap, messageAggregates);
       } else {
-        await this.insertToolExecution(span, attrs, entry, spanMap, ctx);
+        toolExecutionRows.push(this.buildToolExecution(span, attrs, entry, spanMap, ctx));
       }
     }
+
+    const inserts: Promise<unknown>[] = [];
+    if (agentMessageRows.length > 0) inserts.push(this.turnRepo.insert(agentMessageRows));
+    if (llmCallRows.length > 0) inserts.push(this.llmRepo.insert(llmCallRows));
+    if (toolExecutionRows.length > 0) inserts.push(this.toolRepo.insert(toolExecutionRows));
+    await Promise.all(inserts);
 
     await this.rollUpMessageAggregates(messageAggregates);
   }
@@ -184,6 +195,7 @@ export class TraceIngestService {
       }
     >,
   ): Promise<void> {
+    const updates: Promise<unknown>[] = [];
     for (const [messageId, agg] of aggregates) {
       if (agg.input === 0 && agg.output === 0) continue;
 
@@ -201,37 +213,37 @@ export class TraceIngestService {
         }
       }
 
-      await this.turnRepo
-        .createQueryBuilder()
-        .update(AgentMessage)
-        .set({
-          input_tokens: agg.input,
-          output_tokens: agg.output,
-          cache_read_tokens: agg.cacheRead,
-          cache_creation_tokens: agg.cacheCreation,
-          model: () => 'COALESCE(model, :model)',
-          routing_tier: () => 'COALESCE(routing_tier, :tier)',
-          routing_reason: () => 'COALESCE(routing_reason, :reason)',
-          cost_usd: cost,
-        })
-        .setParameter('model', agg.model)
-        .setParameter('tier', agg.tier)
-        .setParameter('reason', agg.reason)
-        .where('id = :id', { id: messageId })
-        .execute();
+      updates.push(
+        this.turnRepo
+          .createQueryBuilder()
+          .update(AgentMessage)
+          .set({
+            input_tokens: agg.input,
+            output_tokens: agg.output,
+            cache_read_tokens: agg.cacheRead,
+            cache_creation_tokens: agg.cacheCreation,
+            model: () => 'COALESCE(model, :model)',
+            routing_tier: () => 'COALESCE(routing_tier, :tier)',
+            routing_reason: () => 'COALESCE(routing_reason, :reason)',
+            cost_usd: cost,
+          })
+          .setParameter('model', agg.model)
+          .setParameter('tier', agg.tier)
+          .setParameter('reason', agg.reason)
+          .where('id = :id', { id: messageId })
+          .execute(),
+      );
     }
+    if (updates.length > 0) await Promise.all(updates);
   }
 
-  private async insertAgentMessage(
+  private async buildAgentMessage(
     span: OtlpSpan,
     attrs: AttributeMap,
     entry: SpanEntry,
-    _spanMap: Map<string, SpanEntry>,
     ctx: IngestionContext,
-  ): Promise<void> {
+  ): Promise<Record<string, unknown> | null> {
     // Skip if the proxy already recorded an error for this trace (avoids duplicates).
-    // Two strategies: (1) match by trace_id, (2) match by agent + timestamp proximity.
-    // Strategy 2 covers cases where the proxy doesn't have the traceparent header.
     const traceId = toHexString(span.traceId);
     if (traceId) {
       const existing = await this.turnRepo.findOne({
@@ -242,12 +254,10 @@ export class TraceIngestService {
         },
         select: ['id'],
       });
-      if (existing) return;
+      if (existing) return null;
     }
 
     // Fallback dedup: fetch recent errors for this agent and check timestamp proximity.
-    // Uses the span's own timestamp (not Date.now()) because OTLP batches arrive
-    // 10-30s after the actual event. Compares in JS to avoid SQLite Between issues.
     const spanTime = new Date(nanoToDatetime(span.startTimeUnixNano)).getTime();
     const recentErrors = await this.turnRepo.find({
       where: {
@@ -263,10 +273,9 @@ export class TraceIngestService {
       const errorTime = new Date(e.timestamp).getTime();
       return Math.abs(errorTime - spanTime) <= 30_000;
     });
-    if (hasNearbyError) return;
+    if (hasNearbyError) return null;
 
-    const cost = this.computeCost(attrs);
-    await this.turnRepo.insert({
+    return {
       id: entry.uuid,
       tenant_id: ctx.tenantId,
       agent_id: ctx.agentId,
@@ -279,7 +288,7 @@ export class TraceIngestService {
       output_tokens: attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0,
       cache_read_tokens: attrNumber(attrs, 'gen_ai.usage.cache_read_input_tokens') ?? 0,
       cache_creation_tokens: attrNumber(attrs, 'gen_ai.usage.cache_creation_input_tokens') ?? 0,
-      cost_usd: cost,
+      cost_usd: this.computeCost(attrs),
       status: spanStatusToString(span.status?.code),
       error_message: span.status?.code === 2 ? (span.status.message ?? null) : null,
       description: span.name,
@@ -290,21 +299,21 @@ export class TraceIngestService {
       routing_tier: attrString(attrs, 'manifest.routing.tier'),
       routing_reason: attrString(attrs, 'manifest.routing.reason'),
       skill_name: attrString(attrs, 'skill.name'),
-    });
+    };
   }
 
-  private async insertLlmCall(
+  private buildLlmCall(
     span: OtlpSpan,
     attrs: AttributeMap,
     entry: SpanEntry,
     spanMap: Map<string, SpanEntry>,
     ctx: IngestionContext,
-  ): Promise<void> {
+  ): Record<string, unknown> {
     const parentId = toHexString(span.parentSpanId);
     const parentEntry = spanMap.get(parentId);
     const messageId = parentEntry?.type === 'agent_message' ? parentEntry.uuid : null;
 
-    await this.llmRepo.insert({
+    return {
       id: entry.uuid,
       tenant_id: ctx.tenantId,
       agent_id: ctx.agentId,
@@ -322,21 +331,21 @@ export class TraceIngestService {
       temperature: attrNumber(attrs, 'llm.request.temperature'),
       max_output_tokens: attrNumber(attrs, 'llm.request.max_tokens'),
       timestamp: nanoToDatetime(span.startTimeUnixNano),
-    });
+    };
   }
 
-  private async insertToolExecution(
+  private buildToolExecution(
     span: OtlpSpan,
     attrs: AttributeMap,
     entry: SpanEntry,
     spanMap: Map<string, SpanEntry>,
     ctx: IngestionContext,
-  ): Promise<void> {
+  ): Record<string, unknown> {
     const parentId = toHexString(span.parentSpanId);
     const parentEntry = spanMap.get(parentId);
     const llmCallId = parentEntry?.type === 'llm_call' ? parentEntry.uuid : null;
 
-    await this.toolRepo.insert({
+    return {
       id: entry.uuid,
       tenant_id: ctx.tenantId,
       agent_id: ctx.agentId,
@@ -345,7 +354,7 @@ export class TraceIngestService {
       duration_ms: spanDurationMs(span.startTimeUnixNano, span.endTimeUnixNano),
       status: spanStatusToString(span.status?.code),
       error_message: span.status?.code === 2 ? (span.status.message ?? null) : null,
-    });
+    };
   }
 
   private computeCost(attrs: AttributeMap): number | null {
