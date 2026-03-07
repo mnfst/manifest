@@ -341,6 +341,9 @@ describe("Limits page interactions", () => {
     });
 
     resolveDelete!();
+    await vi.waitFor(() => {
+      expect(deleteBtn.textContent).toBe("Delete rule");
+    });
   });
 
   it("disables remove button and shows Removing... during provider removal", async () => {
@@ -372,6 +375,10 @@ describe("Limits page interactions", () => {
     });
 
     resolveRemove!();
+    await vi.waitFor(() => {
+      const title = document.querySelector(".modal-card__title");
+      expect(title).toBeNull(); // modal closed on success
+    });
   });
 
   it("calls removeEmailProvider after confirmation modal", async () => {

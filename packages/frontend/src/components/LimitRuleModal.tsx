@@ -68,6 +68,7 @@ const LimitRuleModal: Component<Props> = (props) => {
   const [saving, setSaving] = createSignal(false);
 
   const handleSave = async () => {
+    if (saving()) return;
     const val = Number(threshold());
     if (isNaN(val) || val <= 0) return;
     setSaving(true);

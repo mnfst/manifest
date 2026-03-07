@@ -379,7 +379,7 @@ const Routing: Component = () => {
                           <button
                             class="routing-action"
                             onClick={() => handleReset(stage.id)}
-                            disabled={resettingTier() === stage.id}
+                            disabled={resettingTier() === stage.id || resettingAll()}
                           >
                             {resettingTier() === stage.id ? 'Resetting...' : 'Reset'}
                           </button>
@@ -405,7 +405,7 @@ const Routing: Component = () => {
                 class="btn btn--outline"
                 style="font-size: var(--font-size-sm);"
                 onClick={handleResetAll}
-                disabled={resettingAll()}
+                disabled={resettingAll() || resettingTier() !== null}
               >
                 {resettingAll() ? 'Resetting...' : 'Reset all to auto'}
               </button>

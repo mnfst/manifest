@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { decrypt } from '../../common/utils/crypto.util';
+import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 
 export class AddPerformanceIndexes1772843035514 implements MigrationInterface {
   name = 'AddPerformanceIndexes1772843035514';
@@ -45,9 +45,10 @@ export class AddPerformanceIndexes1772843035514 implements MigrationInterface {
   }
 
   private async backfillKeyPrefix(queryRunner: QueryRunner): Promise<void> {
-    const secret = process.env['MANIFEST_ENCRYPTION_KEY'] || process.env['BETTER_AUTH_SECRET'];
-
-    if (!secret || secret.length < 32) {
+    let secret: string;
+    try {
+      secret = getEncryptionSecret();
+    } catch {
       console.warn(
         'AddPerformanceIndexes: No encryption secret found. Skipping key_prefix backfill.',
       );
@@ -60,17 +61,18 @@ export class AddPerformanceIndexes1772843035514 implements MigrationInterface {
 
     let backfilled = 0;
     for (const row of rows) {
+      let prefix: string;
       try {
         const plaintext = decrypt(row.api_key_encrypted, secret);
-        const prefix = plaintext.substring(0, 8);
-        await queryRunner.query(`UPDATE "user_providers" SET key_prefix = $1 WHERE id = $2`, [
-          prefix,
-          row.id,
-        ]);
-        backfilled++;
+        prefix = plaintext.substring(0, 8);
       } catch {
-        // Skip rows that can't be decrypted
+        continue; // Skip rows that can't be decrypted
       }
+      await queryRunner.query(`UPDATE "user_providers" SET key_prefix = $1 WHERE id = $2`, [
+        prefix,
+        row.id,
+      ]);
+      backfilled++;
     }
 
     if (backfilled > 0) {
