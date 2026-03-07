@@ -64,6 +64,8 @@ const Routing: Component = () => {
   const [disabling, setDisabling] = createSignal(false);
   const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
+  const [resettingTier, setResettingTier] = createSignal<string | null>(null);
+  const [resettingAll, setResettingAll] = createSignal(false);
 
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
 
@@ -118,22 +120,28 @@ const Routing: Component = () => {
   };
 
   const handleReset = async (tierId: string) => {
+    setResettingTier(tierId);
     try {
       await resetTier(agentName(), tierId);
       await refetchTiers();
       toast.success('Reset to auto');
     } catch {
       // error toast from fetchMutate
+    } finally {
+      setResettingTier(null);
     }
   };
 
   const handleResetAll = async () => {
+    setResettingAll(true);
     try {
       await resetAllTiers(agentName());
       await refetchTiers();
       toast.success('All tiers reset to auto');
     } catch {
       // error toast from fetchMutate
+    } finally {
+      setResettingAll(false);
     }
   };
 
@@ -368,8 +376,12 @@ const Routing: Component = () => {
                           <button class="routing-action" onClick={() => setDropdownTier(stage.id)}>
                             Edit
                           </button>
-                          <button class="routing-action" onClick={() => handleReset(stage.id)}>
-                            Reset
+                          <button
+                            class="routing-action"
+                            onClick={() => handleReset(stage.id)}
+                            disabled={resettingTier() === stage.id}
+                          >
+                            {resettingTier() === stage.id ? 'Resetting...' : 'Reset'}
                           </button>
                         </Show>
                       </div>
@@ -393,8 +405,9 @@ const Routing: Component = () => {
                 class="btn btn--outline"
                 style="font-size: var(--font-size-sm);"
                 onClick={handleResetAll}
+                disabled={resettingAll()}
               >
-                Reset all to auto
+                {resettingAll() ? 'Resetting...' : 'Reset all to auto'}
               </button>
             </Show>
             <div style="flex: 1;" />

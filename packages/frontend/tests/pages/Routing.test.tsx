@@ -279,6 +279,21 @@ describe("Routing — enabled state (providers active)", () => {
     });
   });
 
+  it("shows Resetting... and disables button during resetTier", async () => {
+    let resolveReset: () => void;
+    vi.mocked(resetTier).mockReturnValue(new Promise<void>((r) => { resolveReset = r; }) as any);
+    render(() => <Routing />);
+    const resetBtn = await screen.findByText("Reset");
+    fireEvent.click(resetBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("Resetting...")).toBeDefined();
+      expect((screen.getByText("Resetting...") as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    resolveReset!();
+  });
+
   it("calls resetAllTiers when Reset all to auto is clicked", async () => {
     render(() => <Routing />);
     const resetAllBtn = await screen.findByText("Reset all to auto");
@@ -290,6 +305,21 @@ describe("Routing — enabled state (providers active)", () => {
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("All tiers reset to auto");
     });
+  });
+
+  it("shows Resetting... and disables button during resetAllTiers", async () => {
+    let resolveResetAll: () => void;
+    vi.mocked(resetAllTiers).mockReturnValue(new Promise<void>((r) => { resolveResetAll = r; }) as any);
+    render(() => <Routing />);
+    const resetAllBtn = await screen.findByText("Reset all to auto");
+    fireEvent.click(resetAllBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("Resetting...")).toBeDefined();
+      expect((screen.getByText("Resetting...") as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    resolveResetAll!();
   });
 
   it("opens provider modal when Connect providers button is clicked", async () => {
