@@ -639,6 +639,104 @@ describe("injectAuthProfile — edge cases", () => {
   });
 });
 
+describe("injectProviderConfig — stale models.json cleanup", () => {
+  const agentsDir = join("/mock-home", ".openclaw", "agents");
+
+  it("removes manifest entry from per-agent models.json", () => {
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === agentsDir) return true;
+      if (p.includes("models.json")) return true;
+      return false;
+    });
+    (readdirSync as jest.Mock).mockReturnValue([
+      { name: "bot-1", isDirectory: () => true },
+    ]);
+    (readFileSync as jest.Mock).mockImplementation((p: string) => {
+      if (typeof p === "string" && p.includes("models.json")) {
+        return JSON.stringify({ providers: { manifest: { baseUrl: "old" }, other: {} } });
+      }
+      return "{}";
+    });
+
+    const api = { config: {} };
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    // atomicWriteJson writes via writeFileSync+renameSync — find the models.json write
+    const writes = (writeFileSync as jest.Mock).mock.calls;
+    const modelsWrite = writes.find((c: any[]) => String(c[0]).includes("models.json"));
+    expect(modelsWrite).toBeDefined();
+    const data = JSON.parse(modelsWrite![1]);
+    expect(data.providers.manifest).toBeUndefined();
+    expect(data.providers.other).toBeDefined();
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("Removed stale manifest entry"),
+    );
+  });
+
+  it("skips agent when models.json does not exist", () => {
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === agentsDir) return true;
+      if (typeof p === "string" && p.includes("models.json")) return false;
+      return false;
+    });
+    (readdirSync as jest.Mock).mockReturnValue([
+      { name: "bot-2", isDirectory: () => true },
+    ]);
+
+    const api = { config: {} };
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    // No models.json write should happen (only openclaw.json write)
+    const writes = (writeFileSync as jest.Mock).mock.calls;
+    const modelsWrite = writes.find((c: any[]) => String(c[0]).includes("models.json"));
+    expect(modelsWrite).toBeUndefined();
+  });
+
+  it("skips agent when models.json has no manifest provider", () => {
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === agentsDir) return true;
+      if (typeof p === "string" && p.includes("models.json")) return true;
+      return false;
+    });
+    (readdirSync as jest.Mock).mockReturnValue([
+      { name: "bot-3", isDirectory: () => true },
+    ]);
+    (readFileSync as jest.Mock).mockImplementation((p: string) => {
+      if (typeof p === "string" && p.includes("models.json")) {
+        return JSON.stringify({ providers: { openai: {} } });
+      }
+      return "{}";
+    });
+
+    const api = { config: {} };
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    const writes = (writeFileSync as jest.Mock).mock.calls;
+    const modelsWrite = writes.find((c: any[]) => String(c[0]).includes("models.json"));
+    expect(modelsWrite).toBeUndefined();
+  });
+
+  it("logs debug when cleanup throws", () => {
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === agentsDir) return true;
+      return false;
+    });
+    (readdirSync as jest.Mock).mockImplementation((p: string, opts: any) => {
+      if (typeof p === "string" && p.includes("agents") && opts?.withFileTypes) {
+        throw new Error("permission denied");
+      }
+      return [];
+    });
+
+    const api = { config: {} };
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("Could not clean agent models.json"),
+    );
+  });
+});
+
 describe("readJsonSafe — corrupt JSON", () => {
   it("returns empty object when file contains invalid JSON", () => {
     // readJsonSafe is called by injectProviderConfig when reading openclaw.json.
