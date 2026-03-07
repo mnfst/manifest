@@ -25,16 +25,17 @@ export class ModelPricingCacheService implements OnModuleInit {
   async reload(): Promise<void> {
     const rows = await this.pricingRepo.find();
 
-    // Recompute quality scores from current data signals
+    // Recompute quality scores from current data signals (batched)
+    const toUpdate: ModelPricing[] = [];
     for (const row of rows) {
       const computed = computeQualityScore(row);
       if (computed !== row.quality_score) {
         row.quality_score = computed;
-        await this.pricingRepo.update(
-          { model_name: row.model_name },
-          { quality_score: computed },
-        );
+        toUpdate.push(row);
       }
+    }
+    if (toUpdate.length > 0) {
+      await this.pricingRepo.save(toUpdate);
     }
 
     this.cache.clear();

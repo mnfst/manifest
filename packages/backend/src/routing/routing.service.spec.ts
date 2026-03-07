@@ -218,6 +218,7 @@ describe('RoutingService', () => {
       const inserted = mockProviderRepo.insert.mock.calls[0][0];
       expect(inserted.api_key_encrypted).not.toBe('enc-key');
       expect(inserted.api_key_encrypted).toContain(':');
+      expect(inserted.key_prefix).toBe('enc-key');
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(result.provider.provider).toBe('openai');
       expect(result.provider.is_active).toBe(true);
@@ -231,6 +232,7 @@ describe('RoutingService', () => {
 
       const inserted = mockProviderRepo.insert.mock.calls[0][0];
       expect(inserted.api_key_encrypted).toBeNull();
+      expect(inserted.key_prefix).toBeNull();
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(result.provider.provider).toBe('openai');
       expect(result.provider.is_active).toBe(true);
@@ -244,6 +246,7 @@ describe('RoutingService', () => {
         agent_id: 'a1',
         provider: 'openai',
         api_key_encrypted: 'old-key',
+        key_prefix: 'old-key-',
         is_active: false,
       });
       mockProviderRepo.findOne.mockResolvedValue(existing);
@@ -258,6 +261,7 @@ describe('RoutingService', () => {
       const saved = mockProviderRepo.save.mock.calls[0][0];
       expect(saved.api_key_encrypted).not.toBe('new-key');
       expect(saved.api_key_encrypted).toContain(':');
+      expect(saved.key_prefix).toBe('new-key');
       expect(mockProviderRepo.insert).not.toHaveBeenCalled();
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(result.provider.api_key_encrypted).toContain(':');
@@ -272,6 +276,7 @@ describe('RoutingService', () => {
         agent_id: 'a1',
         provider: 'openai',
         api_key_encrypted: 'old-encrypted',
+        key_prefix: 'old-pref',
         is_active: false,
       });
       mockProviderRepo.findOne.mockResolvedValue(existing);
@@ -280,6 +285,7 @@ describe('RoutingService', () => {
 
       expect(result.provider.is_active).toBe(true);
       expect(result.provider.api_key_encrypted).toBe('old-encrypted');
+      expect(result.provider.key_prefix).toBe('old-pref');
       expect(result.isNew).toBe(false);
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
     });
@@ -646,46 +652,6 @@ describe('RoutingService', () => {
       // Same agent — should only recalculate once
       expect(mockAutoAssign.recalculate).toHaveBeenCalledTimes(1);
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
-    });
-  });
-
-  /* ── getKeyPrefix ── */
-
-  describe('getKeyPrefix', () => {
-    it('should return null when encryptedKey is null', () => {
-      const result = service.getKeyPrefix(null);
-      expect(result).toBeNull();
-    });
-
-    it('should return null when encryptedKey is empty string', () => {
-      const result = service.getKeyPrefix('');
-      expect(result).toBeNull();
-    });
-
-    it('should return first 8 chars of decrypted key', async () => {
-      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
-      const secret = getEncryptionSecret();
-      const encrypted = encrypt('sk-abcdefghijklmnop', secret);
-
-      const result = service.getKeyPrefix(encrypted);
-      expect(result).toBe('sk-abcde');
-    });
-
-    it('should return custom length prefix', async () => {
-      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
-      const secret = getEncryptionSecret();
-      const encrypted = encrypt('sk-abcdefghijklmnop', secret);
-
-      const result = service.getKeyPrefix(encrypted, 4);
-      expect(result).toBe('sk-a');
-    });
-
-    it('should return null and log warning when decrypt throws', () => {
-      const warnSpy = jest.spyOn((service as any).logger, 'warn');
-
-      const result = service.getKeyPrefix('invalid:encrypted:data');
-      expect(result).toBeNull();
-      expect(warnSpy).toHaveBeenCalledWith('Failed to decrypt API key for prefix extraction');
     });
   });
 

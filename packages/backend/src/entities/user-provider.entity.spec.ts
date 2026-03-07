@@ -7,6 +7,7 @@ describe('UserProvider entity', () => {
     entity.user_id = 'u1';
     entity.provider = 'openai';
     entity.api_key_encrypted = 'enc-key';
+    entity.key_prefix = 'enc-key-';
     entity.is_active = true;
     entity.connected_at = '2025-01-01T00:00:00Z';
     entity.updated_at = '2025-01-01T00:00:00Z';
@@ -15,6 +16,7 @@ describe('UserProvider entity', () => {
     expect(entity.user_id).toBe('u1');
     expect(entity.provider).toBe('openai');
     expect(entity.api_key_encrypted).toBe('enc-key');
+    expect(entity.key_prefix).toBe('enc-key-');
     expect(entity.is_active).toBe(true);
     expect(entity.connected_at).toBe('2025-01-01T00:00:00Z');
     expect(entity.updated_at).toBe('2025-01-01T00:00:00Z');
@@ -30,5 +32,11 @@ describe('UserProvider entity', () => {
     const entity = new UserProvider();
     entity.api_key_encrypted = null;
     expect(entity.api_key_encrypted).toBeNull();
+  });
+
+  it('should allow key_prefix to be null', () => {
+    const entity = new UserProvider();
+    entity.key_prefix = null;
+    expect(entity.key_prefix).toBeNull();
   });
 });

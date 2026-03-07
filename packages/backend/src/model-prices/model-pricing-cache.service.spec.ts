@@ -21,12 +21,14 @@ describe('ModelPricingCacheService', () => {
   let service: ModelPricingCacheService;
   let mockFind: jest.Mock;
   let mockUpdate: jest.Mock;
+  let mockSave: jest.Mock;
   let mockTrack: jest.Mock;
 
   beforeEach(() => {
     mockFind = jest.fn().mockResolvedValue([]);
     mockUpdate = jest.fn().mockResolvedValue({});
-    const mockRepo = { find: mockFind, update: mockUpdate } as never;
+    mockSave = jest.fn().mockResolvedValue(undefined);
+    const mockRepo = { find: mockFind, update: mockUpdate, save: mockSave } as never;
     mockTrack = jest.fn();
     const mockTracker = { track: mockTrack } as unknown as UnresolvedModelTrackerService;
     service = new ModelPricingCacheService(mockRepo, mockTracker);
@@ -95,11 +97,9 @@ describe('ModelPricingCacheService', () => {
 
       await service.reload();
 
-      // Should have updated the DB with the computed score (5)
-      expect(mockUpdate).toHaveBeenCalledWith(
-        { model_name: 'frontier-model' },
-        { quality_score: 5 },
-      );
+      // Should have batch-saved all stale rows
+      expect(mockSave).toHaveBeenCalledTimes(1);
+      expect(mockSave).toHaveBeenCalledWith([expect.objectContaining({ quality_score: 5 })]);
       // Cached value should also be updated
       expect(service.getByModel('frontier-model')?.quality_score).toBe(5);
     });
@@ -110,7 +110,7 @@ describe('ModelPricingCacheService', () => {
 
       await service.reload();
 
-      expect(mockUpdate).not.toHaveBeenCalled();
+      expect(mockSave).not.toHaveBeenCalled();
     });
   });
 

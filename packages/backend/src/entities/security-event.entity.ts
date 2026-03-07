@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('security_event')
+@Index(['user_id', 'timestamp'])
 export class SecurityEvent {
   @PrimaryColumn('varchar')
   id!: string;

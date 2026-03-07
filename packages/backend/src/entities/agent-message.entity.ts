@@ -3,6 +3,8 @@ import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('agent_messages')
 @Index(['tenant_id', 'agent_id', 'timestamp'])
+@Index(['user_id', 'timestamp'])
+@Index(['tenant_id', 'agent_name', 'timestamp'])
 export class AgentMessage {
   @PrimaryColumn('varchar')
   id!: string;
@@ -24,6 +26,7 @@ export class AgentMessage {
   @Column('varchar', { nullable: true })
   session_id!: string | null;
 
+  @Index()
   @Column(timestampType())
   timestamp!: string;
 
