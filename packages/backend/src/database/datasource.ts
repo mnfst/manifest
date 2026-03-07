@@ -16,14 +16,13 @@ function createDataSource(): DataSource {
   }
 
   const databaseUrl =
-    process.env['DATABASE_URL'] ??
-    'postgresql://myuser:mypassword@localhost:5432/mydatabase';
+    process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase';
 
   return new DataSource({
     type: 'postgres',
     url: databaseUrl,
     entities: ['src/entities/!(*.spec).ts'],
-    migrations: ['src/database/migrations/*.ts'],
+    migrations: ['src/database/migrations/!(*.spec).ts'],
   });
 }
 

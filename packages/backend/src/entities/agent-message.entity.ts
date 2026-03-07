@@ -5,6 +5,10 @@ import { timestampType } from '../common/utils/sql-dialect';
 @Index(['tenant_id', 'agent_id', 'timestamp'])
 @Index(['user_id', 'timestamp'])
 @Index(['tenant_id', 'agent_name', 'timestamp'])
+@Index(['tenant_id', 'timestamp'])
+@Index(['tenant_id', 'trace_id'])
+@Index(['tenant_id', 'model'])
+@Index(['tenant_id', 'agent_id', 'status'])
 export class AgentMessage {
   @PrimaryColumn('varchar')
   id!: string;
