@@ -1,0 +1,38 @@
+name: 🐛 Bug Report
+description: Report a bug in Manifest
+title: '[Bug]: '
+labels: ['bug', 'needs-triage']
+body:
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_behavior
+    attributes:
+      label: Current Behavior
+      description: What happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this?
+
+  - type: textarea
+    id: possible_solution
+    attributes:
+      label: Possible Solution
+      description: Any ideas on how to fix this?
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: OS, Node version, environment, etc.

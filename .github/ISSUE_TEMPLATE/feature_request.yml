@@ -1,0 +1,49 @@
+name: 🚀 Feature Request
+description: Propose a new feature or improvement to Manifest
+title: '[Feature]: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to make Manifest better? We'd love to hear it. Please fill in as much detail as you can so maintainers can evaluate and discuss the proposal.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem are you running into, or what existing behaviour is missing / frustrating?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the feature or change you would like to see. How would it work from a user's perspective?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you tried other approaches or workarounds to solve this problem? Why didn't they work?
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      description: Which part of the project does this feature request relate to?
+      options:
+        - Backend (NestJS API)
+        - Frontend (SolidJS dashboard)
+        - OpenClaw Plugin
+        - CI / Tooling
+        - Documentation
+        - Other
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Ask a Question / Community Discussion
+    url: https://github.com/mnfst/manifest/discussions
+    about: >
+      Not a bug? Have a question about using Manifest, plugin configuration,
+      or the cloud/local modes? Start a Discussion — the community and
+      maintainers will help you out.
