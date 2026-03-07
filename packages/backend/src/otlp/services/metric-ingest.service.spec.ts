@@ -69,13 +69,13 @@ describe('MetricIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
     expect(mockTokenInsert).toHaveBeenCalledTimes(1);
-    expect(mockTokenInsert).toHaveBeenCalledWith(
+    expect(mockTokenInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         tenant_id: 'test-tenant',
         agent_id: 'test-agent',
         input_tokens: 500,
       }),
-    );
+    ]);
   });
 
   it('ingests cost metric data points as cost snapshots', async () => {
@@ -116,14 +116,14 @@ describe('MetricIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
     expect(mockCostInsert).toHaveBeenCalledTimes(1);
-    expect(mockCostInsert).toHaveBeenCalledWith(
+    expect(mockCostInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         tenant_id: 'test-tenant',
         agent_id: 'test-agent',
         cost_usd: 0.025,
         model: 'claude-opus-4-6',
       }),
-    );
+    ]);
   });
 
   it('ignores metrics that are not token or cost metrics', async () => {
@@ -191,11 +191,11 @@ describe('MetricIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
     expect(mockTokenInsert).toHaveBeenCalledTimes(1);
-    expect(mockTokenInsert).toHaveBeenCalledWith(
+    expect(mockTokenInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         output_tokens: 300,
       }),
-    );
+    ]);
   });
 
   it('handles multiple data points in a single metric', async () => {
@@ -226,7 +226,8 @@ describe('MetricIngestService', () => {
 
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(3);
-    expect(mockTokenInsert).toHaveBeenCalledTimes(3);
+    expect(mockTokenInsert).toHaveBeenCalledTimes(1);
+    expect(mockTokenInsert.mock.calls[0][0]).toHaveLength(3);
   });
 
   it('handles missing resourceMetrics', async () => {

@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('cost_snapshots')
+@Index(['tenant_id', 'agent_id', 'snapshot_time'])
 export class CostSnapshot {
   @PrimaryColumn('varchar')
   id!: string;

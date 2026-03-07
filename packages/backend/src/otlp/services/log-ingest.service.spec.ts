@@ -62,7 +62,7 @@ describe('LogIngestService', () => {
     expect(result.accepted).toBe(1);
     expect(mockInsert).toHaveBeenCalledTimes(1);
 
-    const insertArg = mockInsert.mock.calls[0][0];
+    const insertArg = mockInsert.mock.calls[0][0][0];
     expect(insertArg.tenant_id).toBe('test-tenant');
     expect(insertArg.agent_id).toBe('test-agent');
     expect(insertArg.agent_name).toBe('bot-1');
@@ -94,7 +94,7 @@ describe('LogIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
 
-    const insertArg = mockInsert.mock.calls[0][0];
+    const insertArg = mockInsert.mock.calls[0][0][0];
     expect(insertArg.severity).toBe('error');
   });
 
@@ -136,7 +136,8 @@ describe('LogIngestService', () => {
 
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(3);
-    expect(mockInsert).toHaveBeenCalledTimes(3);
+    expect(mockInsert).toHaveBeenCalledTimes(1);
+    expect(mockInsert.mock.calls[0][0]).toHaveLength(3);
   });
 
   it('serializes non-string body as JSON', async () => {
@@ -163,7 +164,7 @@ describe('LogIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
 
-    const insertArg = mockInsert.mock.calls[0][0];
+    const insertArg = mockInsert.mock.calls[0][0][0];
     expect(insertArg.body).toBe('{"intValue":42}');
   });
 
@@ -193,7 +194,7 @@ describe('LogIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
 
-    const insertArg = mockInsert.mock.calls[0][0];
+    const insertArg = mockInsert.mock.calls[0][0][0];
     expect(insertArg.trace_id).toBe('abc123');
     expect(insertArg.span_id).toBe('def456');
   });
@@ -261,7 +262,7 @@ describe('LogIngestService', () => {
 
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
-    const insertArg = mockInsert.mock.calls[0][0];
+    const insertArg = mockInsert.mock.calls[0][0][0];
     expect(insertArg.severity).toBe('info');
   });
 
@@ -288,7 +289,7 @@ describe('LogIngestService', () => {
 
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
-    const insertArg = mockInsert.mock.calls[0][0];
+    const insertArg = mockInsert.mock.calls[0][0][0];
     expect(insertArg.body).toBeNull();
   });
 
@@ -316,7 +317,7 @@ describe('LogIngestService', () => {
 
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
-    const insertArg = mockInsert.mock.calls[0][0];
+    const insertArg = mockInsert.mock.calls[0][0][0];
     expect(insertArg.attributes).toBeNull();
   });
 
@@ -344,7 +345,7 @@ describe('LogIngestService', () => {
 
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
-    const insertArg = mockInsert.mock.calls[0][0];
+    const insertArg = mockInsert.mock.calls[0][0][0];
     expect(insertArg.attributes).toBe(JSON.stringify({ env: 'production' }));
   });
 
@@ -374,7 +375,7 @@ describe('LogIngestService', () => {
 
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
-    const insertArg = mockInsert.mock.calls[0][0];
+    const insertArg = mockInsert.mock.calls[0][0][0];
     expect(insertArg.agent_name).toBe('log-level-bot');
   });
 
@@ -404,7 +405,7 @@ describe('LogIngestService', () => {
 
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
-    const insertArg = mockInsert.mock.calls[0][0];
+    const insertArg = mockInsert.mock.calls[0][0][0];
     expect(insertArg.agent_name).toBe('my-service');
   });
 });

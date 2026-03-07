@@ -164,6 +164,37 @@ describe("Workspace", () => {
     });
   });
 
+  it("shows Creating... text and disables button during submission", async () => {
+    let resolveCreate: (v: any) => void;
+    mockCreateAgent.mockReturnValue(new Promise((r) => { resolveCreate = r; }));
+    const { container } = render(() => <Workspace />);
+    const btn = screen.getAllByText("Connect Agent")[0];
+    fireEvent.click(btn);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "new-agent" } });
+    fireEvent.click(screen.getByText("Create"));
+    await vi.waitFor(() => {
+      expect(screen.getByText("Creating...")).toBeDefined();
+    });
+    const createBtn = screen.getByText("Creating...") as HTMLButtonElement;
+    expect(createBtn.disabled).toBe(true);
+    resolveCreate!({ agent: { name: "new-agent" }, apiKey: "k" });
+  });
+
+  it("disables input during creation", async () => {
+    let resolveCreate: (v: any) => void;
+    mockCreateAgent.mockReturnValue(new Promise((r) => { resolveCreate = r; }));
+    const { container } = render(() => <Workspace />);
+    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "new-agent" } });
+    fireEvent.click(screen.getByText("Create"));
+    await vi.waitFor(() => {
+      expect(input.disabled).toBe(true);
+    });
+    resolveCreate!({ agent: { name: "new-agent" }, apiKey: "k" });
+  });
+
   it("handles createAgent error gracefully", async () => {
     mockCreateAgent.mockRejectedValue(new Error("Failed to create"));
     const { container } = render(() => <Workspace />);

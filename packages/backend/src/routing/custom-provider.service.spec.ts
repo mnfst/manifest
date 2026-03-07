@@ -62,6 +62,7 @@ describe('CustomProviderService (with mocks)', () => {
     };
     mockPricingRepo = {
       save: jest.fn().mockResolvedValue(undefined),
+      upsert: jest.fn().mockResolvedValue(undefined),
       createQueryBuilder: jest.fn().mockReturnValue({
         delete: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
@@ -116,7 +117,7 @@ describe('CustomProviderService (with mocks)', () => {
       expect(result.base_url).toBe('https://api.groq.com/openai/v1');
       expect(result.models).toHaveLength(1);
       expect(mockRepo.insert).toHaveBeenCalledTimes(1);
-      expect(mockPricingRepo.save).toHaveBeenCalledTimes(1);
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(1);
       expect(mockRoutingService.upsertProvider).toHaveBeenCalledTimes(1);
       expect(mockPricingCache.reload).toHaveBeenCalledTimes(1);
     });
@@ -167,9 +168,9 @@ describe('CustomProviderService (with mocks)', () => {
       };
       await service.create('agent-1', 'user-1', dto as never);
 
-      const savedPricing = mockPricingRepo.save.mock.calls[0][0];
-      expect(savedPricing.input_price_per_token).toBeCloseTo(0.000001);
-      expect(savedPricing.output_price_per_token).toBeCloseTo(0.000002);
+      const upsertedRows = mockPricingRepo.upsert.mock.calls[0][0];
+      expect(upsertedRows[0].input_price_per_token).toBeCloseTo(0.000001);
+      expect(upsertedRows[0].output_price_per_token).toBeCloseTo(0.000002);
     });
   });
 
@@ -298,9 +299,9 @@ describe('CustomProviderService (with mocks)', () => {
         models: [{ model_name: 'new-model', input_price_per_million_tokens: 1.0 }],
       } as never);
 
-      // Should delete old pricing rows and save new ones
+      // Should delete old pricing rows and upsert new ones
       expect(mockPricingRepo.createQueryBuilder).toHaveBeenCalledTimes(1);
-      expect(mockPricingRepo.save).toHaveBeenCalledTimes(1);
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(1);
       expect(mockPricingCache.reload).toHaveBeenCalledTimes(1);
     });
 
@@ -376,10 +377,10 @@ describe('CustomProviderService (with mocks)', () => {
       expect(result.models[0].context_window).toBe(128000);
 
       // Pricing row should use null for unknown prices
-      const savedPricing = mockPricingRepo.save.mock.calls[0][0];
-      expect(savedPricing.input_price_per_token).toBeNull();
-      expect(savedPricing.output_price_per_token).toBeNull();
-      expect(savedPricing.context_window).toBe(128000);
+      const upsertedRows = mockPricingRepo.upsert.mock.calls[0][0];
+      expect(upsertedRows[0].input_price_per_token).toBeNull();
+      expect(upsertedRows[0].output_price_per_token).toBeNull();
+      expect(upsertedRows[0].context_window).toBe(128000);
     });
 
     it('stores explicit zero prices as 0 (not null)', async () => {
@@ -399,12 +400,12 @@ describe('CustomProviderService (with mocks)', () => {
       expect(result.models[0].input_price_per_million_tokens).toBe(0);
       expect(result.models[0].output_price_per_million_tokens).toBe(0);
 
-      const savedPricing = mockPricingRepo.save.mock.calls[0][0];
-      expect(savedPricing.input_price_per_token).toBe(0);
-      expect(savedPricing.output_price_per_token).toBe(0);
+      const upsertedRows = mockPricingRepo.upsert.mock.calls[0][0];
+      expect(upsertedRows[0].input_price_per_token).toBe(0);
+      expect(upsertedRows[0].output_price_per_token).toBe(0);
     });
 
-    it('creates multiple model pricing rows', async () => {
+    it('creates multiple model pricing rows in single upsert', async () => {
       const dto = {
         name: 'Multi',
         base_url: 'https://api.example.com/v1',
@@ -415,7 +416,8 @@ describe('CustomProviderService (with mocks)', () => {
       };
       await service.create('agent-1', 'user-1', dto as never);
 
-      expect(mockPricingRepo.save).toHaveBeenCalledTimes(2);
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(1);
+      expect(mockPricingRepo.upsert.mock.calls[0][0]).toHaveLength(2);
     });
   });
 });
