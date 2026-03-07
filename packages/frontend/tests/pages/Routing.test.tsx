@@ -39,10 +39,10 @@ const mockDeactivateAllProviders = vi.fn();
 
 vi.mock("../../src/services/api.js", () => ({
   getTierAssignments: vi.fn().mockResolvedValue([
-    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "3", user_id: "u1", tier: "complex", override_model: "claude-opus-4-6", auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
+    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "3", user_id: "u1", tier: "complex", override_model: "claude-opus-4-6", auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
   ]),
   getAvailableModels: vi.fn().mockResolvedValue([
     { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
@@ -57,6 +57,8 @@ vi.mock("../../src/services/api.js", () => ({
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
   updateCustomProvider: vi.fn().mockResolvedValue({}),
   deleteCustomProvider: vi.fn().mockResolvedValue({ ok: true }),
+  setFallbacks: vi.fn().mockResolvedValue([]),
+  clearFallbacks: vi.fn().mockResolvedValue(undefined),
 }));
 
 import Routing from "../../src/pages/Routing";
@@ -105,6 +107,12 @@ describe("Routing — enabled state (providers active)", () => {
     render(() => <Routing />);
     const overrideButtons = await screen.findAllByText("Override");
     expect(overrideButtons.length).toBe(3);
+  });
+
+  it("renders Add fallback button in tier cards", async () => {
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    expect(addButtons.length).toBe(4); // one per tier
   });
 
   it("shows Edit and Reset buttons for override tiers", async () => {
@@ -364,10 +372,10 @@ describe("Routing — enabled state (providers active)", () => {
   it("shows 'No model available' when model is null", async () => {
     const { getTierAssignments } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValueOnce([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
 
     render(() => <Routing />);
@@ -526,7 +534,7 @@ describe("Routing — helper functions", () => {
     // Use a completely unknown model name that matches no API model and no PROVIDERS entry
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValueOnce([
-      { id: "1", user_id: "u1", tier: "simple", override_model: "totally-unknown-model-xyz", auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: "totally-unknown-model-xyz", auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValueOnce([]);
 
@@ -567,10 +575,10 @@ describe("Routing — custom providers", () => {
     ]);
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValue([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
       { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
@@ -591,10 +599,10 @@ describe("Routing — custom providers", () => {
     ]);
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValue([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
       { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
@@ -614,10 +622,10 @@ describe("Routing — custom providers", () => {
     ]);
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValue([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
       { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
@@ -646,10 +654,10 @@ describe("Routing — custom providers", () => {
 
 describe("ModelPickerModal — custom providers and filtering", () => {
   const baseTiers: TierAssignment[] = [
-    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-    { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
   ];
 
   it("shows custom provider group with letter icon", () => {

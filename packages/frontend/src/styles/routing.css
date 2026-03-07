@@ -1,5 +1,5 @@
-@import "./routing-providers.css";
-@import "./routing-modal.css";
+@import './routing-providers.css';
+@import './routing-modal.css';
 
 /* ── Enable card (disabled state) ─────────────────── */
 .routing-enable-card {
@@ -171,6 +171,14 @@
   text-align: left;
 }
 
+.routing-card__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
 .routing-card__actions {
   flex-shrink: 0;
 }
@@ -210,7 +218,9 @@
   font-family: var(--font-family);
   padding: 8px 12px;
   border-radius: var(--radius);
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .routing-disable-btn:hover {
@@ -258,6 +268,64 @@
   align-items: center;
   gap: var(--gap-md);
   margin-top: var(--gap-lg);
+}
+
+/* ── Fallback list ─────────────────────────────────── */
+.fallback-list__items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fallback-list__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--foreground));
+  padding: 2px 0;
+}
+
+.fallback-list__rank {
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  min-width: 16px;
+}
+
+.fallback-list__icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.fallback-list__model {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fallback-list__remove {
+  background: none;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color var(--transition-fast);
+}
+
+.fallback-list__remove:hover {
+  color: hsl(var(--destructive));
+}
+
+.fallback-list__add {
+  white-space: nowrap;
 }
 
 /* ── Responsive ──────────────────────────────────── */

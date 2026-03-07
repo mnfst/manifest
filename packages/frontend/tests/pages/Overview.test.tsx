@@ -466,4 +466,51 @@ describe("Overview", () => {
       expect(localStorage.getItem("setup_completed_test-agent")).toBe("1");
     });
   });
+
+  it("renders fallback badge in recent activity when fallback_from_model is present", async () => {
+    const dataWithFallback = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], fallback_from_model: "gpt-4o", fallback_index: 0 },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithFallback);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".tier-badge--fallback");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toBe("fallback");
+    });
+  });
+
+  it("does not render fallback badge in recent activity when fallback_from_model is absent", async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("gpt-4o");
+      const badge = container.querySelector(".tier-badge--fallback");
+      expect(badge).toBeNull();
+    });
+  });
+
+  it("renders fallback_error status with Handled badge in recent activity", async () => {
+    const dataWithHandled = {
+      ...overviewData,
+      recent_activity: [
+        {
+          ...overviewData.recent_activity[0],
+          status: "fallback_error",
+          model: "gemini-flash",
+          error_message: "Provider returned HTTP 429, routed to fallback",
+        },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithHandled);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".status-badge--fallback_error");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toBe("fallback_error");
+    });
+  });
 });

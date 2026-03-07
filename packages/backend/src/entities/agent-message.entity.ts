@@ -75,6 +75,12 @@ export class AgentMessage {
   @Column('varchar', { nullable: true })
   skill_name!: string | null;
 
+  @Column('varchar', { nullable: true })
+  fallback_from_model!: string | null;
+
+  @Column('integer', { nullable: true })
+  fallback_index!: number | null;
+
   @Index()
   @Column('varchar', { nullable: true })
   user_id!: string | null;

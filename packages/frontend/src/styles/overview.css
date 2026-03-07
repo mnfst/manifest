@@ -68,6 +68,12 @@
   color: hsl(var(--success));
 }
 
+/* ── Fallback badge ──────────────────────────────── */
+.tier-badge--fallback {
+  background: hsl(38 92% 50% / 0.15);
+  color: hsl(38 92% 40%);
+}
+
 /* ── Demo dashboard (setup done, no data yet) ────── */
 .demo-dashboard {
   opacity: 0.5;

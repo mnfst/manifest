@@ -1,0 +1,14 @@
+import { shouldTriggerFallback } from '../fallback-status-codes';
+
+describe('shouldTriggerFallback', () => {
+  it.each([400, 401, 403, 404, 429, 500, 501, 502, 503, 504])(
+    'should return true for status %d',
+    (status) => {
+      expect(shouldTriggerFallback(status)).toBe(true);
+    },
+  );
+
+  it.each([200, 201, 204, 301, 302])('should return false for status %d', (status) => {
+    expect(shouldTriggerFallback(status)).toBe(false);
+  });
+});

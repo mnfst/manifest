@@ -1663,4 +1663,474 @@ describe('ProxyController', () => {
       expect(res.end).toHaveBeenCalled();
     });
   });
+
+  describe('fallback headers', () => {
+    it('should set fallback headers when meta has fallbackFromModel', async () => {
+      const responseBody = { choices: [{ message: { content: 'hello' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'claude-sonnet-4',
+          provider: 'Anthropic',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gpt-4o',
+          fallbackIndex: 0,
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res, headers } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(headers['X-Manifest-Fallback-From']).toBe('gpt-4o');
+      expect(headers['X-Manifest-Fallback-Index']).toBe('0');
+      expect(headers['X-Manifest-Model']).toBe('claude-sonnet-4');
+    });
+
+    it('should not set fallback headers when meta has no fallbackFromModel', async () => {
+      const responseBody = { choices: [{ message: { content: 'hello' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-4o',
+          provider: 'OpenAI',
+          confidence: 0.8,
+          reason: 'scored',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res, headers } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(headers['X-Manifest-Fallback-From']).toBeUndefined();
+      expect(headers['X-Manifest-Fallback-Index']).toBeUndefined();
+    });
+
+    it('should record primary failure and fallback success when fallback was used', async () => {
+      const responseBody = { choices: [{ message: { content: 'hello' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'deepseek-chat',
+          provider: 'DeepSeek',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gemini-2.5-flash-lite',
+          fallbackIndex: 0,
+          primaryErrorStatus: 400,
+          primaryErrorBody: '{"error":"bad request from primary"}',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
+
+      // Primary failure recorded with actual error body
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'fallback_error',
+          model: 'gemini-2.5-flash-lite',
+          routing_tier: 'simple',
+          trace_id: null,
+          error_message: '{"error":"bad request from primary"}',
+        }),
+      );
+
+      // Fallback success recorded with trace_id and correct status
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'ok',
+          model: 'deepseek-chat',
+          routing_tier: 'simple',
+          fallback_from_model: 'gemini-2.5-flash-lite',
+          fallback_index: 0,
+        }),
+      );
+    });
+
+    it('should record intermediate failures as fallback_error when chain succeeds', async () => {
+      const responseBody = { choices: [{ message: { content: 'ok' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'claude-sonnet-4',
+          provider: 'Anthropic',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gemini-flash',
+          fallbackIndex: 2,
+          primaryErrorStatus: 500,
+        },
+        failedFallbacks: [
+          {
+            model: 'deepseek-chat',
+            provider: 'DeepSeek',
+            fallbackIndex: 0,
+            status: 429,
+            errorBody: 'rate limited',
+          },
+          {
+            model: 'gpt-4o-mini',
+            provider: 'OpenAI',
+            fallbackIndex: 1,
+            status: 500,
+            errorBody: 'server error',
+          },
+        ],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      // 4 inserts: primary failure + 2 intermediate failures + fallback success
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(4);
+
+      // Intermediate failures recorded as fallback_error (handled)
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'deepseek-chat',
+          status: 'fallback_error',
+          fallback_from_model: 'gemini-flash',
+          fallback_index: 0,
+        }),
+      );
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'gpt-4o-mini',
+          status: 'fallback_error',
+          fallback_from_model: 'gemini-flash',
+          fallback_index: 1,
+        }),
+      );
+    });
+
+    it('should not pre-record message when no fallback was used', async () => {
+      const responseBody = { choices: [{ message: { content: 'hello' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-4o',
+          provider: 'OpenAI',
+          confidence: 0.8,
+          reason: 'scored',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('should include fallback fields in error recording when fallback was used', async () => {
+      const errorBody = '{"error":"bad request"}';
+      const mockProviderResp = new Response(errorBody, {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'claude-sonnet-4',
+          provider: 'Anthropic',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gpt-4o',
+          fallbackIndex: 1,
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fallback_from_model: 'gpt-4o',
+          fallback_index: 1,
+        }),
+      );
+    });
+
+    it('should record failed fallback attempts as separate messages', async () => {
+      const mockProviderResp = new Response('primary error', {
+        status: 400,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'gemini-flash',
+          provider: 'Google',
+          confidence: 0.9,
+          reason: 'scored',
+        },
+        failedFallbacks: [
+          {
+            model: 'deepseek-chat',
+            provider: 'DeepSeek',
+            fallbackIndex: 0,
+            status: 401,
+            errorBody: 'auth fail',
+          },
+        ],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      // 2 inserts: primary as fallback_error + last fallback as error
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'gemini-flash',
+          status: 'fallback_error',
+          error_message: 'primary error',
+        }),
+      );
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'deepseek-chat',
+          status: 'error',
+          fallback_from_model: 'gemini-flash',
+          fallback_index: 0,
+          error_message: 'auth fail',
+        }),
+      );
+    });
+
+    it('should handle DB failure in recordFailedFallbacks when all fallbacks fail', async () => {
+      mockMessageRepo.insert.mockRejectedValue(new Error('DB write failed'));
+
+      const mockProviderResp = new Response('primary error', {
+        status: 500,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'gemini-flash',
+          provider: 'Google',
+          confidence: 0.9,
+          reason: 'scored',
+        },
+        failedFallbacks: [
+          {
+            model: 'deepseek-chat',
+            provider: 'DeepSeek',
+            fallbackIndex: 0,
+            status: 500,
+            errorBody: 'fail 1',
+          },
+        ],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      // Should not throw even though all inserts fail
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith('primary error');
+    });
+
+    it('should handle DB failure in recordPrimaryFailure on successful fallback', async () => {
+      mockMessageRepo.insert.mockRejectedValue(new Error('DB write failed'));
+
+      const responseBody = { choices: [{ message: { content: 'hello' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'deepseek-chat',
+          provider: 'DeepSeek',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gemini-flash',
+          fallbackIndex: 0,
+          primaryErrorStatus: 500,
+          primaryErrorBody: 'primary failed',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      // Should not throw even though inserts fail
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(responseBody);
+    });
+
+    it('should handle DB failure in recordFailedFallbacks on successful fallback with intermediates', async () => {
+      mockMessageRepo.insert.mockRejectedValue(new Error('DB write failed'));
+
+      const responseBody = { choices: [{ message: { content: 'ok' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'claude-sonnet-4',
+          provider: 'Anthropic',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gemini-flash',
+          fallbackIndex: 2,
+          primaryErrorStatus: 500,
+        },
+        failedFallbacks: [
+          {
+            model: 'deepseek-chat',
+            provider: 'DeepSeek',
+            fallbackIndex: 0,
+            status: 500,
+            errorBody: 'fail 1',
+          },
+        ],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      // Should not throw even though inserts fail
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(responseBody);
+    });
+
+    it('should mark intermediate failures as handled when all fallbacks fail', async () => {
+      const mockProviderResp = new Response('primary error', {
+        status: 500,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'gemini-flash',
+          provider: 'Google',
+          confidence: 0.9,
+          reason: 'scored',
+        },
+        failedFallbacks: [
+          {
+            model: 'deepseek-chat',
+            provider: 'DeepSeek',
+            fallbackIndex: 0,
+            status: 500,
+            errorBody: 'fail 1',
+          },
+          {
+            model: 'gpt-4o-mini',
+            provider: 'OpenAI',
+            fallbackIndex: 1,
+            status: 500,
+            errorBody: 'fail 2',
+          },
+        ],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      // 3 inserts: primary (fallback_error) + intermediate (fallback_error) + last (error)
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(3);
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'gemini-flash',
+          status: 'fallback_error',
+        }),
+      );
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'deepseek-chat',
+          status: 'fallback_error',
+          fallback_index: 0,
+        }),
+      );
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'gpt-4o-mini',
+          status: 'error',
+          fallback_index: 1,
+        }),
+      );
+    });
+  });
 });
