@@ -3,7 +3,6 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { OverviewController } from './overview.controller';
 import { AggregationService } from '../services/aggregation.service';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
-import { CacheInvalidationService } from '../../common/services/cache-invalidation.service';
 
 function mockAggregation(): Record<string, jest.Mock> {
   return {
@@ -47,7 +46,6 @@ describe('OverviewController', () => {
       providers: [
         { provide: AggregationService, useValue: agg },
         { provide: TimeseriesQueriesService, useValue: ts },
-        { provide: CacheInvalidationService, useValue: { trackKey: jest.fn() } },
       ],
     }).compile();
 

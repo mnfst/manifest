@@ -3,7 +3,6 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { CostsController } from './costs.controller';
 import { AggregationService } from '../services/aggregation.service';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
-import { CacheInvalidationService } from '../../common/services/cache-invalidation.service';
 
 describe('CostsController', () => {
   let controller: CostsController;
@@ -34,7 +33,6 @@ describe('CostsController', () => {
             getCostByModel: mockGetCostByModel,
           },
         },
-        { provide: CacheInvalidationService, useValue: { trackKey: jest.fn() } },
       ],
     }).compile();
 

@@ -1,16 +1,21 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
+import { CacheTTL } from '@nestjs/cache-manager';
 import { MessagesQueryDto } from '../dto/messages-query.dto';
-import { AggregationService } from '../services/aggregation.service';
+import { MessagesQueryService } from '../services/messages-query.service';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
+import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
+import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 
 @Controller('api/v1')
+@UseInterceptors(UserCacheInterceptor)
+@CacheTTL(DASHBOARD_CACHE_TTL_MS)
 export class MessagesController {
-  constructor(private readonly aggregation: AggregationService) {}
+  constructor(private readonly messagesQuery: MessagesQueryService) {}
 
   @Get('messages')
   async getMessages(@Query() query: MessagesQueryDto, @CurrentUser() user: AuthUser) {
-    return this.aggregation.getMessages({
+    return this.messagesQuery.getMessages({
       range: query.range,
       userId: user.id,
       status: query.status,

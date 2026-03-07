@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { RoutingService } from './routing.service';
+import { RoutingCacheService } from './routing-cache.service';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { UserProvider } from '../entities/user-provider.entity';
@@ -20,6 +21,7 @@ describe('RoutingService', () => {
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
   let mockAutoAssign: { recalculate: jest.Mock };
   let mockPricingCache: { getByModel: jest.Mock; getAll: jest.Mock };
+  let mockRoutingCache: RoutingCacheService;
 
   beforeEach(() => {
     process.env['BETTER_AUTH_SECRET'] = 'a'.repeat(32);
@@ -30,12 +32,14 @@ describe('RoutingService', () => {
       getByModel: jest.fn(),
       getAll: jest.fn().mockReturnValue([]),
     };
+    mockRoutingCache = new RoutingCacheService();
 
     service = new RoutingService(
       mockProviderRepo as never,
       mockTierRepo as never,
       mockAutoAssign as never,
       mockPricingCache as never,
+      mockRoutingCache,
     );
   });
 
@@ -741,6 +745,24 @@ describe('RoutingService', () => {
 
       const result = await service.getProviderApiKey('a1', 'openai');
       expect(result).toBeNull();
+    });
+
+    it('should return cached key on second call without DB lookup', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const encrypted = encrypt('sk-cached-key', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        { agent_id: 'a1', provider: 'openai', is_active: true, api_key_encrypted: encrypted },
+      ]);
+
+      const first = await service.getProviderApiKey('a1', 'openai');
+      expect(first).toBe('sk-cached-key');
+      expect(mockProviderRepo.find).toHaveBeenCalledTimes(1);
+
+      const second = await service.getProviderApiKey('a1', 'openai');
+      expect(second).toBe('sk-cached-key');
+      expect(mockProviderRepo.find).toHaveBeenCalledTimes(1);
     });
 
     it('should return empty string for Ollama provider without DB lookup', async () => {

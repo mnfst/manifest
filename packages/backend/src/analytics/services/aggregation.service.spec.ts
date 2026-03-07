@@ -5,12 +5,11 @@ import { Brackets, DataSource } from 'typeorm';
 import { AggregationService } from './aggregation.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
-import { TimeseriesQueriesService } from './timeseries-queries.service';
+import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 describe('AggregationService', () => {
   let service: AggregationService;
   let mockGetRawOne: jest.Mock;
-  let mockGetRawMany: jest.Mock;
   let mockAgentGetOne: jest.Mock;
   let mockAgentDelete: jest.Mock;
   let mockTransaction: jest.Mock;
@@ -18,9 +17,6 @@ describe('AggregationService', () => {
 
   beforeEach(async () => {
     mockGetRawOne = jest.fn().mockResolvedValue({ total: 0 });
-    mockGetRawMany = jest.fn().mockResolvedValue([]);
-    mockAgentGetOne = jest.fn().mockResolvedValue(null);
-    mockAgentDelete = jest.fn().mockResolvedValue({});
 
     const mockQb: Record<string, jest.Mock> = {
       select: jest.fn(),
@@ -35,12 +31,11 @@ describe('AggregationService', () => {
       clone: jest.fn(),
       leftJoin: jest.fn(),
       getRawOne: mockGetRawOne,
-      getRawMany: mockGetRawMany,
+      getRawMany: jest.fn().mockResolvedValue([]),
       getMany: jest.fn().mockResolvedValue([]),
       getOne: jest.fn().mockResolvedValue(null),
     };
 
-    // Wire up return-this for chainable methods and invoke Brackets callbacks
     const chainableMethods = [
       'select',
       'addSelect',
@@ -68,6 +63,9 @@ describe('AggregationService', () => {
       .fn()
       .mockImplementation(async (cb: (...args: unknown[]) => unknown) => cb());
 
+    mockAgentGetOne = jest.fn().mockResolvedValue(null);
+    mockAgentDelete = jest.fn().mockResolvedValue({});
+
     const mockAgentQb = {
       select: jest.fn().mockReturnThis(),
       leftJoin: jest.fn().mockReturnThis(),
@@ -79,19 +77,6 @@ describe('AggregationService', () => {
     };
 
     mockAgentCreateQueryBuilder = jest.fn().mockReturnValue(mockAgentQb);
-
-    const mockTimeseries = {
-      getHourlyTokens: jest.fn().mockResolvedValue([]),
-      getDailyTokens: jest.fn().mockResolvedValue([]),
-      getHourlyCosts: jest.fn().mockResolvedValue([]),
-      getDailyCosts: jest.fn().mockResolvedValue([]),
-      getHourlyMessages: jest.fn().mockResolvedValue([]),
-      getDailyMessages: jest.fn().mockResolvedValue([]),
-      getActiveSkills: jest.fn().mockResolvedValue([]),
-      getRecentActivity: jest.fn().mockResolvedValue([]),
-      getCostByModel: jest.fn().mockResolvedValue([]),
-      getAgentList: jest.fn().mockResolvedValue([]),
-    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -107,10 +92,13 @@ describe('AggregationService', () => {
             delete: mockAgentDelete,
           },
         },
-        { provide: TimeseriesQueriesService, useValue: mockTimeseries },
         {
           provide: DataSource,
           useValue: { options: { type: 'postgres' }, transaction: mockTransaction },
+        },
+        {
+          provide: TenantCacheService,
+          useValue: { resolve: jest.fn().mockResolvedValue('tenant-123') },
         },
       ],
     }).compile();
@@ -161,394 +149,7 @@ describe('AggregationService', () => {
       const result = await service.getTokenSummary('24h', 'test-user');
       expect(result.tokens_today.trend_pct).toBe(0);
     });
-  });
 
-  describe('getCostSummary', () => {
-    it('returns cost with trend', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 1.5 }).mockResolvedValueOnce({ total: 1.0 });
-
-      const result = await service.getCostSummary('7d', 'test-user');
-      expect(result.value).toBe(1.5);
-      expect(result.trend_pct).toBe(50);
-    });
-  });
-
-  describe('getMessageCount', () => {
-    it('returns message count with trend', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 100 }).mockResolvedValueOnce({ total: 80 });
-
-      const result = await service.getMessageCount('24h', 'test-user');
-      expect(result.value).toBe(100);
-      expect(result.trend_pct).toBe(25);
-    });
-  });
-
-  describe('deleteAgent', () => {
-    it('should delete agent when found', async () => {
-      const mockAgentQb = mockAgentGetOne;
-      mockAgentQb.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
-
-      await service.deleteAgent('test-user', 'my-agent');
-      expect(mockAgentDelete).toHaveBeenCalledWith('agent-id-1');
-    });
-
-    it('should throw NotFoundException when agent not found', async () => {
-      mockAgentGetOne.mockResolvedValueOnce(null);
-
-      await expect(service.deleteAgent('test-user', 'nonexistent')).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-  });
-
-  describe('renameAgent', () => {
-    it('should throw NotFoundException when agent not found', async () => {
-      mockAgentGetOne.mockResolvedValueOnce(null);
-
-      await expect(service.renameAgent('test-user', 'nonexistent', 'new-name')).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-
-    it('should throw ConflictException when new name already exists', async () => {
-      // First call: find current agent — found
-      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'old-agent' });
-      // Second call: check for duplicate — found
-      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-2', name: 'taken-name' });
-
-      await expect(service.renameAgent('test-user', 'old-agent', 'taken-name')).rejects.toThrow(
-        ConflictException,
-      );
-    });
-
-    it('should rename agent and update all related tables in a transaction', async () => {
-      // First call: find current agent — found
-      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'old-agent' });
-      // Second call: check for duplicate — not found
-      mockAgentGetOne.mockResolvedValueOnce(null);
-
-      const mockExecute = jest.fn().mockResolvedValue({});
-      const mockManagerQb = {
-        update: jest.fn().mockReturnThis(),
-        set: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        execute: mockExecute,
-      };
-
-      mockTransaction.mockImplementation(async (cb: (...args: unknown[]) => unknown) => {
-        const manager = {
-          createQueryBuilder: jest.fn().mockReturnValue(mockManagerQb),
-        };
-        return cb(manager);
-      });
-
-      await service.renameAgent('test-user', 'old-agent', 'new-agent', 'New Agent');
-
-      // Verify transaction was called
-      expect(mockTransaction).toHaveBeenCalledTimes(1);
-
-      // The transaction callback should have executed:
-      // 1 update for agents table + 5 updates for related tables = 6 total
-      expect(mockExecute).toHaveBeenCalledTimes(6);
-
-      // Verify agents table update was called with agent id
-      expect(mockManagerQb.update).toHaveBeenCalledWith('agents');
-      expect(mockManagerQb.set).toHaveBeenCalledWith({
-        name: 'new-agent',
-        display_name: 'New Agent',
-      });
-
-      // Verify all 5 related tables were updated
-      const updateCalls = mockManagerQb.update.mock.calls.map((c: unknown[]) => c[0]);
-      expect(updateCalls).toContain('agents');
-      expect(updateCalls).toContain('agent_messages');
-      expect(updateCalls).toContain('notification_rules');
-      expect(updateCalls).toContain('notification_logs');
-      expect(updateCalls).toContain('token_usage_snapshots');
-      expect(updateCalls).toContain('cost_snapshots');
-    });
-
-    it('should short-circuit when slug is unchanged and only update display_name', async () => {
-      // Find current agent — found
-      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
-
-      const mockExecute = jest.fn().mockResolvedValue({});
-      const mockAgentUpdateQb = {
-        update: jest.fn().mockReturnThis(),
-        set: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        execute: mockExecute,
-      };
-
-      mockAgentCreateQueryBuilder
-        .mockReturnValueOnce({
-          select: jest.fn().mockReturnThis(),
-          leftJoin: jest.fn().mockReturnThis(),
-          where: jest.fn().mockReturnThis(),
-          andWhere: jest.fn().mockReturnThis(),
-          orderBy: jest.fn().mockReturnThis(),
-          getOne: mockAgentGetOne,
-          getMany: jest.fn().mockResolvedValue([]),
-        })
-        .mockReturnValueOnce(mockAgentUpdateQb);
-
-      await service.renameAgent('test-user', 'my-agent', 'my-agent', 'My Agent');
-
-      // No transaction should occur — only display_name update
-      expect(mockTransaction).not.toHaveBeenCalled();
-      expect(mockExecute).toHaveBeenCalledTimes(1);
-      expect(mockAgentUpdateQb.set).toHaveBeenCalledWith({ display_name: 'My Agent' });
-    });
-  });
-
-  describe('getMessages', () => {
-    it('returns items with cache and duration fields', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 1 });
-      mockGetRawMany.mockResolvedValueOnce([
-        { id: 'msg-c', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o', cost: 0.01, cache_read_tokens: 500, cache_creation_tokens: 100, duration_ms: 1200 },
-      ]);
-      mockGetRawMany.mockResolvedValueOnce([{ model: 'gpt-4o' }]);
-
-      const result = await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
-
-      expect(result.items[0]).toHaveProperty('cache_read_tokens', 500);
-      expect(result.items[0]).toHaveProperty('cache_creation_tokens', 100);
-      expect(result.items[0]).toHaveProperty('duration_ms', 1200);
-    });
-
-    it('returns paginated messages with total count and models list', async () => {
-      // count query
-      mockGetRawOne.mockResolvedValueOnce({ total: 42 });
-      // data query
-      mockGetRawMany.mockResolvedValueOnce([
-        { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o', cost: 0.01 },
-        { id: 'msg-2', timestamp: '2026-02-16 09:00:00', model: 'claude-opus-4-6', cost: 0.05 },
-      ]);
-      // models query
-      mockGetRawMany.mockResolvedValueOnce([{ model: 'claude-opus-4-6' }, { model: 'gpt-4o' }]);
-
-      const result = await service.getMessages({
-        range: '24h',
-        userId: 'test-user',
-        limit: 20,
-      });
-
-      expect(result.total_count).toBe(42);
-      expect(result.items).toHaveLength(2);
-      expect(result.next_cursor).toBeNull();
-      expect(result.models).toEqual(['claude-opus-4-6', 'gpt-4o']);
-    });
-
-    it('returns next_cursor when more items exist', async () => {
-      const rows = Array.from({ length: 6 }, (_, i) => ({
-        id: `msg-${i}`,
-        timestamp: `2026-02-16 10:0${i}:00`,
-        model: 'gpt-4o',
-        cost: 0.01,
-      }));
-
-      mockGetRawOne.mockResolvedValueOnce({ total: 20 });
-      mockGetRawMany
-        .mockResolvedValueOnce(rows) // 6 rows for limit=5 means hasMore
-        .mockResolvedValueOnce([]);
-
-      const result = await service.getMessages({
-        range: '24h',
-        userId: 'test-user',
-        limit: 5,
-      });
-
-      expect(result.items).toHaveLength(5);
-      expect(result.next_cursor).not.toBeNull();
-      expect(result.next_cursor).toContain('|msg-4');
-    });
-
-    it('returns null next_cursor when no more items', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 2 });
-      mockGetRawMany
-        .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00' }])
-        .mockResolvedValueOnce([]);
-
-      const result = await service.getMessages({
-        range: '24h',
-        userId: 'test-user',
-        limit: 20,
-      });
-
-      expect(result.next_cursor).toBeNull();
-    });
-
-    it('handles Date objects in timestamp for cursor formatting', async () => {
-      const rows = [
-        { id: 'msg-0', timestamp: new Date('2026-02-16T10:00:00'), model: 'gpt-4o' },
-        { id: 'msg-1', timestamp: new Date('2026-02-16T09:30:00'), model: 'gpt-4o' },
-        { id: 'extra', timestamp: new Date('2026-02-16T09:00:00'), model: 'gpt-4o' },
-      ];
-
-      mockGetRawOne.mockResolvedValueOnce({ total: 10 });
-      mockGetRawMany.mockResolvedValueOnce(rows).mockResolvedValueOnce([]);
-
-      const result = await service.getMessages({
-        range: '24h',
-        userId: 'test-user',
-        limit: 2,
-      });
-
-      expect(result.next_cursor).not.toBeNull();
-      // Should use formatTimestamp for Date objects
-      expect(result.next_cursor).toContain('2026-02-16T09:30:00');
-      expect(result.next_cursor).toContain('|msg-1');
-    });
-
-    it('handles empty result set', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 0 });
-      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
-
-      const result = await service.getMessages({
-        range: '24h',
-        userId: 'test-user',
-        limit: 20,
-      });
-
-      expect(result.total_count).toBe(0);
-      expect(result.items).toEqual([]);
-      expect(result.next_cursor).toBeNull();
-      expect(result.models).toEqual([]);
-    });
-
-    it('should apply cursor-based pagination when cursor has pipe separator', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 50 });
-      mockGetRawMany
-        .mockResolvedValueOnce([
-          { id: 'msg-10', timestamp: '2026-02-16 08:00:00', model: 'gpt-4o', cost: 0.01 },
-        ])
-        .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
-
-      const result = await service.getMessages({
-        range: '24h',
-        userId: 'test-user',
-        limit: 20,
-        cursor: '2026-02-16 09:00:00|msg-5',
-      });
-
-      expect(result.total_count).toBe(50);
-      expect(result.items).toHaveLength(1);
-      expect(result.next_cursor).toBeNull();
-    });
-
-    it('should ignore cursor without pipe separator', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 10 });
-      mockGetRawMany
-        .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
-        .mockResolvedValueOnce([]);
-
-      const result = await service.getMessages({
-        range: '24h',
-        userId: 'test-user',
-        limit: 20,
-        cursor: 'invalid-cursor-no-pipe',
-      });
-
-      expect(result.total_count).toBe(10);
-      expect(result.items).toHaveLength(1);
-    });
-
-    it('should query without range cutoff when range is omitted', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 5 });
-      mockGetRawMany
-        .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-01-01 00:00:00', model: 'gpt-4o' }])
-        .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
-
-      const result = await service.getMessages({
-        userId: 'test-user',
-        limit: 20,
-      });
-
-      expect(result.total_count).toBe(5);
-      expect(result.items).toHaveLength(1);
-      expect(result.models).toEqual(['gpt-4o']);
-    });
-
-    it('should apply all optional filter parameters', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 3 });
-      mockGetRawMany
-        .mockResolvedValueOnce([
-          { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o', cost: 0.05 },
-        ])
-        .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
-
-      const result = await service.getMessages({
-        range: '24h',
-        userId: 'test-user',
-        limit: 20,
-        status: 'success',
-        service_type: 'chat',
-        model: 'gpt-4o',
-        cost_min: 0.01,
-        cost_max: 1.0,
-        agent_name: 'my-agent',
-      });
-
-      expect(result.total_count).toBe(3);
-      expect(result.items).toHaveLength(1);
-    });
-
-    it('should handle null total from count query', async () => {
-      mockGetRawOne.mockResolvedValueOnce(null);
-      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
-
-      const result = await service.getMessages({
-        range: '24h',
-        userId: 'test-user',
-        limit: 20,
-      });
-
-      expect(result.total_count).toBe(0);
-    });
-
-    it('should handle cost_min of 0 as a valid filter', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 1 });
-      mockGetRawMany
-        .mockResolvedValueOnce([
-          { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o', cost: 0 },
-        ])
-        .mockResolvedValueOnce([]);
-
-      const result = await service.getMessages({
-        range: '24h',
-        userId: 'test-user',
-        limit: 20,
-        cost_min: 0,
-      });
-
-      expect(result.total_count).toBe(1);
-      expect(result.items).toHaveLength(1);
-    });
-
-    it('should handle cost_max of 0 as a valid filter', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 0 });
-      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
-
-      const result = await service.getMessages({
-        range: '24h',
-        userId: 'test-user',
-        limit: 20,
-        cost_max: 0,
-      });
-
-      expect(result.total_count).toBe(0);
-    });
-  });
-
-  describe('hasAnyData', () => {
-    it('should pass agentName to tenant filter when provided', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ '?column?': 1 });
-      const result = await service.hasAnyData('test-user', 'my-agent');
-      expect(result).toBe(true);
-    });
-  });
-
-  describe('getTokenSummary', () => {
     it('should pass agentName to tenant filter when provided', async () => {
       mockGetRawOne
         .mockResolvedValueOnce({ total: 100 })
@@ -573,6 +174,14 @@ describe('AggregationService', () => {
   });
 
   describe('getCostSummary', () => {
+    it('returns cost with trend', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 1.5 }).mockResolvedValueOnce({ total: 1.0 });
+
+      const result = await service.getCostSummary('7d', 'test-user');
+      expect(result.value).toBe(1.5);
+      expect(result.trend_pct).toBe(50);
+    });
+
     it('should pass agentName to tenant filter when provided', async () => {
       mockGetRawOne.mockResolvedValueOnce({ total: 2.5 }).mockResolvedValueOnce({ total: 1.0 });
 
@@ -590,6 +199,14 @@ describe('AggregationService', () => {
   });
 
   describe('getMessageCount', () => {
+    it('returns message count with trend', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 100 }).mockResolvedValueOnce({ total: 80 });
+
+      const result = await service.getMessageCount('24h', 'test-user');
+      expect(result.value).toBe(100);
+      expect(result.trend_pct).toBe(25);
+    });
+
     it('should pass agentName to tenant filter when provided', async () => {
       mockGetRawOne.mockResolvedValueOnce({ total: 50 }).mockResolvedValueOnce({ total: 40 });
 
@@ -606,13 +223,114 @@ describe('AggregationService', () => {
     });
   });
 
+  describe('deleteAgent', () => {
+    it('should delete agent when found', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
+
+      await service.deleteAgent('test-user', 'my-agent');
+      expect(mockAgentDelete).toHaveBeenCalledWith('agent-id-1');
+    });
+
+    it('should throw NotFoundException when agent not found', async () => {
+      mockAgentGetOne.mockResolvedValueOnce(null);
+
+      await expect(service.deleteAgent('test-user', 'nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
   describe('renameAgent', () => {
+    it('should throw NotFoundException when agent not found', async () => {
+      mockAgentGetOne.mockResolvedValueOnce(null);
+
+      await expect(service.renameAgent('test-user', 'nonexistent', 'new-name')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw ConflictException when new name already exists', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'old-agent' });
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-2', name: 'taken-name' });
+
+      await expect(service.renameAgent('test-user', 'old-agent', 'taken-name')).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('should rename agent and update all related tables in a transaction', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'old-agent' });
+      mockAgentGetOne.mockResolvedValueOnce(null);
+
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockManagerQb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+
+      mockTransaction.mockImplementation(async (cb: (...args: unknown[]) => unknown) => {
+        const manager = {
+          createQueryBuilder: jest.fn().mockReturnValue(mockManagerQb),
+        };
+        return cb(manager);
+      });
+
+      await service.renameAgent('test-user', 'old-agent', 'new-agent', 'New Agent');
+
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
+      expect(mockExecute).toHaveBeenCalledTimes(6);
+      expect(mockManagerQb.update).toHaveBeenCalledWith('agents');
+      expect(mockManagerQb.set).toHaveBeenCalledWith({
+        name: 'new-agent',
+        display_name: 'New Agent',
+      });
+
+      const updateCalls = mockManagerQb.update.mock.calls.map((c: unknown[]) => c[0]);
+      expect(updateCalls).toContain('agents');
+      expect(updateCalls).toContain('agent_messages');
+      expect(updateCalls).toContain('notification_rules');
+      expect(updateCalls).toContain('notification_logs');
+      expect(updateCalls).toContain('token_usage_snapshots');
+      expect(updateCalls).toContain('cost_snapshots');
+    });
+
+    it('should short-circuit when slug is unchanged and only update display_name', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
+
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockAgentUpdateQb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+
+      mockAgentCreateQueryBuilder
+        .mockReturnValueOnce({
+          select: jest.fn().mockReturnThis(),
+          leftJoin: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          orderBy: jest.fn().mockReturnThis(),
+          getOne: mockAgentGetOne,
+          getMany: jest.fn().mockResolvedValue([]),
+        })
+        .mockReturnValueOnce(mockAgentUpdateQb);
+
+      await service.renameAgent('test-user', 'my-agent', 'my-agent', 'My Agent');
+
+      expect(mockTransaction).not.toHaveBeenCalled();
+      expect(mockExecute).toHaveBeenCalledTimes(1);
+      expect(mockAgentUpdateQb.set).toHaveBeenCalledWith({ display_name: 'My Agent' });
+    });
+
     it('should short-circuit without update when slug unchanged and displayName is undefined', async () => {
       mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
 
       await service.renameAgent('test-user', 'my-agent', 'my-agent');
 
-      // No transaction and no display_name update should occur
       expect(mockTransaction).not.toHaveBeenCalled();
     });
 
@@ -638,28 +356,29 @@ describe('AggregationService', () => {
       await service.renameAgent('test-user', 'old-agent', 'new-agent');
 
       expect(mockTransaction).toHaveBeenCalledTimes(1);
-      // Agent update should only have name, not display_name
       expect(mockManagerQb.set).toHaveBeenCalledWith({ name: 'new-agent' });
+    });
+  });
+
+  describe('hasAnyData with agentName', () => {
+    it('should pass agentName to tenant filter when provided', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ '?column?': 1 });
+      const result = await service.hasAnyData('test-user', 'my-agent');
+      expect(result).toBe(true);
     });
   });
 });
 
 describe('AggregationService (sql.js / local mode)', () => {
   let service: AggregationService;
-  let mockSelect: jest.Mock;
-  let mockAddSelect: jest.Mock;
   let mockGetRawOne: jest.Mock;
-  let mockGetRawMany: jest.Mock;
 
   beforeEach(async () => {
-    mockSelect = jest.fn().mockReturnThis();
-    mockAddSelect = jest.fn().mockReturnThis();
     mockGetRawOne = jest.fn().mockResolvedValue({ total: 0 });
-    mockGetRawMany = jest.fn().mockResolvedValue([]);
 
     const mockQb = {
-      select: mockSelect,
-      addSelect: mockAddSelect,
+      select: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       orWhere: jest.fn().mockReturnThis(),
@@ -670,12 +389,11 @@ describe('AggregationService (sql.js / local mode)', () => {
       clone: jest.fn().mockReturnThis(),
       leftJoin: jest.fn().mockReturnThis(),
       getRawOne: mockGetRawOne,
-      getRawMany: mockGetRawMany,
+      getRawMany: jest.fn().mockResolvedValue([]),
       getMany: jest.fn().mockResolvedValue([]),
       getOne: jest.fn().mockResolvedValue(null),
     };
 
-    // Clone must return a fresh object with the same mocks
     mockQb.clone = jest.fn().mockReturnValue({ ...mockQb, clone: jest.fn() });
 
     const module: TestingModule = await Test.createTestingModule({
@@ -700,22 +418,8 @@ describe('AggregationService (sql.js / local mode)', () => {
             delete: jest.fn().mockResolvedValue({}),
           },
         },
-        {
-          provide: TimeseriesQueriesService,
-          useValue: {
-            getHourlyTokens: jest.fn().mockResolvedValue([]),
-            getDailyTokens: jest.fn().mockResolvedValue([]),
-            getHourlyCosts: jest.fn().mockResolvedValue([]),
-            getDailyCosts: jest.fn().mockResolvedValue([]),
-            getHourlyMessages: jest.fn().mockResolvedValue([]),
-            getDailyMessages: jest.fn().mockResolvedValue([]),
-            getActiveSkills: jest.fn().mockResolvedValue([]),
-            getRecentActivity: jest.fn().mockResolvedValue([]),
-            getCostByModel: jest.fn().mockResolvedValue([]),
-            getAgentList: jest.fn().mockResolvedValue([]),
-          },
-        },
         { provide: DataSource, useValue: { options: { type: 'sqljs' } } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
       ],
     }).compile();
 
@@ -723,25 +427,7 @@ describe('AggregationService (sql.js / local mode)', () => {
   });
 
   it('detects sqlite dialect from sqljs datasource', () => {
-    // Service should initialize without error — dialect detection worked
     expect(service).toBeDefined();
-  });
-
-  it('uses CAST(... AS REAL) for cost in getMessages', async () => {
-    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
-    mockGetRawMany
-      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-01-01', cost: 0.5 }])
-      .mockResolvedValueOnce([]);
-
-    await service.getMessages({ range: '24h', userId: 'u1', limit: 20 });
-
-    // Verify addSelect was called with SQLite float cast
-    const addSelectCalls = mockAddSelect.mock.calls.map((c: unknown[]) => c[0]);
-    const hasCastReal = addSelectCalls.some(
-      (expr: unknown) =>
-        typeof expr === 'string' && expr.includes('CAST') && expr.includes('AS REAL'),
-    );
-    expect(hasCastReal).toBe(true);
   });
 
   it('business logic works identically on sqlite dialect', async () => {

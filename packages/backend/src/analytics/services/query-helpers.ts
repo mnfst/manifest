@@ -44,14 +44,25 @@ export function addTenantFilter<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
   userId: string,
   agentName?: string,
+  tenantId?: string,
 ): SelectQueryBuilder<T> {
-  qb.andWhere(
-    new Brackets((sub) => {
-      sub
-        .where('at.tenant_id IN (SELECT id FROM tenants WHERE name = :userId)', { userId })
-        .orWhere('at.user_id = :userId', { userId });
-    }),
-  );
+  if (tenantId) {
+    qb.andWhere(
+      new Brackets((sub) => {
+        sub
+          .where('at.tenant_id = :tenantId', { tenantId })
+          .orWhere('at.user_id = :userId', { userId });
+      }),
+    );
+  } else {
+    qb.andWhere(
+      new Brackets((sub) => {
+        sub
+          .where('at.tenant_id IN (SELECT id FROM tenants WHERE name = :userId)', { userId })
+          .orWhere('at.user_id = :userId', { userId });
+      }),
+    );
+  }
   if (agentName) {
     qb.andWhere('at.agent_name = :agentName', { agentName });
   }

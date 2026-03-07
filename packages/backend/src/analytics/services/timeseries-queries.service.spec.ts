@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { TimeseriesQueriesService } from './timeseries-queries.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
+import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 describe('TimeseriesQueriesService', () => {
   let service: TimeseriesQueriesService;
@@ -55,6 +56,10 @@ describe('TimeseriesQueriesService', () => {
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockAgentQb) },
         },
         { provide: DataSource, useValue: { options: { type: 'postgres' } } },
+        {
+          provide: TenantCacheService,
+          useValue: { resolve: jest.fn().mockResolvedValue('tenant-123') },
+        },
       ],
     }).compile();
 
@@ -89,7 +94,12 @@ describe('TimeseriesQueriesService', () => {
   describe('getActiveSkills', () => {
     it('maps DB rows with status field', async () => {
       mockGetRawMany.mockResolvedValue([
-        { name: 'deploy', agent_name: 'bot-1', run_count: 5, last_active_at: '2026-02-16T10:00:00' },
+        {
+          name: 'deploy',
+          agent_name: 'bot-1',
+          run_count: 5,
+          last_active_at: '2026-02-16T10:00:00',
+        },
       ]);
 
       const result = await service.getActiveSkills('24h', 'u1');
@@ -126,9 +136,7 @@ describe('TimeseriesQueriesService', () => {
     });
 
     it('returns 0 share_pct when total tokens is 0', async () => {
-      mockGetRawMany.mockResolvedValue([
-        { model: 'test', tokens: 0, estimated_cost: 0 },
-      ]);
+      mockGetRawMany.mockResolvedValue([{ model: 'test', tokens: 0, estimated_cost: 0 }]);
 
       const result = await service.getCostByModel('7d', 'u1');
       expect(result[0].share_pct).toBe(0);
@@ -168,11 +176,11 @@ describe('TimeseriesQueriesService', () => {
   describe('getDailyCosts', () => {
     it('maps DB rows and defaults null cost to 0', async () => {
       mockGetRawMany.mockResolvedValue([
-        { date: '2026-02-15', cost: 3.50 },
+        { date: '2026-02-15', cost: 3.5 },
         { date: '2026-02-16', cost: null },
       ]);
       const result = await service.getDailyCosts('7d', 'u1');
-      expect(result[0]).toEqual({ date: '2026-02-15', cost: 3.50 });
+      expect(result[0]).toEqual({ date: '2026-02-15', cost: 3.5 });
       expect(result[1].cost).toBe(0);
     });
   });
@@ -191,9 +199,7 @@ describe('TimeseriesQueriesService', () => {
 
   describe('getDailyMessages', () => {
     it('maps DB rows and returns empty for no data', async () => {
-      mockGetRawMany.mockResolvedValue([
-        { date: '2026-02-15', count: 100 },
-      ]);
+      mockGetRawMany.mockResolvedValue([{ date: '2026-02-15', count: 100 }]);
       const result = await service.getDailyMessages('7d', 'u1');
       expect(result).toEqual([{ date: '2026-02-15', count: 100 }]);
 
@@ -222,7 +228,13 @@ describe('TimeseriesQueriesService', () => {
       ]);
       mockGetRawMany
         .mockResolvedValueOnce([
-          { agent_name: 'bot-1', message_count: 10, last_active: '2026-02-16', total_cost: 5.0, total_tokens: 1000 },
+          {
+            agent_name: 'bot-1',
+            message_count: 10,
+            last_active: '2026-02-16',
+            total_cost: 5.0,
+            total_tokens: 1000,
+          },
         ])
         .mockResolvedValueOnce([
           { agent_name: 'bot-1', hour: '2026-02-16T09:00:00', tokens: 100 },
@@ -243,7 +255,13 @@ describe('TimeseriesQueriesService', () => {
       ]);
       mockGetRawMany
         .mockResolvedValueOnce([
-          { agent_name: 'bot-1', message_count: 10, last_active: '2026-02-16', total_cost: 5.0, total_tokens: 1000 },
+          {
+            agent_name: 'bot-1',
+            message_count: 10,
+            last_active: '2026-02-16',
+            total_cost: 5.0,
+            total_tokens: 1000,
+          },
         ])
         .mockResolvedValueOnce([]);
 
@@ -257,7 +275,13 @@ describe('TimeseriesQueriesService', () => {
       ]);
       mockGetRawMany
         .mockResolvedValueOnce([
-          { agent_name: 'lonely-bot', message_count: 1, last_active: '2026-02-16', total_cost: 0, total_tokens: 0 },
+          {
+            agent_name: 'lonely-bot',
+            message_count: 1,
+            last_active: '2026-02-16',
+            total_cost: 0,
+            total_tokens: 0,
+          },
         ])
         .mockResolvedValueOnce([]);
 
@@ -269,9 +293,7 @@ describe('TimeseriesQueriesService', () => {
       mockGetMany.mockResolvedValueOnce([
         { name: 'new-bot', display_name: null, created_at: '2026-02-16' },
       ]);
-      mockGetRawMany
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       const result = await service.getAgentList('u1');
       expect(result).toHaveLength(1);
@@ -338,6 +360,7 @@ describe('TimeseriesQueriesService (sql.js / local mode)', () => {
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockAgentQb) },
         },
         { provide: DataSource, useValue: { options: { type: 'sqljs' } } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
       ],
     }).compile();
 
@@ -354,7 +377,8 @@ describe('TimeseriesQueriesService (sql.js / local mode)', () => {
 
     const selectCalls = mockSelect.mock.calls.map((c: unknown[]) => c[0]);
     const hasStrftime = selectCalls.some(
-      (expr: unknown) => typeof expr === 'string' && expr.includes('strftime') && expr.includes('%H:00:00'),
+      (expr: unknown) =>
+        typeof expr === 'string' && expr.includes('strftime') && expr.includes('%H:00:00'),
     );
     expect(hasStrftime).toBe(true);
   });
@@ -376,7 +400,8 @@ describe('TimeseriesQueriesService (sql.js / local mode)', () => {
 
     const addSelectCalls = mockAddSelect.mock.calls.map((c: unknown[]) => c[0]);
     const hasCastReal = addSelectCalls.some(
-      (expr: unknown) => typeof expr === 'string' && expr.includes('CAST') && expr.includes('AS REAL'),
+      (expr: unknown) =>
+        typeof expr === 'string' && expr.includes('CAST') && expr.includes('AS REAL'),
     );
     expect(hasCastReal).toBe(true);
   });
@@ -387,9 +412,7 @@ describe('TimeseriesQueriesService (sql.js / local mode)', () => {
     ]);
 
     const result = await service.getHourlyTokens('24h', 'u1');
-    expect(result).toEqual([
-      { hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 },
-    ]);
+    expect(result).toEqual([{ hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 }]);
   });
 
   it('getCostByModel works with sqlite dialect', async () => {

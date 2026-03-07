@@ -3,7 +3,6 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { TokensController } from './tokens.controller';
 import { AggregationService } from '../services/aggregation.service';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
-import { CacheInvalidationService } from '../../common/services/cache-invalidation.service';
 
 describe('TokensController', () => {
   let controller: TokensController;
@@ -17,8 +16,12 @@ describe('TokensController', () => {
       input_tokens: 3000,
       output_tokens: 2000,
     });
-    mockGetHourlyTokens = jest.fn().mockResolvedValue([{ hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 }]);
-    mockGetDailyTokens = jest.fn().mockResolvedValue([{ date: '2026-02-16', input_tokens: 1000, output_tokens: 500 }]);
+    mockGetHourlyTokens = jest
+      .fn()
+      .mockResolvedValue([{ hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 }]);
+    mockGetDailyTokens = jest
+      .fn()
+      .mockResolvedValue([{ date: '2026-02-16', input_tokens: 1000, output_tokens: 500 }]);
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -35,7 +38,6 @@ describe('TokensController', () => {
             getDailyTokens: mockGetDailyTokens,
           },
         },
-        { provide: CacheInvalidationService, useValue: { trackKey: jest.fn() } },
       ],
     }).compile();
 
