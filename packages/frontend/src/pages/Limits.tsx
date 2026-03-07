@@ -56,6 +56,8 @@ const Limits: Component = () => {
   const [deleteTarget, setDeleteTarget] = createSignal<NotificationRule | null>(null);
   const [deleteConfirmed, setDeleteConfirmed] = createSignal(false);
   const [showRemoveProvider, setShowRemoveProvider] = createSignal(false);
+  const [deleting, setDeleting] = createSignal(false);
+  const [removingProvider, setRemovingProvider] = createSignal(false);
 
   const routingEnabled = () => routingStatus()?.enabled ?? false;
   const hasProvider = () => !isLocalMode() || !!emailProvider();
@@ -111,12 +113,15 @@ const Limits: Component = () => {
   const handleDelete = async () => {
     const target = deleteTarget();
     if (!target) return;
+    setDeleting(true);
     try {
       await deleteNotificationRule(target.id);
       await refetchRules();
       toast.success('Rule deleted');
     } catch {
       // error toast from fetchMutate
+    } finally {
+      setDeleting(false);
     }
     setDeleteTarget(null);
     setDeleteConfirmed(false);
@@ -129,6 +134,7 @@ const Limits: Component = () => {
   };
 
   const handleRemoveProvider = async () => {
+    setRemovingProvider(true);
     try {
       await removeEmailProvider();
       await refetchProvider();
@@ -136,6 +142,8 @@ const Limits: Component = () => {
       toast.success('Email provider removed');
     } catch {
       // error toast from fetchMutate
+    } finally {
+      setRemovingProvider(false);
     }
   };
 
@@ -446,10 +454,10 @@ const Limits: Component = () => {
                 </button>
                 <button
                   class="btn btn--danger"
-                  disabled={!deleteConfirmed()}
+                  disabled={!deleteConfirmed() || deleting()}
                   onClick={handleDelete}
                 >
-                  Delete rule
+                  {deleting() ? 'Deleting...' : 'Delete rule'}
                 </button>
               </div>
             </div>
@@ -481,8 +489,12 @@ const Limits: Component = () => {
                 <button class="btn btn--ghost" onClick={() => setShowRemoveProvider(false)}>
                   Cancel
                 </button>
-                <button class="btn btn--danger" onClick={handleRemoveProvider}>
-                  Remove
+                <button
+                  class="btn btn--danger"
+                  onClick={handleRemoveProvider}
+                  disabled={removingProvider()}
+                >
+                  {removingProvider() ? 'Removing...' : 'Remove'}
                 </button>
               </div>
             </div>

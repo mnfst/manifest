@@ -19,6 +19,9 @@ export class UserProvider {
   @Column('varchar', { nullable: true, default: null })
   api_key_encrypted!: string | null;
 
+  @Column('varchar', { nullable: true, default: null })
+  key_prefix!: string | null;
+
   @Column('boolean', { default: true })
   is_active!: boolean;
 

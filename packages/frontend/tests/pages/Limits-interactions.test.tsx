@@ -304,6 +304,83 @@ describe("Limits page interactions", () => {
     });
   });
 
+  it("disables delete button and shows Deleting... during deletion", async () => {
+    let resolveDelete: () => void;
+    const { deleteNotificationRule } = await import("../../src/services/api.js");
+    (deleteNotificationRule as ReturnType<typeof vi.fn>).mockReturnValue(
+      new Promise<void>((r) => { resolveDelete = r; }),
+    );
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText("Rule options")).toBeDefined();
+    });
+    fireEvent.click(screen.getByLabelText("Rule options"));
+    await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
+    fireEvent.click(screen.getByText("Delete"));
+
+    await vi.waitFor(() => {
+      expect(document.querySelector(".confirm-modal__confirm-row")).not.toBeNull();
+    });
+
+    const checkbox = document.querySelector('.confirm-modal__confirm-row input[type="checkbox"]') as HTMLInputElement;
+    fireEvent.click(checkbox);
+
+    const deleteBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
+    fireEvent.click(deleteBtn);
+
+    await vi.waitFor(() => {
+      expect(deleteBtn.textContent).toBe("Deleting...");
+      expect(deleteBtn.disabled).toBe(true);
+    });
+
+    resolveDelete!();
+    await vi.waitFor(() => {
+      expect(deleteBtn.textContent).toBe("Delete rule");
+    });
+  });
+
+  it("disables remove button and shows Removing... during provider removal", async () => {
+    let resolveRemove: () => void;
+    const { removeEmailProvider } = await import("../../src/services/api.js");
+    (removeEmailProvider as ReturnType<typeof vi.fn>).mockReturnValue(
+      new Promise<void>((r) => { resolveRemove = r; }),
+    );
+    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
+    mockIsLocalMode = true;
+
+    render(() => <Limits />);
+
+    await vi.waitFor(() => {
+      fireEvent.click(screen.getByTestId("mock-remove"));
+    });
+
+    await vi.waitFor(() => {
+      const title = document.querySelector(".modal-card__title") as HTMLElement;
+      expect(title.textContent).toBe("Remove provider");
+    });
+
+    const removeBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
+    fireEvent.click(removeBtn);
+
+    await vi.waitFor(() => {
+      expect(removeBtn.textContent).toBe("Removing...");
+      expect(removeBtn.disabled).toBe(true);
+    });
+
+    resolveRemove!();
+    await vi.waitFor(() => {
+      const title = document.querySelector(".modal-card__title");
+      expect(title).toBeNull(); // modal closed on success
+    });
+  });
+
   it("calls removeEmailProvider after confirmation modal", async () => {
     const { removeEmailProvider } = await import("../../src/services/api.js");
     const { toast } = await import("../../src/services/toast-store.js");

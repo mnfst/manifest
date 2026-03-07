@@ -196,7 +196,7 @@ export class CustomProviderService {
       context_window?: number;
     }[],
   ): Promise<void> {
-    for (const model of models) {
+    const rows = models.map((model) => {
       const modelKey = CustomProviderService.modelKey(cpId, model.model_name);
       const inputPerToken =
         model.input_price_per_million_tokens != null
@@ -218,7 +218,11 @@ export class CustomProviderService {
         quality_score: 1,
       });
       pricingRow.quality_score = computeQualityScore(pricingRow);
-      await this.pricingRepo.save(pricingRow);
+      return pricingRow;
+    });
+
+    if (rows.length > 0) {
+      await this.pricingRepo.upsert(rows, ['model_name']);
     }
   }
 

@@ -43,6 +43,7 @@ import { AddAgentDisplayName1772400000000 } from './migrations/1772400000000-Add
 import { PerAgentRouting1772500000000 } from './migrations/1772500000000-PerAgentRouting';
 import { AddCustomProviders1772668898071 } from './migrations/1772668898071-AddCustomProviders';
 import { NullablePricing1772682112419 } from './migrations/1772682112419-NullablePricing';
+import { AddPerformanceIndexes1772843035514 } from './migrations/1772843035514-AddPerformanceIndexes';
 
 const entities = [
   AgentMessage,
@@ -90,6 +91,7 @@ const migrations = [
   PerAgentRouting1772500000000,
   AddCustomProviders1772668898071,
   NullablePricing1772682112419,
+  AddPerformanceIndexes1772843035514,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -126,6 +128,10 @@ function buildModeServices() {
           migrationsTransactionMode: 'all' as const,
           migrations,
           logging: false,
+          extra: {
+            max: 20,
+            idleTimeoutMillis: 30000,
+          },
         };
       },
     }),

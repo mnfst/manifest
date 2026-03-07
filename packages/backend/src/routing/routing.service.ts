@@ -43,6 +43,7 @@ export class RoutingService {
     apiKey?: string,
   ): Promise<{ provider: UserProvider; isNew: boolean }> {
     const apiKeyEncrypted = apiKey ? encrypt(apiKey, getEncryptionSecret()) : null;
+    const keyPrefix = apiKey ? apiKey.substring(0, 8) : null;
 
     const existing = await this.providerRepo.findOne({
       where: { agent_id: agentId, provider },
@@ -51,6 +52,7 @@ export class RoutingService {
     if (existing) {
       if (apiKeyEncrypted !== null) {
         existing.api_key_encrypted = apiKeyEncrypted;
+        existing.key_prefix = keyPrefix;
       }
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
@@ -65,6 +67,7 @@ export class RoutingService {
       agent_id: agentId,
       provider,
       api_key_encrypted: apiKeyEncrypted,
+      key_prefix: keyPrefix,
       is_active: true,
       connected_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -280,19 +283,6 @@ export class RoutingService {
       return decrypt(match.api_key_encrypted, getEncryptionSecret());
     } catch {
       this.logger.warn(`Failed to decrypt API key for provider ${provider}`);
-      return null;
-    }
-  }
-
-  /* ── Key prefix extraction ── */
-
-  getKeyPrefix(encryptedKey: string | null, length = 8): string | null {
-    if (!encryptedKey) return null;
-    try {
-      const decrypted = decrypt(encryptedKey, getEncryptionSecret());
-      return decrypted.substring(0, length);
-    } catch {
-      this.logger.warn('Failed to decrypt API key for prefix extraction');
       return null;
     }
   }

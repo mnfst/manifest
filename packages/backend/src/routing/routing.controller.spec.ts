@@ -35,7 +35,6 @@ describe('RoutingController', () => {
       setOverride: jest.fn().mockResolvedValue({}),
       clearOverride: jest.fn().mockResolvedValue(undefined),
       resetAllOverrides: jest.fn().mockResolvedValue(undefined),
-      getKeyPrefix: jest.fn().mockReturnValue(null),
     };
     mockPricingCache = {
       getAll: jest.fn().mockReturnValue([]),
@@ -113,9 +112,9 @@ describe('RoutingController', () => {
           is_active: true,
           connected_at: '2025-01-01',
           api_key_encrypted: 'enc',
+          key_prefix: 'sk-proj-',
         },
       ]);
-      mockRoutingService.getKeyPrefix.mockReturnValue('sk-proj-');
 
       const result = await controller.getProviders(mockUser, mockAgentName);
 
@@ -140,10 +139,10 @@ describe('RoutingController', () => {
           is_active: true,
           connected_at: '2025-01-01',
           api_key_encrypted: 'secret',
+          key_prefix: 'sk-proj-',
           agent_id: 'a1',
         },
       ]);
-      mockRoutingService.getKeyPrefix.mockReturnValue('sk-proj-');
 
       const result = await controller.getProviders(mockUser, mockAgentName);
 
