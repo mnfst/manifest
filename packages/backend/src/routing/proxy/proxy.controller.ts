@@ -1,4 +1,13 @@
-import { Controller, Post, Req, Res, UseGuards, Logger, HttpException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+  Logger,
+  HttpException,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Request, Response as ExpressResponse } from 'express';
@@ -20,12 +29,13 @@ const MAX_SEEN_USERS = 10_000;
 @Public()
 @UseGuards(OtlpAuthGuard)
 @SkipThrottle()
-export class ProxyController {
+export class ProxyController implements OnModuleDestroy {
   private readonly logger = new Logger(ProxyController.name);
   private readonly seenUsers = new Set<string>();
   private readonly rateLimitCooldown = new Map<string, number>();
   private readonly RATE_LIMIT_COOLDOWN_MS = 60_000;
   private readonly MAX_COOLDOWN_ENTRIES = 1_000;
+  private readonly cooldownCleanupTimer: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly proxyService: ProxyService,
@@ -33,7 +43,16 @@ export class ProxyController {
     private readonly providerClient: ProviderClient,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
-  ) {}
+  ) {
+    this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
+    if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
+      this.cooldownCleanupTimer.unref();
+    }
+  }
+
+  onModuleDestroy(): void {
+    clearInterval(this.cooldownCleanupTimer);
+  }
 
   @Post('chat/completions')
   async chatCompletions(
@@ -49,7 +68,7 @@ export class ProxyController {
     let slotAcquired = false;
 
     const clientAbort = new AbortController();
-    res.on('close', () => clientAbort.abort());
+    res.once('close', () => clientAbort.abort());
 
     try {
       this.rateLimiter.checkLimit(userId);
@@ -216,6 +235,13 @@ export class ProxyController {
     if (!header) return undefined;
     const parts = header.split('-');
     return parts.length >= 2 ? parts[1] : undefined;
+  }
+
+  private evictExpiredCooldowns(): void {
+    const now = Date.now();
+    for (const [k, v] of this.rateLimitCooldown) {
+      if (now - v >= this.RATE_LIMIT_COOLDOWN_MS) this.rateLimitCooldown.delete(k);
+    }
   }
 
   private trackFirstProxyRequest(

@@ -30,7 +30,7 @@ function mockResponse(): {
       statusCode = code;
       return res;
     }),
-    on: jest.fn(),
+    once: jest.fn(),
     writableEnded: false,
   };
   return {
@@ -99,6 +99,10 @@ describe('ProxyController', () => {
       providerClient as never,
       mockMessageRepo as never,
     );
+  });
+
+  afterEach(() => {
+    controller.onModuleDestroy();
   });
 
   it('should return JSON response for non-streaming OpenAI provider', async () => {
@@ -820,7 +824,7 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      expect(res.on).toHaveBeenCalledWith('close', expect.any(Function));
+      expect(res.once).toHaveBeenCalledWith('close', expect.any(Function));
     });
 
     it('should pass AbortSignal to proxyService', async () => {
@@ -854,7 +858,7 @@ describe('ProxyController', () => {
       const { res } = mockResponse();
 
       // Capture the close callback and wire it to our AbortController
-      (res.on as jest.Mock).mockImplementation((event: string, cb: () => void) => {
+      (res.once as jest.Mock).mockImplementation((event: string, cb: () => void) => {
         if (event === 'close') {
           abortController.signal.addEventListener('abort', cb);
         }
@@ -877,7 +881,7 @@ describe('ProxyController', () => {
       const { res } = mockResponse();
       res.writableEnded = true;
 
-      (res.on as jest.Mock).mockImplementation((event: string, cb: () => void) => {
+      (res.once as jest.Mock).mockImplementation((event: string, cb: () => void) => {
         if (event === 'close') {
           abortController.signal.addEventListener('abort', cb);
         }
@@ -899,7 +903,7 @@ describe('ProxyController', () => {
       const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
       const { res } = mockResponse();
 
-      (res.on as jest.Mock).mockImplementation((event: string, cb: () => void) => {
+      (res.once as jest.Mock).mockImplementation((event: string, cb: () => void) => {
         if (event === 'close') {
           abortController.signal.addEventListener('abort', cb);
         }
@@ -1412,6 +1416,51 @@ describe('ProxyController', () => {
       // All 1001 expired entries should have been evicted, leaving only the fresh one
       expect(cooldownMap.size).toBe(1);
       expect(cooldownMap.has('tenant-1:agent-1')).toBe(true);
+    });
+  });
+
+  describe('periodic cooldown cleanup', () => {
+    it('periodic timer evicts expired cooldown entries', () => {
+      jest.useFakeTimers();
+      controller.onModuleDestroy(); // stop timer from beforeEach controller
+
+      const timedController = new ProxyController(
+        proxyService as never,
+        rateLimiter as never,
+        providerClient as never,
+        mockMessageRepo as never,
+      );
+
+      const cooldownMap = (timedController as any).rateLimitCooldown as Map<string, number>;
+      cooldownMap.set('t:a', Date.now() - 120_000); // expired
+
+      jest.advanceTimersByTime(60_000);
+      expect(cooldownMap.size).toBe(0);
+
+      timedController.onModuleDestroy();
+      jest.useRealTimers();
+    });
+
+    it('onModuleDestroy stops the periodic cleanup timer', () => {
+      jest.useFakeTimers();
+      controller.onModuleDestroy(); // stop timer from beforeEach controller
+
+      const timedController = new ProxyController(
+        proxyService as never,
+        rateLimiter as never,
+        providerClient as never,
+        mockMessageRepo as never,
+      );
+
+      timedController.onModuleDestroy();
+
+      const cooldownMap = (timedController as any).rateLimitCooldown as Map<string, number>;
+      cooldownMap.set('t:a', Date.now() - 120_000);
+
+      jest.advanceTimersByTime(120_000);
+      expect(cooldownMap.size).toBe(1); // not evicted because timer stopped
+
+      jest.useRealTimers();
     });
   });
 

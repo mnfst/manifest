@@ -19,9 +19,7 @@ export function initSseHeaders(
  * Handles `data: ` prefixes, multi-event chunks, and partial
  * chunks that split across TCP reads.
  */
-export function parseSseEvents(
-  buffer: string,
-): { events: string[]; remaining: string } {
+export function parseSseEvents(buffer: string): { events: string[]; remaining: string } {
   const events: string[] = [];
   let remaining = buffer;
 
@@ -48,6 +46,8 @@ export function parseSseEvents(
   return { events, remaining };
 }
 
+const MAX_SSE_BUFFER_SIZE = 1_048_576;
+
 export async function pipeStream(
   source: ReadableStream<Uint8Array>,
   dest: ExpressResponse,
@@ -70,6 +70,9 @@ export async function pipeStream(
 
         if (transform) {
           sseBuffer += text;
+          if (sseBuffer.length > MAX_SSE_BUFFER_SIZE) {
+            throw new Error('SSE buffer overflow: provider sent data without event boundaries');
+          }
           const { events, remaining } = parseSseEvents(sseBuffer);
           sseBuffer = remaining;
 

@@ -247,6 +247,56 @@ describe('LimitCheckService', () => {
     expect(mockGetActiveBlockRules).toHaveBeenCalledTimes(3);
   });
 
+  it('evicts oldest rules cache entry when MAX_CACHE_SIZE is reached', async () => {
+    const rulesCache = (service as any).rulesCache as Map<string, unknown>;
+    const now = Date.now();
+
+    // Fill to exactly MAX_CACHE_SIZE so the next insert triggers eviction
+    for (let i = 0; i < 10_000; i++) {
+      rulesCache.set(`t-${i}:a-${i}`, { data: [], expiresAt: now + 999_999 });
+    }
+    expect(rulesCache.size).toBe(10_000);
+
+    mockGetActiveBlockRules.mockResolvedValue([]);
+    await service.checkLimits('tenant-new', 'agent-new');
+
+    // The first filler entry should have been evicted
+    expect(rulesCache.has('t-0:a-0')).toBe(false);
+    // The new entry should be present
+    expect(rulesCache.has('tenant-new:agent-new')).toBe(true);
+  });
+
+  it('evicts oldest consumption cache entry when MAX_CACHE_SIZE is reached', async () => {
+    const consumptionCache = (service as any).consumptionCache as Map<string, unknown>;
+    const now = Date.now();
+
+    for (let i = 0; i < 10_000; i++) {
+      consumptionCache.set(`t-${i}:a-${i}:tokens:2026-01-01`, {
+        data: 0,
+        expiresAt: now + 999_999,
+      });
+    }
+    expect(consumptionCache.size).toBe(10_000);
+
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-new',
+        agent_name: 'agent-new',
+        user_id: 'u1',
+        metric_type: 'tokens',
+        threshold: 100000,
+        period: 'day',
+      },
+    ]);
+    mockGetConsumption.mockResolvedValue(0);
+
+    await service.checkLimits('tenant-new', 'agent-new');
+
+    // The first filler entry should have been evicted
+    expect(consumptionCache.has('t-0:a-0:tokens:2026-01-01')).toBe(false);
+  });
+
   describe('email notification on block', () => {
     const rule = {
       id: 'r1',
