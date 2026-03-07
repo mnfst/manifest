@@ -1,5 +1,11 @@
 # manifest
 
+## 5.21.2
+
+### Patch Changes
+
+- 6e7774f: Add multi-layer caching to reduce database load and improve response times
+
 ## 5.21.1
 
 ### Patch Changes
