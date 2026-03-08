@@ -238,14 +238,21 @@ export class TimeseriesQueriesService {
 
   async getAgentList(userId: string) {
     const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const agents = await this.agentRepo
-      .createQueryBuilder('a')
-      .leftJoin('a.tenant', 't')
-      .where('t.name = :userId', { userId })
+
+    // 1C: Skip tenant JOIN when tenantId is cached
+    const agentQb = this.agentRepo.createQueryBuilder('a');
+    if (tenantId) {
+      agentQb.where('a.tenant_id = :tenantId', { tenantId });
+    } else {
+      agentQb.leftJoin('a.tenant', 't').where('t.name = :userId', { userId });
+    }
+    const agents = await agentQb
       .andWhere('a.is_active = true')
       .orderBy('a.created_at', 'DESC')
       .getMany();
 
+    // 1A: Add 30-day timestamp filter to stats query
+    const statsCutoff = computeCutoff('30 days');
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
     const statsQb = this.turnRepo
       .createQueryBuilder('at')
@@ -254,17 +261,9 @@ export class TimeseriesQueriesService {
       .addSelect('MAX(at.timestamp)', 'last_active')
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'total_cost')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total_tokens')
-      .where('at.agent_name IS NOT NULL');
+      .where('at.agent_name IS NOT NULL')
+      .andWhere('at.timestamp >= :statsCutoff', { statsCutoff });
     addTenantFilter(statsQb, userId, undefined, tenantId);
-    const statsRows = await statsQb
-      .groupBy('at.agent_name')
-      .orderBy('last_active', 'DESC')
-      .getRawMany();
-
-    const statsMap = new Map<string, Record<string, unknown>>();
-    for (const r of statsRows) {
-      statsMap.set(String(r['agent_name']), r);
-    }
 
     const sparkCutoff = computeCutoff('7 days');
     const hourExpr = sqlHourBucket('at.timestamp', this.dialect);
@@ -276,12 +275,22 @@ export class TimeseriesQueriesService {
       .where('at.timestamp >= :sparkCutoff', { sparkCutoff })
       .andWhere('at.agent_name IS NOT NULL');
     addTenantFilter(sparkQb, userId, undefined, tenantId);
-    const sparkRows = await sparkQb
-      .groupBy('at.agent_name')
-      .addGroupBy('hour')
-      .orderBy('at.agent_name', 'ASC')
-      .addOrderBy('hour', 'ASC')
-      .getRawMany();
+
+    // 1B: Parallelize stats + sparkline queries
+    const [statsRows, sparkRows] = await Promise.all([
+      statsQb.groupBy('at.agent_name').orderBy('last_active', 'DESC').getRawMany(),
+      sparkQb
+        .groupBy('at.agent_name')
+        .addGroupBy('hour')
+        .orderBy('at.agent_name', 'ASC')
+        .addOrderBy('hour', 'ASC')
+        .getRawMany(),
+    ]);
+
+    const statsMap = new Map<string, Record<string, unknown>>();
+    for (const r of statsRows) {
+      statsMap.set(String(r['agent_name']), r);
+    }
 
     const sparkMap = new Map<string, number[]>();
     for (const r of sparkRows) {

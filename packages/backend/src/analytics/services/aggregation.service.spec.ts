@@ -128,10 +128,10 @@ describe('AggregationService', () => {
 
   describe('getTokenSummary', () => {
     it('returns token totals with trend', async () => {
+      // 3A: Now 2 parallel queries (detail + prev) instead of 3 sequential
       mockGetRawOne
-        .mockResolvedValueOnce({ total: 5000 })
-        .mockResolvedValueOnce({ total: 4000 })
-        .mockResolvedValueOnce({ inp: 3000, out: 2000 });
+        .mockResolvedValueOnce({ inp: 3000, out: 2000 })
+        .mockResolvedValueOnce({ total: 4000 });
 
       const result = await service.getTokenSummary('24h', 'test-user');
       expect(result.tokens_today.value).toBe(5000);
@@ -142,9 +142,8 @@ describe('AggregationService', () => {
 
     it('returns zero trend when no previous data', async () => {
       mockGetRawOne
-        .mockResolvedValueOnce({ total: 1000 })
-        .mockResolvedValueOnce({ total: 0 })
-        .mockResolvedValueOnce({ inp: 600, out: 400 });
+        .mockResolvedValueOnce({ inp: 600, out: 400 })
+        .mockResolvedValueOnce({ total: 0 });
 
       const result = await service.getTokenSummary('24h', 'test-user');
       expect(result.tokens_today.trend_pct).toBe(0);
@@ -152,19 +151,15 @@ describe('AggregationService', () => {
 
     it('should pass agentName to tenant filter when provided', async () => {
       mockGetRawOne
-        .mockResolvedValueOnce({ total: 100 })
-        .mockResolvedValueOnce({ total: 50 })
-        .mockResolvedValueOnce({ inp: 60, out: 40 });
+        .mockResolvedValueOnce({ inp: 60, out: 40 })
+        .mockResolvedValueOnce({ total: 50 });
 
       const result = await service.getTokenSummary('24h', 'test-user', 'my-agent');
       expect(result.tokens_today.value).toBe(100);
     });
 
     it('should handle null query results gracefully', async () => {
-      mockGetRawOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+      mockGetRawOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
 
       const result = await service.getTokenSummary('24h', 'test-user');
       expect(result.tokens_today.value).toBe(0);
@@ -432,9 +427,8 @@ describe('AggregationService (sql.js / local mode)', () => {
 
   it('business logic works identically on sqlite dialect', async () => {
     mockGetRawOne
-      .mockResolvedValueOnce({ total: 200 })
-      .mockResolvedValueOnce({ total: 100 })
-      .mockResolvedValueOnce({ inp: 120, out: 80 });
+      .mockResolvedValueOnce({ inp: 120, out: 80 })
+      .mockResolvedValueOnce({ total: 100 });
 
     const result = await service.getTokenSummary('24h', 'user-1');
     expect(result.tokens_today.value).toBe(200);

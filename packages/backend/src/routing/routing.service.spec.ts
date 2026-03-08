@@ -74,10 +74,11 @@ describe('RoutingService', () => {
 
       const result = await service.getTiers('a1');
 
-      expect(mockTierRepo.insert).toHaveBeenCalledTimes(4);
-      const tiers = mockTierRepo.insert.mock.calls.map(
-        (c: unknown[]) => (c[0] as { tier: string }).tier,
-      );
+      // 2A: Batch insert — single call with array of 4 records
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as { tier: string }[];
+      expect(inserted).toHaveLength(4);
+      const tiers = inserted.map((r) => r.tier);
       expect(tiers).toEqual(['simple', 'standard', 'complex', 'reasoning']);
       expect(result).toHaveLength(4);
     });
@@ -96,7 +97,10 @@ describe('RoutingService', () => {
 
       const result = await service.getTiers('a1');
 
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
+      // 2B: providers are now passed to avoid duplicate query
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1', [
+        { provider: 'openai', is_active: true },
+      ]);
       expect(result).toHaveLength(4);
       expect(result[0].auto_assigned_model).toBe('gpt-4o');
     });
