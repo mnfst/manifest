@@ -246,7 +246,7 @@ const Routing: Component = () => {
             complexity
           </span>
         </div>
-        <Show when={isEnabled()}>
+        <Show when={!connectedProviders.loading && isEnabled()}>
           <button class="btn btn--primary btn--sm" onClick={() => setShowProviderModal(true)}>
             Connect providers
           </button>
@@ -254,10 +254,23 @@ const Routing: Component = () => {
       </div>
 
       <Show
-        when={!tiers.loading && !connectedProviders.loading}
+        when={!connectedProviders.loading}
         fallback={
-          <div class="panel" style="padding: var(--gap-xl);">
-            <div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />
+          <div class="routing-cards">
+            <For each={STAGES}>
+              {(stage) => (
+                <div class="routing-card">
+                  <div class="routing-card__header">
+                    <span class="routing-card__tier">{stage.label}</span>
+                    <span class="routing-card__desc">{stage.desc}</span>
+                  </div>
+                  <div class="routing-card__body">
+                    <div class="skeleton skeleton--text" style="width: 160px; height: 14px;" />
+                    <div class="skeleton skeleton--text" style="width: 200px; height: 12px; margin-top: 6px;" />
+                  </div>
+                </div>
+              )}
+            </For>
           </div>
         }
       >
@@ -348,112 +361,122 @@ const Routing: Component = () => {
                       <span class="routing-card__tier">{stage.label}</span>
                       <span class="routing-card__desc">{stage.desc}</span>
                     </div>
-                    <div class="routing-card__body">
-                      <Show
-                        when={eff()}
-                        fallback={
-                          <div class="routing-card__empty">
-                            <span class="routing-card__empty-text">No model available</span>
-                            <button
-                              class="routing-card__empty-link"
-                              onClick={() => setDropdownTier(stage.id)}
-                            >
-                              Select model
-                            </button>
-                          </div>
-                        }
-                      >
-                        {(modelName) => (
-                          <>
-                            <div class="routing-card__override">
-                              {(() => {
-                                const provId = providerIdForModel(modelName(), models() ?? []);
-                                if (provId?.startsWith('custom:')) {
-                                  const cp = customProviders()?.find(
-                                    (c) => `custom:${c.id}` === provId,
-                                  );
-                                  const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
-                                  return (
-                                    <span class="routing-card__override-icon">
-                                      <span
-                                        class="provider-card__logo-letter"
-                                        style={{
-                                          background: 'var(--custom-provider-color)',
-                                          width: '16px',
-                                          height: '16px',
-                                          'font-size': '9px',
-                                          'border-radius': '50%',
-                                        }}
-                                      >
-                                        {letter}
-                                      </span>
-                                    </span>
-                                  );
-                                }
-                                return (
-                                  <Show when={provId}>
-                                    {(pid) => (
-                                      <span class="routing-card__override-icon">
-                                        {providerIcon(pid(), 16)}
-                                      </span>
-                                    )}
-                                  </Show>
-                                );
-                              })()}
-                              <span class="routing-card__main">{labelFor(modelName())}</span>
-                              <Show when={!isManual()}>
-                                <span class="routing-card__auto-tag">auto</span>
-                              </Show>
+                    <Show
+                      when={!tiers.loading}
+                      fallback={
+                        <div class="routing-card__body">
+                          <div class="skeleton skeleton--text" style="width: 160px; height: 14px;" />
+                          <div class="skeleton skeleton--text" style="width: 200px; height: 12px; margin-top: 6px;" />
+                        </div>
+                      }
+                    >
+                      <div class="routing-card__body">
+                        <Show
+                          when={eff()}
+                          fallback={
+                            <div class="routing-card__empty">
+                              <span class="routing-card__empty-text">No model available</span>
+                              <button
+                                class="routing-card__empty-link"
+                                onClick={() => setDropdownTier(stage.id)}
+                              >
+                                Select model
+                              </button>
                             </div>
-                            <span class="routing-card__sub">{priceLabel(modelName())}</span>
-                          </>
-                        )}
-                      </Show>
-                    </div>
-                    <Show when={eff()}>
-                      <div class="routing-card__right">
-                        <div class="routing-card__actions">
-                          <button
-                            class="routing-action"
-                            onClick={() => setDropdownTier(stage.id)}
-                            disabled={changingTier() === stage.id}
-                          >
-                            {changingTier() === stage.id ? 'Changing...' : 'Change'}
-                          </button>
-                          <Show when={isManual()}>
+                          }
+                        >
+                          {(modelName) => (
+                            <>
+                              <div class="routing-card__override">
+                                {(() => {
+                                  const provId = providerIdForModel(modelName(), models() ?? []);
+                                  if (provId?.startsWith('custom:')) {
+                                    const cp = customProviders()?.find(
+                                      (c) => `custom:${c.id}` === provId,
+                                    );
+                                    const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
+                                    return (
+                                      <span class="routing-card__override-icon">
+                                        <span
+                                          class="provider-card__logo-letter"
+                                          style={{
+                                            background: 'var(--custom-provider-color)',
+                                            width: '16px',
+                                            height: '16px',
+                                            'font-size': '9px',
+                                            'border-radius': '50%',
+                                          }}
+                                        >
+                                          {letter}
+                                        </span>
+                                      </span>
+                                    );
+                                  }
+                                  return (
+                                    <Show when={provId}>
+                                      {(pid) => (
+                                        <span class="routing-card__override-icon">
+                                          {providerIcon(pid(), 16)}
+                                        </span>
+                                      )}
+                                    </Show>
+                                  );
+                                })()}
+                                <span class="routing-card__main">{labelFor(modelName())}</span>
+                                <Show when={!isManual()}>
+                                  <span class="routing-card__auto-tag">auto</span>
+                                </Show>
+                              </div>
+                              <span class="routing-card__sub">{priceLabel(modelName())}</span>
+                            </>
+                          )}
+                        </Show>
+                      </div>
+                      <Show when={eff()}>
+                        <div class="routing-card__right">
+                          <div class="routing-card__actions">
                             <button
                               class="routing-action"
-                              onClick={() => handleReset(stage.id)}
-                              disabled={resettingTier() === stage.id || resettingAll()}
+                              onClick={() => setDropdownTier(stage.id)}
+                              disabled={changingTier() === stage.id}
                             >
-                              {resettingTier() === stage.id ? 'Resetting...' : 'Reset'}
+                              {changingTier() === stage.id ? 'Changing...' : 'Change'}
                             </button>
-                          </Show>
+                            <Show when={isManual()}>
+                              <button
+                                class="routing-action"
+                                onClick={() => handleReset(stage.id)}
+                                disabled={resettingTier() === stage.id || resettingAll()}
+                              >
+                                {resettingTier() === stage.id ? 'Resetting...' : 'Reset'}
+                              </button>
+                            </Show>
+                          </div>
+                          <FallbackList
+                            agentName={agentName()}
+                            tier={stage.id}
+                            fallbacks={getFallbacksFor(stage.id)}
+                            models={models() ?? []}
+                            customProviders={customProviders() ?? []}
+                            onUpdate={(updatedFallbacks) => {
+                              setFallbackOverrides((prev) => {
+                                const next = { ...prev };
+                                delete next[stage.id];
+                                return next;
+                              });
+                              mutateTiers((prev) =>
+                                prev?.map((t) =>
+                                  t.tier === stage.id
+                                    ? { ...t, fallback_models: updatedFallbacks }
+                                    : t,
+                                ),
+                              );
+                            }}
+                            onAddFallback={() => setFallbackPickerTier(stage.id)}
+                            adding={addingFallback() === stage.id}
+                          />
                         </div>
-                        <FallbackList
-                          agentName={agentName()}
-                          tier={stage.id}
-                          fallbacks={getFallbacksFor(stage.id)}
-                          models={models() ?? []}
-                          customProviders={customProviders() ?? []}
-                          onUpdate={(updatedFallbacks) => {
-                            setFallbackOverrides((prev) => {
-                              const next = { ...prev };
-                              delete next[stage.id];
-                              return next;
-                            });
-                            mutateTiers((prev) =>
-                              prev?.map((t) =>
-                                t.tier === stage.id
-                                  ? { ...t, fallback_models: updatedFallbacks }
-                                  : t,
-                              ),
-                            );
-                          }}
-                          onAddFallback={() => setFallbackPickerTier(stage.id)}
-                          adding={addingFallback() === stage.id}
-                        />
-                      </div>
+                      </Show>
                     </Show>
                   </div>
                 );
