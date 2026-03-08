@@ -5,6 +5,7 @@ import { AgentMessage } from '../entities/agent-message.entity';
 import { SecurityEvent } from '../entities/security-event.entity';
 import { TelemetryEventDto } from './dto/create-telemetry.dto';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
+import { TenantCacheService } from '../common/services/tenant-cache.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 
 function makeEvent(overrides: Partial<TelemetryEventDto> = {}): TelemetryEventDto {
@@ -22,11 +23,13 @@ describe('TelemetryService', () => {
   let mockTurnInsert: jest.Mock;
   let mockPricingGetByModel: jest.Mock;
   let mockSecurityInsert: jest.Mock;
+  let mockTenantResolve: jest.Mock;
 
   beforeEach(async () => {
     mockTurnInsert = jest.fn().mockResolvedValue({});
     mockPricingGetByModel = jest.fn().mockReturnValue(undefined);
     mockSecurityInsert = jest.fn().mockResolvedValue({});
+    mockTenantResolve = jest.fn().mockResolvedValue('resolved-tenant-id');
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -34,6 +37,7 @@ describe('TelemetryService', () => {
         { provide: getRepositoryToken(AgentMessage), useValue: { insert: mockTurnInsert } },
         { provide: getRepositoryToken(SecurityEvent), useValue: { insert: mockSecurityInsert } },
         { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: mockTenantResolve } },
         { provide: ModelPricingCacheService, useValue: { getByModel: mockPricingGetByModel } },
       ],
     }).compile();
@@ -55,6 +59,7 @@ describe('TelemetryService', () => {
       expect.objectContaining({
         input_tokens: 100,
         output_tokens: 50,
+        tenant_id: 'resolved-tenant-id',
         user_id: 'test-user',
       }),
     ]);
