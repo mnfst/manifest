@@ -211,8 +211,10 @@ export class RoutingController {
           capability_reasoning: m.capability_reasoning,
           capability_code: m.capability_code,
           quality_score: m.quality_score,
+          display_name: isCustom
+            ? CustomProviderService.rawModelName(m.model_name)
+            : m.display_name || '',
           ...(isCustom && {
-            display_name: CustomProviderService.rawModelName(m.model_name),
             provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
           }),
         };

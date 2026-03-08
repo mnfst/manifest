@@ -29,6 +29,7 @@ describe('ModelPricesService', () => {
             input_price_per_token: 0.0000025,
             output_price_per_token: 0.00001,
             updated_at: '2025-06-01',
+            display_name: 'GPT-4o',
           },
         ])
         .mockResolvedValueOnce([{ last_synced: '2025-06-01' }]);
@@ -41,6 +42,7 @@ describe('ModelPricesService', () => {
           provider: 'OpenAI',
           input_price_per_million: 2.5,
           output_price_per_million: 10,
+          display_name: 'GPT-4o',
         },
       ]);
       expect(result.lastSyncedAt).toBe('2025-06-01');
@@ -55,6 +57,7 @@ describe('ModelPricesService', () => {
             input_price_per_token: 0.000001,
             output_price_per_token: 0.000002,
             updated_at: null,
+            display_name: '',
           },
         ])
         .mockResolvedValueOnce([{ last_synced: null }]);
@@ -62,6 +65,7 @@ describe('ModelPricesService', () => {
       const result = await service.getAll();
 
       expect(result.models[0].provider).toBe('Unknown');
+      expect(result.models[0].display_name).toBe('');
     });
 
     it('should return null lastSyncedAt when no updated_at values', async () => {
@@ -90,6 +94,7 @@ describe('ModelPricesService', () => {
             input_price_per_token: 0.00000006,
             output_price_per_token: 0.00000024,
             updated_at: null,
+            display_name: '',
           },
         ])
         .mockResolvedValueOnce([{ last_synced: null }]);
@@ -109,6 +114,7 @@ describe('ModelPricesService', () => {
             input_price_per_token: null,
             output_price_per_token: null,
             updated_at: null,
+            display_name: '',
           },
         ])
         .mockResolvedValueOnce([{ last_synced: null }]);
@@ -128,6 +134,7 @@ describe('ModelPricesService', () => {
             input_price_per_token: 0.000001,
             output_price_per_token: null,
             updated_at: null,
+            display_name: '',
           },
         ])
         .mockResolvedValueOnce([{ last_synced: null }]);
@@ -147,6 +154,7 @@ describe('ModelPricesService', () => {
             input_price_per_token: 0.000015,
             output_price_per_token: 0.000075,
             updated_at: '2025-06-01',
+            display_name: 'Claude Opus 4.6',
           },
           {
             model_name: 'gpt-4o',
@@ -154,6 +162,7 @@ describe('ModelPricesService', () => {
             input_price_per_token: 0.0000025,
             output_price_per_token: 0.00001,
             updated_at: '2025-06-01',
+            display_name: 'GPT-4o',
           },
         ])
         .mockResolvedValueOnce([{ last_synced: '2025-06-01' }]);

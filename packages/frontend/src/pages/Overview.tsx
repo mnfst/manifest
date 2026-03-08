@@ -21,6 +21,7 @@ import {
   inferProviderName,
   stripCustomPrefix,
 } from '../services/routing-utils.js';
+import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { isLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
@@ -85,6 +86,7 @@ type ActiveView = 'cost' | 'tokens' | 'messages';
 const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
   const location = useLocation<{ newAgent?: boolean; newApiKey?: string }>();
+  preloadModelDisplayNames();
   const [range, setRange] = createSignal('7d');
   const [activeView, setActiveView] = createSignal<ActiveView>('cost');
   const [setupOpen, setSetupOpen] = createSignal(
@@ -573,7 +575,7 @@ const Overview: Component = () => {
                                       {providerIcon(inferProviderFromModel(item.model)!, 14)}
                                     </span>
                                   ) : null}
-                                  {item.model ? stripCustomPrefix(item.model) : '\u2014'}
+                                  {item.model ? getModelDisplayName(item.model) : '\u2014'}
                                   {item.routing_tier && (
                                     <span class={`tier-badge tier-badge--${item.routing_tier}`}>
                                       {item.routing_tier}
@@ -582,7 +584,7 @@ const Overview: Component = () => {
                                   {item.fallback_from_model && (
                                     <span
                                       class="tier-badge tier-badge--fallback"
-                                      title={`Fallback from ${stripCustomPrefix(item.fallback_from_model)}`}
+                                      title={`Fallback from ${getModelDisplayName(item.fallback_from_model)}`}
                                     >
                                       fallback
                                     </span>
@@ -702,7 +704,7 @@ const Overview: Component = () => {
                                       {providerIcon(inferProviderFromModel(row.model)!, 14)}
                                     </span>
                                   ) : null}
-                                  {row.model ? stripCustomPrefix(row.model) : row.model}
+                                  {row.model ? getModelDisplayName(row.model) : row.model}
                                 </span>
                               </td>
                               <td>{formatNumber(row.tokens)}</td>

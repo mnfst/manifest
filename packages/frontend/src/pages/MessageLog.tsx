@@ -25,6 +25,7 @@ import {
   inferProviderName,
   stripCustomPrefix,
 } from '../services/routing-utils.js';
+import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import Select from '../components/Select.jsx';
 import InfoTooltip from '../components/InfoTooltip.jsx';
@@ -64,6 +65,7 @@ interface MessagesData {
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
+  preloadModelDisplayNames();
   const [statusFilter, setStatusFilter] = createSignal('');
   const [modelFilter, setModelFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
@@ -191,7 +193,7 @@ const MessageLog: Component = () => {
               onChange={setModelFilter}
               options={[
                 { label: 'All models', value: '' },
-                ...(data()?.models ?? []).map((m) => ({ label: stripCustomPrefix(m), value: m })),
+                ...(data()?.models ?? []).map((m) => ({ label: getModelDisplayName(m), value: m })),
               ]}
             />
             <div class="cost-range-filter">
@@ -465,7 +467,7 @@ const MessageLog: Component = () => {
                                 {providerIcon(inferProviderFromModel(item.model)!, 14)}
                               </span>
                             ) : null}
-                            {item.model ? stripCustomPrefix(item.model) : '\u2014'}
+                            {item.model ? getModelDisplayName(item.model) : '\u2014'}
                             {item.routing_tier && (
                               <span class={`tier-badge tier-badge--${item.routing_tier}`}>
                                 {item.routing_tier}
@@ -474,7 +476,7 @@ const MessageLog: Component = () => {
                             {item.fallback_from_model && (
                               <span
                                 class="tier-badge tier-badge--fallback"
-                                title={`Fallback from ${stripCustomPrefix(item.fallback_from_model)}`}
+                                title={`Fallback from ${getModelDisplayName(item.fallback_from_model)}`}
                               >
                                 fallback
                               </span>

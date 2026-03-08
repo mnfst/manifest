@@ -384,6 +384,7 @@ describe('RoutingController', () => {
         capability_reasoning: false,
         capability_code: true,
         quality_score: 3,
+        display_name: '',
         ...overrides,
       } as ModelPricing;
     }
@@ -438,6 +439,7 @@ describe('RoutingController', () => {
         'capability_code',
         'capability_reasoning',
         'context_window',
+        'display_name',
         'input_price_per_token',
         'model_name',
         'output_price_per_token',
@@ -501,16 +503,16 @@ describe('RoutingController', () => {
       expect(result[0].provider_display_name).toBe('custom:cp-orphan');
     });
 
-    it('should not include display_name for non-custom providers', async () => {
+    it('should include display_name for non-custom providers', async () => {
       mockRoutingService.getProviders.mockResolvedValue([{ provider: 'openai', is_active: true }]);
       mockPricingCache.getAll.mockReturnValue([
-        makePricing({ model_name: 'gpt-4o', provider: 'OpenAI' }),
+        makePricing({ model_name: 'gpt-4o', provider: 'OpenAI', display_name: 'GPT-4o' }),
       ]);
 
       const result = await controller.getAvailableModels(mockUser, mockAgentName);
 
       expect(result).toHaveLength(1);
-      expect(result[0]).not.toHaveProperty('display_name');
+      expect(result[0].display_name).toBe('GPT-4o');
       expect(result[0]).not.toHaveProperty('provider_display_name');
     });
   });

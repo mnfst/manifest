@@ -29,4 +29,7 @@ export class ModelPricing {
 
   @Column('integer', { default: 3 })
   quality_score!: number;
+
+  @Column('varchar', { default: '' })
+  display_name!: string;
 }

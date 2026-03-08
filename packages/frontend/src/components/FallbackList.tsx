@@ -1,6 +1,7 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import { providerIcon } from './ProviderIcon.js';
 import { resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
+import { getModelLabel } from '../services/providers.js';
 import {
   setFallbacks,
   clearFallbacks,
@@ -25,6 +26,10 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   const modelLabel = (model: string): string => {
     const info = props.models.find((m) => m.model_name === model);
     if (info?.display_name) return info.display_name;
+    if (info) {
+      const provId = resolveProviderId(info.provider);
+      if (provId) return getModelLabel(provId, model);
+    }
     return stripCustomPrefix(model);
   };
 

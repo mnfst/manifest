@@ -21,6 +21,10 @@ vi.mock("../../src/services/routing-utils.js", () => ({
   stripCustomPrefix: (m: string) => m.replace(/^custom:[^/]+\//, ""),
 }));
 
+vi.mock("../../src/services/providers.js", () => ({
+  getModelLabel: (_providerId: string, model: string) => model,
+}));
+
 import FallbackList from "../../src/components/FallbackList";
 
 const models = [
@@ -185,6 +189,23 @@ describe("FallbackList", () => {
 
     const modelLabel = container.querySelector(".fallback-list__model");
     expect(modelLabel?.textContent).toBe("Model Alpha");
+  });
+
+  it("falls back to getModelLabel when model has no display_name but has provider", () => {
+    const modelsNoDisplay = [
+      { model_name: "model-a", provider: "OpenAI" },
+    ] as any[];
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a"]}
+        models={modelsNoDisplay}
+      />
+    ));
+
+    const modelLabel = container.querySelector(".fallback-list__model");
+    // getModelLabel mock returns model as-is
+    expect(modelLabel?.textContent).toBe("model-a");
   });
 
   it("falls back to stripCustomPrefix when model not found in models list", () => {
