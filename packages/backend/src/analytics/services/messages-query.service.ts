@@ -94,7 +94,9 @@ export class MessagesQueryService {
       .addSelect('at.cache_creation_tokens', 'cache_creation_tokens')
       .addSelect('at.duration_ms', 'duration_ms')
       .addSelect('at.error_message', 'error_message')
-      .addSelect('at.auth_type', 'auth_type');
+      .addSelect('at.auth_type', 'auth_type')
+      .addSelect('at.fallback_from_model', 'fallback_from_model')
+      .addSelect('at.fallback_index', 'fallback_index');
 
     if (params.cursor) {
       const sepIdx = params.cursor.indexOf('|');

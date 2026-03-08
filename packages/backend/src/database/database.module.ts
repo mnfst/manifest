@@ -45,6 +45,8 @@ import { AddCustomProviders1772668898071 } from './migrations/1772668898071-AddC
 import { NullablePricing1772682112419 } from './migrations/1772682112419-NullablePricing';
 import { AddPerformanceIndexes1772843035514 } from './migrations/1772843035514-AddPerformanceIndexes';
 import { AddProviderAuthType1772900000000 } from './migrations/1772900000000-AddProviderAuthType';
+import { AddDashboardIndexes1772905146384 } from './migrations/1772905146384-AddDashboardIndexes';
+import { AddFallbacks1772905260464 } from './migrations/1772905260464-AddFallbacks';
 import { ExpandProviderUniqueKey1773000000000 } from './migrations/1773000000000-ExpandProviderUniqueKey';
 import { AddOverrideAuthType1773100000000 } from './migrations/1773100000000-AddOverrideAuthType';
 import { AddMessageAuthType1773200000000 } from './migrations/1773200000000-AddMessageAuthType';
@@ -97,6 +99,8 @@ const migrations = [
   NullablePricing1772682112419,
   AddPerformanceIndexes1772843035514,
   AddProviderAuthType1772900000000,
+  AddDashboardIndexes1772905146384,
+  AddFallbacks1772905260464,
   ExpandProviderUniqueKey1773000000000,
   AddOverrideAuthType1773100000000,
   AddMessageAuthType1773200000000,

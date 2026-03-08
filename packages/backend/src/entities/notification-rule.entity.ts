@@ -1,13 +1,10 @@
-import {
-  Entity,
-  Column,
-  PrimaryColumn,
-  Index,
-} from 'typeorm';
+import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('notification_rules')
 @Index(['tenant_id', 'agent_id'])
+@Index(['user_id', 'agent_name'])
+@Index(['tenant_id', 'agent_name'])
 export class NotificationRule {
   @PrimaryColumn('varchar')
   id!: string;

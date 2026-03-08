@@ -36,6 +36,9 @@ describe('RoutingController', () => {
       setOverride: jest.fn().mockResolvedValue({}),
       clearOverride: jest.fn().mockResolvedValue(undefined),
       resetAllOverrides: jest.fn().mockResolvedValue(undefined),
+      getFallbacks: jest.fn().mockResolvedValue([]),
+      setFallbacks: jest.fn().mockResolvedValue([]),
+      clearFallbacks: jest.fn().mockResolvedValue(undefined),
     };
     mockPricingCache = {
       getAll: jest.fn().mockReturnValue([]),
@@ -556,6 +559,35 @@ describe('RoutingController', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).not.toHaveProperty('display_name');
       expect(result[0]).not.toHaveProperty('provider_display_name');
+    });
+  });
+
+  /* ── fallback endpoints ── */
+
+  describe('fallback endpoints', () => {
+    it('should delegate getFallbacks to service', async () => {
+      mockRoutingService.getFallbacks.mockResolvedValue(['model-a']);
+      const result = await controller.getFallbacks(mockUser, 'test-agent', 'standard');
+      expect(mockRoutingService.getFallbacks).toHaveBeenCalledWith(TEST_AGENT_ID, 'standard');
+      expect(result).toEqual(['model-a']);
+    });
+
+    it('should delegate setFallbacks to service', async () => {
+      mockRoutingService.setFallbacks.mockResolvedValue(['model-a', 'model-b']);
+      const result = await controller.setFallbacks(mockUser, 'test-agent', 'standard', {
+        models: ['model-a', 'model-b'],
+      });
+      expect(mockRoutingService.setFallbacks).toHaveBeenCalledWith(TEST_AGENT_ID, 'standard', [
+        'model-a',
+        'model-b',
+      ]);
+      expect(result).toEqual(['model-a', 'model-b']);
+    });
+
+    it('should delegate clearFallbacks to service', async () => {
+      const result = await controller.clearFallbacks(mockUser, 'test-agent', 'standard');
+      expect(mockRoutingService.clearFallbacks).toHaveBeenCalledWith(TEST_AGENT_ID, 'standard');
+      expect(result).toEqual({ ok: true });
     });
   });
 

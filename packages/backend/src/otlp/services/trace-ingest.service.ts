@@ -9,7 +9,7 @@ import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache
 import { UserProvider } from '../../entities/user-provider.entity';
 import { OtlpExportTraceServiceRequest, OtlpSpan, OtlpResourceSpans } from '../interfaces';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
-import { In } from 'typeorm';
+import { In, Not, IsNull } from 'typeorm';
 import {
   extractAttributes,
   nanoToDatetime,
@@ -122,6 +122,76 @@ export class TraceIngestService {
     return ghostIds;
   }
 
+  private async remapFallbackSpans(
+    spans: OtlpSpan[],
+    spanMap: Map<string, SpanEntry>,
+    ctx: IngestionContext,
+    fallbackModelOverrides: Map<string, string>,
+    fallbackDurations: Map<string, number>,
+  ): Promise<Set<string>> {
+    const skipIds = new Set<string>();
+    for (const span of spans) {
+      const spanId = toHexString(span.spanId);
+      const entry = spanMap.get(spanId);
+      if (!entry || entry.type !== 'agent_message') continue;
+
+      const traceId = toHexString(span.traceId);
+      let fallback: Pick<AgentMessage, 'id' | 'model'> | null = null;
+
+      // Strategy 1: match by trace_id (when gateway sends traceparent).
+      if (traceId) {
+        fallback = await this.turnRepo.findOne({
+          where: {
+            trace_id: traceId,
+            tenant_id: ctx.tenantId,
+            agent_id: ctx.agentId,
+            fallback_from_model: Not(IsNull()),
+          },
+          select: ['id', 'model'],
+        });
+      }
+
+      // Strategy 2: match recent unfilled fallback success by agent + time proximity.
+      if (!fallback) {
+        fallback = await this.findUnfilledFallback(span, ctx);
+      }
+
+      if (fallback) {
+        entry.uuid = fallback.id;
+        if (fallback.model) {
+          fallbackModelOverrides.set(fallback.id, fallback.model);
+        }
+        const durationMs = spanDurationMs(span.startTimeUnixNano, span.endTimeUnixNano);
+        if (durationMs != null) fallbackDurations.set(fallback.id, durationMs);
+        skipIds.add(spanId);
+      }
+    }
+    return skipIds;
+  }
+
+  private async findUnfilledFallback(
+    span: OtlpSpan,
+    ctx: IngestionContext,
+  ): Promise<Pick<AgentMessage, 'id' | 'model'> | null> {
+    const spanTime = new Date(nanoToDatetime(span.startTimeUnixNano)).getTime();
+    const candidates = await this.turnRepo.find({
+      where: {
+        tenant_id: ctx.tenantId,
+        agent_id: ctx.agentId,
+        fallback_from_model: Not(IsNull()),
+        status: 'ok',
+        input_tokens: 0,
+        output_tokens: 0,
+      },
+      select: ['id', 'model', 'timestamp'],
+      order: { timestamp: 'DESC' },
+      take: 1,
+    });
+    if (candidates.length === 0) return null;
+    const cTime = new Date(candidates[0].timestamp).getTime();
+    return Math.abs(cTime - spanTime) <= 60_000 ? candidates[0] : null;
+  }
+
   private async insertAll(
     spans: OtlpSpan[],
     resourceAttrs: AttributeMap,
@@ -130,6 +200,18 @@ export class TraceIngestService {
   ): Promise<void> {
     const subOnlyProviders = await this.getSubscriptionOnlyProviders(ctx.agentId);
     const ghostSpanIds = this.filterGhostSpans(spans, resourceAttrs, spanMap);
+    const fallbackModelOverrides = new Map<string, string>();
+    const fallbackDurations = new Map<string, number>();
+    // Pre-pass: remap UUIDs for fallback spans BEFORE processing LLM calls,
+    // so accumulateToMessage uses the correct (remapped) message ID regardless
+    // of span ordering within the OTLP batch.
+    const fallbackSkipIds = await this.remapFallbackSpans(
+      spans,
+      spanMap,
+      ctx,
+      fallbackModelOverrides,
+      fallbackDurations,
+    );
     const messageAggregates = new Map<
       string,
       {
@@ -155,7 +237,7 @@ export class TraceIngestService {
 
       if (entry.type === 'root_request') continue;
       if (entry.type === 'agent_message') {
-        if (ghostSpanIds.has(spanId)) continue;
+        if (ghostSpanIds.has(spanId) || fallbackSkipIds.has(spanId)) continue;
         const row = await this.buildAgentMessage(span, attrs, entry, ctx, subOnlyProviders);
         if (row) agentMessageRows.push(row);
       } else if (entry.type === 'llm_call') {
@@ -172,7 +254,12 @@ export class TraceIngestService {
     if (toolExecutionRows.length > 0) inserts.push(this.toolRepo.insert(toolExecutionRows));
     await Promise.all(inserts);
 
-    await this.rollUpMessageAggregates(messageAggregates, subOnlyProviders);
+    await this.rollUpMessageAggregates(
+      messageAggregates,
+      subOnlyProviders,
+      fallbackModelOverrides,
+      fallbackDurations,
+    );
   }
 
   private accumulateToMessage(
@@ -237,14 +324,19 @@ export class TraceIngestService {
       }
     >,
     subOnlyProviders: Set<string>,
+    fallbackModelOverrides?: Map<string, string>,
+    fallbackDurations?: Map<string, number>,
   ): Promise<void> {
     const updates: Promise<unknown>[] = [];
     for (const [messageId, agg] of aggregates) {
       if (agg.input === 0 && agg.output === 0) continue;
 
+      // For fallback records, use the correct model for cost calculation
+      // (OTLP carries the gateway's local resolution, not the actual fallback model).
+      const costModel = fallbackModelOverrides?.get(messageId) ?? agg.model;
       let cost: number | null = null;
-      if (agg.model) {
-        const pricing = this.pricingCache.getByModel(agg.model);
+      if (costModel) {
+        const pricing = this.pricingCache.getByModel(costModel);
         if (pricing && subOnlyProviders.has(pricing.provider?.toLowerCase())) {
           cost = 0;
         } else if (
@@ -258,20 +350,24 @@ export class TraceIngestService {
         }
       }
 
+      const setClause: Record<string, unknown> = {
+        input_tokens: agg.input,
+        output_tokens: agg.output,
+        cache_read_tokens: agg.cacheRead,
+        cache_creation_tokens: agg.cacheCreation,
+        model: () => 'COALESCE(model, :model)',
+        routing_tier: () => 'COALESCE(routing_tier, :tier)',
+        routing_reason: () => 'COALESCE(routing_reason, :reason)',
+        cost_usd: cost,
+      };
+      const durationMs = fallbackDurations?.get(messageId);
+      if (durationMs != null) setClause.duration_ms = durationMs;
+
       updates.push(
         this.turnRepo
           .createQueryBuilder()
           .update(AgentMessage)
-          .set({
-            input_tokens: agg.input,
-            output_tokens: agg.output,
-            cache_read_tokens: agg.cacheRead,
-            cache_creation_tokens: agg.cacheCreation,
-            model: () => 'COALESCE(model, :model)',
-            routing_tier: () => 'COALESCE(routing_tier, :tier)',
-            routing_reason: () => 'COALESCE(routing_reason, :reason)',
-            cost_usd: cost,
-          })
+          .set(setClause)
           .setParameter('model', agg.model)
           .setParameter('tier', agg.tier)
           .setParameter('reason', agg.reason)

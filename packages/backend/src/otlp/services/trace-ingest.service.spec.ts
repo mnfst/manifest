@@ -1417,19 +1417,20 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    // trace_id-based dedup is skipped; fallback calls find() for recent errors,
-    // then DB ghost fallback calls find() again for empty-ok spans
+    // trace_id-based dedup is skipped; remapFallbackSpans calls find() for unfilled
+    // fallback, then buildAgentMessage calls find() for recent errors + ghost dedup
     expect(mockTurnFindOne).not.toHaveBeenCalled();
-    expect(mockTurnFind).toHaveBeenCalledTimes(2);
+    expect(mockTurnFind).toHaveBeenCalledTimes(3);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
   it('deduplicates agent_message when proxy error exists near span timestamp', async () => {
     // findOne (trace_id check) returns null; find (timestamp fallback) returns a nearby error
     mockTurnFindOne.mockResolvedValue(null);
-    // Return an error with a timestamp close to the span's start time
     const nearbyTs = new Date(Number(BigInt('1708000000000000000') / 1_000_000n)).toISOString();
-    mockTurnFind.mockResolvedValue([{ id: 'proxy-error-id', timestamp: nearbyTs }]);
+    mockTurnFind
+      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass) — no match
+      .mockResolvedValueOnce([{ id: 'proxy-error-id', timestamp: nearbyTs }]); // recentErrors
 
     const span = makeSpan({
       traceId: 'trace-with-delayed-otlp',
@@ -1446,9 +1447,192 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnFindOne).toHaveBeenCalledTimes(1); // trace_id check
-    expect(mockTurnFind).toHaveBeenCalledTimes(1); // timestamp fallback
+    expect(mockTurnFindOne).toHaveBeenCalledTimes(2); // pre-pass fallback check + error dedup
+    expect(mockTurnFind).toHaveBeenCalledTimes(2); // unfilled fallback + timestamp fallback
     expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('remaps UUID to pre-inserted fallback success record for token rollup', async () => {
+    // Pre-pass findOne: fallback success record found.
+    // The agent_message span is then skipped in the main loop (fallbackSkipIds),
+    // so buildAgentMessage (and its error dedup findOne) is never called.
+    mockTurnFindOne.mockResolvedValueOnce({
+      id: 'preinserted-fallback-id',
+      model: 'deepseek-chat',
+    });
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-fb',
+      traceId: 'trace-fallback-remap',
+      name: 'openclaw.agent.turn',
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-fb',
+      parentSpanId: 'span-msg-fb',
+      traceId: 'trace-fallback-remap',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: '500' } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: '100' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'gemini-flash' } },
+      ],
+    });
+
+    mockPricingGetByModel.mockReturnValue({
+      input_price_per_token: '0.0001',
+      output_price_per_token: '0.0002',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    // Only one findOne call: the pre-pass fallback check
+    expect(mockTurnFindOne).toHaveBeenCalledTimes(1);
+    // Agent message should NOT be inserted (remapped to existing record)
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+    // LLM call should be inserted via its own repo
+    expect(mockLlmInsert).toHaveBeenCalledTimes(1);
+
+    // Rollup should update the pre-inserted record using deepseek-chat pricing
+    expect(mockQb.set).toHaveBeenCalled();
+    const setArg = mockQb.set.mock.calls[0][0];
+    expect(setArg.input_tokens).toBe(500);
+    expect(setArg.output_tokens).toBe(100);
+    // Cost computed using deepseek-chat (the override), not gemini-flash (OTLP model)
+    expect(setArg.cost_usd).toBe(500 * 0.0001 + 100 * 0.0002);
+  });
+
+  it('falls back to unfilled-match when trace_id lookup misses', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
+
+    // Strategy 1 (trace_id) misses; strategy 2 (unfilled) matches
+    mockTurnFindOne.mockResolvedValue(null);
+    mockTurnFind.mockResolvedValueOnce([
+      { id: 'unfilled-fb-id', model: 'deepseek-chat', timestamp: nearbyTs },
+    ]);
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-unfilled',
+      traceId: 'trace-no-match',
+      name: 'openclaw.agent.turn',
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-unfilled',
+      parentSpanId: 'span-msg-unfilled',
+      traceId: 'trace-no-match',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: '300' } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: '80' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'gemini-flash' } },
+      ],
+    });
+
+    mockPricingGetByModel.mockReturnValue({
+      input_price_per_token: '0.0001',
+      output_price_per_token: '0.0002',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    // Agent message skipped (remapped), LLM call inserted
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+    expect(mockLlmInsert).toHaveBeenCalledTimes(1);
+
+    // Rollup updates the unfilled record with tokens + cost
+    expect(mockQb.set).toHaveBeenCalled();
+    const setArg = mockQb.set.mock.calls[0][0];
+    expect(setArg.input_tokens).toBe(300);
+    expect(setArg.output_tokens).toBe(80);
+    expect(setArg.cost_usd).toBe(300 * 0.0001 + 80 * 0.0002);
+  });
+
+  it('remaps UUID before LLM call processing (reversed span order)', async () => {
+    // Pre-pass findOne: fallback success record found.
+    // This test proves the pre-pass fixes the span ordering bug: with the old code,
+    // the LLM span would be processed first and accumulateToMessage would use the
+    // original UUID. With the pre-pass, the UUID is remapped before any span processing.
+    mockTurnFindOne.mockResolvedValueOnce({
+      id: 'preinserted-fallback-id',
+      model: 'deepseek-chat',
+    });
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-fb',
+      traceId: 'trace-fallback-remap',
+      name: 'openclaw.agent.turn',
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-fb',
+      parentSpanId: 'span-msg-fb',
+      traceId: 'trace-fallback-remap',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: '500' } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: '100' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'gemini-flash' } },
+      ],
+    });
+
+    mockPricingGetByModel.mockReturnValue({
+      input_price_per_token: '0.0001',
+      output_price_per_token: '0.0002',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          // LLM span FIRST, parent span SECOND — reversed order
+          scopeSpans: [{ scope: { name: 'test' }, spans: [llmSpan, parentSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    // Agent message should NOT be inserted (remapped to existing record)
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+    // LLM call should be inserted via its own repo
+    expect(mockLlmInsert).toHaveBeenCalledTimes(1);
+
+    // Rollup should update the pre-inserted record using deepseek-chat pricing
+    expect(mockQb.set).toHaveBeenCalled();
+    const setArg = mockQb.set.mock.calls[0][0];
+    expect(setArg.input_tokens).toBe(500);
+    expect(setArg.output_tokens).toBe(100);
+    // Cost computed using deepseek-chat (the override), not gemini-flash (OTLP model)
+    expect(setArg.cost_usd).toBe(500 * 0.0001 + 100 * 0.0002);
   });
 
   it('invokes COALESCE expressions for model, routing_tier, and routing_reason in rollup', async () => {
@@ -1748,6 +1932,7 @@ describe('TraceIngestService', () => {
     const nearbyTs = new Date(spanTime.getTime() + 5000).toISOString();
 
     mockTurnFind
+      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
       .mockResolvedValueOnce([]) // recentErrors
       .mockResolvedValueOnce([
         {
@@ -1776,11 +1961,10 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    // Verify the second find() call includes session_key in where clause
-    const secondFindCall = mockTurnFind.mock.calls[1];
-    expect(secondFindCall[0].where).toEqual(
-      expect.objectContaining({ session_key: 'session-abc' }),
-    );
+    // Verify the third find() call includes session_key in where clause
+    // (first is unfilled fallback, second is recentErrors, third is ghost dedup)
+    const thirdFindCall = mockTurnFind.mock.calls[2];
+    expect(thirdFindCall[0].where).toEqual(expect.objectContaining({ session_key: 'session-abc' }));
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -1829,8 +2013,8 @@ describe('TraceIngestService', () => {
   });
 
   it('inserts empty ok span via DB fallback when no nearby data message exists', async () => {
-    // First find call returns [] (no errors), second find call returns [] (no data messages)
     mockTurnFind
+      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
       .mockResolvedValueOnce([]) // recentErrors
       .mockResolvedValueOnce([]); // recentMessages (DB ghost fallback)
 
@@ -1851,8 +2035,37 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnFind).toHaveBeenCalledTimes(2);
+    expect(mockTurnFind).toHaveBeenCalledTimes(3);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns null from buildAgentMessage when existing error turn matches trace_id (dedup)', async () => {
+    // Pre-pass remap: findOne (fallback_from_model: Not(IsNull())) → null (no fallback record)
+    // buildAgentMessage: findOne (status: In(['error', 'rate_limited'])) → existing record
+    mockTurnFindOne
+      .mockResolvedValueOnce(null) // remapFallbackSpans — no fallback match
+      .mockResolvedValueOnce({ id: 'existing-error-turn' }); // buildAgentMessage — error dedup hit (line 390)
+
+    const span = makeSpan({
+      traceId: 'trace-error-dedup',
+      name: 'openclaw.agent.turn',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    // The first findOne (remap pre-pass) returned null, so span is NOT in fallbackSkipIds.
+    // The second findOne (buildAgentMessage line 382) returns a match, so line 390 returns null.
+    expect(mockTurnFindOne).toHaveBeenCalledTimes(2);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
   it('defaults llm_call cache tokens to 0 when attributes are absent', async () => {

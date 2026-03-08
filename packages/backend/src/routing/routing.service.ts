@@ -134,6 +134,21 @@ export class RoutingService {
       }
     }
 
+    // Clean fallback models belonging to the disconnected provider
+    const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
+    for (const tier of allTiers) {
+      if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
+      const filtered = tier.fallback_models.filter((m) => {
+        const p = this.pricingCache.getByModel(m);
+        return !p || p.provider.toLowerCase() !== provider.toLowerCase();
+      });
+      if (filtered.length !== tier.fallback_models.length) {
+        tier.fallback_models = filtered.length > 0 ? filtered : null;
+        tier.updated_at = new Date().toISOString();
+        await this.tierRepo.save(tier);
+      }
+    }
+
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
 
@@ -161,7 +176,12 @@ export class RoutingService {
     );
     await this.tierRepo.update(
       { agent_id: agentId },
-      { override_model: null, override_auth_type: null, updated_at: new Date().toISOString() },
+      {
+        override_model: null,
+        override_auth_type: null,
+        fallback_models: null,
+        updated_at: new Date().toISOString(),
+      },
     );
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
@@ -172,11 +192,11 @@ export class RoutingService {
   async invalidateOverridesForRemovedModels(removedModels: string[]): Promise<void> {
     if (removedModels.length === 0) return;
 
+    const removedSet = new Set(removedModels);
+
     const affected = await this.tierRepo.find({
       where: { override_model: In(removedModels) },
     });
-
-    if (affected.length === 0) return;
 
     const agentIds = new Set<string>();
     for (const tier of affected) {
@@ -189,6 +209,21 @@ export class RoutingService {
       await this.tierRepo.save(tier);
       agentIds.add(tier.agent_id);
     }
+
+    // Also clean fallback models referencing removed models
+    const allTiers = await this.tierRepo.find();
+    for (const tier of allTiers) {
+      if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
+      const filtered = tier.fallback_models.filter((m) => !removedSet.has(m));
+      if (filtered.length !== tier.fallback_models.length) {
+        tier.fallback_models = filtered.length > 0 ? filtered : null;
+        tier.updated_at = new Date().toISOString();
+        await this.tierRepo.save(tier);
+        agentIds.add(tier.agent_id);
+      }
+    }
+
+    if (agentIds.size === 0) return;
 
     for (const agentId of agentIds) {
       await this.autoAssign.recalculate(agentId);
@@ -295,8 +330,39 @@ export class RoutingService {
   async resetAllOverrides(agentId: string): Promise<void> {
     await this.tierRepo.update(
       { agent_id: agentId },
-      { override_model: null, override_auth_type: null, updated_at: new Date().toISOString() },
+      {
+        override_model: null,
+        override_auth_type: null,
+        fallback_models: null,
+        updated_at: new Date().toISOString(),
+      },
     );
+    this.routingCache.invalidateAgent(agentId);
+  }
+
+  /* ── Fallbacks ── */
+
+  async getFallbacks(agentId: string, tier: string): Promise<string[]> {
+    const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
+    return existing?.fallback_models ?? [];
+  }
+
+  async setFallbacks(agentId: string, tier: string, models: string[]): Promise<string[]> {
+    const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
+    if (!existing) return [];
+    existing.fallback_models = models.length > 0 ? models : null;
+    existing.updated_at = new Date().toISOString();
+    await this.tierRepo.save(existing);
+    this.routingCache.invalidateAgent(agentId);
+    return models;
+  }
+
+  async clearFallbacks(agentId: string, tier: string): Promise<void> {
+    const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
+    if (!existing) return;
+    existing.fallback_models = null;
+    existing.updated_at = new Date().toISOString();
+    await this.tierRepo.save(existing);
     this.routingCache.invalidateAgent(agentId);
   }
 

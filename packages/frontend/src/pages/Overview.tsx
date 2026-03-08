@@ -41,6 +41,8 @@ interface RecentMessage {
   status: string;
   error_message?: string | null;
   auth_type?: string | null;
+  fallback_from_model?: string | null;
+  fallback_index?: number | null;
 }
 
 interface OverviewData {
@@ -261,7 +263,11 @@ const Overview: Component = () => {
                     Set up agent
                   </button>
                   <div class="empty-state__img-wrapper">
-                    <img src="/example-overview.svg" alt="" class="empty-state__img" />
+                    <img
+                      src="/example-overview.svg"
+                      alt="Example dashboard overview showing cost and token charts"
+                      class="empty-state__img"
+                    />
                   </div>
                 </div>
               }
@@ -518,6 +524,7 @@ const Overview: Component = () => {
                                       stroke-width="2"
                                       stroke-linecap="round"
                                       stroke-linejoin="round"
+                                      aria-hidden="true"
                                     >
                                       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                                     </svg>
@@ -604,6 +611,14 @@ const Overview: Component = () => {
                                       {item.routing_tier}
                                     </span>
                                   )}
+                                  {item.fallback_from_model && (
+                                    <span
+                                      class="tier-badge tier-badge--fallback"
+                                      title={`Fallback from ${stripCustomPrefix(item.fallback_from_model)}`}
+                                    >
+                                      fallback
+                                    </span>
+                                  )}
                                 </span>
                               </td>
                               <td style="font-family: var(--font-mono);">
@@ -635,6 +650,23 @@ const Overview: Component = () => {
                                     aria-label={formatErrorMessage(item.error_message!)}
                                   >
                                     <span class={`status-badge status-badge--${item.status}`}>
+                                      {item.status === 'fallback_error' && (
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="11"
+                                          height="11"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2.5"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          style="margin-right: 3px; flex-shrink: 0;"
+                                        >
+                                          <polyline points="15 17 20 12 15 7" />
+                                          <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
+                                        </svg>
+                                      )}
                                       {formatStatus(item.status)}
                                     </span>
                                     <span class="status-badge-tooltip__bubble">

@@ -1,4 +1,12 @@
-import { IsString, IsIn, IsNotEmpty, IsOptional, Matches } from 'class-validator';
+import {
+  IsString,
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  ArrayMaxSize,
+  Matches,
+} from 'class-validator';
 
 const VALID_TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
 const VALID_AUTH_TYPES = ['api_key', 'subscription'] as const;
@@ -60,4 +68,12 @@ export class SetOverrideDto {
   @IsOptional()
   @IsIn(VALID_AUTH_TYPES)
   authType?: 'api_key' | 'subscription';
+}
+
+export class SetFallbacksDto {
+  @IsArray()
+  @ArrayMaxSize(5)
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  models!: string[];
 }

@@ -14,6 +14,7 @@ import {
   ConnectProviderDto,
   RemoveProviderQueryDto,
   SetOverrideDto,
+  SetFallbacksDto,
 } from './dto/routing.dto';
 
 @Controller('api/v1/routing')
@@ -144,6 +145,40 @@ export class RoutingController {
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.routingService.clearOverride(agent.id, tier);
+    return { ok: true };
+  }
+
+  /* ── Fallbacks ── */
+
+  @Get(':agentName/tiers/:tier/fallbacks')
+  async getFallbacks(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('tier') tier: string,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.routingService.getFallbacks(agent.id, tier);
+  }
+
+  @Put(':agentName/tiers/:tier/fallbacks')
+  async setFallbacks(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('tier') tier: string,
+    @Body() body: SetFallbacksDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.routingService.setFallbacks(agent.id, tier, body.models);
+  }
+
+  @Delete(':agentName/tiers/:tier/fallbacks')
+  async clearFallbacks(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('tier') tier: string,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    await this.routingService.clearFallbacks(agent.id, tier);
     return { ok: true };
   }
 

@@ -52,6 +52,8 @@ interface MessageItem {
   duration_ms: number | null;
   error_message?: string | null;
   auth_type?: string | null;
+  fallback_from_model?: string | null;
+  fallback_index?: number | null;
 }
 
 interface MessagesData {
@@ -143,6 +145,18 @@ const MessageLog: Component = () => {
     setCostMax('');
   };
 
+  const scrollToFallbackSuccess = (model: string) => {
+    const items = data()?.items;
+    if (!items) return;
+    const success = items.find((i) => i.fallback_from_model === model && i.status === 'ok');
+    if (!success) return;
+    const el = document.getElementById(`msg-${success.id}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('msg-highlight');
+    setTimeout(() => el.classList.remove('msg-highlight'), 2000);
+  };
+
   return (
     <div class="container--full">
       <Title>
@@ -169,6 +183,7 @@ const MessageLog: Component = () => {
                 { label: 'Successful', value: 'ok' },
                 { label: 'Rate Limited', value: 'rate_limited' },
                 { label: 'Retried', value: 'retry' },
+                { label: 'Handled', value: 'fallback_error' },
                 { label: 'Failed', value: 'error' },
               ]}
             />
@@ -257,7 +272,11 @@ const MessageLog: Component = () => {
                     Set up agent
                   </button>
                   <div class="empty-state__img-wrapper">
-                    <img src="/example-messages.svg" alt="" class="empty-state__img" />
+                    <img
+                      src="/example-messages.svg"
+                      alt="Example message log showing LLM call history"
+                      class="empty-state__img"
+                    />
                   </div>
                 </div>
               }
@@ -367,7 +386,7 @@ const MessageLog: Component = () => {
                 <tbody>
                   <For each={data()?.items}>
                     {(item) => (
-                      <tr>
+                      <tr id={`msg-${item.id}`}>
                         <td style="white-space: nowrap; font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                           {formatTime(item.timestamp)}
                         </td>
@@ -388,6 +407,7 @@ const MessageLog: Component = () => {
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
+                                aria-hidden="true"
                               >
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                               </svg>
@@ -481,6 +501,14 @@ const MessageLog: Component = () => {
                                 {item.routing_tier}
                               </span>
                             )}
+                            {item.fallback_from_model && (
+                              <span
+                                class="tier-badge tier-badge--fallback"
+                                title={`Fallback from ${stripCustomPrefix(item.fallback_from_model)}`}
+                              >
+                                fallback
+                              </span>
+                            )}
                           </span>
                         </td>
                         <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
@@ -515,7 +543,31 @@ const MessageLog: Component = () => {
                               role="note"
                               aria-label={formatErrorMessage(item.error_message!)}
                             >
-                              <span class={`status-badge status-badge--${item.status}`}>
+                              <span
+                                class={`status-badge status-badge--${item.status}`}
+                                onClick={
+                                  item.status === 'fallback_error' && item.model
+                                    ? () => scrollToFallbackSuccess(item.model!)
+                                    : undefined
+                                }
+                              >
+                                {item.status === 'fallback_error' && (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="11"
+                                    height="11"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    style="margin-right: 3px; flex-shrink: 0;"
+                                  >
+                                    <polyline points="15 17 20 12 15 7" />
+                                    <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
+                                  </svg>
+                                )}
                                 {formatStatus(item.status)}
                               </span>
                               <span class="status-badge-tooltip__bubble">

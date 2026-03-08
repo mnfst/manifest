@@ -9,6 +9,7 @@ import ModelPickerModal from '../components/ModelPickerModal.js';
 import { toast } from '../services/toast-store.js';
 import { pricePerM, resolveProviderId } from '../services/routing-utils.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import FallbackList from '../components/FallbackList.js';
 import {
   getTierAssignments,
   getAvailableModels,
@@ -18,6 +19,7 @@ import {
   overrideTier,
   resetTier,
   resetAllTiers,
+  setFallbacks,
   type TierAssignment,
   type AvailableModel,
   type AuthType,
@@ -124,6 +126,7 @@ const Routing: Component = () => {
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
   const [resettingTier, setResettingTier] = createSignal<string | null>(null);
   const [resettingAll, setResettingAll] = createSignal(false);
+  const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
 
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
 
@@ -197,6 +200,20 @@ const Routing: Component = () => {
       // error toast from fetchMutate
     } finally {
       setResettingAll(false);
+    }
+  };
+
+  const handleAddFallback = async (tierId: string, modelName: string) => {
+    setFallbackPickerTier(null);
+    const tier = getTier(tierId);
+    const current = tier?.fallback_models ?? [];
+    if (current.includes(modelName)) return;
+    try {
+      await setFallbacks(agentName(), tierId, [...current, modelName]);
+      await refetchTiers();
+      toast.success('Fallback added');
+    } catch {
+      // error toast from fetchMutate
     }
   };
 
@@ -443,29 +460,43 @@ const Routing: Component = () => {
                       </Show>
                     </div>
                     <Show when={eff()}>
-                      <div class="routing-card__actions">
-                        <Show
-                          when={isManual()}
-                          fallback={
+                      <div class="routing-card__right">
+                        <div class="routing-card__actions">
+                          <Show
+                            when={isManual()}
+                            fallback={
+                              <button
+                                class="routing-action"
+                                onClick={() => setDropdownTier(stage.id)}
+                              >
+                                Override
+                              </button>
+                            }
+                          >
                             <button
                               class="routing-action"
                               onClick={() => setDropdownTier(stage.id)}
                             >
-                              Override
+                              Edit
                             </button>
-                          }
-                        >
-                          <button class="routing-action" onClick={() => setDropdownTier(stage.id)}>
-                            Edit
-                          </button>
-                          <button
-                            class="routing-action"
-                            onClick={() => handleReset(stage.id)}
-                            disabled={resettingTier() === stage.id || resettingAll()}
-                          >
-                            {resettingTier() === stage.id ? 'Resetting...' : 'Reset'}
-                          </button>
-                        </Show>
+                            <button
+                              class="routing-action"
+                              onClick={() => handleReset(stage.id)}
+                              disabled={resettingTier() === stage.id || resettingAll()}
+                            >
+                              {resettingTier() === stage.id ? 'Resetting...' : 'Reset'}
+                            </button>
+                          </Show>
+                        </div>
+                        <FallbackList
+                          agentName={agentName()}
+                          tier={stage.id}
+                          fallbacks={tier()?.fallback_models ?? []}
+                          models={models() ?? []}
+                          customProviders={customProviders() ?? []}
+                          onUpdate={() => refetchTiers()}
+                          onAddFallback={() => setFallbackPickerTier(stage.id)}
+                        />
                       </div>
                     </Show>
                   </div>
@@ -515,6 +546,31 @@ const Routing: Component = () => {
             onClose={() => setDropdownTier(null)}
           />
         )}
+      </Show>
+
+      <Show when={fallbackPickerTier()}>
+        {(tierId) => {
+          const currentFallbacks = () => getTier(tierId())?.fallback_models ?? [];
+          const effectiveModel = () => {
+            const t = getTier(tierId());
+            return t ? (t.override_model ?? t.auto_assigned_model) : null;
+          };
+          const filteredModels = () =>
+            (models() ?? []).filter(
+              (m) =>
+                m.model_name !== effectiveModel() && !currentFallbacks().includes(m.model_name),
+            );
+          return (
+            <ModelPickerModal
+              tierId={tierId()}
+              models={filteredModels()}
+              tiers={tiers() ?? []}
+              customProviders={customProviders() ?? []}
+              onSelect={handleAddFallback}
+              onClose={() => setFallbackPickerTier(null)}
+            />
+          );
+        }}
       </Show>
 
       <Show when={showProviderModal()}>

@@ -89,6 +89,25 @@
   text-decoration: underline;
 }
 
+.status-badge--fallback_error {
+  background: hsl(38 92% 50% / 0.15);
+  color: hsl(38 92% 40%);
+  cursor: pointer;
+}
+
+@keyframes msg-highlight-flash {
+  0% {
+    background: hsl(38 92% 50% / 0.15);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.data-table tr.msg-highlight {
+  animation: msg-highlight-flash 2s ease-out;
+}
+
 /* ── Status Badge Error Tooltip ──────────────────── */
 .status-badge-tooltip {
   position: relative;

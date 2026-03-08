@@ -57,6 +57,7 @@ describe("formatStatus", () => {
     expect(formatStatus("retry")).toBe("Retried");
     expect(formatStatus("error")).toBe("Failed");
     expect(formatStatus("rate_limited")).toBe("Rate Limited");
+    expect(formatStatus("fallback_error")).toBe("Handled");
   });
   it("handles case insensitive", () => {
     expect(formatStatus("OK")).toBe("Success");
