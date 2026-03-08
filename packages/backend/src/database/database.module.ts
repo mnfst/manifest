@@ -135,7 +135,7 @@ function buildModeServices() {
           migrations,
           logging: false,
           extra: {
-            max: 20,
+            max: 5,
             idleTimeoutMillis: 30000,
           },
         };
