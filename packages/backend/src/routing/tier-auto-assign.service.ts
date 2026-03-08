@@ -26,27 +26,35 @@ export class TierAutoAssignService {
     private readonly tierRepo: Repository<TierAssignment>,
   ) {}
 
-  async recalculate(agentId: string): Promise<void> {
-    const providers = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
-    });
-    const activeProviders = expandProviderNames(providers.map((p) => p.provider));
+  async recalculate(agentId: string, providers?: UserProvider[]): Promise<void> {
+    // 2B: Accept optional providers to avoid duplicate query
+    const resolvedProviders =
+      providers ??
+      (await this.providerRepo.find({
+        where: { agent_id: agentId, is_active: true },
+      }));
+    const activeProviders = expandProviderNames(resolvedProviders.map((p) => p.provider));
 
     const allModels = this.pricingCache.getAll();
     const available = allModels.filter((m) => activeProviders.has(m.provider.toLowerCase()));
 
+    // 2C: Batch read all tiers in one query
+    const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
+    const tierMap = new Map(allTiers.map((t) => [t.tier, t]));
+
+    const toSave: TierAssignment[] = [];
+    const toInsert: Record<string, unknown>[] = [];
+
     for (const tier of TIERS) {
       const best = this.pickBest(available, tier);
-      const existing = await this.tierRepo.findOne({
-        where: { agent_id: agentId, tier },
-      });
+      const existing = tierMap.get(tier);
 
       if (existing) {
         existing.auto_assigned_model = best?.model_name ?? null;
         existing.updated_at = new Date().toISOString();
-        await this.tierRepo.save(existing);
+        toSave.push(existing);
       } else {
-        await this.tierRepo.insert({
+        toInsert.push({
           id: randomUUID(),
           user_id: '',
           agent_id: agentId,
@@ -56,6 +64,10 @@ export class TierAutoAssignService {
         });
       }
     }
+
+    // 2C: Batch write
+    if (toSave.length > 0) await this.tierRepo.save(toSave);
+    if (toInsert.length > 0) await this.tierRepo.insert(toInsert);
 
     this.logger.log(`Recalculated tier assignments for agent ${agentId}`);
   }

@@ -217,27 +217,26 @@ export class RoutingService {
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
 
     if (rows.length === 0) {
-      // Lazy init: create the 4 tier rows
-      const created: TierAssignment[] = [];
-      for (const tier of TIERS) {
-        const record = Object.assign(new TierAssignment(), {
+      // 2A: Batch tier inserts — create all 4 tier rows in one query
+      const created: TierAssignment[] = TIERS.map((tier) =>
+        Object.assign(new TierAssignment(), {
           id: randomUUID(),
           user_id: userId ?? '',
           agent_id: agentId,
           tier,
           override_model: null,
           auto_assigned_model: null,
-        });
-        await this.tierRepo.insert(record);
-        created.push(record);
-      }
+        }),
+      );
+      await this.tierRepo.insert(created);
 
       // If agent has active providers, recalculate immediately
+      // 2B: Pass providers to avoid duplicate query in recalculate()
       const providers = await this.providerRepo.find({
         where: { agent_id: agentId, is_active: true },
       });
       if (providers.length > 0) {
-        await this.autoAssign.recalculate(agentId);
+        await this.autoAssign.recalculate(agentId, providers);
         const result = await this.tierRepo.find({ where: { agent_id: agentId } });
         this.routingCache.setTiers(agentId, result);
         return result;
