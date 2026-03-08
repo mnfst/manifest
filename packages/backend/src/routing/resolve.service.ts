@@ -72,13 +72,20 @@ export class ResolveService {
       );
     }
 
+    const provider = pricing?.provider ?? null;
+    const authType = provider
+      ? (assignment.override_auth_type ??
+        (await this.routingService.getAuthType(agentId, provider)))
+      : undefined;
+
     return {
       tier: result.tier,
       model,
-      provider: pricing?.provider ?? null,
+      provider,
       confidence: result.confidence,
       score: result.score,
       reason: result.reason,
+      auth_type: authType,
     };
   }
 
@@ -92,14 +99,20 @@ export class ResolveService {
 
     const model = await this.routingService.getEffectiveModel(agentId, assignment);
     const pricing = model ? this.pricingCache.getByModel(model) : null;
+    const provider = pricing?.provider ?? null;
+    const authType = provider
+      ? (assignment.override_auth_type ??
+        (await this.routingService.getAuthType(agentId, provider)))
+      : undefined;
 
     return {
       tier,
       model: model ?? null,
-      provider: pricing?.provider ?? null,
+      provider,
       confidence: 1,
       score: 0,
       reason: 'heartbeat',
+      auth_type: authType,
     };
   }
 }

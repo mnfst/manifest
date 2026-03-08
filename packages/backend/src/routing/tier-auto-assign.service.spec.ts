@@ -417,6 +417,36 @@ describe('TierAutoAssignService', () => {
       }
     });
 
+    it('should prioritize subscription models over api_key models', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+        { provider: 'google', is_active: true, auth_type: 'api_key' },
+      ]);
+      const geminiFlash = makeModel({
+        model_name: 'gemini-2.5-flash',
+        provider: 'Google',
+        input_price_per_token: 0.0000001,
+        output_price_per_token: 0.0000004,
+        quality_score: 2,
+      });
+      const claudeSonnet = makeModel({
+        model_name: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000015,
+        quality_score: 4,
+      });
+      mockPricingCache.getAll.mockReturnValue([geminiFlash, claudeSonnet]);
+
+      await service.recalculate('agent-1');
+
+      // All tiers should pick from subscription (Anthropic) even though Gemini is cheaper
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(4);
+      for (const call of mockTierRepo.insert.mock.calls) {
+        expect(call[0].auto_assigned_model).toBe('claude-sonnet-4');
+      }
+    });
+
     it('should preserve manual overrides during recalculation', async () => {
       const existingTier = {
         id: 'tier-1',

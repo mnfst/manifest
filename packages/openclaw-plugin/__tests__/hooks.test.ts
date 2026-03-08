@@ -860,6 +860,7 @@ describe("registerHooks", () => {
         model: "gpt-4o",
         provider: "OpenAI",
         reason: "scored",
+        auth_type: "api_key",
       });
 
       localApi.emit("message_received", { sessionKey: "route-sess" });
@@ -906,6 +907,7 @@ describe("registerHooks", () => {
         model: "claude-sonnet-4",
         provider: "Anthropic",
         reason: "multi-step",
+        auth_type: "api_key",
       });
 
       devApi.emit("message_received", { sessionKey: "dev-sess" });
@@ -947,6 +949,7 @@ describe("registerHooks", () => {
         model: "gpt-4o",
         provider: "OpenAI",
         reason: "scored",
+        auth_type: "api_key",
       });
 
       cloudApi.emit("message_received", { sessionKey: "cloud-sess" });
@@ -991,6 +994,7 @@ describe("registerHooks", () => {
         model: "gpt-4o-mini",
         provider: "OpenAI",
         reason: "scored",
+        auth_type: "api_key",
       });
 
       localApi.emit("message_received", { sessionKey: "hb-route" });

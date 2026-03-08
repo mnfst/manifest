@@ -143,6 +143,7 @@ describe('ProxyService', () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -223,6 +224,7 @@ describe('ProxyService', () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -260,6 +262,7 @@ describe('ProxyService', () => {
       body,
       false,
       abortController.signal,
+      undefined,
       undefined,
       undefined,
     );
@@ -325,6 +328,7 @@ describe('ProxyService', () => {
         'gpt-4o-mini',
         heartbeatBody,
         false,
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -549,6 +553,7 @@ describe('ProxyService', () => {
         undefined,
         undefined,
         undefined,
+        undefined,
       );
     });
 
@@ -765,6 +770,7 @@ describe('ProxyService', () => {
         undefined,
         { 'x-grok-conv-id': 'my-session' },
         undefined,
+        undefined,
       );
     });
   });
@@ -842,6 +848,7 @@ describe('ProxyService', () => {
         undefined,
         undefined,
         undefined,
+        undefined,
       );
     });
   });
@@ -888,6 +895,7 @@ describe('ProxyService', () => {
           baseUrl: 'https://api.groq.com/openai',
           format: 'openai',
         }),
+        undefined,
       );
       expect(result.meta.provider).toBe('custom:cp-uuid');
     });
@@ -921,37 +929,6 @@ describe('ProxyService', () => {
         undefined,
         undefined,
         undefined,
-      );
-    });
-  });
-
-  describe('xai extra headers', () => {
-    it('adds x-grok-conv-id header for xai provider', async () => {
-      resolveService.resolve.mockResolvedValue({
-        tier: 'complex',
-        model: 'grok-2',
-        provider: 'xai',
-        confidence: 0.9,
-        score: 0.2,
-        reason: 'scored',
-      });
-      routingService.getProviderApiKey.mockResolvedValue('sk-xai');
-      providerClient.forward.mockResolvedValue({
-        response: new Response('{}', { status: 200 }),
-        isGoogle: false,
-        isAnthropic: false,
-      });
-
-      await service.proxyRequest('agent-1', 'user-1', body, 'sess-key-123');
-
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'xai',
-        'sk-xai',
-        'grok-2',
-        body,
-        false,
-        undefined,
-        { 'x-grok-conv-id': 'sess-key-123' },
         undefined,
       );
     });
@@ -987,6 +964,58 @@ describe('ProxyService', () => {
         undefined,
         undefined,
         undefined,
+        undefined,
+      );
+    });
+  });
+
+  describe('subscription provider with stored token', () => {
+    it('proxies subscription providers using their stored token', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        confidence: 0.9,
+        score: 0.2,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('skst-token-123');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+
+      expect(result.meta.provider).toBe('Anthropic');
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'Anthropic',
+        'skst-token-123',
+        'claude-sonnet-4',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+    });
+
+    it('rejects subscription provider without stored token', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        confidence: 0.9,
+        score: 0.2,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue(null);
+
+      await expect(service.proxyRequest('agent-1', 'user-1', body, 'sess-1')).rejects.toThrow(
+        'No API key found',
       );
     });
   });

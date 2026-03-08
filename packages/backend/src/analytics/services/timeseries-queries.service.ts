@@ -200,6 +200,7 @@ export class TimeseriesQueriesService {
       .addSelect('at.routing_tier', 'routing_tier')
       .addSelect('at.routing_reason', 'routing_reason')
       .addSelect('at.error_message', 'error_message')
+      .addSelect('at.auth_type', 'auth_type')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName, tenantId);
     return qb.orderBy('at.timestamp', 'DESC').limit(limit).getRawMany();

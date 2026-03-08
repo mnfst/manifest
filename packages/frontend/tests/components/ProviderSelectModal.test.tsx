@@ -34,6 +34,7 @@ const connectedProvider: RoutingProvider = {
   has_api_key: true,
   key_prefix: "sk-proj-",
   connected_at: "2025-01-01",
+  auth_type: "api_key",
 };
 
 const disconnectedProvider: RoutingProvider = {
@@ -42,6 +43,7 @@ const disconnectedProvider: RoutingProvider = {
   is_active: false,
   has_api_key: false,
   connected_at: "2025-01-01",
+  auth_type: "api_key",
 };
 
 // Valid key that passes OpenAI validation (prefix "sk-", min 50 chars)
@@ -73,13 +75,14 @@ describe("ProviderSelectModal", () => {
     render(() => (
       <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
-    expect(screen.getByText("Add your API keys to enable routing through each provider")).toBeDefined();
+    expect(screen.getByText("Use your subscriptions or API keys to enable routing")).toBeDefined();
   });
 
-  it("renders all provider names from the PROVIDERS list", () => {
+  it("renders all provider names from the PROVIDERS list on API Keys tab", () => {
     render(() => (
       <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
+    fireEvent.click(screen.getByText("API Keys"));
     expect(screen.getByText("OpenAI")).toBeDefined();
     expect(screen.getByText("Anthropic")).toBeDefined();
     expect(screen.getByText("Gemini")).toBeDefined();
@@ -96,6 +99,7 @@ describe("ProviderSelectModal", () => {
         agentName="test-agent"
       />
     ));
+    fireEvent.click(screen.getByText("API Keys"));
     const onSwitches = container.querySelectorAll(".provider-toggle__switch--on");
     expect(onSwitches.length).toBeGreaterThanOrEqual(1);
   });
@@ -104,6 +108,7 @@ describe("ProviderSelectModal", () => {
     const { container } = render(() => (
       <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
     ));
+    fireEvent.click(screen.getByText("API Keys"));
     const allSwitches = container.querySelectorAll(".provider-toggle__switch");
     const onSwitches = container.querySelectorAll(".provider-toggle__switch--on");
     expect(allSwitches.length).toBeGreaterThan(0);
@@ -158,6 +163,7 @@ describe("ProviderSelectModal", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       expect(screen.getByLabelText("OpenAI API key")).toBeDefined();
     });
@@ -166,6 +172,7 @@ describe("ProviderSelectModal", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       expect(screen.getByLabelText("OpenAI API key")).toBeDefined();
 
@@ -184,6 +191,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       expect(screen.getByLabelText("Disconnect provider")).toBeDefined();
     });
@@ -197,6 +205,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       expect(screen.getByText("Change")).toBeDefined();
     });
@@ -210,6 +219,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       expect(screen.getByText("Connect")).toBeDefined();
     });
@@ -223,6 +233,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       expect(screen.getByLabelText("Current API key (masked)")).toBeDefined();
     });
@@ -233,6 +244,7 @@ describe("ProviderSelectModal", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
       fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
@@ -242,6 +254,7 @@ describe("ProviderSelectModal", () => {
         expect(mockConnectProvider).toHaveBeenCalledWith("test-agent", {
           provider: "openai",
           apiKey: VALID_OPENAI_KEY,
+          authType: "api_key",
         });
       });
       expect(onUpdate).toHaveBeenCalled();
@@ -252,6 +265,7 @@ describe("ProviderSelectModal", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
 
       const connectBtn = screen.getByText("Connect");
@@ -262,6 +276,7 @@ describe("ProviderSelectModal", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
       fireEvent.input(input, { target: { value: "invalid-key-prefix-12345678901234567890123456789012345" } });
@@ -275,6 +290,7 @@ describe("ProviderSelectModal", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
       fireEvent.input(input, { target: { value: "sk-short" } });
@@ -288,6 +304,7 @@ describe("ProviderSelectModal", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
       fireEvent.input(input, { target: { value: "bad" } });
@@ -304,6 +321,7 @@ describe("ProviderSelectModal", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
       fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
@@ -325,11 +343,12 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByLabelText("Disconnect provider"));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "openai");
+        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "openai", "api_key");
       });
       expect(onUpdate).toHaveBeenCalled();
     });
@@ -347,6 +366,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByLabelText("Disconnect provider"));
 
@@ -368,6 +388,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByLabelText("Disconnect provider"));
 
@@ -385,6 +406,7 @@ describe("ProviderSelectModal", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       const input = screen.getByLabelText("OpenAI API key");
       fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
@@ -407,6 +429,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByText("Change"));
 
@@ -424,6 +447,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByText("Change"));
 
@@ -435,6 +459,7 @@ describe("ProviderSelectModal", () => {
         expect(mockConnectProvider).toHaveBeenCalledWith("test-agent", {
           provider: "openai",
           apiKey: VALID_OPENAI_KEY,
+          authType: "api_key",
         });
       });
       expect(toast.success).toHaveBeenCalledWith("OpenAI key updated");
@@ -449,6 +474,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByText("Change"));
 
@@ -470,6 +496,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByText("Change"));
 
@@ -491,6 +518,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByText("Change"));
 
@@ -519,6 +547,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       expect(screen.getByText("Groq")).toBeDefined();
       expect(screen.getByText("2 models")).toBeDefined();
     });
@@ -533,6 +562,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       const letter = document.querySelector(".custom-provider-section .provider-card__logo-letter");
       expect(letter).not.toBeNull();
       expect(letter!.textContent).toBe("G");
@@ -547,6 +577,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       expect(screen.getByText("Add custom provider")).toBeDefined();
     });
 
@@ -559,6 +590,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("Add custom provider"));
       await waitFor(() => {
         expect(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure")).toBeDefined();
@@ -575,6 +607,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("Groq"));
       await waitFor(() => {
         const nameInput = screen.getByDisplayValue("Groq");
@@ -593,6 +626,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       expect(screen.getByText("1 model")).toBeDefined();
     });
   });
@@ -604,6 +638,7 @@ describe("ProviderSelectModal", () => {
       is_active: true,
       has_api_key: false,
       connected_at: "2025-01-01",
+      auth_type: "api_key",
     };
 
     beforeEach(() => {
@@ -619,6 +654,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("Ollama"));
       expect(screen.getByText("No API key required for local models")).toBeDefined();
     });
@@ -632,6 +668,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("Ollama"));
       expect(screen.getByText("Connect")).toBeDefined();
     });
@@ -645,6 +682,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("Ollama"));
       expect(screen.getByText("Disconnect")).toBeDefined();
     });
@@ -658,6 +696,7 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("Ollama"));
       fireEvent.click(screen.getByText("Connect"));
 
@@ -665,6 +704,7 @@ describe("ProviderSelectModal", () => {
         expect(mockConnectProvider).toHaveBeenCalledWith("test-agent", {
           provider: "ollama",
           apiKey: undefined,
+          authType: "api_key",
         });
       });
     });
@@ -678,11 +718,12 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
+      fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("Ollama"));
       fireEvent.click(screen.getByText("Disconnect"));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "ollama");
+        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "ollama", "api_key");
       });
     });
   });
@@ -694,6 +735,7 @@ describe("ProviderSelectModal", () => {
       is_active: true,
       has_api_key: true,
       connected_at: "2025-01-01",
+      auth_type: "api_key",
     };
     render(() => (
       <ProviderSelectModal
@@ -703,8 +745,215 @@ describe("ProviderSelectModal", () => {
         agentName="test-agent"
       />
     ));
+    fireEvent.click(screen.getByText("API Keys"));
     fireEvent.click(screen.getByText("OpenAI"));
     const maskedInput = screen.getByLabelText("Current API key (masked)") as HTMLInputElement;
     expect(maskedInput.value).toContain("••••••••••••");
+  });
+
+  describe("subscription tab", () => {
+    it("shows subscription tab as default active tab", () => {
+      const { container } = render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      const activeTab = container.querySelector(".provider-modal__tab--active");
+      expect(activeTab).not.toBeNull();
+      expect(activeTab!.textContent).toBe("Subscription");
+    });
+
+    it("renders subscription providers with toggle switches", () => {
+      const { container } = render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      // Subscription tab is default, check subscription providers are listed
+      expect(screen.getByText("Anthropic")).toBeDefined();
+      const switches = container.querySelectorAll(".provider-toggle__switch");
+      expect(switches.length).toBeGreaterThan(0);
+    });
+
+    it("shows subscription toggle as on for subscription-connected providers with token", () => {
+      const subProvider: RoutingProvider = {
+        id: "p-sub",
+        provider: "anthropic",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: "skst-tok",
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      const { container } = render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      const onSwitches = container.querySelectorAll(".provider-toggle__switch--on");
+      expect(onSwitches.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("opens detail view for Anthropic (has subscriptionKeyPlaceholder)", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("Anthropic"));
+
+      // Should open detail view with setup token input
+      expect(screen.getByLabelText("Anthropic setup token")).toBeDefined();
+      expect(screen.getByText("Connect")).toBeDefined();
+    });
+
+    it("shows terminal command in Anthropic subscription detail view", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("Anthropic"));
+
+      expect(screen.getByText("claude setup-token")).toBeDefined();
+      expect(screen.getByText("Terminal")).toBeDefined();
+    });
+
+    it("connects Anthropic subscription with setup-token", async () => {
+      const VALID_TOKEN = "sk-ant-oat01-test-token-1234567890";
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("Anthropic"));
+
+      const input = screen.getByLabelText("Anthropic setup token");
+      fireEvent.input(input, { target: { value: VALID_TOKEN } });
+      fireEvent.click(screen.getByText("Connect"));
+
+      await waitFor(() => {
+        expect(mockConnectProvider).toHaveBeenCalledWith("test-agent", {
+          provider: "anthropic",
+          apiKey: VALID_TOKEN,
+          authType: "subscription",
+        });
+      });
+      expect(onUpdate).toHaveBeenCalled();
+      expect(toast.success).toHaveBeenCalledWith("Anthropic connected");
+    });
+
+    it("shows validation error for short subscription token", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("Anthropic"));
+
+      const input = screen.getByLabelText("Anthropic setup token");
+      fireEvent.input(input, { target: { value: "short" } });
+      fireEvent.click(screen.getByText("Connect"));
+
+      expect(screen.getByText("Token is too short (minimum 10 characters)")).toBeDefined();
+      expect(mockConnectProvider).not.toHaveBeenCalled();
+    });
+
+    it("shows masked token for connected Anthropic subscription", () => {
+      const subProvider: RoutingProvider = {
+        id: "p-sub",
+        provider: "anthropic",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: "skst-tok",
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Anthropic"));
+
+      expect(screen.getByLabelText("Current setup token (masked)")).toBeDefined();
+      expect(screen.getByText("Change")).toBeDefined();
+    });
+
+    it("disconnects Anthropic subscription from detail view", async () => {
+      const subProvider: RoutingProvider = {
+        id: "p-sub",
+        provider: "anthropic",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: "skst-tok",
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Anthropic"));
+      fireEvent.click(screen.getByLabelText("Disconnect provider"));
+
+      await waitFor(() => {
+        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "anthropic", "subscription");
+      });
+      expect(onUpdate).toHaveBeenCalled();
+    });
+
+    it("shows tab hint text for subscription tab", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      expect(
+        screen.getByText(/Use your Claude Max or Pro subscription/),
+      ).toBeDefined();
+    });
+
+    it("shows tab hint text for API Keys tab", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("API Keys"));
+      expect(
+        screen.getByText(/Connect providers using your own API keys/),
+      ).toBeDefined();
+    });
+
+    it("updates token in subscription edit mode", async () => {
+      const subProvider: RoutingProvider = {
+        id: "p-sub",
+        provider: "anthropic",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: "skst-tok",
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Anthropic"));
+      fireEvent.click(screen.getByText("Change"));
+
+      const UPDATED_TOKEN = "sk-ant-oat01-updated-token-value";
+      const input = screen.getByLabelText("New Anthropic setup token");
+      fireEvent.input(input, { target: { value: UPDATED_TOKEN } });
+      fireEvent.click(screen.getByText("Save"));
+
+      await waitFor(() => {
+        expect(mockConnectProvider).toHaveBeenCalledWith("test-agent", {
+          provider: "anthropic",
+          apiKey: UPDATED_TOKEN,
+          authType: "subscription",
+        });
+      });
+      expect(toast.success).toHaveBeenCalledWith("Anthropic token updated");
+    });
   });
 });

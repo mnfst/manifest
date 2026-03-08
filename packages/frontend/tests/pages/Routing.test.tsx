@@ -120,7 +120,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows provider count button", async () => {
     render(() => <Routing />);
-    expect(await screen.findByText("1 provider")).toBeDefined();
+    expect(await screen.findByText("1 connection")).toBeDefined();
   });
 
   it("shows Disable Routing button", async () => {
@@ -249,7 +249,7 @@ describe("Routing — enabled state (providers active)", () => {
     fireEvent.click(modelButtons[modelButtons.length - 1]);
 
     await waitFor(() => {
-      expect(overrideTier).toHaveBeenCalledWith("test-agent", "simple", "claude-opus-4-6");
+      expect(overrideTier).toHaveBeenCalledWith("test-agent", "simple", "claude-opus-4-6", undefined);
     });
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("Routing updated");
@@ -382,7 +382,27 @@ describe("Routing — enabled state (providers active)", () => {
     ]);
 
     render(() => <Routing />);
-    expect(await screen.findByText("2 providers")).toBeDefined();
+    expect(await screen.findByText("2 connections")).toBeDefined();
+  });
+
+  it("shows 'Included in subscription' instead of price for subscription-only provider", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: true, auth_type: "subscription", connected_at: "2025-01-01" },
+    ]);
+
+    render(() => <Routing />);
+    expect(await screen.findByText("Included in subscription")).toBeDefined();
+  });
+
+  it("prefers subscription when provider has both subscription and api_key", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: true, auth_type: "subscription", connected_at: "2025-01-01" },
+      { id: "p2", provider: "anthropic", is_active: true, has_api_key: true, auth_type: "api_key", connected_at: "2025-01-01" },
+    ]);
+
+    render(() => <Routing />);
+    await screen.findByText("2 connections");
+    expect(screen.queryByText("Included in subscription")).toBeDefined();
   });
 });
 

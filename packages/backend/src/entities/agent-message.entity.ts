@@ -75,6 +75,9 @@ export class AgentMessage {
   @Column('varchar', { nullable: true })
   skill_name!: string | null;
 
+  @Column('varchar', { nullable: true })
+  auth_type!: string | null;
+
   @Index()
   @Column('varchar', { nullable: true })
   user_id!: string | null;

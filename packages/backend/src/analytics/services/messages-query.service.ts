@@ -93,7 +93,8 @@ export class MessagesQueryService {
       .addSelect('at.cache_read_tokens', 'cache_read_tokens')
       .addSelect('at.cache_creation_tokens', 'cache_creation_tokens')
       .addSelect('at.duration_ms', 'duration_ms')
-      .addSelect('at.error_message', 'error_message');
+      .addSelect('at.error_message', 'error_message')
+      .addSelect('at.auth_type', 'auth_type');
 
     if (params.cursor) {
       const sepIdx = params.cursor.indexOf('|');
