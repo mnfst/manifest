@@ -1,5 +1,24 @@
 # manifest
 
+## 5.22.0
+
+### Minor Changes
+
+- 057d2e8: Store and display human-readable model names everywhere. Adds a `display_name` column to model pricing, populates it during OpenRouter sync and seeding, and uses it across all frontend pages (Overview, MessageLog, FallbackList).
+- b6d774a: Add fallback model routing with automatic retry on provider failures
+
+### Patch Changes
+
+- fea384e: Add database indexes for dashboard query performance
+- 64a28fc: Disable auto-migrations in production and drop 14 redundant single-column indexes
+- 712c78a: Reduce TypeORM connection pool from 20 to 5 per replica to avoid exhausting PgBouncer client connections during rolling deploys.
+- f040751: Fix blank model names in picker when display_name column is empty
+- c8bb779: Fix fallback UX: unify Override/Edit into Change button, add loading states for add/remove fallback operations
+- 5a2500b: fix: recalculate tier assignments on local-mode startup and remove hardcoded model seed
+- 9293a95: Eliminate OR pattern in tenant filter queries to enable index usage
+- 858d4d4: Optimize 3 slow API endpoints: parallelize independent queries, add 30-day stats cutoff, batch tier inserts/updates, and merge redundant token queries
+- 1082b7b: Web quality audit: font preloading, skip-to-content link, compression middleware, static asset caching, accessibility improvements
+
 ## 5.21.2
 
 ### Patch Changes
