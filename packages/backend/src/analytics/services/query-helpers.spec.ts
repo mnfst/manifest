@@ -1,5 +1,5 @@
 import { computeTrend, downsample, formatTimestamp, addTenantFilter } from './query-helpers';
-import { SelectQueryBuilder, Brackets } from 'typeorm';
+import { SelectQueryBuilder } from 'typeorm';
 
 describe('computeTrend', () => {
   it('returns positive trend when current exceeds previous', () => {
@@ -122,32 +122,22 @@ describe('addTenantFilter', () => {
     return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere };
   }
 
-  it('adds tenant subquery filter with userId parameter (no tenantId)', () => {
+  it('filters by user_id when no tenantId is provided', () => {
     const { qb, mockAndWhere } = makeMockQb();
     addTenantFilter(qb, 'user-123');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
-    const firstCall = mockAndWhere.mock.calls[0];
-    expect(firstCall[0]).toBeInstanceOf(Brackets);
+    expect(mockAndWhere).toHaveBeenCalledWith('at.user_id = :userId', { userId: 'user-123' });
   });
 
-  it('adds direct tenant_id filter when tenantId is provided', () => {
+  it('filters by tenant_id when tenantId is provided', () => {
     const { qb, mockAndWhere } = makeMockQb();
     addTenantFilter(qb, 'user-123', undefined, 'tenant-456');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
-    const brackets = mockAndWhere.mock.calls[0][0];
-    expect(brackets).toBeInstanceOf(Brackets);
-
-    const mockSub = {
-      where: jest.fn().mockReturnThis(),
-      orWhere: jest.fn().mockReturnThis(),
-    };
-    (brackets as any).whereFactory(mockSub);
-    expect(mockSub.where).toHaveBeenCalledWith('at.tenant_id = :tenantId', {
+    expect(mockAndWhere).toHaveBeenCalledWith('at.tenant_id = :tenantId', {
       tenantId: 'tenant-456',
     });
-    expect(mockSub.orWhere).toHaveBeenCalledWith('at.user_id = :userId', { userId: 'user-123' });
   });
 
   it('adds agent_name filter when agentName is provided', () => {

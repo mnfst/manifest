@@ -1,4 +1,4 @@
-import { Brackets, ObjectLiteral, SelectQueryBuilder } from 'typeorm';
+import { ObjectLiteral, SelectQueryBuilder } from 'typeorm';
 
 export interface MetricWithTrend {
   value: number;
@@ -46,21 +46,9 @@ export function addTenantFilter<T extends ObjectLiteral>(
   tenantId?: string,
 ): SelectQueryBuilder<T> {
   if (tenantId) {
-    qb.andWhere(
-      new Brackets((sub) => {
-        sub
-          .where('at.tenant_id = :tenantId', { tenantId })
-          .orWhere('at.user_id = :userId', { userId });
-      }),
-    );
+    qb.andWhere('at.tenant_id = :tenantId', { tenantId });
   } else {
-    qb.andWhere(
-      new Brackets((sub) => {
-        sub
-          .where('at.tenant_id IN (SELECT id FROM tenants WHERE name = :userId)', { userId })
-          .orWhere('at.user_id = :userId', { userId });
-      }),
-    );
+    qb.andWhere('at.user_id = :userId', { userId });
   }
   if (agentName) {
     qb.andWhere('at.agent_name = :agentName', { agentName });

@@ -13,11 +13,9 @@ export class AgentMessage {
   @PrimaryColumn('varchar')
   id!: string;
 
-  @Index()
   @Column('varchar', { nullable: true })
   tenant_id!: string | null;
 
-  @Index()
   @Column('varchar', { nullable: true })
   agent_id!: string | null;
 
@@ -30,7 +28,6 @@ export class AgentMessage {
   @Column('varchar', { nullable: true })
   session_id!: string | null;
 
-  @Index()
   @Column(timestampType())
   timestamp!: string;
 
@@ -85,7 +82,6 @@ export class AgentMessage {
   @Column('integer', { nullable: true })
   fallback_index!: number | null;
 
-  @Index()
   @Column('varchar', { nullable: true })
   user_id!: string | null;
 }

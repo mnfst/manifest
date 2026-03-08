@@ -103,10 +103,10 @@ describe("Routing — enabled state (providers active)", () => {
     expect(autoTags.length).toBe(3);
   });
 
-  it("shows Override button for non-override tiers", async () => {
+  it("shows Change button for all tiers", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
-    expect(overrideButtons.length).toBe(3);
+    const changeButtons = await screen.findAllByText("Change");
+    expect(changeButtons.length).toBe(4);
   });
 
   it("renders Add fallback button in tier cards", async () => {
@@ -115,10 +115,9 @@ describe("Routing — enabled state (providers active)", () => {
     expect(addButtons.length).toBe(4); // one per tier
   });
 
-  it("shows Edit and Reset buttons for override tiers", async () => {
+  it("shows Reset button for override tiers", async () => {
     render(() => <Routing />);
-    expect(await screen.findByText("Edit")).toBeDefined();
-    expect(screen.getByText("Reset")).toBeDefined();
+    expect(await screen.findByText("Reset")).toBeDefined();
   });
 
   it("shows Reset all to auto button when overrides exist", async () => {
@@ -150,21 +149,22 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("opens model picker when Override button is clicked", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
   });
 
-  it("opens model picker when Edit button is clicked", async () => {
+  it("opens model picker when Change button is clicked on override tier", async () => {
     render(() => <Routing />);
-    const editBtn = await screen.findByText("Edit");
-    fireEvent.click(editBtn);
+    const changeButtons = await screen.findAllByText("Change");
+    // complex tier (index 2) has an override
+    fireEvent.click(changeButtons[2]);
     expect(await screen.findByText("Select a model")).toBeDefined();
   });
 
   it("shows tier label in model picker subtitle", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     // Click override for 'simple' tier
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Simple tier")).toBeDefined();
@@ -172,7 +172,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("closes model picker when close button is clicked", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
 
@@ -186,7 +186,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("closes model picker on overlay click", async () => {
     const { container } = render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
 
@@ -200,7 +200,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("closes model picker on Escape key", async () => {
     const { container } = render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
 
@@ -214,14 +214,14 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows search input in model picker", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByLabelText("Search models or providers")).toBeDefined();
   });
 
   it("filters models by search query", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
 
     const searchInput = await screen.findByLabelText("Search models or providers");
@@ -235,7 +235,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows 'No models match' when search has no results", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
 
     const searchInput = await screen.findByLabelText("Search models or providers");
@@ -248,7 +248,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("selects a model and calls overrideTier", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     await screen.findByText("Select a model");
 
@@ -266,7 +266,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows (recommended) label for auto-assigned model", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]); // simple tier, auto is gpt-4o-mini
 
     await waitFor(() => {
@@ -432,7 +432,7 @@ describe("Routing — helper functions", () => {
   it("handles overrideTier error gracefully", async () => {
     vi.mocked(overrideTier).mockRejectedValueOnce(new Error("fail"));
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     await screen.findByText("Select a model");
 
@@ -848,7 +848,26 @@ describe("Routing — fallback management", () => {
     expect(modalButtons.length).toBe(0);
   });
 
-  it("handles setFallbacks error gracefully", async () => {
+  it("shows Adding... on the add button while setFallbacks is in progress", async () => {
+    let resolveSetFallbacks: () => void;
+    vi.mocked(setFallbacks).mockReturnValueOnce(new Promise<void>((r) => { resolveSetFallbacks = r; }) as any);
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]); // simple tier
+    await screen.findByText("Select a model");
+
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Adding...")).toBeDefined();
+      expect((screen.getByText("Adding...") as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    resolveSetFallbacks!();
+  });
+
+  it("handles setFallbacks error gracefully and rolls back optimistic state", async () => {
     vi.mocked(setFallbacks).mockRejectedValueOnce(new Error("fail"));
     render(() => <Routing />);
     const addButtons = await screen.findAllByText("+ Add fallback");

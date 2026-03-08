@@ -7,11 +7,9 @@ export class CostSnapshot {
   @PrimaryColumn('varchar')
   id!: string;
 
-  @Index()
   @Column('varchar', { nullable: true })
   tenant_id!: string | null;
 
-  @Index()
   @Column('varchar', { nullable: true })
   agent_id!: string | null;
 

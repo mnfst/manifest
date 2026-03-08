@@ -1,4 +1,4 @@
-import { For, Show, type Component } from 'solid-js';
+import { createSignal, For, Show, type Component } from 'solid-js';
 import { providerIcon } from './ProviderIcon.js';
 import { resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
 import { getModelLabel } from '../services/providers.js';
@@ -17,9 +17,12 @@ interface FallbackListProps {
   customProviders: CustomProviderData[];
   onUpdate: () => void;
   onAddFallback: () => void;
+  adding?: boolean;
 }
 
 const FallbackList: Component<FallbackListProps> = (props) => {
+  const [removingIndex, setRemovingIndex] = createSignal<number | null>(null);
+
   const modelLabel = (model: string): string => {
     const info = props.models.find((m) => m.model_name === model);
     if (info?.display_name) return info.display_name;
@@ -37,6 +40,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   };
 
   const handleRemove = async (index: number) => {
+    setRemovingIndex(index);
     const updated = props.fallbacks.filter((_, i) => i !== index);
     try {
       if (updated.length === 0) {
@@ -47,6 +51,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
       props.onUpdate();
     } catch {
       // error toast from fetchMutate
+    } finally {
+      setRemovingIndex(null);
     }
   };
 
@@ -90,8 +96,9 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     onClick={() => handleRemove(i())}
                     title="Remove fallback"
                     aria-label={`Remove ${modelLabel(model)}`}
+                    disabled={removingIndex() !== null}
                   >
-                    &times;
+                    {removingIndex() === i() ? '...' : '\u00d7'}
                   </button>
                 </li>
               );
@@ -100,8 +107,12 @@ const FallbackList: Component<FallbackListProps> = (props) => {
         </ol>
       </Show>
       <Show when={props.fallbacks.length < 5}>
-        <button class="fallback-list__add routing-action" onClick={props.onAddFallback}>
-          + Add fallback
+        <button
+          class="fallback-list__add routing-action"
+          onClick={props.onAddFallback}
+          disabled={props.adding || removingIndex() !== null}
+        >
+          {props.adding ? 'Adding...' : '+ Add fallback'}
         </button>
       </Show>
     </div>

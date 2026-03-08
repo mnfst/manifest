@@ -16,7 +16,9 @@ function createDataSource(): DataSource {
   }
 
   const databaseUrl =
-    process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase';
+    process.env['MIGRATION_DATABASE_URL'] ??
+    process.env['DATABASE_URL'] ??
+    'postgresql://myuser:mypassword@localhost:5432/mydatabase';
 
   return new DataSource({
     type: 'postgres',

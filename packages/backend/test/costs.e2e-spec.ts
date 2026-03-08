@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_API_KEY, TEST_USER_ID } from './helpers';
+import { createTestApp, TEST_API_KEY, TEST_USER_ID, TEST_TENANT_ID } from './helpers';
 import { detectDialect, portableSql, sqlNow } from '../src/common/utils/sql-dialect';
 import { v4 as uuid } from 'uuid';
 
@@ -37,12 +37,12 @@ beforeAll(async () => {
   await ds.query(
     sql(`INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`),
-    [uuid(), now, 'Cost query 1', 'agent', 'ok', 'gpt-4o', 5000, 2000, costUsd1, TEST_USER_ID, null, null],
+    [uuid(), now, 'Cost query 1', 'agent', 'ok', 'gpt-4o', 5000, 2000, costUsd1, TEST_USER_ID, TEST_TENANT_ID, null],
   );
   await ds.query(
     sql(`INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`),
-    [uuid(), now, 'Cost query 2', 'agent', 'ok', 'gpt-4o', 3000, 1000, costUsd2, TEST_USER_ID, null, null],
+    [uuid(), now, 'Cost query 2', 'agent', 'ok', 'gpt-4o', 3000, 1000, costUsd2, TEST_USER_ID, TEST_TENANT_ID, null],
   );
 }, 30000);
 

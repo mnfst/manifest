@@ -47,6 +47,7 @@ import { AddPerformanceIndexes1772843035514 } from './migrations/1772843035514-A
 import { AddDashboardIndexes1772905146384 } from './migrations/1772905146384-AddDashboardIndexes';
 import { AddFallbacks1772905260464 } from './migrations/1772905260464-AddFallbacks';
 import { AddModelDisplayName1772920000000 } from './migrations/1772920000000-AddModelDisplayName';
+import { DropRedundantIndexes1772940000000 } from './migrations/1772940000000-DropRedundantIndexes';
 
 const entities = [
   AgentMessage,
@@ -98,6 +99,7 @@ const migrations = [
   AddDashboardIndexes1772905146384,
   AddFallbacks1772905260464,
   AddModelDisplayName1772920000000,
+  DropRedundantIndexes1772940000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -130,7 +132,7 @@ function buildModeServices() {
           url: config.get<string>('app.databaseUrl'),
           entities,
           synchronize: false,
-          migrationsRun: true,
+          migrationsRun: config.get<string>('app.nodeEnv') !== 'production',
           migrationsTransactionMode: 'all' as const,
           migrations,
           logging: false,
