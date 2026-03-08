@@ -3,6 +3,7 @@ import {
   createResource,
   createEffect,
   on,
+  onCleanup,
   Show,
   For,
   type Component,
@@ -90,6 +91,21 @@ const MessageLog: Component = () => {
   };
 
   const pager = createCursorPagination(50);
+
+  let costMinTimer: ReturnType<typeof setTimeout>;
+  let costMaxTimer: ReturnType<typeof setTimeout>;
+  onCleanup(() => {
+    clearTimeout(costMinTimer);
+    clearTimeout(costMaxTimer);
+  });
+  const debouncedSetCostMin = (val: string) => {
+    clearTimeout(costMinTimer);
+    costMinTimer = setTimeout(() => setCostMin(val), 400);
+  };
+  const debouncedSetCostMax = (val: string) => {
+    clearTimeout(costMaxTimer);
+    costMaxTimer = setTimeout(() => setCostMax(val), 400);
+  };
 
   createEffect(
     on([statusFilter, modelFilter, costMin, costMax], () => pager.resetPage(), { defer: true }),
@@ -204,7 +220,7 @@ const MessageLog: Component = () => {
                 min="0"
                 step="0.01"
                 value={costMin()}
-                onInput={(e) => setCostMin(e.currentTarget.value)}
+                onInput={(e) => debouncedSetCostMin(e.currentTarget.value)}
               />
               <span class="cost-range-filter__sep">&ndash;</span>
               <input
@@ -214,7 +230,7 @@ const MessageLog: Component = () => {
                 min="0"
                 step="0.01"
                 value={costMax()}
-                onInput={(e) => setCostMax(e.currentTarget.value)}
+                onInput={(e) => debouncedSetCostMax(e.currentTarget.value)}
               />
             </div>
           </Show>
@@ -233,7 +249,7 @@ const MessageLog: Component = () => {
       </div>
 
       <Show
-        when={!data.loading}
+        when={data() !== undefined || !data.loading}
         fallback={
           <div class="panel">
             <div

@@ -127,6 +127,23 @@ describe("Overview", () => {
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
+  it("keeps showing stale data during refetch instead of skeletons", async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("$3.50");
+    });
+
+    // Trigger a refetch that never resolves
+    mockGetOverview.mockReturnValue(new Promise(() => {}));
+    const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+    await fireEvent.change(select, { target: { value: "24h" } });
+
+    // Should still show old data, not skeletons
+    expect(container.textContent).toContain("$3.50");
+    expect(container.querySelectorAll(".skeleton").length).toBe(0);
+  });
+
   it("shows summary stats after data loads", async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
