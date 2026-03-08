@@ -1272,9 +1272,9 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
     // trace_id-based dedup is skipped; remapFallbackSpans calls find() for unfilled
-    // fallback, then buildAgentMessage calls find() for recent errors + ghost dedup
+    // fallback, then buildAgentMessage calls find() for recent errors + proxy dedup + ghost dedup
     expect(mockTurnFindOne).not.toHaveBeenCalled();
-    expect(mockTurnFind).toHaveBeenCalledTimes(3);
+    expect(mockTurnFind).toHaveBeenCalledTimes(4);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
@@ -1788,6 +1788,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
       .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([]) // proxyDedup (no proxy-recorded messages)
       .mockResolvedValueOnce([
         {
           id: 'session-data',
@@ -1815,10 +1816,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    // Verify the third find() call includes session_key in where clause
-    // (first is unfilled fallback, second is recentErrors, third is ghost dedup)
-    const thirdFindCall = mockTurnFind.mock.calls[2];
-    expect(thirdFindCall[0].where).toEqual(expect.objectContaining({ session_key: 'session-abc' }));
+    // Verify the fourth find() call includes session_key in where clause
+    // (first is unfilled fallback, second is recentErrors, third is proxyDedup, fourth is ghost dedup)
+    const fourthFindCall = mockTurnFind.mock.calls[3];
+    expect(fourthFindCall[0].where).toEqual(
+      expect.objectContaining({ session_key: 'session-abc' }),
+    );
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -1870,6 +1873,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
       .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([]) // proxyDedup (no proxy-recorded messages)
       .mockResolvedValueOnce([]); // recentMessages (DB ghost fallback)
 
     const emptySpan = makeSpan({
@@ -1889,7 +1893,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnFind).toHaveBeenCalledTimes(3);
+    expect(mockTurnFind).toHaveBeenCalledTimes(4);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
@@ -1960,5 +1964,117 @@ describe('TraceIngestService', () => {
         cache_creation_tokens: 0,
       }),
     ]);
+  });
+
+  it('skips 0-token OTLP span when proxy already recorded message with tokens (proxy dedup)', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
+      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([{ id: 'proxy-msg', timestamp: nearbyTs, input_tokens: 500 }]); // proxyDedup — proxy recorded a message with real tokens
+
+    const span = makeSpan({
+      spanId: 'span-proxy-dedup',
+      name: 'openclaw.agent.turn',
+      attributes: [{ key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } }],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('ignores proxy messages with null input_tokens during dedup check', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
+      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([{ id: 'null-tokens-msg', timestamp: nearbyTs, input_tokens: null }]); // proxyDedup — nearby message but with null tokens (doesn't count)
+
+    const span = makeSpan({
+      spanId: 'span-null-tokens',
+      name: 'openclaw.agent.turn',
+      attributes: [{ key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } }],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // null input_tokens treated as 0, so proxy dedup does NOT suppress this span
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows 0-token OTLP span when no proxy message exists nearby', async () => {
+    mockTurnFind
+      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
+      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([]); // proxyDedup — no proxy data
+
+    const span = makeSpan({
+      spanId: 'span-no-proxy',
+      name: 'openclaw.agent.turn',
+      attributes: [{ key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } }],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not run proxy dedup on spans with tokens', async () => {
+    const span = makeSpan({
+      spanId: 'span-with-tokens',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+    // Proxy dedup should NOT run (span has tokens), so find() calls are fewer
+    // findUnfilledFallback + recentErrors = 2 (no proxy dedup, no ghost dedup since has model+tokens)
+    expect(mockTurnFind).toHaveBeenCalledTimes(2);
   });
 });

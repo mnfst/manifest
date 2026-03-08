@@ -227,21 +227,48 @@ export function transformGoogleStreamChunk(chunk: string, model: string): string
 
   const candidates = (data.candidates as Array<Record<string, unknown>>) || [];
   const candidate = candidates[0];
-  if (!candidate) return null;
-
-  const content = candidate.content as { parts?: Array<Record<string, unknown>> } | undefined;
+  const content = candidate?.content as { parts?: Array<Record<string, unknown>> } | undefined;
   const parts = content?.parts || [];
   const text = parts.map((p) => p.text || '').join('');
 
-  if (!text) return null;
+  let result = '';
 
-  const sseData = {
-    id: `chatcmpl-${randomUUID()}`,
-    object: 'chat.completion.chunk',
-    created: Math.floor(Date.now() / 1000),
-    model,
-    choices: [{ index: 0, delta: { content: text }, finish_reason: null }],
-  };
+  if (text) {
+    result += `data: ${JSON.stringify({
+      id: `chatcmpl-${randomUUID()}`,
+      object: 'chat.completion.chunk',
+      created: Math.floor(Date.now() / 1000),
+      model,
+      choices: [{ index: 0, delta: { content: text }, finish_reason: null }],
+    })}\n\n`;
+  }
 
-  return `data: ${JSON.stringify(sseData)}\n\n`;
+  const usage = data.usageMetadata as Record<string, number> | undefined;
+  if (usage) {
+    const finishReason = mapFinishReason(candidate ?? {});
+    result += `data: ${JSON.stringify({
+      id: `chatcmpl-${randomUUID()}`,
+      object: 'chat.completion.chunk',
+      created: Math.floor(Date.now() / 1000),
+      model,
+      choices: [{ index: 0, delta: {}, finish_reason: finishReason }],
+    })}\n\n`;
+    result += `data: ${JSON.stringify({
+      id: `chatcmpl-${randomUUID()}`,
+      object: 'chat.completion.chunk',
+      created: Math.floor(Date.now() / 1000),
+      model,
+      choices: [],
+      usage: {
+        prompt_tokens: usage.promptTokenCount ?? 0,
+        completion_tokens: usage.candidatesTokenCount ?? 0,
+        total_tokens: usage.totalTokenCount ?? 0,
+        prompt_tokens_details: { cached_tokens: usage.cachedContentTokenCount ?? 0 },
+        cache_read_tokens: usage.cachedContentTokenCount ?? 0,
+        cache_creation_tokens: 0,
+      },
+    })}\n\n`;
+  }
+
+  return result || null;
 }

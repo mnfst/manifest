@@ -408,6 +408,24 @@ export class TraceIngestService {
     });
     if (hasNearbyError) return null;
 
+    // Proxy dedup: if this span carries 0 tokens, check if the proxy already
+    // recorded a success message with real tokens for the same agent within 60s.
+    const spanInputTokens = attrNumber(attrs, 'gen_ai.usage.input_tokens') ?? 0;
+    const spanOutputTokens = attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0;
+    if (spanInputTokens === 0 && spanOutputTokens === 0) {
+      const recentOkMessages = await this.turnRepo.find({
+        where: { tenant_id: ctx.tenantId, agent_id: ctx.agentId, status: 'ok' },
+        select: ['id', 'timestamp', 'input_tokens'],
+        order: { timestamp: 'DESC' },
+        take: 3,
+      });
+      const hasProxyData = recentOkMessages.some((m) => {
+        const mTime = new Date(m.timestamp).getTime();
+        return Math.abs(mTime - spanTime) <= 60_000 && (m.input_tokens ?? 0) > 0;
+      });
+      if (hasProxyData) return null;
+    }
+
     // DB-level ghost dedup: if this span is empty-ok, check if a data-bearing
     // message for the same agent already exists within 60s (cross-batch case).
     // Scope by session_key when available to avoid cross-session false positives.

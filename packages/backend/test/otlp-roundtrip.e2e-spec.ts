@@ -136,6 +136,24 @@ describe('OTLP ingest-then-query round-trip', () => {
     expect(after.body.total_count).toBe(baselineCount + 1);
   });
 
+  it('messages endpoint returns token values from OTLP traces', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/messages?range=24h')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+
+    // Find any message with non-zero tokens (from makeTracePayload or ghost-test)
+    const withTokens = res.body.items.find(
+      (m: Record<string, unknown>) => Number(m.total_tokens) > 0,
+    );
+    expect(withTokens).toBeDefined();
+    expect(Number(withTokens.input_tokens)).toBeGreaterThan(0);
+    expect(Number(withTokens.output_tokens)).toBeGreaterThan(0);
+    expect(Number(withTokens.total_tokens)).toBe(
+      Number(withTokens.input_tokens) + Number(withTokens.output_tokens),
+    );
+  });
+
   it('overview reflects OTLP-ingested data', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/overview?range=24h')
