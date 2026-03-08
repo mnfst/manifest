@@ -65,7 +65,7 @@ describe('ModelPricesService', () => {
       const result = await service.getAll();
 
       expect(result.models[0].provider).toBe('Unknown');
-      expect(result.models[0].display_name).toBe('');
+      expect(result.models[0].display_name).toBeNull();
     });
 
     it('should return null lastSyncedAt when no updated_at values', async () => {

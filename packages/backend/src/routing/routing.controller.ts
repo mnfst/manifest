@@ -213,7 +213,7 @@ export class RoutingController {
           quality_score: m.quality_score,
           display_name: isCustom
             ? CustomProviderService.rawModelName(m.model_name)
-            : m.display_name || '',
+            : m.display_name || null,
           ...(isCustom && {
             provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
           }),

@@ -75,7 +75,7 @@ const ModelPickerModal: Component<Props> = (props) => {
           : (provDef?.name ?? m.provider);
         groupMap.set(provId, { provId, name, models: [] });
       }
-      const label = m.display_name ?? labelForModel(m.model_name, labels);
+      const label = m.display_name || labelForModel(m.model_name, labels);
       groupMap.get(provId)!.models.push({
         value: m.model_name,
         label,
