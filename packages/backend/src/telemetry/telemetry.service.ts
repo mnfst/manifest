@@ -6,6 +6,7 @@ import { AgentMessage } from '../entities/agent-message.entity';
 import { SecurityEvent } from '../entities/security-event.entity';
 import { TelemetryEventDto } from './dto/create-telemetry.dto';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
+import { TenantCacheService } from '../common/services/tenant-cache.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 
 export interface IngestResult {
@@ -24,6 +25,7 @@ export class TelemetryService {
     @InjectRepository(SecurityEvent)
     private readonly securityRepo: Repository<SecurityEvent>,
     private readonly eventBus: IngestEventBusService,
+    private readonly tenantCache: TenantCacheService,
     private readonly pricingCache: ModelPricingCacheService,
   ) {}
 
@@ -33,6 +35,7 @@ export class TelemetryService {
     if (!Array.isArray(events)) {
       return { accepted: 0, rejected: 0, errors: [] };
     }
+    const tenantId = await this.tenantCache.resolve(userId);
     const maxLen = Math.min(events.length, TelemetryService.MAX_EVENTS_PER_BATCH);
     const messageRows: Record<string, unknown>[] = [];
     const securityRows: Record<string, unknown>[] = [];
@@ -40,7 +43,7 @@ export class TelemetryService {
 
     for (let i = 0; i < maxLen; i++) {
       try {
-        const { message, security } = this.buildEventRows(events[i], userId);
+        const { message, security } = this.buildEventRows(events[i], userId, tenantId);
         messageRows.push(message);
         if (security) securityRows.push(security);
       } catch (err) {
@@ -80,6 +83,7 @@ export class TelemetryService {
   private buildEventRows(
     event: TelemetryEventDto,
     userId: string,
+    tenantId: string | null,
   ): { message: Record<string, unknown>; security: Record<string, unknown> | null } {
     const inputTok = event.input_tokens ?? 0;
     const outputTok = event.output_tokens ?? 0;
@@ -111,6 +115,7 @@ export class TelemetryService {
       output_tokens: outputTok,
       skill_name: event.skill_name ?? null,
       cost_usd: costUsd,
+      tenant_id: tenantId,
       user_id: userId,
     };
 
