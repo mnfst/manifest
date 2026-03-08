@@ -61,7 +61,7 @@ describe('PricingSyncService', () => {
     mockDelete.mockResolvedValue(undefined);
   });
 
-  it('creates only OpenRouter copies for new models not in seeder', async () => {
+  it('creates canonical + OpenRouter copies for new vendor-prefixed models', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -77,8 +77,8 @@ describe('PricingSyncService', () => {
 
     const updated = await service.syncPricing();
     expect(updated).toBe(2);
-    // No canonical entries for new models — only 2 OpenRouter copies
-    expect(mockUpsert).toHaveBeenCalledTimes(2);
+    // 2 canonical + 2 OpenRouter copies = 4 upserts
+    expect(mockUpsert).toHaveBeenCalledTimes(4);
     expect(mockRecordChange).toHaveBeenCalledTimes(2);
   });
 
@@ -220,8 +220,8 @@ describe('PricingSyncService', () => {
       }),
       'sync',
     );
-    // Only OpenRouter copy (canonical skipped for new models)
-    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    // Canonical + OpenRouter copy for new vendor-prefixed models
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
   });
 
   it('passes existing model to recordChange when found', async () => {
@@ -659,8 +659,16 @@ describe('PricingSyncService', () => {
     });
 
     await service.syncPricing();
-    // New model — only OpenRouter copy (canonical skipped)
-    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    // Canonical + OpenRouter copy for new vendor-prefixed models
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'gpt-4o',
+        provider: 'OpenAI',
+        context_window: 128000,
+      }),
+      ['model_name'],
+    );
     expect(mockUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         model_name: 'openai/gpt-4o',
@@ -725,8 +733,17 @@ describe('PricingSyncService', () => {
     });
 
     await service.syncPricing();
-    // New model — only OpenRouter copy (no canonical entry)
-    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    // Canonical + OpenRouter copy for new vendor-prefixed models
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'claude-opus-4',
+        provider: 'Anthropic',
+        input_price_per_token: 0.000015,
+        output_price_per_token: 0.000075,
+      }),
+      ['model_name'],
+    );
     expect(mockUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         model_name: 'anthropic/claude-opus-4',

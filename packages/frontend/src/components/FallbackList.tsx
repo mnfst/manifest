@@ -8,6 +8,7 @@ import {
   type AvailableModel,
   type CustomProviderData,
 } from '../services/api.js';
+import { toast } from '../services/toast-store.js';
 
 interface FallbackListProps {
   agentName: string;
@@ -15,7 +16,7 @@ interface FallbackListProps {
   fallbacks: string[];
   models: AvailableModel[];
   customProviders: CustomProviderData[];
-  onUpdate: () => void;
+  onUpdate: (updatedFallbacks: string[]) => void;
   onAddFallback: () => void;
   adding?: boolean;
 }
@@ -48,7 +49,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
       } else {
         await setFallbacks(props.agentName, props.tier, updated);
       }
-      props.onUpdate();
+      props.onUpdate(updated);
+      toast.success('Fallback removed');
     } catch {
       // error toast from fetchMutate
     } finally {

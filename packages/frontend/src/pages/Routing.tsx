@@ -48,7 +48,10 @@ const Routing: Component = () => {
   const params = useParams<{ agentName: string }>();
   const agentName = () => decodeURIComponent(params.agentName);
 
-  const [tiers, { refetch: refetchTiers }] = createResource(() => agentName(), getTierAssignments);
+  const [tiers, { refetch: refetchTiers, mutate: mutateTiers }] = createResource(
+    () => agentName(),
+    getTierAssignments,
+  );
   const [models, { refetch: refetchModels }] = createResource(
     () => agentName(),
     getAvailableModels,
@@ -67,6 +70,7 @@ const Routing: Component = () => {
   const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
   const [resettingTier, setResettingTier] = createSignal<string | null>(null);
+  const [changingTier, setChangingTier] = createSignal<string | null>(null);
   const [resettingAll, setResettingAll] = createSignal(false);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
   const [addingFallback, setAddingFallback] = createSignal<string | null>(null);
@@ -121,12 +125,15 @@ const Routing: Component = () => {
 
   const handleOverride = async (tierId: string, modelName: string) => {
     setDropdownTier(null);
+    setChangingTier(tierId);
     try {
-      await overrideTier(agentName(), tierId, modelName);
-      await refetchTiers();
+      const updated = await overrideTier(agentName(), tierId, modelName);
+      mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
       toast.success('Routing updated');
     } catch {
       // error toast from fetchMutate
+    } finally {
+      setChangingTier(null);
     }
   };
 
@@ -134,7 +141,9 @@ const Routing: Component = () => {
     setResettingTier(tierId);
     try {
       await resetTier(agentName(), tierId);
-      await refetchTiers();
+      mutateTiers((prev) =>
+        prev?.map((t) => (t.tier === tierId ? { ...t, override_model: null } : t)),
+      );
       toast.success('Reset to auto');
     } catch {
       // error toast from fetchMutate
@@ -147,7 +156,7 @@ const Routing: Component = () => {
     setResettingAll(true);
     try {
       await resetAllTiers(agentName());
-      await refetchTiers();
+      mutateTiers((prev) => prev?.map((t) => ({ ...t, override_model: null })));
       toast.success('All tiers reset to auto');
     } catch {
       // error toast from fetchMutate
@@ -166,7 +175,9 @@ const Routing: Component = () => {
     setAddingFallback(tierId);
     try {
       await setFallbacks(agentName(), tierId, updated);
-      await refetchTiers();
+      mutateTiers((prev) =>
+        prev?.map((t) => (t.tier === tierId ? { ...t, fallback_models: updated } : t)),
+      );
       toast.success('Fallback added');
     } catch {
       setFallbackOverrides((prev) => {
@@ -402,8 +413,12 @@ const Routing: Component = () => {
                     <Show when={eff()}>
                       <div class="routing-card__right">
                         <div class="routing-card__actions">
-                          <button class="routing-action" onClick={() => setDropdownTier(stage.id)}>
-                            Change
+                          <button
+                            class="routing-action"
+                            onClick={() => setDropdownTier(stage.id)}
+                            disabled={changingTier() === stage.id}
+                          >
+                            {changingTier() === stage.id ? 'Changing...' : 'Change'}
                           </button>
                           <Show when={isManual()}>
                             <button
@@ -421,13 +436,19 @@ const Routing: Component = () => {
                           fallbacks={getFallbacksFor(stage.id)}
                           models={models() ?? []}
                           customProviders={customProviders() ?? []}
-                          onUpdate={() => {
+                          onUpdate={(updatedFallbacks) => {
                             setFallbackOverrides((prev) => {
                               const next = { ...prev };
                               delete next[stage.id];
                               return next;
                             });
-                            refetchTiers();
+                            mutateTiers((prev) =>
+                              prev?.map((t) =>
+                                t.tier === stage.id
+                                  ? { ...t, fallback_models: updatedFallbacks }
+                                  : t,
+                              ),
+                            );
                           }}
                           onAddFallback={() => setFallbackPickerTier(stage.id)}
                           adding={addingFallback() === stage.id}

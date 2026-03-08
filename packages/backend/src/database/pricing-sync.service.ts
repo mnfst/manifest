@@ -171,6 +171,8 @@ export class PricingSyncService implements OnModuleInit {
 
         await this.pricingHistory.recordChange(existing, incoming, 'sync');
 
+        const hasVendorPrefix = model.id.includes('/') && !model.id.startsWith('openrouter/');
+
         let upserted = false;
         if (existing) {
           // Seeded model — update pricing only, preserve provider
@@ -186,10 +188,24 @@ export class PricingSyncService implements OnModuleInit {
             ['model_name'],
           );
           upserted = true;
+        } else if (hasVendorPrefix) {
+          // No seeded entry — create canonical model with proper provider
+          await this.pricingRepo.upsert(
+            {
+              model_name: canonical,
+              provider,
+              input_price_per_token: prompt,
+              output_price_per_token: completion,
+              ...(contextWindow != null && { context_window: contextWindow }),
+              ...(displayName && { display_name: displayName }),
+              updated_at: now,
+            },
+            ['model_name'],
+          );
+          upserted = true;
         }
 
         // Store an OpenRouter copy with the full vendor-prefixed ID
-        const hasVendorPrefix = model.id.includes('/') && !model.id.startsWith('openrouter/');
         if (hasVendorPrefix) {
           try {
             await this.pricingRepo.upsert(
