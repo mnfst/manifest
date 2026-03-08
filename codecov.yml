@@ -1,12 +1,5 @@
 codecov:
   branch: main
-ignore:
-  - "packages/backend/src/database/migrations/**"
-  - "packages/backend/src/**/*.module.ts"
-  - "packages/backend/src/main.ts"
-  - "packages/backend/src/database/datasource.ts"
-  - "packages/backend/src/otlp/interfaces/index.ts"
-  - "packages/backend/src/otlp/proto/**"
 coverage:
   status:
     project:

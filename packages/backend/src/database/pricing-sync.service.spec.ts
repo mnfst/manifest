@@ -726,7 +726,7 @@ describe('PricingSyncService', () => {
     expect(orCall![0]).not.toHaveProperty('provider');
   });
 
-  it('logs warning when OpenRouter copy upsert fails', async () => {
+  it('logs warning when OpenRouter copy upsert fails with Error', async () => {
     mockFindOneBy.mockResolvedValue({
       model_name: 'claude-opus-4',
       provider: 'Anthropic',
@@ -749,6 +749,32 @@ describe('PricingSyncService', () => {
 
     const updated = await service.syncPricing();
     // Model still counts as updated (canonical upsert succeeded)
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
+  });
+
+  it('logs warning when OpenRouter copy upsert fails with non-Error', async () => {
+    mockFindOneBy.mockResolvedValue({
+      model_name: 'claude-opus-4',
+      provider: 'Anthropic',
+    });
+    mockUpsert
+      .mockResolvedValueOnce(undefined) // canonical upsert succeeds
+      .mockRejectedValueOnce('string rejection'); // non-Error thrown
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'anthropic/claude-opus-4',
+            pricing: { prompt: '0.000015', completion: '0.000075' },
+          },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
     expect(updated).toBe(1);
     expect(mockUpsert).toHaveBeenCalledTimes(2);
   });
