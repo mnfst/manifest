@@ -196,7 +196,7 @@ const Overview: Component = () => {
       </div>
 
       <Show
-        when={!data.loading}
+        when={data() !== undefined || !data.loading}
         fallback={
           <>
             <div class="chart-card" style="min-height: 360px;">

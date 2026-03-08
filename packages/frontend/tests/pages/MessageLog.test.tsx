@@ -207,6 +207,64 @@ describe("MessageLog", () => {
     });
   });
 
+  it("debounces cost filter inputs", async () => {
+    vi.useFakeTimers();
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.advanceTimersByTimeAsync(100);
+
+    const inputs = container.querySelectorAll(".cost-range-filter__input");
+    expect(inputs.length).toBe(2);
+
+    mockGetMessages.mockClear();
+
+    // Rapid typing should not fire immediately
+    fireEvent.input(inputs[0], { target: { value: "1" } });
+    fireEvent.input(inputs[0], { target: { value: "1.5" } });
+    expect(mockGetMessages).not.toHaveBeenCalled();
+
+    // After debounce window, the API call fires
+    await vi.advanceTimersByTimeAsync(500);
+    expect(mockGetMessages).toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
+
+  it("debounces cost max filter inputs", async () => {
+    vi.useFakeTimers();
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.advanceTimersByTimeAsync(100);
+
+    const inputs = container.querySelectorAll(".cost-range-filter__input");
+    mockGetMessages.mockClear();
+
+    fireEvent.input(inputs[1], { target: { value: "10" } });
+    expect(mockGetMessages).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(500);
+    expect(mockGetMessages).toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
+
+  it("keeps showing stale data during refetch instead of skeletons", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("msg-1234");
+    });
+
+    // Trigger a refetch that never resolves
+    mockGetMessages.mockReturnValue(new Promise(() => {}));
+    const selects = container.querySelectorAll('[data-testid="select"]');
+    await fireEvent.change(selects[0], { target: { value: "ok" } });
+
+    // Should still show old data, not skeletons
+    expect(container.textContent).toContain("msg-1234");
+    expect(container.querySelectorAll(".skeleton").length).toBe(0);
+  });
+
   it("shows cost range filter inputs", async () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);

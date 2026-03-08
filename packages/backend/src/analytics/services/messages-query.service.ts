@@ -70,8 +70,6 @@ export class MessagesQueryService {
 
     // Count (without cursor)
     const countQb = baseQb.clone().select('COUNT(*)', 'total');
-    const countResult = await countQb.getRawOne();
-    const totalCount = Number(countResult?.total ?? 0);
 
     // Data (with cursor) — treat negative costs as NULL (invalid pricing)
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
@@ -116,12 +114,18 @@ export class MessagesQueryService {
       }
     }
 
-    const rows = await dataQb
-      .orderBy('at.timestamp', 'DESC')
-      .addOrderBy('at.id', 'DESC')
-      .limit(params.limit + 1)
-      .getRawMany();
+    // Run count, data, and models queries in parallel
+    const [countResult, rows, models] = await Promise.all([
+      countQb.getRawOne(),
+      dataQb
+        .orderBy('at.timestamp', 'DESC')
+        .addOrderBy('at.id', 'DESC')
+        .limit(params.limit + 1)
+        .getRawMany(),
+      this.getDistinctModels(params.userId, params.range, tenantId),
+    ]);
 
+    const totalCount = Number(countResult?.total ?? 0);
     const hasMore = rows.length > params.limit;
     const items = rows.slice(0, params.limit);
     const lastItem = items[items.length - 1] as Record<string, unknown> | undefined;
@@ -129,9 +133,6 @@ export class MessagesQueryService {
     const tsStr = ts instanceof Date ? formatTimestamp(ts) : String(ts ?? '');
     const lastId = lastItem?.['id'];
     const nextCursor = hasMore && lastItem ? `${tsStr}|${String(lastId)}` : null;
-
-    // Distinct models (cached)
-    const models = await this.getDistinctModels(params.userId, params.range, tenantId);
 
     return {
       items,
