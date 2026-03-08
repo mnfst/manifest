@@ -48,12 +48,14 @@ export class RoutingService {
     userId: string,
     provider: string,
     apiKey?: string,
+    authType?: 'api_key' | 'subscription',
   ): Promise<{ provider: UserProvider; isNew: boolean }> {
+    const effectiveAuthType = authType ?? 'api_key';
     const apiKeyEncrypted = apiKey ? encrypt(apiKey, getEncryptionSecret()) : null;
     const keyPrefix = apiKey ? apiKey.substring(0, 8) : null;
 
     const existing = await this.providerRepo.findOne({
-      where: { agent_id: agentId, provider },
+      where: { agent_id: agentId, provider, auth_type: effectiveAuthType },
     });
 
     if (existing) {
@@ -74,6 +76,7 @@ export class RoutingService {
       user_id: userId,
       agent_id: agentId,
       provider,
+      auth_type: effectiveAuthType,
       api_key_encrypted: apiKeyEncrypted,
       key_prefix: keyPrefix,
       is_active: true,
@@ -87,13 +90,34 @@ export class RoutingService {
     return { provider: record, isNew: true };
   }
 
-  async removeProvider(agentId: string, provider: string): Promise<{ notifications: string[] }> {
-    const existing = await this.providerRepo.findOne({
-      where: { agent_id: agentId, provider },
-    });
+  async removeProvider(
+    agentId: string,
+    provider: string,
+    authType?: 'api_key' | 'subscription',
+  ): Promise<{ notifications: string[] }> {
+    const where: Record<string, unknown> = { agent_id: agentId, provider };
+    if (authType) where.auth_type = authType;
+
+    const existing = await this.providerRepo.findOne({ where });
     if (!existing) throw new NotFoundException('Provider not found');
 
-    // Find overrides that belong to this provider
+    // Deactivate this record
+    existing.is_active = false;
+    existing.updated_at = new Date().toISOString();
+    await this.providerRepo.save(existing);
+
+    // Check if the provider still has another active record (different auth type)
+    const otherActive = await this.providerRepo.findOne({
+      where: { agent_id: agentId, provider, is_active: true },
+    });
+
+    if (otherActive) {
+      // Provider is still available via the other auth type — skip override clearing
+      this.routingCache.invalidateAgent(agentId);
+      return { notifications: [] };
+    }
+
+    // No active records left — clear overrides that use this provider's models
     const overrides = await this.tierRepo.find({
       where: { agent_id: agentId, override_model: Not(IsNull()) },
     });
@@ -104,6 +128,7 @@ export class RoutingService {
       if (pricing && pricing.provider.toLowerCase() === provider.toLowerCase()) {
         invalidated.push({ tier: tier.tier, modelName: tier.override_model! });
         tier.override_model = null;
+        tier.override_auth_type = null;
         tier.updated_at = new Date().toISOString();
         await this.tierRepo.save(tier);
       }
@@ -124,10 +149,6 @@ export class RoutingService {
       }
     }
 
-    // Deactivate provider and recalculate
-    existing.is_active = false;
-    existing.updated_at = new Date().toISOString();
-    await this.providerRepo.save(existing);
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
 
@@ -155,7 +176,12 @@ export class RoutingService {
     );
     await this.tierRepo.update(
       { agent_id: agentId },
-      { override_model: null, fallback_models: null, updated_at: new Date().toISOString() },
+      {
+        override_model: null,
+        override_auth_type: null,
+        fallback_models: null,
+        updated_at: new Date().toISOString(),
+      },
     );
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
@@ -178,6 +204,7 @@ export class RoutingService {
         `Clearing override ${tier.override_model} for agent ${tier.agent_id} tier ${tier.tier} (model removed)`,
       );
       tier.override_model = null;
+      tier.override_auth_type = null;
       tier.updated_at = new Date().toISOString();
       await this.tierRepo.save(tier);
       agentIds.add(tier.agent_id);
@@ -226,6 +253,7 @@ export class RoutingService {
           agent_id: agentId,
           tier,
           override_model: null,
+          override_auth_type: null,
           auto_assigned_model: null,
         });
         await this.tierRepo.insert(record);
@@ -256,6 +284,7 @@ export class RoutingService {
     userId: string,
     tier: string,
     model: string,
+    authType?: 'api_key' | 'subscription',
   ): Promise<TierAssignment> {
     const existing = await this.tierRepo.findOne({
       where: { agent_id: agentId, tier },
@@ -263,6 +292,7 @@ export class RoutingService {
 
     if (existing) {
       existing.override_model = model;
+      existing.override_auth_type = authType ?? null;
       existing.updated_at = new Date().toISOString();
       await this.tierRepo.save(existing);
       this.routingCache.invalidateAgent(agentId);
@@ -275,6 +305,7 @@ export class RoutingService {
       agent_id: agentId,
       tier,
       override_model: model,
+      override_auth_type: authType ?? null,
       auto_assigned_model: null,
     });
 
@@ -290,6 +321,7 @@ export class RoutingService {
     if (!existing) return;
 
     existing.override_model = null;
+    existing.override_auth_type = null;
     existing.updated_at = new Date().toISOString();
     await this.tierRepo.save(existing);
     this.routingCache.invalidateAgent(agentId);
@@ -298,7 +330,12 @@ export class RoutingService {
   async resetAllOverrides(agentId: string): Promise<void> {
     await this.tierRepo.update(
       { agent_id: agentId },
-      { override_model: null, fallback_models: null, updated_at: new Date().toISOString() },
+      {
+        override_model: null,
+        override_auth_type: null,
+        fallback_models: null,
+        updated_at: new Date().toISOString(),
+      },
     );
     this.routingCache.invalidateAgent(agentId);
   }
@@ -331,19 +368,27 @@ export class RoutingService {
 
   /* ── Provider API key retrieval ── */
 
-  async getProviderApiKey(agentId: string, provider: string): Promise<string | null> {
+  async getProviderApiKey(
+    agentId: string,
+    provider: string,
+    authType?: 'api_key' | 'subscription',
+  ): Promise<string | null> {
     // Ollama runs locally — no API key needed
     if (provider.toLowerCase() === 'ollama') return '';
 
-    const cached = this.routingCache.getApiKey(agentId, provider);
+    const cached = this.routingCache.getApiKey(agentId, provider, authType);
     if (cached !== undefined) return cached;
 
-    const result = await this.resolveProviderApiKey(agentId, provider);
-    this.routingCache.setApiKey(agentId, provider, result);
+    const result = await this.resolveProviderApiKey(agentId, provider, authType);
+    this.routingCache.setApiKey(agentId, provider, result, authType);
     return result;
   }
 
-  private async resolveProviderApiKey(agentId: string, provider: string): Promise<string | null> {
+  private async resolveProviderApiKey(
+    agentId: string,
+    provider: string,
+    preferredAuthType?: 'api_key' | 'subscription',
+  ): Promise<string | null> {
     // Custom providers: exact match on provider key, allow empty key for local endpoints
     if (provider.startsWith('custom:')) {
       const record = await this.providerRepo.findOne({
@@ -364,15 +409,40 @@ export class RoutingService {
       where: { agent_id: agentId, is_active: true },
     });
 
-    const match = records.find((r) => names.has(r.provider.toLowerCase()));
-    if (!match?.api_key_encrypted) return null;
+    const matches = records.filter((r) => names.has(r.provider.toLowerCase()));
+    if (matches.length === 0) return null;
 
-    try {
-      return decrypt(match.api_key_encrypted, getEncryptionSecret());
-    } catch {
-      this.logger.warn(`Failed to decrypt API key for provider ${provider}`);
-      return null;
+    // Sort preferred auth type first (default: api_key for backward compat)
+    const preferred = preferredAuthType ?? 'api_key';
+    const sorted = [...matches].sort((a, b) => {
+      const aPref = a.auth_type === preferred ? 0 : 1;
+      const bPref = b.auth_type === preferred ? 0 : 1;
+      return aPref - bPref;
+    });
+
+    for (const match of sorted) {
+      if (!match.api_key_encrypted) continue;
+      try {
+        return decrypt(match.api_key_encrypted, getEncryptionSecret());
+      } catch {
+        const label = match.auth_type === 'subscription' ? 'token' : 'API key';
+        this.logger.warn(`Failed to decrypt ${label} for provider ${provider}`);
+      }
     }
+
+    return null;
+  }
+
+  /* ── Auth type lookup ── */
+
+  async getAuthType(agentId: string, provider: string): Promise<'api_key' | 'subscription'> {
+    const names = expandProviderNames([provider]);
+    const records = await this.getProviders(agentId);
+    const matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
+    // Prefer subscription if both exist
+    const subMatch = matches.find((r) => r.auth_type === 'subscription' && r.api_key_encrypted);
+    if (subMatch) return 'subscription';
+    return matches[0]?.auth_type ?? 'api_key';
   }
 
   /* ── Runtime helper ── */

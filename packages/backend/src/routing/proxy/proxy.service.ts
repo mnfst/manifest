@@ -101,7 +101,11 @@ export class ProxyService {
       );
     }
 
-    const apiKey = await this.routingService.getProviderApiKey(agentId, resolved.provider);
+    const apiKey = await this.routingService.getProviderApiKey(
+      agentId,
+      resolved.provider,
+      resolved.auth_type,
+    );
     if (apiKey === null) {
       throw new BadRequestException(
         `No API key found for provider: ${resolved.provider}. Re-connect the provider with an API key.`,
@@ -109,7 +113,7 @@ export class ProxyService {
     }
 
     this.logger.log(
-      `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} confidence=${resolved.confidence}`,
+      `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
     );
 
     const stream = body.stream === true;
@@ -121,6 +125,7 @@ export class ProxyService {
       stream,
       sessionKey,
       signal,
+      resolved.auth_type,
     );
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
@@ -310,6 +315,7 @@ export class ProxyService {
     stream: boolean,
     sessionKey: string,
     signal?: AbortSignal,
+    authType?: string,
   ): Promise<ForwardResult> {
     const extraHeaders: Record<string, string> = {};
     if (provider === 'xai') {
@@ -338,6 +344,7 @@ export class ProxyService {
       signal,
       hasExtraHeaders ? extraHeaders : undefined,
       customEndpoint,
+      authType,
     );
   }
 }

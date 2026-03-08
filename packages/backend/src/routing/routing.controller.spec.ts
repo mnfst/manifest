@@ -123,6 +123,7 @@ describe('RoutingController', () => {
         {
           id: 'p1',
           provider: 'openai',
+          auth_type: 'api_key',
           is_active: true,
           has_api_key: true,
           key_prefix: 'sk-proj-',
@@ -177,8 +178,14 @@ describe('RoutingController', () => {
         'user-1',
         'anthropic',
         'sk-ant-test',
+        undefined,
       );
-      expect(result).toEqual({ id: 'p1', provider: 'anthropic', is_active: true });
+      expect(result).toEqual({
+        id: 'p1',
+        provider: 'anthropic',
+        auth_type: 'api_key',
+        is_active: true,
+      });
     });
 
     it('should call service without apiKey', async () => {
@@ -196,8 +203,14 @@ describe('RoutingController', () => {
         'user-1',
         'openai',
         undefined,
+        undefined,
       );
-      expect(result).toEqual({ id: 'p1', provider: 'openai', is_active: true });
+      expect(result).toEqual({
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+      });
     });
 
     it('should fire routing_provider_connected when provider is new', async () => {
@@ -251,7 +264,12 @@ describe('RoutingController', () => {
         apiKey: 'sk-test',
       });
 
-      expect(result).toEqual({ id: 'p1', provider: 'openai', is_active: true });
+      expect(result).toEqual({
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+      });
       expect(result).not.toHaveProperty('api_key_encrypted');
       expect(result).not.toHaveProperty('agent_id');
     });
@@ -274,17 +292,45 @@ describe('RoutingController', () => {
     it('should return ok with notification count', async () => {
       mockRoutingService.removeProvider.mockResolvedValue({ notifications: 3 });
 
-      const result = await controller.removeProvider(mockUser, 'test-agent', 'openai');
+      const result = await controller.removeProvider(
+        mockUser,
+        { agentName: 'test-agent', provider: 'openai' } as never,
+        {} as never,
+      );
 
-      expect(mockRoutingService.removeProvider).toHaveBeenCalledWith(TEST_AGENT_ID, 'openai');
+      expect(mockRoutingService.removeProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'openai',
+        undefined,
+      );
       expect(result).toEqual({ ok: true, notifications: 3 });
     });
 
     it('should return zero notifications when none cleared', async () => {
       mockRoutingService.removeProvider.mockResolvedValue({ notifications: 0 });
 
-      const result = await controller.removeProvider(mockUser, 'test-agent', 'deepseek');
+      const result = await controller.removeProvider(
+        mockUser,
+        { agentName: 'test-agent', provider: 'deepseek' } as never,
+        {} as never,
+      );
       expect(result).toEqual({ ok: true, notifications: 0 });
+    });
+
+    it('should pass authType to service when provided', async () => {
+      mockRoutingService.removeProvider.mockResolvedValue({ notifications: [] });
+
+      await controller.removeProvider(
+        mockUser,
+        { agentName: 'test-agent', provider: 'anthropic' } as never,
+        { authType: 'subscription' } as never,
+      );
+
+      expect(mockRoutingService.removeProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'anthropic',
+        'subscription',
+      );
     });
   });
 
@@ -318,6 +364,7 @@ describe('RoutingController', () => {
         'user-1',
         'complex',
         'claude-opus-4-6',
+        undefined,
       );
       expect(result).toBe(updated);
     });
@@ -593,9 +640,13 @@ describe('RoutingController', () => {
         new NotFoundException('Agent "missing-agent" not found'),
       );
 
-      await expect(controller.removeProvider(mockUser, 'missing-agent', 'openai')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        controller.removeProvider(
+          mockUser,
+          { agentName: 'missing-agent', provider: 'openai' } as never,
+          {} as never,
+        ),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should propagate NotFoundException through getTiers', async () => {

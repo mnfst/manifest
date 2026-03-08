@@ -7,6 +7,7 @@ import { registerCommand } from './command';
 import { verifyConnection } from './verify';
 import { registerLocalMode, injectProviderConfig, injectAuthProfile } from './local-mode';
 import { trackPluginEvent } from './product-telemetry';
+import { discoverSubscriptionProviders, registerSubscriptionProviders } from './subscription';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 module.exports = {
@@ -86,6 +87,9 @@ module.exports = {
 
       logger.info(`[manifest]   Dashboard: ${baseOrigin}`);
 
+      // Discover subscription providers from OpenClaw auth profiles
+      const devSubscriptions = discoverSubscriptionProviders(logger);
+
       api.registerService({
         id: 'manifest-dev',
         start: () => {
@@ -102,6 +106,14 @@ module.exports = {
               logger.info(`[manifest] Connection verified${agent}`);
             })
             .catch(() => {});
+
+          // Register subscription providers after startup
+          registerSubscriptionProviders(
+            devSubscriptions,
+            config.endpoint,
+            config.apiKey,
+            logger,
+          ).catch(() => {});
         },
         stop: async () => {
           await shutdownTelemetry(logger);
@@ -131,6 +143,9 @@ module.exports = {
     }
     registerCommand(api, config, logger);
 
+    // Discover subscription providers from OpenClaw auth profiles
+    const cloudSubscriptions = discoverSubscriptionProviders(logger);
+
     api.registerService({
       id: 'manifest-telemetry',
       start: () => {
@@ -150,6 +165,14 @@ module.exports = {
           .catch(() => {
             // Swallow — startup should never fail on verify
           });
+
+        // Register subscription providers after startup
+        registerSubscriptionProviders(
+          cloudSubscriptions,
+          config.endpoint,
+          config.apiKey,
+          logger,
+        ).catch(() => {});
       },
       stop: async () => {
         await shutdownTelemetry(logger);

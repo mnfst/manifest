@@ -9,6 +9,7 @@ import { ToolExecution } from '../entities/tool-execution.entity';
 import { TokenUsageSnapshot } from '../entities/token-usage-snapshot.entity';
 import { CostSnapshot } from '../entities/cost-snapshot.entity';
 import { AgentLog } from '../entities/agent-log.entity';
+import { UserProvider } from '../entities/user-provider.entity';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { OtlpController } from './otlp.controller';
 import { OtlpDecoderService } from './services/otlp-decoder.service';
@@ -21,8 +22,16 @@ import { OtlpAuthGuard } from './guards/otlp-auth.guard';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      AgentApiKey, Agent, Tenant, AgentMessage, LlmCall,
-      ToolExecution, TokenUsageSnapshot, CostSnapshot, AgentLog,
+      AgentApiKey,
+      Agent,
+      Tenant,
+      AgentMessage,
+      LlmCall,
+      ToolExecution,
+      TokenUsageSnapshot,
+      CostSnapshot,
+      AgentLog,
+      UserProvider,
     ]),
     ModelPricesModule,
   ],

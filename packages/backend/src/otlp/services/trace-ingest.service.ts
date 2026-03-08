@@ -6,6 +6,7 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import { LlmCall } from '../../entities/llm-call.entity';
 import { ToolExecution } from '../../entities/tool-execution.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
+import { UserProvider } from '../../entities/user-provider.entity';
 import { OtlpExportTraceServiceRequest, OtlpSpan, OtlpResourceSpans } from '../interfaces';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 import { In, Not, IsNull } from 'typeorm';
@@ -35,6 +36,8 @@ export class TraceIngestService {
     private readonly llmRepo: Repository<LlmCall>,
     @InjectRepository(ToolExecution)
     private readonly toolRepo: Repository<ToolExecution>,
+    @InjectRepository(UserProvider)
+    private readonly providerRepo: Repository<UserProvider>,
     private readonly pricingCache: ModelPricingCacheService,
   ) {}
 
@@ -195,6 +198,7 @@ export class TraceIngestService {
     spanMap: Map<string, SpanEntry>,
     ctx: IngestionContext,
   ): Promise<void> {
+    const subOnlyProviders = await this.getSubscriptionOnlyProviders(ctx.agentId);
     const ghostSpanIds = this.filterGhostSpans(spans, resourceAttrs, spanMap);
     const fallbackModelOverrides = new Map<string, string>();
     const fallbackDurations = new Map<string, number>();
@@ -234,7 +238,7 @@ export class TraceIngestService {
       if (entry.type === 'root_request') continue;
       if (entry.type === 'agent_message') {
         if (ghostSpanIds.has(spanId) || fallbackSkipIds.has(spanId)) continue;
-        const row = await this.buildAgentMessage(span, attrs, entry, ctx);
+        const row = await this.buildAgentMessage(span, attrs, entry, ctx, subOnlyProviders);
         if (row) agentMessageRows.push(row);
       } else if (entry.type === 'llm_call') {
         llmCallRows.push(this.buildLlmCall(span, attrs, entry, spanMap, ctx));
@@ -252,6 +256,7 @@ export class TraceIngestService {
 
     await this.rollUpMessageAggregates(
       messageAggregates,
+      subOnlyProviders,
       fallbackModelOverrides,
       fallbackDurations,
     );
@@ -318,6 +323,7 @@ export class TraceIngestService {
         cost: number;
       }
     >,
+    subOnlyProviders: Set<string>,
     fallbackModelOverrides?: Map<string, string>,
     fallbackDurations?: Map<string, number>,
   ): Promise<void> {
@@ -331,7 +337,9 @@ export class TraceIngestService {
       let cost: number | null = null;
       if (costModel) {
         const pricing = this.pricingCache.getByModel(costModel);
-        if (
+        if (pricing && subOnlyProviders.has(pricing.provider?.toLowerCase())) {
+          cost = 0;
+        } else if (
           pricing &&
           pricing.input_price_per_token != null &&
           pricing.output_price_per_token != null
@@ -375,6 +383,7 @@ export class TraceIngestService {
     attrs: AttributeMap,
     entry: SpanEntry,
     ctx: IngestionContext,
+    subOnlyProviders: Set<string>,
   ): Promise<Record<string, unknown> | null> {
     // Skip if the proxy already recorded an error for this trace (avoids duplicates).
     const traceId = toHexString(span.traceId);
@@ -444,7 +453,7 @@ export class TraceIngestService {
       output_tokens: attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0,
       cache_read_tokens: attrNumber(attrs, 'gen_ai.usage.cache_read_input_tokens') ?? 0,
       cache_creation_tokens: attrNumber(attrs, 'gen_ai.usage.cache_creation_input_tokens') ?? 0,
-      cost_usd: this.computeCost(attrs),
+      cost_usd: this.computeCost(attrs, subOnlyProviders),
       status: spanStatusToString(span.status?.code),
       error_message: span.status?.code === 2 ? (span.status.message ?? null) : null,
       description: span.name,
@@ -455,7 +464,17 @@ export class TraceIngestService {
       routing_tier: attrString(attrs, 'manifest.routing.tier'),
       routing_reason: attrString(attrs, 'manifest.routing.reason'),
       skill_name: attrString(attrs, 'skill.name'),
+      auth_type: this.inferAuthType(attrs, subOnlyProviders),
     };
+  }
+
+  private inferAuthType(attrs: AttributeMap, subOnlyProviders: Set<string>): string | null {
+    const model =
+      attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model');
+    if (!model) return null;
+    const pricing = this.pricingCache.getByModel(model);
+    if (!pricing) return null;
+    return subOnlyProviders.has(pricing.provider?.toLowerCase()) ? 'subscription' : 'api_key';
   }
 
   private buildLlmCall(
@@ -513,7 +532,23 @@ export class TraceIngestService {
     };
   }
 
-  private computeCost(attrs: AttributeMap): number | null {
+  /** Returns provider IDs that are subscription-only (no api_key counterpart) for an agent. */
+  private async getSubscriptionOnlyProviders(agentId: string): Promise<Set<string>> {
+    const records = await this.providerRepo.find({
+      where: { agent_id: agentId, is_active: true },
+      select: ['provider', 'auth_type'],
+    });
+    const sub = new Set<string>();
+    const apiKey = new Set<string>();
+    for (const r of records) {
+      if (r.auth_type === 'subscription') sub.add(r.provider);
+      if (r.auth_type === 'api_key') apiKey.add(r.provider);
+    }
+    for (const p of apiKey) sub.delete(p);
+    return sub;
+  }
+
+  private computeCost(attrs: AttributeMap, subOnlyProviders?: Set<string>): number | null {
     const model =
       attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model');
     if (!model) return null;
@@ -524,6 +559,8 @@ export class TraceIngestService {
 
     const pricing = this.pricingCache.getByModel(model);
     if (!pricing) return null;
+
+    if (subOnlyProviders?.has(pricing.provider?.toLowerCase())) return 0;
 
     return (
       inputTok * Number(pricing.input_price_per_token) +

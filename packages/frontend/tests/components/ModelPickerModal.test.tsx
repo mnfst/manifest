@@ -61,7 +61,7 @@ describe("ModelPickerModal", () => {
     ));
     const claudeButtons = screen.getAllByText("Claude Opus 4.6");
     fireEvent.click(claudeButtons[claudeButtons.length - 1]);
-    expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6");
+    expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6", undefined);
   });
 
   it("closes on overlay click", () => {

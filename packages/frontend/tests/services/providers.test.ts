@@ -3,6 +3,7 @@ import {
   getModelLabel,
   getProvider,
   validateApiKey,
+  validateSubscriptionKey,
   PROVIDERS,
   STAGES,
 } from "../../src/services/providers";
@@ -95,6 +96,41 @@ describe("validateApiKey", () => {
       error: "Key is too short (minimum 30 characters)",
     });
     expect(validateApiKey(zai, "a".repeat(30))).toEqual({ valid: true });
+  });
+});
+
+/* ── validateSubscriptionKey ────────────────────── */
+
+describe("validateSubscriptionKey", () => {
+  it("returns invalid when token is empty", () => {
+    const anthropic = getProvider("anthropic")!;
+    expect(validateSubscriptionKey(anthropic, "")).toEqual({
+      valid: false,
+      error: "Token is required",
+    });
+  });
+
+  it("returns invalid when token is too short", () => {
+    const anthropic = getProvider("anthropic")!;
+    expect(validateSubscriptionKey(anthropic, "short")).toEqual({
+      valid: false,
+      error: "Token is too short (minimum 10 characters)",
+    });
+  });
+
+  it("returns invalid when Anthropic token has wrong prefix", () => {
+    const anthropic = getProvider("anthropic")!;
+    expect(validateSubscriptionKey(anthropic, "sk-wrong-prefix-long-enough-token")).toEqual({
+      valid: false,
+      error: 'Anthropic subscription tokens start with "sk-ant-oat"',
+    });
+  });
+
+  it("returns valid for a correct Anthropic subscription token", () => {
+    const anthropic = getProvider("anthropic")!;
+    expect(validateSubscriptionKey(anthropic, "sk-ant-oat01-valid-token-here")).toEqual({
+      valid: true,
+    });
   });
 });
 

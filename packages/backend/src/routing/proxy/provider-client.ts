@@ -75,6 +75,7 @@ export class ProviderClient {
     signal?: AbortSignal,
     extraHeaders?: Record<string, string>,
     customEndpoint?: ProviderEndpoint,
+    authType?: string,
   ): Promise<ForwardResult> {
     let endpoint: ProviderEndpoint;
     let endpointKey: string;
@@ -100,17 +101,17 @@ export class ProviderClient {
     if (isGoogle) {
       url = `${endpoint.baseUrl}${endpoint.buildPath(model)}?key=${apiKey}`;
       if (stream) url += '&alt=sse';
-      headers = endpoint.buildHeaders(apiKey);
+      headers = endpoint.buildHeaders(apiKey, authType);
       requestBody = toGoogleRequest(body, model);
     } else if (isAnthropic) {
       url = `${endpoint.baseUrl}${endpoint.buildPath(model)}`;
-      headers = endpoint.buildHeaders(apiKey);
+      headers = endpoint.buildHeaders(apiKey, authType);
       requestBody = toAnthropicRequest(body, model);
       requestBody.model = model;
       if (stream) requestBody.stream = true;
     } else {
       url = `${endpoint.baseUrl}${endpoint.buildPath(model)}`;
-      headers = endpoint.buildHeaders(apiKey);
+      headers = endpoint.buildHeaders(apiKey, authType);
       const sanitized = sanitizeOpenAiBody(body, endpointKey!);
       requestBody = { ...sanitized, model, stream };
 

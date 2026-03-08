@@ -16,6 +16,7 @@ describe('ResolveService', () => {
         { tier: 'reasoning', override_model: null, auto_assigned_model: 'claude-opus-4-6' },
       ]),
       getEffectiveModel: jest.fn(),
+      getAuthType: jest.fn().mockResolvedValue('api_key'),
     };
     mockPricingCache = {
       getByModel: jest.fn(),
@@ -36,6 +37,7 @@ describe('ResolveService', () => {
     expect(result.tier).toBe('simple');
     expect(result.model).toBe('gpt-4o-mini');
     expect(result.provider).toBe('OpenAI');
+    expect(result.auth_type).toBe('api_key');
     expect(result.reason).toBe('short_message');
   });
 

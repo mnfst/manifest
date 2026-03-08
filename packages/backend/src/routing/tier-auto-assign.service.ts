@@ -30,13 +30,21 @@ export class TierAutoAssignService {
     const providers = await this.providerRepo.find({
       where: { agent_id: agentId, is_active: true },
     });
-    const activeProviders = expandProviderNames(providers.map((p) => p.provider));
+
+    const subNames = expandProviderNames(
+      providers.filter((p) => p.auth_type === 'subscription').map((p) => p.provider),
+    );
+    const keyNames = expandProviderNames(
+      providers.filter((p) => p.auth_type !== 'subscription').map((p) => p.provider),
+    );
 
     const allModels = this.pricingCache.getAll();
-    const available = allModels.filter((m) => activeProviders.has(m.provider.toLowerCase()));
+    const subModels = allModels.filter((m) => subNames.has(m.provider.toLowerCase()));
+    const keyModels = allModels.filter((m) => keyNames.has(m.provider.toLowerCase()));
 
     for (const tier of TIERS) {
-      const best = this.pickBest(available, tier);
+      // Subscription models always take priority over API key models
+      const best = this.pickBest(subModels, tier) ?? this.pickBest(keyModels, tier);
       const existing = await this.tierRepo.findOne({
         where: { agent_id: agentId, tier },
       });

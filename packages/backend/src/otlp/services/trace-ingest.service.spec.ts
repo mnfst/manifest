@@ -5,6 +5,7 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import { LlmCall } from '../../entities/llm-call.entity';
 import { ToolExecution } from '../../entities/tool-execution.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
+import { UserProvider } from '../../entities/user-provider.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 
 const testCtx: IngestionContext = {
@@ -22,6 +23,7 @@ describe('TraceIngestService', () => {
   let mockLlmInsert: jest.Mock;
   let mockToolInsert: jest.Mock;
   let mockPricingGetByModel: jest.Mock;
+  let mockProviderFind: jest.Mock;
   let mockExecute: jest.Mock;
 
   beforeEach(async () => {
@@ -31,6 +33,7 @@ describe('TraceIngestService', () => {
     mockLlmInsert = jest.fn().mockResolvedValue({});
     mockToolInsert = jest.fn().mockResolvedValue({});
     mockPricingGetByModel = jest.fn().mockReturnValue(undefined);
+    mockProviderFind = jest.fn().mockResolvedValue([]);
     mockExecute = jest.fn().mockResolvedValue({});
 
     const mockQb = {
@@ -55,6 +58,7 @@ describe('TraceIngestService', () => {
         },
         { provide: getRepositoryToken(LlmCall), useValue: { insert: mockLlmInsert } },
         { provide: getRepositoryToken(ToolExecution), useValue: { insert: mockToolInsert } },
+        { provide: getRepositoryToken(UserProvider), useValue: { find: mockProviderFind } },
         { provide: ModelPricingCacheService, useValue: { getByModel: mockPricingGetByModel } },
       ],
     }).compile();
@@ -348,6 +352,49 @@ describe('TraceIngestService', () => {
 
     // Verify setParameter was called with 'reason'
     expect(mockQb.setParameter).toHaveBeenCalledWith('reason', 'scored');
+  });
+
+  it('sets cost to zero in rollup when model provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'anthropic', auth_type: 'subscription' }]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'anthropic',
+      input_price_per_token: 0.003,
+      output_price_per_token: 0.015,
+    });
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-sub',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-sub',
+      parentSpanId: 'span-msg-sub',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'anthropic' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-sonnet-4-20250514' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 200 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 100 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    // Verify the rollup set cost_usd to 0 (subscription-only provider)
+    expect(mockQb.set).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: 0 }));
   });
 
   it('handles missing resourceSpans', async () => {
@@ -853,6 +900,105 @@ describe('TraceIngestService', () => {
         model: 'claude-3-haiku',
         cost_usd: expect.closeTo(0.02, 4),
       }),
+    ]);
+  });
+
+  it('returns zero cost when provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'anthropic', auth_type: 'subscription' }]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'anthropic',
+      input_price_per_token: 0.001,
+      output_price_per_token: 0.002,
+    });
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-haiku-4.5' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ cost_usd: 0 })]);
+  });
+
+  it('returns zero cost when pricing provider case differs from user-provider case', async () => {
+    // UserProvider stores lowercase 'anthropic', but ModelPricing stores capitalized 'Anthropic'
+    mockProviderFind.mockResolvedValue([{ provider: 'anthropic', auth_type: 'subscription' }]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'Anthropic',
+      input_price_per_token: 0.001,
+      output_price_per_token: 0.002,
+    });
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-haiku-4.5' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ cost_usd: 0, auth_type: 'subscription' }),
+    ]);
+  });
+
+  it('returns normal cost when provider has both subscription and api_key', async () => {
+    mockProviderFind.mockResolvedValue([
+      { provider: 'anthropic', auth_type: 'subscription' },
+      { provider: 'anthropic', auth_type: 'api_key' },
+    ]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'anthropic',
+      input_price_per_token: 0.001,
+      output_price_per_token: 0.002,
+    });
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-haiku-4.5' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // cost = 100 * 0.001 + 50 * 0.002 = 0.2
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ cost_usd: expect.closeTo(0.2, 4) }),
     ]);
   });
 

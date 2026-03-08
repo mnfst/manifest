@@ -93,4 +93,22 @@ describe('PROVIDER_ENDPOINTS', () => {
   it('zai uses openai format', () => {
     expect(PROVIDER_ENDPOINTS['zai'].format).toBe('openai');
   });
+
+  it('anthropic uses x-api-key for api_key auth', () => {
+    const headers = PROVIDER_ENDPOINTS['anthropic'].buildHeaders('sk-ant-test');
+    expect(headers['x-api-key']).toBe('sk-ant-test');
+    expect(headers['Authorization']).toBeUndefined();
+  });
+
+  it('anthropic uses Bearer + oauth beta header for subscription auth', () => {
+    const headers = PROVIDER_ENDPOINTS['anthropic'].buildHeaders('skst-token', 'subscription');
+    expect(headers['Authorization']).toBe('Bearer skst-token');
+    expect(headers['anthropic-beta']).toBe('oauth-2025-04-20');
+    expect(headers['x-api-key']).toBeUndefined();
+  });
+
+  it('anthropic does not include oauth beta header for api_key auth', () => {
+    const headers = PROVIDER_ENDPOINTS['anthropic'].buildHeaders('sk-ant-test');
+    expect(headers['anthropic-beta']).toBeUndefined();
+  });
 });

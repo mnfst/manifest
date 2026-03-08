@@ -80,6 +80,9 @@ export class AgentMessage {
   skill_name!: string | null;
 
   @Column('varchar', { nullable: true })
+  auth_type!: string | null;
+
+  @Column('varchar', { nullable: true })
   fallback_from_model!: string | null;
 
   @Column('integer', { nullable: true })
