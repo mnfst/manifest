@@ -1,7 +1,6 @@
-import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 
 @Entity('tool_executions')
-@Index(['tenant_id', 'agent_id'])
 export class ToolExecution {
   @PrimaryColumn('varchar')
   id!: string;

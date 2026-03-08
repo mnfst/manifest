@@ -49,6 +49,7 @@ import { AddFallbacks1772905260464 } from './migrations/1772905260464-AddFallbac
 import { AddModelDisplayName1772920000000 } from './migrations/1772920000000-AddModelDisplayName';
 import { DropRedundantIndexes1772940000000 } from './migrations/1772940000000-DropRedundantIndexes';
 import { BackfillTenantId1772948502780 } from './migrations/1772948502780-BackfillTenantId';
+import { DropUnusedIndexes1772960000000 } from './migrations/1772960000000-DropUnusedIndexes';
 
 const entities = [
   AgentMessage,
@@ -102,6 +103,7 @@ const migrations = [
   AddModelDisplayName1772920000000,
   DropRedundantIndexes1772940000000,
   BackfillTenantId1772948502780,
+  DropUnusedIndexes1772960000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';

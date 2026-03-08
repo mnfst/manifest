@@ -1,8 +1,7 @@
-import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('token_usage_snapshots')
-@Index(['tenant_id', 'agent_id', 'snapshot_time'])
 export class TokenUsageSnapshot {
   @PrimaryColumn('varchar')
   id!: string;
