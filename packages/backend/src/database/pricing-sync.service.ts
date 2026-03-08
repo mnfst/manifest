@@ -205,26 +205,30 @@ export class PricingSyncService implements OnModuleInit {
           upserted = true;
         }
 
-        // Store an OpenRouter copy with the full vendor-prefixed ID
+        // Update existing OpenRouter copy with the full vendor-prefixed ID
         if (hasVendorPrefix) {
-          try {
-            await this.pricingRepo.upsert(
-              {
-                model_name: model.id,
-                provider: 'OpenRouter',
-                input_price_per_token: prompt,
-                output_price_per_token: completion,
-                ...(contextWindow != null && { context_window: contextWindow }),
-                ...(displayName && { display_name: displayName }),
-                updated_at: now,
-              },
-              ['model_name'],
-            );
-            upserted = true;
-          } catch (copyErr) {
-            this.logger.warn(
-              `Failed to store OpenRouter copy for ${model.id}: ${copyErr instanceof Error ? copyErr.message : copyErr}`,
-            );
+          const existingCopy = await this.pricingRepo.findOneBy({
+            model_name: model.id,
+          });
+          if (existingCopy) {
+            try {
+              await this.pricingRepo.upsert(
+                {
+                  model_name: model.id,
+                  input_price_per_token: prompt,
+                  output_price_per_token: completion,
+                  ...(contextWindow != null && { context_window: contextWindow }),
+                  ...(displayName && { display_name: displayName }),
+                  updated_at: now,
+                },
+                ['model_name'],
+              );
+              upserted = true;
+            } catch (copyErr) {
+              this.logger.warn(
+                `Failed to store OpenRouter copy for ${model.id}: ${copyErr instanceof Error ? copyErr.message : copyErr}`,
+              );
+            }
           }
         }
         if (upserted) updated++;
