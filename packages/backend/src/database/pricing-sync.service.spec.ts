@@ -479,6 +479,27 @@ describe('PricingSyncService', () => {
     });
   });
 
+  describe('extractDisplayName', () => {
+    it('strips vendor prefix from OpenRouter names', () => {
+      expect(
+        service.extractDisplayName({
+          id: 'anthropic/claude-opus-4',
+          name: 'Anthropic: Claude Opus 4',
+        }),
+      ).toBe('Claude Opus 4');
+    });
+
+    it('returns full name when no colon-space separator', () => {
+      expect(
+        service.extractDisplayName({ id: 'openrouter/auto', name: 'Auto (best for prompt)' }),
+      ).toBe('Auto (best for prompt)');
+    });
+
+    it('returns empty string when name is missing', () => {
+      expect(service.extractDisplayName({ id: 'openai/gpt-4o' })).toBe('');
+    });
+  });
+
   describe('deriveNames', () => {
     it('maps known providers correctly', () => {
       expect(service.deriveNames('anthropic/claude-opus-4')).toEqual({
@@ -828,6 +849,47 @@ describe('PricingSyncService', () => {
 
     const updated = await service.syncPricing();
     expect(updated).toBe(0);
+  });
+
+  it('stores display_name from OpenRouter name field', async () => {
+    mockFindOneBy.mockResolvedValue({ model_name: 'gpt-4o', provider: 'OpenAI' });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'openai/gpt-4o',
+            name: 'OpenAI: GPT-4o',
+            pricing: { prompt: '0.0000025', completion: '0.00001' },
+          },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    // Canonical upsert includes display_name
+    const canonicalCall = mockUpsert.mock.calls.find((call) => call[0].model_name === 'gpt-4o');
+    expect(canonicalCall).toBeDefined();
+    expect(canonicalCall![0].display_name).toBe('GPT-4o');
+    // OpenRouter copy also includes display_name
+    const orCall = mockUpsert.mock.calls.find((call) => call[0].model_name === 'openai/gpt-4o');
+    expect(orCall).toBeDefined();
+    expect(orCall![0].display_name).toBe('GPT-4o');
+  });
+
+  it('omits display_name when OpenRouter name is missing', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'openai/gpt-4o', pricing: { prompt: '0.0000025', completion: '0.00001' } }],
+      }),
+    });
+
+    await service.syncPricing();
+    // OpenRouter copy should not include display_name
+    for (const call of mockUpsert.mock.calls) {
+      expect(call[0]).not.toHaveProperty('display_name');
+    }
   });
 
   it('maps Qwen/Alibaba provider correctly', async () => {
