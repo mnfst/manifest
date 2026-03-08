@@ -641,6 +641,28 @@ describe("registerHooks", () => {
       );
     });
 
+    it("extracts tokens via inputTokens fallback path", () => {
+      api.emit("message_received", { sessionKey: "sess-input-tokens" });
+      api.emit("before_agent_start", { sessionKey: "sess-input-tokens" });
+      api.emit("agent_end", {
+        sessionKey: "sess-input-tokens",
+        messages: [
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { inputTokens: 800, outputTokens: 200 },
+          },
+        ],
+      });
+
+      const inputCounter = meter.counters.get(METRICS.LLM_TOKENS_INPUT);
+      expect(inputCounter?.add).toHaveBeenCalledWith(800, expect.any(Object));
+
+      const outputCounter = meter.counters.get(METRICS.LLM_TOKENS_OUTPUT);
+      expect(outputCounter?.add).toHaveBeenCalledWith(200, expect.any(Object));
+    });
+
     it("extracts tokens from camelCase OpenAI usage (promptTokens/completionTokens)", () => {
       api.emit("message_received", { sessionKey: "sess-camel" });
       api.emit("before_agent_start", { sessionKey: "sess-camel" });

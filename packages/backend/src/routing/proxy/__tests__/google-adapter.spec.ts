@@ -554,5 +554,33 @@ describe('Google Adapter', () => {
       const chunk = JSON.stringify({ candidates: [] });
       expect(transformGoogleStreamChunk(chunk, 'gemini-2.0-flash')).toBeNull();
     });
+
+    it('defaults missing token counts to 0 in usage', () => {
+      const chunk = JSON.stringify({
+        candidates: [{ content: { parts: [] }, finishReason: 'STOP' }],
+        usageMetadata: {},
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      expect(result).toContain('"prompt_tokens":0');
+      expect(result).toContain('"completion_tokens":0');
+      expect(result).toContain('"total_tokens":0');
+    });
+
+    it('handles parts without text property', () => {
+      const chunk = JSON.stringify({
+        candidates: [{ content: { parts: [{ functionCall: { name: 'fn', args: {} } }] } }],
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      expect(result).toBeNull(); // no text + no usage = null
+    });
+
+    it('emits usage when candidates field is missing', () => {
+      const chunk = JSON.stringify({
+        usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5, totalTokenCount: 15 },
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      expect(result).toContain('"prompt_tokens":10');
+      expect(result).toContain('"finish_reason":"stop"');
+    });
   });
 });

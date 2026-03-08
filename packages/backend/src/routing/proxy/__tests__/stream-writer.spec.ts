@@ -452,6 +452,40 @@ describe('pipeStream', () => {
 
     expect(usage).toBeNull();
   });
+
+  it('should capture usage from passthrough stream with missing completion_tokens', async () => {
+    const { res } = mockResponse();
+    const usageChunk = `data: ${JSON.stringify({
+      choices: [],
+      usage: { prompt_tokens: 300 },
+    })}\n\n`;
+    const stream = createReadableStream([usageChunk, 'data: [DONE]\n\n']);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(usage).toEqual({
+      prompt_tokens: 300,
+      completion_tokens: 0,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: undefined,
+    });
+  });
+
+  it('should capture usage from leftover buffer in flush section with transform', async () => {
+    const { res } = mockResponse();
+    const usagePayload = JSON.stringify({
+      choices: [],
+      usage: { prompt_tokens: 50, completion_tokens: 25 },
+    });
+    // Send a chunk that ends mid-event so it stays in the buffer until flush
+    const stream = createReadableStream([`data: ${usagePayload}`]);
+    const transform = (chunk: string) =>
+      `data: ${JSON.stringify({ choices: [], usage: JSON.parse(chunk).usage })}\n\n`;
+
+    const usage = await pipeStream(stream, res as never, transform);
+
+    expect(usage).toEqual(expect.objectContaining({ prompt_tokens: 50, completion_tokens: 25 }));
+  });
 });
 
 describe('extractUsageFromSse', () => {
@@ -484,5 +518,19 @@ describe('extractUsageFromSse', () => {
 
   it('should handle invalid JSON gracefully', () => {
     expect(extractUsageFromSse('data: {invalid json')).toBeNull();
+  });
+
+  it('should default completion_tokens to 0 when missing', () => {
+    const sseText = `data: ${JSON.stringify({
+      choices: [],
+      usage: { prompt_tokens: 100 },
+    })}\n\n`;
+
+    expect(extractUsageFromSse(sseText)).toEqual({
+      prompt_tokens: 100,
+      completion_tokens: 0,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: undefined,
+    });
   });
 });

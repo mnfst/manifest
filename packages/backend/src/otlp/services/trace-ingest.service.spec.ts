@@ -1995,6 +1995,36 @@ describe('TraceIngestService', () => {
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
+  it('ignores proxy messages with null input_tokens during dedup check', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
+      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([{ id: 'null-tokens-msg', timestamp: nearbyTs, input_tokens: null }]); // proxyDedup — nearby message but with null tokens (doesn't count)
+
+    const span = makeSpan({
+      spanId: 'span-null-tokens',
+      name: 'openclaw.agent.turn',
+      attributes: [{ key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } }],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // null input_tokens treated as 0, so proxy dedup does NOT suppress this span
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
   it('allows 0-token OTLP span when no proxy message exists nearby', async () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
