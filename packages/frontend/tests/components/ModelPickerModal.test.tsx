@@ -11,6 +11,11 @@ vi.mock("../../src/services/routing-utils.js", () => ({
     const map: Record<string, string> = { OpenAI: "openai", Anthropic: "anthropic", Google: "google" };
     return map[provider] ?? null;
   },
+  inferProviderFromModel: (modelName: string) => {
+    const slash = modelName.indexOf("/");
+    if (slash !== -1) return modelName.substring(0, slash).toLowerCase();
+    return null;
+  },
 }));
 
 import ModelPickerModal from "../../src/components/ModelPickerModal";
@@ -145,10 +150,10 @@ describe("ModelPickerModal", () => {
     const { container } = render(() => (
       <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
-    // openrouter/free should be in the OpenAI group, sorted first
-    const openaiGroup = container.querySelectorAll(".routing-modal__group")[0];
-    const firstModel = openaiGroup?.querySelectorAll(".routing-modal__model")[0];
-    // The label resolves to "Free Models Router" from PROVIDERS, not "openrouter/free"
+    // openrouter/free is grouped under OpenRouter (via prefix inference), sorted first
+    const groups = container.querySelectorAll(".routing-modal__group");
+    const orGroup = Array.from(groups).find((g) => g.textContent?.includes("OpenRouter"));
+    const firstModel = orGroup?.querySelectorAll(".routing-modal__model")[0];
     expect(firstModel?.textContent).toContain("Free Models Router");
   });
 

@@ -447,6 +447,113 @@ describe('TierAutoAssignService', () => {
       }
     });
 
+    it('should fall back to api_key models when no subscription models available', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'openai', is_active: true, auth_type: 'api_key' },
+      ]);
+      const gpt4o = makeModel({ model_name: 'gpt-4o', provider: 'OpenAI', quality_score: 4 });
+      mockPricingCache.getAll.mockReturnValue([gpt4o]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(4);
+      for (const call of mockTierRepo.insert.mock.calls) {
+        expect(call[0].auto_assigned_model).toBe('gpt-4o');
+      }
+    });
+
+    it('should use subscription models even when api_key models are cheaper', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+        { provider: 'openai', is_active: true, auth_type: 'api_key' },
+      ]);
+      const cheapOpenAI = makeModel({
+        model_name: 'gpt-4.1-nano',
+        provider: 'OpenAI',
+        input_price_per_token: 0.0000001,
+        output_price_per_token: 0.0000003,
+        quality_score: 1,
+      });
+      const expensiveSub = makeModel({
+        model_name: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000015,
+        quality_score: 4,
+      });
+      mockPricingCache.getAll.mockReturnValue([cheapOpenAI, expensiveSub]);
+
+      await service.recalculate('agent-1');
+
+      // Even simple tier should use subscription model over cheaper api_key model
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(4);
+      for (const call of mockTierRepo.insert.mock.calls) {
+        expect(call[0].auto_assigned_model).toBe('claude-sonnet-4');
+      }
+    });
+
+    it('should pick best from multiple subscription providers', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+        { provider: 'google', is_active: true, auth_type: 'subscription' },
+      ]);
+      const claude = makeModel({
+        model_name: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000015,
+        quality_score: 4,
+      });
+      const gemini = makeModel({
+        model_name: 'gemini-2.5-flash',
+        provider: 'Google',
+        input_price_per_token: 0.0000001,
+        output_price_per_token: 0.0000004,
+        quality_score: 2,
+      });
+      mockPricingCache.getAll.mockReturnValue([claude, gemini]);
+
+      await service.recalculate('agent-1');
+
+      // For simple tier: cheapest sub wins (gemini-2.5-flash)
+      const simpleTier = mockTierRepo.insert.mock.calls.find(
+        (c: unknown[]) => (c[0] as { tier: string }).tier === 'simple',
+      );
+      expect(simpleTier).toBeDefined();
+      expect((simpleTier![0] as { auto_assigned_model: string }).auto_assigned_model).toBe(
+        'gemini-2.5-flash',
+      );
+
+      // For complex tier: highest quality sub wins (claude-sonnet-4)
+      const complexTier = mockTierRepo.insert.mock.calls.find(
+        (c: unknown[]) => (c[0] as { tier: string }).tier === 'complex',
+      );
+      expect(complexTier).toBeDefined();
+      expect((complexTier![0] as { auto_assigned_model: string }).auto_assigned_model).toBe(
+        'claude-sonnet-4',
+      );
+    });
+
+    it('should match models by name prefix when provider field differs (OpenRouter)', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+      ]);
+      // Model from OpenRouter — provider field is "OpenRouter" but name prefix is "anthropic/"
+      const orModel = makeModel({
+        model_name: 'anthropic/claude-sonnet-4',
+        provider: 'OpenRouter',
+        quality_score: 4,
+      });
+      mockPricingCache.getAll.mockReturnValue([orModel]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(4);
+      for (const call of mockTierRepo.insert.mock.calls) {
+        expect(call[0].auto_assigned_model).toBe('anthropic/claude-sonnet-4');
+      }
+    });
+
     it('should preserve manual overrides during recalculation', async () => {
       const existingTier = {
         id: 'tier-1',

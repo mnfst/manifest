@@ -1,7 +1,7 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import { STAGES, PROVIDERS } from '../services/providers.js';
 import { providerIcon } from './ProviderIcon.js';
-import { pricePerM, resolveProviderId } from '../services/routing-utils.js';
+import { pricePerM, resolveProviderId, inferProviderFromModel } from '../services/routing-utils.js';
 import type {
   AvailableModel,
   TierAssignment,
@@ -90,7 +90,14 @@ const ModelPickerModal: Component<Props> = (props) => {
 
     for (const m of props.models) {
       if (freeOnly && !isFreeModel(m)) continue;
-      const provId = resolveProviderId(m.provider);
+      const dbProvId = resolveProviderId(m.provider);
+      const prefixProvId = inferProviderFromModel(m.model_name);
+      // Prefer prefix-inferred provider (e.g. "anthropic" from "anthropic/claude-sonnet-4")
+      // over the DB provider (e.g. "openrouter" when all models come from OpenRouter)
+      const provId =
+        prefixProvId && PROVIDERS.find((p) => p.id === prefixProvId)
+          ? prefixProvId
+          : (dbProvId ?? prefixProvId);
       if (!provId) continue;
       if (allowedProviders && !allowedProviders.has(provId)) continue;
       if (!groupMap.has(provId)) {

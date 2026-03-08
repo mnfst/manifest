@@ -6,7 +6,7 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { randomUUID } from 'crypto';
-import { expandProviderNames } from './provider-aliases';
+import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
 import { TIERS, Tier } from './scorer/types';
 
 interface ScoredModel {
@@ -39,9 +39,13 @@ export class TierAutoAssignService {
     );
 
     const allModels = this.pricingCache.getAll();
-    const subModels = allModels.filter((m) => subNames.has(m.provider.toLowerCase()));
-    const keyModels = allModels.filter((m) => keyNames.has(m.provider.toLowerCase()));
-
+    const matchesProvider = (model: ModelPricing, names: Set<string>): boolean => {
+      if (names.has(model.provider.toLowerCase())) return true;
+      const prefix = inferProviderFromModelName(model.model_name);
+      return prefix != null && names.has(prefix);
+    };
+    const subModels = allModels.filter((m) => matchesProvider(m, subNames));
+    const keyModels = allModels.filter((m) => matchesProvider(m, keyNames));
     for (const tier of TIERS) {
       // Subscription models always take priority over API key models
       const best = this.pickBest(subModels, tier) ?? this.pickBest(keyModels, tier);
