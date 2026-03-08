@@ -284,4 +284,100 @@ describe("FallbackList", () => {
     expect(addBtn).not.toBeNull();
     expect(addBtn!.classList.contains("routing-action")).toBe(true);
   });
+
+  it("shows Adding... and disables add button when adding prop is true", () => {
+    render(() => (
+      <FallbackList {...defaultProps} fallbacks={[]} adding={true} />
+    ));
+
+    const addBtn = screen.getByText("Adding...");
+    expect(addBtn).toBeDefined();
+    expect((addBtn as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("disables add button when adding is false but not disabled", () => {
+    render(() => (
+      <FallbackList {...defaultProps} fallbacks={[]} adding={false} />
+    ));
+
+    const addBtn = screen.getByText("+ Add fallback");
+    expect((addBtn as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("disables all remove buttons during async removal", async () => {
+    let resolveRemove: () => void;
+    mockSetFallbacks.mockReturnValueOnce(new Promise<void>((r) => { resolveRemove = r; }));
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b"]}
+      />
+    ));
+
+    const removeButtons = container.querySelectorAll(".fallback-list__remove");
+    fireEvent.click(removeButtons[0]);
+
+    await waitFor(() => {
+      const btns = container.querySelectorAll(".fallback-list__remove");
+      // Both buttons should be disabled
+      expect((btns[0] as HTMLButtonElement).disabled).toBe(true);
+      expect((btns[1] as HTMLButtonElement).disabled).toBe(true);
+      // The one being removed shows "..."
+      expect(btns[0].textContent).toBe("...");
+      // The other still shows "×"
+      expect(btns[1].textContent).toBe("\u00d7");
+    });
+
+    resolveRemove!();
+
+    await waitFor(() => {
+      const btns = container.querySelectorAll(".fallback-list__remove");
+      // After resolve, buttons should be re-enabled
+      expect((btns[0] as HTMLButtonElement).disabled).toBe(false);
+    });
+  });
+
+  it("disables add button during removal", async () => {
+    let resolveRemove: () => void;
+    mockSetFallbacks.mockReturnValueOnce(new Promise<void>((r) => { resolveRemove = r; }));
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b"]}
+      />
+    ));
+
+    const removeButtons = container.querySelectorAll(".fallback-list__remove");
+    fireEvent.click(removeButtons[0]);
+
+    await waitFor(() => {
+      const addBtn = screen.getByText("+ Add fallback");
+      expect((addBtn as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    resolveRemove!();
+  });
+
+  it("clears removingIndex after failed removal", async () => {
+    mockSetFallbacks.mockRejectedValueOnce(new Error("API error"));
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b"]}
+      />
+    ));
+
+    const removeButtons = container.querySelectorAll(".fallback-list__remove");
+    fireEvent.click(removeButtons[0]);
+
+    await waitFor(() => {
+      expect(mockSetFallbacks).toHaveBeenCalled();
+    });
+
+    // After error, buttons should be re-enabled (removingIndex cleared in finally)
+    await waitFor(() => {
+      const btns = container.querySelectorAll(".fallback-list__remove");
+      expect((btns[0] as HTMLButtonElement).disabled).toBe(false);
+    });
+  });
 });

@@ -69,6 +69,14 @@ const Routing: Component = () => {
   const [resettingTier, setResettingTier] = createSignal<string | null>(null);
   const [resettingAll, setResettingAll] = createSignal(false);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
+  const [addingFallback, setAddingFallback] = createSignal<string | null>(null);
+  const [fallbackOverrides, setFallbackOverrides] = createSignal<Record<string, string[]>>({});
+
+  const getFallbacksFor = (tierId: string): string[] => {
+    const overrides = fallbackOverrides();
+    if (tierId in overrides) return overrides[tierId]!;
+    return getTier(tierId)?.fallback_models ?? [];
+  };
 
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
 
@@ -153,12 +161,26 @@ const Routing: Component = () => {
     const tier = getTier(tierId);
     const current = tier?.fallback_models ?? [];
     if (current.includes(modelName)) return;
+    const updated = [...current, modelName];
+    setFallbackOverrides((prev) => ({ ...prev, [tierId]: updated }));
+    setAddingFallback(tierId);
     try {
-      await setFallbacks(agentName(), tierId, [...current, modelName]);
+      await setFallbacks(agentName(), tierId, updated);
       await refetchTiers();
       toast.success('Fallback added');
     } catch {
-      // error toast from fetchMutate
+      setFallbackOverrides((prev) => {
+        const next = { ...prev };
+        delete next[tierId];
+        return next;
+      });
+    } finally {
+      setAddingFallback(null);
+      setFallbackOverrides((prev) => {
+        const next = { ...prev };
+        delete next[tierId];
+        return next;
+      });
     }
   };
 
@@ -380,23 +402,10 @@ const Routing: Component = () => {
                     <Show when={eff()}>
                       <div class="routing-card__right">
                         <div class="routing-card__actions">
-                          <Show
-                            when={isManual()}
-                            fallback={
-                              <button
-                                class="routing-action"
-                                onClick={() => setDropdownTier(stage.id)}
-                              >
-                                Override
-                              </button>
-                            }
-                          >
-                            <button
-                              class="routing-action"
-                              onClick={() => setDropdownTier(stage.id)}
-                            >
-                              Edit
-                            </button>
+                          <button class="routing-action" onClick={() => setDropdownTier(stage.id)}>
+                            Change
+                          </button>
+                          <Show when={isManual()}>
                             <button
                               class="routing-action"
                               onClick={() => handleReset(stage.id)}
@@ -409,11 +418,19 @@ const Routing: Component = () => {
                         <FallbackList
                           agentName={agentName()}
                           tier={stage.id}
-                          fallbacks={tier()?.fallback_models ?? []}
+                          fallbacks={getFallbacksFor(stage.id)}
                           models={models() ?? []}
                           customProviders={customProviders() ?? []}
-                          onUpdate={() => refetchTiers()}
+                          onUpdate={() => {
+                            setFallbackOverrides((prev) => {
+                              const next = { ...prev };
+                              delete next[stage.id];
+                              return next;
+                            });
+                            refetchTiers();
+                          }}
                           onAddFallback={() => setFallbackPickerTier(stage.id)}
+                          adding={addingFallback() === stage.id}
                         />
                       </div>
                     </Show>
