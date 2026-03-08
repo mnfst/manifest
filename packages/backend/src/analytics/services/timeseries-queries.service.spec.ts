@@ -415,6 +415,17 @@ describe('TimeseriesQueriesService (sql.js / local mode)', () => {
     expect(result).toEqual([{ hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 }]);
   });
 
+  it('getAgentList uses leftJoin fallback when tenantId is null', async () => {
+    mockGetMany.mockResolvedValueOnce([
+      { name: 'bot-1', display_name: null, created_at: '2026-02-16' },
+    ]);
+    mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+    const result = await service.getAgentList('u1');
+    expect(result).toHaveLength(1);
+    expect(result[0].agent_name).toBe('bot-1');
+  });
+
   it('getCostByModel works with sqlite dialect', async () => {
     mockGetRawMany.mockResolvedValue([
       { model: 'gpt-4o', tokens: 500, estimated_cost: 2.0 },
