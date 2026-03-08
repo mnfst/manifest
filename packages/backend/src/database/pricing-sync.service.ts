@@ -11,6 +11,7 @@ import { sqlNow } from '../common/utils/sql-dialect';
 
 interface OpenRouterModel {
   id: string;
+  name?: string;
   context_length?: number;
   pricing?: {
     prompt?: string;
@@ -155,6 +156,7 @@ export class PricingSyncService implements OnModuleInit {
         }
 
         const { canonical, provider } = this.deriveNames(model.id);
+        const displayName = this.extractDisplayName(model);
         const existing = await this.pricingRepo.findOneBy({
           model_name: canonical,
         });
@@ -178,6 +180,7 @@ export class PricingSyncService implements OnModuleInit {
               input_price_per_token: prompt,
               output_price_per_token: completion,
               ...(contextWindow != null && { context_window: contextWindow }),
+              ...(displayName && { display_name: displayName }),
               updated_at: now,
             },
             ['model_name'],
@@ -196,6 +199,7 @@ export class PricingSyncService implements OnModuleInit {
                 input_price_per_token: prompt,
                 output_price_per_token: completion,
                 ...(contextWindow != null && { context_window: contextWindow }),
+                ...(displayName && { display_name: displayName }),
                 updated_at: now,
               },
               ['model_name'],
@@ -220,6 +224,15 @@ export class PricingSyncService implements OnModuleInit {
       this.logger.warn(`Pricing sync: ${failed} models failed`);
     }
     return updated;
+  }
+
+  extractDisplayName(model: OpenRouterModel): string {
+    if (!model.name) return '';
+    // OpenRouter names look like "Vendor: Model Name (version)"
+    // Strip the vendor prefix (everything before and including ": ")
+    const colonIdx = model.name.indexOf(': ');
+    if (colonIdx !== -1) return model.name.substring(colonIdx + 2);
+    return model.name;
   }
 
   deriveNames(openRouterId: string): {

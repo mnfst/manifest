@@ -11,6 +11,7 @@ function makeModel(overrides: Partial<ModelPricing>): ModelPricing {
     capability_reasoning: false,
     capability_code: false,
     quality_score: 3,
+    display_name: '',
     updated_at: null,
     ...overrides,
   };

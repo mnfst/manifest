@@ -27,6 +27,11 @@ vi.mock("../../src/services/sse.js", () => ({
   pingCount: () => 0,
 }));
 
+vi.mock("../../src/services/model-display.js", () => ({
+  getModelDisplayName: (slug: string) => slug.replace(/^custom:[^/]+\//, ""),
+  preloadModelDisplayNames: () => {},
+}));
+
 vi.mock("../../src/services/formatters.js", () => ({
   formatCost: (v: number) => `$${v.toFixed(2)}`,
   formatNumber: (v: number) => String(v),

@@ -10,6 +10,7 @@ interface ModelPriceRow {
   input_price_per_token: number | null;
   output_price_per_token: number | null;
   updated_at: string | null;
+  display_name: string;
 }
 
 @Injectable()
@@ -23,7 +24,7 @@ export class ModelPricesService {
 
   async getAll() {
     const rows: ModelPriceRow[] = await this.ds.query(
-      `SELECT model_name, provider, input_price_per_token, output_price_per_token, updated_at
+      `SELECT model_name, provider, input_price_per_token, output_price_per_token, updated_at, display_name
        FROM model_pricing
        ORDER BY provider, model_name`,
     );
@@ -41,6 +42,7 @@ export class ModelPricesService {
           r.input_price_per_token != null ? Number(r.input_price_per_token) * 1_000_000 : null,
         output_price_per_million:
           r.output_price_per_token != null ? Number(r.output_price_per_token) * 1_000_000 : null,
+        display_name: r.display_name || '',
       })),
       lastSyncedAt,
     };
