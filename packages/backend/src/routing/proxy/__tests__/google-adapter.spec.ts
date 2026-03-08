@@ -526,5 +526,33 @@ describe('Google Adapter', () => {
       const chunk = JSON.stringify({ candidates: [{ content: { parts: [] } }] });
       expect(transformGoogleStreamChunk(chunk, 'gemini-2.0-flash')).toBeNull();
     });
+
+    it('emits usage event when usageMetadata is present', () => {
+      const chunk = JSON.stringify({
+        candidates: [{ content: { parts: [{ text: 'done' }] }, finishReason: 'STOP' }],
+        usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 50, totalTokenCount: 150 },
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      expect(result).toContain('"content":"done"');
+      expect(result).toContain('"prompt_tokens":100');
+      expect(result).toContain('"completion_tokens":50');
+      expect(result).toContain('"finish_reason":"stop"');
+    });
+
+    it('emits usage-only event when no text but usageMetadata exists', () => {
+      const chunk = JSON.stringify({
+        candidates: [{ content: { parts: [] }, finishReason: 'STOP' }],
+        usageMetadata: { promptTokenCount: 200, candidatesTokenCount: 80, totalTokenCount: 280 },
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      expect(result).not.toBeNull();
+      expect(result).toContain('"prompt_tokens":200');
+      expect(result).toContain('"completion_tokens":80');
+    });
+
+    it('returns null when no candidates and no usageMetadata', () => {
+      const chunk = JSON.stringify({ candidates: [] });
+      expect(transformGoogleStreamChunk(chunk, 'gemini-2.0-flash')).toBeNull();
+    });
   });
 });

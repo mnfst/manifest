@@ -552,6 +552,117 @@ describe("registerHooks", () => {
       expect(outputCounter?.add).toHaveBeenCalledWith(13, expect.any(Object));
     });
 
+    it("extracts tokens from OpenAI-format usage (prompt_tokens/completion_tokens)", () => {
+      api.emit("message_received", { sessionKey: "sess-oai" });
+      api.emit("before_agent_start", { sessionKey: "sess-oai" });
+      api.emit("agent_end", {
+        sessionKey: "sess-oai",
+        messages: [
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { prompt_tokens: 1500, completion_tokens: 400, total_tokens: 1900 },
+          },
+        ],
+      });
+
+      const turnSpan = tracer.spans[tracer.spans.length - 1];
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.INPUT_TOKENS]: 1500,
+          [ATTRS.OUTPUT_TOKENS]: 400,
+        }),
+      );
+
+      const inputCounter = meter.counters.get(METRICS.LLM_TOKENS_INPUT);
+      expect(inputCounter?.add).toHaveBeenCalledWith(1500, expect.any(Object));
+    });
+
+    it("extracts cache tokens from OpenAI-format prompt_tokens_details", () => {
+      api.emit("message_received", { sessionKey: "sess-oai-cache" });
+      api.emit("before_agent_start", { sessionKey: "sess-oai-cache" });
+      api.emit("agent_end", {
+        sessionKey: "sess-oai-cache",
+        messages: [
+          {
+            role: "assistant",
+            model: "claude-sonnet-4-5",
+            provider: "Anthropic",
+            usage: {
+              prompt_tokens: 2000,
+              completion_tokens: 500,
+              prompt_tokens_details: { cached_tokens: 800 },
+              cache_read_tokens: 800,
+              cache_creation_tokens: 150,
+            },
+          },
+        ],
+      });
+
+      const turnSpan = tracer.spans[tracer.spans.length - 1];
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.INPUT_TOKENS]: 2000,
+          [ATTRS.OUTPUT_TOKENS]: 500,
+          [ATTRS.CACHE_READ_TOKENS]: 800,
+          [ATTRS.CACHE_WRITE_TOKENS]: 150,
+        }),
+      );
+
+      const cacheCounter = meter.counters.get(METRICS.LLM_TOKENS_CACHE_READ);
+      expect(cacheCounter?.add).toHaveBeenCalledWith(800, expect.any(Object));
+    });
+
+    it("extracts cache tokens from prompt_tokens_details.cached_tokens fallback", () => {
+      api.emit("message_received", { sessionKey: "sess-oai-ptd" });
+      api.emit("before_agent_start", { sessionKey: "sess-oai-ptd" });
+      api.emit("agent_end", {
+        sessionKey: "sess-oai-ptd",
+        messages: [
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: {
+              prompt_tokens: 3000,
+              completion_tokens: 600,
+              prompt_tokens_details: { cached_tokens: 1200 },
+            },
+          },
+        ],
+      });
+
+      const turnSpan = tracer.spans[tracer.spans.length - 1];
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.CACHE_READ_TOKENS]: 1200,
+        }),
+      );
+    });
+
+    it("extracts tokens from camelCase OpenAI usage (promptTokens/completionTokens)", () => {
+      api.emit("message_received", { sessionKey: "sess-camel" });
+      api.emit("before_agent_start", { sessionKey: "sess-camel" });
+      api.emit("agent_end", {
+        sessionKey: "sess-camel",
+        messages: [
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { promptTokens: 700, completionTokens: 150 },
+          },
+        ],
+      });
+
+      const inputCounter = meter.counters.get(METRICS.LLM_TOKENS_INPUT);
+      expect(inputCounter?.add).toHaveBeenCalledWith(700, expect.any(Object));
+
+      const outputCounter = meter.counters.get(METRICS.LLM_TOKENS_OUTPUT);
+      expect(outputCounter?.add).toHaveBeenCalledWith(150, expect.any(Object));
+    });
+
     it("defaults to 'unknown' model/provider when missing", () => {
       api.emit("message_received", { sessionKey: "sess-7" });
       api.emit("before_agent_start", { sessionKey: "sess-7" });

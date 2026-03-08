@@ -1,4 +1,4 @@
-import { initSseHeaders, parseSseEvents, pipeStream } from '../stream-writer';
+import { initSseHeaders, parseSseEvents, pipeStream, extractUsageFromSse } from '../stream-writer';
 
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean>;
@@ -401,5 +401,88 @@ describe('pipeStream', () => {
     // The event should be reassembled and transformed
     expect(written).toContain('out:{"part":"complete"}\n\n');
     expect(written).toContain('data: [DONE]\n\n');
+  });
+
+  it('should capture usage from transformed stream output', async () => {
+    const { res } = mockResponse();
+    const usageChunk = JSON.stringify({
+      choices: [],
+      usage: { prompt_tokens: 100, completion_tokens: 50, cache_read_tokens: 20 },
+    });
+    const stream = createReadableStream([`data: ${usageChunk}\n\n`]);
+    const transform = (chunk: string) => `data: ${chunk}\n\n`;
+
+    const usage = await pipeStream(stream, res as never, transform);
+
+    expect(usage).toEqual({
+      prompt_tokens: 100,
+      completion_tokens: 50,
+      cache_read_tokens: 20,
+      cache_creation_tokens: undefined,
+    });
+  });
+
+  it('should capture usage from passthrough stream', async () => {
+    const { res } = mockResponse();
+    const contentChunk = `data: ${JSON.stringify({ choices: [{ delta: { content: 'hi' } }] })}\n\n`;
+    const usageChunk = `data: ${JSON.stringify({
+      choices: [],
+      usage: { prompt_tokens: 200, completion_tokens: 80, cache_creation_tokens: 10 },
+    })}\n\n`;
+    const stream = createReadableStream([contentChunk, usageChunk, 'data: [DONE]\n\n']);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(usage).toEqual({
+      prompt_tokens: 200,
+      completion_tokens: 80,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: 10,
+    });
+  });
+
+  it('should return null usage when stream has no usage data', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream([
+      `data: ${JSON.stringify({ choices: [{ delta: { content: 'text' } }] })}\n\n`,
+      'data: [DONE]\n\n',
+    ]);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(usage).toBeNull();
+  });
+});
+
+describe('extractUsageFromSse', () => {
+  it('should extract usage from SSE text with data prefix', () => {
+    const sseText = `data: ${JSON.stringify({
+      choices: [],
+      usage: { prompt_tokens: 150, completion_tokens: 60 },
+    })}\n\n`;
+
+    expect(extractUsageFromSse(sseText)).toEqual({
+      prompt_tokens: 150,
+      completion_tokens: 60,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: undefined,
+    });
+  });
+
+  it('should return null for SSE text without usage', () => {
+    const sseText = `data: ${JSON.stringify({ choices: [{ delta: { content: 'hi' } }] })}\n\n`;
+    expect(extractUsageFromSse(sseText)).toBeNull();
+  });
+
+  it('should return null for [DONE] event', () => {
+    expect(extractUsageFromSse('data: [DONE]\n\n')).toBeNull();
+  });
+
+  it('should return null for non-data lines', () => {
+    expect(extractUsageFromSse('event: message\nid: 123')).toBeNull();
+  });
+
+  it('should handle invalid JSON gracefully', () => {
+    expect(extractUsageFromSse('data: {invalid json')).toBeNull();
   });
 });

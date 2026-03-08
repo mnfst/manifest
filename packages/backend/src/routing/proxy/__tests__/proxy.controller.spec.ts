@@ -76,6 +76,7 @@ describe('ProxyController', () => {
     convertAnthropicStreamChunk: jest.Mock;
   };
   let mockMessageRepo: { insert: jest.Mock };
+  let mockPricingCache: { getByModel: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -93,11 +94,13 @@ describe('ProxyController', () => {
       convertAnthropicStreamChunk: jest.fn(),
     };
     mockMessageRepo = { insert: jest.fn().mockResolvedValue({}) };
+    mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
     controller = new ProxyController(
       proxyService as never,
       rateLimiter as never,
       providerClient as never,
       mockMessageRepo as never,
+      mockPricingCache as never,
     );
   });
 
@@ -205,6 +208,185 @@ describe('ProxyController', () => {
       'claude-sonnet-4-20250514',
     );
     expect(res.json).toHaveBeenCalledWith(convertedBody);
+  });
+
+  it('should record success message with usage from non-streaming response', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 500, completion_tokens: 200, cache_read_tokens: 100 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'ok',
+        model: 'gpt-4o',
+        routing_tier: 'simple',
+        input_tokens: 500,
+        output_tokens: 200,
+        cache_read_tokens: 100,
+      }),
+    );
+  });
+
+  it('should not record success message when response has no usage', async () => {
+    const responseBody = { choices: [{ message: { content: 'hello' } }] };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+  });
+
+  it('should not record success message for fallback responses', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 500, completion_tokens: 200 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+        fallbackFromModel: 'claude-sonnet-4-20250514',
+        fallbackIndex: 0,
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    // Only the fallback chain messages should be recorded, not a duplicate success
+    const insertCalls = mockMessageRepo.insert.mock.calls;
+    const hasSuccessWithTokens = insertCalls.some(
+      (call: unknown[]) =>
+        (call[0] as Record<string, unknown>).status === 'ok' &&
+        (call[0] as Record<string, unknown>).input_tokens === 500,
+    );
+    expect(hasSuccessWithTokens).toBe(false);
+  });
+
+  it('should compute cost when pricing is available', async () => {
+    mockPricingCache.getByModel.mockReturnValue({
+      input_price_per_token: 0.000003,
+      output_price_per_token: 0.000015,
+    });
+
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 1000, completion_tokens: 500 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input_tokens: 1000,
+        output_tokens: 500,
+        cost_usd: 1000 * 0.000003 + 500 * 0.000015,
+      }),
+    );
+  });
+
+  it('should warn when recordSuccessMessage fails', async () => {
+    mockMessageRepo.insert.mockRejectedValue(new Error('DB write failed'));
+
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 100, completion_tokens: 50 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    // The catch handler should log a warning, not throw
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 
   it('should forward provider error status and body', async () => {
@@ -1429,6 +1611,7 @@ describe('ProxyController', () => {
         rateLimiter as never,
         providerClient as never,
         mockMessageRepo as never,
+        mockPricingCache as never,
       );
 
       const cooldownMap = (timedController as any).rateLimitCooldown as Map<string, number>;
@@ -1450,6 +1633,7 @@ describe('ProxyController', () => {
         rateLimiter as never,
         providerClient as never,
         mockMessageRepo as never,
+        mockPricingCache as never,
       );
 
       timedController.onModuleDestroy();
