@@ -1,0 +1,27 @@
+/* ── Skeleton Loaders ─────────────────────────────── */
+.skeleton {
+  background: hsl(var(--muted));
+  border-radius: calc(var(--radius) - 2px);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton--text {
+  display: block;
+  height: 14px;
+}
+
+.skeleton--rect {
+  display: block;
+}
+
+@keyframes skeleton-pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}

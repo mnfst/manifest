@@ -229,21 +229,90 @@ const Overview: Component = () => {
             </div>
             <div class="panel">
               <div
+                class="panel__title"
+                style="display: flex; justify-content: space-between; align-items: center;"
+              >
+                <div class="skeleton skeleton--text" style="width: 120px; height: 16px;" />
+                <div class="skeleton skeleton--text" style="width: 70px; height: 14px;" />
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Message</th>
+                    <th>Cost</th>
+                    <th>Model</th>
+                    <th>Tokens</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={[1, 2, 3, 4, 5]}>
+                    {() => (
+                      <tr>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 60px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 60px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 80px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 60px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 40px;" />
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </div>
+            <div class="panel" style="margin-top: var(--gap-lg);">
+              <div
                 class="skeleton skeleton--text"
-                style="width: 120px; height: 16px; margin-bottom: 16px;"
+                style="width: 100px; height: 16px; margin-bottom: 4px;"
               />
-              <For each={[1, 2, 3, 4, 5]}>
-                {() => (
-                  <div style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border));">
-                    <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 80px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 40px; height: 14px;" />
-                  </div>
-                )}
-              </For>
+              <div
+                class="skeleton skeleton--text"
+                style="width: 200px; height: 12px; margin-bottom: 16px;"
+              />
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>Tokens</th>
+                    <th>% of total</th>
+                    <th>Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={[1, 2, 3]}>
+                    {() => (
+                      <tr>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 100px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 70px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50px;" />
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
             </div>
           </>
         }
