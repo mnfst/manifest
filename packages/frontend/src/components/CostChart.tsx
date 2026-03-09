@@ -1,16 +1,17 @@
-import type { Component } from "solid-js";
-import uPlot from "uplot";
-import { getHsl, getHslA } from "../services/theme.js";
+import type { Component } from 'solid-js';
+import uPlot from 'uplot';
+import { getHsl, getHslA } from '../services/theme.js';
 import {
   makeGradientFillFromVar,
   useChartLifecycle,
   createCursorSnap,
   createBaseAxes,
   parseTimestamps,
-  timeScaleRange,
-  formatLegendTimestamp,
+  createTimeScaleRange,
+  createFormatLegendTimestamp,
   formatLegendCost,
-} from "../services/chart-utils.js";
+  sanitizeNumbers,
+} from '../services/chart-utils.js';
 
 interface CostChartProps {
   data: Array<{ date?: string; hour?: string; cost: number }>;
@@ -28,32 +29,43 @@ const CostChart: Component<CostChartProps> = (props) => {
       const w = el.clientWidth || el.getBoundingClientRect().width;
       if (w === 0) return null;
 
-      const c1 = getHsl("--chart-1");
-      const axisColor = getHslA("--foreground", 0.55);
-      const gridColor = getHslA("--foreground", 0.05);
-      const bgColor = getHsl("--card");
+      const c1 = getHsl('--chart-1');
+      const axisColor = getHslA('--foreground', 0.55);
+      const gridColor = getHslA('--foreground', 0.05);
+      const bgColor = getHsl('--card');
 
       const axes = createBaseAxes(axisColor, gridColor, props.range);
       axes[1] = {
         ...axes[1]!,
-        values: (_u: uPlot, vals: number[]) => vals.map((v) => `$${v.toFixed(2)}`),
+        values: (_u: uPlot, vals: number[]) =>
+          vals.map((v) => (isNaN(v) ? '\u2013' : v % 1 === 0 ? `$${v}` : `$${v.toFixed(2)}`)),
       };
 
-      return new uPlot({
-        width: w,
-        height: 260,
-        padding: [16, 16, 0, 0],
-        cursor: createCursorSnap(bgColor, c1),
-        scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.15 : 1] } },
-        axes,
-        series: [
-          { value: formatLegendTimestamp },
-          { label: "Cost", stroke: c1, width: 2.5, fill: makeGradientFillFromVar("--chart-1", 0.25), value: formatLegendCost },
-        ],
-      }, [
-        parseTimestamps(props.data),
-        props.data.map((d) => d.cost),
-      ], el);
+      return new uPlot(
+        {
+          width: w,
+          height: 260,
+          padding: [16, 16, 0, 0],
+          cursor: createCursorSnap(bgColor, c1),
+          scales: {
+            x: { time: true, range: createTimeScaleRange(props.range) },
+            y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.15 : 1] },
+          },
+          axes,
+          series: [
+            { value: createFormatLegendTimestamp(props.range) },
+            {
+              label: 'Cost',
+              stroke: c1,
+              width: 2.5,
+              fill: makeGradientFillFromVar('--chart-1', 0.25),
+              value: formatLegendCost,
+            },
+          ],
+        },
+        [parseTimestamps(props.data), sanitizeNumbers(props.data.map((d) => d.cost))],
+        el,
+      );
     },
   });
 

@@ -52,8 +52,10 @@ vi.mock("../../src/services/chart-utils.js", () => ({
   ],
   parseTimestamps: (data: any[]) => data.map((_: any, i: number) => 1000 + i),
   timeScaleRange: vi.fn(),
-  formatLegendTimestamp: vi.fn(),
+  createTimeScaleRange: (_range?: string) => vi.fn(),
+  createFormatLegendTimestamp: (_range?: string) => vi.fn(),
   formatLegendTokens: vi.fn(),
+  sanitizeNumbers: (vals: number[]) => vals,
 }));
 
 import TokenChart from "../../src/components/TokenChart";

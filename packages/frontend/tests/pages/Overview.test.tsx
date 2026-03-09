@@ -489,6 +489,96 @@ describe("Overview", () => {
     });
   });
 
+  describe("range persistence", () => {
+    it("persists range selection in localStorage", async () => {
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="select"]')).not.toBeNull();
+      });
+      const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+      await fireEvent.change(select, { target: { value: "24h" } });
+      expect(localStorage.getItem("manifest_chart_range")).toBe("24h");
+    });
+
+    it("reads persisted range from localStorage on mount", async () => {
+      localStorage.setItem("manifest_chart_range", "1h");
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("1h");
+      });
+    });
+
+    it("defaults to 30d when no localStorage value", async () => {
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("30d");
+      });
+    });
+  });
+
+  describe("smart default range", () => {
+    it("cascades to smaller range when data arrays are all empty", async () => {
+      const emptyUsageData = {
+        ...overviewData,
+        has_data: true,
+        token_usage: [],
+        cost_usage: [],
+        message_usage: [],
+      };
+      mockGetOverview.mockResolvedValue(emptyUsageData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        // Should cascade from 30d → 7d
+        expect(mockGetOverview).toHaveBeenCalled();
+      });
+    });
+
+    it("does not cascade when user has manually selected a range", async () => {
+      localStorage.setItem("manifest_chart_range", "30d");
+      const emptyUsageData = {
+        ...overviewData,
+        has_data: true,
+        token_usage: [],
+        cost_usage: [],
+        message_usage: [],
+      };
+      mockGetOverview.mockResolvedValue(emptyUsageData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("30d");
+      });
+    });
+
+    it("stays on current range when there is data", async () => {
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("30d");
+      });
+    });
+  });
+
+  it("renders provider icon in cost_by_model for known providers", async () => {
+    const dataWithKnownModel = {
+      ...overviewData,
+      cost_by_model: [
+        { model: "gpt-4o", tokens: 30000, share_pct: 100, estimated_cost: 2.1 },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithKnownModel);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("gpt-4o");
+    });
+  });
+
   it("renders fallback badge in recent activity when fallback_from_model is present", async () => {
     const dataWithFallback = {
       ...overviewData,

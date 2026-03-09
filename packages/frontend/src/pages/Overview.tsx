@@ -87,7 +87,16 @@ const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
   const location = useLocation<{ newAgent?: boolean; newApiKey?: string }>();
   preloadModelDisplayNames();
-  const [range, setRange] = createSignal('7d');
+  const RANGE_STORAGE_KEY = 'manifest_chart_range';
+  const savedRange = localStorage.getItem(RANGE_STORAGE_KEY);
+  const [range, setRange] = createSignal(savedRange ?? '30d');
+  const [userSelectedRange, setUserSelectedRange] = createSignal(!!savedRange);
+
+  const handleRangeChange = (value: string) => {
+    setRange(value);
+    setUserSelectedRange(true);
+    localStorage.setItem(RANGE_STORAGE_KEY, value);
+  };
   const [activeView, setActiveView] = createSignal<ActiveView>('cost');
   const [setupOpen, setSetupOpen] = createSignal(
     !!(location.state as { newAgent?: boolean } | undefined)?.newAgent,
@@ -132,6 +141,22 @@ const Overview: Component = () => {
     }
   });
 
+  const SMART_RANGES: string[] = ['30d', '7d', '24h', '1h'];
+
+  createEffect(() => {
+    if (userSelectedRange()) return;
+    const d = data();
+    if (!d || d.has_data === false) return;
+    const hasData =
+      (d.token_usage?.length ?? 0) > 0 ||
+      (d.cost_usage?.length ?? 0) > 0 ||
+      (d.message_usage?.length ?? 0) > 0;
+    if (hasData) return;
+    const currentIdx = SMART_RANGES.indexOf(range());
+    if (currentIdx < 0 || currentIdx >= SMART_RANGES.length - 1) return;
+    setRange(SMART_RANGES[currentIdx + 1]!);
+  });
+
   const trendBadge = (pct: number, value?: number) => {
     if (pct === 0) return null;
     // Don't show trend when the metric value itself is effectively zero
@@ -172,7 +197,7 @@ const Overview: Component = () => {
           <Show when={!isNewAgent()}>
             <Select
               value={range()}
-              onChange={setRange}
+              onChange={handleRangeChange}
               options={[
                 { label: 'Last hour', value: '1h' },
                 { label: 'Last 24 hours', value: '24h' },
