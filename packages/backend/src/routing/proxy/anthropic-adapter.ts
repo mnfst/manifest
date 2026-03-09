@@ -66,14 +66,22 @@ function toContentBlocks(content: unknown): ContentBlock[] {
   return [];
 }
 
-function convertMessage(msg: OpenAIMessage): { role: 'user' | 'assistant'; content: ContentBlock[] } | null {
+function convertMessage(
+  msg: OpenAIMessage,
+): { role: 'user' | 'assistant'; content: ContentBlock[] } | null {
   if (msg.role === 'system' || msg.role === 'developer') return null;
 
   if (msg.role === 'tool') {
     const text = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content ?? '');
     return {
       role: 'user',
-      content: [{ type: 'tool_result', tool_use_id: (msg.tool_call_id as string) || 'unknown', content: text }],
+      content: [
+        {
+          type: 'tool_result',
+          tool_use_id: (msg.tool_call_id as string) || 'unknown',
+          content: text,
+        },
+      ],
     };
   }
 
@@ -100,7 +108,9 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
   if (!tools || tools.length === 0) return undefined;
   const out: AnthropicTool[] = [];
   for (const t of tools) {
-    const fn = t.function as { name: string; description?: string; parameters?: unknown } | undefined;
+    const fn = t.function as
+      | { name: string; description?: string; parameters?: unknown }
+      | undefined;
     if (fn) out.push({ name: fn.name, description: fn.description, input_schema: fn.parameters });
   }
   return out.length > 0 ? out : undefined;
@@ -140,7 +150,12 @@ export function toAnthropicRequest(
 
 function mapStopReason(reason: string | undefined): string {
   if (!reason) return 'stop';
-  const map: Record<string, string> = { end_turn: 'stop', max_tokens: 'length', tool_use: 'tool_calls', stop_sequence: 'stop' };
+  const map: Record<string, string> = {
+    end_turn: 'stop',
+    max_tokens: 'length',
+    tool_use: 'tool_calls',
+    stop_sequence: 'stop',
+  };
   return map[reason] ?? 'stop';
 }
 
@@ -178,21 +193,29 @@ export function fromAnthropicResponse(
     object: 'chat.completion',
     created: Math.floor(Date.now() / 1000),
     model,
-    choices: [{ index: 0, message, finish_reason: mapStopReason(resp.stop_reason as string | undefined) }],
-    usage: usage ? {
-      prompt_tokens: totalInput,
-      completion_tokens: totalOutput,
-      total_tokens: totalInput + totalOutput,
-      prompt_tokens_details: { cached_tokens: cacheRead },
-      cache_read_tokens: cacheRead,
-      cache_creation_tokens: cacheCreation,
-    } : undefined,
+    choices: [
+      { index: 0, message, finish_reason: mapStopReason(resp.stop_reason as string | undefined) },
+    ],
+    usage: usage
+      ? {
+          prompt_tokens: totalInput,
+          completion_tokens: totalOutput,
+          total_tokens: totalInput + totalOutput,
+          prompt_tokens_details: { cached_tokens: cacheRead },
+          cache_read_tokens: cacheRead,
+          cache_creation_tokens: cacheCreation,
+        }
+      : undefined,
   };
 }
 
 /* ── Stream chunk conversion ── */
 
-function makeChunkSse(model: string, delta: Record<string, unknown>, finishReason: string | null): string {
+function makeChunkSse(
+  model: string,
+  delta: Record<string, unknown>,
+  finishReason: string | null,
+): string {
   return `data: ${JSON.stringify({
     id: `chatcmpl-${randomUUID()}`,
     object: 'chat.completion.chunk',
@@ -202,7 +225,9 @@ function makeChunkSse(model: string, delta: Record<string, unknown>, finishReaso
   })}\n\n`;
 }
 
-function parseStreamEvent(chunk: string): { eventType: string; data: Record<string, unknown> } | null {
+function parseStreamEvent(
+  chunk: string,
+): { eventType: string; data: Record<string, unknown> } | null {
   if (!chunk.trim()) return null;
 
   const lines = chunk.split('\n');
@@ -215,7 +240,11 @@ function parseStreamEvent(chunk: string): { eventType: string; data: Record<stri
   }
 
   if (!jsonPayload) return null;
-  try { return { eventType, data: JSON.parse(jsonPayload) }; } catch { return null; }
+  try {
+    return { eventType, data: JSON.parse(jsonPayload) };
+  } catch {
+    return null;
+  }
 }
 
 function makeUsageSse(model: string, usage: Record<string, unknown>): string {
@@ -237,6 +266,10 @@ export function createAnthropicStreamTransformer(model: string): (chunk: string)
   let inputTokens = 0;
   let cacheReadTokens = 0;
   let cacheCreationTokens = 0;
+  const toolCallByContentIndex = new Map<
+    number,
+    { id: string; name: string; openaiIndex: number }
+  >();
 
   return (chunk: string): string | null => {
     const parsed = parseStreamEvent(chunk);
@@ -244,6 +277,7 @@ export function createAnthropicStreamTransformer(model: string): (chunk: string)
     const { eventType, data } = parsed;
 
     if (eventType === 'message_start' || data.type === 'message_start') {
+      toolCallByContentIndex.clear();
       const msg = data.message as Record<string, unknown> | undefined;
       const usage = msg?.usage as Record<string, number> | undefined;
       inputTokens = usage?.input_tokens ?? 0;
@@ -252,11 +286,58 @@ export function createAnthropicStreamTransformer(model: string): (chunk: string)
       return makeChunkSse(model, { role: 'assistant', content: '' }, null);
     }
 
+    if (eventType === 'content_block_start' || data.type === 'content_block_start') {
+      const block = data.content_block as Record<string, unknown> | undefined;
+      const contentIndex = data.index as number | undefined;
+      if (
+        block?.type === 'tool_use' &&
+        typeof block.id === 'string' &&
+        typeof block.name === 'string' &&
+        typeof contentIndex === 'number'
+      ) {
+        const openaiIndex = toolCallByContentIndex.size;
+        toolCallByContentIndex.set(contentIndex, {
+          id: block.id,
+          name: block.name,
+          openaiIndex,
+        });
+        return makeChunkSse(
+          model,
+          {
+            tool_calls: [
+              {
+                index: openaiIndex,
+                id: block.id,
+                type: 'function',
+                function: { name: block.name, arguments: '' },
+              },
+            ],
+          },
+          null,
+        );
+      }
+      return null;
+    }
+
     if (eventType === 'content_block_delta' || data.type === 'content_block_delta') {
       const delta = data.delta as Record<string, unknown> | undefined;
       if (!delta) return null;
       if (delta.type === 'text_delta' && typeof delta.text === 'string') {
         return makeChunkSse(model, { content: delta.text }, null);
+      }
+      if (delta.type === 'input_json_delta') {
+        const contentIndex = data.index as number | undefined;
+        const meta =
+          typeof contentIndex === 'number' ? toolCallByContentIndex.get(contentIndex) : undefined;
+        if (!meta) return null;
+        const partialJson = typeof delta.partial_json === 'string' ? delta.partial_json : '';
+        return makeChunkSse(
+          model,
+          {
+            tool_calls: [{ index: meta.openaiIndex, function: { arguments: partialJson } }],
+          },
+          null,
+        );
       }
       return null;
     }
@@ -269,7 +350,11 @@ export function createAnthropicStreamTransformer(model: string): (chunk: string)
       const totalInput = inputTokens + cacheReadTokens + cacheCreationTokens;
       const total = totalInput + outputTokens;
 
-      const finishChunk = makeChunkSse(model, {}, mapStopReason(delta?.stop_reason as string | undefined));
+      const finishChunk = makeChunkSse(
+        model,
+        {},
+        mapStopReason(delta?.stop_reason as string | undefined),
+      );
       const usageChunk = makeUsageSse(model, {
         prompt_tokens: totalInput,
         completion_tokens: outputTokens,
