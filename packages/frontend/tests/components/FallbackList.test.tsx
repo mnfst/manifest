@@ -135,7 +135,7 @@ describe("FallbackList", () => {
     expect(mockSetFallbacks).not.toHaveBeenCalled();
   });
 
-  it("does not call onUpdate when setFallbacks rejects", async () => {
+  it("reverts optimistic removal when setFallbacks rejects", async () => {
     mockSetFallbacks.mockRejectedValue(new Error("API error"));
     const onUpdate = vi.fn();
     const { container } = render(() => (
@@ -152,10 +152,13 @@ describe("FallbackList", () => {
     await waitFor(() => {
       expect(mockSetFallbacks).toHaveBeenCalled();
     });
-    expect(onUpdate).not.toHaveBeenCalled();
+    // First call: optimistic removal, second call: revert with original list
+    expect(onUpdate).toHaveBeenCalledTimes(2);
+    expect(onUpdate).toHaveBeenNthCalledWith(1, ["model-b"]);
+    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a", "model-b"]);
   });
 
-  it("does not call onUpdate when clearFallbacks rejects", async () => {
+  it("reverts optimistic removal when clearFallbacks rejects", async () => {
     mockClearFallbacks.mockRejectedValue(new Error("API error"));
     const onUpdate = vi.fn();
     const { container } = render(() => (
@@ -172,7 +175,10 @@ describe("FallbackList", () => {
     await waitFor(() => {
       expect(mockClearFallbacks).toHaveBeenCalled();
     });
-    expect(onUpdate).not.toHaveBeenCalled();
+    // First call: optimistic removal, second call: revert with original list
+    expect(onUpdate).toHaveBeenCalledTimes(2);
+    expect(onUpdate).toHaveBeenNthCalledWith(1, []);
+    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a"]);
   });
 
   it("displays display_name when model info has one", () => {
@@ -306,14 +312,14 @@ describe("FallbackList", () => {
     expect(addBtn!.classList.contains("routing-action")).toBe(true);
   });
 
-  it("shows Adding... and disables add button when adding prop is true", () => {
-    render(() => (
+  it("shows spinner and disables add button when adding prop is true", () => {
+    const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={[]} adding={true} />
     ));
 
-    const addBtn = screen.getByText("Adding...");
-    expect(addBtn).toBeDefined();
-    expect((addBtn as HTMLButtonElement).disabled).toBe(true);
+    const addBtn = container.querySelector(".fallback-list__add") as HTMLButtonElement;
+    expect(addBtn.querySelector(".spinner")).not.toBeNull();
+    expect(addBtn.disabled).toBe(true);
   });
 
   it("disables add button when adding is false but not disabled", () => {

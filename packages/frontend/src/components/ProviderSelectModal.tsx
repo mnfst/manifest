@@ -413,7 +413,9 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         disabled={busy()}
                         onClick={() => handleConnect(provId)}
                       >
-                        Connect
+                        <Show when={!busy()} fallback={<span class="spinner" />}>
+                          Connect
+                        </Show>
                       </button>
                     </Show>
                     <Show when={connected()}>
@@ -455,7 +457,9 @@ const ProviderSelectModal: Component<Props> = (props) => {
                       disabled={busy() || !keyInput().trim()}
                       onClick={() => handleConnect(provId)}
                     >
-                      Connect
+                      <Show when={!busy()} fallback={<span class="spinner" />}>
+                        Connect
+                      </Show>
                     </button>
                   </Show>
 

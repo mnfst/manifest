@@ -295,8 +295,8 @@ describe("Routing — enabled state (providers active)", () => {
     fireEvent.click(resetBtn);
 
     await waitFor(() => {
-      expect(screen.getByText("Resetting...")).toBeDefined();
-      expect((screen.getByText("Resetting...") as HTMLButtonElement).disabled).toBe(true);
+      expect(resetBtn.querySelector(".spinner")).not.toBeNull();
+      expect(resetBtn.disabled).toBe(true);
     });
 
     resolveReset!();
@@ -319,12 +319,12 @@ describe("Routing — enabled state (providers active)", () => {
     let resolveResetAll: () => void;
     vi.mocked(resetAllTiers).mockReturnValue(new Promise<void>((r) => { resolveResetAll = r; }) as any);
     render(() => <Routing />);
-    const resetAllBtn = await screen.findByText("Reset all to auto");
+    const resetAllBtn = await screen.findByText("Reset all to auto") as HTMLButtonElement;
     fireEvent.click(resetAllBtn);
 
     await waitFor(() => {
-      expect(screen.getByText("Resetting...")).toBeDefined();
-      expect((screen.getByText("Resetting...") as HTMLButtonElement).disabled).toBe(true);
+      expect(resetAllBtn.querySelector(".spinner")).not.toBeNull();
+      expect(resetAllBtn.disabled).toBe(true);
     });
 
     resolveResetAll!();
@@ -860,8 +860,9 @@ describe("Routing — fallback management", () => {
     fireEvent.click(modalButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByText("Adding...")).toBeDefined();
-      expect((screen.getByText("Adding...") as HTMLButtonElement).disabled).toBe(true);
+      const addBtn = document.querySelector(".fallback-list__add") as HTMLButtonElement;
+      expect(addBtn.querySelector(".spinner")).not.toBeNull();
+      expect(addBtn.disabled).toBe(true);
     });
 
     resolveSetFallbacks!();

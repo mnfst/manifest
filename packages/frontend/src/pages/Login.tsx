@@ -162,7 +162,7 @@ const Login: Component = () => {
             </A>
           </div>
           <button class="auth-form__submit" type="submit" disabled={loading()}>
-            {loading() ? 'Signing in...' : 'Sign in'}
+            {loading() ? <span class="spinner" /> : 'Sign in'}
           </button>
         </form>
         <div class="auth-footer">

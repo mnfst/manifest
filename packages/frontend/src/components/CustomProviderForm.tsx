@@ -323,7 +323,7 @@ const CustomProviderForm: Component<Props> = (props) => {
           class="btn btn--primary provider-detail__action"
           disabled={!canSubmit()}
         >
-          {busy() ? (isEdit() ? 'Saving...' : 'Creating...') : isEdit() ? 'Save changes' : 'Create'}
+          {busy() ? <span class="spinner" /> : isEdit() ? 'Save changes' : 'Create'}
         </button>
 
         <Show when={isEdit()}>

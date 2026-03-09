@@ -145,7 +145,9 @@ const Settings: Component = () => {
               onClick={handleSave}
               disabled={saving() || name().trim() === agentName()}
             >
-              <span aria-live="polite">{saved() ? 'Saved' : saving() ? 'Saving...' : 'Save'}</span>
+              <span aria-live="polite">
+                {saved() ? 'Saved' : saving() ? <span class="spinner" /> : 'Save'}
+              </span>
             </button>
           </div>
         </div>
@@ -205,7 +207,7 @@ const Settings: Component = () => {
                 onClick={handleRotate}
                 disabled={rotating()}
               >
-                {rotating() ? 'Rotating...' : 'Rotate key'}
+                {rotating() ? <span class="spinner" /> : 'Rotate key'}
               </button>
             </div>
           </div>
@@ -320,7 +322,7 @@ const Settings: Component = () => {
                 }
               }}
             >
-              {deleting() ? 'Deleting...' : 'Delete this agent'}
+              {deleting() ? <span class="spinner" /> : 'Delete this agent'}
             </button>
           </div>
         </div>
