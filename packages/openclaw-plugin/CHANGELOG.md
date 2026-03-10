@@ -1,5 +1,25 @@
 # manifest
 
+## 5.22.1
+
+### Patch Changes
+
+- 35b326c: Add migration to backfill tenant_id on agent_messages from tenants table
+- e4f5b10: Drop 4 unused composite indexes on write-only OTLP ingestion tables (tool_executions, token_usage_snapshots, cost_snapshots, agent_logs) to reduce write amplification
+- 45dd667: Fix missing canonical provider models in local mode and improve routing page UX
+  - Create canonical model entries (e.g. `gemini-2.5-pro` with provider "Google") during pricing sync when no seeded entry exists, fixing local mode showing only OpenRouter-branded models
+  - Replace full tier list refetch with local state mutations on model change, reset, and fallback operations for instant UI updates
+  - Add loading indicator ("Changing...") on the Change button while model override is saving
+  - Add toast notification when removing a fallback model
+
+- 3143303: Fix token values showing as 0 for OTLP-ingested messages by capturing usage directly from proxy responses
+- 8ec8b25: Fix routing model picker showing non-curated models from OpenRouter
+- 78e8ec2: Progressive rendering for Routing page skeleton loading state
+- a1dd405: Speed up Overview and Messages pages
+  - Parallelize messages endpoint DB queries (count, data, models run concurrently via Promise.all)
+  - Show stale data during SSE refetches instead of flashing skeleton loaders
+  - Debounce cost filter inputs on Messages page (400ms) to prevent rapid-fire API calls
+
 ## 5.22.0
 
 ### Minor Changes
