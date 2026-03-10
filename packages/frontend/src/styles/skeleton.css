@@ -32,10 +32,14 @@
 }
 
 .btn--outline .spinner,
-.btn--ghost .spinner,
-.btn--danger .spinner {
+.btn--ghost .spinner {
   border-color: hsl(var(--muted));
   border-top-color: hsl(var(--foreground));
+}
+
+.btn--danger .spinner {
+  border-color: hsl(var(--destructive-foreground) / 0.3);
+  border-top-color: hsl(var(--destructive-foreground));
 }
 
 @keyframes spinner-spin {

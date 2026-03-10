@@ -252,13 +252,24 @@ const Limits: Component = () => {
             when={!emailProvider.loading}
             fallback={
               <Show
-                when={emailProvider() !== undefined}
+                when={!!emailProvider()}
                 fallback={
-                  <div
-                    class="panel"
-                    style="display: flex; align-items: center; justify-content: center; min-height: 80px;"
-                  >
-                    <span class="spinner" style="width: 20px; height: 20px;" />
+                  <div class="panel">
+                    <div class="skeleton skeleton--text" style="width: 180px; height: 16px;" />
+                    <div
+                      class="skeleton skeleton--text"
+                      style="width: 280px; height: 13px; margin-top: 6px;"
+                    />
+                    <div style="display: flex; gap: var(--gap-md); margin-top: var(--gap-lg);">
+                      <For each={[1, 2, 3]}>
+                        {() => (
+                          <div
+                            class="skeleton skeleton--rect"
+                            style="flex: 1; height: 64px; border-radius: var(--radius);"
+                          />
+                        )}
+                      </For>
+                    </div>
                   </div>
                 }
               >

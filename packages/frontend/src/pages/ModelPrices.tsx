@@ -186,21 +186,48 @@ const ModelPrices: Component = () => {
       <Show
         when={!data.loading}
         fallback={
-          <div class="panel">
-            <div
-              class="skeleton skeleton--text"
-              style="width: 120px; height: 16px; margin-bottom: 16px;"
-            />
-            <For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
-              {() => (
-                <div style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border));">
-                  <div class="skeleton skeleton--text" style="width: 200px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 80px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 100px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 100px; height: 14px;" />
+          <div class="panel" style="min-height: 600px;">
+            <div class="model-filter">
+              <div class="model-filter__row">
+                <div
+                  class="skeleton skeleton--text"
+                  style="width: 280px; height: 36px; border-radius: var(--radius);"
+                />
+                <div class="model-filter__summary">
+                  <div class="skeleton skeleton--text" style="width: 80px;" />
                 </div>
-              )}
-            </For>
+              </div>
+            </div>
+            <table class="data-table" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>Provider</th>
+                  <th>Cost to send / 1M tokens</th>
+                  <th>Cost to receive / 1M tokens</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}>
+                  {() => (
+                    <tr>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 70%;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 60%;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 50%;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 50%;" />
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
           </div>
         }
       >

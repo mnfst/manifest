@@ -258,12 +258,73 @@ const Routing: Component = () => {
       <Show
         when={!connectedProviders.loading}
         fallback={
-          <div
-            class="panel"
-            style="display: flex; align-items: center; justify-content: center; min-height: 260px;"
+          <Show
+            when={
+              connectedProviders() !== undefined && connectedProviders()?.some((p) => p.is_active)
+            }
+            fallback={
+              <div
+                class="panel"
+                style="display: flex; align-items: center; justify-content: center; min-height: 260px;"
+              >
+                <span class="spinner" style="width: 24px; height: 24px;" />
+              </div>
+            }
           >
-            <span class="spinner" style="width: 24px; height: 24px;" />
-          </div>
+            <div class="routing-providers-info">
+              <span class="routing-providers-info__icons">
+                <span class="routing-providers-info__icon">
+                  <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
+                </span>
+                <span class="routing-providers-info__icon">
+                  <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
+                </span>
+              </span>
+              <span class="routing-providers-info__label">
+                <div class="skeleton skeleton--text" style="width: 80px;" />
+              </span>
+            </div>
+            <div class="routing-cards">
+              <For each={STAGES}>
+                {(stage) => (
+                  <div class="routing-card">
+                    <div class="routing-card__header">
+                      <span class="routing-card__tier">{stage.label}</span>
+                      <span class="routing-card__desc">{stage.desc}</span>
+                    </div>
+                    <div class="routing-card__body">
+                      <div class="routing-card__override">
+                        <span class="routing-card__override-icon">
+                          <div
+                            class="skeleton"
+                            style="width: 16px; height: 16px; border-radius: 50%;"
+                          />
+                        </span>
+                        <div class="skeleton skeleton--text" style="width: 140px; height: 14px;" />
+                      </div>
+                      <div
+                        class="skeleton skeleton--text"
+                        style="width: 200px; height: 12px; margin-top: 6px;"
+                      />
+                    </div>
+                    <div class="routing-card__right">
+                      <div class="routing-card__actions">
+                        <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </For>
+            </div>
+            <div class="routing-footer">
+              <div
+                class="skeleton skeleton--text"
+                style="width: 120px; height: 32px; border-radius: var(--radius);"
+              />
+              <div style="flex: 1;" />
+              <div class="skeleton skeleton--text" style="width: 130px; height: 14px;" />
+            </div>
+          </Show>
         }
       >
         <Show
