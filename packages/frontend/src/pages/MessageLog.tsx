@@ -252,24 +252,64 @@ const MessageLog: Component = () => {
         when={data() !== undefined || !data.loading}
         fallback={
           <div class="panel">
-            <div
-              class="skeleton skeleton--text"
-              style="width: 120px; height: 16px; margin-bottom: 16px;"
-            />
-            <For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
-              {() => (
-                <div style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border));">
-                  <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 70px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 80px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 40px; height: 14px;" />
-                </div>
-              )}
-            </For>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
+              <div class="skeleton skeleton--text" style="width: 80px; height: 16px;" />
+              <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Message</th>
+                  <th>Cost</th>
+                  <th>Total Tokens</th>
+                  <th>Input</th>
+                  <th>Output</th>
+                  <th>Model</th>
+                  <th>Cache</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}>
+                  {() => (
+                    <tr>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 90px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 55px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 40px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 40px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 35px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 35px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 110px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 90px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 35px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 50px;" />
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
           </div>
         }
       >

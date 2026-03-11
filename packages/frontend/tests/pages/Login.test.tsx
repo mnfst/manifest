@@ -106,7 +106,8 @@ describe("Login", () => {
     fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass" } });
     fireEvent.submit(container.querySelector("form")!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Signing in");
+      const btn = container.querySelector('button[type="submit"]') as HTMLButtonElement;
+      expect(btn.querySelector(".spinner")).not.toBeNull();
     });
   });
 

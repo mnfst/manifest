@@ -42,17 +42,20 @@ const FallbackList: Component<FallbackListProps> = (props) => {
 
   const handleRemove = async (index: number) => {
     setRemovingIndex(index);
+    const original = [...props.fallbacks];
     const updated = props.fallbacks.filter((_, i) => i !== index);
+    // Optimistic: remove from UI immediately
+    props.onUpdate(updated);
     try {
       if (updated.length === 0) {
         await clearFallbacks(props.agentName, props.tier);
       } else {
         await setFallbacks(props.agentName, props.tier, updated);
       }
-      props.onUpdate(updated);
       toast.success('Fallback removed');
     } catch {
-      // error toast from fetchMutate
+      // Revert on failure
+      props.onUpdate(original);
     } finally {
       setRemovingIndex(null);
     }
@@ -114,7 +117,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
           onClick={props.onAddFallback}
           disabled={props.adding || removingIndex() !== null}
         >
-          {props.adding ? 'Adding...' : '+ Add fallback'}
+          {props.adding ? <span class="spinner" /> : '+ Add fallback'}
         </button>
       </Show>
     </div>

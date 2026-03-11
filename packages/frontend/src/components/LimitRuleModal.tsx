@@ -216,7 +216,7 @@ const LimitRuleModal: Component<Props> = (props) => {
                 disabled={!threshold() || Number(threshold()) <= 0 || saving()}
                 onClick={handleSave}
               >
-                {saving() ? 'Saving...' : isEdit() ? 'Save changes' : 'Create rule'}
+                {saving() ? <span class="spinner" /> : isEdit() ? 'Save changes' : 'Create rule'}
               </button>
             </div>
           </div>

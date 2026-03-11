@@ -56,10 +56,8 @@ const Routing: Component = () => {
     () => agentName(),
     getAvailableModels,
   );
-  const [connectedProviders, { refetch: refetchProviders }] = createResource(
-    () => agentName(),
-    getProviders,
-  );
+  const [connectedProviders, { refetch: refetchProviders, mutate: mutateProviders }] =
+    createResource(() => agentName(), getProviders);
   const [customProviders, { refetch: refetchCustomProviders }] = createResource(
     () => agentName(),
     getCustomProviders,
@@ -199,20 +197,26 @@ const Routing: Component = () => {
 
   const handleDisable = async () => {
     setDisabling(true);
+    // Optimistic: mark all providers inactive so the UI switches immediately
+    const prevProviders = connectedProviders();
+    mutateProviders((prev) => prev?.map((p) => ({ ...p, is_active: false })));
     try {
       await deactivateAllProviders(agentName());
-      await Promise.all([
-        refetchProviders(),
-        refetchCustomProviders(),
-        refetchTiers(),
-        refetchModels(),
-      ]);
-      setInstructionModal('disable');
     } catch {
-      // error toast from fetchMutate
-    } finally {
+      // Revert on failure only when the deactivation itself fails
+      mutateProviders(prevProviders);
       setDisabling(false);
+      return;
     }
+    // Refetch in background — deactivation already succeeded so no revert needed
+    await Promise.all([
+      refetchProviders(),
+      refetchCustomProviders(),
+      refetchTiers(),
+      refetchModels(),
+    ]).catch(() => {});
+    setInstructionModal('disable');
+    setDisabling(false);
   };
 
   const handleProviderUpdate = async () => {
@@ -256,22 +260,73 @@ const Routing: Component = () => {
       <Show
         when={!connectedProviders.loading}
         fallback={
-          <div class="routing-cards">
-            <For each={STAGES}>
-              {(stage) => (
-                <div class="routing-card">
-                  <div class="routing-card__header">
-                    <span class="routing-card__tier">{stage.label}</span>
-                    <span class="routing-card__desc">{stage.desc}</span>
+          <Show
+            when={
+              connectedProviders() !== undefined && connectedProviders()?.some((p) => p.is_active)
+            }
+            fallback={
+              <div
+                class="panel"
+                style="display: flex; align-items: center; justify-content: center; min-height: 260px;"
+              >
+                <span class="spinner" style="width: 24px; height: 24px;" />
+              </div>
+            }
+          >
+            <div class="routing-providers-info">
+              <span class="routing-providers-info__icons">
+                <span class="routing-providers-info__icon">
+                  <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
+                </span>
+                <span class="routing-providers-info__icon">
+                  <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
+                </span>
+              </span>
+              <span class="routing-providers-info__label">
+                <div class="skeleton skeleton--text" style="width: 80px;" />
+              </span>
+            </div>
+            <div class="routing-cards">
+              <For each={STAGES}>
+                {(stage) => (
+                  <div class="routing-card">
+                    <div class="routing-card__header">
+                      <span class="routing-card__tier">{stage.label}</span>
+                      <span class="routing-card__desc">{stage.desc}</span>
+                    </div>
+                    <div class="routing-card__body">
+                      <div class="routing-card__override">
+                        <span class="routing-card__override-icon">
+                          <div
+                            class="skeleton"
+                            style="width: 16px; height: 16px; border-radius: 50%;"
+                          />
+                        </span>
+                        <div class="skeleton skeleton--text" style="width: 140px; height: 14px;" />
+                      </div>
+                      <div
+                        class="skeleton skeleton--text"
+                        style="width: 200px; height: 12px; margin-top: 6px;"
+                      />
+                    </div>
+                    <div class="routing-card__right">
+                      <div class="routing-card__actions">
+                        <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
+                      </div>
+                    </div>
                   </div>
-                  <div class="routing-card__body">
-                    <div class="skeleton skeleton--text" style="width: 160px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 200px; height: 12px; margin-top: 6px;" />
-                  </div>
-                </div>
-              )}
-            </For>
-          </div>
+                )}
+              </For>
+            </div>
+            <div class="routing-footer">
+              <div
+                class="skeleton skeleton--text"
+                style="width: 120px; height: 32px; border-radius: var(--radius);"
+              />
+              <div style="flex: 1;" />
+              <div class="skeleton skeleton--text" style="width: 130px; height: 14px;" />
+            </div>
+          </Show>
         }
       >
         <Show
@@ -365,8 +420,14 @@ const Routing: Component = () => {
                       when={!tiers.loading}
                       fallback={
                         <div class="routing-card__body">
-                          <div class="skeleton skeleton--text" style="width: 160px; height: 14px;" />
-                          <div class="skeleton skeleton--text" style="width: 200px; height: 12px; margin-top: 6px;" />
+                          <div
+                            class="skeleton skeleton--text"
+                            style="width: 160px; height: 14px;"
+                          />
+                          <div
+                            class="skeleton skeleton--text"
+                            style="width: 200px; height: 12px; margin-top: 6px;"
+                          />
                         </div>
                       }
                     >
@@ -387,47 +448,65 @@ const Routing: Component = () => {
                         >
                           {(modelName) => (
                             <>
-                              <div class="routing-card__override">
-                                {(() => {
-                                  const provId = providerIdForModel(modelName(), models() ?? []);
-                                  if (provId?.startsWith('custom:')) {
-                                    const cp = customProviders()?.find(
-                                      (c) => `custom:${c.id}` === provId,
-                                    );
-                                    const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
-                                    return (
-                                      <span class="routing-card__override-icon">
-                                        <span
-                                          class="provider-card__logo-letter"
-                                          style={{
-                                            background: 'var(--custom-provider-color)',
-                                            width: '16px',
-                                            height: '16px',
-                                            'font-size': '9px',
-                                            'border-radius': '50%',
-                                          }}
-                                        >
-                                          {letter}
-                                        </span>
-                                      </span>
-                                    );
-                                  }
-                                  return (
-                                    <Show when={provId}>
-                                      {(pid) => (
+                              <Show
+                                when={changingTier() !== stage.id}
+                                fallback={
+                                  <>
+                                    <div class="routing-card__override">
+                                      <div
+                                        class="skeleton skeleton--text"
+                                        style="width: 140px; height: 14px;"
+                                      />
+                                    </div>
+                                    <div
+                                      class="skeleton skeleton--text"
+                                      style="width: 180px; height: 12px; margin-top: 6px;"
+                                    />
+                                  </>
+                                }
+                              >
+                                <div class="routing-card__override">
+                                  {(() => {
+                                    const provId = providerIdForModel(modelName(), models() ?? []);
+                                    if (provId?.startsWith('custom:')) {
+                                      const cp = customProviders()?.find(
+                                        (c) => `custom:${c.id}` === provId,
+                                      );
+                                      const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
+                                      return (
                                         <span class="routing-card__override-icon">
-                                          {providerIcon(pid(), 16)}
+                                          <span
+                                            class="provider-card__logo-letter"
+                                            style={{
+                                              background: 'var(--custom-provider-color)',
+                                              width: '16px',
+                                              height: '16px',
+                                              'font-size': '9px',
+                                              'border-radius': '50%',
+                                            }}
+                                          >
+                                            {letter}
+                                          </span>
                                         </span>
-                                      )}
-                                    </Show>
-                                  );
-                                })()}
-                                <span class="routing-card__main">{labelFor(modelName())}</span>
-                                <Show when={!isManual()}>
-                                  <span class="routing-card__auto-tag">auto</span>
-                                </Show>
-                              </div>
-                              <span class="routing-card__sub">{priceLabel(modelName())}</span>
+                                      );
+                                    }
+                                    return (
+                                      <Show when={provId}>
+                                        {(pid) => (
+                                          <span class="routing-card__override-icon">
+                                            {providerIcon(pid(), 16)}
+                                          </span>
+                                        )}
+                                      </Show>
+                                    );
+                                  })()}
+                                  <span class="routing-card__main">{labelFor(modelName())}</span>
+                                  <Show when={!isManual()}>
+                                    <span class="routing-card__auto-tag">auto</span>
+                                  </Show>
+                                </div>
+                                <span class="routing-card__sub">{priceLabel(modelName())}</span>
+                              </Show>
                             </>
                           )}
                         </Show>
@@ -440,7 +519,12 @@ const Routing: Component = () => {
                               onClick={() => setDropdownTier(stage.id)}
                               disabled={changingTier() === stage.id}
                             >
-                              {changingTier() === stage.id ? 'Changing...' : 'Change'}
+                              <Show
+                                when={changingTier() !== stage.id}
+                                fallback={<span class="spinner" />}
+                              >
+                                Change
+                              </Show>
                             </button>
                             <Show when={isManual()}>
                               <button
@@ -448,7 +532,7 @@ const Routing: Component = () => {
                                 onClick={() => handleReset(stage.id)}
                                 disabled={resettingTier() === stage.id || resettingAll()}
                               >
-                                {resettingTier() === stage.id ? 'Resetting...' : 'Reset'}
+                                {resettingTier() === stage.id ? <span class="spinner" /> : 'Reset'}
                               </button>
                             </Show>
                           </div>
@@ -490,7 +574,7 @@ const Routing: Component = () => {
               onClick={() => setConfirmDisable(true)}
               disabled={disabling()}
             >
-              {disabling() ? 'Disabling...' : 'Disable Routing'}
+              {disabling() ? <span class="spinner" /> : 'Disable Routing'}
             </button>
             <Show when={hasOverrides()}>
               <button
@@ -499,7 +583,7 @@ const Routing: Component = () => {
                 onClick={handleResetAll}
                 disabled={resettingAll() || resettingTier() !== null}
               >
-                {resettingAll() ? 'Resetting...' : 'Reset all to auto'}
+                {resettingAll() ? <span class="spinner" /> : 'Reset all to auto'}
               </button>
             </Show>
             <div style="flex: 1;" />
@@ -598,7 +682,7 @@ const Routing: Component = () => {
                   await handleDisable();
                 }}
               >
-                {disabling() ? 'Disabling...' : 'Disable'}
+                {disabling() ? <span class="spinner" /> : 'Disable'}
               </button>
             </div>
           </div>
