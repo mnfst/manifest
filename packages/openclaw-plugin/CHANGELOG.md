@@ -1,5 +1,13 @@
 # manifest
 
+## 5.23.1
+
+### Patch Changes
+
+- b226346: Reduce agents endpoint latency by parallelizing queries and using daily sparkline buckets
+- 746fe2b: Optimize messages page latency: configurable connection pool, agent-scoped model queries, count cache for pagination, custom-providers short-circuit, and composite index migration
+- 07f3fb9: Reduce overview endpoint latency by merging parallel queries and resolving tenant once
+
 ## 5.23.0
 
 ### Minor Changes
