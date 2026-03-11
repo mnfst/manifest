@@ -8,7 +8,9 @@ import {
   createBaseAxes,
   createTimeScaleRange,
   createFormatLegendTimestamp,
+  isMultiDayRange,
   sanitizeNumbers,
+  fillDailyGaps,
 } from '../services/chart-utils.js';
 
 interface SingleTokenChartProps {
@@ -41,7 +43,7 @@ const SingleTokenChart: Component<SingleTokenChartProps> = (props) => {
           padding: [16, 16, 0, 0],
           cursor: createCursorSnap(bgColor, color),
           scales: {
-            x: { time: true, range: createTimeScaleRange(props.range) },
+            x: { time: !isMultiDayRange(props.range), range: createTimeScaleRange(props.range) },
             y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.1 : 10] },
           },
           axes: createBaseAxes(axisColor, gridColor, props.range),
@@ -55,10 +57,16 @@ const SingleTokenChart: Component<SingleTokenChartProps> = (props) => {
             },
           ],
         },
-        [
-          props.data.map((d) => new Date(d.time.replace(' ', 'T') + 'Z').getTime() / 1000),
-          sanitizeNumbers(props.data.map((d) => d.value)),
-        ],
+        (() => {
+          const filled = fillDailyGaps(props.data, props.range ?? '', 'time', (date) => ({
+            time: date,
+            value: 0,
+          }));
+          return [
+            filled.map((d) => new Date(d.time.replace(' ', 'T') + 'Z').getTime() / 1000),
+            sanitizeNumbers(filled.map((d) => d.value)),
+          ];
+        })(),
         el,
       );
     },

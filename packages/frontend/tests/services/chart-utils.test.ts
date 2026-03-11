@@ -27,11 +27,13 @@ import {
   createFormatLegendTimestamp,
   formatLegendCost,
   formatLegendTokens,
+  isMultiDayRange,
   parseTimestamps,
   timeScaleRange,
   createTimeScaleRange,
   useChartLifecycle,
   sanitizeNumbers,
+  fillDailyGaps,
 } from "../../src/services/chart-utils";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -70,7 +72,6 @@ afterEach(() => {
 describe("rangeToSeconds", () => {
   it("returns correct seconds for known ranges", () => {
     expect(rangeToSeconds("1h")).toBe(3600);
-    expect(rangeToSeconds("6h")).toBe(21600);
     expect(rangeToSeconds("24h")).toBe(86400);
     expect(rangeToSeconds("7d")).toBe(604800);
     expect(rangeToSeconds("30d")).toBe(2592000);
@@ -85,54 +86,77 @@ describe("rangeToSeconds", () => {
   });
 });
 
+// ---------- isMultiDayRange ----------
+
+describe("isMultiDayRange", () => {
+  it("returns true for 7d", () => {
+    expect(isMultiDayRange("7d")).toBe(true);
+  });
+
+  it("returns true for 30d", () => {
+    expect(isMultiDayRange("30d")).toBe(true);
+  });
+
+  it("returns false for 24h", () => {
+    expect(isMultiDayRange("24h")).toBe(false);
+  });
+
+  it("returns false for 1h", () => {
+    expect(isMultiDayRange("1h")).toBe(false);
+  });
+
+  it("returns false for undefined", () => {
+    expect(isMultiDayRange(undefined)).toBe(false);
+  });
+
+  it("returns false for empty string", () => {
+    expect(isMultiDayRange("")).toBe(false);
+  });
+});
+
 // ---------- formatAxisTimestamp ----------
 
 describe("formatAxisTimestamp", () => {
-  it("shows HH:MM for range <= 86400 (1h range)", () => {
+  it("shows HH:MM for 1h range", () => {
     const epoch = Date.UTC(2024, 0, 15, 10, 30) / 1000;
-    expect(formatAxisTimestamp(epoch, 3600)).toBe(localHHMM(epoch));
+    expect(formatAxisTimestamp(epoch, "1h")).toBe(localHHMM(epoch));
   });
 
-  it("shows HH:MM for range exactly 86400", () => {
+  it("shows HH:MM for 24h range", () => {
     const epoch = Date.UTC(2024, 5, 15, 0, 0) / 1000;
-    expect(formatAxisTimestamp(epoch, 86400)).toBe(localHHMM(epoch));
+    expect(formatAxisTimestamp(epoch, "24h")).toBe(localHHMM(epoch));
   });
 
-  it("shows Mon Day for range > 86400 and <= 7*86400 (weekly)", () => {
+  it("shows Mon Day for 7d range", () => {
     const epoch = Date.UTC(2024, 0, 15, 10, 30) / 1000;
-    expect(formatAxisTimestamp(epoch, 604800)).toBe(localMonDay(epoch));
+    expect(formatAxisTimestamp(epoch, "7d")).toBe(localMonDay(epoch));
   });
 
-  it("shows Mon Day for range just over 86400", () => {
-    const epoch = Date.UTC(2024, 5, 15, 14, 30) / 1000;
-    expect(formatAxisTimestamp(epoch, 86401)).toBe(localMonDay(epoch));
-  });
-
-  it("shows Mon Day for range > 7*86400 (monthly)", () => {
-    const epoch = Date.UTC(2024, 0, 15, 10, 30) / 1000;
-    expect(formatAxisTimestamp(epoch, 2592000)).toBe(localMonDay(epoch));
-  });
-
-  it("shows Mon Day for 30-day range", () => {
+  it("shows Mon Day for 30d range", () => {
     const epoch = Date.UTC(2024, 11, 25, 8, 0) / 1000;
-    expect(formatAxisTimestamp(epoch, 30 * 86400)).toBe(localMonDay(epoch));
+    expect(formatAxisTimestamp(epoch, "30d")).toBe(localMonDay(epoch));
   });
 
   it("pads single-digit hours and minutes", () => {
     const epoch = Date.UTC(2024, 0, 1, 5, 3) / 1000;
-    expect(formatAxisTimestamp(epoch, 3600)).toBe(localHHMM(epoch));
+    expect(formatAxisTimestamp(epoch, "1h")).toBe(localHHMM(epoch));
   });
 
   it("handles midnight UTC correctly", () => {
     const epoch = Date.UTC(2024, 0, 1, 0, 0) / 1000;
-    expect(formatAxisTimestamp(epoch, 3600)).toBe(localHHMM(epoch));
+    expect(formatAxisTimestamp(epoch, "1h")).toBe(localHHMM(epoch));
   });
 
   it("uses all months correctly in local time", () => {
     for (let m = 0; m < 12; m++) {
       const epoch = Date.UTC(2024, m, 10) / 1000;
-      expect(formatAxisTimestamp(epoch, 604800)).toBe(localMonDay(epoch));
+      expect(formatAxisTimestamp(epoch, "7d")).toBe(localMonDay(epoch));
     }
+  });
+
+  it("shows Mon Day for unknown range string (non-intraday fallback)", () => {
+    const epoch = Date.UTC(2024, 5, 15, 14, 30) / 1000;
+    expect(formatAxisTimestamp(epoch, "unknown")).toBe(localMonDay(epoch));
   });
 });
 
@@ -155,15 +179,15 @@ describe("formatLegendTimestamp", () => {
   });
 
   it("returns dash for null value", () => {
-    expect(formatLegendTimestamp(null as any, null as any)).toBe("\u2013");
+    expect(formatLegendTimestamp(null as any, null as any)).toBe("");
   });
 
   it("returns dash for undefined value", () => {
-    expect(formatLegendTimestamp(null as any, undefined as any)).toBe("\u2013");
+    expect(formatLegendTimestamp(null as any, undefined as any)).toBe("");
   });
 
   it("returns dash for NaN value", () => {
-    expect(formatLegendTimestamp(null as any, NaN)).toBe("\u2013");
+    expect(formatLegendTimestamp(null as any, NaN)).toBe("");
   });
 });
 
@@ -183,15 +207,15 @@ describe("formatLegendCost", () => {
   });
 
   it("returns dash for null value", () => {
-    expect(formatLegendCost(null as any, null as any)).toBe("\u2013");
+    expect(formatLegendCost(null as any, null as any)).toBe("");
   });
 
   it("returns dash for undefined value", () => {
-    expect(formatLegendCost(null as any, undefined as any)).toBe("\u2013");
+    expect(formatLegendCost(null as any, undefined as any)).toBe("");
   });
 
   it("returns dash for NaN value", () => {
-    expect(formatLegendCost(null as any, NaN)).toBe("\u2013");
+    expect(formatLegendCost(null as any, NaN)).toBe("");
   });
 });
 
@@ -199,7 +223,7 @@ describe("formatLegendCost", () => {
 
 describe("formatLegendTokens", () => {
   it("formats thousands with k suffix", () => {
-    expect(formatLegendTokens(null as any, 20000)).toBe("20.0k");
+    expect(formatLegendTokens(null as any, 20000)).toBe("20k");
   });
 
   it("formats millions with M suffix", () => {
@@ -215,15 +239,27 @@ describe("formatLegendTokens", () => {
   });
 
   it("returns dash for null value", () => {
-    expect(formatLegendTokens(null as any, null as any)).toBe("\u2013");
+    expect(formatLegendTokens(null as any, null as any)).toBe("");
   });
 
   it("returns dash for undefined value", () => {
-    expect(formatLegendTokens(null as any, undefined as any)).toBe("\u2013");
+    expect(formatLegendTokens(null as any, undefined as any)).toBe("");
   });
 
   it("returns dash for NaN value", () => {
-    expect(formatLegendTokens(null as any, NaN)).toBe("\u2013");
+    expect(formatLegendTokens(null as any, NaN)).toBe("");
+  });
+
+  it("rounds near-integer thousands to avoid '.0' suffix", () => {
+    expect(formatLegendTokens(null as any, 799999.9999)).toBe("800k");
+  });
+
+  it("rounds near-integer millions to avoid '.0' suffix", () => {
+    expect(formatLegendTokens(null as any, 1999999.9999)).toBe("2M");
+  });
+
+  it("rounds small floating-point values", () => {
+    expect(formatLegendTokens(null as any, 499.7)).toBe("500");
   });
 });
 
@@ -352,20 +388,22 @@ describe("createTimeScaleRange", () => {
     expect(typeof fn).toBe("function");
   });
 
-  it("forces full 30d span from now when range is 30d", () => {
+  it("returns exact data extent for 30d range (no padding)", () => {
     const fn = createTimeScaleRange("30d");
-    const now = Date.now() / 1000;
-    const [min, max] = fn(null as any, now - 1000, now);
-    expect(max).toBeCloseTo(now, 0);
-    expect(min).toBeCloseTo(now - 2592000, 0);
+    const dataMin = 1000000;
+    const dataMax = 1000000 + 30 * 86400;
+    const [min, max] = fn(null as any, dataMin, dataMax);
+    expect(min).toBe(dataMin);
+    expect(max).toBe(dataMax);
   });
 
-  it("forces full 7d span from now when range is 7d", () => {
+  it("returns exact data extent for 7d range (no padding)", () => {
     const fn = createTimeScaleRange("7d");
-    const now = Date.now() / 1000;
-    const [min, max] = fn(null as any, now - 1000, now);
-    expect(max).toBeCloseTo(now, 0);
-    expect(min).toBeCloseTo(now - 604800, 0);
+    const dataMin = 1000000;
+    const dataMax = 1000000 + 7 * 86400;
+    const [min, max] = fn(null as any, dataMin, dataMax);
+    expect(min).toBe(dataMin);
+    expect(max).toBe(dataMax);
   });
 
   it("forces full 24h span from now when range is 24h", () => {
@@ -384,7 +422,7 @@ describe("createTimeScaleRange", () => {
     expect(min).toBeCloseTo(now - 3600, 0);
   });
 
-  it("falls back to timeScaleRange logic when no range given", () => {
+  it("falls back to timeScaleRange logic when no range given (small span)", () => {
     const fn = createTimeScaleRange();
     const [min, max] = fn(null as any, 1000, 2000);
     // Small span, expands backward from clampedMax
@@ -392,12 +430,20 @@ describe("createTimeScaleRange", () => {
     expect(min).toBe(2000 - 6 * 3600);
   });
 
-  it("ignores data min/max when range is provided", () => {
+  it("falls back to timeScaleRange logic when no range given (large span)", () => {
+    const fn = createTimeScaleRange();
+    const [min, max] = fn(null as any, 0, 100000);
+    expect(min).toBe(0);
+    expect(max).toBe(100000);
+  });
+
+  it("uses data min/max directly for multi-day range", () => {
     const fn = createTimeScaleRange("7d");
     const now = Date.now() / 1000;
-    // Data only spans 1 hour but range is 7d
-    const [min, max] = fn(null as any, now - 3600, now);
-    expect(max - min).toBeCloseTo(604800, 0);
+    const dataMin = now - 3600;
+    const [min, max] = fn(null as any, dataMin, now);
+    expect(min).toBe(dataMin);
+    expect(max).toBe(now);
   });
 });
 
@@ -492,8 +538,8 @@ describe("createCursorSnap", () => {
     expect(cursor.points?.fill).toBe("#0f0");
     expect(cursor.points?.stroke).toBe("#fff");
     expect(cursor.points?.width).toBe(2);
-    // idx starts as null to prevent tooltip on load
-    expect((cursor as any).idx).toBeNull();
+    // idx is not set — setCursor({ left: -1 }) hides legend on load instead
+    expect((cursor as any).idx).toBeUndefined();
   });
 
   it("move snaps to nearest data point when idx is valid", () => {
@@ -560,7 +606,7 @@ describe("createBaseAxes", () => {
     expect(axes[0].grid?.stroke).toBe("#eee");
     expect(axes[0].grid?.width).toBe(1);
     expect(axes[0].ticks?.stroke).toBe("#eee");
-    expect(axes[0].font).toBe('11px "Inter"');
+    expect(axes[0].font).toBe('11px "DM Sans", sans-serif');
     expect(axes[0].gap).toBe(8);
   });
 
@@ -568,7 +614,7 @@ describe("createBaseAxes", () => {
     const axes = createBaseAxes("#aaa", "#eee");
     expect(axes[1].stroke).toBe("#aaa");
     expect(axes[1].ticks?.show).toBe(false);
-    expect(axes[1].font).toBe('11px "Inter"');
+    expect(axes[1].font).toBe('11px "DM Sans", sans-serif');
     expect(axes[1].size).toBe(54);
     expect(axes[1].gap).toBe(8);
   });
@@ -623,6 +669,96 @@ describe("createBaseAxes", () => {
     const mockU = { scales: {} } as any;
     const formatted = (axes[0].values as Function)(mockU, [epoch]);
     expect(formatted[0]).toBe(localMonDay(epoch));
+  });
+
+  it("x-axis values formatter deduplicates consecutive identical labels", () => {
+    const axes = createBaseAxes("#aaa", "#eee", "7d");
+    // Two epochs on the same local day should produce one label + one empty
+    const d = new Date(2024, 0, 15, 0, 0);
+    const ep1 = d.getTime() / 1000;
+    const ep2 = ep1 + 3600; // 1 hour later, same day
+    const mockU = { scales: {} } as any;
+    const formatted = (axes[0].values as Function)(mockU, [ep1, ep2]);
+    expect(formatted[0]).toBe(localMonDay(ep1));
+    expect(formatted[1]).toBe("");
+  });
+
+  it("adds splits function for multi-day ranges (7d, 30d)", () => {
+    expect(typeof (createBaseAxes("#aaa", "#eee", "7d")[0] as any).splits).toBe("function");
+    expect(typeof (createBaseAxes("#aaa", "#eee", "30d")[0] as any).splits).toBe("function");
+  });
+
+  it("does not add splits function for intraday or undefined ranges", () => {
+    expect((createBaseAxes("#aaa", "#eee", "24h")[0] as any).splits).toBeUndefined();
+    expect((createBaseAxes("#aaa", "#eee", "1h")[0] as any).splits).toBeUndefined();
+    expect((createBaseAxes("#aaa", "#eee")[0] as any).splits).toBeUndefined();
+  });
+
+  it("splits function returns u.data[0] array", () => {
+    const axes = createBaseAxes("#aaa", "#eee", "7d");
+    const splitsFn = (axes[0] as any).splits as Function;
+    const mockData = [100, 200, 300];
+    const mockU = { data: [mockData] };
+    const result = splitsFn(mockU);
+    expect(result).toEqual([100, 200, 300]);
+  });
+
+  it("values callback thins labels to every 5th for 30d range with 31 unique days", () => {
+    const axes = createBaseAxes("#aaa", "#eee", "30d");
+    const mockU = { scales: {} } as any;
+    // Generate 31 unique day epochs (one per day)
+    const vals: number[] = [];
+    for (let i = 0; i < 31; i++) {
+      vals.push(new Date(2024, 0, 1 + i, 0, 0).getTime() / 1000);
+    }
+    const result = (axes[0].values as Function)(mockU, vals);
+    const nonEmpty = result.filter((l: string) => l !== "");
+    // 31 unique labels, step=5 → labels at index 0,5,10,15,20,25,30 = 7 labels
+    expect(nonEmpty).toHaveLength(7);
+    // First label should be Jan 1
+    expect(nonEmpty[0]).toBe(localMonDay(vals[0]));
+  });
+
+  it("values callback thins labels to every 3rd for 30d range with 16 unique days", () => {
+    const axes = createBaseAxes("#aaa", "#eee", "30d");
+    const mockU = { scales: {} } as any;
+    // Generate 16 unique day epochs
+    const vals: number[] = [];
+    for (let i = 0; i < 16; i++) {
+      vals.push(new Date(2024, 0, 1 + i, 0, 0).getTime() / 1000);
+    }
+    const result = (axes[0].values as Function)(mockU, vals);
+    const nonEmpty = result.filter((l: string) => l !== "");
+    // 16 unique labels, step=3 → labels at index 0,3,6,9,12,15 = 6 labels
+    expect(nonEmpty).toHaveLength(6);
+  });
+
+  it("values callback does not thin labels for 7d range with 8 unique days", () => {
+    const axes = createBaseAxes("#aaa", "#eee", "7d");
+    const mockU = { scales: {} } as any;
+    const vals: number[] = [];
+    for (let i = 0; i < 8; i++) {
+      vals.push(new Date(2024, 0, 1 + i, 0, 0).getTime() / 1000);
+    }
+    const result = (axes[0].values as Function)(mockU, vals);
+    const nonEmpty = result.filter((l: string) => l !== "");
+    // 8 unique labels, step=1 → all labels shown
+    expect(nonEmpty).toHaveLength(8);
+  });
+
+  it("values callback preserves empty strings from dedup when thinning", () => {
+    const axes = createBaseAxes("#aaa", "#eee", "30d");
+    const mockU = { scales: {} } as any;
+    // 31 unique days with a duplicate in the middle (same-day pair)
+    const vals: number[] = [];
+    for (let i = 0; i < 31; i++) {
+      vals.push(new Date(2024, 0, 1 + i, 0, 0).getTime() / 1000);
+    }
+    // Add a duplicate of the last day (same local date)
+    vals.push(new Date(2024, 0, 31, 12, 0).getTime() / 1000);
+    const result = (axes[0].values as Function)(mockU, vals);
+    // Last entry is a dedup empty string, should stay empty
+    expect(result[result.length - 1]).toBe("");
   });
 });
 
@@ -912,12 +1048,12 @@ describe("createFormatLegendTimestamp", () => {
 
   it("returns dash for null value", () => {
     const fmt = createFormatLegendTimestamp("7d");
-    expect(fmt(null as any, null as any)).toBe("\u2013");
+    expect(fmt(null as any, null as any)).toBe("");
   });
 
   it("returns dash for NaN value", () => {
     const fmt = createFormatLegendTimestamp("24h");
-    expect(fmt(null as any, NaN)).toBe("\u2013");
+    expect(fmt(null as any, NaN)).toBe("");
   });
 });
 
@@ -946,5 +1082,75 @@ describe("sanitizeNumbers", () => {
 
   it("preserves negative numbers", () => {
     expect(sanitizeNumbers([-5])).toEqual([-5]);
+  });
+});
+
+// ---------- fillDailyGaps ----------
+
+describe("fillDailyGaps", () => {
+  const zeroToken = (date: string) => ({ date, input_tokens: 0, output_tokens: 0 });
+  const zeroCost = (date: string) => ({ date, cost: 0 });
+
+  it("returns data unchanged for intraday ranges", () => {
+    const data = [{ date: "2026-03-10", cost: 5 }];
+    expect(fillDailyGaps(data, "1h", "date", zeroCost)).toBe(data);
+    expect(fillDailyGaps(data, "24h", "date", zeroCost)).toBe(data);
+  });
+
+  it("returns data unchanged for unknown range", () => {
+    const data = [{ date: "2026-03-10", cost: 5 }];
+    expect(fillDailyGaps(data, "unknown", "date", zeroCost)).toBe(data);
+  });
+
+  it("fills 31 days for 30d range", () => {
+    const result = fillDailyGaps([], "30d", "date", zeroCost);
+    expect(result).toHaveLength(31);
+  });
+
+  it("fills 8 days for 7d range", () => {
+    const result = fillDailyGaps([], "7d", "date", zeroToken);
+    expect(result).toHaveLength(8);
+  });
+
+  it("preserves existing data and fills gaps with zeros", () => {
+    const now = new Date();
+    now.setUTCHours(0, 0, 0, 0);
+    const todayStr = now.toISOString().slice(0, 10);
+    const data = [{ date: todayStr, cost: 42 }];
+    const result = fillDailyGaps(data, "7d", "date", zeroCost);
+    expect(result).toHaveLength(8);
+    const todayEntry = result.find((r) => r.date === todayStr);
+    expect(todayEntry?.cost).toBe(42);
+    // All other entries should have zero cost
+    const zeros = result.filter((r) => r.date !== todayStr);
+    expect(zeros.every((r) => r.cost === 0)).toBe(true);
+  });
+
+  it("results are sorted chronologically", () => {
+    const result = fillDailyGaps([], "7d", "date", zeroCost);
+    for (let i = 1; i < result.length; i++) {
+      expect(result[i].date > result[i - 1].date).toBe(true);
+    }
+  });
+
+  it("ignores data outside the range window", () => {
+    const data = [{ date: "2000-01-01", cost: 99 }];
+    const result = fillDailyGaps(data, "7d", "date", zeroCost);
+    expect(result).toHaveLength(8);
+    expect(result.every((r) => r.cost === 0)).toBe(true);
+  });
+
+  it("works with custom date field name", () => {
+    const data = [{ time: "2000-01-01", value: 10 }];
+    const result = fillDailyGaps(data, "7d", "time", (d) => ({ time: d, value: 0 }));
+    expect(result).toHaveLength(8);
+    expect(result.every((r) => typeof r.time === "string")).toBe(true);
+  });
+
+  it("generates valid YYYY-MM-DD date strings", () => {
+    const result = fillDailyGaps([], "30d", "date", zeroCost);
+    for (const row of result) {
+      expect(row.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
   });
 });

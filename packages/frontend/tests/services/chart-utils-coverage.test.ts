@@ -140,21 +140,21 @@ describe("createBaseAxes", () => {
 });
 
 describe("formatAxisTimestamp edge cases", () => {
-  it("shows time for exactly 86400s boundary", () => {
+  it("shows time for 24h range", () => {
     const epoch = Date.UTC(2024, 5, 15, 0, 0) / 1000;
-    const result = formatAxisTimestamp(epoch, 86400);
+    const result = formatAxisTimestamp(epoch, "24h");
     expect(result).toBe(localHHMM(epoch));
   });
 
-  it("shows just date for range just over 86400", () => {
+  it("shows just date for 7d range", () => {
     const epoch = Date.UTC(2024, 5, 15, 14, 30) / 1000;
-    const result = formatAxisTimestamp(epoch, 86401);
+    const result = formatAxisTimestamp(epoch, "7d");
     expect(result).toBe(localMonDay(epoch));
   });
 
-  it("shows just date for range over 7d", () => {
+  it("shows just date for 30d range", () => {
     const epoch = Date.UTC(2024, 11, 25, 8, 0) / 1000;
-    const result = formatAxisTimestamp(epoch, 30 * 86400);
+    const result = formatAxisTimestamp(epoch, "30d");
     expect(result).toBe(localMonDay(epoch));
   });
 });

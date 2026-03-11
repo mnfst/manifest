@@ -10,7 +10,9 @@ import {
   createTimeScaleRange,
   createFormatLegendTimestamp,
   formatLegendTokens,
+  isMultiDayRange,
   sanitizeNumbers,
+  fillDailyGaps,
 } from '../services/chart-utils.js';
 
 interface TokenChartProps {
@@ -31,6 +33,7 @@ const TokenChart: Component<TokenChartProps> = (props) => {
 
       const inputColor = getHsl('--bar-input');
       const outputColor = getHsl('--bar-output');
+      const outputAxisColor = getHsl('--bar-output-axis');
       const axisColor = getHslA('--foreground', 0.55);
       const gridColor = getHslA('--foreground', 0.05);
       const bgColor = getHsl('--card');
@@ -47,7 +50,7 @@ const TokenChart: Component<TokenChartProps> = (props) => {
           padding: [16, 0, 0, 0],
           cursor: createCursorSnap(bgColor, inputColor),
           scales: {
-            x: { time: true, range: createTimeScaleRange(props.range) },
+            x: { time: !isMultiDayRange(props.range), range: createTimeScaleRange(props.range) },
             y: { auto: true, range: yRange },
             y2: { auto: true, range: yRange },
           },
@@ -61,10 +64,10 @@ const TokenChart: Component<TokenChartProps> = (props) => {
             a.push({
               scale: 'y2',
               side: 1,
-              stroke: outputColor,
+              stroke: outputAxisColor,
               grid: { show: false },
               ticks: { show: false },
-              font: '11px "Inter"',
+              font: '11px "DM Sans", sans-serif',
               size: 54,
               gap: 8,
               values: (u: uPlot, vals: number[]) => vals.map((v) => formatLegendTokens(u, v)),
@@ -91,11 +94,18 @@ const TokenChart: Component<TokenChartProps> = (props) => {
             },
           ],
         },
-        [
-          parseTimestamps(props.data),
-          sanitizeNumbers(props.data.map((d) => d.input_tokens)),
-          sanitizeNumbers(props.data.map((d) => d.output_tokens)),
-        ],
+        (() => {
+          const filled = fillDailyGaps(props.data, props.range ?? '', 'date', (date) => ({
+            date,
+            input_tokens: 0,
+            output_tokens: 0,
+          }));
+          return [
+            parseTimestamps(filled),
+            sanitizeNumbers(filled.map((d) => d.input_tokens)),
+            sanitizeNumbers(filled.map((d) => d.output_tokens)),
+          ];
+        })(),
         el,
       );
     },

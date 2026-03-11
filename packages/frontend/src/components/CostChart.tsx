@@ -10,7 +10,9 @@ import {
   createTimeScaleRange,
   createFormatLegendTimestamp,
   formatLegendCost,
+  isMultiDayRange,
   sanitizeNumbers,
+  fillDailyGaps,
 } from '../services/chart-utils.js';
 
 interface CostChartProps {
@@ -48,7 +50,7 @@ const CostChart: Component<CostChartProps> = (props) => {
           padding: [16, 16, 0, 0],
           cursor: createCursorSnap(bgColor, c1),
           scales: {
-            x: { time: true, range: createTimeScaleRange(props.range) },
+            x: { time: !isMultiDayRange(props.range), range: createTimeScaleRange(props.range) },
             y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.15 : 1] },
           },
           axes,
@@ -63,7 +65,13 @@ const CostChart: Component<CostChartProps> = (props) => {
             },
           ],
         },
-        [parseTimestamps(props.data), sanitizeNumbers(props.data.map((d) => d.cost))],
+        (() => {
+          const filled = fillDailyGaps(props.data, props.range ?? '', 'date', (date) => ({
+            date,
+            cost: 0,
+          }));
+          return [parseTimestamps(filled), sanitizeNumbers(filled.map((d) => d.cost))];
+        })(),
         el,
       );
     },
