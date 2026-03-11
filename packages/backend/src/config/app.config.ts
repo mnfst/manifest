@@ -9,7 +9,8 @@ function sanitizeDbPath(raw: string): string {
 export const appConfig = registerAs('app', () => ({
   port: Number(process.env['PORT'] ?? 3001),
   nodeEnv: process.env['NODE_ENV'] ?? 'development',
-  databaseUrl: process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
+  databaseUrl:
+    process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
   manifestMode: process.env['MANIFEST_MODE'] ?? 'cloud',
   dbPath: sanitizeDbPath(process.env['MANIFEST_DB_PATH'] ?? ''),
 
@@ -22,4 +23,5 @@ export const appConfig = registerAs('app', () => ({
   mailgunDomain: process.env['MAILGUN_DOMAIN'] ?? '',
   notificationFromEmail: process.env['NOTIFICATION_FROM_EMAIL'] ?? 'noreply@manifest.build',
   pluginOtlpEndpoint: process.env['PLUGIN_OTLP_ENDPOINT'] ?? '',
+  dbPoolMax: Number(process.env['DB_POOL_MAX'] ?? 20),
 }));

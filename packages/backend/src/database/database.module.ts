@@ -51,6 +51,7 @@ import { DropRedundantIndexes1772940000000 } from './migrations/1772940000000-Dr
 import { BackfillTenantId1772948502780 } from './migrations/1772948502780-BackfillTenantId';
 import { DropUnusedIndexes1772960000000 } from './migrations/1772960000000-DropUnusedIndexes';
 import { PurgeNonCuratedModels1772960000000 } from './migrations/1772960000000-PurgeNonCuratedModels';
+import { AddModelsAgentIndex1773202787708 } from './migrations/1773202787708-AddModelsAgentIndex';
 
 const entities = [
   AgentMessage,
@@ -106,6 +107,7 @@ const migrations = [
   BackfillTenantId1772948502780,
   DropUnusedIndexes1772960000000,
   PurgeNonCuratedModels1772960000000,
+  AddModelsAgentIndex1773202787708,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -143,7 +145,7 @@ function buildModeServices() {
           migrations,
           logging: false,
           extra: {
-            max: 5,
+            max: config.get<number>('app.dbPoolMax') ?? 20,
             idleTimeoutMillis: 30000,
           },
         };

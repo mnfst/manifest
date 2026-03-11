@@ -384,7 +384,7 @@ describe('MessagesQueryService', () => {
   it('models cache evicts oldest entry when reaching MAX_CACHE_ENTRIES', async () => {
     const cache = (service as any).modelsCache as Map<string, unknown>;
     for (let i = 0; i < 5_000; i++) {
-      cache.set(`user-${i}:24h`, { models: ['gpt-4o'], expiresAt: Date.now() + 60_000 });
+      cache.set(`user-${i}::24h`, { models: ['gpt-4o'], expiresAt: Date.now() + 60_000 });
     }
     expect(cache.size).toBe(5_000);
 
@@ -397,18 +397,18 @@ describe('MessagesQueryService', () => {
     await service.getMessages({ range: '7d', userId: 'new-user', limit: 20 });
 
     expect(cache.size).toBe(5_000);
-    expect(cache.has('user-0:24h')).toBe(false);
-    expect(cache.has('new-user:7d')).toBe(true);
+    expect(cache.has('user-0::24h')).toBe(false);
+    expect(cache.has('new-user::7d')).toBe(true);
   });
 
   it('models cache does not evict when updating an existing key at capacity', async () => {
     jest.useFakeTimers();
     const cache = (service as any).modelsCache as Map<string, unknown>;
     for (let i = 0; i < 5_000; i++) {
-      cache.set(`user-${i}:24h`, { models: ['gpt-4o'], expiresAt: Date.now() + 60_000 });
+      cache.set(`user-${i}::24h`, { models: ['gpt-4o'], expiresAt: Date.now() + 60_000 });
     }
-    // Overwrite test-user:24h (already exists in our range)
-    cache.set('test-user:24h', { models: ['old'], expiresAt: Date.now() + 60_000 });
+    // Overwrite test-user::24h (already exists in our range)
+    cache.set('test-user::24h', { models: ['old'], expiresAt: Date.now() + 60_000 });
 
     jest.advanceTimersByTime(60_001);
 
@@ -422,7 +422,7 @@ describe('MessagesQueryService', () => {
     // Expired entry was deleted first, then re-added — no eviction of other entries
     // Size might be 4999 (expired entry deleted, then re-added = 5000, but if the
     // has(key) check fires after delete, it won't evict)
-    expect(cache.has('test-user:24h')).toBe(true);
+    expect(cache.has('test-user::24h')).toBe(true);
   });
 
   it('models cache expires after 60s', async () => {
@@ -460,6 +460,158 @@ describe('MessagesQueryService', () => {
     expect(result.models).toEqual(['gpt-4o', 'claude-opus-4-6']);
     // 2 from first call + 2 from second call = 4
     expect(mockGetRawMany).toHaveBeenCalledTimes(4);
+  });
+
+  it('count cache hit returns cached value on paginated call', async () => {
+    // First call (no cursor) — populates count cache
+    mockGetRawOne.mockResolvedValueOnce({ total: 42 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    const result1 = await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    expect(result1.total_count).toBe(42);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(1);
+
+    // Second call WITH cursor — count comes from cache, no additional getRawOne call
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-2', timestamp: '2026-02-16 11:00:00', model: 'gpt-4o' },
+    ]);
+
+    const result2 = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      cursor: '2026-02-16 10:00:00|msg-1',
+    });
+    expect(result2.total_count).toBe(42);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(1);
+  });
+
+  it('count cache miss runs COUNT query', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 10 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    const result = await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    expect(result.total_count).toBe(10);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(1);
+  });
+
+  it('first page always runs fresh count even when cache exists', async () => {
+    // First call — populates cache
+    mockGetRawOne.mockResolvedValueOnce({ total: 42 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+
+    // Second call without cursor — should still run fresh count
+    mockGetRawOne.mockResolvedValueOnce({ total: 45 });
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-2', timestamp: '2026-02-16 11:00:00', model: 'gpt-4o' },
+    ]);
+
+    const result = await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    expect(result.total_count).toBe(45);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(2);
+  });
+
+  it('count cache expires after 30s', async () => {
+    jest.useFakeTimers();
+
+    // First call (no cursor) — populates cache
+    mockGetRawOne.mockResolvedValueOnce({ total: 50 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    expect(mockGetRawOne).toHaveBeenCalledTimes(1);
+
+    // Advance past count cache TTL (30s)
+    jest.advanceTimersByTime(30_001);
+
+    // Second call with cursor — cache expired, should re-query
+    mockGetRawOne.mockResolvedValueOnce({ total: 55 });
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-2', timestamp: '2026-02-16 11:00:00', model: 'gpt-4o' },
+    ]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      cursor: '2026-02-16 10:00:00|msg-1',
+    });
+    expect(result.total_count).toBe(55);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(2);
+  });
+
+  it('different filter params produce different count cache keys', async () => {
+    // First call with range=24h
+    mockGetRawOne.mockResolvedValueOnce({ total: 10 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+
+    // Second call with range=7d — different cache key, should query again
+    mockGetRawOne.mockResolvedValueOnce({ total: 100 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-2', timestamp: '2026-02-16 11:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    const result = await service.getMessages({ range: '7d', userId: 'test-user', limit: 20 });
+    expect(result.total_count).toBe(100);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(2);
+  });
+
+  it('different service_type produces different count cache key', async () => {
+    // First call with no service_type
+    mockGetRawOne.mockResolvedValueOnce({ total: 10 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+
+    // Second call with service_type=chat — different cache key, should query again
+    mockGetRawOne.mockResolvedValueOnce({ total: 5 });
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-2', timestamp: '2026-02-16 11:00:00', model: 'gpt-4o' },
+    ]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      service_type: 'chat',
+      cursor: '2026-02-16 10:00:00|msg-1',
+    });
+    expect(result.total_count).toBe(5);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(2);
+  });
+
+  it('count cache evicts oldest entry at capacity', async () => {
+    const cache = (service as any).countCache as Map<string, unknown>;
+    for (let i = 0; i < 5_000; i++) {
+      cache.set(`user-${i}:24h::::`, { count: i, expiresAt: Date.now() + 30_000 });
+    }
+    expect(cache.size).toBe(5_000);
+
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    await service.getMessages({ range: '7d', userId: 'new-user', limit: 20 });
+
+    expect(cache.size).toBe(5_000);
+    expect(cache.has('user-0:24h::::')).toBe(false);
   });
 
   it('handles null tenantId from cache when tenant does not exist', async () => {
