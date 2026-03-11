@@ -22,6 +22,7 @@ export class CustomProviderController {
   async list(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const providers = await this.customProviderService.list(agent.id);
+    if (providers.length === 0) return [];
     const userProviders = await this.providerRepo.find({ where: { agent_id: agent.id } });
 
     return providers.map((cp) => {
