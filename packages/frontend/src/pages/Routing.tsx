@@ -202,19 +202,21 @@ const Routing: Component = () => {
     mutateProviders((prev) => prev?.map((p) => ({ ...p, is_active: false })));
     try {
       await deactivateAllProviders(agentName());
-      await Promise.all([
-        refetchProviders(),
-        refetchCustomProviders(),
-        refetchTiers(),
-        refetchModels(),
-      ]);
-      setInstructionModal('disable');
     } catch {
-      // Revert on failure
+      // Revert on failure only when the deactivation itself fails
       mutateProviders(prevProviders);
-    } finally {
       setDisabling(false);
+      return;
     }
+    // Refetch in background — deactivation already succeeded so no revert needed
+    await Promise.all([
+      refetchProviders(),
+      refetchCustomProviders(),
+      refetchTiers(),
+      refetchModels(),
+    ]).catch(() => {});
+    setInstructionModal('disable');
+    setDisabling(false);
   };
 
   const handleProviderUpdate = async () => {

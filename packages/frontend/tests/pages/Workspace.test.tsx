@@ -174,7 +174,7 @@ describe("Workspace", () => {
     fireEvent.input(input, { target: { value: "new-agent" } });
     fireEvent.click(screen.getByText("Create"));
     await vi.waitFor(() => {
-      const btns = document.querySelectorAll(".modal-card button.btn--primary");
+      const btns = container.querySelectorAll(".modal-card button.btn--primary");
       const createBtn = btns[btns.length - 1] as HTMLButtonElement;
       expect(createBtn.querySelector(".spinner")).not.toBeNull();
       expect(createBtn.disabled).toBe(true);

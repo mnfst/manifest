@@ -42,6 +42,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
 
   const handleRemove = async (index: number) => {
     setRemovingIndex(index);
+    const original = [...props.fallbacks];
     const updated = props.fallbacks.filter((_, i) => i !== index);
     // Optimistic: remove from UI immediately
     props.onUpdate(updated);
@@ -54,7 +55,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
       toast.success('Fallback removed');
     } catch {
       // Revert on failure
-      props.onUpdate(props.fallbacks);
+      props.onUpdate(original);
     } finally {
       setRemovingIndex(null);
     }
