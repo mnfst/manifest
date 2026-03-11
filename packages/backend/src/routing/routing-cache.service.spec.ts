@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RoutingCacheService } from './routing-cache.service';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { UserProvider } from '../entities/user-provider.entity';
+import { CustomProvider } from '../entities/custom-provider.entity';
 
 describe('RoutingCacheService', () => {
   let service: RoutingCacheService;
@@ -92,6 +93,42 @@ describe('RoutingCacheService', () => {
     });
   });
 
+  describe('getCustomProviders', () => {
+    it('returns null when not cached', () => {
+      expect(service.getCustomProviders('agent-1')).toBeNull();
+    });
+
+    it('returns cached data within TTL', () => {
+      const cps = [{ id: 'cp-1', name: 'Groq' }] as CustomProvider[];
+      service.setCustomProviders('agent-1', cps);
+
+      expect(service.getCustomProviders('agent-1')).toEqual(cps);
+    });
+
+    it('returns null after TTL expires', () => {
+      jest.useFakeTimers();
+      const cps = [{ id: 'cp-1', name: 'Groq' }] as CustomProvider[];
+      service.setCustomProviders('agent-1', cps);
+
+      jest.advanceTimersByTime(120_001);
+
+      expect(service.getCustomProviders('agent-1')).toBeNull();
+    });
+  });
+
+  describe('setCustomProviders', () => {
+    it('stores data that can be retrieved', () => {
+      const cps = [
+        { id: 'cp-1', name: 'Groq' },
+        { id: 'cp-2', name: 'Together' },
+      ] as CustomProvider[];
+
+      service.setCustomProviders('agent-1', cps);
+
+      expect(service.getCustomProviders('agent-1')).toEqual(cps);
+    });
+  });
+
   describe('setWithEviction', () => {
     it('evicts oldest entry when cache reaches MAX_ENTRIES', () => {
       const tiersMap = (service as any).tiers as Map<string, unknown>;
@@ -156,22 +193,26 @@ describe('RoutingCacheService', () => {
   });
 
   describe('invalidateAgent', () => {
-    it('clears tiers, providers, and api keys for agent', () => {
+    it('clears tiers, providers, custom providers, and api keys for agent', () => {
       const tiers = [{ id: 'ta-1', tier: 'fast' }] as TierAssignment[];
       const providers = [{ id: 'up-1', provider: 'openai' }] as UserProvider[];
+      const cps = [{ id: 'cp-1', name: 'Groq' }] as CustomProvider[];
 
       service.setTiers('agent-1', tiers);
       service.setProviders('agent-1', providers);
+      service.setCustomProviders('agent-1', cps);
       service.setApiKey('agent-1', 'openai', 'sk-test');
 
       expect(service.getTiers('agent-1')).toEqual(tiers);
       expect(service.getProviders('agent-1')).toEqual(providers);
+      expect(service.getCustomProviders('agent-1')).toEqual(cps);
       expect(service.getApiKey('agent-1', 'openai')).toBe('sk-test');
 
       service.invalidateAgent('agent-1');
 
       expect(service.getTiers('agent-1')).toBeNull();
       expect(service.getProviders('agent-1')).toBeNull();
+      expect(service.getCustomProviders('agent-1')).toBeNull();
       expect(service.getApiKey('agent-1', 'openai')).toBeUndefined();
     });
 
