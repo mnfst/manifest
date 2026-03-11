@@ -362,6 +362,56 @@ describe('AggregationService', () => {
       expect(result).toBe(true);
     });
   });
+
+  describe('getSummaryMetrics', () => {
+    it('returns merged token, cost, and message metrics with trends', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 50, inp: 3000, out: 2000, cost: 5.5 })
+        .mockResolvedValueOnce({ msg_count: 40, tokens: 4000, cost: 4.0 });
+
+      const result = await service.getSummaryMetrics('24h', 'u1', 'tenant-123');
+      expect(result.tokens.tokens_today.value).toBe(5000);
+      expect(result.tokens.tokens_today.trend_pct).toBe(25);
+      expect(result.tokens.tokens_today.sub_values).toEqual({ input: 3000, output: 2000 });
+      expect(result.tokens.input_tokens).toBe(3000);
+      expect(result.tokens.output_tokens).toBe(2000);
+      expect(result.cost.value).toBe(5.5);
+      expect(result.cost.trend_pct).toBeGreaterThan(0);
+      expect(result.messages.value).toBe(50);
+      expect(result.messages.trend_pct).toBe(25);
+    });
+
+    it('handles null query results gracefully', async () => {
+      mockGetRawOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+
+      const result = await service.getSummaryMetrics('24h', 'u1', 'tenant-123');
+      expect(result.tokens.tokens_today.value).toBe(0);
+      expect(result.tokens.input_tokens).toBe(0);
+      expect(result.tokens.output_tokens).toBe(0);
+      expect(result.cost.value).toBe(0);
+      expect(result.messages.value).toBe(0);
+    });
+
+    it('passes agentName to tenant filter', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 10, inp: 100, out: 50, cost: 1.0 })
+        .mockResolvedValueOnce({ msg_count: 8, tokens: 120, cost: 0.8 });
+
+      const result = await service.getSummaryMetrics('7d', 'u1', 'tenant-123', 'bot-1');
+      expect(result.messages.value).toBe(10);
+    });
+
+    it('returns zero trends when no previous data', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 10, inp: 100, out: 50, cost: 1.0 })
+        .mockResolvedValueOnce({ msg_count: 0, tokens: 0, cost: 0 });
+
+      const result = await service.getSummaryMetrics('24h', 'u1');
+      expect(result.tokens.tokens_today.trend_pct).toBe(0);
+      expect(result.cost.trend_pct).toBe(0);
+      expect(result.messages.trend_pct).toBe(0);
+    });
+  });
 });
 
 describe('AggregationService (sql.js / local mode)', () => {

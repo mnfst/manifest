@@ -30,10 +30,10 @@ export class AggregationService {
     this.dialect = detectDialect(this.dataSource.options.type as string);
   }
 
-  async hasAnyData(userId: string, agentName?: string): Promise<boolean> {
-    const tenantId = await this.tenantCache.resolve(userId);
+  async hasAnyData(userId: string, agentName?: string, tenantId?: string): Promise<boolean> {
+    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const qb = this.turnRepo.createQueryBuilder('at').select('1').limit(1);
-    addTenantFilter(qb, userId, agentName, tenantId ?? undefined);
+    addTenantFilter(qb, userId, agentName, resolved);
     const row = await qb.getRawOne();
     return row != null;
   }
@@ -141,6 +141,58 @@ export class AggregationService {
     const current = Number(currentRow?.total ?? 0);
     const previous = Number(prevRow?.total ?? 0);
     return { value: current, trend_pct: computeTrend(current, previous) };
+  }
+
+  async getSummaryMetrics(range: string, userId: string, tenantId?: string, agentName?: string) {
+    const interval = rangeToInterval(range);
+    const prevInterval = rangeToPreviousInterval(range);
+    const cutoff = computeCutoff(interval);
+    const prevCutoff = computeCutoff(prevInterval);
+
+    const safeCost = sqlSanitizeCost('at.cost_usd');
+
+    const currentQb = this.turnRepo
+      .createQueryBuilder('at')
+      .select('COUNT(*)', 'msg_count')
+      .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'inp')
+      .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
+      .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
+      .where('at.timestamp >= :cutoff', { cutoff });
+    addTenantFilter(currentQb, userId, agentName, tenantId);
+
+    const prevQb = this.turnRepo
+      .createQueryBuilder('at')
+      .select('COUNT(*)', 'msg_count')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
+      .where('at.timestamp >= :prevCutoff', { prevCutoff })
+      .andWhere('at.timestamp < :cutoff', { cutoff });
+    addTenantFilter(prevQb, userId, agentName, tenantId);
+
+    const [cur, prev] = await Promise.all([currentQb.getRawOne(), prevQb.getRawOne()]);
+
+    const inputTotal = Number(cur?.inp ?? 0);
+    const outputTotal = Number(cur?.out ?? 0);
+    const curTokens = inputTotal + outputTotal;
+    const prevTokens = Number(prev?.tokens ?? 0);
+    const curCost = Number(cur?.cost ?? 0);
+    const prevCost = Number(prev?.cost ?? 0);
+    const curMsgs = Number(cur?.msg_count ?? 0);
+    const prevMsgs = Number(prev?.msg_count ?? 0);
+
+    return {
+      tokens: {
+        tokens_today: {
+          value: curTokens,
+          trend_pct: computeTrend(curTokens, prevTokens),
+          sub_values: { input: inputTotal, output: outputTotal },
+        } as MetricWithTrend,
+        input_tokens: inputTotal,
+        output_tokens: outputTotal,
+      },
+      cost: { value: curCost, trend_pct: computeTrend(curCost, prevCost) } as MetricWithTrend,
+      messages: { value: curMsgs, trend_pct: computeTrend(curMsgs, prevMsgs) } as MetricWithTrend,
+    };
   }
 
   async deleteAgent(userId: string, agentName: string): Promise<void> {
