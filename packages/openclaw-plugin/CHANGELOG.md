@@ -1,5 +1,11 @@
 # manifest
 
+## 5.23.0
+
+### Minor Changes
+
+- f792f3c: Add animated skeleton loaders and spinner buttons across the frontend
+
 ## 5.22.1
 
 ### Patch Changes
