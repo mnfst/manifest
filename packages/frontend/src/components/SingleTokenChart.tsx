@@ -1,6 +1,7 @@
-import type { Component } from "solid-js";
-import uPlot from "uplot";
-import { getHsl, getHslA } from "../services/theme.js";
+import type { Component } from 'solid-js';
+import uPlot from 'uplot';
+import 'uplot/dist/uPlot.min.css';
+import { getHsl, getHslA } from '../services/theme.js';
 import {
   makeGradientFillFromVar,
   useChartLifecycle,
@@ -8,7 +9,7 @@ import {
   createBaseAxes,
   timeScaleRange,
   formatLegendTimestamp,
-} from "../services/chart-utils.js";
+} from '../services/chart-utils.js';
 
 interface SingleTokenChartProps {
   data: Array<{ time: string; value: number }>;
@@ -29,25 +30,37 @@ const SingleTokenChart: Component<SingleTokenChartProps> = (props) => {
       if (w === 0) return null;
 
       const color = getHsl(props.colorVar);
-      const axisColor = getHslA("--foreground", 0.55);
-      const gridColor = getHslA("--foreground", 0.05);
-      const bgColor = getHsl("--card");
+      const axisColor = getHslA('--foreground', 0.55);
+      const gridColor = getHslA('--foreground', 0.05);
+      const bgColor = getHsl('--card');
 
-      return new uPlot({
-        width: w,
-        height: 260,
-        padding: [16, 16, 0, 0],
-        cursor: createCursorSnap(bgColor, color),
-        scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.1 : 10] } },
-        axes: createBaseAxes(axisColor, gridColor, props.range),
-        series: [
-          { value: formatLegendTimestamp },
-          { label: props.label, stroke: color, width: 2.5, fill: makeGradientFillFromVar(props.colorVar, 0.25) },
+      return new uPlot(
+        {
+          width: w,
+          height: 260,
+          padding: [16, 16, 0, 0],
+          cursor: createCursorSnap(bgColor, color),
+          scales: {
+            x: { time: true, range: timeScaleRange },
+            y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.1 : 10] },
+          },
+          axes: createBaseAxes(axisColor, gridColor, props.range),
+          series: [
+            { value: formatLegendTimestamp },
+            {
+              label: props.label,
+              stroke: color,
+              width: 2.5,
+              fill: makeGradientFillFromVar(props.colorVar, 0.25),
+            },
+          ],
+        },
+        [
+          props.data.map((d) => new Date(d.time.replace(' ', 'T') + 'Z').getTime() / 1000),
+          props.data.map((d) => d.value),
         ],
-      }, [
-        props.data.map((d) => new Date(d.time.replace(" ", "T") + "Z").getTime() / 1000),
-        props.data.map((d) => d.value),
-      ], el);
+        el,
+      );
     },
   });
 
