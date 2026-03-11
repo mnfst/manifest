@@ -57,14 +57,50 @@ export class NotificationCronService implements OnModuleInit {
     if (!rules.length) return 0;
 
     this.logger.log(`Checking ${rules.length} notification rules...`);
-    let triggered = 0;
 
+    // Group rules by (tenant_id, agent_name, period) to deduplicate consumption queries
+    const groups = new Map<string, { rules: ActiveRule[]; consumption: Map<string, number> }>();
     for (const rule of rules) {
-      try {
-        const sent = await this.evaluateRule(rule);
-        if (sent) triggered++;
-      } catch (err) {
-        this.logger.error(`Error evaluating rule ${rule.id}: ${err}`);
+      const key = `${rule.tenant_id}|${rule.agent_name}|${rule.period}`;
+      if (!groups.has(key)) groups.set(key, { rules: [], consumption: new Map() });
+      groups.get(key)!.rules.push(rule);
+    }
+
+    // Fetch consumption once per group+metric combination
+    for (const [, group] of groups) {
+      const sample = group.rules[0];
+      const { periodStart, periodEnd } = computePeriodBoundaries(sample.period);
+      const metrics = new Set(group.rules.map((r) => r.metric_type));
+      for (const metric of metrics) {
+        try {
+          const value = await this.rulesService.getConsumption(
+            sample.tenant_id,
+            sample.agent_name,
+            metric,
+            periodStart,
+            periodEnd,
+          );
+          group.consumption.set(metric, value);
+        } catch (err) {
+          this.logger.error(
+            `Error fetching consumption for ${sample.agent_name}/${metric}: ${err}`,
+          );
+        }
+      }
+    }
+
+    // Evaluate rules against pre-fetched consumption
+    let triggered = 0;
+    for (const [, group] of groups) {
+      for (const rule of group.rules) {
+        try {
+          const actual = group.consumption.get(rule.metric_type);
+          if (actual === undefined) continue;
+          const sent = await this.evaluateRule(rule, actual);
+          if (sent) triggered++;
+        } catch (err) {
+          this.logger.error(`Error evaluating rule ${rule.id}: ${err}`);
+        }
       }
     }
 
@@ -74,7 +110,7 @@ export class NotificationCronService implements OnModuleInit {
     return triggered;
   }
 
-  private async evaluateRule(rule: ActiveRule): Promise<boolean> {
+  private async evaluateRule(rule: ActiveRule, actual: number): Promise<boolean> {
     const { periodStart, periodEnd } = computePeriodBoundaries(rule.period);
 
     const alreadySent = await this.ds.query(
@@ -82,14 +118,6 @@ export class NotificationCronService implements OnModuleInit {
       [rule.id, periodStart],
     );
     if (alreadySent.length > 0) return false;
-
-    const actual = await this.rulesService.getConsumption(
-      rule.tenant_id,
-      rule.agent_name,
-      rule.metric_type,
-      periodStart,
-      periodEnd,
-    );
 
     if (actual < rule.threshold) return false;
 
