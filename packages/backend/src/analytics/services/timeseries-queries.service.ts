@@ -4,7 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
-import { addTenantFilter, downsample } from './query-helpers';
+import { addTenantFilter } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
   DbDialect,
@@ -236,22 +236,16 @@ export class TimeseriesQueriesService {
     }));
   }
 
-  async getAgentList(userId: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getAgentList(userId: string, tenantId?: string) {
+    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
 
-    // 1C: Skip tenant JOIN when tenantId is cached
     const agentQb = this.agentRepo.createQueryBuilder('a');
-    if (tenantId) {
-      agentQb.where('a.tenant_id = :tenantId', { tenantId });
+    if (resolved) {
+      agentQb.where('a.tenant_id = :tenantId', { tenantId: resolved });
     } else {
       agentQb.leftJoin('a.tenant', 't').where('t.name = :userId', { userId });
     }
-    const agents = await agentQb
-      .andWhere('a.is_active = true')
-      .orderBy('a.created_at', 'DESC')
-      .getMany();
 
-    // 1A: Add 30-day timestamp filter to stats query
     const statsCutoff = computeCutoff('30 days');
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
     const statsQb = this.turnRepo
@@ -263,27 +257,27 @@ export class TimeseriesQueriesService {
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total_tokens')
       .where('at.agent_name IS NOT NULL')
       .andWhere('at.timestamp >= :statsCutoff', { statsCutoff });
-    addTenantFilter(statsQb, userId, undefined, tenantId);
+    addTenantFilter(statsQb, userId, undefined, resolved);
 
     const sparkCutoff = computeCutoff('7 days');
-    const hourExpr = sqlHourBucket('at.timestamp', this.dialect);
+    const dateExpr = sqlDateBucket('at.timestamp', this.dialect);
     const sparkQb = this.turnRepo
       .createQueryBuilder('at')
       .select('at.agent_name', 'agent_name')
-      .addSelect(hourExpr, 'hour')
+      .addSelect(dateExpr, 'date')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .where('at.timestamp >= :sparkCutoff', { sparkCutoff })
       .andWhere('at.agent_name IS NOT NULL');
-    addTenantFilter(sparkQb, userId, undefined, tenantId);
+    addTenantFilter(sparkQb, userId, undefined, resolved);
 
-    // 1B: Parallelize stats + sparkline queries
-    const [statsRows, sparkRows] = await Promise.all([
+    const [agents, statsRows, sparkRows] = await Promise.all([
+      agentQb.andWhere('a.is_active = true').orderBy('a.created_at', 'DESC').getMany(),
       statsQb.groupBy('at.agent_name').orderBy('last_active', 'DESC').getRawMany(),
       sparkQb
         .groupBy('at.agent_name')
-        .addGroupBy('hour')
+        .addGroupBy('date')
         .orderBy('at.agent_name', 'ASC')
-        .addOrderBy('hour', 'ASC')
+        .addOrderBy('date', 'ASC')
         .getRawMany(),
     ]);
 
@@ -309,7 +303,7 @@ export class TimeseriesQueriesService {
         last_active: String(stats?.['last_active'] ?? a.created_at ?? ''),
         total_cost: Number(stats?.['total_cost'] ?? 0),
         total_tokens: Number(stats?.['total_tokens'] ?? 0),
-        sparkline: downsample(sparkMap.get(name) ?? [], 24),
+        sparkline: sparkMap.get(name) ?? [],
       };
     });
   }

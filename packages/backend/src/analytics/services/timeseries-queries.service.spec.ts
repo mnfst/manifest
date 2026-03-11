@@ -237,8 +237,8 @@ describe('TimeseriesQueriesService', () => {
           },
         ])
         .mockResolvedValueOnce([
-          { agent_name: 'bot-1', hour: '2026-02-16T09:00:00', tokens: 100 },
-          { agent_name: 'bot-1', hour: '2026-02-16T10:00:00', tokens: 200 },
+          { agent_name: 'bot-1', date: '2026-02-15', tokens: 100 },
+          { agent_name: 'bot-1', date: '2026-02-16', tokens: 200 },
         ]);
 
       const result = await service.getAgentList('u1');
