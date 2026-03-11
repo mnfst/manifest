@@ -59,6 +59,7 @@ vi.mock("../../src/services/api.js", () => ({
   deleteCustomProvider: vi.fn().mockResolvedValue({ ok: true }),
   setFallbacks: vi.fn().mockResolvedValue([]),
   clearFallbacks: vi.fn().mockResolvedValue(undefined),
+  getModelPrices: vi.fn().mockResolvedValue([]),
 }));
 
 import Routing from "../../src/pages/Routing";
