@@ -18,14 +18,24 @@ export class SecurityService {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
-    const countRows = await this.securityRepo
-      .createQueryBuilder('se')
-      .select('se.severity', 'severity')
-      .addSelect('COUNT(*)', 'cnt')
-      .where('se.timestamp >= :cutoff', { cutoff })
-      .andWhere('se.user_id = :userId', { userId })
-      .groupBy('se.severity')
-      .getRawMany();
+    const [countRows, events] = await Promise.all([
+      this.securityRepo
+        .createQueryBuilder('se')
+        .select('se.severity', 'severity')
+        .addSelect('COUNT(*)', 'cnt')
+        .where('se.timestamp >= :cutoff', { cutoff })
+        .andWhere('se.user_id = :userId', { userId })
+        .groupBy('se.severity')
+        .getRawMany(),
+      this.securityRepo
+        .createQueryBuilder('se')
+        .select(['se.id', 'se.timestamp', 'se.severity', 'se.category', 'se.description'])
+        .where('se.timestamp >= :cutoff', { cutoff })
+        .andWhere('se.user_id = :userId', { userId })
+        .orderBy('se.timestamp', 'DESC')
+        .limit(50)
+        .getMany(),
+    ]);
 
     let criticalCount = 0;
     let warningCount = 0;
@@ -33,15 +43,6 @@ export class SecurityService {
       if (row.severity === 'critical') criticalCount = Number(row.cnt);
       if (row.severity === 'warning') warningCount = Number(row.cnt);
     }
-
-    const events = await this.securityRepo
-      .createQueryBuilder('se')
-      .select(['se.id', 'se.timestamp', 'se.severity', 'se.category', 'se.description'])
-      .where('se.timestamp >= :cutoff', { cutoff })
-      .andWhere('se.user_id = :userId', { userId })
-      .orderBy('se.timestamp', 'DESC')
-      .limit(50)
-      .getMany();
 
     const score = this.computeRiskScore(criticalCount, warningCount);
 
@@ -62,7 +63,9 @@ export class SecurityService {
   private computeRiskScore(criticalCount: number, warningCount: number) {
     const value = Math.max(
       0,
-      100 - criticalCount * SecurityService.CRITICAL_PENALTY - warningCount * SecurityService.WARNING_PENALTY,
+      100 -
+        criticalCount * SecurityService.CRITICAL_PENALTY -
+        warningCount * SecurityService.WARNING_PENALTY,
     );
 
     let riskLevel: string;

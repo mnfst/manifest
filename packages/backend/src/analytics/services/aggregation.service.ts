@@ -143,6 +143,41 @@ export class AggregationService {
     return { value: current, trend_pct: computeTrend(current, previous) };
   }
 
+  async getPreviousTokenTotal(range: string, userId: string, agentName?: string): Promise<number> {
+    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+    const interval = rangeToInterval(range);
+    const prevInterval = rangeToPreviousInterval(range);
+    const cutoff = computeCutoff(interval);
+    const prevCutoff = computeCutoff(prevInterval);
+
+    const prevQb = this.turnRepo
+      .createQueryBuilder('at')
+      .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
+      .where('at.timestamp >= :prevCutoff', { prevCutoff })
+      .andWhere('at.timestamp < :cutoff', { cutoff });
+    addTenantFilter(prevQb, userId, agentName, tenantId);
+    const row = await prevQb.getRawOne();
+    return Number(row?.total ?? 0);
+  }
+
+  async getPreviousCostTotal(range: string, userId: string, agentName?: string): Promise<number> {
+    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+    const interval = rangeToInterval(range);
+    const prevInterval = rangeToPreviousInterval(range);
+    const cutoff = computeCutoff(interval);
+    const prevCutoff = computeCutoff(prevInterval);
+
+    const safeCost = sqlSanitizeCost('at.cost_usd');
+    const prevQb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
+      .where('at.timestamp >= :prevCutoff', { prevCutoff })
+      .andWhere('at.timestamp < :cutoff', { cutoff });
+    addTenantFilter(prevQb, userId, agentName, tenantId);
+    const row = await prevQb.getRawOne();
+    return Number(row?.total ?? 0);
+  }
+
   async getSummaryMetrics(range: string, userId: string, tenantId?: string, agentName?: string) {
     const interval = rangeToInterval(range);
     const prevInterval = rangeToPreviousInterval(range);

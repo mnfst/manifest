@@ -363,6 +363,46 @@ describe('AggregationService', () => {
     });
   });
 
+  describe('getPreviousTokenTotal', () => {
+    it('returns previous period token total', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 4000 });
+      const result = await service.getPreviousTokenTotal('24h', 'test-user');
+      expect(result).toBe(4000);
+    });
+
+    it('returns 0 when no previous data', async () => {
+      mockGetRawOne.mockResolvedValueOnce(null);
+      const result = await service.getPreviousTokenTotal('24h', 'test-user');
+      expect(result).toBe(0);
+    });
+
+    it('passes agentName to tenant filter', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 500 });
+      const result = await service.getPreviousTokenTotal('7d', 'test-user', 'my-agent');
+      expect(result).toBe(500);
+    });
+  });
+
+  describe('getPreviousCostTotal', () => {
+    it('returns previous period cost total', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 2.5 });
+      const result = await service.getPreviousCostTotal('7d', 'test-user');
+      expect(result).toBe(2.5);
+    });
+
+    it('returns 0 when no previous data', async () => {
+      mockGetRawOne.mockResolvedValueOnce(null);
+      const result = await service.getPreviousCostTotal('7d', 'test-user');
+      expect(result).toBe(0);
+    });
+
+    it('passes agentName to tenant filter', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 1.0 });
+      const result = await service.getPreviousCostTotal('30d', 'test-user', 'my-agent');
+      expect(result).toBe(1.0);
+    });
+  });
+
   describe('getSummaryMetrics', () => {
     it('returns merged token, cost, and message metrics with trends', async () => {
       mockGetRawOne
