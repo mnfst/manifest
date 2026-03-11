@@ -156,6 +156,10 @@
   margin-top: 2px;
 }
 
+.routing-card__sub--subscription {
+  color: #22c55e;
+}
+
 .routing-card__override {
   display: inline-flex;
   align-items: center;

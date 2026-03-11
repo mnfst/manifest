@@ -3,6 +3,7 @@ import {
   createResource,
   createEffect,
   on,
+  onCleanup,
   Show,
   For,
   type Component,
@@ -25,6 +26,7 @@ import {
   inferProviderName,
   stripCustomPrefix,
 } from '../services/routing-utils.js';
+import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import Select from '../components/Select.jsx';
 import InfoTooltip from '../components/InfoTooltip.jsx';
@@ -65,6 +67,7 @@ interface MessagesData {
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
+  preloadModelDisplayNames();
   const [statusFilter, setStatusFilter] = createSignal('');
   const [modelFilter, setModelFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
@@ -89,6 +92,21 @@ const MessageLog: Component = () => {
   };
 
   const pager = createCursorPagination(50);
+
+  let costMinTimer: ReturnType<typeof setTimeout>;
+  let costMaxTimer: ReturnType<typeof setTimeout>;
+  onCleanup(() => {
+    clearTimeout(costMinTimer);
+    clearTimeout(costMaxTimer);
+  });
+  const debouncedSetCostMin = (val: string) => {
+    clearTimeout(costMinTimer);
+    costMinTimer = setTimeout(() => setCostMin(val), 400);
+  };
+  const debouncedSetCostMax = (val: string) => {
+    clearTimeout(costMaxTimer);
+    costMaxTimer = setTimeout(() => setCostMax(val), 400);
+  };
 
   createEffect(
     on([statusFilter, modelFilter, costMin, costMax], () => pager.resetPage(), { defer: true }),
@@ -192,7 +210,7 @@ const MessageLog: Component = () => {
               onChange={setModelFilter}
               options={[
                 { label: 'All models', value: '' },
-                ...(data()?.models ?? []).map((m) => ({ label: stripCustomPrefix(m), value: m })),
+                ...(data()?.models ?? []).map((m) => ({ label: getModelDisplayName(m), value: m })),
               ]}
             />
             <div class="cost-range-filter">
@@ -203,7 +221,7 @@ const MessageLog: Component = () => {
                 min="0"
                 step="0.01"
                 value={costMin()}
-                onInput={(e) => setCostMin(e.currentTarget.value)}
+                onInput={(e) => debouncedSetCostMin(e.currentTarget.value)}
               />
               <span class="cost-range-filter__sep">&ndash;</span>
               <input
@@ -213,7 +231,7 @@ const MessageLog: Component = () => {
                 min="0"
                 step="0.01"
                 value={costMax()}
-                onInput={(e) => setCostMax(e.currentTarget.value)}
+                onInput={(e) => debouncedSetCostMax(e.currentTarget.value)}
               />
             </div>
           </Show>
@@ -232,27 +250,67 @@ const MessageLog: Component = () => {
       </div>
 
       <Show
-        when={!data.loading}
+        when={data() !== undefined || !data.loading}
         fallback={
           <div class="panel">
-            <div
-              class="skeleton skeleton--text"
-              style="width: 120px; height: 16px; margin-bottom: 16px;"
-            />
-            <For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
-              {() => (
-                <div style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border));">
-                  <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 70px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 80px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 40px; height: 14px;" />
-                </div>
-              )}
-            </For>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
+              <div class="skeleton skeleton--text" style="width: 80px; height: 16px;" />
+              <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Message</th>
+                  <th>Cost</th>
+                  <th>Total Tokens</th>
+                  <th>Input</th>
+                  <th>Output</th>
+                  <th>Model</th>
+                  <th>Cache</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}>
+                  {() => (
+                    <tr>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 90px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 55px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 40px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 40px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 35px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 35px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 110px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 90px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 35px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 50px;" />
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
           </div>
         }
       >
@@ -495,7 +553,7 @@ const MessageLog: Component = () => {
                                 )}
                               </span>
                             ) : null}
-                            {item.model ? stripCustomPrefix(item.model) : '\u2014'}
+                            {item.model ? getModelDisplayName(item.model) : '\u2014'}
                             {item.routing_tier && (
                               <span class={`tier-badge tier-badge--${item.routing_tier}`}>
                                 {item.routing_tier}
@@ -504,7 +562,7 @@ const MessageLog: Component = () => {
                             {item.fallback_from_model && (
                               <span
                                 class="tier-badge tier-badge--fallback"
-                                title={`Fallback from ${stripCustomPrefix(item.fallback_from_model)}`}
+                                title={`Fallback from ${getModelDisplayName(item.fallback_from_model)}`}
                               >
                                 fallback
                               </span>

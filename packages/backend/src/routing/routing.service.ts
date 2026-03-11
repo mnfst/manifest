@@ -8,7 +8,7 @@ import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
 import { encrypt, decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
-import { expandProviderNames } from './provider-aliases';
+import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
 import { TIERS } from './scorer/types';
 
 const TIER_LABELS: Record<string, string> = {
@@ -244,10 +244,9 @@ export class RoutingService {
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
 
     if (rows.length === 0) {
-      // Lazy init: create the 4 tier rows
-      const created: TierAssignment[] = [];
-      for (const tier of TIERS) {
-        const record = Object.assign(new TierAssignment(), {
+      // 2A: Batch tier inserts — create all 4 tier rows in one query
+      const created: TierAssignment[] = TIERS.map((tier) =>
+        Object.assign(new TierAssignment(), {
           id: randomUUID(),
           user_id: userId ?? '',
           agent_id: agentId,
@@ -255,17 +254,17 @@ export class RoutingService {
           override_model: null,
           override_auth_type: null,
           auto_assigned_model: null,
-        });
-        await this.tierRepo.insert(record);
-        created.push(record);
-      }
+        }),
+      );
+      await this.tierRepo.insert(created);
 
       // If agent has active providers, recalculate immediately
+      // 2B: Pass providers to avoid duplicate query in recalculate()
       const providers = await this.providerRepo.find({
         where: { agent_id: agentId, is_active: true },
       });
       if (providers.length > 0) {
-        await this.autoAssign.recalculate(agentId);
+        await this.autoAssign.recalculate(agentId, providers);
         const result = await this.tierRepo.find({ where: { agent_id: agentId } });
         this.routingCache.setTiers(agentId, result);
         return result;
@@ -449,14 +448,8 @@ export class RoutingService {
 
   async getEffectiveModel(agentId: string, assignment: TierAssignment): Promise<string | null> {
     if (assignment.override_model !== null) {
-      const pricing = this.pricingCache.getByModel(assignment.override_model);
-      if (pricing) {
-        const names = expandProviderNames([pricing.provider]);
-        const records = await this.providerRepo.find({
-          where: { agent_id: agentId, is_active: true },
-        });
-        const match = records.find((r) => names.has(r.provider.toLowerCase()));
-        if (match) return assignment.override_model;
+      if (await this.isModelAvailable(agentId, assignment.override_model)) {
+        return assignment.override_model;
       }
       this.logger.warn(
         `Override ${assignment.override_model} falling through to auto ` +
@@ -470,5 +463,29 @@ export class RoutingService {
     }
 
     return assignment.auto_assigned_model;
+  }
+
+  private async isModelAvailable(agentId: string, model: string): Promise<boolean> {
+    const records = await this.providerRepo.find({
+      where: { agent_id: agentId, is_active: true },
+    });
+    const pricing = this.pricingCache.getByModel(model);
+    if (pricing) {
+      const names = expandProviderNames([pricing.provider]);
+      if (records.find((r) => names.has(r.provider.toLowerCase()))) return true;
+      // Also try the canonical model name's vendor prefix
+      const canonicalPrefix = inferProviderFromModelName(pricing.model_name);
+      if (canonicalPrefix) {
+        const cpNames = expandProviderNames([canonicalPrefix]);
+        if (records.find((r) => cpNames.has(r.provider.toLowerCase()))) return true;
+      }
+    }
+    // Fallback: match by model name prefix (e.g. "anthropic/claude-sonnet-4" → "anthropic")
+    const prefix = inferProviderFromModelName(model);
+    if (prefix) {
+      const prefixNames = expandProviderNames([prefix]);
+      if (records.find((r) => prefixNames.has(r.provider.toLowerCase()))) return true;
+    }
+    return false;
   }
 }

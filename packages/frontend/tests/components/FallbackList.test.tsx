@@ -21,6 +21,10 @@ vi.mock("../../src/services/routing-utils.js", () => ({
   stripCustomPrefix: (m: string) => m.replace(/^custom:[^/]+\//, ""),
 }));
 
+vi.mock("../../src/services/providers.js", () => ({
+  getModelLabel: (_providerId: string, model: string) => model,
+}));
+
 import FallbackList from "../../src/components/FallbackList";
 
 const models = [
@@ -131,7 +135,7 @@ describe("FallbackList", () => {
     expect(mockSetFallbacks).not.toHaveBeenCalled();
   });
 
-  it("does not call onUpdate when setFallbacks rejects", async () => {
+  it("reverts optimistic removal when setFallbacks rejects", async () => {
     mockSetFallbacks.mockRejectedValue(new Error("API error"));
     const onUpdate = vi.fn();
     const { container } = render(() => (
@@ -148,10 +152,13 @@ describe("FallbackList", () => {
     await waitFor(() => {
       expect(mockSetFallbacks).toHaveBeenCalled();
     });
-    expect(onUpdate).not.toHaveBeenCalled();
+    // First call: optimistic removal, second call: revert with original list
+    expect(onUpdate).toHaveBeenCalledTimes(2);
+    expect(onUpdate).toHaveBeenNthCalledWith(1, ["model-b"]);
+    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a", "model-b"]);
   });
 
-  it("does not call onUpdate when clearFallbacks rejects", async () => {
+  it("reverts optimistic removal when clearFallbacks rejects", async () => {
     mockClearFallbacks.mockRejectedValue(new Error("API error"));
     const onUpdate = vi.fn();
     const { container } = render(() => (
@@ -168,7 +175,10 @@ describe("FallbackList", () => {
     await waitFor(() => {
       expect(mockClearFallbacks).toHaveBeenCalled();
     });
-    expect(onUpdate).not.toHaveBeenCalled();
+    // First call: optimistic removal, second call: revert with original list
+    expect(onUpdate).toHaveBeenCalledTimes(2);
+    expect(onUpdate).toHaveBeenNthCalledWith(1, []);
+    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a"]);
   });
 
   it("displays display_name when model info has one", () => {
@@ -185,6 +195,23 @@ describe("FallbackList", () => {
 
     const modelLabel = container.querySelector(".fallback-list__model");
     expect(modelLabel?.textContent).toBe("Model Alpha");
+  });
+
+  it("falls back to getModelLabel when model has no display_name but has provider", () => {
+    const modelsNoDisplay = [
+      { model_name: "model-a", provider: "OpenAI" },
+    ] as any[];
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a"]}
+        models={modelsNoDisplay}
+      />
+    ));
+
+    const modelLabel = container.querySelector(".fallback-list__model");
+    // getModelLabel mock returns model as-is
+    expect(modelLabel?.textContent).toBe("model-a");
   });
 
   it("falls back to stripCustomPrefix when model not found in models list", () => {
@@ -283,5 +310,101 @@ describe("FallbackList", () => {
     const addBtn = container.querySelector(".fallback-list__add");
     expect(addBtn).not.toBeNull();
     expect(addBtn!.classList.contains("routing-action")).toBe(true);
+  });
+
+  it("shows spinner and disables add button when adding prop is true", () => {
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={[]} adding={true} />
+    ));
+
+    const addBtn = container.querySelector(".fallback-list__add") as HTMLButtonElement;
+    expect(addBtn.querySelector(".spinner")).not.toBeNull();
+    expect(addBtn.disabled).toBe(true);
+  });
+
+  it("disables add button when adding is false but not disabled", () => {
+    render(() => (
+      <FallbackList {...defaultProps} fallbacks={[]} adding={false} />
+    ));
+
+    const addBtn = screen.getByText("+ Add fallback");
+    expect((addBtn as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("disables all remove buttons during async removal", async () => {
+    let resolveRemove: () => void;
+    mockSetFallbacks.mockReturnValueOnce(new Promise<void>((r) => { resolveRemove = r; }));
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b"]}
+      />
+    ));
+
+    const removeButtons = container.querySelectorAll(".fallback-list__remove");
+    fireEvent.click(removeButtons[0]);
+
+    await waitFor(() => {
+      const btns = container.querySelectorAll(".fallback-list__remove");
+      // Both buttons should be disabled
+      expect((btns[0] as HTMLButtonElement).disabled).toBe(true);
+      expect((btns[1] as HTMLButtonElement).disabled).toBe(true);
+      // The one being removed shows "..."
+      expect(btns[0].textContent).toBe("...");
+      // The other still shows "×"
+      expect(btns[1].textContent).toBe("\u00d7");
+    });
+
+    resolveRemove!();
+
+    await waitFor(() => {
+      const btns = container.querySelectorAll(".fallback-list__remove");
+      // After resolve, buttons should be re-enabled
+      expect((btns[0] as HTMLButtonElement).disabled).toBe(false);
+    });
+  });
+
+  it("disables add button during removal", async () => {
+    let resolveRemove: () => void;
+    mockSetFallbacks.mockReturnValueOnce(new Promise<void>((r) => { resolveRemove = r; }));
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b"]}
+      />
+    ));
+
+    const removeButtons = container.querySelectorAll(".fallback-list__remove");
+    fireEvent.click(removeButtons[0]);
+
+    await waitFor(() => {
+      const addBtn = screen.getByText("+ Add fallback");
+      expect((addBtn as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    resolveRemove!();
+  });
+
+  it("clears removingIndex after failed removal", async () => {
+    mockSetFallbacks.mockRejectedValueOnce(new Error("API error"));
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b"]}
+      />
+    ));
+
+    const removeButtons = container.querySelectorAll(".fallback-list__remove");
+    fireEvent.click(removeButtons[0]);
+
+    await waitFor(() => {
+      expect(mockSetFallbacks).toHaveBeenCalled();
+    });
+
+    // After error, buttons should be re-enabled (removingIndex cleared in finally)
+    await waitFor(() => {
+      const btns = container.querySelectorAll(".fallback-list__remove");
+      expect((btns[0] as HTMLButtonElement).disabled).toBe(false);
+    });
   });
 });

@@ -125,7 +125,7 @@ const Register: Component = () => {
                 />
               </label>
               <button class="auth-form__submit" type="submit" disabled={loading()}>
-                {loading() ? 'Creating account...' : 'Create account'}
+                {loading() ? <span class="spinner" /> : 'Create account'}
               </button>
             </form>
             <p class="auth-terms">

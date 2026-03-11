@@ -169,6 +169,38 @@ export class TraceIngestService {
     return skipIds;
   }
 
+  /**
+   * Remap agent_message spans whose trace_id already has a proxy-recorded 'ok'
+   * message. The proxy creates the message with real tokens; the OTLP span is
+   * a duplicate. Remapping preserves child LLM call linkage while preventing
+   * a second message row.
+   */
+  private async remapProxyDuplicates(
+    spans: OtlpSpan[],
+    spanMap: Map<string, SpanEntry>,
+    ctx: IngestionContext,
+  ): Promise<Set<string>> {
+    const skipIds = new Set<string>();
+    for (const span of spans) {
+      const spanId = toHexString(span.spanId);
+      const entry = spanMap.get(spanId);
+      if (!entry || entry.type !== 'agent_message') continue;
+
+      const traceId = toHexString(span.traceId);
+      if (!traceId) continue;
+
+      const existing = await this.turnRepo.findOne({
+        where: { trace_id: traceId, tenant_id: ctx.tenantId, agent_id: ctx.agentId, status: 'ok' },
+        select: ['id'],
+      });
+      if (existing) {
+        entry.uuid = existing.id;
+        skipIds.add(spanId);
+      }
+    }
+    return skipIds;
+  }
+
   private async findUnfilledFallback(
     span: OtlpSpan,
     ctx: IngestionContext,
@@ -212,6 +244,9 @@ export class TraceIngestService {
       fallbackModelOverrides,
       fallbackDurations,
     );
+    // Pre-pass: remap UUIDs for spans whose trace already has a proxy-recorded
+    // message. Child LLM spans will accumulate to the proxy message instead.
+    const proxySkipIds = await this.remapProxyDuplicates(spans, spanMap, ctx);
     const messageAggregates = new Map<
       string,
       {
@@ -237,7 +272,8 @@ export class TraceIngestService {
 
       if (entry.type === 'root_request') continue;
       if (entry.type === 'agent_message') {
-        if (ghostSpanIds.has(spanId) || fallbackSkipIds.has(spanId)) continue;
+        if (ghostSpanIds.has(spanId) || fallbackSkipIds.has(spanId) || proxySkipIds.has(spanId))
+          continue;
         const row = await this.buildAgentMessage(span, attrs, entry, ctx, subOnlyProviders);
         if (row) agentMessageRows.push(row);
       } else if (entry.type === 'llm_call') {
@@ -350,30 +386,40 @@ export class TraceIngestService {
         }
       }
 
+      // Preserve proxy-recorded token/cost data: only overwrite when the
+      // existing message has no tokens (i.e. empty stub awaiting rollup).
       const setClause: Record<string, unknown> = {
-        input_tokens: agg.input,
-        output_tokens: agg.output,
-        cache_read_tokens: agg.cacheRead,
-        cache_creation_tokens: agg.cacheCreation,
+        input_tokens: () => `CASE WHEN input_tokens = 0 THEN :inputTok ELSE input_tokens END`,
+        output_tokens: () => `CASE WHEN input_tokens = 0 THEN :outputTok ELSE output_tokens END`,
+        cache_read_tokens: () =>
+          `CASE WHEN input_tokens = 0 THEN :cacheRead ELSE cache_read_tokens END`,
+        cache_creation_tokens: () =>
+          `CASE WHEN input_tokens = 0 THEN :cacheCreation ELSE cache_creation_tokens END`,
+        cost_usd: () => `CASE WHEN input_tokens = 0 THEN :cost ELSE cost_usd END`,
         model: () => 'COALESCE(model, :model)',
         routing_tier: () => 'COALESCE(routing_tier, :tier)',
         routing_reason: () => 'COALESCE(routing_reason, :reason)',
-        cost_usd: cost,
       };
       const durationMs = fallbackDurations?.get(messageId);
-      if (durationMs != null) setClause.duration_ms = durationMs;
+      if (durationMs != null) {
+        setClause.duration_ms = () => 'COALESCE(duration_ms, :durationMs)';
+      }
 
-      updates.push(
-        this.turnRepo
-          .createQueryBuilder()
-          .update(AgentMessage)
-          .set(setClause)
-          .setParameter('model', agg.model)
-          .setParameter('tier', agg.tier)
-          .setParameter('reason', agg.reason)
-          .where('id = :id', { id: messageId })
-          .execute(),
-      );
+      const qb = this.turnRepo
+        .createQueryBuilder()
+        .update(AgentMessage)
+        .set(setClause)
+        .setParameter('inputTok', agg.input)
+        .setParameter('outputTok', agg.output)
+        .setParameter('cacheRead', agg.cacheRead)
+        .setParameter('cacheCreation', agg.cacheCreation)
+        .setParameter('cost', cost)
+        .setParameter('model', agg.model)
+        .setParameter('tier', agg.tier)
+        .setParameter('reason', agg.reason)
+        .where('id = :id', { id: messageId });
+      if (durationMs != null) qb.setParameter('durationMs', durationMs);
+      updates.push(qb.execute());
     }
     if (updates.length > 0) await Promise.all(updates);
   }
@@ -416,6 +462,24 @@ export class TraceIngestService {
       return Math.abs(errorTime - spanTime) <= 30_000;
     });
     if (hasNearbyError) return null;
+
+    // Proxy dedup: if this span carries 0 tokens, check if the proxy already
+    // recorded a success message with real tokens for the same agent within 60s.
+    const spanInputTokens = attrNumber(attrs, 'gen_ai.usage.input_tokens') ?? 0;
+    const spanOutputTokens = attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0;
+    if (spanInputTokens === 0 && spanOutputTokens === 0) {
+      const recentOkMessages = await this.turnRepo.find({
+        where: { tenant_id: ctx.tenantId, agent_id: ctx.agentId, status: 'ok' },
+        select: ['id', 'timestamp', 'input_tokens'],
+        order: { timestamp: 'DESC' },
+        take: 3,
+      });
+      const hasProxyData = recentOkMessages.some((m) => {
+        const mTime = new Date(m.timestamp).getTime();
+        return Math.abs(mTime - spanTime) <= 60_000 && (m.input_tokens ?? 0) > 0;
+      });
+      if (hasProxyData) return null;
+    }
 
     // DB-level ghost dedup: if this span is empty-ok, check if a data-bearing
     // message for the same agent already exists within 60s (cross-batch case).

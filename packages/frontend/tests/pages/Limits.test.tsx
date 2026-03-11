@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@solidjs/testing-library";
+import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: "test-agent" }),
@@ -115,9 +115,11 @@ describe("Limits page", () => {
     expect(screen.getByText("+ Create rule")).toBeDefined();
   });
 
-  it("renders empty state when no rules", () => {
+  it("renders empty state when no rules", async () => {
     render(() => <Limits />);
-    expect(screen.getByText("No rules yet")).toBeDefined();
+    await waitFor(() => {
+      expect(screen.getByText("No rules yet")).toBeDefined();
+    });
     expect(screen.getByText("Set up alerts for usage spikes, or hard limits to block requests over budget.")).toBeDefined();
   });
 
@@ -178,10 +180,12 @@ describe("Limits page", () => {
     expect(screen.getByTestId("cloud-email-info")).toBeDefined();
   });
 
-  it("shows email provider setup in local mode", () => {
+  it("shows email provider setup in local mode", async () => {
     mockIsLocalMode = true;
     render(() => <Limits />);
-    expect(screen.getByTestId("email-setup")).toBeDefined();
+    await waitFor(() => {
+      expect(screen.getByTestId("email-setup")).toBeDefined();
+    });
   });
 
   it("hides email provider setup in cloud mode", () => {

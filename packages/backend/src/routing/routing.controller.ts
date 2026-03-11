@@ -6,7 +6,7 @@ import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
-import { expandProviderNames } from './provider-aliases';
+import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
 import { trackCloudEvent } from '../common/utils/product-telemetry';
 import {
   AgentNameParamDto,
@@ -208,7 +208,11 @@ export class RoutingController {
 
     const models = this.pricingCache.getAll();
     return models
-      .filter((m) => activeProviders.has(m.provider.toLowerCase()))
+      .filter((m) => {
+        if (activeProviders.has(m.provider.toLowerCase())) return true;
+        const prefix = inferProviderFromModelName(m.model_name);
+        return prefix != null && activeProviders.has(prefix);
+      })
       .map((m) => {
         const isCustom = CustomProviderService.isCustom(m.provider);
         return {
@@ -220,8 +224,10 @@ export class RoutingController {
           capability_reasoning: m.capability_reasoning,
           capability_code: m.capability_code,
           quality_score: m.quality_score,
+          display_name: isCustom
+            ? CustomProviderService.rawModelName(m.model_name)
+            : m.display_name || null,
           ...(isCustom && {
-            display_name: CustomProviderService.rawModelName(m.model_name),
             provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
           }),
         };

@@ -276,8 +276,10 @@ const ProviderSelectModal: Component<Props> = (props) => {
             </div>
 
             {/* -- Tabs -- */}
-            <div class="provider-modal__tabs">
+            <div class="provider-modal__tabs" role="tablist">
               <button
+                role="tab"
+                aria-selected={activeTab() === 'subscription'}
                 class="provider-modal__tab"
                 classList={{ 'provider-modal__tab--active': activeTab() === 'subscription' }}
                 onClick={() => setActiveTab('subscription')}
@@ -301,6 +303,8 @@ const ProviderSelectModal: Component<Props> = (props) => {
                 Subscription
               </button>
               <button
+                role="tab"
+                aria-selected={activeTab() === 'api_key'}
                 class="provider-modal__tab"
                 classList={{ 'provider-modal__tab--active': activeTab() === 'api_key' }}
                 onClick={() => setActiveTab('api_key')}
@@ -616,7 +620,9 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         disabled={busy()}
                         onClick={() => handleConnect(provId)}
                       >
-                        Connect
+                        <Show when={!busy()} fallback={<span class="spinner" />}>
+                          Connect
+                        </Show>
                       </button>
                     </Show>
                     <Show when={connected()}>
@@ -625,7 +631,9 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         disabled={busy()}
                         onClick={() => handleDisconnect(provId)}
                       >
-                        Disconnect
+                        <Show when={!busy()} fallback={<span class="spinner" />}>
+                          Disconnect
+                        </Show>
                       </button>
                     </Show>
                   </Show>
@@ -658,7 +666,9 @@ const ProviderSelectModal: Component<Props> = (props) => {
                       disabled={busy() || !keyInput().trim()}
                       onClick={() => handleConnect(provId)}
                     >
-                      Connect
+                      <Show when={!busy()} fallback={<span class="spinner" />}>
+                        Connect
+                      </Show>
                     </button>
                   </Show>
 
@@ -696,21 +706,23 @@ const ProviderSelectModal: Component<Props> = (props) => {
                             aria-label="Disconnect provider"
                             title="Disconnect"
                           >
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              aria-hidden="true"
-                            >
-                              <path d="M3 6h18" />
-                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                            </svg>
+                            <Show when={!busy()} fallback={<span class="spinner" />}>
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                              >
+                                <path d="M3 6h18" />
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                              </svg>
+                            </Show>
                           </button>
                         </div>
                       </Show>

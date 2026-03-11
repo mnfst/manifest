@@ -104,7 +104,8 @@ describe("Register", () => {
     fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass123" } });
     fireEvent.submit(container.querySelector("form")!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Creating account");
+      const btn = container.querySelector('button[type="submit"]') as HTMLButtonElement;
+      expect(btn.querySelector(".spinner")).not.toBeNull();
     });
   });
 

@@ -1,28 +1,28 @@
-import { A, useSearchParams } from "@solidjs/router";
-import { Title, Meta } from "@solidjs/meta";
-import { type Component, createSignal, Show } from "solid-js";
-import { authClient } from "../services/auth-client.js";
+import { A, useSearchParams } from '@solidjs/router';
+import { Title, Meta } from '@solidjs/meta';
+import { type Component, createSignal, Show } from 'solid-js';
+import { authClient } from '../services/auth-client.js';
 
 const RequestResetForm: Component = () => {
-  const [email, setEmail] = createSignal("");
+  const [email, setEmail] = createSignal('');
   const [sent, setSent] = createSignal(false);
-  const [error, setError] = createSignal("");
+  const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
 
     const { error: authError } = await authClient.requestPasswordReset({
       email: email(),
-      redirectTo: "/reset-password",
+      redirectTo: '/reset-password',
     });
 
     setLoading(false);
 
     if (authError) {
-      setError(authError.message ?? "Failed to send reset email");
+      setError(authError.message ?? 'Failed to send reset email');
       return;
     }
 
@@ -34,7 +34,9 @@ const RequestResetForm: Component = () => {
       <div class="auth-header">
         <h1 class="auth-header__title">Reset your password</h1>
         <p class="auth-header__subtitle">
-          {sent() ? "Check your email for a reset link" : "Enter your email to receive a reset link"}
+          {sent()
+            ? 'Check your email for a reset link'
+            : 'Enter your email to receive a reset link'}
         </p>
       </div>
 
@@ -53,31 +55,33 @@ const RequestResetForm: Component = () => {
             />
           </label>
           <button class="auth-form__submit" type="submit" disabled={loading()}>
-            {loading() ? "Sending..." : "Send reset link"}
+            {loading() ? <span class="spinner" /> : 'Send reset link'}
           </button>
         </form>
       </Show>
 
       <div class="auth-footer">
-        <A href="/login" class="auth-footer__link">Back to sign in</A>
+        <A href="/login" class="auth-footer__link">
+          Back to sign in
+        </A>
       </div>
     </>
   );
 };
 
 const SetNewPasswordForm: Component<{ token: string }> = (props) => {
-  const [password, setPassword] = createSignal("");
-  const [confirmPassword, setConfirmPassword] = createSignal("");
-  const [error, setError] = createSignal("");
+  const [password, setPassword] = createSignal('');
+  const [confirmPassword, setConfirmPassword] = createSignal('');
+  const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
   const [success, setSuccess] = createSignal(false);
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     if (password() !== confirmPassword()) {
-      setError("Passwords do not match");
+      setError('Passwords do not match');
       return;
     }
 
@@ -91,7 +95,7 @@ const SetNewPasswordForm: Component<{ token: string }> = (props) => {
     setLoading(false);
 
     if (authError) {
-      setError(authError.message ?? "Failed to reset password");
+      setError(authError.message ?? 'Failed to reset password');
       return;
     }
 
@@ -103,22 +107,27 @@ const SetNewPasswordForm: Component<{ token: string }> = (props) => {
       <div class="auth-header">
         <h1 class="auth-header__title">Set new password</h1>
         <p class="auth-header__subtitle">
-          {success() ? "Your password has been reset" : "Enter your new password"}
+          {success() ? 'Your password has been reset' : 'Enter your new password'}
         </p>
       </div>
 
-      <Show when={!success()} fallback={
-        <>
-          <div class="auth-form">
-            <div class="auth-form__success">
-              Your password has been updated. You can now sign in with your new password.
+      <Show
+        when={!success()}
+        fallback={
+          <>
+            <div class="auth-form">
+              <div class="auth-form__success">
+                Your password has been updated. You can now sign in with your new password.
+              </div>
             </div>
-          </div>
-          <div class="auth-footer">
-            <A href="/login" class="auth-footer__link">Sign in</A>
-          </div>
-        </>
-      }>
+            <div class="auth-footer">
+              <A href="/login" class="auth-footer__link">
+                Sign in
+              </A>
+            </div>
+          </>
+        }
+      >
         <form class="auth-form" onSubmit={handleSubmit}>
           {error() && <div class="auth-form__error">{error()}</div>}
           <label class="auth-form__label">
@@ -146,12 +155,14 @@ const SetNewPasswordForm: Component<{ token: string }> = (props) => {
             />
           </label>
           <button class="auth-form__submit" type="submit" disabled={loading()}>
-            {loading() ? "Resetting..." : "Reset password"}
+            {loading() ? <span class="spinner" /> : 'Reset password'}
           </button>
         </form>
 
         <div class="auth-footer">
-          <A href="/login" class="auth-footer__link">Back to sign in</A>
+          <A href="/login" class="auth-footer__link">
+            Back to sign in
+          </A>
         </div>
       </Show>
     </>

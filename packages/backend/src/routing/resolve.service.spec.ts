@@ -159,6 +159,127 @@ describe('ResolveService', () => {
     expect(result.tier).toBe('simple');
   });
 
+  describe('auth_type resolution', () => {
+    it('should propagate override_auth_type from tier assignment', async () => {
+      mockRoutingService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_model: 'claude-sonnet-4',
+          override_auth_type: 'subscription',
+          auto_assigned_model: 'gpt-4o-mini',
+        },
+        { tier: 'standard', override_model: null, auto_assigned_model: 'gpt-4o' },
+        { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
+        { tier: 'reasoning', override_model: null, auto_assigned_model: 'claude-opus-4-6' },
+      ]);
+      mockRoutingService.getEffectiveModel.mockResolvedValue('claude-sonnet-4');
+      mockPricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' });
+
+      const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
+
+      expect(result.auth_type).toBe('subscription');
+      // getAuthType should NOT be called when override_auth_type is set
+      expect(mockRoutingService.getAuthType).not.toHaveBeenCalled();
+    });
+
+    it('should fall back to getAuthType when no override_auth_type', async () => {
+      mockRoutingService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_model: null,
+          override_auth_type: null,
+          auto_assigned_model: 'gpt-4o-mini',
+        },
+        { tier: 'standard', override_model: null, auto_assigned_model: 'gpt-4o' },
+        { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
+        { tier: 'reasoning', override_model: null, auto_assigned_model: 'claude-opus-4-6' },
+      ]);
+      mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
+      mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
+      mockRoutingService.getAuthType.mockResolvedValue('api_key');
+
+      const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
+
+      expect(result.auth_type).toBe('api_key');
+      expect(mockRoutingService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI');
+    });
+
+    it('should return subscription from getAuthType when provider has subscription', async () => {
+      mockRoutingService.getEffectiveModel.mockResolvedValue('claude-sonnet-4');
+      mockPricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' });
+      mockRoutingService.getAuthType.mockResolvedValue('subscription');
+
+      const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
+
+      expect(result.auth_type).toBe('subscription');
+    });
+
+    it('should not include auth_type when provider is null', async () => {
+      mockRoutingService.getEffectiveModel.mockResolvedValue(null);
+
+      const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
+
+      expect(result.auth_type).toBeUndefined();
+      expect(mockRoutingService.getAuthType).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resolveForTier auth_type', () => {
+    it('should propagate override_auth_type in resolveForTier', async () => {
+      mockRoutingService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_model: 'claude-sonnet-4',
+          override_auth_type: 'subscription',
+          auto_assigned_model: 'gpt-4o-mini',
+        },
+      ]);
+      mockRoutingService.getEffectiveModel.mockResolvedValue('claude-sonnet-4');
+      mockPricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' });
+
+      const result = await service.resolveForTier('agent-1', 'simple');
+
+      expect(result.auth_type).toBe('subscription');
+      expect(mockRoutingService.getAuthType).not.toHaveBeenCalled();
+    });
+
+    it('should fall back to getAuthType in resolveForTier when no override', async () => {
+      mockRoutingService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_model: null,
+          override_auth_type: null,
+          auto_assigned_model: 'gpt-4o-mini',
+        },
+      ]);
+      mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
+      mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
+      mockRoutingService.getAuthType.mockResolvedValue('api_key');
+
+      const result = await service.resolveForTier('agent-1', 'simple');
+
+      expect(result.auth_type).toBe('api_key');
+      expect(mockRoutingService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI');
+    });
+
+    it('should not include auth_type in resolveForTier when model is null', async () => {
+      mockRoutingService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_model: null,
+          override_auth_type: null,
+          auto_assigned_model: null,
+        },
+      ]);
+      mockRoutingService.getEffectiveModel.mockResolvedValue(null);
+
+      const result = await service.resolveForTier('agent-1', 'simple');
+
+      expect(result.auth_type).toBeUndefined();
+      expect(mockRoutingService.getAuthType).not.toHaveBeenCalled();
+    });
+  });
+
   it('should pass tools to scorer for tier floor', async () => {
     mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o');
     mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });

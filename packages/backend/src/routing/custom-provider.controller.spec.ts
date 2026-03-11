@@ -132,9 +132,10 @@ describe('CustomProviderController', () => {
       expect(result[0].has_api_key).toBe(false);
     });
 
-    it('returns empty array when no custom providers', async () => {
+    it('returns empty array when no custom providers and skips user_providers query', async () => {
       const result = await controller.list(mockUser, { agentName: 'test-agent' } as never);
       expect(result).toEqual([]);
+      expect(mockProviderRepo.find).not.toHaveBeenCalled();
     });
   });
 

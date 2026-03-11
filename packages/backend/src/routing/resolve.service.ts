@@ -4,6 +4,7 @@ import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.se
 import { scoreRequest, ScorerInput, MomentumInput } from './scorer';
 import { Tier } from './scorer/types';
 import { ResolveResponse } from './dto/resolve-response';
+import { inferProviderFromModelName } from './provider-aliases';
 
 @Injectable()
 export class ResolveService {
@@ -72,7 +73,11 @@ export class ResolveService {
       );
     }
 
-    const provider = pricing?.provider ?? null;
+    const provider =
+      inferProviderFromModelName(model) ??
+      (pricing ? inferProviderFromModelName(pricing.model_name) : undefined) ??
+      pricing?.provider ??
+      null;
     const authType = provider
       ? (assignment.override_auth_type ??
         (await this.routingService.getAuthType(agentId, provider)))
@@ -99,7 +104,12 @@ export class ResolveService {
 
     const model = await this.routingService.getEffectiveModel(agentId, assignment);
     const pricing = model ? this.pricingCache.getByModel(model) : null;
-    const provider = pricing?.provider ?? null;
+    const provider = model
+      ? (inferProviderFromModelName(model) ??
+        (pricing ? inferProviderFromModelName(pricing.model_name) : undefined) ??
+        pricing?.provider ??
+        null)
+      : null;
     const authType = provider
       ? (assignment.override_auth_type ??
         (await this.routingService.getAuthType(agentId, provider)))

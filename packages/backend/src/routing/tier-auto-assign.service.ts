@@ -26,39 +26,51 @@ export class TierAutoAssignService {
     private readonly tierRepo: Repository<TierAssignment>,
   ) {}
 
-  async recalculate(agentId: string): Promise<void> {
-    const providers = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
-    });
+  async recalculate(agentId: string, providers?: UserProvider[]): Promise<void> {
+    const resolvedProviders =
+      providers ??
+      (await this.providerRepo.find({
+        where: { agent_id: agentId, is_active: true },
+      }));
 
     const subNames = expandProviderNames(
-      providers.filter((p) => p.auth_type === 'subscription').map((p) => p.provider),
+      resolvedProviders.filter((p) => p.auth_type === 'subscription').map((p) => p.provider),
     );
     const keyNames = expandProviderNames(
-      providers.filter((p) => p.auth_type !== 'subscription').map((p) => p.provider),
+      resolvedProviders.filter((p) => p.auth_type !== 'subscription').map((p) => p.provider),
     );
 
     const allModels = this.pricingCache.getAll();
     const matchesProvider = (model: ModelPricing, names: Set<string>): boolean => {
       if (names.has(model.provider.toLowerCase())) return true;
+      // Only infer provider from model name prefix for non-OpenRouter models.
+      // OpenRouter-hosted models (e.g. "anthropic/claude-sonnet-4-5" with
+      // provider "OpenRouter") should not match direct providers.
+      if (model.provider === 'OpenRouter') return false;
       const prefix = inferProviderFromModelName(model.model_name);
       return prefix != null && names.has(prefix);
     };
     const subModels = allModels.filter((m) => matchesProvider(m, subNames));
     const keyModels = allModels.filter((m) => matchesProvider(m, keyNames));
+
+    // Batch read all tiers in one query
+    const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
+    const tierMap = new Map(allTiers.map((t) => [t.tier, t]));
+
+    const toSave: TierAssignment[] = [];
+    const toInsert: Record<string, unknown>[] = [];
+
     for (const tier of TIERS) {
       // Subscription models always take priority over API key models
       const best = this.pickBest(subModels, tier) ?? this.pickBest(keyModels, tier);
-      const existing = await this.tierRepo.findOne({
-        where: { agent_id: agentId, tier },
-      });
+      const existing = tierMap.get(tier);
 
       if (existing) {
         existing.auto_assigned_model = best?.model_name ?? null;
         existing.updated_at = new Date().toISOString();
-        await this.tierRepo.save(existing);
+        toSave.push(existing);
       } else {
-        await this.tierRepo.insert({
+        toInsert.push({
           id: randomUUID(),
           user_id: '',
           agent_id: agentId,
@@ -68,6 +80,10 @@ export class TierAutoAssignService {
         });
       }
     }
+
+    // 2C: Batch write
+    if (toSave.length > 0) await this.tierRepo.save(toSave);
+    if (toInsert.length > 0) await this.tierRepo.insert(toInsert);
 
     this.logger.log(`Recalculated tier assignments for agent ${agentId}`);
   }

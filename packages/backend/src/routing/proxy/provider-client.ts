@@ -62,6 +62,17 @@ export interface ForwardResult {
 
 const PROVIDER_TIMEOUT_MS = 180_000;
 
+/**
+ * Strip vendor prefix from model name (e.g. "anthropic/claude-sonnet-4" → "claude-sonnet-4").
+ * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
+ */
+function stripModelPrefix(model: string, endpointKey: string): string {
+  // OpenRouter accepts and expects vendor prefixes
+  if (endpointKey === 'openrouter') return model;
+  const slashIdx = model.indexOf('/');
+  return slashIdx > 0 ? model.substring(slashIdx + 1) : model;
+}
+
 @Injectable()
 export class ProviderClient {
   private readonly logger = new Logger(ProviderClient.name);
@@ -94,26 +105,27 @@ export class ProviderClient {
     const isGoogle = endpoint.format === 'google';
     const isAnthropic = endpoint.format === 'anthropic';
 
+    const bareModel = stripModelPrefix(model, endpointKey);
     let url: string;
     let headers: Record<string, string>;
     let requestBody: Record<string, unknown>;
 
     if (isGoogle) {
-      url = `${endpoint.baseUrl}${endpoint.buildPath(model)}?key=${apiKey}`;
+      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}?key=${apiKey}`;
       if (stream) url += '&alt=sse';
       headers = endpoint.buildHeaders(apiKey, authType);
-      requestBody = toGoogleRequest(body, model);
+      requestBody = toGoogleRequest(body, bareModel);
     } else if (isAnthropic) {
-      url = `${endpoint.baseUrl}${endpoint.buildPath(model)}`;
+      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
-      requestBody = toAnthropicRequest(body, model);
-      requestBody.model = model;
+      requestBody = toAnthropicRequest(body, bareModel);
+      requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
     } else {
-      url = `${endpoint.baseUrl}${endpoint.buildPath(model)}`;
+      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
       const sanitized = sanitizeOpenAiBody(body, endpointKey!);
-      requestBody = { ...sanitized, model, stream };
+      requestBody = { ...sanitized, model: bareModel, stream };
 
       // Inject cache_control for OpenRouter requests targeting Anthropic models
       if (endpointKey === 'openrouter' && model.startsWith('anthropic/')) {

@@ -336,7 +336,8 @@ describe("CustomProviderForm", () => {
     fireEvent.click(screen.getByText("Create"));
 
     await waitFor(() => {
-      expect(screen.getByText("Creating...")).toBeDefined();
+      const btn = document.querySelector("button.btn--primary") as HTMLButtonElement;
+      expect(btn.querySelector(".spinner")).not.toBeNull();
     });
 
     resolveSubmit!({
@@ -666,7 +667,8 @@ describe("CustomProviderForm — edit mode", () => {
     fireEvent.click(screen.getByText("Save changes"));
 
     await waitFor(() => {
-      expect(screen.getByText("Saving...")).toBeDefined();
+      const btn = document.querySelector("button.btn--primary") as HTMLButtonElement;
+      expect(btn.querySelector(".spinner")).not.toBeNull();
     });
 
     resolveSubmit!({ ...initialData });

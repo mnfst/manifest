@@ -14,6 +14,7 @@ import {
 } from '../../common/utils/sql-dialect';
 
 const MODELS_CACHE_TTL_MS = 60_000;
+const COUNT_CACHE_TTL_MS = 30_000;
 const MAX_CACHE_ENTRIES = 5_000;
 
 interface CachedModels {
@@ -21,10 +22,16 @@ interface CachedModels {
   expiresAt: number;
 }
 
+interface CachedCount {
+  count: number;
+  expiresAt: number;
+}
+
 @Injectable()
 export class MessagesQueryService {
   private readonly dialect: DbDialect;
   private readonly modelsCache = new Map<string, CachedModels>();
+  private readonly countCache = new Map<string, CachedCount>();
 
   constructor(
     @InjectRepository(AgentMessage)
@@ -68,10 +75,9 @@ export class MessagesQueryService {
     if (params.agent_name)
       baseQb.andWhere('at.agent_name = :filterAgent', { filterAgent: params.agent_name });
 
-    // Count (without cursor)
+    // Count (without cursor) — use cache for repeat/paginated requests
+    const countCacheKey = this.buildCountCacheKey(params);
     const countQb = baseQb.clone().select('COUNT(*)', 'total');
-    const countResult = await countQb.getRawOne();
-    const totalCount = Number(countResult?.total ?? 0);
 
     // Data (with cursor) — treat negative costs as NULL (invalid pricing)
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
@@ -117,12 +123,26 @@ export class MessagesQueryService {
       }
     }
 
-    const rows = await dataQb
-      .orderBy('at.timestamp', 'DESC')
-      .addOrderBy('at.id', 'DESC')
-      .limit(params.limit + 1)
-      .getRawMany();
+    // Run count, data, and models queries in parallel (count cached on paginated requests)
+    const cachedCount = params.cursor ? this.countCache.get(countCacheKey) : undefined;
+    const countHit = cachedCount && cachedCount.expiresAt > Date.now();
+    const [countResult, rows, models] = await Promise.all([
+      countHit ? null : countQb.getRawOne(),
+      dataQb
+        .orderBy('at.timestamp', 'DESC')
+        .addOrderBy('at.id', 'DESC')
+        .limit(params.limit + 1)
+        .getRawMany(),
+      this.getDistinctModels(params.userId, params.range, tenantId, params.agent_name),
+    ]);
 
+    let totalCount: number;
+    if (countHit) {
+      totalCount = cachedCount.count;
+    } else {
+      totalCount = Number(countResult?.total ?? 0);
+      this.setCountCache(countCacheKey, totalCount);
+    }
     const hasMore = rows.length > params.limit;
     const items = rows.slice(0, params.limit);
     const lastItem = items[items.length - 1] as Record<string, unknown> | undefined;
@@ -130,9 +150,6 @@ export class MessagesQueryService {
     const tsStr = ts instanceof Date ? formatTimestamp(ts) : String(ts ?? '');
     const lastId = lastItem?.['id'];
     const nextCursor = hasMore && lastItem ? `${tsStr}|${String(lastId)}` : null;
-
-    // Distinct models (cached)
-    const models = await this.getDistinctModels(params.userId, params.range, tenantId);
 
     return {
       items,
@@ -146,8 +163,9 @@ export class MessagesQueryService {
     userId: string,
     range?: string,
     tenantId?: string,
+    agentName?: string,
   ): Promise<string[]> {
-    const cacheKey = `${userId}:${range ?? 'all'}`;
+    const cacheKey = `${userId}:${agentName ?? ''}:${range ?? 'all'}`;
     const cached = this.modelsCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) {
       return cached.models;
@@ -163,7 +181,7 @@ export class MessagesQueryService {
     if (cutoff) {
       modelsQb.andWhere('at.timestamp >= :cutoff', { cutoff });
     }
-    addTenantFilter(modelsQb, userId, undefined, tenantId);
+    addTenantFilter(modelsQb, userId, agentName, tenantId);
     const modelsResult = await modelsQb.orderBy('at.model', 'ASC').getRawMany();
 
     const models = modelsResult.map((r: Record<string, unknown>) => String(r['model']));
@@ -173,5 +191,35 @@ export class MessagesQueryService {
     }
     this.modelsCache.set(cacheKey, { models, expiresAt: Date.now() + MODELS_CACHE_TTL_MS });
     return models;
+  }
+
+  private buildCountCacheKey(params: {
+    userId: string;
+    range?: string;
+    status?: string;
+    service_type?: string;
+    model?: string;
+    agent_name?: string;
+    cost_min?: number;
+    cost_max?: number;
+  }): string {
+    return [
+      params.userId,
+      params.range ?? '',
+      params.status ?? '',
+      params.service_type ?? '',
+      params.model ?? '',
+      params.agent_name ?? '',
+      params.cost_min ?? '',
+      params.cost_max ?? '',
+    ].join(':');
+  }
+
+  private setCountCache(key: string, count: number): void {
+    if (this.countCache.size >= MAX_CACHE_ENTRIES && !this.countCache.has(key)) {
+      const firstKey = this.countCache.keys().next().value;
+      if (firstKey !== undefined) this.countCache.delete(firstKey);
+    }
+    this.countCache.set(key, { count, expiresAt: Date.now() + COUNT_CACHE_TTL_MS });
   }
 }

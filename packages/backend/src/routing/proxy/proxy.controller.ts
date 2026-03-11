@@ -17,10 +17,11 @@ import { Public } from '../../common/decorators/public.decorator';
 import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProxyService, FailedFallback } from './proxy.service';
 import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
-import { initSseHeaders, pipeStream } from './stream-writer';
+import { initSseHeaders, pipeStream, StreamUsage } from './stream-writer';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
 
 const MAX_SEEN_USERS = 10_000;
@@ -43,6 +44,7 @@ export class ProxyController implements OnModuleDestroy {
     private readonly providerClient: ProviderClient,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
+    private readonly pricingCache: ModelPricingCacheService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -184,22 +186,24 @@ export class ProxyController implements OnModuleDestroy {
         ).catch((e) => this.logger.warn(`Failed to record fallback success: ${e}`));
       }
 
+      let streamUsage: StreamUsage | null = null;
+
       if (isStream && providerResponse.body) {
         initSseHeaders(res, metaHeaders);
         headersSent = true;
 
         if (forward.isGoogle) {
-          await pipeStream(providerResponse.body, res, (chunk) =>
+          streamUsage = await pipeStream(providerResponse.body, res, (chunk) =>
             this.providerClient.convertGoogleStreamChunk(chunk, meta.model),
           );
         } else if (forward.isAnthropic) {
-          await pipeStream(
+          streamUsage = await pipeStream(
             providerResponse.body,
             res,
             this.providerClient.createAnthropicStreamTransformer(meta.model),
           );
         } else {
-          await pipeStream(providerResponse.body, res);
+          streamUsage = await pipeStream(providerResponse.body, res);
         }
       } else {
         let responseBody: unknown;
@@ -214,9 +218,35 @@ export class ProxyController implements OnModuleDestroy {
           responseBody = await providerResponse.json();
         }
 
+        // Extract usage from the OpenAI-format response body
+        const body = responseBody as Record<string, unknown> | undefined;
+        const usage = body?.usage as Record<string, number> | undefined;
+        if (usage && typeof usage.prompt_tokens === 'number') {
+          streamUsage = {
+            prompt_tokens: usage.prompt_tokens,
+            completion_tokens: usage.completion_tokens ?? 0,
+            cache_read_tokens: usage.cache_read_tokens,
+            cache_creation_tokens: usage.cache_creation_tokens,
+          };
+        }
+
         res.status(200);
         for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
         res.json(responseBody);
+      }
+
+      // Record successful message with real token data (non-fallback only).
+      // For fallback successes, recordFallbackSuccess already creates the record.
+      if (!meta.fallbackFromModel && streamUsage) {
+        this.recordSuccessMessage(
+          req.ingestionContext,
+          meta.model,
+          meta.tier,
+          meta.reason,
+          streamUsage,
+          traceId,
+          meta.auth_type,
+        ).catch((e) => this.logger.warn(`Failed to record success message: ${e}`));
       }
     } catch (err: unknown) {
       if (clientAbort.signal.aborted) {
@@ -390,6 +420,51 @@ export class ProxyController implements OnModuleDestroy {
       cache_creation_tokens: 0,
       fallback_from_model: fallbackFromModel ?? null,
       fallback_index: fallbackIndex ?? null,
+    });
+  }
+
+  private async recordSuccessMessage(
+    ctx: IngestionContext,
+    model: string,
+    tier: string,
+    reason: string,
+    usage: StreamUsage,
+    traceId?: string,
+    authType?: string,
+  ): Promise<void> {
+    if (usage.prompt_tokens === 0 && usage.completion_tokens === 0) return;
+
+    let costUsd: number | null = null;
+    if (authType === 'subscription') {
+      costUsd = 0;
+    } else {
+      const pricing = this.pricingCache.getByModel(model);
+      if (pricing?.input_price_per_token != null && pricing?.output_price_per_token != null) {
+        costUsd =
+          usage.prompt_tokens * Number(pricing.input_price_per_token) +
+          usage.completion_tokens * Number(pricing.output_price_per_token);
+      }
+    }
+
+    await this.messageRepo.insert({
+      id: uuid(),
+      tenant_id: ctx.tenantId,
+      agent_id: ctx.agentId,
+      trace_id: traceId ?? null,
+      timestamp: new Date().toISOString(),
+      status: 'ok',
+      agent_name: ctx.agentName,
+      model,
+      routing_tier: tier,
+      routing_reason: reason,
+      input_tokens: usage.prompt_tokens,
+      output_tokens: usage.completion_tokens,
+      cache_read_tokens: usage.cache_read_tokens ?? 0,
+      cache_creation_tokens: usage.cache_creation_tokens ?? 0,
+      cost_usd: costUsd,
+      auth_type: authType ?? null,
+      fallback_from_model: null,
+      fallback_index: null,
     });
   }
 

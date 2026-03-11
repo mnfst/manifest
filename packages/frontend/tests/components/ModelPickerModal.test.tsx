@@ -60,13 +60,14 @@ describe("ModelPickerModal", () => {
     expect(screen.getByText("Anthropic")).toBeDefined();
   });
 
-  it("calls onSelect when a model is clicked", () => {
+  it("calls onSelect with activeTab when a model is clicked", () => {
     render(() => (
       <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
     const claudeButtons = screen.getAllByText("Claude Opus 4.6");
     fireEvent.click(claudeButtons[claudeButtons.length - 1]);
-    expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6", undefined);
+    // Default tab is 'api_key' when no subscription providers are connected
+    expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6", "api_key");
   });
 
   it("closes on overlay click", () => {
@@ -186,5 +187,183 @@ describe("ModelPickerModal", () => {
       <ModelPickerModal tierId="simple" models={modelsPlain} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
     expect(container.textContent).toContain("totally-custom-model");
+  });
+
+  it("always renders both Subscription and API Keys tabs", () => {
+    // No connectedProviders passed at all — tabs should still render
+    render(() => (
+      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+    ));
+    expect(screen.getByText("Subscription")).toBeDefined();
+    expect(screen.getByText("API Keys")).toBeDefined();
+  });
+
+  it("renders tabs even when no subscription providers exist", () => {
+    const providers = [
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(screen.getByText("Subscription")).toBeDefined();
+    expect(screen.getByText("API Keys")).toBeDefined();
+  });
+
+  it("passes activeTab as authType in onSelect for subscription tab", () => {
+    const providers = [
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // Default tab is 'subscription' when subscription providers exist
+    const claudeButtons = screen.getAllByText("Claude Opus 4.6");
+    fireEvent.click(claudeButtons[claudeButtons.length - 1]);
+    expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6", "subscription");
+  });
+
+  it("filters subscription tab to only subscription providers' models", () => {
+    const providers = [
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+      { id: "p2", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // Subscription tab is active by default (subscription exists)
+    // Only Anthropic models should show (OpenAI is api_key)
+    expect(screen.getByText("Anthropic")).toBeDefined();
+    expect(screen.queryByText("OpenAI")).toBeNull();
+  });
+
+  it("filters API Keys tab to only api_key providers' models", () => {
+    const providers = [
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+      { id: "p2", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // Switch to API Keys tab
+    fireEvent.click(screen.getByText("API Keys"));
+    // Only OpenAI models should show (Anthropic is subscription)
+    expect(screen.getByText("OpenAI")).toBeDefined();
+    expect(screen.queryByText("Anthropic")).toBeNull();
+  });
+
+  it("adds both lowercased provider name and resolved provider ID to providerIdsForTab", () => {
+    // Provider name "Google" should resolve to provider ID "gemini" via resolveProviderId mock
+    // But the mock returns null for "Google" — so we test with case where provider name is "openai"
+    // The providerIdsForTab adds both p.provider.toLowerCase() AND resolveProviderId(p.provider)
+    const providers = [
+      { id: "p1", provider: "OpenAI", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    // Model with provider "OpenAI" — resolveProviderId("OpenAI") returns "openai"
+    // providerIdsForTab adds both "openai" (lowercase of "OpenAI") and "openai" (resolved)
+    const models = [
+      { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // Switch to API Keys tab (default since no subscription)
+    expect(screen.getByText("OpenAI")).toBeDefined();
+  });
+
+  it("shows 'Included in subscription' text on subscription tab models", () => {
+    const providers = [
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // On subscription tab, models should show "Included in subscription" instead of pricing
+    expect(screen.getByText("Included in subscription")).toBeDefined();
+  });
+
+  it("hides free models filter on subscription tab", () => {
+    const providers = [
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // Subscription tab is active — free models filter should be hidden
+    expect(container.querySelector('.routing-modal__filter-toggle')).toBeNull();
+  });
+
+  it("resets showFreeOnly when switching to subscription tab", () => {
+    const providers = [
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+      { id: "p2", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // Switch to API Keys tab
+    fireEvent.click(screen.getByText("API Keys"));
+    // Enable free models filter
+    const checkbox = container.querySelector('.routing-modal__filter-toggle input[type="checkbox"]') as HTMLInputElement;
+    fireEvent.change(checkbox, { target: { checked: true } });
+    // Switch to Subscription tab — showFreeOnly should be reset
+    fireEvent.click(screen.getByText("Subscription"));
+    // No filter bar should show on subscription tab
+    expect(container.querySelector('.routing-modal__filter-toggle')).toBeNull();
   });
 });

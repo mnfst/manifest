@@ -1,12 +1,14 @@
-import { For, Show, type Component } from 'solid-js';
+import { createSignal, For, Show, type Component } from 'solid-js';
 import { providerIcon } from './ProviderIcon.js';
 import { resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
+import { getModelLabel } from '../services/providers.js';
 import {
   setFallbacks,
   clearFallbacks,
   type AvailableModel,
   type CustomProviderData,
 } from '../services/api.js';
+import { toast } from '../services/toast-store.js';
 
 interface FallbackListProps {
   agentName: string;
@@ -14,14 +16,21 @@ interface FallbackListProps {
   fallbacks: string[];
   models: AvailableModel[];
   customProviders: CustomProviderData[];
-  onUpdate: () => void;
+  onUpdate: (updatedFallbacks: string[]) => void;
   onAddFallback: () => void;
+  adding?: boolean;
 }
 
 const FallbackList: Component<FallbackListProps> = (props) => {
+  const [removingIndex, setRemovingIndex] = createSignal<number | null>(null);
+
   const modelLabel = (model: string): string => {
     const info = props.models.find((m) => m.model_name === model);
     if (info?.display_name) return info.display_name;
+    if (info) {
+      const provId = resolveProviderId(info.provider);
+      if (provId) return getModelLabel(provId, model);
+    }
     return stripCustomPrefix(model);
   };
 
@@ -32,16 +41,23 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   };
 
   const handleRemove = async (index: number) => {
+    setRemovingIndex(index);
+    const original = [...props.fallbacks];
     const updated = props.fallbacks.filter((_, i) => i !== index);
+    // Optimistic: remove from UI immediately
+    props.onUpdate(updated);
     try {
       if (updated.length === 0) {
         await clearFallbacks(props.agentName, props.tier);
       } else {
         await setFallbacks(props.agentName, props.tier, updated);
       }
-      props.onUpdate();
+      toast.success('Fallback removed');
     } catch {
-      // error toast from fetchMutate
+      // Revert on failure
+      props.onUpdate(original);
+    } finally {
+      setRemovingIndex(null);
     }
   };
 
@@ -85,8 +101,9 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     onClick={() => handleRemove(i())}
                     title="Remove fallback"
                     aria-label={`Remove ${modelLabel(model)}`}
+                    disabled={removingIndex() !== null}
                   >
-                    &times;
+                    {removingIndex() === i() ? '...' : '\u00d7'}
                   </button>
                 </li>
               );
@@ -95,8 +112,12 @@ const FallbackList: Component<FallbackListProps> = (props) => {
         </ol>
       </Show>
       <Show when={props.fallbacks.length < 5}>
-        <button class="fallback-list__add routing-action" onClick={props.onAddFallback}>
-          + Add fallback
+        <button
+          class="fallback-list__add routing-action"
+          onClick={props.onAddFallback}
+          disabled={props.adding || removingIndex() !== null}
+        >
+          {props.adding ? <span class="spinner" /> : '+ Add fallback'}
         </button>
       </Show>
     </div>

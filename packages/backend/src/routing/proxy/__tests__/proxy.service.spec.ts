@@ -25,6 +25,7 @@ describe('ProxyService', () => {
 
     routingService = {
       getProviderApiKey: jest.fn(),
+      getAuthType: jest.fn().mockResolvedValue('api_key'),
       getTiers: jest.fn().mockResolvedValue([]),
     } as unknown as jest.Mocked<RoutingService>;
 
@@ -1300,6 +1301,246 @@ describe('ProxyService', () => {
 
       expect(routingService.getTiers).not.toHaveBeenCalled();
       expect(result.forward.response.status).toBe(400);
+    });
+
+    it('falls back from api_key primary to subscription fallback model', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+        auth_type: 'api_key',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-openai') // primary
+        .mockResolvedValueOnce('skst-anthropic-token'); // fallback (subscription)
+      // getAuthType returns subscription for the fallback provider
+      routingService.getAuthType.mockResolvedValueOnce('subscription');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('rate limited', { status: 429 }),
+          isGoogle: false,
+          isAnthropic: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: true,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['claude-sonnet-4'] },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
+      expect(result.meta.model).toBe('claude-sonnet-4');
+      expect(result.meta.provider).toBe('Anthropic');
+      expect(result.meta.primaryErrorStatus).toBe(429);
+      // Primary was called with api_key auth_type
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        1,
+        'OpenAI',
+        'sk-openai',
+        'gpt-4o',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'api_key',
+      );
+      // Fallback resolves auth_type via getAuthType and passes subscription
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        'Anthropic',
+        'skst-anthropic-token',
+        'claude-sonnet-4',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+      // getAuthType was called for the fallback provider
+      expect(routingService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic');
+      // getProviderApiKey was called with subscription for the fallback
+      expect(routingService.getProviderApiKey).toHaveBeenNthCalledWith(
+        2,
+        'agent-1',
+        'Anthropic',
+        'subscription',
+      );
+    });
+
+    it('falls back from subscription primary to api_key fallback model', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'complex',
+        model: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        confidence: 0.9,
+        score: 0.2,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('skst-token') // primary (subscription)
+        .mockResolvedValueOnce('sk-openai'); // fallback (api_key)
+      // getAuthType returns api_key for the fallback provider (OpenAI)
+      routingService.getAuthType.mockResolvedValueOnce('api_key');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('overloaded', { status: 503 }),
+          isGoogle: false,
+          isAnthropic: true,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'complex', fallback_models: ['gpt-4o'] },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(result.meta.fallbackFromModel).toBe('claude-sonnet-4');
+      expect(result.meta.model).toBe('gpt-4o');
+      expect(result.meta.provider).toBe('OpenAI');
+      // Primary forwarded with subscription auth_type
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        1,
+        'Anthropic',
+        'skst-token',
+        'claude-sonnet-4',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+      // Fallback forwarded with api_key auth_type
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        'OpenAI',
+        'sk-openai',
+        'gpt-4o',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'api_key',
+      );
+    });
+
+    it('falls back between two subscription providers', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('skst-anthropic') // primary (subscription)
+        .mockResolvedValueOnce('skst-google'); // fallback (subscription)
+      // getAuthType returns subscription for the fallback provider too
+      routingService.getAuthType.mockResolvedValueOnce('subscription');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('server error', { status: 500 }),
+          isGoogle: false,
+          isAnthropic: true,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: true,
+          isAnthropic: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['gemini-2.5-flash'] },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'Google' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(result.meta.fallbackFromModel).toBe('claude-sonnet-4');
+      expect(result.meta.model).toBe('gemini-2.5-flash');
+      expect(result.meta.provider).toBe('Google');
+      expect(result.meta.fallbackIndex).toBe(0);
+      // Fallback forwarded with subscription auth_type
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        'Google',
+        'skst-google',
+        'gemini-2.5-flash',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+    });
+
+    it('skips fallback model with subscription auth but no stored token', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+        auth_type: 'api_key',
+      });
+      // getAuthType returns subscription for Anthropic, api_key for DeepSeek
+      routingService.getAuthType
+        .mockResolvedValueOnce('subscription')
+        .mockResolvedValueOnce('api_key');
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-openai') // primary
+        .mockResolvedValueOnce(null) // first fallback: subscription with no token
+        .mockResolvedValueOnce('sk-deepseek'); // second fallback: has key
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('rate limited', { status: 429 }),
+          isGoogle: false,
+          isAnthropic: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['claude-sonnet-4', 'deepseek-chat'] },
+      ] as never);
+      pricingCache.getByModel
+        .mockReturnValueOnce({ provider: 'Anthropic' } as never)
+        .mockReturnValueOnce({ provider: 'DeepSeek' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      // Anthropic fallback skipped (subscription with no token), DeepSeek succeeded
+      expect(result.meta.model).toBe('deepseek-chat');
+      expect(result.meta.provider).toBe('DeepSeek');
+      expect(result.meta.fallbackIndex).toBe(1);
+      // forward called twice: primary + second fallback (first was skipped)
+      expect(providerClient.forward).toHaveBeenCalledTimes(2);
+      expect(result.failedFallbacks).toHaveLength(0);
+      // Verify getAuthType was called for both fallback providers
+      expect(routingService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic');
+      expect(routingService.getAuthType).toHaveBeenCalledWith('agent-1', 'DeepSeek');
     });
 
     it('returns all failed fallbacks when all fail', async () => {

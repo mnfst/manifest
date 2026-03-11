@@ -79,6 +79,14 @@ export function getModelLabel(providerId: string, modelValue: string): string {
       const found = p.models.find((m) => m.value === bare);
       if (found) return found.label;
     }
+    // Normalize dots to dashes (OpenRouter uses "4.6", PROVIDERS uses "4-6")
+    const normalized = bare.replace(/\./g, '-');
+    if (normalized !== bare) {
+      for (const p of PROVIDERS) {
+        const found = p.models.find((m) => m.value === normalized);
+        if (found) return found.label;
+      }
+    }
     return bare;
   }
   return modelValue;
