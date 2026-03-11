@@ -155,8 +155,56 @@ export class TimeseriesQueriesService {
     }));
   }
 
-  async getActiveSkills(range: string, userId: string, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    agentName?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly
+      ? sqlHourBucket('at.timestamp', this.dialect)
+      : sqlDateBucket('at.timestamp', this.dialect);
+    const bucketAlias = hourly ? 'hour' : 'date';
+
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
+      .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
+      .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'cost')
+      .addSelect('COUNT(*)', 'count')
+      .where('at.timestamp >= :cutoff', { cutoff });
+    addTenantFilter(qb, userId, agentName, tenantId);
+    const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
+
+    const tokenUsage: {
+      hour?: string;
+      date?: string;
+      input_tokens: number;
+      output_tokens: number;
+    }[] = [];
+    const costUsage: { hour?: string; date?: string; cost: number }[] = [];
+    const messageUsage: { hour?: string; date?: string; count: number }[] = [];
+
+    for (const r of rows) {
+      const bucket = String(r[bucketAlias]);
+      tokenUsage.push({
+        [bucketAlias]: bucket,
+        input_tokens: Number(r['input_tokens'] ?? 0),
+        output_tokens: Number(r['output_tokens'] ?? 0),
+      } as never);
+      costUsage.push({ [bucketAlias]: bucket, cost: Number(r['cost'] ?? 0) } as never);
+      messageUsage.push({ [bucketAlias]: bucket, count: Number(r['count'] ?? 0) } as never);
+    }
+
+    return { tokenUsage, costUsage, messageUsage };
+  }
+
+  async getActiveSkills(range: string, userId: string, agentName?: string, tenantId?: string) {
+    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
@@ -168,7 +216,7 @@ export class TimeseriesQueriesService {
       .addSelect('MAX(at.timestamp)', 'last_active_at')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.skill_name IS NOT NULL');
-    addTenantFilter(qb, userId, agentName, tenantId);
+    addTenantFilter(qb, userId, agentName, resolved);
     const rows = await qb.groupBy('at.skill_name').orderBy('run_count', 'DESC').getRawMany();
     return rows.map((r: Record<string, unknown>) => ({
       name: String(r['name']),
@@ -179,8 +227,14 @@ export class TimeseriesQueriesService {
     }));
   }
 
-  async getRecentActivity(range: string, userId: string, limit = 5, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getRecentActivity(
+    range: string,
+    userId: string,
+    limit = 5,
+    agentName?: string,
+    tenantId?: string,
+  ) {
+    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
@@ -203,12 +257,12 @@ export class TimeseriesQueriesService {
       .addSelect('at.fallback_from_model', 'fallback_from_model')
       .addSelect('at.fallback_index', 'fallback_index')
       .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(qb, userId, agentName, tenantId);
+    addTenantFilter(qb, userId, agentName, resolved);
     return qb.orderBy('at.timestamp', 'DESC').limit(limit).getRawMany();
   }
 
-  async getCostByModel(range: string, userId: string, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getCostByModel(range: string, userId: string, agentName?: string, tenantId?: string) {
+    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
@@ -220,7 +274,7 @@ export class TimeseriesQueriesService {
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL')
       .andWhere("at.model != ''");
-    addTenantFilter(qb, userId, agentName, tenantId);
+    addTenantFilter(qb, userId, agentName, resolved);
     const rows = await qb.groupBy('at.model').orderBy('tokens', 'DESC').getRawMany();
 
     const totalTokens = rows.reduce(
