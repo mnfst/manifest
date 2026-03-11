@@ -1,7 +1,7 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import { providerIcon } from './ProviderIcon.js';
 import { resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
-import { getModelLabel } from '../services/providers.js';
+import { getModelLabel } from '../services/provider-utils.js';
 import {
   setFallbacks,
   clearFallbacks,

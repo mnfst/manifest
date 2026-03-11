@@ -1,5 +1,5 @@
 import { A, useLocation, useNavigate } from '@solidjs/router';
-import { Show, createSignal, onCleanup, onMount, type Component } from 'solid-js';
+import { Show, createSignal, createEffect, onCleanup, onMount, type Component } from 'solid-js';
 import { useAgentName } from '../services/routing.js';
 import { authClient } from '../services/auth-client.js';
 import { checkLocalMode, isLocalMode } from '../services/local-mode.js';
@@ -8,6 +8,9 @@ import { agentDisplayName } from '../services/agent-display-name.js';
 
 const GITHUB_REPO = 'mnfst/manifest';
 const STAR_DISMISSED_KEY = 'github-star-dismissed';
+const STAR_CACHE_KEY = 'github-star-count';
+const STAR_CACHE_TS_KEY = 'github-star-ts';
+const STAR_CACHE_TTL = 3600000; // 1 hour
 
 const Header: Component = () => {
   const getAgentName = useAgentName();
@@ -23,11 +26,19 @@ const Header: Component = () => {
   onMount(() => {
     checkLocalMode();
     if (!starDismissed()) {
+      const cachedCount = sessionStorage.getItem(STAR_CACHE_KEY);
+      const cachedTs = sessionStorage.getItem(STAR_CACHE_TS_KEY);
+      if (cachedCount && cachedTs && Date.now() - Number(cachedTs) < STAR_CACHE_TTL) {
+        setStarCount(Number(cachedCount));
+        return;
+      }
       fetch('/api/v1/github/stars')
         .then((r) => r.json())
         .then((data) => {
           if (typeof data.stars === 'number') {
             setStarCount(data.stars);
+            sessionStorage.setItem(STAR_CACHE_KEY, String(data.stars));
+            sessionStorage.setItem(STAR_CACHE_TS_KEY, String(Date.now()));
           }
         })
         .catch(() => {});
@@ -77,8 +88,12 @@ const Header: Component = () => {
     }
   };
 
-  document.addEventListener('click', handleClickOutside);
-  onCleanup(() => document.removeEventListener('click', handleClickOutside));
+  createEffect(() => {
+    if (menuOpen()) {
+      document.addEventListener('click', handleClickOutside);
+      onCleanup(() => document.removeEventListener('click', handleClickOutside));
+    }
+  });
 
   return (
     <header class="header">

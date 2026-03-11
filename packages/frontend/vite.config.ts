@@ -20,6 +20,21 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/solid-js") || id.includes("node_modules/@solidjs/")) {
+            return "vendor";
+          }
+          if (id.includes("node_modules/uplot")) {
+            return "charts";
+          }
+          if (id.includes("node_modules/better-auth")) {
+            return "auth";
+          }
+        },
+      },
+    },
   },
   test: {
     environment: "jsdom",

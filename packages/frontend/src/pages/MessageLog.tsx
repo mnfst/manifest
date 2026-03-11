@@ -333,6 +333,7 @@ const MessageLog: Component = () => {
                       src="/example-messages.svg"
                       alt="Example message log showing LLM call history"
                       class="empty-state__img"
+                      loading="lazy"
                     />
                   </div>
                 </div>

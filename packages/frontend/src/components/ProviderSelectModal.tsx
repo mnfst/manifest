@@ -1,5 +1,6 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
-import { PROVIDERS, validateApiKey } from '../services/providers.js';
+import { PROVIDERS } from '../services/providers.js';
+import { validateApiKey } from '../services/provider-utils.js';
 import { providerIcon } from './ProviderIcon.js';
 import {
   connectProvider,
