@@ -3,6 +3,7 @@ import { validate } from 'class-validator';
 import {
   ResolveController,
   RegisterSubscriptionsDto,
+  RoutingSummaryResponse,
   SubscriptionProviderItem,
 } from './resolve.controller';
 import { ResolveService } from './resolve.service';
@@ -12,7 +13,12 @@ import { ResolveResponse } from './dto/resolve-response';
 describe('ResolveController', () => {
   let controller: ResolveController;
   let mockResolveService: { resolve: jest.Mock };
-  let mockRoutingService: { upsertProvider: jest.Mock };
+  let mockRoutingService: {
+    upsertProvider: jest.Mock;
+    getProviders: jest.Mock;
+    getTiers: jest.Mock;
+    getEffectiveModel: jest.Mock;
+  };
 
   const mockResponse: ResolveResponse = {
     tier: 'simple',
@@ -29,6 +35,9 @@ describe('ResolveController', () => {
     };
     mockRoutingService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
+      getProviders: jest.fn().mockResolvedValue([]),
+      getTiers: jest.fn().mockResolvedValue([]),
+      getEffectiveModel: jest.fn().mockResolvedValue(null),
     };
     controller = new ResolveController(
       mockResolveService as unknown as ResolveService,
@@ -93,6 +102,108 @@ describe('ResolveController', () => {
     );
 
     expect(result).toBe(mockResponse);
+  });
+
+  describe('getSummary', () => {
+    it('returns active providers and effective tier models for the current agent', async () => {
+      const req = {
+        ingestionContext: {
+          userId: 'user-42',
+          tenantId: 't1',
+          agentId: 'a1',
+          agentName: 'test-agent',
+        },
+      } as never;
+
+      mockRoutingService.getProviders.mockResolvedValue([
+        { provider: 'openai', auth_type: 'api_key', is_active: true },
+        { provider: 'anthropic', auth_type: 'subscription', is_active: true },
+        { provider: 'deepseek', auth_type: 'api_key', is_active: false },
+      ]);
+      mockRoutingService.getTiers.mockResolvedValue([
+        {
+          tier: 'reasoning',
+          override_model: 'o3',
+          auto_assigned_model: 'o4-mini',
+          fallback_models: ['o4-mini'],
+        },
+        {
+          tier: 'simple',
+          override_model: null,
+          auto_assigned_model: 'gpt-4.1-mini',
+          fallback_models: null,
+        },
+        {
+          tier: 'standard',
+          override_model: null,
+          auto_assigned_model: 'claude-sonnet-4',
+          fallback_models: null,
+        },
+        {
+          tier: 'complex',
+          override_model: 'gpt-4.1',
+          auto_assigned_model: 'claude-opus-4',
+          fallback_models: ['claude-opus-4'],
+        },
+      ]);
+      mockRoutingService.getEffectiveModel.mockImplementation(
+        async (_agentId: string, assignment: { tier: string }) => {
+          switch (assignment.tier) {
+            case 'simple':
+              return 'gpt-4.1-mini';
+            case 'standard':
+              return 'claude-sonnet-4';
+            case 'complex':
+              return 'claude-opus-4';
+            case 'reasoning':
+              return 'o3';
+            default:
+              return null;
+          }
+        },
+      );
+
+      const result = await controller.getSummary(req);
+
+      const expected: RoutingSummaryResponse = {
+        agentName: 'test-agent',
+        providers: [
+          { provider: 'anthropic', auth_type: 'subscription' },
+          { provider: 'openai', auth_type: 'api_key' },
+        ],
+        tiers: [
+          {
+            tier: 'simple',
+            model: 'gpt-4.1-mini',
+            source: 'auto',
+            fallback_models: [],
+          },
+          {
+            tier: 'standard',
+            model: 'claude-sonnet-4',
+            source: 'auto',
+            fallback_models: [],
+          },
+          {
+            tier: 'complex',
+            model: 'claude-opus-4',
+            source: 'auto',
+            fallback_models: ['claude-opus-4'],
+          },
+          {
+            tier: 'reasoning',
+            model: 'o3',
+            source: 'override',
+            fallback_models: ['o4-mini'],
+          },
+        ],
+      };
+
+      expect(result).toEqual(expected);
+      expect(mockRoutingService.getProviders).toHaveBeenCalledWith('a1');
+      expect(mockRoutingService.getTiers).toHaveBeenCalledWith('a1');
+      expect(mockRoutingService.getEffectiveModel).toHaveBeenCalledTimes(4);
+    });
   });
 
   describe('RegisterSubscriptionsDto', () => {
