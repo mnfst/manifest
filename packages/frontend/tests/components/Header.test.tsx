@@ -26,9 +26,11 @@ vi.mock("../../src/services/routing.js", () => ({
 }));
 
 let mockIsLocalMode: boolean | null = false;
+let mockIsDevMode = false;
 vi.mock("../../src/services/local-mode.js", () => ({
   checkLocalMode: vi.fn().mockResolvedValue(false),
   isLocalMode: () => mockIsLocalMode,
+  isDevMode: () => mockIsDevMode,
 }));
 
 let mockAgentDisplayName: string | null = null;
@@ -43,6 +45,7 @@ beforeEach(() => {
   sessionStorage.clear();
   mockAgentName = null;
   mockIsLocalMode = false;
+  mockIsDevMode = false;
   mockAgentDisplayName = null;
 });
 
@@ -268,16 +271,37 @@ describe("Header - local mode", () => {
     expect(logoLink.getAttribute("href")).toBe("/");
   });
 
-  it("hides Cloud badge in local mode", () => {
+  it("shows Local badge in local mode", () => {
     mockIsLocalMode = true;
     render(() => <Header />);
-    expect(screen.queryByText("Cloud")).toBeNull();
+    expect(screen.getByText("Local")).toBeDefined();
   });
 
-  it("hides Dev badge in cloud mode", () => {
+  it("hides Local badge in cloud mode", () => {
     mockIsLocalMode = false;
     render(() => <Header />);
+    expect(screen.queryByText("Local")).toBeNull();
+  });
+
+  it("shows Dev badge when devMode is true and not local", () => {
+    mockIsDevMode = true;
+    mockIsLocalMode = false;
+    render(() => <Header />);
+    expect(screen.getByText("Dev")).toBeDefined();
+  });
+
+  it("hides Dev badge when devMode is false", () => {
+    mockIsDevMode = false;
+    render(() => <Header />);
     expect(screen.queryByText("Dev")).toBeNull();
+  });
+
+  it("shows both Local and Dev badges when both local and devMode", () => {
+    mockIsLocalMode = true;
+    mockIsDevMode = true;
+    render(() => <Header />);
+    expect(screen.getByText("Local")).toBeDefined();
+    expect(screen.getByText("Dev")).toBeDefined();
   });
 
   it("hides Workspace breadcrumb in local mode", () => {
