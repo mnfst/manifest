@@ -141,7 +141,7 @@ const Overview: Component = () => {
     }
   });
 
-  const SMART_RANGES: string[] = ['30d', '7d', '24h', '1h'];
+  const SMART_RANGES: string[] = ['30d', '7d', '24h'];
 
   createEffect(() => {
     if (userSelectedRange()) return;
@@ -199,7 +199,6 @@ const Overview: Component = () => {
               value={range()}
               onChange={handleRangeChange}
               options={[
-                { label: 'Last hour', value: '1h' },
                 { label: 'Last 24 hours', value: '24h' },
                 { label: 'Last 7 days', value: '7d' },
                 { label: 'Last 30 days', value: '30d' },
