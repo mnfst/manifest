@@ -86,6 +86,23 @@ To use tailsacle to proxy it to your network (needs Tailscale installed in both 
 tailscale serve --bg 2099
 ```
 
+### Switch OpenClaw to `manifest/auto`
+
+After installing the plugin, tell OpenClaw to use Manifest routing.
+
+**Using Telegram (or other messaging apps)**
+
+```text
+/model manifest/auto
+```
+
+**Using the terminal**
+
+```bash
+openclaw config set agents.defaults.model.primary manifest/auto
+openclaw gateway restart
+```
+
 ## Features
 
 - **LLM Router** — scores each query and calls the most suitable model
