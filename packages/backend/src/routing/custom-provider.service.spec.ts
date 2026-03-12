@@ -50,6 +50,7 @@ describe('CustomProviderService (with mocks)', () => {
   let mockRepo: Record<string, jest.Mock>;
   let mockPricingRepo: Record<string, jest.Mock>;
   let mockRoutingService: Record<string, jest.Mock>;
+  let mockRoutingCache: Record<string, jest.Mock>;
   let mockPricingCache: Record<string, jest.Mock>;
   let mockAutoAssign: Record<string, jest.Mock>;
 
@@ -62,6 +63,7 @@ describe('CustomProviderService (with mocks)', () => {
     };
     mockPricingRepo = {
       save: jest.fn().mockResolvedValue(undefined),
+      upsert: jest.fn().mockResolvedValue(undefined),
       createQueryBuilder: jest.fn().mockReturnValue({
         delete: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
@@ -71,6 +73,11 @@ describe('CustomProviderService (with mocks)', () => {
     mockRoutingService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
       removeProvider: jest.fn().mockResolvedValue({ notifications: [] }),
+    };
+    mockRoutingCache = {
+      getCustomProviders: jest.fn().mockReturnValue(null),
+      setCustomProviders: jest.fn(),
+      invalidateAgent: jest.fn(),
     };
     mockPricingCache = {
       reload: jest.fn().mockResolvedValue(undefined),
@@ -83,15 +90,27 @@ describe('CustomProviderService (with mocks)', () => {
       mockRepo as never,
       mockPricingRepo as never,
       mockRoutingService as never,
+      mockRoutingCache as never,
       mockPricingCache as never,
       mockAutoAssign as never,
     );
   });
 
   describe('list', () => {
-    it('queries by agent_id', async () => {
+    it('queries by agent_id on cache miss', async () => {
       await service.list('agent-1');
+      expect(mockRoutingCache.getCustomProviders).toHaveBeenCalledWith('agent-1');
       expect(mockRepo.find).toHaveBeenCalledWith({ where: { agent_id: 'agent-1' } });
+      expect(mockRoutingCache.setCustomProviders).toHaveBeenCalledWith('agent-1', []);
+    });
+
+    it('returns cached data on cache hit', async () => {
+      const cached = [{ id: 'cp-1', name: 'Groq' }];
+      mockRoutingCache.getCustomProviders.mockReturnValue(cached);
+
+      const result = await service.list('agent-1');
+      expect(result).toBe(cached);
+      expect(mockRepo.find).not.toHaveBeenCalled();
     });
   });
 
@@ -116,7 +135,7 @@ describe('CustomProviderService (with mocks)', () => {
       expect(result.base_url).toBe('https://api.groq.com/openai/v1');
       expect(result.models).toHaveLength(1);
       expect(mockRepo.insert).toHaveBeenCalledTimes(1);
-      expect(mockPricingRepo.save).toHaveBeenCalledTimes(1);
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(1);
       expect(mockRoutingService.upsertProvider).toHaveBeenCalledTimes(1);
       expect(mockPricingCache.reload).toHaveBeenCalledTimes(1);
     });
@@ -167,9 +186,9 @@ describe('CustomProviderService (with mocks)', () => {
       };
       await service.create('agent-1', 'user-1', dto as never);
 
-      const savedPricing = mockPricingRepo.save.mock.calls[0][0];
-      expect(savedPricing.input_price_per_token).toBeCloseTo(0.000001);
-      expect(savedPricing.output_price_per_token).toBeCloseTo(0.000002);
+      const upsertedRows = mockPricingRepo.upsert.mock.calls[0][0];
+      expect(upsertedRows[0].input_price_per_token).toBeCloseTo(0.000001);
+      expect(upsertedRows[0].output_price_per_token).toBeCloseTo(0.000002);
     });
   });
 
@@ -298,9 +317,9 @@ describe('CustomProviderService (with mocks)', () => {
         models: [{ model_name: 'new-model', input_price_per_million_tokens: 1.0 }],
       } as never);
 
-      // Should delete old pricing rows and save new ones
+      // Should delete old pricing rows and upsert new ones
       expect(mockPricingRepo.createQueryBuilder).toHaveBeenCalledTimes(1);
-      expect(mockPricingRepo.save).toHaveBeenCalledTimes(1);
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(1);
       expect(mockPricingCache.reload).toHaveBeenCalledTimes(1);
     });
 
@@ -349,6 +368,14 @@ describe('CustomProviderService (with mocks)', () => {
       expect(mockRoutingService.upsertProvider).not.toHaveBeenCalled();
     });
 
+    it('invalidates routing cache after save', async () => {
+      mockRepo.findOne.mockResolvedValueOnce({ ...existingCp }).mockResolvedValueOnce(null);
+
+      await service.update('agent-1', 'cp-1', 'user-1', { name: 'New Name' } as never);
+
+      expect(mockRoutingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
     it('does not double-recalculate when both models and apiKey change', async () => {
       await service.update('agent-1', 'cp-1', 'user-1', {
         models: [{ model_name: 'new-model' }],
@@ -376,10 +403,10 @@ describe('CustomProviderService (with mocks)', () => {
       expect(result.models[0].context_window).toBe(128000);
 
       // Pricing row should use null for unknown prices
-      const savedPricing = mockPricingRepo.save.mock.calls[0][0];
-      expect(savedPricing.input_price_per_token).toBeNull();
-      expect(savedPricing.output_price_per_token).toBeNull();
-      expect(savedPricing.context_window).toBe(128000);
+      const upsertedRows = mockPricingRepo.upsert.mock.calls[0][0];
+      expect(upsertedRows[0].input_price_per_token).toBeNull();
+      expect(upsertedRows[0].output_price_per_token).toBeNull();
+      expect(upsertedRows[0].context_window).toBe(128000);
     });
 
     it('stores explicit zero prices as 0 (not null)', async () => {
@@ -399,12 +426,12 @@ describe('CustomProviderService (with mocks)', () => {
       expect(result.models[0].input_price_per_million_tokens).toBe(0);
       expect(result.models[0].output_price_per_million_tokens).toBe(0);
 
-      const savedPricing = mockPricingRepo.save.mock.calls[0][0];
-      expect(savedPricing.input_price_per_token).toBe(0);
-      expect(savedPricing.output_price_per_token).toBe(0);
+      const upsertedRows = mockPricingRepo.upsert.mock.calls[0][0];
+      expect(upsertedRows[0].input_price_per_token).toBe(0);
+      expect(upsertedRows[0].output_price_per_token).toBe(0);
     });
 
-    it('creates multiple model pricing rows', async () => {
+    it('creates multiple model pricing rows in single upsert', async () => {
       const dto = {
         name: 'Multi',
         base_url: 'https://api.example.com/v1',
@@ -415,7 +442,8 @@ describe('CustomProviderService (with mocks)', () => {
       };
       await service.create('agent-1', 'user-1', dto as never);
 
-      expect(mockPricingRepo.save).toHaveBeenCalledTimes(2);
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(1);
+      expect(mockPricingRepo.upsert.mock.calls[0][0]).toHaveLength(2);
     });
   });
 });

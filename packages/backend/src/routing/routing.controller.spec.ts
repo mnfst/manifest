@@ -1,10 +1,12 @@
 import { NotFoundException } from '@nestjs/common';
 import { RoutingController } from './routing.controller';
 import { RoutingService } from './routing.service';
+import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { ModelPricing } from '../entities/model-pricing.entity';
+import { Agent } from '../entities/agent.entity';
 import * as telemetry from '../common/utils/product-telemetry';
 
 jest.mock('../common/utils/product-telemetry', () => ({
@@ -21,8 +23,7 @@ describe('RoutingController', () => {
   let mockCustomProviderService: Record<string, jest.Mock>;
   let mockPricingCache: Record<string, jest.Mock>;
   let mockOllamaSync: Record<string, jest.Mock>;
-  let mockAgentRepo: Record<string, jest.Mock>;
-  let mockTenantRepo: Record<string, jest.Mock>;
+  let mockResolveAgent: Record<string, jest.Mock>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,7 +36,9 @@ describe('RoutingController', () => {
       setOverride: jest.fn().mockResolvedValue({}),
       clearOverride: jest.fn().mockResolvedValue(undefined),
       resetAllOverrides: jest.fn().mockResolvedValue(undefined),
-      getKeyPrefix: jest.fn().mockReturnValue(null),
+      getFallbacks: jest.fn().mockResolvedValue([]),
+      setFallbacks: jest.fn().mockResolvedValue([]),
+      clearFallbacks: jest.fn().mockResolvedValue(undefined),
     };
     mockPricingCache = {
       getAll: jest.fn().mockReturnValue([]),
@@ -43,11 +46,8 @@ describe('RoutingController', () => {
     mockOllamaSync = {
       sync: jest.fn().mockResolvedValue({ count: 0 }),
     };
-    mockTenantRepo = {
-      findOne: jest.fn().mockResolvedValue({ id: 'tenant-001', name: 'user-1' }),
-    };
-    mockAgentRepo = {
-      findOne: jest.fn().mockResolvedValue({ id: TEST_AGENT_ID, name: 'test-agent' }),
+    mockResolveAgent = {
+      resolve: jest.fn().mockResolvedValue({ id: TEST_AGENT_ID, name: 'test-agent' } as Agent),
     };
     mockCustomProviderService = {
       list: jest.fn().mockResolvedValue([]),
@@ -58,8 +58,7 @@ describe('RoutingController', () => {
       mockCustomProviderService as unknown as CustomProviderService,
       mockPricingCache as unknown as ModelPricingCacheService,
       mockOllamaSync as unknown as OllamaSyncService,
-      mockAgentRepo as never,
-      mockTenantRepo as never,
+      mockResolveAgent as unknown as ResolveAgentService,
     );
   });
 
@@ -113,9 +112,9 @@ describe('RoutingController', () => {
           is_active: true,
           connected_at: '2025-01-01',
           api_key_encrypted: 'enc',
+          key_prefix: 'sk-proj-',
         },
       ]);
-      mockRoutingService.getKeyPrefix.mockReturnValue('sk-proj-');
 
       const result = await controller.getProviders(mockUser, mockAgentName);
 
@@ -124,6 +123,7 @@ describe('RoutingController', () => {
         {
           id: 'p1',
           provider: 'openai',
+          auth_type: 'api_key',
           is_active: true,
           has_api_key: true,
           key_prefix: 'sk-proj-',
@@ -140,10 +140,10 @@ describe('RoutingController', () => {
           is_active: true,
           connected_at: '2025-01-01',
           api_key_encrypted: 'secret',
+          key_prefix: 'sk-proj-',
           agent_id: 'a1',
         },
       ]);
-      mockRoutingService.getKeyPrefix.mockReturnValue('sk-proj-');
 
       const result = await controller.getProviders(mockUser, mockAgentName);
 
@@ -178,8 +178,14 @@ describe('RoutingController', () => {
         'user-1',
         'anthropic',
         'sk-ant-test',
+        undefined,
       );
-      expect(result).toEqual({ id: 'p1', provider: 'anthropic', is_active: true });
+      expect(result).toEqual({
+        id: 'p1',
+        provider: 'anthropic',
+        auth_type: 'api_key',
+        is_active: true,
+      });
     });
 
     it('should call service without apiKey', async () => {
@@ -197,8 +203,14 @@ describe('RoutingController', () => {
         'user-1',
         'openai',
         undefined,
+        undefined,
       );
-      expect(result).toEqual({ id: 'p1', provider: 'openai', is_active: true });
+      expect(result).toEqual({
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+      });
     });
 
     it('should fire routing_provider_connected when provider is new', async () => {
@@ -252,7 +264,12 @@ describe('RoutingController', () => {
         apiKey: 'sk-test',
       });
 
-      expect(result).toEqual({ id: 'p1', provider: 'openai', is_active: true });
+      expect(result).toEqual({
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+      });
       expect(result).not.toHaveProperty('api_key_encrypted');
       expect(result).not.toHaveProperty('agent_id');
     });
@@ -275,17 +292,45 @@ describe('RoutingController', () => {
     it('should return ok with notification count', async () => {
       mockRoutingService.removeProvider.mockResolvedValue({ notifications: 3 });
 
-      const result = await controller.removeProvider(mockUser, 'test-agent', 'openai');
+      const result = await controller.removeProvider(
+        mockUser,
+        { agentName: 'test-agent', provider: 'openai' } as never,
+        {} as never,
+      );
 
-      expect(mockRoutingService.removeProvider).toHaveBeenCalledWith(TEST_AGENT_ID, 'openai');
+      expect(mockRoutingService.removeProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'openai',
+        undefined,
+      );
       expect(result).toEqual({ ok: true, notifications: 3 });
     });
 
     it('should return zero notifications when none cleared', async () => {
       mockRoutingService.removeProvider.mockResolvedValue({ notifications: 0 });
 
-      const result = await controller.removeProvider(mockUser, 'test-agent', 'deepseek');
+      const result = await controller.removeProvider(
+        mockUser,
+        { agentName: 'test-agent', provider: 'deepseek' } as never,
+        {} as never,
+      );
       expect(result).toEqual({ ok: true, notifications: 0 });
+    });
+
+    it('should pass authType to service when provided', async () => {
+      mockRoutingService.removeProvider.mockResolvedValue({ notifications: [] });
+
+      await controller.removeProvider(
+        mockUser,
+        { agentName: 'test-agent', provider: 'anthropic' } as never,
+        { authType: 'subscription' } as never,
+      );
+
+      expect(mockRoutingService.removeProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'anthropic',
+        'subscription',
+      );
     });
   });
 
@@ -319,6 +364,7 @@ describe('RoutingController', () => {
         'user-1',
         'complex',
         'claude-opus-4-6',
+        undefined,
       );
       expect(result).toBe(updated);
     });
@@ -385,6 +431,7 @@ describe('RoutingController', () => {
         capability_reasoning: false,
         capability_code: true,
         quality_score: 3,
+        display_name: '',
         ...overrides,
       } as ModelPricing;
     }
@@ -417,6 +464,21 @@ describe('RoutingController', () => {
       expect(result[0].model_name).toBe('gemini-2.5-pro');
     });
 
+    it('should match models by name prefix when provider field differs (OpenRouter)', async () => {
+      mockRoutingService.getProviders.mockResolvedValue([
+        { provider: 'anthropic', is_active: true },
+      ]);
+      mockPricingCache.getAll.mockReturnValue([
+        makePricing({ model_name: 'anthropic/claude-sonnet-4', provider: 'OpenRouter' }),
+        makePricing({ model_name: 'openai/gpt-4o', provider: 'OpenRouter' }),
+      ]);
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].model_name).toBe('anthropic/claude-sonnet-4');
+    });
+
     it('should return empty array when no active providers', async () => {
       mockRoutingService.getProviders.mockResolvedValue([{ provider: 'openai', is_active: false }]);
       mockPricingCache.getAll.mockReturnValue([
@@ -439,6 +501,7 @@ describe('RoutingController', () => {
         'capability_code',
         'capability_reasoning',
         'context_window',
+        'display_name',
         'input_price_per_token',
         'model_name',
         'output_price_per_token',
@@ -502,17 +565,46 @@ describe('RoutingController', () => {
       expect(result[0].provider_display_name).toBe('custom:cp-orphan');
     });
 
-    it('should not include display_name for non-custom providers', async () => {
+    it('should include display_name for non-custom providers', async () => {
       mockRoutingService.getProviders.mockResolvedValue([{ provider: 'openai', is_active: true }]);
       mockPricingCache.getAll.mockReturnValue([
-        makePricing({ model_name: 'gpt-4o', provider: 'OpenAI' }),
+        makePricing({ model_name: 'gpt-4o', provider: 'OpenAI', display_name: 'GPT-4o' }),
       ]);
 
       const result = await controller.getAvailableModels(mockUser, mockAgentName);
 
       expect(result).toHaveLength(1);
-      expect(result[0]).not.toHaveProperty('display_name');
+      expect(result[0].display_name).toBe('GPT-4o');
       expect(result[0]).not.toHaveProperty('provider_display_name');
+    });
+  });
+
+  /* ── fallback endpoints ── */
+
+  describe('fallback endpoints', () => {
+    it('should delegate getFallbacks to service', async () => {
+      mockRoutingService.getFallbacks.mockResolvedValue(['model-a']);
+      const result = await controller.getFallbacks(mockUser, 'test-agent', 'standard');
+      expect(mockRoutingService.getFallbacks).toHaveBeenCalledWith(TEST_AGENT_ID, 'standard');
+      expect(result).toEqual(['model-a']);
+    });
+
+    it('should delegate setFallbacks to service', async () => {
+      mockRoutingService.setFallbacks.mockResolvedValue(['model-a', 'model-b']);
+      const result = await controller.setFallbacks(mockUser, 'test-agent', 'standard', {
+        models: ['model-a', 'model-b'],
+      });
+      expect(mockRoutingService.setFallbacks).toHaveBeenCalledWith(TEST_AGENT_ID, 'standard', [
+        'model-a',
+        'model-b',
+      ]);
+      expect(result).toEqual(['model-a', 'model-b']);
+    });
+
+    it('should delegate clearFallbacks to service', async () => {
+      const result = await controller.clearFallbacks(mockUser, 'test-agent', 'standard');
+      expect(mockRoutingService.clearFallbacks).toHaveBeenCalledWith(TEST_AGENT_ID, 'standard');
+      expect(result).toEqual({ ok: true });
     });
   });
 
@@ -520,47 +612,37 @@ describe('RoutingController', () => {
 
   describe('resolveAgent', () => {
     it('should throw NotFoundException when tenant is not found', async () => {
-      mockTenantRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(new NotFoundException('Tenant not found'));
 
       await expect(controller.getStatus(mockUser, mockAgentName)).rejects.toThrow(
         NotFoundException,
       );
-      expect(mockTenantRepo.findOne).toHaveBeenCalledWith({
-        where: { name: 'user-1' },
-      });
-      expect(mockAgentRepo.findOne).not.toHaveBeenCalled();
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
     });
 
     it('should throw NotFoundException when agent is not found', async () => {
-      mockTenantRepo.findOne.mockResolvedValue({ id: 'tenant-001', name: 'user-1' });
-      mockAgentRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(
+        new NotFoundException('Agent "nonexistent" not found'),
+      );
 
       await expect(
         controller.getProviders(mockUser, { agentName: 'nonexistent' } as never),
       ).rejects.toThrow(NotFoundException);
-      expect(mockAgentRepo.findOne).toHaveBeenCalledWith({
-        where: { tenant_id: 'tenant-001', name: 'nonexistent' },
-      });
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'nonexistent');
     });
 
     it('should resolve agent and pass its id to service methods', async () => {
-      mockTenantRepo.findOne.mockResolvedValue({ id: 'tenant-002', name: 'user-1' });
-      mockAgentRepo.findOne.mockResolvedValue({ id: 'agent-xyz', name: 'my-agent' });
+      mockResolveAgent.resolve.mockResolvedValue({ id: 'agent-xyz', name: 'my-agent' });
       mockRoutingService.getProviders.mockResolvedValue([]);
 
       await controller.getStatus(mockUser, { agentName: 'my-agent' } as never);
 
-      expect(mockTenantRepo.findOne).toHaveBeenCalledWith({
-        where: { name: 'user-1' },
-      });
-      expect(mockAgentRepo.findOne).toHaveBeenCalledWith({
-        where: { tenant_id: 'tenant-002', name: 'my-agent' },
-      });
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
       expect(mockRoutingService.getProviders).toHaveBeenCalledWith('agent-xyz');
     });
 
     it('should propagate NotFoundException through upsertProvider', async () => {
-      mockTenantRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(new NotFoundException('Tenant not found'));
 
       await expect(
         controller.upsertProvider(mockUser, mockAgentName, {
@@ -571,16 +653,21 @@ describe('RoutingController', () => {
     });
 
     it('should propagate NotFoundException through removeProvider', async () => {
-      mockTenantRepo.findOne.mockResolvedValue({ id: 'tenant-001', name: 'user-1' });
-      mockAgentRepo.findOne.mockResolvedValue(null);
-
-      await expect(controller.removeProvider(mockUser, 'missing-agent', 'openai')).rejects.toThrow(
-        NotFoundException,
+      mockResolveAgent.resolve.mockRejectedValue(
+        new NotFoundException('Agent "missing-agent" not found'),
       );
+
+      await expect(
+        controller.removeProvider(
+          mockUser,
+          { agentName: 'missing-agent', provider: 'openai' } as never,
+          {} as never,
+        ),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should propagate NotFoundException through getTiers', async () => {
-      mockTenantRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(new NotFoundException('Tenant not found'));
 
       await expect(controller.getTiers(mockUser, mockAgentName)).rejects.toThrow(NotFoundException);
     });

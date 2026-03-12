@@ -5,6 +5,7 @@ import { AgentMessage } from '../entities/agent-message.entity';
 import { SecurityEvent } from '../entities/security-event.entity';
 import { TelemetryEventDto } from './dto/create-telemetry.dto';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
+import { TenantCacheService } from '../common/services/tenant-cache.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 
 function makeEvent(overrides: Partial<TelemetryEventDto> = {}): TelemetryEventDto {
@@ -22,11 +23,13 @@ describe('TelemetryService', () => {
   let mockTurnInsert: jest.Mock;
   let mockPricingGetByModel: jest.Mock;
   let mockSecurityInsert: jest.Mock;
+  let mockTenantResolve: jest.Mock;
 
   beforeEach(async () => {
     mockTurnInsert = jest.fn().mockResolvedValue({});
     mockPricingGetByModel = jest.fn().mockReturnValue(undefined);
     mockSecurityInsert = jest.fn().mockResolvedValue({});
+    mockTenantResolve = jest.fn().mockResolvedValue('resolved-tenant-id');
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -34,6 +37,7 @@ describe('TelemetryService', () => {
         { provide: getRepositoryToken(AgentMessage), useValue: { insert: mockTurnInsert } },
         { provide: getRepositoryToken(SecurityEvent), useValue: { insert: mockSecurityInsert } },
         { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: mockTenantResolve } },
         { provide: ModelPricingCacheService, useValue: { getByModel: mockPricingGetByModel } },
       ],
     }).compile();
@@ -51,16 +55,17 @@ describe('TelemetryService', () => {
     expect(result.rejected).toBe(0);
     expect(result.errors).toHaveLength(0);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         input_tokens: 100,
         output_tokens: 50,
+        tenant_id: 'resolved-tenant-id',
         user_id: 'test-user',
       }),
-    );
+    ]);
   });
 
-  it('reports rejected when insert fails', async () => {
+  it('reports rejected when batch insert fails', async () => {
     mockTurnInsert.mockRejectedValueOnce(new Error('DB error'));
 
     const result = await service.ingest([makeEvent()], 'test-user');
@@ -70,19 +75,21 @@ describe('TelemetryService', () => {
     expect(result.errors[0].reason).toBe('DB error');
   });
 
-  it('handles mixed success and failure', async () => {
-    mockTurnInsert.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error('DB error'));
+  it('handles build-time rejection for invalid timestamps', async () => {
+    const validEvent = makeEvent({ input_tokens: 10 });
+    const badEvent = makeEvent({ timestamp: 'not-a-date' });
 
-    const result = await service.ingest([makeEvent(), makeEvent()], 'test-user');
+    const result = await service.ingest([validEvent, badEvent], 'test-user');
 
     expect(result.accepted).toBe(1);
     expect(result.rejected).toBe(1);
+    expect(result.errors[0].index).toBe(1);
   });
 
   it('stores timestamps in ISO-8601 format with trailing Z', async () => {
     await service.ingest([makeEvent({ input_tokens: 10 })], 'test-user');
 
-    const insertedObj = mockTurnInsert.mock.calls[0][0];
+    const insertedObj = mockTurnInsert.mock.calls[0][0][0];
     expect(insertedObj.timestamp).toMatch(/T/);
     expect(insertedObj.timestamp).toMatch(/Z$/);
   });
@@ -94,7 +101,7 @@ describe('TelemetryService', () => {
       mockTurnInsert.mockClear();
       await service.ingest([makeEvent({ timestamp: ts, input_tokens: 1 })], 'test-user');
 
-      const stored = mockTurnInsert.mock.calls[0][0].timestamp;
+      const stored = mockTurnInsert.mock.calls[0][0][0].timestamp;
       expect(stored).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
     }
   });
@@ -119,14 +126,14 @@ describe('TelemetryService', () => {
     expect(result.accepted).toBe(1);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
     expect(mockSecurityInsert).toHaveBeenCalledTimes(1);
-    expect(mockSecurityInsert).toHaveBeenCalledWith(
+    expect(mockSecurityInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         severity: 'critical',
         category: 'injection',
         description: 'Prompt injection detected',
         user_id: 'test-user',
       }),
-    );
+    ]);
   });
 
   it('does not insert security event when event has no security_event', async () => {
@@ -155,11 +162,11 @@ describe('TelemetryService', () => {
 
     expect(result.accepted).toBe(1);
     expect(mockPricingGetByModel).toHaveBeenCalledWith('claude-opus-4-6');
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         // cost = 1000 * 0.000015 + 500 * 0.000075 = 0.0525
         cost_usd: expect.closeTo(0.0525, 4),
       }),
-    );
+    ]);
   });
 });

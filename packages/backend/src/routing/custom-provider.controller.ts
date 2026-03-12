@@ -1,13 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
-import { Agent } from '../entities/agent.entity';
-import { Tenant } from '../entities/tenant.entity';
-import { UserProvider } from '../entities/user-provider.entity';
 import { CustomProviderService } from './custom-provider.service';
-import { resolveAgent } from './resolve-agent.util';
+import { RoutingService } from './routing.service';
+import { ResolveAgentService } from './resolve-agent.service';
 import { CreateCustomProviderDto, UpdateCustomProviderDto } from './dto/custom-provider.dto';
 import { AgentNameParamDto } from './dto/routing.dto';
 
@@ -15,23 +11,18 @@ import { AgentNameParamDto } from './dto/routing.dto';
 export class CustomProviderController {
   constructor(
     private readonly customProviderService: CustomProviderService,
-    @InjectRepository(Agent)
-    private readonly agentRepo: Repository<Agent>,
-    @InjectRepository(Tenant)
-    private readonly tenantRepo: Repository<Tenant>,
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
+    private readonly routingService: RoutingService,
+    private readonly resolveAgentService: ResolveAgentService,
   ) {}
-
-  private resolveAgent(userId: string, agentName: string): Promise<Agent> {
-    return resolveAgent(this.tenantRepo, this.agentRepo, userId, agentName);
-  }
 
   @Get(':agentName/custom-providers')
   async list(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgent(user.id, params.agentName);
-    const providers = await this.customProviderService.list(agent.id);
-    const userProviders = await this.providerRepo.find({ where: { agent_id: agent.id } });
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const [providers, userProviders] = await Promise.all([
+      this.customProviderService.list(agent.id),
+      this.routingService.getProviders(agent.id),
+    ]);
+    if (providers.length === 0) return [];
 
     return providers.map((cp) => {
       const provKey = CustomProviderService.providerKey(cp.id);
@@ -53,12 +44,12 @@ export class CustomProviderController {
     @Param() params: AgentNameParamDto,
     @Body() body: CreateCustomProviderDto,
   ) {
-    const agent = await this.resolveAgent(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const cp = await this.customProviderService.create(agent.id, user.id, body);
     const provKey = CustomProviderService.providerKey(cp.id);
-    const up = await this.providerRepo.findOne({
-      where: { agent_id: agent.id, provider: provKey },
-    });
+    const up = (await this.routingService.getProviders(agent.id)).find(
+      (u) => u.provider === provKey,
+    );
 
     return {
       id: cp.id,
@@ -77,12 +68,12 @@ export class CustomProviderController {
     @Param('id') id: string,
     @Body() body: UpdateCustomProviderDto,
   ) {
-    const agent = await this.resolveAgent(user.id, agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
     const cp = await this.customProviderService.update(agent.id, id, user.id, body);
     const provKey = CustomProviderService.providerKey(cp.id);
-    const up = await this.providerRepo.findOne({
-      where: { agent_id: agent.id, provider: provKey },
-    });
+    const up = (await this.routingService.getProviders(agent.id)).find(
+      (u) => u.provider === provKey,
+    );
 
     return {
       id: cp.id,
@@ -100,7 +91,7 @@ export class CustomProviderController {
     @Param('agentName') agentName: string,
     @Param('id') id: string,
   ) {
-    const agent = await this.resolveAgent(user.id, agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.customProviderService.remove(agent.id, id);
     return { ok: true };
   }

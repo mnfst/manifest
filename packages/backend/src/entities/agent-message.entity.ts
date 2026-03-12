@@ -3,15 +3,19 @@ import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('agent_messages')
 @Index(['tenant_id', 'agent_id', 'timestamp'])
+@Index(['user_id', 'timestamp'])
+@Index(['tenant_id', 'agent_name', 'timestamp'])
+@Index(['tenant_id', 'timestamp'])
+@Index(['tenant_id', 'trace_id'])
+@Index(['tenant_id', 'model'])
+@Index(['tenant_id', 'agent_id', 'status'])
 export class AgentMessage {
   @PrimaryColumn('varchar')
   id!: string;
 
-  @Index()
   @Column('varchar', { nullable: true })
   tenant_id!: string | null;
 
-  @Index()
   @Column('varchar', { nullable: true })
   agent_id!: string | null;
 
@@ -72,7 +76,15 @@ export class AgentMessage {
   @Column('varchar', { nullable: true })
   skill_name!: string | null;
 
-  @Index()
+  @Column('varchar', { nullable: true })
+  auth_type!: string | null;
+
+  @Column('varchar', { nullable: true })
+  fallback_from_model!: string | null;
+
+  @Column('integer', { nullable: true })
+  fallback_index!: number | null;
+
   @Column('varchar', { nullable: true })
   user_id!: string | null;
 }

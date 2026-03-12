@@ -27,6 +27,11 @@ vi.mock("../../src/services/sse.js", () => ({
   pingCount: () => 0,
 }));
 
+vi.mock("../../src/services/model-display.js", () => ({
+  getModelDisplayName: (slug: string) => slug.replace(/^custom:[^/]+\//, ""),
+  preloadModelDisplayNames: () => {},
+}));
+
 vi.mock("../../src/services/formatters.js", () => ({
   formatCost: (v: number) => `$${v.toFixed(2)}`,
   formatNumber: (v: number) => String(v),
@@ -200,6 +205,64 @@ describe("MessageLog", () => {
       const selects = container.querySelectorAll('[data-testid="select"]');
       expect(selects.length).toBeGreaterThanOrEqual(2);
     });
+  });
+
+  it("debounces cost filter inputs", async () => {
+    vi.useFakeTimers();
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.advanceTimersByTimeAsync(100);
+
+    const inputs = container.querySelectorAll(".cost-range-filter__input");
+    expect(inputs.length).toBe(2);
+
+    mockGetMessages.mockClear();
+
+    // Rapid typing should not fire immediately
+    fireEvent.input(inputs[0], { target: { value: "1" } });
+    fireEvent.input(inputs[0], { target: { value: "1.5" } });
+    expect(mockGetMessages).not.toHaveBeenCalled();
+
+    // After debounce window, the API call fires
+    await vi.advanceTimersByTimeAsync(500);
+    expect(mockGetMessages).toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
+
+  it("debounces cost max filter inputs", async () => {
+    vi.useFakeTimers();
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.advanceTimersByTimeAsync(100);
+
+    const inputs = container.querySelectorAll(".cost-range-filter__input");
+    mockGetMessages.mockClear();
+
+    fireEvent.input(inputs[1], { target: { value: "10" } });
+    expect(mockGetMessages).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(500);
+    expect(mockGetMessages).toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
+
+  it("keeps showing stale data during refetch instead of skeletons", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("msg-1234");
+    });
+
+    // Trigger a refetch that never resolves
+    mockGetMessages.mockReturnValue(new Promise(() => {}));
+    const selects = container.querySelectorAll('[data-testid="select"]');
+    await fireEvent.change(selects[0], { target: { value: "ok" } });
+
+    // Should still show old data, not skeletons
+    expect(container.textContent).toContain("msg-1234");
+    expect(container.querySelectorAll(".skeleton").length).toBe(0);
   });
 
   it("shows cost range filter inputs", async () => {
@@ -539,6 +602,71 @@ describe("MessageLog", () => {
     });
   });
 
+  it("shows $0.00 cost for subscription auth_type messages", async () => {
+    const dataWithSub = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], auth_type: "subscription", cost: 0.05 },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithSub);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      // Subscription messages show "$0.00" instead of actual cost
+      expect(container.textContent).toContain("$0.00");
+    });
+  });
+
+  it("shows formatCost fallback for non-subscription messages with cost", async () => {
+    const dataWithCost = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], auth_type: null, cost: 0.05 },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithCost);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("$0.05");
+    });
+  });
+
+  it("renders subscription auth badge on provider icon", async () => {
+    const dataWithSub = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], model: "claude-sonnet-4", auth_type: "subscription" },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithSub);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".provider-auth-badge--sub");
+      expect(badge).not.toBeNull();
+    });
+  });
+
+  it("renders api_key auth badge when auth_type is api_key", async () => {
+    const dataWithApiKey = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], model: "claude-sonnet-4", auth_type: "api_key" },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithApiKey);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".provider-auth-badge--key");
+      expect(badge).not.toBeNull();
+      const subBadge = container.querySelector(".provider-auth-badge--sub");
+      expect(subBadge).toBeNull();
+    });
+  });
+
   it("renders meta description tag", () => {
     mockGetMessages.mockResolvedValue(messagesData);
     render(() => <MessageLog />);
@@ -569,5 +697,119 @@ describe("MessageLog", () => {
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="setup-modal"]')).not.toBeNull();
     });
+  });
+
+  it("renders fallback badge when fallback_from_model is present", async () => {
+    const dataWithFallback = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], fallback_from_model: "gpt-4o", fallback_index: 0 },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithFallback);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".tier-badge--fallback");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toBe("fallback");
+      expect(badge!.getAttribute("title")).toContain("gpt-4o");
+    });
+  });
+
+  it("does not render fallback badge when fallback_from_model is absent", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("gpt-4o");
+      const badge = container.querySelector(".tier-badge--fallback");
+      expect(badge).toBeNull();
+    });
+  });
+
+  it("renders fallback_error status with orange Handled badge", async () => {
+    const dataWithHandled = {
+      ...messagesData,
+      items: [
+        {
+          ...messagesData.items[0],
+          status: "fallback_error",
+          model: "gemini-flash",
+          error_message: "Provider returned HTTP 429, routed to fallback",
+        },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithHandled);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".status-badge--fallback_error");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toBe("fallback_error");
+    });
+  });
+
+  it("assigns row IDs for scroll targeting", async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const row = container.querySelector("#msg-msg-12345678");
+      expect(row).not.toBeNull();
+    });
+  });
+
+  it("scrolls to fallback success when clicking Handled badge", async () => {
+    const dataWithChain = {
+      ...messagesData,
+      items: [
+        {
+          id: "success-1",
+          timestamp: "2026-02-18T10:00:00.200Z",
+          agent_name: "test-agent",
+          model: "deepseek-chat",
+          input_tokens: 500,
+          output_tokens: 100,
+          total_tokens: 600,
+          cost: 0.01,
+          status: "ok",
+          cache_read_tokens: 0,
+          cache_creation_tokens: 0,
+          duration_ms: 800,
+          fallback_from_model: "gemini-flash",
+          fallback_index: 0,
+        },
+        {
+          id: "primary-fail-1",
+          timestamp: "2026-02-18T10:00:00.000Z",
+          agent_name: "test-agent",
+          model: "gemini-flash",
+          input_tokens: 0,
+          output_tokens: 0,
+          total_tokens: 0,
+          cost: null,
+          status: "fallback_error",
+          cache_read_tokens: 0,
+          cache_creation_tokens: 0,
+          duration_ms: null,
+          error_message: "Provider returned HTTP 429, routed to fallback",
+        },
+      ],
+      total_count: 2,
+      models: ["deepseek-chat", "gemini-flash"],
+    };
+    mockGetMessages.mockResolvedValue(dataWithChain);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".status-badge--fallback_error");
+      expect(badge).not.toBeNull();
+    });
+    const successRow = container.querySelector("#msg-success-1");
+    const scrollSpy = vi.fn();
+    if (successRow) {
+      successRow.scrollIntoView = scrollSpy;
+    }
+    const badge = container.querySelector(".status-badge--fallback_error")!;
+    fireEvent.click(badge);
+    expect(scrollSpy).toHaveBeenCalled();
   });
 });

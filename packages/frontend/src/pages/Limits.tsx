@@ -56,6 +56,8 @@ const Limits: Component = () => {
   const [deleteTarget, setDeleteTarget] = createSignal<NotificationRule | null>(null);
   const [deleteConfirmed, setDeleteConfirmed] = createSignal(false);
   const [showRemoveProvider, setShowRemoveProvider] = createSignal(false);
+  const [deleting, setDeleting] = createSignal(false);
+  const [removingProvider, setRemovingProvider] = createSignal(false);
 
   const routingEnabled = () => routingStatus()?.enabled ?? false;
   const hasProvider = () => !isLocalMode() || !!emailProvider();
@@ -111,12 +113,15 @@ const Limits: Component = () => {
   const handleDelete = async () => {
     const target = deleteTarget();
     if (!target) return;
+    setDeleting(true);
     try {
       await deleteNotificationRule(target.id);
       await refetchRules();
       toast.success('Rule deleted');
     } catch {
       // error toast from fetchMutate
+    } finally {
+      setDeleting(false);
     }
     setDeleteTarget(null);
     setDeleteConfirmed(false);
@@ -129,6 +134,7 @@ const Limits: Component = () => {
   };
 
   const handleRemoveProvider = async () => {
+    setRemovingProvider(true);
     try {
       await removeEmailProvider();
       await refetchProvider();
@@ -136,6 +142,8 @@ const Limits: Component = () => {
       toast.success('Email provider removed');
     } catch {
       // error toast from fetchMutate
+    } finally {
+      setRemovingProvider(false);
     }
   };
 
@@ -241,14 +249,65 @@ const Limits: Component = () => {
       <Show when={isLocalMode()}>
         <div style="margin-bottom: var(--gap-lg);">
           <Show
-            when={emailProvider()}
-            fallback={<EmailProviderSetup onConfigured={refetchProvider} />}
+            when={!emailProvider.loading}
+            fallback={
+              <Show
+                when={!!emailProvider()}
+                fallback={
+                  <div class="panel">
+                    <div class="skeleton skeleton--text" style="width: 180px; height: 16px;" />
+                    <div
+                      class="skeleton skeleton--text"
+                      style="width: 280px; height: 13px; margin-top: 6px;"
+                    />
+                    <div style="display: flex; gap: var(--gap-md); margin-top: var(--gap-lg);">
+                      <For each={[1, 2, 3]}>
+                        {() => (
+                          <div
+                            class="skeleton skeleton--rect"
+                            style="flex: 1; height: 64px; border-radius: var(--radius);"
+                          />
+                        )}
+                      </For>
+                    </div>
+                  </div>
+                }
+              >
+                <div class="provider-card">
+                  <div class="provider-card__header">
+                    <span class="provider-card__label">Your provider</span>
+                    <div
+                      class="skeleton skeleton--text"
+                      style="width: 16px; height: 16px; border-radius: calc(var(--radius) - 2px);"
+                    />
+                  </div>
+                  <div class="provider-card__body">
+                    <div
+                      class="skeleton skeleton--rect"
+                      style="width: 32px; height: 32px; border-radius: calc(var(--radius) - 2px); flex-shrink: 0;"
+                    />
+                    <div>
+                      <div class="skeleton skeleton--text" style="width: 80px; height: 14px;" />
+                      <div
+                        class="skeleton skeleton--text"
+                        style="width: 160px; height: 12px; margin-top: 6px;"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Show>
+            }
           >
-            <ProviderBanner
-              config={emailProvider()!}
-              onEdit={() => setShowEditProvider(true)}
-              onRemove={() => setShowRemoveProvider(true)}
-            />
+            <Show
+              when={emailProvider()}
+              fallback={<EmailProviderSetup onConfigured={refetchProvider} />}
+            >
+              <ProviderBanner
+                config={emailProvider()!}
+                onEdit={() => setShowEditProvider(true)}
+                onRemove={() => setShowRemoveProvider(true)}
+              />
+            </Show>
           </Show>
         </div>
       </Show>
@@ -256,87 +315,126 @@ const Limits: Component = () => {
       <div class="panel">
         <div class="panel__title">Rules</div>
         <Show
-          when={(rules() ?? []).length > 0}
+          when={!rules.loading}
           fallback={
-            <div class="empty-state">
-              <div class="empty-state__title">No rules yet</div>
-              <p>Set up alerts for usage spikes, or hard limits to block requests over budget.</p>
-            </div>
+            <table class="notif-table notif-table--flush">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Threshold</th>
+                  <th>Triggered</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={[1, 2, 3]}>
+                  {() => (
+                    <tr>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 28px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 80px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 20px;" />
+                      </td>
+                      <td style="text-align: right;">
+                        <div
+                          class="skeleton skeleton--text"
+                          style="width: 16px; margin-left: auto;"
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
           }
         >
-          <table class="notif-table notif-table--flush">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Threshold</th>
-                <th>Triggered</th>
-                <th style="text-align: right;">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={rules()}>
-                {(rule) => (
-                  <tr classList={{ 'notif-table__row--disabled': !isActive(rule) }}>
-                    <td>
-                      <div class="limit-type-icons">
-                        <Show when={hasEmailAction(rule.action ?? 'notify')}>
-                          <span class="limit-type-icon" title="Email Alert">
-                            <AlertIcon size={14} />
-                          </span>
-                        </Show>
-                        <Show when={hasBlockAction(rule.action ?? 'notify')}>
-                          <span class="limit-type-icon" title="Hard Limit">
-                            <LimitIcon size={14} />
-                          </span>
-                        </Show>
-                        <Show when={hasEmailAction(rule.action ?? 'notify') && !hasProvider()}>
-                          <span class="limit-warn-tag">
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            >
-                              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                              <line x1="12" y1="9" x2="12" y2="13" />
-                              <line x1="12" y1="17" x2="12.01" y2="17" />
+          <Show
+            when={(rules() ?? []).length > 0}
+            fallback={
+              <div class="empty-state">
+                <div class="empty-state__title">No rules yet</div>
+                <p>Set up alerts for usage spikes, or hard limits to block requests over budget.</p>
+              </div>
+            }
+          >
+            <table class="notif-table notif-table--flush">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Threshold</th>
+                  <th>Triggered</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={rules()}>
+                  {(rule) => (
+                    <tr classList={{ 'notif-table__row--disabled': !isActive(rule) }}>
+                      <td>
+                        <div class="limit-type-icons">
+                          <Show when={hasEmailAction(rule.action ?? 'notify')}>
+                            <span class="limit-type-icon" title="Email Alert">
+                              <AlertIcon size={14} />
+                            </span>
+                          </Show>
+                          <Show when={hasBlockAction(rule.action ?? 'notify')}>
+                            <span class="limit-type-icon" title="Hard Limit">
+                              <LimitIcon size={14} />
+                            </span>
+                          </Show>
+                          <Show when={hasEmailAction(rule.action ?? 'notify') && !hasProvider()}>
+                            <span class="limit-warn-tag">
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              >
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                <line x1="12" y1="9" x2="12" y2="13" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                              </svg>
+                              No provider
+                            </span>
+                          </Show>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="notif-table__mono">{formatThreshold(rule)}</span>{' '}
+                        <span class="notif-table__period">
+                          {(PERIOD_LABELS[rule.period] ?? rule.period).toLowerCase()}
+                        </span>
+                      </td>
+                      <td class="notif-table__mono">{rule.trigger_count ?? 0}</td>
+                      <td>
+                        <div class="notif-table__actions">
+                          <button
+                            class="rule-menu__btn"
+                            onClick={(e) => toggleMenu(rule.id, e)}
+                            aria-label="Rule options"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                              <circle cx="12" cy="5" r="2" />
+                              <circle cx="12" cy="12" r="2" />
+                              <circle cx="12" cy="19" r="2" />
                             </svg>
-                            No provider
-                          </span>
-                        </Show>
-                      </div>
-                    </td>
-                    <td>
-                      <span class="notif-table__mono">{formatThreshold(rule)}</span>{' '}
-                      <span class="notif-table__period">
-                        {(PERIOD_LABELS[rule.period] ?? rule.period).toLowerCase()}
-                      </span>
-                    </td>
-                    <td class="notif-table__mono">{rule.trigger_count ?? 0}</td>
-                    <td>
-                      <div class="notif-table__actions">
-                        <button
-                          class="rule-menu__btn"
-                          onClick={(e) => toggleMenu(rule.id, e)}
-                          aria-label="Rule options"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <circle cx="12" cy="5" r="2" />
-                            <circle cx="12" cy="12" r="2" />
-                            <circle cx="12" cy="19" r="2" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
+          </Show>
         </Show>
       </div>
 
@@ -446,10 +544,10 @@ const Limits: Component = () => {
                 </button>
                 <button
                   class="btn btn--danger"
-                  disabled={!deleteConfirmed()}
+                  disabled={!deleteConfirmed() || deleting()}
                   onClick={handleDelete}
                 >
-                  Delete rule
+                  {deleting() ? <span class="spinner" /> : 'Delete rule'}
                 </button>
               </div>
             </div>
@@ -481,8 +579,12 @@ const Limits: Component = () => {
                 <button class="btn btn--ghost" onClick={() => setShowRemoveProvider(false)}>
                   Cancel
                 </button>
-                <button class="btn btn--danger" onClick={handleRemoveProvider}>
-                  Remove
+                <button
+                  class="btn btn--danger"
+                  onClick={handleRemoveProvider}
+                  disabled={removingProvider()}
+                >
+                  {removingProvider() ? <span class="spinner" /> : 'Remove'}
                 </button>
               </div>
             </div>

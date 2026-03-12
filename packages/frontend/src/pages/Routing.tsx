@@ -1,14 +1,17 @@
 import { createSignal, createResource, For, Show, type Component } from 'solid-js';
 import { useParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
-import { STAGES, PROVIDERS, getModelLabel } from '../services/providers.js';
+import { STAGES, PROVIDERS } from '../services/providers.js';
+import { getModelLabel } from '../services/provider-utils.js';
 import { providerIcon } from '../components/ProviderIcon.js';
+import { authBadgeFor } from '../components/AuthBadge.js';
 import ProviderSelectModal from '../components/ProviderSelectModal.js';
 import RoutingInstructionModal from '../components/RoutingInstructionModal.js';
 import ModelPickerModal from '../components/ModelPickerModal.js';
 import { toast } from '../services/toast-store.js';
-import { pricePerM, resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
+import { pricePerM, resolveProviderId, inferProviderFromModel } from '../services/routing-utils.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import FallbackList from '../components/FallbackList.js';
 import {
   getTierAssignments,
   getAvailableModels,
@@ -18,15 +21,26 @@ import {
   overrideTier,
   resetTier,
   resetAllTiers,
+  setFallbacks,
   type TierAssignment,
   type AvailableModel,
+  type AuthType,
 } from '../services/api.js';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
     apiModels.find((x) => x.model_name === model) ??
     apiModels.find((x) => x.model_name.startsWith(model + '-'));
-  if (m) return resolveProviderId(m.provider);
+  if (m) {
+    // Prefer prefix-inferred provider (e.g. "anthropic" from "anthropic/claude-sonnet-4")
+    // over the DB provider field (e.g. "openrouter" when all models come from OpenRouter)
+    const prefixId = inferProviderFromModel(m.model_name);
+    if (prefixId && PROVIDERS.find((p) => p.id === prefixId)) return prefixId;
+    return resolveProviderId(m.provider) ?? prefixId;
+  }
+  // Try inferring from the model name directly
+  const prefix = inferProviderFromModel(model);
+  if (prefix && PROVIDERS.find((p) => p.id === prefix)) return prefix;
   for (const prov of PROVIDERS) {
     if (
       prov.models.some(
@@ -46,15 +60,16 @@ const Routing: Component = () => {
   const params = useParams<{ agentName: string }>();
   const agentName = () => decodeURIComponent(params.agentName);
 
-  const [tiers, { refetch: refetchTiers }] = createResource(() => agentName(), getTierAssignments);
+  const [tiers, { refetch: refetchTiers, mutate: mutateTiers }] = createResource(
+    () => agentName(),
+    getTierAssignments,
+  );
   const [models, { refetch: refetchModels }] = createResource(
     () => agentName(),
     getAvailableModels,
   );
-  const [connectedProviders, { refetch: refetchProviders }] = createResource(
-    () => agentName(),
-    getProviders,
-  );
+  const [connectedProviders, { refetch: refetchProviders, mutate: mutateProviders }] =
+    createResource(() => agentName(), getProviders);
   const [customProviders, { refetch: refetchCustomProviders }] = createResource(
     () => agentName(),
     getCustomProviders,
@@ -64,13 +79,22 @@ const Routing: Component = () => {
   const [disabling, setDisabling] = createSignal(false);
   const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
+  const [resettingTier, setResettingTier] = createSignal<string | null>(null);
+  const [changingTier, setChangingTier] = createSignal<string | null>(null);
+  const [resettingAll, setResettingAll] = createSignal(false);
+  const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
+  const [addingFallback, setAddingFallback] = createSignal<string | null>(null);
+  const [fallbackOverrides, setFallbackOverrides] = createSignal<Record<string, string[]>>({});
+
+  const getFallbacksFor = (tierId: string): string[] => {
+    const overrides = fallbackOverrides();
+    if (tierId in overrides) return overrides[tierId]!;
+    return getTier(tierId)?.fallback_models ?? [];
+  };
 
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
 
-  const activeProviderIds = () =>
-    connectedProviders()
-      ?.filter((p) => p.is_active)
-      .map((p) => p.provider) ?? [];
+  const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
 
   const getTier = (tierId: string): TierAssignment | undefined =>
     tiers()?.find((t) => t.tier === tierId);
@@ -94,7 +118,12 @@ const Routing: Component = () => {
         const provName = info.provider_display_name;
         return provName ? `${provName} / ${info.display_name}` : info.display_name;
       }
-      const provId = resolveProviderId(info.provider);
+      // Prefer prefix-inferred provider for label lookup
+      const prefixId = inferProviderFromModel(modelName);
+      const provId =
+        prefixId && PROVIDERS.find((p) => p.id === prefixId)
+          ? prefixId
+          : resolveProviderId(info.provider);
       if (provId) return getModelLabel(provId, modelName);
     }
     return modelName;
@@ -106,34 +135,75 @@ const Routing: Component = () => {
     return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out per 1M`;
   };
 
-  const handleOverride = async (tierId: string, modelName: string) => {
+  const handleOverride = async (tierId: string, modelName: string, authType?: AuthType) => {
     setDropdownTier(null);
+    setChangingTier(tierId);
     try {
-      await overrideTier(agentName(), tierId, modelName);
-      await refetchTiers();
+      const updated = await overrideTier(agentName(), tierId, modelName, authType);
+      mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
       toast.success('Routing updated');
     } catch {
       // error toast from fetchMutate
+    } finally {
+      setChangingTier(null);
     }
   };
 
   const handleReset = async (tierId: string) => {
+    setResettingTier(tierId);
     try {
       await resetTier(agentName(), tierId);
-      await refetchTiers();
+      mutateTiers((prev) =>
+        prev?.map((t) => (t.tier === tierId ? { ...t, override_model: null } : t)),
+      );
       toast.success('Reset to auto');
     } catch {
       // error toast from fetchMutate
+    } finally {
+      setResettingTier(null);
     }
   };
 
   const handleResetAll = async () => {
+    setResettingAll(true);
     try {
       await resetAllTiers(agentName());
-      await refetchTiers();
+      mutateTiers((prev) => prev?.map((t) => ({ ...t, override_model: null })));
       toast.success('All tiers reset to auto');
     } catch {
       // error toast from fetchMutate
+    } finally {
+      setResettingAll(false);
+    }
+  };
+
+  const handleAddFallback = async (tierId: string, modelName: string, _authType?: AuthType) => {
+    setFallbackPickerTier(null);
+    const tier = getTier(tierId);
+    const current = tier?.fallback_models ?? [];
+    if (current.includes(modelName)) return;
+    const updated = [...current, modelName];
+    setFallbackOverrides((prev) => ({ ...prev, [tierId]: updated }));
+    setAddingFallback(tierId);
+    try {
+      await setFallbacks(agentName(), tierId, updated);
+      mutateTiers((prev) =>
+        prev?.map((t) => (t.tier === tierId ? { ...t, fallback_models: updated } : t)),
+      );
+      toast.success('Fallback added');
+    } catch {
+      setFallbackOverrides((prev) => {
+        const next = { ...prev };
+        delete next[tierId];
+        return next;
+      });
+    } finally {
+      setAddingFallback(null);
+      setFallbackOverrides((prev) => {
+        const next = { ...prev };
+        delete next[tierId];
+        return next;
+      });
     }
   };
 
@@ -141,20 +211,26 @@ const Routing: Component = () => {
 
   const handleDisable = async () => {
     setDisabling(true);
+    // Optimistic: mark all providers inactive so the UI switches immediately
+    const prevProviders = connectedProviders();
+    mutateProviders((prev) => prev?.map((p) => ({ ...p, is_active: false })));
     try {
       await deactivateAllProviders(agentName());
-      await Promise.all([
-        refetchProviders(),
-        refetchCustomProviders(),
-        refetchTiers(),
-        refetchModels(),
-      ]);
-      setInstructionModal('disable');
     } catch {
-      // error toast from fetchMutate
-    } finally {
+      // Revert on failure only when the deactivation itself fails
+      mutateProviders(prevProviders);
       setDisabling(false);
+      return;
     }
+    // Refetch in background — deactivation already succeeded so no revert needed
+    await Promise.all([
+      refetchProviders(),
+      refetchCustomProviders(),
+      refetchTiers(),
+      refetchModels(),
+    ]).catch(() => {});
+    setInstructionModal('disable');
+    setDisabling(false);
   };
 
   const handleProviderUpdate = async () => {
@@ -166,7 +242,10 @@ const Routing: Component = () => {
       refetchModels(),
     ]);
     if (!wasEnabled && isEnabled()) {
-      setInstructionModal('enable');
+      // Only show setup instructions when a non-subscription provider is active,
+      // since subscription models don't require OpenClaw routing configuration.
+      const hasNonSub = activeProviders().some((p) => p.auth_type !== 'subscription');
+      if (hasNonSub) setInstructionModal('enable');
     }
   };
 
@@ -188,7 +267,7 @@ const Routing: Component = () => {
             complexity
           </span>
         </div>
-        <Show when={isEnabled()}>
+        <Show when={!connectedProviders.loading && isEnabled()}>
           <button class="btn btn--primary btn--sm" onClick={() => setShowProviderModal(true)}>
             Connect providers
           </button>
@@ -196,11 +275,75 @@ const Routing: Component = () => {
       </div>
 
       <Show
-        when={!tiers.loading && !connectedProviders.loading}
+        when={!connectedProviders.loading}
         fallback={
-          <div class="panel" style="padding: var(--gap-xl);">
-            <div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />
-          </div>
+          <Show
+            when={
+              connectedProviders() !== undefined && connectedProviders()?.some((p) => p.is_active)
+            }
+            fallback={
+              <div
+                class="panel"
+                style="display: flex; align-items: center; justify-content: center; min-height: 260px;"
+              >
+                <span class="spinner" style="width: 24px; height: 24px;" />
+              </div>
+            }
+          >
+            <div class="routing-providers-info">
+              <span class="routing-providers-info__icons">
+                <span class="routing-providers-info__icon">
+                  <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
+                </span>
+                <span class="routing-providers-info__icon">
+                  <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
+                </span>
+              </span>
+              <span class="routing-providers-info__label">
+                <div class="skeleton skeleton--text" style="width: 80px;" />
+              </span>
+            </div>
+            <div class="routing-cards">
+              <For each={STAGES}>
+                {(stage) => (
+                  <div class="routing-card">
+                    <div class="routing-card__header">
+                      <span class="routing-card__tier">{stage.label}</span>
+                      <span class="routing-card__desc">{stage.desc}</span>
+                    </div>
+                    <div class="routing-card__body">
+                      <div class="routing-card__override">
+                        <span class="routing-card__override-icon">
+                          <div
+                            class="skeleton"
+                            style="width: 16px; height: 16px; border-radius: 50%;"
+                          />
+                        </span>
+                        <div class="skeleton skeleton--text" style="width: 140px; height: 14px;" />
+                      </div>
+                      <div
+                        class="skeleton skeleton--text"
+                        style="width: 200px; height: 12px; margin-top: 6px;"
+                      />
+                    </div>
+                    <div class="routing-card__right">
+                      <div class="routing-card__actions">
+                        <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </For>
+            </div>
+            <div class="routing-footer">
+              <div
+                class="skeleton skeleton--text"
+                style="width: 120px; height: 32px; border-radius: var(--radius);"
+              />
+              <div style="flex: 1;" />
+              <div class="skeleton skeleton--text" style="width: 130px; height: 14px;" />
+            </div>
+          </Show>
         }
       >
         <Show
@@ -237,13 +380,13 @@ const Routing: Component = () => {
         >
           <div class="routing-providers-info">
             <span class="routing-providers-info__icons">
-              <For each={activeProviderIds()}>
-                {(provId) => {
-                  if (provId.startsWith('custom:')) {
-                    const cp = customProviders()?.find((c) => `custom:${c.id}` === provId);
+              <For each={activeProviders()}>
+                {(prov) => {
+                  if (prov.provider.startsWith('custom:')) {
+                    const cp = customProviders()?.find((c) => `custom:${c.id}` === prov.provider);
                     const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
                     return (
-                      <span class="routing-providers-info__icon" title={cp?.name ?? provId}>
+                      <span class="routing-providers-info__icon" title={cp?.name ?? prov.provider}>
                         <span
                           class="provider-card__logo-letter"
                           style={{
@@ -259,17 +402,22 @@ const Routing: Component = () => {
                       </span>
                     );
                   }
-                  const provDef = PROVIDERS.find((p) => p.id === provId);
+                  const provDef = PROVIDERS.find((p) => p.id === prov.provider);
+                  const authLabel = prov.auth_type === 'subscription' ? 'Subscription' : 'API Key';
                   return (
-                    <span class="routing-providers-info__icon" title={provDef?.name ?? provId}>
-                      {providerIcon(provId, 16)}
+                    <span
+                      class="routing-providers-info__icon"
+                      title={`${provDef?.name ?? prov.provider} (${authLabel})`}
+                    >
+                      {providerIcon(prov.provider, 16)}
+                      {authBadgeFor(prov.auth_type, 12)}
                     </span>
                   );
                 }}
               </For>
             </span>
             <span class="routing-providers-info__label">
-              {activeProviderIds().length} provider{activeProviderIds().length !== 1 ? 's' : ''}
+              {activeProviders().length} connection{activeProviders().length !== 1 ? 's' : ''}
             </span>
           </div>
 
@@ -290,89 +438,178 @@ const Routing: Component = () => {
                       <span class="routing-card__tier">{stage.label}</span>
                       <span class="routing-card__desc">{stage.desc}</span>
                     </div>
-                    <div class="routing-card__body">
-                      <Show
-                        when={eff()}
-                        fallback={
-                          <div class="routing-card__empty">
-                            <span class="routing-card__empty-text">No model available</span>
-                            <button
-                              class="routing-card__empty-link"
-                              onClick={() => setDropdownTier(stage.id)}
-                            >
-                              Select model
-                            </button>
-                          </div>
-                        }
-                      >
-                        {(modelName) => (
-                          <>
-                            <div class="routing-card__override">
-                              {(() => {
-                                const provId = providerIdForModel(modelName(), models() ?? []);
-                                if (provId?.startsWith('custom:')) {
-                                  const cp = customProviders()?.find(
-                                    (c) => `custom:${c.id}` === provId,
-                                  );
-                                  const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
-                                  return (
-                                    <span class="routing-card__override-icon">
-                                      <span
-                                        class="provider-card__logo-letter"
-                                        style={{
-                                          background: 'var(--custom-provider-color)',
-                                          width: '16px',
-                                          height: '16px',
-                                          'font-size': '9px',
-                                          'border-radius': '50%',
-                                        }}
-                                      >
-                                        {letter}
-                                      </span>
-                                    </span>
-                                  );
-                                }
-                                return (
-                                  <Show when={provId}>
-                                    {(pid) => (
-                                      <span class="routing-card__override-icon">
-                                        {providerIcon(pid(), 16)}
-                                      </span>
-                                    )}
-                                  </Show>
-                                );
-                              })()}
-                              <span class="routing-card__main">{labelFor(modelName())}</span>
-                              <Show when={!isManual()}>
-                                <span class="routing-card__auto-tag">auto</span>
-                              </Show>
-                            </div>
-                            <span class="routing-card__sub">{priceLabel(modelName())}</span>
-                          </>
-                        )}
-                      </Show>
-                    </div>
-                    <Show when={eff()}>
-                      <div class="routing-card__actions">
+                    <Show
+                      when={!tiers.loading}
+                      fallback={
+                        <div class="routing-card__body">
+                          <div
+                            class="skeleton skeleton--text"
+                            style="width: 160px; height: 14px;"
+                          />
+                          <div
+                            class="skeleton skeleton--text"
+                            style="width: 200px; height: 12px; margin-top: 6px;"
+                          />
+                        </div>
+                      }
+                    >
+                      <div class="routing-card__body">
                         <Show
-                          when={isManual()}
+                          when={eff()}
                           fallback={
+                            <div class="routing-card__empty">
+                              <span class="routing-card__empty-text">No model available</span>
+                              <button
+                                class="routing-card__empty-link"
+                                onClick={() => setDropdownTier(stage.id)}
+                              >
+                                Select model
+                              </button>
+                            </div>
+                          }
+                        >
+                          {(modelName) => {
+                            const provId = () => providerIdForModel(modelName(), models() ?? []);
+                            const effectiveAuth = (): AuthType | null => {
+                              const t = tier();
+                              if (t?.override_auth_type) return t.override_auth_type;
+                              const id = provId();
+                              if (!id) return null;
+                              const provs = activeProviders().filter(
+                                (p) => p.provider.toLowerCase() === id.toLowerCase(),
+                              );
+                              if (provs.some((p) => p.auth_type === 'subscription'))
+                                return 'subscription';
+                              if (provs.some((p) => p.auth_type === 'api_key')) return 'api_key';
+                              return null;
+                            };
+                            return (
+                              <>
+                                <Show
+                                  when={changingTier() !== stage.id}
+                                  fallback={
+                                    <>
+                                      <div class="routing-card__override">
+                                        <div
+                                          class="skeleton skeleton--text"
+                                          style="width: 140px; height: 14px;"
+                                        />
+                                      </div>
+                                      <div
+                                        class="skeleton skeleton--text"
+                                        style="width: 180px; height: 12px; margin-top: 6px;"
+                                      />
+                                    </>
+                                  }
+                                >
+                                  <div class="routing-card__override">
+                                    {(() => {
+                                      const pid = provId();
+                                      if (pid?.startsWith('custom:')) {
+                                        const cp = customProviders()?.find(
+                                          (c) => `custom:${c.id}` === pid,
+                                        );
+                                        const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
+                                        return (
+                                          <span class="routing-card__override-icon">
+                                            <span
+                                              class="provider-card__logo-letter"
+                                              style={{
+                                                background: 'var(--custom-provider-color)',
+                                                width: '16px',
+                                                height: '16px',
+                                                'font-size': '9px',
+                                                'border-radius': '50%',
+                                              }}
+                                            >
+                                              {letter}
+                                            </span>
+                                          </span>
+                                        );
+                                      }
+                                      return (
+                                        <Show when={pid}>
+                                          {(p) => (
+                                            <span class="routing-card__override-icon">
+                                              {providerIcon(p(), 16)}
+                                              {authBadgeFor(effectiveAuth(), 12)}
+                                            </span>
+                                          )}
+                                        </Show>
+                                      );
+                                    })()}
+                                    <span class="routing-card__main">{labelFor(modelName())}</span>
+                                    <Show when={!isManual()}>
+                                      <span class="routing-card__auto-tag">auto</span>
+                                    </Show>
+                                  </div>
+                                  <Show
+                                    when={effectiveAuth() !== 'subscription'}
+                                    fallback={
+                                      <span class="routing-card__sub routing-card__sub--subscription">
+                                        Included in subscription
+                                      </span>
+                                    }
+                                  >
+                                    <span class="routing-card__sub">{priceLabel(modelName())}</span>
+                                  </Show>
+                                </Show>
+                              </>
+                            );
+                          }}
+                        </Show>
+                      </div>
+                      <Show when={eff()}>
+                        <div class="routing-card__right">
+                          <div class="routing-card__actions">
                             <button
                               class="routing-action"
                               onClick={() => setDropdownTier(stage.id)}
+                              disabled={changingTier() === stage.id}
                             >
-                              Override
+                              <Show
+                                when={changingTier() !== stage.id}
+                                fallback={<span class="spinner" />}
+                              >
+                                Change
+                              </Show>
                             </button>
-                          }
-                        >
-                          <button class="routing-action" onClick={() => setDropdownTier(stage.id)}>
-                            Edit
-                          </button>
-                          <button class="routing-action" onClick={() => handleReset(stage.id)}>
-                            Reset
-                          </button>
-                        </Show>
-                      </div>
+                            <Show when={isManual()}>
+                              <button
+                                class="routing-action"
+                                onClick={() => handleReset(stage.id)}
+                                disabled={resettingTier() === stage.id || resettingAll()}
+                              >
+                                {resettingTier() === stage.id ? <span class="spinner" /> : 'Reset'}
+                              </button>
+                            </Show>
+                          </div>
+                          <FallbackList
+                            agentName={agentName()}
+                            tier={stage.id}
+                            fallbacks={getFallbacksFor(stage.id)}
+                            models={models() ?? []}
+                            customProviders={customProviders() ?? []}
+                            connectedProviders={activeProviders()}
+                            onUpdate={(updatedFallbacks) => {
+                              setFallbackOverrides((prev) => {
+                                const next = { ...prev };
+                                delete next[stage.id];
+                                return next;
+                              });
+                              mutateTiers((prev) =>
+                                prev?.map((t) =>
+                                  t.tier === stage.id
+                                    ? { ...t, fallback_models: updatedFallbacks }
+                                    : t,
+                                ),
+                              );
+                            }}
+                            onAddFallback={() => setFallbackPickerTier(stage.id)}
+                            adding={addingFallback() === stage.id}
+                          />
+                        </div>
+                      </Show>
                     </Show>
                   </div>
                 );
@@ -386,15 +623,16 @@ const Routing: Component = () => {
               onClick={() => setConfirmDisable(true)}
               disabled={disabling()}
             >
-              {disabling() ? 'Disabling...' : 'Disable Routing'}
+              {disabling() ? <span class="spinner" /> : 'Disable Routing'}
             </button>
             <Show when={hasOverrides()}>
               <button
                 class="btn btn--outline"
                 style="font-size: var(--font-size-sm);"
                 onClick={handleResetAll}
+                disabled={resettingAll() || resettingTier() !== null}
               >
-                Reset all to auto
+                {resettingAll() ? <span class="spinner" /> : 'Reset all to auto'}
               </button>
             </Show>
             <div style="flex: 1;" />
@@ -415,10 +653,37 @@ const Routing: Component = () => {
             models={models() ?? []}
             tiers={tiers() ?? []}
             customProviders={customProviders() ?? []}
+            connectedProviders={connectedProviders() ?? []}
             onSelect={handleOverride}
             onClose={() => setDropdownTier(null)}
           />
         )}
+      </Show>
+
+      <Show when={fallbackPickerTier()}>
+        {(tierId) => {
+          const currentFallbacks = () => getTier(tierId())?.fallback_models ?? [];
+          const effectiveModel = () => {
+            const t = getTier(tierId());
+            return t ? (t.override_model ?? t.auto_assigned_model) : null;
+          };
+          const filteredModels = () =>
+            (models() ?? []).filter(
+              (m) =>
+                m.model_name !== effectiveModel() && !currentFallbacks().includes(m.model_name),
+            );
+          return (
+            <ModelPickerModal
+              tierId={tierId()}
+              models={filteredModels()}
+              tiers={tiers() ?? []}
+              customProviders={customProviders() ?? []}
+              connectedProviders={connectedProviders() ?? []}
+              onSelect={handleAddFallback}
+              onClose={() => setFallbackPickerTier(null)}
+            />
+          );
+        }}
       </Show>
 
       <Show when={showProviderModal()}>
@@ -468,7 +733,7 @@ const Routing: Component = () => {
                   await handleDisable();
                 }}
               >
-                {disabling() ? 'Disabling...' : 'Disable'}
+                {disabling() ? <span class="spinner" /> : 'Disable'}
               </button>
             </div>
           </div>

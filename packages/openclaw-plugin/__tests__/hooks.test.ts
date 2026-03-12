@@ -76,6 +76,7 @@ const mockLogger = {
 
 const config: ManifestConfig = {
   mode: "cloud",
+  devMode: false,
   apiKey: "mnfst_test",
   endpoint: "http://localhost:3001/otlp",
   port: 2099,
@@ -84,6 +85,7 @@ const config: ManifestConfig = {
 
 const localConfig: ManifestConfig = {
   mode: "local",
+  devMode: false,
   apiKey: "",
   endpoint: "http://localhost:38238/otlp",
   port: 2099,
@@ -91,7 +93,8 @@ const localConfig: ManifestConfig = {
 };
 
 const devConfig: ManifestConfig = {
-  mode: "dev",
+  mode: "cloud",
+  devMode: true,
   apiKey: "",
   endpoint: "http://localhost:38238/otlp",
   port: 2099,
@@ -552,6 +555,139 @@ describe("registerHooks", () => {
       expect(outputCounter?.add).toHaveBeenCalledWith(13, expect.any(Object));
     });
 
+    it("extracts tokens from OpenAI-format usage (prompt_tokens/completion_tokens)", () => {
+      api.emit("message_received", { sessionKey: "sess-oai" });
+      api.emit("before_agent_start", { sessionKey: "sess-oai" });
+      api.emit("agent_end", {
+        sessionKey: "sess-oai",
+        messages: [
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { prompt_tokens: 1500, completion_tokens: 400, total_tokens: 1900 },
+          },
+        ],
+      });
+
+      const turnSpan = tracer.spans[tracer.spans.length - 1];
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.INPUT_TOKENS]: 1500,
+          [ATTRS.OUTPUT_TOKENS]: 400,
+        }),
+      );
+
+      const inputCounter = meter.counters.get(METRICS.LLM_TOKENS_INPUT);
+      expect(inputCounter?.add).toHaveBeenCalledWith(1500, expect.any(Object));
+    });
+
+    it("extracts cache tokens from OpenAI-format prompt_tokens_details", () => {
+      api.emit("message_received", { sessionKey: "sess-oai-cache" });
+      api.emit("before_agent_start", { sessionKey: "sess-oai-cache" });
+      api.emit("agent_end", {
+        sessionKey: "sess-oai-cache",
+        messages: [
+          {
+            role: "assistant",
+            model: "claude-sonnet-4-5",
+            provider: "Anthropic",
+            usage: {
+              prompt_tokens: 2000,
+              completion_tokens: 500,
+              prompt_tokens_details: { cached_tokens: 800 },
+              cache_read_tokens: 800,
+              cache_creation_tokens: 150,
+            },
+          },
+        ],
+      });
+
+      const turnSpan = tracer.spans[tracer.spans.length - 1];
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.INPUT_TOKENS]: 2000,
+          [ATTRS.OUTPUT_TOKENS]: 500,
+          [ATTRS.CACHE_READ_TOKENS]: 800,
+          [ATTRS.CACHE_WRITE_TOKENS]: 150,
+        }),
+      );
+
+      const cacheCounter = meter.counters.get(METRICS.LLM_TOKENS_CACHE_READ);
+      expect(cacheCounter?.add).toHaveBeenCalledWith(800, expect.any(Object));
+    });
+
+    it("extracts cache tokens from prompt_tokens_details.cached_tokens fallback", () => {
+      api.emit("message_received", { sessionKey: "sess-oai-ptd" });
+      api.emit("before_agent_start", { sessionKey: "sess-oai-ptd" });
+      api.emit("agent_end", {
+        sessionKey: "sess-oai-ptd",
+        messages: [
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: {
+              prompt_tokens: 3000,
+              completion_tokens: 600,
+              prompt_tokens_details: { cached_tokens: 1200 },
+            },
+          },
+        ],
+      });
+
+      const turnSpan = tracer.spans[tracer.spans.length - 1];
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.CACHE_READ_TOKENS]: 1200,
+        }),
+      );
+    });
+
+    it("extracts tokens via inputTokens fallback path", () => {
+      api.emit("message_received", { sessionKey: "sess-input-tokens" });
+      api.emit("before_agent_start", { sessionKey: "sess-input-tokens" });
+      api.emit("agent_end", {
+        sessionKey: "sess-input-tokens",
+        messages: [
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { inputTokens: 800, outputTokens: 200 },
+          },
+        ],
+      });
+
+      const inputCounter = meter.counters.get(METRICS.LLM_TOKENS_INPUT);
+      expect(inputCounter?.add).toHaveBeenCalledWith(800, expect.any(Object));
+
+      const outputCounter = meter.counters.get(METRICS.LLM_TOKENS_OUTPUT);
+      expect(outputCounter?.add).toHaveBeenCalledWith(200, expect.any(Object));
+    });
+
+    it("extracts tokens from camelCase OpenAI usage (promptTokens/completionTokens)", () => {
+      api.emit("message_received", { sessionKey: "sess-camel" });
+      api.emit("before_agent_start", { sessionKey: "sess-camel" });
+      api.emit("agent_end", {
+        sessionKey: "sess-camel",
+        messages: [
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { promptTokens: 700, completionTokens: 150 },
+          },
+        ],
+      });
+
+      const inputCounter = meter.counters.get(METRICS.LLM_TOKENS_INPUT);
+      expect(inputCounter?.add).toHaveBeenCalledWith(700, expect.any(Object));
+
+      const outputCounter = meter.counters.get(METRICS.LLM_TOKENS_OUTPUT);
+      expect(outputCounter?.add).toHaveBeenCalledWith(150, expect.any(Object));
+    });
+
     it("defaults to 'unknown' model/provider when missing", () => {
       api.emit("message_received", { sessionKey: "sess-7" });
       api.emit("before_agent_start", { sessionKey: "sess-7" });
@@ -775,6 +911,78 @@ describe("registerHooks", () => {
       );
     });
 
+    it("does not detect heartbeat when HEARTBEAT_OK is only in an earlier user message", () => {
+      api.emit("message_received", { sessionKey: "hb-buried-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-buried-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-buried-sess",
+        messages: [
+          { role: "user", content: "Check tasks and reply HEARTBEAT_OK if nothing needs attention." },
+          {
+            role: "assistant",
+            model: "gpt-4o-mini",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+          { role: "user", content: "Thanks, anything else?" },
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 500, output: 200 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "heartbeat",
+      );
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "simple",
+      );
+    });
+
+    it("detects heartbeat when HEARTBEAT_OK is in the last user message of multi-turn conversation", () => {
+      api.emit("message_received", { sessionKey: "hb-last-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-last-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-last-sess",
+        messages: [
+          { role: "user", content: "What is the weather?" },
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 100, output: 50 },
+          },
+          { role: "user", content: "Check tasks and reply HEARTBEAT_OK if nothing needs attention." },
+          {
+            role: "assistant",
+            model: "gpt-4o-mini",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "heartbeat",
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "simple",
+      );
+    });
+
     it("does not set ROUTING_REASON when no heartbeat sentinel", () => {
       api.emit("message_received", { sessionKey: "no-hb-sess" });
       api.emit("before_agent_start", { sessionKey: "no-hb-sess" });
@@ -860,6 +1068,7 @@ describe("registerHooks", () => {
         model: "gpt-4o",
         provider: "OpenAI",
         reason: "scored",
+        auth_type: "api_key",
       });
 
       localApi.emit("message_received", { sessionKey: "route-sess" });
@@ -906,6 +1115,7 @@ describe("registerHooks", () => {
         model: "claude-sonnet-4",
         provider: "Anthropic",
         reason: "multi-step",
+        auth_type: "api_key",
       });
 
       devApi.emit("message_received", { sessionKey: "dev-sess" });
@@ -947,6 +1157,7 @@ describe("registerHooks", () => {
         model: "gpt-4o",
         provider: "OpenAI",
         reason: "scored",
+        auth_type: "api_key",
       });
 
       cloudApi.emit("message_received", { sessionKey: "cloud-sess" });
@@ -991,6 +1202,7 @@ describe("registerHooks", () => {
         model: "gpt-4o-mini",
         provider: "OpenAI",
         reason: "scored",
+        auth_type: "api_key",
       });
 
       localApi.emit("message_received", { sessionKey: "hb-route" });

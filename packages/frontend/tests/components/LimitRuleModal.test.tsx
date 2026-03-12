@@ -230,7 +230,7 @@ describe("LimitRuleModal", () => {
     expect(mockOnSave).not.toHaveBeenCalled();
   });
 
-  it("resets form after save", () => {
+  it("resets form after save", async () => {
     render(() => (
       <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
@@ -241,8 +241,10 @@ describe("LimitRuleModal", () => {
     const btn = q(".btn--primary") as HTMLButtonElement;
     fireEvent.click(btn);
 
-    // After save, threshold should be reset
-    expect(input.value).toBe("");
+    // After async save resolves, threshold should be reset
+    await vi.waitFor(() => {
+      expect(input.value).toBe("");
+    });
   });
 
   it("calls onClose and resets form when overlay is clicked", () => {
@@ -419,5 +421,30 @@ describe("LimitRuleModal", () => {
     ));
     const title = q("#limit-modal-title") as HTMLElement;
     expect(title.textContent).toBe("Create rule");
+  });
+
+  it("shows Saving... and disables button during async onSave", async () => {
+    let resolveSave: () => void;
+    const asyncSave = vi.fn(() => new Promise<void>((r) => { resolveSave = r; }));
+    render(() => (
+      <LimitRuleModal open={true} onClose={mockOnClose} onSave={asyncSave} />
+    ));
+
+    const input = q('input[type="number"]') as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "50000" } });
+
+    const btn = q(".btn--primary") as HTMLButtonElement;
+    fireEvent.click(btn);
+
+    await vi.waitFor(() => {
+      expect(btn.querySelector(".spinner")).not.toBeNull();
+      expect(btn.disabled).toBe(true);
+    });
+
+    resolveSave!();
+    await vi.waitFor(() => {
+      expect(btn.textContent).toBe("Create rule");
+      expect(btn.disabled).toBe(true); // threshold reset to empty, so disabled
+    });
   });
 });

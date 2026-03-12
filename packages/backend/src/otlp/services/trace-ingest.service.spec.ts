@@ -5,6 +5,7 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import { LlmCall } from '../../entities/llm-call.entity';
 import { ToolExecution } from '../../entities/tool-execution.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
+import { UserProvider } from '../../entities/user-provider.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 
 const testCtx: IngestionContext = {
@@ -22,6 +23,7 @@ describe('TraceIngestService', () => {
   let mockLlmInsert: jest.Mock;
   let mockToolInsert: jest.Mock;
   let mockPricingGetByModel: jest.Mock;
+  let mockProviderFind: jest.Mock;
   let mockExecute: jest.Mock;
 
   beforeEach(async () => {
@@ -31,6 +33,7 @@ describe('TraceIngestService', () => {
     mockLlmInsert = jest.fn().mockResolvedValue({});
     mockToolInsert = jest.fn().mockResolvedValue({});
     mockPricingGetByModel = jest.fn().mockReturnValue(undefined);
+    mockProviderFind = jest.fn().mockResolvedValue([]);
     mockExecute = jest.fn().mockResolvedValue({});
 
     const mockQb = {
@@ -55,6 +58,7 @@ describe('TraceIngestService', () => {
         },
         { provide: getRepositoryToken(LlmCall), useValue: { insert: mockLlmInsert } },
         { provide: getRepositoryToken(ToolExecution), useValue: { insert: mockToolInsert } },
+        { provide: getRepositoryToken(UserProvider), useValue: { find: mockProviderFind } },
         { provide: ModelPricingCacheService, useValue: { getByModel: mockPricingGetByModel } },
       ],
     }).compile();
@@ -104,13 +108,13 @@ describe('TraceIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         tenant_id: 'test-tenant',
         agent_id: 'test-agent',
         agent_name: 'bot-1',
       }),
-    );
+    ]);
   });
 
   it('ingests an llm_call span (has gen_ai.system attribute)', async () => {
@@ -142,7 +146,7 @@ describe('TraceIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(2);
     expect(mockLlmInsert).toHaveBeenCalledTimes(1);
-    expect(mockLlmInsert).toHaveBeenCalledWith(
+    expect(mockLlmInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         tenant_id: 'test-tenant',
         gen_ai_system: 'anthropic',
@@ -150,7 +154,7 @@ describe('TraceIngestService', () => {
         input_tokens: 100,
         output_tokens: 50,
       }),
-    );
+    ]);
   });
 
   it('ingests a tool_execution span (has tool.name attribute)', async () => {
@@ -177,12 +181,12 @@ describe('TraceIngestService', () => {
     const result = await service.ingest(request, testCtx);
     expect(result.accepted).toBe(1);
     expect(mockToolInsert).toHaveBeenCalledTimes(1);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         tenant_id: 'test-tenant',
         tool_name: 'web_search',
       }),
-    );
+    ]);
   });
 
   it('computes cost from model pricing when available', async () => {
@@ -213,11 +217,11 @@ describe('TraceIngestService', () => {
 
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
     // cost = 100 * 0.001 + 50 * 0.002 = 0.2
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         cost_usd: expect.closeTo(0.2, 4),
       }),
-    );
+    ]);
   });
 
   it('handles error status on spans', async () => {
@@ -238,12 +242,12 @@ describe('TraceIngestService', () => {
     await service.ingest(request, testCtx);
 
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'error',
         error_message: 'something went wrong',
       }),
-    );
+    ]);
   });
 
   it('persists routing_reason from manifest.routing.reason attribute', async () => {
@@ -266,12 +270,12 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
 
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         routing_tier: 'simple',
         routing_reason: 'heartbeat',
       }),
-    );
+    ]);
   });
 
   it('rolls up routing_reason from llm_call child into parent agent_message', async () => {
@@ -348,6 +352,49 @@ describe('TraceIngestService', () => {
 
     // Verify setParameter was called with 'reason'
     expect(mockQb.setParameter).toHaveBeenCalledWith('reason', 'scored');
+  });
+
+  it('sets cost to zero in rollup when model provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'anthropic', auth_type: 'subscription' }]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'anthropic',
+      input_price_per_token: 0.003,
+      output_price_per_token: 0.015,
+    });
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-sub',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-sub',
+      parentSpanId: 'span-msg-sub',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'anthropic' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-sonnet-4-20250514' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 200 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 100 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    // Verify the rollup set cost_usd to 0 (subscription-only provider)
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 0);
   });
 
   it('handles missing resourceSpans', async () => {
@@ -468,12 +515,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'ok',
         error_message: null,
       }),
-    );
+    ]);
   });
 
   it('sets null messageId when llm_call parent is not an agent_message', async () => {
@@ -501,7 +548,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockLlmInsert).toHaveBeenCalledWith(expect.objectContaining({ turn_id: null }));
+    expect(mockLlmInsert).toHaveBeenCalledWith([expect.objectContaining({ turn_id: null })]);
   });
 
   it('sets null llmCallId when tool parent is not an llm_call', async () => {
@@ -526,7 +573,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(expect.objectContaining({ llm_call_id: null }));
+    expect(mockToolInsert).toHaveBeenCalledWith([expect.objectContaining({ llm_call_id: null })]);
   });
 
   it('uses tool.name from resource attributes for tool_execution classification', async () => {
@@ -553,9 +600,9 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({ tool_name: 'resource-tool' }),
-    );
+    ]);
   });
 
   it('sets error_message on tool_execution spans with error status', async () => {
@@ -575,12 +622,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'error',
         error_message: 'tool failed',
       }),
-    );
+    ]);
   });
 
   it('sets null error_message on tool_execution spans with ok status', async () => {
@@ -600,12 +647,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'ok',
         error_message: null,
       }),
-    );
+    ]);
   });
 
   it('does not accumulate to message when llm_call parent is not agent_message', async () => {
@@ -709,9 +756,7 @@ describe('TraceIngestService', () => {
 
     expect(mockExecute).toHaveBeenCalled();
     // cost_usd should be 200 * 0.01 + 100 * 0.03 = 5.0
-    expect(mockQb.set).toHaveBeenCalledWith(
-      expect.objectContaining({ cost_usd: expect.closeTo(5.0, 4) }),
-    );
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', expect.closeTo(5.0, 4));
   });
 
   it('sets null cost in rollup when no pricing is available', async () => {
@@ -753,7 +798,7 @@ describe('TraceIngestService', () => {
     await service.ingest(request, testCtx);
 
     expect(mockExecute).toHaveBeenCalled();
-    expect(mockQb.set).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', null);
   });
 
   it('returns null cost when model has no tokens', async () => {
@@ -772,7 +817,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ cost_usd: null })]);
   });
 
   it('returns null cost when no model attribute is present', async () => {
@@ -794,7 +839,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ cost_usd: null })]);
   });
 
   it('returns null cost when model exists but pricing is not found', async () => {
@@ -819,7 +864,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ cost_usd: null })]);
   });
 
   it('uses gen_ai.response.model as fallback when gen_ai.request.model is absent', async () => {
@@ -848,12 +893,111 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
     expect(mockPricingGetByModel).toHaveBeenCalledWith('claude-3-haiku');
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         model: 'claude-3-haiku',
         cost_usd: expect.closeTo(0.02, 4),
       }),
-    );
+    ]);
+  });
+
+  it('returns zero cost when provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'anthropic', auth_type: 'subscription' }]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'anthropic',
+      input_price_per_token: 0.001,
+      output_price_per_token: 0.002,
+    });
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-haiku-4.5' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ cost_usd: 0 })]);
+  });
+
+  it('returns zero cost when pricing provider case differs from user-provider case', async () => {
+    // UserProvider stores lowercase 'anthropic', but ModelPricing stores capitalized 'Anthropic'
+    mockProviderFind.mockResolvedValue([{ provider: 'anthropic', auth_type: 'subscription' }]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'Anthropic',
+      input_price_per_token: 0.001,
+      output_price_per_token: 0.002,
+    });
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-haiku-4.5' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ cost_usd: 0, auth_type: 'subscription' }),
+    ]);
+  });
+
+  it('returns zero cost when provider has both subscription and api_key (dual-auth)', async () => {
+    mockProviderFind.mockResolvedValue([
+      { provider: 'anthropic', auth_type: 'subscription' },
+      { provider: 'anthropic', auth_type: 'api_key' },
+    ]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'anthropic',
+      input_price_per_token: 0.001,
+      output_price_per_token: 0.002,
+    });
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-haiku-4.5' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // Dual-auth providers treated as subscription (routing prefers subscription) → zero cost
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ cost_usd: 0, auth_type: 'subscription' }),
+    ]);
   });
 
   it('uses fallback model from gen_ai.response.model in accumulation', async () => {
@@ -932,12 +1076,8 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
 
-    expect(mockQb.set).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cache_read_tokens: 50,
-        cache_creation_tokens: 25,
-      }),
-    );
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cacheRead', 50);
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cacheCreation', 25);
   });
 
   it('defaults token attributes to 0 when absent in accumulation', async () => {
@@ -977,12 +1117,8 @@ describe('TraceIngestService', () => {
     await service.ingest(request, testCtx);
 
     // cache tokens should default to 0
-    expect(mockQb.set).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-      }),
-    );
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cacheRead', 0);
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cacheCreation', 0);
   });
 
   it('does not accumulate when llm_call has no parent in spanMap', async () => {
@@ -1024,9 +1160,9 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({ agent_name: 'test-agent' }),
-    );
+    ]);
   });
 
   it('sets null cost in rollup when model is null in aggregates', async () => {
@@ -1066,7 +1202,7 @@ describe('TraceIngestService', () => {
     await service.ingest(request, testCtx);
 
     // model is null so cost should be null
-    expect(mockQb.set).toHaveBeenCalledWith(expect.objectContaining({ cost_usd: null }));
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', null);
   });
 
   it('persists llm_call cache tokens from span attributes', async () => {
@@ -1103,12 +1239,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockLlmInsert).toHaveBeenCalledWith(
+    expect(mockLlmInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         cache_read_tokens: 30,
         cache_creation_tokens: 20,
       }),
-    );
+    ]);
   });
 
   it('sets null error_message when error status has no message field', async () => {
@@ -1127,12 +1263,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledWith(
+    expect(mockTurnInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'error',
         error_message: null,
       }),
-    );
+    ]);
   });
 
   it('sets llmCallId when tool parent is an llm_call', async () => {
@@ -1168,14 +1304,14 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         llm_call_id: expect.any(String),
         tool_name: 'file_read',
       }),
-    );
+    ]);
     // Verify llm_call_id is not null (it should be the uuid of the llm span entry)
-    const insertArg = mockToolInsert.mock.calls[0][0];
+    const insertArg = mockToolInsert.mock.calls[0][0][0];
     expect(insertArg.llm_call_id).not.toBeNull();
   });
 
@@ -1196,12 +1332,12 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockToolInsert).toHaveBeenCalledWith(
+    expect(mockToolInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         status: 'error',
         error_message: null,
       }),
-    );
+    ]);
   });
 
   it('skips agent_message insert when proxy error already recorded for same trace_id', async () => {
@@ -1271,18 +1407,23 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    // trace_id-based dedup is skipped; fallback calls find() for recent errors
+    // trace_id-based dedup is skipped; remapFallbackSpans calls find() for unfilled
+    // fallback, then buildAgentMessage calls find() for recent errors + proxy dedup + ghost dedup
     expect(mockTurnFindOne).not.toHaveBeenCalled();
-    expect(mockTurnFind).toHaveBeenCalledTimes(1);
+    expect(mockTurnFind).toHaveBeenCalledTimes(4);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
   it('deduplicates agent_message when proxy error exists near span timestamp', async () => {
-    // findOne (trace_id check) returns null; find (timestamp fallback) returns a nearby error
+    // findOne (trace_id check) returns null; batch dedup recentErrors returns a nearby error
     mockTurnFindOne.mockResolvedValue(null);
-    // Return an error with a timestamp close to the span's start time
     const nearbyTs = new Date(Number(BigInt('1708000000000000000') / 1_000_000n)).toISOString();
-    mockTurnFind.mockResolvedValue([{ id: 'proxy-error-id', timestamp: nearbyTs }]);
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([{ id: 'proxy-error-id', timestamp: nearbyTs }]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
 
     const span = makeSpan({
       traceId: 'trace-with-delayed-otlp',
@@ -1299,9 +1440,191 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnFindOne).toHaveBeenCalledTimes(1); // trace_id check
-    expect(mockTurnFind).toHaveBeenCalledTimes(1); // timestamp fallback
+    expect(mockTurnFindOne).toHaveBeenCalledTimes(1); // pre-pass fallback check only
+    expect(mockTurnFind).toHaveBeenCalledTimes(5); // unfilled fallback + 4 buildDedupContext
     expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('remaps UUID to pre-inserted fallback success record for token rollup', async () => {
+    // Pre-pass findOne: fallback success record found.
+    // The agent_message span is then skipped in the main loop (fallbackSkipIds),
+    // so buildAgentMessage (and its error dedup findOne) is never called.
+    mockTurnFindOne.mockResolvedValueOnce({
+      id: 'preinserted-fallback-id',
+      model: 'deepseek-chat',
+    });
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-fb',
+      traceId: 'trace-fallback-remap',
+      name: 'openclaw.agent.turn',
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-fb',
+      parentSpanId: 'span-msg-fb',
+      traceId: 'trace-fallback-remap',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: '500' } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: '100' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'gemini-flash' } },
+      ],
+    });
+
+    mockPricingGetByModel.mockReturnValue({
+      input_price_per_token: '0.0001',
+      output_price_per_token: '0.0002',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    // One findOne call: the pre-pass fallback check only
+    expect(mockTurnFindOne).toHaveBeenCalledTimes(1);
+    // Agent message should NOT be inserted (remapped to existing record)
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+    // LLM call should be inserted via its own repo
+    expect(mockLlmInsert).toHaveBeenCalledTimes(1);
+
+    // Rollup should update the pre-inserted record using deepseek-chat pricing
+    expect(mockQb.setParameter).toHaveBeenCalledWith('inputTok', 500);
+    expect(mockQb.setParameter).toHaveBeenCalledWith('outputTok', 100);
+    // Cost computed using deepseek-chat (the override), not gemini-flash (OTLP model)
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 500 * 0.0001 + 100 * 0.0002);
+
+    // Fallback remap includes duration_ms COALESCE (line 470)
+    const setArg = mockQb.set.mock.calls[0][0];
+    expect(typeof setArg.duration_ms).toBe('function');
+    expect(setArg.duration_ms()).toBe('COALESCE(duration_ms, :durationMs)');
+  });
+
+  it('falls back to unfilled-match when trace_id lookup misses', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
+
+    // Strategy 1 (trace_id) misses; strategy 2 (unfilled) matches
+    mockTurnFindOne.mockResolvedValue(null);
+    mockTurnFind.mockResolvedValueOnce([
+      { id: 'unfilled-fb-id', model: 'deepseek-chat', timestamp: nearbyTs },
+    ]);
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-unfilled',
+      traceId: 'trace-no-match',
+      name: 'openclaw.agent.turn',
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-unfilled',
+      parentSpanId: 'span-msg-unfilled',
+      traceId: 'trace-no-match',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: '300' } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: '80' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'gemini-flash' } },
+      ],
+    });
+
+    mockPricingGetByModel.mockReturnValue({
+      input_price_per_token: '0.0001',
+      output_price_per_token: '0.0002',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    // Agent message skipped (remapped), LLM call inserted
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+    expect(mockLlmInsert).toHaveBeenCalledTimes(1);
+
+    // Rollup updates the unfilled record with tokens + cost
+    expect(mockQb.setParameter).toHaveBeenCalledWith('inputTok', 300);
+    expect(mockQb.setParameter).toHaveBeenCalledWith('outputTok', 80);
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 300 * 0.0001 + 80 * 0.0002);
+  });
+
+  it('remaps UUID before LLM call processing (reversed span order)', async () => {
+    // Pre-pass findOne: fallback success record found.
+    // This test proves the pre-pass fixes the span ordering bug: with the old code,
+    // the LLM span would be processed first and accumulateToMessage would use the
+    // original UUID. With the pre-pass, the UUID is remapped before any span processing.
+    mockTurnFindOne.mockResolvedValueOnce({
+      id: 'preinserted-fallback-id',
+      model: 'deepseek-chat',
+    });
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-fb',
+      traceId: 'trace-fallback-remap',
+      name: 'openclaw.agent.turn',
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-fb',
+      parentSpanId: 'span-msg-fb',
+      traceId: 'trace-fallback-remap',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: '500' } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: '100' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'gemini-flash' } },
+      ],
+    });
+
+    mockPricingGetByModel.mockReturnValue({
+      input_price_per_token: '0.0001',
+      output_price_per_token: '0.0002',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          // LLM span FIRST, parent span SECOND — reversed order
+          scopeSpans: [{ scope: { name: 'test' }, spans: [llmSpan, parentSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    // Agent message should NOT be inserted (remapped to existing record)
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+    // LLM call should be inserted via its own repo
+    expect(mockLlmInsert).toHaveBeenCalledTimes(1);
+
+    // Rollup should update the pre-inserted record using deepseek-chat pricing
+    expect(mockQb.setParameter).toHaveBeenCalledWith('inputTok', 500);
+    expect(mockQb.setParameter).toHaveBeenCalledWith('outputTok', 100);
+    // Cost computed using deepseek-chat (the override), not gemini-flash (OTLP model)
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 500 * 0.0001 + 100 * 0.0002);
   });
 
   it('invokes COALESCE expressions for model, routing_tier, and routing_reason in rollup', async () => {
@@ -1352,6 +1675,422 @@ describe('TraceIngestService', () => {
     expect(setArg.routing_tier()).toBe('COALESCE(routing_tier, :tier)');
     expect(typeof setArg.routing_reason).toBe('function');
     expect(setArg.routing_reason()).toBe('COALESCE(routing_reason, :reason)');
+
+    // Cover CASE WHEN expressions for token/cost conditional update (lines 457-463)
+    expect(typeof setArg.input_tokens).toBe('function');
+    expect(setArg.input_tokens()).toBe(
+      'CASE WHEN input_tokens = 0 THEN :inputTok ELSE input_tokens END',
+    );
+    expect(typeof setArg.output_tokens).toBe('function');
+    expect(setArg.output_tokens()).toBe(
+      'CASE WHEN input_tokens = 0 THEN :outputTok ELSE output_tokens END',
+    );
+    expect(typeof setArg.cache_read_tokens).toBe('function');
+    expect(setArg.cache_read_tokens()).toBe(
+      'CASE WHEN input_tokens = 0 THEN :cacheRead ELSE cache_read_tokens END',
+    );
+    expect(typeof setArg.cache_creation_tokens).toBe('function');
+    expect(setArg.cache_creation_tokens()).toBe(
+      'CASE WHEN input_tokens = 0 THEN :cacheCreation ELSE cache_creation_tokens END',
+    );
+    expect(typeof setArg.cost_usd).toBe('function');
+    expect(setArg.cost_usd()).toBe('CASE WHEN input_tokens = 0 THEN :cost ELSE cost_usd END');
+  });
+
+  it('skips ghost span when data sibling exists in same batch', async () => {
+    const dataSpan = makeSpan({
+      spanId: 'span-data',
+      traceId: 'trace-data',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-opus-4-6' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 500 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 200 } },
+      ],
+    });
+
+    const ghostSpan = makeSpan({
+      spanId: 'span-ghost',
+      traceId: 'trace-ghost',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [dataSpan, ghostSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ trace_id: 'trace-data' }),
+    ]);
+  });
+
+  it('skips ghost span regardless of ordering (ghost first, data second)', async () => {
+    const ghostSpan = makeSpan({
+      spanId: 'span-ghost-first',
+      traceId: 'trace-ghost-first',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const dataSpan = makeSpan({
+      spanId: 'span-data-second',
+      traceId: 'trace-data-second',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [ghostSpan, dataSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ trace_id: 'trace-data-second' }),
+    ]);
+  });
+
+  it('does NOT skip empty ok span when no data sibling exists in batch', async () => {
+    const emptySpan = makeSpan({
+      spanId: 'span-empty-alone',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [emptySpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT skip empty error span even with data sibling', async () => {
+    const dataSpan = makeSpan({
+      spanId: 'span-data-err',
+      traceId: 'trace-data-err',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const errorSpan = makeSpan({
+      spanId: 'span-error',
+      traceId: 'trace-error',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 2, message: 'failed' },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [dataSpan, errorSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // Both should be inserted (error span is not ghost-filtered)
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+    expect(mockTurnInsert).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ trace_id: 'trace-data-err' }),
+        expect.objectContaining({ trace_id: 'trace-error' }),
+      ]),
+    );
+  });
+
+  it('skips ghost via DB fallback when data message already exists in DB', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 5000).toISOString();
+
+    // Batch dedup context: errorByTrace=[], recentErrors=[], recentOkMessages=[], recentMessages=[data]
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([
+        {
+          id: 'existing-data',
+          timestamp: nearbyTs,
+          input_tokens: 500,
+          output_tokens: 200,
+          model: 'gpt-4o',
+        },
+      ]); // buildDedupContext: recentMessages
+
+    const ghostSpan = makeSpan({
+      spanId: 'span-cross-ghost',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [ghostSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('treats span with only gen_ai.response.model as non-empty (not ghost)', async () => {
+    const responseModelSpan = makeSpan({
+      spanId: 'span-resp-model',
+      traceId: 'trace-resp-model',
+      name: 'openclaw.agent.turn',
+      attributes: [{ key: 'gen_ai.response.model', value: { stringValue: 'gpt-4o' } }],
+      status: { code: 1 },
+    });
+
+    const ghostSpan = makeSpan({
+      spanId: 'span-ghost-resp',
+      traceId: 'trace-ghost-resp',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [responseModelSpan, ghostSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // responseModelSpan is not empty (has model), ghostSpan is filtered as ghost
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ trace_id: 'trace-resp-model' }),
+    ]);
+  });
+
+  it('skips ghost via DB fallback when nearby message has model but 0 tokens', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 5000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([
+        {
+          id: 'model-only',
+          timestamp: nearbyTs,
+          input_tokens: 0,
+          output_tokens: 0,
+          model: 'gpt-4o',
+        },
+      ]); // recentMessages — has model but 0 tokens
+
+    const ghostSpan = makeSpan({
+      spanId: 'span-ghost-model-only',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [ghostSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnFind).toHaveBeenCalledTimes(5);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('scopes DB ghost fallback by session_key when available', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 5000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([
+        {
+          id: 'session-data',
+          timestamp: nearbyTs,
+          input_tokens: 100,
+          output_tokens: 50,
+          model: 'gpt-4o',
+          session_key: 'session-abc',
+        },
+      ]); // buildDedupContext: recentMessages — matching session_key
+
+    const ghostSpan = makeSpan({
+      spanId: 'span-session-ghost',
+      name: 'openclaw.agent.turn',
+      attributes: [{ key: 'session.key', value: { stringValue: 'session-abc' } }],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [ghostSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // session_key filtering now happens in-memory (buildAgentMessage filters recentMessages by session_key)
+    expect(mockTurnFind).toHaveBeenCalledTimes(5);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('does NOT ghost-filter span with tokens but no model (not empty)', async () => {
+    const tokensNoModelSpan = makeSpan({
+      spanId: 'span-tokens-nomodel',
+      traceId: 'trace-tokens-nomodel',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+      status: { code: 1 },
+    });
+
+    const dataSpan = makeSpan({
+      spanId: 'span-data-alongside',
+      traceId: 'trace-data-alongside',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 200 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 100 } },
+      ],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [tokensNoModelSpan, dataSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // Both should be inserted — span with tokens is not empty, not ghost-filtered
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+    expect(mockTurnInsert).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ trace_id: 'trace-tokens-nomodel' }),
+        expect.objectContaining({ trace_id: 'trace-data-alongside' }),
+      ]),
+    );
+  });
+
+  it('inserts empty ok span via DB fallback when no nearby data message exists', async () => {
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages (no nearby data)
+
+    const emptySpan = makeSpan({
+      spanId: 'span-db-pass',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [emptySpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnFind).toHaveBeenCalledTimes(5);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns null from buildAgentMessage when existing error turn matches trace_id (dedup)', async () => {
+    // Pre-pass remap: findOne (fallback_from_model: Not(IsNull())) → null (no fallback record)
+    // buildDedupContext: batch errorByTrace find returns a match for trace_id
+    mockTurnFindOne.mockResolvedValueOnce(null); // remapFallbackSpans — no fallback match
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([{ id: 'existing-error-turn', trace_id: 'trace-error-dedup' }]) // buildDedupContext: errorByTrace — match!
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
+
+    const span = makeSpan({
+      traceId: 'trace-error-dedup',
+      name: 'openclaw.agent.turn',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    // findOne only called once (remap pre-pass). errorByTrace now uses batch find.
+    expect(mockTurnFindOne).toHaveBeenCalledTimes(1);
+    expect(mockTurnFind).toHaveBeenCalledTimes(5);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
   it('defaults llm_call cache tokens to 0 when attributes are absent', async () => {
@@ -1384,13 +2123,213 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockLlmInsert).toHaveBeenCalledWith(
+    expect(mockLlmInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         input_tokens: 0,
         output_tokens: 0,
         cache_read_tokens: 0,
         cache_creation_tokens: 0,
       }),
-    );
+    ]);
+  });
+
+  it('skips OTLP span when proxy already recorded message with tokens (proxy dedup)', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([{ id: 'proxy-msg', timestamp: nearbyTs, input_tokens: 500 }]) // buildDedupContext: recentOkMessages — proxy recorded a message with real tokens
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
+
+    const span = makeSpan({
+      spanId: 'span-proxy-dedup',
+      name: 'openclaw.agent.turn',
+      attributes: [{ key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } }],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('skips OTLP span with tokens when proxy already recorded same request (proxy dedup)', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
+      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([{ id: 'proxy-msg', timestamp: nearbyTs, input_tokens: 500 }]); // proxyDedup — proxy message with real tokens
+
+    const span = makeSpan({
+      spanId: 'span-with-tokens-proxy-dedup',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // Even though the OTLP span has tokens, proxy dedup should still suppress it
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('ignores proxy messages with null input_tokens during dedup check', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([{ id: 'null-tokens-msg', timestamp: nearbyTs, input_tokens: null }]) // buildDedupContext: recentOkMessages — null tokens treated as 0
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
+
+    const span = makeSpan({
+      spanId: 'span-null-tokens',
+      name: 'openclaw.agent.turn',
+      attributes: [{ key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } }],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // null input_tokens treated as 0, so proxy dedup does NOT suppress this span
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows OTLP span when no proxy message exists nearby', async () => {
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages — no proxy data
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
+
+    const span = makeSpan({
+      spanId: 'span-no-proxy',
+      name: 'openclaw.agent.turn',
+      attributes: [{ key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } }],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips OTLP agent_message when proxy already recorded OK message with tokens', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
+
+    mockTurnFindOne.mockResolvedValue(null);
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([{ id: 'proxy-msg-id', timestamp: nearbyTs, input_tokens: 500 }]) // buildDedupContext: recentOkMessages — proxy message with real tokens
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
+
+    // Parent span has NO token attributes (0 tokens triggers proxy dedup check)
+    const parentSpan = makeSpan({
+      spanId: 'span-otlp-msg',
+      traceId: 'trace-proxy-dedup',
+      name: 'openclaw.agent.turn',
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-otlp-llm',
+      traceId: 'trace-proxy-dedup',
+      parentSpanId: 'span-otlp-msg',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'anthropic' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-haiku-4.5' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    // Agent message should NOT be inserted (skipped by proxy dedup — 0 tokens + nearby OK message)
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+
+    // LLM call should still be inserted
+    expect(mockLlmInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not skip OTLP message when no proxy message exists for trace_id', async () => {
+    // No proxy message exists
+    mockTurnFindOne.mockResolvedValue(null);
+
+    const span = makeSpan({
+      spanId: 'span-no-proxy',
+      traceId: 'trace-no-proxy',
+      name: 'openclaw.agent.turn',
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    // Agent message should be inserted normally
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ status: 'ok' })]);
+    // buildDedupContext always runs all 4 batch queries upfront, plus 1 for unfilled fallback
+    expect(mockTurnFind).toHaveBeenCalledTimes(5);
   });
 });

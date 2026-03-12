@@ -25,10 +25,12 @@ interface AgentsData {
 const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props) => {
   const navigate = useNavigate();
   const [name, setName] = createSignal('');
+  const [creating, setCreating] = createSignal(false);
 
   const handleCreate = async () => {
     const agentName = name().trim();
     if (!agentName) return;
+    setCreating(true);
     try {
       const result = await createAgent(agentName);
       toast.success(`Agent "${agentName}" connected`);
@@ -39,6 +41,8 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       navigate(url, { state: { newAgent: true, newApiKey: result?.apiKey } });
     } catch {
       // error toast already shown by fetchMutate
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -82,11 +86,16 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             value={name()}
             onInput={(e) => setName(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
+            disabled={creating()}
           />
 
           <div class="modal-card__footer">
-            <button class="btn btn--primary" onClick={handleCreate} disabled={!name().trim()}>
-              Create
+            <button
+              class="btn btn--primary"
+              onClick={handleCreate}
+              disabled={!name().trim() || creating()}
+            >
+              {creating() ? <span class="spinner" /> : 'Create'}
             </button>
           </div>
         </div>

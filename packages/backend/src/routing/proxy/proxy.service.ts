@@ -2,10 +2,13 @@ import { Injectable, Logger, BadRequestException, HttpException } from '@nestjs/
 import { ResolveService } from '../resolve.service';
 import { RoutingService } from '../routing.service';
 import { CustomProviderService } from '../custom-provider.service';
+import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import { buildCustomEndpoint, ProviderEndpoint } from './provider-endpoints';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
+import { shouldTriggerFallback } from './fallback-status-codes';
+import { inferProviderFromModelName } from '../provider-aliases';
 import { Tier, ScorerMessage } from '../scorer/types';
 
 /**
@@ -23,11 +26,25 @@ export interface RoutingMeta {
   provider: string;
   confidence: number;
   reason: string;
+  auth_type?: string;
+  fallbackFromModel?: string;
+  fallbackIndex?: number;
+  primaryErrorStatus?: number;
+  primaryErrorBody?: string;
+}
+
+export interface FailedFallback {
+  model: string;
+  provider: string;
+  fallbackIndex: number;
+  status: number;
+  errorBody: string;
 }
 
 export interface ProxyResult {
   forward: ForwardResult;
   meta: RoutingMeta;
+  failedFallbacks?: FailedFallback[];
 }
 
 @Injectable()
@@ -41,6 +58,7 @@ export class ProxyService {
     private readonly providerClient: ProviderClient,
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
+    private readonly pricingCache: ModelPricingCacheService,
   ) {}
 
   async proxyRequest(
@@ -85,7 +103,11 @@ export class ProxyService {
       );
     }
 
-    const apiKey = await this.routingService.getProviderApiKey(agentId, resolved.provider);
+    const apiKey = await this.routingService.getProviderApiKey(
+      agentId,
+      resolved.provider,
+      resolved.auth_type,
+    );
     if (apiKey === null) {
       throw new BadRequestException(
         `No API key found for provider: ${resolved.provider}. Re-connect the provider with an API key.`,
@@ -93,18 +115,84 @@ export class ProxyService {
     }
 
     this.logger.log(
-      `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} confidence=${resolved.confidence}`,
+      `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
     );
 
+    const stream = body.stream === true;
     const forward = await this.forwardToProvider(
       resolved.provider,
       apiKey,
       resolved.model,
       body,
-      body.stream === true,
+      stream,
       sessionKey,
       signal,
+      resolved.auth_type,
     );
+
+    if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
+      const tiers = await this.routingService.getTiers(agentId);
+      const assignment = tiers.find((t) => t.tier === resolved.tier);
+      const fallbackModels = assignment?.fallback_models;
+
+      if (fallbackModels && fallbackModels.length > 0) {
+        const primaryErrorBody = await forward.response.text();
+        const { success, failures } = await this.tryFallbacks(
+          agentId,
+          fallbackModels,
+          body,
+          stream,
+          sessionKey,
+          resolved.model,
+          signal,
+        );
+
+        if (success) {
+          this.momentum.recordTier(sessionKey, resolved.tier as Tier);
+          return {
+            forward: success.forward,
+            meta: {
+              tier: resolved.tier as Tier,
+              model: success.model,
+              provider: success.provider,
+              confidence: resolved.confidence,
+              reason: resolved.reason,
+              auth_type: resolved.auth_type,
+              fallbackFromModel: resolved.model,
+              fallbackIndex: success.fallbackIndex,
+              primaryErrorStatus: forward.response.status,
+              primaryErrorBody: primaryErrorBody,
+            },
+            failedFallbacks: failures,
+          };
+        }
+
+        // All fallbacks exhausted — rebuild the primary error response
+        // since the original body was consumed.
+        const rebuilt = new Response(primaryErrorBody, {
+          status: forward.response.status,
+          statusText: forward.response.statusText,
+          headers: forward.response.headers,
+        });
+        this.momentum.recordTier(sessionKey, resolved.tier as Tier);
+        return {
+          forward: {
+            response: rebuilt,
+            isGoogle: forward.isGoogle,
+            isAnthropic: forward.isAnthropic,
+          },
+          meta: {
+            tier: resolved.tier as Tier,
+            model: resolved.model,
+            provider: resolved.provider,
+            confidence: resolved.confidence,
+            reason: resolved.reason,
+            auth_type: resolved.auth_type,
+          },
+          failedFallbacks: failures,
+        };
+      }
+    }
 
     this.momentum.recordTier(sessionKey, resolved.tier as Tier);
 
@@ -116,8 +204,80 @@ export class ProxyService {
         provider: resolved.provider,
         confidence: resolved.confidence,
         reason: resolved.reason,
+        auth_type: resolved.auth_type,
       },
     };
+  }
+
+  private async tryFallbacks(
+    agentId: string,
+    fallbackModels: string[],
+    body: Record<string, unknown>,
+    stream: boolean,
+    sessionKey: string,
+    primaryModel: string,
+    signal?: AbortSignal,
+  ): Promise<{
+    success: {
+      forward: ForwardResult;
+      model: string;
+      provider: string;
+      fallbackIndex: number;
+    } | null;
+    failures: FailedFallback[];
+  }> {
+    const failures: FailedFallback[] = [];
+    for (let i = 0; i < fallbackModels.length; i++) {
+      const model = fallbackModels[i];
+      const pricing = this.pricingCache.getByModel(model);
+      if (!pricing) {
+        this.logger.debug(`Fallback ${i}: skipping model=${model} (no pricing data)`);
+        continue;
+      }
+
+      const provider =
+        inferProviderFromModelName(model) ??
+        inferProviderFromModelName(pricing.model_name) ??
+        pricing.provider;
+      const authType = await this.routingService.getAuthType(agentId, provider);
+      const apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
+      if (apiKey === null) {
+        this.logger.debug(
+          `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
+        );
+        continue;
+      }
+
+      this.logger.log(
+        `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
+      );
+
+      const forward = await this.forwardToProvider(
+        provider,
+        apiKey,
+        model,
+        body,
+        stream,
+        sessionKey,
+        signal,
+        authType,
+      );
+
+      if (forward.response.ok) {
+        return { success: { forward, model, provider, fallbackIndex: i }, failures };
+      }
+
+      const errorBody = await forward.response.text();
+      failures.push({
+        model,
+        provider,
+        fallbackIndex: i,
+        status: forward.response.status,
+        errorBody,
+      });
+      if (!shouldTriggerFallback(forward.response.status)) break;
+    }
+    return { success: null, failures };
   }
 
   private async enforceLimits(tenantId?: string, agentName?: string): Promise<void> {
@@ -127,12 +287,12 @@ export class ProxyService {
 
     const fmt =
       exceeded.metricType === 'cost'
-        ? `$${exceeded.actual.toFixed(2)}`
-        : exceeded.actual.toLocaleString();
+        ? `$${Number(exceeded.actual).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : Number(exceeded.actual).toLocaleString(undefined, { maximumFractionDigits: 0 });
     const threshFmt =
       exceeded.metricType === 'cost'
-        ? `$${exceeded.threshold.toFixed(2)}`
-        : exceeded.threshold.toLocaleString();
+        ? `$${Number(exceeded.threshold).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : Number(exceeded.threshold).toLocaleString(undefined, { maximumFractionDigits: 0 });
     throw new HttpException(
       {
         error: {
@@ -152,17 +312,15 @@ export class ProxyService {
   }
 
   private detectHeartbeat(scoringMessages: ScorerMessage[]): boolean {
-    return scoringMessages.some((m) => {
-      if (m.role !== 'user') return false;
-      if (typeof m.content === 'string') return m.content.includes('HEARTBEAT_OK');
-      if (Array.isArray(m.content)) {
-        return m.content.some(
-          (p: { type?: string; text?: string }) =>
-            p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
-        );
-      }
-      return false;
-    });
+    const lastUser = [...scoringMessages].reverse().find((m) => m.role === 'user');
+    if (!lastUser) return false;
+    if (typeof lastUser.content === 'string') return lastUser.content.includes('HEARTBEAT_OK');
+    if (Array.isArray(lastUser.content)) {
+      return (lastUser.content as { type?: string; text?: string }[]).some(
+        (p) => p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
+      );
+    }
+    return false;
   }
 
   private async forwardToProvider(
@@ -173,6 +331,7 @@ export class ProxyService {
     stream: boolean,
     sessionKey: string,
     signal?: AbortSignal,
+    authType?: string,
   ): Promise<ForwardResult> {
     const extraHeaders: Record<string, string> = {};
     if (provider === 'xai') {
@@ -201,6 +360,7 @@ export class ProxyService {
       signal,
       hasExtraHeaders ? extraHeaders : undefined,
       customEndpoint,
+      authType,
     );
   }
 }

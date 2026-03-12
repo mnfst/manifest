@@ -1,12 +1,16 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DataSource, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
-import { MetricWithTrend, computeTrend, addTenantFilter, formatTimestamp } from './query-helpers';
+import { MetricWithTrend, computeTrend, addTenantFilter } from './query-helpers';
+import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
-  DbDialect, detectDialect, computeCutoff, sqlCastFloat, sqlSanitizeCost,
+  DbDialect,
+  detectDialect,
+  computeCutoff,
+  sqlSanitizeCost,
 } from '../../common/utils/sql-dialect';
 
 export { MetricWithTrend };
@@ -21,49 +25,47 @@ export class AggregationService {
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
     private readonly dataSource: DataSource,
+    private readonly tenantCache: TenantCacheService,
   ) {
     this.dialect = detectDialect(this.dataSource.options.type as string);
   }
 
-  async hasAnyData(userId: string, agentName?: string): Promise<boolean> {
+  async hasAnyData(userId: string, agentName?: string, tenantId?: string): Promise<boolean> {
+    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const qb = this.turnRepo.createQueryBuilder('at').select('1').limit(1);
-    addTenantFilter(qb, userId, agentName);
+    addTenantFilter(qb, userId, agentName, resolved);
     const row = await qb.getRawOne();
     return row != null;
   }
 
   async getTokenSummary(range: string, userId: string, agentName?: string) {
+    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
     const prevInterval = rangeToPreviousInterval(range);
     const cutoff = computeCutoff(interval);
     const prevCutoff = computeCutoff(prevInterval);
-    const currentQb = this.turnRepo
+
+    // 3A: Merge current total + breakdown into one query (total = input + output)
+    const detailQb = this.turnRepo
       .createQueryBuilder('at')
-      .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
+      .select('COALESCE(SUM(at.input_tokens), 0)', 'inp')
+      .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
       .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(currentQb, userId, agentName);
-    const currentRow = await currentQb.getRawOne();
+    addTenantFilter(detailQb, userId, agentName, tenantId);
 
     const prevQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
       .where('at.timestamp >= :prevCutoff', { prevCutoff })
       .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(prevQb, userId, agentName);
-    const prevRow = await prevQb.getRawOne();
+    addTenantFilter(prevQb, userId, agentName, tenantId);
 
-    const detailQb = this.turnRepo
-      .createQueryBuilder('at')
-      .select('COALESCE(SUM(at.input_tokens), 0)', 'inp')
-      .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
-      .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(detailQb, userId, agentName);
-    const detail = await detailQb.getRawOne();
+    const [detail, prevRow] = await Promise.all([detailQb.getRawOne(), prevQb.getRawOne()]);
 
-    const current = Number(currentRow?.total ?? 0);
-    const previous = Number(prevRow?.total ?? 0);
     const inputTotal = Number(detail?.inp ?? 0);
     const outputTotal = Number(detail?.out ?? 0);
+    const current = inputTotal + outputTotal;
+    const previous = Number(prevRow?.total ?? 0);
 
     return {
       tokens_today: {
@@ -76,57 +78,156 @@ export class AggregationService {
     };
   }
 
-  async getCostSummary(range: string, userId: string, agentName?: string): Promise<MetricWithTrend> {
+  async getCostSummary(
+    range: string,
+    userId: string,
+    agentName?: string,
+  ): Promise<MetricWithTrend> {
+    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
     const prevInterval = rangeToPreviousInterval(range);
     const cutoff = computeCutoff(interval);
     const prevCutoff = computeCutoff(prevInterval);
 
+    // 3B: Parallelize current + previous period queries
     const safeCost = sqlSanitizeCost('at.cost_usd');
     const currentQb = this.turnRepo
       .createQueryBuilder('at')
       .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
       .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(currentQb, userId, agentName);
-    const currentRow = await currentQb.getRawOne();
+    addTenantFilter(currentQb, userId, agentName, tenantId);
 
     const prevQb = this.turnRepo
       .createQueryBuilder('at')
       .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
       .where('at.timestamp >= :prevCutoff', { prevCutoff })
       .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(prevQb, userId, agentName);
-    const prevRow = await prevQb.getRawOne();
+    addTenantFilter(prevQb, userId, agentName, tenantId);
+
+    const [currentRow, prevRow] = await Promise.all([currentQb.getRawOne(), prevQb.getRawOne()]);
 
     const current = Number(currentRow?.total ?? 0);
     const previous = Number(prevRow?.total ?? 0);
     return { value: current, trend_pct: computeTrend(current, previous) };
   }
 
-  async getMessageCount(range: string, userId: string, agentName?: string): Promise<MetricWithTrend> {
+  async getMessageCount(
+    range: string,
+    userId: string,
+    agentName?: string,
+  ): Promise<MetricWithTrend> {
+    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
     const prevInterval = rangeToPreviousInterval(range);
     const cutoff = computeCutoff(interval);
     const prevCutoff = computeCutoff(prevInterval);
 
+    // 3C: Parallelize current + previous period queries
     const currentQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COUNT(*)', 'total')
       .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(currentQb, userId, agentName);
-    const currentRow = await currentQb.getRawOne();
+    addTenantFilter(currentQb, userId, agentName, tenantId);
 
     const prevQb = this.turnRepo
       .createQueryBuilder('at')
       .select('COUNT(*)', 'total')
       .where('at.timestamp >= :prevCutoff', { prevCutoff })
       .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(prevQb, userId, agentName);
-    const prevRow = await prevQb.getRawOne();
+    addTenantFilter(prevQb, userId, agentName, tenantId);
+
+    const [currentRow, prevRow] = await Promise.all([currentQb.getRawOne(), prevQb.getRawOne()]);
 
     const current = Number(currentRow?.total ?? 0);
     const previous = Number(prevRow?.total ?? 0);
     return { value: current, trend_pct: computeTrend(current, previous) };
+  }
+
+  async getPreviousTokenTotal(range: string, userId: string, agentName?: string): Promise<number> {
+    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+    const interval = rangeToInterval(range);
+    const prevInterval = rangeToPreviousInterval(range);
+    const cutoff = computeCutoff(interval);
+    const prevCutoff = computeCutoff(prevInterval);
+
+    const prevQb = this.turnRepo
+      .createQueryBuilder('at')
+      .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
+      .where('at.timestamp >= :prevCutoff', { prevCutoff })
+      .andWhere('at.timestamp < :cutoff', { cutoff });
+    addTenantFilter(prevQb, userId, agentName, tenantId);
+    const row = await prevQb.getRawOne();
+    return Number(row?.total ?? 0);
+  }
+
+  async getPreviousCostTotal(range: string, userId: string, agentName?: string): Promise<number> {
+    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+    const interval = rangeToInterval(range);
+    const prevInterval = rangeToPreviousInterval(range);
+    const cutoff = computeCutoff(interval);
+    const prevCutoff = computeCutoff(prevInterval);
+
+    const safeCost = sqlSanitizeCost('at.cost_usd');
+    const prevQb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
+      .where('at.timestamp >= :prevCutoff', { prevCutoff })
+      .andWhere('at.timestamp < :cutoff', { cutoff });
+    addTenantFilter(prevQb, userId, agentName, tenantId);
+    const row = await prevQb.getRawOne();
+    return Number(row?.total ?? 0);
+  }
+
+  async getSummaryMetrics(range: string, userId: string, tenantId?: string, agentName?: string) {
+    const interval = rangeToInterval(range);
+    const prevInterval = rangeToPreviousInterval(range);
+    const cutoff = computeCutoff(interval);
+    const prevCutoff = computeCutoff(prevInterval);
+
+    const safeCost = sqlSanitizeCost('at.cost_usd');
+
+    const currentQb = this.turnRepo
+      .createQueryBuilder('at')
+      .select('COUNT(*)', 'msg_count')
+      .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'inp')
+      .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
+      .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
+      .where('at.timestamp >= :cutoff', { cutoff });
+    addTenantFilter(currentQb, userId, agentName, tenantId);
+
+    const prevQb = this.turnRepo
+      .createQueryBuilder('at')
+      .select('COUNT(*)', 'msg_count')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
+      .where('at.timestamp >= :prevCutoff', { prevCutoff })
+      .andWhere('at.timestamp < :cutoff', { cutoff });
+    addTenantFilter(prevQb, userId, agentName, tenantId);
+
+    const [cur, prev] = await Promise.all([currentQb.getRawOne(), prevQb.getRawOne()]);
+
+    const inputTotal = Number(cur?.inp ?? 0);
+    const outputTotal = Number(cur?.out ?? 0);
+    const curTokens = inputTotal + outputTotal;
+    const prevTokens = Number(prev?.tokens ?? 0);
+    const curCost = Number(cur?.cost ?? 0);
+    const prevCost = Number(prev?.cost ?? 0);
+    const curMsgs = Number(cur?.msg_count ?? 0);
+    const prevMsgs = Number(prev?.msg_count ?? 0);
+
+    return {
+      tokens: {
+        tokens_today: {
+          value: curTokens,
+          trend_pct: computeTrend(curTokens, prevTokens),
+          sub_values: { input: inputTotal, output: outputTotal },
+        } as MetricWithTrend,
+        input_tokens: inputTotal,
+        output_tokens: outputTotal,
+      },
+      cost: { value: curCost, trend_pct: computeTrend(curCost, prevCost) } as MetricWithTrend,
+      messages: { value: curMsgs, trend_pct: computeTrend(curMsgs, prevMsgs) } as MetricWithTrend,
+    };
   }
 
   async deleteAgent(userId: string, agentName: string): Promise<void> {
@@ -143,7 +244,12 @@ export class AggregationService {
     await this.agentRepo.delete(agent.id);
   }
 
-  async renameAgent(userId: string, currentName: string, newName: string, displayName?: string): Promise<void> {
+  async renameAgent(
+    userId: string,
+    currentName: string,
+    newName: string,
+    displayName?: string,
+  ): Promise<void> {
     const agent = await this.agentRepo
       .createQueryBuilder('a')
       .leftJoin('a.tenant', 't')
@@ -190,127 +296,23 @@ export class AggregationService {
         .where('id = :id', { id: agent.id })
         .execute();
 
-      const tables = ['agent_messages', 'notification_rules', 'notification_logs', 'token_usage_snapshots', 'cost_snapshots'];
-      for (const table of tables) {
-        await manager
-          .createQueryBuilder()
-          .update(table)
-          .set({ agent_name: newName })
-          .where('agent_name = :currentName', { currentName })
-          .execute();
-      }
+      const tables = [
+        'agent_messages',
+        'notification_rules',
+        'notification_logs',
+        'token_usage_snapshots',
+        'cost_snapshots',
+      ];
+      await Promise.all(
+        tables.map((table) =>
+          manager
+            .createQueryBuilder()
+            .update(table)
+            .set({ agent_name: newName })
+            .where('agent_name = :currentName', { currentName })
+            .execute(),
+        ),
+      );
     });
-  }
-
-  async getMessages(params: {
-    range?: string;
-    userId: string;
-    status?: string;
-    service_type?: string;
-    model?: string;
-    cost_min?: number;
-    cost_max?: number;
-    limit: number;
-    cursor?: string;
-    agent_name?: string;
-  }) {
-    const cutoff = params.range
-      ? computeCutoff(rangeToInterval(params.range))
-      : undefined;
-
-    const baseQb = this.turnRepo.createQueryBuilder('at');
-    if (cutoff) {
-      baseQb.where('at.timestamp >= :cutoff', { cutoff });
-    }
-
-    addTenantFilter(baseQb, params.userId);
-
-    if (params.status) baseQb.andWhere('at.status = :status', { status: params.status });
-    if (params.service_type) baseQb.andWhere('at.service_type = :serviceType', { serviceType: params.service_type });
-    if (params.model) baseQb.andWhere('at.model = :model', { model: params.model });
-    if (params.cost_min !== undefined) baseQb.andWhere('at.cost_usd >= :costMin', { costMin: params.cost_min });
-    if (params.cost_max !== undefined) baseQb.andWhere('at.cost_usd <= :costMax', { costMax: params.cost_max });
-    if (params.agent_name) baseQb.andWhere('at.agent_name = :filterAgent', { filterAgent: params.agent_name });
-
-    // Count (without cursor)
-    const countQb = baseQb.clone().select('COUNT(*)', 'total');
-    const countResult = await countQb.getRawOne();
-    const totalCount = Number(countResult?.total ?? 0);
-
-    // Data (with cursor) — treat negative costs as NULL (invalid pricing)
-    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
-    const dataQb = baseQb.clone()
-      .select('at.id', 'id')
-      .addSelect('at.timestamp', 'timestamp')
-      .addSelect('at.agent_name', 'agent_name')
-      .addSelect('at.model', 'model')
-      .addSelect('at.description', 'description')
-      .addSelect('at.service_type', 'service_type')
-      .addSelect('at.input_tokens', 'input_tokens')
-      .addSelect('at.output_tokens', 'output_tokens')
-      .addSelect('at.status', 'status')
-      .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
-      .addSelect(costExpr, 'cost')
-      .addSelect('at.routing_tier', 'routing_tier')
-      .addSelect('at.routing_reason', 'routing_reason')
-      .addSelect('at.cache_read_tokens', 'cache_read_tokens')
-      .addSelect('at.cache_creation_tokens', 'cache_creation_tokens')
-      .addSelect('at.duration_ms', 'duration_ms')
-      .addSelect('at.error_message', 'error_message');
-
-    if (params.cursor) {
-      const sepIdx = params.cursor.indexOf('|');
-      if (sepIdx !== -1) {
-        const cursorTs = params.cursor.substring(0, sepIdx);
-        const cursorId = params.cursor.substring(sepIdx + 1);
-        dataQb.andWhere(
-          new Brackets((sub) => {
-            sub
-              .where('at.timestamp < :cursorTs', { cursorTs })
-              .orWhere(
-                new Brackets((inner) => {
-                  inner
-                    .where('at.timestamp = :cursorTs2', { cursorTs2: cursorTs })
-                    .andWhere('at.id < :cursorId', { cursorId });
-                }),
-              );
-          }),
-        );
-      }
-    }
-
-    const rows = await dataQb
-      .orderBy('at.timestamp', 'DESC')
-      .addOrderBy('at.id', 'DESC')
-      .limit(params.limit + 1)
-      .getRawMany();
-
-    const hasMore = rows.length > params.limit;
-    const items = rows.slice(0, params.limit);
-    const lastItem = items[items.length - 1] as Record<string, unknown> | undefined;
-    const ts = lastItem?.['timestamp'];
-    const tsStr = ts instanceof Date ? formatTimestamp(ts) : String(ts ?? '');
-    const lastId = lastItem?.['id'];
-    const nextCursor = hasMore && lastItem
-      ? `${tsStr}|${String(lastId)}` : null;
-
-    // Distinct models
-    const modelsQb = this.turnRepo
-      .createQueryBuilder('at')
-      .select('DISTINCT at.model', 'model')
-      .where('at.model IS NOT NULL')
-      .andWhere("at.model != ''");
-    if (cutoff) {
-      modelsQb.andWhere('at.timestamp >= :cutoff', { cutoff });
-    }
-    addTenantFilter(modelsQb, params.userId);
-    const modelsResult = await modelsQb.orderBy('at.model', 'ASC').getRawMany();
-
-    return {
-      items,
-      next_cursor: nextCursor,
-      total_count: totalCount,
-      models: modelsResult.map((r: Record<string, unknown>) => String(r['model'])),
-    };
   }
 }

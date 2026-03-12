@@ -6,6 +6,7 @@ import { AgentMessage } from '../entities/agent-message.entity';
 import { SecurityEvent } from '../entities/security-event.entity';
 import { TelemetryEventDto } from './dto/create-telemetry.dto';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
+import { TenantCacheService } from '../common/services/tenant-cache.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 
 export interface IngestResult {
@@ -24,6 +25,7 @@ export class TelemetryService {
     @InjectRepository(SecurityEvent)
     private readonly securityRepo: Repository<SecurityEvent>,
     private readonly eventBus: IngestEventBusService,
+    private readonly tenantCache: TenantCacheService,
     private readonly pricingCache: ModelPricingCacheService,
   ) {}
 
@@ -33,23 +35,39 @@ export class TelemetryService {
     if (!Array.isArray(events)) {
       return { accepted: 0, rejected: 0, errors: [] };
     }
+    const tenantId = await this.tenantCache.resolve(userId);
     const maxLen = Math.min(events.length, TelemetryService.MAX_EVENTS_PER_BATCH);
-    let accepted = 0;
-    let rejected = 0;
+    const messageRows: Record<string, unknown>[] = [];
+    const securityRows: Record<string, unknown>[] = [];
     const errors: Array<{ index: number; reason: string }> = [];
 
     for (let i = 0; i < maxLen; i++) {
       try {
-        await this.insertEvent(events[i], userId);
-        accepted++;
+        const { message, security } = this.buildEventRows(events[i], userId, tenantId);
+        messageRows.push(message);
+        if (security) securityRows.push(security);
       } catch (err) {
-        rejected++;
         const reason = err instanceof Error ? err.message : 'Insert failed';
         errors.push({ index: i, reason });
         this.logger.warn(`Event ${i} rejected: ${reason}`);
       }
     }
 
+    let accepted = messageRows.length;
+    let rejected = errors.length;
+
+    try {
+      const inserts: Promise<unknown>[] = [];
+      if (messageRows.length > 0) inserts.push(this.turnRepo.insert(messageRows));
+      if (securityRows.length > 0) inserts.push(this.securityRepo.insert(securityRows));
+      await Promise.all(inserts);
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : 'Insert failed';
+      this.logger.warn(`Batch insert failed: ${reason}`);
+      rejected += accepted;
+      errors.push({ index: 0, reason });
+      accepted = 0;
+    }
     if (accepted > 0) {
       this.eventBus.emit(userId);
     }
@@ -62,8 +80,11 @@ export class TelemetryService {
     return new Date(ts).toISOString();
   }
 
-  private async insertEvent(event: TelemetryEventDto, userId: string): Promise<void> {
-    const id = uuidv4();
+  private buildEventRows(
+    event: TelemetryEventDto,
+    userId: string,
+    tenantId: string | null,
+  ): { message: Record<string, unknown>; security: Record<string, unknown> | null } {
     const inputTok = event.input_tokens ?? 0;
     const outputTok = event.output_tokens ?? 0;
     const timestamp = this.normalizeTimestamp(event.timestamp);
@@ -82,9 +103,9 @@ export class TelemetryService {
       }
     }
 
-    await this.turnRepo.insert({
-      id,
-      timestamp: timestamp,
+    const message = {
+      id: uuidv4(),
+      timestamp,
       description: event.description,
       service_type: event.service_type,
       agent_name: event.agent_name ?? null,
@@ -94,18 +115,22 @@ export class TelemetryService {
       output_tokens: outputTok,
       skill_name: event.skill_name ?? null,
       cost_usd: costUsd,
+      tenant_id: tenantId,
       user_id: userId,
-    });
+    };
 
+    let security: Record<string, unknown> | null = null;
     if (event.security_event) {
-      await this.securityRepo.insert({
+      security = {
         id: uuidv4(),
-        timestamp: timestamp,
+        timestamp,
         severity: event.security_event.severity,
         category: event.security_event.category,
         description: event.security_event.description,
         user_id: userId,
-      });
+      };
     }
+
+    return { message, security };
   }
 }

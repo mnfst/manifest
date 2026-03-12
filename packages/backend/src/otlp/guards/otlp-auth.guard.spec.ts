@@ -42,6 +42,10 @@ describe('OtlpAuthGuard', () => {
     guard.clearCache();
   });
 
+  afterEach(() => {
+    guard.onModuleDestroy();
+  });
+
   it('throws UnauthorizedException when Authorization header is missing', async () => {
     const { ctx } = makeContext({});
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
@@ -347,6 +351,53 @@ describe('OtlpAuthGuard', () => {
     expect(internalCache.has('mnfst_valid-cache')).toBe(true);
     // The new key should also be cached
     expect(internalCache.has('mnfst_trigger-evict-key')).toBe(true);
+  });
+
+  it('periodic timer fires evictExpired', () => {
+    jest.useFakeTimers();
+
+    const mockRepo = { createQueryBuilder: mockCreateQueryBuilder, update: mockUpdate } as never;
+    const timedGuard = new OtlpAuthGuard(mockRepo);
+
+    const internalCache = (timedGuard as any).cache as Map<string, unknown>;
+    internalCache.set('mnfst_stale', {
+      tenantId: 't',
+      agentId: 'a',
+      agentName: 'n',
+      userId: 'u',
+      expiresAt: Date.now() - 1000,
+    });
+
+    expect(internalCache.size).toBe(1);
+    jest.advanceTimersByTime(60_000);
+    expect(internalCache.size).toBe(0);
+
+    timedGuard.onModuleDestroy();
+    jest.useRealTimers();
+  });
+
+  it('onModuleDestroy stops the periodic cleanup timer', () => {
+    jest.useFakeTimers();
+
+    const mockRepo = { createQueryBuilder: mockCreateQueryBuilder, update: mockUpdate } as never;
+    const timedGuard = new OtlpAuthGuard(mockRepo);
+
+    const internalCache = (timedGuard as any).cache as Map<string, unknown>;
+    timedGuard.onModuleDestroy();
+
+    // After destroy, add an expired entry — timer should not evict it
+    internalCache.set('mnfst_leftover', {
+      tenantId: 't',
+      agentId: 'a',
+      agentName: 'n',
+      userId: 'u',
+      expiresAt: Date.now() - 1000,
+    });
+
+    jest.advanceTimersByTime(120_000);
+    expect(internalCache.size).toBe(1);
+
+    jest.useRealTimers();
   });
 
   it('invalidateCache removes a specific key from cache', async () => {

@@ -1,16 +1,16 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { MessagesQueryDto } from '../dto/messages-query.dto';
-import { AggregationService } from '../services/aggregation.service';
+import { MessagesQueryService } from '../services/messages-query.service';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 
 @Controller('api/v1')
 export class MessagesController {
-  constructor(private readonly aggregation: AggregationService) {}
+  constructor(private readonly messagesQuery: MessagesQueryService) {}
 
   @Get('messages')
   async getMessages(@Query() query: MessagesQueryDto, @CurrentUser() user: AuthUser) {
-    return this.aggregation.getMessages({
+    return this.messagesQuery.getMessages({
       range: query.range,
       userId: user.id,
       status: query.status,

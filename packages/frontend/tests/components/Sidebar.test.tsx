@@ -57,9 +57,9 @@ describe("Sidebar with agent", () => {
     expect(screen.getByText("MANAGE")).toBeDefined();
   });
 
-  it("hides Settings link in local mode", () => {
-    const { container } = render(() => <Sidebar />);
-    expect(container.textContent).not.toContain("Settings");
+  it("shows Settings link in local mode", () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText("Settings")).toBeDefined();
   });
 
   it("renders Settings link in cloud mode", () => {

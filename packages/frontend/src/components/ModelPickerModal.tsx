@@ -1,15 +1,22 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import { STAGES, PROVIDERS } from '../services/providers.js';
 import { providerIcon } from './ProviderIcon.js';
-import { pricePerM, resolveProviderId } from '../services/routing-utils.js';
-import type { AvailableModel, TierAssignment, CustomProviderData } from '../services/api.js';
+import { pricePerM, resolveProviderId, inferProviderFromModel } from '../services/routing-utils.js';
+import type {
+  AvailableModel,
+  TierAssignment,
+  CustomProviderData,
+  RoutingProvider,
+  AuthType,
+} from '../services/api.js';
 
 interface Props {
   tierId: string;
   models: AvailableModel[];
   tiers: TierAssignment[];
   customProviders?: CustomProviderData[];
-  onSelect: (tierId: string, modelName: string) => void;
+  connectedProviders?: RoutingProvider[];
+  onSelect: (tierId: string, modelName: string, authType?: AuthType) => void;
   onClose: () => void;
 }
 
@@ -34,6 +41,12 @@ const isFreeModel = (m: AvailableModel): boolean =>
   Number(m.output_price_per_token) === 0;
 
 const ModelPickerModal: Component<Props> = (props) => {
+  const hasSubscription = () =>
+    (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'subscription');
+
+  const [activeTab, setActiveTab] = createSignal<AuthType>(
+    hasSubscription() ? 'subscription' : 'api_key',
+  );
   const [search, setSearch] = createSignal('');
   const [showFreeOnly, setShowFreeOnly] = createSignal(false);
 
@@ -53,20 +66,44 @@ const ModelPickerModal: Component<Props> = (props) => {
     return map;
   };
 
+  /** Provider IDs that have an active connection of the given auth type. */
+  const providerIdsForTab = (authType: AuthType): Set<string> => {
+    const ids = new Set<string>();
+    for (const p of props.connectedProviders ?? []) {
+      if (p.is_active && p.auth_type === authType) {
+        ids.add(p.provider.toLowerCase());
+        const resolved = resolveProviderId(p.provider);
+        if (resolved) ids.add(resolved);
+      }
+    }
+    return ids;
+  };
+
   const groupedModels = () => {
     const q = search().toLowerCase().trim();
     const labels = providerLabelMap();
     const cpNames = customProviderNameMap();
+    const tab = activeTab();
+    const hasConnectedProviders = (props.connectedProviders ?? []).length > 0;
 
     type ModalModel = { value: string; label: string; pricing: AvailableModel };
     const groupMap = new Map<string, { provId: string; name: string; models: ModalModel[] }>();
 
-    const freeOnly = showFreeOnly();
+    const freeOnly = tab === 'api_key' && showFreeOnly();
+    const allowedProviders = hasConnectedProviders ? providerIdsForTab(tab) : undefined;
 
     for (const m of props.models) {
       if (freeOnly && !isFreeModel(m)) continue;
-      const provId = resolveProviderId(m.provider);
+      const dbProvId = resolveProviderId(m.provider);
+      const prefixProvId = inferProviderFromModel(m.model_name);
+      // Prefer prefix-inferred provider (e.g. "anthropic" from "anthropic/claude-sonnet-4")
+      // over the DB provider (e.g. "openrouter" when all models come from OpenRouter)
+      const provId =
+        prefixProvId && PROVIDERS.find((p) => p.id === prefixProvId)
+          ? prefixProvId
+          : (dbProvId ?? prefixProvId);
       if (!provId) continue;
+      if (allowedProviders && !allowedProviders.has(provId)) continue;
       if (!groupMap.has(provId)) {
         const isCustom = provId.startsWith('custom:');
         const provDef = PROVIDERS.find((p) => p.id === provId);
@@ -75,17 +112,12 @@ const ModelPickerModal: Component<Props> = (props) => {
           : (provDef?.name ?? m.provider);
         groupMap.set(provId, { provId, name, models: [] });
       }
-      const label = m.display_name ?? labelForModel(m.model_name, labels);
-      groupMap.get(provId)!.models.push({
-        value: m.model_name,
-        label,
-        pricing: m,
-      });
+      const label = m.display_name || labelForModel(m.model_name, labels);
+      groupMap.get(provId)!.models.push({ value: m.model_name, label, pricing: m });
     }
 
     const groups: { provId: string; name: string; models: ModalModel[] }[] = [];
     for (const group of groupMap.values()) {
-      // Sort openrouter/free to the top of its group
       group.models.sort((a, b) =>
         a.value === 'openrouter/free' ? -1 : b.value === 'openrouter/free' ? 1 : 0,
       );
@@ -108,6 +140,8 @@ const ModelPickerModal: Component<Props> = (props) => {
     const t = props.tiers.find((r) => r.tier === props.tierId);
     return t?.auto_assigned_model === modelName;
   };
+
+  const isSub = () => activeTab() === 'subscription';
 
   return (
     <div
@@ -153,6 +187,61 @@ const ModelPickerModal: Component<Props> = (props) => {
           </button>
         </div>
 
+        <div class="provider-modal__tabs" role="tablist">
+          <button
+            role="tab"
+            aria-selected={activeTab() === 'subscription'}
+            class="provider-modal__tab"
+            classList={{ 'provider-modal__tab--active': activeTab() === 'subscription' }}
+            onClick={() => {
+              setActiveTab('subscription');
+              setShowFreeOnly(false);
+            }}
+          >
+            <svg
+              class="provider-modal__tab-icon"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              style="color: #22c55e"
+            >
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Subscription
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab() === 'api_key'}
+            class="provider-modal__tab"
+            classList={{ 'provider-modal__tab--active': activeTab() === 'api_key' }}
+            onClick={() => setActiveTab('api_key')}
+          >
+            <svg
+              class="provider-modal__tab-icon"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              style="color: #f59e0b"
+            >
+              <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
+            </svg>
+            API Keys
+          </button>
+        </div>
+
         <div class="routing-modal__search-wrap">
           <svg
             class="routing-modal__search-icon"
@@ -180,16 +269,18 @@ const ModelPickerModal: Component<Props> = (props) => {
           />
         </div>
 
-        <div class="routing-modal__filter-bar">
-          <label class="routing-modal__filter-toggle">
-            <input
-              type="checkbox"
-              checked={showFreeOnly()}
-              onChange={(e) => setShowFreeOnly(e.currentTarget.checked)}
-            />
-            <span>Free models only</span>
-          </label>
-        </div>
+        <Show when={!isSub()}>
+          <div class="routing-modal__filter-bar">
+            <label class="routing-modal__filter-toggle">
+              <input
+                type="checkbox"
+                checked={showFreeOnly()}
+                onChange={(e) => setShowFreeOnly(e.currentTarget.checked)}
+              />
+              <span>Free models only</span>
+            </label>
+          </div>
+        </Show>
 
         <div class="routing-modal__list">
           <For each={groupedModels()}>
@@ -220,7 +311,7 @@ const ModelPickerModal: Component<Props> = (props) => {
                   {(model) => (
                     <button
                       class="routing-modal__model"
-                      onClick={() => props.onSelect(props.tierId, model.value)}
+                      onClick={() => props.onSelect(props.tierId, model.value, activeTab())}
                     >
                       <span class="routing-modal__model-label">
                         {model.label}
@@ -228,13 +319,22 @@ const ModelPickerModal: Component<Props> = (props) => {
                           <span class="routing-modal__recommended"> (recommended)</span>
                         </Show>
                       </span>
-                      <Show when={model.pricing}>
-                        {(p) => (
-                          <span class="routing-modal__model-id">
-                            {pricePerM(p().input_price_per_token)} in ·{' '}
-                            {pricePerM(p().output_price_per_token)} out per 1M
+                      <Show
+                        when={!isSub()}
+                        fallback={
+                          <span class="routing-modal__model-id routing-modal__model-id--subscription">
+                            Included in subscription
                           </span>
-                        )}
+                        }
+                      >
+                        <Show when={model.pricing}>
+                          {(p) => (
+                            <span class="routing-modal__model-id">
+                              {pricePerM(p().input_price_per_token)} in ·{' '}
+                              {pricePerM(p().output_price_per_token)} out per 1M
+                            </span>
+                          )}
+                        </Show>
                       </Show>
                     </button>
                   )}
@@ -243,7 +343,15 @@ const ModelPickerModal: Component<Props> = (props) => {
             )}
           </For>
           <Show when={groupedModels().length === 0}>
-            <div class="routing-modal__empty">No models match your search.</div>
+            <div class="routing-modal__empty">
+              {search().trim()
+                ? 'No models match your search.'
+                : showFreeOnly()
+                  ? 'No free models available from your connected providers.'
+                  : isSub()
+                    ? 'No subscription providers connected. Connect a provider to see models.'
+                    : 'No API key providers connected. Connect a provider to see models.'}
+            </div>
           </Show>
         </div>
       </div>

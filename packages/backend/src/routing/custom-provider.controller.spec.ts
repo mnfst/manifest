@@ -1,15 +1,17 @@
 import { NotFoundException } from '@nestjs/common';
 import { CustomProviderController } from './custom-provider.controller';
 import { CustomProviderService } from './custom-provider.service';
+import { RoutingService } from './routing.service';
+import { ResolveAgentService } from './resolve-agent.service';
+import { Agent } from '../entities/agent.entity';
 
 const mockUser = { id: 'user-1' } as never;
 
 describe('CustomProviderController', () => {
   let controller: CustomProviderController;
   let mockCustomProviderService: Record<string, jest.Mock>;
-  let mockAgentRepo: Record<string, jest.Mock>;
-  let mockTenantRepo: Record<string, jest.Mock>;
-  let mockProviderRepo: Record<string, jest.Mock>;
+  let mockRoutingService: Record<string, jest.Mock>;
+  let mockResolveAgent: Record<string, jest.Mock>;
 
   beforeEach(() => {
     mockCustomProviderService = {
@@ -30,22 +32,17 @@ describe('CustomProviderController', () => {
       }),
       remove: jest.fn().mockResolvedValue(undefined),
     };
-    mockTenantRepo = {
-      findOne: jest.fn().mockResolvedValue({ id: 'tenant-001', name: 'user-1' }),
+    mockRoutingService = {
+      getProviders: jest.fn().mockResolvedValue([]),
     };
-    mockAgentRepo = {
-      findOne: jest.fn().mockResolvedValue({ id: 'agent-001', name: 'test-agent' }),
-    };
-    mockProviderRepo = {
-      find: jest.fn().mockResolvedValue([]),
-      findOne: jest.fn().mockResolvedValue(null),
+    mockResolveAgent = {
+      resolve: jest.fn().mockResolvedValue({ id: 'agent-001', name: 'test-agent' } as Agent),
     };
 
     controller = new CustomProviderController(
       mockCustomProviderService as unknown as CustomProviderService,
-      mockAgentRepo as never,
-      mockTenantRepo as never,
-      mockProviderRepo as never,
+      mockRoutingService as unknown as RoutingService,
+      mockResolveAgent as unknown as ResolveAgentService,
     );
   });
 
@@ -53,14 +50,16 @@ describe('CustomProviderController', () => {
 
   describe('resolveAgent', () => {
     it('throws NotFoundException when tenant is not found', async () => {
-      mockTenantRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(new NotFoundException('Tenant not found'));
       await expect(controller.list(mockUser, { agentName: 'test-agent' } as never)).rejects.toThrow(
         NotFoundException,
       );
     });
 
     it('throws NotFoundException when agent is not found', async () => {
-      mockAgentRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(
+        new NotFoundException('Agent "missing" not found'),
+      );
       await expect(controller.list(mockUser, { agentName: 'missing' } as never)).rejects.toThrow(
         NotFoundException,
       );
@@ -80,7 +79,7 @@ describe('CustomProviderController', () => {
           created_at: '2026-03-04',
         },
       ]);
-      mockProviderRepo.find.mockResolvedValue([
+      mockRoutingService.getProviders.mockResolvedValue([
         { provider: 'custom:cp-1', api_key_encrypted: 'enc-value' },
       ]);
 
@@ -107,7 +106,7 @@ describe('CustomProviderController', () => {
           created_at: '2026-03-04',
         },
       ]);
-      mockProviderRepo.find.mockResolvedValue([]);
+      mockRoutingService.getProviders.mockResolvedValue([]);
 
       const result = await controller.list(mockUser, { agentName: 'test-agent' } as never);
 
@@ -124,7 +123,7 @@ describe('CustomProviderController', () => {
           created_at: '2026-03-04',
         },
       ]);
-      mockProviderRepo.find.mockResolvedValue([
+      mockRoutingService.getProviders.mockResolvedValue([
         { provider: 'custom:cp-1', api_key_encrypted: null },
       ]);
 
@@ -133,9 +132,10 @@ describe('CustomProviderController', () => {
       expect(result[0].has_api_key).toBe(false);
     });
 
-    it('returns empty array when no custom providers', async () => {
+    it('returns empty array when no custom providers and skips user_providers query', async () => {
       const result = await controller.list(mockUser, { agentName: 'test-agent' } as never);
       expect(result).toEqual([]);
+      expect(mockRoutingService.getProviders).toHaveBeenCalled();
     });
   });
 
@@ -143,9 +143,9 @@ describe('CustomProviderController', () => {
 
   describe('create', () => {
     it('creates custom provider and returns mapped response', async () => {
-      mockProviderRepo.findOne.mockResolvedValue({
-        api_key_encrypted: 'encrypted',
-      });
+      mockRoutingService.getProviders.mockResolvedValue([
+        { provider: 'custom:cp-1', api_key_encrypted: 'encrypted' },
+      ]);
 
       const body = {
         name: 'Groq',
@@ -167,7 +167,7 @@ describe('CustomProviderController', () => {
     });
 
     it('returns has_api_key false when no user provider found', async () => {
-      mockProviderRepo.findOne.mockResolvedValue(null);
+      mockRoutingService.getProviders.mockResolvedValue([]);
 
       const body = {
         name: 'Local',
@@ -189,9 +189,9 @@ describe('CustomProviderController', () => {
 
   describe('update', () => {
     it('updates custom provider and returns mapped response', async () => {
-      mockProviderRepo.findOne.mockResolvedValue({
-        api_key_encrypted: 'encrypted',
-      });
+      mockRoutingService.getProviders.mockResolvedValue([
+        { provider: 'custom:cp-1', api_key_encrypted: 'encrypted' },
+      ]);
 
       const body = { name: 'Updated Groq' };
 
@@ -209,7 +209,7 @@ describe('CustomProviderController', () => {
     });
 
     it('returns has_api_key false when no user provider found', async () => {
-      mockProviderRepo.findOne.mockResolvedValue(null);
+      mockRoutingService.getProviders.mockResolvedValue([]);
 
       const result = await controller.update(mockUser, 'test-agent', 'cp-1', {
         name: 'Updated',
@@ -219,7 +219,7 @@ describe('CustomProviderController', () => {
     });
 
     it('propagates NotFoundException through resolveAgent', async () => {
-      mockTenantRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(new NotFoundException('Tenant not found'));
 
       await expect(
         controller.update(mockUser, 'test-agent', 'cp-1', { name: 'X' } as never),
@@ -238,7 +238,7 @@ describe('CustomProviderController', () => {
     });
 
     it('propagates NotFoundException through resolveAgent', async () => {
-      mockTenantRepo.findOne.mockResolvedValue(null);
+      mockResolveAgent.resolve.mockRejectedValue(new NotFoundException('Tenant not found'));
 
       await expect(controller.remove(mockUser, 'test-agent', 'cp-1')).rejects.toThrow(
         NotFoundException,

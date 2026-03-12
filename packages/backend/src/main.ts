@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ConsoleLogger, Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import compression from 'compression';
 import * as express from 'express';
 import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
@@ -18,20 +19,24 @@ export async function bootstrap() {
   app.enableShutdownHooks();
   app.useGlobalFilters(new SpaFallbackFilter());
 
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", "data:"],
-        connectSrc: ["'self'", "https://eu.i.posthog.com"],
-        fontSrc: ["'self'"],
-        objectSrc: ["'none'"],
-        frameAncestors: ["'none'"],
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:'],
+          connectSrc: ["'self'", 'https://eu.i.posthog.com'],
+          fontSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          frameAncestors: ["'none'"],
+        },
       },
-    },
-  }));
+    }),
+  );
+
+  app.use(compression());
 
   const isDev = process.env['NODE_ENV'] !== 'production';
   if (isDev) {
@@ -80,20 +85,21 @@ export async function bootstrap() {
     expressApp.all('/api/auth/*splat', toNodeHandler(auth!));
   }
 
-  // Re-add body parsing for NestJS routes, with rawBody capture for OTLP protobuf
-  expressApp.use(express.json({
-    limit: '1mb',
-    verify: (req: express.Request & { rawBody?: Buffer }, _res: express.Response, buf: Buffer) => {
-      req.rawBody = buf;
-    },
-  }));
-  expressApp.use(express.raw({
-    type: 'application/x-protobuf',
-    limit: '5mb',
-    verify: (req: express.Request & { rawBody?: Buffer }, _res: express.Response, buf: Buffer) => {
-      req.rawBody = buf;
-    },
-  }));
+  // Re-add body parsing for NestJS routes
+  expressApp.use(express.json({ limit: '1mb' }));
+  expressApp.use(
+    express.raw({
+      type: 'application/x-protobuf',
+      limit: '5mb',
+      verify: (
+        req: express.Request & { rawBody?: Buffer },
+        _res: express.Response,
+        buf: Buffer,
+      ) => {
+        req.rawBody = buf;
+      },
+    }),
+  );
   expressApp.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
   const port = Number(process.env['PORT'] ?? 3001);

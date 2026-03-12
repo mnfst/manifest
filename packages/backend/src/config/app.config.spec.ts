@@ -77,4 +77,16 @@ describe('appConfig', () => {
     const config = await loadConfig();
     expect(config.nodeEnv).toBe('production');
   });
+
+  it('defaults dbPoolMax to 20', async () => {
+    delete process.env['DB_POOL_MAX'];
+    const config = await loadConfig();
+    expect(config.dbPoolMax).toBe(20);
+  });
+
+  it('reads DB_POOL_MAX from env', async () => {
+    process.env['DB_POOL_MAX'] = '50';
+    const config = await loadConfig();
+    expect(config.dbPoolMax).toBe(50);
+  });
 });

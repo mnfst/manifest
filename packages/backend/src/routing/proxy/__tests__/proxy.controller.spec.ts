@@ -30,7 +30,7 @@ function mockResponse(): {
       statusCode = code;
       return res;
     }),
-    on: jest.fn(),
+    once: jest.fn(),
     writableEnded: false,
   };
   return {
@@ -76,6 +76,7 @@ describe('ProxyController', () => {
     convertAnthropicStreamChunk: jest.Mock;
   };
   let mockMessageRepo: { insert: jest.Mock };
+  let mockPricingCache: { getByModel: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -93,12 +94,18 @@ describe('ProxyController', () => {
       convertAnthropicStreamChunk: jest.fn(),
     };
     mockMessageRepo = { insert: jest.fn().mockResolvedValue({}) };
+    mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
     controller = new ProxyController(
       proxyService as never,
       rateLimiter as never,
       providerClient as never,
       mockMessageRepo as never,
+      mockPricingCache as never,
     );
+  });
+
+  afterEach(() => {
+    controller.onModuleDestroy();
   });
 
   it('should return JSON response for non-streaming OpenAI provider', async () => {
@@ -201,6 +208,248 @@ describe('ProxyController', () => {
       'claude-sonnet-4-20250514',
     );
     expect(res.json).toHaveBeenCalledWith(convertedBody);
+  });
+
+  it('should record success message with usage from non-streaming response', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 500, completion_tokens: 200, cache_read_tokens: 100 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'ok',
+        model: 'gpt-4o',
+        routing_tier: 'simple',
+        input_tokens: 500,
+        output_tokens: 200,
+        cache_read_tokens: 100,
+      }),
+    );
+  });
+
+  it('should skip recording when response has zero tokens', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 0, completion_tokens: 0 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    // recordSuccessMessage returns early when both tokens are 0
+    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+  });
+
+  it('should default completion_tokens to 0 when missing from response', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 500 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ input_tokens: 500, output_tokens: 0 }),
+    );
+  });
+
+  it('should not record success message when response has no usage', async () => {
+    const responseBody = { choices: [{ message: { content: 'hello' } }] };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+  });
+
+  it('should not record success message for fallback responses', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 500, completion_tokens: 200 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+        fallbackFromModel: 'claude-sonnet-4-20250514',
+        fallbackIndex: 0,
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    // Only the fallback chain messages should be recorded, not a duplicate success
+    const insertCalls = mockMessageRepo.insert.mock.calls;
+    const hasSuccessWithTokens = insertCalls.some(
+      (call: unknown[]) =>
+        (call[0] as Record<string, unknown>).status === 'ok' &&
+        (call[0] as Record<string, unknown>).input_tokens === 500,
+    );
+    expect(hasSuccessWithTokens).toBe(false);
+  });
+
+  it('should compute cost when pricing is available', async () => {
+    mockPricingCache.getByModel.mockReturnValue({
+      input_price_per_token: 0.000003,
+      output_price_per_token: 0.000015,
+    });
+
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 1000, completion_tokens: 500 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input_tokens: 1000,
+        output_tokens: 500,
+        cost_usd: 1000 * 0.000003 + 500 * 0.000015,
+      }),
+    );
+  });
+
+  it('should warn when recordSuccessMessage fails', async () => {
+    mockMessageRepo.insert.mockRejectedValue(new Error('DB write failed'));
+
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 100, completion_tokens: 50 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    // The catch handler should log a warning, not throw
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 
   it('should forward provider error status and body', async () => {
@@ -820,7 +1069,7 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      expect(res.on).toHaveBeenCalledWith('close', expect.any(Function));
+      expect(res.once).toHaveBeenCalledWith('close', expect.any(Function));
     });
 
     it('should pass AbortSignal to proxyService', async () => {
@@ -854,7 +1103,7 @@ describe('ProxyController', () => {
       const { res } = mockResponse();
 
       // Capture the close callback and wire it to our AbortController
-      (res.on as jest.Mock).mockImplementation((event: string, cb: () => void) => {
+      (res.once as jest.Mock).mockImplementation((event: string, cb: () => void) => {
         if (event === 'close') {
           abortController.signal.addEventListener('abort', cb);
         }
@@ -877,7 +1126,7 @@ describe('ProxyController', () => {
       const { res } = mockResponse();
       res.writableEnded = true;
 
-      (res.on as jest.Mock).mockImplementation((event: string, cb: () => void) => {
+      (res.once as jest.Mock).mockImplementation((event: string, cb: () => void) => {
         if (event === 'close') {
           abortController.signal.addEventListener('abort', cb);
         }
@@ -899,7 +1148,7 @@ describe('ProxyController', () => {
       const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
       const { res } = mockResponse();
 
-      (res.on as jest.Mock).mockImplementation((event: string, cb: () => void) => {
+      (res.once as jest.Mock).mockImplementation((event: string, cb: () => void) => {
         if (event === 'close') {
           abortController.signal.addEventListener('abort', cb);
         }
@@ -1415,6 +1664,53 @@ describe('ProxyController', () => {
     });
   });
 
+  describe('periodic cooldown cleanup', () => {
+    it('periodic timer evicts expired cooldown entries', () => {
+      jest.useFakeTimers();
+      controller.onModuleDestroy(); // stop timer from beforeEach controller
+
+      const timedController = new ProxyController(
+        proxyService as never,
+        rateLimiter as never,
+        providerClient as never,
+        mockMessageRepo as never,
+        mockPricingCache as never,
+      );
+
+      const cooldownMap = (timedController as any).rateLimitCooldown as Map<string, number>;
+      cooldownMap.set('t:a', Date.now() - 120_000); // expired
+
+      jest.advanceTimersByTime(60_000);
+      expect(cooldownMap.size).toBe(0);
+
+      timedController.onModuleDestroy();
+      jest.useRealTimers();
+    });
+
+    it('onModuleDestroy stops the periodic cleanup timer', () => {
+      jest.useFakeTimers();
+      controller.onModuleDestroy(); // stop timer from beforeEach controller
+
+      const timedController = new ProxyController(
+        proxyService as never,
+        rateLimiter as never,
+        providerClient as never,
+        mockMessageRepo as never,
+        mockPricingCache as never,
+      );
+
+      timedController.onModuleDestroy();
+
+      const cooldownMap = (timedController as any).rateLimitCooldown as Map<string, number>;
+      cooldownMap.set('t:a', Date.now() - 120_000);
+
+      jest.advanceTimersByTime(120_000);
+      expect(cooldownMap.size).toBe(1); // not evicted because timer stopped
+
+      jest.useRealTimers();
+    });
+  });
+
   describe('seenUsers bounded Set', () => {
     it('should evict oldest user when MAX_SEEN_USERS is reached', async () => {
       // Access internal seenUsers set to pre-fill it
@@ -1612,6 +1908,673 @@ describe('ProxyController', () => {
 
       // Since headers are sent during streaming, error should just end the stream
       expect(res.end).toHaveBeenCalled();
+    });
+  });
+
+  describe('fallback headers', () => {
+    it('should set fallback headers when meta has fallbackFromModel', async () => {
+      const responseBody = { choices: [{ message: { content: 'hello' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'claude-sonnet-4',
+          provider: 'Anthropic',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gpt-4o',
+          fallbackIndex: 0,
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res, headers } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(headers['X-Manifest-Fallback-From']).toBe('gpt-4o');
+      expect(headers['X-Manifest-Fallback-Index']).toBe('0');
+      expect(headers['X-Manifest-Model']).toBe('claude-sonnet-4');
+    });
+
+    it('should not set fallback headers when meta has no fallbackFromModel', async () => {
+      const responseBody = { choices: [{ message: { content: 'hello' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-4o',
+          provider: 'OpenAI',
+          confidence: 0.8,
+          reason: 'scored',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res, headers } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(headers['X-Manifest-Fallback-From']).toBeUndefined();
+      expect(headers['X-Manifest-Fallback-Index']).toBeUndefined();
+    });
+
+    it('should record primary failure and fallback success when fallback was used', async () => {
+      const responseBody = { choices: [{ message: { content: 'hello' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'deepseek-chat',
+          provider: 'DeepSeek',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gemini-2.5-flash-lite',
+          fallbackIndex: 0,
+          primaryErrorStatus: 400,
+          primaryErrorBody: '{"error":"bad request from primary"}',
+          auth_type: 'subscription',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
+
+      // Primary failure recorded with actual error body
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'fallback_error',
+          model: 'gemini-2.5-flash-lite',
+          routing_tier: 'simple',
+          trace_id: null,
+          error_message: '{"error":"bad request from primary"}',
+        }),
+      );
+
+      // Fallback success recorded with auth_type and cost_usd
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'ok',
+          model: 'deepseek-chat',
+          routing_tier: 'simple',
+          fallback_from_model: 'gemini-2.5-flash-lite',
+          fallback_index: 0,
+          auth_type: 'subscription',
+          cost_usd: 0,
+        }),
+      );
+    });
+
+    it('should record intermediate failures as fallback_error when chain succeeds', async () => {
+      const responseBody = { choices: [{ message: { content: 'ok' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'claude-sonnet-4',
+          provider: 'Anthropic',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gemini-flash',
+          fallbackIndex: 2,
+          primaryErrorStatus: 500,
+        },
+        failedFallbacks: [
+          {
+            model: 'deepseek-chat',
+            provider: 'DeepSeek',
+            fallbackIndex: 0,
+            status: 429,
+            errorBody: 'rate limited',
+          },
+          {
+            model: 'gpt-4o-mini',
+            provider: 'OpenAI',
+            fallbackIndex: 1,
+            status: 500,
+            errorBody: 'server error',
+          },
+        ],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      // 4 inserts: primary failure + 2 intermediate failures + fallback success
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(4);
+
+      // Intermediate failures recorded as fallback_error (handled)
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'deepseek-chat',
+          status: 'fallback_error',
+          fallback_from_model: 'gemini-flash',
+          fallback_index: 0,
+        }),
+      );
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'gpt-4o-mini',
+          status: 'fallback_error',
+          fallback_from_model: 'gemini-flash',
+          fallback_index: 1,
+        }),
+      );
+    });
+
+    it('should not pre-record message when no fallback was used', async () => {
+      const responseBody = { choices: [{ message: { content: 'hello' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-4o',
+          provider: 'OpenAI',
+          confidence: 0.8,
+          reason: 'scored',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('should include fallback fields in error recording when fallback was used', async () => {
+      const errorBody = '{"error":"bad request"}';
+      const mockProviderResp = new Response(errorBody, {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'claude-sonnet-4',
+          provider: 'Anthropic',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gpt-4o',
+          fallbackIndex: 1,
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fallback_from_model: 'gpt-4o',
+          fallback_index: 1,
+        }),
+      );
+    });
+
+    it('should record failed fallback attempts as separate messages', async () => {
+      const mockProviderResp = new Response('primary error', {
+        status: 400,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'gemini-flash',
+          provider: 'Google',
+          confidence: 0.9,
+          reason: 'scored',
+        },
+        failedFallbacks: [
+          {
+            model: 'deepseek-chat',
+            provider: 'DeepSeek',
+            fallbackIndex: 0,
+            status: 401,
+            errorBody: 'auth fail',
+          },
+        ],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      // 2 inserts: primary as fallback_error + last fallback as error
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'gemini-flash',
+          status: 'fallback_error',
+          error_message: 'primary error',
+        }),
+      );
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'deepseek-chat',
+          status: 'error',
+          fallback_from_model: 'gemini-flash',
+          fallback_index: 0,
+          error_message: 'auth fail',
+        }),
+      );
+    });
+
+    it('should handle DB failure in recordFailedFallbacks when all fallbacks fail', async () => {
+      mockMessageRepo.insert.mockRejectedValue(new Error('DB write failed'));
+
+      const mockProviderResp = new Response('primary error', {
+        status: 500,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'gemini-flash',
+          provider: 'Google',
+          confidence: 0.9,
+          reason: 'scored',
+        },
+        failedFallbacks: [
+          {
+            model: 'deepseek-chat',
+            provider: 'DeepSeek',
+            fallbackIndex: 0,
+            status: 500,
+            errorBody: 'fail 1',
+          },
+        ],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      // Should not throw even though all inserts fail
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith('primary error');
+    });
+
+    it('should handle DB failure in recordPrimaryFailure on successful fallback', async () => {
+      mockMessageRepo.insert.mockRejectedValue(new Error('DB write failed'));
+
+      const responseBody = { choices: [{ message: { content: 'hello' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'deepseek-chat',
+          provider: 'DeepSeek',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gemini-flash',
+          fallbackIndex: 0,
+          primaryErrorStatus: 500,
+          primaryErrorBody: 'primary failed',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      // Should not throw even though inserts fail
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(responseBody);
+    });
+
+    it('should handle DB failure in recordFailedFallbacks on successful fallback with intermediates', async () => {
+      mockMessageRepo.insert.mockRejectedValue(new Error('DB write failed'));
+
+      const responseBody = { choices: [{ message: { content: 'ok' } }] };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'claude-sonnet-4',
+          provider: 'Anthropic',
+          confidence: 0.8,
+          reason: 'scored',
+          fallbackFromModel: 'gemini-flash',
+          fallbackIndex: 2,
+          primaryErrorStatus: 500,
+        },
+        failedFallbacks: [
+          {
+            model: 'deepseek-chat',
+            provider: 'DeepSeek',
+            fallbackIndex: 0,
+            status: 500,
+            errorBody: 'fail 1',
+          },
+        ],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      // Should not throw even though inserts fail
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(responseBody);
+    });
+
+    it('should mark intermediate failures as handled when all fallbacks fail', async () => {
+      const mockProviderResp = new Response('primary error', {
+        status: 500,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'gemini-flash',
+          provider: 'Google',
+          confidence: 0.9,
+          reason: 'scored',
+        },
+        failedFallbacks: [
+          {
+            model: 'deepseek-chat',
+            provider: 'DeepSeek',
+            fallbackIndex: 0,
+            status: 500,
+            errorBody: 'fail 1',
+          },
+          {
+            model: 'gpt-4o-mini',
+            provider: 'OpenAI',
+            fallbackIndex: 1,
+            status: 500,
+            errorBody: 'fail 2',
+          },
+        ],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      // 3 inserts: primary (fallback_error) + intermediate (fallback_error) + last (error)
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(3);
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'gemini-flash',
+          status: 'fallback_error',
+        }),
+      );
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'deepseek-chat',
+          status: 'fallback_error',
+          fallback_index: 0,
+        }),
+      );
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'gpt-4o-mini',
+          status: 'error',
+          fallback_index: 1,
+        }),
+      );
+    });
+  });
+
+  it('should pass authType to recordFailedFallbacks when all fallbacks fail', async () => {
+    const mockProviderResp = new Response('primary error', {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gemini-flash',
+        provider: 'Google',
+        confidence: 0.9,
+        reason: 'scored',
+        auth_type: 'subscription',
+      },
+      failedFallbacks: [
+        {
+          model: 'deepseek-chat',
+          provider: 'DeepSeek',
+          fallbackIndex: 0,
+          status: 500,
+          errorBody: 'fail 1',
+        },
+      ],
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Fallback failure recorded with auth_type from meta
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'deepseek-chat',
+        auth_type: 'subscription',
+      }),
+    );
+    // Primary failure also recorded with auth_type
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'gemini-flash',
+        status: 'fallback_error',
+        auth_type: 'subscription',
+      }),
+    );
+  });
+
+  describe('auth_type and subscription cost', () => {
+    it('should store auth_type from routing meta on success message', async () => {
+      const responseBody = {
+        choices: [{ message: { content: 'hello' } }],
+        usage: { prompt_tokens: 100, completion_tokens: 50 },
+      };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'claude-haiku-4-5-20251001',
+          provider: 'Anthropic',
+          confidence: 0.9,
+          reason: 'scored',
+          auth_type: 'api_key',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ auth_type: 'api_key' }),
+      );
+    });
+
+    it('should set cost to zero for subscription auth_type', async () => {
+      mockPricingCache.getByModel.mockReturnValue({
+        input_price_per_token: 0.001,
+        output_price_per_token: 0.002,
+      });
+
+      const responseBody = {
+        choices: [{ message: { content: 'hello' } }],
+        usage: { prompt_tokens: 100, completion_tokens: 50 },
+      };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'claude-haiku-4-5-20251001',
+          provider: 'Anthropic',
+          confidence: 0.9,
+          reason: 'scored',
+          auth_type: 'subscription',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ auth_type: 'subscription', cost_usd: 0 }),
+      );
+    });
+
+    it('should calculate cost normally for api_key auth_type', async () => {
+      mockPricingCache.getByModel.mockReturnValue({
+        input_price_per_token: 0.01,
+        output_price_per_token: 0.03,
+      });
+
+      const responseBody = {
+        choices: [{ message: { content: 'hello' } }],
+        usage: { prompt_tokens: 200, completion_tokens: 100 },
+      };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'claude-haiku-4-5-20251001',
+          provider: 'Anthropic',
+          confidence: 0.9,
+          reason: 'scored',
+          auth_type: 'api_key',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      // cost = 200 * 0.01 + 100 * 0.03 = 5.0
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ auth_type: 'api_key', cost_usd: expect.closeTo(5.0, 4) }),
+      );
+    });
+
+    it('should set auth_type to null when not provided', async () => {
+      const responseBody = {
+        choices: [{ message: { content: 'hello' } }],
+        usage: { prompt_tokens: 100, completion_tokens: 50 },
+      };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'gpt-4o',
+          provider: 'OpenAI',
+          confidence: 0.9,
+          reason: 'scored',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ auth_type: null }),
+      );
     });
   });
 });

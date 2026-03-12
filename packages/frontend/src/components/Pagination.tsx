@@ -26,6 +26,7 @@ const Pagination: Component<PaginationProps> = (props) => {
             class="btn btn--outline btn--sm pagination__btn"
             disabled={props.currentPage() <= 1 || loading()}
             onClick={props.onPrevious}
+            aria-label="Go to previous page"
           >
             Previous
           </button>
@@ -33,6 +34,7 @@ const Pagination: Component<PaginationProps> = (props) => {
             class="btn btn--outline btn--sm pagination__btn"
             disabled={!props.hasNextPage() || loading()}
             onClick={props.onNext}
+            aria-label="Go to next page"
           >
             Next
           </button>

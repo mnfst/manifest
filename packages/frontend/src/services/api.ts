@@ -311,9 +311,12 @@ export function getRoutingStatus(agentName: string) {
 
 /* -- Routing: Providers -- */
 
+export type AuthType = 'api_key' | 'subscription';
+
 export interface RoutingProvider {
   id: string;
   provider: string;
+  auth_type: AuthType;
   is_active: boolean;
   has_api_key: boolean;
   key_prefix?: string | null;
@@ -324,8 +327,11 @@ export function getProviders(agentName: string) {
   return fetchJson<RoutingProvider[]>(`/routing/${encodeURIComponent(agentName)}/providers`);
 }
 
-export function connectProvider(agentName: string, data: { provider: string; apiKey?: string }) {
-  return fetchMutate<{ id: string; provider: string; is_active: boolean }>(
+export function connectProvider(
+  agentName: string,
+  data: { provider: string; apiKey?: string; authType?: AuthType },
+) {
+  return fetchMutate<{ id: string; provider: string; auth_type: AuthType; is_active: boolean }>(
     `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers`,
     {
       method: 'POST',
@@ -342,11 +348,10 @@ export function deactivateAllProviders(agentName: string) {
   );
 }
 
-export function disconnectProvider(agentName: string, provider: string) {
-  return fetchMutate<{ ok: boolean; notifications: string[] }>(
-    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers/${encodeURIComponent(provider)}`,
-    { method: 'DELETE' },
-  );
+export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {
+  const base = `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers/${encodeURIComponent(provider)}`;
+  const url = authType ? `${base}?authType=${authType}` : base;
+  return fetchMutate<{ ok: boolean; notifications: string[] }>(url, { method: 'DELETE' });
 }
 
 /* -- Routing: Tier Assignments -- */
@@ -356,7 +361,9 @@ export interface TierAssignment {
   agent_id: string;
   tier: string;
   override_model: string | null;
+  override_auth_type: AuthType | null;
   auto_assigned_model: string | null;
+  fallback_models: string[] | null;
   updated_at: string;
 }
 
@@ -364,13 +371,13 @@ export function getTierAssignments(agentName: string) {
   return fetchJson<TierAssignment[]>(`/routing/${encodeURIComponent(agentName)}/tiers`);
 }
 
-export function overrideTier(agentName: string, tier: string, model: string) {
+export function overrideTier(agentName: string, tier: string, model: string, authType?: AuthType) {
   return fetchMutate<TierAssignment>(
     `${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model }),
+      body: JSON.stringify({ model, ...(authType && { authType }) }),
     },
   );
 }
@@ -388,6 +395,32 @@ export function resetAllTiers(agentName: string) {
   return fetchMutate(`${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/reset-all`, {
     method: 'POST',
   });
+}
+
+/* -- Routing: Fallbacks -- */
+
+export function getFallbacks(agentName: string, tier: string) {
+  return fetchJson<string[]>(
+    `/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}/fallbacks`,
+  );
+}
+
+export function setFallbacks(agentName: string, tier: string, models: string[]) {
+  return fetchMutate<string[]>(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}/fallbacks`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ models }),
+    },
+  );
+}
+
+export function clearFallbacks(agentName: string, tier: string) {
+  return fetchMutate(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}/fallbacks`,
+    { method: 'DELETE' },
+  );
 }
 
 /* -- Routing: Available Models -- */

@@ -1,5 +1,5 @@
-@import "./routing-providers.css";
-@import "./routing-modal.css";
+@import './routing-providers.css';
+@import './routing-modal.css';
 
 /* ── Enable card (disabled state) ─────────────────── */
 .routing-enable-card {
@@ -67,6 +67,38 @@
   color: hsl(var(--muted-foreground));
 }
 
+/* ── Auth type badge on provider icons ────────────── */
+.provider-auth-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid hsl(var(--card));
+}
+
+.provider-auth-badge--sub {
+  background: #22c55e;
+  color: #fff;
+}
+
+.provider-auth-badge--key {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.provider-auth-badge--overlay {
+  width: 8px;
+  height: 8px;
+  top: -2px;
+  right: -2px;
+  border-width: 1.5px;
+}
+
 /* ── Routing cards ─────────────────────────────────── */
 .routing-cards {
   display: flex;
@@ -124,6 +156,10 @@
   margin-top: 2px;
 }
 
+.routing-card__sub--subscription {
+  color: #22c55e;
+}
+
 .routing-card__override {
   display: inline-flex;
   align-items: center;
@@ -134,6 +170,7 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  position: relative;
 }
 
 .routing-card__auto-tag {
@@ -169,6 +206,14 @@
   font-family: var(--font-family);
   padding: 0;
   text-align: left;
+}
+
+.routing-card__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  gap: 4px;
 }
 
 .routing-card__actions {
@@ -210,7 +255,9 @@
   font-family: var(--font-family);
   padding: 8px 12px;
   border-radius: var(--radius);
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .routing-disable-btn:hover {
@@ -260,6 +307,65 @@
   margin-top: var(--gap-lg);
 }
 
+/* ── Fallback list ─────────────────────────────────── */
+.fallback-list__items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fallback-list__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--foreground));
+  padding: 2px 0;
+}
+
+.fallback-list__rank {
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  min-width: 16px;
+}
+
+.fallback-list__icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.fallback-list__model {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fallback-list__remove {
+  background: none;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color var(--transition-fast);
+}
+
+.fallback-list__remove:hover {
+  color: hsl(var(--destructive));
+}
+
+.fallback-list__add {
+  white-space: nowrap;
+}
+
 /* ── Responsive ──────────────────────────────────── */
 @media (max-width: 768px) {
   .routing-card {
@@ -274,7 +380,7 @@
     min-width: 0;
   }
 
-  .routing-card__actions {
+  .routing-card__right {
     align-self: flex-end;
   }
 

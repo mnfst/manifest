@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('user_providers')
-@Index(['agent_id', 'provider'], { unique: true })
+@Index(['agent_id', 'provider', 'auth_type'], { unique: true })
 export class UserProvider {
   @PrimaryColumn('varchar')
   id!: string;
@@ -18,6 +18,12 @@ export class UserProvider {
 
   @Column('varchar', { nullable: true, default: null })
   api_key_encrypted!: string | null;
+
+  @Column('varchar', { nullable: true, default: null })
+  key_prefix!: string | null;
+
+  @Column('varchar', { default: 'api_key' })
+  auth_type!: 'api_key' | 'subscription';
 
   @Column('boolean', { default: true })
   is_active!: boolean;

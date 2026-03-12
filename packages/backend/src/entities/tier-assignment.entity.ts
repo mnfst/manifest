@@ -20,7 +20,13 @@ export class TierAssignment {
   override_model!: string | null;
 
   @Column('varchar', { nullable: true })
+  override_auth_type!: 'api_key' | 'subscription' | null;
+
+  @Column('varchar', { nullable: true })
   auto_assigned_model!: string | null;
+
+  @Column('simple-json', { nullable: true })
+  fallback_models!: string[] | null;
 
   @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;

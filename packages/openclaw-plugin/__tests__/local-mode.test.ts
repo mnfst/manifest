@@ -327,6 +327,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
   const testConfig = {
     mode: "local" as const,
+    devMode: false,
     apiKey: "",
     endpoint: "",
     port: 2099,
@@ -363,11 +364,33 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     };
   }
 
-  it("logs reuse message when EADDRINUSE + healthy Manifest server", async () => {
+  it("skips embedded server when existing server is detected proactively", async () => {
+    globalThis.fetch = jest.fn().mockResolvedValue({ ok: true });
+
+    const api = createMockApi();
+    registerLocalMode(api, testConfig, mockLogger);
+
+    const startFn = api.getStartFn();
+    expect(startFn).not.toBeNull();
+
+    jest.clearAllMocks();
+    await startFn!();
+
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      expect.stringContaining("Reusing existing server"),
+    );
+    expect(mockServerStart).not.toHaveBeenCalled();
+    expect(mockLogger.error).not.toHaveBeenCalled();
+  });
+
+  it("logs reuse message when EADDRINUSE + healthy Manifest server (race condition)", async () => {
     mockServerStart.mockRejectedValue(
       new Error("listen EADDRINUSE: address already in use 127.0.0.1:2099"),
     );
-    globalThis.fetch = jest.fn().mockResolvedValue({ ok: true });
+    // Proactive check: not running yet; reactive check after EADDRINUSE: now running
+    globalThis.fetch = jest.fn()
+      .mockResolvedValueOnce({ ok: false })
+      .mockResolvedValueOnce({ ok: true });
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
@@ -386,7 +409,10 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
   it("logs port-change error when EADDRINUSE + non-Manifest process", async () => {
     mockServerStart.mockRejectedValue(new Error("listen EADDRINUSE"));
-    globalThis.fetch = jest.fn().mockResolvedValue({ ok: false });
+    // Proactive check: no server yet; reactive check after EADDRINUSE: non-Manifest process
+    globalThis.fetch = jest.fn()
+      .mockRejectedValueOnce(new Error("ECONNREFUSED"))
+      .mockResolvedValueOnce({ ok: false });
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
@@ -401,6 +427,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
   });
 
   it("starts normally when no port conflict", async () => {
+    globalThis.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
     mockServerStart.mockResolvedValue(undefined);
 
     const api = createMockApi();
@@ -425,6 +452,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
   });
 
   it("logs generic server start error when error is not EADDRINUSE", async () => {
+    globalThis.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
     mockServerStart.mockRejectedValue(new Error("Unexpected crash"));
 
     const api = createMockApi();
@@ -612,6 +640,104 @@ describe("injectAuthProfile — edge cases", () => {
   });
 });
 
+describe("injectProviderConfig — stale models.json cleanup", () => {
+  const agentsDir = join("/mock-home", ".openclaw", "agents");
+
+  it("removes manifest entry from per-agent models.json", () => {
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === agentsDir) return true;
+      if (p.includes("models.json")) return true;
+      return false;
+    });
+    (readdirSync as jest.Mock).mockReturnValue([
+      { name: "bot-1", isDirectory: () => true },
+    ]);
+    (readFileSync as jest.Mock).mockImplementation((p: string) => {
+      if (typeof p === "string" && p.includes("models.json")) {
+        return JSON.stringify({ providers: { manifest: { baseUrl: "old" }, other: {} } });
+      }
+      return "{}";
+    });
+
+    const api = { config: {} };
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    // atomicWriteJson writes via writeFileSync+renameSync — find the models.json write
+    const writes = (writeFileSync as jest.Mock).mock.calls;
+    const modelsWrite = writes.find((c: any[]) => String(c[0]).includes("models.json"));
+    expect(modelsWrite).toBeDefined();
+    const data = JSON.parse(modelsWrite![1]);
+    expect(data.providers.manifest).toBeUndefined();
+    expect(data.providers.other).toBeDefined();
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("Removed stale manifest entry"),
+    );
+  });
+
+  it("skips agent when models.json does not exist", () => {
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === agentsDir) return true;
+      if (typeof p === "string" && p.includes("models.json")) return false;
+      return false;
+    });
+    (readdirSync as jest.Mock).mockReturnValue([
+      { name: "bot-2", isDirectory: () => true },
+    ]);
+
+    const api = { config: {} };
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    // No models.json write should happen (only openclaw.json write)
+    const writes = (writeFileSync as jest.Mock).mock.calls;
+    const modelsWrite = writes.find((c: any[]) => String(c[0]).includes("models.json"));
+    expect(modelsWrite).toBeUndefined();
+  });
+
+  it("skips agent when models.json has no manifest provider", () => {
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === agentsDir) return true;
+      if (typeof p === "string" && p.includes("models.json")) return true;
+      return false;
+    });
+    (readdirSync as jest.Mock).mockReturnValue([
+      { name: "bot-3", isDirectory: () => true },
+    ]);
+    (readFileSync as jest.Mock).mockImplementation((p: string) => {
+      if (typeof p === "string" && p.includes("models.json")) {
+        return JSON.stringify({ providers: { openai: {} } });
+      }
+      return "{}";
+    });
+
+    const api = { config: {} };
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    const writes = (writeFileSync as jest.Mock).mock.calls;
+    const modelsWrite = writes.find((c: any[]) => String(c[0]).includes("models.json"));
+    expect(modelsWrite).toBeUndefined();
+  });
+
+  it("logs debug when cleanup throws", () => {
+    (existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p === agentsDir) return true;
+      return false;
+    });
+    (readdirSync as jest.Mock).mockImplementation((p: string, opts: any) => {
+      if (typeof p === "string" && p.includes("agents") && opts?.withFileTypes) {
+        throw new Error("permission denied");
+      }
+      return [];
+    });
+
+    const api = { config: {} };
+    injectProviderConfig(api, "http://127.0.0.1:2099/v1", "mnfst_test", mockLogger);
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("Could not clean agent models.json"),
+    );
+  });
+});
+
 describe("readJsonSafe — corrupt JSON", () => {
   it("returns empty object when file contains invalid JSON", () => {
     // readJsonSafe is called by injectProviderConfig when reading openclaw.json.
@@ -644,6 +770,7 @@ describe("readJsonSafe — corrupt JSON", () => {
 describe("loadOrGenerateApiKey — edge cases", () => {
   const testConfig = {
     mode: "local" as const,
+    devMode: false,
     apiKey: "",
     endpoint: "",
     port: 2099,
@@ -758,6 +885,7 @@ describe("registerLocalMode — server module load failure", () => {
 
     const cfg = {
       mode: "local" as const,
+      devMode: false,
       apiKey: "",
       endpoint: "",
       port: 2099,

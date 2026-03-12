@@ -1,18 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
-import { Agent } from '../entities/agent.entity';
-import { Tenant } from '../entities/tenant.entity';
 import { RoutingService } from './routing.service';
-import { resolveAgent } from './resolve-agent.util';
+import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
-import { expandProviderNames } from './provider-aliases';
+import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
 import { trackCloudEvent } from '../common/utils/product-telemetry';
-import { AgentNameParamDto, ConnectProviderDto, SetOverrideDto } from './dto/routing.dto';
+import {
+  AgentNameParamDto,
+  AgentProviderParamDto,
+  ConnectProviderDto,
+  RemoveProviderQueryDto,
+  SetOverrideDto,
+  SetFallbacksDto,
+} from './dto/routing.dto';
 
 @Controller('api/v1/routing')
 export class RoutingController {
@@ -21,21 +24,14 @@ export class RoutingController {
     private readonly customProviderService: CustomProviderService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly ollamaSync: OllamaSyncService,
-    @InjectRepository(Agent)
-    private readonly agentRepo: Repository<Agent>,
-    @InjectRepository(Tenant)
-    private readonly tenantRepo: Repository<Tenant>,
+    private readonly resolveAgentService: ResolveAgentService,
   ) {}
-
-  private resolveAgent(userId: string, agentName: string): Promise<Agent> {
-    return resolveAgent(this.tenantRepo, this.agentRepo, userId, agentName);
-  }
 
   /* ── Status ── */
 
   @Get(':agentName/status')
   async getStatus(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgent(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const providers = await this.routingService.getProviders(agent.id);
     const enabled = providers.some((p) => p.is_active);
     return { enabled };
@@ -45,14 +41,15 @@ export class RoutingController {
 
   @Get(':agentName/providers')
   async getProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgent(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const providers = await this.routingService.getProviders(agent.id);
     return providers.map((p) => ({
       id: p.id,
       provider: p.provider,
+      auth_type: p.auth_type ?? 'api_key',
       is_active: p.is_active,
       has_api_key: !!p.api_key_encrypted,
-      key_prefix: this.routingService.getKeyPrefix(p.api_key_encrypted),
+      key_prefix: p.key_prefix ?? null,
       connected_at: p.connected_at,
     }));
   }
@@ -63,7 +60,7 @@ export class RoutingController {
     @Param() params: AgentNameParamDto,
     @Body() body: ConnectProviderDto,
   ) {
-    const agent = await this.resolveAgent(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
 
     // Sync Ollama models before connecting so tier assignment has data
     if (body.provider.toLowerCase() === 'ollama') {
@@ -75,6 +72,7 @@ export class RoutingController {
       user.id,
       body.provider,
       body.apiKey,
+      body.authType,
     );
 
     if (isNew) {
@@ -86,13 +84,14 @@ export class RoutingController {
     return {
       id: result.id,
       provider: result.provider,
+      auth_type: result.auth_type ?? 'api_key',
       is_active: result.is_active,
     };
   }
 
   @Post(':agentName/providers/deactivate-all')
   async deactivateAllProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgent(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     await this.routingService.deactivateAllProviders(agent.id);
     return { ok: true };
   }
@@ -100,11 +99,15 @@ export class RoutingController {
   @Delete(':agentName/providers/:provider')
   async removeProvider(
     @CurrentUser() user: AuthUser,
-    @Param('agentName') agentName: string,
-    @Param('provider') provider: string,
+    @Param() params: AgentProviderParamDto,
+    @Query() query: RemoveProviderQueryDto,
   ) {
-    const agent = await this.resolveAgent(user.id, agentName);
-    const { notifications } = await this.routingService.removeProvider(agent.id, provider);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const { notifications } = await this.routingService.removeProvider(
+      agent.id,
+      params.provider,
+      query.authType,
+    );
     return { ok: true, notifications };
   }
 
@@ -119,7 +122,7 @@ export class RoutingController {
 
   @Get(':agentName/tiers')
   async getTiers(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgent(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     return this.routingService.getTiers(agent.id, user.id);
   }
 
@@ -130,8 +133,8 @@ export class RoutingController {
     @Param('tier') tier: string,
     @Body() body: SetOverrideDto,
   ) {
-    const agent = await this.resolveAgent(user.id, agentName);
-    return this.routingService.setOverride(agent.id, user.id, tier, body.model);
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.routingService.setOverride(agent.id, user.id, tier, body.model, body.authType);
   }
 
   @Delete(':agentName/tiers/:tier')
@@ -140,14 +143,48 @@ export class RoutingController {
     @Param('agentName') agentName: string,
     @Param('tier') tier: string,
   ) {
-    const agent = await this.resolveAgent(user.id, agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.routingService.clearOverride(agent.id, tier);
+    return { ok: true };
+  }
+
+  /* ── Fallbacks ── */
+
+  @Get(':agentName/tiers/:tier/fallbacks')
+  async getFallbacks(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('tier') tier: string,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.routingService.getFallbacks(agent.id, tier);
+  }
+
+  @Put(':agentName/tiers/:tier/fallbacks')
+  async setFallbacks(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('tier') tier: string,
+    @Body() body: SetFallbacksDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.routingService.setFallbacks(agent.id, tier, body.models);
+  }
+
+  @Delete(':agentName/tiers/:tier/fallbacks')
+  async clearFallbacks(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('tier') tier: string,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    await this.routingService.clearFallbacks(agent.id, tier);
     return { ok: true };
   }
 
   @Post(':agentName/tiers/reset-all')
   async resetAllOverrides(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgent(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     await this.routingService.resetAllOverrides(agent.id);
     return { ok: true };
   }
@@ -156,7 +193,7 @@ export class RoutingController {
 
   @Get(':agentName/available-models')
   async getAvailableModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgent(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const providers = await this.routingService.getProviders(agent.id);
     const activeProviders = expandProviderNames(
       providers.filter((p) => p.is_active).map((p) => p.provider),
@@ -171,7 +208,11 @@ export class RoutingController {
 
     const models = this.pricingCache.getAll();
     return models
-      .filter((m) => activeProviders.has(m.provider.toLowerCase()))
+      .filter((m) => {
+        if (activeProviders.has(m.provider.toLowerCase())) return true;
+        const prefix = inferProviderFromModelName(m.model_name);
+        return prefix != null && activeProviders.has(prefix);
+      })
       .map((m) => {
         const isCustom = CustomProviderService.isCustom(m.provider);
         return {
@@ -183,8 +224,10 @@ export class RoutingController {
           capability_reasoning: m.capability_reasoning,
           capability_code: m.capability_code,
           quality_score: m.quality_score,
+          display_name: isCustom
+            ? CustomProviderService.rawModelName(m.model_name)
+            : m.display_name || null,
           ...(isCustom && {
-            display_name: CustomProviderService.rawModelName(m.model_name),
             provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
           }),
         };

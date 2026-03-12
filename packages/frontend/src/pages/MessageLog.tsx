@@ -3,6 +3,7 @@ import {
   createResource,
   createEffect,
   on,
+  onCleanup,
   Show,
   For,
   type Component,
@@ -25,7 +26,9 @@ import {
   inferProviderName,
   stripCustomPrefix,
 } from '../services/routing-utils.js';
+import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import Select from '../components/Select.jsx';
 import InfoTooltip from '../components/InfoTooltip.jsx';
 import { isLocalMode } from '../services/local-mode.js';
@@ -51,6 +54,9 @@ interface MessageItem {
   cache_creation_tokens: number | null;
   duration_ms: number | null;
   error_message?: string | null;
+  auth_type?: string | null;
+  fallback_from_model?: string | null;
+  fallback_index?: number | null;
 }
 
 interface MessagesData {
@@ -62,6 +68,7 @@ interface MessagesData {
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
+  preloadModelDisplayNames();
   const [statusFilter, setStatusFilter] = createSignal('');
   const [modelFilter, setModelFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
@@ -86,6 +93,21 @@ const MessageLog: Component = () => {
   };
 
   const pager = createCursorPagination(50);
+
+  let costMinTimer: ReturnType<typeof setTimeout>;
+  let costMaxTimer: ReturnType<typeof setTimeout>;
+  onCleanup(() => {
+    clearTimeout(costMinTimer);
+    clearTimeout(costMaxTimer);
+  });
+  const debouncedSetCostMin = (val: string) => {
+    clearTimeout(costMinTimer);
+    costMinTimer = setTimeout(() => setCostMin(val), 400);
+  };
+  const debouncedSetCostMax = (val: string) => {
+    clearTimeout(costMaxTimer);
+    costMaxTimer = setTimeout(() => setCostMax(val), 400);
+  };
 
   createEffect(
     on([statusFilter, modelFilter, costMin, costMax], () => pager.resetPage(), { defer: true }),
@@ -142,6 +164,18 @@ const MessageLog: Component = () => {
     setCostMax('');
   };
 
+  const scrollToFallbackSuccess = (model: string) => {
+    const items = data()?.items;
+    if (!items) return;
+    const success = items.find((i) => i.fallback_from_model === model && i.status === 'ok');
+    if (!success) return;
+    const el = document.getElementById(`msg-${success.id}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('msg-highlight');
+    setTimeout(() => el.classList.remove('msg-highlight'), 2000);
+  };
+
   return (
     <div class="container--full">
       <Title>
@@ -168,6 +202,7 @@ const MessageLog: Component = () => {
                 { label: 'Successful', value: 'ok' },
                 { label: 'Rate Limited', value: 'rate_limited' },
                 { label: 'Retried', value: 'retry' },
+                { label: 'Handled', value: 'fallback_error' },
                 { label: 'Failed', value: 'error' },
               ]}
             />
@@ -176,7 +211,7 @@ const MessageLog: Component = () => {
               onChange={setModelFilter}
               options={[
                 { label: 'All models', value: '' },
-                ...(data()?.models ?? []).map((m) => ({ label: stripCustomPrefix(m), value: m })),
+                ...(data()?.models ?? []).map((m) => ({ label: getModelDisplayName(m), value: m })),
               ]}
             />
             <div class="cost-range-filter">
@@ -187,7 +222,7 @@ const MessageLog: Component = () => {
                 min="0"
                 step="0.01"
                 value={costMin()}
-                onInput={(e) => setCostMin(e.currentTarget.value)}
+                onInput={(e) => debouncedSetCostMin(e.currentTarget.value)}
               />
               <span class="cost-range-filter__sep">&ndash;</span>
               <input
@@ -197,7 +232,7 @@ const MessageLog: Component = () => {
                 min="0"
                 step="0.01"
                 value={costMax()}
-                onInput={(e) => setCostMax(e.currentTarget.value)}
+                onInput={(e) => debouncedSetCostMax(e.currentTarget.value)}
               />
             </div>
           </Show>
@@ -216,27 +251,67 @@ const MessageLog: Component = () => {
       </div>
 
       <Show
-        when={!data.loading}
+        when={data() !== undefined || !data.loading}
         fallback={
           <div class="panel">
-            <div
-              class="skeleton skeleton--text"
-              style="width: 120px; height: 16px; margin-bottom: 16px;"
-            />
-            <For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
-              {() => (
-                <div style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border));">
-                  <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 70px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 80px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 40px; height: 14px;" />
-                </div>
-              )}
-            </For>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
+              <div class="skeleton skeleton--text" style="width: 80px; height: 16px;" />
+              <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Message</th>
+                  <th>Cost</th>
+                  <th>Total Tokens</th>
+                  <th>Input</th>
+                  <th>Output</th>
+                  <th>Model</th>
+                  <th>Cache</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}>
+                  {() => (
+                    <tr>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 90px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 55px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 40px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 40px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 35px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 35px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 110px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 90px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 35px;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 50px;" />
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
           </div>
         }
       >
@@ -256,7 +331,12 @@ const MessageLog: Component = () => {
                     Set up agent
                   </button>
                   <div class="empty-state__img-wrapper">
-                    <img src="/example-messages.svg" alt="" class="empty-state__img" />
+                    <img
+                      src="/example-messages.svg"
+                      alt="Example message log showing LLM call history"
+                      class="empty-state__img"
+                      loading="lazy"
+                    />
                   </div>
                 </div>
               }
@@ -366,7 +446,7 @@ const MessageLog: Component = () => {
                 <tbody>
                   <For each={data()?.items}>
                     {(item) => (
-                      <tr>
+                      <tr id={`msg-${item.id}`}>
                         <td style="white-space: nowrap; font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                           {formatTime(item.timestamp)}
                         </td>
@@ -387,21 +467,35 @@ const MessageLog: Component = () => {
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
+                                aria-hidden="true"
                               >
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                               </svg>
                             </span>
                           )}
                         </td>
-                        <td
-                          style="font-family: var(--font-mono);"
-                          title={
-                            item.cost != null && item.cost > 0 && item.cost < 0.01
-                              ? `$${item.cost.toFixed(6)}`
-                              : undefined
-                          }
-                        >
-                          {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}
+                        <td style="font-family: var(--font-mono);">
+                          <Show
+                            when={item.auth_type === 'subscription'}
+                            fallback={
+                              <span
+                                title={
+                                  item.cost != null && item.cost > 0 && item.cost < 0.01
+                                    ? `$${item.cost.toFixed(6)}`
+                                    : undefined
+                                }
+                              >
+                                {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}
+                              </span>
+                            }
+                          >
+                            <span
+                              style="color: hsl(var(--muted-foreground));"
+                              title="Included in subscription"
+                            >
+                              $0.00
+                            </span>
+                          </Show>
                         </td>
                         <td style="font-family: var(--font-mono);">
                           {item.total_tokens != null ? formatNumber(item.total_tokens) : '\u2014'}
@@ -439,16 +533,27 @@ const MessageLog: Component = () => {
                               })()
                             ) : item.model && inferProviderFromModel(item.model) ? (
                               <span
-                                title={inferProviderName(item.model)}
-                                style="display: inline-flex; flex-shrink: 0;"
+                                role="img"
+                                aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                style="display: inline-flex; flex-shrink: 0; position: relative;"
                               >
                                 {providerIcon(inferProviderFromModel(item.model)!, 14)}
+                                {authBadgeFor(item.auth_type, 8)}
                               </span>
                             ) : null}
-                            {item.model ? stripCustomPrefix(item.model) : '\u2014'}
+                            {item.model ? getModelDisplayName(item.model) : '\u2014'}
                             {item.routing_tier && (
                               <span class={`tier-badge tier-badge--${item.routing_tier}`}>
                                 {item.routing_tier}
+                              </span>
+                            )}
+                            {item.fallback_from_model && (
+                              <span
+                                class="tier-badge tier-badge--fallback"
+                                title={`Fallback from ${getModelDisplayName(item.fallback_from_model)}`}
+                              >
+                                fallback
                               </span>
                             )}
                           </span>
@@ -485,7 +590,31 @@ const MessageLog: Component = () => {
                               role="note"
                               aria-label={formatErrorMessage(item.error_message!)}
                             >
-                              <span class={`status-badge status-badge--${item.status}`}>
+                              <span
+                                class={`status-badge status-badge--${item.status}`}
+                                onClick={
+                                  item.status === 'fallback_error' && item.model
+                                    ? () => scrollToFallbackSuccess(item.model!)
+                                    : undefined
+                                }
+                              >
+                                {item.status === 'fallback_error' && (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="11"
+                                    height="11"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    style="margin-right: 3px; flex-shrink: 0;"
+                                  >
+                                    <polyline points="15 17 20 12 15 7" />
+                                    <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
+                                  </svg>
+                                )}
                                 {formatStatus(item.status)}
                               </span>
                               <span class="status-badge-tooltip__bubble">

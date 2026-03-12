@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CacheModule } from '@nestjs/cache-manager';
 import { SecurityController } from './security.controller';
 import { SecurityService } from './security.service';
-import { CacheInvalidationService } from '../common/services/cache-invalidation.service';
 
 describe('SecurityController', () => {
   let controller: SecurityController;
@@ -24,7 +23,6 @@ describe('SecurityController', () => {
           provide: SecurityService,
           useValue: { getSecurityOverview: mockGetSecurityOverview },
         },
-        { provide: CacheInvalidationService, useValue: { trackKey: jest.fn() } },
       ],
     }).compile();
 

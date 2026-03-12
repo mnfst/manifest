@@ -11,6 +11,7 @@ function makeModel(overrides: Partial<ModelPricing>): ModelPricing {
     capability_reasoning: false,
     capability_code: false,
     quality_score: 3,
+    display_name: '',
     updated_at: null,
     ...overrides,
   };
@@ -347,24 +348,34 @@ describe('TierAutoAssignService', () => {
       mockProviderRepo.find.mockResolvedValue([{ provider: 'openai', is_active: true }]);
       const model = makeModel({ model_name: 'gpt-4o', provider: 'OpenAI' });
       mockPricingCache.getAll.mockReturnValue([model]);
+      // 2C: Batch find returns empty — all tiers will be batch-inserted
+      mockTierRepo.find.mockResolvedValue([]);
 
       await service.recalculate('agent-1');
 
-      expect(mockTierRepo.insert).toHaveBeenCalledTimes(4);
-      for (const call of mockTierRepo.insert.mock.calls) {
-        expect(call[0].auto_assigned_model).toBe('gpt-4o');
+      // 2C: Single batch insert call with all 4 tiers
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
+      expect(inserted).toHaveLength(4);
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('gpt-4o');
       }
     });
 
     it('should set all auto_assigned_model to null with no providers', async () => {
       mockProviderRepo.find.mockResolvedValue([]);
       mockPricingCache.getAll.mockReturnValue([]);
+      mockTierRepo.find.mockResolvedValue([]);
 
       await service.recalculate('agent-1');
 
-      expect(mockTierRepo.insert).toHaveBeenCalledTimes(4);
-      for (const call of mockTierRepo.insert.mock.calls) {
-        expect(call[0].auto_assigned_model).toBeNull();
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string | null;
+      }[];
+      expect(inserted).toHaveLength(4);
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBeNull();
       }
     });
 
@@ -373,23 +384,27 @@ describe('TierAutoAssignService', () => {
       const model = makeModel({ model_name: 'gpt-4o', provider: 'OpenAI' });
       mockPricingCache.getAll.mockReturnValue([model]);
 
-      // All 4 tiers already exist
-      mockTierRepo.findOne.mockResolvedValue({
-        id: 'existing-id',
-        agent_id: 'agent-1',
-        tier: 'simple',
-        override_model: null,
-        auto_assigned_model: null,
-        updated_at: '2024-01-01',
-      });
+      // 2C: Batch find returns all 4 existing tiers
+      mockTierRepo.find.mockResolvedValue(
+        ['simple', 'standard', 'complex', 'reasoning'].map((tier) => ({
+          id: `existing-${tier}`,
+          agent_id: 'agent-1',
+          tier,
+          override_model: null,
+          auto_assigned_model: null,
+          updated_at: '2024-01-01',
+        })),
+      );
 
       await service.recalculate('agent-1');
 
-      // Should save (not insert) all 4 existing tiers
-      expect(mockTierRepo.save).toHaveBeenCalledTimes(4);
+      // 2C: Single batch save call with all 4 tiers
+      expect(mockTierRepo.save).toHaveBeenCalledTimes(1);
       expect(mockTierRepo.insert).not.toHaveBeenCalled();
-      for (const call of mockTierRepo.save.mock.calls) {
-        expect(call[0].auto_assigned_model).toBe('gpt-4o');
+      const saved = mockTierRepo.save.mock.calls[0][0] as { auto_assigned_model: string }[];
+      expect(saved).toHaveLength(4);
+      for (const record of saved) {
+        expect(record.auto_assigned_model).toBe('gpt-4o');
       }
     });
 
@@ -398,48 +413,283 @@ describe('TierAutoAssignService', () => {
       // No models available (getAll returns empty array), so pickBest returns null
       mockPricingCache.getAll.mockReturnValue([]);
 
-      // All 4 tiers already exist
-      mockTierRepo.findOne.mockResolvedValue({
-        id: 'existing-id',
-        agent_id: 'agent-1',
-        tier: 'simple',
-        override_model: null,
-        auto_assigned_model: 'old-model',
-        updated_at: '2024-01-01',
-      });
+      // 2C: Batch find returns all 4 existing tiers
+      mockTierRepo.find.mockResolvedValue(
+        ['simple', 'standard', 'complex', 'reasoning'].map((tier) => ({
+          id: `existing-${tier}`,
+          agent_id: 'agent-1',
+          tier,
+          override_model: null,
+          auto_assigned_model: 'old-model',
+          updated_at: '2024-01-01',
+        })),
+      );
 
       await service.recalculate('agent-1');
 
       // Should save with null auto_assigned_model (best?.model_name ?? null)
-      expect(mockTierRepo.save).toHaveBeenCalledTimes(4);
-      for (const call of mockTierRepo.save.mock.calls) {
-        expect(call[0].auto_assigned_model).toBeNull();
+      expect(mockTierRepo.save).toHaveBeenCalledTimes(1);
+      const saved = mockTierRepo.save.mock.calls[0][0] as {
+        auto_assigned_model: string | null;
+      }[];
+      expect(saved).toHaveLength(4);
+      for (const record of saved) {
+        expect(record.auto_assigned_model).toBeNull();
+      }
+    });
+
+    it('should prioritize subscription models over api_key models', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+        { provider: 'google', is_active: true, auth_type: 'api_key' },
+      ]);
+      const geminiFlash = makeModel({
+        model_name: 'gemini-2.5-flash',
+        provider: 'Google',
+        input_price_per_token: 0.0000001,
+        output_price_per_token: 0.0000004,
+        quality_score: 2,
+      });
+      const claudeSonnet = makeModel({
+        model_name: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000015,
+        quality_score: 4,
+      });
+      mockPricingCache.getAll.mockReturnValue([geminiFlash, claudeSonnet]);
+
+      await service.recalculate('agent-1');
+
+      // All tiers should pick from subscription (Anthropic) even though Gemini is cheaper
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string;
+      }[];
+      expect(inserted).toHaveLength(4);
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('claude-sonnet-4');
+      }
+    });
+
+    it('should fall back to api_key models when no subscription models available', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'openai', is_active: true, auth_type: 'api_key' },
+      ]);
+      const gpt4o = makeModel({ model_name: 'gpt-4o', provider: 'OpenAI', quality_score: 4 });
+      mockPricingCache.getAll.mockReturnValue([gpt4o]);
+
+      await service.recalculate('agent-1');
+
+      // 2C: Single batch insert call with all 4 tiers
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
+      expect(inserted).toHaveLength(4);
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('gpt-4o');
+      }
+    });
+
+    it('should use subscription models even when api_key models are cheaper', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+        { provider: 'openai', is_active: true, auth_type: 'api_key' },
+      ]);
+      const cheapOpenAI = makeModel({
+        model_name: 'gpt-4.1-nano',
+        provider: 'OpenAI',
+        input_price_per_token: 0.0000001,
+        output_price_per_token: 0.0000003,
+        quality_score: 1,
+      });
+      const expensiveSub = makeModel({
+        model_name: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000015,
+        quality_score: 4,
+      });
+      mockPricingCache.getAll.mockReturnValue([cheapOpenAI, expensiveSub]);
+
+      await service.recalculate('agent-1');
+
+      // Even simple tier should use subscription model over cheaper api_key model
+      // 2C: Single batch insert call with all 4 tiers
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
+      expect(inserted).toHaveLength(4);
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('claude-sonnet-4');
+      }
+    });
+
+    it('should pick best from multiple subscription providers', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+        { provider: 'google', is_active: true, auth_type: 'subscription' },
+      ]);
+      const claude = makeModel({
+        model_name: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000015,
+        quality_score: 4,
+      });
+      const gemini = makeModel({
+        model_name: 'gemini-2.5-flash',
+        provider: 'Google',
+        input_price_per_token: 0.0000001,
+        output_price_per_token: 0.0000004,
+        quality_score: 2,
+      });
+      mockPricingCache.getAll.mockReturnValue([claude, gemini]);
+
+      await service.recalculate('agent-1');
+
+      // 2C: Single batch insert call with all 4 tiers
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        tier: string;
+        auto_assigned_model: string;
+      }[];
+
+      // For simple tier: cheapest sub wins (gemini-2.5-flash)
+      const simpleTier = inserted.find((t) => t.tier === 'simple');
+      expect(simpleTier).toBeDefined();
+      expect(simpleTier!.auto_assigned_model).toBe('gemini-2.5-flash');
+
+      // For complex tier: highest quality sub wins (claude-sonnet-4)
+      const complexTier = inserted.find((t) => t.tier === 'complex');
+      expect(complexTier).toBeDefined();
+      expect(complexTier!.auto_assigned_model).toBe('claude-sonnet-4');
+    });
+
+    it('should NOT match OpenRouter models via name prefix inference', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+      ]);
+      const orModel = makeModel({
+        model_name: 'anthropic/claude-sonnet-4',
+        provider: 'OpenRouter',
+        quality_score: 4,
+      });
+      mockPricingCache.getAll.mockReturnValue([orModel]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string | null;
+      }[];
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBeNull();
+      }
+    });
+
+    it('should match direct provider models via name prefix (non-OpenRouter)', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+      ]);
+      const directModel = makeModel({
+        model_name: 'claude-opus-4-6',
+        provider: 'Anthropic',
+        quality_score: 5,
+      });
+      mockPricingCache.getAll.mockReturnValue([directModel]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('claude-opus-4-6');
+      }
+    });
+
+    it('should still match OpenRouter models by direct provider name (lowercase match)', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'openrouter', is_active: true, auth_type: 'api_key' },
+      ]);
+      const orModel = makeModel({
+        model_name: 'anthropic/claude-sonnet-4',
+        provider: 'OpenRouter',
+        quality_score: 4,
+      });
+      mockPricingCache.getAll.mockReturnValue([orModel]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('anthropic/claude-sonnet-4');
+      }
+    });
+
+    it('should use prefix inference for non-OpenRouter providers with vendor prefixes', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'api_key' },
+      ]);
+      const proxyModel = makeModel({
+        model_name: 'anthropic/claude-sonnet-4',
+        provider: 'SomeProxy',
+        quality_score: 4,
+      });
+      mockPricingCache.getAll.mockReturnValue([proxyModel]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('anthropic/claude-sonnet-4');
       }
     });
 
     it('should preserve manual overrides during recalculation', async () => {
-      const existingTier = {
-        id: 'tier-1',
-        agent_id: 'agent-1',
-        tier: 'complex',
-        override_model: 'claude-opus-4-6',
-        auto_assigned_model: 'gpt-4o',
-        updated_at: '2024-01-01',
-      };
-      mockTierRepo.findOne.mockResolvedValueOnce(existingTier);
       mockProviderRepo.find.mockResolvedValue([{ provider: 'openai', is_active: true }]);
       mockPricingCache.getAll.mockReturnValue([
         makeModel({ model_name: 'gpt-4o', provider: 'OpenAI' }),
       ]);
 
+      // 2C: Batch find returns one existing tier with override
+      mockTierRepo.find.mockResolvedValue([
+        {
+          id: 'tier-1',
+          agent_id: 'agent-1',
+          tier: 'complex',
+          override_model: 'claude-opus-4-6',
+          auto_assigned_model: 'gpt-4o',
+          updated_at: '2024-01-01',
+        },
+      ]);
+
       await service.recalculate('agent-1');
 
-      expect(mockTierRepo.save).toHaveBeenCalledWith(
+      // Save call includes the existing tier; insert call includes the 3 missing tiers
+      expect(mockTierRepo.save).toHaveBeenCalledTimes(1);
+      const saved = mockTierRepo.save.mock.calls[0][0] as Record<string, unknown>[];
+      const complexTier = saved.find((t: Record<string, unknown>) => t['tier'] === 'complex');
+      expect(complexTier).toEqual(
         expect.objectContaining({
           override_model: 'claude-opus-4-6',
           auto_assigned_model: 'gpt-4o',
         }),
       );
+    });
+
+    it('should accept optional providers parameter to skip DB query', async () => {
+      const providers = [{ provider: 'openai', is_active: true }];
+      mockPricingCache.getAll.mockReturnValue([
+        makeModel({ model_name: 'gpt-4o', provider: 'OpenAI' }),
+      ]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      await service.recalculate('agent-1', providers as never[]);
+
+      // Should not query providers from DB
+      expect(mockProviderRepo.find).not.toHaveBeenCalled();
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
     });
   });
 });

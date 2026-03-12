@@ -21,7 +21,9 @@ import {
   inferProviderName,
   stripCustomPrefix,
 } from '../services/routing-utils.js';
+import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import { isLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
@@ -40,6 +42,9 @@ interface RecentMessage {
   cost: number | null;
   status: string;
   error_message?: string | null;
+  auth_type?: string | null;
+  fallback_from_model?: string | null;
+  fallback_index?: number | null;
 }
 
 interface OverviewData {
@@ -66,6 +71,7 @@ interface OverviewData {
     tokens: number;
     share_pct: number;
     estimated_cost: number;
+    auth_type: string | null;
   }>;
   recent_activity: RecentMessage[];
   active_skills: Array<{
@@ -83,6 +89,7 @@ type ActiveView = 'cost' | 'tokens' | 'messages';
 const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
   const location = useLocation<{ newAgent?: boolean; newApiKey?: string }>();
+  preloadModelDisplayNames();
   const [range, setRange] = createSignal('7d');
   const [activeView, setActiveView] = createSignal<ActiveView>('cost');
   const [setupOpen, setSetupOpen] = createSignal(
@@ -192,54 +199,118 @@ const Overview: Component = () => {
       </div>
 
       <Show
-        when={!data.loading}
+        when={data() !== undefined || !data.loading}
         fallback={
           <>
-            <div class="chart-card" style="min-height: 360px;">
+            <div class="chart-card">
               <div class="chart-card__header">
-                <div class="chart-card__stat" style="flex: 1;">
-                  <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                  <div
-                    class="skeleton skeleton--text"
-                    style="width: 100px; height: 28px; margin-top: 6px;"
-                  />
+                <div class="chart-card__stat chart-card__stat--active">
+                  <span class="chart-card__label">Cost</span>
+                  <div class="chart-card__value-row">
+                    <div class="skeleton skeleton--text" style="width: 80px; height: 28px;" />
+                  </div>
                 </div>
-                <div class="chart-card__stat" style="flex: 1;">
-                  <div class="skeleton skeleton--text" style="width: 80px; height: 14px;" />
-                  <div
-                    class="skeleton skeleton--text"
-                    style="width: 100px; height: 28px; margin-top: 6px;"
-                  />
+                <div class="chart-card__stat">
+                  <span class="chart-card__label">Token usage</span>
+                  <div class="chart-card__value-row">
+                    <div class="skeleton skeleton--text" style="width: 70px; height: 28px;" />
+                  </div>
                 </div>
-                <div class="chart-card__stat" style="flex: 1; border-right: none;">
-                  <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                  <div
-                    class="skeleton skeleton--text"
-                    style="width: 80px; height: 28px; margin-top: 6px;"
-                  />
+                <div class="chart-card__stat">
+                  <span class="chart-card__label">Messages</span>
+                  <div class="chart-card__value-row">
+                    <div class="skeleton skeleton--text" style="width: 50px; height: 28px;" />
+                  </div>
                 </div>
               </div>
               <div class="chart-card__body">
-                <div class="skeleton skeleton--rect" style="width: 100%; height: 240px;" />
+                <div class="skeleton skeleton--rect" style="width: 100%; height: 260px;" />
               </div>
             </div>
             <div class="panel">
               <div
-                class="skeleton skeleton--text"
-                style="width: 120px; height: 16px; margin-bottom: 16px;"
-              />
-              <For each={[1, 2, 3, 4, 5]}>
-                {() => (
-                  <div style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border));">
-                    <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 80px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 40px; height: 14px;" />
-                  </div>
-                )}
-              </For>
+                class="panel__title"
+                style="display: flex; justify-content: space-between; align-items: center;"
+              >
+                Recent Messages
+                <span class="view-more-link" style="pointer-events: none; opacity: 0.4;">
+                  View more
+                </span>
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Message</th>
+                    <th>Cost</th>
+                    <th>Model</th>
+                    <th>Tokens</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={[1, 2, 3, 4, 5]}>
+                    {() => (
+                      <tr>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 70%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 70%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 40%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50%;" />
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </div>
+            <div class="panel" style="margin-top: var(--gap-lg);">
+              <div class="panel__title">Cost by Model</div>
+              <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: -8px 0 12px;">
+                How much each AI model is costing you
+              </p>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>Tokens</th>
+                    <th>% of total</th>
+                    <th>Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={[1, 2, 3]}>
+                    {() => (
+                      <tr>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 60%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 40%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 40%;" />
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
             </div>
           </>
         }
@@ -260,7 +331,12 @@ const Overview: Component = () => {
                     Set up agent
                   </button>
                   <div class="empty-state__img-wrapper">
-                    <img src="/example-overview.svg" alt="" class="empty-state__img" />
+                    <img
+                      src="/example-overview.svg"
+                      alt="Example dashboard overview showing cost and token charts"
+                      class="empty-state__img"
+                      loading="lazy"
+                    />
                   </div>
                 </div>
               }
@@ -517,21 +593,37 @@ const Overview: Component = () => {
                                       stroke-width="2"
                                       stroke-linecap="round"
                                       stroke-linejoin="round"
+                                      aria-hidden="true"
                                     >
                                       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                                     </svg>
                                   </span>
                                 )}
                               </td>
-                              <td
-                                style="font-family: var(--font-mono);"
-                                title={
-                                  item.cost != null && item.cost > 0 && item.cost < 0.01
-                                    ? `$${item.cost.toFixed(6)}`
-                                    : undefined
-                                }
-                              >
-                                {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}
+                              <td style="font-family: var(--font-mono);">
+                                <Show
+                                  when={item.auth_type === 'subscription'}
+                                  fallback={
+                                    <span
+                                      title={
+                                        item.cost != null && item.cost > 0 && item.cost < 0.01
+                                          ? `$${item.cost.toFixed(6)}`
+                                          : undefined
+                                      }
+                                    >
+                                      {item.cost != null
+                                        ? (formatCost(item.cost) ?? '\u2014')
+                                        : '\u2014'}
+                                    </span>
+                                  }
+                                >
+                                  <span
+                                    style="color: hsl(var(--muted-foreground));"
+                                    title="Included in subscription"
+                                  >
+                                    $0.00
+                                  </span>
+                                </Show>
                               </td>
                               <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                                 <span style="display: inline-flex; align-items: center; gap: 4px;">
@@ -560,16 +652,27 @@ const Overview: Component = () => {
                                     })()
                                   ) : item.model && inferProviderFromModel(item.model) ? (
                                     <span
-                                      title={inferProviderName(item.model)}
-                                      style="display: inline-flex; flex-shrink: 0;"
+                                      role="img"
+                                      aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                      title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                      style="display: inline-flex; flex-shrink: 0; position: relative;"
                                     >
                                       {providerIcon(inferProviderFromModel(item.model)!, 14)}
+                                      {authBadgeFor(item.auth_type, 8)}
                                     </span>
                                   ) : null}
-                                  {item.model ? stripCustomPrefix(item.model) : '\u2014'}
+                                  {item.model ? getModelDisplayName(item.model) : '\u2014'}
                                   {item.routing_tier && (
                                     <span class={`tier-badge tier-badge--${item.routing_tier}`}>
                                       {item.routing_tier}
+                                    </span>
+                                  )}
+                                  {item.fallback_from_model && (
+                                    <span
+                                      class="tier-badge tier-badge--fallback"
+                                      title={`Fallback from ${getModelDisplayName(item.fallback_from_model)}`}
+                                    >
+                                      fallback
                                     </span>
                                   )}
                                 </span>
@@ -603,6 +706,23 @@ const Overview: Component = () => {
                                     aria-label={formatErrorMessage(item.error_message!)}
                                   >
                                     <span class={`status-badge status-badge--${item.status}`}>
+                                      {item.status === 'fallback_error' && (
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="11"
+                                          height="11"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          stroke-width="2.5"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          style="margin-right: 3px; flex-shrink: 0;"
+                                        >
+                                          <polyline points="15 17 20 12 15 7" />
+                                          <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
+                                        </svg>
+                                      )}
                                       {formatStatus(item.status)}
                                     </span>
                                     <span class="status-badge-tooltip__bubble">
@@ -634,7 +754,11 @@ const Overview: Component = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        <For each={d().cost_by_model ?? []}>
+                        <For
+                          each={[...(d().cost_by_model ?? [])].sort(
+                            (a, b) => b.estimated_cost - a.estimated_cost,
+                          )}
+                        >
                           {(row) => (
                             <tr>
                               <td style="font-family: var(--font-mono); font-size: var(--font-size-sm);">
@@ -664,13 +788,14 @@ const Overview: Component = () => {
                                     })()
                                   ) : row.model && inferProviderFromModel(row.model) ? (
                                     <span
-                                      title={inferProviderName(row.model)}
-                                      style="display: inline-flex; flex-shrink: 0;"
+                                      title={`${inferProviderName(row.model)} (${authLabel(row.auth_type)})`}
+                                      style="display: inline-flex; flex-shrink: 0; position: relative;"
                                     >
                                       {providerIcon(inferProviderFromModel(row.model)!, 14)}
+                                      {authBadgeFor(row.auth_type, 8)}
                                     </span>
                                   ) : null}
-                                  {row.model ? stripCustomPrefix(row.model) : row.model}
+                                  {row.model ? getModelDisplayName(row.model) : row.model}
                                 </span>
                               </td>
                               <td>{formatNumber(row.tokens)}</td>

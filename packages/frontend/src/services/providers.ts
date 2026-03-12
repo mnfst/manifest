@@ -12,6 +12,14 @@ export interface ProviderDef {
   keyPlaceholder: string;
   noKeyRequired?: boolean;
   localOnly?: boolean;
+  /** Provider supports OpenClaw OAuth/subscription auth (setup-token, OAuth, device-login). */
+  supportsSubscription?: boolean;
+  /** Label shown in the subscription tab for this provider. */
+  subscriptionLabel?: string;
+  /** Placeholder for the subscription token input (providers that need a pasted token). */
+  subscriptionKeyPlaceholder?: string;
+  /** Instructions text shown in the subscription detail view. */
+  subscriptionCommand?: string;
 }
 
 export const PROVIDERS: ProviderDef[] = [
@@ -49,6 +57,10 @@ export const PROVIDERS: ProviderDef[] = [
     keyPrefix: 'sk-ant-',
     minKeyLength: 50,
     keyPlaceholder: 'sk-ant-...',
+    supportsSubscription: true,
+    subscriptionLabel: 'Claude Max / Pro subscription',
+    subscriptionKeyPlaceholder: 'Paste your setup-token',
+    subscriptionCommand: 'claude setup-token',
     models: [
       { label: 'Claude Opus 4.6', value: 'claude-opus-4-6' },
       { label: 'Claude Opus 4', value: 'claude-opus-4' },
@@ -314,4 +326,9 @@ export const STAGES: StageDef[] = [
 ];
 
 /* ── Helpers — re-exported from provider-utils.ts ── */
-export { getProvider, validateApiKey, getModelLabel } from './provider-utils.js';
+export {
+  getProvider,
+  validateApiKey,
+  validateSubscriptionKey,
+  getModelLabel,
+} from './provider-utils.js';

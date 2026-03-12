@@ -37,6 +37,7 @@ interface CacheEntry<T> {
 }
 
 const CACHE_TTL_MS = 60_000;
+const MAX_CACHE_SIZE = 10_000;
 
 @Injectable()
 export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
@@ -196,6 +197,7 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
     if (cached && cached.expiresAt > now) return cached.data;
 
     this.evictExpired(this.rulesCache, now);
+    this.evictOldestIfFull(this.rulesCache);
     const rules = await this.rulesService.getActiveBlockRules(tenantId, agentName);
     this.rulesCache.set(key, { data: rules, expiresAt: now + CACHE_TTL_MS });
     return rules;
@@ -214,6 +216,7 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
     if (cached && cached.expiresAt > now) return cached.data;
 
     this.evictExpired(this.consumptionCache, now);
+    this.evictOldestIfFull(this.consumptionCache);
     const actual = await this.rulesService.getConsumption(
       tenantId,
       agentName,
@@ -228,6 +231,13 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
   private evictExpired<T>(cache: Map<string, CacheEntry<T>>, now: number): void {
     for (const [k, v] of cache) {
       if (v.expiresAt <= now) cache.delete(k);
+    }
+  }
+
+  private evictOldestIfFull<T>(cache: Map<string, CacheEntry<T>>): void {
+    if (cache.size >= MAX_CACHE_SIZE) {
+      const firstKey = cache.keys().next().value;
+      if (firstKey) cache.delete(firstKey);
     }
   }
 }

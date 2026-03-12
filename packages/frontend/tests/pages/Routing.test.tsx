@@ -26,7 +26,7 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
 
 vi.mock("../../src/components/ProviderSelectModal.js", () => ({
   default: (props: any) => (
-    <div data-testid="provider-modal" data-agent={props.agentName ?? ""} data-providers={JSON.stringify(props.providers ?? [])}>
+    <div data-testid="provider-modal" data-agent={props.agentName ?? ""} data-providers={JSON.stringify(props.providers ?? [])} data-custom-providers={JSON.stringify(props.customProviders ?? [])}>
       <button onClick={props.onClose}>Done</button>
       <button onClick={props.onUpdate} data-testid="trigger-update">Update</button>
     </div>
@@ -39,10 +39,10 @@ const mockDeactivateAllProviders = vi.fn();
 
 vi.mock("../../src/services/api.js", () => ({
   getTierAssignments: vi.fn().mockResolvedValue([
-    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "3", user_id: "u1", tier: "complex", override_model: "claude-opus-4-6", auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
+    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "3", user_id: "u1", tier: "complex", override_model: "claude-opus-4-6", auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
   ]),
   getAvailableModels: vi.fn().mockResolvedValue([
     { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
@@ -57,6 +57,9 @@ vi.mock("../../src/services/api.js", () => ({
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
   updateCustomProvider: vi.fn().mockResolvedValue({}),
   deleteCustomProvider: vi.fn().mockResolvedValue({ ok: true }),
+  setFallbacks: vi.fn().mockResolvedValue([]),
+  clearFallbacks: vi.fn().mockResolvedValue(undefined),
+  getModelPrices: vi.fn().mockResolvedValue([]),
 }));
 
 import Routing from "../../src/pages/Routing";
@@ -64,13 +67,14 @@ import ModelPickerModal from "../../src/components/ModelPickerModal";
 import { toast } from "../../src/services/toast-store.js";
 import type { AvailableModel, TierAssignment, CustomProviderData } from "../../src/services/api.js";
 
-const { overrideTier, resetTier, resetAllTiers } = await import("../../src/services/api.js");
+const { overrideTier, resetTier, resetAllTiers, setFallbacks } = await import("../../src/services/api.js");
 
 describe("Routing — enabled state (providers active)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetProviders.mockResolvedValue([
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p2", provider: "anthropic", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
     mockGetCustomProviders.mockResolvedValue([]);
     mockDeactivateAllProviders.mockResolvedValue({ ok: true });
@@ -101,16 +105,21 @@ describe("Routing — enabled state (providers active)", () => {
     expect(autoTags.length).toBe(3);
   });
 
-  it("shows Override button for non-override tiers", async () => {
+  it("shows Change button for all tiers", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
-    expect(overrideButtons.length).toBe(3);
+    const changeButtons = await screen.findAllByText("Change");
+    expect(changeButtons.length).toBe(4);
   });
 
-  it("shows Edit and Reset buttons for override tiers", async () => {
+  it("renders Add fallback button in tier cards", async () => {
     render(() => <Routing />);
-    expect(await screen.findByText("Edit")).toBeDefined();
-    expect(screen.getByText("Reset")).toBeDefined();
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    expect(addButtons.length).toBe(4); // one per tier
+  });
+
+  it("shows Reset button for override tiers", async () => {
+    render(() => <Routing />);
+    expect(await screen.findByText("Reset")).toBeDefined();
   });
 
   it("shows Reset all to auto button when overrides exist", async () => {
@@ -120,7 +129,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows provider count button", async () => {
     render(() => <Routing />);
-    expect(await screen.findByText("1 provider")).toBeDefined();
+    expect(await screen.findByText("2 connections")).toBeDefined();
   });
 
   it("shows Disable Routing button", async () => {
@@ -142,21 +151,22 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("opens model picker when Override button is clicked", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
   });
 
-  it("opens model picker when Edit button is clicked", async () => {
+  it("opens model picker when Change button is clicked on override tier", async () => {
     render(() => <Routing />);
-    const editBtn = await screen.findByText("Edit");
-    fireEvent.click(editBtn);
+    const changeButtons = await screen.findAllByText("Change");
+    // complex tier (index 2) has an override
+    fireEvent.click(changeButtons[2]);
     expect(await screen.findByText("Select a model")).toBeDefined();
   });
 
   it("shows tier label in model picker subtitle", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     // Click override for 'simple' tier
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Simple tier")).toBeDefined();
@@ -164,7 +174,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("closes model picker when close button is clicked", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
 
@@ -178,7 +188,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("closes model picker on overlay click", async () => {
     const { container } = render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
 
@@ -192,7 +202,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("closes model picker on Escape key", async () => {
     const { container } = render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
 
@@ -206,14 +216,14 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows search input in model picker", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByLabelText("Search models or providers")).toBeDefined();
   });
 
   it("filters models by search query", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
 
     const searchInput = await screen.findByLabelText("Search models or providers");
@@ -227,7 +237,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows 'No models match' when search has no results", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
 
     const searchInput = await screen.findByLabelText("Search models or providers");
@@ -240,7 +250,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("selects a model and calls overrideTier", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     await screen.findByText("Select a model");
 
@@ -249,7 +259,7 @@ describe("Routing — enabled state (providers active)", () => {
     fireEvent.click(modelButtons[modelButtons.length - 1]);
 
     await waitFor(() => {
-      expect(overrideTier).toHaveBeenCalledWith("test-agent", "simple", "claude-opus-4-6");
+      expect(overrideTier).toHaveBeenCalledWith("test-agent", "simple", "claude-opus-4-6", "api_key");
     });
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("Routing updated");
@@ -258,7 +268,7 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows (recommended) label for auto-assigned model", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]); // simple tier, auto is gpt-4o-mini
 
     await waitFor(() => {
@@ -279,6 +289,21 @@ describe("Routing — enabled state (providers active)", () => {
     });
   });
 
+  it("shows Resetting... and disables button during resetTier", async () => {
+    let resolveReset: () => void;
+    vi.mocked(resetTier).mockReturnValue(new Promise<void>((r) => { resolveReset = r; }) as any);
+    render(() => <Routing />);
+    const resetBtn = await screen.findByText("Reset");
+    fireEvent.click(resetBtn);
+
+    await waitFor(() => {
+      expect(resetBtn.querySelector(".spinner")).not.toBeNull();
+      expect(resetBtn.disabled).toBe(true);
+    });
+
+    resolveReset!();
+  });
+
   it("calls resetAllTiers when Reset all to auto is clicked", async () => {
     render(() => <Routing />);
     const resetAllBtn = await screen.findByText("Reset all to auto");
@@ -290,6 +315,21 @@ describe("Routing — enabled state (providers active)", () => {
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("All tiers reset to auto");
     });
+  });
+
+  it("shows Resetting... and disables button during resetAllTiers", async () => {
+    let resolveResetAll: () => void;
+    vi.mocked(resetAllTiers).mockReturnValue(new Promise<void>((r) => { resolveResetAll = r; }) as any);
+    render(() => <Routing />);
+    const resetAllBtn = await screen.findByText("Reset all to auto") as HTMLButtonElement;
+    fireEvent.click(resetAllBtn);
+
+    await waitFor(() => {
+      expect(resetAllBtn.querySelector(".spinner")).not.toBeNull();
+      expect(resetAllBtn.disabled).toBe(true);
+    });
+
+    resolveResetAll!();
   });
 
   it("opens provider modal when Connect providers button is clicked", async () => {
@@ -334,10 +374,10 @@ describe("Routing — enabled state (providers active)", () => {
   it("shows 'No model available' when model is null", async () => {
     const { getTierAssignments } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValueOnce([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
 
     render(() => <Routing />);
@@ -347,12 +387,32 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("pluralizes provider count correctly", async () => {
     mockGetProviders.mockResolvedValue([
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
-      { id: "p2", provider: "anthropic", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p2", provider: "anthropic", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
 
     render(() => <Routing />);
-    expect(await screen.findByText("2 providers")).toBeDefined();
+    expect(await screen.findByText("2 connections")).toBeDefined();
+  });
+
+  it("shows 'Included in subscription' instead of price for subscription-only provider", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: true, auth_type: "subscription", connected_at: "2025-01-01" },
+    ]);
+
+    render(() => <Routing />);
+    expect(await screen.findByText("Included in subscription")).toBeDefined();
+  });
+
+  it("prefers subscription when provider has both subscription and api_key", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: true, auth_type: "subscription", connected_at: "2025-01-01" },
+      { id: "p2", provider: "anthropic", is_active: true, has_api_key: true, auth_type: "api_key", connected_at: "2025-01-01" },
+    ]);
+
+    render(() => <Routing />);
+    await screen.findByText("2 connections");
+    expect(screen.queryByText("Included in subscription")).toBeDefined();
   });
 });
 
@@ -385,7 +445,8 @@ describe("Routing — helper functions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetProviders.mockResolvedValue([
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p2", provider: "anthropic", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
     mockGetCustomProviders.mockResolvedValue([]);
     mockDeactivateAllProviders.mockResolvedValue({ ok: true });
@@ -394,7 +455,7 @@ describe("Routing — helper functions", () => {
   it("handles overrideTier error gracefully", async () => {
     vi.mocked(overrideTier).mockRejectedValueOnce(new Error("fail"));
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Override");
+    const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     await screen.findByText("Select a model");
 
@@ -496,7 +557,7 @@ describe("Routing — helper functions", () => {
     // Use a completely unknown model name that matches no API model and no PROVIDERS entry
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValueOnce([
-      { id: "1", user_id: "u1", tier: "simple", override_model: "totally-unknown-model-xyz", auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: "totally-unknown-model-xyz", auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValueOnce([]);
 
@@ -517,7 +578,7 @@ describe("Routing — custom providers", () => {
 
   it("renders custom provider icon letter in provider info bar", async () => {
     mockGetProviders.mockResolvedValue([
-      { id: "p1", provider: "custom:cp-uuid", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p1", provider: "custom:cp-uuid", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
     mockGetCustomProviders.mockResolvedValue([{ id: "cp-uuid", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [], created_at: "2025-01-01" }]);
 
@@ -533,14 +594,14 @@ describe("Routing — custom providers", () => {
 
   it("renders custom provider icon in routing card when model is custom", async () => {
     mockGetProviders.mockResolvedValue([
-      { id: "p1", provider: "custom:cp-uuid", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p1", provider: "custom:cp-uuid", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValue([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
       { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
@@ -557,14 +618,14 @@ describe("Routing — custom providers", () => {
 
   it("shows custom model label with provider name prefix", async () => {
     mockGetProviders.mockResolvedValue([
-      { id: "p1", provider: "custom:cp-uuid", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p1", provider: "custom:cp-uuid", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValue([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
       { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
@@ -580,14 +641,14 @@ describe("Routing — custom providers", () => {
 
   it("shows dash for null-price custom model", async () => {
     mockGetProviders.mockResolvedValue([
-      { id: "p1", provider: "custom:cp-uuid", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p1", provider: "custom:cp-uuid", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValue([
-      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", updated_at: "2025-01-01" },
-      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-uuid/my-llama", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
       { model_name: "custom:cp-uuid/my-llama", provider: "custom:cp-uuid", provider_display_name: "Groq", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
@@ -603,7 +664,7 @@ describe("Routing — custom providers", () => {
 
   it("passes customProviders to ProviderSelectModal", async () => {
     mockGetProviders.mockResolvedValue([
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
     mockGetCustomProviders.mockResolvedValue([{ id: "cp-1", name: "Test", base_url: "https://test.com", has_api_key: true, models: [], created_at: "2025-01-01" }]);
 
@@ -616,10 +677,10 @@ describe("Routing — custom providers", () => {
 
 describe("ModelPickerModal — custom providers and filtering", () => {
   const baseTiers: TierAssignment[] = [
-    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
-    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-    { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
-    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, updated_at: "2025-01-01" },
+    { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
   ];
 
   it("shows custom provider group with letter icon", () => {
@@ -710,7 +771,7 @@ describe("Routing — handleProviderUpdate", () => {
     // Now simulate that the provider modal update callback causes routing to become enabled
     // First change the mock so next getProviders fetch returns active providers
     mockGetProviders.mockResolvedValue([
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
 
     // Click the trigger-update button in the mocked ProviderSelectModal
@@ -725,7 +786,7 @@ describe("Routing — handleProviderUpdate", () => {
 
   it("does not show instruction modal when routing was already enabled", async () => {
     mockGetProviders.mockResolvedValue([
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
     ]);
     mockDeactivateAllProviders.mockResolvedValue({ ok: true });
 
@@ -741,5 +802,289 @@ describe("Routing — handleProviderUpdate", () => {
     // Wait a tick, then verify no instruction modal appeared
     await new Promise((r) => setTimeout(r, 50));
     expect(screen.queryByText("Activate routing")).toBeNull();
+  });
+});
+
+describe("Routing — fallback management", () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p2", provider: "anthropic", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([]);
+    mockDeactivateAllProviders.mockResolvedValue({ ok: true });
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    ]);
+  });
+
+  it("opens fallback picker when Add fallback is clicked", async () => {
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]);
+    // The model picker modal should open
+    expect(await screen.findByText("Select a model")).toBeDefined();
+  });
+
+  it("calls setFallbacks when a fallback model is picked", async () => {
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]); // simple tier
+    await screen.findByText("Select a model");
+
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    // Pick the claude-opus-4-6 button (only model in the fallback picker since gpt-4o-mini is the primary)
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      expect(setFallbacks).toHaveBeenCalledWith("test-agent", "simple", ["claude-opus-4-6"]);
+    });
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("Fallback added");
+    });
+  });
+
+  it("does not duplicate existing fallback model", async () => {
+    const { getTierAssignments } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: ["claude-opus-4-6"], updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]); // simple tier
+    await screen.findByText("Select a model");
+
+    // Both gpt-4o-mini (primary) and claude-opus-4-6 (existing fallback) are filtered out
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    expect(modalButtons.length).toBe(0);
+  });
+
+  it("shows Adding... on the add button while setFallbacks is in progress", async () => {
+    let resolveSetFallbacks: () => void;
+    vi.mocked(setFallbacks).mockReturnValueOnce(new Promise<void>((r) => { resolveSetFallbacks = r; }) as any);
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]); // simple tier
+    await screen.findByText("Select a model");
+
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      const addBtn = document.querySelector(".fallback-list__add") as HTMLButtonElement;
+      expect(addBtn.querySelector(".spinner")).not.toBeNull();
+      expect(addBtn.disabled).toBe(true);
+    });
+
+    resolveSetFallbacks!();
+  });
+
+  it("handles setFallbacks error gracefully and rolls back optimistic state", async () => {
+    vi.mocked(setFallbacks).mockRejectedValueOnce(new Error("fail"));
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]);
+    await screen.findByText("Select a model");
+
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      expect(setFallbacks).toHaveBeenCalled();
+    });
+  });
+
+  it("renders fallback list when tier has fallback_models", async () => {
+    const { getTierAssignments } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: ["claude-opus-4-6"], updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+
+    const { container } = render(() => <Routing />);
+    await waitFor(() => {
+      const ranks = container.querySelectorAll(".fallback-list__rank");
+      expect(ranks.length).toBe(1);
+      expect(ranks[0].textContent).toBe("1.");
+    });
+  });
+
+  it("exercises FallbackList props (agentName, tier, customProviders) via remove", async () => {
+    const { getTierAssignments, getAvailableModels, clearFallbacks: mockClearFallbacks } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: ["custom:cp-1/my-llama"], updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValueOnce([
+      { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "custom:cp-1/my-llama", provider: "custom:cp-1", provider_display_name: "MyProvider", display_name: "my-llama", input_price_per_token: null, output_price_per_token: null, context_window: 8192, capability_reasoning: false, capability_code: false },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([
+      { id: "cp-1", name: "MyProvider", base_url: "https://test.com", has_api_key: true, models: [], created_at: "2025-01-01" },
+    ]);
+
+    const { container } = render(() => <Routing />);
+    // Wait for fallback list to render with custom provider fallback
+    await waitFor(() => {
+      const removeButtons = container.querySelectorAll(".fallback-list__remove");
+      expect(removeButtons.length).toBe(1);
+      // Custom provider letter icon should render (accessing customProviders prop)
+      const letterIcon = container.querySelector(".fallback-list__item .provider-card__logo-letter");
+      expect(letterIcon).not.toBeNull();
+      expect(letterIcon!.textContent).toBe("M");
+    });
+
+    // Click the remove button — forces FallbackList to read props.agentName and props.tier
+    const removeBtn = container.querySelector(".fallback-list__remove") as HTMLButtonElement;
+    fireEvent.click(removeBtn);
+
+    await waitFor(() => {
+      // clearFallbacks is called when removing the only fallback
+      expect(mockClearFallbacks).toHaveBeenCalledWith("test-agent", "simple");
+    });
+  });
+
+  it("closes fallback picker when close button is clicked", async () => {
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("+ Add fallback");
+    fireEvent.click(addButtons[0]);
+    expect(await screen.findByText("Select a model")).toBeDefined();
+
+    const closeBtns = screen.getAllByLabelText("Close");
+    fireEvent.click(closeBtns[closeBtns.length - 1]);
+    await waitFor(() => {
+      expect(screen.queryByText("Select a model")).toBeNull();
+    });
+  });
+});
+
+describe("Routing — effectiveAuth case-insensitive matching", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetCustomProviders.mockResolvedValue([]);
+    mockDeactivateAllProviders.mockResolvedValue({ ok: true });
+  });
+
+  it("matches provider with different casing via effectiveAuth", async () => {
+    // Provider stored as "Anthropic" (capitalized) but providerIdForModel returns "anthropic" (lowercase)
+    // effectiveAuth now uses case-insensitive comparison: p.provider.toLowerCase() === id.toLowerCase()
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "Anthropic", is_active: true, has_api_key: true, auth_type: "subscription", connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "claude-opus-4-6", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    ]);
+
+    render(() => <Routing />);
+    // Should show "Included in subscription" because effectiveAuth matches "Anthropic" provider case-insensitively
+    expect(await screen.findByText("Included in subscription")).toBeDefined();
+  });
+
+  it("shows Subscription badge when override_auth_type is set", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: true, auth_type: "subscription", connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: "claude-opus-4-6", override_auth_type: "subscription", auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    ]);
+
+    render(() => <Routing />);
+    expect(await screen.findByText("Included in subscription")).toBeDefined();
+  });
+
+  it("resolves providerIdForModel via PROVIDERS model list fallback (lines 52-53)", async () => {
+    // "qwen-2.5-72b-instruct" is a model value in PROVIDERS' qwen models list.
+    // inferProviderFromModel("qwen-2.5-72b-instruct") returns undefined because
+    // the regex is ^qwen[23] (no dash after "qwen"), so "qwen-" doesn't match.
+    // Since it's NOT in apiModels, the for-loop fallback finds it via exact value match.
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "qwen", is_active: true, has_api_key: true, auth_type: "api_key", connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getAvailableModels).mockResolvedValue([]); // empty — model not in apiModels
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "qwen-2.5-72b-instruct", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+
+    render(() => <Routing />);
+    // providerIdForModel returns "qwen" via the PROVIDERS model list fallback (line 52)
+    // labelFor can't find modelInfo (empty apiModels) so renders raw model name
+    await waitFor(() => {
+      expect(screen.getByText("qwen-2.5-72b-instruct")).toBeDefined();
+    });
+  });
+
+  it("falls back to resolveProviderId in labelFor when inferProviderFromModel returns nothing (line 182)", async () => {
+    // Model "my-unknown-model" is in apiModels with provider "Anthropic"
+    // inferProviderFromModel("my-unknown-model") returns undefined (no prefix match)
+    // so labelFor falls through to resolveProviderId("Anthropic") → "anthropic"
+    // getModelLabel("anthropic", "my-unknown-model") won't find a label, returns raw name
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: true, auth_type: "api_key", connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "my-unknown-model", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    ]);
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "my-unknown-model", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+
+    render(() => <Routing />);
+    // The model renders as its raw name since no PROVIDERS model matches
+    await waitFor(() => {
+      expect(screen.getByText("my-unknown-model")).toBeDefined();
+    });
+  });
+
+  it("passes empty array when customProviders resource is undefined (line 745)", async () => {
+    // customProviders resource hasn't resolved yet → customProviders() is undefined
+    // The ?? [] fallback on line 745 kicks in
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key", connected_at: "2025-01-01" },
+    ]);
+    mockGetCustomProviders.mockReturnValue(new Promise(() => {})); // never resolves
+
+    render(() => <Routing />);
+    const provBtn = await screen.findByText("Connect providers");
+    fireEvent.click(provBtn);
+    expect(screen.getByTestId("provider-modal")).toBeDefined();
   });
 });

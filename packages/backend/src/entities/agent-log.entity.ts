@@ -1,17 +1,14 @@
-import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 import { timestampType } from '../common/utils/sql-dialect';
 
 @Entity('agent_logs')
-@Index(['tenant_id', 'agent_id', 'timestamp'])
 export class AgentLog {
   @PrimaryColumn('varchar')
   id!: string;
 
-  @Index()
   @Column('varchar', { nullable: true })
   tenant_id!: string | null;
 
-  @Index()
   @Column('varchar', { nullable: true })
   agent_id!: string | null;
 

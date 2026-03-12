@@ -1,4 +1,15 @@
-import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, UseInterceptors } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseInterceptors,
+} from '@nestjs/common';
 import { CacheTTL } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
@@ -9,10 +20,11 @@ import { AuthUser } from '../../auth/auth.instance';
 import { CreateAgentDto } from '../../common/dto/create-agent.dto';
 import { RenameAgentDto } from '../../common/dto/rename-agent.dto';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
-import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
+import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 import { readLocalApiKey } from '../../common/constants/local-mode.constants';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
 import { slugify } from '../../common/utils/slugify';
+import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 @Controller('api/v1')
 export class AgentsController {
@@ -21,13 +33,15 @@ export class AgentsController {
     private readonly aggregation: AggregationService,
     private readonly apiKeyGenerator: ApiKeyGeneratorService,
     private readonly config: ConfigService,
+    private readonly tenantCache: TenantCacheService,
   ) {}
 
   @Get('agents')
   @UseInterceptors(UserCacheInterceptor)
-  @CacheTTL(DASHBOARD_CACHE_TTL_MS)
+  @CacheTTL(AGENT_LIST_CACHE_TTL_MS)
   async getAgents(@CurrentUser() user: AuthUser) {
-    const agents = await this.timeseries.getAgentList(user.id);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    const agents = await this.timeseries.getAgentList(user.id, tenantId);
     return { agents };
   }
 
@@ -45,7 +59,10 @@ export class AgentsController {
       email: user.email,
     });
     trackCloudEvent('agent_created', user.id, { agent_name: slug });
-    return { agent: { id: result.agentId, name: slug, display_name: displayName }, apiKey: result.apiKey };
+    return {
+      agent: { id: result.agentId, name: slug, display_name: displayName },
+      apiKey: result.apiKey,
+    };
   }
 
   @Get('agents/:agentName/key')

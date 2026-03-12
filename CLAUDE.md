@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-03-05
+Last updated: 2026-03-11
 
 ## IMPORTANT: Local Mode First
 
@@ -17,14 +17,15 @@ MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
   node -r dotenv/config packages/backend/dist/main.js
 
 # 2. Configure the plugin
-openclaw config set plugins.entries.manifest.config.mode dev
+openclaw config set plugins.entries.manifest.config.mode cloud
+openclaw config set plugins.entries.manifest.config.devMode true
 openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp
 
 # 3. Restart the gateway
 openclaw gateway restart
 ```
 
-No API key needed. The dashboard shows an orange **Dev** badge in the header when running in local mode. Dev mode uses the OTLP loopback bypass — the `OtlpAuthGuard` trusts same-machine connections without Bearer token auth.
+No API key needed. The dashboard shows an orange **Dev** badge in the header when running in development environment (`NODE_ENV !== 'production'`). Dev mode uses the OTLP loopback bypass — the `OtlpAuthGuard` trusts same-machine connections without Bearer token auth. Note: `devMode` is auto-detected when the endpoint is a loopback address and no `mnfst_*` API key is provided.
 
 ### Resetting OpenClaw Plugin Settings
 
@@ -32,7 +33,8 @@ If the plugin gets into a bad state (stale config, wrong endpoint, cached errors
 
 ```bash
 # Reset plugin config to defaults
-openclaw config set plugins.entries.manifest.config.mode dev
+openclaw config set plugins.entries.manifest.config.mode cloud
+openclaw config set plugins.entries.manifest.config.devMode true
 openclaw config set plugins.entries.manifest.config.endpoint http://localhost:<PORT>/otlp
 
 # Force restart the gateway (kills existing process and starts fresh)
@@ -41,7 +43,7 @@ openclaw gateway restart
 
 **Important notes:**
 - The OpenClaw config lives at `~/.openclaw/openclaw.json`. The gateway may restore certain fields (like `apiKey`) on restart — editing the file directly doesn't always stick.
-- In dev mode, the gateway sends `Authorization: Bearer dev-no-auth` to the proxy. The `OtlpAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in local mode, so this works without real API keys.
+- When `devMode` is true, the gateway sends `Authorization: Bearer dev-no-auth` to the proxy. The `OtlpAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in local mode, so this works without real API keys.
 - After restarting the backend server, **always restart the gateway too** (`openclaw gateway restart`) — the OTLP pipeline doesn't automatically reconnect.
 - The gateway batches OTLP telemetry and sends it every ~10-30 seconds. New messages may take a moment to appear in the dashboard.
 

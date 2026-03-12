@@ -43,6 +43,19 @@ import { AddAgentDisplayName1772400000000 } from './migrations/1772400000000-Add
 import { PerAgentRouting1772500000000 } from './migrations/1772500000000-PerAgentRouting';
 import { AddCustomProviders1772668898071 } from './migrations/1772668898071-AddCustomProviders';
 import { NullablePricing1772682112419 } from './migrations/1772682112419-NullablePricing';
+import { AddPerformanceIndexes1772843035514 } from './migrations/1772843035514-AddPerformanceIndexes';
+import { AddProviderAuthType1772900000000 } from './migrations/1772900000000-AddProviderAuthType';
+import { AddDashboardIndexes1772905146384 } from './migrations/1772905146384-AddDashboardIndexes';
+import { AddFallbacks1772905260464 } from './migrations/1772905260464-AddFallbacks';
+import { AddModelDisplayName1772920000000 } from './migrations/1772920000000-AddModelDisplayName';
+import { DropRedundantIndexes1772940000000 } from './migrations/1772940000000-DropRedundantIndexes';
+import { BackfillTenantId1772948502780 } from './migrations/1772948502780-BackfillTenantId';
+import { DropUnusedIndexes1772960000000 } from './migrations/1772960000000-DropUnusedIndexes';
+import { PurgeNonCuratedModels1772960000000 } from './migrations/1772960000000-PurgeNonCuratedModels';
+import { ExpandProviderUniqueKey1773000000000 } from './migrations/1773000000000-ExpandProviderUniqueKey';
+import { AddOverrideAuthType1773100000000 } from './migrations/1773100000000-AddOverrideAuthType';
+import { AddMessageAuthType1773200000000 } from './migrations/1773200000000-AddMessageAuthType';
+import { AddModelsAgentIndex1773202787708 } from './migrations/1773202787708-AddModelsAgentIndex';
 
 const entities = [
   AgentMessage,
@@ -90,6 +103,19 @@ const migrations = [
   PerAgentRouting1772500000000,
   AddCustomProviders1772668898071,
   NullablePricing1772682112419,
+  AddPerformanceIndexes1772843035514,
+  AddProviderAuthType1772900000000,
+  AddDashboardIndexes1772905146384,
+  AddFallbacks1772905260464,
+  AddModelDisplayName1772920000000,
+  DropRedundantIndexes1772940000000,
+  BackfillTenantId1772948502780,
+  DropUnusedIndexes1772960000000,
+  PurgeNonCuratedModels1772960000000,
+  ExpandProviderUniqueKey1773000000000,
+  AddOverrideAuthType1773100000000,
+  AddMessageAuthType1773200000000,
+  AddModelsAgentIndex1773202787708,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -122,10 +148,14 @@ function buildModeServices() {
           url: config.get<string>('app.databaseUrl'),
           entities,
           synchronize: false,
-          migrationsRun: true,
+          migrationsRun: config.get<string>('app.nodeEnv') !== 'production',
           migrationsTransactionMode: 'all' as const,
           migrations,
           logging: false,
+          extra: {
+            max: config.get<number>('app.dbPoolMax') ?? 20,
+            idleTimeoutMillis: 30000,
+          },
         };
       },
     }),

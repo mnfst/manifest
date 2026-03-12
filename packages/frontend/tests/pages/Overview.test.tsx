@@ -30,6 +30,11 @@ vi.mock("../../src/services/sse.js", () => ({
   pingCount: () => 0,
 }));
 
+vi.mock("../../src/services/model-display.js", () => ({
+  getModelDisplayName: (slug: string) => slug.replace(/^custom:[^/]+\//, ""),
+  preloadModelDisplayNames: () => {},
+}));
+
 vi.mock("../../src/services/formatters.js", () => ({
   formatCost: (v: number) => `$${v.toFixed(2)}`,
   formatNumber: (v: number) => String(v),
@@ -84,8 +89,8 @@ const overviewData = {
   cost_usage: [{ hour: "2026-02-18 10:00:00", cost: 0.5 }],
   message_usage: [{ hour: "2026-02-18 10:00:00", count: 5 }],
   cost_by_model: [
-    { model: "gpt-4o", tokens: 30000, share_pct: 60, estimated_cost: 2.1 },
-    { model: "claude-3.5-sonnet", tokens: 20000, share_pct: 40, estimated_cost: 1.4 },
+    { model: "gpt-4o", tokens: 30000, share_pct: 60, estimated_cost: 2.1, auth_type: "api_key" },
+    { model: "claude-3.5-sonnet", tokens: 20000, share_pct: 40, estimated_cost: 1.4, auth_type: "subscription" },
   ],
   recent_activity: [
     { id: "msg-12345678", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "gpt-4o", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok" },
@@ -120,6 +125,23 @@ describe("Overview", () => {
     const { container } = render(() => <Overview />);
     const skeletons = container.querySelectorAll(".skeleton");
     expect(skeletons.length).toBeGreaterThan(0);
+  });
+
+  it("keeps showing stale data during refetch instead of skeletons", async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("$3.50");
+    });
+
+    // Trigger a refetch that never resolves
+    mockGetOverview.mockReturnValue(new Promise(() => {}));
+    const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+    await fireEvent.change(select, { target: { value: "24h" } });
+
+    // Should still show old data, not skeletons
+    expect(container.textContent).toContain("$3.50");
+    expect(container.querySelectorAll(".skeleton").length).toBe(0);
   });
 
   it("shows summary stats after data loads", async () => {
@@ -195,6 +217,43 @@ describe("Overview", () => {
       expect(container.textContent).toContain("gpt-4o");
       expect(container.textContent).toContain("claude-3.5-sonnet");
       expect(container.textContent).toContain("60%");
+    });
+  });
+
+  it("sorts cost by model rows by estimated_cost descending", async () => {
+    const data = {
+      ...overviewData,
+      cost_by_model: [
+        { model: "claude-3.5-sonnet", tokens: 20000, share_pct: 40, estimated_cost: 1.4, auth_type: "subscription" },
+        { model: "gpt-4o", tokens: 30000, share_pct: 60, estimated_cost: 2.1, auth_type: "api_key" },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(data);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const panels = container.querySelectorAll(".panel");
+      // Find the Cost by Model panel
+      const costPanel = Array.from(panels).find(p => p.textContent?.includes("Cost by Model"));
+      expect(costPanel).toBeDefined();
+      const rows = costPanel!.querySelectorAll("tbody tr");
+      expect(rows.length).toBe(2);
+      // gpt-4o ($2.1) should come before claude ($1.4) even though claude is first in data
+      expect(rows[0].textContent).toContain("gpt-4o");
+      expect(rows[1].textContent).toContain("claude-3.5-sonnet");
+    });
+  });
+
+  it("renders auth badges on cost by model provider icons", async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const panels = container.querySelectorAll(".panel");
+      const costPanel = Array.from(panels).find(p => p.textContent?.includes("Cost by Model"));
+      expect(costPanel).toBeDefined();
+      const keyBadge = costPanel!.querySelector(".provider-auth-badge--key");
+      const subBadge = costPanel!.querySelector(".provider-auth-badge--sub");
+      expect(keyBadge).not.toBeNull();
+      expect(subBadge).not.toBeNull();
     });
   });
 
@@ -306,7 +365,7 @@ describe("Overview", () => {
         { id: "msg-cp1", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "custom:abc-123/my-llama", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok" },
       ],
       cost_by_model: [
-        { model: "custom:abc-123/my-llama", tokens: 30000, share_pct: 100, estimated_cost: 2.1 },
+        { model: "custom:abc-123/my-llama", tokens: 30000, share_pct: 100, estimated_cost: 2.1, auth_type: "api_key" },
       ],
     };
 
@@ -464,6 +523,116 @@ describe("Overview", () => {
       });
       fireEvent.click(screen.getByTestId("setup-done"));
       expect(localStorage.getItem("setup_completed_test-agent")).toBe("1");
+    });
+  });
+
+  it("shows $0.00 cost for subscription auth_type messages in recent activity", async () => {
+    const dataWithSub = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], auth_type: "subscription", cost: 0.05 },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithSub);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const subCost = container.querySelector('[title="Included in subscription"]');
+      expect(subCost).not.toBeNull();
+      expect(subCost!.textContent).toBe("$0.00");
+    });
+  });
+
+  it("shows formatCost for non-subscription messages with cost in recent activity", async () => {
+    const dataWithCost = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], auth_type: null, cost: 0.05 },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithCost);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("$0.05");
+    });
+  });
+
+  it("renders subscription auth badge on provider icon in recent activity", async () => {
+    const dataWithSub = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], model: "claude-sonnet-4", auth_type: "subscription" },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithSub);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".provider-auth-badge--sub");
+      expect(badge).not.toBeNull();
+    });
+  });
+
+  it("renders api_key auth badge when auth_type is api_key", async () => {
+    const dataWithApiKey = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], model: "claude-sonnet-4", auth_type: "api_key" },
+      ],
+      cost_by_model: overviewData.cost_by_model.map(r => ({ ...r, auth_type: "api_key" })),
+    };
+    mockGetOverview.mockResolvedValue(dataWithApiKey);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".provider-auth-badge--key");
+      expect(badge).not.toBeNull();
+      const subBadge = container.querySelector(".provider-auth-badge--sub");
+      expect(subBadge).toBeNull();
+    });
+  });
+
+  it("renders fallback badge in recent activity when fallback_from_model is present", async () => {
+    const dataWithFallback = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], fallback_from_model: "gpt-4o", fallback_index: 0 },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithFallback);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".tier-badge--fallback");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toBe("fallback");
+    });
+  });
+
+  it("does not render fallback badge in recent activity when fallback_from_model is absent", async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("gpt-4o");
+      const badge = container.querySelector(".tier-badge--fallback");
+      expect(badge).toBeNull();
+    });
+  });
+
+  it("renders fallback_error status with Handled badge in recent activity", async () => {
+    const dataWithHandled = {
+      ...overviewData,
+      recent_activity: [
+        {
+          ...overviewData.recent_activity[0],
+          status: "fallback_error",
+          model: "gemini-flash",
+          error_message: "Provider returned HTTP 429, routed to fallback",
+        },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithHandled);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".status-badge--fallback_error");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toBe("fallback_error");
     });
   });
 });

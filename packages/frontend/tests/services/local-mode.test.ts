@@ -113,4 +113,37 @@ describe("local-mode", () => {
 
     expect(updateInfo()).toBeNull();
   });
+
+  it("sets isDevMode to true when health response has devMode true", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      json: () => Promise.resolve({ mode: "cloud", devMode: true }),
+    });
+
+    const { checkLocalMode, isDevMode } = await import("../../src/services/local-mode.js");
+    await checkLocalMode();
+
+    expect(isDevMode()).toBe(true);
+  });
+
+  it("defaults isDevMode to false when devMode is absent", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      json: () => Promise.resolve({ mode: "cloud" }),
+    });
+
+    const { checkLocalMode, isDevMode } = await import("../../src/services/local-mode.js");
+    await checkLocalMode();
+
+    expect(isDevMode()).toBe(false);
+  });
+
+  it("sets isDevMode to false when devMode is false", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      json: () => Promise.resolve({ mode: "cloud", devMode: false }),
+    });
+
+    const { checkLocalMode, isDevMode } = await import("../../src/services/local-mode.js");
+    await checkLocalMode();
+
+    expect(isDevMode()).toBe(false);
+  });
 });

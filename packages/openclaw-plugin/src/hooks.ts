@@ -8,11 +8,11 @@ import {
   Meter,
   Counter,
   Histogram,
-} from "@opentelemetry/api";
-import { SPANS, METRICS, ATTRS } from "./constants";
-import { ManifestConfig } from "./config";
-import { PluginLogger } from "./telemetry";
-import { resolveRouting } from "./routing";
+} from '@opentelemetry/api';
+import { SPANS, METRICS, ATTRS } from './constants';
+import { ManifestConfig } from './config';
+import { PluginLogger } from './telemetry';
+import { resolveRouting } from './routing';
 
 interface ActiveSpans {
   root: Span;
@@ -35,33 +35,33 @@ let messagesReceived: Counter;
 
 export function initMetrics(meter: Meter): void {
   llmRequests = meter.createCounter(METRICS.LLM_REQUESTS, {
-    description: "Total LLM inference requests",
+    description: 'Total LLM inference requests',
   });
   llmTokensInput = meter.createCounter(METRICS.LLM_TOKENS_INPUT, {
-    description: "Total input tokens sent to LLM",
+    description: 'Total input tokens sent to LLM',
   });
   llmTokensOutput = meter.createCounter(METRICS.LLM_TOKENS_OUTPUT, {
-    description: "Total output tokens from LLM",
+    description: 'Total output tokens from LLM',
   });
   llmTokensCacheRead = meter.createCounter(METRICS.LLM_TOKENS_CACHE_READ, {
-    description: "Total cache-read tokens",
+    description: 'Total cache-read tokens',
   });
   llmDuration = meter.createHistogram(METRICS.LLM_DURATION, {
-    description: "LLM request duration in ms",
-    unit: "ms",
+    description: 'LLM request duration in ms',
+    unit: 'ms',
   });
   toolCalls = meter.createCounter(METRICS.TOOL_CALLS, {
-    description: "Total tool invocations",
+    description: 'Total tool invocations',
   });
   toolErrors = meter.createCounter(METRICS.TOOL_ERRORS, {
-    description: "Total tool errors",
+    description: 'Total tool errors',
   });
   toolDuration = meter.createHistogram(METRICS.TOOL_DURATION, {
-    description: "Tool execution duration in ms",
-    unit: "ms",
+    description: 'Tool execution duration in ms',
+    unit: 'ms',
   });
   messagesReceived = meter.createCounter(METRICS.MESSAGES_RECEIVED, {
-    description: "Total messages received from users",
+    description: 'Total messages received from users',
   });
 }
 
@@ -74,9 +74,9 @@ export function initMetrics(meter: Meter): void {
  * it's confirmed to work, fall back to registerHook() for forward compat.
  */
 function hookOn(api: any, event: string, handler: (...args: any[]) => any): void {
-  if (typeof api.on === "function") {
+  if (typeof api.on === 'function') {
     api.on(event, handler);
-  } else if (typeof api.registerHook === "function") {
+  } else if (typeof api.registerHook === 'function') {
     api.registerHook(event, handler);
   }
 }
@@ -89,10 +89,10 @@ export function registerHooks(
 ): void {
   // --- message_received ---
   // Creates the root span for the entire request lifecycle.
-  hookOn(api, "message_received", (event: any) => {
+  hookOn(api, 'message_received', (event: any) => {
     const sessionKey =
-      event.sessionKey || event.session?.key || `agent:${event.agent || "main"}:main`;
-    const channel = event.channel || "unknown";
+      event.sessionKey || event.session?.key || `agent:${event.agent || 'main'}:main`;
+    const channel = event.channel || 'unknown';
 
     const rootSpan = tracer.startSpan(SPANS.REQUEST, {
       kind: SpanKind.SERVER,
@@ -109,12 +109,10 @@ export function registerHooks(
 
   // --- before_agent_start ---
   // Creates a child span under the root for the agent turn.
-  hookOn(api, "before_agent_start", (event: any) => {
+  hookOn(api, 'before_agent_start', (event: any) => {
     const sessionKey =
-      event.sessionKey ||
-      event.session?.key ||
-      `agent:${event.agent || "main"}:main`;
-    const agentName = event.agent || "main";
+      event.sessionKey || event.session?.key || `agent:${event.agent || 'main'}:main`;
+    const agentName = event.agent || 'main';
 
     const active = activeSpans.get(sessionKey);
     const parentContext = active?.root
@@ -139,18 +137,16 @@ export function registerHooks(
       activeSpans.set(sessionKey, { root: turnSpan, turn: turnSpan });
     }
 
-    logger.debug(
-      `[manifest] Agent turn started: agent=${agentName}, session=${sessionKey}`,
-    );
+    logger.debug(`[manifest] Agent turn started: agent=${agentName}, session=${sessionKey}`);
   });
 
   // --- tool_result_persist ---
   // Records tool metrics and creates a child span.
-  hookOn(api, "tool_result_persist", (event: any) => {
-    const toolName = event.toolName || event.tool || "unknown";
+  hookOn(api, 'tool_result_persist', (event: any) => {
+    const toolName = event.toolName || event.tool || 'unknown';
     const durationMs = event.durationMs || 0;
     const success = event.error == null;
-    const sessionKey = event.sessionKey || "unknown";
+    const sessionKey = event.sessionKey || 'unknown';
 
     const active = activeSpans.get(sessionKey);
     const parentContext = active?.turn
@@ -173,7 +169,7 @@ export function registerHooks(
     if (!success) {
       toolSpan.setStatus({
         code: SpanStatusCode.ERROR,
-        message: event.error?.message || "Tool execution failed",
+        message: event.error?.message || 'Tool execution failed',
       });
       toolErrors.add(1, { [ATTRS.TOOL_NAME]: toolName });
     }
@@ -187,28 +183,34 @@ export function registerHooks(
   // Records LLM metrics and closes all spans.
   // Event shape: { messages: Message[], success: boolean, durationMs: number }
   // Usage data lives on each assistant message, not at the top level.
-  hookOn(api, "agent_end", async (event: any) => {
+  hookOn(api, 'agent_end', async (event: any) => {
     const sessionKey =
-      event.sessionKey ||
-      event.session?.key ||
-      `agent:${event.agent || "main"}:main`;
+      event.sessionKey || event.session?.key || `agent:${event.agent || 'main'}:main`;
 
     // Extract data from the last assistant message with usage info
     const messages: any[] = event.messages || [];
     const lastAssistant = [...messages]
       .reverse()
-      .find((m: any) => m.role === "assistant" && m.usage);
+      .find((m: any) => m.role === 'assistant' && m.usage);
 
-    const model = lastAssistant?.model || event.model || "unknown";
-    const provider = lastAssistant?.provider || event.provider || "unknown";
+    const model = lastAssistant?.model || event.model || 'unknown';
+    const provider = lastAssistant?.provider || event.provider || 'unknown';
     const usage = lastAssistant?.usage || event.usage || {};
-    const inputTokens = usage.input || usage.inputTokens || 0;
-    const outputTokens = usage.output || usage.outputTokens || 0;
+    const inputTokens =
+      usage.input || usage.inputTokens || usage.prompt_tokens || usage.promptTokens || 0;
+    const outputTokens =
+      usage.output || usage.outputTokens || usage.completion_tokens || usage.completionTokens || 0;
 
-    // Gateway provides cache read via usage.cacheRead (from OpenAI prompt_tokens_details.cached_tokens).
-    // Cache creation is not available from the gateway's event data (Anthropic-specific).
-    const cacheReadTokens = usage.cacheRead || usage.cacheReadTokens || 0;
-    const cacheWriteTokens = usage.cacheWrite || usage.cacheWriteTokens || 0;
+    // Cache tokens: try gateway-native fields first, then OpenAI format.
+    const promptDetails = usage.prompt_tokens_details || {};
+    const cacheReadTokens =
+      usage.cacheRead ||
+      usage.cacheReadTokens ||
+      usage.cache_read_tokens ||
+      promptDetails.cached_tokens ||
+      0;
+    const cacheWriteTokens =
+      usage.cacheWrite || usage.cacheWriteTokens || usage.cache_creation_tokens || 0;
 
     // If model is "auto" (routed through manifest proxy), resolve the actual model
     let finalModel = model;
@@ -216,7 +218,7 @@ export function registerHooks(
     let routingTier: string | null = null;
     let routingReason: string | null = null;
 
-    if (finalModel === "auto") {
+    if (finalModel === 'auto') {
       const resolved = await resolveRouting(config, messages, sessionKey, logger);
       if (resolved) {
         finalModel = resolved.model;
@@ -226,22 +228,22 @@ export function registerHooks(
       }
     }
 
-    // Detect heartbeat from messages — if any user message contains
-    // HEARTBEAT_OK, override the reason so it's identifiable in telemetry.
+    // Detect heartbeat — only if the LAST user message contains HEARTBEAT_OK.
     // Content can be a string or array of content parts (multi-modal format).
-    const hasHeartbeat = messages.some((m: any) => {
-      if (!m || m.role !== "user") return false;
-      if (typeof m.content === "string") return m.content.includes("HEARTBEAT_OK");
-      if (Array.isArray(m.content)) {
-        return m.content.some(
-          (p: any) => p.type === "text" && typeof p.text === "string" && p.text.includes("HEARTBEAT_OK"),
-        );
-      }
-      return false;
-    });
+    const lastUserMsg = [...messages].reverse().find((m: any) => m?.role === 'user');
+    const hasHeartbeat = lastUserMsg
+      ? typeof lastUserMsg.content === 'string'
+        ? lastUserMsg.content.includes('HEARTBEAT_OK')
+        : Array.isArray(lastUserMsg.content)
+          ? lastUserMsg.content.some(
+              (p: any) =>
+                p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
+            )
+          : false
+      : false;
     if (hasHeartbeat) {
-      routingReason = "heartbeat";
-      routingTier = "simple";
+      routingReason = 'heartbeat';
+      routingTier = 'simple';
     }
 
     const active = activeSpans.get(sessionKey);
@@ -262,11 +264,10 @@ export function registerHooks(
         active.turn.setAttribute(ATTRS.ROUTING_REASON, routingReason);
       }
       if (event.success === false) {
-        const errMsg =
-          event.error?.message || event.errorMessage || "Agent turn failed";
+        const errMsg = event.error?.message || event.errorMessage || 'Agent turn failed';
         active.turn.setStatus({
           code: SpanStatusCode.ERROR,
-          message: typeof errMsg === "string" ? errMsg.slice(0, 500) : String(errMsg),
+          message: typeof errMsg === 'string' ? errMsg.slice(0, 500) : String(errMsg),
         });
       }
       active.turn.end();
@@ -294,5 +295,5 @@ export function registerHooks(
     logger.debug(`[manifest] Trace completed for session=${sessionKey}`);
   });
 
-  logger.debug("[manifest] All hooks registered");
+  logger.debug('[manifest] All hooks registered');
 }
