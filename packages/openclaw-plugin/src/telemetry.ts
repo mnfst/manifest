@@ -1,17 +1,11 @@
-import {
-  BasicTracerProvider,
-  BatchSpanProcessor,
-} from "@opentelemetry/sdk-trace-base";
-import {
-  MeterProvider,
-  PeriodicExportingMetricReader,
-} from "@opentelemetry/sdk-metrics";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
-import { Resource } from "@opentelemetry/resources";
-import { trace, metrics, Tracer, Meter } from "@opentelemetry/api";
-import { ManifestConfig } from "./config";
-import { DEFAULTS, DEV_DEFAULTS, LOCAL_DEFAULTS } from "./constants";
+import { BasicTracerProvider, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
+import { Resource } from '@opentelemetry/resources';
+import { trace, metrics, Tracer, Meter } from '@opentelemetry/api';
+import { ManifestConfig } from './config';
+import { DEFAULTS, LOCAL_DEFAULTS } from './constants';
 
 export interface PluginLogger {
   info: (...args: unknown[]) => void;
@@ -30,9 +24,9 @@ export function initTelemetry(
   logger: PluginLogger,
 ): { tracer: Tracer; meter: Meter } {
   const resource = new Resource({
-    "service.name": DEFAULTS.SERVICE_NAME,
-    "service.version": process.env.PLUGIN_VERSION || "0.0.0",
-    "manifest.plugin": "true",
+    'service.name': DEFAULTS.SERVICE_NAME,
+    'service.version': process.env.PLUGIN_VERSION || '0.0.0',
+    'manifest.plugin': 'true',
   });
 
   const headers: Record<string, string> = config.apiKey
@@ -65,8 +59,8 @@ export function initTelemetry(
   });
 
   const metricsIntervalMs =
-    config.mode === "dev" ? DEV_DEFAULTS.METRICS_INTERVAL_MS
-      : config.mode === "local" ? LOCAL_DEFAULTS.METRICS_INTERVAL_MS
+    config.devMode || config.mode === 'local'
+      ? LOCAL_DEFAULTS.METRICS_INTERVAL_MS
       : DEFAULTS.METRICS_INTERVAL_MS;
 
   meterProvider = new MeterProvider({
@@ -84,26 +78,24 @@ export function initTelemetry(
       `(interval=${metricsIntervalMs}ms)`,
   );
 
-  tracer = trace.getTracer("manifest-plugin", process.env.PLUGIN_VERSION);
-  meter = metrics.getMeter("manifest-plugin", process.env.PLUGIN_VERSION);
+  tracer = trace.getTracer('manifest-plugin', process.env.PLUGIN_VERSION);
+  meter = metrics.getMeter('manifest-plugin', process.env.PLUGIN_VERSION);
 
   return { tracer, meter };
 }
 
 export function getTracer(): Tracer {
-  if (!tracer) throw new Error("[manifest] Telemetry not initialized");
+  if (!tracer) throw new Error('[manifest] Telemetry not initialized');
   return tracer;
 }
 
 export function getMeter(): Meter {
-  if (!meter) throw new Error("[manifest] Telemetry not initialized");
+  if (!meter) throw new Error('[manifest] Telemetry not initialized');
   return meter;
 }
 
-export async function shutdownTelemetry(
-  logger: PluginLogger,
-): Promise<void> {
-  logger.info("[manifest] Shutting down telemetry...");
+export async function shutdownTelemetry(logger: PluginLogger): Promise<void> {
+  logger.info('[manifest] Shutting down telemetry...');
   if (tracerProvider) {
     await tracerProvider.shutdown();
     tracerProvider = null;
@@ -114,5 +106,5 @@ export async function shutdownTelemetry(
   }
   tracer = null;
   meter = null;
-  logger.info("[manifest] Telemetry shut down");
+  logger.info('[manifest] Telemetry shut down');
 }

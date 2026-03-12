@@ -3,6 +3,7 @@ import { ManifestConfig } from "../src/config";
 
 const baseConfig: ManifestConfig = {
   mode: "cloud",
+  devMode: false,
   apiKey: "mnfst_test123",
   endpoint: "http://localhost:3001/otlp",
   port: 2099,
@@ -177,8 +178,8 @@ describe("verifyConnection", () => {
     expect(result.error).toContain("500");
   });
 
-  it("sends no Authorization header when apiKey is empty (dev mode)", async () => {
-    const devConfig = { ...baseConfig, mode: "dev" as const, apiKey: "" };
+  it("sends no Authorization header when apiKey is empty (devMode)", async () => {
+    const devConfig = { ...baseConfig, devMode: true, apiKey: "" };
     mockFetch
       .mockResolvedValueOnce({ ok: true, status: 200 })
       .mockResolvedValueOnce({
