@@ -89,8 +89,8 @@ const overviewData = {
   cost_usage: [{ hour: "2026-02-18 10:00:00", cost: 0.5 }],
   message_usage: [{ hour: "2026-02-18 10:00:00", count: 5 }],
   cost_by_model: [
-    { model: "gpt-4o", tokens: 30000, share_pct: 60, estimated_cost: 2.1 },
-    { model: "claude-3.5-sonnet", tokens: 20000, share_pct: 40, estimated_cost: 1.4 },
+    { model: "gpt-4o", tokens: 30000, share_pct: 60, estimated_cost: 2.1, auth_type: "api_key" },
+    { model: "claude-3.5-sonnet", tokens: 20000, share_pct: 40, estimated_cost: 1.4, auth_type: "subscription" },
   ],
   recent_activity: [
     { id: "msg-12345678", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "gpt-4o", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok" },
@@ -220,6 +220,43 @@ describe("Overview", () => {
     });
   });
 
+  it("sorts cost by model rows by estimated_cost descending", async () => {
+    const data = {
+      ...overviewData,
+      cost_by_model: [
+        { model: "claude-3.5-sonnet", tokens: 20000, share_pct: 40, estimated_cost: 1.4, auth_type: "subscription" },
+        { model: "gpt-4o", tokens: 30000, share_pct: 60, estimated_cost: 2.1, auth_type: "api_key" },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(data);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const panels = container.querySelectorAll(".panel");
+      // Find the Cost by Model panel
+      const costPanel = Array.from(panels).find(p => p.textContent?.includes("Cost by Model"));
+      expect(costPanel).toBeDefined();
+      const rows = costPanel!.querySelectorAll("tbody tr");
+      expect(rows.length).toBe(2);
+      // gpt-4o ($2.1) should come before claude ($1.4) even though claude is first in data
+      expect(rows[0].textContent).toContain("gpt-4o");
+      expect(rows[1].textContent).toContain("claude-3.5-sonnet");
+    });
+  });
+
+  it("renders auth badges on cost by model provider icons", async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const panels = container.querySelectorAll(".panel");
+      const costPanel = Array.from(panels).find(p => p.textContent?.includes("Cost by Model"));
+      expect(costPanel).toBeDefined();
+      const keyBadge = costPanel!.querySelector(".provider-auth-badge--key");
+      const subBadge = costPanel!.querySelector(".provider-auth-badge--sub");
+      expect(keyBadge).not.toBeNull();
+      expect(subBadge).not.toBeNull();
+    });
+  });
+
   it("shows empty state for new agent with no data", async () => {
     mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
     const { container } = render(() => <Overview />);
@@ -328,7 +365,7 @@ describe("Overview", () => {
         { id: "msg-cp1", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "custom:abc-123/my-llama", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok" },
       ],
       cost_by_model: [
-        { model: "custom:abc-123/my-llama", tokens: 30000, share_pct: 100, estimated_cost: 2.1 },
+        { model: "custom:abc-123/my-llama", tokens: 30000, share_pct: 100, estimated_cost: 2.1, auth_type: "api_key" },
       ],
     };
 
@@ -534,18 +571,21 @@ describe("Overview", () => {
     });
   });
 
-  it("does not render subscription auth badge when auth_type is not subscription", async () => {
+  it("renders api_key auth badge when auth_type is api_key", async () => {
     const dataWithApiKey = {
       ...overviewData,
       recent_activity: [
         { ...overviewData.recent_activity[0], model: "claude-sonnet-4", auth_type: "api_key" },
       ],
+      cost_by_model: overviewData.cost_by_model.map(r => ({ ...r, auth_type: "api_key" })),
     };
     mockGetOverview.mockResolvedValue(dataWithApiKey);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      const badge = container.querySelector(".provider-auth-badge--sub");
-      expect(badge).toBeNull();
+      const badge = container.querySelector(".provider-auth-badge--key");
+      expect(badge).not.toBeNull();
+      const subBadge = container.querySelector(".provider-auth-badge--sub");
+      expect(subBadge).toBeNull();
     });
   });
 

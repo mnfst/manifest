@@ -125,14 +125,16 @@ describe('TimeseriesQueriesService', () => {
   describe('getCostByModel', () => {
     it('computes share_pct for each model', async () => {
       mockGetRawMany.mockResolvedValue([
-        { model: 'claude-opus-4-6', tokens: 700, estimated_cost: 10.0 },
-        { model: 'gpt-4o', tokens: 300, estimated_cost: 5.0 },
+        { model: 'claude-opus-4-6', tokens: 700, estimated_cost: 10.0, auth_type: 'subscription' },
+        { model: 'gpt-4o', tokens: 300, estimated_cost: 5.0, auth_type: 'api_key' },
       ]);
 
       const result = await service.getCostByModel('7d', 'u1');
       expect(result).toHaveLength(2);
       expect(result[0].share_pct).toBe(70);
       expect(result[1].share_pct).toBe(30);
+      expect(result[0].auth_type).toBe('subscription');
+      expect(result[1].auth_type).toBe('api_key');
     });
 
     it('returns 0 share_pct when total tokens is 0', async () => {
@@ -140,6 +142,7 @@ describe('TimeseriesQueriesService', () => {
 
       const result = await service.getCostByModel('7d', 'u1');
       expect(result[0].share_pct).toBe(0);
+      expect(result[0].auth_type).toBeNull();
     });
   });
 
@@ -500,13 +503,15 @@ describe('TimeseriesQueriesService (sql.js / local mode)', () => {
 
   it('getCostByModel works with sqlite dialect', async () => {
     mockGetRawMany.mockResolvedValue([
-      { model: 'gpt-4o', tokens: 500, estimated_cost: 2.0 },
-      { model: 'claude', tokens: 500, estimated_cost: 3.0 },
+      { model: 'gpt-4o', tokens: 500, estimated_cost: 2.0, auth_type: 'api_key' },
+      { model: 'claude', tokens: 500, estimated_cost: 3.0, auth_type: null },
     ]);
 
     const result = await service.getCostByModel('7d', 'u1');
     expect(result).toHaveLength(2);
     expect(result[0].share_pct).toBe(50);
+    expect(result[0].auth_type).toBe('api_key');
+    expect(result[1].auth_type).toBeNull();
     expect(result[1].share_pct).toBe(50);
   });
 });
