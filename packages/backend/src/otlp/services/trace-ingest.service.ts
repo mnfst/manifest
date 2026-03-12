@@ -541,6 +541,7 @@ export class TraceIngestService {
       id: entry.uuid,
       tenant_id: ctx.tenantId,
       agent_id: ctx.agentId,
+      user_id: ctx.userId,
       trace_id: toHexString(span.traceId),
       session_key: attrString(attrs, 'session.key'),
       session_id: attrString(attrs, 'session.id'),

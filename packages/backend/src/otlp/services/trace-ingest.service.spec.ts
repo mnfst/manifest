@@ -112,6 +112,7 @@ describe('TraceIngestService', () => {
       expect.objectContaining({
         tenant_id: 'test-tenant',
         agent_id: 'test-agent',
+        user_id: 'test-user',
         agent_name: 'bot-1',
       }),
     ]);
