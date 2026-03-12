@@ -160,7 +160,7 @@ export class PricingSyncService implements OnModuleInit {
         const contextWindow = model.context_length;
 
         await Promise.all(
-          [provider, 'OpenRouter'].map(async (provider) => {
+          [...new Set([provider, 'OpenRouter'])].map(async (provider) => {
             const incoming = {
               ...(contextWindow != null && { context_window: contextWindow }),
               ...(displayName && { display_name: displayName }),
