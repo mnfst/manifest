@@ -27,6 +27,7 @@ export class TierAutoAssignService {
   ) {}
 
   async recalculate(agentId: string, providers?: UserProvider[]): Promise<void> {
+    // 2B: Accept optional providers to avoid duplicate query
     const resolvedProviders =
       providers ??
       (await this.providerRepo.find({
@@ -53,7 +54,7 @@ export class TierAutoAssignService {
     const subModels = allModels.filter((m) => matchesProvider(m, subNames));
     const keyModels = allModels.filter((m) => matchesProvider(m, keyNames));
 
-    // Batch read all tiers in one query
+    // 2C: Batch read all tiers in one query
     const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
     const tierMap = new Map(allTiers.map((t) => [t.tier, t]));
 

@@ -1557,7 +1557,7 @@ describe('RoutingService', () => {
       expect(result).toBe('subscription');
     });
 
-    it('should fall back to auth_type when subscription has no encrypted key', async () => {
+    it('should fall back to subscription when only keyless subscription exists', async () => {
       mockProviderRepo.find.mockResolvedValue([
         {
           agent_id: 'a1',
@@ -1569,9 +1569,31 @@ describe('RoutingService', () => {
       ]);
 
       const result = await service.getAuthType('a1', 'anthropic');
-      // subMatch check fails because api_key_encrypted is null,
-      // falls through to matches[0]?.auth_type
+      // No record has a key, so falls through to matches[0]?.auth_type
       expect(result).toBe('subscription');
+    });
+
+    it('should prefer api_key when subscription has no key but api_key does', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: null,
+        },
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'api_key',
+          api_key_encrypted: 'enc-real-key',
+        },
+      ]);
+
+      const result = await service.getAuthType('a1', 'anthropic');
+      // Subscription has no key; api_key record has a key — use api_key
+      expect(result).toBe('api_key');
     });
 
     it('should skip inactive providers', async () => {

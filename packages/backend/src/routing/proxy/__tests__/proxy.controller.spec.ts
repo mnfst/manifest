@@ -1988,6 +1988,7 @@ describe('ProxyController', () => {
           fallbackIndex: 0,
           primaryErrorStatus: 400,
           primaryErrorBody: '{"error":"bad request from primary"}',
+          auth_type: 'subscription',
         },
       });
 
@@ -2010,7 +2011,7 @@ describe('ProxyController', () => {
         }),
       );
 
-      // Fallback success recorded with trace_id and correct status
+      // Fallback success recorded with auth_type and cost_usd
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'ok',
@@ -2018,6 +2019,8 @@ describe('ProxyController', () => {
           routing_tier: 'simple',
           fallback_from_model: 'gemini-2.5-flash-lite',
           fallback_index: 0,
+          auth_type: 'subscription',
+          cost_usd: 0,
         }),
       );
     });

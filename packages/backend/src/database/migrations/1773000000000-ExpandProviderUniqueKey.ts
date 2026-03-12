@@ -2,9 +2,9 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class ExpandProviderUniqueKey1773000000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Drop the old unique index on (agent_id, provider)
+    // Drop the old unique index on (agent_id, provider) — try all known name variants
+    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_user_providers_agent_provider"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_user_providers_agent_id_provider"`);
-    // Also try the auto-generated name pattern
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_6f1a1e6c8d2b3a4f5e7d9c0b1a"`);
 
     // Create new unique index on (agent_id, provider, auth_type)

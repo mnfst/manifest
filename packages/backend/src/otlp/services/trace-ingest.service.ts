@@ -230,7 +230,7 @@ export class TraceIngestService {
     spanMap: Map<string, SpanEntry>,
     ctx: IngestionContext,
   ): Promise<void> {
-    const subOnlyProviders = await this.getSubscriptionOnlyProviders(ctx.agentId);
+    const subOnlyProviders = await this.getSubscriptionProviders(ctx.agentId);
     const ghostSpanIds = this.filterGhostSpans(spans, resourceAttrs, spanMap);
     const fallbackModelOverrides = new Map<string, string>();
     const fallbackDurations = new Map<string, number>();
@@ -463,23 +463,27 @@ export class TraceIngestService {
     });
     if (hasNearbyError) return null;
 
-    // Proxy dedup: if this span carries 0 tokens, check if the proxy already
-    // recorded a success message with real tokens for the same agent within 60s.
-    const spanInputTokens = attrNumber(attrs, 'gen_ai.usage.input_tokens') ?? 0;
-    const spanOutputTokens = attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0;
-    if (spanInputTokens === 0 && spanOutputTokens === 0) {
-      const recentOkMessages = await this.turnRepo.find({
-        where: { tenant_id: ctx.tenantId, agent_id: ctx.agentId, status: 'ok' },
-        select: ['id', 'timestamp', 'input_tokens'],
-        order: { timestamp: 'DESC' },
-        take: 3,
-      });
-      const hasProxyData = recentOkMessages.some((m) => {
-        const mTime = new Date(m.timestamp).getTime();
-        return Math.abs(mTime - spanTime) <= 60_000 && (m.input_tokens ?? 0) > 0;
-      });
-      if (hasProxyData) return null;
-    }
+    // Proxy dedup: check if the proxy already recorded a success message with
+    // real tokens for the same agent within 60s. Target proxy messages specifically
+    // via duration_ms IS NULL (proxy never sets duration; OTLP always does).
+    // This catches cases where the gateway doesn't propagate the traceparent
+    // header, causing the trace_id-based dedup in remapProxyDuplicates to miss.
+    const recentProxyMessages = await this.turnRepo.find({
+      where: {
+        tenant_id: ctx.tenantId,
+        agent_id: ctx.agentId,
+        status: 'ok',
+        duration_ms: IsNull(),
+      },
+      select: ['id', 'timestamp', 'input_tokens'],
+      order: { timestamp: 'DESC' },
+      take: 3,
+    });
+    const hasProxyData = recentProxyMessages.some((m) => {
+      const mTime = new Date(m.timestamp).getTime();
+      return Math.abs(mTime - spanTime) <= 60_000 && (m.input_tokens ?? 0) > 0;
+    });
+    if (hasProxyData) return null;
 
     // DB-level ghost dedup: if this span is empty-ok, check if a data-bearing
     // message for the same agent already exists within 60s (cross-batch case).
@@ -597,18 +601,17 @@ export class TraceIngestService {
   }
 
   /** Returns provider IDs that are subscription-only (no api_key counterpart) for an agent. */
-  private async getSubscriptionOnlyProviders(agentId: string): Promise<Set<string>> {
+  private async getSubscriptionProviders(agentId: string): Promise<Set<string>> {
     const records = await this.providerRepo.find({
       where: { agent_id: agentId, is_active: true },
       select: ['provider', 'auth_type'],
     });
     const sub = new Set<string>();
-    const apiKey = new Set<string>();
     for (const r of records) {
       if (r.auth_type === 'subscription') sub.add(r.provider);
-      if (r.auth_type === 'api_key') apiKey.add(r.provider);
     }
-    for (const p of apiKey) sub.delete(p);
+    // Keep dual-auth providers in the set: the routing layer prefers subscription
+    // when both exist, so the OTLP heuristic should match (zero cost).
     return sub;
   }
 

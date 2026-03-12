@@ -964,7 +964,7 @@ describe('TraceIngestService', () => {
     ]);
   });
 
-  it('returns normal cost when provider has both subscription and api_key', async () => {
+  it('returns zero cost when provider has both subscription and api_key (dual-auth)', async () => {
     mockProviderFind.mockResolvedValue([
       { provider: 'anthropic', auth_type: 'subscription' },
       { provider: 'anthropic', auth_type: 'api_key' },
@@ -994,9 +994,9 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    // cost = 100 * 0.001 + 50 * 0.002 = 0.2
+    // Dual-auth providers treated as subscription (routing prefers subscription) → zero cost
     expect(mockTurnInsert).toHaveBeenCalledWith([
-      expect.objectContaining({ cost_usd: expect.closeTo(0.2, 4) }),
+      expect.objectContaining({ cost_usd: 0, auth_type: 'subscription' }),
     ]);
   });
 
@@ -2096,14 +2096,14 @@ describe('TraceIngestService', () => {
     ]);
   });
 
-  it('skips 0-token OTLP span when proxy already recorded message with tokens (proxy dedup)', async () => {
+  it('skips OTLP span when proxy already recorded message with tokens (proxy dedup)', async () => {
     const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
     const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
 
     mockTurnFind
       .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
       .mockResolvedValueOnce([]) // recentErrors
-      .mockResolvedValueOnce([{ id: 'proxy-msg', timestamp: nearbyTs, input_tokens: 500 }]); // proxyDedup — proxy recorded a message with real tokens
+      .mockResolvedValueOnce([{ id: 'proxy-msg', timestamp: nearbyTs, input_tokens: 500 }]); // proxyDedup — proxy recorded message (duration_ms IS NULL) with real tokens
 
     const span = makeSpan({
       spanId: 'span-proxy-dedup',
@@ -2122,6 +2122,39 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('skips OTLP span with tokens when proxy already recorded same request (proxy dedup)', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
+      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([{ id: 'proxy-msg', timestamp: nearbyTs, input_tokens: 500 }]); // proxyDedup — proxy message with real tokens
+
+    const span = makeSpan({
+      spanId: 'span-with-tokens-proxy-dedup',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // Even though the OTLP span has tokens, proxy dedup should still suppress it
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -2155,7 +2188,7 @@ describe('TraceIngestService', () => {
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
-  it('allows 0-token OTLP span when no proxy message exists nearby', async () => {
+  it('allows OTLP span when no proxy message exists nearby', async () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
       .mockResolvedValueOnce([]) // recentErrors
@@ -2179,33 +2212,6 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not run proxy dedup on spans with tokens', async () => {
-    const span = makeSpan({
-      spanId: 'span-with-tokens',
-      name: 'openclaw.agent.turn',
-      attributes: [
-        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
-        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
-      ],
-      status: { code: 1 },
-    });
-
-    const request = {
-      resourceSpans: [
-        {
-          resource: { attributes: [] },
-          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
-        },
-      ],
-    };
-
-    await service.ingest(request, testCtx);
-    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
-    // Proxy dedup should NOT run (span has tokens), so find() calls are fewer
-    // findUnfilledFallback + recentErrors = 2 (no proxy dedup, no ghost dedup since has model+tokens)
-    expect(mockTurnFind).toHaveBeenCalledTimes(2);
   });
 
   it('skips OTLP message and remaps UUID when proxy already recorded same trace_id', async () => {

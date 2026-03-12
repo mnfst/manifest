@@ -438,10 +438,13 @@ export class RoutingService {
     const names = expandProviderNames([provider]);
     const records = await this.getProviders(agentId);
     const matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
-    // Prefer subscription if both exist
+    // Prefer subscription if both exist and the subscription record has a usable key
     const subMatch = matches.find((r) => r.auth_type === 'subscription' && r.api_key_encrypted);
     if (subMatch) return 'subscription';
-    return matches[0]?.auth_type ?? 'api_key';
+    // Fallback: prefer records that have a decryptable key (avoids returning
+    // 'subscription' for a keyless record when an api_key record has a real key)
+    const withKey = matches.find((r) => r.api_key_encrypted);
+    return withKey?.auth_type ?? matches[0]?.auth_type ?? 'api_key';
   }
 
   /* ── Runtime helper ── */

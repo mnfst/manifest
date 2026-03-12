@@ -114,6 +114,7 @@ export class ProxyController implements OnModuleDestroy {
             baseTimeMs: baseTime,
             markHandled: true,
             lastAsError: true,
+            authType: meta.auth_type,
           }).catch((e) => this.logger.warn(`Failed to record fallback errors: ${e}`));
 
           const primaryTs = new Date(baseTime + (failedFallbacks.length + 1) * 100).toISOString();
@@ -123,6 +124,7 @@ export class ProxyController implements OnModuleDestroy {
             meta.model,
             errorBody,
             primaryTs,
+            meta.auth_type,
           ).catch((e) => this.logger.warn(`Failed to record primary failure: ${e}`));
         } else {
           this.recordProviderError(
@@ -134,6 +136,7 @@ export class ProxyController implements OnModuleDestroy {
             traceId,
             meta.fallbackFromModel,
             meta.fallbackIndex,
+            meta.auth_type,
           ).catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
         }
 
@@ -162,6 +165,7 @@ export class ProxyController implements OnModuleDestroy {
           meta.fallbackFromModel,
           meta.primaryErrorBody ?? `Provider returned HTTP ${meta.primaryErrorStatus ?? 500}`,
           new Date(baseTime).toISOString(),
+          meta.auth_type,
         ).catch((e) => this.logger.warn(`Failed to record primary failure: ${e}`));
 
         if (failures.length > 0) {
@@ -170,7 +174,7 @@ export class ProxyController implements OnModuleDestroy {
             meta.tier,
             meta.fallbackFromModel,
             failures,
-            { baseTimeMs: baseTime, markHandled: true },
+            { baseTimeMs: baseTime, markHandled: true, authType: meta.auth_type },
           ).catch((e) => this.logger.warn(`Failed to record fallback errors: ${e}`));
         }
 
@@ -183,6 +187,7 @@ export class ProxyController implements OnModuleDestroy {
           meta.fallbackFromModel,
           meta.fallbackIndex ?? 0,
           successTs,
+          meta.auth_type,
         ).catch((e) => this.logger.warn(`Failed to record fallback success: ${e}`));
       }
 
@@ -290,6 +295,7 @@ export class ProxyController implements OnModuleDestroy {
     traceId?: string,
     fallbackFromModel?: string,
     fallbackIndex?: number,
+    authType?: string,
   ): Promise<void> {
     if (httpStatus === 429) {
       const key = `${ctx.tenantId}:${ctx.agentId}`;
@@ -324,6 +330,7 @@ export class ProxyController implements OnModuleDestroy {
       cache_creation_tokens: 0,
       fallback_from_model: fallbackFromModel ?? null,
       fallback_index: fallbackIndex ?? null,
+      auth_type: authType ?? null,
     });
   }
 
@@ -332,9 +339,15 @@ export class ProxyController implements OnModuleDestroy {
     tier: string,
     primaryModel: string,
     failures: FailedFallback[],
-    opts?: { traceId?: string; baseTimeMs?: number; markHandled?: boolean; lastAsError?: boolean },
+    opts?: {
+      traceId?: string;
+      baseTimeMs?: number;
+      markHandled?: boolean;
+      lastAsError?: boolean;
+      authType?: string;
+    },
   ): Promise<void> {
-    const { traceId, baseTimeMs, markHandled = false, lastAsError = false } = opts ?? {};
+    const { traceId, baseTimeMs, markHandled = false, lastAsError = false, authType } = opts ?? {};
     for (let i = 0; i < failures.length; i++) {
       const f = failures[i];
       const ts = baseTimeMs
@@ -364,6 +377,7 @@ export class ProxyController implements OnModuleDestroy {
         cache_creation_tokens: 0,
         fallback_from_model: primaryModel,
         fallback_index: f.fallbackIndex,
+        auth_type: authType ?? null,
       });
     }
   }
@@ -374,6 +388,7 @@ export class ProxyController implements OnModuleDestroy {
     model: string,
     errorBody: string,
     timestamp: string,
+    authType?: string,
   ): Promise<void> {
     await this.messageRepo.insert({
       id: uuid(),
@@ -392,6 +407,7 @@ export class ProxyController implements OnModuleDestroy {
       cache_creation_tokens: 0,
       fallback_from_model: null,
       fallback_index: null,
+      auth_type: authType ?? null,
     });
   }
 
@@ -403,7 +419,13 @@ export class ProxyController implements OnModuleDestroy {
     fallbackFromModel?: string,
     fallbackIndex?: number,
     timestamp?: string,
+    authType?: string,
   ): Promise<void> {
+    let costUsd: number | null = null;
+    if (authType === 'subscription') {
+      costUsd = 0;
+    }
+
     await this.messageRepo.insert({
       id: uuid(),
       tenant_id: ctx.tenantId,
@@ -418,6 +440,8 @@ export class ProxyController implements OnModuleDestroy {
       output_tokens: 0,
       cache_read_tokens: 0,
       cache_creation_tokens: 0,
+      cost_usd: costUsd,
+      auth_type: authType ?? null,
       fallback_from_model: fallbackFromModel ?? null,
       fallback_index: fallbackIndex ?? null,
     });

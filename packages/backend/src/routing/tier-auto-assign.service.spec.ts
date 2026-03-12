@@ -568,8 +568,6 @@ describe('TierAutoAssignService', () => {
       mockProviderRepo.find.mockResolvedValue([
         { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
       ]);
-      // Model from OpenRouter — provider field is "OpenRouter" and name prefix is "anthropic/"
-      // With the OpenRouter exclusion, prefix inference should be skipped
       const orModel = makeModel({
         model_name: 'anthropic/claude-sonnet-4',
         provider: 'OpenRouter',
@@ -579,7 +577,6 @@ describe('TierAutoAssignService', () => {
 
       await service.recalculate('agent-1');
 
-      // OpenRouter models should NOT match "anthropic" provider via prefix inference
       expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
       const inserted = mockTierRepo.insert.mock.calls[0][0] as {
         auto_assigned_model: string | null;
@@ -593,7 +590,6 @@ describe('TierAutoAssignService', () => {
       mockProviderRepo.find.mockResolvedValue([
         { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
       ]);
-      // Direct Anthropic model — provider field matches, prefix inference should still work
       const directModel = makeModel({
         model_name: 'claude-opus-4-6',
         provider: 'Anthropic',
@@ -614,7 +610,6 @@ describe('TierAutoAssignService', () => {
       mockProviderRepo.find.mockResolvedValue([
         { provider: 'openrouter', is_active: true, auth_type: 'api_key' },
       ]);
-      // OpenRouter model matched via provider field (openrouter), not via prefix inference
       const orModel = makeModel({
         model_name: 'anthropic/claude-sonnet-4',
         provider: 'OpenRouter',
@@ -635,8 +630,6 @@ describe('TierAutoAssignService', () => {
       mockProviderRepo.find.mockResolvedValue([
         { provider: 'anthropic', is_active: true, auth_type: 'api_key' },
       ]);
-      // A non-OpenRouter provider whose model name has a vendor prefix
-      // e.g. a custom provider with model_name "anthropic/claude-sonnet-4" but provider "SomeProxy"
       const proxyModel = makeModel({
         model_name: 'anthropic/claude-sonnet-4',
         provider: 'SomeProxy',
@@ -646,7 +639,6 @@ describe('TierAutoAssignService', () => {
 
       await service.recalculate('agent-1');
 
-      // Prefix inference kicks in: "anthropic/" prefix matches "anthropic" provider name
       expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
       const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
       for (const record of inserted) {
