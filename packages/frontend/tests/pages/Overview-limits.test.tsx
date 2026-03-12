@@ -146,21 +146,21 @@ describe("Overview - trend badges and status display", () => {
     });
   });
 
-  it("renders negative trend with down class", async () => {
+  it("renders negative cost trend with down-good class (inverted)", async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      const downTrend = container.querySelector(".trend--down");
+      const downTrend = container.querySelector(".trend--down-good");
       expect(downTrend).not.toBeNull();
       expect(downTrend?.textContent).toContain("-5%");
     });
   });
 
-  it("renders positive trend with up class and plus sign", async () => {
+  it("renders positive token trend with up-bad class (inverted)", async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      const upTrend = container.querySelector(".trend--up");
+      const upTrend = container.querySelector(".trend--up-bad");
       expect(upTrend).not.toBeNull();
       expect(upTrend?.textContent).toContain("+12%");
     });
