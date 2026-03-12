@@ -76,6 +76,7 @@ const mockLogger = {
 
 const config: ManifestConfig = {
   mode: "cloud",
+  devMode: false,
   apiKey: "mnfst_test",
   endpoint: "http://localhost:3001/otlp",
   port: 2099,
@@ -84,6 +85,7 @@ const config: ManifestConfig = {
 
 const localConfig: ManifestConfig = {
   mode: "local",
+  devMode: false,
   apiKey: "",
   endpoint: "http://localhost:38238/otlp",
   port: 2099,
@@ -91,7 +93,8 @@ const localConfig: ManifestConfig = {
 };
 
 const devConfig: ManifestConfig = {
-  mode: "dev",
+  mode: "cloud",
+  devMode: true,
   apiKey: "",
   endpoint: "http://localhost:38238/otlp",
   port: 2099,

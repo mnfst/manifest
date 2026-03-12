@@ -86,10 +86,11 @@ MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
   node -r dotenv/config packages/backend/dist/main.js
 ```
 
-2. Configure the plugin to use dev mode:
+2. Configure the plugin with `devMode` enabled:
 
 ```bash
-openclaw config set plugins.entries.manifest.config.mode dev
+openclaw config set plugins.entries.manifest.config.mode cloud
+openclaw config set plugins.entries.manifest.config.devMode true
 openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp
 ```
 
@@ -99,7 +100,9 @@ openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38
 openclaw gateway restart
 ```
 
-That's it — no API key needed. Telemetry from your agent flows directly to the local backend. Open `http://localhost:38238` to see the dashboard (you'll see an orange **Dev** badge in the header).
+That's it — no API key needed. Telemetry from your agent flows directly to the local backend. Open `http://localhost:38238` to see the dashboard (you'll see **Local** and **Dev** badges in the header).
+
+> **Note:** `devMode` is auto-detected when the endpoint is a loopback address and no `mnfst_*` API key is provided. The old `mode: "dev"` is still accepted for backward compatibility but is deprecated — it maps to `mode: "cloud"` + `devMode: true` internally.
 
 **When to use dev mode:**
 
@@ -126,7 +129,7 @@ The scripts work without Claude Code. Run them directly from the repo root:
 
 ```bash
 bash skills/manifest-status/scripts/manifest_status.sh
-bash skills/setup-manifest-plugin/scripts/setup_manifest.sh 38238 --mode dev
+bash skills/setup-manifest-plugin/scripts/setup_manifest.sh 38238 --mode local
 bash skills/uninstall-manifest-plugin/scripts/uninstall_manifest.sh
 ```
 
@@ -137,7 +140,7 @@ Requires `jq` and the `openclaw` CLI.
 | Skill | Command | What it does |
 | --- | --- | --- |
 | `manifest-status` | `/manifest-status` | Prints a diagnostic table of the current plugin configuration (mode, endpoint, keys, default model) |
-| `setup-manifest-plugin` | `/setup-manifest-plugin` | Configures the OpenClaw gateway to route through a local Manifest backend. Accepts a port and optional mode (`dev`/`local`/`cloud`). Restarts the gateway. |
+| `setup-manifest-plugin` | `/setup-manifest-plugin` | Configures the OpenClaw gateway to route through a local Manifest backend. Accepts a port and optional mode (`local`/`cloud`). Restarts the gateway. |
 | `uninstall-manifest-plugin` | `/uninstall-manifest-plugin` | Removes the Manifest plugin, cleans up auth profiles and local data, detects available providers, and sets the best default model. |
 
 ### Typical Workflow
@@ -184,20 +187,21 @@ Requires `jq` and the `openclaw` CLI.
 
 #### Plugin Settings
 
-The plugin exposes 5 user-facing settings via `openclaw.plugin.json`. Cloud mode is the default. Set `mode` to `local` for zero-config local mode.
+The plugin exposes 6 user-facing settings via `openclaw.plugin.json`. Cloud mode is the default. Set `mode` to `local` for zero-config local mode.
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `mode` | `string` | `cloud` | Controls the plugin's operating mode. `cloud` exports telemetry to `app.manifest.build` (default). `local` starts an embedded NestJS server backed by sql.js. `dev` connects to a local backend without API key management (uses OTLP loopback bypass). |
-| `apiKey` | `string` | env `MANIFEST_API_KEY` | OTLP ingest key (must start with `mnfst_`). Required in cloud mode. Auto-generated and persisted to `~/.openclaw/manifest/config.json` in local mode. Ignored in dev mode. |
-| `endpoint` | `string` | `https://app.manifest.build/api/v1/otlp` | Base URL for the OTLP exporters. The SDK appends `/v1/traces`, `/v1/metrics`, `/v1/logs` automatically. Only used in cloud and dev modes — local mode overrides this to `http://{host}:{port}/otlp`. |
+| `mode` | `string` | `cloud` | Deployment model: `cloud` exports telemetry to `app.manifest.build` (default). `local` starts an embedded NestJS server backed by sql.js. (`dev` is accepted for backward compatibility but deprecated — use `devMode` instead.) |
+| `devMode` | `boolean` | auto | Development environment flag. Skips API key validation, uses faster metrics interval (10s), disables product telemetry. Auto-detected when endpoint is a loopback address and no `mnfst_*` API key is provided. |
+| `apiKey` | `string` | env `MANIFEST_API_KEY` | OTLP ingest key (must start with `mnfst_`). Required in cloud mode when `devMode` is false. Auto-generated in local mode. Ignored when `devMode` is true. |
+| `endpoint` | `string` | `https://app.manifest.build/api/v1/otlp` | Base URL for the OTLP exporters. The SDK appends `/v1/traces`, `/v1/metrics`, `/v1/logs` automatically. Only used in cloud mode — local mode overrides this to `http://{host}:{port}/otlp`. |
 | `port` | `number` | `2099` | Bind port for the embedded server (local mode only). Also used for the dashboard URL and the injected OpenAI-compatible provider config. |
 | `host` | `string` | `127.0.0.1` | Bind address for the embedded server (local mode only). |
 
 Settings are parsed in `src/config.ts` (`parseConfig`) and validated in `validateConfig`. The JSON schema in `openclaw.plugin.json` (package root) is the source of truth — the build copies it to `dist/`. Some internal values are not user-configurable:
 
 - **`serviceName`**: Always `"openclaw-gateway"` (hardcoded via `DEFAULTS.SERVICE_NAME` in `src/constants.ts`)
-- **`metricsIntervalMs`**: 10s for local/dev, 30s for cloud (computed per mode in `src/telemetry.ts`)
+- **`metricsIntervalMs`**: 10s when `devMode` or local, 30s for cloud production (computed in `src/telemetry.ts`)
 
 ## Making Changes
 

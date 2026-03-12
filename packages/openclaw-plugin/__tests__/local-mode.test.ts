@@ -327,6 +327,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
   const testConfig = {
     mode: "local" as const,
+    devMode: false,
     apiKey: "",
     endpoint: "",
     port: 2099,
@@ -769,6 +770,7 @@ describe("readJsonSafe — corrupt JSON", () => {
 describe("loadOrGenerateApiKey — edge cases", () => {
   const testConfig = {
     mode: "local" as const,
+    devMode: false,
     apiKey: "",
     endpoint: "",
     port: 2099,
@@ -883,6 +885,7 @@ describe("registerLocalMode — server module load failure", () => {
 
     const cfg = {
       mode: "local" as const,
+      devMode: false,
       apiKey: "",
       endpoint: "",
       port: 2099,

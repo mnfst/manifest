@@ -11,7 +11,7 @@ The `packages/openclaw-plugin` directory contains the OpenClaw plugin that power
 | File | Purpose |
 |------|---------|
 | `index.ts` | Plugin entry point — registers hooks, routing, tools, and commands with the OpenClaw API |
-| `config.ts` | Configuration parsing and validation (`mode`, `apiKey`, `endpoint`, etc.) |
+| `config.ts` | Configuration parsing and validation (`mode`, `devMode`, `apiKey`, `endpoint`, etc.) |
 | `hooks.ts` | OpenClaw lifecycle hooks (`message_received`, `before_agent_start`, `tool_result_persist`, `agent_end`) |
 | `routing.ts` | LLM router — scores queries across 23 dimensions and selects the optimal model/provider |
 | `telemetry.ts` | OpenTelemetry SDK setup — creates traces, spans, and metrics for each request |
@@ -19,7 +19,7 @@ The `packages/openclaw-plugin` directory contains the OpenClaw plugin that power
 | `tools.ts` | Agent self-query tools (`manifest_usage`, `manifest_costs`, `manifest_health`) |
 | `command.ts` | CLI command registration for `openclaw manifest ...` |
 | `local-mode.ts` | Local mode bootstrap — starts the embedded NestJS server and injects provider config |
-| `server.ts` | Embedded server entry point (imports and starts the backend in local/dev mode) |
+| `server.ts` | Embedded server entry point (imports and starts the backend in local mode) |
 | `product-telemetry.ts` | Anonymous product analytics (opt-out via `MANIFEST_TELEMETRY_OPTOUT=1`) |
 | `verify.ts` | Connection verification — checks endpoint reachability on startup |
 | `constants.ts` | Shared constants (endpoints, defaults, version) |

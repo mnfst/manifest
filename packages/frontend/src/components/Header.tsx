@@ -2,7 +2,7 @@ import { A, useLocation, useNavigate } from '@solidjs/router';
 import { Show, createSignal, createEffect, onCleanup, onMount, type Component } from 'solid-js';
 import { useAgentName } from '../services/routing.js';
 import { authClient } from '../services/auth-client.js';
-import { checkLocalMode, isLocalMode } from '../services/local-mode.js';
+import { checkLocalMode, isLocalMode, isDevMode } from '../services/local-mode.js';
 import { displayName } from '../services/display-name.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 
@@ -107,6 +107,9 @@ const Header: Component = () => {
           />
         </A>
         <Show when={isLocalMode()}>
+          <span class="header__mode-badge">Local</span>
+        </Show>
+        <Show when={isDevMode()}>
           <span class="header__mode-badge header__mode-badge--dev">Dev</span>
         </Show>
         <Show when={getAgentName()}>

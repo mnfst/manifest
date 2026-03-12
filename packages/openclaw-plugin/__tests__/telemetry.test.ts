@@ -61,6 +61,7 @@ import { MeterProvider, PeriodicExportingMetricReader } from "@opentelemetry/sdk
 
 const config: ManifestConfig = {
   mode: "cloud",
+  devMode: false,
   apiKey: "mnfst_test_key",
   endpoint: "http://localhost:3001/otlp",
   port: 2099,
@@ -126,8 +127,8 @@ describe("initTelemetry", () => {
     });
   });
 
-  it("sends empty headers when apiKey is empty (dev mode)", () => {
-    const devConfig = { ...config, mode: "dev" as const, apiKey: "" };
+  it("sends empty headers when apiKey is empty (devMode)", () => {
+    const devConfig = { ...config, devMode: true, apiKey: "" };
     initTelemetry(devConfig, mockLogger);
 
     expect(OTLPTraceExporter).toHaveBeenCalledWith({
@@ -176,8 +177,8 @@ describe("initTelemetry", () => {
     );
   });
 
-  it("uses 10s metrics interval in dev mode", () => {
-    const devConfig = { ...config, mode: "dev" as const, apiKey: "" };
+  it("uses 10s metrics interval when devMode is true", () => {
+    const devConfig = { ...config, devMode: true, apiKey: "" };
     initTelemetry(devConfig, mockLogger);
 
     expect(PeriodicExportingMetricReader).toHaveBeenCalledWith(
