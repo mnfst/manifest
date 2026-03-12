@@ -17,7 +17,7 @@ jest.mock('../common/utils/product-telemetry', () => ({
 describe('ResolveController', () => {
   let controller: ResolveController;
   let mockResolveService: { resolve: jest.Mock };
-  let mockRoutingService: { upsertProvider: jest.Mock };
+  let mockRoutingService: { registerSubscriptionProvider: jest.Mock };
 
   const mockResponse: ResolveResponse = {
     tier: 'simple',
@@ -34,7 +34,7 @@ describe('ResolveController', () => {
       resolve: jest.fn().mockResolvedValue(mockResponse),
     };
     mockRoutingService = {
-      upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
+      registerSubscriptionProvider: jest.fn().mockResolvedValue({ isNew: true }),
     };
     controller = new ResolveController(
       mockResolveService as unknown as ResolveService,
@@ -134,20 +134,16 @@ describe('ResolveController', () => {
       );
 
       expect(result).toEqual({ registered: 2 });
-      expect(mockRoutingService.upsertProvider).toHaveBeenCalledTimes(2);
-      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledTimes(2);
+      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledWith(
         'a1',
         'u1',
         'anthropic',
-        undefined,
-        'subscription',
       );
-      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledWith(
         'a1',
         'u1',
         'openai',
-        undefined,
-        'subscription',
       );
     });
 
@@ -164,7 +160,7 @@ describe('ResolveController', () => {
     });
 
     it('should not fire event when subscription provider already exists', async () => {
-      mockRoutingService.upsertProvider.mockResolvedValue({ provider: {}, isNew: false });
+      mockRoutingService.registerSubscriptionProvider.mockResolvedValue({ isNew: false });
       const req = {
         ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
       } as never;
@@ -172,6 +168,23 @@ describe('ResolveController', () => {
       await controller.registerSubscriptions({ providers: [{ provider: 'anthropic' }] }, req);
 
       expect(telemetry.trackCloudEvent).not.toHaveBeenCalled();
+    });
+
+    it('should only count newly created providers', async () => {
+      mockRoutingService.registerSubscriptionProvider
+        .mockResolvedValueOnce({ isNew: true })
+        .mockResolvedValueOnce({ isNew: false });
+
+      const req = {
+        ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
+      } as never;
+
+      const result = await controller.registerSubscriptions(
+        { providers: [{ provider: 'anthropic' }, { provider: 'openai' }] },
+        req,
+      );
+
+      expect(result).toEqual({ registered: 1 });
     });
   });
 });
