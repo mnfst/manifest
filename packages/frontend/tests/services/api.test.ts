@@ -17,6 +17,7 @@ import {
   connectProvider,
   deactivateAllProviders,
   disconnectProvider,
+  getOpenaiOAuthUrl,
   getTierAssignments,
   overrideTier,
   resetTier,
@@ -531,6 +532,19 @@ describe("deactivateAllProviders", () => {
       "/api/v1/routing/my-agent/providers/deactivate-all",
       expect.objectContaining({ method: "POST", credentials: "include" }),
     );
+  });
+});
+
+describe("getOpenaiOAuthUrl", () => {
+  it("fetches /oauth/openai/authorize with agentName param", async () => {
+    const payload = { url: "https://auth.openai.com/oauth/authorize?state=abc" };
+    mockOk(payload);
+
+    const result = await getOpenaiOAuthUrl("my-agent");
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/oauth/openai/authorize");
+    expect(url).toContain("agentName=my-agent");
   });
 });
 

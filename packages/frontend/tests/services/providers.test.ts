@@ -240,6 +240,12 @@ describe("getModelLabel", () => {
     // No normalization needed
     expect(getModelLabel("openrouter", "anthropic/claude-opus-4-6")).toBe("Claude Opus 4.6");
   });
+
+  it("falls through dot-to-dash normalization when normalized model is not found", () => {
+    // "vendor/unknown.model.name" → bare "unknown.model.name" → not found →
+    // normalized "unknown-model-name" → still not found → returns bare
+    expect(getModelLabel("openrouter", "vendor/unknown.model.name")).toBe("unknown.model.name");
+  });
 });
 
 /* ── PROVIDERS constant ────────────────────────── */
