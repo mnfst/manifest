@@ -2384,6 +2384,56 @@ describe('ProxyController', () => {
     });
   });
 
+  it('should pass authType to recordFailedFallbacks when all fallbacks fail', async () => {
+    const mockProviderResp = new Response('primary error', {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gemini-flash',
+        provider: 'Google',
+        confidence: 0.9,
+        reason: 'scored',
+        auth_type: 'subscription',
+      },
+      failedFallbacks: [
+        {
+          model: 'deepseek-chat',
+          provider: 'DeepSeek',
+          fallbackIndex: 0,
+          status: 500,
+          errorBody: 'fail 1',
+        },
+      ],
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Fallback failure recorded with auth_type from meta
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'deepseek-chat',
+        auth_type: 'subscription',
+      }),
+    );
+    // Primary failure also recorded with auth_type
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'gemini-flash',
+        status: 'fallback_error',
+        auth_type: 'subscription',
+      }),
+    );
+  });
+
   describe('auth_type and subscription cost', () => {
     it('should store auth_type from routing meta on success message', async () => {
       const responseBody = {

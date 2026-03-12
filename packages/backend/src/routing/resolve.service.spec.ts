@@ -224,6 +224,41 @@ describe('ResolveService', () => {
     });
   });
 
+  describe('resolveForTier provider inference fallback', () => {
+    it('should infer provider from pricing.model_name when model has no prefix', async () => {
+      mockRoutingService.getTiers.mockResolvedValue([
+        { tier: 'simple', override_model: null, auto_assigned_model: 'gpt-4o-mini' },
+      ]);
+      mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
+      // model 'gpt-4o-mini' has no slash → inferProviderFromModelName returns undefined
+      // pricing.model_name has vendor prefix → inferProviderFromModelName returns 'openai'
+      mockPricingCache.getByModel.mockReturnValue({
+        model_name: 'openai/gpt-4o-mini',
+        provider: 'OpenAI',
+      });
+
+      const result = await service.resolveForTier('agent-1', 'simple');
+
+      expect(result.provider).toBe('openai');
+    });
+
+    it('should fall back to pricing.provider when no model name has a prefix', async () => {
+      mockRoutingService.getTiers.mockResolvedValue([
+        { tier: 'simple', override_model: null, auto_assigned_model: 'custom-model' },
+      ]);
+      mockRoutingService.getEffectiveModel.mockResolvedValue('custom-model');
+      // Neither model nor pricing.model_name have a slash
+      mockPricingCache.getByModel.mockReturnValue({
+        model_name: 'custom-model',
+        provider: 'CustomProvider',
+      });
+
+      const result = await service.resolveForTier('agent-1', 'simple');
+
+      expect(result.provider).toBe('CustomProvider');
+    });
+  });
+
   describe('resolveForTier auth_type', () => {
     it('should propagate override_auth_type in resolveForTier', async () => {
       mockRoutingService.getTiers.mockResolvedValue([

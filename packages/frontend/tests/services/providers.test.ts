@@ -190,6 +190,18 @@ describe("getModelLabel", () => {
   it("returns bare name when vendor-prefixed model is not in any provider", () => {
     expect(getModelLabel("openrouter", "newvendor/unknown-model")).toBe("unknown-model");
   });
+
+  it("normalizes dots to dashes for vendor-prefixed models (e.g. OpenRouter)", () => {
+    // "anthropic/claude-opus-4.6" → bare "claude-opus-4.6" → not found →
+    // normalized "claude-opus-4-6" → found as "Claude Opus 4.6"
+    expect(getModelLabel("openrouter", "anthropic/claude-opus-4.6")).toBe("Claude Opus 4.6");
+  });
+
+  it("skips dot-to-dash normalization when bare name already matches", () => {
+    // "anthropic/claude-opus-4-6" → bare "claude-opus-4-6" → found directly
+    // No normalization needed
+    expect(getModelLabel("openrouter", "anthropic/claude-opus-4-6")).toBe("Claude Opus 4.6");
+  });
 });
 
 /* ── PROVIDERS constant ────────────────────────── */

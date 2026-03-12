@@ -341,6 +341,71 @@ describe("ModelPickerModal", () => {
     expect(container.querySelector('.routing-modal__filter-toggle')).toBeNull();
   });
 
+  it("shows 'No subscription providers connected' when subscription tab has no matching providers", () => {
+    // connectedProviders has an entry (so filtering is active) but none with auth_type=subscription
+    const providers = [
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // Switch to subscription tab
+    fireEvent.click(screen.getByText("Subscription"));
+    expect(screen.getByText("No subscription providers connected. Connect a provider to see models.")).toBeDefined();
+  });
+
+  it("shows 'No API key providers connected' when api_key tab has no matching providers", () => {
+    // Only subscription provider connected → API Keys tab shows empty message
+    const providers = [
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // Default tab is subscription (since there's an active sub), switch to API Keys
+    fireEvent.click(screen.getByText("API Keys"));
+    expect(screen.getByText("No API key providers connected. Connect a provider to see models.")).toBeDefined();
+  });
+
+  it("falls back to dbProvId when prefixId is not in PROVIDERS list", () => {
+    // Model name "my-custom-thing" doesn't match any prefix pattern → prefixProvId = undefined
+    // DB provider "Anthropic" → resolveProviderId returns "anthropic" (in PROVIDERS)
+    // Code path: prefixProvId is undefined → PROVIDERS.find returns undefined → falls to (dbProvId ?? prefixProvId)
+    // dbProvId = "anthropic" → model renders under Anthropic group
+    const models = [
+      { model_name: "my-custom-thing", provider: "Anthropic", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+    const providers = [
+      { id: "p1", provider: "Anthropic", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // The model should render with its raw name as label (no label in PROVIDERS for this model)
+    expect(container.textContent).toContain("my-custom-thing");
+  });
+
   it("resets showFreeOnly when switching to subscription tab", () => {
     const providers = [
       { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },

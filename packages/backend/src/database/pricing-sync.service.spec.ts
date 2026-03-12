@@ -642,6 +642,27 @@ describe('PricingSyncService', () => {
     );
   });
 
+  it('stores context_window for new openrouter models without seeded entry', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'openrouter/auto',
+            context_length: 200000,
+            pricing: { prompt: '0.000003', completion: '0.000015' },
+          },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+    const call = mockUpsert.mock.calls.find((c) => c[0].model_name === 'openrouter/auto');
+    expect(call).toBeDefined();
+    expect(call![0]).toMatchObject({ context_window: 200000 });
+  });
+
   it('updates openrouter/auto pricing when already seeded', async () => {
     mockFindOneBy.mockResolvedValue({
       model_name: 'openrouter/auto',

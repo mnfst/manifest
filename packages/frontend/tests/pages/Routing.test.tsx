@@ -26,7 +26,7 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
 
 vi.mock("../../src/components/ProviderSelectModal.js", () => ({
   default: (props: any) => (
-    <div data-testid="provider-modal" data-agent={props.agentName ?? ""} data-providers={JSON.stringify(props.providers ?? [])}>
+    <div data-testid="provider-modal" data-agent={props.agentName ?? ""} data-providers={JSON.stringify(props.providers ?? [])} data-custom-providers={JSON.stringify(props.customProviders ?? [])}>
       <button onClick={props.onClose}>Done</button>
       <button onClick={props.onUpdate} data-testid="trigger-update">Update</button>
     </div>
@@ -1021,5 +1021,70 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
 
     render(() => <Routing />);
     expect(await screen.findByText("Included in subscription")).toBeDefined();
+  });
+
+  it("resolves providerIdForModel via PROVIDERS model list fallback (lines 52-53)", async () => {
+    // "qwen-2.5-72b-instruct" is a model value in PROVIDERS' qwen models list.
+    // inferProviderFromModel("qwen-2.5-72b-instruct") returns undefined because
+    // the regex is ^qwen[23] (no dash after "qwen"), so "qwen-" doesn't match.
+    // Since it's NOT in apiModels, the for-loop fallback finds it via exact value match.
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "qwen", is_active: true, has_api_key: true, auth_type: "api_key", connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getAvailableModels).mockResolvedValue([]); // empty — model not in apiModels
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "qwen-2.5-72b-instruct", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+
+    render(() => <Routing />);
+    // providerIdForModel returns "qwen" via the PROVIDERS model list fallback (line 52)
+    // labelFor can't find modelInfo (empty apiModels) so renders raw model name
+    await waitFor(() => {
+      expect(screen.getByText("qwen-2.5-72b-instruct")).toBeDefined();
+    });
+  });
+
+  it("falls back to resolveProviderId in labelFor when inferProviderFromModel returns nothing (line 182)", async () => {
+    // Model "my-unknown-model" is in apiModels with provider "Anthropic"
+    // inferProviderFromModel("my-unknown-model") returns undefined (no prefix match)
+    // so labelFor falls through to resolveProviderId("Anthropic") → "anthropic"
+    // getModelLabel("anthropic", "my-unknown-model") won't find a label, returns raw name
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "anthropic", is_active: true, has_api_key: true, auth_type: "api_key", connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "my-unknown-model", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    ]);
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "my-unknown-model", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+
+    render(() => <Routing />);
+    // The model renders as its raw name since no PROVIDERS model matches
+    await waitFor(() => {
+      expect(screen.getByText("my-unknown-model")).toBeDefined();
+    });
+  });
+
+  it("passes empty array when customProviders resource is undefined (line 745)", async () => {
+    // customProviders resource hasn't resolved yet → customProviders() is undefined
+    // The ?? [] fallback on line 745 kicks in
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key", connected_at: "2025-01-01" },
+    ]);
+    mockGetCustomProviders.mockReturnValue(new Promise(() => {})); // never resolves
+
+    render(() => <Routing />);
+    const provBtn = await screen.findByText("Connect providers");
+    fireEvent.click(provBtn);
+    expect(screen.getByTestId("provider-modal")).toBeDefined();
   });
 });

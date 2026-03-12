@@ -1503,6 +1503,11 @@ describe('TraceIngestService', () => {
     expect(mockQb.setParameter).toHaveBeenCalledWith('outputTok', 100);
     // Cost computed using deepseek-chat (the override), not gemini-flash (OTLP model)
     expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 500 * 0.0001 + 100 * 0.0002);
+
+    // Fallback remap includes duration_ms COALESCE (line 470)
+    const setArg = mockQb.set.mock.calls[0][0];
+    expect(typeof setArg.duration_ms).toBe('function');
+    expect(setArg.duration_ms()).toBe('COALESCE(duration_ms, :durationMs)');
   });
 
   it('falls back to unfilled-match when trace_id lookup misses', async () => {
@@ -1670,6 +1675,26 @@ describe('TraceIngestService', () => {
     expect(setArg.routing_tier()).toBe('COALESCE(routing_tier, :tier)');
     expect(typeof setArg.routing_reason).toBe('function');
     expect(setArg.routing_reason()).toBe('COALESCE(routing_reason, :reason)');
+
+    // Cover CASE WHEN expressions for token/cost conditional update (lines 457-463)
+    expect(typeof setArg.input_tokens).toBe('function');
+    expect(setArg.input_tokens()).toBe(
+      'CASE WHEN input_tokens = 0 THEN :inputTok ELSE input_tokens END',
+    );
+    expect(typeof setArg.output_tokens).toBe('function');
+    expect(setArg.output_tokens()).toBe(
+      'CASE WHEN input_tokens = 0 THEN :outputTok ELSE output_tokens END',
+    );
+    expect(typeof setArg.cache_read_tokens).toBe('function');
+    expect(setArg.cache_read_tokens()).toBe(
+      'CASE WHEN input_tokens = 0 THEN :cacheRead ELSE cache_read_tokens END',
+    );
+    expect(typeof setArg.cache_creation_tokens).toBe('function');
+    expect(setArg.cache_creation_tokens()).toBe(
+      'CASE WHEN input_tokens = 0 THEN :cacheCreation ELSE cache_creation_tokens END',
+    );
+    expect(typeof setArg.cost_usd).toBe('function');
+    expect(setArg.cost_usd()).toBe('CASE WHEN input_tokens = 0 THEN :cost ELSE cost_usd END');
   });
 
   it('skips ghost span when data sibling exists in same batch', async () => {
