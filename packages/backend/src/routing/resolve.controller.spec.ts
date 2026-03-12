@@ -8,6 +8,11 @@ import {
 import { ResolveService } from './resolve.service';
 import { RoutingService } from './routing.service';
 import { ResolveResponse } from './dto/resolve-response';
+import * as telemetry from '../common/utils/product-telemetry';
+
+jest.mock('../common/utils/product-telemetry', () => ({
+  trackCloudEvent: jest.fn(),
+}));
 
 describe('ResolveController', () => {
   let controller: ResolveController;
@@ -24,6 +29,7 @@ describe('ResolveController', () => {
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockResolveService = {
       resolve: jest.fn().mockResolvedValue(mockResponse),
     };
@@ -143,6 +149,29 @@ describe('ResolveController', () => {
         undefined,
         'subscription',
       );
+    });
+
+    it('should fire routing_provider_connected with (Subscription) suffix for new providers', async () => {
+      const req = {
+        ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
+      } as never;
+
+      await controller.registerSubscriptions({ providers: [{ provider: 'anthropic' }] }, req);
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith('routing_provider_connected', 'u1', {
+        provider: 'anthropic (Subscription)',
+      });
+    });
+
+    it('should not fire event when subscription provider already exists', async () => {
+      mockRoutingService.upsertProvider.mockResolvedValue({ provider: {}, isNew: false });
+      const req = {
+        ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
+      } as never;
+
+      await controller.registerSubscriptions({ providers: [{ provider: 'anthropic' }] }, req);
+
+      expect(telemetry.trackCloudEvent).not.toHaveBeenCalled();
     });
   });
 });
