@@ -130,6 +130,29 @@ describe("registerCommand", () => {
     );
   });
 
+  it("falls back to status output when the routing summary request fails", async () => {
+    mockVerify.mockResolvedValueOnce({
+      endpointReachable: true,
+      authValid: true,
+      agentName: "test-agent",
+      error: null,
+    });
+    mockFetch.mockRejectedValueOnce(new Error("summary down"));
+
+    const api = { registerCommand: jest.fn() };
+    registerCommand(api, config, mockLogger);
+
+    const cmd = api.registerCommand.mock.calls[0][0];
+    const result = await cmd.execute();
+
+    expect(result).toContain("Agent: test-agent");
+    expect(result).not.toContain("Providers:");
+    expect(result).not.toContain("Routing:");
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      "[manifest] Routing summary failed (summary down)",
+    );
+  });
+
   it("includes error in status text when verify reports one", async () => {
     mockVerify.mockResolvedValueOnce({
       endpointReachable: false,

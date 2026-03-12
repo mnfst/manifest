@@ -204,6 +204,58 @@ describe('ResolveController', () => {
       expect(mockRoutingService.getTiers).toHaveBeenCalledWith('a1');
       expect(mockRoutingService.getEffectiveModel).toHaveBeenCalledTimes(4);
     });
+
+    it('fills missing tier assignments with null auto entries', async () => {
+      const req = {
+        ingestionContext: {
+          userId: 'user-42',
+          tenantId: 't1',
+          agentId: 'a1',
+          agentName: 'test-agent',
+        },
+      } as never;
+
+      mockRoutingService.getProviders.mockResolvedValue([]);
+      mockRoutingService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_model: null,
+          auto_assigned_model: 'gpt-4.1-mini',
+          fallback_models: null,
+        },
+      ]);
+      mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4.1-mini');
+
+      const result = await controller.getSummary(req);
+
+      expect(result.tiers).toEqual([
+        {
+          tier: 'simple',
+          model: 'gpt-4.1-mini',
+          source: 'auto',
+          fallback_models: [],
+        },
+        {
+          tier: 'standard',
+          model: null,
+          source: 'auto',
+          fallback_models: [],
+        },
+        {
+          tier: 'complex',
+          model: null,
+          source: 'auto',
+          fallback_models: [],
+        },
+        {
+          tier: 'reasoning',
+          model: null,
+          source: 'auto',
+          fallback_models: [],
+        },
+      ]);
+      expect(mockRoutingService.getEffectiveModel).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('RegisterSubscriptionsDto', () => {
