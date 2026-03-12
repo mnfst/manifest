@@ -6,6 +6,8 @@ jest.mock("../src/verify", () => ({
   verifyConnection: jest.fn(),
 }));
 const mockVerify = verifyConnection as jest.MockedFunction<typeof verifyConnection>;
+const originalFetch = global.fetch;
+const mockFetch = jest.fn();
 
 const mockLogger = {
   info: jest.fn(),
@@ -24,6 +26,25 @@ const config: ManifestConfig = {
 };
 
 describe("registerCommand", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Object.defineProperty(global, "fetch", {
+      writable: true,
+      value: mockFetch,
+    });
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 404,
+    });
+  });
+
+  afterAll(() => {
+    Object.defineProperty(global, "fetch", {
+      writable: true,
+      value: originalFetch,
+    });
+  });
+
   it("registers /manifest command when registerCommand is available", () => {
     const api = { registerCommand: jest.fn() };
     registerCommand(api, config, mockLogger);
@@ -67,6 +88,131 @@ describe("registerCommand", () => {
     expect(result).not.toContain("Error:");
   });
 
+  it("appends providers and routing tiers when summary is available", async () => {
+    mockVerify.mockResolvedValueOnce({
+      endpointReachable: true,
+      authValid: true,
+      agentName: "test-agent",
+      error: null,
+    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        agentName: "test-agent",
+        providers: [
+          { provider: "anthropic", auth_type: "subscription" },
+          { provider: "openai", auth_type: "api_key" },
+        ],
+        tiers: [
+          { tier: "simple", model: "gpt-4.1-mini", source: "auto", fallback_models: [] },
+          { tier: "standard", model: "claude-sonnet-4", source: "auto", fallback_models: [] },
+          { tier: "complex", model: "claude-opus-4", source: "auto", fallback_models: [] },
+          { tier: "reasoning", model: "o3", source: "override", fallback_models: [] },
+        ],
+      }),
+    });
+
+    const api = { registerCommand: jest.fn() };
+    registerCommand(api, config, mockLogger);
+
+    const cmd = api.registerCommand.mock.calls[0][0];
+    const result = await cmd.execute();
+
+    expect(result).toContain("Providers: anthropic (subscription), openai (api key)");
+    expect(result).toContain("Routing:");
+    expect(result).toContain("Simple -> gpt-4.1-mini (auto)");
+    expect(result).toContain("Reasoning -> o3 (override)");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:38238/api/v1/routing/summary",
+      expect.objectContaining({
+        headers: {},
+      }),
+    );
+  });
+
+  it("formats empty providers, unknown tiers, and api-key auth headers", async () => {
+    mockVerify.mockResolvedValueOnce({
+      endpointReachable: true,
+      authValid: true,
+      agentName: null,
+      error: null,
+    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        agentName: "custom-agent",
+        providers: [],
+        tiers: [
+          { tier: "custom", model: null, source: "auto", fallback_models: [] },
+        ],
+      }),
+    });
+
+    const api = { registerCommand: jest.fn() };
+    registerCommand(
+      api,
+      { ...config, apiKey: "mnfst_test_key", devMode: false },
+      mockLogger,
+    );
+
+    const cmd = api.registerCommand.mock.calls[0][0];
+    const result = await cmd.execute();
+
+    expect(result).toContain("Dev mode: no");
+    expect(result).toContain("Agent: custom-agent");
+    expect(result).toContain("Providers: none");
+    expect(result).toContain("custom -> unassigned (auto)");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:38238/api/v1/routing/summary",
+      expect.objectContaining({
+        headers: { Authorization: "Bearer mnfst_test_key" },
+      }),
+    );
+  });
+
+  it("falls back to status output when the routing summary request fails", async () => {
+    mockVerify.mockResolvedValueOnce({
+      endpointReachable: true,
+      authValid: true,
+      agentName: "test-agent",
+      error: null,
+    });
+    mockFetch.mockRejectedValueOnce(new Error("summary down"));
+
+    const api = { registerCommand: jest.fn() };
+    registerCommand(api, config, mockLogger);
+
+    const cmd = api.registerCommand.mock.calls[0][0];
+    const result = await cmd.execute();
+
+    expect(result).toContain("Agent: test-agent");
+    expect(result).not.toContain("Providers:");
+    expect(result).not.toContain("Routing:");
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      "[manifest] Routing summary failed (summary down)",
+    );
+  });
+
+  it("stringifies non-Error routing summary failures", async () => {
+    mockVerify.mockResolvedValueOnce({
+      endpointReachable: true,
+      authValid: true,
+      agentName: "test-agent",
+      error: null,
+    });
+    mockFetch.mockRejectedValueOnce("summary-string-error");
+
+    const api = { registerCommand: jest.fn() };
+    registerCommand(api, config, mockLogger);
+
+    const cmd = api.registerCommand.mock.calls[0][0];
+    await cmd.execute();
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      "[manifest] Routing summary failed (summary-string-error)",
+    );
+  });
+
   it("includes error in status text when verify reports one", async () => {
     mockVerify.mockResolvedValueOnce({
       endpointReachable: false,
@@ -83,6 +229,7 @@ describe("registerCommand", () => {
 
     expect(result).toContain("Endpoint reachable: no");
     expect(result).toContain("Error: Cannot reach endpoint: ECONNREFUSED");
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it("returns error message when verify throws", async () => {
