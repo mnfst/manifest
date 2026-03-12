@@ -171,16 +171,18 @@ export function fillDailyGaps<T extends Record<string, unknown>>(
 ): T[] {
   const hours = RANGE_HOURS[range];
   if (hours) {
+    // Use local time to match the backend, which stores timestamps in the
+    // Node process's local timezone via the pg driver.
     const now = new Date();
-    now.setUTCMinutes(0, 0, 0);
+    now.setMinutes(0, 0, 0);
 
     const hourMap = new Map<string, T>();
     for (let i = hours; i >= 0; i--) {
       const d = new Date(now.getTime() - i * 3600000);
-      const y = d.getUTCFullYear();
-      const mo = String(d.getUTCMonth() + 1).padStart(2, '0');
-      const da = String(d.getUTCDate()).padStart(2, '0');
-      const hh = String(d.getUTCHours()).padStart(2, '0');
+      const y = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const da = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
       const key = `${y}-${mo}-${da}T${hh}:00:00`;
       hourMap.set(key, zeroEntry(key));
     }
@@ -298,8 +300,11 @@ export function parseTimestamps(
 ): number[] {
   return data.map((d) => {
     if (d.hour) {
+      // Hour strings from the backend are in local time (the pg driver
+      // serialises JS Dates using the Node process's local timezone).
+      // Parse without appending 'Z' so they stay in local time.
       const iso = d.hour.replace(' ', 'T');
-      return new Date(iso.endsWith('Z') ? iso : iso + 'Z').getTime() / 1000;
+      return new Date(iso).getTime() / 1000;
     }
     const dateStr = (d.date as string) ?? '';
     const [y, m, day] = dateStr.split('-').map(Number);

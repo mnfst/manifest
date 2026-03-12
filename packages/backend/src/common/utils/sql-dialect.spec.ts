@@ -78,25 +78,27 @@ describe('sql-dialect', () => {
   });
 
   describe('computeCutoff', () => {
-    it('returns an ISO string in the past for "24 hours"', () => {
+    it('returns a local-time ISO string in the past for "24 hours"', () => {
       const before = Date.now();
       const cutoff = computeCutoff('24 hours');
       const after = Date.now();
+      // No trailing 'Z' — local time format
+      expect(cutoff).not.toContain('Z');
+      expect(cutoff).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
       const parsed = new Date(cutoff).getTime();
-
-      expect(parsed).toBeGreaterThanOrEqual(before - 24 * 3600_000);
+      // formatLocalIso truncates milliseconds, so allow up to 1s tolerance
+      expect(parsed).toBeGreaterThanOrEqual(before - 24 * 3600_000 - 1000);
       expect(parsed).toBeLessThanOrEqual(after - 24 * 3600_000);
     });
 
-    it('handles "7 days" and rounds to start of UTC day', () => {
+    it('handles "7 days" and rounds to start of local day', () => {
       const cutoff = computeCutoff('7 days');
       const parsed = new Date(cutoff);
-      // Should be rounded to UTC midnight
-      expect(parsed.getUTCHours()).toBe(0);
-      expect(parsed.getUTCMinutes()).toBe(0);
-      expect(parsed.getUTCSeconds()).toBe(0);
-      expect(parsed.getUTCMilliseconds()).toBe(0);
-      // Should be at least 7 days ago (start of that UTC day)
+      // Should be rounded to local midnight
+      expect(parsed.getHours()).toBe(0);
+      expect(parsed.getMinutes()).toBe(0);
+      expect(parsed.getSeconds()).toBe(0);
+      // Should be at least 7 days ago (start of that local day)
       const diff = Date.now() - parsed.getTime();
       expect(diff).toBeGreaterThanOrEqual(7 * 86400_000);
       expect(diff).toBeLessThan(8 * 86400_000);
@@ -104,18 +106,18 @@ describe('sql-dialect', () => {
 
     it('handles singular "1 hour"', () => {
       const cutoff = computeCutoff('1 hour');
+      expect(cutoff).not.toContain('Z');
       const diff = Date.now() - new Date(cutoff).getTime();
       expect(diff).toBeGreaterThanOrEqual(3600_000 - 1000);
       expect(diff).toBeLessThanOrEqual(3600_000 + 1000);
     });
 
-    it('handles singular "1 day" and rounds to start of UTC day', () => {
+    it('handles singular "1 day" and rounds to start of local day', () => {
       const cutoff = computeCutoff('1 day');
       const parsed = new Date(cutoff);
-      expect(parsed.getUTCHours()).toBe(0);
-      expect(parsed.getUTCMinutes()).toBe(0);
-      expect(parsed.getUTCSeconds()).toBe(0);
-      expect(parsed.getUTCMilliseconds()).toBe(0);
+      expect(parsed.getHours()).toBe(0);
+      expect(parsed.getMinutes()).toBe(0);
+      expect(parsed.getSeconds()).toBe(0);
       const diff = Date.now() - parsed.getTime();
       expect(diff).toBeGreaterThanOrEqual(86400_000);
       expect(diff).toBeLessThan(2 * 86400_000);
@@ -123,6 +125,7 @@ describe('sql-dialect', () => {
 
     it('defaults to 24h for unrecognized format', () => {
       const cutoff = computeCutoff('invalid');
+      expect(cutoff).not.toContain('Z');
       const diff = Date.now() - new Date(cutoff).getTime();
       expect(diff).toBeGreaterThanOrEqual(86400_000 - 1000);
       expect(diff).toBeLessThanOrEqual(86400_000 + 1000);
@@ -130,13 +133,15 @@ describe('sql-dialect', () => {
   });
 
   describe('sqlNow', () => {
-    it('returns a valid ISO string close to current time', () => {
+    it('returns a local-time ISO string close to current time', () => {
       const before = Date.now();
       const result = sqlNow();
       const after = Date.now();
+      expect(result).not.toContain('Z');
+      expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
       const parsed = new Date(result).getTime();
-      expect(parsed).toBeGreaterThanOrEqual(before);
-      expect(parsed).toBeLessThanOrEqual(after);
+      expect(parsed).toBeGreaterThanOrEqual(before - 1000);
+      expect(parsed).toBeLessThanOrEqual(after + 1000);
     });
   });
 
@@ -146,11 +151,9 @@ describe('sql-dialect', () => {
       expect(result).toBe("strftime('%Y-%m-%dT%H:00:00', at.timestamp)");
     });
 
-    it('returns UTC-converting to_char/date_trunc expression for postgres', () => {
+    it('returns to_char/date_trunc expression for postgres (no timezone conversion)', () => {
       const result = sqlHourBucket('at.timestamp', 'postgres');
-      expect(result).toBe(
-        `to_char(date_trunc('hour', at.timestamp AT TIME ZONE current_setting('TIMEZONE') AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS')`,
-      );
+      expect(result).toBe(`to_char(date_trunc('hour', at.timestamp), 'YYYY-MM-DD"T"HH24:MI:SS')`);
     });
   });
 

@@ -310,8 +310,8 @@ describe("parseTimestamps", () => {
   it("prefers hour over date when both present", () => {
     const data = [{ hour: "2024-01-15 10:00", date: "2024-01-20" }];
     const result = parseTimestamps(data);
-    // hour is checked first via (d.hour ?? d.date)
-    const expected = Date.UTC(2024, 0, 15, 10, 0) / 1000;
+    // hour is checked first; parsed as local time (no 'Z')
+    const expected = new Date(2024, 0, 15, 10, 0).getTime() / 1000;
     expect(result[0]).toBe(expected);
   });
 
@@ -1104,11 +1104,11 @@ describe("fillDailyGaps", () => {
 
   it("preserves existing hourly data for 24h range", () => {
     const now = new Date();
-    now.setUTCMinutes(0, 0, 0);
-    const y = now.getUTCFullYear();
-    const mo = String(now.getUTCMonth() + 1).padStart(2, "0");
-    const da = String(now.getUTCDate()).padStart(2, "0");
-    const hh = String(now.getUTCHours()).padStart(2, "0");
+    now.setMinutes(0, 0, 0);
+    const y = now.getFullYear();
+    const mo = String(now.getMonth() + 1).padStart(2, "0");
+    const da = String(now.getDate()).padStart(2, "0");
+    const hh = String(now.getHours()).padStart(2, "0");
     const key = `${y}-${mo}-${da}T${hh}:00:00`;
     const zeroHour = (hour: string) => ({ hour, cost: 0 });
     const data = [{ hour: key, cost: 42 }];

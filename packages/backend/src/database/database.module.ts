@@ -145,7 +145,6 @@ function buildModeServices() {
           extra: {
             max: 5,
             idleTimeoutMillis: 30000,
-            options: '-c timezone=UTC',
           },
         };
       },
