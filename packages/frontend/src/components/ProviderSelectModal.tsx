@@ -6,6 +6,7 @@ import {
   type CustomProviderData,
   type RoutingProvider,
 } from '../services/api.js';
+import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { isLocalMode } from '../services/local-mode.js';
 import { PROVIDERS, validateApiKey, validateSubscriptionKey } from '../services/providers.js';
 import { customProviderColor } from '../services/formatters.js';
@@ -526,6 +527,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                   ? isSubscriptionWithToken(provId)
                   : isConnected(provId) || isNoKeyConnected(provId);
               const isOllama = provDef.noKeyRequired;
+              const whereToGetUrl = getRoutingProviderApiKeyUrl(provId);
               const fieldLabel = () => (isSubMode() ? 'Setup Token' : 'API Key');
               const placeholder = () =>
                 isSubMode()
@@ -677,6 +679,18 @@ const ProviderSelectModal: Component<Props> = (props) => {
                       <Show when={validationError()}>
                         <div class="provider-detail__error">{validationError()}</div>
                       </Show>
+                      <Show when={whereToGetUrl}>
+                        <p class="provider-detail__key-help">
+                          <a
+                            class="provider-detail__key-help-link"
+                            href={whereToGetUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Get {provDef.name} API key
+                          </a>
+                        </p>
+                      </Show>
                     </div>
                     <button
                       class="btn btn--primary btn--sm provider-detail__action"
@@ -761,6 +775,18 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         />
                         <Show when={validationError()}>
                           <div class="provider-detail__error">{validationError()}</div>
+                        </Show>
+                        <Show when={whereToGetUrl}>
+                          <p class="provider-detail__key-help">
+                            <a
+                              class="provider-detail__key-help-link"
+                              href={whereToGetUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Get {provDef.name} API key
+                            </a>
+                          </p>
                         </Show>
                         <button
                           class="btn btn--primary btn--sm provider-detail__action"

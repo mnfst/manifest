@@ -7,6 +7,7 @@ import {
   PROVIDERS,
   STAGES,
 } from "../../src/services/providers";
+import { ROUTING_PROVIDER_API_KEY_URLS, EMAIL_PROVIDER_API_KEY_URLS } from "../../src/services/provider-api-key-urls";
 
 /* ── getProvider ────────────────────────────────── */
 
@@ -237,6 +238,13 @@ describe("PROVIDERS", () => {
     }
   });
 
+  it("requires an API key URL for every provider that needs one", () => {
+    const missingProviderIds = PROVIDERS.filter(
+      (provider) => !provider.noKeyRequired && !ROUTING_PROVIDER_API_KEY_URLS[provider.id],
+    ).map((provider) => provider.id);
+    expect(missingProviderIds).toEqual([]);
+  });
+
   it("does not have API-key-specific fields", () => {
     for (const p of PROVIDERS) {
       expect(p).not.toHaveProperty("inputType");
@@ -258,5 +266,15 @@ describe("STAGES", () => {
 
   it("has correct stage IDs", () => {
     expect(STAGES.map((s) => s.id)).toEqual(["simple", "standard", "complex", "reasoning"]);
+  });
+});
+
+/* ── EMAIL_PROVIDER_API_KEY_URLS ─────────────── */
+
+describe("EMAIL_PROVIDER_API_KEY_URLS", () => {
+  it("has a URL for every email provider", () => {
+    expect(EMAIL_PROVIDER_API_KEY_URLS).toHaveProperty("resend");
+    expect(EMAIL_PROVIDER_API_KEY_URLS).toHaveProperty("mailgun");
+    expect(EMAIL_PROVIDER_API_KEY_URLS).toHaveProperty("sendgrid");
   });
 });

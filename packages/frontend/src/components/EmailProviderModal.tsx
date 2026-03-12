@@ -3,6 +3,7 @@ import { Portal } from 'solid-js/web';
 import { setEmailProvider, testEmailProvider, testSavedEmailProvider } from '../services/api.js';
 import { authClient } from '../services/auth-client.js';
 import { isLocalMode } from '../services/local-mode.js';
+import { getEmailProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { toast } from '../services/toast-store.js';
 
 const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
@@ -238,6 +239,8 @@ const EmailProviderModal: Component<Props> = (props) => {
     return props.editMode ? 'Test & Save' : 'Test & Connect';
   };
 
+  const keyDocsUrl = () => getEmailProviderApiKeyUrl(provider());
+
   const keyPlaceholder = () => {
     switch (provider()) {
       case 'resend':
@@ -342,6 +345,18 @@ const EmailProviderModal: Component<Props> = (props) => {
             </Show>
             <Show when={keyError()}>
               <p class="modal-card__field-error">{keyError()}</p>
+            </Show>
+            <Show when={keyDocsUrl()}>
+              <p class="modal-card__field-hint">
+                <a
+                  class="modal-card__field-link"
+                  href={keyDocsUrl()!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Get {PROVIDER_NAMES[provider()] ?? provider()} API key
+                </a>
+              </p>
             </Show>
 
             <Show when={needsDomain()}>
