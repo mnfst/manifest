@@ -9,13 +9,13 @@
 
 ## Executive Summary
 
-The Manifest platform demonstrates strong security fundamentals: strict CSP via Helmet, session-based auth with Better Auth, parameterized queries via TypeORM, and proper input validation. However, the audit identified **4 critical**, **6 high**, **8 medium**, and **5 low** severity findings across both deployment modes.
+The Manifest platform demonstrates strong security fundamentals: strict CSP via Helmet, session-based auth with Better Auth, parameterized queries via TypeORM, and proper input validation. However, the audit identified **4 critical**, **6 high**, **10 medium**, and **5 low** severity findings across both deployment modes.
 
 | Severity | Count | Highest-Impact Finding |
 |----------|-------|------------------------|
 | Critical | 4 | SSRF via custom provider base_url (A10) |
 | High | 6 | Plaintext API key token cached in memory (A02) |
-| Medium | 8 | Provider error body forwarded to client (A04) |
+| Medium | 10 | Provider error body forwarded to client (A04) |
 | Low | 5 | No request timeout configuration (A05) |
 
 ---
@@ -68,6 +68,26 @@ The `@SkipThrottle()` decorator exempts the entire proxy controller from the glo
 
 **Impact:** Rate-limit bypass via rapid proxy requests after server restart.
 **Recommendation:** Use the global throttler as a baseline and layer the custom rate limiter on top.
+
+### FINDING A01-5: Notification Trigger-Check Has No Ownership Scope (MEDIUM)
+
+**File:** `packages/backend/src/notifications/notifications.controller.ts`
+
+`POST /api/v1/notifications/trigger-check` allows any authenticated user to manually trigger the notification cron check. While gated by session auth, there is no validation that the triggered check is scoped to the requesting user's data. This could allow a user to trigger notification checks (and potentially emails) for other users' agents.
+
+**Impact:** Cross-user notification triggering; potential email spam to other users.
+**Mode:** Cloud.
+**Recommendation:** Scope `trigger-check` to the requesting user's tenant, or restrict to admin role.
+
+### FINDING A01-6: Telemetry Ingestion Accepts Null Tenant (MEDIUM)
+
+**File:** `packages/backend/src/telemetry/telemetry.service.ts`
+
+When `TenantCacheService.resolve()` returns `null` (no tenant found for userId), the telemetry service inserts records with `tenant_id: null`. These orphaned records bypass tenant-scoped analytics queries, creating phantom data invisible to any user.
+
+**Impact:** Data integrity issue; orphaned telemetry records not visible in dashboards.
+**Mode:** Both.
+**Recommendation:** Reject telemetry events when tenant cannot be resolved. Return a clear error indicating the agent needs to be onboarded first.
 
 ---
 
@@ -503,6 +523,8 @@ const response = await fetch(url, { method: 'POST', headers, body: ... });
 | A02-5: Default DB credentials | N/A | Yes | Cloud-only (PostgreSQL) |
 | A05-5: Seed credentials | Yes | Yes | Both when SEED_DATA=true |
 | A07-2: No login brute-force protection | N/A | Yes | Local skips Better Auth |
+| A01-5: Notification trigger-check unscoped | N/A | Yes | Cloud-only (Better Auth) |
+| A01-6: Telemetry null tenant | Yes | Yes | Orphaned records |
 | A10-1: SSRF via custom provider | Yes | Yes | Feature available in both |
 
 ### Positive Security Controls
@@ -547,6 +569,8 @@ The following security measures are well-implemented:
 11. **A09-2:** Add audit logging for auth events
 12. **A05-5:** Prevent seeding in production mode
 13. **A01-2:** Validate @CurrentUser() returns defined user
+14. **A01-5:** Scope notification trigger-check to requesting user's tenant
+15. **A01-6:** Reject telemetry events when tenant cannot be resolved
 
 ### Long-Term (P3) — Plan and Implement
 
