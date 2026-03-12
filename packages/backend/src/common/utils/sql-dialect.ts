@@ -34,10 +34,6 @@ export function timestampDefault(): () => string {
 export function computeCutoff(interval: string): string {
   const ms = intervalToMs(interval);
   const cutoff = new Date(Date.now() - ms);
-  // For day-based intervals, round down to start of local day
-  if (interval.includes('day')) {
-    cutoff.setHours(0, 0, 0, 0);
-  }
   return formatLocalIso(cutoff);
 }
 

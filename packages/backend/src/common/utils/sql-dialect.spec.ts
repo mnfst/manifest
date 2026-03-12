@@ -91,17 +91,15 @@ describe('sql-dialect', () => {
       expect(parsed).toBeLessThanOrEqual(after - 24 * 3600_000);
     });
 
-    it('handles "7 days" and rounds to start of local day', () => {
+    it('handles "7 days" without midnight rounding', () => {
+      const before = Date.now();
       const cutoff = computeCutoff('7 days');
-      const parsed = new Date(cutoff);
-      // Should be rounded to local midnight
-      expect(parsed.getHours()).toBe(0);
-      expect(parsed.getMinutes()).toBe(0);
-      expect(parsed.getSeconds()).toBe(0);
-      // Should be at least 7 days ago (start of that local day)
-      const diff = Date.now() - parsed.getTime();
-      expect(diff).toBeGreaterThanOrEqual(7 * 86400_000);
-      expect(diff).toBeLessThan(8 * 86400_000);
+      const after = Date.now();
+      expect(cutoff).not.toContain('Z');
+      const parsed = new Date(cutoff).getTime();
+      // Should be exactly 7 days ago (no midnight rounding), ±1s for ms truncation
+      expect(parsed).toBeGreaterThanOrEqual(before - 7 * 86400_000 - 1000);
+      expect(parsed).toBeLessThanOrEqual(after - 7 * 86400_000);
     });
 
     it('handles singular "1 hour"', () => {
@@ -112,15 +110,14 @@ describe('sql-dialect', () => {
       expect(diff).toBeLessThanOrEqual(3600_000 + 1000);
     });
 
-    it('handles singular "1 day" and rounds to start of local day', () => {
+    it('handles singular "1 day" without midnight rounding', () => {
+      const before = Date.now();
       const cutoff = computeCutoff('1 day');
-      const parsed = new Date(cutoff);
-      expect(parsed.getHours()).toBe(0);
-      expect(parsed.getMinutes()).toBe(0);
-      expect(parsed.getSeconds()).toBe(0);
-      const diff = Date.now() - parsed.getTime();
-      expect(diff).toBeGreaterThanOrEqual(86400_000);
-      expect(diff).toBeLessThan(2 * 86400_000);
+      const after = Date.now();
+      expect(cutoff).not.toContain('Z');
+      const parsed = new Date(cutoff).getTime();
+      expect(parsed).toBeGreaterThanOrEqual(before - 86400_000 - 1000);
+      expect(parsed).toBeLessThanOrEqual(after - 86400_000);
     });
 
     it('defaults to 24h for unrecognized format', () => {

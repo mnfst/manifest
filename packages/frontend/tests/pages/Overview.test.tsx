@@ -556,6 +556,16 @@ describe("Overview", () => {
         expect(select.value).toBe("30d");
       });
     });
+
+    it("ignores stale localStorage value and defaults to 30d", async () => {
+      localStorage.setItem("manifest_chart_range", "1h");
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("30d");
+      });
+    });
   });
 
   describe("smart default range", () => {
@@ -570,8 +580,9 @@ describe("Overview", () => {
       mockGetOverview.mockResolvedValue(emptyUsageData);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        // Should cascade from 30d → 7d
-        expect(mockGetOverview).toHaveBeenCalled();
+        // Cascades from 30d → 7d → 24h (all empty, lands at final range)
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("24h");
       });
     });
 
@@ -613,6 +624,9 @@ describe("Overview", () => {
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("gpt-4o");
+      // Verify the provider icon SVG is rendered (not just text)
+      const providerIcon = container.querySelector('svg[role="img"], span[role="img"]');
+      expect(providerIcon).not.toBeNull();
     });
   });
 

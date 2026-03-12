@@ -91,8 +91,11 @@ const Overview: Component = () => {
   const location = useLocation<{ newAgent?: boolean; newApiKey?: string }>();
   preloadModelDisplayNames();
   const RANGE_STORAGE_KEY = 'manifest_chart_range';
+  const VALID_RANGES = new Set(['24h', '7d', '30d']);
   const savedRange = localStorage.getItem(RANGE_STORAGE_KEY);
-  const [range, setRange] = createSignal(savedRange ?? '30d');
+  const [range, setRange] = createSignal(
+    savedRange && VALID_RANGES.has(savedRange) ? savedRange : '30d',
+  );
   const [userSelectedRange, setUserSelectedRange] = createSignal(!!savedRange);
 
   const handleRangeChange = (value: string) => {

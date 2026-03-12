@@ -136,6 +136,46 @@ describe('Google Adapter', () => {
       expect(props.config.properties).toEqual({ key: { type: 'string' } });
     });
 
+    it('preserves property names that collide with unsupported schema keywords', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Do something' }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'my_tool',
+              description: 'A tool',
+              parameters: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string' },
+                  default: { type: 'number' },
+                  examples: { type: 'array' },
+                },
+              },
+            },
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const tools = result.tools as Array<{
+        functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
+      }>;
+      const props = tools[0].functionDeclarations[0].parameters.properties as Record<
+        string,
+        Record<string, unknown>
+      >;
+
+      // Property names "title", "default", "examples" must be preserved
+      expect(props).toHaveProperty('title');
+      expect(props.title.type).toBe('string');
+      expect(props).toHaveProperty('default');
+      expect(props.default.type).toBe('number');
+      expect(props).toHaveProperty('examples');
+      expect(props.examples.type).toBe('array');
+    });
+
     it('handles tools with no parameters', () => {
       const body = {
         messages: [{ role: 'user', content: 'Do something' }],

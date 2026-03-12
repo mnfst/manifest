@@ -54,19 +54,22 @@ const UNSUPPORTED_SCHEMA_FIELDS = new Set([
   'title',
 ]);
 
-function sanitizeSchema(schema: unknown): unknown {
+function sanitizeSchema(schema: unknown, isPropertiesMap = false): unknown {
   if (schema === null || schema === undefined || typeof schema !== 'object') {
     return schema;
   }
 
   if (Array.isArray(schema)) {
-    return schema.map(sanitizeSchema);
+    return schema.map((item) => sanitizeSchema(item));
   }
 
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(schema as Record<string, unknown>)) {
-    if (UNSUPPORTED_SCHEMA_FIELDS.has(key)) continue;
-    result[key] = sanitizeSchema(value);
+    // Inside a `properties` map, keys are user-defined property names
+    // (e.g. "title", "default"), not JSON Schema keywords — keep them all.
+    // Their values are sub-schemas, so recurse normally (not as properties map).
+    if (!isPropertiesMap && UNSUPPORTED_SCHEMA_FIELDS.has(key)) continue;
+    result[key] = sanitizeSchema(value, key === 'properties');
   }
   return result;
 }
