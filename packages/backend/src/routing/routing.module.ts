@@ -24,6 +24,8 @@ import { ProxyService } from './proxy/proxy.service';
 import { ProviderClient } from './proxy/provider-client';
 import { ProxyRateLimiter } from './proxy/proxy-rate-limiter';
 import { SessionMomentumService } from './proxy/session-momentum.service';
+import { CopilotTokenService } from './proxy/copilot-token.service';
+import { CopilotDeviceAuthService } from './copilot-device-auth.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 
@@ -55,6 +57,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ProviderClient,
     ProxyRateLimiter,
     SessionMomentumService,
+    CopilotTokenService,
+    CopilotDeviceAuthService,
     OllamaSyncService,
   ],
   exports: [RoutingService, CustomProviderService, TierAutoAssignService, ResolveAgentService],

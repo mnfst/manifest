@@ -7,6 +7,7 @@ const ALIASES: Record<string, string[]> = {
   google: ['gemini'],
   qwen: ['alibaba'],
   alibaba: ['qwen'],
+  copilot: ['copilot'],
   moonshot: ['moonshot', 'kimi'],
   kimi: ['moonshot'],
   minimax: ['minimax'],

@@ -38,6 +38,7 @@ const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   xai: 'xAI',
   minimax: 'MiniMax',
   'z-ai': 'Z.ai',
+  copilot: 'Copilot',
   openrouter: 'OpenRouter',
 };
 

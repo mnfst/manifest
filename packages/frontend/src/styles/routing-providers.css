@@ -665,3 +665,33 @@
   letter-spacing: -0.02em;
   line-height: 1;
 }
+
+/* ── Copilot Device Login ── */
+
+.copilot-device-login__code-box {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.copilot-device-login__code {
+  font-family: var(--font-mono, monospace);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: hsl(var(--foreground));
+  padding: 12px 24px;
+  background: hsl(var(--muted) / 0.5);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  display: inline-block;
+  user-select: all;
+}
+
+.copilot-device-login__waiting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  margin-top: 16px;
+}

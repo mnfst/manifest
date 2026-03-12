@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { AgentNameParamDto, SetFallbacksDto } from './routing.dto';
+import { AgentNameParamDto, CopilotPollDto, SetFallbacksDto } from './routing.dto';
 
 function toDto(data: Record<string, unknown>): AgentNameParamDto {
   return plainToInstance(AgentNameParamDto, data);
@@ -66,6 +66,30 @@ describe('AgentNameParamDto', () => {
 
   it('should reject non-string agentName', async () => {
     const dto = toDto({ agentName: 123 });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+});
+
+describe('CopilotPollDto', () => {
+  function toPollDto(data: Record<string, unknown>): CopilotPollDto {
+    return plainToInstance(CopilotPollDto, data);
+  }
+
+  it('should pass with a valid device code', async () => {
+    const dto = toPollDto({ deviceCode: 'dc_abc123' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('should reject empty deviceCode', async () => {
+    const dto = toPollDto({ deviceCode: '' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('should reject missing deviceCode', async () => {
+    const dto = toPollDto({});
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });

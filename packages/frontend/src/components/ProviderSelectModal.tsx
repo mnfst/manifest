@@ -11,6 +11,7 @@ import {
 import { toast } from '../services/toast-store.js';
 import { isLocalMode } from '../services/local-mode.js';
 import CustomProviderForm from './CustomProviderForm.js';
+import CopilotDeviceLogin from './CopilotDeviceLogin.js';
 import { CopyButton } from './SetupStepInstall.js';
 
 interface Props {
@@ -337,8 +338,9 @@ const ProviderSelectModal: Component<Props> = (props) => {
               <div class="provider-modal__list">
                 <For each={subscriptionProviders()}>
                   {(prov) => {
+                    const needsDetail = prov.subscriptionKeyPlaceholder || prov.deviceLogin;
                     const connected = () =>
-                      prov.subscriptionKeyPlaceholder
+                      needsDetail
                         ? isSubscriptionWithToken(prov.id)
                         : isSubscriptionConnected(prov.id);
 
@@ -347,7 +349,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         class="provider-toggle"
                         disabled={busy()}
                         onClick={() =>
-                          prov.subscriptionKeyPlaceholder
+                          needsDetail
                             ? openDetail(prov.id, 'subscription')
                             : handleSubscriptionToggle(prov.id)
                         }
@@ -497,8 +499,41 @@ const ProviderSelectModal: Component<Props> = (props) => {
           </div>
         </Show>
 
-        {/* -- Detail View (API Key) -- */}
-        <Show when={selectedProvider() !== null && !showCustomForm() && !editingCustomProvider()}>
+        {/* -- Device Login Detail View (Copilot) -- */}
+        <Show
+          when={
+            selectedProvider() !== null &&
+            !showCustomForm() &&
+            !editingCustomProvider() &&
+            PROVIDERS.find((p) => p.id === selectedProvider())?.deviceLogin
+          }
+        >
+          <div class="provider-modal__view provider-modal__view--from-right">
+            <CopilotDeviceLogin
+              agentName={props.agentName}
+              connected={isSubscriptionWithToken(selectedProvider()!)}
+              onBack={goBack}
+              onConnected={() => {
+                goBack();
+                props.onUpdate();
+              }}
+              onDisconnected={() => {
+                goBack();
+                props.onUpdate();
+              }}
+            />
+          </div>
+        </Show>
+
+        {/* -- Detail View (API Key / Token) -- */}
+        <Show
+          when={
+            selectedProvider() !== null &&
+            !showCustomForm() &&
+            !editingCustomProvider() &&
+            !PROVIDERS.find((p) => p.id === selectedProvider())?.deviceLogin
+          }
+        >
           <div class="provider-modal__view provider-modal__view--from-right">
             {(() => {
               const provId = selectedProvider()!;

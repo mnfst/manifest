@@ -5,6 +5,7 @@ import { RoutingService } from '../../routing.service';
 import { CustomProviderService } from '../../custom-provider.service';
 import { ProviderClient } from '../provider-client';
 import { SessionMomentumService } from '../session-momentum.service';
+import { CopilotTokenService } from '../copilot-token.service';
 import { LimitCheckService } from '../../../notifications/services/limit-check.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 
@@ -15,6 +16,7 @@ describe('ProxyService', () => {
   let customProviderService: jest.Mocked<CustomProviderService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let momentum: SessionMomentumService;
+  let copilotToken: jest.Mocked<CopilotTokenService>;
   let limitCheck: jest.Mocked<LimitCheckService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
 
@@ -34,6 +36,10 @@ describe('ProxyService', () => {
     } as unknown as jest.Mocked<ProviderClient>;
 
     momentum = new SessionMomentumService();
+
+    copilotToken = {
+      getCopilotToken: jest.fn().mockResolvedValue('tid=copilot-session-token'),
+    } as unknown as jest.Mocked<CopilotTokenService>;
 
     limitCheck = {
       checkLimits: jest.fn().mockResolvedValue(null),
@@ -55,6 +61,7 @@ describe('ProxyService', () => {
       customProviderService,
       providerClient,
       momentum,
+      copilotToken,
       limitCheck,
       pricingCache,
     );
@@ -934,6 +941,72 @@ describe('ProxyService', () => {
         'custom:cp-missing',
         'key',
         'custom:cp-missing/model',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      );
+    });
+  });
+
+  describe('copilot token exchange', () => {
+    it('exchanges GitHub token for Copilot API token before forwarding', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'copilot/claude-sonnet-4',
+        provider: 'copilot',
+        confidence: 0.9,
+        score: 0.5,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('ghu_github_oauth_token');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+
+      expect(copilotToken.getCopilotToken).toHaveBeenCalledWith('ghu_github_oauth_token');
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'copilot',
+        'tid=copilot-session-token',
+        'copilot/claude-sonnet-4',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      );
+    });
+
+    it('does not exchange token for non-copilot providers', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'openai',
+        confidence: 0.9,
+        score: 0.5,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-openai-key');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+
+      expect(copilotToken.getCopilotToken).not.toHaveBeenCalled();
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'openai',
+        'sk-openai-key',
+        'gpt-4o',
         body,
         false,
         undefined,

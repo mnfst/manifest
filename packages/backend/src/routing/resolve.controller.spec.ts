@@ -144,5 +144,44 @@ describe('ResolveController', () => {
         'subscription',
       );
     });
+
+    it('should pass token to upsertProvider when present', async () => {
+      const req = {
+        ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
+      } as never;
+
+      await controller.registerSubscriptions(
+        { providers: [{ provider: 'copilot', token: 'ghu_token_123' }] },
+        req,
+      );
+
+      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+        'a1',
+        'u1',
+        'copilot',
+        'ghu_token_123',
+        'subscription',
+      );
+    });
+  });
+
+  describe('SubscriptionProviderItem with token', () => {
+    it('should accept optional token field', async () => {
+      const plain = { providers: [{ provider: 'copilot', token: 'ghu_abc' }] };
+      const dto = plainToInstance(RegisterSubscriptionsDto, plain);
+      const errors = await validate(dto);
+
+      expect(errors).toHaveLength(0);
+      expect(dto.providers[0].token).toBe('ghu_abc');
+    });
+
+    it('should accept provider without token field', async () => {
+      const plain = { providers: [{ provider: 'anthropic' }] };
+      const dto = plainToInstance(RegisterSubscriptionsDto, plain);
+      const errors = await validate(dto);
+
+      expect(errors).toHaveLength(0);
+      expect(dto.providers[0].token).toBeUndefined();
+    });
   });
 });

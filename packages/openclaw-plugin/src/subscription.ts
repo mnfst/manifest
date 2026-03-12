@@ -21,6 +21,8 @@ export interface SubscriptionProvider {
   manifestId: string;
   /** Auth type in OpenClaw (e.g. "oauth", "setup_token", "device_login") */
   authType: string;
+  /** Access token extracted from auth-profile (e.g. Copilot device-login token). */
+  token?: string;
 }
 
 /**
@@ -36,7 +38,7 @@ const OPENCLAW_TO_MANIFEST: Record<string, string> = {
   'google-antigravity': 'gemini',
   google: 'gemini',
   gemini: 'gemini',
-  'github-copilot': 'openai', // Copilot uses GPT models
+  'github-copilot': 'copilot',
   qwen: 'qwen',
   'qwen-portal': 'qwen',
   moonshot: 'moonshot',
@@ -92,10 +94,13 @@ export function discoverSubscriptionProviders(logger: PluginLogger): Subscriptio
         }
 
         if (!seen.has(manifestId)) {
+          const token =
+            manifestId === 'copilot' ? (profile.access_token ?? profile.key) : undefined;
           seen.set(manifestId, {
             openclawId: profile.provider,
             manifestId,
             authType: profile.type,
+            ...(token && { token }),
           });
         }
       }
@@ -144,7 +149,10 @@ export async function registerSubscriptionProviders(
       method: 'POST',
       headers,
       body: JSON.stringify({
-        providers: providers.map((p) => ({ provider: p.manifestId })),
+        providers: providers.map((p) => ({
+          provider: p.manifestId,
+          ...(p.token && { token: p.token }),
+        })),
       }),
       signal: AbortSignal.timeout(5000),
     });

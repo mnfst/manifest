@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
-import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Request } from 'express';
 import { Public } from '../common/decorators/public.decorator';
@@ -14,6 +14,10 @@ export class SubscriptionProviderItem {
   @IsString()
   @IsNotEmpty()
   provider!: string;
+
+  @IsString()
+  @IsOptional()
+  token?: string;
 }
 
 export class RegisterSubscriptionsDto {
@@ -63,7 +67,7 @@ export class ResolveController {
         agentId,
         userId,
         item.provider,
-        undefined,
+        item.token,
         'subscription',
       );
       registered++;
