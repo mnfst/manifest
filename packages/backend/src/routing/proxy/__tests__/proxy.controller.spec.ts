@@ -75,7 +75,12 @@ describe('ProxyController', () => {
     convertAnthropicResponse: jest.Mock;
     convertAnthropicStreamChunk: jest.Mock;
   };
-  let mockMessageRepo: { insert: jest.Mock };
+  let mockMessageRepo: {
+    insert: jest.Mock;
+    findOne: jest.Mock;
+    find: jest.Mock;
+    update: jest.Mock;
+  };
   let mockPricingCache: { getByModel: jest.Mock };
 
   beforeEach(() => {
@@ -93,7 +98,12 @@ describe('ProxyController', () => {
       convertAnthropicResponse: jest.fn(),
       convertAnthropicStreamChunk: jest.fn(),
     };
-    mockMessageRepo = { insert: jest.fn().mockResolvedValue({}) };
+    mockMessageRepo = {
+      insert: jest.fn().mockResolvedValue({}),
+      findOne: jest.fn().mockResolvedValue(null),
+      find: jest.fn().mockResolvedValue([]),
+      update: jest.fn().mockResolvedValue({}),
+    };
     mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
     controller = new ProxyController(
       proxyService as never,
@@ -247,6 +257,150 @@ describe('ProxyController', () => {
         cache_read_tokens: 100,
       }),
     );
+  });
+
+  it('should skip proxy success insert when OTLP already recorded a success row for the same trace', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 500, completion_tokens: 200, cache_read_tokens: 100 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    mockMessageRepo.findOne.mockResolvedValue({
+      id: 'existing-otlp-row',
+      input_tokens: 500,
+      output_tokens: 200,
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-1', {
+      traceparent: '00-abcdef1234567890abcdef1234567890-1234567890abcdef-01',
+    });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.findOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          trace_id: 'abcdef1234567890abcdef1234567890',
+          status: 'ok',
+        }),
+      }),
+    );
+    expect(mockMessageRepo.update).not.toHaveBeenCalled();
+    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+  });
+
+  it('should update existing OTLP success row when proxy is the first source of real usage tokens', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 500, completion_tokens: 200, cache_read_tokens: 100 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    mockMessageRepo.findOne.mockResolvedValue({
+      id: 'existing-otlp-row',
+      input_tokens: 0,
+      output_tokens: 0,
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-1', {
+      traceparent: '00-abcdef1234567890abcdef1234567890-1234567890abcdef-01',
+    });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.update).toHaveBeenCalledWith(
+      { id: 'existing-otlp-row' },
+      expect.objectContaining({
+        model: 'gpt-4o',
+        routing_tier: 'simple',
+        routing_reason: 'scored',
+        input_tokens: 500,
+        output_tokens: 200,
+        cache_read_tokens: 100,
+      }),
+    );
+    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+  });
+
+  it('should skip proxy success insert when a recent OTLP row matches by end time without trace or session key', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 19684, completion_tokens: 13 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    mockMessageRepo.find.mockResolvedValue([
+      {
+        id: 'existing-otlp-row',
+        timestamp: new Date(Date.now() - 2800).toISOString(),
+        input_tokens: 171,
+        output_tokens: 13,
+        cache_read_tokens: 19513,
+        cache_creation_tokens: 0,
+        duration_ms: 2700,
+      },
+    ]);
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'standard',
+        model: 'deepseek-chat',
+        provider: 'DeepSeek',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          model: 'deepseek-chat',
+          status: 'ok',
+        }),
+      }),
+    );
+    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+    expect(mockMessageRepo.update).not.toHaveBeenCalled();
   });
 
   it('should skip recording when response has zero tokens', async () => {

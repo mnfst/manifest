@@ -36,6 +36,8 @@ export class ProxyController implements OnModuleDestroy {
   private readonly rateLimitCooldown = new Map<string, number>();
   private readonly RATE_LIMIT_COOLDOWN_MS = 60_000;
   private readonly MAX_COOLDOWN_ENTRIES = 1_000;
+  private readonly SUCCESS_SESSION_DEDUP_WINDOW_MS = 30_000;
+  private readonly SUCCESS_END_TIME_GRACE_MS = 5_000;
   private readonly cooldownCleanupTimer: ReturnType<typeof setInterval>;
 
   constructor(
@@ -470,6 +472,30 @@ export class ProxyController implements OnModuleDestroy {
       }
     }
 
+    const existing = await this.findExistingSuccessMessage(ctx, model, usage, traceId);
+
+    if (existing) {
+      const hasRecordedTokens =
+        (existing.input_tokens ?? 0) > 0 || (existing.output_tokens ?? 0) > 0;
+      if (hasRecordedTokens) return;
+
+      await this.messageRepo.update(
+        { id: existing.id },
+        {
+          model,
+          routing_tier: tier,
+          routing_reason: reason,
+          input_tokens: usage.prompt_tokens,
+          output_tokens: usage.completion_tokens,
+          cache_read_tokens: usage.cache_read_tokens ?? 0,
+          cache_creation_tokens: usage.cache_creation_tokens ?? 0,
+          cost_usd: costUsd,
+          auth_type: authType ?? null,
+        },
+      );
+      return;
+    }
+
     await this.messageRepo.insert({
       id: uuid(),
       tenant_id: ctx.tenantId,
@@ -490,6 +516,87 @@ export class ProxyController implements OnModuleDestroy {
       fallback_from_model: null,
       fallback_index: null,
     });
+  }
+
+  private async findExistingSuccessMessage(
+    ctx: IngestionContext,
+    model: string,
+    usage: StreamUsage,
+    traceId?: string,
+  ): Promise<Pick<
+    AgentMessage,
+    | 'id'
+    | 'timestamp'
+    | 'input_tokens'
+    | 'output_tokens'
+    | 'cache_read_tokens'
+    | 'cache_creation_tokens'
+    | 'duration_ms'
+  > | null> {
+    if (traceId) {
+      const existing = await this.messageRepo.findOne({
+        where: {
+          tenant_id: ctx.tenantId,
+          agent_id: ctx.agentId,
+          trace_id: traceId,
+          status: 'ok',
+        },
+        select: [
+          'id',
+          'timestamp',
+          'input_tokens',
+          'output_tokens',
+          'cache_read_tokens',
+          'cache_creation_tokens',
+          'duration_ms',
+        ],
+        order: { timestamp: 'DESC' },
+      });
+      if (existing) return existing;
+    }
+
+    const now = Date.now();
+    const recentByModel = await this.messageRepo.find({
+      where: {
+        tenant_id: ctx.tenantId,
+        agent_id: ctx.agentId,
+        model,
+        status: 'ok',
+      },
+      select: [
+        'id',
+        'timestamp',
+        'input_tokens',
+        'output_tokens',
+        'cache_read_tokens',
+        'cache_creation_tokens',
+        'duration_ms',
+      ],
+      order: { timestamp: 'DESC' },
+      take: 10,
+    });
+
+    return (
+      recentByModel.find((row) => {
+        const rowTime = new Date(row.timestamp).getTime();
+        const durationMs = row.duration_ms ?? null;
+        if (
+          Number.isNaN(rowTime) ||
+          durationMs == null ||
+          now - rowTime > this.SUCCESS_SESSION_DEDUP_WINDOW_MS
+        ) {
+          return false;
+        }
+        const totalPromptTokens =
+          (row.input_tokens ?? 0) + (row.cache_read_tokens ?? 0) + (row.cache_creation_tokens ?? 0);
+        const endTimeDelta = Math.abs(now - rowTime - durationMs);
+        return (
+          totalPromptTokens === usage.prompt_tokens &&
+          (row.output_tokens ?? 0) === usage.completion_tokens &&
+          endTimeDelta <= this.SUCCESS_END_TIME_GRACE_MS
+        );
+      }) ?? null
+    );
   }
 
   private extractTraceId(req: Request): string | undefined {
