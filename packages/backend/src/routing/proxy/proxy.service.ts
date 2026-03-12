@@ -312,17 +312,15 @@ export class ProxyService {
   }
 
   private detectHeartbeat(scoringMessages: ScorerMessage[]): boolean {
-    return scoringMessages.some((m) => {
-      if (m.role !== 'user') return false;
-      if (typeof m.content === 'string') return m.content.includes('HEARTBEAT_OK');
-      if (Array.isArray(m.content)) {
-        return m.content.some(
-          (p: { type?: string; text?: string }) =>
-            p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
-        );
-      }
-      return false;
-    });
+    const lastUser = [...scoringMessages].reverse().find((m) => m.role === 'user');
+    if (!lastUser) return false;
+    if (typeof lastUser.content === 'string') return lastUser.content.includes('HEARTBEAT_OK');
+    if (Array.isArray(lastUser.content)) {
+      return (lastUser.content as { type?: string; text?: string }[]).some(
+        (p) => p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
+      );
+    }
+    return false;
   }
 
   private async forwardToProvider(
