@@ -20,6 +20,8 @@ export interface ProviderDef {
   subscriptionKeyPlaceholder?: string;
   /** Instructions text shown in the subscription detail view. */
   subscriptionCommand?: string;
+  /** Provider uses browser-based OAuth flow (popup window). */
+  subscriptionOAuth?: boolean;
 }
 
 export const PROVIDERS: ProviderDef[] = [
@@ -210,6 +212,9 @@ export const PROVIDERS: ProviderDef[] = [
     keyPrefix: 'sk-',
     minKeyLength: 50,
     keyPlaceholder: 'sk-...',
+    supportsSubscription: true,
+    subscriptionLabel: 'ChatGPT Plus/Pro/Team',
+    subscriptionOAuth: true,
     models: [
       { label: 'GPT-4o', value: 'gpt-4o' },
       { label: 'GPT-4o Mini', value: 'gpt-4o-mini' },

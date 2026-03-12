@@ -4,6 +4,7 @@ import { providerIcon } from './ProviderIcon.js';
 import {
   connectProvider,
   disconnectProvider,
+  getOpenaiOAuthUrl,
   type RoutingProvider,
   type CustomProviderData,
   type AuthType,
@@ -123,6 +124,49 @@ const ProviderSelectModal: Component<Props> = (props) => {
     } catch {
       // error toast from fetchMutate
     } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleOAuthLogin = async (provId: string) => {
+    const provDef = PROVIDERS.find((p) => p.id === provId)!;
+    setBusy(true);
+    try {
+      const { url } = await getOpenaiOAuthUrl(props.agentName);
+      const popup = window.open(url, 'manifest-oauth', 'width=500,height=700');
+      if (!popup) {
+        toast.error('Popup blocked. Please allow popups and try again.');
+        setBusy(false);
+        return;
+      }
+
+      // Poll for the popup reaching the /done page or being closed
+      const poll = setInterval(() => {
+        try {
+          // Once the popup navigates back to our origin, we can read its URL
+          const doneUrl = popup.location?.href;
+          if (doneUrl?.includes('/oauth/openai/done')) {
+            clearInterval(poll);
+            const ok = new URL(doneUrl).searchParams.get('ok') === '1';
+            popup.close();
+            if (ok) {
+              toast.success(`${provDef.name} subscription connected`);
+              props.onUpdate();
+              goBack();
+            } else {
+              toast.error('OAuth login failed. Please try again.');
+            }
+            setBusy(false);
+          }
+        } catch {
+          // Cross-origin — popup is still on auth.openai.com, keep polling
+        }
+        if (popup.closed) {
+          clearInterval(poll);
+          setBusy(false);
+        }
+      }, 300);
+    } catch {
       setBusy(false);
     }
   };
@@ -331,14 +375,18 @@ const ProviderSelectModal: Component<Props> = (props) => {
             {/* -- Subscription Tab -- */}
             <Show when={activeTab() === 'subscription'}>
               <div class="provider-modal__tab-hint">
-                Use your Claude Max or Pro subscription instead of an API key. Paste your
-                setup-token to connect.
+                Use your existing subscription instead of an API key. Connect via OpenClaw or paste
+                a setup-token.
               </div>
               <div class="provider-modal__list">
                 <For each={subscriptionProviders()}>
                   {(prov) => {
+                    const hasDetailView = () =>
+                      !!prov.subscriptionKeyPlaceholder ||
+                      !!prov.subscriptionCommand ||
+                      !!prov.subscriptionOAuth;
                     const connected = () =>
-                      prov.subscriptionKeyPlaceholder
+                      prov.subscriptionKeyPlaceholder || prov.subscriptionOAuth
                         ? isSubscriptionWithToken(prov.id)
                         : isSubscriptionConnected(prov.id);
 
@@ -347,7 +395,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         class="provider-toggle"
                         disabled={busy()}
                         onClick={() =>
-                          prov.subscriptionKeyPlaceholder
+                          hasDetailView()
                             ? openDetail(prov.id, 'subscription')
                             : handleSubscriptionToggle(prov.id)
                         }
@@ -512,9 +560,17 @@ const ProviderSelectModal: Component<Props> = (props) => {
               const provId = selectedProvider()!;
               const provDef = PROVIDERS.find((p) => p.id === provId)!;
               const isSubMode = () => selectedAuthType() === 'subscription';
+              const isOAuthFlow = () => isSubMode() && !!provDef.subscriptionOAuth;
+              const isCommandOnly = () =>
+                isSubMode() &&
+                !!provDef.subscriptionCommand &&
+                !provDef.subscriptionKeyPlaceholder &&
+                !provDef.subscriptionOAuth;
               const connected = () =>
                 isSubMode()
-                  ? isSubscriptionWithToken(provId)
+                  ? isCommandOnly()
+                    ? isSubscriptionConnected(provId)
+                    : isSubscriptionWithToken(provId)
                   : isConnected(provId) || isNoKeyConnected(provId);
               const isOllama = provDef.noKeyRequired;
               const fieldLabel = () => (isSubMode() ? 'Setup Token' : 'API Key');
@@ -559,7 +615,11 @@ const ProviderSelectModal: Component<Props> = (props) => {
                       <div class="routing-modal__title">Connect providers</div>
                       <div class="routing-modal__subtitle">
                         {isSubMode()
-                          ? 'Paste your setup-token to enable routing'
+                          ? isOAuthFlow()
+                            ? 'Log in to connect your subscription'
+                            : isCommandOnly()
+                              ? 'Log in via your browser to connect your subscription'
+                              : 'Paste your setup-token to enable routing'
                           : 'Add your API keys to enable routing through each provider'}
                       </div>
                     </div>
@@ -590,7 +650,9 @@ const ProviderSelectModal: Component<Props> = (props) => {
                   {/* Subscription terminal instruction */}
                   <Show when={isSubMode() && provDef.subscriptionCommand}>
                     <p class="provider-detail__hint">
-                      Run the command below, then paste the token.
+                      {isCommandOnly()
+                        ? 'Run the command below to log in via your browser.'
+                        : 'Run the command below, then paste the token.'}
                     </p>
                     <div class="modal-terminal">
                       <div class="modal-terminal__header">
@@ -613,6 +675,64 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         </div>
                       </div>
                     </div>
+                  </Show>
+
+                  {/* Command-only subscription (terminal command, no token paste) */}
+                  <Show when={isCommandOnly()}>
+                    <p class="provider-detail__hint" style="margin-top: 16px;">
+                      A browser window will open for you to log in. Once authenticated, the
+                      connection will be detected automatically.
+                    </p>
+                    <Show when={connected()}>
+                      <button
+                        class="btn btn--outline provider-detail__action provider-detail__disconnect"
+                        disabled={busy()}
+                        onClick={() => handleDisconnect(provId)}
+                      >
+                        <Show when={!busy()} fallback={<span class="spinner" />}>
+                          Disconnect
+                        </Show>
+                      </button>
+                    </Show>
+                    <Show when={!connected()}>
+                      <button class="btn btn--primary provider-detail__action" onClick={goBack}>
+                        Done
+                      </button>
+                    </Show>
+                  </Show>
+
+                  {/* OAuth subscription (browser popup login) */}
+                  <Show when={isOAuthFlow()}>
+                    <p class="provider-detail__hint">
+                      Log in with your {provDef.name} account to connect your subscription.
+                    </p>
+                    <Show when={!connected()}>
+                      <button
+                        class="btn btn--primary provider-detail__action"
+                        disabled={busy()}
+                        onClick={() => handleOAuthLogin(provId)}
+                      >
+                        <Show when={!busy()} fallback={<span class="spinner" />}>
+                          Log in with {provDef.name}
+                        </Show>
+                      </button>
+                    </Show>
+                    <Show when={connected()}>
+                      <div class="provider-detail__field">
+                        <span class="provider-detail__no-key">
+                          Connected via {provDef.subscriptionLabel ?? 'subscription'}
+                        </span>
+                      </div>
+                      <button
+                        class="btn btn--outline provider-detail__action provider-detail__disconnect"
+                        disabled={busy()}
+                        onClick={() => handleDisconnect(provId)}
+                      >
+                        <Show when={!busy()} fallback={<span class="spinner" />}>
+                          Disconnect
+                        </Show>
+                      </button>
+                    </Show>
                   </Show>
 
                   {/* Ollama (no key) */}
@@ -646,8 +766,8 @@ const ProviderSelectModal: Component<Props> = (props) => {
                     </Show>
                   </Show>
 
-                  {/* Non-Ollama: not yet connected */}
-                  <Show when={!isOllama && !connected()}>
+                  {/* Non-Ollama: not yet connected (skip for command-only and OAuth) */}
+                  <Show when={!isOllama && !connected() && !isCommandOnly() && !isOAuthFlow()}>
                     <div class="provider-detail__field">
                       <label class="provider-detail__label">{fieldLabel()}</label>
                       <input
@@ -680,8 +800,8 @@ const ProviderSelectModal: Component<Props> = (props) => {
                     </button>
                   </Show>
 
-                  {/* Non-Ollama: already connected */}
-                  <Show when={!isOllama && connected()}>
+                  {/* Non-Ollama: already connected (skip for command-only and OAuth) */}
+                  <Show when={!isOllama && connected() && !isCommandOnly() && !isOAuthFlow()}>
                     <div class="provider-detail__field">
                       <label class="provider-detail__label">{fieldLabel()}</label>
                       <Show when={!editing()}>

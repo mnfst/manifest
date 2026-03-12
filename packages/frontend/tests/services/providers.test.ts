@@ -132,6 +132,44 @@ describe("validateSubscriptionKey", () => {
       valid: true,
     });
   });
+
+  it("returns valid for an OpenAI subscription token (JWT format)", () => {
+    const openai = getProvider("openai")!;
+    expect(validateSubscriptionKey(openai, "eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp")).toEqual({
+      valid: true,
+    });
+  });
+
+  it("returns invalid for an empty OpenAI subscription token", () => {
+    const openai = getProvider("openai")!;
+    expect(validateSubscriptionKey(openai, "")).toEqual({
+      valid: false,
+      error: "Token is required",
+    });
+  });
+
+  it("returns invalid for a too-short OpenAI subscription token", () => {
+    const openai = getProvider("openai")!;
+    expect(validateSubscriptionKey(openai, "short")).toEqual({
+      valid: false,
+      error: "Token is too short (minimum 10 characters)",
+    });
+  });
+
+  it("rejects an OpenAI API key in subscription mode", () => {
+    const openai = getProvider("openai")!;
+    expect(validateSubscriptionKey(openai, "sk-proj-1234567890abcdef")).toEqual({
+      valid: false,
+      error: "This looks like an API key. Use the API Key tab instead.",
+    });
+  });
+
+  it("does not reject non-API-key tokens for providers without API_KEY_PREFIXES", () => {
+    const deepseek = getProvider("deepseek")!;
+    expect(validateSubscriptionKey(deepseek, "some-valid-token-here")).toEqual({
+      valid: true,
+    });
+  });
 });
 
 /* ── getModelLabel ──────────────────────────────── */
@@ -235,6 +273,21 @@ describe("PROVIDERS", () => {
       expect(p.subtitle).toBeTruthy();
       expect(Array.isArray(p.models)).toBe(true);
     }
+  });
+
+  it("OpenAI supports subscription with OAuth browser flow", () => {
+    const openai = PROVIDERS.find((p) => p.id === "openai")!;
+    expect(openai.supportsSubscription).toBe(true);
+    expect(openai.subscriptionLabel).toBe("ChatGPT Plus/Pro/Team");
+    expect(openai.subscriptionKeyPlaceholder).toBeUndefined();
+    expect(openai.subscriptionCommand).toBeUndefined();
+    expect(openai.subscriptionOAuth).toBe(true);
+  });
+
+  it("Anthropic supports subscription", () => {
+    const anthropic = PROVIDERS.find((p) => p.id === "anthropic")!;
+    expect(anthropic.supportsSubscription).toBe(true);
+    expect(anthropic.subscriptionLabel).toBe("Claude Max / Pro subscription");
   });
 
   it("does not have API-key-specific fields", () => {

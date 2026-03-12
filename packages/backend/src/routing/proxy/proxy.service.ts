@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException, HttpException } from '@nestjs/
 import { ResolveService } from '../resolve.service';
 import { RoutingService } from '../routing.service';
 import { CustomProviderService } from '../custom-provider.service';
+import { OpenaiOauthService } from '../openai-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import { buildCustomEndpoint, ProviderEndpoint } from './provider-endpoints';
@@ -55,6 +56,7 @@ export class ProxyService {
     private readonly resolveService: ResolveService,
     private readonly routingService: RoutingService,
     private readonly customProviderService: CustomProviderService,
+    private readonly openaiOauth: OpenaiOauthService,
     private readonly providerClient: ProviderClient,
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
@@ -103,7 +105,7 @@ export class ProxyService {
       );
     }
 
-    const apiKey = await this.routingService.getProviderApiKey(
+    let apiKey = await this.routingService.getProviderApiKey(
       agentId,
       resolved.provider,
       resolved.auth_type,
@@ -112,6 +114,12 @@ export class ProxyService {
       throw new BadRequestException(
         `No API key found for provider: ${resolved.provider}. Re-connect the provider with an API key.`,
       );
+    }
+
+    // Unwrap OAuth JSON token blob (OpenAI subscription stores {t,r,e})
+    if (resolved.auth_type === 'subscription' && resolved.provider.toLowerCase() === 'openai') {
+      const unwrapped = await this.openaiOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) apiKey = unwrapped;
     }
 
     this.logger.log(
@@ -139,6 +147,7 @@ export class ProxyService {
         const primaryErrorBody = await forward.response.text();
         const { success, failures } = await this.tryFallbacks(
           agentId,
+          userId,
           fallbackModels,
           body,
           stream,
@@ -211,6 +220,7 @@ export class ProxyService {
 
   private async tryFallbacks(
     agentId: string,
+    userId: string,
     fallbackModels: string[],
     body: Record<string, unknown>,
     stream: boolean,
@@ -240,12 +250,18 @@ export class ProxyService {
         inferProviderFromModelName(pricing.model_name) ??
         pricing.provider;
       const authType = await this.routingService.getAuthType(agentId, provider);
-      const apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
+      let apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
       if (apiKey === null) {
         this.logger.debug(
           `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
         );
         continue;
+      }
+
+      // Unwrap OAuth JSON token blob for OpenAI subscription fallbacks
+      if (authType === 'subscription' && provider.toLowerCase() === 'openai') {
+        const unwrapped = await this.openaiOauth.unwrapToken(apiKey, agentId, userId);
+        if (unwrapped) apiKey = unwrapped;
       }
 
       this.logger.log(

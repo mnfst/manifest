@@ -34,6 +34,11 @@ const SUBSCRIPTION_PREFIXES: Record<string, string> = {
   anthropic: 'sk-ant-oat',
 };
 
+/** Prefixes that identify API keys — reject these in subscription mode. */
+const API_KEY_PREFIXES: Record<string, string> = {
+  openai: 'sk-',
+};
+
 export function validateSubscriptionKey(
   provider: ProviderDef,
   key: string,
@@ -51,6 +56,13 @@ export function validateSubscriptionKey(
     return {
       valid: false,
       error: `${provider.name} subscription tokens start with "${prefix}"`,
+    };
+  }
+  const apiPrefix = API_KEY_PREFIXES[provider.id];
+  if (apiPrefix && trimmed.startsWith(apiPrefix)) {
+    return {
+      valid: false,
+      error: 'This looks like an API key. Use the API Key tab instead.',
     };
   }
   return { valid: true };
