@@ -130,6 +130,46 @@ describe("registerCommand", () => {
     );
   });
 
+  it("formats empty providers, unknown tiers, and api-key auth headers", async () => {
+    mockVerify.mockResolvedValueOnce({
+      endpointReachable: true,
+      authValid: true,
+      agentName: null,
+      error: null,
+    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        agentName: "custom-agent",
+        providers: [],
+        tiers: [
+          { tier: "custom", model: null, source: "auto", fallback_models: [] },
+        ],
+      }),
+    });
+
+    const api = { registerCommand: jest.fn() };
+    registerCommand(
+      api,
+      { ...config, apiKey: "mnfst_test_key", devMode: false },
+      mockLogger,
+    );
+
+    const cmd = api.registerCommand.mock.calls[0][0];
+    const result = await cmd.execute();
+
+    expect(result).toContain("Dev mode: no");
+    expect(result).toContain("Agent: custom-agent");
+    expect(result).toContain("Providers: none");
+    expect(result).toContain("custom -> unassigned (auto)");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:38238/api/v1/routing/summary",
+      expect.objectContaining({
+        headers: { Authorization: "Bearer mnfst_test_key" },
+      }),
+    );
+  });
+
   it("falls back to status output when the routing summary request fails", async () => {
     mockVerify.mockResolvedValueOnce({
       endpointReachable: true,
@@ -150,6 +190,26 @@ describe("registerCommand", () => {
     expect(result).not.toContain("Routing:");
     expect(mockLogger.debug).toHaveBeenCalledWith(
       "[manifest] Routing summary failed (summary down)",
+    );
+  });
+
+  it("stringifies non-Error routing summary failures", async () => {
+    mockVerify.mockResolvedValueOnce({
+      endpointReachable: true,
+      authValid: true,
+      agentName: "test-agent",
+      error: null,
+    });
+    mockFetch.mockRejectedValueOnce("summary-string-error");
+
+    const api = { registerCommand: jest.fn() };
+    registerCommand(api, config, mockLogger);
+
+    const cmd = api.registerCommand.mock.calls[0][0];
+    await cmd.execute();
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      "[manifest] Routing summary failed (summary-string-error)",
     );
   });
 

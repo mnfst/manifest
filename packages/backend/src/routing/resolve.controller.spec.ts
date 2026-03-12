@@ -256,6 +256,32 @@ describe('ResolveController', () => {
       ]);
       expect(mockRoutingService.getEffectiveModel).toHaveBeenCalledTimes(1);
     });
+
+    it('sorts same-provider entries by auth type and defaults missing auth type to api_key', async () => {
+      const req = {
+        ingestionContext: {
+          userId: 'user-42',
+          tenantId: 't1',
+          agentId: 'a1',
+          agentName: 'test-agent',
+        },
+      } as never;
+
+      mockRoutingService.getProviders.mockResolvedValue([
+        { provider: 'openai', auth_type: 'subscription', is_active: true },
+        { provider: 'openai', auth_type: 'api_key', is_active: true },
+        { provider: 'mistral', is_active: true },
+      ]);
+      mockRoutingService.getTiers.mockResolvedValue([]);
+
+      const result = await controller.getSummary(req);
+
+      expect(result.providers).toEqual([
+        { provider: 'mistral', auth_type: 'api_key' },
+        { provider: 'openai', auth_type: 'api_key' },
+        { provider: 'openai', auth_type: 'subscription' },
+      ]);
+    });
   });
 
   describe('RegisterSubscriptionsDto', () => {
