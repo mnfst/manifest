@@ -43,8 +43,10 @@ global.fetch = mockFetch;
 
 describe('PricingSyncService', () => {
   let service: PricingSyncService;
+  const origManifestMode = process.env['MANIFEST_MODE'];
 
   beforeEach(() => {
+    delete process.env['MANIFEST_MODE'];
     service = new PricingSyncService(
       mockRepo,
       mockPricingCache,
@@ -59,6 +61,11 @@ describe('PricingSyncService', () => {
     mockCount.mockResolvedValue(0);
     mockFind.mockResolvedValue([]);
     mockDelete.mockResolvedValue(undefined);
+  });
+
+  afterAll(() => {
+    if (origManifestMode !== undefined) process.env['MANIFEST_MODE'] = origManifestMode;
+    else delete process.env['MANIFEST_MODE'];
   });
 
   it('creates canonical models for new vendor-prefixed models (no OpenRouter copies)', async () => {
