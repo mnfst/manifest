@@ -3,52 +3,15 @@
   --custom-provider-color: #6366f1;
 }
 
-/* ── Provider modal tabs ─────────────────────────── */
-.provider-modal__tabs {
-  display: flex;
-  gap: 0;
+/* ── Provider modal tabs wrapper ─────────────────── */
+.provider-modal__tabs-wrapper {
   padding: 0 24px;
-  border-bottom: 1px solid hsl(var(--border));
-}
-
-.provider-modal__tab {
-  flex: 1;
-  padding: 10px 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  font-family: var(--font-family);
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  text-align: center;
-  transition:
-    color var(--transition-fast),
-    border-color var(--transition-fast);
-}
-
-.provider-modal__tab:hover {
-  color: hsl(var(--foreground));
-}
-
-.provider-modal__tab--active {
-  color: hsl(var(--foreground));
-  border-bottom-color: hsl(var(--primary));
-}
-
-.provider-modal__tab:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: -2px;
-  border-radius: 2px;
+  margin-bottom: 4px;
 }
 
 .provider-modal__tab-icon {
   flex-shrink: 0;
+  margin-right: 6px;
 }
 
 .provider-modal__tab-hint {

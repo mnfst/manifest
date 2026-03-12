@@ -1,4 +1,4 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
+import { createSignal, Index, For, Show, type Component } from 'solid-js';
 import {
   createCustomProvider,
   updateCustomProvider,
@@ -243,43 +243,41 @@ const CustomProviderForm: Component<Props> = (props) => {
         <div class="provider-detail__field">
           <label class="provider-detail__label">Models</label>
           <div class="custom-provider-models">
-            <For each={rows()}>
+            <Index each={rows()}>
               {(row, i) => (
                 <div class="custom-provider-model-row">
                   <input
                     class="provider-detail__input custom-provider-model-row__name"
                     type="text"
                     placeholder="Model name"
-                    aria-label={`Model ${i() + 1} name`}
-                    value={row.model_name}
-                    onInput={(e) => updateRow(i(), 'model_name', e.currentTarget.value)}
+                    aria-label={`Model ${i + 1} name`}
+                    value={row().model_name}
+                    onInput={(e) => updateRow(i, 'model_name', e.currentTarget.value)}
                   />
                   <input
                     class="provider-detail__input custom-provider-model-row__price"
-                    type="number"
+                    type="text"
+                    inputmode="decimal"
                     placeholder="$/M in"
-                    aria-label={`Model ${i() + 1} input price per million tokens`}
-                    min="0"
-                    step="0.01"
-                    value={row.input_price}
-                    onInput={(e) => updateRow(i(), 'input_price', e.currentTarget.value)}
+                    aria-label={`Model ${i + 1} input price per million tokens`}
+                    value={row().input_price}
+                    onInput={(e) => updateRow(i, 'input_price', e.currentTarget.value)}
                   />
                   <input
                     class="provider-detail__input custom-provider-model-row__price"
-                    type="number"
+                    type="text"
+                    inputmode="decimal"
                     placeholder="$/M out"
-                    aria-label={`Model ${i() + 1} output price per million tokens`}
-                    min="0"
-                    step="0.01"
-                    value={row.output_price}
-                    onInput={(e) => updateRow(i(), 'output_price', e.currentTarget.value)}
+                    aria-label={`Model ${i + 1} output price per million tokens`}
+                    value={row().output_price}
+                    onInput={(e) => updateRow(i, 'output_price', e.currentTarget.value)}
                   />
                   <button
                     type="button"
                     class="custom-provider-model-row__remove"
-                    onClick={() => removeRow(i())}
+                    onClick={() => removeRow(i)}
                     disabled={rows().length <= 1}
-                    aria-label={`Remove model ${i() + 1}`}
+                    aria-label={`Remove model ${i + 1}`}
                     title="Remove"
                   >
                     <svg
@@ -299,7 +297,7 @@ const CustomProviderForm: Component<Props> = (props) => {
                   </button>
                 </div>
               )}
-            </For>
+            </Index>
             <button
               type="button"
               class="btn btn--outline btn--sm"
@@ -329,10 +327,10 @@ const CustomProviderForm: Component<Props> = (props) => {
         <Show when={isEdit()}>
           <button
             type="button"
-            class="btn btn--outline provider-detail__action provider-detail__disconnect"
+            class="btn btn--outline provider-detail__disconnect"
             disabled={busy()}
             onClick={handleDelete}
-            style="margin-top: 16px;"
+            style="margin-top: 16px; align-self: flex-start;"
           >
             Delete provider
           </button>
