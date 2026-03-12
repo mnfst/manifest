@@ -94,6 +94,17 @@ describe('NotificationCronService', () => {
     loggerSpy.mockRestore();
   });
 
+  it('skips rule when consumption fetch fails', async () => {
+    mockGetAllActiveRules.mockResolvedValue([activeRule]);
+    mockGetConsumption.mockRejectedValue(new Error('DB timeout'));
+
+    const loggerSpy = jest.spyOn(service['logger'], 'error').mockImplementation();
+    const result = await service.checkThresholds();
+    expect(result).toBe(0);
+    expect(loggerSpy).toHaveBeenCalledWith(expect.stringContaining('Error fetching consumption'));
+    loggerSpy.mockRestore();
+  });
+
   it('skips rule when already notified for current period (dedup)', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
     mockGetConsumption.mockResolvedValue(200000);
