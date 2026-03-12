@@ -160,95 +160,31 @@ export class PricingSyncService implements OnModuleInit {
 
         const { canonical, provider } = this.deriveNames(model.id);
         const displayName = this.extractDisplayName(model);
-        const existing = await this.pricingRepo.findOneBy({
-          model_name: canonical,
-        });
-
-        const incoming = {
-          model_name: canonical,
-          provider,
-          input_price_per_token: prompt,
-          output_price_per_token: completion,
-        };
         const contextWindow = model.context_length;
 
-        await this.pricingHistory.recordChange(existing, incoming, 'sync');
-
-        const hasVendorPrefix = model.id.includes('/') && !model.id.startsWith('openrouter/');
-
-        let upserted = false;
-        if (existing) {
-          // Seeded model — update pricing only, preserve provider
-          await this.pricingRepo.upsert(
-            {
-              model_name: canonical,
-              input_price_per_token: prompt,
-              output_price_per_token: completion,
+        await Promise.all(
+          [...new Set([provider, 'OpenRouter'])].map(async (provider) => {
+            const incoming = {
               ...(contextWindow != null && { context_window: contextWindow }),
               ...(displayName && { display_name: displayName }),
-              updated_at: now,
-            },
-            ['model_name'],
-          );
-          upserted = true;
-        } else if (hasVendorPrefix) {
-          // No seeded entry — create canonical model with proper provider
-          await this.pricingRepo.upsert(
-            {
-              model_name: canonical,
-              provider,
-              input_price_per_token: prompt,
               output_price_per_token: completion,
-              ...(contextWindow != null && { context_window: contextWindow }),
-              ...(displayName && { display_name: displayName }),
-              updated_at: now,
-            },
-            ['model_name'],
-          );
-          upserted = true;
-        } else {
-          // No seeded entry — create canonical with correct provider name
-          await this.pricingRepo.upsert(
-            {
-              model_name: canonical,
-              provider,
               input_price_per_token: prompt,
-              output_price_per_token: completion,
-              ...(contextWindow != null && { context_window: contextWindow }),
+              model_name: canonical,
               updated_at: now,
-            },
-            ['model_name'],
-          );
-          upserted = true;
-        }
+              provider,
+            };
 
-        // Update existing OpenRouter copy with the full vendor-prefixed ID
-        if (hasVendorPrefix) {
-          const existingCopy = await this.pricingRepo.findOneBy({
-            model_name: model.id,
-          });
-          if (existingCopy) {
-            try {
-              await this.pricingRepo.upsert(
-                {
-                  model_name: model.id,
-                  input_price_per_token: prompt,
-                  output_price_per_token: completion,
-                  ...(contextWindow != null && { context_window: contextWindow }),
-                  ...(displayName && { display_name: displayName }),
-                  updated_at: now,
-                },
-                ['model_name'],
-              );
-              upserted = true;
-            } catch (copyErr) {
-              this.logger.warn(
-                `Failed to store OpenRouter copy for ${model.id}: ${copyErr instanceof Error ? copyErr.message : copyErr}`,
-              );
-            }
-          }
-        }
-        if (upserted) updated++;
+            const existing = await this.pricingRepo.findOneBy({
+              model_name: canonical,
+              provider,
+            });
+
+            await this.pricingHistory.recordChange(existing, incoming, 'sync');
+
+            await this.pricingRepo.upsert(incoming, ['model_name', 'provider']);
+            updated++;
+          }),
+        );
       } catch (err) {
         failed++;
         this.logger.warn(
@@ -260,6 +196,7 @@ export class PricingSyncService implements OnModuleInit {
     if (failed > 0) {
       this.logger.warn(`Pricing sync: ${failed} models failed`);
     }
+
     return updated;
   }
 
@@ -276,10 +213,6 @@ export class PricingSyncService implements OnModuleInit {
     canonical: string;
     provider: string;
   } {
-    if (openRouterId.startsWith('openrouter/')) {
-      return { canonical: openRouterId, provider: 'OpenRouter' };
-    }
-
     const slashIndex = openRouterId.indexOf('/');
     if (slashIndex === -1) {
       return { canonical: openRouterId, provider: 'Unknown' };

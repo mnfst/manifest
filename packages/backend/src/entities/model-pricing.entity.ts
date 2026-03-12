@@ -6,14 +6,14 @@ export class ModelPricing {
   @PrimaryColumn('varchar')
   model_name!: string;
 
+  @PrimaryColumn('varchar')
+  provider!: string;
+
   @Column('decimal', { precision: 12, scale: 10, nullable: true })
   input_price_per_token!: number | null;
 
   @Column('decimal', { precision: 12, scale: 10, nullable: true })
   output_price_per_token!: number | null;
-
-  @Column('varchar', { default: '' })
-  provider!: string;
 
   @Column(timestampType(), { nullable: true })
   updated_at!: Date | null;
