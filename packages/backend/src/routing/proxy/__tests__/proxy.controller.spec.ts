@@ -403,6 +403,127 @@ describe('ProxyController', () => {
     expect(mockMessageRepo.update).not.toHaveBeenCalled();
   });
 
+  it('should scope traceless success fallback by user and session key when available', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 19684, completion_tokens: 13 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    mockMessageRepo.find.mockResolvedValue([
+      {
+        id: 'existing-otlp-row',
+        timestamp: new Date(Date.now() - 2800).toISOString(),
+        input_tokens: 171,
+        output_tokens: 13,
+        cache_read_tokens: 19513,
+        cache_creation_tokens: 0,
+        duration_ms: 2700,
+      },
+    ]);
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'standard',
+        model: 'deepseek-chat',
+        provider: 'DeepSeek',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-42', {
+      'x-session-key': 'sess-42',
+    });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          model: 'deepseek-chat',
+          status: 'ok',
+          user_id: 'user-42',
+          session_key: 'sess-42',
+        }),
+      }),
+    );
+    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+  });
+
+  it('should serialize concurrent success dedup checks for the same trace', async () => {
+    let releaseInsert!: () => void;
+    const insertGate = new Promise<void>((resolve) => {
+      releaseInsert = resolve;
+    });
+    mockMessageRepo.findOne
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: 'existing-otlp-row',
+        input_tokens: 500,
+        output_tokens: 200,
+      });
+    mockMessageRepo.insert.mockImplementationOnce(async () => {
+      await insertGate;
+      return {};
+    });
+
+    const ctx = {
+      userId: 'user-1',
+      tenantId: 'tenant-1',
+      agentId: 'agent-1',
+      agentName: 'test-agent',
+    };
+    const usage = {
+      prompt_tokens: 500,
+      completion_tokens: 200,
+      cache_read_tokens: 100,
+    };
+    const recordSuccessMessage = (
+      controller as unknown as {
+        recordSuccessMessage: (...args: unknown[]) => Promise<void>;
+      }
+    ).recordSuccessMessage.bind(controller);
+
+    const firstWrite = recordSuccessMessage(
+      ctx,
+      'gpt-4o',
+      'simple',
+      'scored',
+      usage,
+      'abcdef1234567890abcdef1234567890',
+      undefined,
+      'sess-1',
+    );
+
+    await new Promise((r) => setTimeout(r, 0));
+
+    const secondWrite = recordSuccessMessage(
+      ctx,
+      'gpt-4o',
+      'simple',
+      'scored',
+      usage,
+      'abcdef1234567890abcdef1234567890',
+      undefined,
+      'sess-1',
+    );
+
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockMessageRepo.findOne).toHaveBeenCalledTimes(1);
+
+    releaseInsert();
+    await Promise.all([firstWrite, secondWrite]);
+
+    expect(mockMessageRepo.findOne).toHaveBeenCalledTimes(2);
+    expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
+  });
+
   it('should skip recording when response has zero tokens', async () => {
     const responseBody = {
       choices: [{ message: { content: 'hello' } }],

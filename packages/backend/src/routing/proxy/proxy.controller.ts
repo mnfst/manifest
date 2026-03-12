@@ -34,6 +34,7 @@ export class ProxyController implements OnModuleDestroy {
   private readonly logger = new Logger(ProxyController.name);
   private readonly seenUsers = new Set<string>();
   private readonly rateLimitCooldown = new Map<string, number>();
+  private readonly successWriteLocks = new Map<string, Promise<void>>();
   private readonly RATE_LIMIT_COOLDOWN_MS = 60_000;
   private readonly MAX_COOLDOWN_ENTRIES = 1_000;
   private readonly SUCCESS_SESSION_DEDUP_WINDOW_MS = 30_000;
@@ -253,6 +254,7 @@ export class ProxyController implements OnModuleDestroy {
           streamUsage,
           traceId,
           meta.auth_type,
+          sessionKey,
         ).catch((e) => this.logger.warn(`Failed to record success message: ${e}`));
       }
     } catch (err: unknown) {
@@ -457,6 +459,7 @@ export class ProxyController implements OnModuleDestroy {
     usage: StreamUsage,
     traceId?: string,
     authType?: string,
+    sessionKey?: string,
   ): Promise<void> {
     if (usage.prompt_tokens === 0 && usage.completion_tokens === 0) return;
 
@@ -472,16 +475,51 @@ export class ProxyController implements OnModuleDestroy {
       }
     }
 
-    const existing = await this.findExistingSuccessMessage(ctx, model, usage, traceId);
+    const normalizedSessionKey = this.normalizeSessionKey(sessionKey);
 
-    if (existing) {
-      const hasRecordedTokens =
-        (existing.input_tokens ?? 0) > 0 || (existing.output_tokens ?? 0) > 0;
-      if (hasRecordedTokens) return;
+    await this.withSuccessWriteLock(
+      this.getSuccessWriteLockKey(ctx, model, traceId, normalizedSessionKey),
+      async () => {
+        const existing = await this.findExistingSuccessMessage(
+          ctx,
+          model,
+          usage,
+          traceId,
+          normalizedSessionKey,
+        );
 
-      await this.messageRepo.update(
-        { id: existing.id },
-        {
+        if (existing) {
+          const hasRecordedTokens =
+            (existing.input_tokens ?? 0) > 0 || (existing.output_tokens ?? 0) > 0;
+          if (hasRecordedTokens) return;
+
+          const updatePayload: Partial<AgentMessage> = {
+            model,
+            routing_tier: tier,
+            routing_reason: reason,
+            input_tokens: usage.prompt_tokens,
+            output_tokens: usage.completion_tokens,
+            cache_read_tokens: usage.cache_read_tokens ?? 0,
+            cache_creation_tokens: usage.cache_creation_tokens ?? 0,
+            cost_usd: costUsd,
+            auth_type: authType ?? null,
+            user_id: ctx.userId,
+          };
+          if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
+
+          await this.messageRepo.update({ id: existing.id }, updatePayload);
+          return;
+        }
+
+        await this.messageRepo.insert({
+          id: uuid(),
+          tenant_id: ctx.tenantId,
+          agent_id: ctx.agentId,
+          trace_id: traceId ?? null,
+          session_key: normalizedSessionKey,
+          timestamp: new Date().toISOString(),
+          status: 'ok',
+          agent_name: ctx.agentName,
           model,
           routing_tier: tier,
           routing_reason: reason,
@@ -491,31 +529,12 @@ export class ProxyController implements OnModuleDestroy {
           cache_creation_tokens: usage.cache_creation_tokens ?? 0,
           cost_usd: costUsd,
           auth_type: authType ?? null,
-        },
-      );
-      return;
-    }
-
-    await this.messageRepo.insert({
-      id: uuid(),
-      tenant_id: ctx.tenantId,
-      agent_id: ctx.agentId,
-      trace_id: traceId ?? null,
-      timestamp: new Date().toISOString(),
-      status: 'ok',
-      agent_name: ctx.agentName,
-      model,
-      routing_tier: tier,
-      routing_reason: reason,
-      input_tokens: usage.prompt_tokens,
-      output_tokens: usage.completion_tokens,
-      cache_read_tokens: usage.cache_read_tokens ?? 0,
-      cache_creation_tokens: usage.cache_creation_tokens ?? 0,
-      cost_usd: costUsd,
-      auth_type: authType ?? null,
-      fallback_from_model: null,
-      fallback_index: null,
-    });
+          fallback_from_model: null,
+          fallback_index: null,
+          user_id: ctx.userId,
+        });
+      },
+    );
   }
 
   private async findExistingSuccessMessage(
@@ -523,6 +542,7 @@ export class ProxyController implements OnModuleDestroy {
     model: string,
     usage: StreamUsage,
     traceId?: string,
+    sessionKey?: string | null,
   ): Promise<Pick<
     AgentMessage,
     | 'id'
@@ -560,8 +580,10 @@ export class ProxyController implements OnModuleDestroy {
       where: {
         tenant_id: ctx.tenantId,
         agent_id: ctx.agentId,
+        user_id: ctx.userId,
         model,
         status: 'ok',
+        ...(sessionKey ? { session_key: sessionKey } : {}),
       },
       select: [
         'id',
@@ -597,6 +619,41 @@ export class ProxyController implements OnModuleDestroy {
         );
       }) ?? null
     );
+  }
+
+  private normalizeSessionKey(sessionKey?: string | null): string | null {
+    if (!sessionKey || sessionKey === 'default') return null;
+    return sessionKey;
+  }
+
+  private getSuccessWriteLockKey(
+    ctx: IngestionContext,
+    model: string,
+    traceId?: string,
+    sessionKey?: string | null,
+  ): string {
+    if (traceId) return `trace:${ctx.tenantId}:${ctx.agentId}:${traceId}`;
+    return `success:${ctx.tenantId}:${ctx.agentId}:${ctx.userId}:${sessionKey ?? 'no-session'}:${model}`;
+  }
+
+  private async withSuccessWriteLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    const previous = this.successWriteLocks.get(key) ?? Promise.resolve();
+    let release!: () => void;
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const queued = previous.catch(() => undefined).then(() => current);
+    this.successWriteLocks.set(key, queued);
+    await previous.catch(() => undefined);
+
+    try {
+      return await fn();
+    } finally {
+      release();
+      if (this.successWriteLocks.get(key) === queued) {
+        this.successWriteLocks.delete(key);
+      }
+    }
   }
 
   private extractTraceId(req: Request): string | undefined {
