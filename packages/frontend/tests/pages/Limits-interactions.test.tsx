@@ -336,7 +336,7 @@ describe("Limits page interactions", () => {
     fireEvent.click(deleteBtn);
 
     await vi.waitFor(() => {
-      expect(deleteBtn.textContent).toBe("Deleting...");
+      expect(deleteBtn.querySelector(".spinner")).not.toBeNull();
       expect(deleteBtn.disabled).toBe(true);
     });
 
@@ -370,7 +370,7 @@ describe("Limits page interactions", () => {
     fireEvent.click(removeBtn);
 
     await vi.waitFor(() => {
-      expect(removeBtn.textContent).toBe("Removing...");
+      expect(removeBtn.querySelector(".spinner")).not.toBeNull();
       expect(removeBtn.disabled).toBe(true);
     });
 

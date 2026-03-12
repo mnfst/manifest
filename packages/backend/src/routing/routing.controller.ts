@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { RoutingService } from './routing.service';
@@ -6,11 +6,13 @@ import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
-import { expandProviderNames } from './provider-aliases';
+import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
 import { trackCloudEvent } from '../common/utils/product-telemetry';
 import {
   AgentNameParamDto,
+  AgentProviderParamDto,
   ConnectProviderDto,
+  RemoveProviderQueryDto,
   SetOverrideDto,
   SetFallbacksDto,
 } from './dto/routing.dto';
@@ -44,6 +46,7 @@ export class RoutingController {
     return providers.map((p) => ({
       id: p.id,
       provider: p.provider,
+      auth_type: p.auth_type ?? 'api_key',
       is_active: p.is_active,
       has_api_key: !!p.api_key_encrypted,
       key_prefix: p.key_prefix ?? null,
@@ -69,6 +72,7 @@ export class RoutingController {
       user.id,
       body.provider,
       body.apiKey,
+      body.authType,
     );
 
     if (isNew) {
@@ -80,6 +84,7 @@ export class RoutingController {
     return {
       id: result.id,
       provider: result.provider,
+      auth_type: result.auth_type ?? 'api_key',
       is_active: result.is_active,
     };
   }
@@ -94,11 +99,15 @@ export class RoutingController {
   @Delete(':agentName/providers/:provider')
   async removeProvider(
     @CurrentUser() user: AuthUser,
-    @Param('agentName') agentName: string,
-    @Param('provider') provider: string,
+    @Param() params: AgentProviderParamDto,
+    @Query() query: RemoveProviderQueryDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    const { notifications } = await this.routingService.removeProvider(agent.id, provider);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const { notifications } = await this.routingService.removeProvider(
+      agent.id,
+      params.provider,
+      query.authType,
+    );
     return { ok: true, notifications };
   }
 
@@ -125,7 +134,7 @@ export class RoutingController {
     @Body() body: SetOverrideDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.routingService.setOverride(agent.id, user.id, tier, body.model);
+    return this.routingService.setOverride(agent.id, user.id, tier, body.model, body.authType);
   }
 
   @Delete(':agentName/tiers/:tier')
@@ -199,7 +208,11 @@ export class RoutingController {
 
     const models = this.pricingCache.getAll();
     return models
-      .filter((m) => activeProviders.has(m.provider.toLowerCase()))
+      .filter((m) => {
+        if (activeProviders.has(m.provider.toLowerCase())) return true;
+        const prefix = inferProviderFromModelName(m.model_name);
+        return prefix != null && activeProviders.has(prefix);
+      })
       .map((m) => {
         const isCustom = CustomProviderService.isCustom(m.provider);
         return {

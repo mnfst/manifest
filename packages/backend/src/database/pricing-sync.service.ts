@@ -61,6 +61,9 @@ export class PricingSyncService implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
+    // In local mode, LocalBootstrapService orchestrates the sync + purge chain.
+    if (process.env['MANIFEST_MODE'] === 'local') return;
+
     const cutoff = new Date(Date.now() - FRESHNESS_HOURS * 3600_000);
     const recent = await this.pricingRepo.count({
       where: { updated_at: MoreThan(cutoff) },
@@ -198,6 +201,20 @@ export class PricingSyncService implements OnModuleInit {
               output_price_per_token: completion,
               ...(contextWindow != null && { context_window: contextWindow }),
               ...(displayName && { display_name: displayName }),
+              updated_at: now,
+            },
+            ['model_name'],
+          );
+          upserted = true;
+        } else {
+          // No seeded entry — create canonical with correct provider name
+          await this.pricingRepo.upsert(
+            {
+              model_name: canonical,
+              provider,
+              input_price_per_token: prompt,
+              output_price_per_token: completion,
+              ...(contextWindow != null && { context_window: contextWindow }),
               updated_at: now,
             },
             ['model_name'],

@@ -18,6 +18,7 @@ describe('HealthController', () => {
 
   beforeEach(() => {
     delete process.env['MANIFEST_MODE'];
+    delete process.env['NODE_ENV'];
     mockVersionCheck = createMockVersionCheck();
     controller = new HealthController(mockVersionCheck);
   });
@@ -74,5 +75,23 @@ describe('HealthController', () => {
     const result = controller.getHealth();
     expect(result).not.toHaveProperty('latestVersion');
     expect(result).not.toHaveProperty('updateAvailable');
+  });
+
+  it('returns devMode true when NODE_ENV is not production', () => {
+    process.env['NODE_ENV'] = 'development';
+    const result = controller.getHealth();
+    expect(result.devMode).toBe(true);
+  });
+
+  it('returns devMode false when NODE_ENV is production', () => {
+    process.env['NODE_ENV'] = 'production';
+    const result = controller.getHealth();
+    expect(result.devMode).toBe(false);
+  });
+
+  it('returns devMode true when NODE_ENV is unset', () => {
+    delete process.env['NODE_ENV'];
+    const result = controller.getHealth();
+    expect(result.devMode).toBe(true);
   });
 });

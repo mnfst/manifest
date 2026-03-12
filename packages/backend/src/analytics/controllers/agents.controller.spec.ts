@@ -16,6 +16,7 @@ import { AggregationService } from '../services/aggregation.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { readLocalApiKey } from '../../common/constants/local-mode.constants';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
+import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 const mockReadLocalApiKey = readLocalApiKey as jest.MockedFunction<typeof readLocalApiKey>;
 
@@ -27,6 +28,7 @@ describe('AgentsController', () => {
   let mockConfigGet: jest.Mock;
   let mockDeleteAgent: jest.Mock;
   let mockRenameAgent: jest.Mock;
+  let mockTenantResolve: jest.Mock;
 
   const origMode = process.env['MANIFEST_MODE'];
 
@@ -45,6 +47,7 @@ describe('AgentsController', () => {
     mockConfigGet = jest.fn().mockReturnValue('');
     mockDeleteAgent = jest.fn().mockResolvedValue(undefined);
     mockRenameAgent = jest.fn().mockResolvedValue(undefined);
+    mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -70,6 +73,10 @@ describe('AgentsController', () => {
           provide: ConfigService,
           useValue: { get: mockConfigGet },
         },
+        {
+          provide: TenantCacheService,
+          useValue: { resolve: mockTenantResolve },
+        },
       ],
     }).compile();
 
@@ -82,7 +89,15 @@ describe('AgentsController', () => {
 
     expect(result.agents).toHaveLength(2);
     expect(result.agents[0].agent_name).toBe('bot-1');
-    expect(mockGetAgentList).toHaveBeenCalledWith('u1');
+    expect(mockGetAgentList).toHaveBeenCalledWith('u1', 'tenant-123');
+  });
+
+  it('passes undefined tenantId when tenant not found', async () => {
+    mockTenantResolve.mockResolvedValueOnce(null);
+    const user = { id: 'u1' };
+    await controller.getAgents(user as never);
+
+    expect(mockGetAgentList).toHaveBeenCalledWith('u1', undefined);
   });
 
   it('returns agent key prefix without pluginEndpoint when env is not set', async () => {
@@ -185,6 +200,7 @@ describe('AgentsController', () => {
           useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
       ],
     }).compile();
 
@@ -221,6 +237,7 @@ describe('AgentsController', () => {
           useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
       ],
     }).compile();
 

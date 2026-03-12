@@ -602,6 +602,71 @@ describe("MessageLog", () => {
     });
   });
 
+  it("shows $0.00 cost for subscription auth_type messages", async () => {
+    const dataWithSub = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], auth_type: "subscription", cost: 0.05 },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithSub);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      // Subscription messages show "$0.00" instead of actual cost
+      expect(container.textContent).toContain("$0.00");
+    });
+  });
+
+  it("shows formatCost fallback for non-subscription messages with cost", async () => {
+    const dataWithCost = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], auth_type: null, cost: 0.05 },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithCost);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("$0.05");
+    });
+  });
+
+  it("renders subscription auth badge on provider icon", async () => {
+    const dataWithSub = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], model: "claude-sonnet-4", auth_type: "subscription" },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithSub);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".provider-auth-badge--sub");
+      expect(badge).not.toBeNull();
+    });
+  });
+
+  it("renders api_key auth badge when auth_type is api_key", async () => {
+    const dataWithApiKey = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], model: "claude-sonnet-4", auth_type: "api_key" },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithApiKey);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".provider-auth-badge--key");
+      expect(badge).not.toBeNull();
+      const subBadge = container.querySelector(".provider-auth-badge--sub");
+      expect(subBadge).toBeNull();
+    });
+  });
+
   it("renders meta description tag", () => {
     mockGetMessages.mockResolvedValue(messagesData);
     render(() => <MessageLog />);

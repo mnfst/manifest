@@ -163,6 +163,11 @@
   font-family: var(--font-mono, monospace);
 }
 
+.routing-modal__model-id--subscription {
+  color: #22c55e;
+  font-family: var(--font-family);
+}
+
 .routing-modal__recommended {
   font-size: var(--font-size-xs);
   color: hsl(var(--success));

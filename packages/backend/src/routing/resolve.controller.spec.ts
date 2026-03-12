@@ -1,10 +1,18 @@
-import { ResolveController } from './resolve.controller';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import {
+  ResolveController,
+  RegisterSubscriptionsDto,
+  SubscriptionProviderItem,
+} from './resolve.controller';
 import { ResolveService } from './resolve.service';
+import { RoutingService } from './routing.service';
 import { ResolveResponse } from './dto/resolve-response';
 
 describe('ResolveController', () => {
   let controller: ResolveController;
   let mockResolveService: { resolve: jest.Mock };
+  let mockRoutingService: { upsertProvider: jest.Mock };
 
   const mockResponse: ResolveResponse = {
     tier: 'simple',
@@ -19,7 +27,13 @@ describe('ResolveController', () => {
     mockResolveService = {
       resolve: jest.fn().mockResolvedValue(mockResponse),
     };
-    controller = new ResolveController(mockResolveService as unknown as ResolveService);
+    mockRoutingService = {
+      upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
+    };
+    controller = new ResolveController(
+      mockResolveService as unknown as ResolveService,
+      mockRoutingService as unknown as RoutingService,
+    );
   });
 
   it('should pass agentId from ingestionContext to service', async () => {
@@ -79,5 +93,56 @@ describe('ResolveController', () => {
     );
 
     expect(result).toBe(mockResponse);
+  });
+
+  describe('RegisterSubscriptionsDto', () => {
+    it('should transform plain providers array into SubscriptionProviderItem instances', () => {
+      const plain = { providers: [{ provider: 'anthropic' }, { provider: 'openai' }] };
+      const dto = plainToInstance(RegisterSubscriptionsDto, plain);
+
+      expect(dto.providers).toHaveLength(2);
+      expect(dto.providers[0]).toBeInstanceOf(SubscriptionProviderItem);
+      expect(dto.providers[0].provider).toBe('anthropic');
+      expect(dto.providers[1]).toBeInstanceOf(SubscriptionProviderItem);
+      expect(dto.providers[1].provider).toBe('openai');
+    });
+
+    it('should fail validation when providers contain empty provider string', async () => {
+      const plain = { providers: [{ provider: '' }] };
+      const dto = plainToInstance(RegisterSubscriptionsDto, plain);
+      const errors = await validate(dto);
+
+      expect(errors.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('registerSubscriptions', () => {
+    it('should register subscription providers and return count', async () => {
+      const req = {
+        ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
+      } as never;
+
+      const result = await controller.registerSubscriptions(
+        { providers: [{ provider: 'anthropic' }, { provider: 'openai' }] },
+        req,
+      );
+
+      expect(result).toEqual({ registered: 2 });
+      expect(mockRoutingService.upsertProvider).toHaveBeenCalledTimes(2);
+      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+        'a1',
+        'u1',
+        'anthropic',
+        undefined,
+        'subscription',
+      );
+      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+        'a1',
+        'u1',
+        'openai',
+        undefined,
+        'subscription',
+      );
+    });
   });
 });

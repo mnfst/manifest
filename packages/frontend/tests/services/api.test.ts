@@ -554,6 +554,14 @@ describe("disconnectProvider", () => {
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain("/routing/my-agent/providers/my%20provider");
   });
+
+  it("appends authType query parameter when provided", async () => {
+    mockMutateOk({ ok: true, notifications: [] });
+
+    await disconnectProvider("my-agent", "anthropic", "subscription");
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/routing/my-agent/providers/anthropic?authType=subscription");
+  });
 });
 
 describe("getTierAssignments", () => {
@@ -594,6 +602,19 @@ describe("overrideTier", () => {
     await overrideTier("my-agent", "tier 1", "gpt-4o");
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain("/routing/my-agent/tiers/tier%201");
+  });
+
+  it("includes authType in body when provided", async () => {
+    mockMutateOk({});
+
+    await overrideTier("my-agent", "simple", "claude-sonnet-4", "subscription");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/my-agent/tiers/simple",
+      expect.objectContaining({
+        method: "PUT",
+        body: JSON.stringify({ model: "claude-sonnet-4", authType: "subscription" }),
+      }),
+    );
   });
 });
 

@@ -6,9 +6,10 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import { LlmCall } from '../../entities/llm-call.entity';
 import { ToolExecution } from '../../entities/tool-execution.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
+import { UserProvider } from '../../entities/user-provider.entity';
 import { OtlpExportTraceServiceRequest, OtlpSpan, OtlpResourceSpans } from '../interfaces';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
-import { In, Not, IsNull } from 'typeorm';
+import { In, Not, IsNull, MoreThanOrEqual } from 'typeorm';
 import {
   extractAttributes,
   nanoToDatetime,
@@ -26,6 +27,20 @@ interface SpanEntry {
   spanId: string;
 }
 
+interface DedupContext {
+  errorTraceIds: Set<string>;
+  recentErrors: { id: string; timestamp: string }[];
+  recentOkMessages: { id: string; timestamp: string; input_tokens: number }[];
+  recentMessages: {
+    id: string;
+    timestamp: string;
+    input_tokens: number;
+    output_tokens: number;
+    model: string | null;
+    session_key: string | null;
+  }[];
+}
+
 @Injectable()
 export class TraceIngestService {
   constructor(
@@ -35,6 +50,8 @@ export class TraceIngestService {
     private readonly llmRepo: Repository<LlmCall>,
     @InjectRepository(ToolExecution)
     private readonly toolRepo: Repository<ToolExecution>,
+    @InjectRepository(UserProvider)
+    private readonly providerRepo: Repository<UserProvider>,
     private readonly pricingCache: ModelPricingCacheService,
   ) {}
 
@@ -170,7 +187,8 @@ export class TraceIngestService {
     span: OtlpSpan,
     ctx: IngestionContext,
   ): Promise<Pick<AgentMessage, 'id' | 'model'> | null> {
-    const spanTime = new Date(nanoToDatetime(span.startTimeUnixNano)).getTime();
+    const spanTime = new Date(nanoToDatetime(span.startTimeUnixNano));
+    const cutoff = new Date(spanTime.getTime() - 5 * 60_000).toISOString();
     const candidates = await this.turnRepo.find({
       where: {
         tenant_id: ctx.tenantId,
@@ -179,6 +197,7 @@ export class TraceIngestService {
         status: 'ok',
         input_tokens: 0,
         output_tokens: 0,
+        timestamp: MoreThanOrEqual(cutoff),
       },
       select: ['id', 'model', 'timestamp'],
       order: { timestamp: 'DESC' },
@@ -186,7 +205,82 @@ export class TraceIngestService {
     });
     if (candidates.length === 0) return null;
     const cTime = new Date(candidates[0].timestamp).getTime();
-    return Math.abs(cTime - spanTime) <= 60_000 ? candidates[0] : null;
+    return Math.abs(cTime - spanTime.getTime()) <= 60_000 ? candidates[0] : null;
+  }
+
+  private async buildDedupContext(
+    spans: OtlpSpan[],
+    spanMap: Map<string, SpanEntry>,
+    ghostSpanIds: Set<string>,
+    fallbackSkipIds: Set<string>,
+    ctx: IngestionContext,
+  ): Promise<DedupContext> {
+    // Collect trace IDs from agent_message spans that need dedup
+    const traceIds: string[] = [];
+    for (const span of spans) {
+      const spanId = toHexString(span.spanId);
+      const entry = spanMap.get(spanId);
+      if (entry?.type !== 'agent_message') continue;
+      if (ghostSpanIds.has(spanId) || fallbackSkipIds.has(spanId)) continue;
+      const traceId = toHexString(span.traceId);
+      if (traceId) traceIds.push(traceId);
+    }
+
+    // Batch fetch all dedup data in parallel
+    const [errorByTrace, recentErrors, recentOkMessages, recentMessages] = await Promise.all([
+      traceIds.length > 0
+        ? this.turnRepo.find({
+            where: {
+              trace_id: In(traceIds),
+              tenant_id: ctx.tenantId,
+              status: In(['error', 'rate_limited']),
+            },
+            select: ['id', 'trace_id'],
+          })
+        : Promise.resolve([]),
+      this.turnRepo.find({
+        where: {
+          tenant_id: ctx.tenantId,
+          agent_id: ctx.agentId,
+          status: In(['error', 'rate_limited']),
+        },
+        select: ['id', 'timestamp'],
+        order: { timestamp: 'DESC' },
+        take: 10,
+      }),
+      this.turnRepo.find({
+        where: { tenant_id: ctx.tenantId, agent_id: ctx.agentId, status: 'ok' },
+        select: ['id', 'timestamp', 'input_tokens'],
+        order: { timestamp: 'DESC' },
+        take: 10,
+      }),
+      this.turnRepo.find({
+        where: { tenant_id: ctx.tenantId, agent_id: ctx.agentId },
+        select: ['id', 'timestamp', 'input_tokens', 'output_tokens', 'model', 'session_key'],
+        order: { timestamp: 'DESC' },
+        take: 10,
+      }),
+    ]);
+
+    return {
+      errorTraceIds: new Set(
+        errorByTrace.map((e) => (e as unknown as { trace_id: string }).trace_id),
+      ),
+      recentErrors: recentErrors.map((e) => ({ id: e.id, timestamp: e.timestamp })),
+      recentOkMessages: recentOkMessages.map((m) => ({
+        id: m.id,
+        timestamp: m.timestamp,
+        input_tokens: m.input_tokens ?? 0,
+      })),
+      recentMessages: recentMessages.map((m) => ({
+        id: m.id,
+        timestamp: m.timestamp,
+        input_tokens: m.input_tokens ?? 0,
+        output_tokens: m.output_tokens ?? 0,
+        model: m.model ?? null,
+        session_key: (m as unknown as { session_key: string | null }).session_key ?? null,
+      })),
+    };
   }
 
   private async insertAll(
@@ -195,6 +289,7 @@ export class TraceIngestService {
     spanMap: Map<string, SpanEntry>,
     ctx: IngestionContext,
   ): Promise<void> {
+    const subOnlyProviders = await this.getSubscriptionProviders(ctx.agentId);
     const ghostSpanIds = this.filterGhostSpans(spans, resourceAttrs, spanMap);
     const fallbackModelOverrides = new Map<string, string>();
     const fallbackDurations = new Map<string, number>();
@@ -208,6 +303,16 @@ export class TraceIngestService {
       fallbackModelOverrides,
       fallbackDurations,
     );
+
+    // Batch pre-fetch all dedup data (replaces per-span DB queries)
+    const dedupCtx = await this.buildDedupContext(
+      spans,
+      spanMap,
+      ghostSpanIds,
+      fallbackSkipIds,
+      ctx,
+    );
+
     const messageAggregates = new Map<
       string,
       {
@@ -234,7 +339,7 @@ export class TraceIngestService {
       if (entry.type === 'root_request') continue;
       if (entry.type === 'agent_message') {
         if (ghostSpanIds.has(spanId) || fallbackSkipIds.has(spanId)) continue;
-        const row = await this.buildAgentMessage(span, attrs, entry, ctx);
+        const row = this.buildAgentMessage(span, attrs, entry, ctx, dedupCtx, subOnlyProviders);
         if (row) agentMessageRows.push(row);
       } else if (entry.type === 'llm_call') {
         llmCallRows.push(this.buildLlmCall(span, attrs, entry, spanMap, ctx));
@@ -252,6 +357,7 @@ export class TraceIngestService {
 
     await this.rollUpMessageAggregates(
       messageAggregates,
+      subOnlyProviders,
       fallbackModelOverrides,
       fallbackDurations,
     );
@@ -318,6 +424,7 @@ export class TraceIngestService {
         cost: number;
       }
     >,
+    subOnlyProviders: Set<string>,
     fallbackModelOverrides?: Map<string, string>,
     fallbackDurations?: Map<string, number>,
   ): Promise<void> {
@@ -331,7 +438,9 @@ export class TraceIngestService {
       let cost: number | null = null;
       if (costModel) {
         const pricing = this.pricingCache.getByModel(costModel);
-        if (
+        if (pricing && subOnlyProviders.has(pricing.provider?.toLowerCase())) {
+          cost = 0;
+        } else if (
           pricing &&
           pricing.input_price_per_token != null &&
           pricing.output_price_per_token != null
@@ -342,108 +451,87 @@ export class TraceIngestService {
         }
       }
 
+      // Preserve proxy-recorded token/cost data: only overwrite when the
+      // existing message has no tokens (i.e. empty stub awaiting rollup).
       const setClause: Record<string, unknown> = {
-        input_tokens: agg.input,
-        output_tokens: agg.output,
-        cache_read_tokens: agg.cacheRead,
-        cache_creation_tokens: agg.cacheCreation,
+        input_tokens: () => `CASE WHEN input_tokens = 0 THEN :inputTok ELSE input_tokens END`,
+        output_tokens: () => `CASE WHEN input_tokens = 0 THEN :outputTok ELSE output_tokens END`,
+        cache_read_tokens: () =>
+          `CASE WHEN input_tokens = 0 THEN :cacheRead ELSE cache_read_tokens END`,
+        cache_creation_tokens: () =>
+          `CASE WHEN input_tokens = 0 THEN :cacheCreation ELSE cache_creation_tokens END`,
+        cost_usd: () => `CASE WHEN input_tokens = 0 THEN :cost ELSE cost_usd END`,
         model: () => 'COALESCE(model, :model)',
         routing_tier: () => 'COALESCE(routing_tier, :tier)',
         routing_reason: () => 'COALESCE(routing_reason, :reason)',
-        cost_usd: cost,
       };
       const durationMs = fallbackDurations?.get(messageId);
-      if (durationMs != null) setClause.duration_ms = durationMs;
+      if (durationMs != null) {
+        setClause.duration_ms = () => 'COALESCE(duration_ms, :durationMs)';
+      }
 
-      updates.push(
-        this.turnRepo
-          .createQueryBuilder()
-          .update(AgentMessage)
-          .set(setClause)
-          .setParameter('model', agg.model)
-          .setParameter('tier', agg.tier)
-          .setParameter('reason', agg.reason)
-          .where('id = :id', { id: messageId })
-          .execute(),
-      );
+      const qb = this.turnRepo
+        .createQueryBuilder()
+        .update(AgentMessage)
+        .set(setClause)
+        .setParameter('inputTok', agg.input)
+        .setParameter('outputTok', agg.output)
+        .setParameter('cacheRead', agg.cacheRead)
+        .setParameter('cacheCreation', agg.cacheCreation)
+        .setParameter('cost', cost)
+        .setParameter('model', agg.model)
+        .setParameter('tier', agg.tier)
+        .setParameter('reason', agg.reason)
+        .where('id = :id', { id: messageId });
+      if (durationMs != null) qb.setParameter('durationMs', durationMs);
+      updates.push(qb.execute());
     }
     if (updates.length > 0) await Promise.all(updates);
   }
 
-  private async buildAgentMessage(
+  private buildAgentMessage(
     span: OtlpSpan,
     attrs: AttributeMap,
     entry: SpanEntry,
     ctx: IngestionContext,
-  ): Promise<Record<string, unknown> | null> {
+    dedup: DedupContext,
+    subOnlyProviders: Set<string>,
+  ): Record<string, unknown> | null {
     // Skip if the proxy already recorded an error for this trace (avoids duplicates).
     const traceId = toHexString(span.traceId);
-    if (traceId) {
-      const existing = await this.turnRepo.findOne({
-        where: {
-          trace_id: traceId,
-          tenant_id: ctx.tenantId,
-          status: In(['error', 'rate_limited']),
-        },
-        select: ['id'],
-      });
-      if (existing) return null;
-    }
+    if (traceId && dedup.errorTraceIds.has(traceId)) return null;
 
-    // Fallback dedup: fetch recent errors for this agent and check timestamp proximity.
+    // Fallback dedup: check pre-fetched recent errors for timestamp proximity.
     const spanTime = new Date(nanoToDatetime(span.startTimeUnixNano)).getTime();
-    const recentErrors = await this.turnRepo.find({
-      where: {
-        tenant_id: ctx.tenantId,
-        agent_id: ctx.agentId,
-        status: In(['error', 'rate_limited']),
-      },
-      select: ['id', 'timestamp'],
-      order: { timestamp: 'DESC' },
-      take: 5,
-    });
-    const hasNearbyError = recentErrors.some((e) => {
+    const hasNearbyError = dedup.recentErrors.some((e) => {
       const errorTime = new Date(e.timestamp).getTime();
       return Math.abs(errorTime - spanTime) <= 30_000;
     });
     if (hasNearbyError) return null;
 
-    // Proxy dedup: if this span carries 0 tokens, check if the proxy already
-    // recorded a success message with real tokens for the same agent within 60s.
+    // Proxy dedup: if this span carries 0 tokens, check pre-fetched OK messages.
     const spanInputTokens = attrNumber(attrs, 'gen_ai.usage.input_tokens') ?? 0;
     const spanOutputTokens = attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0;
     if (spanInputTokens === 0 && spanOutputTokens === 0) {
-      const recentOkMessages = await this.turnRepo.find({
-        where: { tenant_id: ctx.tenantId, agent_id: ctx.agentId, status: 'ok' },
-        select: ['id', 'timestamp', 'input_tokens'],
-        order: { timestamp: 'DESC' },
-        take: 3,
-      });
-      const hasProxyData = recentOkMessages.some((m) => {
+      const hasProxyData = dedup.recentOkMessages.some((m) => {
         const mTime = new Date(m.timestamp).getTime();
-        return Math.abs(mTime - spanTime) <= 60_000 && (m.input_tokens ?? 0) > 0;
+        return Math.abs(mTime - spanTime) <= 60_000 && m.input_tokens > 0;
       });
       if (hasProxyData) return null;
     }
 
-    // DB-level ghost dedup: if this span is empty-ok, check if a data-bearing
-    // message for the same agent already exists within 60s (cross-batch case).
+    // DB-level ghost dedup: if this span is empty-ok, check pre-fetched recent messages.
     // Scope by session_key when available to avoid cross-session false positives.
     if (this.isEmptyOkSpan(span, attrs)) {
       const sessionKey = attrString(attrs, 'session.key');
-      const where: Record<string, string> = { tenant_id: ctx.tenantId, agent_id: ctx.agentId };
-      if (sessionKey) where.session_key = sessionKey;
-      const recentMessages = await this.turnRepo.find({
-        where,
-        select: ['id', 'timestamp', 'input_tokens', 'output_tokens', 'model'],
-        order: { timestamp: 'DESC' },
-        take: 5,
-      });
-      const hasNearbyData = recentMessages.some((m) => {
+      const candidates = sessionKey
+        ? dedup.recentMessages.filter((m) => m.session_key === sessionKey)
+        : dedup.recentMessages;
+      const hasNearbyData = candidates.some((m) => {
         const mTime = new Date(m.timestamp).getTime();
         return (
           Math.abs(mTime - spanTime) <= 60_000 &&
-          ((m.input_tokens ?? 0) > 0 || (m.output_tokens ?? 0) > 0 || m.model != null)
+          (m.input_tokens > 0 || m.output_tokens > 0 || m.model != null)
         );
       });
       if (hasNearbyData) return null;
@@ -462,7 +550,7 @@ export class TraceIngestService {
       output_tokens: attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0,
       cache_read_tokens: attrNumber(attrs, 'gen_ai.usage.cache_read_input_tokens') ?? 0,
       cache_creation_tokens: attrNumber(attrs, 'gen_ai.usage.cache_creation_input_tokens') ?? 0,
-      cost_usd: this.computeCost(attrs),
+      cost_usd: this.computeCost(attrs, subOnlyProviders),
       status: spanStatusToString(span.status?.code),
       error_message: span.status?.code === 2 ? (span.status.message ?? null) : null,
       description: span.name,
@@ -473,7 +561,17 @@ export class TraceIngestService {
       routing_tier: attrString(attrs, 'manifest.routing.tier'),
       routing_reason: attrString(attrs, 'manifest.routing.reason'),
       skill_name: attrString(attrs, 'skill.name'),
+      auth_type: this.inferAuthType(attrs, subOnlyProviders),
     };
+  }
+
+  private inferAuthType(attrs: AttributeMap, subOnlyProviders: Set<string>): string | null {
+    const model =
+      attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model');
+    if (!model) return null;
+    const pricing = this.pricingCache.getByModel(model);
+    if (!pricing) return null;
+    return subOnlyProviders.has(pricing.provider?.toLowerCase()) ? 'subscription' : 'api_key';
   }
 
   private buildLlmCall(
@@ -531,7 +629,22 @@ export class TraceIngestService {
     };
   }
 
-  private computeCost(attrs: AttributeMap): number | null {
+  /** Returns provider IDs that are subscription-only (no api_key counterpart) for an agent. */
+  private async getSubscriptionProviders(agentId: string): Promise<Set<string>> {
+    const records = await this.providerRepo.find({
+      where: { agent_id: agentId, is_active: true },
+      select: ['provider', 'auth_type'],
+    });
+    const sub = new Set<string>();
+    for (const r of records) {
+      if (r.auth_type === 'subscription') sub.add(r.provider);
+    }
+    // Keep dual-auth providers in the set: the routing layer prefers subscription
+    // when both exist, so the OTLP heuristic should match (zero cost).
+    return sub;
+  }
+
+  private computeCost(attrs: AttributeMap, subOnlyProviders?: Set<string>): number | null {
     const model =
       attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model');
     if (!model) return null;
@@ -542,6 +655,8 @@ export class TraceIngestService {
 
     const pricing = this.pricingCache.getByModel(model);
     if (!pricing) return null;
+
+    if (subOnlyProviders?.has(pricing.provider?.toLowerCase())) return 0;
 
     return (
       inputTok * Number(pricing.input_price_per_token) +

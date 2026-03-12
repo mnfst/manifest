@@ -50,6 +50,7 @@ describe('CustomProviderService (with mocks)', () => {
   let mockRepo: Record<string, jest.Mock>;
   let mockPricingRepo: Record<string, jest.Mock>;
   let mockRoutingService: Record<string, jest.Mock>;
+  let mockRoutingCache: Record<string, jest.Mock>;
   let mockPricingCache: Record<string, jest.Mock>;
   let mockAutoAssign: Record<string, jest.Mock>;
 
@@ -73,6 +74,11 @@ describe('CustomProviderService (with mocks)', () => {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
       removeProvider: jest.fn().mockResolvedValue({ notifications: [] }),
     };
+    mockRoutingCache = {
+      getCustomProviders: jest.fn().mockReturnValue(null),
+      setCustomProviders: jest.fn(),
+      invalidateAgent: jest.fn(),
+    };
     mockPricingCache = {
       reload: jest.fn().mockResolvedValue(undefined),
     };
@@ -84,15 +90,27 @@ describe('CustomProviderService (with mocks)', () => {
       mockRepo as never,
       mockPricingRepo as never,
       mockRoutingService as never,
+      mockRoutingCache as never,
       mockPricingCache as never,
       mockAutoAssign as never,
     );
   });
 
   describe('list', () => {
-    it('queries by agent_id', async () => {
+    it('queries by agent_id on cache miss', async () => {
       await service.list('agent-1');
+      expect(mockRoutingCache.getCustomProviders).toHaveBeenCalledWith('agent-1');
       expect(mockRepo.find).toHaveBeenCalledWith({ where: { agent_id: 'agent-1' } });
+      expect(mockRoutingCache.setCustomProviders).toHaveBeenCalledWith('agent-1', []);
+    });
+
+    it('returns cached data on cache hit', async () => {
+      const cached = [{ id: 'cp-1', name: 'Groq' }];
+      mockRoutingCache.getCustomProviders.mockReturnValue(cached);
+
+      const result = await service.list('agent-1');
+      expect(result).toBe(cached);
+      expect(mockRepo.find).not.toHaveBeenCalled();
     });
   });
 
@@ -348,6 +366,14 @@ describe('CustomProviderService (with mocks)', () => {
 
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('agent-1');
       expect(mockRoutingService.upsertProvider).not.toHaveBeenCalled();
+    });
+
+    it('invalidates routing cache after save', async () => {
+      mockRepo.findOne.mockResolvedValueOnce({ ...existingCp }).mockResolvedValueOnce(null);
+
+      await service.update('agent-1', 'cp-1', 'user-1', { name: 'New Name' } as never);
+
+      expect(mockRoutingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
     it('does not double-recalculate when both models and apiKey change', async () => {

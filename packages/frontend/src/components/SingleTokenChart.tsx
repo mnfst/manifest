@@ -1,5 +1,6 @@
 import type { Component } from 'solid-js';
 import uPlot from 'uplot';
+import 'uplot/dist/uPlot.min.css';
 import { getHsl, getHslA } from '../services/theme.js';
 import {
   makeGradientFillFromVar,

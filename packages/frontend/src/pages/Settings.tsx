@@ -17,11 +17,6 @@ const Settings: Component = () => {
   const location = useLocation<{ newApiKey?: string }>();
   const agentName = () => decodeURIComponent(params.agentName);
 
-  // In local mode, settings (rename/delete) are not available — redirect to overview.
-  if (isLocalMode()) {
-    navigate(`/agents/${params.agentName}`, { replace: true });
-    return null;
-  }
   const [name, setName] = createSignal(agentName());
   const [saving, setSaving] = createSignal(false);
   const [saved, setSaved] = createSignal(false);
@@ -81,7 +76,7 @@ const Settings: Component = () => {
     }
   };
 
-  const TABS = () => (isLocalMode() ? ([] as const) : (['General', 'Agent setup'] as const));
+  const TABS = () => ['General', 'Agent setup'] as const;
   type Tab = 'General' | 'Agent setup';
   const [tab, setTab] = createSignal<Tab>('General');
 
@@ -145,7 +140,18 @@ const Settings: Component = () => {
               onClick={handleSave}
               disabled={saving() || name().trim() === agentName()}
             >
-              <span aria-live="polite">{saved() ? 'Saved' : saving() ? 'Saving...' : 'Save'}</span>
+              <span aria-live="polite">
+                {saved() ? (
+                  'Saved'
+                ) : saving() ? (
+                  <>
+                    <span class="spinner" />
+                    <span class="sr-only">Saving…</span>
+                  </>
+                ) : (
+                  'Save'
+                )}
+              </span>
             </button>
           </div>
         </div>
@@ -205,11 +211,18 @@ const Settings: Component = () => {
                 onClick={handleRotate}
                 disabled={rotating()}
               >
-                {rotating() ? 'Rotating...' : 'Rotate key'}
+                {rotating() ? (
+                  <>
+                    <span class="spinner" />
+                    <span class="sr-only">Rotating…</span>
+                  </>
+                ) : (
+                  'Rotate key'
+                )}
               </button>
             </div>
           </div>
-          <Show when={rotatedKey() && !isLocalMode()}>
+          <Show when={rotatedKey()}>
             <div style="padding: 0 var(--gap-md) var(--gap-md);">
               <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
                 Copy your new API key now — it won't be shown again.
@@ -320,7 +333,14 @@ const Settings: Component = () => {
                 }
               }}
             >
-              {deleting() ? 'Deleting...' : 'Delete this agent'}
+              {deleting() ? (
+                <>
+                  <span class="spinner" />
+                  <span class="sr-only">Deleting…</span>
+                </>
+              ) : (
+                'Delete this agent'
+              )}
             </button>
           </div>
         </div>

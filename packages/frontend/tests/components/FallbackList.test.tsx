@@ -16,12 +16,23 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null,
 }));
 
+vi.mock("../../src/components/AuthBadge.js", () => ({
+  authBadgeFor: () => null,
+}));
+
+vi.mock("../../src/services/providers.js", () => ({
+  PROVIDERS: [
+    { id: "openai", name: "OpenAI" },
+    { id: "anthropic", name: "Anthropic" },
+  ],
+}));
+
 vi.mock("../../src/services/routing-utils.js", () => ({
   resolveProviderId: (p: string) => p.toLowerCase(),
   stripCustomPrefix: (m: string) => m.replace(/^custom:[^/]+\//, ""),
 }));
 
-vi.mock("../../src/services/providers.js", () => ({
+vi.mock("../../src/services/provider-utils.js", () => ({
   getModelLabel: (_providerId: string, model: string) => model,
 }));
 
@@ -38,6 +49,10 @@ const defaultProps = {
   fallbacks: [] as string[],
   models,
   customProviders: [] as any[],
+  connectedProviders: [
+    { provider: "openai", auth_type: "api_key", is_active: true },
+    { provider: "anthropic", auth_type: "subscription", is_active: true },
+  ] as any[],
   onUpdate: vi.fn(),
   onAddFallback: vi.fn(),
 };
@@ -135,7 +150,7 @@ describe("FallbackList", () => {
     expect(mockSetFallbacks).not.toHaveBeenCalled();
   });
 
-  it("does not call onUpdate when setFallbacks rejects", async () => {
+  it("reverts optimistic removal when setFallbacks rejects", async () => {
     mockSetFallbacks.mockRejectedValue(new Error("API error"));
     const onUpdate = vi.fn();
     const { container } = render(() => (
@@ -152,10 +167,13 @@ describe("FallbackList", () => {
     await waitFor(() => {
       expect(mockSetFallbacks).toHaveBeenCalled();
     });
-    expect(onUpdate).not.toHaveBeenCalled();
+    // First call: optimistic removal, second call: revert with original list
+    expect(onUpdate).toHaveBeenCalledTimes(2);
+    expect(onUpdate).toHaveBeenNthCalledWith(1, ["model-b"]);
+    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a", "model-b"]);
   });
 
-  it("does not call onUpdate when clearFallbacks rejects", async () => {
+  it("reverts optimistic removal when clearFallbacks rejects", async () => {
     mockClearFallbacks.mockRejectedValue(new Error("API error"));
     const onUpdate = vi.fn();
     const { container } = render(() => (
@@ -172,7 +190,10 @@ describe("FallbackList", () => {
     await waitFor(() => {
       expect(mockClearFallbacks).toHaveBeenCalled();
     });
-    expect(onUpdate).not.toHaveBeenCalled();
+    // First call: optimistic removal, second call: revert with original list
+    expect(onUpdate).toHaveBeenCalledTimes(2);
+    expect(onUpdate).toHaveBeenNthCalledWith(1, []);
+    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a"]);
   });
 
   it("displays display_name when model info has one", () => {
@@ -306,14 +327,14 @@ describe("FallbackList", () => {
     expect(addBtn!.classList.contains("routing-action")).toBe(true);
   });
 
-  it("shows Adding... and disables add button when adding prop is true", () => {
-    render(() => (
+  it("shows spinner and disables add button when adding prop is true", () => {
+    const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={[]} adding={true} />
     ));
 
-    const addBtn = screen.getByText("Adding...");
-    expect(addBtn).toBeDefined();
-    expect((addBtn as HTMLButtonElement).disabled).toBe(true);
+    const addBtn = container.querySelector(".fallback-list__add") as HTMLButtonElement;
+    expect(addBtn.querySelector(".spinner")).not.toBeNull();
+    expect(addBtn.disabled).toBe(true);
   });
 
   it("disables add button when adding is false but not disabled", () => {
@@ -377,6 +398,50 @@ describe("FallbackList", () => {
     });
 
     resolveRemove!();
+  });
+
+  it("renders auth badge on fallback icon via authBadgeFor", () => {
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a"]}
+      />
+    ));
+
+    const iconSpan = container.querySelector(".fallback-list__icon");
+    expect(iconSpan).not.toBeNull();
+    // title should show "OpenAI (API Key)" since model-a → openai → api_key
+    expect(iconSpan?.getAttribute("title")).toBe("OpenAI (API Key)");
+  });
+
+  it("renders subscription title on fallback icon", () => {
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-b"]}
+      />
+    ));
+
+    const iconSpan = container.querySelector(".fallback-list__icon");
+    expect(iconSpan?.getAttribute("title")).toBe("Anthropic (Subscription)");
+  });
+
+  it("returns null auth type when provider not in connectedProviders", () => {
+    const modelsUnknown = [
+      { model_name: "model-x", provider: "Unknown" },
+    ] as any[];
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-x"]}
+        models={modelsUnknown}
+        connectedProviders={[]}
+      />
+    ));
+
+    const iconSpan = container.querySelector(".fallback-list__icon");
+    // Provider "unknown" not in PROVIDERS mock, so providerTitle falls back to providerId
+    expect(iconSpan?.getAttribute("title")).toBe("unknown (API Key)");
   });
 
   it("clears removingIndex after failed removal", async () => {

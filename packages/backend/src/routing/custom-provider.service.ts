@@ -6,6 +6,7 @@ import { CustomProvider } from '../entities/custom-provider.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { RoutingService } from './routing.service';
+import { RoutingCacheService } from './routing-cache.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { CreateCustomProviderDto, UpdateCustomProviderDto } from './dto/custom-provider.dto';
 import { computeQualityScore } from '../database/quality-score.util';
@@ -18,6 +19,7 @@ export class CustomProviderService {
     @InjectRepository(ModelPricing)
     private readonly pricingRepo: Repository<ModelPricing>,
     private readonly routingService: RoutingService,
+    private readonly routingCache: RoutingCacheService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly autoAssign: TierAutoAssignService,
   ) {}
@@ -49,7 +51,12 @@ export class CustomProviderService {
   }
 
   async list(agentId: string): Promise<CustomProvider[]> {
-    return this.repo.find({ where: { agent_id: agentId } });
+    const cached = this.routingCache.getCustomProviders(agentId);
+    if (cached) return cached;
+
+    const result = await this.repo.find({ where: { agent_id: agentId } });
+    this.routingCache.setCustomProviders(agentId, result);
+    return result;
   }
 
   async create(
@@ -153,6 +160,7 @@ export class CustomProviderService {
     }
 
     await this.repo.save(cp);
+    this.routingCache.invalidateAgent(agentId);
 
     return cp;
   }

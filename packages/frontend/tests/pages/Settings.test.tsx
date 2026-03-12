@@ -347,16 +347,22 @@ describe("Settings", () => {
       mockIsLocalMode = true;
     });
 
-    it("redirects to agent overview in local mode", () => {
-      const { container } = render(() => <Settings />);
-      expect(mockNavigate).toHaveBeenCalledWith(`/agents/${mockAgentName}`, { replace: true });
-      expect(container.textContent).toBe("");
+    it("renders Settings page in local mode", () => {
+      render(() => <Settings />);
+      expect(screen.getByText("Settings")).toBeDefined();
+      expect(screen.getByLabelText("Agent name")).toBeDefined();
     });
 
-    it("does not render any settings content in local mode", () => {
+    it("shows both tabs in local mode", () => {
+      render(() => <Settings />);
+      expect(screen.getByText("General")).toBeDefined();
+      expect(screen.getByText("Agent setup")).toBeDefined();
+    });
+
+    it("hides Danger zone in local mode", () => {
       const { container } = render(() => <Settings />);
-      expect(container.textContent).not.toContain("Settings");
-      expect(container.textContent).not.toContain("Agent name");
+      expect(container.textContent).not.toContain("Danger zone");
+      expect(container.textContent).not.toContain("Delete agent");
     });
   });
 });

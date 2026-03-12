@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal } from 'solid-js';
 
 export interface UpdateInfo {
   version: string;
@@ -8,6 +8,7 @@ export interface UpdateInfo {
 
 interface HealthResponse {
   mode?: string;
+  devMode?: boolean;
   version?: string;
   latestVersion?: string;
   updateAvailable?: boolean;
@@ -15,6 +16,7 @@ interface HealthResponse {
 }
 
 const [isLocalMode, setIsLocalMode] = createSignal<boolean | null>(null);
+const [isDevMode, setIsDevMode] = createSignal<boolean>(false);
 const [updateInfo, setUpdateInfo] = createSignal<UpdateInfo | null>(null);
 const [telemetryOptOut, setTelemetryOptOut] = createSignal<boolean>(false);
 
@@ -24,11 +26,12 @@ export function checkLocalMode(): Promise<boolean> {
   if (isLocalMode() !== null) return Promise.resolve(isLocalMode()!);
 
   if (!fetchPromise) {
-    fetchPromise = fetch("/api/v1/health")
+    fetchPromise = fetch('/api/v1/health')
       .then((res) => res.json())
       .then((data: HealthResponse) => {
-        const local = data.mode === "local";
+        const local = data.mode === 'local';
         setIsLocalMode(local);
+        setIsDevMode(data.devMode === true);
         setTelemetryOptOut(data.telemetryOptOut === true);
 
         if (data.version) {
@@ -50,4 +53,4 @@ export function checkLocalMode(): Promise<boolean> {
   return fetchPromise;
 }
 
-export { isLocalMode, updateInfo, telemetryOptOut };
+export { isLocalMode, isDevMode, updateInfo, telemetryOptOut };

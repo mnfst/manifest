@@ -7,6 +7,7 @@ import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
 import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
+import { computeTrend } from '../services/query-helpers';
 
 @Controller('api/v1')
 @UseInterceptors(UserCacheInterceptor)
@@ -22,15 +23,23 @@ export class CostsController {
     const range = query.range ?? '7d';
     const agentName = query.agent_name;
 
-    const [costSummary, daily, hourly, byModel] = await Promise.all([
-      this.aggregation.getCostSummary(range, user.id, agentName),
-      this.timeseries.getDailyCosts(range, user.id, agentName),
+    const [hourly, daily, byModel, prevCost] = await Promise.all([
       this.timeseries.getHourlyCosts(range, user.id, agentName),
+      this.timeseries.getDailyCosts(range, user.id, agentName),
       this.timeseries.getCostByModel(range, user.id, agentName),
+      this.aggregation.getPreviousCostTotal(range, user.id, agentName),
     ]);
 
+    // Derive cost summary from hourly timeseries data (avoids separate aggregation query)
+    const currentCost = hourly.reduce((s, h) => s + h.cost, 0);
+
     return {
-      summary: { weekly_cost: costSummary },
+      summary: {
+        weekly_cost: {
+          value: currentCost,
+          trend_pct: computeTrend(currentCost, prevCost),
+        },
+      },
       daily,
       hourly,
       by_model: byModel,

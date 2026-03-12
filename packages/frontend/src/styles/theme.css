@@ -17,6 +17,7 @@
 @import './toast.css';
 @import './model-filter.css';
 @import './version-indicator.css';
+@import './skeleton.css';
 
 /* ── shadcn/ui design tokens — Light (default) ───── */
 @layer base {

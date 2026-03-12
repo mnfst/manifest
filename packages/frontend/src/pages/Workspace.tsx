@@ -95,7 +95,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
               onClick={handleCreate}
               disabled={!name().trim() || creating()}
             >
-              {creating() ? 'Creating...' : 'Create'}
+              {creating() ? <span class="spinner" /> : 'Create'}
             </button>
           </div>
         </div>

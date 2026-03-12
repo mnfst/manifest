@@ -1,5 +1,68 @@
 # manifest
 
+## 5.24.0
+
+### Minor Changes
+
+- 4e08bb4: Add OAuth/subscription routing support for Anthropic Claude tokens
+  - Subscription tab now accepts Claude setup-tokens (sk-ant-oat) with dedicated input UI
+  - Backend stores and proxies subscription tokens (previously rejected)
+  - Proxy sends correct Authorization: Bearer + anthropic-beta headers for subscription tokens
+  - Fix case-insensitive provider matching for subscription cost/auth_type inference
+  - Fix DELETE provider endpoint rejecting requests with validation error
+  - Fix token whitespace corruption when pasting from terminal
+  - Subscription badge overlay on provider icons in message log and overview
+  - Proxy messages now store auth_type and set cost to zero for subscriptions
+  - Fix duplicate messages: OTLP dedup remaps trace to proxy-recorded message
+  - Conditional rollup preserves proxy token data instead of overwriting
+  - ModelPickerModal always shows subscription/API key tabs with contextual empty states
+  - Purge non-curated models after OpenRouter sync in local mode
+  - Tier auto-assign excludes OpenRouter models from prefix-based provider inference
+
+- dab83ca: Replace 3-mode system (cloud/local/dev) with 2-axis configuration (mode × devMode). The `mode` field now only accepts `cloud` or `local` for deployment model, while `devMode` (boolean) independently controls development behaviors like skipping API keys and faster metrics. The old `mode: "dev"` is still accepted for backward compatibility but logs a deprecation warning. `devMode` is auto-detected when the endpoint is a loopback address and no `mnfst_*` API key is provided.
+
+### Patch Changes
+
+- 8758f8c: Add auth badge (subscription/api key) to provider icons across all pages for consistency
+- Fix auth_type propagation on error/fallback records, dual-auth subscription billing, migration index names, and SSE passthrough buffer overflow
+- 3d4eb56: Reduce custom-providers endpoint latency with caching and query parallelization
+- 100b33d: Improve frontend performance with route-level code splitting, vendor chunk separation, and asset loading optimizations
+- 3efa632: Optimize slow backend endpoints for sub-500ms response times: parallelize independent DB queries, batch saves, pre-fetch dedup context, derive summaries from timeseries data, and group notification cron evaluation.
+
+## 5.23.1
+
+### Patch Changes
+
+- b226346: Reduce agents endpoint latency by parallelizing queries and using daily sparkline buckets
+- 746fe2b: Optimize messages page latency: configurable connection pool, agent-scoped model queries, count cache for pagination, custom-providers short-circuit, and composite index migration
+- 07f3fb9: Reduce overview endpoint latency by merging parallel queries and resolving tenant once
+
+## 5.23.0
+
+### Minor Changes
+
+- f792f3c: Add animated skeleton loaders and spinner buttons across the frontend
+
+## 5.22.1
+
+### Patch Changes
+
+- 35b326c: Add migration to backfill tenant_id on agent_messages from tenants table
+- e4f5b10: Drop 4 unused composite indexes on write-only OTLP ingestion tables (tool_executions, token_usage_snapshots, cost_snapshots, agent_logs) to reduce write amplification
+- 45dd667: Fix missing canonical provider models in local mode and improve routing page UX
+  - Create canonical model entries (e.g. `gemini-2.5-pro` with provider "Google") during pricing sync when no seeded entry exists, fixing local mode showing only OpenRouter-branded models
+  - Replace full tier list refetch with local state mutations on model change, reset, and fallback operations for instant UI updates
+  - Add loading indicator ("Changing...") on the Change button while model override is saving
+  - Add toast notification when removing a fallback model
+
+- 3143303: Fix token values showing as 0 for OTLP-ingested messages by capturing usage directly from proxy responses
+- 8ec8b25: Fix routing model picker showing non-curated models from OpenRouter
+- 78e8ec2: Progressive rendering for Routing page skeleton loading state
+- a1dd405: Speed up Overview and Messages pages
+  - Parallelize messages endpoint DB queries (count, data, models run concurrently via Promise.all)
+  - Show stale data during SSE refetches instead of flashing skeleton loaders
+  - Debounce cost filter inputs on Messages page (400ms) to prevent rapid-fire API calls
+
 ## 5.22.0
 
 ### Minor Changes
