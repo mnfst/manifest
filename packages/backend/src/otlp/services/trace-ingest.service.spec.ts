@@ -1279,12 +1279,15 @@ describe('TraceIngestService', () => {
   });
 
   it('deduplicates agent_message when proxy error exists near span timestamp', async () => {
-    // findOne (trace_id check) returns null; find (timestamp fallback) returns a nearby error
+    // findOne (trace_id check) returns null; batch dedup recentErrors returns a nearby error
     mockTurnFindOne.mockResolvedValue(null);
     const nearbyTs = new Date(Number(BigInt('1708000000000000000') / 1_000_000n)).toISOString();
     mockTurnFind
-      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass) — no match
-      .mockResolvedValueOnce([{ id: 'proxy-error-id', timestamp: nearbyTs }]); // recentErrors
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([{ id: 'proxy-error-id', timestamp: nearbyTs }]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
 
     const span = makeSpan({
       traceId: 'trace-with-delayed-otlp',
@@ -1301,8 +1304,8 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnFindOne).toHaveBeenCalledTimes(2); // pre-pass fallback check + error dedup
-    expect(mockTurnFind).toHaveBeenCalledTimes(2); // unfilled fallback + timestamp fallback
+    expect(mockTurnFindOne).toHaveBeenCalledTimes(1); // pre-pass fallback check only
+    expect(mockTurnFind).toHaveBeenCalledTimes(5); // unfilled fallback + 4 buildDedupContext
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -1676,9 +1679,12 @@ describe('TraceIngestService', () => {
     const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
     const nearbyTs = new Date(spanTime.getTime() + 5000).toISOString();
 
-    // First find call returns [] (no errors), second find call returns data-bearing message
+    // Batch dedup context: errorByTrace=[], recentErrors=[], recentOkMessages=[], recentMessages=[data]
     mockTurnFind
-      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
       .mockResolvedValueOnce([
         {
           id: 'existing-data',
@@ -1687,7 +1693,7 @@ describe('TraceIngestService', () => {
           output_tokens: 200,
           model: 'gpt-4o',
         },
-      ]); // recentMessages (DB ghost fallback)
+      ]); // buildDedupContext: recentMessages
 
     const ghostSpan = makeSpan({
       spanId: 'span-cross-ghost',
@@ -1706,7 +1712,6 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnFind).toHaveBeenCalledTimes(2);
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -1749,7 +1754,10 @@ describe('TraceIngestService', () => {
     const nearbyTs = new Date(spanTime.getTime() + 5000).toISOString();
 
     mockTurnFind
-      .mockResolvedValueOnce([]) // recentErrors
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
       .mockResolvedValueOnce([
         {
           id: 'model-only',
@@ -1777,7 +1785,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnFind).toHaveBeenCalledTimes(2);
+    expect(mockTurnFind).toHaveBeenCalledTimes(5);
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -1786,9 +1794,10 @@ describe('TraceIngestService', () => {
     const nearbyTs = new Date(spanTime.getTime() + 5000).toISOString();
 
     mockTurnFind
-      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
-      .mockResolvedValueOnce([]) // recentErrors
-      .mockResolvedValueOnce([]) // proxyDedup (no proxy-recorded messages)
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
       .mockResolvedValueOnce([
         {
           id: 'session-data',
@@ -1796,8 +1805,9 @@ describe('TraceIngestService', () => {
           input_tokens: 100,
           output_tokens: 50,
           model: 'gpt-4o',
+          session_key: 'session-abc',
         },
-      ]);
+      ]); // buildDedupContext: recentMessages — matching session_key
 
     const ghostSpan = makeSpan({
       spanId: 'span-session-ghost',
@@ -1816,12 +1826,8 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    // Verify the fourth find() call includes session_key in where clause
-    // (first is unfilled fallback, second is recentErrors, third is proxyDedup, fourth is ghost dedup)
-    const fourthFindCall = mockTurnFind.mock.calls[3];
-    expect(fourthFindCall[0].where).toEqual(
-      expect.objectContaining({ session_key: 'session-abc' }),
-    );
+    // session_key filtering now happens in-memory (buildAgentMessage filters recentMessages by session_key)
+    expect(mockTurnFind).toHaveBeenCalledTimes(5);
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -1871,10 +1877,11 @@ describe('TraceIngestService', () => {
 
   it('inserts empty ok span via DB fallback when no nearby data message exists', async () => {
     mockTurnFind
-      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
-      .mockResolvedValueOnce([]) // recentErrors
-      .mockResolvedValueOnce([]) // proxyDedup (no proxy-recorded messages)
-      .mockResolvedValueOnce([]); // recentMessages (DB ghost fallback)
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages (no nearby data)
 
     const emptySpan = makeSpan({
       spanId: 'span-db-pass',
@@ -1893,16 +1900,21 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnFind).toHaveBeenCalledTimes(4);
+    expect(mockTurnFind).toHaveBeenCalledTimes(5);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
   it('returns null from buildAgentMessage when existing error turn matches trace_id (dedup)', async () => {
     // Pre-pass remap: findOne (fallback_from_model: Not(IsNull())) → null (no fallback record)
-    // buildAgentMessage: findOne (status: In(['error', 'rate_limited'])) → existing record
-    mockTurnFindOne
-      .mockResolvedValueOnce(null) // remapFallbackSpans — no fallback match
-      .mockResolvedValueOnce({ id: 'existing-error-turn' }); // buildAgentMessage — error dedup hit (line 390)
+    // buildDedupContext: batch errorByTrace find returns a match for trace_id
+    mockTurnFindOne.mockResolvedValueOnce(null); // remapFallbackSpans — no fallback match
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([{ id: 'existing-error-turn', trace_id: 'trace-error-dedup' }]) // buildDedupContext: errorByTrace — match!
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
 
     const span = makeSpan({
       traceId: 'trace-error-dedup',
@@ -1920,9 +1932,9 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
 
-    // The first findOne (remap pre-pass) returned null, so span is NOT in fallbackSkipIds.
-    // The second findOne (buildAgentMessage line 382) returns a match, so line 390 returns null.
-    expect(mockTurnFindOne).toHaveBeenCalledTimes(2);
+    // findOne only called once (remap pre-pass). errorByTrace now uses batch find.
+    expect(mockTurnFindOne).toHaveBeenCalledTimes(1);
+    expect(mockTurnFind).toHaveBeenCalledTimes(5);
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -1971,9 +1983,11 @@ describe('TraceIngestService', () => {
     const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
 
     mockTurnFind
-      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
-      .mockResolvedValueOnce([]) // recentErrors
-      .mockResolvedValueOnce([{ id: 'proxy-msg', timestamp: nearbyTs, input_tokens: 500 }]); // proxyDedup — proxy recorded a message with real tokens
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([{ id: 'proxy-msg', timestamp: nearbyTs, input_tokens: 500 }]) // buildDedupContext: recentOkMessages — proxy recorded a message with real tokens
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
 
     const span = makeSpan({
       spanId: 'span-proxy-dedup',
@@ -2000,9 +2014,11 @@ describe('TraceIngestService', () => {
     const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
 
     mockTurnFind
-      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
-      .mockResolvedValueOnce([]) // recentErrors
-      .mockResolvedValueOnce([{ id: 'null-tokens-msg', timestamp: nearbyTs, input_tokens: null }]); // proxyDedup — nearby message but with null tokens (doesn't count)
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([{ id: 'null-tokens-msg', timestamp: nearbyTs, input_tokens: null }]) // buildDedupContext: recentOkMessages — null tokens treated as 0
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
 
     const span = makeSpan({
       spanId: 'span-null-tokens',
@@ -2027,9 +2043,11 @@ describe('TraceIngestService', () => {
 
   it('allows 0-token OTLP span when no proxy message exists nearby', async () => {
     mockTurnFind
-      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
-      .mockResolvedValueOnce([]) // recentErrors
-      .mockResolvedValueOnce([]); // proxyDedup — no proxy data
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages — no proxy data
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
 
     const span = makeSpan({
       spanId: 'span-no-proxy',
@@ -2073,8 +2091,7 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
-    // Proxy dedup should NOT run (span has tokens), so find() calls are fewer
-    // findUnfilledFallback + recentErrors = 2 (no proxy dedup, no ghost dedup since has model+tokens)
-    expect(mockTurnFind).toHaveBeenCalledTimes(2);
+    // buildDedupContext always runs all 4 batch queries upfront, plus 1 for unfilled fallback
+    expect(mockTurnFind).toHaveBeenCalledTimes(5);
   });
 });
