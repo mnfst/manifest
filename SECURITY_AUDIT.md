@@ -9,13 +9,13 @@
 
 ## Executive Summary
 
-The Manifest platform demonstrates strong security fundamentals: strict CSP via Helmet, session-based auth with Better Auth, parameterized queries via TypeORM, and proper input validation. However, the audit identified **4 critical**, **6 high**, **10 medium**, and **5 low** severity findings across both deployment modes.
+The Manifest platform demonstrates strong security fundamentals: strict CSP via Helmet, session-based auth with Better Auth, parameterized queries via TypeORM, and proper input validation. However, the audit identified **4 critical**, **7 high**, **11 medium**, and **5 low** severity findings across both deployment modes.
 
 | Severity | Count | Highest-Impact Finding |
 |----------|-------|------------------------|
 | Critical | 4 | SSRF via custom provider base_url (A10) |
-| High | 6 | Plaintext API key token cached in memory (A02) |
-| Medium | 10 | Provider error body forwarded to client (A04) |
+| High | 7 | Telemetry DTO missing string length limits (A03) |
+| Medium | 11 | Provider error body forwarded to client (A04) |
 | Low | 5 | No request timeout configuration (A05) |
 
 ---
@@ -189,6 +189,31 @@ The frontend uses SolidJS, which escapes all template interpolations by default.
 No `exec()`, `spawn()`, or shell command execution found in application code. The platform doesn't invoke system commands based on user input.
 
 **Status:** Not applicable.
+
+### FINDING A03-4: Telemetry DTO String Fields Have No Length Limits (HIGH)
+
+**File:** `packages/backend/src/telemetry/dto/create-telemetry.dto.ts`
+
+String fields `description`, `agent_name`, `model`, and `skill_name` use `@IsString()` without `@MaxLength()`. An attacker can send telemetry events with megabyte-sized strings, causing database storage exhaustion and memory pressure during validation/insertion.
+
+```typescript
+@IsString()
+description!: string;  // No @MaxLength — accepts arbitrarily large strings
+```
+
+**Impact:** DoS via storage/memory exhaustion; up to 1000 oversized events per batch.
+**Mode:** Both.
+**Recommendation:** Add `@MaxLength(4096)` (or appropriate limit) to all string fields in `TelemetryEventDto`.
+
+### FINDING A03-5: Test Email Recipient Accepts Any String (MEDIUM)
+
+**File:** `packages/backend/src/notifications/dto/set-email-provider.dto.ts`
+
+The `to` field in `TestEmailProviderDto` uses `@IsString()` instead of `@IsEmail()`. This allows sending test emails to arbitrary non-email strings, which could be used for email provider probing or error message harvesting.
+
+**Impact:** Email provider abuse; potential for probing internal mail infrastructure.
+**Mode:** Cloud.
+**Recommendation:** Change `@IsString()` to `@IsEmail()` for the `to` field.
 
 ---
 
@@ -556,11 +581,12 @@ The following security measures are well-implemented:
 
 ### Short-Term (P1) — Fix Within 2 Weeks
 
-4. **A02-2:** Hash tokens before using as cache keys
-5. **A01-1:** Make SessionGuard fail-closed
-6. **A07-1:** Add constant-time normalization for DB key lookup
-7. **A07-2:** Add login-specific rate limiting
-8. **A02-5:** Fail if DATABASE_URL not set in cloud mode
+4. **A03-4:** Add `@MaxLength()` to all telemetry DTO string fields
+5. **A02-2:** Hash tokens before using as cache keys
+6. **A01-1:** Make SessionGuard fail-closed
+7. **A07-1:** Add constant-time normalization for DB key lookup
+8. **A07-2:** Add login-specific rate limiting
+9. **A02-5:** Fail if DATABASE_URL not set in cloud mode
 
 ### Medium-Term (P2) — Fix Within 1 Month
 
@@ -571,6 +597,7 @@ The following security measures are well-implemented:
 13. **A01-2:** Validate @CurrentUser() returns defined user
 14. **A01-5:** Scope notification trigger-check to requesting user's tenant
 15. **A01-6:** Reject telemetry events when tenant cannot be resolved
+16. **A03-5:** Change test email recipient validation to `@IsEmail()`
 
 ### Long-Term (P3) — Plan and Implement
 
