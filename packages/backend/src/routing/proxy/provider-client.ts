@@ -111,8 +111,13 @@ export class ProviderClient {
     let requestBody: Record<string, unknown>;
 
     if (isGoogle) {
-      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}?key=${apiKey}`;
-      if (stream) url += '&alt=sse';
+      const basePath = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+      if (authType === 'subscription') {
+        url = stream ? `${basePath}?alt=sse` : basePath;
+      } else {
+        url = `${basePath}?key=${apiKey}`;
+        if (stream) url += '&alt=sse';
+      }
       headers = endpoint.buildHeaders(apiKey, authType);
       requestBody = toGoogleRequest(body, bareModel);
     } else if (isAnthropic) {

@@ -7,6 +7,7 @@ import { ProviderClient } from '../provider-client';
 import { SessionMomentumService } from '../session-momentum.service';
 import { LimitCheckService } from '../../../notifications/services/limit-check.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
+import { GeminiAuthService } from '../../gemini-auth/gemini-auth.service';
 
 describe('ProxyService', () => {
   let service: ProxyService;
@@ -17,6 +18,7 @@ describe('ProxyService', () => {
   let momentum: SessionMomentumService;
   let limitCheck: jest.Mocked<LimitCheckService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
+  let geminiAuth: jest.Mocked<GeminiAuthService>;
 
   beforeEach(() => {
     resolveService = {
@@ -49,6 +51,10 @@ describe('ProxyService', () => {
       getAll: jest.fn().mockReturnValue([]),
     } as unknown as jest.Mocked<ModelPricingCacheService>;
 
+    geminiAuth = {
+      getAccessToken: jest.fn().mockResolvedValue('fresh-access-token'),
+    } as unknown as jest.Mocked<GeminiAuthService>;
+
     service = new ProxyService(
       resolveService,
       routingService,
@@ -57,6 +63,7 @@ describe('ProxyService', () => {
       momentum,
       limitCheck,
       pricingCache,
+      geminiAuth,
     );
   });
 
@@ -1583,6 +1590,126 @@ describe('ProxyService', () => {
         status: 504,
         errorBody: 'gateway timeout',
       });
+    });
+  });
+
+  describe('Gemini subscription token refresh', () => {
+    it('exchanges refresh token for access token when provider is gemini subscription', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gemini-2.5-pro',
+        provider: 'gemini',
+        confidence: 0.9,
+        score: 0.5,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('stored-refresh-token');
+      geminiAuth.getAccessToken.mockResolvedValue('fresh-access-token');
+
+      const mockResponse = new Response('{}', { status: 200 });
+      providerClient.forward.mockResolvedValue({
+        response: mockResponse,
+        isGoogle: true,
+        isAnthropic: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(geminiAuth.getAccessToken).toHaveBeenCalledWith('stored-refresh-token');
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'gemini',
+        'fresh-access-token',
+        'gemini-2.5-pro',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+    });
+
+    it('exchanges refresh token for access token in fallback path', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-openai') // primary
+        .mockResolvedValueOnce('gemini-refresh-token'); // fallback (gemini subscription)
+      routingService.getAuthType.mockResolvedValueOnce('subscription');
+      geminiAuth.getAccessToken.mockResolvedValue('gemini-access-token');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('rate limited', { status: 429 }),
+          isGoogle: false,
+          isAnthropic: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: true,
+          isAnthropic: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['gemini-2.5-flash'] },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'gemini' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(geminiAuth.getAccessToken).toHaveBeenCalledWith('gemini-refresh-token');
+      expect(result.meta.model).toBe('gemini-2.5-flash');
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        'gemini',
+        'gemini-access-token',
+        'gemini-2.5-flash',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+    });
+
+    it('does not exchange token for non-subscription gemini auth', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gemini-2.5-pro',
+        provider: 'gemini',
+        confidence: 0.9,
+        score: 0.5,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('api-key-123');
+
+      const mockResponse = new Response('{}', { status: 200 });
+      providerClient.forward.mockResolvedValue({
+        response: mockResponse,
+        isGoogle: true,
+        isAnthropic: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(geminiAuth.getAccessToken).not.toHaveBeenCalled();
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'gemini',
+        'api-key-123',
+        'gemini-2.5-pro',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      );
     });
   });
 });

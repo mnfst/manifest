@@ -237,6 +237,15 @@ describe("PROVIDERS", () => {
     }
   });
 
+  it("Gemini supports subscription with label and OAuth flow", () => {
+    const gemini = PROVIDERS.find((p) => p.id === "gemini")!;
+    expect(gemini.supportsSubscription).toBe(true);
+    expect(gemini.subscriptionLabel).toBe("Gemini subscription");
+    expect(gemini.oauthFlow).toBe(true);
+    expect(gemini.subscriptionKeyPlaceholder).toBeUndefined();
+    expect(gemini.subscriptionCommand).toBeUndefined();
+  });
+
   it("does not have API-key-specific fields", () => {
     for (const p of PROVIDERS) {
       expect(p).not.toHaveProperty("inputType");

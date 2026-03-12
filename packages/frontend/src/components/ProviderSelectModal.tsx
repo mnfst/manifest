@@ -36,6 +36,54 @@ const ProviderSelectModal: Component<Props> = (props) => {
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
 
   const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
+
+  const startOAuthFlow = () => {
+    const w = 500;
+    const h = 600;
+    const left = Math.round(window.screenX + (window.outerWidth - w) / 2);
+    const top = Math.round(window.screenY + (window.outerHeight - h) / 2);
+    const url = `/api/v1/routing/gemini-auth?agent=${encodeURIComponent(props.agentName)}`;
+    const popup = window.open(
+      url,
+      'gemini-oauth',
+      `width=${w},height=${h},left=${left},top=${top}`,
+    );
+
+    if (!popup) {
+      toast.error('Popup blocked. Allow popups for this site and try again.');
+      return;
+    }
+
+    setBusy(true);
+
+    const cleanup = () => {
+      window.removeEventListener('message', onMessage);
+      clearInterval(pollId);
+      setBusy(false);
+    };
+
+    const pollId = setInterval(() => {
+      if (popup.closed) {
+        cleanup();
+      }
+    }, 500);
+
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === 'gemini-auth-done') {
+        cleanup();
+        popup.close();
+        if (e.data.success) {
+          toast.success('Gemini subscription connected');
+          props.onUpdate();
+          goBack();
+        } else {
+          toast.error('Gemini authentication failed');
+        }
+      }
+    };
+    window.addEventListener('message', onMessage);
+  };
   const apiKeyProviders = () =>
     isLocalMode()
       ? PROVIDERS
@@ -331,8 +379,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
             {/* -- Subscription Tab -- */}
             <Show when={activeTab() === 'subscription'}>
               <div class="provider-modal__tab-hint">
-                Use your Claude Max or Pro subscription instead of an API key. Paste your
-                setup-token to connect.
+                Use your existing subscription instead of an API key.
               </div>
               <div class="provider-modal__list">
                 <For each={subscriptionProviders()}>
@@ -347,7 +394,9 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         class="provider-toggle"
                         disabled={busy()}
                         onClick={() =>
-                          prov.subscriptionKeyPlaceholder
+                          prov.subscriptionKeyPlaceholder ||
+                          prov.subscriptionCommand ||
+                          prov.oauthFlow
                             ? openDetail(prov.id, 'subscription')
                             : handleSubscriptionToggle(prov.id)
                         }
@@ -504,10 +553,17 @@ const ProviderSelectModal: Component<Props> = (props) => {
               const provId = selectedProvider()!;
               const provDef = PROVIDERS.find((p) => p.id === provId)!;
               const isSubMode = () => selectedAuthType() === 'subscription';
-              const connected = () =>
-                isSubMode()
-                  ? isSubscriptionWithToken(provId)
-                  : isConnected(provId) || isNoKeyConnected(provId);
+              const isToggleSub = () =>
+                isSubMode() && !provDef.subscriptionKeyPlaceholder && !provDef.oauthFlow;
+              const isOAuthSub = () => isSubMode() && !!provDef.oauthFlow;
+              const connected = () => {
+                if (isSubMode()) {
+                  return provDef.subscriptionKeyPlaceholder
+                    ? isSubscriptionWithToken(provId)
+                    : isSubscriptionConnected(provId);
+                }
+                return isConnected(provId) || isNoKeyConnected(provId);
+              };
               const isOllama = provDef.noKeyRequired;
               const fieldLabel = () => (isSubMode() ? 'Setup Token' : 'API Key');
               const placeholder = () =>
@@ -551,7 +607,11 @@ const ProviderSelectModal: Component<Props> = (props) => {
                       <div class="routing-modal__title">Connect providers</div>
                       <div class="routing-modal__subtitle">
                         {isSubMode()
-                          ? 'Paste your setup-token to enable routing'
+                          ? isOAuthSub()
+                            ? 'Sign in to enable routing'
+                            : isToggleSub()
+                              ? 'Authenticate via CLI to enable routing'
+                              : 'Paste your setup-token to enable routing'
                           : 'Add your API keys to enable routing through each provider'}
                       </div>
                     </div>
@@ -582,7 +642,9 @@ const ProviderSelectModal: Component<Props> = (props) => {
                   {/* Subscription terminal instruction */}
                   <Show when={isSubMode() && provDef.subscriptionCommand}>
                     <p class="provider-detail__hint">
-                      Run the command below, then paste the token.
+                      {provDef.subscriptionKeyPlaceholder
+                        ? 'Run the command below, then paste the token.'
+                        : 'Run the command below to authenticate.'}
                     </p>
                     <div class="modal-terminal">
                       <div class="modal-terminal__header">
@@ -605,6 +667,76 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         </div>
                       </div>
                     </div>
+                  </Show>
+
+                  {/* OAuth subscription (browser-based sign-in) */}
+                  <Show when={isOAuthSub()}>
+                    <Show when={!connected()}>
+                      <p class="provider-detail__hint">
+                        Sign in with your Google account to connect your Gemini subscription.
+                      </p>
+                      <button
+                        class="btn btn--primary provider-detail__action"
+                        disabled={busy()}
+                        onClick={() => startOAuthFlow()}
+                      >
+                        <Show when={!busy()} fallback={<span class="spinner" />}>
+                          Sign in with Google
+                        </Show>
+                      </button>
+                    </Show>
+                    <Show when={connected()}>
+                      <button
+                        class="btn btn--outline provider-detail__action provider-detail__disconnect"
+                        disabled={busy()}
+                        onClick={() => handleDisconnect(provId)}
+                      >
+                        <Show when={!busy()} fallback={<span class="spinner" />}>
+                          Disconnect
+                        </Show>
+                      </button>
+                    </Show>
+                  </Show>
+
+                  {/* Toggle subscription (CLI auth, no token paste) */}
+                  <Show when={isToggleSub()}>
+                    <Show when={!connected()}>
+                      <button
+                        class="btn btn--primary provider-detail__action"
+                        disabled={busy()}
+                        onClick={async () => {
+                          setBusy(true);
+                          try {
+                            await connectProvider(props.agentName, {
+                              provider: provId,
+                              authType: 'subscription',
+                            });
+                            toast.success(`${provDef.name} subscription connected`);
+                            goBack();
+                            props.onUpdate();
+                          } catch {
+                            // error toast from fetchMutate
+                          } finally {
+                            setBusy(false);
+                          }
+                        }}
+                      >
+                        <Show when={!busy()} fallback={<span class="spinner" />}>
+                          Connect
+                        </Show>
+                      </button>
+                    </Show>
+                    <Show when={connected()}>
+                      <button
+                        class="btn btn--outline provider-detail__action provider-detail__disconnect"
+                        disabled={busy()}
+                        onClick={() => handleDisconnect(provId)}
+                      >
+                        <Show when={!busy()} fallback={<span class="spinner" />}>
+                          Disconnect
+                        </Show>
+                      </button>
+                    </Show>
                   </Show>
 
                   {/* Ollama (no key) */}
@@ -639,7 +771,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                   </Show>
 
                   {/* Non-Ollama: not yet connected */}
-                  <Show when={!isOllama && !connected()}>
+                  <Show when={!isOllama && !isToggleSub() && !isOAuthSub() && !connected()}>
                     <div class="provider-detail__field">
                       <label class="provider-detail__label">{fieldLabel()}</label>
                       <input
@@ -673,7 +805,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                   </Show>
 
                   {/* Non-Ollama: already connected */}
-                  <Show when={!isOllama && connected()}>
+                  <Show when={!isOllama && !isToggleSub() && !isOAuthSub() && connected()}>
                     <div class="provider-detail__field">
                       <label class="provider-detail__label">{fieldLabel()}</label>
                       <Show when={!editing()}>

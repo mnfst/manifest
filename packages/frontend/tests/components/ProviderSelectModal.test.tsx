@@ -3,10 +3,15 @@ import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
+const mockCreateCustomProvider = vi.fn();
+const mockDeleteCustomProvider = vi.fn();
 
 vi.mock("../../src/services/api.js", () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
+  createCustomProvider: (...args: unknown[]) => mockCreateCustomProvider(...args),
+  deleteCustomProvider: (...args: unknown[]) => mockDeleteCustomProvider(...args),
+  updateCustomProvider: vi.fn().mockResolvedValue({}),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -62,6 +67,8 @@ describe("ProviderSelectModal", () => {
     onUpdate = vi.fn();
     mockConnectProvider.mockResolvedValue({});
     mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+    mockCreateCustomProvider.mockResolvedValue({});
+    mockDeleteCustomProvider.mockResolvedValue({});
   });
 
   it("renders modal with title", () => {
@@ -906,7 +913,7 @@ describe("ProviderSelectModal", () => {
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       expect(
-        screen.getByText(/Use your Claude Max or Pro subscription/),
+        screen.getByText(/Use your existing subscription instead of an API key/),
       ).toBeDefined();
     });
 
@@ -989,6 +996,82 @@ describe("ProviderSelectModal", () => {
       expect(screen.getByText("Claude Max / Pro subscription")).toBeDefined();
     });
 
+    it("shows Gemini in subscription tab with label", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      expect(screen.getByText("Gemini subscription")).toBeDefined();
+    });
+
+    it("opens Gemini detail view with OAuth sign-in button", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("Gemini"));
+
+      // Shows OAuth subtitle
+      expect(screen.getByText("Sign in to enable routing")).toBeDefined();
+      // Shows sign-in hint
+      expect(screen.getByText("Sign in with your Google account to connect your Gemini subscription.")).toBeDefined();
+      // Shows Sign in with Google button
+      expect(screen.getByText("Sign in with Google")).toBeDefined();
+      // No token input or CLI command
+      expect(screen.queryByLabelText("Gemini setup token")).toBeNull();
+    });
+
+    it("opens OAuth popup when Sign in with Google is clicked", () => {
+      const mockPopup = { closed: false, close: vi.fn() };
+      const mockOpen = vi.fn().mockReturnValue(mockPopup);
+      vi.stubGlobal("open", mockOpen);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("Gemini"));
+      fireEvent.click(screen.getByText("Sign in with Google"));
+
+      expect(mockOpen).toHaveBeenCalledWith(
+        "/api/v1/routing/gemini-auth?agent=test-agent",
+        "gemini-oauth",
+        expect.stringContaining("width=500,height=600"),
+      );
+      vi.unstubAllGlobals();
+    });
+
+    it("shows error toast when popup is blocked", () => {
+      vi.stubGlobal("open", vi.fn().mockReturnValue(null));
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("Gemini"));
+      fireEvent.click(screen.getByText("Sign in with Google"));
+
+      expect(toast.error).toHaveBeenCalledWith("Popup blocked. Allow popups for this site and try again.");
+      vi.unstubAllGlobals();
+    });
+
+    it("shows disconnect for connected Gemini subscription", () => {
+      const geminiSub: RoutingProvider = {
+        id: "p-gem-sub",
+        provider: "gemini",
+        is_active: true,
+        has_api_key: true,
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[geminiSub]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Gemini"));
+      expect(screen.getByText("Disconnect")).toBeDefined();
+    });
+
     it("shows detail subtitle for subscription mode", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
@@ -1050,6 +1133,246 @@ describe("ProviderSelectModal", () => {
         });
       });
       expect(toast.success).toHaveBeenCalledWith("Anthropic token updated");
+    });
+  });
+
+  describe("OAuth flow inner handlers", () => {
+    it("handles successful postMessage from OAuth popup", async () => {
+      const mockPopup = { closed: false, close: vi.fn() };
+      const mockOpen = vi.fn().mockReturnValue(mockPopup);
+      vi.stubGlobal("open", mockOpen);
+
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Gemini"));
+      fireEvent.click(screen.getByText("Sign in with Google"));
+
+      // Simulate successful postMessage from popup
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          data: { type: "gemini-auth-done", success: true },
+        }),
+      );
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith("Gemini subscription connected");
+      });
+      expect(onUpdate).toHaveBeenCalled();
+      expect(mockPopup.close).toHaveBeenCalled();
+      vi.unstubAllGlobals();
+    });
+
+    it("handles failed postMessage from OAuth popup", async () => {
+      const mockPopup = { closed: false, close: vi.fn() };
+      const mockOpen = vi.fn().mockReturnValue(mockPopup);
+      vi.stubGlobal("open", mockOpen);
+
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Gemini"));
+      fireEvent.click(screen.getByText("Sign in with Google"));
+
+      // Simulate failed postMessage from popup
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          data: { type: "gemini-auth-done", success: false },
+        }),
+      );
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith("Gemini authentication failed");
+      });
+      expect(mockPopup.close).toHaveBeenCalled();
+      vi.unstubAllGlobals();
+    });
+
+    it("ignores postMessage from different origin", async () => {
+      const mockPopup = { closed: false, close: vi.fn() };
+      const mockOpen = vi.fn().mockReturnValue(mockPopup);
+      vi.stubGlobal("open", mockOpen);
+
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Gemini"));
+      fireEvent.click(screen.getByText("Sign in with Google"));
+
+      // Simulate postMessage from different origin
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: "https://evil.com",
+          data: { type: "gemini-auth-done", success: true },
+        }),
+      );
+
+      // Should not have called success or closed popup
+      expect(toast.success).not.toHaveBeenCalledWith("Gemini subscription connected");
+      expect(mockPopup.close).not.toHaveBeenCalled();
+      vi.unstubAllGlobals();
+    });
+
+    it("cleans up when popup is closed by user", async () => {
+      vi.useFakeTimers();
+      const mockPopup = { closed: false, close: vi.fn() };
+      const mockOpen = vi.fn().mockReturnValue(mockPopup);
+      vi.stubGlobal("open", mockOpen);
+
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Gemini"));
+      fireEvent.click(screen.getByText("Sign in with Google"));
+
+      // Simulate popup being closed by user
+      mockPopup.closed = true;
+      vi.advanceTimersByTime(600);
+
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    });
+
+    it("disconnects connected Gemini OAuth subscription from detail view", async () => {
+      const geminiSub: RoutingProvider = {
+        id: "p-gem-sub",
+        provider: "gemini",
+        is_active: true,
+        has_api_key: true,
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[geminiSub]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("Gemini"));
+      fireEvent.click(screen.getByText("Disconnect"));
+
+      await waitFor(() => {
+        expect(mockDisconnectProvider).toHaveBeenCalledWith(
+          "test-agent",
+          "gemini",
+          "subscription",
+        );
+      });
+      expect(onUpdate).toHaveBeenCalled();
+    });
+  });
+
+  describe("custom provider form callbacks", () => {
+    it("calls goBack and onUpdate when custom provider is created", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("API Keys"));
+      fireEvent.click(screen.getByText("Add custom provider"));
+
+      // Fill in the form
+      const nameInput = screen.getByPlaceholderText("e.g. Groq, vLLM, Azure");
+      fireEvent.input(nameInput, { target: { value: "MyProvider" } });
+      const urlInput = screen.getByPlaceholderText("https://api.example.com/v1");
+      fireEvent.input(urlInput, { target: { value: "https://api.test.com/v1" } });
+      const modelInput = screen.getByLabelText("Model 1 name");
+      fireEvent.input(modelInput, { target: { value: "test-model" } });
+
+      // Submit the form
+      fireEvent.click(screen.getByText("Create"));
+
+      await waitFor(() => {
+        expect(mockCreateCustomProvider).toHaveBeenCalled();
+      });
+      expect(onUpdate).toHaveBeenCalled();
+    });
+
+    it("calls goBack and onUpdate when custom provider is deleted", async () => {
+      vi.stubGlobal("confirm", vi.fn().mockReturnValue(true));
+      const customProviderData = [
+        {
+          id: "cp-1",
+          name: "Groq",
+          base_url: "https://api.groq.com",
+          has_api_key: true,
+          models: [{ model_name: "llama-3.1-70b" }],
+          created_at: "2025-01-01",
+        },
+      ];
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          customProviders={customProviderData}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("API Keys"));
+      fireEvent.click(screen.getByText("Groq"));
+
+      await waitFor(() => {
+        expect(screen.getByText("Delete provider")).toBeDefined();
+      });
+
+      fireEvent.click(screen.getByText("Delete provider"));
+
+      await waitFor(() => {
+        expect(mockDeleteCustomProvider).toHaveBeenCalled();
+      });
+      expect(onUpdate).toHaveBeenCalled();
+      vi.unstubAllGlobals();
+    });
+  });
+
+  describe("tab switching", () => {
+    it("switches back to Subscription tab after navigating to API Keys", () => {
+      const { container } = render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      // Switch to API Keys tab
+      fireEvent.click(screen.getByText("API Keys"));
+      let activeTab = container.querySelector(".provider-modal__tab--active");
+      expect(activeTab!.textContent).toContain("API Keys");
+
+      // Switch back to Subscription tab
+      fireEvent.click(screen.getByText("Subscription"));
+      activeTab = container.querySelector(".provider-modal__tab--active");
+      expect(activeTab!.textContent).toBe("Subscription");
     });
   });
 });

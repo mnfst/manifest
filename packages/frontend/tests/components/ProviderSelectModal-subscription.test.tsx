@@ -22,10 +22,13 @@ vi.mock("../../src/services/local-mode.js", () => ({
   checkLocalMode: () => Promise.resolve(false),
 }));
 
-// Mock providers to include a subscription provider WITHOUT subscriptionKeyPlaceholder
-// so handleSubscriptionToggle is exercised (the toggle path, not the detail-view path).
+// Mock providers to include subscription providers for different code paths:
+// 1. testToggleProvider: supportsSubscription=true, NO subscriptionKeyPlaceholder,
+//    NO subscriptionCommand, NO oauthFlow → direct toggle path (handleSubscriptionToggle)
+// 2. testCommandProvider: supportsSubscription=true, has subscriptionCommand,
+//    NO subscriptionKeyPlaceholder, NO oauthFlow → opens detail view, isToggleSub() path
 vi.mock("../../src/services/providers.js", () => {
-  const testProvider = {
+  const testToggleProvider = {
     id: "test-sub",
     name: "TestSub",
     color: "#000",
@@ -36,10 +39,24 @@ vi.mock("../../src/services/providers.js", () => {
     keyPlaceholder: "",
     models: [],
     supportsSubscription: true,
-    // No subscriptionKeyPlaceholder → toggle path
+    // No subscriptionKeyPlaceholder, no subscriptionCommand, no oauthFlow → toggle path
+  };
+  const testCommandProvider = {
+    id: "test-cmd",
+    name: "TestCmd",
+    color: "#222",
+    initial: "C",
+    subtitle: "Test CLI subscription provider",
+    keyPrefix: "",
+    minKeyLength: 0,
+    keyPlaceholder: "",
+    models: [],
+    supportsSubscription: true,
+    subscriptionCommand: "test-cli auth",
+    // No subscriptionKeyPlaceholder, no oauthFlow → isToggleSub() in detail view
   };
   return {
-    PROVIDERS: [testProvider],
+    PROVIDERS: [testToggleProvider, testCommandProvider],
     validateApiKey: () => ({ valid: true }),
     validateSubscriptionKey: () => ({ valid: true }),
   };
@@ -195,5 +212,133 @@ describe("ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceho
       (el) => el.textContent === "Subscription",
     );
     expect(hasSubscriptionLabel).toBe(true);
+  });
+
+  describe("CLI subscription detail view (isToggleSub)", () => {
+    it("opens detail view for CLI subscription provider with command", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      // TestCmd has subscriptionCommand → clicking it calls openDetail
+      fireEvent.click(screen.getByText("TestCmd"));
+
+      // Should show the isToggleSub subtitle
+      expect(screen.getByText("Authenticate via CLI to enable routing")).toBeDefined();
+      // Should show the terminal command
+      expect(screen.getByText("test-cli auth")).toBeDefined();
+      // Should show "Run the command below to authenticate." (no subscriptionKeyPlaceholder)
+      expect(screen.getByText("Run the command below to authenticate.")).toBeDefined();
+    });
+
+    it("shows Connect button for not-connected CLI subscription provider", () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("TestCmd"));
+      expect(screen.getByText("Connect")).toBeDefined();
+    });
+
+    it("connects CLI subscription provider when Connect is clicked", async () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("TestCmd"));
+      fireEvent.click(screen.getByText("Connect"));
+
+      await waitFor(() => {
+        expect(mockConnectProvider).toHaveBeenCalledWith("test-agent", {
+          provider: "test-cmd",
+          authType: "subscription",
+        });
+      });
+      expect(toast.success).toHaveBeenCalledWith("TestCmd subscription connected");
+      expect(onUpdate).toHaveBeenCalled();
+    });
+
+    it("handles connect error gracefully for CLI subscription", async () => {
+      mockConnectProvider.mockRejectedValue(new Error("Network error"));
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("TestCmd"));
+      fireEvent.click(screen.getByText("Connect"));
+
+      await waitFor(() => {
+        expect(mockConnectProvider).toHaveBeenCalled();
+      });
+      // Should not throw, onUpdate should not be called
+      expect(onUpdate).not.toHaveBeenCalled();
+    });
+
+    it("shows Disconnect button for connected CLI subscription provider", () => {
+      const subProvider: RoutingProvider = {
+        id: "p-cmd-sub",
+        provider: "test-cmd",
+        is_active: true,
+        has_api_key: false,
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("TestCmd"));
+      expect(screen.getByText("Disconnect")).toBeDefined();
+    });
+
+    it("disconnects CLI subscription provider when Disconnect is clicked", async () => {
+      const subProvider: RoutingProvider = {
+        id: "p-cmd-sub",
+        provider: "test-cmd",
+        is_active: true,
+        has_api_key: false,
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("TestCmd"));
+      fireEvent.click(screen.getByText("Disconnect"));
+
+      await waitFor(() => {
+        expect(mockDisconnectProvider).toHaveBeenCalledWith(
+          "test-agent",
+          "test-cmd",
+          "subscription",
+        );
+      });
+      expect(onUpdate).toHaveBeenCalled();
+    });
   });
 });

@@ -9,6 +9,7 @@ import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../provider-aliases';
+import { GeminiAuthService } from '../gemini-auth/gemini-auth.service';
 import { Tier, ScorerMessage } from '../scorer/types';
 
 /**
@@ -59,6 +60,7 @@ export class ProxyService {
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly geminiAuth: GeminiAuthService,
   ) {}
 
   async proxyRequest(
@@ -103,7 +105,7 @@ export class ProxyService {
       );
     }
 
-    const apiKey = await this.routingService.getProviderApiKey(
+    let apiKey = await this.routingService.getProviderApiKey(
       agentId,
       resolved.provider,
       resolved.auth_type,
@@ -112,6 +114,11 @@ export class ProxyService {
       throw new BadRequestException(
         `No API key found for provider: ${resolved.provider}. Re-connect the provider with an API key.`,
       );
+    }
+
+    // Google subscription stores a refresh_token — exchange it for a fresh access_token
+    if (resolved.provider === 'gemini' && resolved.auth_type === 'subscription') {
+      apiKey = await this.geminiAuth.getAccessToken(apiKey);
     }
 
     this.logger.log(
@@ -240,12 +247,16 @@ export class ProxyService {
         inferProviderFromModelName(pricing.model_name) ??
         pricing.provider;
       const authType = await this.routingService.getAuthType(agentId, provider);
-      const apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
+      let apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
       if (apiKey === null) {
         this.logger.debug(
           `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
         );
         continue;
+      }
+
+      if (provider === 'gemini' && authType === 'subscription') {
+        apiKey = await this.geminiAuth.getAccessToken(apiKey);
       }
 
       this.logger.log(

@@ -26,6 +26,7 @@ import { ProxyRateLimiter } from './proxy/proxy-rate-limiter';
 import { SessionMomentumService } from './proxy/session-momentum.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { GeminiAuthModule } from './gemini-auth/gemini-auth.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ]),
     ModelPricesModule,
     NotificationsModule,
+    GeminiAuthModule,
   ],
   controllers: [RoutingController, CustomProviderController, ResolveController, ProxyController],
   providers: [

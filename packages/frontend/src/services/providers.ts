@@ -20,6 +20,8 @@ export interface ProviderDef {
   subscriptionKeyPlaceholder?: string;
   /** Instructions text shown in the subscription detail view. */
   subscriptionCommand?: string;
+  /** Provider uses browser-based OAuth flow instead of token paste or CLI command. */
+  oauthFlow?: boolean;
 }
 
 export const PROVIDERS: ProviderDef[] = [
@@ -111,6 +113,9 @@ export const PROVIDERS: ProviderDef[] = [
     keyPrefix: 'AIza',
     minKeyLength: 39,
     keyPlaceholder: 'AIza...',
+    supportsSubscription: true,
+    subscriptionLabel: 'Gemini subscription',
+    oauthFlow: true,
     models: [
       { label: 'Gemini 2.5 Pro', value: 'gemini-2.5-pro' },
       { label: 'Gemini 2.5 Pro (Preview)', value: 'gemini-2.5-pro-preview-05-06' },

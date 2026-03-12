@@ -211,6 +211,62 @@ describe('ProviderClient', () => {
       expect(url).toContain('alt=sse');
     });
 
+    it('uses Bearer auth and no query param key for subscription auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'google',
+        'oauth-token',
+        'gemini-2.5-pro',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).not.toContain('key=');
+      expect(url).toContain('gemini-2.5-pro:generateContent');
+      expect(url).not.toContain('alt=sse');
+      const headers = mockFetch.mock.calls[0][1].headers;
+      expect(headers['Authorization']).toBe('Bearer oauth-token');
+    });
+
+    it('uses Bearer auth with alt=sse for streaming subscription', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'google',
+        'oauth-token',
+        'gemini-2.5-pro',
+        body,
+        true,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).not.toContain('key=');
+      expect(url).toContain('alt=sse');
+      const headers = mockFetch.mock.calls[0][1].headers;
+      expect(headers['Authorization']).toBe('Bearer oauth-token');
+    });
+
+    it('still uses query param key for non-subscription Google auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('google', 'AIza-test', 'gemini-2.0-flash', body, false);
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('key=AIza-test');
+      const headers = mockFetch.mock.calls[0][1].headers;
+      expect(headers['Authorization']).toBeUndefined();
+    });
+
     it('converts request body to Gemini format', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

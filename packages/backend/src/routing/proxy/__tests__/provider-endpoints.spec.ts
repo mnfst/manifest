@@ -111,4 +111,21 @@ describe('PROVIDER_ENDPOINTS', () => {
     const headers = PROVIDER_ENDPOINTS['anthropic'].buildHeaders('sk-ant-test');
     expect(headers['anthropic-beta']).toBeUndefined();
   });
+
+  it('google buildHeaders returns only Content-Type for api_key auth', () => {
+    const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('AIza-test');
+    expect(headers).toEqual({ 'Content-Type': 'application/json' });
+    expect(headers['Authorization']).toBeUndefined();
+  });
+
+  it('google uses Bearer auth header for subscription auth', () => {
+    const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('oauth-token', 'subscription');
+    expect(headers['Authorization']).toBe('Bearer oauth-token');
+    expect(headers['Content-Type']).toBe('application/json');
+  });
+
+  it('google does not include Authorization header when no authType specified', () => {
+    const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('AIza-test');
+    expect(headers['Authorization']).toBeUndefined();
+  });
 });

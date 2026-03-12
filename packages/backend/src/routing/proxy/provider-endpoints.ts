@@ -79,7 +79,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   google: {
     baseUrl: 'https://generativelanguage.googleapis.com',
-    buildHeaders: () => ({ 'Content-Type': 'application/json' }),
+    buildHeaders: (apiKey: string, authType?: string): Record<string, string> => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (authType === 'subscription') {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+      }
+      return headers;
+    },
     buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
   },
