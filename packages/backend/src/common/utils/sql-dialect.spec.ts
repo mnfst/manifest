@@ -146,9 +146,11 @@ describe('sql-dialect', () => {
       expect(result).toBe("strftime('%Y-%m-%dT%H:00:00', at.timestamp)");
     });
 
-    it('returns to_char/date_trunc expression for postgres', () => {
+    it('returns UTC-converting to_char/date_trunc expression for postgres', () => {
       const result = sqlHourBucket('at.timestamp', 'postgres');
-      expect(result).toBe(`to_char(date_trunc('hour', at.timestamp), 'YYYY-MM-DD"T"HH24:MI:SS')`);
+      expect(result).toBe(
+        `to_char(date_trunc('hour', at.timestamp AT TIME ZONE current_setting('TIMEZONE') AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS')`,
+      );
     });
   });
 

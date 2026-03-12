@@ -53,9 +53,14 @@ export function sqlNow(): string {
 }
 
 export function sqlHourBucket(col: string, dialect: DbDialect): string {
-  return dialect === 'sqlite'
-    ? `strftime('%Y-%m-%dT%H:00:00', ${col})`
-    : `to_char(date_trunc('hour', ${col}), 'YYYY-MM-DD"T"HH24:MI:SS')`;
+  if (dialect === 'sqlite') {
+    return `strftime('%Y-%m-%dT%H:00:00', ${col})`;
+  }
+  // Explicitly convert to UTC so hour buckets are timezone-independent:
+  // 1. AT TIME ZONE current_setting('TIMEZONE') → interpret stored value as session TZ → timestamptz
+  // 2. AT TIME ZONE 'UTC' → convert to UTC → timestamp without tz
+  // 3. date_trunc('hour', ...) → truncate to UTC hour
+  return `to_char(date_trunc('hour', ${col} AT TIME ZONE current_setting('TIMEZONE') AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS')`;
 }
 
 export function sqlDateBucket(col: string, dialect: DbDialect): string {
