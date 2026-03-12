@@ -287,12 +287,12 @@ export class ProxyService {
 
     const fmt =
       exceeded.metricType === 'cost'
-        ? `$${exceeded.actual.toFixed(2)}`
-        : exceeded.actual.toLocaleString();
+        ? `$${Number(exceeded.actual).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : Number(exceeded.actual).toLocaleString(undefined, { maximumFractionDigits: 0 });
     const threshFmt =
       exceeded.metricType === 'cost'
-        ? `$${exceeded.threshold.toFixed(2)}`
-        : exceeded.threshold.toLocaleString();
+        ? `$${Number(exceeded.threshold).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : Number(exceeded.threshold).toLocaleString(undefined, { maximumFractionDigits: 0 });
     throw new HttpException(
       {
         error: {
