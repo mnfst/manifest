@@ -290,6 +290,21 @@ h6 {
   background: hsl(var(--destructive) / 0.1);
 }
 
+.trend--up-bad {
+  color: hsl(var(--destructive));
+  background: hsl(var(--destructive) / 0.1);
+}
+
+.trend--down-good {
+  color: hsl(var(--success));
+  background: hsl(var(--success) / 0.1);
+}
+
+.trend--neutral {
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted-foreground) / 0.1);
+}
+
 /* ── Panel — shadcn Card ──────────────────────────── */
 .panel {
   background: hsl(var(--card));
@@ -888,10 +903,22 @@ h6 {
   display: flex !important;
   align-items: center !important;
   gap: 4px !important;
-  overflow: hidden !important;
   white-space: nowrap !important;
   min-width: 0 !important;
   padding: 2px 0 !important;
+}
+
+.u-legend .u-series th {
+  flex-shrink: 0 !important;
+}
+
+.u-legend .u-value {
+  font-family: var(--font-mono) !important;
+  font-variant-numeric: tabular-nums !important;
+  min-width: 60px !important;
+  display: inline-block !important;
+  text-align: right !important;
+  flex-shrink: 0 !important;
 }
 
 .u-legend .u-series:first-child {
@@ -903,21 +930,8 @@ h6 {
   padding-left: var(--gap-sm) !important;
 }
 
-.u-legend .u-value {
-  font-family: var(--font-mono) !important;
-  font-variant-numeric: tabular-nums !important;
-  min-width: 60px !important;
-  display: inline-block !important;
-  text-align: right !important;
-}
-
 .u-legend .u-marker {
   border-radius: 50% !important;
-}
-
-.u-cursor-x,
-.u-cursor-y {
-  border-color: hsl(var(--border)) !important;
 }
 
 /* ── Chart tooltip ─────────────────────────────────── */

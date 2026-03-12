@@ -8,9 +8,12 @@ import {
   createCursorSnap,
   createBaseAxes,
   parseTimestamps,
-  timeScaleRange,
-  formatLegendTimestamp,
+  createTimeScaleRange,
+  createFormatLegendTimestamp,
   formatLegendCost,
+  isMultiDayRange,
+  sanitizeNumbers,
+  fillDailyGaps,
 } from '../services/chart-utils.js';
 
 interface CostChartProps {
@@ -37,7 +40,8 @@ const CostChart: Component<CostChartProps> = (props) => {
       const axes = createBaseAxes(axisColor, gridColor, props.range);
       axes[1] = {
         ...axes[1]!,
-        values: (_u: uPlot, vals: number[]) => vals.map((v) => `$${v.toFixed(2)}`),
+        values: (_u: uPlot, vals: number[]) =>
+          vals.map((v) => (isNaN(v) ? '\u2013' : v % 1 === 0 ? `$${v}` : `$${v.toFixed(2)}`)),
       };
 
       return new uPlot(
@@ -47,12 +51,12 @@ const CostChart: Component<CostChartProps> = (props) => {
           padding: [16, 16, 0, 0],
           cursor: createCursorSnap(bgColor, c1),
           scales: {
-            x: { time: true, range: timeScaleRange },
+            x: { time: !isMultiDayRange(props.range), range: createTimeScaleRange(props.range) },
             y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.15 : 1] },
           },
           axes,
           series: [
-            { value: formatLegendTimestamp },
+            { value: createFormatLegendTimestamp(props.range) },
             {
               label: 'Cost',
               stroke: c1,
@@ -62,7 +66,16 @@ const CostChart: Component<CostChartProps> = (props) => {
             },
           ],
         },
-        [parseTimestamps(props.data), props.data.map((d) => d.cost)],
+        (() => {
+          const isHourly = props.range === '24h';
+          const filled = fillDailyGaps(
+            props.data,
+            props.range ?? '',
+            isHourly ? 'hour' : 'date',
+            (key) => (isHourly ? { hour: key, cost: 0 } : { date: key, cost: 0 }),
+          );
+          return [parseTimestamps(filled), sanitizeNumbers(filled.map((d) => d.cost))];
+        })(),
         el,
       );
     },

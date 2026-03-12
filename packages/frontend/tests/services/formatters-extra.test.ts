@@ -2,12 +2,12 @@ import { describe, it, expect } from "vitest";
 import { formatNumber, formatCost, formatTrend } from "../../src/services/formatters.js";
 
 describe("formatNumber edge cases", () => {
-  it("formats exactly 1000 as 1.0k", () => {
-    expect(formatNumber(1000)).toBe("1.0k");
+  it("formats exactly 1000 as 1k", () => {
+    expect(formatNumber(1000)).toBe("1k");
   });
 
-  it("formats exactly 1000000 as 1.0M", () => {
-    expect(formatNumber(1_000_000)).toBe("1.0M");
+  it("formats exactly 1000000 as 1M", () => {
+    expect(formatNumber(1_000_000)).toBe("1M");
   });
 
   it("formats boundary between k and M (999999)", () => {
@@ -19,7 +19,16 @@ describe("formatNumber edge cases", () => {
   });
 
   it("formats very large millions", () => {
-    expect(formatNumber(1_500_000_000)).toBe("1500.0M");
+    expect(formatNumber(1_500_000_000)).toBe("1500M");
+  });
+
+  it("formats whole thousands without decimal", () => {
+    expect(formatNumber(2000)).toBe("2k");
+    expect(formatNumber(200_000)).toBe("200k");
+  });
+
+  it("formats whole millions without decimal", () => {
+    expect(formatNumber(3_000_000)).toBe("3M");
   });
 });
 

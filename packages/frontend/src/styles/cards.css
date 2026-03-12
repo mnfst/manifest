@@ -43,14 +43,10 @@
   line-height: 1.4;
 }
 
-.trend--up {
-  color: hsl(var(--success));
-  background: hsl(var(--success) / 0.1);
-}
-
+.trend--up,
 .trend--down {
-  color: hsl(var(--destructive));
-  background: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted));
 }
 
 /* ── Panel — shadcn Card ──────────────────────────── */
@@ -118,7 +114,7 @@
 }
 
 .chart-card__stat--clickable::after {
-  content: "";
+  content: '';
   position: absolute;
   bottom: -1px;
   left: -1px;

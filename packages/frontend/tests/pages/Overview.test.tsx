@@ -526,6 +526,110 @@ describe("Overview", () => {
     });
   });
 
+  describe("range persistence", () => {
+    it("persists range selection in localStorage", async () => {
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="select"]')).not.toBeNull();
+      });
+      const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+      await fireEvent.change(select, { target: { value: "24h" } });
+      expect(localStorage.getItem("manifest_chart_range")).toBe("24h");
+    });
+
+    it("reads persisted range from localStorage on mount", async () => {
+      localStorage.setItem("manifest_chart_range", "24h");
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("24h");
+      });
+    });
+
+    it("defaults to 30d when no localStorage value", async () => {
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("30d");
+      });
+    });
+
+    it("ignores stale localStorage value and defaults to 30d", async () => {
+      localStorage.setItem("manifest_chart_range", "1h");
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("30d");
+      });
+    });
+  });
+
+  describe("smart default range", () => {
+    it("cascades to smaller range when data arrays are all empty", async () => {
+      const emptyUsageData = {
+        ...overviewData,
+        has_data: true,
+        token_usage: [],
+        cost_usage: [],
+        message_usage: [],
+      };
+      mockGetOverview.mockResolvedValue(emptyUsageData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        // Cascades from 30d → 7d → 24h (all empty, lands at final range)
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("24h");
+      });
+    });
+
+    it("does not cascade when user has manually selected a range", async () => {
+      localStorage.setItem("manifest_chart_range", "30d");
+      const emptyUsageData = {
+        ...overviewData,
+        has_data: true,
+        token_usage: [],
+        cost_usage: [],
+        message_usage: [],
+      };
+      mockGetOverview.mockResolvedValue(emptyUsageData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("30d");
+      });
+    });
+
+    it("stays on current range when there is data", async () => {
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("30d");
+      });
+    });
+  });
+
+  it("renders provider icon in cost_by_model for known providers", async () => {
+    const dataWithKnownModel = {
+      ...overviewData,
+      cost_by_model: [
+        { model: "gpt-4o", tokens: 30000, share_pct: 100, estimated_cost: 2.1 },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithKnownModel);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("gpt-4o");
+      // Verify the provider icon SVG is rendered (not just text)
+      const providerIcon = container.querySelector('svg[role="img"], span[role="img"]');
+      expect(providerIcon).not.toBeNull();
+    });
+  });
+
   it("shows $0.00 cost for subscription auth_type messages in recent activity", async () => {
     const dataWithSub = {
       ...overviewData,
