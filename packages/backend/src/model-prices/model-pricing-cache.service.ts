@@ -32,7 +32,10 @@ export class ModelPricingCacheService implements OnModuleInit {
       if (computed !== row.quality_score) {
         row.quality_score = computed;
         updates.push(
-          this.pricingRepo.update({ model_name: row.model_name }, { quality_score: computed }),
+          this.pricingRepo.update(
+            { model_name: row.model_name, provider: row.provider },
+            { quality_score: computed },
+          ),
         );
       }
     }
@@ -42,7 +45,7 @@ export class ModelPricingCacheService implements OnModuleInit {
 
     this.cache.clear();
     for (const row of rows) {
-      this.cache.set(row.model_name, row);
+      this.cache.set(`${row.model_name}:${row.provider}`, row);
     }
     this.aliasMap = buildAliasMap([...this.cache.keys()]);
     this.logger.log(`Loaded ${this.cache.size} model pricing entries`);
