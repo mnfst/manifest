@@ -76,8 +76,10 @@ export class RoutingController {
     );
 
     if (isNew) {
+      const providerLabel =
+        body.authType === 'subscription' ? `${body.provider} (Subscription)` : body.provider;
       trackCloudEvent('routing_provider_connected', user.id, {
-        provider: body.provider,
+        provider: providerLabel,
       });
     }
 

@@ -231,6 +231,24 @@ describe('RoutingController', () => {
       );
     });
 
+    it('should append (Subscription) to provider label for subscription auth type', async () => {
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: { id: 'p1', provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+        isNew: true,
+      });
+
+      await controller.upsertProvider(mockUser, mockAgentName, {
+        provider: 'anthropic',
+        authType: 'subscription',
+      });
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
+        'routing_provider_connected',
+        'user-1',
+        { provider: 'anthropic (Subscription)' },
+      );
+    });
+
     it('should not fire event when provider already exists', async () => {
       mockRoutingService.upsertProvider.mockResolvedValue({
         provider: { id: 'p1', provider: 'openai', is_active: true },
