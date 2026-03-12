@@ -2,7 +2,7 @@ import { OLLAMA_HOST } from '../../common/constants/ollama';
 
 export interface ProviderEndpoint {
   baseUrl: string;
-  buildHeaders: (apiKey: string) => Record<string, string>;
+  buildHeaders: (apiKey: string, authType?: string) => Record<string, string>;
   buildPath: (model: string) => string;
   format: 'openai' | 'google' | 'anthropic';
 }
@@ -14,11 +14,19 @@ const openaiHeaders = (apiKey: string) => ({
 
 const openaiPath = () => '/v1/chat/completions';
 
-const anthropicHeaders = (apiKey: string) => ({
-  'x-api-key': apiKey,
-  'Content-Type': 'application/json',
-  'anthropic-version': '2023-06-01',
-});
+const anthropicHeaders = (apiKey: string, authType?: string): Record<string, string> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'anthropic-version': '2023-06-01',
+  };
+  if (authType === 'subscription') {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+    headers['anthropic-beta'] = 'oauth-2025-04-20';
+  } else {
+    headers['x-api-key'] = apiKey;
+  }
+  return headers;
+};
 
 export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   openai: {

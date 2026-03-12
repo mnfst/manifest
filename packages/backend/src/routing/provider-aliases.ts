@@ -16,6 +16,18 @@ const ALIASES: Record<string, string[]> = {
   ollama: ['ollama'],
 };
 
+/**
+ * Extract the provider from a model's vendor prefix.
+ * E.g. "anthropic/claude-sonnet-4" → "anthropic", "gpt-4o" → undefined.
+ */
+export function inferProviderFromModelName(
+  modelName: string | undefined | null,
+): string | undefined {
+  if (!modelName) return undefined;
+  const slashIdx = modelName.indexOf('/');
+  return slashIdx > 0 ? modelName.substring(0, slashIdx).toLowerCase() : undefined;
+}
+
 /** Expand a set of provider names to include known aliases. */
 export function expandProviderNames(names: Iterable<string>): Set<string> {
   const expanded = new Set<string>();

@@ -53,6 +53,7 @@ interface MessageItem {
   cache_creation_tokens: number | null;
   duration_ms: number | null;
   error_message?: string | null;
+  auth_type?: string | null;
   fallback_from_model?: string | null;
   fallback_index?: number | null;
 }
@@ -472,15 +473,28 @@ const MessageLog: Component = () => {
                             </span>
                           )}
                         </td>
-                        <td
-                          style="font-family: var(--font-mono);"
-                          title={
-                            item.cost != null && item.cost > 0 && item.cost < 0.01
-                              ? `$${item.cost.toFixed(6)}`
-                              : undefined
-                          }
-                        >
-                          {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}
+                        <td style="font-family: var(--font-mono);">
+                          <Show
+                            when={item.auth_type === 'subscription'}
+                            fallback={
+                              <span
+                                title={
+                                  item.cost != null && item.cost > 0 && item.cost < 0.01
+                                    ? `$${item.cost.toFixed(6)}`
+                                    : undefined
+                                }
+                              >
+                                {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}
+                              </span>
+                            }
+                          >
+                            <span
+                              style="color: hsl(var(--muted-foreground));"
+                              title="Included in subscription"
+                            >
+                              $0.00
+                            </span>
+                          </Show>
                         </td>
                         <td style="font-family: var(--font-mono);">
                           {item.total_tokens != null ? formatNumber(item.total_tokens) : '\u2014'}
@@ -518,10 +532,26 @@ const MessageLog: Component = () => {
                               })()
                             ) : item.model && inferProviderFromModel(item.model) ? (
                               <span
-                                title={inferProviderName(item.model)}
-                                style="display: inline-flex; flex-shrink: 0;"
+                                role="img"
+                                aria-label={
+                                  item.auth_type === 'subscription'
+                                    ? `${inferProviderName(item.model)} (Subscription)`
+                                    : inferProviderName(item.model)
+                                }
+                                title={
+                                  item.auth_type === 'subscription'
+                                    ? `${inferProviderName(item.model)} (Subscription)`
+                                    : inferProviderName(item.model)
+                                }
+                                style="display: inline-flex; flex-shrink: 0; position: relative;"
                               >
                                 {providerIcon(inferProviderFromModel(item.model)!, 14)}
+                                {item.auth_type === 'subscription' && (
+                                  <span
+                                    class="provider-auth-badge provider-auth-badge--sub provider-auth-badge--overlay"
+                                    aria-hidden="true"
+                                  />
+                                )}
                               </span>
                             ) : null}
                             {item.model ? getModelDisplayName(item.model) : '\u2014'}

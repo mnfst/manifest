@@ -67,6 +67,38 @@
   color: hsl(var(--muted-foreground));
 }
 
+/* ── Auth type badge on provider icons ────────────── */
+.provider-auth-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid hsl(var(--card));
+}
+
+.provider-auth-badge--sub {
+  background: #22c55e;
+  color: #fff;
+}
+
+.provider-auth-badge--key {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.provider-auth-badge--overlay {
+  width: 8px;
+  height: 8px;
+  top: -2px;
+  right: -2px;
+  border-width: 1.5px;
+}
+
 /* ── Routing cards ─────────────────────────────────── */
 .routing-cards {
   display: flex;
@@ -124,6 +156,10 @@
   margin-top: 2px;
 }
 
+.routing-card__sub--subscription {
+  color: #22c55e;
+}
+
 .routing-card__override {
   display: inline-flex;
   align-items: center;
@@ -134,6 +170,7 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  position: relative;
 }
 
 .routing-card__auto-tag {

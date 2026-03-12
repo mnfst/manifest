@@ -3,6 +3,61 @@
   --custom-provider-color: #6366f1;
 }
 
+/* ── Provider modal tabs ─────────────────────────── */
+.provider-modal__tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 24px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.provider-modal__tab {
+  flex: 1;
+  padding: 10px 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  font-family: var(--font-family);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  text-align: center;
+  transition:
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.provider-modal__tab:hover {
+  color: hsl(var(--foreground));
+}
+
+.provider-modal__tab--active {
+  color: hsl(var(--foreground));
+  border-bottom-color: hsl(var(--primary));
+}
+
+.provider-modal__tab:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: -2px;
+  border-radius: 2px;
+}
+
+.provider-modal__tab-icon {
+  flex-shrink: 0;
+}
+
+.provider-modal__tab-hint {
+  padding: 10px 24px 4px;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+}
+
 /* ── Provider toggle (modal rows) ─────────────────── */
 .provider-modal__list {
   padding: 8px 0;
@@ -204,11 +259,15 @@
   justify-content: center;
   background: none;
   border: none;
-  padding: 0;
+  padding: 8px;
+  margin: -8px;
+  margin-bottom: 4px;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
-  margin-bottom: 12px;
   transition: color var(--transition-fast);
+  /* Ensure 44px minimum touch target */
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .provider-detail__back:hover {
@@ -330,6 +389,13 @@
 .provider-detail__no-key {
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));
+}
+
+.provider-detail__hint {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
 .provider-detail__disconnect {

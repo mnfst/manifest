@@ -254,6 +254,7 @@ export class TimeseriesQueriesService {
       .addSelect('at.routing_tier', 'routing_tier')
       .addSelect('at.routing_reason', 'routing_reason')
       .addSelect('at.error_message', 'error_message')
+      .addSelect('at.auth_type', 'auth_type')
       .addSelect('at.fallback_from_model', 'fallback_from_model')
       .addSelect('at.fallback_index', 'fallback_index')
       .where('at.timestamp >= :cutoff', { cutoff });

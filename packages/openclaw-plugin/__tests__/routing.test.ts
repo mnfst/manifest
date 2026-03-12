@@ -113,6 +113,7 @@ describe("resolveRouting", () => {
       tier: "complex",
       model: "gpt-4o",
       provider: "OpenAI",
+      auth_type: "api_key",
       reason: "multi-step reasoning",
     });
   });

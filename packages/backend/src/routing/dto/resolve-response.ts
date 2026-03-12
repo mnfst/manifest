@@ -1,5 +1,7 @@
 import { Tier, ScoringReason } from '../scorer';
 
+export type AuthType = 'api_key' | 'subscription';
+
 export interface ResolveResponse {
   tier: Tier;
   model: string | null;
@@ -7,4 +9,5 @@ export interface ResolveResponse {
   confidence: number;
   score: number;
   reason: ScoringReason;
+  auth_type?: AuthType;
 }

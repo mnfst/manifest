@@ -8,6 +8,7 @@ import { buildCustomEndpoint, ProviderEndpoint } from './provider-endpoints';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
+import { inferProviderFromModelName } from '../provider-aliases';
 import { Tier, ScorerMessage } from '../scorer/types';
 
 /**
@@ -25,6 +26,7 @@ export interface RoutingMeta {
   provider: string;
   confidence: number;
   reason: string;
+  auth_type?: string;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
@@ -101,7 +103,11 @@ export class ProxyService {
       );
     }
 
-    const apiKey = await this.routingService.getProviderApiKey(agentId, resolved.provider);
+    const apiKey = await this.routingService.getProviderApiKey(
+      agentId,
+      resolved.provider,
+      resolved.auth_type,
+    );
     if (apiKey === null) {
       throw new BadRequestException(
         `No API key found for provider: ${resolved.provider}. Re-connect the provider with an API key.`,
@@ -109,7 +115,7 @@ export class ProxyService {
     }
 
     this.logger.log(
-      `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} confidence=${resolved.confidence}`,
+      `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
     );
 
     const stream = body.stream === true;
@@ -121,6 +127,7 @@ export class ProxyService {
       stream,
       sessionKey,
       signal,
+      resolved.auth_type,
     );
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
@@ -150,6 +157,7 @@ export class ProxyService {
               provider: success.provider,
               confidence: resolved.confidence,
               reason: resolved.reason,
+              auth_type: resolved.auth_type,
               fallbackFromModel: resolved.model,
               fallbackIndex: success.fallbackIndex,
               primaryErrorStatus: forward.response.status,
@@ -179,6 +187,7 @@ export class ProxyService {
             provider: resolved.provider,
             confidence: resolved.confidence,
             reason: resolved.reason,
+            auth_type: resolved.auth_type,
           },
           failedFallbacks: failures,
         };
@@ -195,6 +204,7 @@ export class ProxyService {
         provider: resolved.provider,
         confidence: resolved.confidence,
         reason: resolved.reason,
+        auth_type: resolved.auth_type,
       },
     };
   }
@@ -220,14 +230,26 @@ export class ProxyService {
     for (let i = 0; i < fallbackModels.length; i++) {
       const model = fallbackModels[i];
       const pricing = this.pricingCache.getByModel(model);
-      if (!pricing) continue;
+      if (!pricing) {
+        this.logger.debug(`Fallback ${i}: skipping model=${model} (no pricing data)`);
+        continue;
+      }
 
-      const provider = pricing.provider;
-      const apiKey = await this.routingService.getProviderApiKey(agentId, provider);
-      if (apiKey === null) continue;
+      const provider =
+        inferProviderFromModelName(model) ??
+        inferProviderFromModelName(pricing.model_name) ??
+        pricing.provider;
+      const authType = await this.routingService.getAuthType(agentId, provider);
+      const apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
+      if (apiKey === null) {
+        this.logger.debug(
+          `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
+        );
+        continue;
+      }
 
       this.logger.log(
-        `Fallback ${i}: trying model=${model} provider=${provider} (primary=${primaryModel})`,
+        `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
       );
 
       const forward = await this.forwardToProvider(
@@ -238,6 +260,7 @@ export class ProxyService {
         stream,
         sessionKey,
         signal,
+        authType,
       );
 
       if (forward.response.ok) {
@@ -310,6 +333,7 @@ export class ProxyService {
     stream: boolean,
     sessionKey: string,
     signal?: AbortSignal,
+    authType?: string,
   ): Promise<ForwardResult> {
     const extraHeaders: Record<string, string> = {};
     if (provider === 'xai') {
@@ -338,6 +362,7 @@ export class ProxyService {
       signal,
       hasExtraHeaders ? extraHeaders : undefined,
       customEndpoint,
+      authType,
     );
   }
 }

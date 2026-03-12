@@ -47,7 +47,7 @@ const PROVIDER_PREFIXES = [
   'together/',
 ];
 
-const DATE_SUFFIX_RE = /-\d{4}-\d{2}-\d{2}$/;
+const DATE_SUFFIX_RE = /-\d{4}-?\d{2}-?\d{2}$/;
 
 export function stripProviderPrefix(name: string): string {
   for (const prefix of PROVIDER_PREFIXES) {
@@ -67,10 +67,19 @@ export function buildAliasMap(canonicalNames: ReadonlyArray<string>): Map<string
 
   for (const name of canonicalNames) {
     map.set(name, name);
+    // Also index by bare name (e.g. "claude-sonnet-4" → "anthropic/claude-sonnet-4")
+    const bare = stripProviderPrefix(name);
+    if (bare !== name && !map.has(bare)) {
+      map.set(bare, name);
+    }
   }
 
   for (const [alias, canonical] of KNOWN_ALIASES) {
-    map.set(alias, canonical);
+    // Skip if the alias already resolves to a canonical pricing name (e.g. from bare-name indexing)
+    if (map.has(alias)) continue;
+    // If the canonical target exists in the map, use its resolved value
+    const resolved = map.get(canonical) ?? canonical;
+    map.set(alias, resolved);
   }
 
   return map;

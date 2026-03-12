@@ -489,6 +489,66 @@ describe("Overview", () => {
     });
   });
 
+  it("shows $0.00 cost for subscription auth_type messages in recent activity", async () => {
+    const dataWithSub = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], auth_type: "subscription", cost: 0.05 },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithSub);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const subCost = container.querySelector('[title="Included in subscription"]');
+      expect(subCost).not.toBeNull();
+      expect(subCost!.textContent).toBe("$0.00");
+    });
+  });
+
+  it("shows formatCost for non-subscription messages with cost in recent activity", async () => {
+    const dataWithCost = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], auth_type: null, cost: 0.05 },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithCost);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("$0.05");
+    });
+  });
+
+  it("renders subscription auth badge on provider icon in recent activity", async () => {
+    const dataWithSub = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], model: "claude-sonnet-4", auth_type: "subscription" },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithSub);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".provider-auth-badge--sub");
+      expect(badge).not.toBeNull();
+    });
+  });
+
+  it("does not render subscription auth badge when auth_type is not subscription", async () => {
+    const dataWithApiKey = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], model: "claude-sonnet-4", auth_type: "api_key" },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithApiKey);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const badge = container.querySelector(".provider-auth-badge--sub");
+      expect(badge).toBeNull();
+    });
+  });
+
   it("renders fallback badge in recent activity when fallback_from_model is present", async () => {
     const dataWithFallback = {
       ...overviewData,

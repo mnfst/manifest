@@ -58,12 +58,12 @@ export class RoutingCacheService {
     setWithEviction(this.customProviders, agentId, data);
   }
 
-  getApiKey(agentId: string, provider: string): string | null | undefined {
-    return getOrExpire(this.apiKeys, `${agentId}:${provider}`);
+  getApiKey(agentId: string, provider: string, authType?: string): string | null | undefined {
+    return getOrExpire(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}`);
   }
 
-  setApiKey(agentId: string, provider: string, apiKey: string | null): void {
-    setWithEviction(this.apiKeys, `${agentId}:${provider}`, apiKey);
+  setApiKey(agentId: string, provider: string, apiKey: string | null, authType?: string): void {
+    setWithEviction(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}`, apiKey);
   }
 
   invalidateAgent(agentId: string): void {

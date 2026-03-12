@@ -252,24 +252,28 @@ describe('seedAgentMessages', () => {
   });
 
   describe('cost calculation', () => {
-    it('should calculate cost_usd as input * 0.000003 + output * 0.000015', async () => {
+    it('should calculate cost_usd for api_key messages and zero for subscription', async () => {
       await seedAgentMessages(mockRepo as never, 'user-1', logger);
       const messages = collectInsertedMessages(mockRepo);
 
       for (const msg of messages) {
-        const input = msg.input_tokens as number;
-        const output = msg.output_tokens as number;
-        const expectedCost = input * 0.000003 + output * 0.000015;
-        expect(msg.cost_usd).toBeCloseTo(expectedCost, 10);
+        if (msg.auth_type === 'subscription') {
+          expect(msg.cost_usd).toBe(0);
+        } else {
+          const input = msg.input_tokens as number;
+          const output = msg.output_tokens as number;
+          const expectedCost = input * 0.000003 + output * 0.000015;
+          expect(msg.cost_usd).toBeCloseTo(expectedCost, 10);
+        }
       }
     });
 
-    it('should produce positive cost for every message', async () => {
+    it('should produce non-negative cost for every message', async () => {
       await seedAgentMessages(mockRepo as never, 'user-1', logger);
       const messages = collectInsertedMessages(mockRepo);
 
       for (const msg of messages) {
-        expect(msg.cost_usd as number).toBeGreaterThan(0);
+        expect(msg.cost_usd as number).toBeGreaterThanOrEqual(0);
       }
     });
   });

@@ -120,6 +120,9 @@ export async function pipeStream(
         } else {
           dest.write(text);
           passthroughBuffer += text;
+          if (passthroughBuffer.length > MAX_SSE_BUFFER_SIZE) {
+            throw new Error('SSE buffer overflow: provider sent data without event boundaries');
+          }
           const { events: ptEvents, remaining } = parseSseEvents(passthroughBuffer);
           passthroughBuffer = remaining;
           for (const ev of ptEvents) {

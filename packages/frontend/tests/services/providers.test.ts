@@ -3,6 +3,7 @@ import {
   getModelLabel,
   getProvider,
   validateApiKey,
+  validateSubscriptionKey,
   PROVIDERS,
   STAGES,
 } from "../../src/services/providers";
@@ -98,6 +99,41 @@ describe("validateApiKey", () => {
   });
 });
 
+/* ── validateSubscriptionKey ────────────────────── */
+
+describe("validateSubscriptionKey", () => {
+  it("returns invalid when token is empty", () => {
+    const anthropic = getProvider("anthropic")!;
+    expect(validateSubscriptionKey(anthropic, "")).toEqual({
+      valid: false,
+      error: "Token is required",
+    });
+  });
+
+  it("returns invalid when token is too short", () => {
+    const anthropic = getProvider("anthropic")!;
+    expect(validateSubscriptionKey(anthropic, "short")).toEqual({
+      valid: false,
+      error: "Token is too short (minimum 10 characters)",
+    });
+  });
+
+  it("returns invalid when Anthropic token has wrong prefix", () => {
+    const anthropic = getProvider("anthropic")!;
+    expect(validateSubscriptionKey(anthropic, "sk-wrong-prefix-long-enough-token")).toEqual({
+      valid: false,
+      error: 'Anthropic subscription tokens start with "sk-ant-oat"',
+    });
+  });
+
+  it("returns valid for a correct Anthropic subscription token", () => {
+    const anthropic = getProvider("anthropic")!;
+    expect(validateSubscriptionKey(anthropic, "sk-ant-oat01-valid-token-here")).toEqual({
+      valid: true,
+    });
+  });
+});
+
 /* ── getModelLabel ──────────────────────────────── */
 
 describe("getModelLabel", () => {
@@ -153,6 +189,18 @@ describe("getModelLabel", () => {
 
   it("returns bare name when vendor-prefixed model is not in any provider", () => {
     expect(getModelLabel("openrouter", "newvendor/unknown-model")).toBe("unknown-model");
+  });
+
+  it("normalizes dots to dashes for vendor-prefixed models (e.g. OpenRouter)", () => {
+    // "anthropic/claude-opus-4.6" → bare "claude-opus-4.6" → not found →
+    // normalized "claude-opus-4-6" → found as "Claude Opus 4.6"
+    expect(getModelLabel("openrouter", "anthropic/claude-opus-4.6")).toBe("Claude Opus 4.6");
+  });
+
+  it("skips dot-to-dash normalization when bare name already matches", () => {
+    // "anthropic/claude-opus-4-6" → bare "claude-opus-4-6" → found directly
+    // No normalization needed
+    expect(getModelLabel("openrouter", "anthropic/claude-opus-4-6")).toBe("Claude Opus 4.6");
   });
 });
 

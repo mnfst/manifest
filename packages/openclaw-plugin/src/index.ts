@@ -7,6 +7,7 @@ import { registerCommand } from './command';
 import { verifyConnection } from './verify';
 import { registerLocalMode, injectProviderConfig, injectAuthProfile } from './local-mode';
 import { trackPluginEvent } from './product-telemetry';
+import { discoverSubscriptionProviders, registerSubscriptionProviders } from './subscription';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 module.exports = {
@@ -103,6 +104,9 @@ module.exports = {
       logger.info(`[manifest]   Dashboard: ${baseOrigin}`);
     }
 
+    // Discover subscription providers from OpenClaw auth profiles
+    const subscriptions = discoverSubscriptionProviders(logger);
+
     api.registerService({
       id: serviceId,
       start: () => {
@@ -123,6 +127,11 @@ module.exports = {
             logger.info(`[manifest] Connection verified${agent}`);
           })
           .catch(() => {});
+
+        // Register subscription providers after startup
+        registerSubscriptionProviders(subscriptions, config.endpoint, effectiveKey, logger).catch(
+          () => {},
+        );
       },
       stop: async () => {
         await shutdownTelemetry(logger);
