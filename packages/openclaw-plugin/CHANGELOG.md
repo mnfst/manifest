@@ -1,5 +1,34 @@
 # manifest
 
+## 5.24.0
+
+### Minor Changes
+
+- 4e08bb4: Add OAuth/subscription routing support for Anthropic Claude tokens
+  - Subscription tab now accepts Claude setup-tokens (sk-ant-oat) with dedicated input UI
+  - Backend stores and proxies subscription tokens (previously rejected)
+  - Proxy sends correct Authorization: Bearer + anthropic-beta headers for subscription tokens
+  - Fix case-insensitive provider matching for subscription cost/auth_type inference
+  - Fix DELETE provider endpoint rejecting requests with validation error
+  - Fix token whitespace corruption when pasting from terminal
+  - Subscription badge overlay on provider icons in message log and overview
+  - Proxy messages now store auth_type and set cost to zero for subscriptions
+  - Fix duplicate messages: OTLP dedup remaps trace to proxy-recorded message
+  - Conditional rollup preserves proxy token data instead of overwriting
+  - ModelPickerModal always shows subscription/API key tabs with contextual empty states
+  - Purge non-curated models after OpenRouter sync in local mode
+  - Tier auto-assign excludes OpenRouter models from prefix-based provider inference
+
+- dab83ca: Replace 3-mode system (cloud/local/dev) with 2-axis configuration (mode × devMode). The `mode` field now only accepts `cloud` or `local` for deployment model, while `devMode` (boolean) independently controls development behaviors like skipping API keys and faster metrics. The old `mode: "dev"` is still accepted for backward compatibility but logs a deprecation warning. `devMode` is auto-detected when the endpoint is a loopback address and no `mnfst_*` API key is provided.
+
+### Patch Changes
+
+- 8758f8c: Add auth badge (subscription/api key) to provider icons across all pages for consistency
+- Fix auth_type propagation on error/fallback records, dual-auth subscription billing, migration index names, and SSE passthrough buffer overflow
+- 3d4eb56: Reduce custom-providers endpoint latency with caching and query parallelization
+- 100b33d: Improve frontend performance with route-level code splitting, vendor chunk separation, and asset loading optimizations
+- 3efa632: Optimize slow backend endpoints for sub-500ms response times: parallelize independent DB queries, batch saves, pre-fetch dedup context, derive summaries from timeseries data, and group notification cron evaluation.
+
 ## 5.23.1
 
 ### Patch Changes
