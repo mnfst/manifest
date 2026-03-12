@@ -122,4 +122,38 @@ describe('CopilotTokenService', () => {
     expect(b).toBe('tid=token-b');
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });
+
+  it('evicts expired entries on next exchange', async () => {
+    // First token: already expired
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        token: 'tid=expired',
+        expires_at: Math.floor(Date.now() / 1000) - 10,
+      }),
+    });
+    await service.getCopilotToken('ghu_old');
+
+    // Second token triggers eviction of the expired entry
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        token: 'tid=new',
+        expires_at: Math.floor(Date.now() / 1000) + 1800,
+      }),
+    });
+    await service.getCopilotToken('ghu_new');
+
+    // The expired entry should be gone — fetching it again triggers a new exchange
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        token: 'tid=refreshed',
+        expires_at: Math.floor(Date.now() / 1000) + 1800,
+      }),
+    });
+    const result = await service.getCopilotToken('ghu_old');
+    expect(result).toBe('tid=refreshed');
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
 });

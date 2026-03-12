@@ -8,6 +8,18 @@ import {
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 
+function copyToClipboard(text: string, setCopied: (v: boolean) => void) {
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    })
+    .catch(() => {
+      /* fallback: user-select: all still works */
+    });
+}
+
 type Phase = 'idle' | 'loading' | 'awaiting' | 'success' | 'error';
 
 interface Props {
@@ -25,9 +37,9 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
   const [phase, setPhase] = createSignal<Phase>('idle');
   const [userCode, setUserCode] = createSignal('');
   const [verificationUri, setVerificationUri] = createSignal('');
-  const [deviceCode, setDeviceCode] = createSignal('');
   const [error, setError] = createSignal('');
   const [busy, setBusy] = createSignal(false);
+  const [copied, setCopied] = createSignal(false);
   let pollTimeout: ReturnType<typeof setTimeout> | undefined;
   let cancelled = false;
 
@@ -44,7 +56,6 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
       const result = await copilotDeviceCode(props.agentName);
       setUserCode(result.user_code);
       setVerificationUri(result.verification_uri);
-      setDeviceCode(result.device_code);
       setPhase('awaiting');
       schedulePoll(result.device_code, Math.max(result.interval, 5));
     } catch {
@@ -97,14 +108,6 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
       return currentDelay + SLOW_DOWN_INCREASE;
     }
     return currentDelay;
-  };
-
-  const stopPolling = () => {
-    cancelled = true;
-    if (pollTimeout) {
-      clearTimeout(pollTimeout);
-      pollTimeout = undefined;
-    }
   };
 
   const handleDisconnect = async () => {
@@ -196,17 +199,59 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
           <p class="provider-detail__hint" style="margin-bottom: 12px;">
             Open GitHub and enter this code:
           </p>
-          <div class="copilot-device-login__code" aria-label="Device code">
-            {userCode()}
+          <div class="copilot-device-login__code-row">
+            <div class="copilot-device-login__code" aria-label="Device code">
+              {userCode()}
+            </div>
+            <button
+              class="copilot-device-login__copy-btn"
+              onClick={() => copyToClipboard(userCode(), setCopied)}
+              aria-label={copied() ? 'Copied' : 'Copy device code'}
+              title={copied() ? 'Copied' : 'Copy'}
+            >
+              <Show
+                when={copied()}
+                fallback={
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                  </svg>
+                }
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </Show>
+            </button>
           </div>
           <a
-            class="btn btn--primary provider-detail__action"
+            class="btn btn--primary copilot-device-login__open-btn"
             href={verificationUri()}
             target="_blank"
             rel="noopener noreferrer"
-            style="display: inline-block; text-align: center; text-decoration: none; margin-top: 16px;"
           >
             Open GitHub
+            <span class="sr-only">(opens in new tab)</span>
           </a>
           <p class="copilot-device-login__waiting">
             <span class="spinner" style="width: 14px; height: 14px; margin-right: 8px;" />

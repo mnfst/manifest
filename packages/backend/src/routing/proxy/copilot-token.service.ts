@@ -37,9 +37,18 @@ export class CopilotTokenService {
       return cached.token;
     }
 
+    this.evictExpired();
     const result = await this.exchange(githubToken);
     this.cache.set(githubToken, result);
     return result.token;
+  }
+
+  /** Remove entries whose Copilot tokens have already expired. */
+  private evictExpired(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.cache) {
+      if (now >= entry.expiresAt) this.cache.delete(key);
+    }
   }
 
   private async exchange(githubToken: string): Promise<CachedToken> {
