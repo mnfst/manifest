@@ -649,7 +649,7 @@ describe("MessageLog", () => {
     });
   });
 
-  it("does not render subscription auth badge when auth_type is not subscription", async () => {
+  it("renders api_key auth badge when auth_type is api_key", async () => {
     const dataWithApiKey = {
       ...messagesData,
       items: [
@@ -660,8 +660,10 @@ describe("MessageLog", () => {
     mockGetMessages.mockResolvedValue(dataWithApiKey);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const badge = container.querySelector(".provider-auth-badge--sub");
-      expect(badge).toBeNull();
+      const badge = container.querySelector(".provider-auth-badge--key");
+      expect(badge).not.toBeNull();
+      const subBadge = container.querySelector(".provider-auth-badge--sub");
+      expect(subBadge).toBeNull();
     });
   });
 

@@ -28,6 +28,7 @@ import {
 } from '../services/routing-utils.js';
 import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import Select from '../components/Select.jsx';
 import InfoTooltip from '../components/InfoTooltip.jsx';
 import { isLocalMode } from '../services/local-mode.js';
@@ -533,25 +534,12 @@ const MessageLog: Component = () => {
                             ) : item.model && inferProviderFromModel(item.model) ? (
                               <span
                                 role="img"
-                                aria-label={
-                                  item.auth_type === 'subscription'
-                                    ? `${inferProviderName(item.model)} (Subscription)`
-                                    : inferProviderName(item.model)
-                                }
-                                title={
-                                  item.auth_type === 'subscription'
-                                    ? `${inferProviderName(item.model)} (Subscription)`
-                                    : inferProviderName(item.model)
-                                }
+                                aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
                                 style="display: inline-flex; flex-shrink: 0; position: relative;"
                               >
                                 {providerIcon(inferProviderFromModel(item.model)!, 14)}
-                                {item.auth_type === 'subscription' && (
-                                  <span
-                                    class="provider-auth-badge provider-auth-badge--sub provider-auth-badge--overlay"
-                                    aria-hidden="true"
-                                  />
-                                )}
+                                {authBadgeFor(item.auth_type, 8)}
                               </span>
                             ) : null}
                             {item.model ? getModelDisplayName(item.model) : '\u2014'}

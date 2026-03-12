@@ -23,6 +23,7 @@ import {
 } from '../services/routing-utils.js';
 import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import { isLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
@@ -70,6 +71,7 @@ interface OverviewData {
     tokens: number;
     share_pct: number;
     estimated_cost: number;
+    auth_type: string | null;
   }>;
   recent_activity: RecentMessage[];
   active_skills: Array<{
@@ -651,25 +653,12 @@ const Overview: Component = () => {
                                   ) : item.model && inferProviderFromModel(item.model) ? (
                                     <span
                                       role="img"
-                                      aria-label={
-                                        item.auth_type === 'subscription'
-                                          ? `${inferProviderName(item.model)} (Subscription)`
-                                          : inferProviderName(item.model)
-                                      }
-                                      title={
-                                        item.auth_type === 'subscription'
-                                          ? `${inferProviderName(item.model)} (Subscription)`
-                                          : inferProviderName(item.model)
-                                      }
+                                      aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                      title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
                                       style="display: inline-flex; flex-shrink: 0; position: relative;"
                                     >
                                       {providerIcon(inferProviderFromModel(item.model)!, 14)}
-                                      {item.auth_type === 'subscription' && (
-                                        <span
-                                          class="provider-auth-badge provider-auth-badge--sub provider-auth-badge--overlay"
-                                          aria-hidden="true"
-                                        />
-                                      )}
+                                      {authBadgeFor(item.auth_type, 8)}
                                     </span>
                                   ) : null}
                                   {item.model ? getModelDisplayName(item.model) : '\u2014'}
@@ -765,7 +754,11 @@ const Overview: Component = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        <For each={d().cost_by_model ?? []}>
+                        <For
+                          each={[...(d().cost_by_model ?? [])].sort(
+                            (a, b) => b.estimated_cost - a.estimated_cost,
+                          )}
+                        >
                           {(row) => (
                             <tr>
                               <td style="font-family: var(--font-mono); font-size: var(--font-size-sm);">
@@ -795,10 +788,11 @@ const Overview: Component = () => {
                                     })()
                                   ) : row.model && inferProviderFromModel(row.model) ? (
                                     <span
-                                      title={inferProviderName(row.model)}
-                                      style="display: inline-flex; flex-shrink: 0;"
+                                      title={`${inferProviderName(row.model)} (${authLabel(row.auth_type)})`}
+                                      style="display: inline-flex; flex-shrink: 0; position: relative;"
                                     >
                                       {providerIcon(inferProviderFromModel(row.model)!, 14)}
+                                      {authBadgeFor(row.auth_type, 8)}
                                     </span>
                                   ) : null}
                                   {row.model ? getModelDisplayName(row.model) : row.model}
