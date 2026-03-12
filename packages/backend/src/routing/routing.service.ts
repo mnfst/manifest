@@ -123,6 +123,7 @@ export class RoutingService {
     });
 
     const invalidated: { tier: string; modelName: string }[] = [];
+    const tiersToSave: TierAssignment[] = [];
     for (const tier of overrides) {
       const pricing = this.pricingCache.getByModel(tier.override_model!);
       if (pricing && pricing.provider.toLowerCase() === provider.toLowerCase()) {
@@ -130,12 +131,13 @@ export class RoutingService {
         tier.override_model = null;
         tier.override_auth_type = null;
         tier.updated_at = new Date().toISOString();
-        await this.tierRepo.save(tier);
+        tiersToSave.push(tier);
       }
     }
 
     // Clean fallback models belonging to the disconnected provider
     const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
+    const savedIds = new Set(tiersToSave.map((t) => t.id));
     for (const tier of allTiers) {
       if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
       const filtered = tier.fallback_models.filter((m) => {
@@ -145,25 +147,37 @@ export class RoutingService {
       if (filtered.length !== tier.fallback_models.length) {
         tier.fallback_models = filtered.length > 0 ? filtered : null;
         tier.updated_at = new Date().toISOString();
-        await this.tierRepo.save(tier);
+        if (!savedIds.has(tier.id)) tiersToSave.push(tier);
       }
     }
 
+    // Batch save all tier mutations
+    if (tiersToSave.length > 0) await this.tierRepo.save(tiersToSave);
+
+    // Deactivate provider and recalculate
+    existing.is_active = false;
+    existing.updated_at = new Date().toISOString();
+    await this.providerRepo.save(existing);
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
 
-    // Build notification messages
+    // Build notification messages — batch fetch updated tiers
     const notifications: string[] = [];
-    for (const { tier, modelName } of invalidated) {
-      const updated = await this.tierRepo.findOne({
-        where: { agent_id: agentId, tier },
+    if (invalidated.length > 0) {
+      const tierNames = invalidated.map((i) => i.tier);
+      const updatedTiers = await this.tierRepo.find({
+        where: { agent_id: agentId, tier: In(tierNames) },
       });
-      const newModel = updated?.auto_assigned_model ?? null;
-      const tierLabel = TIER_LABELS[tier] ?? tier;
-      const suffix = newModel
-        ? `${tierLabel} is back to automatic mode (${newModel}).`
-        : `${tierLabel} is back to automatic mode.`;
-      notifications.push(`${modelName} is no longer available. ${suffix}`);
+      const tierMap = new Map(updatedTiers.map((t) => [t.tier, t]));
+      for (const { tier, modelName } of invalidated) {
+        const updated = tierMap.get(tier);
+        const newModel = updated?.auto_assigned_model ?? null;
+        const tierLabel = TIER_LABELS[tier] ?? tier;
+        const suffix = newModel
+          ? `${tierLabel} is back to automatic mode (${newModel}).`
+          : `${tierLabel} is back to automatic mode.`;
+        notifications.push(`${modelName} is no longer available. ${suffix}`);
+      }
     }
 
     return { notifications };
@@ -199,6 +213,7 @@ export class RoutingService {
     });
 
     const agentIds = new Set<string>();
+    const tiersToSave: TierAssignment[] = [];
     for (const tier of affected) {
       this.logger.warn(
         `Clearing override ${tier.override_model} for agent ${tier.agent_id} tier ${tier.tier} (model removed)`,
@@ -206,29 +221,40 @@ export class RoutingService {
       tier.override_model = null;
       tier.override_auth_type = null;
       tier.updated_at = new Date().toISOString();
-      await this.tierRepo.save(tier);
+      tiersToSave.push(tier);
       agentIds.add(tier.agent_id);
     }
 
-    // Also clean fallback models referencing removed models
-    const allTiers = await this.tierRepo.find();
-    for (const tier of allTiers) {
+    // Also clean fallback models referencing removed models.
+    // Scope to affected agents first; if none found, scan all tiers with fallbacks.
+    const fallbackTiers =
+      agentIds.size > 0
+        ? await this.tierRepo.find({ where: { agent_id: In([...agentIds]) } })
+        : await this.tierRepo.find();
+    const savedIds = new Set(tiersToSave.map((t) => t.id));
+    for (const tier of fallbackTiers) {
       if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
       const filtered = tier.fallback_models.filter((m) => !removedSet.has(m));
       if (filtered.length !== tier.fallback_models.length) {
         tier.fallback_models = filtered.length > 0 ? filtered : null;
         tier.updated_at = new Date().toISOString();
-        await this.tierRepo.save(tier);
+        if (!savedIds.has(tier.id)) tiersToSave.push(tier);
         agentIds.add(tier.agent_id);
       }
     }
 
+    // Batch save all tier mutations
+    if (tiersToSave.length > 0) await this.tierRepo.save(tiersToSave);
+
     if (agentIds.size === 0) return;
 
-    for (const agentId of agentIds) {
-      await this.autoAssign.recalculate(agentId);
-      this.routingCache.invalidateAgent(agentId);
-    }
+    // Parallel recalculate + cache invalidation
+    await Promise.all(
+      [...agentIds].map((agentId) => {
+        this.routingCache.invalidateAgent(agentId);
+        return this.autoAssign.recalculate(agentId);
+      }),
+    );
 
     this.logger.log(
       `Invalidated ${affected.length} overrides for ${agentIds.size} agents (removed models: ${removedModels.join(', ')})`,

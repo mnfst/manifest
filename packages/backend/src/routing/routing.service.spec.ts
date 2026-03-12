@@ -550,10 +550,10 @@ describe('RoutingService', () => {
         tier: 'complex',
         override_model: 'gpt-4o',
       });
-      mockTierRepo.find.mockResolvedValueOnce([override]); // overrides query
-      mockTierRepo.findOne.mockResolvedValue({
-        auto_assigned_model: 'claude-opus-4-6',
-      });
+      mockTierRepo.find
+        .mockResolvedValueOnce([override]) // overrides query
+        .mockResolvedValueOnce([]) // allTiers query (fallback cleanup)
+        .mockResolvedValueOnce([{ tier: 'complex', auto_assigned_model: 'claude-opus-4-6' }]); // notification batch fetch
 
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'OpenAI',
@@ -563,7 +563,7 @@ describe('RoutingService', () => {
 
       expect(override.override_model).toBeNull();
       expect(mockTierRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ override_model: null }),
+        expect.arrayContaining([expect.objectContaining({ override_model: null })]),
       );
       expect(result.notifications).toHaveLength(1);
       expect(result.notifications[0]).toContain('gpt-4o');
@@ -585,10 +585,10 @@ describe('RoutingService', () => {
         tier: 'simple',
         override_model: 'gpt-4o',
       });
-      mockTierRepo.find.mockResolvedValueOnce([override]);
-      mockTierRepo.findOne.mockResolvedValue({
-        auto_assigned_model: null,
-      });
+      mockTierRepo.find
+        .mockResolvedValueOnce([override]) // overrides query
+        .mockResolvedValueOnce([]) // allTiers (fallback cleanup)
+        .mockResolvedValueOnce([{ tier: 'simple', auto_assigned_model: null }]); // notification batch fetch
       mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as ModelPricing);
 
       const result = await service.removeProvider('a1', 'openai');
@@ -611,10 +611,10 @@ describe('RoutingService', () => {
         tier: 'custom_tier',
         override_model: 'gpt-4o',
       });
-      mockTierRepo.find.mockResolvedValueOnce([override]);
-      mockTierRepo.findOne.mockResolvedValue({
-        auto_assigned_model: null,
-      });
+      mockTierRepo.find
+        .mockResolvedValueOnce([override]) // overrides query
+        .mockResolvedValueOnce([]) // allTiers (fallback cleanup)
+        .mockResolvedValueOnce([{ tier: 'custom_tier', auto_assigned_model: null }]); // notification batch fetch
       mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as ModelPricing);
 
       const result = await service.removeProvider('a1', 'openai');
@@ -651,13 +651,9 @@ describe('RoutingService', () => {
       await service.removeProvider('a1', 'openai');
 
       // The save for fallback cleanup should have only claude-sonnet-4
-      const fallbackSaveCall = mockTierRepo.save.mock.calls.find(
-        (c: unknown[]) => (c[0] as { fallback_models?: string[] }).fallback_models !== undefined,
+      expect(mockTierRepo.save).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ fallback_models: ['claude-sonnet-4'] })]),
       );
-      expect(fallbackSaveCall).toBeDefined();
-      expect(
-        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
-      ).toEqual(['claude-sonnet-4']);
     });
 
     it('should skip tiers with null or empty fallback_models during cleanup', async () => {
@@ -695,13 +691,9 @@ describe('RoutingService', () => {
       await service.removeProvider('a1', 'openai');
 
       // Only the standard tier (with actual fallback_models) should be saved
-      const fallbackSaveCall = mockTierRepo.save.mock.calls.find(
-        (c: unknown[]) => (c[0] as { fallback_models?: string[] }).fallback_models !== undefined,
+      expect(mockTierRepo.save).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ fallback_models: ['claude-sonnet-4'] })]),
       );
-      expect(fallbackSaveCall).toBeDefined();
-      expect(
-        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
-      ).toEqual(['claude-sonnet-4']);
     });
 
     it('should set fallback_models to null when all belong to removed provider', async () => {
@@ -728,14 +720,10 @@ describe('RoutingService', () => {
 
       await service.removeProvider('a1', 'openai');
 
-      // All fallbacks removed → fallback_models set to null (line 121)
-      const fallbackSaveCall = mockTierRepo.save.mock.calls.find(
-        (c: unknown[]) => 'fallback_models' in (c[0] as Record<string, unknown>),
+      // All fallbacks removed → fallback_models set to null
+      expect(mockTierRepo.save).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ fallback_models: null })]),
       );
-      expect(fallbackSaveCall).toBeDefined();
-      expect(
-        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
-      ).toBeNull();
     });
 
     it('should clean fallback models and overrides when subscription auth removed and no other active record', async () => {
@@ -751,6 +739,7 @@ describe('RoutingService', () => {
         .mockResolvedValueOnce(null); // no other active record for anthropic
 
       const override = Object.assign(new TierAssignment(), {
+        id: 'tier-override-1',
         agent_id: 'a1',
         tier: 'complex',
         override_model: 'claude-sonnet-4',
@@ -760,6 +749,7 @@ describe('RoutingService', () => {
         .mockResolvedValueOnce([
           // allTiers query for fallback cleanup
           Object.assign(new TierAssignment(), {
+            id: 'tier-fallback-1',
             agent_id: 'a1',
             tier: 'standard',
             fallback_models: ['claude-sonnet-4', 'gpt-4o'],
@@ -776,14 +766,17 @@ describe('RoutingService', () => {
       // Override should be cleared
       expect(override.override_model).toBeNull();
       // Fallback should only contain gpt-4o (claude-sonnet-4 removed)
-      const fallbackSaveCall = mockTierRepo.save.mock.calls.find((c: unknown[]) => {
-        const item = c[0] as { fallback_models?: string[] };
-        return item.fallback_models !== undefined && item.fallback_models !== null;
-      });
-      expect(fallbackSaveCall).toBeDefined();
-      expect(
-        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
-      ).toEqual(['gpt-4o']);
+      // Batch save passes an array of tiers
+      const batchSaveCall = mockTierRepo.save.mock.calls.find((c: unknown[]) =>
+        Array.isArray(c[0]),
+      );
+      expect(batchSaveCall).toBeDefined();
+      const savedTiers = batchSaveCall![0] as { fallback_models?: string[] | null }[];
+      const fallbackTier = savedTiers.find(
+        (t) => t.fallback_models !== undefined && t.fallback_models !== null,
+      );
+      expect(fallbackTier).toBeDefined();
+      expect(fallbackTier!.fallback_models).toEqual(['gpt-4o']);
       expect(result.notifications).toHaveLength(1);
       expect(result.notifications[0]).toContain('claude-sonnet-4');
     });
@@ -1010,7 +1003,9 @@ describe('RoutingService', () => {
 
       expect(tier1.override_model).toBeNull();
       expect(tier2.override_model).toBeNull();
-      expect(mockTierRepo.save).toHaveBeenCalledTimes(2);
+      // Batch save: all tiers saved in one call
+      expect(mockTierRepo.save).toHaveBeenCalledTimes(1);
+      expect(mockTierRepo.save).toHaveBeenCalledWith(expect.arrayContaining([tier1, tier2]));
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a2');
     });
@@ -1032,7 +1027,7 @@ describe('RoutingService', () => {
 
       // Should save with only the kept model
       expect(mockTierRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ fallback_models: ['keep-model'] }),
+        expect.arrayContaining([expect.objectContaining({ fallback_models: ['keep-model'] })]),
       );
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
     });
@@ -1051,7 +1046,7 @@ describe('RoutingService', () => {
       await service.invalidateOverridesForRemovedModels(['removed-model']);
 
       expect(mockTierRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ fallback_models: null }),
+        expect.arrayContaining([expect.objectContaining({ fallback_models: null })]),
       );
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
     });

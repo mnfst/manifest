@@ -30,6 +30,8 @@ describe('NotificationRulesService', () => {
       expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('FROM notification_rules'), [
         'user-1',
         'my-agent',
+        'user-1',
+        'my-agent',
       ]);
     });
   });
@@ -341,7 +343,7 @@ describe('NotificationRulesService', () => {
   });
 
   describe('listRules with PG params', () => {
-    it('uses $1 and $2 numbered params for user and agent', async () => {
+    it('uses $1–$4 numbered params for user and agent', async () => {
       mockQuery.mockResolvedValueOnce([]);
 
       await service.listRules('user-1', 'agent-x');
@@ -349,6 +351,10 @@ describe('NotificationRulesService', () => {
       const sql = mockQuery.mock.calls[0][0] as string;
       expect(sql).toContain('$1');
       expect(sql).toContain('$2');
+      expect(sql).toContain('$3');
+      expect(sql).toContain('$4');
+      const params = mockQuery.mock.calls[0][1];
+      expect(params).toEqual(['user-1', 'agent-x', 'user-1', 'agent-x']);
     });
   });
 

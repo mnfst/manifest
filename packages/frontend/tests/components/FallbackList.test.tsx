@@ -21,7 +21,7 @@ vi.mock("../../src/services/routing-utils.js", () => ({
   stripCustomPrefix: (m: string) => m.replace(/^custom:[^/]+\//, ""),
 }));
 
-vi.mock("../../src/services/providers.js", () => ({
+vi.mock("../../src/services/provider-utils.js", () => ({
   getModelLabel: (_providerId: string, model: string) => model,
 }));
 

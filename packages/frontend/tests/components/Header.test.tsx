@@ -97,6 +97,14 @@ describe("Header", () => {
       expect(mockNavigate).toHaveBeenCalledWith("/login", { replace: true });
     });
   });
+
+  it("closes dropdown when clicking outside", async () => {
+    render(() => <Header />);
+    await fireEvent.click(screen.getByLabelText("User menu"));
+    expect(screen.getByText("Alice")).toBeDefined();
+    await fireEvent.click(document.body);
+    expect(screen.queryByText("Alice")).toBeNull();
+  });
 });
 
 describe("Header - GitHub star button", () => {
@@ -207,6 +215,41 @@ describe("Header - GitHub star button", () => {
     );
     render(() => <Header />);
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("uses cached star count from sessionStorage", async () => {
+    sessionStorage.setItem("github-star-count", "9999");
+    sessionStorage.setItem("github-star-ts", String(Date.now()));
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    render(() => <Header />);
+    await vi.waitFor(() => {
+      expect(screen.getByText("9,999")).toBeDefined();
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("fetches fresh count when cache is expired", async () => {
+    sessionStorage.setItem("github-star-count", "9999");
+    sessionStorage.setItem("github-star-ts", String(Date.now() - 4000000));
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify({ stars: 5555 }))
+    );
+    render(() => <Header />);
+    await vi.waitFor(() => {
+      expect(screen.getByText("5,555")).toBeDefined();
+    });
+  });
+
+  it("caches star count in sessionStorage after fetch", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify({ stars: 4321 }))
+    );
+    render(() => <Header />);
+    await vi.waitFor(() => {
+      expect(screen.getByText("4,321")).toBeDefined();
+    });
+    expect(sessionStorage.getItem("github-star-count")).toBe("4321");
+    expect(sessionStorage.getItem("github-star-ts")).toBeDefined();
   });
 });
 

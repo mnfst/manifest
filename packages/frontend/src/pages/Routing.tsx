@@ -1,7 +1,8 @@
 import { createSignal, createResource, For, Show, type Component, type JSX } from 'solid-js';
 import { useParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
-import { STAGES, PROVIDERS, getModelLabel } from '../services/providers.js';
+import { STAGES, PROVIDERS } from '../services/providers.js';
+import { getModelLabel } from '../services/provider-utils.js';
 import { providerIcon } from '../components/ProviderIcon.js';
 import ProviderSelectModal from '../components/ProviderSelectModal.js';
 import RoutingInstructionModal from '../components/RoutingInstructionModal.js';

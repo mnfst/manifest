@@ -1,28 +1,29 @@
 /* @refresh reload */
-import { render } from "solid-js/web";
-import { Router, Route } from "@solidjs/router";
-import { MetaProvider, Title } from "@solidjs/meta";
-import App from "./App.jsx";
-import AuthLayout from "./layouts/AuthLayout.jsx";
-import Workspace from "./pages/Workspace.jsx";
-import Overview from "./pages/Overview.jsx";
-import MessageLog from "./pages/MessageLog.jsx";
-import Settings from "./pages/Settings.jsx";
-import Routing from "./pages/Routing.jsx";
-import Limits from "./pages/Limits.jsx";
-import Account from "./pages/Account.jsx";
-import Login from "./pages/Login.jsx";
-import Register from "./pages/Register.jsx";
-import ResetPassword from "./pages/ResetPassword.jsx";
-import ModelPrices from "./pages/ModelPrices.jsx";
-import Help from "./pages/Help.jsx";
-import AgentGuard from "./components/AgentGuard.jsx";
-import GuestGuard from "./components/GuestGuard.jsx";
-import NotFound from "./pages/NotFound.jsx";
-import ToastContainer from "./components/ToastContainer.jsx";
-import type { ParentComponent } from "solid-js";
-import "uplot/dist/uPlot.min.css";
-import "./styles/theme.css";
+import { render } from 'solid-js/web';
+import { lazy } from 'solid-js';
+import { Router, Route } from '@solidjs/router';
+import { MetaProvider, Title } from '@solidjs/meta';
+import App from './App.jsx';
+import AuthLayout from './layouts/AuthLayout.jsx';
+import Workspace from './pages/Workspace.jsx';
+import AgentGuard from './components/AgentGuard.jsx';
+import GuestGuard from './components/GuestGuard.jsx';
+import NotFound from './pages/NotFound.jsx';
+import ToastContainer from './components/ToastContainer.jsx';
+import type { ParentComponent } from 'solid-js';
+import './styles/theme.css';
+
+const Overview = lazy(() => import('./pages/Overview.jsx'));
+const MessageLog = lazy(() => import('./pages/MessageLog.jsx'));
+const Settings = lazy(() => import('./pages/Settings.jsx'));
+const Routing = lazy(() => import('./pages/Routing.jsx'));
+const Limits = lazy(() => import('./pages/Limits.jsx'));
+const Account = lazy(() => import('./pages/Account.jsx'));
+const Login = lazy(() => import('./pages/Login.jsx'));
+const Register = lazy(() => import('./pages/Register.jsx'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'));
+const ModelPrices = lazy(() => import('./pages/ModelPrices.jsx'));
+const Help = lazy(() => import('./pages/Help.jsx'));
 
 const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>
@@ -30,10 +31,10 @@ const GuestLayout: ParentComponent = (props) => (
   </GuestGuard>
 );
 
-const root = document.getElementById("root");
+const root = document.getElementById('root');
 
 if (!root) {
-  throw new Error("Root element not found");
+  throw new Error('Root element not found');
 }
 
 render(

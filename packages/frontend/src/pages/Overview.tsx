@@ -333,6 +333,7 @@ const Overview: Component = () => {
                       src="/example-overview.svg"
                       alt="Example dashboard overview showing cost and token charts"
                       class="empty-state__img"
+                      loading="lazy"
                     />
                   </div>
                 </div>
