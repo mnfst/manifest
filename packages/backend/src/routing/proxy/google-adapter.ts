@@ -23,6 +23,54 @@ interface GeminiPart {
   functionResponse?: { name: string; response: Record<string, unknown> };
 }
 
+/**
+ * JSON Schema fields not supported by the Gemini API.
+ * These must be stripped recursively before sending tool parameters.
+ */
+const UNSUPPORTED_SCHEMA_FIELDS = new Set([
+  'patternProperties',
+  'additionalProperties',
+  '$schema',
+  '$id',
+  '$ref',
+  '$defs',
+  'definitions',
+  'allOf',
+  'anyOf',
+  'oneOf',
+  'not',
+  'if',
+  'then',
+  'else',
+  'dependentSchemas',
+  'dependentRequired',
+  'unevaluatedProperties',
+  'unevaluatedItems',
+  'contentMediaType',
+  'contentEncoding',
+  'examples',
+  'default',
+  'const',
+  'title',
+]);
+
+function sanitizeSchema(schema: unknown): unknown {
+  if (schema === null || schema === undefined || typeof schema !== 'object') {
+    return schema;
+  }
+
+  if (Array.isArray(schema)) {
+    return schema.map(sanitizeSchema);
+  }
+
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(schema as Record<string, unknown>)) {
+    if (UNSUPPORTED_SCHEMA_FIELDS.has(key)) continue;
+    result[key] = sanitizeSchema(value);
+  }
+  return result;
+}
+
 /* ── Request conversion ── */
 
 function mapRole(role: string): string {
@@ -90,7 +138,7 @@ function convertTools(tools?: Record<string, unknown>[]): Record<string, unknown
       return {
         name: fn.name,
         description: fn.description,
-        parameters: fn.parameters,
+        parameters: fn.parameters ? sanitizeSchema(fn.parameters) : undefined,
       };
     })
     .filter(Boolean);

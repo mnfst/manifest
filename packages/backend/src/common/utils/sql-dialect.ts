@@ -19,9 +19,7 @@ export function timestampType(): 'datetime' | 'timestamp' {
  * Evaluated at decorator time using MANIFEST_MODE env var.
  */
 export function timestampDefault(): () => string {
-  return process.env['MANIFEST_MODE'] === 'local'
-    ? () => 'CURRENT_TIMESTAMP'
-    : () => 'NOW()';
+  return process.env['MANIFEST_MODE'] === 'local' ? () => 'CURRENT_TIMESTAMP' : () => 'NOW()';
 }
 
 /**
@@ -30,7 +28,12 @@ export function timestampDefault(): () => string {
  */
 export function computeCutoff(interval: string): string {
   const ms = intervalToMs(interval);
-  return new Date(Date.now() - ms).toISOString();
+  const cutoff = new Date(Date.now() - ms);
+  // For day-based intervals, round down to start of day (UTC)
+  if (interval.includes('day')) {
+    cutoff.setUTCHours(0, 0, 0, 0);
+  }
+  return cutoff.toISOString();
 }
 
 function intervalToMs(interval: string): number {
@@ -85,7 +88,5 @@ export function portableSql(sql: string, dialect: DbDialect): string {
 
 export function sqlCastInterval(paramName: string, dialect: DbDialect): string {
   // For sqlite we use computeCutoff() instead, so this is only for postgres
-  return dialect === 'sqlite'
-    ? `:${paramName}`
-    : `CAST(:${paramName} AS interval)`;
+  return dialect === 'sqlite' ? `:${paramName}` : `CAST(:${paramName} AS interval)`;
 }

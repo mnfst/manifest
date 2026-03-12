@@ -328,7 +328,7 @@ describe("parseTimestamps", () => {
     const data = [{ someOtherField: "value" } as any];
     const result = parseTimestamps(data);
     expect(result).toHaveLength(1);
-    // new Date("Z") is Invalid Date, getTime() returns NaN, NaN/1000 = NaN
+    // Neither hour nor date → falls to date branch with '' → NaN
     expect(Number.isNaN(result[0])).toBe(true);
   });
 });
@@ -1091,10 +1091,47 @@ describe("fillDailyGaps", () => {
   const zeroToken = (date: string) => ({ date, input_tokens: 0, output_tokens: 0 });
   const zeroCost = (date: string) => ({ date, cost: 0 });
 
-  it("returns data unchanged for intraday ranges", () => {
+  it("returns data unchanged for 1h range", () => {
     const data = [{ date: "2026-03-10", cost: 5 }];
     expect(fillDailyGaps(data, "1h", "date", zeroCost)).toBe(data);
-    expect(fillDailyGaps(data, "24h", "date", zeroCost)).toBe(data);
+  });
+
+  it("fills 25 hourly slots for 24h range", () => {
+    const zeroHour = (hour: string) => ({ hour, cost: 0 });
+    const result = fillDailyGaps([], "24h", "hour", zeroHour);
+    expect(result).toHaveLength(25);
+  });
+
+  it("preserves existing hourly data for 24h range", () => {
+    const now = new Date();
+    now.setUTCMinutes(0, 0, 0);
+    const y = now.getUTCFullYear();
+    const mo = String(now.getUTCMonth() + 1).padStart(2, "0");
+    const da = String(now.getUTCDate()).padStart(2, "0");
+    const hh = String(now.getUTCHours()).padStart(2, "0");
+    const key = `${y}-${mo}-${da}T${hh}:00:00`;
+    const zeroHour = (hour: string) => ({ hour, cost: 0 });
+    const data = [{ hour: key, cost: 42 }];
+    const result = fillDailyGaps(data, "24h", "hour", zeroHour);
+    expect(result).toHaveLength(25);
+    const match = result.find((r) => r.hour === key);
+    expect(match?.cost).toBe(42);
+  });
+
+  it("generates valid YYYY-MM-DDTHH:00:00 keys for 24h range", () => {
+    const zeroHour = (hour: string) => ({ hour, cost: 0 });
+    const result = fillDailyGaps([], "24h", "hour", zeroHour);
+    for (const row of result) {
+      expect(row.hour).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:00:00$/);
+    }
+  });
+
+  it("hourly results are sorted chronologically for 24h", () => {
+    const zeroHour = (hour: string) => ({ hour, cost: 0 });
+    const result = fillDailyGaps([], "24h", "hour", zeroHour);
+    for (let i = 1; i < result.length; i++) {
+      expect(result[i].hour > result[i - 1].hour).toBe(true);
+    }
   });
 
   it("returns data unchanged for unknown range", () => {
@@ -1114,8 +1151,11 @@ describe("fillDailyGaps", () => {
 
   it("preserves existing data and fills gaps with zeros", () => {
     const now = new Date();
-    now.setUTCHours(0, 0, 0, 0);
-    const todayStr = now.toISOString().slice(0, 10);
+    now.setHours(0, 0, 0, 0);
+    const y = now.getFullYear();
+    const mo = String(now.getMonth() + 1).padStart(2, "0");
+    const da = String(now.getDate()).padStart(2, "0");
+    const todayStr = `${y}-${mo}-${da}`;
     const data = [{ date: todayStr, cost: 42 }];
     const result = fillDailyGaps(data, "7d", "date", zeroCost);
     expect(result).toHaveLength(8);

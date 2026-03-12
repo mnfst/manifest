@@ -157,14 +157,21 @@ const Overview: Component = () => {
     setRange(SMART_RANGES[currentIdx + 1]!);
   });
 
-  const trendBadge = (pct: number, value?: number) => {
+  const trendBadge = (pct: number, value?: number, mode?: 'default' | 'inverted' | 'neutral') => {
     if (pct === 0) return null;
     // Don't show trend when the metric value itself is effectively zero
     if (value !== undefined && Math.abs(value) < 0.005) return null;
     // Clamp absurd percentages (safety net for floating-point edge cases)
     const clamped = Math.max(-999, Math.min(999, Math.round(pct)));
     if (clamped === 0) return null;
-    const cls = clamped > 0 ? 'trend trend--up' : 'trend trend--down';
+    let cls: string;
+    if (mode === 'neutral') {
+      cls = 'trend trend--neutral';
+    } else if (mode === 'inverted') {
+      cls = clamped > 0 ? 'trend trend--up-bad' : 'trend trend--down-good';
+    } else {
+      cls = clamped > 0 ? 'trend trend--up' : 'trend trend--down';
+    }
     const sign = clamped > 0 ? '+' : '';
     return (
       <span class={cls}>
@@ -417,6 +424,7 @@ const Overview: Component = () => {
                           {trendBadge(
                             d().summary?.cost_today?.trend_pct ?? 0,
                             d().summary?.cost_today?.value ?? 0,
+                            'inverted',
                           )}
                         </div>
                       </div>
@@ -438,6 +446,7 @@ const Overview: Component = () => {
                           {trendBadge(
                             d().summary?.tokens_today?.trend_pct ?? 0,
                             d().summary?.tokens_today?.value ?? 0,
+                            'inverted',
                           )}
                         </div>
                       </div>
@@ -454,6 +463,7 @@ const Overview: Component = () => {
                           {trendBadge(
                             d().summary?.messages?.trend_pct ?? 0,
                             d().summary?.messages?.value ?? 0,
+                            'neutral',
                           )}
                         </div>
                       </div>

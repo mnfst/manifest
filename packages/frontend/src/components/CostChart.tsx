@@ -66,10 +66,13 @@ const CostChart: Component<CostChartProps> = (props) => {
           ],
         },
         (() => {
-          const filled = fillDailyGaps(props.data, props.range ?? '', 'date', (date) => ({
-            date,
-            cost: 0,
-          }));
+          const isHourly = props.range === '24h';
+          const filled = fillDailyGaps(
+            props.data,
+            props.range ?? '',
+            isHourly ? 'hour' : 'date',
+            (key) => (isHourly ? { hour: key, cost: 0 } : { date: key, cost: 0 }),
+          );
           return [parseTimestamps(filled), sanitizeNumbers(filled.map((d) => d.cost))];
         })(),
         el,

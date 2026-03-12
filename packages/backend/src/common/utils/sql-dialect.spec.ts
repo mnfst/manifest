@@ -88,12 +88,18 @@ describe('sql-dialect', () => {
       expect(parsed).toBeLessThanOrEqual(after - 24 * 3600_000);
     });
 
-    it('handles "7 days"', () => {
+    it('handles "7 days" and rounds to start of UTC day', () => {
       const cutoff = computeCutoff('7 days');
-      const diff = Date.now() - new Date(cutoff).getTime();
-      // Should be approximately 7 days in ms (allow 1 second tolerance)
-      expect(diff).toBeGreaterThanOrEqual(7 * 86400_000 - 1000);
-      expect(diff).toBeLessThanOrEqual(7 * 86400_000 + 1000);
+      const parsed = new Date(cutoff);
+      // Should be rounded to UTC midnight
+      expect(parsed.getUTCHours()).toBe(0);
+      expect(parsed.getUTCMinutes()).toBe(0);
+      expect(parsed.getUTCSeconds()).toBe(0);
+      expect(parsed.getUTCMilliseconds()).toBe(0);
+      // Should be at least 7 days ago (start of that UTC day)
+      const diff = Date.now() - parsed.getTime();
+      expect(diff).toBeGreaterThanOrEqual(7 * 86400_000);
+      expect(diff).toBeLessThan(8 * 86400_000);
     });
 
     it('handles singular "1 hour"', () => {
@@ -103,11 +109,16 @@ describe('sql-dialect', () => {
       expect(diff).toBeLessThanOrEqual(3600_000 + 1000);
     });
 
-    it('handles singular "1 day"', () => {
+    it('handles singular "1 day" and rounds to start of UTC day', () => {
       const cutoff = computeCutoff('1 day');
-      const diff = Date.now() - new Date(cutoff).getTime();
-      expect(diff).toBeGreaterThanOrEqual(86400_000 - 1000);
-      expect(diff).toBeLessThanOrEqual(86400_000 + 1000);
+      const parsed = new Date(cutoff);
+      expect(parsed.getUTCHours()).toBe(0);
+      expect(parsed.getUTCMinutes()).toBe(0);
+      expect(parsed.getUTCSeconds()).toBe(0);
+      expect(parsed.getUTCMilliseconds()).toBe(0);
+      const diff = Date.now() - parsed.getTime();
+      expect(diff).toBeGreaterThanOrEqual(86400_000);
+      expect(diff).toBeLessThan(2 * 86400_000);
     });
 
     it('defaults to 24h for unrecognized format', () => {
@@ -137,9 +148,7 @@ describe('sql-dialect', () => {
 
     it('returns to_char/date_trunc expression for postgres', () => {
       const result = sqlHourBucket('at.timestamp', 'postgres');
-      expect(result).toBe(
-        `to_char(date_trunc('hour', at.timestamp), 'YYYY-MM-DD"T"HH24:MI:SS')`,
-      );
+      expect(result).toBe(`to_char(date_trunc('hour', at.timestamp), 'YYYY-MM-DD"T"HH24:MI:SS')`);
     });
   });
 
@@ -157,15 +166,11 @@ describe('sql-dialect', () => {
 
   describe('sqlCastFloat', () => {
     it('returns CAST AS REAL for sqlite', () => {
-      expect(sqlCastFloat('at.cost_usd', 'sqlite')).toBe(
-        'CAST(at.cost_usd AS REAL)',
-      );
+      expect(sqlCastFloat('at.cost_usd', 'sqlite')).toBe('CAST(at.cost_usd AS REAL)');
     });
 
     it('returns ::float for postgres', () => {
-      expect(sqlCastFloat('at.cost_usd', 'postgres')).toBe(
-        'at.cost_usd::float',
-      );
+      expect(sqlCastFloat('at.cost_usd', 'postgres')).toBe('at.cost_usd::float');
     });
   });
 
@@ -177,9 +182,7 @@ describe('sql-dialect', () => {
 
     it('converts $N placeholders to ? for sqlite', () => {
       const sql = 'SELECT * FROM t WHERE id = $1 AND name = $2';
-      expect(portableSql(sql, 'sqlite')).toBe(
-        'SELECT * FROM t WHERE id = ? AND name = ?',
-      );
+      expect(portableSql(sql, 'sqlite')).toBe('SELECT * FROM t WHERE id = ? AND name = ?');
     });
 
     it('converts many numbered params for sqlite', () => {
@@ -202,9 +205,7 @@ describe('sql-dialect', () => {
     });
 
     it('returns CAST expression for postgres', () => {
-      expect(sqlCastInterval('interval', 'postgres')).toBe(
-        'CAST(:interval AS interval)',
-      );
+      expect(sqlCastInterval('interval', 'postgres')).toBe('CAST(:interval AS interval)');
     });
   });
 

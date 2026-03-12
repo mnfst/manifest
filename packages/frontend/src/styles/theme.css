@@ -1,22 +1,22 @@
-@import "./fonts.css";
-@import "./layout.css";
-@import "./auth.css";
-@import "./cards.css";
-@import "./charts.css";
-@import "./controls.css";
-@import "./custom-select.css";
-@import "./data.css";
-@import "./agents.css";
-@import "./modals.css";
-@import "./tokens.css";
-@import "./wizard.css";
-@import "./notifications.css";
-@import "./limits.css";
-@import "./routing.css";
-@import "./tooltip.css";
-@import "./toast.css";
-@import "./model-filter.css";
-@import "./version-indicator.css";
+@import './fonts.css';
+@import './layout.css';
+@import './auth.css';
+@import './cards.css';
+@import './charts.css';
+@import './controls.css';
+@import './custom-select.css';
+@import './data.css';
+@import './agents.css';
+@import './modals.css';
+@import './tokens.css';
+@import './wizard.css';
+@import './notifications.css';
+@import './limits.css';
+@import './routing.css';
+@import './tooltip.css';
+@import './toast.css';
+@import './model-filter.css';
+@import './version-indicator.css';
 
 /* ── shadcn/ui design tokens — Light (default) ───── */
 @layer base {
@@ -117,11 +117,9 @@
   --gap-xl: 32px;
   --gap-2xl: 48px;
 
-  --font-family:
-    "DM Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-heading:
-    "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+  --font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-heading: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 0.9375rem;
@@ -148,8 +146,8 @@
 body {
   font-family: var(--font-family);
   font-feature-settings:
-    "rlig" 1,
-    "calt" 1;
+    'rlig' 1,
+    'calt' 1;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   line-height: 1.6;
@@ -158,7 +156,12 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
 }
 
@@ -284,6 +287,21 @@ h1, h2, h3, h4, h5, h6 {
 .trend--down {
   color: hsl(var(--destructive));
   background: hsl(var(--destructive) / 0.1);
+}
+
+.trend--up-bad {
+  color: hsl(var(--destructive));
+  background: hsl(var(--destructive) / 0.1);
+}
+
+.trend--down-good {
+  color: hsl(var(--success));
+  background: hsl(var(--success) / 0.1);
+}
+
+.trend--neutral {
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted-foreground) / 0.1);
 }
 
 /* ── Panel — shadcn Card ──────────────────────────── */
@@ -884,10 +902,22 @@ h1, h2, h3, h4, h5, h6 {
   display: flex !important;
   align-items: center !important;
   gap: 4px !important;
-  overflow: hidden !important;
   white-space: nowrap !important;
   min-width: 0 !important;
   padding: 2px 0 !important;
+}
+
+.u-legend .u-series th {
+  flex-shrink: 0 !important;
+}
+
+.u-legend .u-value {
+  font-family: var(--font-mono) !important;
+  font-variant-numeric: tabular-nums !important;
+  min-width: 60px !important;
+  display: inline-block !important;
+  text-align: right !important;
+  flex-shrink: 0 !important;
 }
 
 .u-legend .u-series:first-child {
@@ -899,21 +929,8 @@ h1, h2, h3, h4, h5, h6 {
   padding-left: var(--gap-sm) !important;
 }
 
-.u-legend .u-value {
-  font-family: var(--font-mono) !important;
-  font-variant-numeric: tabular-nums !important;
-  min-width: 60px !important;
-  display: inline-block !important;
-  text-align: right !important;
-}
-
 .u-legend .u-marker {
   border-radius: 50% !important;
-}
-
-.u-cursor-x,
-.u-cursor-y {
-  border-color: hsl(var(--border)) !important;
 }
 
 /* ── Chart tooltip ─────────────────────────────────── */

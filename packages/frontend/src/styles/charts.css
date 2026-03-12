@@ -22,10 +22,13 @@
   display: flex !important;
   align-items: center !important;
   gap: 4px !important;
-  overflow: hidden !important;
   white-space: nowrap !important;
   min-width: 0 !important;
   padding: 2px 0 !important;
+}
+
+.u-legend .u-series th {
+  flex-shrink: 0 !important;
 }
 
 .u-legend .u-series:first-child {
@@ -43,6 +46,7 @@
   min-width: 60px !important;
   display: inline-block !important;
   text-align: right !important;
+  flex-shrink: 0 !important;
 }
 
 .u-legend .u-marker {
@@ -74,7 +78,9 @@
   font-size: var(--font-size-xs);
   color: hsl(var(--popover-foreground));
   pointer-events: none;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
   z-index: 100;
   white-space: nowrap;
 }

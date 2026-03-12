@@ -6,6 +6,7 @@ import {
   useChartLifecycle,
   createCursorSnap,
   createBaseAxes,
+  parseTimestamps,
   createTimeScaleRange,
   createFormatLegendTimestamp,
   isMultiDayRange,
@@ -62,10 +63,12 @@ const SingleTokenChart: Component<SingleTokenChartProps> = (props) => {
             time: date,
             value: 0,
           }));
-          return [
-            filled.map((d) => new Date(d.time.replace(' ', 'T') + 'Z').getTime() / 1000),
-            sanitizeNumbers(filled.map((d) => d.value)),
-          ];
+          // Convert to hour/date format so parseTimestamps handles both
+          // intraday ("2026-03-11T10:00:00") and daily ("2026-03-11") consistently
+          const forParse = filled.map((d) =>
+            d.time.includes('T') || d.time.includes(' ') ? { hour: d.time } : { date: d.time },
+          );
+          return [parseTimestamps(forParse), sanitizeNumbers(filled.map((d) => d.value))];
         })(),
         el,
       );

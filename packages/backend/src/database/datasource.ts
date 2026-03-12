@@ -25,6 +25,7 @@ function createDataSource(): DataSource {
     url: databaseUrl,
     entities: ['src/entities/!(*.spec).ts'],
     migrations: ['src/database/migrations/!(*.spec).ts'],
+    extra: { options: '-c timezone=UTC' },
   });
 }
 

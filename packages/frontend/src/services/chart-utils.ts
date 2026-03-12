@@ -151,14 +151,17 @@ const MULTI_DAY_RANGES = new Set(['7d', '30d']);
 const INTRADAY_RANGES = new Set(['1h', '24h']);
 
 const RANGE_DAYS: Record<string, number> = { '7d': 7, '30d': 30 };
+const RANGE_HOURS: Record<string, number> = { '24h': 24 };
 
 export function rangeToSeconds(range: string): number {
   return RANGE_MAP[range] ?? 86400;
 }
 
 /**
- * Fill missing days in sparse backend data so multi-day charts have
- * one data point per calendar day with even spacing.
+ * Fill missing days/hours in sparse backend data so charts have
+ * evenly spaced data points. For multi-day ranges, fills one point per
+ * calendar day. For the 24h range, fills one point per hour up to the
+ * current hour.
  */
 export function fillDailyGaps<T extends Record<string, unknown>>(
   data: T[],
@@ -166,16 +169,47 @@ export function fillDailyGaps<T extends Record<string, unknown>>(
   dateField: string,
   zeroEntry: (date: string) => T,
 ): T[] {
+  const hours = RANGE_HOURS[range];
+  if (hours) {
+    const now = new Date();
+    now.setUTCMinutes(0, 0, 0);
+
+    const hourMap = new Map<string, T>();
+    for (let i = hours; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 3600000);
+      const y = d.getUTCFullYear();
+      const mo = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const da = String(d.getUTCDate()).padStart(2, '0');
+      const hh = String(d.getUTCHours()).padStart(2, '0');
+      const key = `${y}-${mo}-${da}T${hh}:00:00`;
+      hourMap.set(key, zeroEntry(key));
+    }
+
+    for (const row of data) {
+      const key = String(row[dateField] ?? '');
+      if (hourMap.has(key)) {
+        hourMap.set(key, row);
+      }
+    }
+
+    return Array.from(hourMap.values());
+  }
+
   const days = RANGE_DAYS[range];
   if (!days) return data;
 
-  const now = new Date();
-  now.setUTCHours(0, 0, 0, 0);
+  // Use local midnight so date labels match the user's calendar
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const dateMap = new Map<string, T>();
   for (let i = days; i >= 0; i--) {
-    const d = new Date(now.getTime() - i * 86400000);
-    const key = d.toISOString().slice(0, 10);
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const y = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const da = String(d.getDate()).padStart(2, '0');
+    const key = `${y}-${mo}-${da}`;
     dateMap.set(key, zeroEntry(key));
   }
 
@@ -264,7 +298,8 @@ export function parseTimestamps(
 ): number[] {
   return data.map((d) => {
     if (d.hour) {
-      return new Date(d.hour.replace(' ', 'T') + 'Z').getTime() / 1000;
+      const iso = d.hour.replace(' ', 'T');
+      return new Date(iso.endsWith('Z') ? iso : iso + 'Z').getTime() / 1000;
     }
     const dateStr = (d.date as string) ?? '';
     const [y, m, day] = dateStr.split('-').map(Number);

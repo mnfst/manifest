@@ -502,12 +502,12 @@ describe("Overview", () => {
     });
 
     it("reads persisted range from localStorage on mount", async () => {
-      localStorage.setItem("manifest_chart_range", "1h");
+      localStorage.setItem("manifest_chart_range", "24h");
       mockGetOverview.mockResolvedValue(overviewData);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
-        expect(select.value).toBe("1h");
+        expect(select.value).toBe("24h");
       });
     });
 

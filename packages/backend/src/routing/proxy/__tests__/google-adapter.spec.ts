@@ -84,6 +84,76 @@ describe('Google Adapter', () => {
       ]);
     });
 
+    it('strips unsupported JSON Schema fields from tool parameters', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Do something' }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'my_tool',
+              description: 'A tool',
+              parameters: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', title: 'Name', default: 'foo' },
+                  config: {
+                    type: 'object',
+                    additionalProperties: true,
+                    patternProperties: { '^x-': { type: 'string' } },
+                    properties: { key: { type: 'string' } },
+                  },
+                },
+                additionalProperties: false,
+                $schema: 'http://json-schema.org/draft-07/schema#',
+              },
+            },
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const tools = result.tools as Array<{
+        functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
+      }>;
+      const params = tools[0].functionDeclarations[0].parameters;
+
+      // Top-level unsupported fields stripped
+      expect(params).not.toHaveProperty('additionalProperties');
+      expect(params).not.toHaveProperty('$schema');
+
+      // Nested unsupported fields stripped
+      const props = params.properties as Record<string, Record<string, unknown>>;
+      expect(props.name).not.toHaveProperty('title');
+      expect(props.name).not.toHaveProperty('default');
+      expect(props.config).not.toHaveProperty('additionalProperties');
+      expect(props.config).not.toHaveProperty('patternProperties');
+
+      // Supported fields preserved
+      expect(params.type).toBe('object');
+      expect(props.name.type).toBe('string');
+      expect(props.config.type).toBe('object');
+      expect(props.config.properties).toEqual({ key: { type: 'string' } });
+    });
+
+    it('handles tools with no parameters', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Do something' }],
+        tools: [
+          {
+            type: 'function',
+            function: { name: 'no_params', description: 'No params tool' },
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const tools = result.tools as Array<{
+        functionDeclarations: Array<{ parameters?: unknown }>;
+      }>;
+      expect(tools[0].functionDeclarations[0].parameters).toBeUndefined();
+    });
+
     it('skips system messages with non-string content from systemInstruction', () => {
       const body = {
         messages: [
