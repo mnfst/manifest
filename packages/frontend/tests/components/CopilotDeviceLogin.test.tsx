@@ -251,4 +251,130 @@ describe("CopilotDeviceLogin", () => {
       expect(props.onDisconnected).not.toHaveBeenCalled();
     });
   });
+
+  it("copies device code to clipboard on copy button click", async () => {
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText: writeTextMock } });
+
+    mockCopilotDeviceCode.mockResolvedValue({
+      device_code: "dc_test",
+      user_code: "COPY-ME",
+      verification_uri: "https://github.com/login/device",
+      expires_in: 900,
+      interval: 5,
+    });
+    mockCopilotPollToken.mockReturnValue(new Promise(() => {}));
+
+    renderComponent();
+    await fireEvent.click(screen.getByText("Sign in with GitHub"));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Copy device code")).toBeDefined();
+    });
+
+    await fireEvent.click(screen.getByLabelText("Copy device code"));
+
+    await waitFor(() => {
+      expect(writeTextMock).toHaveBeenCalledWith("COPY-ME");
+    });
+    // After successful copy, label changes to "Copied"
+    await waitFor(() => {
+      expect(screen.getByLabelText("Copied")).toBeDefined();
+    });
+
+    // After timeout, label reverts to "Copy device code"
+    await vi.advanceTimersByTimeAsync(2000);
+    await waitFor(() => {
+      expect(screen.getByLabelText("Copy device code")).toBeDefined();
+    });
+  });
+
+  it("handles clipboard write failure gracefully", async () => {
+    const writeTextMock = vi.fn().mockRejectedValue(new Error("clipboard denied"));
+    Object.assign(navigator, { clipboard: { writeText: writeTextMock } });
+
+    mockCopilotDeviceCode.mockResolvedValue({
+      device_code: "dc_test",
+      user_code: "FAIL-COPY",
+      verification_uri: "https://github.com/login/device",
+      expires_in: 900,
+      interval: 5,
+    });
+    mockCopilotPollToken.mockReturnValue(new Promise(() => {}));
+
+    renderComponent();
+    await fireEvent.click(screen.getByText("Sign in with GitHub"));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Copy device code")).toBeDefined();
+    });
+
+    await fireEvent.click(screen.getByLabelText("Copy device code"));
+
+    // Should not crash — label stays "Copy device code" (not "Copied")
+    await waitFor(() => {
+      expect(screen.getByLabelText("Copy device code")).toBeDefined();
+    });
+  });
+
+  it("increases poll delay on slow_down status", async () => {
+    mockCopilotDeviceCode.mockResolvedValue({
+      device_code: "dc_test",
+      user_code: "ABCD-1234",
+      verification_uri: "https://github.com/login/device",
+      expires_in: 900,
+      interval: 5,
+    });
+    // First poll: slow_down, second poll: complete
+    mockCopilotPollToken
+      .mockResolvedValueOnce({ status: "slow_down" })
+      .mockResolvedValueOnce({ status: "complete" });
+
+    const { props } = renderComponent();
+    await fireEvent.click(screen.getByText("Sign in with GitHub"));
+
+    // First poll at 5 seconds
+    await vi.advanceTimersByTimeAsync(5000);
+    await waitFor(() => {
+      expect(mockCopilotPollToken).toHaveBeenCalledTimes(1);
+    });
+
+    // After slow_down, delay increases by 5 -> next poll at 10 seconds
+    await vi.advanceTimersByTimeAsync(10000);
+
+    await waitFor(() => {
+      expect(screen.getByText("GitHub Copilot connected successfully.")).toBeDefined();
+    });
+    expect(props.onConnected).toHaveBeenCalled();
+  });
+
+  it("continues polling on pending status with same delay", async () => {
+    mockCopilotDeviceCode.mockResolvedValue({
+      device_code: "dc_test",
+      user_code: "ABCD-1234",
+      verification_uri: "https://github.com/login/device",
+      expires_in: 900,
+      interval: 5,
+    });
+    mockCopilotPollToken
+      .mockResolvedValueOnce({ status: "pending" })
+      .mockResolvedValueOnce({ status: "complete" });
+
+    const { props } = renderComponent();
+    await fireEvent.click(screen.getByText("Sign in with GitHub"));
+
+    // First poll at 5 seconds — returns pending
+    await vi.advanceTimersByTimeAsync(5000);
+    await waitFor(() => {
+      expect(mockCopilotPollToken).toHaveBeenCalledTimes(1);
+    });
+
+    // Second poll at 5 more seconds — same delay for pending
+    await vi.advanceTimersByTimeAsync(5000);
+
+    await waitFor(() => {
+      expect(screen.getByText("GitHub Copilot connected successfully.")).toBeDefined();
+    });
+    expect(props.onConnected).toHaveBeenCalled();
+  });
 });
