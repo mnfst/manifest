@@ -1,12 +1,15 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import { providerIcon } from './ProviderIcon.js';
+import { authBadgeFor } from './AuthBadge.js';
 import { resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
-import { getModelLabel } from '../services/providers.js';
+import { getModelLabel } from '../services/provider-utils.js';
+import { PROVIDERS } from '../services/providers.js';
 import {
   setFallbacks,
   clearFallbacks,
   type AvailableModel,
   type CustomProviderData,
+  type RoutingProvider,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 
@@ -16,6 +19,7 @@ interface FallbackListProps {
   fallbacks: string[];
   models: AvailableModel[];
   customProviders: CustomProviderData[];
+  connectedProviders: RoutingProvider[];
   onUpdate: (updatedFallbacks: string[]) => void;
   onAddFallback: () => void;
   adding?: boolean;
@@ -38,6 +42,24 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     const info = props.models.find((m) => m.model_name === model);
     if (info) return resolveProviderId(info.provider);
     return undefined;
+  };
+
+  const authTypeFor = (providerId: string | undefined): string | null => {
+    if (!providerId) return null;
+    const provs = props.connectedProviders.filter(
+      (p) => p.provider.toLowerCase() === providerId.toLowerCase(),
+    );
+    if (provs.some((p) => p.auth_type === 'subscription')) return 'subscription';
+    if (provs.some((p) => p.auth_type === 'api_key')) return 'api_key';
+    return null;
+  };
+
+  const providerTitle = (providerId: string | undefined, authType: string | null): string => {
+    if (!providerId) return '';
+    const provDef = PROVIDERS.find((p) => p.id === providerId);
+    const name = provDef?.name ?? providerId;
+    const method = authType === 'subscription' ? 'Subscription' : 'API Key';
+    return `${name} (${method})`;
   };
 
   const handleRemove = async (index: number) => {
@@ -69,11 +91,16 @@ const FallbackList: Component<FallbackListProps> = (props) => {
             {(model, i) => {
               const provId = () => providerIdFor(model);
               const isCustom = () => provId()?.startsWith('custom:');
+              const auth = () => authTypeFor(provId());
+              const title = () => providerTitle(provId(), auth());
               return (
                 <li class="fallback-list__item">
                   <span class="fallback-list__rank">{i() + 1}.</span>
                   <Show when={provId() && !isCustom()}>
-                    <span class="fallback-list__icon">{providerIcon(provId()!, 14)}</span>
+                    <span class="fallback-list__icon" title={title()}>
+                      {providerIcon(provId()!, 14)}
+                      {authBadgeFor(auth(), 8)}
+                    </span>
                   </Show>
                   <Show when={isCustom()}>
                     {(() => {
@@ -82,6 +109,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                       return (
                         <span
                           class="provider-card__logo-letter fallback-list__icon"
+                          title={cp?.name ?? 'Custom'}
                           style={{
                             background: 'var(--custom-provider-color)',
                             width: '14px',

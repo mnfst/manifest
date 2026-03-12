@@ -496,6 +496,26 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Vendor prefix stripping', () => {
+    it('strips vendor prefix for non-OpenRouter providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openai', 'sk-test', 'anthropic/claude-sonnet-4', body, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('claude-sonnet-4');
+    });
+
+    it('preserves vendor prefix for OpenRouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openrouter', 'sk-or', 'anthropic/claude-sonnet-4', body, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('anthropic/claude-sonnet-4');
+    });
+  });
+
   describe('Body sanitization for non-OpenAI providers', () => {
     const bodyWithOpenAiFields = {
       messages: [{ role: 'user', content: 'Hello' }],

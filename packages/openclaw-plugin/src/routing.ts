@@ -1,5 +1,5 @@
-import { ManifestConfig } from "./config";
-import { PluginLogger } from "./telemetry";
+import { ManifestConfig } from './config';
+import { PluginLogger } from './telemetry';
 
 interface ResolveResponse {
   tier: string;
@@ -8,6 +8,7 @@ interface ResolveResponse {
   confidence: number;
   score: number;
   reason: string;
+  auth_type?: 'api_key' | 'subscription';
 }
 
 interface MomentumEntry {
@@ -21,7 +22,7 @@ const RESOLVE_TIMEOUT_MS = 3000;
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 // Roles excluded from scoring (system/developer prompts inflate scores)
-const SCORING_EXCLUDED_ROLES = new Set(["system", "developer"]);
+const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -40,7 +41,7 @@ function ensureCleanupTimer(): void {
       }
     }
   }, CLEANUP_INTERVAL_MS);
-  if (typeof timer === "object" && "unref" in timer) {
+  if (typeof timer === 'object' && 'unref' in timer) {
     timer.unref();
   }
 }
@@ -55,15 +56,21 @@ export async function resolveRouting(
   messages: unknown[],
   sessionKey: string,
   logger: PluginLogger,
-): Promise<{ tier: string; model: string; provider: string; reason: string } | null> {
+): Promise<{
+  tier: string;
+  model: string;
+  provider: string;
+  reason: string;
+  auth_type: 'api_key' | 'subscription';
+} | null> {
   ensureCleanupTimer();
 
-  const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, "");
+  const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, '');
   const resolveUrl = `${baseUrl}/api/v1/routing/resolve`;
 
   try {
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      logger.debug("[manifest] Routing resolve: no messages, skipping");
+      logger.debug('[manifest] Routing resolve: no messages, skipping');
       return null;
     }
 
@@ -71,34 +78,34 @@ export async function resolveRouting(
     // Also exclude system/developer messages and take only recent ones,
     // matching the proxy service's scoring behavior.
     const scoringMessages = messages
-      .filter((m: any) => m && typeof m === "object" && "role" in m
-        && !SCORING_EXCLUDED_ROLES.has((m as any).role))
+      .filter(
+        (m: any) =>
+          m && typeof m === 'object' && 'role' in m && !SCORING_EXCLUDED_ROLES.has((m as any).role),
+      )
       .slice(-SCORING_RECENT_MESSAGES)
       .map((m: any) => ({ role: (m as any).role, content: (m as any).content }));
 
     if (scoringMessages.length === 0) {
-      logger.debug("[manifest] Routing resolve: no scorable messages, skipping");
+      logger.debug('[manifest] Routing resolve: no scorable messages, skipping');
       return null;
     }
 
     const entry = momentum.get(sessionKey);
     const recentTiers =
-      entry && Date.now() - entry.lastUpdated < MOMENTUM_TTL_MS
-        ? entry.tiers
-        : undefined;
+      entry && Date.now() - entry.lastUpdated < MOMENTUM_TTL_MS ? entry.tiers : undefined;
 
     const body: Record<string, unknown> = { messages: scoringMessages };
     if (recentTiers) body.recentTiers = recentTiers;
 
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     };
     if (config.apiKey) {
-      headers["Authorization"] = `Bearer ${config.apiKey}`;
+      headers['Authorization'] = `Bearer ${config.apiKey}`;
     }
 
     const res = await fetch(resolveUrl, {
-      method: "POST",
+      method: 'POST',
       headers,
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(RESOLVE_TIMEOUT_MS),
@@ -135,8 +142,9 @@ export async function resolveRouting(
     return {
       tier: data.tier,
       model: data.model,
-      provider: data.provider ?? "unknown",
-      reason: data.reason ?? "",
+      provider: data.provider ?? 'unknown',
+      reason: data.reason ?? '',
+      auth_type: data.auth_type ?? 'api_key',
     };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -150,30 +158,26 @@ export async function resolveRouting(
  * OpenClaw sends `POST /v1/chat/completions` requests to Manifest,
  * which scores, picks the real model, and forwards to the actual provider.
  */
-export function registerRouting(
-  api: any,
-  config: ManifestConfig,
-  logger: PluginLogger,
-): void {
-  if (typeof api.registerProvider !== "function") {
-    logger.debug("[manifest] registerProvider not available, skipping provider registration");
+export function registerRouting(api: any, config: ManifestConfig, logger: PluginLogger): void {
+  if (typeof api.registerProvider !== 'function') {
+    logger.debug('[manifest] registerProvider not available, skipping provider registration');
     return;
   }
 
-  const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, "");
+  const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, '');
 
   try {
     api.registerProvider({
-      id: "manifest",
-      name: "Manifest Router",
-      label: "Manifest Router",
-      api: "openai-completions",
+      id: 'manifest',
+      name: 'Manifest Router',
+      label: 'Manifest Router',
+      api: 'openai-completions',
       baseUrl,
       apiKey: config.apiKey,
-      models: ["auto"],
+      models: ['auto'],
     });
 
-    logger.info("[manifest] Registered as OpenAI-compatible provider (proxy mode)");
+    logger.info('[manifest] Registered as OpenAI-compatible provider (proxy mode)');
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.debug(`[manifest] registerProvider failed (${msg})`);

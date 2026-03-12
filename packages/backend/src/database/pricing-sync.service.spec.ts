@@ -43,8 +43,10 @@ global.fetch = mockFetch;
 
 describe('PricingSyncService', () => {
   let service: PricingSyncService;
+  const origManifestMode = process.env['MANIFEST_MODE'];
 
   beforeEach(() => {
+    delete process.env['MANIFEST_MODE'];
     service = new PricingSyncService(
       mockRepo,
       mockPricingCache,
@@ -59,6 +61,11 @@ describe('PricingSyncService', () => {
     mockCount.mockResolvedValue(0);
     mockFind.mockResolvedValue([]);
     mockDelete.mockResolvedValue(undefined);
+  });
+
+  afterAll(() => {
+    if (origManifestMode !== undefined) process.env['MANIFEST_MODE'] = origManifestMode;
+    else delete process.env['MANIFEST_MODE'];
   });
 
   it('creates canonical models for new vendor-prefixed models (no OpenRouter copies)', async () => {
@@ -428,6 +435,23 @@ describe('PricingSyncService', () => {
   });
 
   describe('onModuleInit', () => {
+    it('returns immediately in local mode without calling syncPricing', async () => {
+      const original = process.env['MANIFEST_MODE'];
+      process.env['MANIFEST_MODE'] = 'local';
+      try {
+        await service.onModuleInit();
+        await new Promise((r) => setTimeout(r, 10));
+        expect(mockFetch).not.toHaveBeenCalled();
+        expect(mockCount).not.toHaveBeenCalled();
+      } finally {
+        if (original === undefined) {
+          delete process.env['MANIFEST_MODE'];
+        } else {
+          process.env['MANIFEST_MODE'] = original;
+        }
+      }
+    });
+
     it('skips sync when data is fresh', async () => {
       mockCount.mockResolvedValue(5);
       await service.onModuleInit();
@@ -595,7 +619,7 @@ describe('PricingSyncService', () => {
     expect(orCall![0]).not.toHaveProperty('provider');
   });
 
-  it('skips openrouter/auto entirely when not in seeder', async () => {
+  it('creates canonical entry for openrouter/auto even when not in seeder', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -604,9 +628,39 @@ describe('PricingSyncService', () => {
     });
 
     const updated = await service.syncPricing();
-    // Not in seeder and no vendor prefix → no upserts
-    expect(updated).toBe(0);
-    expect(mockUpsert).not.toHaveBeenCalled();
+    // Canonical entry created (openrouter/auto), no vendor-prefixed copy
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'openrouter/auto',
+        provider: 'OpenRouter',
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000015,
+      }),
+      ['model_name'],
+    );
+  });
+
+  it('stores context_window for new openrouter models without seeded entry', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'openrouter/auto',
+            context_length: 200000,
+            pricing: { prompt: '0.000003', completion: '0.000015' },
+          },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+    const call = mockUpsert.mock.calls.find((c) => c[0].model_name === 'openrouter/auto');
+    expect(call).toBeDefined();
+    expect(call![0]).toMatchObject({ context_window: 200000 });
   });
 
   it('updates openrouter/auto pricing when already seeded', async () => {

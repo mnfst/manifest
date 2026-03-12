@@ -28,6 +28,7 @@ import {
 } from '../services/routing-utils.js';
 import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import Select from '../components/Select.jsx';
 import InfoTooltip from '../components/InfoTooltip.jsx';
 import { isLocalMode } from '../services/local-mode.js';
@@ -53,6 +54,7 @@ interface MessageItem {
   cache_creation_tokens: number | null;
   duration_ms: number | null;
   error_message?: string | null;
+  auth_type?: string | null;
   fallback_from_model?: string | null;
   fallback_index?: number | null;
 }
@@ -333,6 +335,7 @@ const MessageLog: Component = () => {
                       src="/example-messages.svg"
                       alt="Example message log showing LLM call history"
                       class="empty-state__img"
+                      loading="lazy"
                     />
                   </div>
                 </div>
@@ -471,15 +474,28 @@ const MessageLog: Component = () => {
                             </span>
                           )}
                         </td>
-                        <td
-                          style="font-family: var(--font-mono);"
-                          title={
-                            item.cost != null && item.cost > 0 && item.cost < 0.01
-                              ? `$${item.cost.toFixed(6)}`
-                              : undefined
-                          }
-                        >
-                          {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}
+                        <td style="font-family: var(--font-mono);">
+                          <Show
+                            when={item.auth_type === 'subscription'}
+                            fallback={
+                              <span
+                                title={
+                                  item.cost != null && item.cost > 0 && item.cost < 0.01
+                                    ? `$${item.cost.toFixed(6)}`
+                                    : undefined
+                                }
+                              >
+                                {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}
+                              </span>
+                            }
+                          >
+                            <span
+                              style="color: hsl(var(--muted-foreground));"
+                              title="Included in subscription"
+                            >
+                              $0.00
+                            </span>
+                          </Show>
                         </td>
                         <td style="font-family: var(--font-mono);">
                           {item.total_tokens != null ? formatNumber(item.total_tokens) : '\u2014'}
@@ -517,10 +533,13 @@ const MessageLog: Component = () => {
                               })()
                             ) : item.model && inferProviderFromModel(item.model) ? (
                               <span
-                                title={inferProviderName(item.model)}
-                                style="display: inline-flex; flex-shrink: 0;"
+                                role="img"
+                                aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                style="display: inline-flex; flex-shrink: 0; position: relative;"
                               >
                                 {providerIcon(inferProviderFromModel(item.model)!, 14)}
+                                {authBadgeFor(item.auth_type, 8)}
                               </span>
                             ) : null}
                             {item.model ? getModelDisplayName(item.model) : '\u2014'}

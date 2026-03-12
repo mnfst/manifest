@@ -6,7 +6,7 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { randomUUID } from 'crypto';
-import { expandProviderNames } from './provider-aliases';
+import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
 import { TIERS, Tier } from './scorer/types';
 
 interface ScoredModel {
@@ -33,10 +33,26 @@ export class TierAutoAssignService {
       (await this.providerRepo.find({
         where: { agent_id: agentId, is_active: true },
       }));
-    const activeProviders = expandProviderNames(resolvedProviders.map((p) => p.provider));
+
+    const subNames = expandProviderNames(
+      resolvedProviders.filter((p) => p.auth_type === 'subscription').map((p) => p.provider),
+    );
+    const keyNames = expandProviderNames(
+      resolvedProviders.filter((p) => p.auth_type !== 'subscription').map((p) => p.provider),
+    );
 
     const allModels = this.pricingCache.getAll();
-    const available = allModels.filter((m) => activeProviders.has(m.provider.toLowerCase()));
+    const matchesProvider = (model: ModelPricing, names: Set<string>): boolean => {
+      if (names.has(model.provider.toLowerCase())) return true;
+      // Only infer provider from model name prefix for non-OpenRouter models.
+      // OpenRouter-hosted models (e.g. "anthropic/claude-sonnet-4-5" with
+      // provider "OpenRouter") should not match direct providers.
+      if (model.provider === 'OpenRouter') return false;
+      const prefix = inferProviderFromModelName(model.model_name);
+      return prefix != null && names.has(prefix);
+    };
+    const subModels = allModels.filter((m) => matchesProvider(m, subNames));
+    const keyModels = allModels.filter((m) => matchesProvider(m, keyNames));
 
     // 2C: Batch read all tiers in one query
     const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
@@ -46,7 +62,8 @@ export class TierAutoAssignService {
     const toInsert: Record<string, unknown>[] = [];
 
     for (const tier of TIERS) {
-      const best = this.pickBest(available, tier);
+      // Subscription models always take priority over API key models
+      const best = this.pickBest(subModels, tier) ?? this.pickBest(keyModels, tier);
       const existing = tierMap.get(tier);
 
       if (existing) {

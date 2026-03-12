@@ -1,7 +1,7 @@
 /* ── Model picker modal ───────────────────────────── */
 .routing-modal__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 20px 24px 16px;
   flex-shrink: 0;
@@ -45,7 +45,9 @@
   font-size: var(--font-size-sm);
   font-family: var(--font-family);
   outline: none;
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
   box-sizing: border-box;
 }
 
@@ -73,7 +75,7 @@
   cursor: pointer;
 }
 
-.routing-modal__filter-toggle input[type="checkbox"] {
+.routing-modal__filter-toggle input[type='checkbox'] {
   accent-color: hsl(var(--primary));
   cursor: pointer;
 }
@@ -161,6 +163,11 @@
   font-family: var(--font-mono, monospace);
 }
 
+.routing-modal__model-id--subscription {
+  color: #22c55e;
+  font-family: var(--font-family);
+}
+
 .routing-modal__recommended {
   font-size: var(--font-size-xs);
   color: hsl(var(--success));
@@ -203,7 +210,9 @@
   border-radius: var(--radius);
   cursor: pointer;
   font-family: var(--font-family);
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .routing-modal__selected-display:hover {

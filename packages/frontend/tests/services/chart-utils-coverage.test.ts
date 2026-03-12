@@ -12,6 +12,18 @@ vi.mock("../../src/services/theme.js", () => ({
   getHslA: (cssVar: string, alpha: number) => `hsla(var(${cssVar}), ${alpha})`,
 }));
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function localHHMM(epochSec: number): string {
+  const d = new Date(epochSec * 1000);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function localMonDay(epochSec: number): string {
+  const d = new Date(epochSec * 1000);
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+}
+
 describe("makeGradientFill", () => {
   it("returns a function", () => {
     const fill = makeGradientFill("red", "blue");
@@ -115,7 +127,7 @@ describe("createBaseAxes", () => {
     const mockU = { scales: { x: {} } } as any;
     const epoch = Date.UTC(2024, 0, 15, 10, 30) / 1000;
     const formatted = (axes[0].values as Function)(mockU, [epoch]);
-    expect(formatted[0]).toBe("10:30");
+    expect(formatted[0]).toBe(localHHMM(epoch));
   });
 
   it("x-axis values formatter calculates span from u.scales when no range", () => {
@@ -123,27 +135,27 @@ describe("createBaseAxes", () => {
     const epoch = Date.UTC(2024, 0, 15, 10, 30) / 1000;
     const mockU = { scales: { x: { min: epoch - 3600, max: epoch } } } as any;
     const formatted = (axes[0].values as Function)(mockU, [epoch]);
-    expect(formatted[0]).toBe("10:30"); // short range = HH:MM
+    expect(formatted[0]).toBe(localHHMM(epoch));
   });
 });
 
 describe("formatAxisTimestamp edge cases", () => {
-  it("shows date for exactly 86400s boundary", () => {
+  it("shows time for 24h range", () => {
     const epoch = Date.UTC(2024, 5, 15, 0, 0) / 1000;
-    const result = formatAxisTimestamp(epoch, 86400);
-    expect(result).toBe("00:00");
+    const result = formatAxisTimestamp(epoch, "24h");
+    expect(result).toBe(localHHMM(epoch));
   });
 
-  it("shows just date for range just over 86400", () => {
+  it("shows just date for 7d range", () => {
     const epoch = Date.UTC(2024, 5, 15, 14, 30) / 1000;
-    const result = formatAxisTimestamp(epoch, 86401);
-    expect(result).toBe("Jun 15");
+    const result = formatAxisTimestamp(epoch, "7d");
+    expect(result).toBe(localMonDay(epoch));
   });
 
-  it("shows just date for range over 7d", () => {
+  it("shows just date for 30d range", () => {
     const epoch = Date.UTC(2024, 11, 25, 8, 0) / 1000;
-    const result = formatAxisTimestamp(epoch, 30 * 86400);
-    expect(result).toBe("Dec 25");
+    const result = formatAxisTimestamp(epoch, "30d");
+    expect(result).toBe(localMonDay(epoch));
   });
 });
 
@@ -179,17 +191,15 @@ describe("parseTimestamps", () => {
 });
 
 describe("timeScaleRange", () => {
-  it("returns padded range when span is less than MIN_SPAN", () => {
+  it("returns backward-expanded range when span is less than MIN_SPAN", () => {
     const [min, max] = timeScaleRange(null as any, 1000, 2000);
-    // MIN_SPAN is 6h = 21600s, so span 1000 < 21600
-    const mid = (1000 + 2000) / 2;
-    expect(min).toBe(mid - 10800);
-    expect(max).toBe(mid + 10800);
+    expect(max).toBe(2000);
+    expect(min).toBe(2000 - 21600);
   });
 
   it("returns original range when span is >= MIN_SPAN", () => {
     const start = 1000;
-    const end = start + 30000; // 30000 > 21600
+    const end = start + 30000;
     const [min, max] = timeScaleRange(null as any, start, end);
     expect(min).toBe(start);
     expect(max).toBe(end);
@@ -197,7 +207,7 @@ describe("timeScaleRange", () => {
 
   it("handles exact MIN_SPAN boundary", () => {
     const start = 0;
-    const end = 21600; // exactly MIN_SPAN
+    const end = 21600;
     const [min, max] = timeScaleRange(null as any, start, end);
     expect(min).toBe(start);
     expect(max).toBe(end);

@@ -13,6 +13,7 @@ const mockLogger = {
 
 const config: ManifestConfig = {
   mode: "cloud",
+  devMode: false,
   apiKey: "mnfst_test_key",
   endpoint: "http://localhost:3001/otlp",
   port: 2099,
@@ -391,12 +392,13 @@ describe("registerTools", () => {
   });
 });
 
-describe("registerTools — no apiKey (dev mode)", () => {
+describe("registerTools — no apiKey (devMode)", () => {
   const devConfig: ManifestConfig = {
-    mode: "dev",
+    mode: "cloud",
+    devMode: true,
     apiKey: "",
     endpoint: "http://localhost:38238/otlp",
-      port: 2099,
+    port: 2099,
     host: "127.0.0.1",
   };
 

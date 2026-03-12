@@ -1,13 +1,15 @@
 import { createSignal, createResource, For, Show, type Component } from 'solid-js';
 import { useParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
-import { STAGES, PROVIDERS, getModelLabel } from '../services/providers.js';
+import { STAGES, PROVIDERS } from '../services/providers.js';
+import { getModelLabel } from '../services/provider-utils.js';
 import { providerIcon } from '../components/ProviderIcon.js';
+import { authBadgeFor } from '../components/AuthBadge.js';
 import ProviderSelectModal from '../components/ProviderSelectModal.js';
 import RoutingInstructionModal from '../components/RoutingInstructionModal.js';
 import ModelPickerModal from '../components/ModelPickerModal.js';
 import { toast } from '../services/toast-store.js';
-import { pricePerM, resolveProviderId } from '../services/routing-utils.js';
+import { pricePerM, resolveProviderId, inferProviderFromModel } from '../services/routing-utils.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import FallbackList from '../components/FallbackList.js';
 import {
@@ -22,13 +24,23 @@ import {
   setFallbacks,
   type TierAssignment,
   type AvailableModel,
+  type AuthType,
 } from '../services/api.js';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
     apiModels.find((x) => x.model_name === model) ??
     apiModels.find((x) => x.model_name.startsWith(model + '-'));
-  if (m) return resolveProviderId(m.provider);
+  if (m) {
+    // Prefer prefix-inferred provider (e.g. "anthropic" from "anthropic/claude-sonnet-4")
+    // over the DB provider field (e.g. "openrouter" when all models come from OpenRouter)
+    const prefixId = inferProviderFromModel(m.model_name);
+    if (prefixId && PROVIDERS.find((p) => p.id === prefixId)) return prefixId;
+    return resolveProviderId(m.provider) ?? prefixId;
+  }
+  // Try inferring from the model name directly
+  const prefix = inferProviderFromModel(model);
+  if (prefix && PROVIDERS.find((p) => p.id === prefix)) return prefix;
   for (const prov of PROVIDERS) {
     if (
       prov.models.some(
@@ -82,10 +94,7 @@ const Routing: Component = () => {
 
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
 
-  const activeProviderIds = () =>
-    connectedProviders()
-      ?.filter((p) => p.is_active)
-      .map((p) => p.provider) ?? [];
+  const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
 
   const getTier = (tierId: string): TierAssignment | undefined =>
     tiers()?.find((t) => t.tier === tierId);
@@ -109,7 +118,12 @@ const Routing: Component = () => {
         const provName = info.provider_display_name;
         return provName ? `${provName} / ${info.display_name}` : info.display_name;
       }
-      const provId = resolveProviderId(info.provider);
+      // Prefer prefix-inferred provider for label lookup
+      const prefixId = inferProviderFromModel(modelName);
+      const provId =
+        prefixId && PROVIDERS.find((p) => p.id === prefixId)
+          ? prefixId
+          : resolveProviderId(info.provider);
       if (provId) return getModelLabel(provId, modelName);
     }
     return modelName;
@@ -121,11 +135,11 @@ const Routing: Component = () => {
     return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out per 1M`;
   };
 
-  const handleOverride = async (tierId: string, modelName: string) => {
+  const handleOverride = async (tierId: string, modelName: string, authType?: AuthType) => {
     setDropdownTier(null);
     setChangingTier(tierId);
     try {
-      const updated = await overrideTier(agentName(), tierId, modelName);
+      const updated = await overrideTier(agentName(), tierId, modelName, authType);
       mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
       toast.success('Routing updated');
     } catch {
@@ -163,7 +177,7 @@ const Routing: Component = () => {
     }
   };
 
-  const handleAddFallback = async (tierId: string, modelName: string) => {
+  const handleAddFallback = async (tierId: string, modelName: string, _authType?: AuthType) => {
     setFallbackPickerTier(null);
     const tier = getTier(tierId);
     const current = tier?.fallback_models ?? [];
@@ -228,7 +242,10 @@ const Routing: Component = () => {
       refetchModels(),
     ]);
     if (!wasEnabled && isEnabled()) {
-      setInstructionModal('enable');
+      // Only show setup instructions when a non-subscription provider is active,
+      // since subscription models don't require OpenClaw routing configuration.
+      const hasNonSub = activeProviders().some((p) => p.auth_type !== 'subscription');
+      if (hasNonSub) setInstructionModal('enable');
     }
   };
 
@@ -363,13 +380,13 @@ const Routing: Component = () => {
         >
           <div class="routing-providers-info">
             <span class="routing-providers-info__icons">
-              <For each={activeProviderIds()}>
-                {(provId) => {
-                  if (provId.startsWith('custom:')) {
-                    const cp = customProviders()?.find((c) => `custom:${c.id}` === provId);
+              <For each={activeProviders()}>
+                {(prov) => {
+                  if (prov.provider.startsWith('custom:')) {
+                    const cp = customProviders()?.find((c) => `custom:${c.id}` === prov.provider);
                     const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
                     return (
-                      <span class="routing-providers-info__icon" title={cp?.name ?? provId}>
+                      <span class="routing-providers-info__icon" title={cp?.name ?? prov.provider}>
                         <span
                           class="provider-card__logo-letter"
                           style={{
@@ -385,17 +402,22 @@ const Routing: Component = () => {
                       </span>
                     );
                   }
-                  const provDef = PROVIDERS.find((p) => p.id === provId);
+                  const provDef = PROVIDERS.find((p) => p.id === prov.provider);
+                  const authLabel = prov.auth_type === 'subscription' ? 'Subscription' : 'API Key';
                   return (
-                    <span class="routing-providers-info__icon" title={provDef?.name ?? provId}>
-                      {providerIcon(provId, 16)}
+                    <span
+                      class="routing-providers-info__icon"
+                      title={`${provDef?.name ?? prov.provider} (${authLabel})`}
+                    >
+                      {providerIcon(prov.provider, 16)}
+                      {authBadgeFor(prov.auth_type, 12)}
                     </span>
                   );
                 }}
               </For>
             </span>
             <span class="routing-providers-info__label">
-              {activeProviderIds().length} provider{activeProviderIds().length !== 1 ? 's' : ''}
+              {activeProviders().length} connection{activeProviders().length !== 1 ? 's' : ''}
             </span>
           </div>
 
@@ -446,69 +468,95 @@ const Routing: Component = () => {
                             </div>
                           }
                         >
-                          {(modelName) => (
-                            <>
-                              <Show
-                                when={changingTier() !== stage.id}
-                                fallback={
-                                  <>
-                                    <div class="routing-card__override">
+                          {(modelName) => {
+                            const provId = () => providerIdForModel(modelName(), models() ?? []);
+                            const effectiveAuth = (): AuthType | null => {
+                              const t = tier();
+                              if (t?.override_auth_type) return t.override_auth_type;
+                              const id = provId();
+                              if (!id) return null;
+                              const provs = activeProviders().filter(
+                                (p) => p.provider.toLowerCase() === id.toLowerCase(),
+                              );
+                              if (provs.some((p) => p.auth_type === 'subscription'))
+                                return 'subscription';
+                              if (provs.some((p) => p.auth_type === 'api_key')) return 'api_key';
+                              return null;
+                            };
+                            return (
+                              <>
+                                <Show
+                                  when={changingTier() !== stage.id}
+                                  fallback={
+                                    <>
+                                      <div class="routing-card__override">
+                                        <div
+                                          class="skeleton skeleton--text"
+                                          style="width: 140px; height: 14px;"
+                                        />
+                                      </div>
                                       <div
                                         class="skeleton skeleton--text"
-                                        style="width: 140px; height: 14px;"
+                                        style="width: 180px; height: 12px; margin-top: 6px;"
                                       />
-                                    </div>
-                                    <div
-                                      class="skeleton skeleton--text"
-                                      style="width: 180px; height: 12px; margin-top: 6px;"
-                                    />
-                                  </>
-                                }
-                              >
-                                <div class="routing-card__override">
-                                  {(() => {
-                                    const provId = providerIdForModel(modelName(), models() ?? []);
-                                    if (provId?.startsWith('custom:')) {
-                                      const cp = customProviders()?.find(
-                                        (c) => `custom:${c.id}` === provId,
-                                      );
-                                      const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
-                                      return (
-                                        <span class="routing-card__override-icon">
-                                          <span
-                                            class="provider-card__logo-letter"
-                                            style={{
-                                              background: 'var(--custom-provider-color)',
-                                              width: '16px',
-                                              height: '16px',
-                                              'font-size': '9px',
-                                              'border-radius': '50%',
-                                            }}
-                                          >
-                                            {letter}
-                                          </span>
-                                        </span>
-                                      );
-                                    }
-                                    return (
-                                      <Show when={provId}>
-                                        {(pid) => (
+                                    </>
+                                  }
+                                >
+                                  <div class="routing-card__override">
+                                    {(() => {
+                                      const pid = provId();
+                                      if (pid?.startsWith('custom:')) {
+                                        const cp = customProviders()?.find(
+                                          (c) => `custom:${c.id}` === pid,
+                                        );
+                                        const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
+                                        return (
                                           <span class="routing-card__override-icon">
-                                            {providerIcon(pid(), 16)}
+                                            <span
+                                              class="provider-card__logo-letter"
+                                              style={{
+                                                background: 'var(--custom-provider-color)',
+                                                width: '16px',
+                                                height: '16px',
+                                                'font-size': '9px',
+                                                'border-radius': '50%',
+                                              }}
+                                            >
+                                              {letter}
+                                            </span>
                                           </span>
-                                        )}
-                                      </Show>
-                                    );
-                                  })()}
-                                  <span class="routing-card__main">{labelFor(modelName())}</span>
-                                  <Show when={!isManual()}>
-                                    <span class="routing-card__auto-tag">auto</span>
+                                        );
+                                      }
+                                      return (
+                                        <Show when={pid}>
+                                          {(p) => (
+                                            <span class="routing-card__override-icon">
+                                              {providerIcon(p(), 16)}
+                                              {authBadgeFor(effectiveAuth(), 12)}
+                                            </span>
+                                          )}
+                                        </Show>
+                                      );
+                                    })()}
+                                    <span class="routing-card__main">{labelFor(modelName())}</span>
+                                    <Show when={!isManual()}>
+                                      <span class="routing-card__auto-tag">auto</span>
+                                    </Show>
+                                  </div>
+                                  <Show
+                                    when={effectiveAuth() !== 'subscription'}
+                                    fallback={
+                                      <span class="routing-card__sub routing-card__sub--subscription">
+                                        Included in subscription
+                                      </span>
+                                    }
+                                  >
+                                    <span class="routing-card__sub">{priceLabel(modelName())}</span>
                                   </Show>
-                                </div>
-                                <span class="routing-card__sub">{priceLabel(modelName())}</span>
-                              </Show>
-                            </>
-                          )}
+                                </Show>
+                              </>
+                            );
+                          }}
                         </Show>
                       </div>
                       <Show when={eff()}>
@@ -542,6 +590,7 @@ const Routing: Component = () => {
                             fallbacks={getFallbacksFor(stage.id)}
                             models={models() ?? []}
                             customProviders={customProviders() ?? []}
+                            connectedProviders={activeProviders()}
                             onUpdate={(updatedFallbacks) => {
                               setFallbackOverrides((prev) => {
                                 const next = { ...prev };
@@ -604,6 +653,7 @@ const Routing: Component = () => {
             models={models() ?? []}
             tiers={tiers() ?? []}
             customProviders={customProviders() ?? []}
+            connectedProviders={connectedProviders() ?? []}
             onSelect={handleOverride}
             onClose={() => setDropdownTier(null)}
           />
@@ -628,6 +678,7 @@ const Routing: Component = () => {
               models={filteredModels()}
               tiers={tiers() ?? []}
               customProviders={customProviders() ?? []}
+              connectedProviders={connectedProviders() ?? []}
               onSelect={handleAddFallback}
               onClose={() => setFallbackPickerTier(null)}
             />

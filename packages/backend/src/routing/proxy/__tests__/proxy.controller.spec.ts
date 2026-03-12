@@ -1988,6 +1988,7 @@ describe('ProxyController', () => {
           fallbackIndex: 0,
           primaryErrorStatus: 400,
           primaryErrorBody: '{"error":"bad request from primary"}',
+          auth_type: 'subscription',
         },
       });
 
@@ -2010,7 +2011,7 @@ describe('ProxyController', () => {
         }),
       );
 
-      // Fallback success recorded with trace_id and correct status
+      // Fallback success recorded with auth_type and cost_usd
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'ok',
@@ -2018,6 +2019,8 @@ describe('ProxyController', () => {
           routing_tier: 'simple',
           fallback_from_model: 'gemini-2.5-flash-lite',
           fallback_index: 0,
+          auth_type: 'subscription',
+          cost_usd: 0,
         }),
       );
     });
@@ -2377,6 +2380,200 @@ describe('ProxyController', () => {
           status: 'error',
           fallback_index: 1,
         }),
+      );
+    });
+  });
+
+  it('should pass authType to recordFailedFallbacks when all fallbacks fail', async () => {
+    const mockProviderResp = new Response('primary error', {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gemini-flash',
+        provider: 'Google',
+        confidence: 0.9,
+        reason: 'scored',
+        auth_type: 'subscription',
+      },
+      failedFallbacks: [
+        {
+          model: 'deepseek-chat',
+          provider: 'DeepSeek',
+          fallbackIndex: 0,
+          status: 500,
+          errorBody: 'fail 1',
+        },
+      ],
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Fallback failure recorded with auth_type from meta
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'deepseek-chat',
+        auth_type: 'subscription',
+      }),
+    );
+    // Primary failure also recorded with auth_type
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'gemini-flash',
+        status: 'fallback_error',
+        auth_type: 'subscription',
+      }),
+    );
+  });
+
+  describe('auth_type and subscription cost', () => {
+    it('should store auth_type from routing meta on success message', async () => {
+      const responseBody = {
+        choices: [{ message: { content: 'hello' } }],
+        usage: { prompt_tokens: 100, completion_tokens: 50 },
+      };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'claude-haiku-4-5-20251001',
+          provider: 'Anthropic',
+          confidence: 0.9,
+          reason: 'scored',
+          auth_type: 'api_key',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ auth_type: 'api_key' }),
+      );
+    });
+
+    it('should set cost to zero for subscription auth_type', async () => {
+      mockPricingCache.getByModel.mockReturnValue({
+        input_price_per_token: 0.001,
+        output_price_per_token: 0.002,
+      });
+
+      const responseBody = {
+        choices: [{ message: { content: 'hello' } }],
+        usage: { prompt_tokens: 100, completion_tokens: 50 },
+      };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'claude-haiku-4-5-20251001',
+          provider: 'Anthropic',
+          confidence: 0.9,
+          reason: 'scored',
+          auth_type: 'subscription',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ auth_type: 'subscription', cost_usd: 0 }),
+      );
+    });
+
+    it('should calculate cost normally for api_key auth_type', async () => {
+      mockPricingCache.getByModel.mockReturnValue({
+        input_price_per_token: 0.01,
+        output_price_per_token: 0.03,
+      });
+
+      const responseBody = {
+        choices: [{ message: { content: 'hello' } }],
+        usage: { prompt_tokens: 200, completion_tokens: 100 },
+      };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'standard',
+          model: 'claude-haiku-4-5-20251001',
+          provider: 'Anthropic',
+          confidence: 0.9,
+          reason: 'scored',
+          auth_type: 'api_key',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      // cost = 200 * 0.01 + 100 * 0.03 = 5.0
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ auth_type: 'api_key', cost_usd: expect.closeTo(5.0, 4) }),
+      );
+    });
+
+    it('should set auth_type to null when not provided', async () => {
+      const responseBody = {
+        choices: [{ message: { content: 'hello' } }],
+        usage: { prompt_tokens: 100, completion_tokens: 50 },
+      };
+      const mockProviderResp = new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        meta: {
+          tier: 'simple',
+          model: 'gpt-4o',
+          provider: 'OpenAI',
+          confidence: 0.9,
+          reason: 'scored',
+        },
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ auth_type: null }),
       );
     });
   });

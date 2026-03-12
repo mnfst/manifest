@@ -1,14 +1,19 @@
-import type { Component } from "solid-js";
-import uPlot from "uplot";
-import { getHsl, getHslA } from "../services/theme.js";
+import type { Component } from 'solid-js';
+import uPlot from 'uplot';
+import 'uplot/dist/uPlot.min.css';
+import { getHsl, getHslA } from '../services/theme.js';
 import {
   makeGradientFillFromVar,
   useChartLifecycle,
   createCursorSnap,
   createBaseAxes,
-  timeScaleRange,
-  formatLegendTimestamp,
-} from "../services/chart-utils.js";
+  parseTimestamps,
+  createTimeScaleRange,
+  createFormatLegendTimestamp,
+  isMultiDayRange,
+  sanitizeNumbers,
+  fillDailyGaps,
+} from '../services/chart-utils.js';
 
 interface SingleTokenChartProps {
   data: Array<{ time: string; value: number }>;
@@ -29,25 +34,45 @@ const SingleTokenChart: Component<SingleTokenChartProps> = (props) => {
       if (w === 0) return null;
 
       const color = getHsl(props.colorVar);
-      const axisColor = getHslA("--foreground", 0.55);
-      const gridColor = getHslA("--foreground", 0.05);
-      const bgColor = getHsl("--card");
+      const axisColor = getHslA('--foreground', 0.55);
+      const gridColor = getHslA('--foreground', 0.05);
+      const bgColor = getHsl('--card');
 
-      return new uPlot({
-        width: w,
-        height: 260,
-        padding: [16, 16, 0, 0],
-        cursor: createCursorSnap(bgColor, color),
-        scales: { x: { time: true, range: timeScaleRange }, y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.1 : 10] } },
-        axes: createBaseAxes(axisColor, gridColor, props.range),
-        series: [
-          { value: formatLegendTimestamp },
-          { label: props.label, stroke: color, width: 2.5, fill: makeGradientFillFromVar(props.colorVar, 0.25) },
-        ],
-      }, [
-        props.data.map((d) => new Date(d.time.replace(" ", "T") + "Z").getTime() / 1000),
-        props.data.map((d) => d.value),
-      ], el);
+      return new uPlot(
+        {
+          width: w,
+          height: 260,
+          padding: [16, 16, 0, 0],
+          cursor: createCursorSnap(bgColor, color),
+          scales: {
+            x: { time: !isMultiDayRange(props.range), range: createTimeScaleRange(props.range) },
+            y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.1 : 10] },
+          },
+          axes: createBaseAxes(axisColor, gridColor, props.range),
+          series: [
+            { value: createFormatLegendTimestamp(props.range) },
+            {
+              label: props.label,
+              stroke: color,
+              width: 2.5,
+              fill: makeGradientFillFromVar(props.colorVar, 0.25),
+            },
+          ],
+        },
+        (() => {
+          const filled = fillDailyGaps(props.data, props.range ?? '', 'time', (date) => ({
+            time: date,
+            value: 0,
+          }));
+          // Convert to hour/date format so parseTimestamps handles both
+          // intraday ("2026-03-11T10:00:00") and daily ("2026-03-11") consistently
+          const forParse = filled.map((d) =>
+            d.time.includes('T') || d.time.includes(' ') ? { hour: d.time } : { date: d.time },
+          );
+          return [parseTimestamps(forParse), sanitizeNumbers(filled.map((d) => d.value))];
+        })(),
+        el,
+      );
     },
   });
 

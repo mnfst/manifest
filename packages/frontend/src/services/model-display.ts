@@ -1,5 +1,5 @@
 import { getModelPrices } from './api.js';
-import { getModelLabel } from './providers.js';
+import { getModelLabel } from './provider-utils.js';
 import { inferProviderFromModel, stripCustomPrefix } from './routing-utils.js';
 
 interface ModelPriceEntry {

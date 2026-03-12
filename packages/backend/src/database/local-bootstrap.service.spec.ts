@@ -2,6 +2,7 @@
 jest.mock('typeorm', () => ({
   Repository: jest.fn(),
   IsNull: jest.fn().mockReturnValue({ _type: 'isNull' }),
+  In: jest.fn((values: string[]) => ({ _type: 'in', _value: values })),
 }));
 
 jest.mock('@nestjs/typeorm', () => ({
@@ -36,6 +37,7 @@ jest.mock('../entities/tenant.entity', () => ({ Tenant: jest.fn() }));
 jest.mock('../entities/agent.entity', () => ({ Agent: jest.fn() }));
 jest.mock('../entities/agent-api-key.entity', () => ({ AgentApiKey: jest.fn() }));
 jest.mock('../entities/agent-message.entity', () => ({ AgentMessage: jest.fn() }));
+jest.mock('../entities/model-pricing.entity', () => ({ ModelPricing: jest.fn() }));
 jest.mock('../entities/user-provider.entity', () => ({ UserProvider: jest.fn() }));
 jest.mock('../entities/tier-assignment.entity', () => ({ TierAssignment: jest.fn() }));
 
@@ -55,6 +57,7 @@ function makeMockRepo() {
     upsert: jest.fn().mockResolvedValue({}),
     find: jest.fn().mockResolvedValue([]),
     save: jest.fn().mockResolvedValue({}),
+    delete: jest.fn().mockResolvedValue({}),
   };
 }
 
@@ -64,6 +67,7 @@ describe('LocalBootstrapService', () => {
   let mockAgentRepo: ReturnType<typeof makeMockRepo>;
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
+  let mockPricingRepo: ReturnType<typeof makeMockRepo>;
   let mockProviderRepo: ReturnType<typeof makeMockRepo>;
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
   let mockPricingCache: { reload: jest.Mock };
@@ -77,6 +81,7 @@ describe('LocalBootstrapService', () => {
     mockAgentRepo = makeMockRepo();
     mockAgentKeyRepo = makeMockRepo();
     mockMessageRepo = makeMockRepo();
+    mockPricingRepo = makeMockRepo();
     mockProviderRepo = makeMockRepo();
     mockTierRepo = makeMockRepo();
     mockPricingCache = { reload: jest.fn().mockResolvedValue(undefined) };
@@ -89,6 +94,7 @@ describe('LocalBootstrapService', () => {
       mockAgentRepo as never,
       mockAgentKeyRepo as never,
       mockMessageRepo as never,
+      mockPricingRepo as never,
       mockProviderRepo as never,
       mockTierRepo as never,
       mockPricingCache as never,
@@ -315,6 +321,106 @@ describe('LocalBootstrapService', () => {
       });
 
       await expect(service.onModuleInit()).resolves.not.toThrow();
+    });
+  });
+
+  describe('purgeNonCuratedModels', () => {
+    it('removes non-curated models from pricingRepo', async () => {
+      // Background sync chain: syncPricing → purgeNonCuratedModels → reload → recalculate
+      // We need purgeNonCuratedModels to find non-curated models in pricingRepo
+      mockPricingRepo.find.mockResolvedValue([
+        { model_name: 'claude-opus-4-6', provider: 'Anthropic' }, // curated
+        { model_name: 'some-random-model', provider: 'SomeProvider' }, // NOT curated
+      ]);
+
+      await service.onModuleInit();
+      // Wait for background sync chain to complete
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockPricingRepo.delete).toHaveBeenCalledWith({
+        model_name: expect.objectContaining({ _value: ['some-random-model'] }),
+      });
+    });
+
+    it('preserves curated models from SEED_MODELS', async () => {
+      mockPricingRepo.find.mockResolvedValue([
+        { model_name: 'gpt-4o', provider: 'OpenAI' },
+        { model_name: 'claude-opus-4-6', provider: 'Anthropic' },
+        { model_name: 'gemini-2.5-pro', provider: 'Google' },
+      ]);
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // All models are curated — delete should not be called
+      expect(mockPricingRepo.delete).not.toHaveBeenCalled();
+    });
+
+    it('preserves Ollama provider models even if not curated', async () => {
+      mockPricingRepo.find.mockResolvedValue([{ model_name: 'llama3:latest', provider: 'Ollama' }]);
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockPricingRepo.delete).not.toHaveBeenCalled();
+    });
+
+    it('preserves custom: prefixed models even if not curated', async () => {
+      mockPricingRepo.find.mockResolvedValue([
+        { model_name: 'custom:provider-uuid/my-model', provider: 'Custom' },
+      ]);
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockPricingRepo.delete).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when pricing table is empty', async () => {
+      mockPricingRepo.find.mockResolvedValue([]);
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockPricingRepo.delete).not.toHaveBeenCalled();
+    });
+
+    it('purges multiple non-curated models in a single delete', async () => {
+      mockPricingRepo.find.mockResolvedValue([
+        { model_name: 'claude-opus-4-6', provider: 'Anthropic' },
+        { model_name: 'random-model-1', provider: 'Unknown' },
+        { model_name: 'random-model-2', provider: 'Unknown' },
+        { model_name: 'llama3:latest', provider: 'Ollama' }, // preserved
+        { model_name: 'custom:uuid/my-llm', provider: 'Custom' }, // preserved
+      ]);
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockPricingRepo.delete).toHaveBeenCalledTimes(1);
+      const deleteArg = mockPricingRepo.delete.mock.calls[0][0];
+      expect(deleteArg.model_name._value).toEqual(
+        expect.arrayContaining(['random-model-1', 'random-model-2']),
+      );
+      expect(deleteArg.model_name._value).not.toContain('claude-opus-4-6');
+      expect(deleteArg.model_name._value).not.toContain('llama3:latest');
+      expect(deleteArg.model_name._value).not.toContain('custom:uuid/my-llm');
+    });
+  });
+
+  describe('background sync chain', () => {
+    it('calls purge, reload, and recalculate after sync', async () => {
+      mockProviderRepo.count.mockResolvedValue(1);
+      mockPricingRepo.find.mockResolvedValue([]);
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Verify full chain: syncPricing → purge (find) → reload → recalculate
+      expect(mockPricingSync.syncPricing).toHaveBeenCalled();
+      expect(mockPricingRepo.find).toHaveBeenCalled();
+      // reload is called twice: once in seedModelPricing, once in background chain
+      expect(mockPricingCache.reload).toHaveBeenCalledTimes(2);
     });
   });
 });

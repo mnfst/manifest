@@ -61,6 +61,9 @@ export class PricingSyncService implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
+    // In local mode, LocalBootstrapService orchestrates the sync + purge chain.
+    if (process.env['MANIFEST_MODE'] === 'local') return;
+
     const cutoff = new Date(Date.now() - FRESHNESS_HOURS * 3600_000);
     const recent = await this.pricingRepo.count({
       where: { updated_at: MoreThan(cutoff) },

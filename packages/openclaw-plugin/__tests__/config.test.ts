@@ -1,5 +1,5 @@
-import { parseConfig, validateConfig } from "../src/config";
-import { API_KEY_PREFIX, DEFAULTS, DEV_DEFAULTS, ENV, LOCAL_DEFAULTS } from "../src/constants";
+import { parseConfig, parseConfigWithDeprecation, validateConfig } from "../src/config";
+import { API_KEY_PREFIX, DEFAULTS, ENV, LOCAL_DEFAULTS } from "../src/constants";
 
 describe("API_KEY_PREFIX constant", () => {
   it("equals mnfst_ (catches accidental revert)", () => {
@@ -30,18 +30,6 @@ describe("LOCAL_DEFAULTS constant", () => {
 
   it("uses a shorter interval than the cloud DEFAULTS", () => {
     expect(LOCAL_DEFAULTS.METRICS_INTERVAL_MS).toBeLessThan(
-      DEFAULTS.METRICS_INTERVAL_MS,
-    );
-  });
-});
-
-describe("DEV_DEFAULTS constant", () => {
-  it("has METRICS_INTERVAL_MS set to 10 seconds", () => {
-    expect(DEV_DEFAULTS.METRICS_INTERVAL_MS).toBe(10_000);
-  });
-
-  it("uses a shorter interval than the cloud DEFAULTS", () => {
-    expect(DEV_DEFAULTS.METRICS_INTERVAL_MS).toBeLessThan(
       DEFAULTS.METRICS_INTERVAL_MS,
     );
   });
@@ -98,17 +86,19 @@ describe("parseConfig", () => {
     expect(result.mode).toBe("local");
   });
 
-  it("parses explicit mode: dev", () => {
+  it("maps mode: dev to mode: cloud with devMode: true", () => {
     const result = parseConfig({ mode: "dev", endpoint: "http://localhost:38238/otlp" });
-    expect(result.mode).toBe("dev");
+    expect(result.mode).toBe("cloud");
+    expect(result.devMode).toBe(true);
   });
 
-  it("preserves mode: dev through nested config wrapper", () => {
+  it("preserves mode: dev backward compat through nested config wrapper", () => {
     const result = parseConfig({
       enabled: true,
       config: { mode: "dev", endpoint: "http://localhost:38238/otlp" },
     });
-    expect(result.mode).toBe("dev");
+    expect(result.mode).toBe("cloud");
+    expect(result.devMode).toBe(true);
   });
 
   it("falls back to cloud for unknown mode string", () => {
@@ -211,9 +201,111 @@ describe("parseConfig", () => {
   });
 });
 
+describe("parseConfig — devMode", () => {
+  it("auto-detects devMode when endpoint is loopback and no mnfst_ key", () => {
+    const result = parseConfig({
+      endpoint: "http://localhost:38238/otlp",
+    });
+    expect(result.devMode).toBe(true);
+  });
+
+  it("auto-detects devMode for 127.0.0.1", () => {
+    const result = parseConfig({
+      endpoint: "http://127.0.0.1:38238/otlp",
+    });
+    expect(result.devMode).toBe(true);
+  });
+
+  it("auto-detects devMode for ::1", () => {
+    const result = parseConfig({
+      endpoint: "http://[::1]:38238/otlp",
+    });
+    expect(result.devMode).toBe(true);
+  });
+
+  it("does not auto-detect devMode when mnfst_ key is present", () => {
+    const result = parseConfig({
+      endpoint: "http://localhost:38238/otlp",
+      apiKey: "mnfst_abc",
+    });
+    expect(result.devMode).toBe(false);
+  });
+
+  it("does not auto-detect devMode for remote endpoints", () => {
+    const result = parseConfig({
+      endpoint: "https://app.manifest.build/otlp",
+    });
+    expect(result.devMode).toBe(false);
+  });
+
+  it("respects explicit devMode: true", () => {
+    const result = parseConfig({
+      devMode: true,
+      endpoint: "https://app.manifest.build/otlp",
+      apiKey: "mnfst_abc",
+    });
+    expect(result.devMode).toBe(true);
+  });
+
+  it("respects explicit devMode: false even with loopback", () => {
+    const result = parseConfig({
+      devMode: false,
+      endpoint: "http://localhost:38238/otlp",
+    });
+    expect(result.devMode).toBe(false);
+  });
+
+  it("does not auto-detect devMode with non-URL endpoint", () => {
+    const result = parseConfig({
+      endpoint: "not-a-url",
+    });
+    expect(result.devMode).toBe(false);
+  });
+
+  it("auto-detects devMode false for default cloud endpoint with no key", () => {
+    const result = parseConfig({});
+    expect(result.devMode).toBe(false);
+  });
+});
+
+describe("parseConfigWithDeprecation", () => {
+  it("sets _deprecatedDevMode when mode is dev", () => {
+    const { _deprecatedDevMode } = parseConfigWithDeprecation({
+      mode: "dev",
+      endpoint: "http://localhost:38238/otlp",
+    });
+    expect(_deprecatedDevMode).toBe(true);
+  });
+
+  it("does not set _deprecatedDevMode for cloud mode", () => {
+    const { _deprecatedDevMode } = parseConfigWithDeprecation({
+      mode: "cloud",
+      apiKey: "mnfst_abc",
+    });
+    expect(_deprecatedDevMode).toBe(false);
+  });
+
+  it("does not set _deprecatedDevMode for local mode", () => {
+    const { _deprecatedDevMode } = parseConfigWithDeprecation({
+      mode: "local",
+    });
+    expect(_deprecatedDevMode).toBe(false);
+  });
+
+  it("does not set _deprecatedDevMode when using devMode: true directly", () => {
+    const { _deprecatedDevMode } = parseConfigWithDeprecation({
+      mode: "cloud",
+      devMode: true,
+      endpoint: "http://localhost:38238/otlp",
+    });
+    expect(_deprecatedDevMode).toBe(false);
+  });
+});
+
 describe("validateConfig", () => {
   const validConfig = {
     mode: "cloud" as const,
+    devMode: false,
     apiKey: "mnfst_abc",
     endpoint: "https://app.manifest.build/otlp",
     port: 2099,
@@ -229,30 +321,30 @@ describe("validateConfig", () => {
     expect(validateConfig(config)).toBeNull();
   });
 
-  it("accepts dev mode with valid http endpoint (no apiKey required)", () => {
+  it("accepts devMode with valid http endpoint (no apiKey required)", () => {
     const config = {
       ...validConfig,
-      mode: "dev" as const,
+      devMode: true,
       apiKey: "",
       endpoint: "http://localhost:38238/otlp",
     };
     expect(validateConfig(config)).toBeNull();
   });
 
-  it("accepts dev mode with https endpoint", () => {
+  it("accepts devMode with https endpoint", () => {
     const config = {
       ...validConfig,
-      mode: "dev" as const,
+      devMode: true,
       apiKey: "",
       endpoint: "https://dev.example.com/otlp",
     };
     expect(validateConfig(config)).toBeNull();
   });
 
-  it("rejects dev mode with invalid endpoint", () => {
+  it("rejects devMode with invalid endpoint", () => {
     const config = {
       ...validConfig,
-      mode: "dev" as const,
+      devMode: true,
       apiKey: "",
       endpoint: "not-a-url",
     };

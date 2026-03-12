@@ -82,6 +82,11 @@ describe('model-name-normalizer', () => {
       expect(map.get('deepseek-r1')).toBe('deepseek-reasoner');
     });
 
+    it('indexes bare name for vendor-prefixed canonical names', () => {
+      const map = buildAliasMap(['anthropic/claude-opus-4-6']);
+      expect(map.get('claude-opus-4-6')).toBe('anthropic/claude-opus-4-6');
+    });
+
     it('includes MiniMax mixed-case aliases', () => {
       const map = buildAliasMap(['minimax-m2.5', 'minimax-m1']);
       expect(map.get('MiniMax-M2.5')).toBe('minimax-m2.5');
