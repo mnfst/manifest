@@ -471,6 +471,53 @@ describe('ProxyController', () => {
     expect(mockMessageRepo.insert).not.toHaveBeenCalled();
   });
 
+  it('should ignore traceless fallback candidates without usable timing data', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 19684, completion_tokens: 13 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    mockMessageRepo.find.mockResolvedValue([
+      {
+        id: 'existing-otlp-row',
+        timestamp: new Date(Date.now() - 2800).toISOString(),
+        input_tokens: 171,
+        output_tokens: 13,
+        cache_read_tokens: 19513,
+        cache_creation_tokens: 0,
+        duration_ms: null,
+      },
+    ]);
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'standard',
+        model: 'deepseek-chat',
+        provider: 'DeepSeek',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'deepseek-chat',
+        input_tokens: 19684,
+        output_tokens: 13,
+      }),
+    );
+  });
+
   it('should serialize concurrent success dedup checks for the same trace', async () => {
     let releaseInsert!: () => void;
     const insertGate = new Promise<void>((resolve) => {
