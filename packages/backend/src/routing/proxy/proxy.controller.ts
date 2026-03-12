@@ -9,7 +9,7 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Request, Response as ExpressResponse } from 'express';
 import { v4 as uuid } from 'uuid';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -480,20 +480,48 @@ export class ProxyController implements OnModuleDestroy {
     await this.withSuccessWriteLock(
       this.getSuccessWriteLockKey(ctx, model, traceId, normalizedSessionKey),
       async () => {
-        const existing = await this.findExistingSuccessMessage(
-          ctx,
-          model,
-          usage,
-          traceId,
-          normalizedSessionKey,
-        );
+        await this.withAgentMessageTransaction(ctx, async (messageRepo) => {
+          const existing = await this.findExistingSuccessMessage(
+            messageRepo,
+            ctx,
+            model,
+            usage,
+            traceId,
+            normalizedSessionKey,
+          );
 
-        if (existing) {
-          const hasRecordedTokens =
-            (existing.input_tokens ?? 0) > 0 || (existing.output_tokens ?? 0) > 0;
-          if (hasRecordedTokens) return;
+          if (existing) {
+            const hasRecordedTokens =
+              (existing.input_tokens ?? 0) > 0 || (existing.output_tokens ?? 0) > 0;
+            if (hasRecordedTokens) return;
 
-          const updatePayload: Partial<AgentMessage> = {
+            const updatePayload: Partial<AgentMessage> = {
+              model,
+              routing_tier: tier,
+              routing_reason: reason,
+              input_tokens: usage.prompt_tokens,
+              output_tokens: usage.completion_tokens,
+              cache_read_tokens: usage.cache_read_tokens ?? 0,
+              cache_creation_tokens: usage.cache_creation_tokens ?? 0,
+              cost_usd: costUsd,
+              auth_type: authType ?? null,
+              user_id: ctx.userId,
+            };
+            if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
+
+            await messageRepo.update({ id: existing.id }, updatePayload);
+            return;
+          }
+
+          await messageRepo.insert({
+            id: uuid(),
+            tenant_id: ctx.tenantId,
+            agent_id: ctx.agentId,
+            trace_id: traceId ?? null,
+            session_key: normalizedSessionKey,
+            timestamp: new Date().toISOString(),
+            status: 'ok',
+            agent_name: ctx.agentName,
             model,
             routing_tier: tier,
             routing_reason: reason,
@@ -503,41 +531,17 @@ export class ProxyController implements OnModuleDestroy {
             cache_creation_tokens: usage.cache_creation_tokens ?? 0,
             cost_usd: costUsd,
             auth_type: authType ?? null,
+            fallback_from_model: null,
+            fallback_index: null,
             user_id: ctx.userId,
-          };
-          if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
-
-          await this.messageRepo.update({ id: existing.id }, updatePayload);
-          return;
-        }
-
-        await this.messageRepo.insert({
-          id: uuid(),
-          tenant_id: ctx.tenantId,
-          agent_id: ctx.agentId,
-          trace_id: traceId ?? null,
-          session_key: normalizedSessionKey,
-          timestamp: new Date().toISOString(),
-          status: 'ok',
-          agent_name: ctx.agentName,
-          model,
-          routing_tier: tier,
-          routing_reason: reason,
-          input_tokens: usage.prompt_tokens,
-          output_tokens: usage.completion_tokens,
-          cache_read_tokens: usage.cache_read_tokens ?? 0,
-          cache_creation_tokens: usage.cache_creation_tokens ?? 0,
-          cost_usd: costUsd,
-          auth_type: authType ?? null,
-          fallback_from_model: null,
-          fallback_index: null,
-          user_id: ctx.userId,
+          });
         });
       },
     );
   }
 
   private async findExistingSuccessMessage(
+    messageRepo: Repository<AgentMessage>,
     ctx: IngestionContext,
     model: string,
     usage: StreamUsage,
@@ -554,7 +558,7 @@ export class ProxyController implements OnModuleDestroy {
     | 'duration_ms'
   > | null> {
     if (traceId) {
-      const existing = await this.messageRepo.findOne({
+      const existing = await messageRepo.findOne({
         where: {
           tenant_id: ctx.tenantId,
           agent_id: ctx.agentId,
@@ -576,7 +580,7 @@ export class ProxyController implements OnModuleDestroy {
     }
 
     const now = Date.now();
-    const recentByModel = await this.messageRepo.find({
+    const recentByModel = await messageRepo.find({
       where: {
         tenant_id: ctx.tenantId,
         agent_id: ctx.agentId,
@@ -624,6 +628,21 @@ export class ProxyController implements OnModuleDestroy {
   private normalizeSessionKey(sessionKey?: string | null): string | null {
     if (!sessionKey || sessionKey === 'default') return null;
     return sessionKey;
+  }
+
+  private async withAgentMessageTransaction<T>(
+    ctx: IngestionContext,
+    fn: (messageRepo: Repository<AgentMessage>) => Promise<T>,
+  ): Promise<T> {
+    return this.messageRepo.manager.transaction(async (manager) => {
+      await this.lockAgentMessageWrites(manager, ctx.agentId);
+      return fn(manager.getRepository(AgentMessage));
+    });
+  }
+
+  private async lockAgentMessageWrites(manager: EntityManager, agentId: string): Promise<void> {
+    if (manager.connection.options.type !== 'postgres') return;
+    await manager.query('SELECT id FROM agents WHERE id = $1 FOR UPDATE', [agentId]);
   }
 
   private getSuccessWriteLockKey(

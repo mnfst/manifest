@@ -75,11 +75,18 @@ describe('ProxyController', () => {
     convertAnthropicResponse: jest.Mock;
     convertAnthropicStreamChunk: jest.Mock;
   };
+  let mockMessageManager: {
+    transaction: jest.Mock;
+    getRepository: jest.Mock;
+    query: jest.Mock;
+    connection: { options: { type: string } };
+  };
   let mockMessageRepo: {
     insert: jest.Mock;
     findOne: jest.Mock;
     find: jest.Mock;
     update: jest.Mock;
+    manager: { transaction: jest.Mock };
   };
   let mockPricingCache: { getByModel: jest.Mock };
 
@@ -98,12 +105,20 @@ describe('ProxyController', () => {
       convertAnthropicResponse: jest.fn(),
       convertAnthropicStreamChunk: jest.fn(),
     };
+    mockMessageManager = {
+      transaction: jest.fn(async (cb: (manager: unknown) => Promise<unknown>) => cb(mockMessageManager)),
+      getRepository: jest.fn(),
+      query: jest.fn().mockResolvedValue([]),
+      connection: { options: { type: 'sqlite' } },
+    };
     mockMessageRepo = {
       insert: jest.fn().mockResolvedValue({}),
       findOne: jest.fn().mockResolvedValue(null),
       find: jest.fn().mockResolvedValue([]),
       update: jest.fn().mockResolvedValue({}),
+      manager: { transaction: mockMessageManager.transaction },
     };
+    mockMessageManager.getRepository.mockReturnValue(mockMessageRepo);
     mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
     controller = new ProxyController(
       proxyService as never,
@@ -553,6 +568,40 @@ describe('ProxyController', () => {
 
     // recordSuccessMessage returns early when both tokens are 0
     expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+  });
+
+  it('should acquire a postgres row lock before success dedup queries', async () => {
+    mockMessageManager.connection.options.type = 'postgres';
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 500, completion_tokens: 200 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageManager.query).toHaveBeenCalledWith(
+      'SELECT id FROM agents WHERE id = $1 FOR UPDATE',
+      ['agent-1'],
+    );
   });
 
   it('should default completion_tokens to 0 when missing from response', async () => {
