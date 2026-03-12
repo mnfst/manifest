@@ -56,7 +56,14 @@ export class ModelPricingCacheService implements OnModuleInit {
     if (exact) return exact;
 
     const resolved = resolveModelName(modelName, this.aliasMap);
-    if (resolved) return this.cache.get(resolved);
+
+    if (resolved) {
+      for (const row of this.cache.values()) {
+        if (row.model_name === resolved) {
+          return row;
+        }
+      }
+    }
 
     this.unresolvedTracker.track(modelName);
     return undefined;
