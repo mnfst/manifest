@@ -1,5 +1,19 @@
 # manifest
 
+## 5.25.0
+
+### Minor Changes
+
+- 9797337: Redesign routing page: 4-column tier layout with drag-and-drop fallback reordering, auto-remove fallback when promoted to primary, model role tags in picker, and consistent btn--outline styling
+
+### Patch Changes
+
+- 9ccb05c: Standardize all buttons to use btn--sm (32px height) for consistent UI across the dashboard
+- 0db1194: Fix Moonshot and Z.ai provider logos visibility in dark mode by using currentColor instead of hardcoded dark fills
+- 6e977e0: Fix custom model pricing fields ignoring comma decimal separators (e.g. "0,59" now correctly parsed as 0.59)
+- 8dda8c9: Replace unusable status and model filters on the Messages page with a provider filter that only shows providers present in the user's data. Add horizontal scroll for the message table on small screens.
+- 39aebd3: Hide Agent setup tab on Settings page in local mode
+
 ## 5.24.2
 
 ### Patch Changes
