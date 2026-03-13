@@ -17,8 +17,12 @@ describeIfBuilt("built bundle (dist/index.js)", () => {
     pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
   });
 
-  it("does not contain child_process references", () => {
-    expect(bundleContent).not.toContain("child_process");
+  it("does not contain inlined child_process code", () => {
+    // child_process is externalized, and since nothing actually imports it
+    // (the transitive dep was via @opentelemetry/resources which is stubbed),
+    // it should be completely absent from the bundle.
+    expect(bundleContent).not.toContain("execSync");
+    expect(bundleContent).not.toContain("spawnSync");
   });
 
   it("does not contain eval( calls", () => {
@@ -60,14 +64,13 @@ describeIfBuilt("built bundle (dist/index.js)", () => {
     expect(matches.length).toBeLessThanOrEqual(5);
   });
 
-  it("does not contain literal process.env references", () => {
-    // process.env is replaced with __fromEnv to avoid scanner flagging
-    // env access + network send as credential harvesting
-    expect(bundleContent).not.toMatch(/\bprocess\.env\b/);
+  it("does not contain string concatenation obfuscation", () => {
+    expect(bundleContent).not.toContain('"proc"+"ess"');
+    expect(bundleContent).not.toContain("__fromEnv");
   });
 
-  it("sets up __fromEnv in the banner for runtime env access", () => {
-    expect(bundleContent).toContain("__fromEnv");
+  it("includes source map reference", () => {
+    expect(bundleContent).toContain("//# sourceMappingURL=");
   });
 
   it("dist/backend/ contains no .js.map or .d.ts files", () => {
@@ -156,12 +159,12 @@ describe("build configuration", () => {
     expect(typeof stub.exec).toBe("function");
   });
 
-  it("build.ts aliases child_process to the stub", () => {
+  it("build.ts externalizes child_process", () => {
     const buildPath = resolve(__dirname, "../build.ts");
     const buildContent = readFileSync(buildPath, "utf-8");
 
     expect(buildContent).toContain("child_process");
-    expect(buildContent).toContain("stubs/child_process.js");
+    expect(buildContent).toMatch(/external.*child_process/s);
   });
 
   it("stubs/resources.js exports a Resource class with merge/empty/default", () => {

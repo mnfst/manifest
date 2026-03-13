@@ -37,15 +37,19 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
   // Generate a random persistent secret for local mode
   if (!process.env['BETTER_AUTH_SECRET']) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const constants = require(`${BACKEND_DIR}/common/constants/local-mode.constants`);
+    const constants = require(
+      join(__dirname, BACKEND_DIR, 'common', 'constants', 'local-mode.constants'),
+    );
     process.env['BETTER_AUTH_SECRET'] = constants.getLocalAuthSecret();
   }
 
-  const backendMain = await import(`${BACKEND_DIR}/main`);
+  const backendMain = await import(join(__dirname, BACKEND_DIR, 'main'));
   const app = await backendMain.bootstrap();
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { trackEvent } = require(`${BACKEND_DIR}/common/utils/product-telemetry`);
+  const { trackEvent } = require(
+    join(__dirname, BACKEND_DIR, 'common', 'utils', 'product-telemetry'),
+  );
   trackEvent('server_started', { package_version: version });
 
   return app;

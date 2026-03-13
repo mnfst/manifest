@@ -16,6 +16,7 @@
   },
   "files": [
     "dist/index.js",
+    "dist/index.js.map",
     "dist/server.js",
     "dist/server.d.ts",
     "dist/backend",
