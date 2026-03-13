@@ -373,7 +373,7 @@ const Routing: Component = () => {
                 Send simple tasks to cheap models, complex ones to better models. Connect your LLM
                 providers to get started.
               </p>
-              <button class="btn btn--primary" onClick={handleEnable}>
+              <button class="btn btn--primary btn--sm" onClick={handleEnable}>
                 Enable Routing
               </button>
             </div>
@@ -628,8 +628,7 @@ const Routing: Component = () => {
             </button>
             <Show when={hasOverrides()}>
               <button
-                class="btn btn--outline"
-                style="font-size: var(--font-size-sm);"
+                class="btn btn--outline btn--sm"
                 onClick={handleResetAll}
                 disabled={resettingAll() || resettingTier() !== null}
               >
@@ -723,11 +722,11 @@ const Routing: Component = () => {
               each tier.
             </p>
             <div style="display: flex; justify-content: flex-end; gap: 8px;">
-              <button class="btn btn--outline" onClick={() => setConfirmDisable(false)}>
+              <button class="btn btn--outline btn--sm" onClick={() => setConfirmDisable(false)}>
                 Cancel
               </button>
               <button
-                class="btn btn--danger"
+                class="btn btn--danger btn--sm"
                 disabled={disabling()}
                 onClick={async () => {
                   setConfirmDisable(false);

@@ -226,7 +226,7 @@ const Overview: Component = () => {
               !setupCompleted()
             }
           >
-            <button class="btn btn--primary" onClick={() => setSetupOpen(true)}>
+            <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
           </Show>
@@ -359,7 +359,7 @@ const Overview: Component = () => {
                   <div class="empty-state__title">No activity yet</div>
                   <p>Connect your agent and send a message. Usage data shows up here.</p>
                   <button
-                    class="btn btn--primary"
+                    class="btn btn--primary btn--sm"
                     style="margin-top: var(--gap-md);"
                     onClick={() => setSetupOpen(true)}
                   >

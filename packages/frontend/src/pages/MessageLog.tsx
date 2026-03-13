@@ -244,7 +244,7 @@ const MessageLog: Component = () => {
               !setupCompleted()
             }
           >
-            <button class="btn btn--primary" onClick={() => setSetupOpen(true)}>
+            <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
           </Show>
@@ -325,7 +325,7 @@ const MessageLog: Component = () => {
                   <div class="empty-state__title">No messages recorded</div>
                   <p>Connect your agent and send a message. Each LLM call gets logged here.</p>
                   <button
-                    class="btn btn--primary"
+                    class="btn btn--primary btn--sm"
                     style="margin-top: var(--gap-md);"
                     onClick={() => setSetupOpen(true)}
                   >
@@ -404,7 +404,7 @@ const MessageLog: Component = () => {
                 <p class="model-filter__empty-hint">
                   Try adjusting your status, model, or cost filters to see more results.
                 </p>
-                <button class="btn btn--outline" onClick={clearFilters} type="button">
+                <button class="btn btn--outline btn--sm" onClick={clearFilters} type="button">
                   Clear filters
                 </button>
               </div>

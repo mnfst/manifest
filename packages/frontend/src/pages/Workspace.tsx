@@ -91,7 +91,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
           <div class="modal-card__footer">
             <button
-              class="btn btn--primary"
+              class="btn btn--primary btn--sm"
               onClick={handleCreate}
               disabled={!name().trim() || creating()}
             >
@@ -128,7 +128,7 @@ const Workspace: Component = () => {
           <h1>My Agents</h1>
           <span class="breadcrumb">View and manage all your connected AI agents</span>
         </div>
-        <button class="btn btn--primary" onClick={() => setModalOpen(true)}>
+        <button class="btn btn--primary btn--sm" onClick={() => setModalOpen(true)}>
           <svg
             width="14"
             height="14"
@@ -176,7 +176,7 @@ const Workspace: Component = () => {
                 <div class="empty-state__title">No agents yet</div>
                 <p>Create an agent to see its LLM calls, tokens, and costs.</p>
                 <button
-                  class="btn btn--primary"
+                  class="btn btn--primary btn--sm"
                   style="margin-top: var(--gap-md);"
                   onClick={() => setModalOpen(true)}
                 >

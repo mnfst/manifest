@@ -321,7 +321,7 @@ const CustomProviderForm: Component<Props> = (props) => {
 
         <button
           type="submit"
-          class="btn btn--primary provider-detail__action"
+          class="btn btn--primary btn--sm provider-detail__action"
           disabled={!canSubmit()}
         >
           {busy() ? <span class="spinner" /> : isEdit() ? 'Save changes' : 'Create'}
@@ -330,7 +330,7 @@ const CustomProviderForm: Component<Props> = (props) => {
         <Show when={isEdit()}>
           <button
             type="button"
-            class="btn btn--outline provider-detail__disconnect"
+            class="btn btn--outline btn--sm provider-detail__disconnect"
             disabled={busy()}
             onClick={() => setShowDeleteConfirm(true)}
             style="margin-top: 16px; align-self: flex-start;"
@@ -379,13 +379,13 @@ const CustomProviderForm: Component<Props> = (props) => {
             </p>
             <div style="display: flex; gap: var(--gap-sm); justify-content: flex-end;">
               <button
-                class="btn btn--outline"
+                class="btn btn--outline btn--sm"
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={busy()}
               >
                 Cancel
               </button>
-              <button class="btn btn--danger" onClick={handleDelete} disabled={busy()}>
+              <button class="btn btn--danger btn--sm" onClick={handleDelete} disabled={busy()}>
                 {busy() ? <span class="spinner" /> : 'Delete'}
               </button>
             </div>
