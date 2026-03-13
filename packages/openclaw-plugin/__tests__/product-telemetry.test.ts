@@ -2,10 +2,92 @@ jest.mock("../src/telemetry-config", () => ({
   getTelemetryConfig: jest.fn(),
 }));
 
-import { trackPluginEvent } from "../src/product-telemetry";
+import { trackPluginEvent, identifyUser, getMachineId } from "../src/product-telemetry";
 import { getTelemetryConfig } from "../src/telemetry-config";
 
 const mockGetTelemetryConfig = getTelemetryConfig as jest.Mock;
+
+describe("getMachineId", () => {
+  it("returns a 16-character hex string", () => {
+    expect(getMachineId()).toMatch(/^[0-9a-f]{16}$/);
+  });
+
+  it("is stable across calls", () => {
+    expect(getMachineId()).toBe(getMachineId());
+  });
+});
+
+describe("identifyUser", () => {
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    fetchSpy = jest
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue({} as Response);
+    mockGetTelemetryConfig.mockReturnValue({
+      optedOut: false,
+      packageVersion: "1.2.3",
+    });
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("sends $identify event to PostHog with telemetryId as distinct_id", () => {
+    identifyUser("abc123");
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
+    expect(body.event).toBe("$identify");
+    expect(body.properties.distinct_id).toBe("abc123");
+    expect(body.properties.$anon_distinct_id).toBe(getMachineId());
+  });
+
+  it("includes PostHog API key in payload", () => {
+    identifyUser("abc123");
+
+    const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
+    expect(body.api_key).toBe("phc_g5pLOu5bBRjhVJBwAsx0eCzJFWq0cri2TyVLQLxf045");
+  });
+
+  it("includes timestamp in ISO format", () => {
+    identifyUser("abc123");
+
+    const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
+    expect(new Date(body.timestamp).toISOString()).toBe(body.timestamp);
+  });
+
+  it("does not call fetch when telemetry is opted out", () => {
+    mockGetTelemetryConfig.mockReturnValue({
+      optedOut: true,
+      packageVersion: "1.2.3",
+    });
+
+    identifyUser("abc123");
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("silently swallows fetch errors", () => {
+    fetchSpy.mockRejectedValue(new Error("Network error"));
+
+    expect(() => identifyUser("abc123")).not.toThrow();
+  });
+
+  it("POSTs to the correct PostHog capture endpoint", () => {
+    identifyUser("abc123");
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "https://eu.i.posthog.com/capture",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+  });
+});
 
 describe("trackPluginEvent", () => {
   const origMode = process.env["MANIFEST_MODE"];

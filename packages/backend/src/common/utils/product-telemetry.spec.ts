@@ -5,7 +5,7 @@ jest.mock('./posthog-sender', () => ({
   sendToPostHog: jest.fn(),
 }));
 
-import { getMachineId, trackEvent, trackCloudEvent } from './product-telemetry';
+import { getMachineId, trackEvent, trackCloudEvent, hashForTelemetry } from './product-telemetry';
 import { sendToPostHog } from './posthog-sender';
 
 const mockedSend = sendToPostHog as jest.Mock;
@@ -32,6 +32,25 @@ describe('getMachineId', () => {
       .digest('hex')
       .slice(0, 16);
     expect(getMachineId()).toBe(expected);
+  });
+});
+
+describe('hashForTelemetry', () => {
+  it('returns a 16-character hex string', () => {
+    expect(hashForTelemetry('test-id')).toMatch(/^[0-9a-f]{16}$/);
+  });
+
+  it('is deterministic', () => {
+    expect(hashForTelemetry('user-123')).toBe(hashForTelemetry('user-123'));
+  });
+
+  it('produces different hashes for different inputs', () => {
+    expect(hashForTelemetry('user-a')).not.toBe(hashForTelemetry('user-b'));
+  });
+
+  it('matches manual SHA256 computation', () => {
+    const expected = createHash('sha256').update('tenant-xyz').digest('hex').slice(0, 16);
+    expect(hashForTelemetry('tenant-xyz')).toBe(expected);
   });
 });
 
@@ -102,10 +121,7 @@ describe('trackCloudEvent', () => {
     trackCloudEvent('agent_created', 'tenant-123');
 
     const props = mockedSend.mock.calls[0][1];
-    const expected = createHash('sha256')
-      .update('tenant-123')
-      .digest('hex')
-      .slice(0, 16);
+    const expected = createHash('sha256').update('tenant-123').digest('hex').slice(0, 16);
     expect(props.distinct_id).toBe(expected);
   });
 
