@@ -76,7 +76,7 @@ const Settings: Component = () => {
     }
   };
 
-  const TABS = () => ['General', 'Agent setup'] as const;
+  const TABS = () => (isLocalMode() ? [] : (['General', 'Agent setup'] as const));
   type Tab = 'General' | 'Agent setup';
   const [tab, setTab] = createSignal<Tab>('General');
 
@@ -184,7 +184,7 @@ const Settings: Component = () => {
       </Show>
 
       {/* -- Tab: Agent setup ------------------------- */}
-      <Show when={tab() === 'Agent setup'}>
+      <Show when={tab() === 'Agent setup' && !isLocalMode()}>
         <h3 class="settings-section__title">API Key</h3>
 
         <div class="settings-card">
