@@ -37,6 +37,7 @@ import { pingCount } from '../services/sse.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import SetupModal from '../components/SetupModal.jsx';
 import { createCursorPagination } from '../services/cursor-pagination.js';
+import { PROVIDERS } from '../services/providers.js';
 import '../styles/overview.css';
 
 interface MessageItem {
@@ -64,14 +65,13 @@ interface MessagesData {
   items: MessageItem[];
   next_cursor: string | null;
   total_count: number;
-  models: string[];
+  providers: string[];
 }
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
   preloadModelDisplayNames();
-  const [statusFilter, setStatusFilter] = createSignal('');
-  const [modelFilter, setModelFilter] = createSignal('');
+  const [providerFilter, setProviderFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
   const [setupOpen, setSetupOpen] = createSignal(false);
@@ -110,14 +110,11 @@ const MessageLog: Component = () => {
     costMaxTimer = setTimeout(() => setCostMax(val), 400);
   };
 
-  createEffect(
-    on([statusFilter, modelFilter, costMin, costMax], () => pager.resetPage(), { defer: true }),
-  );
+  createEffect(on([providerFilter, costMin, costMax], () => pager.resetPage(), { defer: true }));
 
   const [data, { refetch }] = createResource(
     () => ({
-      status: statusFilter(),
-      model: modelFilter(),
+      provider: providerFilter(),
       costMin: costMin(),
       costMax: costMax(),
       agentName: params.agentName,
@@ -127,8 +124,7 @@ const MessageLog: Component = () => {
     }),
     (p) => {
       const q: Record<string, string> = {};
-      if (p.status) q.status = p.status;
-      if (p.model) q.model = p.model;
+      if (p.provider) q.provider = p.provider;
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
       if (p.agentName) q.agent_name = p.agentName;
@@ -147,8 +143,7 @@ const MessageLog: Component = () => {
     ),
   );
 
-  const hasActiveFilters = () =>
-    statusFilter() !== '' || modelFilter() !== '' || costMin() !== '' || costMax() !== '';
+  const hasActiveFilters = () => providerFilter() !== '' || costMin() !== '' || costMax() !== '';
 
   const hasNoData = () => {
     const d = data();
@@ -159,10 +154,15 @@ const MessageLog: Component = () => {
   const isAgentEmpty = () => hasNoData() && !hasActiveFilters();
 
   const clearFilters = () => {
-    setStatusFilter('');
-    setModelFilter('');
+    setProviderFilter('');
     setCostMin('');
     setCostMax('');
+  };
+
+  /** Resolve provider ID to display name */
+  const providerDisplayName = (id: string): string => {
+    const prov = PROVIDERS.find((p) => p.id === id);
+    return prov?.name ?? id;
   };
 
   const scrollToFallbackSuccess = (model: string) => {
@@ -184,35 +184,24 @@ const MessageLog: Component = () => {
       </Title>
       <Meta
         name="description"
-        content={`Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by status, model, or cost.`}
+        content={`Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider or cost.`}
       />
       <div class="page-header">
         <div>
           <h1>Messages</h1>
-          <span class="breadcrumb">
-            Full log of every LLM call. Filter by status, model, or cost.
-          </span>
+          <span class="breadcrumb">Full log of every LLM call. Filter by provider or cost.</span>
         </div>
         <div class="header-controls">
           <Show when={!isAgentEmpty()}>
             <Select
-              value={statusFilter()}
-              onChange={setStatusFilter}
+              value={providerFilter()}
+              onChange={setProviderFilter}
               options={[
-                { label: 'All statuses', value: '' },
-                { label: 'Successful', value: 'ok' },
-                { label: 'Rate Limited', value: 'rate_limited' },
-                { label: 'Retried', value: 'retry' },
-                { label: 'Handled', value: 'fallback_error' },
-                { label: 'Failed', value: 'error' },
-              ]}
-            />
-            <Select
-              value={modelFilter()}
-              onChange={setModelFilter}
-              options={[
-                { label: 'All models', value: '' },
-                ...(data()?.models ?? []).map((m) => ({ label: getModelDisplayName(m), value: m })),
+                { label: 'All providers', value: '' },
+                ...(data()?.providers ?? []).map((id) => ({
+                  label: providerDisplayName(id),
+                  value: id,
+                })),
               ]}
             />
             <div class="cost-range-filter">
@@ -259,60 +248,62 @@ const MessageLog: Component = () => {
               <div class="skeleton skeleton--text" style="width: 80px; height: 16px;" />
               <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
             </div>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Message</th>
-                  <th>Cost</th>
-                  <th>Total Tokens</th>
-                  <th>Input</th>
-                  <th>Output</th>
-                  <th>Model</th>
-                  <th>Cache</th>
-                  <th>Duration</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <For each={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}>
-                  {() => (
-                    <tr>
-                      <td>
-                        <div class="skeleton skeleton--text" style="width: 90px;" />
-                      </td>
-                      <td>
-                        <div class="skeleton skeleton--text" style="width: 55px;" />
-                      </td>
-                      <td>
-                        <div class="skeleton skeleton--text" style="width: 40px;" />
-                      </td>
-                      <td>
-                        <div class="skeleton skeleton--text" style="width: 40px;" />
-                      </td>
-                      <td>
-                        <div class="skeleton skeleton--text" style="width: 35px;" />
-                      </td>
-                      <td>
-                        <div class="skeleton skeleton--text" style="width: 35px;" />
-                      </td>
-                      <td>
-                        <div class="skeleton skeleton--text" style="width: 110px;" />
-                      </td>
-                      <td>
-                        <div class="skeleton skeleton--text" style="width: 90px;" />
-                      </td>
-                      <td>
-                        <div class="skeleton skeleton--text" style="width: 35px;" />
-                      </td>
-                      <td>
-                        <div class="skeleton skeleton--text" style="width: 50px;" />
-                      </td>
-                    </tr>
-                  )}
-                </For>
-              </tbody>
-            </table>
+            <div class="data-table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Message</th>
+                    <th>Cost</th>
+                    <th>Total Tokens</th>
+                    <th>Input</th>
+                    <th>Output</th>
+                    <th>Model</th>
+                    <th>Cache</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}>
+                    {() => (
+                      <tr>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 90px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 55px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 40px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 40px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 35px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 35px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 110px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 90px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 35px;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50px;" />
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </div>
           </div>
         }
       >
@@ -359,32 +350,34 @@ const MessageLog: Component = () => {
                       0 total
                     </span>
                   </div>
-                  <table class="data-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Message</th>
-                        <th>Cost</th>
-                        <th>Total Tokens</th>
-                        <th>Input</th>
-                        <th>Output</th>
-                        <th>Model</th>
-                        <th>Cache</th>
-                        <th>Duration</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td
-                          colspan="10"
-                          style="text-align: center; color: hsl(var(--muted-foreground)); padding: var(--gap-lg);"
-                        >
-                          Messages will appear here
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <div class="data-table-scroll">
+                    <table class="data-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Message</th>
+                          <th>Cost</th>
+                          <th>Total Tokens</th>
+                          <th>Input</th>
+                          <th>Output</th>
+                          <th>Model</th>
+                          <th>Cache</th>
+                          <th>Duration</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td
+                            colspan="10"
+                            style="text-align: center; color: hsl(var(--muted-foreground)); padding: var(--gap-lg);"
+                          >
+                            Messages will appear here
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </Show>
@@ -402,7 +395,7 @@ const MessageLog: Component = () => {
               <div class="model-filter__empty">
                 <p class="model-filter__empty-title">No messages match your filters</p>
                 <p class="model-filter__empty-hint">
-                  Try adjusting your status, model, or cost filters to see more results.
+                  Try adjusting your provider or cost filters to see more results.
                 </p>
                 <button class="btn btn--outline btn--sm" onClick={clearFilters} type="button">
                   Clear filters
@@ -420,215 +413,230 @@ const MessageLog: Component = () => {
                   {data()!.total_count} total
                 </span>
               </div>
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Message</th>
-                    <th>Cost</th>
-                    <th>
-                      Total Tokens
-                      <InfoTooltip text="Tokens are units of text that AI models process. More tokens = higher cost." />
-                    </th>
-                    <th>
-                      Input
-                      <InfoTooltip text="Tokens sent to the model (your prompt). Also called 'input tokens'." />
-                    </th>
-                    <th>
-                      Output
-                      <InfoTooltip text="Tokens returned by the model (its response). Also called 'output tokens'." />
-                    </th>
-                    <th>Model</th>
-                    <th>Cache</th>
-                    <th>Duration</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <For each={data()?.items}>
-                    {(item) => (
-                      <tr id={`msg-${item.id}`}>
-                        <td style="white-space: nowrap; font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                          {formatTime(item.timestamp)}
-                        </td>
-                        <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                          {item.id.slice(0, 8)}
-                          {item.routing_reason === 'heartbeat' && (
-                            <span
-                              title="Heartbeat"
-                              style="display: inline-flex; align-items: center; margin-left: 4px; color: hsl(var(--muted-foreground)); opacity: 0.7;"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                              >
-                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                              </svg>
-                            </span>
-                          )}
-                        </td>
-                        <td style="font-family: var(--font-mono);">
-                          <Show
-                            when={item.auth_type === 'subscription'}
-                            fallback={
+              <div class="data-table-scroll">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Message</th>
+                      <th>Cost</th>
+                      <th>
+                        Total Tokens
+                        <InfoTooltip text="Tokens are units of text that AI models process. More tokens = higher cost." />
+                      </th>
+                      <th>
+                        Input
+                        <InfoTooltip text="Tokens sent to the model (your prompt). Also called 'input tokens'." />
+                      </th>
+                      <th>
+                        Output
+                        <InfoTooltip text="Tokens returned by the model (its response). Also called 'output tokens'." />
+                      </th>
+                      <th>Model</th>
+                      <th>Cache</th>
+                      <th>Duration</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <For each={data()?.items}>
+                      {(item) => (
+                        <tr id={`msg-${item.id}`}>
+                          <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                            {formatTime(item.timestamp)}
+                          </td>
+                          <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                            {item.id.slice(0, 8)}
+                            {item.routing_reason === 'heartbeat' && (
                               <span
-                                title={
-                                  item.cost != null && item.cost > 0 && item.cost < 0.01
-                                    ? `$${item.cost.toFixed(6)}`
-                                    : undefined
-                                }
+                                title="Heartbeat"
+                                style="display: inline-flex; align-items: center; margin-left: 4px; color: hsl(var(--muted-foreground)); opacity: 0.7;"
                               >
-                                {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}
-                              </span>
-                            }
-                          >
-                            <span
-                              style="color: hsl(var(--muted-foreground));"
-                              title="Included in subscription"
-                            >
-                              $0.00
-                            </span>
-                          </Show>
-                        </td>
-                        <td style="font-family: var(--font-mono);">
-                          {item.total_tokens != null ? formatNumber(item.total_tokens) : '\u2014'}
-                        </td>
-                        <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                          {item.input_tokens != null ? formatNumber(item.input_tokens) : '\u2014'}
-                        </td>
-                        <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                          {item.output_tokens != null ? formatNumber(item.output_tokens) : '\u2014'}
-                        </td>
-                        <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                          <span style="display: inline-flex; align-items: center; gap: 4px;">
-                            {item.model && inferProviderFromModel(item.model) === 'custom' ? (
-                              (() => {
-                                const provName = customProviderName(item.model!);
-                                const letter = (provName ?? stripCustomPrefix(item.model!))
-                                  .charAt(0)
-                                  .toUpperCase();
-                                return (
-                                  <span
-                                    class="provider-card__logo-letter"
-                                    title={provName}
-                                    style={{
-                                      background: customProviderColor(provName ?? ''),
-                                      width: '16px',
-                                      height: '16px',
-                                      'font-size': '9px',
-                                      'flex-shrink': '0',
-                                      'border-radius': '50%',
-                                    }}
-                                  >
-                                    {letter}
-                                  </span>
-                                );
-                              })()
-                            ) : item.model && inferProviderFromModel(item.model) ? (
-                              <span
-                                role="img"
-                                aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
-                                title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
-                                style="display: inline-flex; flex-shrink: 0; position: relative;"
-                              >
-                                {providerIcon(inferProviderFromModel(item.model)!, 14)}
-                                {authBadgeFor(item.auth_type, 8)}
-                              </span>
-                            ) : null}
-                            {item.model ? getModelDisplayName(item.model) : '\u2014'}
-                            {item.routing_tier && (
-                              <span class={`tier-badge tier-badge--${item.routing_tier}`}>
-                                {item.routing_tier}
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="12"
+                                  height="12"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                                </svg>
                               </span>
                             )}
-                            {item.fallback_from_model && (
-                              <span
-                                class="tier-badge tier-badge--fallback"
-                                title={`Fallback from ${getModelDisplayName(item.fallback_from_model)}`}
-                              >
-                                fallback
-                              </span>
-                            )}
-                          </span>
-                        </td>
-                        <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                          {(item.cache_read_tokens ?? 0) > 0 ||
-                          (item.cache_creation_tokens ?? 0) > 0
-                            ? `Read: ${formatNumber(item.cache_read_tokens ?? 0)} / Write: ${formatNumber(item.cache_creation_tokens ?? 0)}`
-                            : '\u2014'}
-                        </td>
-                        <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                          {item.duration_ms != null ? formatDuration(item.duration_ms) : '\u2014'}
-                        </td>
-                        <td>
-                          <Show
-                            when={item.error_message}
-                            fallback={
-                              <span class={`status-badge status-badge--${item.status}`}>
-                                {item.status === 'rate_limited' ? (
-                                  <A
-                                    href={`/agents/${encodeURIComponent(params.agentName)}/limits`}
-                                  >
-                                    {formatStatus(item.status)}
-                                  </A>
-                                ) : (
-                                  formatStatus(item.status)
-                                )}
-                              </span>
-                            }
-                          >
-                            <span
-                              class="status-badge-tooltip"
-                              tabindex="0"
-                              role="note"
-                              aria-label={formatErrorMessage(item.error_message!)}
+                          </td>
+                          <td style="font-family: var(--font-mono);">
+                            <Show
+                              when={item.auth_type === 'subscription'}
+                              fallback={
+                                <span
+                                  title={
+                                    item.cost != null && item.cost > 0 && item.cost < 0.01
+                                      ? `$${item.cost.toFixed(6)}`
+                                      : undefined
+                                  }
+                                >
+                                  {item.cost != null
+                                    ? (formatCost(item.cost) ?? '\u2014')
+                                    : '\u2014'}
+                                </span>
+                              }
                             >
                               <span
-                                class={`status-badge status-badge--${item.status}`}
-                                onClick={
-                                  item.status === 'fallback_error' && item.model
-                                    ? () => scrollToFallbackSuccess(item.model!)
-                                    : undefined
-                                }
+                                style="color: hsl(var(--muted-foreground));"
+                                title="Included in subscription"
                               >
-                                {item.status === 'fallback_error' && (
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="11"
-                                    height="11"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    style="margin-right: 3px; flex-shrink: 0;"
-                                  >
-                                    <polyline points="15 17 20 12 15 7" />
-                                    <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
-                                  </svg>
-                                )}
-                                {formatStatus(item.status)}
+                                $0.00
                               </span>
-                              <span class="status-badge-tooltip__bubble">
-                                {formatErrorMessage(item.error_message!)}
-                              </span>
+                            </Show>
+                          </td>
+                          <td style="font-family: var(--font-mono);">
+                            {item.total_tokens != null ? formatNumber(item.total_tokens) : '\u2014'}
+                          </td>
+                          <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                            {item.input_tokens != null ? formatNumber(item.input_tokens) : '\u2014'}
+                          </td>
+                          <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                            {item.output_tokens != null
+                              ? formatNumber(item.output_tokens)
+                              : '\u2014'}
+                          </td>
+                          <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                            <span style="display: inline-flex; align-items: center; gap: 4px;">
+                              {item.model && inferProviderFromModel(item.model) === 'custom'
+                                ? (() => {
+                                    const provName = customProviderName(item.model!);
+                                    const letter = (provName ?? stripCustomPrefix(item.model!))
+                                      .charAt(0)
+                                      .toUpperCase();
+                                    return (
+                                      <span
+                                        class="provider-card__logo-letter"
+                                        title={provName}
+                                        style={{
+                                          background: customProviderColor(provName ?? ''),
+                                          width: '16px',
+                                          height: '16px',
+                                          'font-size': '9px',
+                                          'flex-shrink': '0',
+                                          'border-radius': '50%',
+                                        }}
+                                      >
+                                        {letter}
+                                      </span>
+                                    );
+                                  })()
+                                : item.model && inferProviderFromModel(item.model)
+                                  ? (() => {
+                                      const icon = providerIcon(
+                                        inferProviderFromModel(item.model!)!,
+                                        14,
+                                      );
+                                      const badge = authBadgeFor(item.auth_type, 8);
+                                      return (
+                                        <span
+                                          role="img"
+                                          aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                          title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                          style="display: inline-flex; flex-shrink: 0; position: relative;"
+                                        >
+                                          {icon}
+                                          {badge}
+                                        </span>
+                                      );
+                                    })()
+                                  : null}
+                              {item.model ? getModelDisplayName(item.model) : '\u2014'}
+                              {item.routing_tier && (
+                                <span class={`tier-badge tier-badge--${item.routing_tier}`}>
+                                  {item.routing_tier}
+                                </span>
+                              )}
+                              {item.fallback_from_model && (
+                                <span
+                                  class="tier-badge tier-badge--fallback"
+                                  title={`Fallback from ${getModelDisplayName(item.fallback_from_model)}`}
+                                >
+                                  fallback
+                                </span>
+                              )}
                             </span>
-                          </Show>
-                        </td>
-                      </tr>
-                    )}
-                  </For>
-                </tbody>
-              </table>
+                          </td>
+                          <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                            {(item.cache_read_tokens ?? 0) > 0 ||
+                            (item.cache_creation_tokens ?? 0) > 0
+                              ? `Read: ${formatNumber(item.cache_read_tokens ?? 0)} / Write: ${formatNumber(item.cache_creation_tokens ?? 0)}`
+                              : '\u2014'}
+                          </td>
+                          <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                            {item.duration_ms != null ? formatDuration(item.duration_ms) : '\u2014'}
+                          </td>
+                          <td>
+                            <Show
+                              when={item.error_message}
+                              fallback={
+                                <span class={`status-badge status-badge--${item.status}`}>
+                                  {item.status === 'rate_limited' ? (
+                                    <A
+                                      href={`/agents/${encodeURIComponent(params.agentName)}/limits`}
+                                    >
+                                      {formatStatus(item.status)}
+                                    </A>
+                                  ) : (
+                                    formatStatus(item.status)
+                                  )}
+                                </span>
+                              }
+                            >
+                              <span
+                                class="status-badge-tooltip"
+                                tabindex="0"
+                                role="note"
+                                aria-label={formatErrorMessage(item.error_message!)}
+                              >
+                                <span
+                                  class={`status-badge status-badge--${item.status}`}
+                                  onClick={
+                                    item.status === 'fallback_error' && item.model
+                                      ? () => scrollToFallbackSuccess(item.model!)
+                                      : undefined
+                                  }
+                                >
+                                  {item.status === 'fallback_error' && (
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="11"
+                                      height="11"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      stroke-width="2.5"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      style="margin-right: 3px; flex-shrink: 0;"
+                                    >
+                                      <polyline points="15 17 20 12 15 7" />
+                                      <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
+                                    </svg>
+                                  )}
+                                  {formatStatus(item.status)}
+                                </span>
+                                <span class="status-badge-tooltip__bubble">
+                                  {formatErrorMessage(item.error_message!)}
+                                </span>
+                              </span>
+                            </Show>
+                          </td>
+                        </tr>
+                      )}
+                    </For>
+                  </tbody>
+                </table>
+              </div>
               <Pagination
                 currentPage={pager.currentPage}
                 totalItems={() => data()?.total_count ?? 0}

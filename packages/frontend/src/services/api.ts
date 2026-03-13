@@ -67,11 +67,13 @@ export function getCosts(range = '24h', agentName?: string) {
 export function getMessages(
   params: {
     range?: string;
-    status?: string;
+    provider?: string;
     service_type?: string;
     cursor?: string;
     limit?: string;
     agent_name?: string;
+    cost_min?: string;
+    cost_max?: string;
   } = {},
 ) {
   return fetchJson('/messages', params);

@@ -11,7 +11,7 @@ describe('MessagesController', () => {
       items: [],
       next_cursor: null,
       total_count: 0,
-      models: [],
+      providers: [],
     });
 
     const module: TestingModule = await Test.createTestingModule({
@@ -34,9 +34,8 @@ describe('MessagesController', () => {
     expect(mockGetMessages).toHaveBeenCalledWith({
       range: undefined,
       userId: 'u1',
-      status: undefined,
+      provider: undefined,
       service_type: undefined,
-      model: undefined,
       cost_min: undefined,
       cost_max: undefined,
       limit: 50,
@@ -49,9 +48,8 @@ describe('MessagesController', () => {
     const user = { id: 'u1' };
     const query = {
       range: '7d',
-      status: 'error',
+      provider: 'openai',
       service_type: 'agent',
-      model: 'claude-opus-4-6',
       cost_min: 0.01,
       cost_max: 10.0,
       limit: 25,
@@ -63,9 +61,8 @@ describe('MessagesController', () => {
     expect(mockGetMessages).toHaveBeenCalledWith({
       range: '7d',
       userId: 'u1',
-      status: 'error',
+      provider: 'openai',
       service_type: 'agent',
-      model: 'claude-opus-4-6',
       cost_min: 0.01,
       cost_max: 10.0,
       limit: 25,
@@ -87,7 +84,7 @@ describe('MessagesController', () => {
       items: [{ id: '1' }],
       next_cursor: 'ts|id',
       total_count: 100,
-      models: ['claude-opus-4-6'],
+      providers: ['anthropic', 'openai'],
     };
     mockGetMessages.mockResolvedValue(expected);
 

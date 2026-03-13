@@ -87,7 +87,7 @@ const messagesData = {
   ],
   next_cursor: null,
   total_count: 2,
-  models: ["gpt-4o", "claude-3.5-sonnet"],
+  providers: ["anthropic", "openai"],
 };
 
 describe("MessageLog", () => {
@@ -161,7 +161,7 @@ describe("MessageLog", () => {
   });
 
   it("shows empty state for new agent", async () => {
-    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: [] });
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("No messages recorded");
@@ -173,11 +173,11 @@ describe("MessageLog", () => {
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       const selects = container.querySelectorAll('[data-testid="select"]');
-      expect(selects.length).toBeGreaterThanOrEqual(2);
+      expect(selects.length).toBeGreaterThanOrEqual(1);
     });
     const selects = container.querySelectorAll('[data-testid="select"]');
-    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: ["gpt-4o"] });
-    await fireEvent.change(selects[0], { target: { value: "error" } });
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: ["openai"] });
+    await fireEvent.change(selects[0], { target: { value: "openai" } });
     await vi.waitFor(() => {
       expect(container.textContent).toContain("No messages match your filters");
     });
@@ -188,11 +188,11 @@ describe("MessageLog", () => {
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       const selects = container.querySelectorAll('[data-testid="select"]');
-      expect(selects.length).toBeGreaterThanOrEqual(2);
+      expect(selects.length).toBeGreaterThanOrEqual(1);
     });
     const selects = container.querySelectorAll('[data-testid="select"]');
-    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: ["gpt-4o"] });
-    await fireEvent.change(selects[0], { target: { value: "error" } });
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: ["openai"] });
+    await fireEvent.change(selects[0], { target: { value: "openai" } });
     await vi.waitFor(() => {
       expect(container.textContent).not.toContain("Waiting for data");
       expect(container.textContent).not.toContain("No messages recorded");
@@ -204,7 +204,26 @@ describe("MessageLog", () => {
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       const selects = container.querySelectorAll('[data-testid="select"]');
-      expect(selects.length).toBeGreaterThanOrEqual(2);
+      expect(selects.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it("renders provider display names in the filter dropdown", async () => {
+    const dataWithUnknown = {
+      ...messagesData,
+      providers: ["anthropic", "openai", "unknown-provider"],
+    };
+    mockGetMessages.mockResolvedValue(dataWithUnknown);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const select = container.querySelector('[data-testid="select"]');
+      expect(select).not.toBeNull();
+      // Known providers resolve to display names
+      expect(select!.textContent).toContain("Anthropic");
+      expect(select!.textContent).toContain("OpenAI");
+      // Unknown providers fall back to the raw ID
+      expect(select!.textContent).toContain("unknown-provider");
+      expect(select!.textContent).toContain("All providers");
     });
   });
 
@@ -259,7 +278,7 @@ describe("MessageLog", () => {
     // Trigger a refetch that never resolves
     mockGetMessages.mockReturnValue(new Promise(() => {}));
     const selects = container.querySelectorAll('[data-testid="select"]');
-    await fireEvent.change(selects[0], { target: { value: "ok" } });
+    await fireEvent.change(selects[0], { target: { value: "openai" } });
 
     // Should still show old data, not skeletons
     expect(container.textContent).toContain("msg-1234");
@@ -440,12 +459,12 @@ describe("MessageLog", () => {
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       const selects = container.querySelectorAll('[data-testid="select"]');
-      expect(selects.length).toBeGreaterThanOrEqual(2);
+      expect(selects.length).toBeGreaterThanOrEqual(1);
     });
     // Set a filter to trigger filtered empty state
     const selects = container.querySelectorAll('[data-testid="select"]');
-    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: ["gpt-4o"] });
-    await fireEvent.change(selects[0], { target: { value: "error" } });
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: ["openai"] });
+    await fireEvent.change(selects[0], { target: { value: "openai" } });
     await vi.waitFor(() => {
       expect(container.textContent).toContain("No messages match your filters");
     });
@@ -478,7 +497,7 @@ describe("MessageLog", () => {
   it("closes setup modal via onClose callback", async () => {
     // To trigger setup modal, we need a new agent without setup completed
     localStorage.removeItem("setup_completed_test-agent");
-    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: [] });
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
     const { container } = render(() => <MessageLog />);
     // The setup-close button in our mock will call onClose
     const closeBtn = container.querySelector('[data-testid="setup-close"]');
@@ -493,7 +512,7 @@ describe("MessageLog", () => {
     it("should treat setup as completed for local-agent in local mode", async () => {
       mockAgentName = "local-agent";
       mockIsLocalMode = true;
-      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: [] });
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         expect(container.textContent).toContain("Messages will show up");
@@ -503,7 +522,7 @@ describe("MessageLog", () => {
     it("should not show Set up agent button for local-agent in local mode", async () => {
       mockAgentName = "local-agent";
       mockIsLocalMode = true;
-      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: [] });
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         const setupBtn = container.querySelector(".btn--primary");
@@ -514,7 +533,7 @@ describe("MessageLog", () => {
     it("should show Set up agent button for non-local-agent even in local mode", async () => {
       mockAgentName = "other-agent";
       mockIsLocalMode = true;
-      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: [] });
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         expect(container.textContent).toContain("No messages recorded");
@@ -524,7 +543,7 @@ describe("MessageLog", () => {
     it("should show Set up agent button for local-agent when not in local mode", async () => {
       mockAgentName = "local-agent";
       mockIsLocalMode = false;
-      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: [] });
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         expect(container.textContent).toContain("No messages recorded");
@@ -539,7 +558,7 @@ describe("MessageLog", () => {
       ],
       next_cursor: null,
       total_count: 1,
-      models: ["custom:abc-123/my-llama"],
+      providers: ["custom"],
     };
 
     it("renders custom provider icon letter in message rows", async () => {
@@ -579,13 +598,13 @@ describe("MessageLog", () => {
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         const selects = container.querySelectorAll('[data-testid="select"]');
-        expect(selects.length).toBeGreaterThanOrEqual(2);
+        expect(selects.length).toBeGreaterThanOrEqual(1);
       });
 
       // Set a filter
       const selects = container.querySelectorAll('[data-testid="select"]');
-      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, models: ["gpt-4o"] });
-      await fireEvent.change(selects[0], { target: { value: "error" } });
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: ["openai"] });
+      await fireEvent.change(selects[0], { target: { value: "openai" } });
 
       await vi.waitFor(() => {
         expect(container.textContent).toContain("No messages match your filters");
@@ -631,6 +650,25 @@ describe("MessageLog", () => {
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("$0.05");
+    });
+  });
+
+  it("renders provider icon SVG for known provider model", async () => {
+    const dataWithProvider = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], model: "gpt-4o", auth_type: null },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithProvider);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      // providerIcon returns an inline SVG for known providers
+      const providerSpan = container.querySelector('[role="img"]');
+      expect(providerSpan).not.toBeNull();
+      const svg = providerSpan!.querySelector("svg");
+      expect(svg).not.toBeNull();
     });
   });
 
@@ -796,7 +834,7 @@ describe("MessageLog", () => {
         },
       ],
       total_count: 2,
-      models: ["deepseek-chat", "gemini-flash"],
+      providers: ["deepseek", "gemini"],
     };
     mockGetMessages.mockResolvedValue(dataWithChain);
     const { container } = render(() => <MessageLog />);

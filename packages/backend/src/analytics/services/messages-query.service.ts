@@ -12,6 +12,7 @@ import {
   sqlCastFloat,
   sqlSanitizeCost,
 } from '../../common/utils/sql-dialect';
+import { inferProviderFromModel } from '../../common/utils/provider-inference';
 
 const MODELS_CACHE_TTL_MS = 60_000;
 const COUNT_CACHE_TTL_MS = 30_000;
@@ -45,9 +46,8 @@ export class MessagesQueryService {
   async getMessages(params: {
     range?: string;
     userId: string;
-    status?: string;
+    provider?: string;
     service_type?: string;
-    model?: string;
     cost_min?: number;
     cost_max?: number;
     limit: number;
@@ -64,16 +64,31 @@ export class MessagesQueryService {
 
     addTenantFilter(baseQb, params.userId, undefined, tenantId);
 
-    if (params.status) baseQb.andWhere('at.status = :status', { status: params.status });
     if (params.service_type)
       baseQb.andWhere('at.service_type = :serviceType', { serviceType: params.service_type });
-    if (params.model) baseQb.andWhere('at.model = :model', { model: params.model });
     if (params.cost_min !== undefined)
       baseQb.andWhere('at.cost_usd >= :costMin', { costMin: params.cost_min });
     if (params.cost_max !== undefined)
       baseQb.andWhere('at.cost_usd <= :costMax', { costMax: params.cost_max });
     if (params.agent_name)
       baseQb.andWhere('at.agent_name = :filterAgent', { filterAgent: params.agent_name });
+
+    // Provider filter: resolve matching models from the cached distinct list
+    if (params.provider) {
+      const allModels = await this.getDistinctModels(
+        params.userId,
+        params.range,
+        tenantId,
+        params.agent_name,
+      );
+      const matching = allModels.filter((m) => inferProviderFromModel(m) === params.provider);
+      if (matching.length === 0) {
+        // No models match this provider — short-circuit with empty result
+        const providers = this.deriveProviders(allModels);
+        return { items: [], next_cursor: null, total_count: 0, providers };
+      }
+      baseQb.andWhere('at.model IN (:...providerModels)', { providerModels: matching });
+    }
 
     // Count (without cursor) — use cache for repeat/paginated requests
     const countCacheKey = this.buildCountCacheKey(params);
@@ -126,7 +141,7 @@ export class MessagesQueryService {
     // Run count, data, and models queries in parallel (count cached on paginated requests)
     const cachedCount = params.cursor ? this.countCache.get(countCacheKey) : undefined;
     const countHit = cachedCount && cachedCount.expiresAt > Date.now();
-    const [countResult, rows, models] = await Promise.all([
+    const [countResult, rows, allModels] = await Promise.all([
       countHit ? null : countQb.getRawOne(),
       dataQb
         .orderBy('at.timestamp', 'DESC')
@@ -151,12 +166,24 @@ export class MessagesQueryService {
     const lastId = lastItem?.['id'];
     const nextCursor = hasMore && lastItem ? `${tsStr}|${String(lastId)}` : null;
 
+    const providers = this.deriveProviders(allModels);
+
     return {
       items,
       next_cursor: nextCursor,
       total_count: totalCount,
-      models,
+      providers,
     };
+  }
+
+  /** Derive sorted unique provider IDs from a list of model names. */
+  private deriveProviders(models: string[]): string[] {
+    const seen = new Set<string>();
+    for (const m of models) {
+      const p = inferProviderFromModel(m);
+      if (p) seen.add(p);
+    }
+    return [...seen].sort();
   }
 
   private async getDistinctModels(
@@ -196,9 +223,8 @@ export class MessagesQueryService {
   private buildCountCacheKey(params: {
     userId: string;
     range?: string;
-    status?: string;
+    provider?: string;
     service_type?: string;
-    model?: string;
     agent_name?: string;
     cost_min?: number;
     cost_max?: number;
@@ -206,9 +232,8 @@ export class MessagesQueryService {
     return [
       params.userId,
       params.range ?? '',
-      params.status ?? '',
+      params.provider ?? '',
       params.service_type ?? '',
-      params.model ?? '',
       params.agent_name ?? '',
       params.cost_min ?? '',
       params.cost_max ?? '',
