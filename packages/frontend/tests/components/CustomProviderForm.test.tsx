@@ -208,6 +208,45 @@ describe("CustomProviderForm", () => {
     });
   });
 
+  it("converts comma decimal separators to dots in pricing fields", async () => {
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+      target: { value: "Groq" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
+      target: { value: "https://api.groq.com/v1" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("Model name"), {
+      target: { value: "llama-3.1-70b" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("$/M in"), {
+      target: { value: "0,59" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("$/M out"), {
+      target: { value: "0,79" },
+    });
+
+    fireEvent.click(screen.getByText("Create"));
+
+    await waitFor(() => {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+        name: "Groq",
+        base_url: "https://api.groq.com/v1",
+        apiKey: undefined,
+        models: [
+          {
+            model_name: "llama-3.1-70b",
+            input_price_per_million_tokens: 0.59,
+            output_price_per_million_tokens: 0.79,
+          },
+        ],
+      });
+    });
+  });
+
   it("shows generic error message for non-Error exceptions", async () => {
     mockCreateCustomProvider.mockRejectedValue("string error");
 
