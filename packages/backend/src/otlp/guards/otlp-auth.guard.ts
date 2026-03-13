@@ -34,6 +34,7 @@ interface CachedKey {
 export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
   private readonly logger = new Logger(OtlpAuthGuard.name);
   private cache = new Map<string, CachedKey>();
+  private devContext: { context: IngestionContext; expiresAt: number } | null = null;
   private readonly CACHE_TTL_MS = 5 * 60 * 1000;
   private readonly MAX_CACHE_SIZE = 10_000;
   private readonly cleanupTimer: ReturnType<typeof setInterval>;
@@ -56,7 +57,9 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers['authorization'];
 
-    const isLocal = process.env['MANIFEST_MODE'] === 'local' && LOOPBACK_IPS.has(request.ip ?? '');
+    const isLoopback = LOOPBACK_IPS.has(request.ip ?? '');
+    const isLocal = process.env['MANIFEST_MODE'] === 'local' && isLoopback;
+    const isDevLoopback = process.env['NODE_ENV'] === 'development' && isLoopback;
 
     // In local mode, trust loopback connections without requiring an API key.
     // Also handles dev-mode gateways that send a dummy/non-mnfst token.
@@ -68,6 +71,15 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
         userId: LOCAL_USER_ID,
       };
       return true;
+    }
+
+    // In development, trust loopback connections and resolve to first active agent.
+    if (!authHeader && isDevLoopback) {
+      const devCtx = await this.resolveDevContext();
+      if (devCtx) {
+        (request as Request & { ingestionContext: IngestionContext }).ingestionContext = devCtx;
+        return true;
+      }
     }
 
     if (!authHeader) {
@@ -92,6 +104,13 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
           userId: LOCAL_USER_ID,
         };
         return true;
+      }
+      if (isDevLoopback) {
+        const devCtx = await this.resolveDevContext();
+        if (devCtx) {
+          (request as Request & { ingestionContext: IngestionContext }).ingestionContext = devCtx;
+          return true;
+        }
       }
       throw new UnauthorizedException('Invalid API key format');
     }
@@ -159,6 +178,29 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
 
   clearCache() {
     this.cache.clear();
+  }
+
+  private async resolveDevContext(): Promise<IngestionContext | null> {
+    if (this.devContext && this.devContext.expiresAt > Date.now()) {
+      return this.devContext.context;
+    }
+
+    const keyRecord = await this.keyRepo.findOne({
+      where: { is_active: true },
+      relations: ['agent', 'tenant'],
+    });
+
+    if (!keyRecord) return null;
+
+    const ctx: IngestionContext = {
+      tenantId: keyRecord.tenant_id,
+      agentId: keyRecord.agent_id,
+      agentName: keyRecord.agent.name,
+      userId: keyRecord.tenant.name,
+    };
+
+    this.devContext = { context: ctx, expiresAt: Date.now() + this.CACHE_TTL_MS };
+    return ctx;
   }
 
   private evictExpired() {

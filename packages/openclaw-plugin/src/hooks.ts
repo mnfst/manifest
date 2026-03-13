@@ -263,7 +263,7 @@ export function registerHooks(
       if (routingReason) {
         active.turn.setAttribute(ATTRS.ROUTING_REASON, routingReason);
       }
-      if (event.success === false) {
+      if (event.success === false || event.error != null) {
         const errMsg = event.error?.message || event.errorMessage || 'Agent turn failed';
         active.turn.setStatus({
           code: SpanStatusCode.ERROR,
