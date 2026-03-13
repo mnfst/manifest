@@ -1,6 +1,4 @@
-import subscriptionCapabilities from '../../../subscription-capabilities';
-
-const { getSubscriptionProviderConfig } = subscriptionCapabilities;
+import { getSubscriptionProviderConfig } from '../../../subscription-capabilities/index.mjs';
 
 /* ── LLM Provider definitions (shared by Routing page) ── */
 

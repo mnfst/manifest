@@ -1,7 +1,5 @@
 import { PROVIDERS, type ProviderDef } from './providers.js';
-import subscriptionCapabilities from '../../../subscription-capabilities';
-
-const { getSubscriptionProviderConfig } = subscriptionCapabilities;
+import { getSubscriptionProviderConfig } from '../../../subscription-capabilities/index.mjs';
 
 export function getProvider(id: string): ProviderDef | undefined {
   return PROVIDERS.find((p) => p.id === id);
