@@ -110,7 +110,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     // Slots are: before card 0, between card 0 and 1, ..., after last card.
     let slot = cards.length; // default: after the last card
     for (let i = 0; i < cards.length; i++) {
-      const rect = cards[i].getBoundingClientRect();
+      const rect = cards[i]!.getBoundingClientRect();
       const midY = rect.top + rect.height / 2;
       if (clientY < midY) {
         slot = i;
@@ -150,7 +150,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
 
     const original = [...props.fallbacks];
     const reordered = [...props.fallbacks];
-    const [moved] = reordered.splice(fromIndex, 1);
+    const moved = reordered.splice(fromIndex, 1)[0]!;
     reordered.splice(insertAt, 0, moved);
 
     props.onUpdate(reordered);
