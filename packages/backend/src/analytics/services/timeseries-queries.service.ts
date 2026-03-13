@@ -272,11 +272,16 @@ export class TimeseriesQueriesService {
       .select("COALESCE(at.model, 'unknown')", 'model')
       .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
       .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'estimated_cost')
+      .addSelect('at.auth_type', 'auth_type')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL')
       .andWhere("at.model != ''");
     addTenantFilter(qb, userId, agentName, resolved);
-    const rows = await qb.groupBy('at.model').orderBy('tokens', 'DESC').getRawMany();
+    const rows = await qb
+      .groupBy('at.model')
+      .addGroupBy('at.auth_type')
+      .orderBy('tokens', 'DESC')
+      .getRawMany();
 
     const totalTokens = rows.reduce(
       (sum: number, r: Record<string, unknown>) => sum + Number(r['tokens'] ?? 0),
@@ -288,6 +293,7 @@ export class TimeseriesQueriesService {
       share_pct:
         totalTokens === 0 ? 0 : Math.round((Number(r['tokens'] ?? 0) / totalTokens) * 1000) / 10,
       estimated_cost: Number(r['estimated_cost'] ?? 0),
+      auth_type: r['auth_type'] ? String(r['auth_type']) : null,
     }));
   }
 

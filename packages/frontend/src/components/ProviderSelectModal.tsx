@@ -380,6 +380,14 @@ const ProviderSelectModal: Component<Props> = (props) => {
                     );
                   }}
                 </For>
+                <a
+                  class="provider-modal__request-link"
+                  href="https://github.com/mnfst/manifest/discussions/973"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Request new subscription model
+                </a>
               </div>
             </Show>
 

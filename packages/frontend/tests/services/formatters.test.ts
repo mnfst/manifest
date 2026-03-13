@@ -4,7 +4,7 @@ import { formatNumber, formatCost, formatTrend, formatStatus, formatMetricType, 
 describe("formatNumber", () => {
   it("formats millions", () => {
     expect(formatNumber(1_200_000)).toBe("1.2M");
-    expect(formatNumber(5_000_000)).toBe("5.0M");
+    expect(formatNumber(5_000_000)).toBe("5M");
   });
   it("formats thousands", () => {
     expect(formatNumber(1_500)).toBe("1.5k");

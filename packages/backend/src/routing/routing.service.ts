@@ -90,6 +90,36 @@ export class RoutingService {
     return { provider: record, isNew: true };
   }
 
+  async registerSubscriptionProvider(
+    agentId: string,
+    userId: string,
+    provider: string,
+  ): Promise<{ isNew: boolean }> {
+    const existing = await this.providerRepo.findOne({
+      where: { agent_id: agentId, provider, auth_type: 'subscription' },
+    });
+
+    if (existing) return { isNew: false };
+
+    const record: UserProvider = Object.assign(new UserProvider(), {
+      id: randomUUID(),
+      user_id: userId,
+      agent_id: agentId,
+      provider,
+      auth_type: 'subscription',
+      api_key_encrypted: null,
+      key_prefix: null,
+      is_active: true,
+      connected_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    await this.providerRepo.insert(record);
+    await this.autoAssign.recalculate(agentId);
+    this.routingCache.invalidateAgent(agentId);
+    return { isNew: true };
+  }
+
   async removeProvider(
     agentId: string,
     provider: string,

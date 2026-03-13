@@ -5,9 +5,30 @@ import { getTelemetryConfig } from './telemetry-config';
 const POSTHOG_HOST = 'https://eu.i.posthog.com';
 const POSTHOG_API_KEY = 'phc_g5pLOu5bBRjhVJBwAsx0eCzJFWq0cri2TyVLQLxf045';
 
-function getMachineId(): string {
+export function getMachineId(): string {
   const raw = `${hostname()}-${platform()}-${arch()}`;
   return createHash('sha256').update(raw).digest('hex').slice(0, 16);
+}
+
+export function identifyUser(telemetryId: string): void {
+  const config = getTelemetryConfig();
+  if (config.optedOut) return;
+
+  const payload = {
+    api_key: POSTHOG_API_KEY,
+    event: '$identify',
+    properties: {
+      distinct_id: telemetryId,
+      $anon_distinct_id: getMachineId(),
+    },
+    timestamp: new Date().toISOString(),
+  };
+
+  fetch(`${POSTHOG_HOST}/capture`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
 }
 
 export function trackPluginEvent(

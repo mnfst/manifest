@@ -1,7 +1,7 @@
 /* ── Model picker modal ───────────────────────────── */
 .routing-modal__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 20px 24px 16px;
   flex-shrink: 0;

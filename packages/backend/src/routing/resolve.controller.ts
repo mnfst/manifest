@@ -9,6 +9,7 @@ import { ResolveService } from './resolve.service';
 import { RoutingService } from './routing.service';
 import { ResolveRequestDto } from './dto/resolve-request.dto';
 import { ResolveResponse } from './dto/resolve-response';
+import { trackCloudEvent } from '../common/utils/product-telemetry';
 
 export class SubscriptionProviderItem {
   @IsString()
@@ -63,14 +64,30 @@ export class ResolveController {
     let registered = 0;
 
     for (const item of body.providers) {
-      await this.routingService.upsertProvider(
-        agentId,
-        userId,
-        item.provider,
-        item.token,
-        'subscription',
-      );
-      registered++;
+      let isNew: boolean;
+      if (item.token) {
+        const result = await this.routingService.upsertProvider(
+          agentId,
+          userId,
+          item.provider,
+          item.token,
+          'subscription',
+        );
+        isNew = result.isNew;
+      } else {
+        const result = await this.routingService.registerSubscriptionProvider(
+          agentId,
+          userId,
+          item.provider,
+        );
+        isNew = result.isNew;
+      }
+      if (isNew) {
+        trackCloudEvent('routing_provider_connected', userId, {
+          provider: `${item.provider} (Subscription)`,
+        });
+        registered++;
+      }
     }
 
     return { registered };

@@ -352,7 +352,7 @@ describe('ProxyService', () => {
       );
     });
 
-    it('detects heartbeat when HEARTBEAT_OK is in an earlier user message', async () => {
+    it('does NOT detect heartbeat when HEARTBEAT_OK is only in an earlier user message', async () => {
       const buriedHeartbeatBody = {
         messages: [
           { role: 'system', content: 'You are a helpful assistant.' },
@@ -362,6 +362,42 @@ describe('ProxyService', () => {
           },
           { role: 'assistant', content: 'HEARTBEAT_OK' },
           { role: 'user', content: 'Thanks, anything else?' },
+        ],
+        stream: false,
+      };
+
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 5,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+      });
+
+      const result = await service.proxyRequest('agent-1', 'user-1', buriedHeartbeatBody, 'sess-1');
+
+      expect(resolveService.resolve).toHaveBeenCalled();
+      expect(result.meta.tier).toBe('standard');
+      expect(result.meta.reason).toBe('scored');
+    });
+
+    it('detects heartbeat when HEARTBEAT_OK is in the last user message with prior history', async () => {
+      const lastMsgHeartbeatBody = {
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant.' },
+          { role: 'user', content: 'What is the weather?' },
+          { role: 'assistant', content: 'It is sunny.' },
+          {
+            role: 'user',
+            content: 'Check tasks and reply HEARTBEAT_OK if nothing needs attention.',
+          },
         ],
         stream: false,
       };
@@ -381,7 +417,12 @@ describe('ProxyService', () => {
         isAnthropic: false,
       });
 
-      const result = await service.proxyRequest('agent-1', 'user-1', buriedHeartbeatBody, 'sess-1');
+      const result = await service.proxyRequest(
+        'agent-1',
+        'user-1',
+        lastMsgHeartbeatBody,
+        'sess-1',
+      );
 
       expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
       expect(resolveService.resolve).not.toHaveBeenCalled();

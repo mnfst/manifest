@@ -8,11 +8,19 @@ import {
 import { ResolveService } from './resolve.service';
 import { RoutingService } from './routing.service';
 import { ResolveResponse } from './dto/resolve-response';
+import * as telemetry from '../common/utils/product-telemetry';
+
+jest.mock('../common/utils/product-telemetry', () => ({
+  trackCloudEvent: jest.fn(),
+}));
 
 describe('ResolveController', () => {
   let controller: ResolveController;
   let mockResolveService: { resolve: jest.Mock };
-  let mockRoutingService: { upsertProvider: jest.Mock };
+  let mockRoutingService: {
+    registerSubscriptionProvider: jest.Mock;
+    upsertProvider: jest.Mock;
+  };
 
   const mockResponse: ResolveResponse = {
     tier: 'simple',
@@ -24,10 +32,12 @@ describe('ResolveController', () => {
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockResolveService = {
       resolve: jest.fn().mockResolvedValue(mockResponse),
     };
     mockRoutingService = {
+      registerSubscriptionProvider: jest.fn().mockResolvedValue({ isNew: true }),
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
     };
     controller = new ResolveController(
@@ -128,20 +138,16 @@ describe('ResolveController', () => {
       );
 
       expect(result).toEqual({ registered: 2 });
-      expect(mockRoutingService.upsertProvider).toHaveBeenCalledTimes(2);
-      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledTimes(2);
+      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledWith(
         'a1',
         'u1',
         'anthropic',
-        undefined,
-        'subscription',
       );
-      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledWith(
         'a1',
         'u1',
         'openai',
-        undefined,
-        'subscription',
       );
     });
 
@@ -162,6 +168,60 @@ describe('ResolveController', () => {
         'ghu_token_123',
         'subscription',
       );
+    });
+
+    it('should use registerSubscriptionProvider when no token', async () => {
+      const req = {
+        ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
+      } as never;
+
+      await controller.registerSubscriptions({ providers: [{ provider: 'anthropic' }] }, req);
+
+      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledWith(
+        'a1',
+        'u1',
+        'anthropic',
+      );
+    });
+
+    it('should fire routing_provider_connected with (Subscription) suffix for new providers', async () => {
+      const req = {
+        ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
+      } as never;
+
+      await controller.registerSubscriptions({ providers: [{ provider: 'anthropic' }] }, req);
+
+      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith('routing_provider_connected', 'u1', {
+        provider: 'anthropic (Subscription)',
+      });
+    });
+
+    it('should not fire event when subscription provider already exists', async () => {
+      mockRoutingService.registerSubscriptionProvider.mockResolvedValue({ isNew: false });
+      const req = {
+        ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
+      } as never;
+
+      await controller.registerSubscriptions({ providers: [{ provider: 'anthropic' }] }, req);
+
+      expect(telemetry.trackCloudEvent).not.toHaveBeenCalled();
+    });
+
+    it('should only count newly created providers', async () => {
+      mockRoutingService.registerSubscriptionProvider
+        .mockResolvedValueOnce({ isNew: true })
+        .mockResolvedValueOnce({ isNew: false });
+
+      const req = {
+        ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
+      } as never;
+
+      const result = await controller.registerSubscriptions(
+        { providers: [{ provider: 'anthropic' }, { provider: 'openai' }] },
+        req,
+      );
+
+      expect(result).toEqual({ registered: 1 });
     });
   });
 

@@ -38,22 +38,29 @@ vi.mock("../../src/services/chart-utils.js", () => ({
       stroke: axisColor,
       grid: { stroke: gridColor, width: 1 },
       ticks: { stroke: gridColor, width: 1 },
-      font: '11px "Inter"',
+      font: '11px "DM Sans", sans-serif',
       gap: 8,
     },
     {
       stroke: axisColor,
       grid: { stroke: gridColor, width: 1 },
       ticks: { show: false },
-      font: '11px "Inter"',
+      font: '11px "DM Sans", sans-serif',
       size: 54,
       gap: 8,
     },
   ],
   parseTimestamps: (data: any[]) => data.map((_: any, i: number) => 1000 + i),
   timeScaleRange: vi.fn(),
-  formatLegendTimestamp: vi.fn(),
+  createTimeScaleRange: (_range?: string) => vi.fn(),
+  createFormatLegendTimestamp: (_range?: string) => vi.fn(),
   formatLegendTokens: vi.fn(),
+  isMultiDayRange: (range?: string) => {
+    const map: Record<string, number> = { '1h': 3600, '6h': 21600, '24h': 86400, '7d': 604800, '30d': 2592000 };
+    return (map[range ?? ''] ?? 86400) > 86400;
+  },
+  sanitizeNumbers: (vals: number[]) => vals,
+  fillDailyGaps: (data: any[]) => data,
 }));
 
 import TokenChart from "../../src/components/TokenChart";
@@ -115,6 +122,11 @@ describe("TokenChart", () => {
       expect(capturedOpts.scales.x.time).toBe(true);
     });
 
+    it("should disable time mode on x scale for multi-day ranges", () => {
+      renderAndBuild(sampleData, "7d");
+      expect(capturedOpts.scales.x.time).toBe(false);
+    });
+
     it("should define a y scale for input tokens (left axis)", () => {
       renderAndBuild();
       expect(capturedOpts.scales.y).toBeDefined();
@@ -172,10 +184,10 @@ describe("TokenChart", () => {
       expect(leftYAxis.stroke).toBe("hsl(var(--bar-input))");
     });
 
-    it("should color the right y2-axis with outputColor (--bar-output)", () => {
+    it("should color the right y2-axis with outputAxisColor (--bar-output-axis)", () => {
       renderAndBuild();
       const rightYAxis = capturedOpts.axes[2];
-      expect(rightYAxis.stroke).toBe("hsl(var(--bar-output))");
+      expect(rightYAxis.stroke).toBe("hsl(var(--bar-output-axis))");
     });
 
     it("should assign right y2-axis to scale y2", () => {
@@ -205,7 +217,7 @@ describe("TokenChart", () => {
     it("should set font on the right y2-axis", () => {
       renderAndBuild();
       const rightYAxis = capturedOpts.axes[2];
-      expect(rightYAxis.font).toBe('11px "Inter"');
+      expect(rightYAxis.font).toBe('11px "DM Sans", sans-serif');
     });
 
     it("should set size and gap on the right y2-axis", () => {

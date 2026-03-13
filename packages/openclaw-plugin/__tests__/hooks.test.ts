@@ -911,6 +911,78 @@ describe("registerHooks", () => {
       );
     });
 
+    it("does not detect heartbeat when HEARTBEAT_OK is only in an earlier user message", () => {
+      api.emit("message_received", { sessionKey: "hb-buried-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-buried-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-buried-sess",
+        messages: [
+          { role: "user", content: "Check tasks and reply HEARTBEAT_OK if nothing needs attention." },
+          {
+            role: "assistant",
+            model: "gpt-4o-mini",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+          { role: "user", content: "Thanks, anything else?" },
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 500, output: 200 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "heartbeat",
+      );
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "simple",
+      );
+    });
+
+    it("detects heartbeat when HEARTBEAT_OK is in the last user message of multi-turn conversation", () => {
+      api.emit("message_received", { sessionKey: "hb-last-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-last-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-last-sess",
+        messages: [
+          { role: "user", content: "What is the weather?" },
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 100, output: 50 },
+          },
+          { role: "user", content: "Check tasks and reply HEARTBEAT_OK if nothing needs attention." },
+          {
+            role: "assistant",
+            model: "gpt-4o-mini",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "heartbeat",
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "simple",
+      );
+    });
+
     it("does not set ROUTING_REASON when no heartbeat sentinel", () => {
       api.emit("message_received", { sessionKey: "no-hb-sess" });
       api.emit("before_agent_start", { sessionKey: "no-hb-sess" });

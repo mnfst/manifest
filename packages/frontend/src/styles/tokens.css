@@ -28,6 +28,7 @@
     --chart-3: 167 70% 48%;
     --bar-input: 178 75% 34%;
     --bar-output: 178 55% 72%;
+    --bar-output-axis: 178 55% 48%;
     --chart-4: 349 52% 61%;
     --chart-5: 43 96% 56%;
 
@@ -74,6 +75,7 @@
     --chart-5: 43 96% 65%;
     --bar-input: 178 70% 40%;
     --bar-output: 178 50% 70%;
+    --bar-output-axis: 178 50% 55%;
 
     --sidebar-background: 0 0% 7%;
     --sidebar-foreground: 0 0% 93%;

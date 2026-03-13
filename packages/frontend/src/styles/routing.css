@@ -336,6 +336,7 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  position: relative;
 }
 
 .fallback-list__model {

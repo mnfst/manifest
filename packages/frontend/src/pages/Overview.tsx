@@ -23,6 +23,7 @@ import {
 } from '../services/routing-utils.js';
 import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import { isLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
@@ -70,6 +71,7 @@ interface OverviewData {
     tokens: number;
     share_pct: number;
     estimated_cost: number;
+    auth_type: string | null;
   }>;
   recent_activity: RecentMessage[];
   active_skills: Array<{
@@ -88,7 +90,19 @@ const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
   const location = useLocation<{ newAgent?: boolean; newApiKey?: string }>();
   preloadModelDisplayNames();
-  const [range, setRange] = createSignal('7d');
+  const RANGE_STORAGE_KEY = 'manifest_chart_range';
+  const VALID_RANGES = new Set(['24h', '7d', '30d']);
+  const savedRange = localStorage.getItem(RANGE_STORAGE_KEY);
+  const [range, setRange] = createSignal(
+    savedRange && VALID_RANGES.has(savedRange) ? savedRange : '30d',
+  );
+  const [userSelectedRange, setUserSelectedRange] = createSignal(!!savedRange);
+
+  const handleRangeChange = (value: string) => {
+    setRange(value);
+    setUserSelectedRange(true);
+    localStorage.setItem(RANGE_STORAGE_KEY, value);
+  };
   const [activeView, setActiveView] = createSignal<ActiveView>('cost');
   const [setupOpen, setSetupOpen] = createSignal(
     !!(location.state as { newAgent?: boolean } | undefined)?.newAgent,
@@ -133,14 +147,37 @@ const Overview: Component = () => {
     }
   });
 
-  const trendBadge = (pct: number, value?: number) => {
+  const SMART_RANGES: string[] = ['30d', '7d', '24h'];
+
+  createEffect(() => {
+    if (userSelectedRange()) return;
+    const d = data();
+    if (!d || d.has_data === false) return;
+    const hasData =
+      (d.token_usage?.length ?? 0) > 0 ||
+      (d.cost_usage?.length ?? 0) > 0 ||
+      (d.message_usage?.length ?? 0) > 0;
+    if (hasData) return;
+    const currentIdx = SMART_RANGES.indexOf(range());
+    if (currentIdx < 0 || currentIdx >= SMART_RANGES.length - 1) return;
+    setRange(SMART_RANGES[currentIdx + 1]!);
+  });
+
+  const trendBadge = (pct: number, value?: number, mode?: 'default' | 'inverted' | 'neutral') => {
     if (pct === 0) return null;
     // Don't show trend when the metric value itself is effectively zero
     if (value !== undefined && Math.abs(value) < 0.005) return null;
     // Clamp absurd percentages (safety net for floating-point edge cases)
     const clamped = Math.max(-999, Math.min(999, Math.round(pct)));
     if (clamped === 0) return null;
-    const cls = clamped > 0 ? 'trend trend--up' : 'trend trend--down';
+    let cls: string;
+    if (mode === 'neutral') {
+      cls = 'trend trend--neutral';
+    } else if (mode === 'inverted') {
+      cls = clamped > 0 ? 'trend trend--up-bad' : 'trend trend--down-good';
+    } else {
+      cls = clamped > 0 ? 'trend trend--up' : 'trend trend--down';
+    }
     const sign = clamped > 0 ? '+' : '';
     return (
       <span class={cls}>
@@ -173,9 +210,8 @@ const Overview: Component = () => {
           <Show when={!isNewAgent()}>
             <Select
               value={range()}
-              onChange={setRange}
+              onChange={handleRangeChange}
               options={[
-                { label: 'Last hour', value: '1h' },
                 { label: 'Last 24 hours', value: '24h' },
                 { label: 'Last 7 days', value: '7d' },
                 { label: 'Last 30 days', value: '30d' },
@@ -459,6 +495,7 @@ const Overview: Component = () => {
                           {trendBadge(
                             d().summary?.cost_today?.trend_pct ?? 0,
                             d().summary?.cost_today?.value ?? 0,
+                            'inverted',
                           )}
                         </div>
                       </div>
@@ -480,6 +517,7 @@ const Overview: Component = () => {
                           {trendBadge(
                             d().summary?.tokens_today?.trend_pct ?? 0,
                             d().summary?.tokens_today?.value ?? 0,
+                            'inverted',
                           )}
                         </div>
                       </div>
@@ -496,6 +534,7 @@ const Overview: Component = () => {
                           {trendBadge(
                             d().summary?.messages?.trend_pct ?? 0,
                             d().summary?.messages?.value ?? 0,
+                            'neutral',
                           )}
                         </div>
                       </div>
@@ -651,25 +690,12 @@ const Overview: Component = () => {
                                   ) : item.model && inferProviderFromModel(item.model) ? (
                                     <span
                                       role="img"
-                                      aria-label={
-                                        item.auth_type === 'subscription'
-                                          ? `${inferProviderName(item.model)} (Subscription)`
-                                          : inferProviderName(item.model)
-                                      }
-                                      title={
-                                        item.auth_type === 'subscription'
-                                          ? `${inferProviderName(item.model)} (Subscription)`
-                                          : inferProviderName(item.model)
-                                      }
+                                      aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                      title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
                                       style="display: inline-flex; flex-shrink: 0; position: relative;"
                                     >
                                       {providerIcon(inferProviderFromModel(item.model)!, 14)}
-                                      {item.auth_type === 'subscription' && (
-                                        <span
-                                          class="provider-auth-badge provider-auth-badge--sub provider-auth-badge--overlay"
-                                          aria-hidden="true"
-                                        />
-                                      )}
+                                      {authBadgeFor(item.auth_type, 8)}
                                     </span>
                                   ) : null}
                                   {item.model ? getModelDisplayName(item.model) : '\u2014'}
@@ -765,7 +791,11 @@ const Overview: Component = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        <For each={d().cost_by_model ?? []}>
+                        <For
+                          each={[...(d().cost_by_model ?? [])].sort(
+                            (a, b) => b.estimated_cost - a.estimated_cost,
+                          )}
+                        >
                           {(row) => (
                             <tr>
                               <td style="font-family: var(--font-mono); font-size: var(--font-size-sm);">
@@ -795,10 +825,11 @@ const Overview: Component = () => {
                                     })()
                                   ) : row.model && inferProviderFromModel(row.model) ? (
                                     <span
-                                      title={inferProviderName(row.model)}
-                                      style="display: inline-flex; flex-shrink: 0;"
+                                      title={`${inferProviderName(row.model)} (${authLabel(row.auth_type)})`}
+                                      style="display: inline-flex; flex-shrink: 0; position: relative;"
                                     >
                                       {providerIcon(inferProviderFromModel(row.model)!, 14)}
+                                      {authBadgeFor(row.auth_type, 8)}
                                     </span>
                                   ) : null}
                                   {row.model ? getModelDisplayName(row.model) : row.model}
