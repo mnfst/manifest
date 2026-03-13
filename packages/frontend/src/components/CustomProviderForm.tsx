@@ -61,11 +61,17 @@ const CustomProviderForm: Component<Props> = (props) => {
 
   const canSubmit = () => name().trim() && baseUrl().trim() && validModels().length > 0 && !busy();
 
+  const parsePrice = (v: string): number => Number(v.replace(',', '.'));
+
   const buildModels = (): CustomProviderModel[] =>
     validModels().map((r) => ({
       model_name: r.model_name.trim(),
-      ...(r.input_price !== '' ? { input_price_per_million_tokens: Number(r.input_price) } : {}),
-      ...(r.output_price !== '' ? { output_price_per_million_tokens: Number(r.output_price) } : {}),
+      ...(r.input_price !== ''
+        ? { input_price_per_million_tokens: parsePrice(r.input_price) }
+        : {}),
+      ...(r.output_price !== ''
+        ? { output_price_per_million_tokens: parsePrice(r.output_price) }
+        : {}),
     }));
 
   const handleCreate = async () => {
