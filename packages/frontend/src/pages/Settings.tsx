@@ -135,8 +135,7 @@ const Settings: Component = () => {
           </div>
           <div class="settings-card__footer">
             <button
-              class="btn btn--primary"
-              style="font-size: var(--font-size-sm);"
+              class="btn btn--primary btn--sm"
               onClick={handleSave}
               disabled={saving() || name().trim() === agentName()}
             >
@@ -170,8 +169,7 @@ const Settings: Component = () => {
               </div>
               <div class="settings-card__control">
                 <button
-                  class="btn btn--danger"
-                  style="font-size: var(--font-size-sm);"
+                  class="btn btn--danger btn--sm"
                   onClick={() => {
                     setShowDeleteModal(true);
                     setDeleteConfirmName('');
@@ -205,12 +203,7 @@ const Settings: Component = () => {
               <code style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
                 {apiKeyData()?.keyPrefix ?? '...'}...
               </code>
-              <button
-                class="btn btn--outline"
-                style="font-size: var(--font-size-sm);"
-                onClick={handleRotate}
-                disabled={rotating()}
-              >
+              <button class="btn btn--outline btn--sm" onClick={handleRotate} disabled={rotating()}>
                 {rotating() ? (
                   <>
                     <span class="spinner" />
@@ -319,8 +312,8 @@ const Settings: Component = () => {
               style="width: 100%; margin-bottom: var(--gap-lg);"
             />
             <button
-              class="btn btn--danger"
-              style="width: 100%; font-size: var(--font-size-sm);"
+              class="btn btn--danger btn--sm"
+              style="width: 100%;"
               disabled={deleteConfirmName() !== agentName() || deleting()}
               onClick={async () => {
                 setDeleting(true);

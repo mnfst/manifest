@@ -314,7 +314,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                 <div class="masked-key">
                   <span class="masked-key__value">{maskedKey()}</span>
                   <button
-                    class="btn btn--ghost masked-key__edit"
+                    class="btn btn--ghost btn--sm masked-key__edit"
                     type="button"
                     onClick={() => {
                       setEditingKey(true);
@@ -380,7 +380,7 @@ const EmailProviderModal: Component<Props> = (props) => {
 
             <div class="modal-card__footer modal-card__footer--split">
               <button
-                class="btn btn--ghost"
+                class="btn btn--ghost btn--sm"
                 onClick={handleTestOnly}
                 disabled={busy() || isDisabled()}
                 type="button"
@@ -388,7 +388,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                 {testing() ? <span class="spinner" /> : 'Send test email'}
               </button>
               <button
-                class="btn btn--primary"
+                class="btn btn--primary btn--sm"
                 onClick={handleSave}
                 disabled={busy() || isDisabled()}
               >

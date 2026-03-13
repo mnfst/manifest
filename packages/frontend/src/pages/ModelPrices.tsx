@@ -255,7 +255,7 @@ const ModelPrices: Component = () => {
                     Try selecting a different provider or model, or clear all filters to see every
                     model.
                   </p>
-                  <button class="btn btn--outline" onClick={clearFilters} type="button">
+                  <button class="btn btn--outline btn--sm" onClick={clearFilters} type="button">
                     Clear filters
                   </button>
                 </div>

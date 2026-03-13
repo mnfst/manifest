@@ -485,7 +485,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
             </Show>
 
             <div class="provider-modal__footer">
-              <button class="btn btn--primary" onClick={props.onClose}>
+              <button class="btn btn--primary btn--sm" onClick={props.onClose}>
                 Done
               </button>
             </div>
@@ -611,7 +611,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                     </div>
                     <Show when={!connected()}>
                       <button
-                        class="btn btn--primary provider-detail__action"
+                        class="btn btn--primary btn--sm provider-detail__action"
                         disabled={busy()}
                         onClick={() => handleConnect(provId)}
                       >
@@ -622,7 +622,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                     </Show>
                     <Show when={connected()}>
                       <button
-                        class="btn btn--outline provider-detail__action provider-detail__disconnect"
+                        class="btn btn--outline btn--sm provider-detail__action provider-detail__disconnect"
                         disabled={busy()}
                         onClick={() => handleDisconnect(provId)}
                       >
@@ -657,7 +657,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                       </Show>
                     </div>
                     <button
-                      class="btn btn--primary provider-detail__action"
+                      class="btn btn--primary btn--sm provider-detail__action"
                       disabled={busy() || !keyInput().trim()}
                       onClick={() => handleConnect(provId)}
                     >
@@ -741,7 +741,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                           <div class="provider-detail__error">{validationError()}</div>
                         </Show>
                         <button
-                          class="btn btn--primary provider-detail__action"
+                          class="btn btn--primary btn--sm provider-detail__action"
                           disabled={busy() || !keyInput().trim()}
                           onClick={() => handleUpdateKey(provId)}
                           style="margin-top: 12px;"
