@@ -40,6 +40,11 @@ describe('expandProviderNames', () => {
     expect(result.has('minimax')).toBe(true);
   });
 
+  it('should handle copilot alias', () => {
+    const result = expandProviderNames(['copilot']);
+    expect(result.has('copilot')).toBe(true);
+  });
+
   it('should expand zai to include z.ai', () => {
     const result = expandProviderNames(['zai']);
     expect(result.has('zai')).toBe(true);

@@ -113,6 +113,18 @@ export const SEED_MODELS: ReadonlyArray<SeedModelTuple> = [
   ['grok-3-mini', 'xAI', 0.0000003, 0.0000005, 131072, true, true, 'Grok 3 Mini'],
   ['grok-3-fast', 'xAI', 0.000005, 0.000025, 131072, false, true, 'Grok 3 Fast'],
   ['grok-3-mini-fast', 'xAI', 0.0000006, 0.000004, 131072, false, true, 'Grok 3 Mini Fast'],
+  // GitHub Copilot (subscription — $0)
+  ['copilot/claude-opus-4', 'Copilot', 0, 0, 200000, true, true, 'Claude Opus 4'],
+  ['copilot/claude-sonnet-4.5', 'Copilot', 0, 0, 200000, true, true, 'Claude Sonnet 4.5'],
+  ['copilot/claude-sonnet-4', 'Copilot', 0, 0, 200000, true, true, 'Claude Sonnet 4'],
+  ['copilot/claude-haiku-4.5', 'Copilot', 0, 0, 200000, false, true, 'Claude Haiku 4.5'],
+  ['copilot/gpt-4o', 'Copilot', 0, 0, 128000, false, true, 'GPT-4o'],
+  ['copilot/gpt-4.1', 'Copilot', 0, 0, 1047576, false, true, 'GPT-4.1'],
+  ['copilot/gpt-5', 'Copilot', 0, 0, 1047576, true, true, 'GPT-5'],
+  ['copilot/o3-mini', 'Copilot', 0, 0, 200000, true, true, 'o3 Mini'],
+  ['copilot/o4-mini', 'Copilot', 0, 0, 200000, true, true, 'o4 Mini'],
+  ['copilot/gemini-2.5-pro', 'Copilot', 0, 0, 1048576, true, true, 'Gemini 2.5 Pro'],
+  ['copilot/gemini-2.5-flash', 'Copilot', 0, 0, 1048576, false, true, 'Gemini 2.5 Flash'],
   // OpenRouter
   [
     'openrouter/auto',

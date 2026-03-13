@@ -83,6 +83,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
   },
+  copilot: {
+    baseUrl: 'https://api.githubcopilot.com',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/chat/completions',
+    format: 'openai',
+  },
   openrouter: {
     baseUrl: 'https://openrouter.ai',
     buildHeaders: openaiHeaders,

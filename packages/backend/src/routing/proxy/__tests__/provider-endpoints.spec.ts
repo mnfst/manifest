@@ -70,6 +70,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('openai');
     expect(known).toContain('anthropic');
     expect(known).toContain('google');
+    expect(known).toContain('copilot');
     expect(known).toContain('openrouter');
     expect(known).toContain('ollama');
   });
@@ -110,5 +111,16 @@ describe('PROVIDER_ENDPOINTS', () => {
   it('anthropic does not include oauth beta header for api_key auth', () => {
     const headers = PROVIDER_ENDPOINTS['anthropic'].buildHeaders('sk-ant-test');
     expect(headers['anthropic-beta']).toBeUndefined();
+  });
+
+  it('copilot uses Bearer auth and OpenAI-compatible format', () => {
+    const ep = PROVIDER_ENDPOINTS['copilot'];
+    expect(ep.baseUrl).toBe('https://api.githubcopilot.com');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('copilot/claude-sonnet-4')).toBe('/chat/completions');
+    expect(ep.buildHeaders('ghu_token')).toEqual({
+      Authorization: 'Bearer ghu_token',
+      'Content-Type': 'application/json',
+    });
   });
 });
