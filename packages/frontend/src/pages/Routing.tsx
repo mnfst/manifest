@@ -20,6 +20,7 @@ import {
   getCustomProviders,
   deactivateAllProviders,
   overrideTier,
+  resetTier,
   resetAllTiers,
   setFallbacks,
   type TierAssignment,
@@ -81,6 +82,8 @@ const Routing: Component = () => {
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
   const [changingTier, setChangingTier] = createSignal<string | null>(null);
   const [resettingAll, setResettingAll] = createSignal(false);
+  const [resettingTier, setResettingTier] = createSignal<string | null>(null);
+  const [confirmResetTier, setConfirmResetTier] = createSignal<string | null>(null);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
   const [addingFallback, setAddingFallback] = createSignal<string | null>(null);
   const [fallbackOverrides, setFallbackOverrides] = createSignal<Record<string, string[]>>({});
@@ -158,6 +161,24 @@ const Routing: Component = () => {
       // error toast from fetchMutate
     } finally {
       setResettingAll(false);
+    }
+  };
+
+  const handleReset = async (tierId: string) => {
+    setConfirmResetTier(null);
+    setResettingTier(tierId);
+    try {
+      await resetTier(agentName(), tierId);
+      mutateTiers((prev) =>
+        prev?.map((t) =>
+          t.tier === tierId ? { ...t, override_model: null, fallback_models: [] } : t,
+        ),
+      );
+      toast.success('Tier reset to auto');
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      setResettingTier(null);
     }
   };
 
@@ -409,11 +430,21 @@ const Routing: Component = () => {
                 };
                 const isManual = () =>
                   tier()?.override_model !== null && tier()?.override_model !== undefined;
+                const isEdited = () => isManual() || getFallbacksFor(stage.id).length > 0;
 
                 return (
                   <div class="routing-card">
                     <div class="routing-card__header">
                       <span class="routing-card__tier">{stage.label}</span>
+                      <Show when={isEdited()}>
+                        <button
+                          class="routing-card__reset-btn"
+                          onClick={() => setConfirmResetTier(stage.id)}
+                          disabled={resettingTier() === stage.id}
+                        >
+                          {resettingTier() === stage.id ? <span class="spinner" /> : 'Reset'}
+                        </button>
+                      </Show>
                     </div>
                     <Show
                       when={!tiers.loading}
@@ -602,7 +633,7 @@ const Routing: Component = () => {
                 class="btn btn--outline"
                 style="font-size: var(--font-size-sm);"
                 onClick={handleResetAll}
-                disabled={resettingAll()}
+                disabled={resettingAll() || resettingTier() !== null}
               >
                 {resettingAll() ? <span class="spinner" /> : 'Reset all to auto'}
               </button>
@@ -710,6 +741,38 @@ const Routing: Component = () => {
             </div>
           </div>
         </div>
+      </Show>
+
+      <Show when={confirmResetTier()}>
+        {(tierId) => (
+          <div
+            class="modal-overlay"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setConfirmResetTier(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setConfirmResetTier(null);
+            }}
+          >
+            <div class="modal-card" style="max-width: 420px;">
+              <h2 style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;">
+                Reset tier?
+              </h2>
+              <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+                This will remove the manual model override and fallbacks for this tier. The system
+                will auto-assign a model based on your connected providers.
+              </p>
+              <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button class="btn btn--outline" onClick={() => setConfirmResetTier(null)}>
+                  Cancel
+                </button>
+                <button class="btn btn--danger" onClick={() => handleReset(tierId())}>
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </Show>
     </div>
   );

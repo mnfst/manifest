@@ -72,7 +72,7 @@ import ModelPickerModal from "../../src/components/ModelPickerModal";
 import { toast } from "../../src/services/toast-store.js";
 import type { AvailableModel, TierAssignment, CustomProviderData } from "../../src/services/api.js";
 
-const { overrideTier, resetAllTiers, setFallbacks } = await import("../../src/services/api.js");
+const { overrideTier, resetTier, resetAllTiers, setFallbacks } = await import("../../src/services/api.js");
 
 describe("Routing — enabled state (providers active)", () => {
   beforeEach(() => {
@@ -393,6 +393,92 @@ describe("Routing — enabled state (providers active)", () => {
     render(() => <Routing />);
     await screen.findByText("2 connections");
     expect(screen.queryByText("Included in subscription")).toBeDefined();
+  });
+
+  it("shows Reset button only for edited tiers", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetButtons = screen.queryAllByText("Reset");
+    // Only "complex" tier has override_model set
+    expect(resetButtons.length).toBe(1);
+  });
+
+  it("shows Reset button when tier has fallbacks but no override", async () => {
+    const { getTierAssignments } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: ["gpt-4o"], updated_at: "2025-01-01" } as any,
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" } as any,
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" } as any,
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" } as any,
+    ]);
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    // "simple" tier has fallbacks → Reset should appear
+    const resetButtons = screen.queryAllByText("Reset");
+    expect(resetButtons.length).toBe(1);
+  });
+
+  it("opens confirmation modal when Reset is clicked", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+  });
+
+  it("calls resetTier when confirmed", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+    // Click the confirm "Reset" button inside the modal
+    const modalButtons = screen.getAllByText("Reset");
+    const confirmBtn = modalButtons.find((el) => el.classList.contains("btn--danger"));
+    expect(confirmBtn).toBeDefined();
+    fireEvent.click(confirmBtn!);
+    await waitFor(() => {
+      expect(resetTier).toHaveBeenCalledWith("test-agent", "complex");
+    });
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("Tier reset to auto");
+    });
+  });
+
+  it("closes reset modal on Cancel", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+    fireEvent.click(screen.getByText("Cancel"));
+    await waitFor(() => {
+      expect(screen.queryByText("Reset tier?")).toBeNull();
+    });
+  });
+
+  it("handles resetTier error gracefully", async () => {
+    vi.mocked(resetTier).mockRejectedValueOnce(new Error("fail"));
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+    const modalButtons = screen.getAllByText("Reset");
+    const confirmBtn = modalButtons.find((el) => el.classList.contains("btn--danger"));
+    fireEvent.click(confirmBtn!);
+    await waitFor(() => {
+      expect(resetTier).toHaveBeenCalled();
+    });
+    // Should not crash — error is handled silently (fetchMutate shows toast)
   });
 });
 

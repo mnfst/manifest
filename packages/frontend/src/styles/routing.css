@@ -130,6 +130,33 @@
   color: hsl(var(--foreground));
 }
 
+.routing-card__reset-btn {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: 2px 6px;
+  border-radius: var(--radius);
+  transition: color var(--transition-fast);
+}
+
+.routing-card__reset-btn:hover {
+  color: hsl(var(--destructive));
+}
+
+.routing-card__reset-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.routing-card__reset-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .routing-card__desc {
   display: none;
 }

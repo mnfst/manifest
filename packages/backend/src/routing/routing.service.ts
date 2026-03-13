@@ -67,11 +67,6 @@ export class RoutingService {
       existing.updated_at = new Date().toISOString();
       await this.providerRepo.save(existing);
 
-      // Deactivate subscription provider when user explicitly adds an API key
-      if (effectiveAuthType === 'api_key') {
-        await this.deactivateSubscriptionForProvider(agentId, provider);
-      }
-
       await this.autoAssign.recalculate(agentId);
       this.routingCache.invalidateAgent(agentId);
       return { provider: existing, isNew: false };
@@ -91,11 +86,6 @@ export class RoutingService {
     });
 
     await this.providerRepo.insert(record);
-
-    // Deactivate subscription provider when user explicitly adds an API key
-    if (effectiveAuthType === 'api_key') {
-      await this.deactivateSubscriptionForProvider(agentId, provider);
-    }
 
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
@@ -136,19 +126,6 @@ export class RoutingService {
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
     return { isNew: true };
-  }
-
-  private async deactivateSubscriptionForProvider(
-    agentId: string,
-    provider: string,
-  ): Promise<void> {
-    const sub = await this.providerRepo.findOne({
-      where: { agent_id: agentId, provider, auth_type: 'subscription', is_active: true },
-    });
-    if (!sub) return;
-    sub.is_active = false;
-    sub.updated_at = new Date().toISOString();
-    await this.providerRepo.save(sub);
   }
 
   async removeProvider(

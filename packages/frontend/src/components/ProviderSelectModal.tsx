@@ -394,7 +394,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                 <div class="provider-modal__request-sub">
                   <a
                     class="provider-modal__request-sub-btn"
-                    href="https://github.com/mnfst/manifest/issues/new?title=Subscription+provider+request&labels=enhancement"
+                    href="https://github.com/mnfst/manifest/discussions/973"
                     target="_blank"
                     rel="noopener noreferrer"
                   >

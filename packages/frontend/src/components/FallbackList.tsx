@@ -1,18 +1,18 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
-import { providerIcon } from './ProviderIcon.js';
-import { authBadgeFor } from './AuthBadge.js';
-import { resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
-import { getModelLabel } from '../services/provider-utils.js';
-import { PROVIDERS } from '../services/providers.js';
 import {
-  setFallbacks,
   clearFallbacks,
+  setFallbacks,
   type AvailableModel,
   type CustomProviderData,
   type RoutingProvider,
 } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
+import { getModelLabel } from '../services/provider-utils.js';
+import { PROVIDERS } from '../services/providers.js';
+import { resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
 import { toast } from '../services/toast-store.js';
+import { authBadgeFor } from './AuthBadge.js';
+import { providerIcon } from './ProviderIcon.js';
 
 interface FallbackListProps {
   agentName: string;
@@ -294,7 +294,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
             </svg>
             <span class="fallback-list__empty-title">No fallback</span>
             <span class="fallback-list__empty-desc">
-              Add fallback models to ensure a response if the primary model is unavailable.
+              Add fallback models to guarantee responses at all times
             </span>
             <button
               class="btn btn--outline btn--sm fallback-list__add"
