@@ -1,5 +1,15 @@
 # manifest
 
+## 5.24.1
+
+### Patch Changes
+
+- d14025f: Fix 24h chart timezone shift by aligning SQL queries and frontend parsing to local time
+- 76dba1c: Fix heartbeat detection to check only the last user message instead of all messages in conversation history
+- 436f583: Distinguish subscription providers from API key providers in PostHog tracking by appending (Subscription) suffix
+- 3c62a81: Fix subscription providers being re-activated on every gateway restart
+- 3aaf6d4: Fix number formatting in threshold alert emails - tokens now display with comma separators and no decimal places, costs display with 2 decimal places and comma separators
+
 ## 5.24.0
 
 ### Minor Changes
