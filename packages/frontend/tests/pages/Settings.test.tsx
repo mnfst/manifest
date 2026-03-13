@@ -88,7 +88,7 @@ describe("Settings", () => {
     expect(screen.queryByText("LLM Providers")).toBeNull();
   });
 
-  it("renders only two tab buttons", () => {
+  it("renders both tab buttons in cloud mode", () => {
     render(() => <Settings />);
     expect(screen.getByText("General")).toBeDefined();
     expect(screen.getByText("Agent setup")).toBeDefined();
@@ -353,10 +353,16 @@ describe("Settings", () => {
       expect(screen.getByLabelText("Agent name")).toBeDefined();
     });
 
-    it("shows both tabs in local mode", () => {
+    it("hides tabs in local mode", () => {
+      const { container } = render(() => <Settings />);
+      expect(container.querySelector(".panel__tabs")).toBeNull();
+      expect(screen.queryByText("Agent setup")).toBeNull();
+    });
+
+    it("still shows General content without tab switcher", () => {
       render(() => <Settings />);
-      expect(screen.getByText("General")).toBeDefined();
-      expect(screen.getByText("Agent setup")).toBeDefined();
+      expect(screen.getByLabelText("Agent name")).toBeDefined();
+      expect(screen.getByText("Save")).toBeDefined();
     });
 
     it("hides Danger zone in local mode", () => {
