@@ -1,5 +1,14 @@
 # manifest
 
+## 5.24.2
+
+### Patch Changes
+
+- 894ea4f: Fix cloud mode product telemetry funnel by linking plugin and backend identities via PostHog $identify
+- f6e336d: Accept dev-mode loopback connections in cloud mode and improve error status reporting in OTLP traces
+- e1c3778: Prevent subscription providers from overriding explicit API key connections in routing
+- ba6a7cf: Return 409 Conflict instead of 500 when creating an agent with a duplicate name
+
 ## 5.24.1
 
 ### Patch Changes
