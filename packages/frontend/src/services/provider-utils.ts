@@ -1,4 +1,5 @@
 import { PROVIDERS, type ProviderDef } from './providers.js';
+import { getSubscriptionProviderConfig } from '../../../subscription-capabilities';
 
 export function getProvider(id: string): ProviderDef | undefined {
   return PROVIDERS.find((p) => p.id === id);
@@ -30,10 +31,6 @@ export function validateApiKey(
   return { valid: true };
 }
 
-const SUBSCRIPTION_PREFIXES: Record<string, string> = {
-  anthropic: 'sk-ant-oat',
-};
-
 export function validateSubscriptionKey(
   provider: ProviderDef,
   key: string,
@@ -46,7 +43,7 @@ export function validateSubscriptionKey(
       error: 'Token is too short (minimum 10 characters)',
     };
   }
-  const prefix = SUBSCRIPTION_PREFIXES[provider.id];
+  const prefix = getSubscriptionProviderConfig(provider.id)?.subscriptionTokenPrefix;
   if (prefix && !trimmed.startsWith(prefix)) {
     return {
       valid: false,

@@ -8,6 +8,7 @@ import { ModelPricing } from '../entities/model-pricing.entity';
 import { randomUUID } from 'crypto';
 import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
 import { TIERS, Tier } from './scorer/types';
+import { isManifestUsableProvider } from './subscription-support';
 
 interface ScoredModel {
   model_name: string;
@@ -33,12 +34,13 @@ export class TierAutoAssignService {
       (await this.providerRepo.find({
         where: { agent_id: agentId, is_active: true },
       }));
+    const usableProviders = resolvedProviders.filter(isManifestUsableProvider);
 
     const subNames = expandProviderNames(
-      resolvedProviders.filter((p) => p.auth_type === 'subscription').map((p) => p.provider),
+      usableProviders.filter((p) => p.auth_type === 'subscription').map((p) => p.provider),
     );
     const keyNames = expandProviderNames(
-      resolvedProviders.filter((p) => p.auth_type !== 'subscription').map((p) => p.provider),
+      usableProviders.filter((p) => p.auth_type !== 'subscription').map((p) => p.provider),
     );
 
     const allModels = this.pricingCache.getAll();

@@ -10,6 +10,7 @@ import { randomUUID } from 'crypto';
 import { encrypt, decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
 import { TIERS } from './scorer/types';
+import { isManifestUsableProvider, isSupportedSubscriptionProvider } from './subscription-support';
 
 const TIER_LABELS: Record<string, string> = {
   simple: 'Simple',
@@ -17,8 +18,6 @@ const TIER_LABELS: Record<string, string> = {
   complex: 'Complex',
   reasoning: 'Reasoning',
 };
-
-const SUPPORTED_SUBSCRIPTION_PROVIDERS = new Set(['anthropic']);
 
 @Injectable()
 export class RoutingService {
@@ -40,7 +39,9 @@ export class RoutingService {
     const cached = this.routingCache.getProviders(agentId);
     if (cached) return cached;
 
-    const providers = await this.providerRepo.find({ where: { agent_id: agentId } });
+    const providers = (await this.providerRepo.find({ where: { agent_id: agentId } })).filter(
+      isManifestUsableProvider,
+    );
     this.routingCache.setProviders(agentId, providers);
     return providers;
   }
@@ -99,7 +100,7 @@ export class RoutingService {
     userId: string,
     provider: string,
   ): Promise<{ isNew: boolean }> {
-    if (!SUPPORTED_SUBSCRIPTION_PROVIDERS.has(provider.toLowerCase())) {
+    if (!isSupportedSubscriptionProvider(provider)) {
       this.logger.debug(`Ignoring unsupported subscription provider registration for ${provider}`);
       return { isNew: false };
     }
@@ -152,11 +153,11 @@ export class RoutingService {
     await this.providerRepo.save(existing);
 
     // Check if the provider still has another active record (different auth type)
-    const otherActive = await this.providerRepo.findOne({
+    const otherActive = await this.providerRepo.find({
       where: { agent_id: agentId, provider, is_active: true },
     });
 
-    if (otherActive) {
+    if (otherActive.some((record) => isManifestUsableProvider(record))) {
       // Provider is still available via the other auth type — skip override clearing
       this.routingCache.invalidateAgent(agentId);
       return { notifications: [] };
@@ -334,8 +335,9 @@ export class RoutingService {
       const providers = await this.providerRepo.find({
         where: { agent_id: agentId, is_active: true },
       });
-      if (providers.length > 0) {
-        await this.autoAssign.recalculate(agentId, providers);
+      const usableProviders = providers.filter(isManifestUsableProvider);
+      if (usableProviders.length > 0) {
+        await this.autoAssign.recalculate(agentId, usableProviders);
         const result = await this.tierRepo.find({ where: { agent_id: agentId } });
         this.routingCache.setTiers(agentId, result);
         return result;
@@ -343,6 +345,17 @@ export class RoutingService {
 
       this.routingCache.setTiers(agentId, created);
       return created;
+    }
+
+    const activeProviders = await this.providerRepo.find({
+      where: { agent_id: agentId, is_active: true },
+    });
+    const usableProviders = activeProviders.filter(isManifestUsableProvider);
+    if (usableProviders.length !== activeProviders.length) {
+      await this.autoAssign.recalculate(agentId, usableProviders);
+      const result = await this.tierRepo.find({ where: { agent_id: agentId } });
+      this.routingCache.setTiers(agentId, result);
+      return result;
     }
 
     this.routingCache.setTiers(agentId, rows);
@@ -483,7 +496,9 @@ export class RoutingService {
       where: { agent_id: agentId, is_active: true },
     });
 
-    const matches = records.filter((r) => names.has(r.provider.toLowerCase()));
+    const matches = records.filter(
+      (r) => isManifestUsableProvider(r) && names.has(r.provider.toLowerCase()),
+    );
     if (matches.length === 0) return null;
 
     // Sort preferred auth type first (default: api_key for backward compat)
@@ -544,9 +559,11 @@ export class RoutingService {
   }
 
   private async isModelAvailable(agentId: string, model: string): Promise<boolean> {
-    const records = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
-    });
+    const records = (
+      await this.providerRepo.find({
+        where: { agent_id: agentId, is_active: true },
+      })
+    ).filter(isManifestUsableProvider);
     const pricing = this.pricingCache.getByModel(model);
     if (pricing) {
       const names = expandProviderNames([pricing.provider]);

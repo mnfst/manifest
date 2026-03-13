@@ -2,6 +2,7 @@ import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { PluginLogger } from './telemetry';
+import { supportsSubscriptionProvider } from '../../subscription-capabilities';
 
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
 
@@ -43,9 +44,6 @@ const OPENCLAW_TO_MANIFEST: Record<string, string> = {
   kimi: 'moonshot',
   minimax: 'minimax',
 };
-
-// Keep this aligned with the providers exposed in the app's subscription flow.
-const SUPPORTED_SUBSCRIPTION_PROVIDERS = new Set(['anthropic']);
 
 function readJsonSafe(path: string): Record<string, any> {
   if (!existsSync(path)) return {};
@@ -93,7 +91,7 @@ export function discoverSubscriptionProviders(logger: PluginLogger): Subscriptio
           logger.debug(`[manifest] Unknown subscription provider: ${profile.provider}`);
           continue;
         }
-        if (!SUPPORTED_SUBSCRIPTION_PROVIDERS.has(manifestId)) {
+        if (!supportsSubscriptionProvider(manifestId)) {
           logger.debug(
             `[manifest] Ignoring unsupported subscription provider: ${profile.provider} -> ${manifestId}`,
           );
