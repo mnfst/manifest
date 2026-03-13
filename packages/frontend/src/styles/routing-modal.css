@@ -66,18 +66,38 @@
   flex-shrink: 0;
 }
 
-.routing-modal__filter-toggle {
-  display: flex;
+.routing-modal__filter-pill {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  padding: 5px 14px;
   font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+  font-weight: 500;
   color: hsl(var(--muted-foreground));
+  background: transparent;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
   cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
-.routing-modal__filter-toggle input[type='checkbox'] {
-  accent-color: hsl(var(--primary));
-  cursor: pointer;
+.routing-modal__filter-pill:hover {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
+}
+
+.routing-modal__filter-pill--active {
+  background: hsl(var(--primary));
+  color: #fff;
+  border-color: hsl(var(--primary));
+}
+
+.routing-modal__filter-pill--active:hover {
+  background: hsl(var(--primary) / 0.85);
+  color: #fff;
 }
 
 .routing-modal__list {
@@ -164,7 +184,7 @@
 }
 
 .routing-modal__model-id--subscription {
-  color: #22c55e;
+  color: #64748b;
   font-family: var(--font-family);
 }
 

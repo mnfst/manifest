@@ -4,7 +4,7 @@ const USER_ICON = (s: number) => (
   <svg
     width={s}
     height={s}
-    viewBox="0 0 24 24"
+    viewBox="2 1 20 22"
     fill="none"
     stroke="currentColor"
     stroke-width="3"
