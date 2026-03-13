@@ -20,7 +20,8 @@ export type SeedModelTuple = readonly [
 
 export const SEED_MODELS: ReadonlyArray<SeedModelTuple> = [
   // Anthropic Claude
-  ['claude-opus-4-6', 'Anthropic', 0.000015, 0.000075, 200000, true, true, 'Claude Opus 4.6'],
+  ['claude-opus-4-6', 'Anthropic', 0.000005, 0.000025, 200000, true, true, 'Claude Opus 4.6'],
+  ['claude-sonnet-4-6', 'Anthropic', 0.000003, 0.000015, 200000, true, true, 'Claude Sonnet 4.6'],
   [
     'claude-sonnet-4-5-20250929',
     'Anthropic',
@@ -32,6 +33,26 @@ export const SEED_MODELS: ReadonlyArray<SeedModelTuple> = [
     'Claude Sonnet 4.5',
   ],
   [
+    'claude-opus-4-5-20251101',
+    'Anthropic',
+    0.000015,
+    0.000075,
+    200000,
+    true,
+    true,
+    'Claude Opus 4.5',
+  ],
+  [
+    'claude-opus-4-1-20250805',
+    'Anthropic',
+    0.000015,
+    0.000075,
+    200000,
+    true,
+    true,
+    'Claude Opus 4.1',
+  ],
+  [
     'claude-sonnet-4-20250514',
     'Anthropic',
     0.000003,
@@ -41,6 +62,7 @@ export const SEED_MODELS: ReadonlyArray<SeedModelTuple> = [
     true,
     'Claude Sonnet 4',
   ],
+  ['claude-opus-4-20250514', 'Anthropic', 0.000015, 0.000075, 200000, true, true, 'Claude Opus 4'],
   [
     'claude-haiku-4-5-20251001',
     'Anthropic',
@@ -127,8 +149,8 @@ export const SEED_MODELS: ReadonlyArray<SeedModelTuple> = [
   [
     'anthropic/claude-opus-4-6',
     'OpenRouter',
-    0.000015,
-    0.000075,
+    0.000005,
+    0.000025,
     200000,
     true,
     true,

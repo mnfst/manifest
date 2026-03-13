@@ -66,6 +66,12 @@ export class RoutingService {
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await this.providerRepo.save(existing);
+
+      // Deactivate subscription provider when user explicitly adds an API key
+      if (effectiveAuthType === 'api_key') {
+        await this.deactivateSubscriptionForProvider(agentId, provider);
+      }
+
       await this.autoAssign.recalculate(agentId);
       this.routingCache.invalidateAgent(agentId);
       return { provider: existing, isNew: false };
@@ -85,6 +91,12 @@ export class RoutingService {
     });
 
     await this.providerRepo.insert(record);
+
+    // Deactivate subscription provider when user explicitly adds an API key
+    if (effectiveAuthType === 'api_key') {
+      await this.deactivateSubscriptionForProvider(agentId, provider);
+    }
+
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
     return { provider: record, isNew: true };
@@ -100,6 +112,12 @@ export class RoutingService {
     });
 
     if (existing) return { isNew: false };
+
+    // Skip if user already added an explicit API key for this provider
+    const hasApiKey = await this.providerRepo.findOne({
+      where: { agent_id: agentId, provider, auth_type: 'api_key', is_active: true },
+    });
+    if (hasApiKey) return { isNew: false };
 
     const record: UserProvider = Object.assign(new UserProvider(), {
       id: randomUUID(),
@@ -118,6 +136,19 @@ export class RoutingService {
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
     return { isNew: true };
+  }
+
+  private async deactivateSubscriptionForProvider(
+    agentId: string,
+    provider: string,
+  ): Promise<void> {
+    const sub = await this.providerRepo.findOne({
+      where: { agent_id: agentId, provider, auth_type: 'subscription', is_active: true },
+    });
+    if (!sub) return;
+    sub.is_active = false;
+    sub.updated_at = new Date().toISOString();
+    await this.providerRepo.save(sub);
   }
 
   async removeProvider(
