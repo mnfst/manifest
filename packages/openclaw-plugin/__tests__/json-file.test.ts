@@ -25,6 +25,45 @@ describe("loadJsonFile", () => {
     expect(loadJsonFile("/tmp/config.json")).toEqual({ ok: true });
   });
 
+  it("warns and returns an empty object for array JSON", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    mockExistsSync.mockReturnValue(true);
+    mockReadFileSync.mockReturnValue('["a","b"]');
+
+    expect(loadJsonFile("/tmp/array.json")).toEqual({});
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[manifest] Invalid JSON object in /tmp/array.json; expected a top-level object",
+    );
+
+    warnSpy.mockRestore();
+  });
+
+  it("warns and returns an empty object for null JSON", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    mockExistsSync.mockReturnValue(true);
+    mockReadFileSync.mockReturnValue("null");
+
+    expect(loadJsonFile("/tmp/null.json")).toEqual({});
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[manifest] Invalid JSON object in /tmp/null.json; expected a top-level object",
+    );
+
+    warnSpy.mockRestore();
+  });
+
+  it("warns and returns an empty object for primitive JSON", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    mockExistsSync.mockReturnValue(true);
+    mockReadFileSync.mockReturnValue("42");
+
+    expect(loadJsonFile("/tmp/number.json")).toEqual({});
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[manifest] Invalid JSON object in /tmp/number.json; expected a top-level object",
+    );
+
+    warnSpy.mockRestore();
+  });
+
   it("warns and returns an empty object for malformed JSON", () => {
     const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     mockExistsSync.mockReturnValue(true);
