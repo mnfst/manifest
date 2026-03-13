@@ -17,3 +17,12 @@ export declare function getSubscriptionProviderConfig(
 ): Readonly<SubscriptionProviderConfig> | null;
 
 export declare function supportsSubscriptionProvider(providerId: string): boolean;
+
+declare const subscriptionCapabilities: {
+  SUBSCRIPTION_PROVIDER_CONFIGS: typeof SUBSCRIPTION_PROVIDER_CONFIGS;
+  SUPPORTED_SUBSCRIPTION_PROVIDER_IDS: typeof SUPPORTED_SUBSCRIPTION_PROVIDER_IDS;
+  getSubscriptionProviderConfig: typeof getSubscriptionProviderConfig;
+  supportsSubscriptionProvider: typeof supportsSubscriptionProvider;
+};
+
+export default subscriptionCapabilities;
