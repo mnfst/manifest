@@ -208,6 +208,70 @@ describe('Routing enabled → scorer routes by query complexity', () => {
   });
 });
 
+describe('Subscription providers are not re-activated on restart', () => {
+  beforeAll(async () => {
+    // Start fresh: deactivate all, then register via subscription endpoint
+    await auth(api().post('/api/v1/routing/test-agent/providers/deactivate-all'))
+      .expect(201);
+  });
+
+  it('registers subscription providers as active', async () => {
+    const res = await bearer(api().post('/api/v1/routing/subscription-providers'))
+      .send({ providers: [{ provider: 'openai' }, { provider: 'anthropic' }] })
+      .expect(200);
+
+    expect(res.body.registered).toBe(2);
+
+    // Verify they are active
+    const providers = await auth(api().get('/api/v1/routing/test-agent/providers'))
+      .expect(200);
+    const subs = providers.body.filter(
+      (p: { auth_type: string }) => p.auth_type === 'subscription',
+    );
+    expect(subs).toHaveLength(2);
+    expect(subs.every((p: { is_active: boolean }) => p.is_active)).toBe(true);
+  });
+
+  it('removes a provider → deactivated', async () => {
+    await auth(
+      api().delete('/api/v1/routing/test-agent/providers/openai?authType=subscription'),
+    ).expect(200);
+
+    const providers = await auth(api().get('/api/v1/routing/test-agent/providers'))
+      .expect(200);
+    const openai = providers.body.find(
+      (p: { provider: string; auth_type: string }) =>
+        p.provider === 'openai' && p.auth_type === 'subscription',
+    );
+    expect(openai.is_active).toBe(false);
+  });
+
+  it('re-registering same providers does not re-activate removed one', async () => {
+    const res = await bearer(api().post('/api/v1/routing/subscription-providers'))
+      .send({ providers: [{ provider: 'openai' }, { provider: 'anthropic' }] })
+      .expect(200);
+
+    // Both already exist → nothing new registered
+    expect(res.body.registered).toBe(0);
+
+    // openai subscription should still be inactive
+    const providers = await auth(api().get('/api/v1/routing/test-agent/providers'))
+      .expect(200);
+    const openai = providers.body.find(
+      (p: { provider: string; auth_type: string }) =>
+        p.provider === 'openai' && p.auth_type === 'subscription',
+    );
+    expect(openai.is_active).toBe(false);
+
+    // anthropic subscription should still be active
+    const anthropic = providers.body.find(
+      (p: { provider: string; auth_type: string }) =>
+        p.provider === 'anthropic' && p.auth_type === 'subscription',
+    );
+    expect(anthropic.is_active).toBe(true);
+  });
+});
+
 describe('Routing disabled after deactivation → falls back to null', () => {
   it('deactivating all providers removes model assignments', async () => {
     await auth(api().post('/api/v1/routing/test-agent/providers/deactivate-all'))

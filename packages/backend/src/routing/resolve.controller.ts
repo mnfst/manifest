@@ -60,19 +60,17 @@ export class ResolveController {
     let registered = 0;
 
     for (const item of body.providers) {
-      const { isNew } = await this.routingService.upsertProvider(
+      const { isNew } = await this.routingService.registerSubscriptionProvider(
         agentId,
         userId,
         item.provider,
-        undefined,
-        'subscription',
       );
       if (isNew) {
         trackCloudEvent('routing_provider_connected', userId, {
           provider: `${item.provider} (Subscription)`,
         });
+        registered++;
       }
-      registered++;
     }
 
     return { registered };

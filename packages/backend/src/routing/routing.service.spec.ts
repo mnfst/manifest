@@ -476,6 +476,66 @@ describe('RoutingService', () => {
     });
   });
 
+  /* ── registerSubscriptionProvider ── */
+
+  describe('registerSubscriptionProvider', () => {
+    it('should create new provider when none exists', async () => {
+      mockProviderRepo.findOne.mockResolvedValue(null);
+
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'anthropic');
+
+      expect(result).toEqual({ isNew: true });
+      expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          agent_id: 'a1',
+          user_id: 'u1',
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          is_active: true,
+          api_key_encrypted: null,
+          key_prefix: null,
+        }),
+      );
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
+    });
+
+    it('should skip active existing provider', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'anthropic');
+
+      expect(result).toEqual({ isNew: false });
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
+      expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
+    });
+
+    it('should skip inactive (user-deactivated) provider', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: false,
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'anthropic');
+
+      expect(result).toEqual({ isNew: false });
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
+      expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
+    });
+  });
+
   /* ── removeProvider ── */
 
   describe('removeProvider', () => {
