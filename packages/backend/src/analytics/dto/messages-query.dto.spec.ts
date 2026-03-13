@@ -13,9 +13,8 @@ describe('MessagesQueryDto', () => {
   it('accepts valid string fields', async () => {
     const dto = plainToInstance(MessagesQueryDto, {
       range: '24h',
-      status: 'ok',
+      provider: 'openai',
       service_type: 'agent',
-      model: 'gpt-4o',
       cursor: 'abc123',
       agent_name: 'my-bot',
     });

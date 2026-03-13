@@ -13,9 +13,8 @@ export class MessagesController {
     return this.messagesQuery.getMessages({
       range: query.range,
       userId: user.id,
-      status: query.status,
+      provider: query.provider,
       service_type: query.service_type,
-      model: query.model,
       cost_min: query.cost_min,
       cost_max: query.cost_max,
       limit: Math.min(query.limit ?? 50, 200),

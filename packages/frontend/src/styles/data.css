@@ -21,6 +21,7 @@
   padding: 12px var(--gap-md);
   border-bottom: 1px solid hsl(var(--border));
   height: 40px;
+  white-space: nowrap;
 }
 
 .data-table__sortable {
@@ -36,6 +37,13 @@
   padding: 12px var(--gap-md);
   border-bottom: 1px solid hsl(var(--border));
   color: hsl(var(--foreground));
+  white-space: nowrap;
+}
+
+/* Horizontal scroll wrapper for data tables */
+.data-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .data-table tbody tr {

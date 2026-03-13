@@ -8,15 +8,11 @@ export class MessagesQueryDto {
 
   @IsOptional()
   @IsString()
-  status?: string;
+  provider?: string;
 
   @IsOptional()
   @IsString()
   service_type?: string;
-
-  @IsOptional()
-  @IsString()
-  model?: string;
 
   @IsOptional()
   @IsNumber()
