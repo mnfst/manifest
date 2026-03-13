@@ -324,8 +324,8 @@ describe('DatabaseSeederService', () => {
 
       await service.onModuleInit();
 
-      // All curated models are always upserted (64 total)
-      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(64);
+      // All curated models are always upserted (68 total)
+      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(68);
     });
 
     it('should upsert with model_name as conflict key', async () => {
@@ -367,8 +367,8 @@ describe('DatabaseSeederService', () => {
         expect.objectContaining({
           model_name: 'claude-opus-4-6',
           provider: 'Anthropic',
-          input_price_per_token: 0.000015,
-          output_price_per_token: 0.000075,
+          input_price_per_token: 0.000005,
+          output_price_per_token: 0.000025,
           context_window: 200000,
           capability_reasoning: true,
           capability_code: true,

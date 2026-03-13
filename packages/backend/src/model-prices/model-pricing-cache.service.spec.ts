@@ -219,6 +219,14 @@ describe('ModelPricingCacheService', () => {
 
       expect(mockTrack).not.toHaveBeenCalled();
     });
+
+    it('should resolve dot-variant to dash-canonical via normalization', async () => {
+      const pricing = makePricing('claude-opus-4-6');
+      mockFind.mockResolvedValue([pricing]);
+      await service.onModuleInit();
+
+      expect(service.getByModel('claude-opus-4.6')).toBe(pricing);
+    });
   });
 
   describe('getAll', () => {
