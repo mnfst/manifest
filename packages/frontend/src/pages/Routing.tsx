@@ -10,6 +10,7 @@ import RoutingInstructionModal from '../components/RoutingInstructionModal.js';
 import ModelPickerModal from '../components/ModelPickerModal.js';
 import { toast } from '../services/toast-store.js';
 import { pricePerM, resolveProviderId, inferProviderFromModel } from '../services/routing-utils.js';
+import { customProviderColor } from '../services/formatters.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import FallbackList from '../components/FallbackList.js';
 import {
@@ -390,7 +391,7 @@ const Routing: Component = () => {
                         <span
                           class="provider-card__logo-letter"
                           style={{
-                            background: 'var(--custom-provider-color)',
+                            background: customProviderColor(cp?.name ?? ''),
                             width: '16px',
                             height: '16px',
                             'font-size': '9px',
@@ -515,7 +516,7 @@ const Routing: Component = () => {
                                             <span
                                               class="provider-card__logo-letter"
                                               style={{
-                                                background: 'var(--custom-provider-color)',
+                                                background: customProviderColor(cp?.name ?? ''),
                                                 width: '16px',
                                                 height: '16px',
                                                 'font-size': '9px',

@@ -1,4 +1,4 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
+import { createSignal, Index, For, Show, type Component } from 'solid-js';
 import {
   createCustomProvider,
   updateCustomProvider,
@@ -45,6 +45,7 @@ const CustomProviderForm: Component<Props> = (props) => {
   );
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
 
   const updateRow = (index: number, field: keyof ModelRow, value: string) => {
     setRows((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
@@ -110,11 +111,6 @@ const CustomProviderForm: Component<Props> = (props) => {
   };
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(
-      `Remove ${props.initialData!.name}? This will delete all its models and any routing assignments using them.`,
-    );
-    if (!confirmed) return;
-
     setBusy(true);
     try {
       await deleteCustomProvider(props.agentName, props.initialData!.id);
@@ -124,6 +120,7 @@ const CustomProviderForm: Component<Props> = (props) => {
       // error toast from fetchMutate
     } finally {
       setBusy(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -243,43 +240,41 @@ const CustomProviderForm: Component<Props> = (props) => {
         <div class="provider-detail__field">
           <label class="provider-detail__label">Models</label>
           <div class="custom-provider-models">
-            <For each={rows()}>
+            <Index each={rows()}>
               {(row, i) => (
                 <div class="custom-provider-model-row">
                   <input
                     class="provider-detail__input custom-provider-model-row__name"
                     type="text"
                     placeholder="Model name"
-                    aria-label={`Model ${i() + 1} name`}
-                    value={row.model_name}
-                    onInput={(e) => updateRow(i(), 'model_name', e.currentTarget.value)}
+                    aria-label={`Model ${i + 1} name`}
+                    value={row().model_name}
+                    onInput={(e) => updateRow(i, 'model_name', e.currentTarget.value)}
                   />
                   <input
                     class="provider-detail__input custom-provider-model-row__price"
-                    type="number"
+                    type="text"
+                    inputmode="decimal"
                     placeholder="$/M in"
-                    aria-label={`Model ${i() + 1} input price per million tokens`}
-                    min="0"
-                    step="0.01"
-                    value={row.input_price}
-                    onInput={(e) => updateRow(i(), 'input_price', e.currentTarget.value)}
+                    aria-label={`Model ${i + 1} input price per million tokens`}
+                    value={row().input_price}
+                    onInput={(e) => updateRow(i, 'input_price', e.currentTarget.value)}
                   />
                   <input
                     class="provider-detail__input custom-provider-model-row__price"
-                    type="number"
+                    type="text"
+                    inputmode="decimal"
                     placeholder="$/M out"
-                    aria-label={`Model ${i() + 1} output price per million tokens`}
-                    min="0"
-                    step="0.01"
-                    value={row.output_price}
-                    onInput={(e) => updateRow(i(), 'output_price', e.currentTarget.value)}
+                    aria-label={`Model ${i + 1} output price per million tokens`}
+                    value={row().output_price}
+                    onInput={(e) => updateRow(i, 'output_price', e.currentTarget.value)}
                   />
                   <button
                     type="button"
                     class="custom-provider-model-row__remove"
-                    onClick={() => removeRow(i())}
+                    onClick={() => removeRow(i)}
                     disabled={rows().length <= 1}
-                    aria-label={`Remove model ${i() + 1}`}
+                    aria-label={`Remove model ${i + 1}`}
                     title="Remove"
                   >
                     <svg
@@ -299,7 +294,7 @@ const CustomProviderForm: Component<Props> = (props) => {
                   </button>
                 </div>
               )}
-            </For>
+            </Index>
             <button
               type="button"
               class="btn btn--outline btn--sm"
@@ -329,15 +324,68 @@ const CustomProviderForm: Component<Props> = (props) => {
         <Show when={isEdit()}>
           <button
             type="button"
-            class="btn btn--outline provider-detail__action provider-detail__disconnect"
+            class="btn btn--outline provider-detail__disconnect"
             disabled={busy()}
-            onClick={handleDelete}
-            style="margin-top: 16px;"
+            onClick={() => setShowDeleteConfirm(true)}
+            style="margin-top: 16px; align-self: flex-start;"
           >
             Delete provider
           </button>
         </Show>
       </form>
+
+      {/* -- Delete Confirmation Modal -- */}
+      <Show when={showDeleteConfirm()}>
+        <div
+          class="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowDeleteConfirm(false);
+          }}
+        >
+          <div class="modal-card" style="max-width: 400px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
+              <h3 style="margin: 0; font-size: var(--font-size-lg);">Delete provider</h3>
+              <button
+                style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px;"
+                onClick={() => setShowDeleteConfirm(false)}
+                aria-label="Close"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </button>
+            </div>
+            <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-lg);">
+              Remove{' '}
+              <strong style="color: hsl(var(--foreground));">{props.initialData?.name}</strong>?
+              This will delete all its models and any routing assignments using them. This action
+              cannot be undone.
+            </p>
+            <div style="display: flex; gap: var(--gap-sm); justify-content: flex-end;">
+              <button
+                class="btn btn--outline"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={busy()}
+              >
+                Cancel
+              </button>
+              <button class="btn btn--danger" onClick={handleDelete} disabled={busy()}>
+                {busy() ? <span class="spinner" /> : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Show>
     </div>
   );
 };

@@ -17,6 +17,7 @@ import {
   formatNumber,
   formatCost,
   formatErrorMessage,
+  customProviderColor,
   formatTime,
   formatStatus,
   formatDuration,
@@ -519,7 +520,7 @@ const MessageLog: Component = () => {
                                     class="provider-card__logo-letter"
                                     title={provName}
                                     style={{
-                                      background: 'var(--custom-provider-color)',
+                                      background: customProviderColor(provName ?? ''),
                                       width: '16px',
                                       height: '16px',
                                       'font-size': '9px',

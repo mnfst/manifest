@@ -41,6 +41,7 @@ vi.mock("../../src/services/formatters.js", () => ({
   formatStatus: (s: string) => s,
   formatTime: (t: string) => t,
   formatErrorMessage: (s: string) => s,
+  customProviderColor: vi.fn(() => '#6366f1'),
 }));
 
 vi.mock("../../src/components/CostChart.jsx", () => ({

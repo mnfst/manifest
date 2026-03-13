@@ -78,17 +78,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 0;
   border: 1.5px solid hsl(var(--card));
 }
 
 .provider-auth-badge--sub {
-  background: #22c55e;
-  color: #fff;
+  background: #1cc4bf;
+  color: #020817;
 }
 
 .provider-auth-badge--key {
-  background: #f59e0b;
-  color: #fff;
+  background: #f2c79c;
+  color: #020817;
 }
 
 .provider-auth-badge--overlay {
@@ -157,7 +158,7 @@
 }
 
 .routing-card__sub--subscription {
-  color: #22c55e;
+  color: #64748b;
 }
 
 .routing-card__override {

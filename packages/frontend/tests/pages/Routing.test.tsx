@@ -47,6 +47,11 @@ vi.mock("../../src/services/api.js", () => ({
   getAvailableModels: vi.fn().mockResolvedValue([
     { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
     { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    { model_name: "gpt-4o", provider: "OpenAI", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
+    { model_name: "gpt-3.5-turbo", provider: "OpenAI", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
+    { model_name: "claude-sonnet-4", provider: "Anthropic", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+    { model_name: "gemini-pro", provider: "Google", input_price_per_token: 0.00000025, output_price_per_token: 0.0000005, context_window: 32000, capability_reasoning: false, capability_code: false },
+    { model_name: "claude-haiku-3.5", provider: "Anthropic", input_price_per_token: 0.0000008, output_price_per_token: 0.000004, context_window: 200000, capability_reasoning: false, capability_code: true },
   ]),
   getProviders: (...args: unknown[]) => mockGetProviders(...args),
   connectProvider: vi.fn().mockResolvedValue({}),
@@ -727,9 +732,9 @@ describe("ModelPickerModal — custom providers and filtering", () => {
       />
     ));
 
-    // Enable free models only filter
-    const checkbox = container.querySelector('.routing-modal__filter-toggle input[type="checkbox"]') as HTMLInputElement;
-    fireEvent.change(checkbox, { target: { checked: true } });
+    // Enable free models only filter via pill button
+    const pill = container.querySelector('.routing-modal__filter-pill') as HTMLButtonElement;
+    fireEvent.click(pill);
 
     // free-model (price=0) should show, null-price-model (price=null) should NOT show
     expect(screen.getByText("free-model")).toBeDefined();

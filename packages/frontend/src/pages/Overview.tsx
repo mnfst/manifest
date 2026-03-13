@@ -12,6 +12,7 @@ import { getOverview, getCustomProviders, type CustomProviderData } from '../ser
 import {
   formatCost,
   formatErrorMessage,
+  customProviderColor,
   formatNumber,
   formatStatus,
   formatTime,
@@ -675,7 +676,7 @@ const Overview: Component = () => {
                                           class="provider-card__logo-letter"
                                           title={provName}
                                           style={{
-                                            background: 'var(--custom-provider-color)',
+                                            background: customProviderColor(provName ?? ''),
                                             width: '16px',
                                             height: '16px',
                                             'font-size': '9px',
@@ -811,7 +812,7 @@ const Overview: Component = () => {
                                           class="provider-card__logo-letter"
                                           title={provName}
                                           style={{
-                                            background: 'var(--custom-provider-color)',
+                                            background: customProviderColor(provName ?? ''),
                                             width: '16px',
                                             height: '16px',
                                             'font-size': '9px',

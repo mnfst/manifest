@@ -1,16 +1,17 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
-import { PROVIDERS, validateApiKey, validateSubscriptionKey } from '../services/providers.js';
-import { providerIcon } from './ProviderIcon.js';
 import {
   connectProvider,
   disconnectProvider,
-  type RoutingProvider,
-  type CustomProviderData,
   type AuthType,
+  type CustomProviderData,
+  type RoutingProvider,
 } from '../services/api.js';
-import { toast } from '../services/toast-store.js';
 import { isLocalMode } from '../services/local-mode.js';
+import { PROVIDERS, validateApiKey, validateSubscriptionKey } from '../services/providers.js';
+import { customProviderColor } from '../services/formatters.js';
+import { toast } from '../services/toast-store.js';
 import CustomProviderForm from './CustomProviderForm.js';
+import { providerIcon } from './ProviderIcon.js';
 import { CopyButton } from './SetupStepInstall.js';
 
 interface Props {
@@ -34,12 +35,22 @@ const ProviderSelectModal: Component<Props> = (props) => {
   const [editing, setEditing] = createSignal(false);
   const [validationError, setValidationError] = createSignal<string | null>(null);
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
-
   const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
-  const apiKeyProviders = () =>
-    isLocalMode()
+  const apiKeyProviders = () => {
+    const builtIn = isLocalMode()
       ? PROVIDERS
       : [...PROVIDERS].sort((a, b) => (a.localOnly ? 1 : 0) - (b.localOnly ? 1 : 0));
+    const custom = (props.customProviders ?? []).map((cp) => ({
+      ...cp,
+      _isCustom: true as const,
+    }));
+    const all: Array<(typeof builtIn)[number] | (typeof custom)[number]> = [...builtIn, ...custom];
+    return all.sort((a, b) => {
+      const nameA = 'name' in a ? a.name : '';
+      const nameB = 'name' in b ? b.name : '';
+      return nameA.localeCompare(nameB);
+    });
+  };
 
   const getProviderByAuth = (provId: string, authType: AuthType) =>
     props.providers.find((p) => p.provider === provId && p.auth_type === authType);
@@ -276,56 +287,58 @@ const ProviderSelectModal: Component<Props> = (props) => {
             </div>
 
             {/* -- Tabs -- */}
-            <div class="provider-modal__tabs" role="tablist">
-              <button
-                role="tab"
-                aria-selected={activeTab() === 'subscription'}
-                class="provider-modal__tab"
-                classList={{ 'provider-modal__tab--active': activeTab() === 'subscription' }}
-                onClick={() => setActiveTab('subscription')}
-              >
-                <svg
-                  class="provider-modal__tab-icon"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  style="color: #22c55e"
+            <div class="provider-modal__tabs-wrapper">
+              <div class="panel__tabs" role="tablist">
+                <button
+                  role="tab"
+                  aria-selected={activeTab() === 'subscription'}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': activeTab() === 'subscription' }}
+                  onClick={() => setActiveTab('subscription')}
                 >
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Subscription
-              </button>
-              <button
-                role="tab"
-                aria-selected={activeTab() === 'api_key'}
-                class="provider-modal__tab"
-                classList={{ 'provider-modal__tab--active': activeTab() === 'api_key' }}
-                onClick={() => setActiveTab('api_key')}
-              >
-                <svg
-                  class="provider-modal__tab-icon"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  style="color: #f59e0b"
+                  <svg
+                    class="provider-modal__tab-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    style="color: #1cc4bf"
+                  >
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  Subscription
+                </button>
+                <button
+                  role="tab"
+                  aria-selected={activeTab() === 'api_key'}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': activeTab() === 'api_key' }}
+                  onClick={() => setActiveTab('api_key')}
                 >
-                  <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                </svg>
-                API Keys
-              </button>
+                  <svg
+                    class="provider-modal__tab-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    style="color: #e59d55"
+                  >
+                    <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                  </svg>
+                  API Keys
+                </button>
+              </div>
             </div>
 
             {/* -- Subscription Tab -- */}
@@ -378,14 +391,6 @@ const ProviderSelectModal: Component<Props> = (props) => {
                     );
                   }}
                 </For>
-                <a
-                  class="provider-modal__request-link"
-                  href="https://github.com/mnfst/manifest/discussions/973"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Request new subscription model
-                </a>
               </div>
             </Show>
 
@@ -397,27 +402,53 @@ const ProviderSelectModal: Component<Props> = (props) => {
               <div class="provider-modal__list">
                 <For each={apiKeyProviders()}>
                   {(prov) => {
-                    const connected = () => isConnected(prov.id) || isNoKeyConnected(prov.id);
-                    const disabled = () => !!prov.localOnly && !isLocalMode();
+                    if ('_isCustom' in prov) {
+                      const cp = prov as CustomProviderData & { _isCustom: true };
+                      return (
+                        <button class="provider-toggle" onClick={() => openEditCustom(cp)}>
+                          <span class="provider-toggle__icon">
+                            <span
+                              class="provider-card__logo-letter"
+                              style={{ background: customProviderColor(cp.name) }}
+                            >
+                              {cp.name.charAt(0).toUpperCase()}
+                            </span>
+                          </span>
+                          <span class="provider-toggle__info">
+                            <span class="provider-toggle__name">
+                              {cp.name}
+                              <span class="provider-toggle__tag">Custom</span>
+                            </span>
+                          </span>
+                          <span class="provider-toggle__switch provider-toggle__switch--on">
+                            <span class="provider-toggle__switch-thumb" />
+                          </span>
+                        </button>
+                      );
+                    }
+
+                    const builtIn = prov as (typeof PROVIDERS)[number];
+                    const connected = () => isConnected(builtIn.id) || isNoKeyConnected(builtIn.id);
+                    const disabled = () => !!builtIn.localOnly && !isLocalMode();
 
                     return (
                       <button
                         class="provider-toggle"
                         disabled={disabled()}
-                        onClick={() => !disabled() && openDetail(prov.id, 'api_key')}
+                        onClick={() => !disabled() && openDetail(builtIn.id, 'api_key')}
                       >
                         <span class="provider-toggle__icon">
-                          {providerIcon(prov.id, 20) ?? (
+                          {providerIcon(builtIn.id, 20) ?? (
                             <span
                               class="provider-card__logo-letter"
-                              style={{ background: prov.color }}
+                              style={{ background: builtIn.color }}
                             >
-                              {prov.initial}
+                              {builtIn.initial}
                             </span>
                           )}
                         </span>
                         <span class="provider-toggle__info">
-                          <span class="provider-toggle__name">{prov.name}</span>
+                          <span class="provider-toggle__name">{builtIn.name}</span>
                           <Show when={disabled()}>
                             <span class="provider-toggle__local-only">
                               Only available on Manifest Local
@@ -436,64 +467,20 @@ const ProviderSelectModal: Component<Props> = (props) => {
                     );
                   }}
                 </For>
-                <a
-                  class="provider-modal__request-link"
-                  href="https://github.com/mnfst/manifest/discussions/973"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Request new model
-                </a>
-              </div>
-
-              <div class="custom-provider-section">
-                <div class="custom-provider-section__header">Custom providers</div>
-                <For each={props.customProviders ?? []}>
-                  {(cp) => (
-                    <button class="provider-toggle" onClick={() => openEditCustom(cp)}>
-                      <span class="provider-toggle__icon">
-                        <span
-                          class="provider-card__logo-letter"
-                          style={{ background: 'var(--custom-provider-color)' }}
-                        >
-                          {cp.name.charAt(0).toUpperCase()}
-                        </span>
-                      </span>
-                      <span class="provider-toggle__info">
-                        <span class="provider-toggle__name">{cp.name}</span>
-                        <span class="provider-toggle__local-only">
-                          {cp.models.length} model{cp.models.length !== 1 ? 's' : ''}
-                        </span>
-                      </span>
-                    </button>
-                  )}
-                </For>
-                <button
-                  class="provider-toggle"
-                  onClick={openCustomForm}
-                  style="color: hsl(var(--primary));"
-                >
-                  <span class="provider-toggle__icon" style="color: hsl(var(--primary));">
+                <div class="provider-modal__add-custom">
+                  <button class="provider-modal__add-custom-btn" onClick={openCustomForm}>
                     <svg
-                      width="20"
-                      height="20"
+                      width="16"
+                      height="16"
                       viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      fill="currentColor"
                       aria-hidden="true"
                     >
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M12 8v8" />
-                      <path d="M8 12h8" />
+                      <path d="M4.5 11h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5C3.67 3 3 3.67 3 4.5v5c0 .83.67 1.5 1.5 1.5M5 5h4v4H5zm14.5-2h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5M19 9h-4V5h4zM4.5 21h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5m.5-6h4v4H5zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3z" />
                     </svg>
-                  </span>
-                  <span class="provider-toggle__info">
-                    <span class="provider-toggle__name">Add custom provider</span>
-                  </span>
-                </button>
+                    Add custom provider
+                  </button>
+                </div>
               </div>
             </Show>
 

@@ -39,6 +39,7 @@ vi.mock("../../src/services/formatters.js", () => ({
   formatTime: (t: string) => t,
   formatDuration: (ms: number) => ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`,
   formatErrorMessage: (s: string) => s,
+  customProviderColor: vi.fn(() => '#6366f1'),
 }));
 
 vi.mock("../../src/components/SetupModal.jsx", () => ({
