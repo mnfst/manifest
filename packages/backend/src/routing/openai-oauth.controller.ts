@@ -1,10 +1,21 @@
-import { Controller, Get, Query, Req, Res, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  Res,
+  Logger,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
-import { OpenaiOauthService } from './openai-oauth.service';
+import { OpenaiOauthService, OAuthTokenBlob, oauthDoneHtml } from './openai-oauth.service';
 import { ResolveAgentService } from './resolve-agent.service';
+import { RoutingService } from './routing.service';
 
 @Controller('api/v1/oauth/openai')
 export class OpenaiOauthController {
@@ -13,6 +24,7 @@ export class OpenaiOauthController {
   constructor(
     private readonly oauthService: OpenaiOauthService,
     private readonly resolveAgent: ResolveAgentService,
+    private readonly routingService: RoutingService,
   ) {}
 
   /**
@@ -28,8 +40,34 @@ export class OpenaiOauthController {
   ) {
     const agent = await this.resolveAgent.resolve(user.id, agentName);
     const backendUrl = `${req.protocol}://${req.get('host')}`;
-    const url = this.oauthService.generateAuthorizationUrl(agent.id, user.id, backendUrl);
-    return { url };
+    try {
+      const url = await this.oauthService.generateAuthorizationUrl(agent.id, user.id, backendUrl);
+      return { url };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to start OAuth callback server';
+      throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+  }
+
+  /**
+   * Revoke the stored OpenAI OAuth token (best-effort) and disconnect the provider.
+   */
+  @Post('revoke')
+  async revoke(@Query('agentName') agentName: string, @CurrentUser() user: AuthUser) {
+    const agent = await this.resolveAgent.resolve(user.id, agentName);
+    const apiKey = await this.routingService.getProviderApiKey(agent.id, 'openai', 'subscription');
+
+    if (apiKey) {
+      try {
+        const blob = JSON.parse(apiKey) as OAuthTokenBlob;
+        if (blob.t) await this.oauthService.revokeToken(blob.t);
+        if (blob.r) await this.oauthService.revokeToken(blob.r);
+      } catch {
+        this.logger.warn('Could not parse OAuth token blob for revocation');
+      }
+    }
+
+    return { ok: true };
   }
 
   /**
@@ -41,22 +79,10 @@ export class OpenaiOauthController {
   @Public()
   done(@Query('ok') ok: string, @Res() res: Response) {
     const success = ok === '1';
-    const message = success ? 'manifest-oauth-success' : 'manifest-oauth-error';
-    const text = success
-      ? 'Login successful! This window will close automatically.'
-      : 'Login failed. Please close this window and try again.';
 
     res.setHeader('Content-Type', 'text/html');
-    res.send(`<!DOCTYPE html>
-<html>
-<head><title>Manifest — OpenAI Login</title></head>
-<body style="font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#eee;">
-<p>${text}</p>
-<script>
-if(window.opener){window.opener.postMessage({type:'${message}'},'*');}
-setTimeout(function(){window.close();},2000);
-</script>
-</body>
-</html>`);
+    // Override Helmet's CSP to allow the inline script on this page
+    res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'unsafe-inline'");
+    res.send(oauthDoneHtml(success));
   }
 }

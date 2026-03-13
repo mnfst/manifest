@@ -7,6 +7,11 @@ import {
   transformAnthropicStreamChunk,
   createAnthropicStreamTransformer,
 } from './anthropic-adapter';
+import {
+  toResponsesRequest,
+  fromResponsesResponse,
+  transformResponsesStreamChunk,
+} from './chatgpt-adapter';
 import { injectOpenRouterCacheControl } from './cache-injection';
 
 /**
@@ -58,6 +63,8 @@ export interface ForwardResult {
   isGoogle: boolean;
   /** True when we converted from Anthropic format (needs SSE transform). */
   isAnthropic: boolean;
+  /** True when we converted from ChatGPT Responses API format (needs SSE transform). */
+  isChatGpt: boolean;
 }
 
 const PROVIDER_TIMEOUT_MS = 180_000;
@@ -95,15 +102,20 @@ export class ProviderClient {
       endpoint = customEndpoint;
       endpointKey = 'custom';
     } else {
-      const resolved = resolveEndpointKey(provider);
+      let resolved = resolveEndpointKey(provider);
       if (!resolved) {
         throw new Error(`No endpoint configured for provider: ${provider}`);
+      }
+      // ChatGPT subscription tokens use a different backend endpoint
+      if (resolved === 'openai' && authType === 'subscription') {
+        resolved = 'openai-subscription';
       }
       endpointKey = resolved;
       endpoint = PROVIDER_ENDPOINTS[endpointKey];
     }
     const isGoogle = endpoint.format === 'google';
     const isAnthropic = endpoint.format === 'anthropic';
+    const isChatGpt = endpoint.format === 'chatgpt';
 
     const bareModel = stripModelPrefix(model, endpointKey);
     let url: string;
@@ -121,6 +133,10 @@ export class ProviderClient {
       requestBody = toAnthropicRequest(body, bareModel);
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
+    } else if (isChatGpt) {
+      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+      headers = endpoint.buildHeaders(apiKey, authType);
+      requestBody = toResponsesRequest(body, bareModel);
     } else {
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
@@ -150,7 +166,17 @@ export class ProviderClient {
       signal: fetchSignal,
     });
 
-    return { response, isGoogle, isAnthropic };
+    return { response, isGoogle, isAnthropic, isChatGpt };
+  }
+
+  /** Convert a ChatGPT Responses API response to OpenAI format. */
+  convertChatGptResponse(body: Record<string, unknown>, model: string): Record<string, unknown> {
+    return fromResponsesResponse(body, model);
+  }
+
+  /** Convert a ChatGPT Responses API SSE chunk to OpenAI format. */
+  convertChatGptStreamChunk(chunk: string, model: string): string | null {
+    return transformResponsesStreamChunk(chunk, model);
   }
 
   /** Convert a Google non-streaming response to OpenAI format. */

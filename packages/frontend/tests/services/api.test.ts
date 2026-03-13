@@ -18,6 +18,7 @@ import {
   deactivateAllProviders,
   disconnectProvider,
   getOpenaiOAuthUrl,
+  revokeOpenaiOAuth,
   getTierAssignments,
   overrideTier,
   resetTier,
@@ -545,6 +546,20 @@ describe("getOpenaiOAuthUrl", () => {
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain("/api/v1/oauth/openai/authorize");
     expect(url).toContain("agentName=my-agent");
+  });
+});
+
+describe("revokeOpenaiOAuth", () => {
+  it("sends POST to /oauth/openai/revoke with agentName param", async () => {
+    const payload = { ok: true };
+    mockMutateOk(payload);
+
+    const result = await revokeOpenaiOAuth("my-agent");
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/oauth/openai/revoke?agentName=my-agent",
+      expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
   });
 });
 

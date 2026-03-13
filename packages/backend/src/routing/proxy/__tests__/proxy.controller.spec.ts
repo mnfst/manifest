@@ -116,7 +116,12 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
       meta: {
         tier: 'simple',
         model: 'gpt-4o',
@@ -150,7 +155,7 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: true, isAnthropic: false },
+      forward: { response: mockProviderResp, isGoogle: true, isAnthropic: false, isChatGpt: false },
       meta: {
         tier: 'standard',
         model: 'gemini-2.0-flash',
@@ -187,7 +192,7 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: true },
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: true, isChatGpt: false },
       meta: {
         tier: 'complex',
         model: 'claude-sonnet-4-20250514',
@@ -210,6 +215,46 @@ describe('ProxyController', () => {
     expect(res.json).toHaveBeenCalledWith(convertedBody);
   });
 
+  it('should convert ChatGPT response for non-streaming', async () => {
+    const chatgptBody = {
+      output: [{ type: 'message', content: [{ type: 'output_text', text: 'hi' }] }],
+      usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+    };
+    const convertedBody = {
+      choices: [{ message: { content: 'hi' } }],
+      usage: { prompt_tokens: 5, completion_tokens: 3 },
+    };
+
+    const mockProviderResp = new Response(JSON.stringify(chatgptBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false, isChatGpt: true },
+      meta: {
+        tier: 'standard',
+        model: 'gpt-5.3-codex',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        reason: 'scored',
+      },
+    });
+    (providerClient as Record<string, jest.Mock>).convertChatGptResponse = jest
+      .fn()
+      .mockReturnValue(convertedBody);
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(
+      (providerClient as Record<string, jest.Mock>).convertChatGptResponse,
+    ).toHaveBeenCalledWith(chatgptBody, 'gpt-5.3-codex');
+    expect(res.json).toHaveBeenCalledWith(convertedBody);
+  });
+
   it('should record success message with usage from non-streaming response', async () => {
     const responseBody = {
       choices: [{ message: { content: 'hello' } }],
@@ -221,7 +266,12 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
       meta: {
         tier: 'simple',
         model: 'gpt-4o',
@@ -260,7 +310,12 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
       meta: {
         tier: 'simple',
         model: 'gpt-4o',
@@ -291,7 +346,12 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
       meta: {
         tier: 'simple',
         model: 'gpt-4o',
@@ -320,7 +380,12 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
       meta: {
         tier: 'simple',
         model: 'gpt-4o',
@@ -350,7 +415,12 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
       meta: {
         tier: 'simple',
         model: 'gpt-4o',
@@ -394,7 +464,12 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
       meta: {
         tier: 'simple',
         model: 'gpt-4o',
@@ -432,7 +507,12 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
       meta: {
         tier: 'simple',
         model: 'gpt-4o',
@@ -460,7 +540,12 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
       meta: {
         tier: 'standard',
         model: 'gpt-4o',
@@ -594,6 +679,7 @@ describe('ProxyController', () => {
         response: new Response(JSON.stringify(responseBody), { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       },
       meta: {
         tier: 'simple',
@@ -627,6 +713,7 @@ describe('ProxyController', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       },
       meta: {
         tier: 'simple',
@@ -660,6 +747,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
       });
@@ -754,7 +842,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'gpt-4o',
@@ -792,7 +885,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'gpt-4o',
@@ -825,7 +923,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'complex',
           model: 'claude-opus-4',
@@ -859,7 +962,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'gpt-4o',
@@ -888,7 +996,7 @@ describe('ProxyController', () => {
         });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: makeResp(), isGoogle: false, isAnthropic: false },
+        forward: { response: makeResp(), isGoogle: false, isAnthropic: false, isChatGpt: false },
         meta: {
           tier: 'standard',
           model: 'gpt-4o',
@@ -904,7 +1012,7 @@ describe('ProxyController', () => {
       await new Promise((r) => setTimeout(r, 10));
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: makeResp(), isGoogle: false, isAnthropic: false },
+        forward: { response: makeResp(), isGoogle: false, isAnthropic: false, isChatGpt: false },
         meta: {
           tier: 'standard',
           model: 'gpt-4o',
@@ -996,7 +1104,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'gpt-4o',
@@ -1029,7 +1142,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'gpt-4o',
@@ -1060,6 +1178,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
       });
@@ -1078,6 +1197,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
       });
@@ -1168,6 +1288,7 @@ describe('ProxyController', () => {
           response: new Response(JSON.stringify(responseBody), { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: {
           tier: 'standard',
@@ -1196,6 +1317,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: {
           tier: 'standard',
@@ -1226,6 +1348,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: {
           tier: 'simple',
@@ -1267,7 +1390,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'complex',
           model: 'gpt-4o',
@@ -1316,6 +1444,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: {
           tier: 'standard',
@@ -1345,6 +1474,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: {
           tier: 'simple',
@@ -1365,7 +1495,7 @@ describe('ProxyController', () => {
       // Second request: provider 429 error, but user already seen
       const errorResp = new Response('{"error":"rate limit"}', { status: 429 });
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: errorResp, isGoogle: false, isAnthropic: false },
+        forward: { response: errorResp, isGoogle: false, isAnthropic: false, isChatGpt: false },
         meta: {
           tier: 'complex',
           model: 'gpt-4o',
@@ -1388,6 +1518,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: {
           tier: 'reasoning',
@@ -1469,7 +1600,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
       });
 
@@ -1497,6 +1633,7 @@ describe('ProxyController', () => {
           response: new Response(failingStream, { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
       });
@@ -1525,6 +1662,7 @@ describe('ProxyController', () => {
           response: new Response(failingStream, { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
       });
@@ -1642,7 +1780,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'gpt-4o',
@@ -1727,6 +1870,7 @@ describe('ProxyController', () => {
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: { tier: 'simple' as const, model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
       });
@@ -1777,7 +1921,12 @@ describe('ProxyController', () => {
       ]);
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'gpt-4o',
@@ -1807,7 +1956,12 @@ describe('ProxyController', () => {
       ]);
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: true },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: true,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'claude-sonnet-4-20250514',
@@ -1848,7 +2002,12 @@ describe('ProxyController', () => {
       ]);
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: true, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: true,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'gemini-2.0-flash',
@@ -1875,6 +2034,45 @@ describe('ProxyController', () => {
       expect(written.some((w) => w.includes('delta'))).toBe(true);
     });
 
+    it('should transform ChatGPT streaming through convertChatGptStreamChunk', async () => {
+      const mockProviderResp = createMockStreamResponse([
+        'event: response.output_text.delta\ndata: {"delta":"hi"}\n\n',
+      ]);
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: true,
+        },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-5.3-codex',
+          provider: 'OpenAI',
+          confidence: 0.8,
+          reason: 'scored',
+        },
+      });
+
+      (providerClient as Record<string, jest.Mock>).convertChatGptStreamChunk = jest
+        .fn()
+        .mockReturnValue('data: {"choices":[{"delta":{"content":"hi"}}]}\n\n');
+
+      const req = mockRequest({
+        messages: [{ role: 'user', content: 'test' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(
+        (providerClient as Record<string, jest.Mock>).convertChatGptStreamChunk,
+      ).toHaveBeenCalled();
+      expect(written.some((w) => w.includes('delta'))).toBe(true);
+    });
+
     it('should close stream on error after headers sent', async () => {
       // Simulate error during streaming (proxyRequest succeeds but stream fails)
       const failingStream = new ReadableStream({
@@ -1888,6 +2086,7 @@ describe('ProxyController', () => {
           response: new Response(failingStream, { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         },
         meta: {
           tier: 'standard',
@@ -1920,7 +2119,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'claude-sonnet-4',
@@ -1950,7 +2154,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'gpt-4o',
@@ -1977,7 +2186,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'simple',
           model: 'deepseek-chat',
@@ -2033,7 +2247,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'simple',
           model: 'claude-sonnet-4',
@@ -2098,7 +2317,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'gpt-4o',
@@ -2125,7 +2349,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'claude-sonnet-4',
@@ -2158,7 +2387,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'simple',
           model: 'gemini-flash',
@@ -2212,7 +2446,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'simple',
           model: 'gemini-flash',
@@ -2252,7 +2491,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'simple',
           model: 'deepseek-chat',
@@ -2287,7 +2531,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'simple',
           model: 'claude-sonnet-4',
@@ -2327,7 +2576,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'simple',
           model: 'gemini-flash',
@@ -2391,7 +2645,12 @@ describe('ProxyController', () => {
     });
 
     proxyService.proxyRequest.mockResolvedValue({
-      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
       meta: {
         tier: 'simple',
         model: 'gemini-flash',
@@ -2446,7 +2705,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'claude-haiku-4-5-20251001',
@@ -2484,7 +2748,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'claude-haiku-4-5-20251001',
@@ -2522,7 +2791,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'standard',
           model: 'claude-haiku-4-5-20251001',
@@ -2556,7 +2830,12 @@ describe('ProxyController', () => {
       });
 
       proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
         meta: {
           tier: 'simple',
           model: 'gpt-4o',

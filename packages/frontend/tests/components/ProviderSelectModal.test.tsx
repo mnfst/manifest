@@ -4,6 +4,7 @@ import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
 const mockGetOpenaiOAuthUrl = vi.fn();
+const mockRevokeOpenaiOAuth = vi.fn();
 const mockCreateCustomProvider = vi.fn();
 const mockUpdateCustomProvider = vi.fn();
 const mockDeleteCustomProvider = vi.fn();
@@ -12,6 +13,7 @@ vi.mock("../../src/services/api.js", () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+  revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
   createCustomProvider: (...args: unknown[]) => mockCreateCustomProvider(...args),
   updateCustomProvider: (...args: unknown[]) => mockUpdateCustomProvider(...args),
   deleteCustomProvider: (...args: unknown[]) => mockDeleteCustomProvider(...args),
@@ -71,6 +73,7 @@ describe("ProviderSelectModal", () => {
     mockConnectProvider.mockResolvedValue({});
     mockDisconnectProvider.mockResolvedValue({ notifications: [] });
     mockGetOpenaiOAuthUrl.mockResolvedValue({ url: "https://auth.openai.com/oauth/authorize?test=1" });
+    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
   });
 
   it("renders modal with title", () => {
@@ -1183,7 +1186,36 @@ describe("ProviderSelectModal", () => {
       expect(onSwitches.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("disconnects OpenAI OAuth subscription", async () => {
+    it("disconnects OpenAI OAuth subscription and revokes token", async () => {
+      const subProvider: RoutingProvider = {
+        id: "p-openai-sub",
+        provider: "openai",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: '{"t":"eyJ',
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Disconnect"));
+
+      await waitFor(() => {
+        expect(mockRevokeOpenaiOAuth).toHaveBeenCalledWith("test-agent");
+        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "openai", "subscription");
+      });
+      expect(onUpdate).toHaveBeenCalled();
+    });
+
+    it("still disconnects when token revocation fails", async () => {
+      mockRevokeOpenaiOAuth.mockRejectedValue(new Error("revoke failed"));
       const subProvider: RoutingProvider = {
         id: "p-openai-sub",
         provider: "openai",
@@ -1220,7 +1252,7 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("Log in with OpenAI"));
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith("Popup blocked. Please allow popups and try again.");
+        expect(toast.error).toHaveBeenCalledWith("Popup was blocked by your browser. Allow popups for this site, then try again.");
       });
 
       vi.restoreAllMocks();
@@ -1246,6 +1278,7 @@ describe("ProviderSelectModal", () => {
       });
       expect(mockPopup.close).toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });
@@ -1295,6 +1328,134 @@ describe("ProviderSelectModal", () => {
       // No success or error toast, just stopped polling
       expect(toast.success).not.toHaveBeenCalled();
       expect(toast.error).not.toHaveBeenCalled();
+      expect(onUpdate).not.toHaveBeenCalled();
+
+      vi.restoreAllMocks();
+    });
+
+    it("detects successful OAuth via BroadcastChannel", async () => {
+      const mockPopup = {
+        closed: false,
+        close: vi.fn(),
+        get location(): { href: string } {
+          throw new DOMException("cross-origin");
+        },
+      };
+      vi.spyOn(window, "open").mockReturnValue(mockPopup as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Log in with OpenAI"));
+
+      // Simulate the done page sending via BroadcastChannel
+      await new Promise((r) => setTimeout(r, 50));
+      const bc = new BroadcastChannel("manifest-oauth");
+      bc.postMessage({ type: "manifest-oauth-success" });
+      bc.close();
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith("OpenAI subscription connected");
+      });
+      expect(onUpdate).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
+
+      vi.restoreAllMocks();
+    });
+
+    it("BroadcastChannel still works after COOP makes popup appear closed", async () => {
+      // COOP headers from auth.openai.com sever window.opener,
+      // making popup.closed return true immediately in the opener.
+      const mockPopup = {
+        closed: true,
+        close: vi.fn(),
+        get location(): { href: string } {
+          throw new DOMException("cross-origin");
+        },
+      };
+      vi.spyOn(window, "open").mockReturnValue(mockPopup as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Log in with OpenAI"));
+
+      // Poll detects popup.closed=true, but BroadcastChannel stays alive
+      await new Promise((r) => setTimeout(r, 500));
+
+      // OAuth flow completes and done page sends BroadcastChannel message
+      const bc = new BroadcastChannel("manifest-oauth");
+      bc.postMessage({ type: "manifest-oauth-success" });
+      bc.close();
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith("OpenAI subscription connected");
+      });
+      expect(onUpdate).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
+
+      vi.restoreAllMocks();
+    });
+
+    it("detects successful OAuth via postMessage", async () => {
+      const mockPopup = {
+        closed: false,
+        close: vi.fn(),
+        get location(): { href: string } {
+          throw new DOMException("cross-origin");
+        },
+      };
+      vi.spyOn(window, "open").mockReturnValue(mockPopup as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Log in with OpenAI"));
+
+      // Simulate the done page sending a postMessage
+      await new Promise((r) => setTimeout(r, 50));
+      window.dispatchEvent(
+        new MessageEvent("message", { data: { type: "manifest-oauth-success" } }),
+      );
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith("OpenAI subscription connected");
+      });
+      expect(mockPopup.close).toHaveBeenCalled();
+      expect(onUpdate).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
+
+      vi.restoreAllMocks();
+    });
+
+    it("detects failed OAuth via postMessage", async () => {
+      const mockPopup = {
+        closed: false,
+        close: vi.fn(),
+        get location(): { href: string } {
+          throw new DOMException("cross-origin");
+        },
+      };
+      vi.spyOn(window, "open").mockReturnValue(mockPopup as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Log in with OpenAI"));
+
+      await new Promise((r) => setTimeout(r, 50));
+      window.dispatchEvent(
+        new MessageEvent("message", { data: { type: "manifest-oauth-error" } }),
+      );
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith("OAuth login failed. Please try again.");
+      });
+      expect(mockPopup.close).toHaveBeenCalled();
       expect(onUpdate).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();

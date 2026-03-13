@@ -1,16 +1,19 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
-import { PROVIDERS, validateApiKey, validateSubscriptionKey } from '../services/providers.js';
+import { PROVIDERS } from '../services/providers.js';
+import { validateApiKey, validateSubscriptionKey } from '../services/provider-utils.js';
 import { providerIcon } from './ProviderIcon.js';
 import {
   connectProvider,
   disconnectProvider,
   getOpenaiOAuthUrl,
+  revokeOpenaiOAuth,
   type RoutingProvider,
   type CustomProviderData,
   type AuthType,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { isLocalMode } from '../services/local-mode.js';
+import { monitorOAuthPopup } from '../services/oauth-popup.js';
 import CustomProviderForm from './CustomProviderForm.js';
 import { CopyButton } from './SetupStepInstall.js';
 
@@ -135,37 +138,25 @@ const ProviderSelectModal: Component<Props> = (props) => {
       const { url } = await getOpenaiOAuthUrl(props.agentName);
       const popup = window.open(url, 'manifest-oauth', 'width=500,height=700');
       if (!popup) {
-        toast.error('Popup blocked. Please allow popups and try again.');
+        toast.error(
+          'Popup was blocked by your browser. Allow popups for this site, then try again.',
+        );
         setBusy(false);
         return;
       }
 
-      // Poll for the popup reaching the /done page or being closed
-      const poll = setInterval(() => {
-        try {
-          // Once the popup navigates back to our origin, we can read its URL
-          const doneUrl = popup.location?.href;
-          if (doneUrl?.includes('/oauth/openai/done')) {
-            clearInterval(poll);
-            const ok = new URL(doneUrl).searchParams.get('ok') === '1';
-            popup.close();
-            if (ok) {
-              toast.success(`${provDef.name} subscription connected`);
-              props.onUpdate();
-              goBack();
-            } else {
-              toast.error('OAuth login failed. Please try again.');
-            }
-            setBusy(false);
-          }
-        } catch {
-          // Cross-origin — popup is still on auth.openai.com, keep polling
-        }
-        if (popup.closed) {
-          clearInterval(poll);
+      monitorOAuthPopup(popup, {
+        onSuccess: () => {
+          toast.success(`${provDef.name} subscription connected`);
+          props.onUpdate();
+          props.onClose();
           setBusy(false);
-        }
-      }, 300);
+        },
+        onFailure: () => {
+          toast.error('OAuth login failed. Please try again.');
+          setBusy(false);
+        },
+      });
     } catch {
       setBusy(false);
     }
@@ -233,8 +224,13 @@ const ProviderSelectModal: Component<Props> = (props) => {
   };
 
   const handleDisconnect = async (provId: string) => {
+    const provDef = PROVIDERS.find((p) => p.id === provId);
     setBusy(true);
     try {
+      // Revoke OAuth tokens before disconnecting (best-effort)
+      if (provDef?.subscriptionOAuth && selectedAuthType() === 'subscription') {
+        await revokeOpenaiOAuth(props.agentName).catch(() => {});
+      }
       const result = await disconnectProvider(props.agentName, provId, selectedAuthType());
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {

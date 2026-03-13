@@ -9,6 +9,7 @@ vi.mock("../../src/services/api.js", () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+  revokeOpenaiOAuth: () => Promise.resolve({ ok: true }),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({

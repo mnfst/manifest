@@ -330,10 +330,5 @@ export const STAGES: StageDef[] = [
   },
 ];
 
-/* ── Helpers — re-exported from provider-utils.ts ── */
-export {
-  getProvider,
-  validateApiKey,
-  validateSubscriptionKey,
-  getModelLabel,
-} from './provider-utils.js';
+/* ── Helpers ── */
+export { getProvider, getModelLabel } from './provider-utils.js';

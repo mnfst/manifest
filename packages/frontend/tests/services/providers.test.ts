@@ -1,12 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  getModelLabel,
-  getProvider,
-  validateApiKey,
-  validateSubscriptionKey,
-  PROVIDERS,
-  STAGES,
-} from "../../src/services/providers";
+import { PROVIDERS, STAGES, getModelLabel, getProvider } from "../../src/services/providers";
+import { validateApiKey, validateSubscriptionKey } from "../../src/services/provider-utils";
 
 /* ── getProvider ────────────────────────────────── */
 

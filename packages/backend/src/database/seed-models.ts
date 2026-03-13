@@ -57,6 +57,14 @@ export const SEED_MODELS: ReadonlyArray<SeedModelTuple> = [
   ['gpt-4.1', 'OpenAI', 0.000002, 0.000008, 1047576, false, true, 'GPT-4.1'],
   ['gpt-4.1-mini', 'OpenAI', 0.0000004, 0.0000016, 1047576, false, true, 'GPT-4.1 Mini'],
   ['gpt-4.1-nano', 'OpenAI', 0.0000001, 0.0000004, 1047576, false, false, 'GPT-4.1 Nano'],
+  // OpenAI Codex (ChatGPT subscription only — zero cost, Responses API)
+  ['gpt-5.3-codex', 'OpenAI', 0, 0, 200000, true, true, 'GPT-5.3 Codex'],
+  ['gpt-5.3-codex-spark', 'OpenAI', 0, 0, 200000, true, true, 'GPT-5.3 Codex Spark'],
+  ['gpt-5.2-codex', 'OpenAI', 0, 0, 200000, true, true, 'GPT-5.2 Codex'],
+  ['gpt-5.2', 'OpenAI', 0, 0, 200000, true, true, 'GPT-5.2'],
+  ['gpt-5.1', 'OpenAI', 0, 0, 200000, true, true, 'GPT-5.1'],
+  ['gpt-5.1-codex-max', 'OpenAI', 0, 0, 200000, true, true, 'GPT-5.1 Codex Max'],
+  ['gpt-5.1-codex-mini', 'OpenAI', 0, 0, 200000, true, true, 'GPT-5.1 Codex Mini'],
   // OpenAI reasoning
   ['o3', 'OpenAI', 0.000002, 0.000008, 200000, true, true, 'o3'],
   ['o3-mini', 'OpenAI', 0.0000011, 0.0000044, 200000, true, true, 'o3 Mini'],

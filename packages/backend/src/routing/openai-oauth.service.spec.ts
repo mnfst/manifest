@@ -37,14 +37,16 @@ describe('OpenaiOauthService', () => {
   });
 
   afterEach(() => {
-    // Force-clear internal callback server ref to avoid cross-test leaks
+    // Force-clear internal refs to avoid cross-test leaks
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (service as any).callbackServer = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (service as any).serverReady = null;
   });
 
   describe('generateAuthorizationUrl', () => {
-    it('returns a valid OpenAI authorize URL with PKCE params', () => {
-      const url = service.generateAuthorizationUrl('agent-1', 'user-1');
+    it('returns a valid OpenAI authorize URL with PKCE params', async () => {
+      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
 
       expect(url).toContain('https://auth.openai.com/oauth/authorize');
       expect(url).toContain('client_id=app_EMoamEEZ73f0CkXaXp7hrann');
@@ -58,27 +60,27 @@ describe('OpenaiOauthService', () => {
       expect(url).toContain('scope=openid+profile+email+offline_access');
     });
 
-    it('stores pending state for later exchange', () => {
-      service.generateAuthorizationUrl('agent-1', 'user-1');
+    it('stores pending state for later exchange', async () => {
+      await service.generateAuthorizationUrl('agent-1', 'user-1');
       expect(service.getPendingCount()).toBe(1);
     });
 
-    it('cleans up expired states on new URL generation', () => {
-      const url = service.generateAuthorizationUrl('agent-1', 'user-1');
+    it('cleans up expired states on new URL generation', async () => {
+      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
       const stateParam = new URL(url).searchParams.get('state')!;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pending = (service as any).pending as Map<string, { expiresAt: number }>;
       pending.get(stateParam)!.expiresAt = Date.now() - 1000;
 
-      service.generateAuthorizationUrl('agent-2', 'user-2');
+      await service.generateAuthorizationUrl('agent-2', 'user-2');
       expect(service.getPendingCount()).toBe(1);
     });
   });
 
   describe('exchangeCode', () => {
     it('exchanges code for tokens and stores them', async () => {
-      const url = service.generateAuthorizationUrl('agent-1', 'user-1');
+      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
 
       fetchMock.mockResolvedValueOnce({
@@ -120,7 +122,7 @@ describe('OpenaiOauthService', () => {
     });
 
     it('throws for expired state', async () => {
-      const url = service.generateAuthorizationUrl('agent-1', 'user-1');
+      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,7 +134,7 @@ describe('OpenaiOauthService', () => {
     });
 
     it('throws when token exchange fails', async () => {
-      const url = service.generateAuthorizationUrl('agent-1', 'user-1');
+      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
 
       fetchMock.mockResolvedValueOnce({
@@ -144,7 +146,7 @@ describe('OpenaiOauthService', () => {
     });
 
     it('removes state after successful exchange', async () => {
-      const url = service.generateAuthorizationUrl('agent-1', 'user-1');
+      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
 
       fetchMock.mockResolvedValueOnce({
@@ -290,25 +292,53 @@ describe('OpenaiOauthService', () => {
     });
   });
 
+  describe('revokeToken', () => {
+    it('calls OpenAI revoke endpoint with the token', async () => {
+      fetchMock.mockResolvedValueOnce({ ok: true });
+
+      await service.revokeToken('access-token-123');
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://auth.openai.com/oauth/revoke',
+        expect.objectContaining({ method: 'POST' }),
+      );
+      const body = fetchMock.mock.calls[0][1].body as URLSearchParams;
+      expect(body.get('token')).toBe('access-token-123');
+      expect(body.get('client_id')).toBe('app_EMoamEEZ73f0CkXaXp7hrann');
+    });
+
+    it('logs warning when revocation response is not ok', async () => {
+      fetchMock.mockResolvedValueOnce({ ok: false, text: async () => 'invalid_token' });
+      // Should not throw
+      await service.revokeToken('bad-token');
+    });
+
+    it('logs warning when fetch throws a network error', async () => {
+      fetchMock.mockRejectedValueOnce(new Error('Network error'));
+      // Should not throw
+      await service.revokeToken('any-token');
+    });
+  });
+
   describe('callback server', () => {
-    it('starts callback server on first URL generation', () => {
-      service.generateAuthorizationUrl('agent-1', 'user-1');
+    it('starts callback server on first URL generation', async () => {
+      await service.generateAuthorizationUrl('agent-1', 'user-1');
       expect(createServerMock).toHaveBeenCalled();
     });
 
-    it('does not start a second server when one is already running', () => {
-      service.generateAuthorizationUrl('agent-1', 'user-1');
+    it('does not start a second server when one is already running', async () => {
+      await service.generateAuthorizationUrl('agent-1', 'user-1');
       const callCount = createServerMock.mock.calls.length;
-      service.generateAuthorizationUrl('agent-2', 'user-2');
+      await service.generateAuthorizationUrl('agent-2', 'user-2');
       expect(createServerMock.mock.calls.length).toBe(callCount);
     });
 
     it('shuts down callback server after last exchange completes', async () => {
-      service.generateAuthorizationUrl('agent-1', 'user-1');
+      await service.generateAuthorizationUrl('agent-1', 'user-1');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const server = (service as any).callbackServer;
 
-      const url = service.generateAuthorizationUrl('agent-1', 'user-1');
+      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
 
       // Remove extra pending entries so only one remains
@@ -332,7 +362,7 @@ describe('OpenaiOauthService', () => {
       expect(server.close).toHaveBeenCalled();
     });
 
-    it('handles EADDRINUSE gracefully', () => {
+    it('rejects with error when EADDRINUSE', async () => {
       let errorHandler: (err: NodeJS.ErrnoException) => void;
       createServerMock.mockReturnValueOnce({
         listen: jest.fn(),
@@ -343,21 +373,25 @@ describe('OpenaiOauthService', () => {
         unref: jest.fn(),
       });
 
-      // Reset internal server ref so a fresh server is created
+      // Reset internal refs so a fresh server is created
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).callbackServer = null;
-      service.generateAuthorizationUrl('agent-1', 'user-1');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).serverReady = null;
+
+      const promise = service.generateAuthorizationUrl('agent-1', 'user-1');
 
       // Simulate EADDRINUSE
       const err = new Error('Port in use') as NodeJS.ErrnoException;
       err.code = 'EADDRINUSE';
       errorHandler!(err);
 
+      await expect(promise).rejects.toThrow('Port 1455 is already in use');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((service as any).callbackServer).toBeNull();
     });
 
-    it('handles non-EADDRINUSE server errors', () => {
+    it('rejects with error on non-EADDRINUSE server errors', async () => {
       let errorHandler: (err: NodeJS.ErrnoException) => void;
       createServerMock.mockReturnValueOnce({
         listen: jest.fn(),
@@ -370,12 +404,16 @@ describe('OpenaiOauthService', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).callbackServer = null;
-      service.generateAuthorizationUrl('agent-1', 'user-1');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).serverReady = null;
+
+      const promise = service.generateAuthorizationUrl('agent-1', 'user-1');
 
       const err = new Error('Random error') as NodeJS.ErrnoException;
       err.code = 'ECONNREFUSED';
       errorHandler!(err);
 
+      await expect(promise).rejects.toThrow('Callback server failed: Random error');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((service as any).callbackServer).toBeNull();
     });
@@ -394,7 +432,9 @@ describe('OpenaiOauthService', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).callbackServer = null;
-      const url = service.generateAuthorizationUrl('agent-1', 'user-1');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).serverReady = null;
+      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
 
       fetchMock.mockResolvedValueOnce({
@@ -415,7 +455,7 @@ describe('OpenaiOauthService', () => {
       expect(res.end).toHaveBeenCalledWith(expect.stringContaining('manifest-oauth-success'));
     });
 
-    it('callback server returns 404 for non-callback paths', () => {
+    it('callback server returns 404 for non-callback paths', async () => {
       let requestHandler: (req: unknown, res: unknown) => void;
       createServerMock.mockImplementationOnce((handler: (req: unknown, res: unknown) => void) => {
         requestHandler = handler;
@@ -429,13 +469,47 @@ describe('OpenaiOauthService', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).callbackServer = null;
-      service.generateAuthorizationUrl('agent-1', 'user-1');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).serverReady = null;
+      await service.generateAuthorizationUrl('agent-1', 'user-1');
 
       const res = { writeHead: jest.fn(), end: jest.fn() };
       requestHandler!({ url: '/some/other/path' }, res);
 
       expect(res.writeHead).toHaveBeenCalledWith(404);
       expect(res.end).toHaveBeenCalledWith('Not found');
+    });
+
+    it('callback server returns error HTML when provider sends error param', async () => {
+      let requestHandler: (req: unknown, res: unknown) => void;
+      createServerMock.mockImplementationOnce((handler: (req: unknown, res: unknown) => void) => {
+        requestHandler = handler;
+        return {
+          listen: jest.fn((_p: number, _h: string, cb?: () => void) => cb?.()),
+          close: jest.fn(),
+          on: jest.fn(),
+          unref: jest.fn(),
+        };
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).callbackServer = null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).serverReady = null;
+      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
+      const state = new URL(url).searchParams.get('state')!;
+
+      const res = { writeHead: jest.fn(), end: jest.fn() };
+      requestHandler!(
+        {
+          url: `/auth/callback?error=access_denied&error_description=User+denied&state=${state}`,
+        },
+        res,
+      );
+
+      expect(res.writeHead).toHaveBeenCalledWith(200, { 'Content-Type': 'text/html' });
+      expect(res.end).toHaveBeenCalledWith(expect.stringContaining('manifest-oauth-error'));
+      expect(service.getPendingCount()).toBe(0);
     });
 
     it('callback server returns error HTML on exchange failure', async () => {
@@ -452,7 +526,9 @@ describe('OpenaiOauthService', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).callbackServer = null;
-      service.generateAuthorizationUrl('agent-1', 'user-1');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).serverReady = null;
+      await service.generateAuthorizationUrl('agent-1', 'user-1');
 
       const res = { writeHead: jest.fn(), end: jest.fn() };
       // Use an invalid state to trigger an error
@@ -477,7 +553,13 @@ describe('OpenaiOauthService', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).callbackServer = null;
-      const url = service.generateAuthorizationUrl('agent-1', 'user-1', 'http://localhost:34379');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).serverReady = null;
+      const url = await service.generateAuthorizationUrl(
+        'agent-1',
+        'user-1',
+        'http://localhost:34379',
+      );
       const state = new URL(url).searchParams.get('state')!;
 
       fetchMock.mockResolvedValueOnce({
@@ -513,7 +595,13 @@ describe('OpenaiOauthService', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).callbackServer = null;
-      const url = service.generateAuthorizationUrl('agent-1', 'user-1', 'http://localhost:34379');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).serverReady = null;
+      const url = await service.generateAuthorizationUrl(
+        'agent-1',
+        'user-1',
+        'http://localhost:34379',
+      );
       const state = new URL(url).searchParams.get('state')!;
 
       fetchMock.mockResolvedValueOnce({

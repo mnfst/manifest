@@ -354,6 +354,13 @@ export function getOpenaiOAuthUrl(agentName: string) {
   });
 }
 
+export function revokeOpenaiOAuth(agentName: string) {
+  return fetchMutate<{ ok: boolean }>(
+    `${BASE_URL}/oauth/openai/revoke?agentName=${encodeURIComponent(agentName)}`,
+    { method: 'POST' },
+  );
+}
+
 export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {
   const base = `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers/${encodeURIComponent(provider)}`;
   const url = authType ? `${base}?authType=${authType}` : base;

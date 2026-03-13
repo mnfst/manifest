@@ -189,6 +189,7 @@ export class ProxyService {
             response: rebuilt,
             isGoogle: forward.isGoogle,
             isAnthropic: forward.isAnthropic,
+            isChatGpt: forward.isChatGpt,
           },
           meta: {
             tier: resolved.tier as Tier,

@@ -207,6 +207,10 @@ export class ProxyController implements OnModuleDestroy {
             res,
             this.providerClient.createAnthropicStreamTransformer(meta.model),
           );
+        } else if (forward.isChatGpt) {
+          streamUsage = await pipeStream(providerResponse.body, res, (chunk) =>
+            this.providerClient.convertChatGptStreamChunk(chunk, meta.model),
+          );
         } else {
           streamUsage = await pipeStream(providerResponse.body, res);
         }
@@ -219,6 +223,9 @@ export class ProxyController implements OnModuleDestroy {
         } else if (forward.isAnthropic) {
           const anthropicData = (await providerResponse.json()) as Record<string, unknown>;
           responseBody = this.providerClient.convertAnthropicResponse(anthropicData, meta.model);
+        } else if (forward.isChatGpt) {
+          const chatgptData = (await providerResponse.json()) as Record<string, unknown>;
+          responseBody = this.providerClient.convertChatGptResponse(chatgptData, meta.model);
         } else {
           responseBody = await providerResponse.json();
         }

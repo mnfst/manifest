@@ -678,6 +678,65 @@ describe('TierAutoAssignService', () => {
       );
     });
 
+    it('should only use zero-cost models for OpenAI subscription (Codex)', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'openai', is_active: true, auth_type: 'subscription' },
+      ]);
+      const codexModel = makeModel({
+        model_name: 'gpt-5.3-codex',
+        provider: 'OpenAI',
+        input_price_per_token: 0,
+        output_price_per_token: 0,
+        quality_score: 4,
+        capability_reasoning: true,
+      });
+      const paidModel = makeModel({
+        model_name: 'gpt-4.1-nano',
+        provider: 'OpenAI',
+        input_price_per_token: 0.0000001,
+        output_price_per_token: 0.0000004,
+        quality_score: 1,
+      });
+      mockPricingCache.getAll.mockReturnValue([codexModel, paidModel]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string;
+      }[];
+      // All tiers should use Codex model, not gpt-4.1-nano (which needs API key)
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('gpt-5.3-codex');
+      }
+    });
+
+    it('should keep all models for providers without zero-cost models (Anthropic)', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+      ]);
+      const sonnet = makeModel({
+        model_name: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000015,
+        quality_score: 4,
+      });
+      mockPricingCache.getAll.mockReturnValue([sonnet]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string;
+      }[];
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('claude-sonnet-4');
+      }
+    });
+
     it('should accept optional providers parameter to skip DB query', async () => {
       const providers = [{ provider: 'openai', is_active: true }];
       mockPricingCache.getAll.mockReturnValue([

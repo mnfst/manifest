@@ -9,6 +9,34 @@ import { randomUUID } from 'crypto';
 import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
 import { TIERS, Tier } from './scorer/types';
 
+/**
+ * OpenAI subscription tokens only work with Codex models (zero cost).
+ * Paid API models like gpt-4o need API keys. Per-provider: if zero-cost
+ * models exist from a provider, only those are subscription-compatible.
+ * Providers without zero-cost models (e.g. Anthropic) keep all models.
+ */
+function filterSubModels(models: ModelPricing[]): ModelPricing[] {
+  const byProvider = new Map<string, ModelPricing[]>();
+  for (const m of models) {
+    const key = m.provider.toLowerCase();
+    const arr = byProvider.get(key) ?? [];
+    arr.push(m);
+    byProvider.set(key, arr);
+  }
+
+  const result: ModelPricing[] = [];
+  for (const providerModels of byProvider.values()) {
+    const zeroCost = providerModels.filter(
+      (m) =>
+        (m.input_price_per_token == null || Number(m.input_price_per_token) === 0) &&
+        (m.output_price_per_token == null || Number(m.output_price_per_token) === 0),
+    );
+    // If zero-cost models exist (e.g. OpenAI Codex), use only those
+    result.push(...(zeroCost.length > 0 ? zeroCost : providerModels));
+  }
+  return result;
+}
+
 interface ScoredModel {
   model_name: string;
   score: number;
@@ -51,7 +79,7 @@ export class TierAutoAssignService {
       const prefix = inferProviderFromModelName(model.model_name);
       return prefix != null && names.has(prefix);
     };
-    const subModels = allModels.filter((m) => matchesProvider(m, subNames));
+    const subModels = filterSubModels(allModels.filter((m) => matchesProvider(m, subNames)));
     const keyModels = allModels.filter((m) => matchesProvider(m, keyNames));
 
     // 2C: Batch read all tiers in one query

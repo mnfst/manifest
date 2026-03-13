@@ -224,6 +224,110 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('ChatGPT subscription provider', () => {
+    it('routes to chatgpt.com Codex backend with subscription authType', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward(
+        'openai',
+        'oauth-token',
+        'gpt-5',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://chatgpt.com/backend-api/codex/responses');
+      expect(result.isChatGpt).toBe(true);
+      expect(result.isGoogle).toBe(false);
+      expect(result.isAnthropic).toBe(false);
+
+      const headers = mockFetch.mock.calls[0][1].headers;
+      expect(headers['originator']).toBe('codex_cli_rs');
+      expect(headers['Authorization']).toBe('Bearer oauth-token');
+    });
+
+    it('converts request body using toResponsesRequest', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'Be helpful.' },
+          { role: 'user', content: 'Hello' },
+        ],
+      };
+      await client.forward(
+        'openai',
+        'token',
+        'gpt-5.3-codex',
+        bodyWithSystem,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.instructions).toBe('Be helpful.');
+      expect(sentBody.input).toEqual([
+        { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
+      ]);
+      expect(sentBody.model).toBe('gpt-5.3-codex');
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.store).toBe(false);
+    });
+
+    it('sets isChatGpt=false for regular OpenAI api_key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward('openai', 'sk-test', 'gpt-4o', body, false);
+
+      expect(result.isChatGpt).toBe(false);
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('api.openai.com');
+    });
+  });
+
+  describe('convertChatGptResponse', () => {
+    it('delegates to fromResponsesResponse', () => {
+      const data = {
+        output: [
+          {
+            type: 'message',
+            content: [{ type: 'output_text', text: 'Hello' }],
+          },
+        ],
+        usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+      };
+      const result = client.convertChatGptResponse(data, 'gpt-5');
+
+      expect(result.object).toBe('chat.completion');
+      expect(result.model).toBe('gpt-5');
+      const choices = result.choices as { message: { content: string } }[];
+      expect(choices[0].message.content).toBe('Hello');
+    });
+  });
+
+  describe('convertChatGptStreamChunk', () => {
+    it('converts output_text delta to chat completion chunk', () => {
+      const chunk = 'event: response.output_text.delta\ndata: {"delta":"Hi"}';
+      const result = client.convertChatGptStreamChunk(chunk, 'gpt-5');
+
+      expect(result).toContain('data: ');
+      expect(result).toContain('"chat.completion.chunk"');
+    });
+
+    it('returns null for irrelevant events', () => {
+      const result = client.convertChatGptStreamChunk('event: response.created\ndata: {}', 'gpt-5');
+      expect(result).toBeNull();
+    });
+  });
+
   describe('OpenRouter Anthropic cache injection', () => {
     it('injects cache_control for anthropic/ models on openrouter', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));

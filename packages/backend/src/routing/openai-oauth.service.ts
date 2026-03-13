@@ -6,6 +6,7 @@ import { RoutingService } from './routing.service';
 const CLIENT_ID = 'app_EMoamEEZ73f0CkXaXp7hrann';
 const AUTHORIZE_URL = 'https://auth.openai.com/oauth/authorize';
 const TOKEN_URL = 'https://auth.openai.com/oauth/token';
+const REVOKE_URL = 'https://auth.openai.com/oauth/revoke';
 const SCOPE = 'openid profile email offline_access';
 const CALLBACK_PORT = 1455;
 const REDIRECT_URI = `http://localhost:${CALLBACK_PORT}/auth/callback`;
@@ -33,10 +34,15 @@ export class OpenaiOauthService {
   private readonly logger = new Logger(OpenaiOauthService.name);
   private readonly pending = new Map<string, PendingOAuth>();
   private callbackServer: Server | null = null;
+  private serverReady: Promise<void> | null = null;
 
   constructor(private readonly routingService: RoutingService) {}
 
-  generateAuthorizationUrl(agentId: string, userId: string, backendUrl?: string): string {
+  async generateAuthorizationUrl(
+    agentId: string,
+    userId: string,
+    backendUrl?: string,
+  ): Promise<string> {
     this.cleanupExpired();
 
     const state = randomBytes(32).toString('hex');
@@ -51,7 +57,7 @@ export class OpenaiOauthService {
       expiresAt: Date.now() + STATE_TTL_MS,
     });
 
-    this.ensureCallbackServer();
+    await this.ensureCallbackServer();
 
     const params = new URLSearchParams({
       client_id: CLIENT_ID,
@@ -185,6 +191,31 @@ export class OpenaiOauthService {
     }
   }
 
+  /**
+   * Revoke an OAuth token at OpenAI.
+   * Best-effort: logs a warning on failure but does not throw.
+   */
+  async revokeToken(token: string): Promise<void> {
+    try {
+      const response = await fetch(REVOKE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          token,
+          client_id: CLIENT_ID,
+        }),
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        this.logger.warn(`OpenAI token revocation failed: ${text}`);
+      } else {
+        this.logger.log('OpenAI OAuth token revoked');
+      }
+    } catch (err) {
+      this.logger.warn(`OpenAI token revocation error: ${err}`);
+    }
+  }
+
   /** Returns the number of pending OAuth states (for testing). */
   getPendingCount(): number {
     return this.pending.size;
@@ -194,66 +225,88 @@ export class OpenaiOauthService {
    * Spins up a tiny HTTP server on port 1455 to receive the OAuth callback.
    * OpenAI's registered redirect_uri for this client_id is
    * http://localhost:1455/auth/callback — we must listen there.
+   * Throws if the port is unavailable so the controller can surface the error.
    */
-  private ensureCallbackServer(): void {
-    if (this.callbackServer) return;
+  private ensureCallbackServer(): Promise<void> {
+    if (this.callbackServer) return Promise.resolve();
+    if (this.serverReady) return this.serverReady;
 
-    const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-      const url = new URL(req.url ?? '/', `http://localhost:${CALLBACK_PORT}`);
-      if (url.pathname !== '/auth/callback') {
-        res.writeHead(404);
-        res.end('Not found');
-        return;
-      }
+    this.serverReady = new Promise<void>((resolve, reject) => {
+      const server = createServer((req, res) => this.handleCallbackRequest(req, res));
 
-      const code = url.searchParams.get('code') ?? '';
-      const state = url.searchParams.get('state') ?? '';
-      // Read backendUrl before exchangeCode deletes the pending entry
-      const appUrl = this.pending.get(state)?.backendUrl || '';
+      server.on('error', (err: NodeJS.ErrnoException) => {
+        this.callbackServer = null;
+        this.serverReady = null;
+        if (err.code === 'EADDRINUSE') {
+          this.logger.warn(`Port ${CALLBACK_PORT} in use — callback server not started`);
+          reject(new Error(`Port ${CALLBACK_PORT} is already in use. Close the process using it.`));
+        } else {
+          this.logger.error(`Callback server error: ${err.message}`);
+          reject(new Error(`Callback server failed: ${err.message}`));
+        }
+      });
 
-      this.exchangeCode(state, code)
-        .then(() => {
-          if (appUrl) {
-            res.writeHead(302, { Location: `${appUrl}/api/v1/oauth/openai/done?ok=1` });
-            res.end();
-          } else {
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.end(callbackHtml(true));
-          }
-        })
-        .catch((err) => {
-          this.logger.error(`OAuth callback failed: ${err}`);
-          if (appUrl) {
-            res.writeHead(302, { Location: `${appUrl}/api/v1/oauth/openai/done?ok=0` });
-            res.end();
-          } else {
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.end(callbackHtml(false));
-          }
-        });
+      server.listen(CALLBACK_PORT, '127.0.0.1', () => {
+        this.logger.log(`OAuth callback server listening on port ${CALLBACK_PORT}`);
+        this.callbackServer = server;
+        resolve();
+      });
+
+      server.unref(); // Don't prevent process exit
     });
 
-    server.listen(CALLBACK_PORT, '127.0.0.1', () => {
-      this.logger.log(`OAuth callback server listening on port ${CALLBACK_PORT}`);
-    });
+    return this.serverReady;
+  }
 
-    server.on('error', (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EADDRINUSE') {
-        this.logger.warn(`Port ${CALLBACK_PORT} in use — callback server not started`);
-      } else {
-        this.logger.error(`Callback server error: ${err.message}`);
-      }
-      this.callbackServer = null;
-    });
+  /** Handles an incoming OAuth callback request on the ephemeral server. */
+  private handleCallbackRequest(req: IncomingMessage, res: ServerResponse): void {
+    const url = new URL(req.url ?? '/', `http://localhost:${CALLBACK_PORT}`);
+    if (url.pathname !== '/auth/callback') {
+      res.writeHead(404);
+      res.end('Not found');
+      return;
+    }
 
-    server.unref(); // Don't prevent process exit
-    this.callbackServer = server;
+    const code = url.searchParams.get('code') ?? '';
+    const state = url.searchParams.get('state') ?? '';
+    const error = url.searchParams.get('error');
+    // Read backendUrl before exchangeCode deletes the pending entry
+    const appUrl = this.pending.get(state)?.backendUrl || '';
+
+    if (error) {
+      const desc = url.searchParams.get('error_description') ?? error;
+      this.logger.error(`OAuth callback error from provider: ${desc}`);
+      this.pending.delete(state);
+      this.shutdownCallbackServerIfIdle();
+      this.sendDoneResponse(res, false, appUrl);
+      return;
+    }
+
+    this.exchangeCode(state, code)
+      .then(() => this.sendDoneResponse(res, true, appUrl))
+      .catch((err) => {
+        this.logger.error(`OAuth callback failed: ${err}`);
+        this.sendDoneResponse(res, false, appUrl);
+      });
+  }
+
+  /** Sends the OAuth completion response — either a redirect or inline HTML. */
+  private sendDoneResponse(res: ServerResponse, success: boolean, appUrl: string): void {
+    if (appUrl) {
+      const ok = success ? '1' : '0';
+      res.writeHead(302, { Location: `${appUrl}/api/v1/oauth/openai/done?ok=${ok}` });
+      res.end();
+    } else {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(oauthDoneHtml(success));
+    }
   }
 
   private shutdownCallbackServerIfIdle(): void {
     if (this.pending.size === 0 && this.callbackServer) {
       this.callbackServer.close();
       this.callbackServer = null;
+      this.serverReady = null;
       this.logger.log('OAuth callback server shut down (no pending flows)');
     }
   }
@@ -266,20 +319,22 @@ export class OpenaiOauthService {
   }
 }
 
-function callbackHtml(success: boolean): string {
+export function oauthDoneHtml(success: boolean): string {
   const message = success ? 'manifest-oauth-success' : 'manifest-oauth-error';
   const text = success
-    ? 'Login successful! This window will close automatically.'
+    ? 'Login successful!'
     : 'Login failed. Please close this window and try again.';
 
   return `<!DOCTYPE html>
 <html>
 <head><title>Manifest — OpenAI Login</title></head>
-<body style="font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#eee;">
+<body style="font-family:system-ui;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#eee;">
 <p>${text}</p>
+<p id="hint" style="font-size:13px;color:#888;display:none;">You can close this window.</p>
 <script>
+try{var bc=new BroadcastChannel('manifest-oauth');bc.postMessage({type:'${message}'});bc.close();}catch(e){}
 if(window.opener){window.opener.postMessage({type:'${message}'},'*');}
-setTimeout(function(){window.close();},2000);
+setTimeout(function(){window.close();document.getElementById('hint').style.display='block';},1500);
 </script>
 </body>
 </html>`;
