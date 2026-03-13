@@ -30,6 +30,7 @@ jest.mock("../src/command", () => ({
 }));
 jest.mock("../src/product-telemetry", () => ({
   trackPluginEvent: jest.fn(),
+  identifyUser: jest.fn(),
 }));
 
 import { parseConfigWithDeprecation, validateConfig } from "../src/config";
@@ -40,7 +41,7 @@ import { registerRouting } from "../src/routing";
 import { registerTools } from "../src/tools";
 import { registerCommand } from "../src/command";
 import { verifyConnection } from "../src/verify";
-import { trackPluginEvent } from "../src/product-telemetry";
+import { trackPluginEvent, identifyUser } from "../src/product-telemetry";
 
 const plugin = require("../src/index");
 
@@ -302,7 +303,7 @@ describe("register — cloud mode with devMode", () => {
       _deprecatedDevMode: false,
     });
     (validateConfig as jest.Mock).mockReturnValue(null);
-    (verifyConnection as jest.Mock).mockResolvedValue({ error: null, agentName: "test-agent" });
+    (verifyConnection as jest.Mock).mockResolvedValue({ error: null, agentName: "test-agent", telemetryId: null });
 
     const api = makeApi();
     plugin.register(api);
@@ -315,6 +316,50 @@ describe("register — cloud mode with devMode", () => {
     expect(api.logger.info).toHaveBeenCalledWith(
       expect.stringContaining("Connection verified"),
     );
+  });
+
+  it("calls identifyUser when telemetryId is present in verify result", async () => {
+    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
+      config: devConfig,
+      _deprecatedDevMode: false,
+    });
+    (validateConfig as jest.Mock).mockReturnValue(null);
+    (verifyConnection as jest.Mock).mockResolvedValue({
+      error: null,
+      agentName: "test-agent",
+      telemetryId: "hash1234abcd5678",
+    });
+
+    const api = makeApi();
+    plugin.register(api);
+
+    const serviceCall = api.registerService.mock.calls[0][0];
+    serviceCall.start();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(identifyUser).toHaveBeenCalledWith("hash1234abcd5678");
+  });
+
+  it("does not call identifyUser when telemetryId is null", async () => {
+    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
+      config: devConfig,
+      _deprecatedDevMode: false,
+    });
+    (validateConfig as jest.Mock).mockReturnValue(null);
+    (verifyConnection as jest.Mock).mockResolvedValue({
+      error: null,
+      agentName: "test-agent",
+      telemetryId: null,
+    });
+
+    const api = makeApi();
+    plugin.register(api);
+
+    const serviceCall = api.registerService.mock.calls[0][0];
+    serviceCall.start();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(identifyUser).not.toHaveBeenCalled();
   });
 
   it("service start logs warning on verify error", async () => {
@@ -510,6 +555,7 @@ describe("register — cloud mode full path", () => {
     (verifyConnection as jest.Mock).mockResolvedValue({
       error: null,
       agentName: "cloud-agent",
+      telemetryId: "cloudhash12345678",
     });
 
     const api = makeApi();
@@ -520,9 +566,32 @@ describe("register — cloud mode full path", () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(verifyConnection).toHaveBeenCalledWith(cloudConfig);
+    expect(identifyUser).toHaveBeenCalledWith("cloudhash12345678");
     expect(api.logger.info).toHaveBeenCalledWith(
       expect.stringContaining("Connection verified"),
     );
+  });
+
+  it("cloud service start does not call identifyUser on verify error", async () => {
+    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
+      config: cloudConfig,
+      _deprecatedDevMode: false,
+    });
+    (validateConfig as jest.Mock).mockReturnValue(null);
+    (verifyConnection as jest.Mock).mockResolvedValue({
+      error: "Cannot reach endpoint",
+      agentName: null,
+      telemetryId: null,
+    });
+
+    const api = makeApi();
+    plugin.register(api);
+
+    const serviceCall = api.registerService.mock.calls[0][0];
+    serviceCall.start();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(identifyUser).not.toHaveBeenCalled();
   });
 
   it("cloud service start logs warning on verify error", async () => {
