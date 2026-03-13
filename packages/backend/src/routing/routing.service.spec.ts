@@ -310,7 +310,7 @@ describe('RoutingService', () => {
         key_prefix: 'old-key-',
         is_active: false,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null); // no subscription to deactivate
 
       const result = await service.upsertProvider('a1', 'u1', 'openai', 'new-key');
 
@@ -340,7 +340,7 @@ describe('RoutingService', () => {
         key_prefix: 'old-pref',
         is_active: false,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null); // no subscription to deactivate
 
       const result = await service.upsertProvider('a1', 'u1', 'openai');
 
@@ -390,7 +390,7 @@ describe('RoutingService', () => {
         connected_at: originalConnectedAt,
         updated_at: '2025-01-01T00:00:00.000Z',
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null); // no subscription to deactivate
 
       const before = new Date().toISOString();
       await service.upsertProvider('a1', 'u1', 'openai', 'new-key');
@@ -474,13 +474,77 @@ describe('RoutingService', () => {
       // UUID v4 format: 8-4-4-4-12
       expect(inserted.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     });
+
+    it('should deactivate subscription when adding new API key provider', async () => {
+      const subProvider = Object.assign(new UserProvider(), {
+        id: 'sub1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: true,
+      });
+      // First findOne: no existing api_key provider
+      // Second findOne (deactivateSubscription): finds active subscription
+      mockProviderRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(subProvider);
+
+      await service.upsertProvider('a1', 'u1', 'anthropic', 'sk-ant-key');
+
+      expect(mockProviderRepo.insert).toHaveBeenCalled();
+      expect(mockProviderRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'sub1',
+          is_active: false,
+        }),
+      );
+    });
+
+    it('should deactivate subscription when updating existing API key provider', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'api_key',
+        api_key_encrypted: 'old-enc',
+        key_prefix: 'old-pref',
+        is_active: false,
+      });
+      const subProvider = Object.assign(new UserProvider(), {
+        id: 'sub1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: true,
+      });
+      // First findOne: finds existing api_key provider
+      // Second findOne (deactivateSubscription): finds active subscription
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(subProvider);
+
+      await service.upsertProvider('a1', 'u1', 'anthropic', 'new-key');
+
+      // First save: update existing api_key provider
+      // Second save: deactivate subscription
+      expect(mockProviderRepo.save).toHaveBeenCalledTimes(2);
+      expect(mockProviderRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'sub1', is_active: false }),
+      );
+    });
+
+    it('should not deactivate subscription when upserting subscription type', async () => {
+      mockProviderRepo.findOne.mockResolvedValue(null);
+
+      await service.upsertProvider('a1', 'u1', 'anthropic', undefined, 'subscription');
+
+      // Only one findOne call (for existing check), no subscription deactivation query
+      expect(mockProviderRepo.findOne).toHaveBeenCalledTimes(1);
+    });
   });
 
   /* ── registerSubscriptionProvider ── */
 
   describe('registerSubscriptionProvider', () => {
     it('should create new provider when none exists', async () => {
-      mockProviderRepo.findOne.mockResolvedValue(null);
+      // First findOne: no existing subscription. Second findOne: no existing API key.
+      mockProviderRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
 
       const result = await service.registerSubscriptionProvider('a1', 'u1', 'anthropic');
 
@@ -532,6 +596,25 @@ describe('RoutingService', () => {
       expect(result).toEqual({ isNew: false });
       expect(mockProviderRepo.insert).not.toHaveBeenCalled();
       expect(mockProviderRepo.save).not.toHaveBeenCalled();
+      expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
+    });
+
+    it('should skip when active API key already exists for same provider', async () => {
+      const apiKeyProvider = Object.assign(new UserProvider(), {
+        id: 'p2',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'api_key',
+        is_active: true,
+      });
+      // First findOne: no existing subscription
+      // Second findOne: active API key exists
+      mockProviderRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(apiKeyProvider);
+
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'anthropic');
+
+      expect(result).toEqual({ isNew: false });
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
       expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
     });
   });
