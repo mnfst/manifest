@@ -11,6 +11,7 @@ import {
   type CustomProviderData,
   type RoutingProvider,
 } from '../services/api.js';
+import { customProviderColor } from '../services/formatters.js';
 import { toast } from '../services/toast-store.js';
 
 interface FallbackListProps {
@@ -111,7 +112,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                           class="provider-card__logo-letter fallback-list__icon"
                           title={cp?.name ?? 'Custom'}
                           style={{
-                            background: 'var(--custom-provider-color)',
+                            background: customProviderColor(cp?.name ?? ''),
                             width: '14px',
                             height: '14px',
                             'font-size': '8px',

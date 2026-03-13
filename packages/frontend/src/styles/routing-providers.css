@@ -1,8 +1,3 @@
-/* ── Custom provider badge color ──────────────────── */
-:root {
-  --custom-provider-color: #6366f1;
-}
-
 /* ── Provider modal tabs wrapper ─────────────────── */
 .provider-modal__tabs-wrapper {
   padding: 0 24px;
@@ -33,8 +28,9 @@
 /* ── Provider toggle (modal rows) ─────────────────── */
 .provider-modal__list {
   padding: 8px 0;
-  max-height: 400px;
+  max-height: 416px;
   overflow-y: auto;
+  position: relative;
 }
 
 .provider-modal__request-link {
@@ -539,7 +535,7 @@
 
 /* ── Add custom provider button ───────────────────── */
 .provider-modal__add-custom {
-  padding: 4px 24px 8px;
+  padding: 8px 24px 4px;
   display: flex;
   justify-content: flex-end;
 }
@@ -549,22 +545,22 @@
   align-items: center;
   gap: 6px;
   background: none;
-  border: none;
+  border: 1px solid hsl(var(--border));
   cursor: pointer;
   font-family: var(--font-family);
   font-size: var(--font-size-sm);
   font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  padding: 6px 10px;
+  color: hsl(var(--foreground));
+  padding: 6px 14px;
   border-radius: var(--radius);
   transition:
     background var(--transition-fast),
-    color var(--transition-fast);
+    border-color var(--transition-fast);
 }
 
 .provider-modal__add-custom-btn:hover {
   background: hsl(var(--muted) / 0.5);
-  color: hsl(var(--foreground));
+  border-color: hsl(var(--foreground) / 0.3);
 }
 
 .provider-modal__add-custom-btn:focus-visible {
@@ -667,5 +663,5 @@
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.02em;
-  line-height: 1;
+  line-height: 0;
 }

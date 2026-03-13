@@ -580,8 +580,6 @@ describe("CustomProviderForm — edit mode", () => {
   });
 
   it("calls deleteCustomProvider and onDeleted on delete", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-
     render(() => (
       <CustomProviderForm
         agentName="test-agent"
@@ -592,19 +590,24 @@ describe("CustomProviderForm — edit mode", () => {
       />
     ));
 
+    // Click "Delete provider" to open confirmation modal
     fireEvent.click(screen.getByText("Delete provider"));
+
+    // Click "Delete" in the confirmation modal
+    await waitFor(() => {
+      const deleteBtn = screen.getByText("Delete");
+      expect(deleteBtn).toBeDefined();
+    });
+    fireEvent.click(screen.getByText("Delete"));
 
     await waitFor(() => {
       expect(mockDeleteCustomProvider).toHaveBeenCalledWith("test-agent", "cp-1");
       expect(toast.success).toHaveBeenCalledWith("Groq removed");
       expect(onDeleted).toHaveBeenCalled();
     });
-
-    vi.restoreAllMocks();
   });
 
   it("handles delete error gracefully", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     mockDeleteCustomProvider.mockRejectedValue(new Error("delete failed"));
 
     render(() => (
@@ -617,20 +620,24 @@ describe("CustomProviderForm — edit mode", () => {
       />
     ));
 
+    // Click "Delete provider" to open confirmation modal
     fireEvent.click(screen.getByText("Delete provider"));
+
+    // Click "Delete" in the confirmation modal
+    await waitFor(() => {
+      const deleteBtn = screen.getByText("Delete");
+      expect(deleteBtn).toBeDefined();
+    });
+    fireEvent.click(screen.getByText("Delete"));
 
     await waitFor(() => {
       expect(mockDeleteCustomProvider).toHaveBeenCalledWith("test-agent", "cp-1");
     });
     // Should not throw, should not call onDeleted
     expect(onDeleted).not.toHaveBeenCalled();
-
-    vi.restoreAllMocks();
   });
 
   it("does not delete when confirm is cancelled", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(false);
-
     render(() => (
       <CustomProviderForm
         agentName="test-agent"
@@ -641,10 +648,16 @@ describe("CustomProviderForm — edit mode", () => {
       />
     ));
 
+    // Click "Delete provider" to open confirmation modal
     fireEvent.click(screen.getByText("Delete provider"));
 
+    // Click "Cancel" in the confirmation modal
+    await waitFor(() => {
+      expect(screen.getByText("Cancel")).toBeDefined();
+    });
+    fireEvent.click(screen.getByText("Cancel"));
+
     expect(mockDeleteCustomProvider).not.toHaveBeenCalled();
-    vi.restoreAllMocks();
   });
 
   it("shows Saving... text while submitting", async () => {

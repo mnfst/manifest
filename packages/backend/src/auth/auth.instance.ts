@@ -53,7 +53,7 @@ function buildTrustedOrigins(): string[] {
 }
 
 // In local mode, skip Better Auth entirely — LocalAuthGuard handles auth
-export const auth: ReturnType<typeof betterAuth> | null = isLocalMode
+const authInstance = isLocalMode
   ? null
   : betterAuth({
       database: database!,
@@ -135,6 +135,7 @@ export const auth: ReturnType<typeof betterAuth> | null = isLocalMode
         },
       },
     });
+export const auth = authInstance as ReturnType<typeof betterAuth> | null;
 
 type BetterAuthInstance = ReturnType<typeof betterAuth>;
 export type AuthSession = BetterAuthInstance['$Infer']['Session'];

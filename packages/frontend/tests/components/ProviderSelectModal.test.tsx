@@ -549,11 +549,11 @@ describe("ProviderSelectModal", () => {
       ));
       fireEvent.click(screen.getByText("API Keys"));
       expect(screen.getByText("Groq")).toBeDefined();
-      expect(screen.getByText("2 models")).toBeDefined();
+      expect(screen.getByText("Custom")).toBeDefined();
     });
 
     it("renders custom provider icon letter", () => {
-      render(() => (
+      const { container } = render(() => (
         <ProviderSelectModal
           providers={[]}
           customProviders={customProviderData}
@@ -563,7 +563,9 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("API Keys"));
-      const letter = document.querySelector(".custom-provider-section .provider-card__logo-letter");
+      // Find the Groq provider toggle and check its logo letter
+      const groqToggle = screen.getByText("Groq").closest(".provider-toggle");
+      const letter = groqToggle?.querySelector(".provider-card__logo-letter");
       expect(letter).not.toBeNull();
       expect(letter!.textContent).toBe("G");
     });
@@ -627,7 +629,8 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("API Keys"));
-      expect(screen.getByText("1 model")).toBeDefined();
+      // Custom providers show the "Custom" tag
+      expect(screen.getByText("Custom")).toBeDefined();
     });
   });
 
@@ -756,9 +759,9 @@ describe("ProviderSelectModal", () => {
       const { container } = render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
-      const activeTab = container.querySelector(".provider-modal__tab--active");
+      const activeTab = container.querySelector(".panel__tab--active");
       expect(activeTab).not.toBeNull();
-      expect(activeTab!.textContent).toBe("Subscription");
+      expect(activeTab!.textContent).toContain("Subscription");
     });
 
     it("renders subscription providers with toggle switches", () => {
