@@ -18,6 +18,8 @@ const TIER_LABELS: Record<string, string> = {
   reasoning: 'Reasoning',
 };
 
+const SUPPORTED_SUBSCRIPTION_PROVIDERS = new Set(['anthropic']);
+
 @Injectable()
 export class RoutingService {
   private readonly logger = new Logger(RoutingService.name);
@@ -97,6 +99,11 @@ export class RoutingService {
     userId: string,
     provider: string,
   ): Promise<{ isNew: boolean }> {
+    if (!SUPPORTED_SUBSCRIPTION_PROVIDERS.has(provider.toLowerCase())) {
+      this.logger.debug(`Ignoring unsupported subscription provider registration for ${provider}`);
+      return { isNew: false };
+    }
+
     const existing = await this.providerRepo.findOne({
       where: { agent_id: agentId, provider, auth_type: 'subscription' },
     });

@@ -558,6 +558,15 @@ describe('RoutingService', () => {
   /* ── registerSubscriptionProvider ── */
 
   describe('registerSubscriptionProvider', () => {
+    it('should ignore unsupported subscription providers', async () => {
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'openai');
+
+      expect(result).toEqual({ isNew: false });
+      expect(mockProviderRepo.findOne).not.toHaveBeenCalled();
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
+      expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
+    });
+
     it('should create new provider when none exists', async () => {
       // First findOne: no existing subscription. Second findOne: no existing API key.
       mockProviderRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);

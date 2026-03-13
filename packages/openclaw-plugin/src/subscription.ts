@@ -44,6 +44,9 @@ const OPENCLAW_TO_MANIFEST: Record<string, string> = {
   minimax: 'minimax',
 };
 
+// Keep this aligned with the providers exposed in the app's subscription flow.
+const SUPPORTED_SUBSCRIPTION_PROVIDERS = new Set(['anthropic']);
+
 function readJsonSafe(path: string): Record<string, any> {
   if (!existsSync(path)) return {};
   try {
@@ -88,6 +91,12 @@ export function discoverSubscriptionProviders(logger: PluginLogger): Subscriptio
         const manifestId = OPENCLAW_TO_MANIFEST[profile.provider?.toLowerCase() ?? ''];
         if (!manifestId) {
           logger.debug(`[manifest] Unknown subscription provider: ${profile.provider}`);
+          continue;
+        }
+        if (!SUPPORTED_SUBSCRIPTION_PROVIDERS.has(manifestId)) {
+          logger.debug(
+            `[manifest] Ignoring unsupported subscription provider: ${profile.provider} -> ${manifestId}`,
+          );
           continue;
         }
 
