@@ -391,6 +391,16 @@ const ProviderSelectModal: Component<Props> = (props) => {
                     );
                   }}
                 </For>
+                <div class="provider-modal__request-sub">
+                  <a
+                    class="provider-modal__request-sub-btn"
+                    href="https://github.com/mnfst/manifest/discussions/973"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Request another provider
+                  </a>
+                </div>
               </div>
             </Show>
 

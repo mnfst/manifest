@@ -81,6 +81,10 @@ body {
   max-width: 1100px;
   margin-inline: auto;
 }
+.container--lg {
+  max-width: 1400px;
+  margin-inline: auto;
+}
 .container--full {
   max-width: 100%;
 }

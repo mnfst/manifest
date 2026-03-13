@@ -98,9 +98,12 @@ describe("Routing — enabled state (providers active)", () => {
     expect(screen.getByText("Reasoning")).toBeDefined();
   });
 
-  it("renders tier descriptions", async () => {
+  it("renders tier labels", async () => {
     render(() => <Routing />);
-    expect(await screen.findByText("Heartbeats, greetings, and low-cost tasks that any model can handle.")).toBeDefined();
+    expect(await screen.findByText("Simple")).toBeDefined();
+    expect(screen.getByText("Standard")).toBeDefined();
+    expect(screen.getByText("Complex")).toBeDefined();
+    expect(screen.getByText("Reasoning")).toBeDefined();
   });
 
   it("shows auto tag for non-override tiers", async () => {
@@ -112,19 +115,19 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows Change button for all tiers", async () => {
     render(() => <Routing />);
-    const changeButtons = await screen.findAllByText("Change");
-    expect(changeButtons.length).toBe(4);
+    const editButtons = await screen.findAllByText("Change");
+    expect(editButtons.length).toBe(4);
   });
 
-  it("renders Add fallback button in tier cards", async () => {
+  it("renders fallback empty state in tier cards", async () => {
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
-    expect(addButtons.length).toBe(4); // one per tier
+    const emptyStates = await screen.findAllByText("No fallback");
+    expect(emptyStates.length).toBe(4); // one per tier
   });
 
-  it("shows Reset button for override tiers", async () => {
+  it("shows Reset all to auto button for override tiers", async () => {
     render(() => <Routing />);
-    expect(await screen.findByText("Reset")).toBeDefined();
+    expect(await screen.findByText("Reset all to auto")).toBeDefined();
   });
 
   it("shows Reset all to auto button when overrides exist", async () => {
@@ -154,18 +157,18 @@ describe("Routing — enabled state (providers active)", () => {
     expect(breadcrumb).toBeDefined();
   });
 
-  it("opens model picker when Override button is clicked", async () => {
+  it("opens model picker when Change button is clicked", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Change");
-    fireEvent.click(overrideButtons[0]);
+    const editButtons = await screen.findAllByText("Change");
+    fireEvent.click(editButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
   });
 
   it("opens model picker when Change button is clicked on override tier", async () => {
     render(() => <Routing />);
-    const changeButtons = await screen.findAllByText("Change");
+    const editButtons = await screen.findAllByText("Change");
     // complex tier (index 2) has an override
-    fireEvent.click(changeButtons[2]);
+    fireEvent.click(editButtons[2]);
     expect(await screen.findByText("Select a model")).toBeDefined();
   });
 
@@ -281,34 +284,6 @@ describe("Routing — enabled state (providers active)", () => {
     });
   });
 
-  it("calls resetTier when Reset button is clicked", async () => {
-    render(() => <Routing />);
-    const resetBtn = await screen.findByText("Reset");
-    fireEvent.click(resetBtn);
-
-    await waitFor(() => {
-      expect(resetTier).toHaveBeenCalledWith("test-agent", "complex");
-    });
-    await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith("Reset to auto");
-    });
-  });
-
-  it("shows Resetting... and disables button during resetTier", async () => {
-    let resolveReset: () => void;
-    vi.mocked(resetTier).mockReturnValue(new Promise<void>((r) => { resolveReset = r; }) as any);
-    render(() => <Routing />);
-    const resetBtn = await screen.findByText("Reset");
-    fireEvent.click(resetBtn);
-
-    await waitFor(() => {
-      expect(resetBtn.querySelector(".spinner")).not.toBeNull();
-      expect(resetBtn.disabled).toBe(true);
-    });
-
-    resolveReset!();
-  });
-
   it("calls resetAllTiers when Reset all to auto is clicked", async () => {
     render(() => <Routing />);
     const resetAllBtn = await screen.findByText("Reset all to auto");
@@ -419,6 +394,92 @@ describe("Routing — enabled state (providers active)", () => {
     await screen.findByText("2 connections");
     expect(screen.queryByText("Included in subscription")).toBeDefined();
   });
+
+  it("shows Reset button only for edited tiers", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetButtons = screen.queryAllByText("Reset");
+    // Only "complex" tier has override_model set
+    expect(resetButtons.length).toBe(1);
+  });
+
+  it("shows Reset button when tier has fallbacks but no override", async () => {
+    const { getTierAssignments } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: ["gpt-4o"], updated_at: "2025-01-01" } as any,
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" } as any,
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" } as any,
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" } as any,
+    ]);
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    // "simple" tier has fallbacks → Reset should appear
+    const resetButtons = screen.queryAllByText("Reset");
+    expect(resetButtons.length).toBe(1);
+  });
+
+  it("opens confirmation modal when Reset is clicked", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+  });
+
+  it("calls resetTier when confirmed", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+    // Click the confirm "Reset" button inside the modal
+    const modalButtons = screen.getAllByText("Reset");
+    const confirmBtn = modalButtons.find((el) => el.classList.contains("btn--danger"));
+    expect(confirmBtn).toBeDefined();
+    fireEvent.click(confirmBtn!);
+    await waitFor(() => {
+      expect(resetTier).toHaveBeenCalledWith("test-agent", "complex");
+    });
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("Tier reset to auto");
+    });
+  });
+
+  it("closes reset modal on Cancel", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+    fireEvent.click(screen.getByText("Cancel"));
+    await waitFor(() => {
+      expect(screen.queryByText("Reset tier?")).toBeNull();
+    });
+  });
+
+  it("handles resetTier error gracefully", async () => {
+    vi.mocked(resetTier).mockRejectedValueOnce(new Error("fail"));
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+    const modalButtons = screen.getAllByText("Reset");
+    const confirmBtn = modalButtons.find((el) => el.classList.contains("btn--danger"));
+    fireEvent.click(confirmBtn!);
+    await waitFor(() => {
+      expect(resetTier).toHaveBeenCalled();
+    });
+    // Should not crash — error is handled silently (fetchMutate shows toast)
+  });
 });
 
 describe("Routing — disabled state (no active providers)", () => {
@@ -470,17 +531,6 @@ describe("Routing — helper functions", () => {
     // Should not throw
     await waitFor(() => {
       expect(overrideTier).toHaveBeenCalled();
-    });
-  });
-
-  it("handles resetTier error gracefully", async () => {
-    vi.mocked(resetTier).mockRejectedValueOnce(new Error("fail"));
-    render(() => <Routing />);
-    const resetBtn = await screen.findByText("Reset");
-    fireEvent.click(resetBtn);
-
-    await waitFor(() => {
-      expect(resetTier).toHaveBeenCalled();
     });
   });
 
@@ -867,9 +917,11 @@ describe("Routing — fallback management", () => {
       { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
     ]);
 
-    render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
-    fireEvent.click(addButtons[0]); // simple tier
+    const { container } = render(() => <Routing />);
+    // Simple tier has 1 fallback, so it shows the standalone "+ Add fallback" button (not inside empty state)
+    await screen.findAllByText("+ Add fallback");
+    const standaloneAddBtn = container.querySelector(".fallback-list__add:not(.fallback-list__empty .fallback-list__add)") as HTMLButtonElement;
+    fireEvent.click(standaloneAddBtn);
     await screen.findByText("Select a model");
 
     // Both gpt-4o-mini (primary) and claude-opus-4-6 (existing fallback) are filtered out
@@ -925,7 +977,7 @@ describe("Routing — fallback management", () => {
     await waitFor(() => {
       const ranks = container.querySelectorAll(".fallback-list__rank");
       expect(ranks.length).toBe(1);
-      expect(ranks[0].textContent).toBe("1.");
+      expect(ranks[0].textContent).toBe("1");
     });
   });
 
@@ -951,7 +1003,7 @@ describe("Routing — fallback management", () => {
       const removeButtons = container.querySelectorAll(".fallback-list__remove");
       expect(removeButtons.length).toBe(1);
       // Custom provider letter icon should render (accessing customProviders prop)
-      const letterIcon = container.querySelector(".fallback-list__item .provider-card__logo-letter");
+      const letterIcon = container.querySelector(".fallback-list__card .provider-card__logo-letter");
       expect(letterIcon).not.toBeNull();
       expect(letterIcon!.textContent).toBe("M");
     });

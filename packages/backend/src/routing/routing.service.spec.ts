@@ -310,7 +310,7 @@ describe('RoutingService', () => {
         key_prefix: 'old-key-',
         is_active: false,
       });
-      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null); // no subscription to deactivate
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
 
       const result = await service.upsertProvider('a1', 'u1', 'openai', 'new-key');
 
@@ -340,7 +340,7 @@ describe('RoutingService', () => {
         key_prefix: 'old-pref',
         is_active: false,
       });
-      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null); // no subscription to deactivate
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
 
       const result = await service.upsertProvider('a1', 'u1', 'openai');
 
@@ -390,7 +390,7 @@ describe('RoutingService', () => {
         connected_at: originalConnectedAt,
         updated_at: '2025-01-01T00:00:00.000Z',
       });
-      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null); // no subscription to deactivate
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
 
       const before = new Date().toISOString();
       await service.upsertProvider('a1', 'u1', 'openai', 'new-key');
@@ -475,30 +475,17 @@ describe('RoutingService', () => {
       expect(inserted.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     });
 
-    it('should deactivate subscription when adding new API key provider', async () => {
-      const subProvider = Object.assign(new UserProvider(), {
-        id: 'sub1',
-        agent_id: 'a1',
-        provider: 'anthropic',
-        auth_type: 'subscription',
-        is_active: true,
-      });
-      // First findOne: no existing api_key provider
-      // Second findOne (deactivateSubscription): finds active subscription
-      mockProviderRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(subProvider);
+    it('should not deactivate subscription when adding API key provider', async () => {
+      mockProviderRepo.findOne.mockResolvedValueOnce(null);
 
       await service.upsertProvider('a1', 'u1', 'anthropic', 'sk-ant-key');
 
       expect(mockProviderRepo.insert).toHaveBeenCalled();
-      expect(mockProviderRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'sub1',
-          is_active: false,
-        }),
-      );
+      // save should NOT be called — no subscription deactivation
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
     });
 
-    it('should deactivate subscription when updating existing API key provider', async () => {
+    it('should keep subscription active when updating existing API key provider', async () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',
         agent_id: 'a1',
@@ -508,34 +495,63 @@ describe('RoutingService', () => {
         key_prefix: 'old-pref',
         is_active: false,
       });
-      const subProvider = Object.assign(new UserProvider(), {
-        id: 'sub1',
-        agent_id: 'a1',
-        provider: 'anthropic',
-        auth_type: 'subscription',
-        is_active: true,
-      });
-      // First findOne: finds existing api_key provider
-      // Second findOne (deactivateSubscription): finds active subscription
-      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(subProvider);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
 
       await service.upsertProvider('a1', 'u1', 'anthropic', 'new-key');
 
-      // First save: update existing api_key provider
-      // Second save: deactivate subscription
-      expect(mockProviderRepo.save).toHaveBeenCalledTimes(2);
+      // Only one save: update existing api_key provider — subscription untouched
+      expect(mockProviderRepo.save).toHaveBeenCalledTimes(1);
       expect(mockProviderRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'sub1', is_active: false }),
+        expect.objectContaining({ id: 'p1', is_active: true }),
       );
     });
 
-    it('should not deactivate subscription when upserting subscription type', async () => {
-      mockProviderRepo.findOne.mockResolvedValue(null);
-
+    it('should allow subscription and api_key to coexist for same provider', async () => {
+      // First: add subscription (no existing)
+      mockProviderRepo.findOne.mockResolvedValueOnce(null);
       await service.upsertProvider('a1', 'u1', 'anthropic', undefined, 'subscription');
+      expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          is_active: true,
+        }),
+      );
 
-      // Only one findOne call (for existing check), no subscription deactivation query
-      expect(mockProviderRepo.findOne).toHaveBeenCalledTimes(1);
+      jest.clearAllMocks();
+
+      // Second: add api_key (no existing api_key record)
+      mockProviderRepo.findOne.mockResolvedValueOnce(null);
+      await service.upsertProvider('a1', 'u1', 'anthropic', 'sk-ant-key');
+      expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'anthropic', auth_type: 'api_key', is_active: true }),
+      );
+      // No save call means no subscription was deactivated
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should allow api_key and subscription to coexist when added in reverse order', async () => {
+      // First: add api_key (no existing)
+      mockProviderRepo.findOne.mockResolvedValueOnce(null);
+      await service.upsertProvider('a1', 'u1', 'anthropic', 'sk-ant-key');
+      expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'anthropic', auth_type: 'api_key', is_active: true }),
+      );
+
+      jest.clearAllMocks();
+
+      // Second: add subscription (no existing subscription record)
+      mockProviderRepo.findOne.mockResolvedValueOnce(null);
+      await service.upsertProvider('a1', 'u1', 'anthropic', undefined, 'subscription');
+      expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          is_active: true,
+        }),
+      );
+      // No save call means no api_key was deactivated
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
     });
   });
 
@@ -1048,6 +1064,102 @@ describe('RoutingService', () => {
         }),
       );
       expect(result.override_model).toBe('o1-pro');
+    });
+
+    it('should remove model from fallbacks when it becomes primary (5 fallbacks, pick #3)', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'standard',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'standard', 'fb-3');
+
+      expect(result.override_model).toBe('fb-3');
+      expect(result.fallback_models).toEqual(['fb-1', 'fb-2', 'fb-4', 'fb-5']);
+    });
+
+    it('should remove model from fallbacks when it becomes primary (5 fallbacks, pick #1)', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'standard',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'standard', 'fb-1');
+
+      expect(result.override_model).toBe('fb-1');
+      expect(result.fallback_models).toEqual(['fb-2', 'fb-3', 'fb-4', 'fb-5']);
+    });
+
+    it('should remove model from fallbacks when it becomes primary (5 fallbacks, pick #5)', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'standard',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'standard', 'fb-5');
+
+      expect(result.override_model).toBe('fb-5');
+      expect(result.fallback_models).toEqual(['fb-1', 'fb-2', 'fb-3', 'fb-4']);
+    });
+
+    it('should set fallback_models to null when the only fallback becomes primary', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'simple',
+        override_model: 'old-primary',
+        fallback_models: ['only-fb'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'simple', 'only-fb');
+
+      expect(result.override_model).toBe('only-fb');
+      expect(result.fallback_models).toBeNull();
+    });
+
+    it('should preserve fallback_models when new primary is not in fallbacks', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'complex', 'totally-new-model');
+
+      expect(result.override_model).toBe('totally-new-model');
+      expect(result.fallback_models).toEqual(['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5']);
+    });
+
+    it('should preserve fallback_models when fallbacks are null', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: 'old-primary',
+        fallback_models: null,
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'complex', 'new-model');
+
+      expect(result.override_model).toBe('new-model');
+      expect(result.fallback_models).toBeNull();
     });
   });
 

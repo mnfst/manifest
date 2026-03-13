@@ -80,9 +80,10 @@ const Routing: Component = () => {
   const [disabling, setDisabling] = createSignal(false);
   const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
-  const [resettingTier, setResettingTier] = createSignal<string | null>(null);
   const [changingTier, setChangingTier] = createSignal<string | null>(null);
   const [resettingAll, setResettingAll] = createSignal(false);
+  const [resettingTier, setResettingTier] = createSignal<string | null>(null);
+  const [confirmResetTier, setConfirmResetTier] = createSignal<string | null>(null);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
   const [addingFallback, setAddingFallback] = createSignal<string | null>(null);
   const [fallbackOverrides, setFallbackOverrides] = createSignal<Record<string, string[]>>({});
@@ -150,21 +151,6 @@ const Routing: Component = () => {
     }
   };
 
-  const handleReset = async (tierId: string) => {
-    setResettingTier(tierId);
-    try {
-      await resetTier(agentName(), tierId);
-      mutateTiers((prev) =>
-        prev?.map((t) => (t.tier === tierId ? { ...t, override_model: null } : t)),
-      );
-      toast.success('Reset to auto');
-    } catch {
-      // error toast from fetchMutate
-    } finally {
-      setResettingTier(null);
-    }
-  };
-
   const handleResetAll = async () => {
     setResettingAll(true);
     try {
@@ -175,6 +161,24 @@ const Routing: Component = () => {
       // error toast from fetchMutate
     } finally {
       setResettingAll(false);
+    }
+  };
+
+  const handleReset = async (tierId: string) => {
+    setConfirmResetTier(null);
+    setResettingTier(tierId);
+    try {
+      await resetTier(agentName(), tierId);
+      mutateTiers((prev) =>
+        prev?.map((t) =>
+          t.tier === tierId ? { ...t, override_model: null, fallback_models: [] } : t,
+        ),
+      );
+      toast.success('Tier reset to auto');
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      setResettingTier(null);
     }
   };
 
@@ -253,7 +257,7 @@ const Routing: Component = () => {
   const hasOverrides = () => tiers()?.some((t) => t.override_model !== null) ?? false;
 
   return (
-    <div class="container--md">
+    <div class="container--lg">
       <Title>{agentDisplayName() ?? agentName()} Routing - Manifest</Title>
       <Meta
         name="description"
@@ -310,7 +314,6 @@ const Routing: Component = () => {
                   <div class="routing-card">
                     <div class="routing-card__header">
                       <span class="routing-card__tier">{stage.label}</span>
-                      <span class="routing-card__desc">{stage.desc}</span>
                     </div>
                     <div class="routing-card__body">
                       <div class="routing-card__override">
@@ -320,17 +323,12 @@ const Routing: Component = () => {
                             style="width: 16px; height: 16px; border-radius: 50%;"
                           />
                         </span>
-                        <div class="skeleton skeleton--text" style="width: 140px; height: 14px;" />
+                        <div class="skeleton skeleton--text" style="width: 80%; height: 14px;" />
                       </div>
                       <div
                         class="skeleton skeleton--text"
-                        style="width: 200px; height: 12px; margin-top: 6px;"
+                        style="width: 60%; height: 12px; margin-top: 6px;"
                       />
-                    </div>
-                    <div class="routing-card__right">
-                      <div class="routing-card__actions">
-                        <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                      </div>
                     </div>
                   </div>
                 )}
@@ -432,24 +430,30 @@ const Routing: Component = () => {
                 };
                 const isManual = () =>
                   tier()?.override_model !== null && tier()?.override_model !== undefined;
+                const isEdited = () => isManual() || getFallbacksFor(stage.id).length > 0;
 
                 return (
                   <div class="routing-card">
                     <div class="routing-card__header">
                       <span class="routing-card__tier">{stage.label}</span>
-                      <span class="routing-card__desc">{stage.desc}</span>
+                      <Show when={isEdited()}>
+                        <button
+                          class="routing-card__reset-btn"
+                          onClick={() => setConfirmResetTier(stage.id)}
+                          disabled={resettingTier() === stage.id}
+                        >
+                          {resettingTier() === stage.id ? <span class="spinner" /> : 'Reset'}
+                        </button>
+                      </Show>
                     </div>
                     <Show
                       when={!tiers.loading}
                       fallback={
                         <div class="routing-card__body">
+                          <div class="skeleton skeleton--text" style="width: 80%; height: 14px;" />
                           <div
                             class="skeleton skeleton--text"
-                            style="width: 160px; height: 14px;"
-                          />
-                          <div
-                            class="skeleton skeleton--text"
-                            style="width: 200px; height: 12px; margin-top: 6px;"
+                            style="width: 60%; height: 12px; margin-top: 6px;"
                           />
                         </div>
                       }
@@ -485,24 +489,24 @@ const Routing: Component = () => {
                               return null;
                             };
                             return (
-                              <>
-                                <Show
-                                  when={changingTier() !== stage.id}
-                                  fallback={
-                                    <>
-                                      <div class="routing-card__override">
-                                        <div
-                                          class="skeleton skeleton--text"
-                                          style="width: 140px; height: 14px;"
-                                        />
-                                      </div>
+                              <Show
+                                when={changingTier() !== stage.id}
+                                fallback={
+                                  <>
+                                    <div class="routing-card__override">
                                       <div
                                         class="skeleton skeleton--text"
-                                        style="width: 180px; height: 12px; margin-top: 6px;"
+                                        style="width: 80%; height: 14px;"
                                       />
-                                    </>
-                                  }
-                                >
+                                    </div>
+                                    <div
+                                      class="skeleton skeleton--text"
+                                      style="width: 60%; height: 12px; margin-top: 6px;"
+                                    />
+                                  </>
+                                }
+                              >
+                                <div class="routing-card__model-row">
                                   <div class="routing-card__override">
                                     {(() => {
                                       const pid = provId();
@@ -544,47 +548,45 @@ const Routing: Component = () => {
                                       <span class="routing-card__auto-tag">auto</span>
                                     </Show>
                                   </div>
-                                  <Show
-                                    when={effectiveAuth() !== 'subscription'}
-                                    fallback={
-                                      <span class="routing-card__sub routing-card__sub--subscription">
-                                        Included in subscription
-                                      </span>
-                                    }
+                                  <button
+                                    class="btn btn--outline btn--sm"
+                                    onClick={() => setDropdownTier(stage.id)}
                                   >
-                                    <span class="routing-card__sub">{priceLabel(modelName())}</span>
-                                  </Show>
+                                    Change
+                                  </button>
+                                </div>
+                                <Show
+                                  when={effectiveAuth() !== 'subscription'}
+                                  fallback={
+                                    <span class="routing-card__sub routing-card__sub--subscription">
+                                      Included in subscription
+                                    </span>
+                                  }
+                                >
+                                  <span class="routing-card__sub">{priceLabel(modelName())}</span>
                                 </Show>
-                              </>
+                              </Show>
                             );
                           }}
                         </Show>
                       </div>
                       <Show when={eff()}>
-                        <div class="routing-card__right">
-                          <div class="routing-card__actions">
-                            <button
-                              class="routing-action"
-                              onClick={() => setDropdownTier(stage.id)}
-                              disabled={changingTier() === stage.id}
-                            >
-                              <Show
-                                when={changingTier() !== stage.id}
-                                fallback={<span class="spinner" />}
+                        <div class="routing-card__fallbacks">
+                          <Show when={getFallbacksFor(stage.id).length > 0}>
+                            <div class="routing-card__fallbacks-label">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="14"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
                               >
-                                Change
-                              </Show>
-                            </button>
-                            <Show when={isManual()}>
-                              <button
-                                class="routing-action"
-                                onClick={() => handleReset(stage.id)}
-                                disabled={resettingTier() === stage.id || resettingAll()}
-                              >
-                                {resettingTier() === stage.id ? <span class="spinner" /> : 'Reset'}
-                              </button>
-                            </Show>
-                          </div>
+                                <path d="M6 22h2V8h4L7 2 2 8h4zM19 2h-2v14h-4l5 6 5-6h-4z" />
+                              </svg>
+                              Fallbacks
+                            </div>
+                          </Show>
                           <FallbackList
                             agentName={agentName()}
                             tier={stage.id}
@@ -738,6 +740,38 @@ const Routing: Component = () => {
             </div>
           </div>
         </div>
+      </Show>
+
+      <Show when={confirmResetTier()}>
+        {(tierId) => (
+          <div
+            class="modal-overlay"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setConfirmResetTier(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setConfirmResetTier(null);
+            }}
+          >
+            <div class="modal-card" style="max-width: 420px;">
+              <h2 style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;">
+                Reset tier?
+              </h2>
+              <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+                This will remove the manual model override and fallbacks for this tier. The system
+                will auto-assign a model based on your connected providers.
+              </p>
+              <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button class="btn btn--outline" onClick={() => setConfirmResetTier(null)}>
+                  Cancel
+                </button>
+                <button class="btn btn--danger" onClick={() => handleReset(tierId())}>
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </Show>
     </div>
   );
