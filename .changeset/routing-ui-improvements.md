@@ -1,5 +1,5 @@
 ---
-"manifest": patch
+"manifest": minor
 ---
 
-Improve routing provider UI: deterministic custom provider colors, delete confirmation modal, conditional model picker tabs and search, centered provider avatar letters
+Redesign routing page: 4-column tier layout with drag-and-drop fallback reordering, auto-remove fallback when promoted to primary, model role tags in picker, and consistent btn--outline styling

@@ -145,7 +145,27 @@ const ModelPickerModal: Component<Props> = (props) => {
     return t?.auto_assigned_model === modelName;
   };
 
+  /** Returns the role of a model in the current tier: "Primary", "Fallback 1", etc. or null */
+  const modelRole = (modelName: string): string | null => {
+    const t = props.tiers.find((r) => r.tier === props.tierId);
+    if (!t) return null;
+    const primary = t.override_model ?? t.auto_assigned_model;
+    if (primary === modelName) return 'Primary';
+    const fb = t.fallback_models ?? [];
+    const fbIndex = fb.indexOf(modelName);
+    if (fbIndex !== -1) return `Fallback ${fbIndex + 1}`;
+    return null;
+  };
+
   const totalVisibleModels = () => groupedModels().reduce((sum, g) => sum + g.models.length, 0);
+
+  /** Total models available (ignoring search) — used to decide whether to show search bar */
+  const totalAvailableModels = () => {
+    const saved = search();
+    if (!saved) return totalVisibleModels();
+    // Count all models without applying search filter
+    return props.models.length;
+  };
 
   const isSub = () => activeTab() === 'subscription';
 
@@ -252,7 +272,7 @@ const ModelPickerModal: Component<Props> = (props) => {
           </div>
         </Show>
 
-        <Show when={totalVisibleModels() > 5}>
+        <Show when={totalAvailableModels() > 5}>
           <div class="routing-modal__search-wrap">
             <svg
               class="routing-modal__search-icon"
@@ -289,7 +309,35 @@ const ModelPickerModal: Component<Props> = (props) => {
               classList={{ 'routing-modal__filter-pill--active': showFreeOnly() }}
               onClick={() => setShowFreeOnly(!showFreeOnly())}
             >
-              {showFreeOnly() ? 'Free models only' : 'View free models only'}
+              <svg
+                class="routing-modal__filter-check"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <Show
+                  when={showFreeOnly()}
+                  fallback={<rect x="3" y="3" width="18" height="18" rx="3" stroke-width="2" />}
+                >
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="3"
+                    stroke-width="2"
+                    fill="currentColor"
+                  />
+                  <path d="m9 12 2 2 4-4" stroke="hsl(var(--card))" />
+                </Show>
+              </svg>
+              Free models only
             </button>
           </div>
         </Show>
@@ -329,6 +377,9 @@ const ModelPickerModal: Component<Props> = (props) => {
                         {model.label}
                         <Show when={isRecommended(model.value)}>
                           <span class="routing-modal__recommended"> (recommended)</span>
+                        </Show>
+                        <Show when={modelRole(model.value)}>
+                          {(role) => <span class="routing-modal__role-tag">{role()}</span>}
                         </Show>
                       </span>
                       <Show

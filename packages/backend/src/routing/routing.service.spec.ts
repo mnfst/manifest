@@ -1049,6 +1049,102 @@ describe('RoutingService', () => {
       );
       expect(result.override_model).toBe('o1-pro');
     });
+
+    it('should remove model from fallbacks when it becomes primary (5 fallbacks, pick #3)', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'standard',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'standard', 'fb-3');
+
+      expect(result.override_model).toBe('fb-3');
+      expect(result.fallback_models).toEqual(['fb-1', 'fb-2', 'fb-4', 'fb-5']);
+    });
+
+    it('should remove model from fallbacks when it becomes primary (5 fallbacks, pick #1)', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'standard',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'standard', 'fb-1');
+
+      expect(result.override_model).toBe('fb-1');
+      expect(result.fallback_models).toEqual(['fb-2', 'fb-3', 'fb-4', 'fb-5']);
+    });
+
+    it('should remove model from fallbacks when it becomes primary (5 fallbacks, pick #5)', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'standard',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'standard', 'fb-5');
+
+      expect(result.override_model).toBe('fb-5');
+      expect(result.fallback_models).toEqual(['fb-1', 'fb-2', 'fb-3', 'fb-4']);
+    });
+
+    it('should set fallback_models to null when the only fallback becomes primary', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'simple',
+        override_model: 'old-primary',
+        fallback_models: ['only-fb'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'simple', 'only-fb');
+
+      expect(result.override_model).toBe('only-fb');
+      expect(result.fallback_models).toBeNull();
+    });
+
+    it('should preserve fallback_models when new primary is not in fallbacks', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'complex', 'totally-new-model');
+
+      expect(result.override_model).toBe('totally-new-model');
+      expect(result.fallback_models).toEqual(['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5']);
+    });
+
+    it('should preserve fallback_models when fallbacks are null', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: 'old-primary',
+        fallback_models: null,
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'complex', 'new-model');
+
+      expect(result.override_model).toBe('new-model');
+      expect(result.fallback_models).toBeNull();
+    });
   });
 
   /* ── clearOverride ── */

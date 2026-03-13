@@ -69,7 +69,8 @@ describe("FallbackList", () => {
       <FallbackList {...defaultProps} fallbacks={[]} />
     ));
 
-    expect(screen.getByText("+ Add fallback")).toBeDefined();
+    expect(screen.getByText("No fallback")).toBeDefined();
+    expect(container.querySelector(".fallback-list__empty")).not.toBeNull();
     expect(container.querySelector(".fallback-list__items")).toBeNull();
   });
 
@@ -80,20 +81,21 @@ describe("FallbackList", () => {
 
     const ranks = container.querySelectorAll(".fallback-list__rank");
     expect(ranks.length).toBe(2);
-    expect(ranks[0].textContent).toBe("1.");
-    expect(ranks[1].textContent).toBe("2.");
+    expect(ranks[0].textContent).toBe("1");
+    expect(ranks[1].textContent).toBe("2");
 
     const modelLabels = container.querySelectorAll(".fallback-list__model");
     expect(modelLabels.length).toBe(2);
   });
 
-  it("calls onAddFallback when add button clicked", () => {
+  it("calls onAddFallback when add button in empty state clicked", () => {
     const onAddFallback = vi.fn();
-    render(() => (
+    const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={[]} onAddFallback={onAddFallback} />
     ));
 
-    fireEvent.click(screen.getByText("+ Add fallback"));
+    const addBtn = container.querySelector(".fallback-list__empty .fallback-list__add") as HTMLButtonElement;
+    fireEvent.click(addBtn);
     expect(onAddFallback).toHaveBeenCalledTimes(1);
   });
 
@@ -317,33 +319,40 @@ describe("FallbackList", () => {
     expect(removeBtn?.getAttribute("aria-label")).toBe("Remove Model Alpha");
   });
 
-  it("add button uses routing-action class for consistent styling", () => {
+  it("empty state uses fallback-list__empty class for consistent styling", () => {
     const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={[]} />
     ));
 
-    const addBtn = container.querySelector(".fallback-list__add");
-    expect(addBtn).not.toBeNull();
-    expect(addBtn!.classList.contains("routing-action")).toBe(true);
+    const emptyBtn = container.querySelector(".fallback-list__empty");
+    expect(emptyBtn).not.toBeNull();
   });
 
-  it("shows spinner and disables add button when adding prop is true", () => {
+  it("shows add button with fallback-list__add class when fallbacks exist", () => {
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={["model-a"]} />
+    ));
+
+    const addBtn = container.querySelector(".fallback-list__add");
+    expect(addBtn).not.toBeNull();
+  });
+
+  it("disables add button in empty state when adding prop is true", () => {
     const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={[]} adding={true} />
     ));
 
-    const addBtn = container.querySelector(".fallback-list__add") as HTMLButtonElement;
-    expect(addBtn.querySelector(".spinner")).not.toBeNull();
+    const addBtn = container.querySelector(".fallback-list__empty .fallback-list__add") as HTMLButtonElement;
     expect(addBtn.disabled).toBe(true);
   });
 
-  it("disables add button when adding is false but not disabled", () => {
-    render(() => (
+  it("enables add button in empty state when adding is false", () => {
+    const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={[]} adding={false} />
     ));
 
-    const addBtn = screen.getByText("+ Add fallback");
-    expect((addBtn as HTMLButtonElement).disabled).toBe(false);
+    const addBtn = container.querySelector(".fallback-list__empty .fallback-list__add") as HTMLButtonElement;
+    expect(addBtn.disabled).toBe(false);
   });
 
   it("disables all remove buttons during async removal", async () => {
@@ -364,10 +373,10 @@ describe("FallbackList", () => {
       // Both buttons should be disabled
       expect((btns[0] as HTMLButtonElement).disabled).toBe(true);
       expect((btns[1] as HTMLButtonElement).disabled).toBe(true);
-      // The one being removed shows "..."
-      expect(btns[0].textContent).toBe("...");
-      // The other still shows "×"
-      expect(btns[1].textContent).toBe("\u00d7");
+      // The one being removed shows a spinner
+      expect(btns[0].querySelector(".spinner")).not.toBeNull();
+      // The other still shows a close (x) SVG
+      expect(btns[1].querySelector("svg")).not.toBeNull();
     });
 
     resolveRemove!();

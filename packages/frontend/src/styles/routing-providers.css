@@ -534,6 +534,43 @@
 }
 
 /* ── Add custom provider button ───────────────────── */
+/* Request another subscription provider — right-aligned bordered link */
+.provider-modal__request-sub {
+  padding: 8px 24px 4px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.provider-modal__request-sub-btn {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: 1px solid hsl(var(--border));
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.provider-modal__request-sub-btn:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.5);
+  border-color: hsl(var(--foreground) / 0.3);
+}
+
+.provider-modal__request-sub-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
 .provider-modal__add-custom {
   padding: 8px 24px 4px;
   display: flex;

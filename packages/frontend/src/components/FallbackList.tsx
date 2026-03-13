@@ -28,6 +28,9 @@ interface FallbackListProps {
 
 const FallbackList: Component<FallbackListProps> = (props) => {
   const [removingIndex, setRemovingIndex] = createSignal<number | null>(null);
+  const [dragIndex, setDragIndex] = createSignal<number | null>(null);
+  const [dropSlot, setDropSlot] = createSignal<number | null>(null);
+  let listRef: HTMLDivElement | undefined;
 
   const modelLabel = (model: string): string => {
     const info = props.models.find((m) => m.model_name === model);
@@ -67,7 +70,6 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     setRemovingIndex(index);
     const original = [...props.fallbacks];
     const updated = props.fallbacks.filter((_, i) => i !== index);
-    // Optimistic: remove from UI immediately
     props.onUpdate(updated);
     try {
       if (updated.length === 0) {
@@ -77,17 +79,105 @@ const FallbackList: Component<FallbackListProps> = (props) => {
       }
       toast.success('Fallback removed');
     } catch {
-      // Revert on failure
       props.onUpdate(original);
     } finally {
       setRemovingIndex(null);
     }
   };
 
+  const handleDragStart = (index: number, e: DragEvent) => {
+    setDragIndex(index);
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(index));
+    }
+  };
+
+  /**
+   * Compute the drop slot from cursor Y relative to card positions.
+   * This runs on the container so it works even when hovering
+   * the gaps between cards or the indicator divs.
+   */
+  const computeSlot = (clientY: number): number | null => {
+    if (!listRef) return null;
+    const from = dragIndex();
+    if (from === null) return null;
+
+    const cards = listRef.querySelectorAll<HTMLElement>('.fallback-list__card');
+    if (cards.length === 0) return null;
+
+    // Find which slot the cursor is closest to.
+    // Slots are: before card 0, between card 0 and 1, ..., after last card.
+    let slot = cards.length; // default: after the last card
+    for (let i = 0; i < cards.length; i++) {
+      const rect = cards[i].getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (clientY < midY) {
+        slot = i;
+        break;
+      }
+    }
+
+    // Don't show indicator at the dragged item's current position (no-op move)
+    if (slot === from || slot === from + 1) return null;
+    return slot;
+  };
+
+  const handleContainerDragOver = (e: DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    setDropSlot(computeSlot(e.clientY));
+  };
+
+  const handleContainerDragLeave = (e: DragEvent) => {
+    // Only clear when leaving the container entirely
+    const related = e.relatedTarget as Node | null;
+    if (!related || !listRef?.contains(related)) {
+      setDropSlot(null);
+    }
+  };
+
+  const handleDrop = async (e: DragEvent) => {
+    e.preventDefault();
+    const fromIndex = dragIndex();
+    const toSlot = dropSlot();
+    setDragIndex(null);
+    setDropSlot(null);
+    if (fromIndex === null || toSlot === null) return;
+
+    const insertAt = toSlot > fromIndex ? toSlot - 1 : toSlot;
+    if (insertAt === fromIndex) return;
+
+    const original = [...props.fallbacks];
+    const reordered = [...props.fallbacks];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(insertAt, 0, moved);
+
+    props.onUpdate(reordered);
+    try {
+      await setFallbacks(props.agentName, props.tier, reordered);
+      toast.success('Fallback order updated');
+    } catch {
+      props.onUpdate(original);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setDropSlot(null);
+  };
+
   return (
     <div class="fallback-list">
       <Show when={props.fallbacks.length > 0}>
-        <ol class="fallback-list__items">
+        <div
+          ref={listRef}
+          class="fallback-list__items"
+          onDragOver={handleContainerDragOver}
+          onDragLeave={handleContainerDragLeave}
+          onDrop={handleDrop}
+          onDragEnd={handleDragEnd}
+        >
           <For each={props.fallbacks}>
             {(model, i) => {
               const provId = () => providerIdFor(model);
@@ -95,59 +185,136 @@ const FallbackList: Component<FallbackListProps> = (props) => {
               const auth = () => authTypeFor(provId());
               const title = () => providerTitle(provId(), auth());
               return (
-                <li class="fallback-list__item">
-                  <span class="fallback-list__rank">{i() + 1}.</span>
-                  <Show when={provId() && !isCustom()}>
-                    <span class="fallback-list__icon" title={title()}>
-                      {providerIcon(provId()!, 14)}
-                      {authBadgeFor(auth(), 8)}
-                    </span>
-                  </Show>
-                  <Show when={isCustom()}>
-                    {(() => {
-                      const cp = props.customProviders.find((c) => `custom:${c.id}` === provId());
-                      const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
-                      return (
-                        <span
-                          class="provider-card__logo-letter fallback-list__icon"
-                          title={cp?.name ?? 'Custom'}
-                          style={{
-                            background: customProviderColor(cp?.name ?? ''),
-                            width: '14px',
-                            height: '14px',
-                            'font-size': '8px',
-                            'border-radius': '50%',
-                          }}
-                        >
-                          {letter}
-                        </span>
-                      );
-                    })()}
-                  </Show>
-                  <span class="fallback-list__model">{modelLabel(model)}</span>
-                  <button
-                    class="fallback-list__remove"
-                    onClick={() => handleRemove(i())}
-                    title="Remove fallback"
-                    aria-label={`Remove ${modelLabel(model)}`}
-                    disabled={removingIndex() !== null}
+                <>
+                  <div
+                    class="fallback-list__drop-indicator"
+                    classList={{
+                      'fallback-list__drop-indicator--active': dropSlot() === i(),
+                    }}
+                  />
+                  <div
+                    class="fallback-list__card"
+                    classList={{
+                      'fallback-list__card--dragging': dragIndex() === i(),
+                    }}
+                    draggable={true}
+                    onDragStart={(e) => handleDragStart(i(), e)}
                   >
-                    {removingIndex() === i() ? '...' : '\u00d7'}
-                  </button>
-                </li>
+                    <span class="fallback-list__drag-handle" aria-hidden="true">
+                      <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor">
+                        <circle cx="2" cy="2" r="1.2" />
+                        <circle cx="6" cy="2" r="1.2" />
+                        <circle cx="2" cy="7" r="1.2" />
+                        <circle cx="6" cy="7" r="1.2" />
+                        <circle cx="2" cy="12" r="1.2" />
+                        <circle cx="6" cy="12" r="1.2" />
+                      </svg>
+                    </span>
+                    <span class="fallback-list__rank">{i() + 1}</span>
+                    <Show when={provId() && !isCustom()}>
+                      <span class="fallback-list__icon" title={title()}>
+                        {providerIcon(provId()!, 14)}
+                        {authBadgeFor(auth(), 8)}
+                      </span>
+                    </Show>
+                    <Show when={isCustom()}>
+                      {(() => {
+                        const cp = props.customProviders.find((c) => `custom:${c.id}` === provId());
+                        const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
+                        return (
+                          <span
+                            class="provider-card__logo-letter fallback-list__icon"
+                            title={cp?.name ?? 'Custom'}
+                            style={{
+                              background: customProviderColor(cp?.name ?? ''),
+                              width: '14px',
+                              height: '14px',
+                              'font-size': '8px',
+                              'border-radius': '50%',
+                            }}
+                          >
+                            {letter}
+                          </span>
+                        );
+                      })()}
+                    </Show>
+                    <span class="fallback-list__model">{modelLabel(model)}</span>
+                    <button
+                      class="fallback-list__remove"
+                      onClick={() => handleRemove(i())}
+                      title="Remove fallback"
+                      aria-label={`Remove ${modelLabel(model)}`}
+                      disabled={removingIndex() !== null}
+                    >
+                      {removingIndex() === i() ? (
+                        <span class="spinner" style="width: 10px; height: 10px;" />
+                      ) : (
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M18 6 6 18" />
+                          <path d="m6 6 12 12" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </>
               );
             }}
           </For>
-        </ol>
+          <div
+            class="fallback-list__drop-indicator"
+            classList={{
+              'fallback-list__drop-indicator--active': dropSlot() === props.fallbacks.length,
+            }}
+          />
+        </div>
       </Show>
-      <Show when={props.fallbacks.length < 5}>
-        <button
-          class="fallback-list__add routing-action"
-          onClick={props.onAddFallback}
-          disabled={props.adding || removingIndex() !== null}
-        >
-          {props.adding ? <span class="spinner" /> : '+ Add fallback'}
-        </button>
+      <Show
+        when={props.fallbacks.length > 0}
+        fallback={
+          <div class="fallback-list__empty">
+            <svg
+              class="fallback-list__empty-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M6 22h2V8h4L7 2 2 8h4zM19 2h-2v14h-4l5 6 5-6h-4z" />
+            </svg>
+            <span class="fallback-list__empty-title">No fallback</span>
+            <span class="fallback-list__empty-desc">
+              Add fallback models to ensure a response if the primary model is unavailable.
+            </span>
+            <button
+              class="btn btn--outline btn--sm fallback-list__add"
+              onClick={props.onAddFallback}
+              disabled={props.adding}
+            >
+              {props.adding ? <span class="spinner" /> : '+ Add fallback'}
+            </button>
+          </div>
+        }
+      >
+        <Show when={props.fallbacks.length < 5}>
+          <button
+            class="btn btn--outline btn--sm fallback-list__add"
+            onClick={props.onAddFallback}
+            disabled={props.adding || removingIndex() !== null}
+          >
+            {props.adding ? <span class="spinner" /> : '+ Add fallback'}
+          </button>
+        </Show>
       </Show>
     </div>
   );

@@ -69,6 +69,7 @@
 .routing-modal__filter-pill {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   padding: 5px 14px;
   font-size: var(--font-size-xs);
   font-family: var(--font-family);
@@ -90,14 +91,16 @@
 }
 
 .routing-modal__filter-pill--active {
-  background: hsl(var(--primary));
-  color: #fff;
-  border-color: hsl(var(--primary));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--foreground) / 0.3);
 }
 
 .routing-modal__filter-pill--active:hover {
-  background: hsl(var(--primary) / 0.85);
-  color: #fff;
+  background: hsl(var(--muted) / 0.5);
+}
+
+.routing-modal__filter-check {
+  flex-shrink: 0;
 }
 
 .routing-modal__list {
@@ -193,6 +196,20 @@
   color: hsl(var(--success));
   font-weight: 500;
   margin-left: 4px;
+}
+
+.routing-modal__role-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 2px 6px;
+  margin-left: 6px;
+  border-radius: 4px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  vertical-align: middle;
+  letter-spacing: 0.01em;
 }
 
 .routing-modal__empty {

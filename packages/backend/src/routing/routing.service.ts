@@ -379,6 +379,10 @@ export class RoutingService {
     if (existing) {
       existing.override_model = model;
       existing.override_auth_type = authType ?? null;
+      if (existing.fallback_models?.includes(model)) {
+        const filtered = existing.fallback_models.filter((m) => m !== model);
+        existing.fallback_models = filtered.length > 0 ? filtered : null;
+      }
       existing.updated_at = new Date().toISOString();
       await this.tierRepo.save(existing);
       this.routingCache.invalidateAgent(agentId);

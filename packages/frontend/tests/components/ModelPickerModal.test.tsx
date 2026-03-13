@@ -159,10 +159,10 @@ describe("ModelPickerModal", () => {
     render(() => (
       <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
-    // Free models filter is now a pill button
-    const pill = screen.getByText("View free models only");
+    // Free models filter is a checkbox-style pill button
+    const pill = screen.getByText("Free models only");
     fireEvent.click(pill);
-    // After clicking, the pill text changes to "Free models only"
+    // After clicking, still shows "Free models only" (with check icon)
     expect(screen.getByText("Free models only")).toBeDefined();
   });
 

@@ -20,7 +20,6 @@ import {
   getCustomProviders,
   deactivateAllProviders,
   overrideTier,
-  resetTier,
   resetAllTiers,
   setFallbacks,
   type TierAssignment,
@@ -80,7 +79,6 @@ const Routing: Component = () => {
   const [disabling, setDisabling] = createSignal(false);
   const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
-  const [resettingTier, setResettingTier] = createSignal<string | null>(null);
   const [changingTier, setChangingTier] = createSignal<string | null>(null);
   const [resettingAll, setResettingAll] = createSignal(false);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
@@ -147,21 +145,6 @@ const Routing: Component = () => {
       // error toast from fetchMutate
     } finally {
       setChangingTier(null);
-    }
-  };
-
-  const handleReset = async (tierId: string) => {
-    setResettingTier(tierId);
-    try {
-      await resetTier(agentName(), tierId);
-      mutateTiers((prev) =>
-        prev?.map((t) => (t.tier === tierId ? { ...t, override_model: null } : t)),
-      );
-      toast.success('Reset to auto');
-    } catch {
-      // error toast from fetchMutate
-    } finally {
-      setResettingTier(null);
     }
   };
 
@@ -253,7 +236,7 @@ const Routing: Component = () => {
   const hasOverrides = () => tiers()?.some((t) => t.override_model !== null) ?? false;
 
   return (
-    <div class="container--md">
+    <div class="container--lg">
       <Title>{agentDisplayName() ?? agentName()} Routing - Manifest</Title>
       <Meta
         name="description"
@@ -310,7 +293,6 @@ const Routing: Component = () => {
                   <div class="routing-card">
                     <div class="routing-card__header">
                       <span class="routing-card__tier">{stage.label}</span>
-                      <span class="routing-card__desc">{stage.desc}</span>
                     </div>
                     <div class="routing-card__body">
                       <div class="routing-card__override">
@@ -320,17 +302,12 @@ const Routing: Component = () => {
                             style="width: 16px; height: 16px; border-radius: 50%;"
                           />
                         </span>
-                        <div class="skeleton skeleton--text" style="width: 140px; height: 14px;" />
+                        <div class="skeleton skeleton--text" style="width: 80%; height: 14px;" />
                       </div>
                       <div
                         class="skeleton skeleton--text"
-                        style="width: 200px; height: 12px; margin-top: 6px;"
+                        style="width: 60%; height: 12px; margin-top: 6px;"
                       />
-                    </div>
-                    <div class="routing-card__right">
-                      <div class="routing-card__actions">
-                        <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                      </div>
                     </div>
                   </div>
                 )}
@@ -437,19 +414,15 @@ const Routing: Component = () => {
                   <div class="routing-card">
                     <div class="routing-card__header">
                       <span class="routing-card__tier">{stage.label}</span>
-                      <span class="routing-card__desc">{stage.desc}</span>
                     </div>
                     <Show
                       when={!tiers.loading}
                       fallback={
                         <div class="routing-card__body">
+                          <div class="skeleton skeleton--text" style="width: 80%; height: 14px;" />
                           <div
                             class="skeleton skeleton--text"
-                            style="width: 160px; height: 14px;"
-                          />
-                          <div
-                            class="skeleton skeleton--text"
-                            style="width: 200px; height: 12px; margin-top: 6px;"
+                            style="width: 60%; height: 12px; margin-top: 6px;"
                           />
                         </div>
                       }
@@ -485,24 +458,24 @@ const Routing: Component = () => {
                               return null;
                             };
                             return (
-                              <>
-                                <Show
-                                  when={changingTier() !== stage.id}
-                                  fallback={
-                                    <>
-                                      <div class="routing-card__override">
-                                        <div
-                                          class="skeleton skeleton--text"
-                                          style="width: 140px; height: 14px;"
-                                        />
-                                      </div>
+                              <Show
+                                when={changingTier() !== stage.id}
+                                fallback={
+                                  <>
+                                    <div class="routing-card__override">
                                       <div
                                         class="skeleton skeleton--text"
-                                        style="width: 180px; height: 12px; margin-top: 6px;"
+                                        style="width: 80%; height: 14px;"
                                       />
-                                    </>
-                                  }
-                                >
+                                    </div>
+                                    <div
+                                      class="skeleton skeleton--text"
+                                      style="width: 60%; height: 12px; margin-top: 6px;"
+                                    />
+                                  </>
+                                }
+                              >
+                                <div class="routing-card__model-row">
                                   <div class="routing-card__override">
                                     {(() => {
                                       const pid = provId();
@@ -544,47 +517,45 @@ const Routing: Component = () => {
                                       <span class="routing-card__auto-tag">auto</span>
                                     </Show>
                                   </div>
-                                  <Show
-                                    when={effectiveAuth() !== 'subscription'}
-                                    fallback={
-                                      <span class="routing-card__sub routing-card__sub--subscription">
-                                        Included in subscription
-                                      </span>
-                                    }
+                                  <button
+                                    class="btn btn--outline btn--sm"
+                                    onClick={() => setDropdownTier(stage.id)}
                                   >
-                                    <span class="routing-card__sub">{priceLabel(modelName())}</span>
-                                  </Show>
+                                    Change
+                                  </button>
+                                </div>
+                                <Show
+                                  when={effectiveAuth() !== 'subscription'}
+                                  fallback={
+                                    <span class="routing-card__sub routing-card__sub--subscription">
+                                      Included in subscription
+                                    </span>
+                                  }
+                                >
+                                  <span class="routing-card__sub">{priceLabel(modelName())}</span>
                                 </Show>
-                              </>
+                              </Show>
                             );
                           }}
                         </Show>
                       </div>
                       <Show when={eff()}>
-                        <div class="routing-card__right">
-                          <div class="routing-card__actions">
-                            <button
-                              class="routing-action"
-                              onClick={() => setDropdownTier(stage.id)}
-                              disabled={changingTier() === stage.id}
-                            >
-                              <Show
-                                when={changingTier() !== stage.id}
-                                fallback={<span class="spinner" />}
+                        <div class="routing-card__fallbacks">
+                          <Show when={getFallbacksFor(stage.id).length > 0}>
+                            <div class="routing-card__fallbacks-label">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="14"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
                               >
-                                Change
-                              </Show>
-                            </button>
-                            <Show when={isManual()}>
-                              <button
-                                class="routing-action"
-                                onClick={() => handleReset(stage.id)}
-                                disabled={resettingTier() === stage.id || resettingAll()}
-                              >
-                                {resettingTier() === stage.id ? <span class="spinner" /> : 'Reset'}
-                              </button>
-                            </Show>
-                          </div>
+                                <path d="M6 22h2V8h4L7 2 2 8h4zM19 2h-2v14h-4l5 6 5-6h-4z" />
+                              </svg>
+                              Fallbacks
+                            </div>
+                          </Show>
                           <FallbackList
                             agentName={agentName()}
                             tier={stage.id}
@@ -631,7 +602,7 @@ const Routing: Component = () => {
                 class="btn btn--outline"
                 style="font-size: var(--font-size-sm);"
                 onClick={handleResetAll}
-                disabled={resettingAll() || resettingTier() !== null}
+                disabled={resettingAll()}
               >
                 {resettingAll() ? <span class="spinner" /> : 'Reset all to auto'}
               </button>
