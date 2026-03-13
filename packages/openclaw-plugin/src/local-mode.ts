@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, renameSync } from 'fs';
+import { writeFileSync, existsSync, mkdirSync, readdirSync, renameSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
 import { randomBytes } from 'crypto';
@@ -11,6 +11,7 @@ import { registerRouting } from './routing';
 import { registerTools } from './tools';
 import { registerCommand } from './command';
 import { API_KEY_PREFIX } from './constants';
+import { loadJsonFile } from './json-file';
 
 const CONFIG_DIR = join(homedir(), '.openclaw', 'manifest');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
@@ -34,38 +35,18 @@ function loadOrGenerateApiKey(): string {
   ensureConfigDir();
 
   if (existsSync(CONFIG_FILE)) {
-    try {
-      const data = JSON.parse(readFileSync(CONFIG_FILE, 'utf-8')) as LocalConfig;
-      if (data.apiKey && data.apiKey.startsWith(API_KEY_PREFIX)) {
-        return data.apiKey;
-      }
-    } catch {
-      // Regenerate if corrupted
+    const data = loadJsonFile(CONFIG_FILE) as Partial<LocalConfig>;
+    if (data.apiKey && data.apiKey.startsWith(API_KEY_PREFIX)) {
+      return data.apiKey;
     }
   }
 
   const key = `${API_KEY_PREFIX}local_${randomBytes(24).toString('hex')}`;
-  let existing: Record<string, unknown> = {};
-  if (existsSync(CONFIG_FILE)) {
-    try {
-      existing = JSON.parse(readFileSync(CONFIG_FILE, 'utf-8'));
-    } catch {
-      // Overwrite if corrupted
-    }
-  }
+  const existing = loadJsonFile(CONFIG_FILE);
   writeFileSync(CONFIG_FILE, JSON.stringify({ ...existing, apiKey: key }, null, 2), {
     mode: 0o600,
   });
   return key;
-}
-
-function readJsonSafe(path: string): Record<string, any> {
-  if (!existsSync(path)) return {};
-  try {
-    return JSON.parse(readFileSync(path, 'utf-8'));
-  } catch {
-    return {};
-  }
 }
 
 function atomicWriteJson(path: string, data: unknown): void {
@@ -104,7 +85,7 @@ export function injectProviderConfig(
 
   // 1. Write to ~/.openclaw/openclaw.json (atomic write)
   try {
-    const config = readJsonSafe(OPENCLAW_CONFIG);
+    const config = loadJsonFile(OPENCLAW_CONFIG);
 
     if (!config.models) config.models = {};
     if (!config.models.providers) config.models.providers = {};
@@ -147,7 +128,7 @@ export function injectProviderConfig(
         const modelsPath = join(agentsDir, dir.name, 'agent', 'models.json');
         if (!existsSync(modelsPath)) continue;
 
-        const data = readJsonSafe(modelsPath);
+        const data = loadJsonFile(modelsPath);
         if (!data.providers?.manifest) continue;
 
         delete data.providers.manifest;
@@ -216,7 +197,7 @@ export function injectAuthProfile(apiKey: string, logger: PluginLogger): void {
 
       if (!existsSync(profileDir)) continue;
 
-      const data = readJsonSafe(profilePath);
+      const data = loadJsonFile(profilePath);
       if (!data.version) data.version = 1;
       if (!data.profiles) data.profiles = {};
 
@@ -301,50 +282,43 @@ export function registerLocalMode(api: any, config: ManifestConfig, logger: Plug
 
   logger.info(`[manifest] 🦚 View your Manifest Dashboard -> http://${host}:${port}`);
 
-  // Start embedded server immediately (fire-and-forget — don't block plugin registration).
-  // OpenClaw does not call start() on services registered via api.registerService(),
-  // so we must boot the server ourselves.
-  (async () => {
-    const alreadyRunning = await checkExistingServer(host, port);
-    if (alreadyRunning) {
-      logger.info(`[manifest] Reusing existing server at http://${host}:${port}`);
-      return;
-    }
-
-    try {
-      await serverModule.start({ port, host, dbPath, quiet: true });
-      logger.info(`[manifest] Local server running on http://${host}:${port}`);
-      logger.info(`[manifest]   Dashboard: http://${host}:${port}`);
-      logger.info(`[manifest]   DB: ${dbPath}`);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes('EADDRINUSE') || msg.includes('address already in use')) {
-        const isManifest = await checkExistingServer(host, port);
-        if (isManifest) {
-          logger.info(`[manifest] Reusing existing server at http://${host}:${port}`);
-        } else {
-          logger.error(
-            `[manifest] Port ${port} is already in use by another process.\n` +
-              `  Change it with: openclaw config set plugins.entries.manifest.config.port ${port + 1}\n` +
-              `  Then restart the gateway.`,
-          );
-        }
-      } else {
-        logger.error(
-          `[manifest] Failed to start local server: ${msg}\n` +
-            `  Try reinstalling: openclaw plugins install manifest\n` +
-            `  Then restart: openclaw gateway restart`,
-        );
-      }
-    }
-  })().catch(() => {
-    // Swallow — errors are already logged inside the IIFE.
-    // This prevents an unhandled promise rejection from crashing the gateway.
-  });
-
   api.registerService({
     id: 'manifest-local',
-    start: () => {}, // no-op — server already started above
+    start: async () => {
+      // Proactive check: skip embedded server if one is already running
+      const alreadyRunning = await checkExistingServer(host, port);
+      if (alreadyRunning) {
+        logger.info(`[manifest] Reusing existing server at http://${host}:${port}`);
+        return;
+      }
+
+      try {
+        await serverModule.start({ port, host, dbPath, quiet: true });
+        logger.info(`[manifest] Local server running on http://${host}:${port}`);
+        logger.info(`[manifest]   Dashboard: http://${host}:${port}`);
+        logger.info(`[manifest]   DB: ${dbPath}`);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes('EADDRINUSE') || msg.includes('address already in use')) {
+          const isManifest = await checkExistingServer(host, port);
+          if (isManifest) {
+            logger.info(`[manifest] Reusing existing server at http://${host}:${port}`);
+          } else {
+            logger.error(
+              `[manifest] Port ${port} is already in use by another process.\n` +
+                `  Change it with: openclaw config set plugins.entries.manifest.config.port ${port + 1}\n` +
+                `  Then restart the gateway.`,
+            );
+          }
+        } else {
+          logger.error(
+            `[manifest] Failed to start local server: ${msg}\n` +
+              `  Try reinstalling: openclaw plugins install manifest\n` +
+              `  Then restart: openclaw gateway restart`,
+          );
+        }
+      }
+    },
     stop: async () => {
       await shutdownTelemetry(logger);
     },
