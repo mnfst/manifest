@@ -208,6 +208,25 @@ describe("MessageLog", () => {
     });
   });
 
+  it("renders provider display names in the filter dropdown", async () => {
+    const dataWithUnknown = {
+      ...messagesData,
+      providers: ["anthropic", "openai", "unknown-provider"],
+    };
+    mockGetMessages.mockResolvedValue(dataWithUnknown);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const select = container.querySelector('[data-testid="select"]');
+      expect(select).not.toBeNull();
+      // Known providers resolve to display names
+      expect(select!.textContent).toContain("Anthropic");
+      expect(select!.textContent).toContain("OpenAI");
+      // Unknown providers fall back to the raw ID
+      expect(select!.textContent).toContain("unknown-provider");
+      expect(select!.textContent).toContain("All providers");
+    });
+  });
+
   it("debounces cost filter inputs", async () => {
     vi.useFakeTimers();
     mockGetMessages.mockResolvedValue(messagesData);
@@ -631,6 +650,25 @@ describe("MessageLog", () => {
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("$0.05");
+    });
+  });
+
+  it("renders provider icon SVG for known provider model", async () => {
+    const dataWithProvider = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], model: "gpt-4o", auth_type: null },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithProvider);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      // providerIcon returns an inline SVG for known providers
+      const providerSpan = container.querySelector('[role="img"]');
+      expect(providerSpan).not.toBeNull();
+      const svg = providerSpan!.querySelector("svg");
+      expect(svg).not.toBeNull();
     });
   });
 

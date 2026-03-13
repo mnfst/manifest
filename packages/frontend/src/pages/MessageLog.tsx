@@ -507,40 +507,49 @@ const MessageLog: Component = () => {
                           </td>
                           <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                             <span style="display: inline-flex; align-items: center; gap: 4px;">
-                              {item.model && inferProviderFromModel(item.model) === 'custom' ? (
-                                (() => {
-                                  const provName = customProviderName(item.model!);
-                                  const letter = (provName ?? stripCustomPrefix(item.model!))
-                                    .charAt(0)
-                                    .toUpperCase();
-                                  return (
-                                    <span
-                                      class="provider-card__logo-letter"
-                                      title={provName}
-                                      style={{
-                                        background: customProviderColor(provName ?? ''),
-                                        width: '16px',
-                                        height: '16px',
-                                        'font-size': '9px',
-                                        'flex-shrink': '0',
-                                        'border-radius': '50%',
-                                      }}
-                                    >
-                                      {letter}
-                                    </span>
-                                  );
-                                })()
-                              ) : item.model && inferProviderFromModel(item.model) ? (
-                                <span
-                                  role="img"
-                                  aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
-                                  title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
-                                  style="display: inline-flex; flex-shrink: 0; position: relative;"
-                                >
-                                  {providerIcon(inferProviderFromModel(item.model)!, 14)}
-                                  {authBadgeFor(item.auth_type, 8)}
-                                </span>
-                              ) : null}
+                              {item.model && inferProviderFromModel(item.model) === 'custom'
+                                ? (() => {
+                                    const provName = customProviderName(item.model!);
+                                    const letter = (provName ?? stripCustomPrefix(item.model!))
+                                      .charAt(0)
+                                      .toUpperCase();
+                                    return (
+                                      <span
+                                        class="provider-card__logo-letter"
+                                        title={provName}
+                                        style={{
+                                          background: customProviderColor(provName ?? ''),
+                                          width: '16px',
+                                          height: '16px',
+                                          'font-size': '9px',
+                                          'flex-shrink': '0',
+                                          'border-radius': '50%',
+                                        }}
+                                      >
+                                        {letter}
+                                      </span>
+                                    );
+                                  })()
+                                : item.model && inferProviderFromModel(item.model)
+                                  ? (() => {
+                                      const icon = providerIcon(
+                                        inferProviderFromModel(item.model!)!,
+                                        14,
+                                      );
+                                      const badge = authBadgeFor(item.auth_type, 8);
+                                      return (
+                                        <span
+                                          role="img"
+                                          aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                          title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+                                          style="display: inline-flex; flex-shrink: 0; position: relative;"
+                                        >
+                                          {icon}
+                                          {badge}
+                                        </span>
+                                      );
+                                    })()
+                                  : null}
                               {item.model ? getModelDisplayName(item.model) : '\u2014'}
                               {item.routing_tier && (
                                 <span class={`tier-badge tier-badge--${item.routing_tier}`}>
