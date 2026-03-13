@@ -7,6 +7,7 @@ import { ModelPricing } from '../entities/model-pricing.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { PricingHistoryService } from './pricing-history.service';
 import { UnresolvedModelTrackerService } from '../model-prices/unresolved-model-tracker.service';
+import { ManifestRuntimeService } from '../common/services/manifest-runtime.service';
 import { sqlNow } from '../common/utils/sql-dialect';
 
 interface OpenRouterModel {
@@ -62,11 +63,12 @@ export class PricingSyncService implements OnModuleInit {
     private readonly pricingHistory: PricingHistoryService,
     private readonly unresolvedTracker: UnresolvedModelTrackerService,
     private readonly moduleRef: ModuleRef,
+    private readonly runtime: ManifestRuntimeService,
   ) {}
 
   async onModuleInit(): Promise<void> {
     // In local mode, LocalBootstrapService orchestrates the sync + purge chain.
-    if (process.env['MANIFEST_MODE'] === 'local') return;
+    if (this.runtime.isLocalMode()) return;
 
     const cutoff = new Date(Date.now() - FRESHNESS_HOURS * 3600_000);
     const recent = await this.pricingRepo.count({

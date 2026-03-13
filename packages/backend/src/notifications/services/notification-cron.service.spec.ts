@@ -9,6 +9,7 @@ import { NotificationCronService } from './notification-cron.service';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
+import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
 import { readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
 
 const activeRule = {
@@ -27,12 +28,17 @@ describe('NotificationCronService', () => {
   let mockGetAllActiveRules: jest.Mock;
   let mockGetConsumption: jest.Mock;
   let mockSendThresholdAlert: jest.Mock;
+  let mockRuntime: { isLocalMode: jest.Mock; getAuthBaseUrl: jest.Mock };
 
   beforeEach(async () => {
     mockQuery = jest.fn();
     mockGetAllActiveRules = jest.fn();
     mockGetConsumption = jest.fn();
     mockSendThresholdAlert = jest.fn().mockResolvedValue(true);
+    mockRuntime = {
+      isLocalMode: jest.fn().mockReturnValue(false),
+      getAuthBaseUrl: jest.fn().mockReturnValue('http://localhost:3001'),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -53,6 +59,7 @@ describe('NotificationCronService', () => {
           provide: EmailProviderConfigService,
           useValue: { getFullConfig: jest.fn().mockResolvedValue(null) },
         },
+        { provide: ManifestRuntimeService, useValue: mockRuntime },
       ],
     }).compile();
 
@@ -325,8 +332,7 @@ describe('NotificationCronService', () => {
   });
 
   it('uses local config notification email in local mode', async () => {
-    const originalMode = process.env['MANIFEST_MODE'];
-    process.env['MANIFEST_MODE'] = 'local';
+    mockRuntime.isLocalMode.mockReturnValue(true);
     (readLocalNotificationEmail as jest.Mock).mockReturnValue('real@user.com');
 
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
@@ -343,13 +349,11 @@ describe('NotificationCronService', () => {
       undefined,
     );
 
-    process.env['MANIFEST_MODE'] = originalMode;
     (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
   });
 
   it('falls back to DB email when local config email not set in local mode', async () => {
-    const originalMode = process.env['MANIFEST_MODE'];
-    process.env['MANIFEST_MODE'] = 'local';
+    mockRuntime.isLocalMode.mockReturnValue(true);
     (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
 
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
@@ -366,8 +370,6 @@ describe('NotificationCronService', () => {
       expect.any(Object),
       undefined,
     );
-
-    process.env['MANIFEST_MODE'] = originalMode;
   });
 });
 
@@ -377,6 +379,7 @@ describe('NotificationCronService (sql.js / local mode)', () => {
   let mockGetAllActiveRules: jest.Mock;
   let mockGetConsumption: jest.Mock;
   let mockSendThresholdAlert: jest.Mock;
+  let mockRuntime: { isLocalMode: jest.Mock; getAuthBaseUrl: jest.Mock };
 
   const localRule = {
     id: 'rule-1',
@@ -393,6 +396,10 @@ describe('NotificationCronService (sql.js / local mode)', () => {
     mockGetAllActiveRules = jest.fn();
     mockGetConsumption = jest.fn();
     mockSendThresholdAlert = jest.fn().mockResolvedValue(true);
+    mockRuntime = {
+      isLocalMode: jest.fn().mockReturnValue(false),
+      getAuthBaseUrl: jest.fn().mockReturnValue('http://localhost:3001'),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -413,6 +420,7 @@ describe('NotificationCronService (sql.js / local mode)', () => {
           provide: EmailProviderConfigService,
           useValue: { getFullConfig: jest.fn().mockResolvedValue(null) },
         },
+        { provide: ManifestRuntimeService, useValue: mockRuntime },
       ],
     }).compile();
 

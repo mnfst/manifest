@@ -58,6 +58,12 @@ describe('appConfig', () => {
     expect(config.bindAddress).toBe('127.0.0.1');
   });
 
+  it('reads BETTER_AUTH_URL from env', async () => {
+    process.env['BETTER_AUTH_URL'] = 'https://auth.example.com';
+    const config = await loadConfig();
+    expect(config.betterAuthUrl).toBe('https://auth.example.com');
+  });
+
   it('defaults throttle settings', async () => {
     delete process.env['THROTTLE_TTL'];
     delete process.env['THROTTLE_LIMIT'];

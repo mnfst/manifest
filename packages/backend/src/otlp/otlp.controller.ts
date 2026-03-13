@@ -11,6 +11,7 @@ import { MetricIngestService } from './services/metric-ingest.service';
 import { LogIngestService } from './services/log-ingest.service';
 import { IngestionContext } from './interfaces/ingestion-context.interface';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
+import { ManifestRuntimeService } from '../common/services/manifest-runtime.service';
 import { trackEvent, trackCloudEvent } from '../common/utils/product-telemetry';
 
 interface RawBodyRequest extends Request {
@@ -31,6 +32,7 @@ export class OtlpController {
     private readonly metricIngest: MetricIngestService,
     private readonly logIngest: LogIngestService,
     private readonly eventBus: IngestEventBusService,
+    private readonly runtime: ManifestRuntimeService,
   ) {}
 
   @Post('traces')
@@ -76,7 +78,7 @@ export class OtlpController {
   }
 
   private trackFirstTelemetry(ctx: IngestionContext): void {
-    const isLocal = process.env['MANIFEST_MODE'] === 'local';
+    const isLocal = this.runtime.isLocalMode();
     if (isLocal) {
       const markerDir = join(homedir(), '.openclaw', 'manifest');
       const markerPath = join(markerDir, '.first_telemetry_sent');

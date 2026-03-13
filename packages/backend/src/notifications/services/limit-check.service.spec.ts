@@ -9,6 +9,7 @@ import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
+import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
 import { DataSource } from 'typeorm';
 import { readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
 
@@ -20,6 +21,7 @@ describe('LimitCheckService', () => {
   let mockSendThresholdAlert: jest.Mock;
   let mockGetFullConfig: jest.Mock;
   let ingestSubject: Subject<string>;
+  let mockRuntime: { isLocalMode: jest.Mock; getAuthBaseUrl: jest.Mock };
 
   beforeEach(() => {
     mockGetActiveBlockRules = jest.fn().mockResolvedValue([]);
@@ -45,13 +47,24 @@ describe('LimitCheckService', () => {
     const emailProviderConfig = {
       getFullConfig: mockGetFullConfig,
     } as unknown as EmailProviderConfigService;
+    mockRuntime = {
+      isLocalMode: jest.fn().mockReturnValue(false),
+      getAuthBaseUrl: jest.fn().mockReturnValue('http://localhost:3001'),
+    };
 
     ingestSubject = new Subject<string>();
     const ingestBus = {
       all: () => ingestSubject.asObservable(),
     } as unknown as IngestEventBusService;
 
-    service = new LimitCheckService(ds, rulesService, emailService, emailProviderConfig, ingestBus);
+    service = new LimitCheckService(
+      ds,
+      rulesService,
+      emailService,
+      emailProviderConfig,
+      ingestBus,
+      mockRuntime as unknown as ManifestRuntimeService,
+    );
     service.onModuleInit();
   });
 
@@ -420,8 +433,7 @@ describe('LimitCheckService', () => {
     });
 
     it('uses local config notification email in local mode when no provider config email', async () => {
-      const originalMode = process.env['MANIFEST_MODE'];
-      process.env['MANIFEST_MODE'] = 'local';
+      mockRuntime.isLocalMode.mockReturnValue(true);
       (readLocalNotificationEmail as jest.Mock).mockReturnValue('local-user@real.com');
 
       mockQuery
@@ -437,7 +449,6 @@ describe('LimitCheckService', () => {
         undefined,
       );
 
-      process.env['MANIFEST_MODE'] = originalMode;
       (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
     });
   });

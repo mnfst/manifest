@@ -6,6 +6,7 @@ import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
+import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
 import { computePeriodBoundaries, computePeriodResetDate } from '../../common/utils/period.util';
 import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
 import {
@@ -53,6 +54,7 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
     private readonly emailService: NotificationEmailService,
     private readonly emailProviderConfig: EmailProviderConfigService,
     private readonly ingestBus: IngestEventBusService,
+    private readonly runtime: ManifestRuntimeService,
   ) {
     this.dialect = detectDialect(ds.options.type as string);
   }
@@ -132,8 +134,6 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
     let emailSent = false;
 
     if (email) {
-      const baseUrl =
-        process.env['BETTER_AUTH_URL'] ?? `http://localhost:${process.env['PORT'] ?? '3001'}`;
       emailSent = await this.emailService.sendThresholdAlert(
         email,
         {
@@ -143,7 +143,7 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
           actualValue: actual,
           period: rule.period,
           timestamp: now,
-          agentUrl: `${baseUrl}/agents/${encodeURIComponent(rule.agent_name)}`,
+          agentUrl: `${this.runtime.getAuthBaseUrl()}/agents/${encodeURIComponent(rule.agent_name)}`,
           alertType: 'hard',
           periodResetDate: computePeriodResetDate(rule.period),
         },
@@ -179,7 +179,7 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
   ): Promise<string | null> {
     if (fullConfig?.notificationEmail) return fullConfig.notificationEmail;
 
-    if (process.env['MANIFEST_MODE'] === 'local') {
+    if (this.runtime.isLocalMode()) {
       const configEmail = readLocalNotificationEmail();
       if (configEmail) return configEmail;
     }
