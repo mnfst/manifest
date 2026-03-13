@@ -183,16 +183,23 @@ export class RoutingService {
       ),
     );
 
-    await this.clearTierAssignmentsForProviders(agentId, removedProviders);
-    await this.autoAssign.recalculate(agentId, usableProviders);
+    if (removedProviders.length > 0) {
+      const { hadTierAssignments } = await this.clearTierAssignmentsForProviders(
+        agentId,
+        removedProviders,
+      );
+      if (hadTierAssignments) {
+        await this.autoAssign.recalculate(agentId, usableProviders);
+      }
+    }
     this.routingCache.invalidateAgent(agentId);
   }
 
   private async clearTierAssignmentsForProviders(
     agentId: string,
     providers: string[],
-  ): Promise<{ invalidated: { tier: string; modelName: string }[] }> {
-    if (providers.length === 0) return { invalidated: [] };
+  ): Promise<{ invalidated: { tier: string; modelName: string }[]; hadTierAssignments: boolean }> {
+    if (providers.length === 0) return { invalidated: [], hadTierAssignments: false };
 
     const providerNames = new Set(providers.map((provider) => provider.toLowerCase()));
     const overrides = await this.tierRepo.find({
@@ -213,6 +220,7 @@ export class RoutingService {
     }
 
     const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
+    const hadTierAssignments = allTiers.length > 0;
     const savedIds = new Set(tiersToSave.map((tier) => tier.id));
     for (const tier of allTiers) {
       if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
@@ -229,7 +237,7 @@ export class RoutingService {
 
     if (tiersToSave.length > 0) await this.tierRepo.save(tiersToSave);
 
-    return { invalidated };
+    return { invalidated, hadTierAssignments };
   }
 
   async removeProvider(
@@ -262,9 +270,6 @@ export class RoutingService {
     const { invalidated } = await this.clearTierAssignmentsForProviders(agentId, [provider]);
 
     // Deactivate provider and recalculate
-    existing.is_active = false;
-    existing.updated_at = new Date().toISOString();
-    await this.providerRepo.save(existing);
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
 
@@ -407,17 +412,6 @@ export class RoutingService {
 
       this.routingCache.setTiers(agentId, created);
       return created;
-    }
-
-    const activeProviders = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
-    });
-    const usableProviders = activeProviders.filter(isManifestUsableProvider);
-    if (usableProviders.length !== activeProviders.length) {
-      await this.autoAssign.recalculate(agentId, usableProviders);
-      const result = await this.tierRepo.find({ where: { agent_id: agentId } });
-      this.routingCache.setTiers(agentId, result);
-      return result;
     }
 
     this.routingCache.setTiers(agentId, rows);

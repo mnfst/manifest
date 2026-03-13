@@ -1,5 +1,3 @@
-import { getSubscriptionProviderConfig } from '../../../subscription-capabilities/index.mjs';
-
 /* ── LLM Provider definitions (shared by Routing page) ── */
 
 export interface ProviderDef {
@@ -59,6 +57,10 @@ export const PROVIDERS: ProviderDef[] = [
     keyPrefix: 'sk-ant-',
     minKeyLength: 50,
     keyPlaceholder: 'sk-ant-...',
+    supportsSubscription: true,
+    subscriptionLabel: 'Claude Max / Pro subscription',
+    subscriptionKeyPlaceholder: 'Paste your setup-token',
+    subscriptionCommand: 'claude setup-token',
     models: [
       { label: 'Claude Opus 4.6', value: 'claude-opus-4-6' },
       { label: 'Claude Opus 4', value: 'claude-opus-4' },
@@ -285,10 +287,7 @@ export const PROVIDERS: ProviderDef[] = [
       { label: 'GLM 4.5 Flash', value: 'glm-4.5-flash' },
     ],
   },
-].map((provider) => ({
-  ...provider,
-  ...(getSubscriptionProviderConfig(provider.id) ?? {}),
-}));
+];
 
 /* ── Pipeline stage definitions ────────────────────── */
 
