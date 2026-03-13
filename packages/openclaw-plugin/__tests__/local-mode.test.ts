@@ -806,6 +806,7 @@ describe("injectProviderConfig — stale models.json cleanup", () => {
 
 describe("readJsonSafe — corrupt JSON", () => {
   it("returns empty object when file contains invalid JSON", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     // readJsonSafe is called by injectProviderConfig when reading openclaw.json.
     // When the file exists but contains corrupt JSON, readJsonSafe should catch
     // the parse error and return {} (line 72 in local-mode.ts).
@@ -830,6 +831,10 @@ describe("readJsonSafe — corrupt JSON", () => {
       (writeFileSync as jest.Mock).mock.calls[0][1],
     );
     expect(writtenData.models.providers.manifest).toBeDefined();
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[manifest] Failed to read JSON file"),
+    );
+    warnSpy.mockRestore();
   });
 });
 
@@ -868,6 +873,7 @@ describe("loadOrGenerateApiKey — edge cases", () => {
   });
 
   it("generates new key when config file contains corrupt JSON", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     (existsSync as jest.Mock).mockImplementation((p: string) => {
       if (p.includes("config.json")) return true;
       if (p.includes("agents")) return false;
@@ -886,6 +892,10 @@ describe("loadOrGenerateApiKey — edge cases", () => {
     const { initTelemetry } = require("../src/telemetry");
     const localConfig = (initTelemetry as jest.Mock).mock.calls[0][0];
     expect(localConfig.apiKey).toMatch(/^mnfst_/);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[manifest] Failed to read JSON file"),
+    );
+    warnSpy.mockRestore();
   });
 });
 
