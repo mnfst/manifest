@@ -18,6 +18,7 @@ describe('OtlpAuthGuard', () => {
   let mockGetOne: jest.Mock;
   let mockCreateQueryBuilder: jest.Mock;
   let mockUpdate: jest.Mock;
+  let mockFindOne: jest.Mock;
 
   beforeEach(() => {
     mockGetOne = jest.fn().mockResolvedValue(null);
@@ -37,7 +38,12 @@ describe('OtlpAuthGuard', () => {
       }
       return Promise.resolve({});
     });
-    const mockRepo = { createQueryBuilder: mockCreateQueryBuilder, update: mockUpdate } as never;
+    mockFindOne = jest.fn().mockResolvedValue(null);
+    const mockRepo = {
+      createQueryBuilder: mockCreateQueryBuilder,
+      update: mockUpdate,
+      findOne: mockFindOne,
+    } as never;
     guard = new OtlpAuthGuard(mockRepo);
     guard.clearCache();
   });
@@ -230,6 +236,112 @@ describe('OtlpAuthGuard', () => {
     });
   });
 
+  describe('dev loopback bypass in development mode', () => {
+    const origMode = process.env['MANIFEST_MODE'];
+    const origNodeEnv = process.env['NODE_ENV'];
+
+    beforeEach(() => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      process.env['NODE_ENV'] = 'development';
+    });
+
+    afterEach(() => {
+      if (origMode === undefined) delete process.env['MANIFEST_MODE'];
+      else process.env['MANIFEST_MODE'] = origMode;
+      if (origNodeEnv === undefined) delete process.env['NODE_ENV'];
+      else process.env['NODE_ENV'] = origNodeEnv;
+    });
+
+    it('allows loopback with non-mnfst token in dev mode by resolving first active key', async () => {
+      mockFindOne.mockResolvedValue({
+        tenant_id: 'dev-tenant',
+        agent_id: 'dev-agent',
+        agent: { name: 'demo-agent' },
+        tenant: { name: 'dev-user' },
+      });
+      const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'dev-tenant',
+        agentId: 'dev-agent',
+        agentName: 'demo-agent',
+        userId: 'dev-user',
+      });
+      expect(mockFindOne).toHaveBeenCalledWith({
+        where: { is_active: true },
+        relations: ['agent', 'tenant'],
+      });
+    });
+
+    it('allows loopback without auth header in dev mode', async () => {
+      mockFindOne.mockResolvedValue({
+        tenant_id: 'dev-tenant',
+        agent_id: 'dev-agent',
+        agent: { name: 'demo-agent' },
+        tenant: { name: 'dev-user' },
+      });
+      const { ctx, req } = makeContext({}, '127.0.0.1');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'dev-tenant',
+        agentId: 'dev-agent',
+        agentName: 'demo-agent',
+        userId: 'dev-user',
+      });
+    });
+
+    it('rejects loopback without auth when no active keys exist in DB', async () => {
+      mockFindOne.mockResolvedValue(null);
+      const { ctx } = makeContext({}, '127.0.0.1');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Authorization header required');
+    });
+
+    it('rejects non-mnfst token when no active keys exist in DB', async () => {
+      mockFindOne.mockResolvedValue(null);
+      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    });
+
+    it('rejects non-mnfst token from non-loopback IP in dev mode', async () => {
+      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '192.168.1.100');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    });
+
+    it('rejects loopback with non-mnfst token in production mode', async () => {
+      process.env['NODE_ENV'] = 'production';
+      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    });
+
+    it('rejects loopback with non-mnfst token in test mode', async () => {
+      process.env['NODE_ENV'] = 'test';
+      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    });
+
+    it('caches dev context and reuses it on subsequent calls', async () => {
+      mockFindOne.mockResolvedValue({
+        tenant_id: 'dev-tenant',
+        agent_id: 'dev-agent',
+        agent: { name: 'demo-agent' },
+        tenant: { name: 'dev-user' },
+      });
+
+      const { ctx: ctx1 } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
+      await guard.canActivate(ctx1);
+      expect(mockFindOne).toHaveBeenCalledTimes(1);
+
+      mockFindOne.mockClear();
+      const { ctx: ctx2 } = makeContext({ authorization: 'Bearer dev-no-auth' }, '::1');
+      await guard.canActivate(ctx2);
+      expect(mockFindOne).not.toHaveBeenCalled();
+    });
+  });
+
   it('handles request.ip being undefined without crashing', async () => {
     const origMode = process.env['MANIFEST_MODE'];
     process.env['MANIFEST_MODE'] = 'local';
@@ -356,7 +468,11 @@ describe('OtlpAuthGuard', () => {
   it('periodic timer fires evictExpired', () => {
     jest.useFakeTimers();
 
-    const mockRepo = { createQueryBuilder: mockCreateQueryBuilder, update: mockUpdate } as never;
+    const mockRepo = {
+      createQueryBuilder: mockCreateQueryBuilder,
+      update: mockUpdate,
+      findOne: mockFindOne,
+    } as never;
     const timedGuard = new OtlpAuthGuard(mockRepo);
 
     const internalCache = (timedGuard as any).cache as Map<string, unknown>;
@@ -379,7 +495,11 @@ describe('OtlpAuthGuard', () => {
   it('onModuleDestroy stops the periodic cleanup timer', () => {
     jest.useFakeTimers();
 
-    const mockRepo = { createQueryBuilder: mockCreateQueryBuilder, update: mockUpdate } as never;
+    const mockRepo = {
+      createQueryBuilder: mockCreateQueryBuilder,
+      update: mockUpdate,
+      findOne: mockFindOne,
+    } as never;
     const timedGuard = new OtlpAuthGuard(mockRepo);
 
     const internalCache = (timedGuard as any).cache as Map<string, unknown>;

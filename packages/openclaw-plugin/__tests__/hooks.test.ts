@@ -741,6 +741,25 @@ describe("registerHooks", () => {
       });
     });
 
+    it("sets ERROR status on turn span when event.error is present without success=false", () => {
+      api.emit("message_received", { sessionKey: "sess-err-obj" });
+      api.emit("before_agent_start", { sessionKey: "sess-err-obj" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-err-obj",
+        error: { message: "HTTP 401: Unauthorized" },
+        messages: [],
+      });
+
+      expect(turnSpan.setStatus).toHaveBeenCalledWith({
+        code: SpanStatusCode.ERROR,
+        message: "HTTP 401: Unauthorized",
+      });
+      expect(turnSpan.end).toHaveBeenCalled();
+    });
+
     it("does not set ERROR status when event.success is true", () => {
       api.emit("message_received", { sessionKey: "sess-ok" });
       api.emit("before_agent_start", { sessionKey: "sess-ok" });
