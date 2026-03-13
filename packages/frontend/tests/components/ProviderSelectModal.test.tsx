@@ -3,10 +3,18 @@ import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
+const mockGetOpenaiOAuthUrl = vi.fn();
+const mockCreateCustomProvider = vi.fn();
+const mockUpdateCustomProvider = vi.fn();
+const mockDeleteCustomProvider = vi.fn();
 
 vi.mock("../../src/services/api.js", () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
+  getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+  createCustomProvider: (...args: unknown[]) => mockCreateCustomProvider(...args),
+  updateCustomProvider: (...args: unknown[]) => mockUpdateCustomProvider(...args),
+  deleteCustomProvider: (...args: unknown[]) => mockDeleteCustomProvider(...args),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -62,6 +70,7 @@ describe("ProviderSelectModal", () => {
     onUpdate = vi.fn();
     mockConnectProvider.mockResolvedValue({});
     mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: "https://auth.openai.com/oauth/authorize?test=1" });
   });
 
   it("renders modal with title", () => {
@@ -906,7 +915,7 @@ describe("ProviderSelectModal", () => {
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       expect(
-        screen.getByText(/Use your Claude Max or Pro subscription/),
+        screen.getByText(/Use your existing subscription instead of an API key/),
       ).toBeDefined();
     });
 
@@ -1050,6 +1059,329 @@ describe("ProviderSelectModal", () => {
         });
       });
       expect(toast.success).toHaveBeenCalledWith("Anthropic token updated");
+    });
+
+    it("opens detail view for OAuth subscription provider (OpenAI)", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      expect(screen.getByText("Log in to connect your subscription")).toBeDefined();
+    });
+
+    it("shows 'Log in with OpenAI' button for OAuth provider", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      expect(screen.getByText("Log in with OpenAI")).toBeDefined();
+    });
+
+    it("shows OAuth login hint text", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      expect(screen.getByText(/Log in with your OpenAI account/)).toBeDefined();
+    });
+
+    it("calls getOpenaiOAuthUrl and opens popup on login click", async () => {
+      const mockPopup = { closed: false, close: vi.fn() };
+      vi.spyOn(window, "open").mockReturnValue(mockPopup as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Log in with OpenAI"));
+
+      await waitFor(() => {
+        expect(mockGetOpenaiOAuthUrl).toHaveBeenCalledWith("test-agent");
+      });
+      expect(window.open).toHaveBeenCalledWith(
+        "https://auth.openai.com/oauth/authorize?test=1",
+        "manifest-oauth",
+        "width=500,height=700",
+      );
+
+      vi.restoreAllMocks();
+    });
+
+    it("shows Disconnect button for connected OAuth provider", () => {
+      const subProvider: RoutingProvider = {
+        id: "p-openai-sub",
+        provider: "openai",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: '{"t":"eyJ',
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      expect(screen.getByText("Disconnect")).toBeDefined();
+      expect(screen.getByText(/Connected via ChatGPT Plus\/Pro\/Team/)).toBeDefined();
+    });
+
+    it("shows OpenAI subscription label in list", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      expect(screen.getByText("ChatGPT Plus/Pro/Team")).toBeDefined();
+    });
+
+    it("does not show paste field for OAuth provider", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      // Should not have a setup token input field
+      const inputs = document.querySelectorAll("input[type='password']");
+      expect(inputs.length).toBe(0);
+    });
+
+    it("handles OAuth login error gracefully", async () => {
+      mockGetOpenaiOAuthUrl.mockRejectedValue(new Error("Network error"));
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Log in with OpenAI"));
+
+      await waitFor(() => {
+        expect(mockGetOpenaiOAuthUrl).toHaveBeenCalled();
+      });
+    });
+
+    it("shows toggle as on for OpenAI subscription with token", () => {
+      const subProvider: RoutingProvider = {
+        id: "p-openai-sub",
+        provider: "openai",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: '{"t":"eyJ',
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      const { container } = render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      const onSwitches = container.querySelectorAll(".provider-toggle__switch--on");
+      expect(onSwitches.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("disconnects OpenAI OAuth subscription", async () => {
+      const subProvider: RoutingProvider = {
+        id: "p-openai-sub",
+        provider: "openai",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: '{"t":"eyJ',
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Disconnect"));
+
+      await waitFor(() => {
+        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "openai", "subscription");
+      });
+      expect(onUpdate).toHaveBeenCalled();
+    });
+
+    it("shows popup blocked error when window.open returns null", async () => {
+      vi.spyOn(window, "open").mockReturnValue(null);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Log in with OpenAI"));
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith("Popup blocked. Please allow popups and try again.");
+      });
+
+      vi.restoreAllMocks();
+    });
+
+    it("detects successful OAuth callback via polling", async () => {
+      // Set the done URL immediately so the first poll tick picks it up
+      const mockPopup = {
+        closed: false,
+        close: vi.fn(),
+        location: { href: "http://localhost:3000/oauth/openai/done?ok=1" },
+      };
+      vi.spyOn(window, "open").mockReturnValue(mockPopup as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Log in with OpenAI"));
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith("OpenAI subscription connected");
+      });
+      expect(mockPopup.close).toHaveBeenCalled();
+      expect(onUpdate).toHaveBeenCalled();
+
+      vi.restoreAllMocks();
+    });
+
+    it("detects failed OAuth callback via polling", async () => {
+      const mockPopup = {
+        closed: false,
+        close: vi.fn(),
+        location: { href: "http://localhost:3000/oauth/openai/done?ok=0" },
+      };
+      vi.spyOn(window, "open").mockReturnValue(mockPopup as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Log in with OpenAI"));
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith("OAuth login failed. Please try again.");
+      });
+      expect(mockPopup.close).toHaveBeenCalled();
+      expect(onUpdate).not.toHaveBeenCalled();
+
+      vi.restoreAllMocks();
+    });
+
+    it("stops polling when popup is closed by user", async () => {
+      const mockPopup = {
+        closed: true,
+        close: vi.fn(),
+        get location(): { href: string } {
+          throw new DOMException("cross-origin");
+        },
+      };
+      vi.spyOn(window, "open").mockReturnValue(mockPopup as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("OpenAI"));
+      fireEvent.click(screen.getByText("Log in with OpenAI"));
+
+      // Wait long enough for the polling to detect the closed popup
+      await new Promise((r) => setTimeout(r, 500));
+
+      // No success or error toast, just stopped polling
+      expect(toast.success).not.toHaveBeenCalled();
+      expect(toast.error).not.toHaveBeenCalled();
+      expect(onUpdate).not.toHaveBeenCalled();
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe("custom provider callbacks", () => {
+    it("calls onUpdate when custom provider form triggers onCreated", async () => {
+      mockCreateCustomProvider.mockResolvedValue({
+        id: "cp-new",
+        name: "NewProvider",
+        base_url: "http://localhost:8080",
+        has_api_key: false,
+        models: [{ model_name: "test-model" }],
+        created_at: "2025-01-01",
+      });
+
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("API Keys"));
+      fireEvent.click(screen.getByText("Add custom provider"));
+
+      // Fill in the custom provider form
+      const nameInput = screen.getByPlaceholderText("e.g. Groq, vLLM, Azure");
+      fireEvent.input(nameInput, { target: { value: "NewProvider" } });
+
+      const urlInput = screen.getByPlaceholderText("https://api.example.com/v1");
+      fireEvent.input(urlInput, { target: { value: "http://localhost:8080" } });
+
+      const modelInput = screen.getByPlaceholderText("Model name");
+      fireEvent.input(modelInput, { target: { value: "test-model" } });
+
+      // Click Create (the create mode button label)
+      fireEvent.click(screen.getByText("Create"));
+
+      await waitFor(() => {
+        expect(mockCreateCustomProvider).toHaveBeenCalled();
+      });
+      expect(onUpdate).toHaveBeenCalled();
+      // Should navigate back to list view
+      expect(screen.getByText("Done")).toBeDefined();
+    });
+
+    it("calls onUpdate when custom provider form triggers onDeleted", async () => {
+      mockDeleteCustomProvider.mockResolvedValue({ ok: true });
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+
+      const customProviders = [
+        {
+          id: "cp-1",
+          name: "TestProv",
+          base_url: "http://localhost:8080",
+          has_api_key: false,
+          models: [{ model_name: "m1" }],
+          created_at: "2025-01-01",
+        },
+      ];
+
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          customProviders={customProviders}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("API Keys"));
+      fireEvent.click(screen.getByText("TestProv"));
+
+      // Click Delete provider button (the exact label in CustomProviderForm)
+      fireEvent.click(screen.getByText("Delete provider"));
+
+      await waitFor(() => {
+        expect(mockDeleteCustomProvider).toHaveBeenCalledWith("test-agent", "cp-1");
+      });
+      expect(onUpdate).toHaveBeenCalled();
+      // Should navigate back to list view
+      expect(screen.getByText("Done")).toBeDefined();
+
+      vi.restoreAllMocks();
     });
   });
 });

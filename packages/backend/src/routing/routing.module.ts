@@ -26,6 +26,8 @@ import { ProxyRateLimiter } from './proxy/proxy-rate-limiter';
 import { SessionMomentumService } from './proxy/session-momentum.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { OpenaiOauthService } from './openai-oauth.service';
+import { OpenaiOauthController } from './openai-oauth.controller';
 
 @Module({
   imports: [
@@ -42,7 +44,13 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ModelPricesModule,
     NotificationsModule,
   ],
-  controllers: [RoutingController, CustomProviderController, ResolveController, ProxyController],
+  controllers: [
+    RoutingController,
+    CustomProviderController,
+    ResolveController,
+    ProxyController,
+    OpenaiOauthController,
+  ],
   providers: [
     RoutingService,
     RoutingCacheService,
@@ -56,7 +64,14 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ProxyRateLimiter,
     SessionMomentumService,
     OllamaSyncService,
+    OpenaiOauthService,
   ],
-  exports: [RoutingService, CustomProviderService, TierAutoAssignService, ResolveAgentService],
+  exports: [
+    RoutingService,
+    CustomProviderService,
+    TierAutoAssignService,
+    ResolveAgentService,
+    OpenaiOauthService,
+  ],
 })
 export class RoutingModule {}

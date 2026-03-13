@@ -3,10 +3,12 @@ import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
+const mockGetOpenaiOAuthUrl = vi.fn();
 
 vi.mock("../../src/services/api.js", () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
+  getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({

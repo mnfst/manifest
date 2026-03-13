@@ -348,6 +348,12 @@ export function deactivateAllProviders(agentName: string) {
   );
 }
 
+export function getOpenaiOAuthUrl(agentName: string) {
+  return fetchJson<{ url: string }>(`/oauth/openai/authorize`, {
+    agentName,
+  });
+}
+
 export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {
   const base = `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers/${encodeURIComponent(provider)}`;
   const url = authType ? `${base}?authType=${authType}` : base;
