@@ -6,6 +6,10 @@ Last updated: 2026-03-11
 
 When starting the app for development or testing (e.g. `/serve`), **always use `MANIFEST_MODE=local`** unless explicitly asked for cloud mode. Local mode is the primary development target — cloud mode comes second.
 
+## IMPORTANT: Plugin Must Use Cloud+Dev Mode
+
+When configuring the OpenClaw plugin to point at a local dev server (e.g. after `/serve` or `/setup-manifest-plugin`), **always use `mode: cloud` with `devMode: true`** — never `mode: local`. The plugin's `local` mode starts its own embedded server on port 2099 and ignores the external backend, which means proxy requests and telemetry bypass your dev server entirely. Cloud+dev mode connects the plugin directly to the external backend without starting an embedded server.
+
 ## Plugin Dev Mode
 
 When testing the OpenClaw plugin integration (routing, telemetry, OTLP), use **dev mode** to connect the plugin to a local backend without API key management:
