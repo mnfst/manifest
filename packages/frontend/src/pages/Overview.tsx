@@ -28,26 +28,9 @@ import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import { isLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import MessageTable from '../components/MessageTable.jsx';
+import { COMPACT_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import '../styles/overview.css';
-
-interface RecentMessage {
-  id: string;
-  timestamp: string;
-  agent_name: string | null;
-  model: string | null;
-  display_name?: string | null;
-  routing_tier?: string;
-  routing_reason?: string;
-  input_tokens: number | null;
-  output_tokens: number | null;
-  total_tokens: number | null;
-  cost: number | null;
-  status: string;
-  error_message?: string | null;
-  auth_type?: string | null;
-  fallback_from_model?: string | null;
-  fallback_index?: number | null;
-}
 
 interface OverviewData {
   summary: {
@@ -76,7 +59,7 @@ interface OverviewData {
     estimated_cost: number;
     auth_type: string | null;
   }>;
-  recent_activity: RecentMessage[];
+  recent_activity: MessageRow[];
   active_skills: Array<{
     name: string;
     agent_name: string | null;
@@ -598,186 +581,12 @@ const Overview: Component = () => {
                         View more
                       </A>
                     </div>
-                    <table class="data-table">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Message</th>
-                          <th>Cost</th>
-                          <th>Model</th>
-                          <th>Tokens</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <For each={d().recent_activity?.slice(0, 5) ?? []}>
-                          {(item) => (
-                            <tr>
-                              <td style="white-space: nowrap; font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                                {formatTime(item.timestamp)}
-                              </td>
-                              <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                                {item.id.slice(0, 8)}
-                                {item.routing_reason === 'heartbeat' && (
-                                  <span
-                                    title="Heartbeat"
-                                    style="display: inline-flex; align-items: center; margin-left: 4px; color: hsl(var(--muted-foreground)); opacity: 0.7;"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="12"
-                                      height="12"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      stroke-width="2"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      aria-hidden="true"
-                                    >
-                                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                                    </svg>
-                                  </span>
-                                )}
-                              </td>
-                              <td style="font-family: var(--font-mono);">
-                                <Show
-                                  when={item.auth_type === 'subscription'}
-                                  fallback={
-                                    <span
-                                      title={
-                                        item.cost != null && item.cost > 0 && item.cost < 0.01
-                                          ? `$${item.cost.toFixed(6)}`
-                                          : undefined
-                                      }
-                                    >
-                                      {item.cost != null
-                                        ? (formatCost(item.cost) ?? '\u2014')
-                                        : '\u2014'}
-                                    </span>
-                                  }
-                                >
-                                  <span
-                                    style="color: hsl(var(--muted-foreground));"
-                                    title="Included in subscription"
-                                  >
-                                    $0.00
-                                  </span>
-                                </Show>
-                              </td>
-                              <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                                <span style="display: inline-flex; align-items: center; gap: 4px;">
-                                  {item.model && inferProviderFromModel(item.model) === 'custom' ? (
-                                    (() => {
-                                      const provName = customProviderName(item.model!);
-                                      const letter = (provName ?? stripCustomPrefix(item.model!))
-                                        .charAt(0)
-                                        .toUpperCase();
-                                      return (
-                                        <span
-                                          class="provider-card__logo-letter"
-                                          title={provName}
-                                          style={{
-                                            background: customProviderColor(provName ?? ''),
-                                            width: '16px',
-                                            height: '16px',
-                                            'font-size': '9px',
-                                            'flex-shrink': '0',
-                                            'border-radius': '50%',
-                                          }}
-                                        >
-                                          {letter}
-                                        </span>
-                                      );
-                                    })()
-                                  ) : item.model && inferProviderFromModel(item.model) ? (
-                                    <span
-                                      role="img"
-                                      aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
-                                      title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
-                                      style="display: inline-flex; flex-shrink: 0; position: relative;"
-                                    >
-                                      {providerIcon(inferProviderFromModel(item.model)!, 14)}
-                                      {authBadgeFor(item.auth_type, 8)}
-                                    </span>
-                                  ) : null}
-                                  {item.model
-                                    ? item.display_name || getModelDisplayName(item.model)
-                                    : '\u2014'}
-                                  {item.routing_tier && (
-                                    <span class={`tier-badge tier-badge--${item.routing_tier}`}>
-                                      {item.routing_tier}
-                                    </span>
-                                  )}
-                                  {item.fallback_from_model && (
-                                    <span
-                                      class="tier-badge tier-badge--fallback"
-                                      title={`Fallback from ${getModelDisplayName(item.fallback_from_model)}`}
-                                    >
-                                      fallback
-                                    </span>
-                                  )}
-                                </span>
-                              </td>
-                              <td style="font-family: var(--font-mono);">
-                                {item.total_tokens != null
-                                  ? formatNumber(item.total_tokens)
-                                  : '\u2014'}
-                              </td>
-                              <td>
-                                <Show
-                                  when={item.error_message}
-                                  fallback={
-                                    <span class={`status-badge status-badge--${item.status}`}>
-                                      {item.status === 'rate_limited' ? (
-                                        <A
-                                          href={`/agents/${encodeURIComponent(params.agentName)}/limits`}
-                                        >
-                                          {formatStatus(item.status)}
-                                        </A>
-                                      ) : (
-                                        formatStatus(item.status)
-                                      )}
-                                    </span>
-                                  }
-                                >
-                                  <span
-                                    class="status-badge-tooltip"
-                                    tabindex="0"
-                                    role="note"
-                                    aria-label={formatErrorMessage(item.error_message!)}
-                                  >
-                                    <span class={`status-badge status-badge--${item.status}`}>
-                                      {item.status === 'fallback_error' && (
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="11"
-                                          height="11"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          stroke-width="2.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          style="margin-right: 3px; flex-shrink: 0;"
-                                        >
-                                          <polyline points="15 17 20 12 15 7" />
-                                          <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
-                                        </svg>
-                                      )}
-                                      {formatStatus(item.status)}
-                                    </span>
-                                    <span class="status-badge-tooltip__bubble">
-                                      {formatErrorMessage(item.error_message!)}
-                                    </span>
-                                  </span>
-                                </Show>
-                              </td>
-                            </tr>
-                          )}
-                        </For>
-                      </tbody>
-                    </table>
+                    <MessageTable
+                      items={d().recent_activity?.slice(0, 5) ?? []}
+                      columns={COMPACT_COLUMNS}
+                      agentName={params.agentName}
+                      customProviderName={customProviderName}
+                    />
                   </div>
 
                   {/* Cost by Model */}
