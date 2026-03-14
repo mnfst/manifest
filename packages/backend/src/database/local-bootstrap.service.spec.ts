@@ -365,6 +365,17 @@ describe('LocalBootstrapService', () => {
       expect(mockPricingRepo.delete).not.toHaveBeenCalled();
     });
 
+    it('preserves OpenRouter provider models even if not curated', async () => {
+      mockPricingRepo.find.mockResolvedValue([
+        { model_name: 'qwen/qwen3-235b-a22b', provider: 'OpenRouter' },
+      ]);
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockPricingRepo.delete).not.toHaveBeenCalled();
+    });
+
     it('preserves custom: prefixed models even if not curated', async () => {
       mockPricingRepo.find.mockResolvedValue([
         { model_name: 'custom:provider-uuid/my-model', provider: 'Custom' },
@@ -391,6 +402,7 @@ describe('LocalBootstrapService', () => {
         { model_name: 'random-model-1', provider: 'Unknown' },
         { model_name: 'random-model-2', provider: 'Unknown' },
         { model_name: 'llama3:latest', provider: 'Ollama' }, // preserved
+        { model_name: 'qwen/qwen3-235b-a22b', provider: 'OpenRouter' }, // preserved
         { model_name: 'custom:uuid/my-llm', provider: 'Custom' }, // preserved
       ]);
 
@@ -404,6 +416,7 @@ describe('LocalBootstrapService', () => {
       );
       expect(deleteArg.model_name._value).not.toContain('claude-opus-4-6');
       expect(deleteArg.model_name._value).not.toContain('llama3:latest');
+      expect(deleteArg.model_name._value).not.toContain('qwen/qwen3-235b-a22b');
       expect(deleteArg.model_name._value).not.toContain('custom:uuid/my-llm');
     });
   });

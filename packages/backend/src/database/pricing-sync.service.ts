@@ -222,30 +222,27 @@ export class PricingSyncService implements OnModuleInit {
           upserted = true;
         }
 
-        // Update existing OpenRouter copy with the full vendor-prefixed ID
+        // Store an OpenRouter-hosted copy with the full vendor-prefixed ID so
+        // the same model can be surfaced under both its native provider and OpenRouter.
         if (hasVendorPrefix) {
-          const existingCopy = await this.pricingRepo.findOneBy({
-            model_name: model.id,
-          });
-          if (existingCopy) {
-            try {
-              await this.pricingRepo.upsert(
-                {
-                  model_name: model.id,
-                  input_price_per_token: prompt,
-                  output_price_per_token: completion,
-                  ...(contextWindow != null && { context_window: contextWindow }),
-                  ...(displayName && { display_name: displayName }),
-                  updated_at: now,
-                },
-                ['model_name'],
-              );
-              upserted = true;
-            } catch (copyErr) {
-              this.logger.warn(
-                `Failed to store OpenRouter copy for ${model.id}: ${copyErr instanceof Error ? copyErr.message : copyErr}`,
-              );
-            }
+          try {
+            await this.pricingRepo.upsert(
+              {
+                model_name: model.id,
+                provider: 'OpenRouter',
+                input_price_per_token: prompt,
+                output_price_per_token: completion,
+                ...(contextWindow != null && { context_window: contextWindow }),
+                ...(displayName && { display_name: displayName }),
+                updated_at: now,
+              },
+              ['model_name'],
+            );
+            upserted = true;
+          } catch (copyErr) {
+            this.logger.warn(
+              `Failed to store OpenRouter copy for ${model.id}: ${copyErr instanceof Error ? copyErr.message : copyErr}`,
+            );
           }
         }
         if (upserted) updated++;
@@ -297,9 +294,10 @@ export class PricingSyncService implements OnModuleInit {
   }
 
   private async removeUnsupportedModels(): Promise<void> {
-    const all = await this.pricingRepo.find({ select: ['model_name'] });
+    const all = await this.pricingRepo.find({ select: ['model_name', 'provider'] });
     const toDelete: string[] = [];
     for (const row of all) {
+      if (row.provider === 'OpenRouter') continue;
       const slashIdx = row.model_name.indexOf('/');
       if (slashIdx === -1) continue;
       const prefix = row.model_name.substring(0, slashIdx);

@@ -193,6 +193,7 @@ export class LocalBootstrapService implements OnModuleInit {
         (row) =>
           !curatedNames.has(row.model_name) &&
           row.provider !== 'Ollama' &&
+          row.provider !== 'OpenRouter' &&
           !row.model_name.startsWith('custom:'),
       )
       .map((row) => row.model_name);
