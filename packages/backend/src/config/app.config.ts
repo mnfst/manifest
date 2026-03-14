@@ -6,11 +6,19 @@ function sanitizeDbPath(raw: string): string {
   return resolve(raw);
 }
 
+function resolveDatabaseUrl(): string {
+  const url = process.env['DATABASE_URL'];
+  if (url) return url;
+  if (process.env['MANIFEST_MODE'] === 'local') return '';
+  if (process.env['NODE_ENV'] === 'test')
+    return 'postgresql://myuser:mypassword@localhost:5432/mydatabase';
+  throw new Error('DATABASE_URL is required in cloud mode. Set it in your .env file.');
+}
+
 export const appConfig = registerAs('app', () => ({
   port: Number(process.env['PORT'] ?? 3001),
   nodeEnv: process.env['NODE_ENV'] ?? 'development',
-  databaseUrl:
-    process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
+  databaseUrl: resolveDatabaseUrl(),
   manifestMode: process.env['MANIFEST_MODE'] ?? 'cloud',
   dbPath: sanitizeDbPath(process.env['MANIFEST_DB_PATH'] ?? ''),
 

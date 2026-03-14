@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { createHash } from 'crypto';
 import { Request } from 'express';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
@@ -21,6 +22,11 @@ import {
 } from '../../common/constants/local-mode.constants';
 
 const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+const MIN_TOKEN_LENGTH = 12;
+
+function cacheKey(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
 
 interface CachedKey {
   tenantId: string;
@@ -115,7 +121,11 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
       throw new UnauthorizedException('Invalid API key format');
     }
 
-    const cached = this.cache.get(token);
+    if (token.length < MIN_TOKEN_LENGTH) {
+      throw new UnauthorizedException('Invalid API key format');
+    }
+
+    const cached = this.cache.get(cacheKey(token));
     if (cached && cached.expiresAt > Date.now()) {
       (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
         tenantId: cached.tenantId,
@@ -154,7 +164,7 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
       if (firstKey) this.cache.delete(firstKey);
     }
 
-    this.cache.set(token, {
+    this.cache.set(cacheKey(token), {
       tenantId: keyRecord.tenant_id,
       agentId: keyRecord.agent_id,
       agentName: keyRecord.agent.name,
@@ -173,7 +183,7 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
   }
 
   invalidateCache(key: string) {
-    this.cache.delete(key);
+    this.cache.delete(cacheKey(key));
   }
 
   clearCache() {

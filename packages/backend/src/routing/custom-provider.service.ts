@@ -1,4 +1,9 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
@@ -10,6 +15,7 @@ import { RoutingCacheService } from './routing-cache.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { CreateCustomProviderDto, UpdateCustomProviderDto } from './dto/custom-provider.dto';
 import { computeQualityScore } from '../database/quality-score.util';
+import { validatePublicUrl } from '../common/utils/url-validation';
 
 @Injectable()
 export class CustomProviderService {
@@ -72,6 +78,12 @@ export class CustomProviderService {
       throw new ConflictException(`Custom provider "${dto.name}" already exists for this agent`);
     }
 
+    try {
+      await validatePublicUrl(dto.base_url);
+    } catch (err) {
+      throw new BadRequestException((err as Error).message);
+    }
+
     const id = randomUUID();
     const provKey = CustomProviderService.providerKey(id);
 
@@ -124,6 +136,11 @@ export class CustomProviderService {
     }
 
     if (dto.base_url !== undefined) {
+      try {
+        await validatePublicUrl(dto.base_url);
+      } catch (err) {
+        throw new BadRequestException((err as Error).message);
+      }
       cp.base_url = dto.base_url;
     }
 

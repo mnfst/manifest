@@ -1,5 +1,10 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { createHash } from 'crypto';
 import { OtlpAuthGuard } from './otlp-auth.guard';
+
+function testCacheKey(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
 
 function makeContext(headers: Record<string, string | undefined>, ip = '10.0.0.1') {
   const request: Record<string, unknown> = { headers, ip };
@@ -67,6 +72,19 @@ describe('OtlpAuthGuard', () => {
   it('rejects token without mnfst_ prefix', async () => {
     const { ctx } = makeContext({ authorization: 'Bearer osk_some_old_key' });
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+  });
+
+  it('rejects mnfst_ token shorter than minimum length', async () => {
+    const { ctx } = makeContext({ authorization: 'Bearer mnfst_ab' });
+    await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+  });
+
+  it('rejects bare mnfst_ prefix with no suffix', async () => {
+    const { ctx } = makeContext({ authorization: 'Bearer mnfst_' });
     await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
   });
@@ -393,8 +411,9 @@ describe('OtlpAuthGuard', () => {
     const internalCache = (guard as any).cache as Map<string, unknown>;
 
     // Fill to exactly MAX_CACHE_SIZE so the next insert triggers eviction
+    const firstFillerHash = testCacheKey('mnfst_filler-0');
     for (let i = 0; i < 10_000; i++) {
-      internalCache.set(`mnfst_filler-${i}`, {
+      internalCache.set(testCacheKey(`mnfst_filler-${i}`), {
         tenantId: 't',
         agentId: 'a',
         agentName: 'n',
@@ -418,16 +437,18 @@ describe('OtlpAuthGuard', () => {
 
     expect(result).toBe(true);
     // The first filler key should have been evicted
-    expect(internalCache.has('mnfst_filler-0')).toBe(false);
-    // The new key should be in the cache
-    expect(internalCache.has('mnfst_overflow-key')).toBe(true);
+    expect(internalCache.has(firstFillerHash)).toBe(false);
+    // The new key should be in the cache (stored as hash)
+    expect(internalCache.has(testCacheKey('mnfst_overflow-key'))).toBe(true);
   });
 
   it('evictExpired removes entries whose expiresAt has passed', async () => {
     const internalCache = (guard as any).cache as Map<string, unknown>;
 
-    // Insert an expired entry
-    internalCache.set('mnfst_expired-cache', {
+    // Insert an expired entry (using hashed keys as the cache now stores hashes)
+    const expiredHash = testCacheKey('mnfst_expired-cache');
+    const validHash = testCacheKey('mnfst_valid-cache');
+    internalCache.set(expiredHash, {
       tenantId: 't',
       agentId: 'a',
       agentName: 'n',
@@ -435,7 +456,7 @@ describe('OtlpAuthGuard', () => {
       expiresAt: Date.now() - 1000, // expired 1 second ago
     });
     // Insert a valid entry
-    internalCache.set('mnfst_valid-cache', {
+    internalCache.set(validHash, {
       tenantId: 't2',
       agentId: 'a2',
       agentName: 'n2',
@@ -458,11 +479,11 @@ describe('OtlpAuthGuard', () => {
     await guard.canActivate(ctx);
 
     // The expired entry should have been removed
-    expect(internalCache.has('mnfst_expired-cache')).toBe(false);
+    expect(internalCache.has(expiredHash)).toBe(false);
     // The valid entry should still be there
-    expect(internalCache.has('mnfst_valid-cache')).toBe(true);
-    // The new key should also be cached
-    expect(internalCache.has('mnfst_trigger-evict-key')).toBe(true);
+    expect(internalCache.has(validHash)).toBe(true);
+    // The new key should also be cached (as hash)
+    expect(internalCache.has(testCacheKey('mnfst_trigger-evict-key'))).toBe(true);
   });
 
   it('periodic timer fires evictExpired', () => {
@@ -476,7 +497,7 @@ describe('OtlpAuthGuard', () => {
     const timedGuard = new OtlpAuthGuard(mockRepo);
 
     const internalCache = (timedGuard as any).cache as Map<string, unknown>;
-    internalCache.set('mnfst_stale', {
+    internalCache.set(testCacheKey('mnfst_stale'), {
       tenantId: 't',
       agentId: 'a',
       agentName: 'n',
@@ -506,7 +527,7 @@ describe('OtlpAuthGuard', () => {
     timedGuard.onModuleDestroy();
 
     // After destroy, add an expired entry — timer should not evict it
-    internalCache.set('mnfst_leftover', {
+    internalCache.set(testCacheKey('mnfst_leftover'), {
       tenantId: 't',
       agentId: 'a',
       agentName: 'n',
@@ -518,6 +539,26 @@ describe('OtlpAuthGuard', () => {
     expect(internalCache.size).toBe(1);
 
     jest.useRealTimers();
+  });
+
+  it('does not store plaintext tokens in cache', async () => {
+    mockGetOne.mockResolvedValue({
+      tenant_id: 'tenant-1',
+      agent_id: 'agent-1',
+      expires_at: null,
+      agent: { name: 'test-agent' },
+      tenant: { name: 'user-1' },
+    });
+
+    const token = 'mnfst_plaintext-check-key';
+    const { ctx } = makeContext({ authorization: `Bearer ${token}` });
+    await guard.canActivate(ctx);
+
+    const internalCache = (guard as any).cache as Map<string, unknown>;
+    // The cache must NOT contain the plaintext token as a key
+    expect(internalCache.has(token)).toBe(false);
+    // It should contain the SHA-256 hash of the token
+    expect(internalCache.has(testCacheKey(token))).toBe(true);
   });
 
   it('invalidateCache removes a specific key from cache', async () => {

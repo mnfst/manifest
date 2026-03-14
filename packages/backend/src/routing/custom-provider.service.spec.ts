@@ -1,4 +1,12 @@
+jest.mock('../common/utils/url-validation', () => ({
+  validatePublicUrl: jest.fn().mockResolvedValue(undefined),
+}));
+
+import { BadRequestException } from '@nestjs/common';
 import { CustomProviderService } from './custom-provider.service';
+import { validatePublicUrl } from '../common/utils/url-validation';
+
+const mockValidatePublicUrl = validatePublicUrl as jest.MockedFunction<typeof validatePublicUrl>;
 
 describe('CustomProviderService (static helpers)', () => {
   describe('providerKey', () => {
@@ -138,6 +146,21 @@ describe('CustomProviderService (with mocks)', () => {
       expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(1);
       expect(mockRoutingService.upsertProvider).toHaveBeenCalledTimes(1);
       expect(mockPricingCache.reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects private/internal URLs via SSRF validation', async () => {
+      mockValidatePublicUrl.mockRejectedValueOnce(
+        new Error('URLs pointing to private or internal networks are not allowed'),
+      );
+      const dto = {
+        name: 'Evil',
+        base_url: 'http://127.0.0.1:8080',
+        models: [{ model_name: 'test' }],
+      };
+      await expect(service.create('agent-1', 'user-1', dto as never)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(mockValidatePublicUrl).toHaveBeenCalledWith('http://127.0.0.1:8080');
     });
 
     it('throws ConflictException for duplicate name', async () => {
@@ -283,6 +306,18 @@ describe('CustomProviderService (with mocks)', () => {
       expect(result.name).toBe('Updated Groq');
       expect(result.base_url).toBe('https://new-url.com/v1');
       expect(mockRepo.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects private URL on base_url update', async () => {
+      mockValidatePublicUrl.mockRejectedValueOnce(
+        new Error('URLs pointing to private or internal networks are not allowed'),
+      );
+      await expect(
+        service.update('agent-1', 'cp-1', 'user-1', {
+          base_url: 'http://10.0.0.5:3000',
+        } as never),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockValidatePublicUrl).toHaveBeenCalledWith('http://10.0.0.5:3000');
     });
 
     it('throws NotFoundException when provider not found', async () => {

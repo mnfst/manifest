@@ -22,6 +22,7 @@ import { ProxyService, FailedFallback } from './proxy.service';
 import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
 import { initSseHeaders, pipeStream, StreamUsage } from './stream-writer';
+import { sanitizeProviderError } from './proxy-error-sanitizer';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
 
 const MAX_SEEN_USERS = 10_000;
@@ -140,11 +141,16 @@ export class ProxyController implements OnModuleDestroy {
           ).catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
         }
 
+        this.logger.warn(`Upstream error ${errorStatus}: ${errorBody.slice(0, 200)}`);
         res.status(errorStatus);
         for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
-        const contentType = providerResponse.headers.get('content-type');
-        if (contentType) res.setHeader('Content-Type', contentType);
-        res.send(errorBody);
+        res.json({
+          error: {
+            message: sanitizeProviderError(errorStatus, errorBody),
+            type: 'upstream_error',
+            status: errorStatus,
+          },
+        });
         return;
       }
 

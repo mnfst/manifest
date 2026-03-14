@@ -114,4 +114,27 @@ describe('validateProviderConfig', () => {
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('Invalid domain format');
   });
+
+  it('rejects domain exceeding 253 characters for Mailgun', () => {
+    const longDomain = 'a'.repeat(250) + '.com';
+    const result = validateProviderConfig('mailgun', 'key-12345678', longDomain);
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Domain name exceeds maximum length');
+  });
+
+  it('rejects domain exceeding 253 characters for non-Mailgun providers', () => {
+    const longDomain = 'a'.repeat(250) + '.com';
+    const result = validateProviderConfig('resend', 're_abcdefghij', longDomain);
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Domain name exceeds maximum length');
+  });
+
+  it('accepts domain at exactly 253 characters', () => {
+    // Build a valid domain that is exactly 253 chars
+    const label = 'a'.repeat(63);
+    const domain = `${label}.${label}.${label}.${label.substring(0, 253 - 63 * 3 - 3)}`;
+    const result = validateProviderConfig('mailgun', 'key-12345678', domain);
+    // Should pass domain length check (may fail regex, but not the length check)
+    expect(result.errors).not.toContain('Domain name exceeds maximum length');
+  });
 });
