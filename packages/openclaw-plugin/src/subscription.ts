@@ -1,12 +1,11 @@
-import { readFileSync, existsSync, readdirSync } from 'fs';
+import { existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { PluginLogger } from './telemetry';
 import { supportsSubscriptionProvider } from '../../subscription-capabilities';
+import { loadJsonFile } from './json-file';
 
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface AuthProfileEntry {
   type: string;
@@ -45,15 +44,6 @@ const OPENCLAW_TO_MANIFEST: Record<string, string> = {
   minimax: 'minimax',
 };
 
-function readJsonSafe(path: string): Record<string, any> {
-  if (!existsSync(path)) return {};
-  try {
-    return JSON.parse(readFileSync(path, 'utf-8'));
-  } catch {
-    return {};
-  }
-}
-
 /**
  * Scans all OpenClaw agent auth-profiles.json files to discover
  * providers authenticated via subscription (OAuth, setup-token, device-login).
@@ -76,7 +66,7 @@ export function discoverSubscriptionProviders(logger: PluginLogger): Subscriptio
 
     for (const dir of agentDirs) {
       const profilePath = join(agentsDir, dir.name, 'agent', 'auth-profiles.json');
-      const data = readJsonSafe(profilePath);
+      const data = loadJsonFile(profilePath);
       if (!data.profiles || typeof data.profiles !== 'object') continue;
 
       for (const entry of Object.values(data.profiles)) {

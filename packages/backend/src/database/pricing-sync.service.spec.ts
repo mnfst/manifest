@@ -2,6 +2,7 @@ import { PricingSyncService } from './pricing-sync.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { PricingHistoryService } from './pricing-history.service';
 import { UnresolvedModelTrackerService } from '../model-prices/unresolved-model-tracker.service';
+import { ManifestRuntimeService } from '../common/services/manifest-runtime.service';
 
 const mockFindOneBy = jest.fn().mockResolvedValue(null);
 const mockUpsert = jest.fn().mockResolvedValue(undefined);
@@ -37,24 +38,27 @@ const mockUnresolvedTracker = {
 
 const mockModuleRefGet = jest.fn();
 const mockModuleRef = { get: mockModuleRefGet } as never;
+const mockRuntime = {
+  isLocalMode: jest.fn().mockReturnValue(false),
+} as unknown as ManifestRuntimeService;
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
 describe('PricingSyncService', () => {
   let service: PricingSyncService;
-  const origManifestMode = process.env['MANIFEST_MODE'];
 
   beforeEach(() => {
-    delete process.env['MANIFEST_MODE'];
     service = new PricingSyncService(
       mockRepo,
       mockPricingCache,
       mockPricingHistory,
       mockUnresolvedTracker,
       mockModuleRef,
+      mockRuntime,
     );
     jest.clearAllMocks();
+    mockRuntime.isLocalMode = jest.fn().mockReturnValue(false);
     mockFindOneBy.mockResolvedValue(null);
     mockGetAll.mockReturnValue([]);
     mockGetUnresolved.mockResolvedValue([]);
@@ -63,12 +67,7 @@ describe('PricingSyncService', () => {
     mockDelete.mockResolvedValue(undefined);
   });
 
-  afterAll(() => {
-    if (origManifestMode !== undefined) process.env['MANIFEST_MODE'] = origManifestMode;
-    else delete process.env['MANIFEST_MODE'];
-  });
-
-  it('creates canonical and OpenRouter copies for new vendor-prefixed models', async () => {
+  it('creates canonical models for new vendor-prefixed models (no OpenRouter copies)', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -630,20 +629,13 @@ describe('PricingSyncService', () => {
 
   describe('onModuleInit', () => {
     it('returns immediately in local mode without calling syncPricing', async () => {
-      const original = process.env['MANIFEST_MODE'];
-      process.env['MANIFEST_MODE'] = 'local';
-      try {
-        await service.onModuleInit();
-        await new Promise((r) => setTimeout(r, 10));
-        expect(mockFetch).not.toHaveBeenCalled();
-        expect(mockCount).not.toHaveBeenCalled();
-      } finally {
-        if (original === undefined) {
-          delete process.env['MANIFEST_MODE'];
-        } else {
-          process.env['MANIFEST_MODE'] = original;
-        }
-      }
+      mockRuntime.isLocalMode = jest.fn().mockReturnValue(true);
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(mockCount).not.toHaveBeenCalled();
     });
 
     it('skips sync when data is fresh', async () => {

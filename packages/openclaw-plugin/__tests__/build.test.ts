@@ -2,6 +2,9 @@ import { readFileSync, existsSync, readdirSync } from "fs";
 import { resolve, join } from "path";
 
 const distPath = resolve(__dirname, "../dist/index.js");
+const localModeDistPath = resolve(__dirname, "../dist/local-mode.js");
+const subscriptionDistPath = resolve(__dirname, "../dist/subscription.js");
+const jsonFileDistPath = resolve(__dirname, "../dist/json-file.js");
 const pkgPath = resolve(__dirname, "../package.json");
 const backendPkgPath = resolve(__dirname, "../../backend/package.json");
 
@@ -57,12 +60,9 @@ describeIfBuilt("built bundle (dist/index.js)", () => {
   });
 
   it("does not contain readFile references outside local-mode config", () => {
-    // readFile + fetch triggers the scanner's potential-exfiltration rule.
-    // local-mode uses readFileSync to read ~/.openclaw/manifest/config.json —
-    // that's expected. Verify no OTHER occurrences by checking count.
-    const matches = bundleContent.match(/\breadFileSync\b/g) || [];
-    // local-mode config reading produces a small number of references
-    expect(matches.length).toBeLessThanOrEqual(5);
+    // dist/index.js is scanned as a single file by OpenClaw, so it must not
+    // contain file-read helpers at all. File I/O lives in sidecar modules.
+    expect(bundleContent).not.toMatch(/\breadFileSync\b|\breadFile\b/);
   });
 
   it("does not contain string concatenation obfuscation", () => {
@@ -72,6 +72,30 @@ describeIfBuilt("built bundle (dist/index.js)", () => {
 
   it("includes source map reference", () => {
     expect(bundleContent).toContain("//# sourceMappingURL=");
+  });
+
+  it("builds local-mode/subscription sidecars", () => {
+    expect(existsSync(localModeDistPath)).toBe(true);
+    expect(existsSync(subscriptionDistPath)).toBe(true);
+    expect(existsSync(jsonFileDistPath)).toBe(true);
+  });
+
+  it("local-mode sidecar does not contain readFile references", () => {
+    if (!existsSync(localModeDistPath)) return;
+    const content = readFileSync(localModeDistPath, "utf-8");
+    expect(content).not.toMatch(/\breadFileSync\b|\breadFile\b/);
+  });
+
+  it("subscription sidecar does not contain readFile references", () => {
+    if (!existsSync(subscriptionDistPath)) return;
+    const content = readFileSync(subscriptionDistPath, "utf-8");
+    expect(content).not.toMatch(/\breadFileSync\b|\breadFile\b/);
+  });
+
+  it("json-file sidecar does not contain fetch references", () => {
+    if (!existsSync(jsonFileDistPath)) return;
+    const content = readFileSync(jsonFileDistPath, "utf-8");
+    expect(content).not.toMatch(/\bfetch\b|\bpost\b|http\.request/i);
   });
 
   it("dist/backend/ contains no .js.map or .d.ts files", () => {

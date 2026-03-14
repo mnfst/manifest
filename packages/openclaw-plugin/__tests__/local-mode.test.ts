@@ -367,11 +367,11 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     };
   }
 
-  /** Flush the fire-and-forget async IIFE that starts the server */
-  async function flushServerStart() {
-    // Allow all microtasks (the async IIFE chain) to settle
+  /** Call the registered service start() callback and flush microtasks */
+  async function flushServerStart(api: ReturnType<typeof createMockApi>) {
+    const startFn = api.getStartFn();
+    if (startFn) await startFn();
     await new Promise((r) => setImmediate(r));
-    // Extra tick for nested awaits (e.g. checkExistingServer inside catch)
     await new Promise((r) => setImmediate(r));
   }
 
@@ -380,7 +380,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
-    await flushServerStart();
+    await flushServerStart(api);
 
     expect(mockLogger.info).toHaveBeenCalledWith(
       expect.stringContaining("Reusing existing server"),
@@ -400,7 +400,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
-    await flushServerStart();
+    await flushServerStart(api);
 
     expect(mockLogger.info).toHaveBeenCalledWith(
       expect.stringContaining("Reusing existing server"),
@@ -417,7 +417,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
-    await flushServerStart();
+    await flushServerStart(api);
 
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.stringContaining("already in use by another process"),
@@ -430,7 +430,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
-    await flushServerStart();
+    await flushServerStart(api);
 
     expect(mockLogger.info).toHaveBeenCalledWith(
       expect.stringContaining("Local server running"),
@@ -452,7 +452,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
-    await flushServerStart();
+    await flushServerStart(api);
 
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.stringContaining("Failed to start local server"),
@@ -483,7 +483,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     registerLocalMode(api, testConfig, mockLogger);
 
     // Server start is fire-and-forget — flush microtasks
-    await flushServerStart();
+    await flushServerStart(api);
 
     // Server started without ever calling the service's start() callback
     expect(mockServerStart).toHaveBeenCalledWith({
@@ -498,44 +498,41 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     expect(startFn).toBeDefined();
   });
 
-  it("server starts even if registerService start() is never called", async () => {
+  it("server only starts when registerService start() is called", async () => {
     globalThis.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
     mockServerStart.mockResolvedValue(undefined);
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
 
-    // Simulate the bug: do NOT call api.getStartFn()()
-    await flushServerStart();
+    // Server should not start until start() is called
+    expect(mockServerStart).not.toHaveBeenCalled();
 
-    // Server should have started anyway (this is the fix)
+    await flushServerStart(api);
+
     expect(mockServerStart).toHaveBeenCalled();
     expect(mockLogger.info).toHaveBeenCalledWith(
       expect.stringContaining("Local server running"),
     );
   });
 
-  it("service start callback is a no-op", async () => {
+  it("calling start() twice does not start server twice", async () => {
     globalThis.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
     mockServerStart.mockResolvedValue(undefined);
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
-    await flushServerStart();
+    await flushServerStart(api);
 
-    // Clear to isolate the start() call
+    expect(mockServerStart).toHaveBeenCalledTimes(1);
+
+    // Second call starts a new attempt (registerService can call start again)
     mockServerStart.mockClear();
-
-    // Calling start() should do nothing (no duplicate server start)
-    const startFn = api.getStartFn();
-    startFn!();
-
-    expect(mockServerStart).not.toHaveBeenCalled();
+    await flushServerStart(api);
+    expect(mockServerStart).toHaveBeenCalledTimes(1);
   });
 
-  it("does not crash the process when the async IIFE throws unexpectedly", async () => {
-    // checkExistingServer returns true → the IIFE hits logger.info("Reusing…")
-    // Make that logger.info throw to simulate an error outside the inner try/catch
+  it("start() propagates errors from logger without crashing", async () => {
     globalThis.fetch = jest.fn().mockResolvedValue({ ok: true });
 
     const throwingLogger = {
@@ -548,11 +545,10 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     };
 
     const api = createMockApi();
-    // Should not throw — the .catch() on the IIFE swallows the error
     registerLocalMode(api, testConfig, throwingLogger);
-    await flushServerStart();
 
-    // Server was never reached, but no unhandled rejection
+    // start() should throw since the logger throws, but should not crash
+    await expect(flushServerStart(api)).rejects.toThrow("logger exploded");
     expect(mockServerStart).not.toHaveBeenCalled();
   });
 
@@ -806,6 +802,7 @@ describe("injectProviderConfig — stale models.json cleanup", () => {
 
 describe("readJsonSafe — corrupt JSON", () => {
   it("returns empty object when file contains invalid JSON", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     // readJsonSafe is called by injectProviderConfig when reading openclaw.json.
     // When the file exists but contains corrupt JSON, readJsonSafe should catch
     // the parse error and return {} (line 72 in local-mode.ts).
@@ -830,6 +827,10 @@ describe("readJsonSafe — corrupt JSON", () => {
       (writeFileSync as jest.Mock).mock.calls[0][1],
     );
     expect(writtenData.models.providers.manifest).toBeDefined();
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[manifest] Failed to read JSON file"),
+    );
+    warnSpy.mockRestore();
   });
 });
 
@@ -868,6 +869,7 @@ describe("loadOrGenerateApiKey — edge cases", () => {
   });
 
   it("generates new key when config file contains corrupt JSON", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     (existsSync as jest.Mock).mockImplementation((p: string) => {
       if (p.includes("config.json")) return true;
       if (p.includes("agents")) return false;
@@ -886,6 +888,10 @@ describe("loadOrGenerateApiKey — edge cases", () => {
     const { initTelemetry } = require("../src/telemetry");
     const localConfig = (initTelemetry as jest.Mock).mock.calls[0][0];
     expect(localConfig.apiKey).toMatch(/^mnfst_/);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[manifest] Failed to read JSON file"),
+    );
+    warnSpy.mockRestore();
   });
 });
 

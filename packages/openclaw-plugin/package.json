@@ -17,6 +17,9 @@
   "files": [
     "dist/index.js",
     "dist/index.js.map",
+    "dist/local-mode.js",
+    "dist/subscription.js",
+    "dist/json-file.js",
     "dist/server.js",
     "dist/server.d.ts",
     "dist/backend",

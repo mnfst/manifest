@@ -23,6 +23,7 @@ export const appConfig = registerAs('app', () => ({
   dbPath: sanitizeDbPath(process.env['MANIFEST_DB_PATH'] ?? ''),
 
   corsOrigin: process.env['CORS_ORIGIN'] ?? 'http://localhost:3000',
+  betterAuthUrl: process.env['BETTER_AUTH_URL'] ?? '',
   throttleTtl: Number(process.env['THROTTLE_TTL'] ?? 60000),
   throttleLimit: Number(process.env['THROTTLE_LIMIT'] ?? 100),
   apiKey: process.env['API_KEY'] ?? '',

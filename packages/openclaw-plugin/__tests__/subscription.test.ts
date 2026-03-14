@@ -177,6 +177,7 @@ describe("discoverSubscriptionProviders", () => {
   });
 
   it("handles malformed JSON in auth-profiles.json", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     mockExistsSync.mockReturnValue(true);
     mockReaddirSync.mockReturnValue([
       { name: "agent-1", isDirectory: () => true } as any,
@@ -185,6 +186,10 @@ describe("discoverSubscriptionProviders", () => {
 
     const result = discoverSubscriptionProviders(mockLogger);
     expect(result).toEqual([]);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[manifest] Failed to read JSON file"),
+    );
+    warnSpy.mockRestore();
   });
 
   it("filters mapped providers that do not support Manifest subscription auth", () => {
