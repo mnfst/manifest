@@ -68,12 +68,14 @@ describe('appConfig', () => {
 
   it('defaults nodeEnv to development when NODE_ENV is not set', async () => {
     delete process.env['NODE_ENV'];
+    process.env['DATABASE_URL'] = 'postgresql://test:test@localhost/test';
     const config = await loadConfig();
     expect(config.nodeEnv).toBe('development');
   });
 
   it('reads NODE_ENV from env', async () => {
     process.env['NODE_ENV'] = 'production';
+    process.env['DATABASE_URL'] = 'postgresql://test:test@localhost/test';
     const config = await loadConfig();
     expect(config.nodeEnv).toBe('production');
   });
@@ -88,5 +90,27 @@ describe('appConfig', () => {
     process.env['DB_POOL_MAX'] = '50';
     const config = await loadConfig();
     expect(config.dbPoolMax).toBe(50);
+  });
+
+  it('throws when DATABASE_URL is missing in cloud mode', async () => {
+    delete process.env['DATABASE_URL'];
+    delete process.env['MANIFEST_MODE'];
+    process.env['NODE_ENV'] = 'production';
+    await expect(loadConfig()).rejects.toThrow('DATABASE_URL is required in cloud mode');
+  });
+
+  it('returns empty string when DATABASE_URL is missing in local mode', async () => {
+    delete process.env['DATABASE_URL'];
+    process.env['MANIFEST_MODE'] = 'local';
+    const config = await loadConfig();
+    expect(config.databaseUrl).toBe('');
+  });
+
+  it('returns default URL when DATABASE_URL is missing in test mode', async () => {
+    delete process.env['DATABASE_URL'];
+    process.env['NODE_ENV'] = 'test';
+    delete process.env['MANIFEST_MODE'];
+    const config = await loadConfig();
+    expect(config.databaseUrl).toContain('postgresql://');
   });
 });

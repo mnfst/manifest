@@ -476,7 +476,13 @@ describe('ProxyController', () => {
     await controller.chatCompletions(req as never, res as never);
 
     expect(res.status).toHaveBeenCalledWith(429);
-    expect(res.send).toHaveBeenCalledWith(errorBody);
+    expect(res.json).toHaveBeenCalledWith({
+      error: {
+        message: 'Rate limited by upstream provider',
+        type: 'upstream_error',
+        status: 429,
+      },
+    });
   });
 
   it('should handle 500 errors from proxyService', async () => {
@@ -877,7 +883,13 @@ describe('ProxyController', () => {
       await new Promise((r) => setTimeout(r, 10));
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith('{"error":"bad request"}');
+      expect(res.json).toHaveBeenCalledWith({
+        error: {
+          message: 'Bad request to upstream provider',
+          type: 'upstream_error',
+          status: 400,
+        },
+      });
     });
 
     it('should apply 429 cooldown for provider responses', async () => {
@@ -1479,8 +1491,13 @@ describe('ProxyController', () => {
       await controller.chatCompletions(req as never, res as never);
 
       expect(res.status).toHaveBeenCalledWith(502);
-      expect(res.send).toHaveBeenCalledWith('{"error":"bad gateway"}');
-      expect(headers['Content-Type']).toBe('application/json');
+      expect(res.json).toHaveBeenCalledWith({
+        error: {
+          message: 'Upstream provider returned bad gateway',
+          type: 'upstream_error',
+          status: 502,
+        },
+      });
       // Meta headers should still be set
       expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     });
@@ -2239,7 +2256,13 @@ describe('ProxyController', () => {
       await new Promise((r) => setTimeout(r, 50));
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith('primary error');
+      expect(res.json).toHaveBeenCalledWith({
+        error: {
+          message: 'Upstream provider internal error',
+          type: 'upstream_error',
+          status: 500,
+        },
+      });
     });
 
     it('should handle DB failure in recordPrimaryFailure on successful fallback', async () => {

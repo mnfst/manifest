@@ -56,6 +56,7 @@ import { ExpandProviderUniqueKey1773000000000 } from './migrations/1773000000000
 import { AddOverrideAuthType1773100000000 } from './migrations/1773100000000-AddOverrideAuthType';
 import { AddMessageAuthType1773200000000 } from './migrations/1773200000000-AddMessageAuthType';
 import { AddModelsAgentIndex1773202787708 } from './migrations/1773202787708-AddModelsAgentIndex';
+import { AddEmailProviderKeyPrefix1773300000000 } from './migrations/1773300000000-AddEmailProviderKeyPrefix';
 
 const entities = [
   AgentMessage,
@@ -116,6 +117,7 @@ const migrations = [
   AddOverrideAuthType1773100000000,
   AddMessageAuthType1773200000000,
   AddModelsAgentIndex1773202787708,
+  AddEmailProviderKeyPrefix1773300000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';

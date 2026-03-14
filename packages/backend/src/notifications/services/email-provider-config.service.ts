@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { render } from '@react-email/render';
 import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
+import { encrypt, decrypt, isEncrypted, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { validateProviderConfig } from './email-provider-validation';
 import { createProvider } from './email-providers/resolve-provider';
 import { TestEmail } from '../emails/test-email';
@@ -35,9 +36,19 @@ export class EmailProviderConfigService {
     return portableSql(query, this.dialect);
   }
 
+  private decryptKey(stored: string): string {
+    if (isEncrypted(stored)) {
+      return decrypt(stored, getEncryptionSecret());
+    }
+    // Backwards compatibility: plaintext keys from before encryption was added
+    return stored;
+  }
+
   async getConfig(userId: string): Promise<EmailProviderPublicConfig | null> {
     const rows = await this.ds.query(
-      this.sql(`SELECT provider, domain, api_key_encrypted, is_active, notification_email FROM email_provider_configs WHERE user_id = $1`),
+      this.sql(
+        `SELECT provider, domain, key_prefix, is_active, notification_email FROM email_provider_configs WHERE user_id = $1`,
+      ),
       [userId],
     );
     if (!rows.length) return null;
@@ -46,7 +57,7 @@ export class EmailProviderConfigService {
     return {
       provider: row.provider,
       domain: row.domain ?? null,
-      keyPrefix: row.api_key_encrypted.substring(0, 8),
+      keyPrefix: row.key_prefix ?? '****',
       is_active: !!row.is_active,
       notificationEmail: row.notification_email ?? null,
     };
@@ -66,22 +77,25 @@ export class EmailProviderConfigService {
 
     // When updating without a new API key, keep the existing one
     if (existing.length > 0 && !dto.apiKey) {
-      const existingKey = existing[0].api_key_encrypted;
-      const validation = validateProviderConfig(dto.provider, existingKey, dto.domain);
+      const storedKey = existing[0].api_key_encrypted;
+      const plainKey = this.decryptKey(storedKey);
+      const validation = validateProviderConfig(dto.provider, plainKey, dto.domain);
       if (!validation.valid) {
         throw new BadRequestException(validation.errors);
       }
       const { domain, provider } = validation.normalized;
 
       await this.ds.query(
-        this.sql(`UPDATE email_provider_configs SET provider = $1, domain = $2, is_active = $3, updated_at = $4, notification_email = $5 WHERE user_id = $6`),
+        this.sql(
+          `UPDATE email_provider_configs SET provider = $1, domain = $2, is_active = $3, updated_at = $4, notification_email = $5 WHERE user_id = $6`,
+        ),
         [provider, domain || null, 1, now, notificationEmail, userId],
       );
 
       return {
         provider,
         domain: domain || null,
-        keyPrefix: existingKey.substring(0, 8),
+        keyPrefix: existing[0].key_prefix ?? plainKey.substring(0, 8),
         is_active: true,
         notificationEmail,
       };
@@ -98,38 +112,57 @@ export class EmailProviderConfigService {
     }
 
     const { apiKey, domain, provider } = validation.normalized;
+    const secret = getEncryptionSecret();
+    const encryptedKey = encrypt(apiKey, secret);
+    const prefix = apiKey.substring(0, 8);
 
     if (existing.length > 0) {
       await this.ds.query(
-        this.sql(`UPDATE email_provider_configs SET provider = $1, api_key_encrypted = $2, domain = $3, is_active = $4, updated_at = $5, notification_email = $6 WHERE user_id = $7`),
-        [provider, apiKey, domain || null, 1, now, notificationEmail, userId],
+        this.sql(
+          `UPDATE email_provider_configs SET provider = $1, api_key_encrypted = $2, key_prefix = $3, domain = $4, is_active = $5, updated_at = $6, notification_email = $7 WHERE user_id = $8`,
+        ),
+        [provider, encryptedKey, prefix, domain || null, 1, now, notificationEmail, userId],
       );
     } else {
       await this.ds.query(
-        this.sql(`INSERT INTO email_provider_configs (id, user_id, provider, api_key_encrypted, domain, is_active, created_at, updated_at, notification_email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`),
-        [uuid(), userId, provider, apiKey, domain || null, 1, now, now, notificationEmail],
+        this.sql(
+          `INSERT INTO email_provider_configs (id, user_id, provider, api_key_encrypted, key_prefix, domain, is_active, created_at, updated_at, notification_email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        ),
+        [
+          uuid(),
+          userId,
+          provider,
+          encryptedKey,
+          prefix,
+          domain || null,
+          1,
+          now,
+          now,
+          notificationEmail,
+        ],
       );
     }
 
     return {
       provider,
       domain: domain || null,
-      keyPrefix: apiKey.substring(0, 8),
+      keyPrefix: prefix,
       is_active: true,
       notificationEmail,
     };
   }
 
   async remove(userId: string): Promise<void> {
-    await this.ds.query(
-      this.sql(`DELETE FROM email_provider_configs WHERE user_id = $1`),
-      [userId],
-    );
+    await this.ds.query(this.sql(`DELETE FROM email_provider_configs WHERE user_id = $1`), [
+      userId,
+    ]);
   }
 
   async getFullConfig(userId: string): Promise<EmailProviderFullConfig | null> {
     const rows = await this.ds.query(
-      this.sql(`SELECT provider, api_key_encrypted, domain, notification_email FROM email_provider_configs WHERE user_id = $1 AND is_active = $2`),
+      this.sql(
+        `SELECT provider, api_key_encrypted, domain, notification_email FROM email_provider_configs WHERE user_id = $1 AND is_active = $2`,
+      ),
       [userId, 1],
     );
     if (!rows.length) return null;
@@ -137,7 +170,7 @@ export class EmailProviderConfigService {
     const row = rows[0];
     return {
       provider: row.provider,
-      apiKey: row.api_key_encrypted,
+      apiKey: this.decryptKey(row.api_key_encrypted),
       domain: row.domain ?? null,
       notificationEmail: row.notification_email ?? null,
     };
@@ -160,7 +193,9 @@ export class EmailProviderConfigService {
 
     if (existing.length > 0) {
       await this.ds.query(
-        this.sql(`UPDATE email_provider_configs SET notification_email = $1, updated_at = $2 WHERE user_id = $3`),
+        this.sql(
+          `UPDATE email_provider_configs SET notification_email = $1, updated_at = $2 WHERE user_id = $3`,
+        ),
         [email.trim().toLowerCase(), now, userId],
       );
     }

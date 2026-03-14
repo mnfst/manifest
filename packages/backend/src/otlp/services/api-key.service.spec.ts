@@ -5,6 +5,7 @@ import { ApiKeyGeneratorService } from './api-key.service';
 import { Tenant } from '../../entities/tenant.entity';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
+import { OtlpAuthGuard } from '../guards/otlp-auth.guard';
 import { hashKey, keyPrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 
@@ -41,6 +42,7 @@ describe('ApiKeyGeneratorService', () => {
   let mockKeyQb: Record<string, jest.Mock>;
   let mockAgentGetOne: jest.Mock;
   let mockAgentQb: Record<string, jest.Mock>;
+  let mockClearCache: jest.Mock;
 
   beforeEach(async () => {
     mockTenantFindOne = jest.fn();
@@ -51,6 +53,8 @@ describe('ApiKeyGeneratorService', () => {
     mockKeyDelete = jest.fn().mockResolvedValue({});
     mockKeyGetOne = jest.fn();
     mockAgentGetOne = jest.fn();
+
+    mockClearCache = jest.fn();
 
     mockKeyQb = {
       leftJoin: jest.fn().mockReturnThis(),
@@ -91,6 +95,10 @@ describe('ApiKeyGeneratorService', () => {
             delete: mockKeyDelete,
             createQueryBuilder: jest.fn().mockReturnValue(mockKeyQb),
           },
+        },
+        {
+          provide: OtlpAuthGuard,
+          useValue: { clearCache: mockClearCache },
         },
       ],
     }).compile();
@@ -467,6 +475,24 @@ describe('ApiKeyGeneratorService', () => {
       await service.rotateKey('user-1', 'my-agent');
 
       expect(callOrder).toEqual(['delete', 'insert']);
+    });
+
+    it('should call clearCache after deleting the old key', async () => {
+      mockAgentGetOne.mockResolvedValue(existingAgent);
+
+      await service.rotateKey('user-1', 'my-agent');
+
+      expect(mockClearCache).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('onboardAgent does not clear cache', () => {
+    it('should not call clearCache during onboarding', async () => {
+      mockTenantFindOne.mockResolvedValue(null);
+
+      await service.onboardAgent({ tenantName: 'user-42', agentName: 'my-agent' });
+
+      expect(mockClearCache).not.toHaveBeenCalled();
     });
   });
 });

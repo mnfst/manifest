@@ -14,6 +14,26 @@ describe('SecurityEventDto', () => {
     expect(errors).toHaveLength(0);
   });
 
+  it('rejects category exceeding max length', async () => {
+    const dto = plainToInstance(SecurityEventDto, {
+      severity: 'critical',
+      category: 'x'.repeat(257),
+      description: 'test',
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('rejects description exceeding max length', async () => {
+    const dto = plainToInstance(SecurityEventDto, {
+      severity: 'critical',
+      category: 'test',
+      description: 'x'.repeat(4097),
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
   it('rejects invalid severity', async () => {
     const dto = plainToInstance(SecurityEventDto, {
       severity: 'high',
@@ -51,6 +71,64 @@ describe('TelemetryEventDto', () => {
     });
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);
+  });
+
+  it('rejects timestamp exceeding max length', async () => {
+    const dto = plainToInstance(TelemetryEventDto, {
+      timestamp: 'x'.repeat(51),
+      description: 'test',
+      service_type: 'agent',
+      status: 'ok',
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('rejects description exceeding max length', async () => {
+    const dto = plainToInstance(TelemetryEventDto, {
+      timestamp: '2024-01-01T00:00:00Z',
+      description: 'x'.repeat(4097),
+      service_type: 'agent',
+      status: 'ok',
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('rejects model exceeding max length', async () => {
+    const dto = plainToInstance(TelemetryEventDto, {
+      timestamp: '2024-01-01T00:00:00Z',
+      description: 'test',
+      service_type: 'agent',
+      status: 'ok',
+      model: 'x'.repeat(257),
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('rejects agent_name exceeding max length', async () => {
+    const dto = plainToInstance(TelemetryEventDto, {
+      timestamp: '2024-01-01T00:00:00Z',
+      description: 'test',
+      service_type: 'agent',
+      status: 'ok',
+      agent_name: 'x'.repeat(257),
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('rejects skill_name exceeding max length', async () => {
+    const dto = plainToInstance(TelemetryEventDto, {
+      timestamp: '2024-01-01T00:00:00Z',
+      description: 'test',
+      service_type: 'agent',
+      status: 'ok',
+      skill_name: 'x'.repeat(257),
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
   });
 
   it('rejects negative input_tokens', async () => {

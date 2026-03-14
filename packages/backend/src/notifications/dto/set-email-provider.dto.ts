@@ -9,18 +9,18 @@ export class SetEmailProviderDto {
   @IsOptional()
   @IsString()
   @MinLength(8)
-  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   apiKey?: string;
 
   @ValidateIf((o) => o.provider === 'mailgun')
   @IsString()
   @MinLength(1)
-  @Transform(({ value }) => typeof value === 'string' ? value.trim().toLowerCase() : value)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   domain?: string;
 
   @IsOptional()
   @IsEmail()
-  @Transform(({ value }) => typeof value === 'string' ? value.trim().toLowerCase() : value)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   notificationEmail?: string;
 }
 
@@ -31,15 +31,15 @@ export class TestEmailProviderDto {
 
   @IsString()
   @MinLength(8)
-  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   apiKey!: string;
 
   @ValidateIf((o) => o.provider === 'mailgun')
   @IsString()
   @MinLength(1)
-  @Transform(({ value }) => typeof value === 'string' ? value.trim().toLowerCase() : value)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   domain?: string;
 
-  @IsString()
+  @IsEmail()
   to!: string;
 }
