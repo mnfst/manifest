@@ -73,11 +73,7 @@ export class ResolveService {
       );
     }
 
-    const provider =
-      inferProviderFromModelName(model) ??
-      (pricing ? inferProviderFromModelName(pricing.model_name) : undefined) ??
-      pricing?.provider ??
-      null;
+    const provider = inferProviderFromModelName(model) ?? pricing?.provider ?? null;
     const authType = provider
       ? (assignment.override_auth_type ??
         (await this.routingService.getAuthType(agentId, provider)))
@@ -105,10 +101,7 @@ export class ResolveService {
     const model = await this.routingService.getEffectiveModel(agentId, assignment);
     const pricing = model ? this.pricingCache.getByModel(model) : null;
     const provider = model
-      ? (inferProviderFromModelName(model) ??
-        (pricing ? inferProviderFromModelName(pricing.model_name) : undefined) ??
-        pricing?.provider ??
-        null)
+      ? (inferProviderFromModelName(model) ?? pricing?.provider ?? null)
       : null;
     const authType = provider
       ? (assignment.override_auth_type ??

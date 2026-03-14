@@ -444,6 +444,13 @@ export function getAvailableModels(agentName: string) {
   return fetchJson<AvailableModel[]>(`/routing/${encodeURIComponent(agentName)}/available-models`);
 }
 
+export function refreshModels(agentName: string) {
+  return fetchMutate<{ ok: boolean }>(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/refresh-models`,
+    { method: 'POST' },
+  );
+}
+
 /* -- Routing: Custom Providers -- */
 
 export interface CustomProviderModel {

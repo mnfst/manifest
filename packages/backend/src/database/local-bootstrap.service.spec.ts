@@ -17,16 +17,6 @@ jest.mock('fs', () => ({
   mkdirSync: jest.fn(),
 }));
 
-// Mock pricing-sync to avoid deep import chain
-jest.mock('./pricing-sync.service', () => ({
-  PricingSyncService: jest.fn(),
-}));
-
-// Mock model-pricing-cache
-jest.mock('../model-prices/model-pricing-cache.service', () => ({
-  ModelPricingCacheService: jest.fn(),
-}));
-
 // Mock product telemetry
 jest.mock('../common/utils/product-telemetry', () => ({
   trackEvent: jest.fn(),
@@ -37,13 +27,17 @@ jest.mock('../entities/tenant.entity', () => ({ Tenant: jest.fn() }));
 jest.mock('../entities/agent.entity', () => ({ Agent: jest.fn() }));
 jest.mock('../entities/agent-api-key.entity', () => ({ AgentApiKey: jest.fn() }));
 jest.mock('../entities/agent-message.entity', () => ({ AgentMessage: jest.fn() }));
-jest.mock('../entities/model-pricing.entity', () => ({ ModelPricing: jest.fn() }));
 jest.mock('../entities/user-provider.entity', () => ({ UserProvider: jest.fn() }));
 jest.mock('../entities/tier-assignment.entity', () => ({ TierAssignment: jest.fn() }));
 
 // Mock tier-auto-assign to avoid deep import chain
 jest.mock('../routing/tier-auto-assign.service', () => ({
   TierAutoAssignService: class TierAutoAssignService {},
+}));
+
+// Mock model-discovery to avoid deep import chain
+jest.mock('../routing/model-discovery/model-discovery.service', () => ({
+  ModelDiscoveryService: class ModelDiscoveryService {},
 }));
 
 import { LocalBootstrapService } from './local-bootstrap.service';
@@ -67,12 +61,10 @@ describe('LocalBootstrapService', () => {
   let mockAgentRepo: ReturnType<typeof makeMockRepo>;
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
-  let mockPricingRepo: ReturnType<typeof makeMockRepo>;
   let mockProviderRepo: ReturnType<typeof makeMockRepo>;
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
-  let mockPricingCache: { reload: jest.Mock };
-  let mockPricingSync: { syncPricing: jest.Mock };
   let mockRecalculate: jest.Mock;
+  let mockDiscoverAllForAgent: jest.Mock;
   let mockModuleRef: { get: jest.Mock };
 
   beforeEach(() => {
@@ -81,24 +73,30 @@ describe('LocalBootstrapService', () => {
     mockAgentRepo = makeMockRepo();
     mockAgentKeyRepo = makeMockRepo();
     mockMessageRepo = makeMockRepo();
-    mockPricingRepo = makeMockRepo();
     mockProviderRepo = makeMockRepo();
     mockTierRepo = makeMockRepo();
-    mockPricingCache = { reload: jest.fn().mockResolvedValue(undefined) };
-    mockPricingSync = { syncPricing: jest.fn().mockResolvedValue(undefined) };
     mockRecalculate = jest.fn().mockResolvedValue(undefined);
-    mockModuleRef = { get: jest.fn().mockReturnValue({ recalculate: mockRecalculate }) };
+    mockDiscoverAllForAgent = jest.fn().mockResolvedValue(undefined);
+    mockModuleRef = {
+      get: jest.fn().mockImplementation((token) => {
+        const name = typeof token === 'function' ? token.name : String(token);
+        if (name === 'TierAutoAssignService') {
+          return { recalculate: mockRecalculate };
+        }
+        if (name === 'ModelDiscoveryService') {
+          return { discoverAllForAgent: mockDiscoverAllForAgent };
+        }
+        return {};
+      }),
+    };
 
     service = new LocalBootstrapService(
       mockTenantRepo as never,
       mockAgentRepo as never,
       mockAgentKeyRepo as never,
       mockMessageRepo as never,
-      mockPricingRepo as never,
       mockProviderRepo as never,
       mockTierRepo as never,
-      mockPricingCache as never,
-      mockPricingSync as never,
       mockModuleRef as never,
     );
   });
@@ -106,9 +104,9 @@ describe('LocalBootstrapService', () => {
   describe('onModuleInit', () => {
     it('runs full bootstrap sequence', async () => {
       await service.onModuleInit();
+      // Wait for background discovery to complete
+      await new Promise((r) => setTimeout(r, 10));
 
-      expect(mockPricingCache.reload).toHaveBeenCalled();
-      // Verify tenant name equals LOCAL_USER_ID (guard/bootstrap consistency)
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { LOCAL_USER_ID } = require('../common/constants/local-mode.constants');
       const tenantInsertArg = mockTenantRepo.insert.mock.calls[0][0];
@@ -127,7 +125,6 @@ describe('LocalBootstrapService', () => {
           tenant_id: 'local-tenant-001',
         }),
       );
-      expect(mockPricingSync.syncPricing).toHaveBeenCalled();
     });
 
     it('skips tenant/agent when tenant already exists', async () => {
@@ -211,6 +208,15 @@ describe('LocalBootstrapService', () => {
       expect(mockAgentKeyRepo.upsert).not.toHaveBeenCalled();
     });
 
+    it('does not register when apiKey is not a string', async () => {
+      (existsSync as jest.Mock).mockReturnValue(true);
+      (readFileSync as jest.Mock).mockReturnValue(JSON.stringify({ apiKey: 12345 }));
+
+      await service.onModuleInit();
+
+      expect(mockAgentKeyRepo.upsert).not.toHaveBeenCalled();
+    });
+
     it('reconciles API key even when tenant already exists', async () => {
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(
@@ -229,14 +235,6 @@ describe('LocalBootstrapService', () => {
         }),
         ['id'],
       );
-    });
-  });
-
-  describe('error handling', () => {
-    it('handles background pricing sync failure gracefully', async () => {
-      mockPricingSync.syncPricing.mockRejectedValue(new Error('network error'));
-
-      await expect(service.onModuleInit()).resolves.not.toThrow();
     });
   });
 
@@ -316,124 +314,73 @@ describe('LocalBootstrapService', () => {
 
     it('handles tier recalculation failure gracefully', async () => {
       mockProviderRepo.count.mockResolvedValue(1);
-      mockModuleRef.get.mockImplementation(() => {
-        throw new Error('Module not found');
+      mockModuleRef.get.mockImplementation((token) => {
+        const name = typeof token === 'function' ? token.name : String(token);
+        if (name === 'TierAutoAssignService') {
+          throw new Error('Module not found');
+        }
+        if (name === 'ModelDiscoveryService') {
+          return { discoverAllForAgent: mockDiscoverAllForAgent };
+        }
+        return {};
       });
 
       await expect(service.onModuleInit()).resolves.not.toThrow();
     });
   });
 
-  describe('purgeNonCuratedModels', () => {
-    it('removes non-curated models from pricingRepo', async () => {
-      // Background sync chain: syncPricing → purgeNonCuratedModels → reload → recalculate
-      // We need purgeNonCuratedModels to find non-curated models in pricingRepo
-      mockPricingRepo.find.mockResolvedValue([
-        { model_name: 'claude-opus-4-6', provider: 'Anthropic' }, // curated
-        { model_name: 'some-random-model', provider: 'SomeProvider' }, // NOT curated
-      ]);
-
+  describe('background model discovery', () => {
+    it('calls discoverAllForAgent in background after bootstrap', async () => {
       await service.onModuleInit();
-      // Wait for background sync chain to complete
+      // Wait for background promise to resolve
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(mockPricingRepo.delete).toHaveBeenCalledWith({
-        model_name: expect.objectContaining({ _value: ['some-random-model'] }),
-      });
+      expect(mockDiscoverAllForAgent).toHaveBeenCalledWith('local-agent-001');
     });
 
-    it('preserves curated models from SEED_MODELS', async () => {
-      mockPricingRepo.find.mockResolvedValue([
-        { model_name: 'gpt-4o', provider: 'OpenAI' },
-        { model_name: 'claude-opus-4-6', provider: 'Anthropic' },
-        { model_name: 'gemini-2.5-pro', provider: 'Google' },
-      ]);
+    it('handles background discovery failure gracefully', async () => {
+      mockDiscoverAllForAgent.mockRejectedValue(new Error('network error'));
 
-      await service.onModuleInit();
+      await expect(service.onModuleInit()).resolves.not.toThrow();
+      // Wait for background promise to settle
       await new Promise((r) => setTimeout(r, 10));
-
-      // All models are curated — delete should not be called
-      expect(mockPricingRepo.delete).not.toHaveBeenCalled();
     });
 
-    it('preserves Ollama provider models even if not curated', async () => {
-      mockPricingRepo.find.mockResolvedValue([{ model_name: 'llama3:latest', provider: 'Ollama' }]);
-
-      await service.onModuleInit();
-      await new Promise((r) => setTimeout(r, 10));
-
-      expect(mockPricingRepo.delete).not.toHaveBeenCalled();
-    });
-
-    it('preserves OpenRouter provider models even if not curated', async () => {
-      mockPricingRepo.find.mockResolvedValue([
-        { model_name: 'qwen/qwen3-235b-a22b', provider: 'OpenRouter' },
-      ]);
-
-      await service.onModuleInit();
-      await new Promise((r) => setTimeout(r, 10));
-
-      expect(mockPricingRepo.delete).not.toHaveBeenCalled();
-    });
-
-    it('preserves custom: prefixed models even if not curated', async () => {
-      mockPricingRepo.find.mockResolvedValue([
-        { model_name: 'custom:provider-uuid/my-model', provider: 'Custom' },
-      ]);
-
-      await service.onModuleInit();
-      await new Promise((r) => setTimeout(r, 10));
-
-      expect(mockPricingRepo.delete).not.toHaveBeenCalled();
-    });
-
-    it('does nothing when pricing table is empty', async () => {
-      mockPricingRepo.find.mockResolvedValue([]);
-
-      await service.onModuleInit();
-      await new Promise((r) => setTimeout(r, 10));
-
-      expect(mockPricingRepo.delete).not.toHaveBeenCalled();
-    });
-
-    it('purges multiple non-curated models in a single delete', async () => {
-      mockPricingRepo.find.mockResolvedValue([
-        { model_name: 'claude-opus-4-6', provider: 'Anthropic' },
-        { model_name: 'random-model-1', provider: 'Unknown' },
-        { model_name: 'random-model-2', provider: 'Unknown' },
-        { model_name: 'llama3:latest', provider: 'Ollama' }, // preserved
-        { model_name: 'qwen/qwen3-235b-a22b', provider: 'OpenRouter' }, // preserved
-        { model_name: 'custom:uuid/my-llm', provider: 'Custom' }, // preserved
-      ]);
-
-      await service.onModuleInit();
-      await new Promise((r) => setTimeout(r, 10));
-
-      expect(mockPricingRepo.delete).toHaveBeenCalledTimes(1);
-      const deleteArg = mockPricingRepo.delete.mock.calls[0][0];
-      expect(deleteArg.model_name._value).toEqual(
-        expect.arrayContaining(['random-model-1', 'random-model-2']),
-      );
-      expect(deleteArg.model_name._value).not.toContain('claude-opus-4-6');
-      expect(deleteArg.model_name._value).not.toContain('llama3:latest');
-      expect(deleteArg.model_name._value).not.toContain('qwen/qwen3-235b-a22b');
-      expect(deleteArg.model_name._value).not.toContain('custom:uuid/my-llm');
-    });
-  });
-
-  describe('background sync chain', () => {
-    it('calls purge, reload, and recalculate after sync', async () => {
+    it('recalculates tiers after successful discovery', async () => {
       mockProviderRepo.count.mockResolvedValue(1);
-      mockPricingRepo.find.mockResolvedValue([]);
 
       await service.onModuleInit();
       await new Promise((r) => setTimeout(r, 10));
 
-      // Verify full chain: syncPricing → purge (find) → reload → recalculate
-      expect(mockPricingSync.syncPricing).toHaveBeenCalled();
-      expect(mockPricingRepo.find).toHaveBeenCalled();
-      // reload is called twice: once in seedModelPricing, once in background chain
-      expect(mockPricingCache.reload).toHaveBeenCalledTimes(2);
+      // recalculate should be called: once in onModuleInit and once after discovery
+      expect(mockRecalculate).toHaveBeenCalledWith('local-agent-001');
+    });
+
+    it('handles moduleRef.get failure for ModelDiscoveryService gracefully', async () => {
+      mockModuleRef.get.mockImplementation((token) => {
+        const name = typeof token === 'function' ? token.name : String(token);
+        if (name === 'ModelDiscoveryService') {
+          throw new Error('ModelDiscoveryService not available');
+        }
+        if (name === 'TierAutoAssignService') {
+          return { recalculate: mockRecalculate };
+        }
+        return {};
+      });
+
+      await expect(service.onModuleInit()).resolves.not.toThrow();
+      await new Promise((r) => setTimeout(r, 10));
+    });
+
+    it('handles outer .catch when discoverModelsInBackground rejects unexpectedly', async () => {
+      // Override the private method to reject, triggering the outer .catch on line 52
+
+      jest
+        .spyOn(service as any, 'discoverModelsInBackground')
+        .mockRejectedValue(new Error('unexpected rejection'));
+
+      await expect(service.onModuleInit()).resolves.not.toThrow();
+      await new Promise((r) => setTimeout(r, 10));
     });
   });
 });

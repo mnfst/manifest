@@ -1,15 +1,6 @@
-import { computeQualityScore, QUALITY_OVERRIDES } from './quality-score.util';
-import { ModelPricing } from '../entities/model-pricing.entity';
+import { computeQualityScore, QUALITY_OVERRIDES, QualityScoreInput } from './quality-score.util';
 
-type ScoreInput = Pick<
-  ModelPricing,
-  | 'model_name'
-  | 'input_price_per_token'
-  | 'output_price_per_token'
-  | 'capability_reasoning'
-  | 'capability_code'
-  | 'context_window'
->;
+type ScoreInput = QualityScoreInput;
 
 function makeModel(overrides: Partial<ScoreInput> = {}): ScoreInput {
   return {
