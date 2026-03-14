@@ -230,15 +230,20 @@ export class ProxyService {
     for (let i = 0; i < fallbackModels.length; i++) {
       const model = fallbackModels[i];
       const pricing = this.pricingCache.getByModel(model);
-      if (!pricing) {
-        this.logger.debug(`Fallback ${i}: skipping model=${model} (no pricing data)`);
-        continue;
+
+      // Determine provider: custom models use their prefix, others use pricing cache
+      let provider: string | undefined;
+      if (CustomProviderService.isCustom(model)) {
+        const slashIdx = model.indexOf('/');
+        provider = slashIdx > 0 ? model.substring(0, slashIdx) : model;
+      } else if (pricing) {
+        provider = inferProviderFromModelName(model) ?? pricing.provider;
       }
 
-      const provider =
-        inferProviderFromModelName(model) ??
-        inferProviderFromModelName(pricing.model_name) ??
-        pricing.provider;
+      if (!provider) {
+        this.logger.debug(`Fallback ${i}: skipping model=${model} (no provider data)`);
+        continue;
+      }
       const authType = await this.routingService.getAuthType(agentId, provider);
       const apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
       if (apiKey === null) {
