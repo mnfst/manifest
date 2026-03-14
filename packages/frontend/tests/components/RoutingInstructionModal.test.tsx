@@ -88,7 +88,7 @@ describe("RoutingInstructionModal", () => {
 
     const buttons = container.querySelectorAll(".routing-modal__model");
     const gpt4oButton = Array.from(buttons).find((btn) =>
-      btn.textContent?.includes("GPT-4o") && !btn.textContent?.includes("Mini"),
+      btn.textContent?.includes("gpt-4o") && !btn.textContent?.includes("mini"),
     );
     expect(gpt4oButton).toBeDefined();
     fireEvent.click(gpt4oButton!);

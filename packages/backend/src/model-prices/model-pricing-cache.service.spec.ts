@@ -1,258 +1,293 @@
 import { ModelPricingCacheService } from './model-pricing-cache.service';
-import { ModelPricing } from '../entities/model-pricing.entity';
-import { UnresolvedModelTrackerService } from './unresolved-model-tracker.service';
+import { PricingSyncService, OpenRouterPricingEntry } from '../database/pricing-sync.service';
+import { MANUAL_PRICING } from '../routing/model-discovery/manual-pricing-reference';
 
-function makePricing(name: string, overrides?: Partial<ModelPricing>): ModelPricing {
-  const p = new ModelPricing();
-  p.model_name = name;
-  p.input_price_per_token = 0.000015;
-  p.output_price_per_token = 0.000075;
-  p.provider = 'TestProvider';
-  p.updated_at = null;
-  p.context_window = 128000;
-  p.capability_reasoning = true;
-  p.capability_code = true;
-  p.quality_score = 5;
-  Object.assign(p, overrides);
-  return p;
+function makeEntry(input: number, output: number): OpenRouterPricingEntry {
+  return { input, output };
 }
 
 describe('ModelPricingCacheService', () => {
   let service: ModelPricingCacheService;
-  let mockFind: jest.Mock;
-  let mockUpdate: jest.Mock;
-  let mockTrack: jest.Mock;
+  let mockGetAll: jest.Mock;
 
   beforeEach(() => {
-    mockFind = jest.fn().mockResolvedValue([]);
-    mockUpdate = jest.fn().mockResolvedValue({});
-    const mockRepo = { find: mockFind, update: mockUpdate } as never;
-    mockTrack = jest.fn();
-    const mockTracker = { track: mockTrack } as unknown as UnresolvedModelTrackerService;
-    service = new ModelPricingCacheService(mockRepo, mockTracker);
+    mockGetAll = jest.fn().mockReturnValue(new Map<string, OpenRouterPricingEntry>());
+    const mockSync = { getAll: mockGetAll } as unknown as PricingSyncService;
+    service = new ModelPricingCacheService(mockSync);
   });
 
   describe('onModuleInit', () => {
-    it('should load all pricing rows into the cache', async () => {
-      const rows = [makePricing('gpt-4o'), makePricing('claude-opus-4')];
-      mockFind.mockResolvedValue(rows);
+    it('should call reload()', async () => {
+      const spy = jest.spyOn(service, 'reload').mockResolvedValue();
 
       await service.onModuleInit();
 
-      expect(mockFind).toHaveBeenCalledTimes(1);
-      expect(service.getByModel('gpt-4o')).toEqual(rows[0]);
-      expect(service.getByModel('claude-opus-4')).toEqual(rows[1]);
-    });
-
-    it('should result in empty cache when DB has no rows', async () => {
-      mockFind.mockResolvedValue([]);
-
-      await service.onModuleInit();
-
-      expect(mockFind).toHaveBeenCalledTimes(1);
-      expect(service.getByModel('anything')).toBeUndefined();
+      expect(spy).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('reload', () => {
+    it('should load entries from PricingSyncService', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['openai/gpt-4o', makeEntry(0.000015, 0.000075)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+
+      await service.reload();
+
+      const entry = service.getByModel('openai/gpt-4o');
+      expect(entry).toBeDefined();
+      expect(entry!.model_name).toBe('openai/gpt-4o');
+      expect(entry!.provider).toBe('OpenAI');
+      expect(entry!.input_price_per_token).toBe(0.000015);
+      expect(entry!.output_price_per_token).toBe(0.000075);
+    });
+
+    it('should load entries from MANUAL_PRICING', async () => {
+      mockGetAll.mockReturnValue(new Map());
+
+      await service.reload();
+
+      // MANUAL_PRICING contains glm-5 — should be loaded
+      const entry = service.getByModel('glm-5');
+      expect(entry).toBeDefined();
+      expect(entry!.model_name).toBe('glm-5');
+      expect(entry!.input_price_per_token).toBe(MANUAL_PRICING.get('glm-5')!.input);
+      expect(entry!.output_price_per_token).toBe(MANUAL_PRICING.get('glm-5')!.output);
+    });
+
+    it('should not overwrite OpenRouter entries with manual entries', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([['glm-5', makeEntry(0.1, 0.2)]]);
+      mockGetAll.mockReturnValue(orMap);
+
+      await service.reload();
+
+      const entry = service.getByModel('glm-5');
+      expect(entry).toBeDefined();
+      expect(entry!.input_price_per_token).toBe(0.1);
+      expect(entry!.output_price_per_token).toBe(0.2);
+    });
+
     it('should clear old entries and load new ones', async () => {
-      const oldRows = [makePricing('old-model')];
-      mockFind.mockResolvedValueOnce(oldRows);
-      await service.onModuleInit();
-      expect(service.getByModel('old-model')).toBeDefined();
+      const oldMap = new Map<string, OpenRouterPricingEntry>([
+        ['anthropic/old-model', makeEntry(0.01, 0.02)],
+      ]);
+      mockGetAll.mockReturnValue(oldMap);
+      await service.reload();
+      expect(service.getByModel('anthropic/old-model')).toBeDefined();
 
-      const newRows = [makePricing('new-model')];
-      mockFind.mockResolvedValueOnce(newRows);
+      const newMap = new Map<string, OpenRouterPricingEntry>([
+        ['openai/new-model', makeEntry(0.03, 0.04)],
+      ]);
+      mockGetAll.mockReturnValue(newMap);
       await service.reload();
 
-      expect(service.getByModel('old-model')).toBeUndefined();
-      expect(service.getByModel('new-model')).toEqual(newRows[0]);
+      expect(service.getByModel('anthropic/old-model')).toBeUndefined();
+      expect(service.getByModel('openai/new-model')).toBeDefined();
     });
 
-    it('should handle reload to empty state', async () => {
-      mockFind.mockResolvedValueOnce([makePricing('model-a')]);
-      await service.onModuleInit();
-      expect(service.getByModel('model-a')).toBeDefined();
+    it('should handle reload to empty state (no OR data, only manual)', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['openai/gpt-4o', makeEntry(0.01, 0.02)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
+      expect(service.getByModel('openai/gpt-4o')).toBeDefined();
 
-      mockFind.mockResolvedValueOnce([]);
+      mockGetAll.mockReturnValue(new Map());
       await service.reload();
 
-      expect(service.getByModel('model-a')).toBeUndefined();
-    });
-
-    it('should call find on each reload', async () => {
-      await service.onModuleInit();
-      await service.reload();
-      await service.reload();
-
-      expect(mockFind).toHaveBeenCalledTimes(3);
-    });
-
-    it('should recompute quality scores on reload', async () => {
-      // Model with stale quality_score=1 but frontier-level pricing + caps
-      const stale = makePricing('frontier-model', { quality_score: 1 });
-      mockFind.mockResolvedValue([stale]);
-
-      await service.reload();
-
-      // Should have updated the DB with the computed score (5)
-      expect(mockUpdate).toHaveBeenCalledWith(
-        { model_name: 'frontier-model' },
-        { quality_score: 5 },
-      );
-      // Cached value should also be updated
-      expect(service.getByModel('frontier-model')?.quality_score).toBe(5);
-    });
-
-    it('should skip DB update when quality score is already correct', async () => {
-      const correct = makePricing('correct-model', { quality_score: 5 });
-      mockFind.mockResolvedValue([correct]);
-
-      await service.reload();
-
-      expect(mockUpdate).not.toHaveBeenCalled();
+      expect(service.getByModel('openai/gpt-4o')).toBeUndefined();
+      // Manual entries should still be loaded
+      expect(service.getByModel('glm-5')).toBeDefined();
     });
   });
 
   describe('getByModel', () => {
-    it('should return the pricing entity for a known model', async () => {
-      const pricing = makePricing('claude-sonnet');
-      mockFind.mockResolvedValue([pricing]);
-      await service.onModuleInit();
+    it('should return the entry for an exact match', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['anthropic/claude-opus-4-6', makeEntry(0.015, 0.075)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
 
-      const result = service.getByModel('claude-sonnet');
-
-      expect(result).toBe(pricing);
+      const result = service.getByModel('anthropic/claude-opus-4-6');
+      expect(result).toBeDefined();
+      expect(result!.model_name).toBe('anthropic/claude-opus-4-6');
     });
 
     it('should return undefined for an unknown model', async () => {
-      mockFind.mockResolvedValue([makePricing('known-model')]);
-      await service.onModuleInit();
+      mockGetAll.mockReturnValue(new Map());
+      await service.reload();
 
-      expect(service.getByModel('unknown-model')).toBeUndefined();
+      expect(service.getByModel('totally-unknown')).toBeUndefined();
     });
 
     it('should return undefined before initialization', () => {
       expect(service.getByModel('any-model')).toBeUndefined();
     });
 
-    it('should distinguish between models with similar names', async () => {
-      const rows = [makePricing('gpt-4'), makePricing('gpt-4o')];
-      mockFind.mockResolvedValue(rows);
-      await service.onModuleInit();
-
-      expect(service.getByModel('gpt-4')).toBe(rows[0]);
-      expect(service.getByModel('gpt-4o')).toBe(rows[1]);
-      expect(service.getByModel('gpt-4o-mini')).toBeUndefined();
-    });
-
-    it('should resolve provider-prefixed model names', async () => {
-      const pricing = makePricing('gpt-4o');
-      mockFind.mockResolvedValue([pricing]);
-      await service.onModuleInit();
-
-      expect(service.getByModel('openai/gpt-4o')).toBe(pricing);
-    });
-
     it('should resolve known aliases', async () => {
-      const pricing = makePricing('claude-opus-4-6');
-      mockFind.mockResolvedValue([pricing]);
-      await service.onModuleInit();
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['anthropic/claude-opus-4-6', makeEntry(0.015, 0.075)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
 
-      expect(service.getByModel('claude-opus-4')).toBe(pricing);
+      // "claude-opus-4" is a known alias for "claude-opus-4-6"
+      // buildAliasMap indexes bare name "claude-opus-4-6" from "anthropic/claude-opus-4-6"
+      // Then the alias "claude-opus-4" → "claude-opus-4-6" resolves to "anthropic/claude-opus-4-6"
+      const result = service.getByModel('claude-opus-4');
+      expect(result).toBeDefined();
+      expect(result!.model_name).toBe('anthropic/claude-opus-4-6');
+    });
+
+    it('should resolve provider-prefixed model names via alias map', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['openai/gpt-4o', makeEntry(0.01, 0.02)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
+
+      // "gpt-4o" should resolve to the full "openai/gpt-4o" entry via bare-name alias
+      const result = service.getByModel('gpt-4o');
+      expect(result).toBeDefined();
+      expect(result!.model_name).toBe('openai/gpt-4o');
     });
 
     it('should resolve date-suffixed model names', async () => {
-      const pricing = makePricing('gpt-4.1');
-      mockFind.mockResolvedValue([pricing]);
-      await service.onModuleInit();
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['openai/gpt-4.1', makeEntry(0.01, 0.02)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
 
-      expect(service.getByModel('gpt-4.1-2025-04-14')).toBe(pricing);
+      const result = service.getByModel('gpt-4.1-2025-04-14');
+      expect(result).toBeDefined();
+      expect(result!.model_name).toBe('openai/gpt-4.1');
     });
 
     it('should resolve prefix + date suffix combined', async () => {
-      const pricing = makePricing('gpt-4.1');
-      mockFind.mockResolvedValue([pricing]);
-      await service.onModuleInit();
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['openai/gpt-4.1', makeEntry(0.01, 0.02)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
 
-      expect(service.getByModel('openai/gpt-4.1-2025-04-14')).toBe(pricing);
+      const result = service.getByModel('openai/gpt-4.1-2025-04-14');
+      expect(result).toBeDefined();
+      expect(result!.model_name).toBe('openai/gpt-4.1');
     });
 
     it('should resolve deepseek-v3 to deepseek-chat', async () => {
-      const pricing = makePricing('deepseek-chat');
-      mockFind.mockResolvedValue([pricing]);
-      await service.onModuleInit();
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['deepseek/deepseek-chat', makeEntry(0.001, 0.002)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
 
-      expect(service.getByModel('deepseek-v3')).toBe(pricing);
-    });
-
-    it('should track unresolved models on cache miss', async () => {
-      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
-      await service.onModuleInit();
-
-      service.getByModel('totally-unknown');
-
-      expect(mockTrack).toHaveBeenCalledWith('totally-unknown');
-    });
-
-    it('should not track models that resolve successfully', async () => {
-      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
-      await service.onModuleInit();
-
-      service.getByModel('openai/gpt-4o');
-
-      expect(mockTrack).not.toHaveBeenCalled();
-    });
-
-    it('should still return undefined for truly unknown models', async () => {
-      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
-      await service.onModuleInit();
-
-      expect(service.getByModel('totally-unknown')).toBeUndefined();
-    });
-
-    it('should not track models that match exactly in cache', async () => {
-      mockFind.mockResolvedValue([makePricing('gpt-4o')]);
-      await service.onModuleInit();
-
-      service.getByModel('gpt-4o');
-
-      expect(mockTrack).not.toHaveBeenCalled();
+      const result = service.getByModel('deepseek-v3');
+      expect(result).toBeDefined();
+      expect(result!.model_name).toBe('deepseek/deepseek-chat');
     });
 
     it('should resolve dot-variant to dash-canonical via normalization', async () => {
-      const pricing = makePricing('claude-opus-4-6');
-      mockFind.mockResolvedValue([pricing]);
-      await service.onModuleInit();
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['anthropic/claude-opus-4-6', makeEntry(0.015, 0.075)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
 
-      expect(service.getByModel('claude-opus-4.6')).toBe(pricing);
+      const result = service.getByModel('claude-opus-4.6');
+      expect(result).toBeDefined();
+      expect(result!.model_name).toBe('anthropic/claude-opus-4-6');
+    });
+
+    it('should distinguish between models with similar names', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['openai/gpt-4', makeEntry(0.03, 0.06)],
+        ['openai/gpt-4o', makeEntry(0.01, 0.02)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
+
+      expect(service.getByModel('openai/gpt-4')!.model_name).toBe('openai/gpt-4');
+      expect(service.getByModel('openai/gpt-4o')!.model_name).toBe('openai/gpt-4o');
+      expect(service.getByModel('openai/gpt-4o-mini')).toBeUndefined();
     });
   });
 
   describe('getAll', () => {
-    it('should return all cached models', async () => {
-      const rows = [makePricing('gpt-4o'), makePricing('claude-opus-4')];
-      mockFind.mockResolvedValue(rows);
-      await service.onModuleInit();
+    it('should return all cached entries', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['openai/gpt-4o', makeEntry(0.01, 0.02)],
+        ['anthropic/claude-opus-4-6', makeEntry(0.015, 0.075)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
 
       const result = service.getAll();
 
-      expect(result).toHaveLength(2);
-      expect(result).toEqual(expect.arrayContaining(rows));
+      // Should include OR entries + manual entries
+      expect(result.length).toBeGreaterThanOrEqual(2);
+      const names = result.map((e) => e.model_name);
+      expect(names).toContain('openai/gpt-4o');
+      expect(names).toContain('anthropic/claude-opus-4-6');
     });
 
     it('should return empty array before initialization', () => {
       expect(service.getAll()).toEqual([]);
     });
 
-    it('should return a new array each time (not the internal cache)', async () => {
-      mockFind.mockResolvedValue([makePricing('model-a')]);
-      await service.onModuleInit();
+    it('should return a new array each time', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['openai/gpt-4o', makeEntry(0.01, 0.02)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
 
       const a = service.getAll();
       const b = service.getAll();
       expect(a).not.toBe(b);
       expect(a).toEqual(b);
+    });
+  });
+
+  describe('inferProvider', () => {
+    it('should infer known provider from slash prefix', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['anthropic/claude-opus-4-6', makeEntry(0.015, 0.075)],
+        ['openai/gpt-4o', makeEntry(0.01, 0.02)],
+        ['google/gemini-2.0-flash', makeEntry(0.005, 0.01)],
+        ['deepseek/deepseek-chat', makeEntry(0.001, 0.002)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
+
+      expect(service.getByModel('anthropic/claude-opus-4-6')!.provider).toBe('Anthropic');
+      expect(service.getByModel('openai/gpt-4o')!.provider).toBe('OpenAI');
+      expect(service.getByModel('google/gemini-2.0-flash')!.provider).toBe('Google');
+      expect(service.getByModel('deepseek/deepseek-chat')!.provider).toBe('DeepSeek');
+    });
+
+    it('should use raw prefix for unknown provider slash prefix', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['newvendor/some-model', makeEntry(0.001, 0.002)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
+
+      expect(service.getByModel('newvendor/some-model')!.provider).toBe('newvendor');
+    });
+
+    it('should return Unknown for models without slash prefix', async () => {
+      // Manual pricing entries use provider from MANUAL_PRICING map
+      mockGetAll.mockReturnValue(new Map());
+      await service.reload();
+
+      const entry = service.getByModel('glm-5');
+      expect(entry).toBeDefined();
+      expect(entry!.provider).toBe('Z.ai');
     });
   });
 });

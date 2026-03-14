@@ -23,6 +23,7 @@ import {
   resetTier,
   resetAllTiers,
   setFallbacks,
+  refreshModels,
   type TierAssignment,
   type AvailableModel,
   type AuthType,
@@ -87,6 +88,7 @@ const Routing: Component = () => {
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
   const [addingFallback, setAddingFallback] = createSignal<string | null>(null);
   const [fallbackOverrides, setFallbackOverrides] = createSignal<Record<string, string[]>>({});
+  const [refreshingModels, setRefreshingModels] = createSignal(false);
 
   const getFallbacksFor = (tierId: string): string[] => {
     const overrides = fallbackOverrides();
@@ -273,9 +275,30 @@ const Routing: Component = () => {
           </span>
         </div>
         <Show when={!connectedProviders.loading && isEnabled()}>
-          <button class="btn btn--primary btn--sm" onClick={() => setShowProviderModal(true)}>
-            Connect providers
-          </button>
+          <div style="display: flex; gap: 8px;">
+            <button
+              class="btn btn--outline btn--sm"
+              disabled={refreshingModels()}
+              onClick={async () => {
+                setRefreshingModels(true);
+                try {
+                  await refreshModels(agentName());
+                  refetchModels();
+                  refetchTiers();
+                  toast.success('Models refreshed');
+                } catch {
+                  toast.error('Failed to refresh models');
+                } finally {
+                  setRefreshingModels(false);
+                }
+              }}
+            >
+              {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
+            </button>
+            <button class="btn btn--primary btn--sm" onClick={() => setShowProviderModal(true)}>
+              Connect providers
+            </button>
+          </div>
         </Show>
       </div>
 

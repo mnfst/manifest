@@ -8,34 +8,35 @@ import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { createTestApp, TEST_AGENT_ID, TEST_API_KEY, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
 import { detectDialect, portableSql } from '../src/common/utils/sql-dialect';
+import { PricingSyncService } from '../src/database/pricing-sync.service';
+import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
+import { TierAutoAssignService } from '../src/routing/tier-auto-assign.service';
 
 let app: INestApplication;
 
 beforeAll(async () => {
   app = await createTestApp();
 
-  const ds = app.get(DataSource);
-  const dialect = detectDialect(ds.options.type as string);
-  const sql = (q: string) => portableSql(q, dialect);
-  const b = (v: boolean) => (dialect === 'sqlite' ? (v ? 1 : 0) : v);
+  // Populate PricingSyncService cache with test models (use prefixed keys
+  // so ModelPricingCacheService.inferProvider() resolves the correct provider name)
+  const pricingSync = app.get(PricingSyncService);
+  pricingSync.getAll().set('openai/gpt-4o-mini', {
+    input: 0.00000015,
+    output: 0.0000006,
+    contextWindow: 128000,
+  });
+  pricingSync.getAll().set('anthropic/claude-opus-4-6', {
+    input: 0.000015,
+    output: 0.000075,
+    contextWindow: 200000,
+  });
+  pricingSync.getAll().set('anthropic/claude-sonnet-4', {
+    input: 0.000003,
+    output: 0.000015,
+    contextWindow: 200000,
+  });
 
-  await ds.query('DELETE FROM model_pricing');
-  await ds.query(
-    sql(`INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token, context_window, capability_reasoning, capability_code, quality_score)
-     VALUES
-       ($1, $2, $3, $4, $5, $6, $7, $8),
-       ($9, $10, $11, $12, $13, $14, $15, $16),
-       ($17, $18, $19, $20, $21, $22, $23, $24)`),
-    [
-      'gpt-4o-mini', 'OpenAI', 0.00000015, 0.0000006, 128000, b(false), b(true), 2,
-      'claude-opus-4-6', 'Anthropic', 0.000015, 0.000075, 200000, b(true), b(true), 5,
-      'claude-sonnet-4', 'Anthropic', 0.000003, 0.000015, 200000, b(false), b(true), 4,
-    ],
-  );
-
-  const { ModelPricingCacheService } = await import(
-    '../src/model-prices/model-pricing-cache.service'
-  );
+  // Reload pricing cache from OpenRouter cache + manual pricing
   await app.get(ModelPricingCacheService).reload();
 }, 30000);
 
@@ -89,6 +90,61 @@ describe('Routing enabled → scorer routes by query complexity', () => {
     await auth(api().post('/api/v1/routing/test-agent/providers'))
       .send({ provider: 'anthropic' })
       .expect(201);
+
+    // Seed discovered models on provider records so tier auto-assign can pick them
+    const ds = app.get(DataSource);
+    const dialect = detectDialect(ds.options.type as string);
+    const sql = (q: string) => portableSql(q, dialect);
+
+    const openaiModels = JSON.stringify([
+      {
+        id: 'gpt-4o-mini',
+        displayName: 'gpt-4o-mini',
+        provider: 'openai',
+        contextWindow: 128000,
+        inputPricePerToken: 0.00000015,
+        outputPricePerToken: 0.0000006,
+        capabilityReasoning: false,
+        capabilityCode: true,
+        qualityScore: 2,
+      },
+    ]);
+    const anthropicModels = JSON.stringify([
+      {
+        id: 'claude-opus-4-6',
+        displayName: 'claude-opus-4-6',
+        provider: 'anthropic',
+        contextWindow: 200000,
+        inputPricePerToken: 0.000015,
+        outputPricePerToken: 0.000075,
+        capabilityReasoning: true,
+        capabilityCode: true,
+        qualityScore: 5,
+      },
+      {
+        id: 'claude-sonnet-4',
+        displayName: 'claude-sonnet-4',
+        provider: 'anthropic',
+        contextWindow: 200000,
+        inputPricePerToken: 0.000003,
+        outputPricePerToken: 0.000015,
+        capabilityReasoning: false,
+        capabilityCode: true,
+        qualityScore: 4,
+      },
+    ]);
+    await ds.query(
+      sql(`UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`),
+      [openaiModels, TEST_AGENT_ID, 'openai'],
+    );
+    await ds.query(
+      sql(`UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`),
+      [anthropicModels, TEST_AGENT_ID, 'anthropic'],
+    );
+
+    // Recalculate tier assignments with the seeded models
+    const autoAssign = app.get(TierAutoAssignService);
+    await autoAssign.recalculate(TEST_AGENT_ID);
   });
 
   it('routes "hi" → simple tier with cheapest model', async () => {
@@ -329,6 +385,29 @@ describe('Routing disabled after deactivation → falls back to null', () => {
     await auth(api().post('/api/v1/routing/test-agent/providers'))
       .send({ provider: 'openai' })
       .expect(201);
+
+    // Re-seed cached_models on the re-activated provider
+    const ds = app.get(DataSource);
+    const dialect = detectDialect(ds.options.type as string);
+    const sql = (q: string) => portableSql(q, dialect);
+    const openaiModels = JSON.stringify([
+      {
+        id: 'gpt-4o-mini',
+        displayName: 'gpt-4o-mini',
+        provider: 'openai',
+        contextWindow: 128000,
+        inputPricePerToken: 0.00000015,
+        outputPricePerToken: 0.0000006,
+        capabilityReasoning: false,
+        capabilityCode: true,
+        qualityScore: 2,
+      },
+    ]);
+    await ds.query(
+      sql(`UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`),
+      [openaiModels, TEST_AGENT_ID, 'openai'],
+    );
+    await app.get(TierAutoAssignService).recalculate(TEST_AGENT_ID);
 
     const res = await bearer(api().post('/api/v1/routing/resolve'))
       .send({ messages: [{ role: 'user', content: 'hi' }] })
