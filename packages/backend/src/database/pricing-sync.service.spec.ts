@@ -182,6 +182,28 @@ describe('PricingSyncService', () => {
     expect(mockUpsert).not.toHaveBeenCalled();
   });
 
+  it('skips models with non-text input modalities', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'google/image-only-input-model',
+            architecture: {
+              input_modalities: ['image'],
+              output_modalities: ['text'],
+            },
+            pricing: { prompt: '0.0000005', completion: '0.000003' },
+          },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
   it('keeps multimodal-input models with text-only output modalities', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
@@ -494,6 +516,24 @@ describe('PricingSyncService', () => {
     );
     expect(deleteArg.model_name._value).not.toContain('openai/gpt-4o');
     expect(deleteArg.model_name._value).not.toContain('bytedance-seed/seed-2.0-lite');
+    expect(deleteArg.model_name._value).not.toContain('openrouter/auto');
+    expect(deleteArg.model_name._value).not.toContain('gpt-4o');
+  });
+
+  it('removeUnsupportedModels defaults to an empty incompatible set and preserves openrouter/ prefixes', async () => {
+    mockFind.mockResolvedValue([
+      { model_name: 'ai21/jamba-1-5-large', provider: 'AI21' },
+      { model_name: 'openrouter/auto', provider: 'Legacy' },
+      { model_name: 'gpt-4o', provider: 'OpenAI' },
+    ]);
+
+    await (
+      service as never as { removeUnsupportedModels: () => Promise<void> }
+    ).removeUnsupportedModels();
+
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+    const deleteArg = mockDelete.mock.calls[0][0];
+    expect(deleteArg.model_name._value).toContain('ai21/jamba-1-5-large');
     expect(deleteArg.model_name._value).not.toContain('openrouter/auto');
     expect(deleteArg.model_name._value).not.toContain('gpt-4o');
   });
