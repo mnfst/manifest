@@ -1,5 +1,11 @@
 # manifest
 
+## 5.25.2
+
+### Patch Changes
+
+- 00e5978: Update routing page button styles: responsive icon-only change button, fallback card background colors, and streamlined add-fallback button text
+
 ## 5.25.1
 
 ### Patch Changes
