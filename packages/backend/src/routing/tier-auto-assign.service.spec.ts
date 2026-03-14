@@ -523,7 +523,33 @@ describe('TierAutoAssignService', () => {
       }
     });
 
-    it('should pick best from multiple subscription providers', async () => {
+    it('should ignore unsupported subscription providers and use usable providers instead', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'openai', is_active: true, auth_type: 'subscription' },
+        { provider: 'anthropic', is_active: true, auth_type: 'api_key' },
+      ]);
+      const openAi = makeModel({
+        model_name: 'gpt-4o',
+        provider: 'OpenAI',
+        quality_score: 5,
+      });
+      const claude = makeModel({
+        model_name: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        quality_score: 4,
+      });
+      mockPricingCache.getAll.mockReturnValue([openAi, claude]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('claude-sonnet-4');
+      }
+    });
+
+    it('should ignore unsupported subscription providers when multiple are present', async () => {
       mockProviderRepo.find.mockResolvedValue([
         { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
         { provider: 'google', is_active: true, auth_type: 'subscription' },
@@ -553,12 +579,12 @@ describe('TierAutoAssignService', () => {
         auto_assigned_model: string;
       }[];
 
-      // For simple tier: cheapest sub wins (gemini-2.5-flash)
+      // Google subscription is unsupported, so all tiers should fall back to Anthropic.
       const simpleTier = inserted.find((t) => t.tier === 'simple');
       expect(simpleTier).toBeDefined();
-      expect(simpleTier!.auto_assigned_model).toBe('gemini-2.5-flash');
+      expect(simpleTier!.auto_assigned_model).toBe('claude-sonnet-4');
 
-      // For complex tier: highest quality sub wins (claude-sonnet-4)
+      // Complex also remains on Anthropic.
       const complexTier = inserted.find((t) => t.tier === 'complex');
       expect(complexTier).toBeDefined();
       expect(complexTier!.auto_assigned_model).toBe('claude-sonnet-4');

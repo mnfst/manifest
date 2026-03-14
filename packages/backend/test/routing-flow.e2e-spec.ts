@@ -6,7 +6,7 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_API_KEY, TEST_OTLP_KEY } from './helpers';
+import { createTestApp, TEST_AGENT_ID, TEST_API_KEY, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
 import { detectDialect, portableSql } from '../src/common/utils/sql-dialect';
 
 let app: INestApplication;
@@ -208,67 +208,105 @@ describe('Routing enabled → scorer routes by query complexity', () => {
   });
 });
 
-describe('Subscription providers are not re-activated on restart', () => {
+describe('Subscription providers respect supported capabilities', () => {
   beforeAll(async () => {
     // Start fresh: deactivate all, then register via subscription endpoint
     await auth(api().post('/api/v1/routing/test-agent/providers/deactivate-all'))
       .expect(201);
   });
 
-  it('registers subscription providers as active', async () => {
+  it('registers only supported subscription providers as active', async () => {
     const res = await bearer(api().post('/api/v1/routing/subscription-providers'))
       .send({ providers: [{ provider: 'openai' }, { provider: 'anthropic' }] })
       .expect(200);
 
-    expect(res.body.registered).toBe(2);
+    expect(res.body.registered).toBe(1);
 
-    // Verify they are active
+    // Verify only supported subscription providers are active
     const providers = await auth(api().get('/api/v1/routing/test-agent/providers'))
       .expect(200);
     const subs = providers.body.filter(
       (p: { auth_type: string }) => p.auth_type === 'subscription',
     );
-    expect(subs).toHaveLength(2);
+    expect(subs).toHaveLength(1);
+    expect(subs[0].provider).toBe('anthropic');
     expect(subs.every((p: { is_active: boolean }) => p.is_active)).toBe(true);
   });
 
-  it('removes a provider → deactivated', async () => {
+  it('removes a supported subscription provider → deactivated', async () => {
     await auth(
-      api().delete('/api/v1/routing/test-agent/providers/openai?authType=subscription'),
+      api().delete('/api/v1/routing/test-agent/providers/anthropic?authType=subscription'),
     ).expect(200);
 
     const providers = await auth(api().get('/api/v1/routing/test-agent/providers'))
       .expect(200);
-    const openai = providers.body.find(
+    const anthropic = providers.body.find(
       (p: { provider: string; auth_type: string }) =>
-        p.provider === 'openai' && p.auth_type === 'subscription',
+        p.provider === 'anthropic' && p.auth_type === 'subscription',
     );
-    expect(openai.is_active).toBe(false);
+    expect(anthropic.is_active).toBe(false);
   });
 
-  it('re-registering same providers does not re-activate removed one', async () => {
+  it('re-registering same providers does not re-activate removed or unsupported ones', async () => {
     const res = await bearer(api().post('/api/v1/routing/subscription-providers'))
       .send({ providers: [{ provider: 'openai' }, { provider: 'anthropic' }] })
       .expect(200);
 
-    // Both already exist → nothing new registered
+    // openai is unsupported and anthropic already exists but was deactivated by the user
     expect(res.body.registered).toBe(0);
 
-    // openai subscription should still be inactive
+    // openai subscription should not exist in Manifest at all
     const providers = await auth(api().get('/api/v1/routing/test-agent/providers'))
       .expect(200);
     const openai = providers.body.find(
       (p: { provider: string; auth_type: string }) =>
         p.provider === 'openai' && p.auth_type === 'subscription',
     );
-    expect(openai.is_active).toBe(false);
+    expect(openai).toBeUndefined();
 
-    // anthropic subscription should still be active
+    // anthropic subscription should still be inactive
     const anthropic = providers.body.find(
       (p: { provider: string; auth_type: string }) =>
         p.provider === 'anthropic' && p.auth_type === 'subscription',
     );
-    expect(anthropic.is_active).toBe(true);
+    expect(anthropic.is_active).toBe(false);
+  });
+});
+
+describe('Persisted unsupported subscriptions are cleaned up on read', () => {
+  it('deactivates a stale unsupported subscription when loading providers', async () => {
+    await auth(api().post('/api/v1/routing/test-agent/providers/deactivate-all'))
+      .expect(201);
+
+    const ds = app.get(DataSource);
+    const dialect = detectDialect(ds.options.type as string);
+    const sql = (q: string) => portableSql(q, dialect);
+    const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+
+    await ds.query(
+      sql(`DELETE FROM user_providers WHERE agent_id = $1 AND provider = $2 AND auth_type = $3`),
+      [TEST_AGENT_ID, 'openai', 'subscription'],
+    );
+    await ds.query(
+      sql(`INSERT INTO user_providers (id, user_id, agent_id, provider, api_key_encrypted, key_prefix, auth_type, is_active, connected_at, updated_at)
+           VALUES ($1, $2, $3, $4, NULL, NULL, $5, true, $6, $7)`),
+      ['stale-openai-sub', TEST_USER_ID, TEST_AGENT_ID, 'openai', 'subscription', now, now],
+    );
+
+    const providers = await auth(api().get('/api/v1/routing/test-agent/providers'))
+      .expect(200);
+    const openai = providers.body.find(
+      (p: { provider: string; auth_type: string }) =>
+        p.provider === 'openai' && p.auth_type === 'subscription',
+    );
+    expect(openai).toBeUndefined();
+
+    const rows = await ds.query(
+      sql(`SELECT is_active FROM user_providers WHERE id = $1`),
+      ['stale-openai-sub'],
+    );
+    const isActive = rows[0]?.is_active === true || rows[0]?.is_active === 1;
+    expect(isActive).toBe(false);
   });
 });
 

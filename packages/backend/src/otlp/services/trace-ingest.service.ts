@@ -10,6 +10,7 @@ import { UserProvider } from '../../entities/user-provider.entity';
 import { OtlpExportTraceServiceRequest, OtlpSpan, OtlpResourceSpans } from '../interfaces';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 import { In, Not, IsNull, MoreThanOrEqual } from 'typeorm';
+import { isManifestUsableProvider } from '../../routing/subscription-support';
 import {
   extractAttributes,
   nanoToDatetime,
@@ -647,6 +648,7 @@ export class TraceIngestService {
     });
     const sub = new Set<string>();
     for (const r of records) {
+      if (!isManifestUsableProvider(r)) continue;
       if (r.auth_type === 'subscription') sub.add(r.provider);
     }
     // Keep dual-auth providers in the set: the routing layer prefers subscription

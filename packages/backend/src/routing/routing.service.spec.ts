@@ -105,6 +105,65 @@ describe('RoutingService', () => {
       expect(result[0].auto_assigned_model).toBe('gpt-4o');
     });
 
+    it('should recalculate existing tiers when unsupported subscription providers are present', async () => {
+      const existingRows = [
+        Object.assign(new TierAssignment(), {
+          id: 't1',
+          agent_id: 'a1',
+          tier: 'simple',
+          auto_assigned_model: 'gpt-4o',
+        }),
+        Object.assign(new TierAssignment(), {
+          id: 't2',
+          agent_id: 'a1',
+          tier: 'standard',
+          auto_assigned_model: 'gpt-4o',
+        }),
+        Object.assign(new TierAssignment(), {
+          id: 't3',
+          agent_id: 'a1',
+          tier: 'complex',
+          auto_assigned_model: 'gpt-4o',
+        }),
+        Object.assign(new TierAssignment(), {
+          id: 't4',
+          agent_id: 'a1',
+          tier: 'reasoning',
+          auto_assigned_model: 'gpt-4o',
+        }),
+      ];
+      const recalculatedRows = [
+        { tier: 'simple', auto_assigned_model: null },
+        { tier: 'standard', auto_assigned_model: null },
+        { tier: 'complex', auto_assigned_model: null },
+        { tier: 'reasoning', auto_assigned_model: null },
+      ];
+      mockTierRepo.find
+        .mockResolvedValueOnce([]) // cleanup: overrides query
+        .mockResolvedValueOnce(existingRows) // cleanup: all tiers query
+        .mockResolvedValueOnce(recalculatedRows); // getTiers: rows after cleanup/recalculate
+      mockProviderRepo.find
+        .mockResolvedValueOnce([
+          { id: 'p1', provider: 'openai', is_active: true, auth_type: 'subscription' },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.getTiers('a1');
+
+      expect(mockProviderRepo.save).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'p1',
+            provider: 'openai',
+            auth_type: 'subscription',
+            is_active: false,
+          }),
+        ]),
+      );
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1', []);
+      expect(result).toEqual(recalculatedRows);
+    });
+
     it('should not recalculate when agent has no active providers', async () => {
       mockTierRepo.find.mockResolvedValueOnce([]);
       mockProviderRepo.find.mockResolvedValue([]);
@@ -239,7 +298,66 @@ describe('RoutingService', () => {
       const result = await service.getProviders('a1');
 
       expect(mockProviderRepo.find).toHaveBeenCalledWith({ where: { agent_id: 'a1' } });
-      expect(result).toBe(providers);
+      expect(result).toEqual(providers);
+    });
+
+    it('should deactivate persisted unsupported subscription providers and hide them', async () => {
+      mockProviderRepo.find
+        .mockResolvedValueOnce([
+          {
+            id: 'p1',
+            agent_id: 'a1',
+            provider: 'openai',
+            auth_type: 'subscription',
+            is_active: true,
+          },
+          {
+            id: 'p2',
+            agent_id: 'a1',
+            provider: 'anthropic',
+            auth_type: 'subscription',
+            is_active: true,
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            id: 'p1',
+            agent_id: 'a1',
+            provider: 'openai',
+            auth_type: 'subscription',
+            is_active: false,
+          },
+          {
+            id: 'p2',
+            agent_id: 'a1',
+            provider: 'anthropic',
+            auth_type: 'subscription',
+            is_active: true,
+          },
+        ]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      const result = await service.getProviders('a1');
+
+      expect(mockProviderRepo.save).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'p1',
+            provider: 'openai',
+            auth_type: 'subscription',
+            is_active: false,
+          }),
+        ]),
+      );
+      expect(result).toEqual([
+        {
+          id: 'p2',
+          agent_id: 'a1',
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          is_active: true,
+        },
+      ]);
     });
 
     it('should return cached providers without hitting DB', async () => {
@@ -558,6 +676,15 @@ describe('RoutingService', () => {
   /* ── registerSubscriptionProvider ── */
 
   describe('registerSubscriptionProvider', () => {
+    it('should ignore unsupported subscription providers', async () => {
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'openai');
+
+      expect(result).toEqual({ isNew: false });
+      expect(mockProviderRepo.findOne).not.toHaveBeenCalled();
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
+      expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
+    });
+
     it('should create new provider when none exists', async () => {
       // First findOne: no existing subscription. Second findOne: no existing API key.
       mockProviderRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
@@ -651,9 +778,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne
-        .mockResolvedValueOnce(existing) // find the record
-        .mockResolvedValueOnce(null); // no other active record
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing); // find the record
+      mockProviderRepo.find.mockResolvedValue([]); // no other active record
       mockTierRepo.find.mockResolvedValue([]); // no overrides
 
       const result = await service.removeProvider('a1', 'openai');
@@ -681,9 +807,8 @@ describe('RoutingService', () => {
         auth_type: 'api_key',
         is_active: true,
       });
-      mockProviderRepo.findOne
-        .mockResolvedValueOnce(existing) // find the subscription record
-        .mockResolvedValueOnce(otherActive); // api_key record still active
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing); // find the subscription record
+      mockProviderRepo.find.mockResolvedValue([otherActive]); // api_key record still active
 
       const result = await service.removeProvider('a1', 'anthropic', 'subscription');
 
@@ -700,9 +825,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne
-        .mockResolvedValueOnce(existing) // find the record
-        .mockResolvedValueOnce(null); // no other active record
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing); // find the record
+      mockProviderRepo.find.mockResolvedValue([]); // no other active record
 
       const override = Object.assign(new TierAssignment(), {
         agent_id: 'a1',
@@ -737,7 +861,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
 
       const override = Object.assign(new TierAssignment(), {
         agent_id: 'a1',
@@ -763,7 +888,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
 
       const override = Object.assign(new TierAssignment(), {
         agent_id: 'a1',
@@ -790,9 +916,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne
-        .mockResolvedValueOnce(existing) // existing lookup
-        .mockResolvedValueOnce(null); // otherActive check
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing); // existing lookup
+      mockProviderRepo.find.mockResolvedValue([]); // otherActive check
       mockTierRepo.find
         .mockResolvedValueOnce([]) // overrides query
         .mockResolvedValueOnce([
@@ -822,7 +947,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
       mockTierRepo.find
         .mockResolvedValueOnce([]) // overrides query
         .mockResolvedValueOnce([
@@ -862,7 +988,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
       mockTierRepo.find
         .mockResolvedValueOnce([]) // overrides query
         .mockResolvedValueOnce([
@@ -893,9 +1020,8 @@ describe('RoutingService', () => {
         auth_type: 'subscription',
         is_active: true,
       });
-      mockProviderRepo.findOne
-        .mockResolvedValueOnce(existing) // find the subscription record
-        .mockResolvedValueOnce(null); // no other active record for anthropic
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing); // find the subscription record
+      mockProviderRepo.find.mockResolvedValue([]); // no other active record for anthropic
 
       const override = Object.assign(new TierAssignment(), {
         id: 'tier-override-1',
@@ -948,7 +1074,8 @@ describe('RoutingService', () => {
         auth_type: 'api_key',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
       mockTierRepo.find.mockResolvedValue([]);
 
       await service.removeProvider('a1', 'anthropic', 'api_key');
@@ -965,7 +1092,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValueOnce(existing).mockResolvedValueOnce(null);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
 
       const override = Object.assign(new TierAssignment(), {
         agent_id: 'a1',
@@ -1525,6 +1653,25 @@ describe('RoutingService', () => {
 
       const result = await service.getProviderApiKey('a1', 'anthropic');
       expect(result).toBe('skst-token-123');
+    });
+
+    it('should ignore unsupported subscription provider keys', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const encrypted = encrypt('sk-openai-sub', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'openai',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: encrypted,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('a1', 'openai', 'subscription');
+      expect(result).toBeNull();
     });
 
     it('should return null for subscription provider without stored key', async () => {

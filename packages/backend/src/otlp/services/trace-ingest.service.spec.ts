@@ -449,6 +449,48 @@ describe('TraceIngestService', () => {
     expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 0);
   });
 
+  it('does not treat unsupported subscription providers as zero-cost', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'openai', auth_type: 'subscription' }]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'openai',
+      input_price_per_token: 0.003,
+      output_price_per_token: 0.015,
+    });
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-openai-sub',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-openai-sub',
+      parentSpanId: 'span-msg-openai-sub',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 200 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 100 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 2.1);
+  });
+
   it('handles missing resourceSpans', async () => {
     const result = await service.ingest({ resourceSpans: undefined as never }, testCtx);
     expect(result.accepted).toBe(0);

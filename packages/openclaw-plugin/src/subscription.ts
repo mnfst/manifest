@@ -2,6 +2,7 @@ import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { PluginLogger } from './telemetry';
+import { supportsSubscriptionProvider } from '../../subscription-capabilities';
 
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
 
@@ -88,6 +89,12 @@ export function discoverSubscriptionProviders(logger: PluginLogger): Subscriptio
         const manifestId = OPENCLAW_TO_MANIFEST[profile.provider?.toLowerCase() ?? ''];
         if (!manifestId) {
           logger.debug(`[manifest] Unknown subscription provider: ${profile.provider}`);
+          continue;
+        }
+        if (!supportsSubscriptionProvider(manifestId)) {
+          logger.debug(
+            `[manifest] Ignoring unsupported subscription provider: ${profile.provider} -> ${manifestId}`,
+          );
           continue;
         }
 
