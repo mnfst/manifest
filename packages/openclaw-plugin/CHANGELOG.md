@@ -1,5 +1,22 @@
 # manifest
 
+## 5.25.3
+
+### Patch Changes
+
+- aed1eb5: Strip DeepSeek-specific `reasoning_content` from forwarded chat history unless the target endpoint/model supports it, preventing cross-provider chat completion failures when a conversation switches models.
+- 4293eab: Add the missing `compression` runtime dependency to the published OpenClaw plugin package and test that plugin runtime dependencies stay in sync with backend runtime dependencies.
+- 9ad6e97: Resolve model display names on the backend via LEFT JOIN with model_pricing, ensuring consistent display names between Overview and Messages pages regardless of frontend cache state.
+- 2773025: Return HTTP 424 when fallback chain is exhausted to prevent infinite retry loops
+- f28b952: Fix 404 on page reload for SPA routes in local mode by centralizing frontend directory resolution with proper fallback chain for both monorepo and embedded npm package layouts.
+- 2232b79: Remove process.env string obfuscation, reduce minification level, add source maps, and externalize child_process to avoid VirusTotal false positives
+- 51e362f: Ignore unsupported subscription providers in Manifest routing, clean up stale unsupported subscription connections from existing installs, and include shared subscription capability files in the published plugin package.
+- d89b44d: Security hardening: SSRF validation for custom provider URLs, encrypted email provider API keys, OTLP auth guard improvements (min token length, hashed cache keys, cache invalidation on rotation), telemetry DTO string length limits, SessionGuard exception handling, login rate limiting, provider error sanitization, DATABASE_URL validation, API key guard audit logging, domain length validation, test email recipient validation
+- 7d3e3a0: Add smoke test suite covering auth, agent creation, OTLP ingestion, routing, proxy, limits, and fallback chains
+- a23f676: Fix the OpenClaw plugin installation warnings and package the embedded backend dependencies correctly.
+- f288e0c: Add "Where to get API key" links below provider API key inputs in routing and email provider modals.
+- 8cee3f6: Preserve compatible OpenRouter text models during pricing sync while filtering out non-chat OpenRouter models from the local model list.
+
 ## 5.25.2
 
 ### Patch Changes
