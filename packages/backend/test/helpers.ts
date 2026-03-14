@@ -32,6 +32,7 @@ import { NotificationLog } from '../src/entities/notification-log.entity';
 import { UserProvider } from '../src/entities/user-provider.entity';
 import { TierAssignment } from '../src/entities/tier-assignment.entity';
 import { CustomProvider } from '../src/entities/custom-provider.entity';
+import { EmailProviderConfig } from '../src/entities/email-provider-config.entity';
 import { HealthModule } from '../src/health/health.module';
 import { TelemetryModule } from '../src/telemetry/telemetry.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
@@ -49,7 +50,7 @@ export const TEST_TENANT_ID = 'test-tenant-001';
 export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
-const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing, ModelPricingHistory, UnresolvedModel, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider];
+const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing, ModelPricingHistory, UnresolvedModel, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig];
 
 function buildTypeOrmConfig(): TypeOrmModuleOptions {
   return {
