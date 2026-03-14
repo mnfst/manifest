@@ -38,7 +38,7 @@ describe('ModelPricingCacheService', () => {
       const entry = service.getByModel('openai/gpt-4o');
       expect(entry).toBeDefined();
       expect(entry!.model_name).toBe('openai/gpt-4o');
-      expect(entry!.provider).toBe('OpenAI');
+      expect(entry!.provider).toBe('OpenRouter');
       expect(entry!.input_price_per_token).toBe(0.000015);
       expect(entry!.output_price_per_token).toBe(0.000075);
     });
@@ -253,35 +253,24 @@ describe('ModelPricingCacheService', () => {
     });
   });
 
-  describe('inferProvider', () => {
-    it('should infer known provider from slash prefix', async () => {
+  describe('provider assignment', () => {
+    it('should assign OpenRouter as provider for all OpenRouter cache entries', async () => {
       const orMap = new Map<string, OpenRouterPricingEntry>([
         ['anthropic/claude-opus-4-6', makeEntry(0.015, 0.075)],
         ['openai/gpt-4o', makeEntry(0.01, 0.02)],
         ['google/gemini-2.0-flash', makeEntry(0.005, 0.01)],
-        ['deepseek/deepseek-chat', makeEntry(0.001, 0.002)],
-      ]);
-      mockGetAll.mockReturnValue(orMap);
-      await service.reload();
-
-      expect(service.getByModel('anthropic/claude-opus-4-6')!.provider).toBe('Anthropic');
-      expect(service.getByModel('openai/gpt-4o')!.provider).toBe('OpenAI');
-      expect(service.getByModel('google/gemini-2.0-flash')!.provider).toBe('Google');
-      expect(service.getByModel('deepseek/deepseek-chat')!.provider).toBe('DeepSeek');
-    });
-
-    it('should use raw prefix for unknown provider slash prefix', async () => {
-      const orMap = new Map<string, OpenRouterPricingEntry>([
         ['newvendor/some-model', makeEntry(0.001, 0.002)],
       ]);
       mockGetAll.mockReturnValue(orMap);
       await service.reload();
 
-      expect(service.getByModel('newvendor/some-model')!.provider).toBe('newvendor');
+      expect(service.getByModel('anthropic/claude-opus-4-6')!.provider).toBe('OpenRouter');
+      expect(service.getByModel('openai/gpt-4o')!.provider).toBe('OpenRouter');
+      expect(service.getByModel('google/gemini-2.0-flash')!.provider).toBe('OpenRouter');
+      expect(service.getByModel('newvendor/some-model')!.provider).toBe('OpenRouter');
     });
 
-    it('should return Unknown for models without slash prefix', async () => {
-      // Manual pricing entries use provider from MANUAL_PRICING map
+    it('should use provider from MANUAL_PRICING for manual entries', async () => {
       mockGetAll.mockReturnValue(new Map());
       await service.reload();
 

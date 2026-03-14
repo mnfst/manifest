@@ -71,19 +71,20 @@ describe('PricingSyncService', () => {
       expect(count).toBe(2);
 
       const all = service.getAll();
-      // Canonical + full ID for each model
-      expect(all.has('claude-opus-4')).toBe(true);
+      // Models stored under full OpenRouter ID only
       expect(all.has('anthropic/claude-opus-4')).toBe(true);
-      expect(all.has('gpt-4o')).toBe(true);
       expect(all.has('openai/gpt-4o')).toBe(true);
+      // No canonical-only entries
+      expect(all.has('claude-opus-4')).toBe(false);
+      expect(all.has('gpt-4o')).toBe(false);
 
-      const claude = all.get('claude-opus-4')!;
+      const claude = all.get('anthropic/claude-opus-4')!;
       expect(claude.input).toBe(0.000015);
       expect(claude.output).toBe(0.000075);
       expect(claude.contextWindow).toBe(200000);
       expect(claude.displayName).toBe('Claude Opus 4');
 
-      const gpt = all.get('gpt-4o')!;
+      const gpt = all.get('openai/gpt-4o')!;
       expect(gpt.input).toBe(0.0000025);
       expect(gpt.output).toBe(0.00001);
       expect(gpt.contextWindow).toBeUndefined();
@@ -227,8 +228,8 @@ describe('PricingSyncService', () => {
 
       const count = await service.refreshCache();
       expect(count).toBe(1);
-      expect(service.lookupPricing('gpt-free')!.input).toBe(0);
-      expect(service.lookupPricing('gpt-free')!.output).toBe(0);
+      expect(service.lookupPricing('openai/gpt-free')!.input).toBe(0);
+      expect(service.lookupPricing('openai/gpt-free')!.output).toBe(0);
     });
 
     it('does not overwrite canonical entry when second model has same canonical name', async () => {
@@ -252,11 +253,11 @@ describe('PricingSyncService', () => {
 
       const count = await service.refreshCache();
       expect(count).toBe(2);
-      // Canonical 'model-x' should be from the first entry (openai)
-      const canonical = service.lookupPricing('model-x')!;
-      expect(canonical.input).toBe(0.001);
-      // But full IDs are stored separately
+      // Both stored under their full OpenRouter IDs
+      expect(service.lookupPricing('openai/model-x')!.input).toBe(0.001);
       expect(service.lookupPricing('google/model-x')!.input).toBe(0.003);
+      // No canonical-only entry
+      expect(service.lookupPricing('model-x')).toBeNull();
     });
 
     it('uses default 0 when prompt/completion fields are undefined', async () => {
@@ -269,7 +270,7 @@ describe('PricingSyncService', () => {
 
       const count = await service.refreshCache();
       expect(count).toBe(1);
-      const entry = service.lookupPricing('gpt-4o')!;
+      const entry = service.lookupPricing('openai/gpt-4o')!;
       expect(entry.input).toBe(0);
       expect(entry.output).toBe(0);
     });
@@ -284,7 +285,7 @@ describe('PricingSyncService', () => {
 
       const count = await service.refreshCache();
       expect(count).toBe(1);
-      expect(service.lookupPricing('gpt-4o')!.displayName).toBeUndefined();
+      expect(service.lookupPricing('openai/gpt-4o')!.displayName).toBeUndefined();
     });
 
     it('replaces old cache entirely on refresh', async () => {
@@ -295,7 +296,7 @@ describe('PricingSyncService', () => {
         }),
       });
       await service.refreshCache();
-      expect(service.lookupPricing('old-model')).not.toBeNull();
+      expect(service.lookupPricing('openai/old-model')).not.toBeNull();
 
       fetchSpy.mockResolvedValue({
         ok: true,
@@ -304,8 +305,8 @@ describe('PricingSyncService', () => {
         }),
       });
       await service.refreshCache();
-      expect(service.lookupPricing('old-model')).toBeNull();
-      expect(service.lookupPricing('new-model')).not.toBeNull();
+      expect(service.lookupPricing('openai/old-model')).toBeNull();
+      expect(service.lookupPricing('openai/new-model')).not.toBeNull();
     });
   });
 
@@ -329,7 +330,7 @@ describe('PricingSyncService', () => {
 
       await service.refreshCache();
 
-      const entry = service.lookupPricing('gpt-4o');
+      const entry = service.lookupPricing('openai/gpt-4o');
       expect(entry).not.toBeNull();
       expect(entry!.input).toBe(0.0000025);
       expect(entry!.output).toBe(0.00001);

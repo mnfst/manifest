@@ -1,11 +1,13 @@
 import { ResolveService } from './resolve.service';
 import { RoutingService } from './routing.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 
 describe('ResolveService', () => {
   let service: ResolveService;
   let mockRoutingService: Record<string, jest.Mock>;
   let mockPricingCache: Record<string, jest.Mock>;
+  let mockDiscoveryService: Record<string, jest.Mock>;
 
   beforeEach(() => {
     mockRoutingService = {
@@ -21,10 +23,14 @@ describe('ResolveService', () => {
     mockPricingCache = {
       getByModel: jest.fn(),
     };
+    mockDiscoveryService = {
+      getModelForAgent: jest.fn().mockResolvedValue(undefined),
+    };
 
     service = new ResolveService(
       mockRoutingService as unknown as RoutingService,
       mockPricingCache as unknown as ModelPricingCacheService,
+      mockDiscoveryService as unknown as ModelDiscoveryService,
     );
   });
 

@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { buildAliasMap, resolveModelName } from './model-name-normalizer';
-import { PricingSyncService, OpenRouterPricingEntry } from '../database/pricing-sync.service';
+import { PricingSyncService } from '../database/pricing-sync.service';
 import { MANUAL_PRICING } from '../routing/model-discovery/manual-pricing-reference';
 
 /**
@@ -13,24 +13,6 @@ export interface PricingEntry {
   input_price_per_token: number | null;
   output_price_per_token: number | null;
 }
-
-const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
-  anthropic: 'Anthropic',
-  openai: 'OpenAI',
-  google: 'Google',
-  deepseek: 'DeepSeek',
-  mistralai: 'Mistral',
-  moonshotai: 'Moonshot',
-  qwen: 'Alibaba',
-  zhipuai: 'Zhipu',
-  amazon: 'Amazon',
-  'meta-llama': 'Meta',
-  cohere: 'Cohere',
-  xai: 'xAI',
-  minimax: 'MiniMax',
-  'z-ai': 'Z.ai',
-  openrouter: 'OpenRouter',
-};
 
 @Injectable()
 export class ModelPricingCacheService implements OnModuleInit {
@@ -47,19 +29,18 @@ export class ModelPricingCacheService implements OnModuleInit {
   async reload(): Promise<void> {
     this.cache.clear();
 
-    // Load from OpenRouter cache
+    // Load from OpenRouter cache — all models under "OpenRouter" provider
     const orCache = this.pricingSync.getAll();
     for (const [name, entry] of orCache) {
-      const provider = this.inferProvider(name);
       this.cache.set(name, {
         model_name: name,
-        provider,
+        provider: 'OpenRouter',
         input_price_per_token: entry.input,
         output_price_per_token: entry.output,
       });
     }
 
-    // Load from manual pricing reference
+    // Load from manual pricing reference (niche providers not in OpenRouter)
     for (const [name, pricing] of MANUAL_PRICING) {
       if (!this.cache.has(name)) {
         this.cache.set(name, {
@@ -87,14 +68,5 @@ export class ModelPricingCacheService implements OnModuleInit {
 
   getAll(): PricingEntry[] {
     return [...this.cache.values()];
-  }
-
-  private inferProvider(modelName: string): string {
-    const slashIdx = modelName.indexOf('/');
-    if (slashIdx > 0) {
-      const prefix = modelName.substring(0, slashIdx);
-      return PROVIDER_DISPLAY_NAMES[prefix] ?? prefix;
-    }
-    return 'Unknown';
   }
 }

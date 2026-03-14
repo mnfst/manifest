@@ -45,20 +45,21 @@ describe('GET /api/v1/model-prices', () => {
       (m: { model_name: string }) => m.model_name === 'openai/gpt-4o',
     );
     expect(gpt4o).toBeDefined();
-    expect(gpt4o.provider).toBe('OpenAI');
+    expect(gpt4o.provider).toBe('OpenRouter');
     expect(gpt4o.input_price_per_million).toBeCloseTo(2.5, 1);
     expect(gpt4o.output_price_per_million).toBeCloseTo(10, 1);
   });
 
-  it('should include models from all providers', async () => {
+  it('should include models from OpenRouter and manual providers', async () => {
     const res = await auth(api().get('/api/v1/model-prices')).expect(200);
 
     const providers = new Set(
       res.body.models.map((m: { provider: string }) => m.provider),
     );
-    expect(providers.has('OpenAI')).toBe(true);
-    expect(providers.has('Anthropic')).toBe(true);
-    expect(providers.has('xAI')).toBe(true);
+    // All OpenRouter models are under "OpenRouter" provider
+    expect(providers.has('OpenRouter')).toBe(true);
+    // Manual pricing entries keep their real provider
+    expect(providers.has('Z.ai')).toBe(true);
   });
 
   it('should return lastSyncedAt field (null when cache populated manually)', async () => {
