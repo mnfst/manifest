@@ -130,19 +130,39 @@ export class ProxyController implements OnModuleDestroy {
             primaryTs,
             meta.auth_type,
           ).catch((e) => this.logger.warn(`Failed to record primary failure: ${e}`));
-        } else {
-          this.recordProviderError(
-            req.ingestionContext,
-            errorStatus,
-            errorBody,
-            meta.model,
-            meta.tier,
-            traceId,
-            meta.fallbackFromModel,
-            meta.fallbackIndex,
-            meta.auth_type,
-          ).catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
+
+          this.logger.warn(`Fallback chain exhausted: ${errorBody.slice(0, 200)}`);
+          res.status(errorStatus);
+          for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
+          res.setHeader('X-Manifest-Fallback-Exhausted', 'true');
+          res.json({
+            error: {
+              message: sanitizeProviderError(errorStatus, errorBody),
+              type: 'fallback_exhausted',
+              status: errorStatus,
+              primary_model: meta.model,
+              primary_provider: meta.provider,
+              attempted_fallbacks: failedFallbacks.map((f) => ({
+                model: f.model,
+                provider: f.provider,
+                status: f.status,
+              })),
+            },
+          });
+          return;
         }
+
+        this.recordProviderError(
+          req.ingestionContext,
+          errorStatus,
+          errorBody,
+          meta.model,
+          meta.tier,
+          traceId,
+          meta.fallbackFromModel,
+          meta.fallbackIndex,
+          meta.auth_type,
+        ).catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
 
         this.logger.warn(`Upstream error ${errorStatus}: ${errorBody.slice(0, 200)}`);
         res.status(errorStatus);

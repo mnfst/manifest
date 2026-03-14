@@ -7,7 +7,7 @@ import { ProviderClient, ForwardResult } from './provider-client';
 import { buildCustomEndpoint, ProviderEndpoint } from './provider-endpoints';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
-import { shouldTriggerFallback } from './fallback-status-codes';
+import { shouldTriggerFallback, FALLBACK_EXHAUSTED_STATUS } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../provider-aliases';
 import { Tier, ScorerMessage } from '../scorer/types';
 
@@ -167,11 +167,11 @@ export class ProxyService {
           };
         }
 
-        // All fallbacks exhausted — rebuild the primary error response
-        // since the original body was consumed.
+        // All fallbacks exhausted — return non-retriable 424 so the gateway
+        // does not retry the entire chain in an infinite loop.
         const rebuilt = new Response(primaryErrorBody, {
-          status: forward.response.status,
-          statusText: forward.response.statusText,
+          status: FALLBACK_EXHAUSTED_STATUS,
+          statusText: 'Failed Dependency',
           headers: forward.response.headers,
         });
         this.momentum.recordTier(sessionKey, resolved.tier as Tier);
