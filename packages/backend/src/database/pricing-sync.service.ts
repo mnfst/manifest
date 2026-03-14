@@ -41,6 +41,7 @@ const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   'meta-llama': 'Meta',
   cohere: 'Cohere',
   xai: 'xAI',
+  'x-ai': 'xAI',
   minimax: 'MiniMax',
   'z-ai': 'Z.ai',
   openrouter: 'OpenRouter',
@@ -348,6 +349,7 @@ export class PricingSyncService implements OnModuleInit {
       if (slashIdx === -1) continue;
       const prefix = row.model_name.substring(0, slashIdx);
       if (prefix === 'openrouter') continue;
+      if (prefix.startsWith('custom:')) continue;
       if (!SUPPORTED_PREFIXES.has(prefix)) toDelete.push(row.model_name);
     }
     if (toDelete.length > 0) {

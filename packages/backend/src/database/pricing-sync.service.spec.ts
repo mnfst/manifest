@@ -537,6 +537,45 @@ describe('PricingSyncService', () => {
     expect(deleteArg.model_name._value).not.toContain('gpt-4o');
   });
 
+  it('preserves custom provider models during removeUnsupportedModels', async () => {
+    const customUuid = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+    mockFind.mockResolvedValue([
+      { model_name: `custom:${customUuid}/my-local-model`, provider: `custom:${customUuid}` },
+      { model_name: 'ai21/jamba-1-5-large', provider: 'AI21' },
+      { model_name: 'gpt-4o', provider: 'OpenAI' },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.syncPricing();
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+    const deleteArg = mockDelete.mock.calls[0][0];
+    expect(deleteArg.model_name._value).toContain('ai21/jamba-1-5-large');
+    expect(deleteArg.model_name._value).not.toContain(`custom:${customUuid}/my-local-model`);
+    expect(deleteArg.model_name._value).not.toContain('gpt-4o');
+  });
+
+  it('preserves x-ai/ prefixed models as a supported provider', async () => {
+    mockFind.mockResolvedValue([
+      { model_name: 'x-ai/grok-3', provider: 'xAI' },
+      { model_name: 'ai21/jamba-1-5-large', provider: 'AI21' },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.syncPricing();
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+    const deleteArg = mockDelete.mock.calls[0][0];
+    expect(deleteArg.model_name._value).toContain('ai21/jamba-1-5-large');
+    expect(deleteArg.model_name._value).not.toContain('x-ai/grok-3');
+  });
+
   it('removes previously synced non-chat-compatible models on sync', async () => {
     mockFind.mockResolvedValue([
       { model_name: 'gemini-3.1-flash-image-preview', provider: 'Google' },
@@ -750,6 +789,13 @@ describe('PricingSyncService', () => {
       expect(service.deriveNames('minimax/minimax-m2.5')).toEqual({
         canonical: 'minimax-m2.5',
         provider: 'MiniMax',
+      });
+    });
+
+    it('maps x-ai prefix to xAI provider', () => {
+      expect(service.deriveNames('x-ai/grok-3')).toEqual({
+        canonical: 'grok-3',
+        provider: 'xAI',
       });
     });
 
