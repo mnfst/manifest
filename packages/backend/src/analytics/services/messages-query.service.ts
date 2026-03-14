@@ -98,10 +98,12 @@ export class MessagesQueryService {
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
     const dataQb = baseQb
       .clone()
+      .leftJoin('model_pricing', 'mp', 'at.model = mp.model_name')
       .select('at.id', 'id')
       .addSelect('at.timestamp', 'timestamp')
       .addSelect('at.agent_name', 'agent_name')
       .addSelect('at.model', 'model')
+      .addSelect("COALESCE(NULLIF(mp.display_name, ''), at.model)", 'display_name')
       .addSelect('at.description', 'description')
       .addSelect('at.service_type', 'service_type')
       .addSelect('at.input_tokens', 'input_tokens')

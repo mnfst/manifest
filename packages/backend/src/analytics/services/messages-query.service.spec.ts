@@ -19,6 +19,7 @@ describe('MessagesQueryService', () => {
     const mockQb: Record<string, jest.Mock> = {
       select: jest.fn(),
       addSelect: jest.fn(),
+      leftJoin: jest.fn(),
       where: jest.fn(),
       andWhere: jest.fn(),
       orWhere: jest.fn(),
@@ -34,6 +35,7 @@ describe('MessagesQueryService', () => {
     const chainableMethods = [
       'select',
       'addSelect',
+      'leftJoin',
       'where',
       'andWhere',
       'orWhere',
@@ -712,6 +714,7 @@ describe('MessagesQueryService (sql.js / local mode)', () => {
     const mockQb = {
       select: jest.fn().mockReturnThis(),
       addSelect: mockAddSelect,
+      leftJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       orWhere: jest.fn().mockReturnThis(),
