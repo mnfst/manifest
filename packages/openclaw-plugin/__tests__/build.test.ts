@@ -3,6 +3,7 @@ import { resolve, join } from "path";
 
 const distPath = resolve(__dirname, "../dist/index.js");
 const pkgPath = resolve(__dirname, "../package.json");
+const backendPkgPath = resolve(__dirname, "../../backend/package.json");
 
 // These tests verify properties of the built bundle.
 // They require `npm run build` to have been run first.
@@ -127,6 +128,22 @@ describe("build configuration", () => {
     };
     expect(deps).not.toHaveProperty("@opentelemetry/sdk-trace-node");
     expect(deps).toHaveProperty("@opentelemetry/sdk-trace-base");
+  });
+
+  it("package.json includes backend runtime dependencies", () => {
+    const pluginPkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as {
+      dependencies?: Record<string, string>;
+    };
+    const backendPkg = JSON.parse(readFileSync(backendPkgPath, "utf-8")) as {
+      dependencies?: Record<string, string>;
+    };
+
+    const missingOrMismatched = Object.entries(backendPkg.dependencies ?? {})
+      .filter(([name]) => !name.startsWith("@types/"))
+      .filter(([name, version]) => pluginPkg.dependencies?.[name] !== version)
+      .map(([name, version]) => `${name}@${version}`);
+
+    expect(missingOrMismatched).toEqual([]);
   });
 
   it("build.ts reads version from package.json", () => {
