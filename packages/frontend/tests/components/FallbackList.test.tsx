@@ -105,7 +105,7 @@ describe("FallbackList", () => {
       <FallbackList {...defaultProps} fallbacks={fiveFallbacks} />
     ));
 
-    expect(screen.queryByText("+ Add fallback")).toBeNull();
+    expect(screen.queryByText("Add fallback")).toBeNull();
   });
 
   it("calls setFallbacks on remove with remaining items", async () => {
@@ -300,7 +300,7 @@ describe("FallbackList", () => {
       <FallbackList {...defaultProps} fallbacks={["model-a", "model-b"]} />
     ));
 
-    expect(screen.getByText("+ Add fallback")).toBeDefined();
+    expect(screen.getByText("Add fallback")).toBeDefined();
   });
 
   it("sets aria-label on remove buttons with model label", () => {
@@ -402,7 +402,7 @@ describe("FallbackList", () => {
     fireEvent.click(removeButtons[0]);
 
     await waitFor(() => {
-      const addBtn = screen.getByText("+ Add fallback");
+      const addBtn = screen.getByText("Add fallback");
       expect((addBtn as HTMLButtonElement).disabled).toBe(true);
     });
 

@@ -549,10 +549,20 @@ const Routing: Component = () => {
                                     </Show>
                                   </div>
                                   <button
-                                    class="btn btn--outline btn--sm"
+                                    class="btn btn--outline btn--sm routing-card__change-btn"
                                     onClick={() => setDropdownTier(stage.id)}
                                   >
-                                    Change
+                                    <svg
+                                      class="routing-card__change-icon"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="16"
+                                      height="16"
+                                      fill="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path d="m19.41,3.71c-.76-.76-2.07-.76-2.83,0l-2.09,2.09-.94-.94c-.57-.57-1.55-.57-2.12,0l-4.79,4.79c-.2.2-.2.51,0,.71.1.1.23.15.35.15s.26-.05.35-.15l4.79-4.79c.2-.2.51-.2.71,0l.94.94L4.65,15.65s-.09.1-.11.17l-1.35,3.37c-.19.47-.08.99.28,1.35.24.24.55.37.88.37.16,0,.32-.03.47-.09l3.38-1.35c.06-.03.12-.06.17-.11l11.94-11.94c.78-.78.78-2.05,0-2.83l-.88-.88Zm-11.69,14.87l-3.28,1.31c-.14.06-.24-.02-.27-.06-.04-.03-.11-.13-.06-.27l1.31-3.28L14.5,7.21l2.29,2.29-9.07,9.07Zm11.87-11.87l-2.09,2.09-2.29-2.29,2.09-2.09c.38-.38,1.04-.38,1.41,0l.88.88c.39.39.39,1.02,0,1.41Z" />
+                                    </svg>
+                                    <span class="routing-card__change-label">Change</span>
                                   </button>
                                 </div>
                                 <Show
@@ -573,19 +583,7 @@ const Routing: Component = () => {
                       <Show when={eff()}>
                         <div class="routing-card__fallbacks">
                           <Show when={getFallbacksFor(stage.id).length > 0}>
-                            <div class="routing-card__fallbacks-label">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="14"
-                                height="14"
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                              >
-                                <path d="M6 22h2V8h4L7 2 2 8h4zM19 2h-2v14h-4l5 6 5-6h-4z" />
-                              </svg>
-                              Fallbacks
-                            </div>
+                            <div class="routing-card__fallbacks-label">Fallbacks</div>
                           </Show>
                           <FallbackList
                             agentName={agentName()}
