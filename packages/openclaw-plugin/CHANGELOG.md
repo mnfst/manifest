@@ -1,5 +1,11 @@
 # manifest
 
+## 5.25.4
+
+### Patch Changes
+
+- dac8d01: fix: preserve custom provider models and x-ai prefix during pricing sync cleanup
+
 ## 5.25.3
 
 ### Patch Changes
