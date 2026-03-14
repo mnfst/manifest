@@ -25,6 +25,12 @@ describe('TraceIngestService', () => {
   let mockPricingGetByModel: jest.Mock;
   let mockProviderFind: jest.Mock;
   let mockExecute: jest.Mock;
+  let mockTurnManager: {
+    transaction: jest.Mock;
+    getRepository: jest.Mock;
+    query: jest.Mock;
+    connection: { options: { type: string } };
+  };
 
   beforeEach(async () => {
     mockTurnInsert = jest.fn().mockResolvedValue({});
@@ -43,21 +49,37 @@ describe('TraceIngestService', () => {
       where: jest.fn().mockReturnThis(),
       execute: mockExecute,
     };
+    const mockTurnRepo = {
+      insert: mockTurnInsert,
+      findOne: mockTurnFindOne,
+      find: mockTurnFind,
+      createQueryBuilder: jest.fn().mockReturnValue(mockQb),
+      manager: undefined as unknown as { transaction: jest.Mock },
+    };
+    const mockLlmRepo = { insert: mockLlmInsert };
+    const mockToolRepo = { insert: mockToolInsert };
+    mockTurnManager = {
+      transaction: jest.fn(async (cb: (manager: unknown) => Promise<unknown>) => cb(mockTurnManager)),
+      getRepository: jest.fn((repoClass: unknown) => {
+        if (repoClass === AgentMessage) return mockTurnRepo;
+        if (repoClass === LlmCall) return mockLlmRepo;
+        if (repoClass === ToolExecution) return mockToolRepo;
+        throw new Error(`Unexpected repository request: ${String(repoClass)}`);
+      }),
+      query: jest.fn().mockResolvedValue([]),
+      connection: { options: { type: 'sqlite' } },
+    };
+    mockTurnRepo.manager = { transaction: mockTurnManager.transaction };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TraceIngestService,
         {
           provide: getRepositoryToken(AgentMessage),
-          useValue: {
-            insert: mockTurnInsert,
-            findOne: mockTurnFindOne,
-            find: mockTurnFind,
-            createQueryBuilder: jest.fn().mockReturnValue(mockQb),
-          },
+          useValue: mockTurnRepo,
         },
-        { provide: getRepositoryToken(LlmCall), useValue: { insert: mockLlmInsert } },
-        { provide: getRepositoryToken(ToolExecution), useValue: { insert: mockToolInsert } },
+        { provide: getRepositoryToken(LlmCall), useValue: mockLlmRepo },
+        { provide: getRepositoryToken(ToolExecution), useValue: mockToolRepo },
         { provide: getRepositoryToken(UserProvider), useValue: { find: mockProviderFind } },
         { provide: ModelPricingCacheService, useValue: { getByModel: mockPricingGetByModel } },
       ],
@@ -112,9 +134,39 @@ describe('TraceIngestService', () => {
       expect.objectContaining({
         tenant_id: 'test-tenant',
         agent_id: 'test-agent',
+        user_id: 'test-user',
         agent_name: 'bot-1',
       }),
     ]);
+  });
+
+  it('acquires a postgres row lock before OTLP success dedup reads', async () => {
+    mockTurnManager.connection.options.type = 'postgres';
+    const request = {
+      resourceSpans: [
+        {
+          resource: {
+            attributes: [
+              { key: 'service.name', value: { stringValue: 'agent' } },
+              { key: 'agent.name', value: { stringValue: 'bot-1' } },
+            ],
+          },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [makeSpan({ name: 'openclaw.agent.turn' })],
+            },
+          ],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    expect(mockTurnManager.query).toHaveBeenCalledWith(
+      'SELECT id FROM agents WHERE id = $1 FOR UPDATE',
+      ['test-agent'],
+    );
   });
 
   it('ingests an llm_call span (has gen_ai.system attribute)', async () => {
