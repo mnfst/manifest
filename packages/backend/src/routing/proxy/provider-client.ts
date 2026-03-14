@@ -25,9 +25,33 @@ const OPENAI_ONLY_FIELDS = new Set([
 ]);
 
 /**
- * Providers that accept the full OpenAI request schema without modification.
+ * Providers that accept the full OpenAI top-level request schema without modification.
+ * Nested message fields may still need target-aware cleanup.
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+
+function supportsReasoningContent(endpointKey: string, model: string): boolean {
+  if (endpointKey === 'deepseek') return true;
+  if (endpointKey === 'openrouter') return model.toLowerCase().startsWith('deepseek/');
+  return false;
+}
+
+function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: string): unknown {
+  if (!Array.isArray(messages)) return messages;
+
+  const preserveReasoningContent = supportsReasoningContent(endpointKey, model);
+  return messages.map((message) => {
+    if (!message || typeof message !== 'object' || Array.isArray(message)) {
+      return message;
+    }
+
+    const cleaned = { ...(message as Record<string, unknown>) };
+    if (!preserveReasoningContent) {
+      delete cleaned.reasoning_content;
+    }
+    return cleaned;
+  });
+}
 
 /**
  * Strip OpenAI-specific fields and normalise `max_completion_tokens` → `max_tokens`
@@ -36,11 +60,20 @@ const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
 function sanitizeOpenAiBody(
   body: Record<string, unknown>,
   endpointKey: string,
+  model: string,
 ): Record<string, unknown> {
-  if (PASSTHROUGH_PROVIDERS.has(endpointKey)) return body;
+  const passthroughTopLevel = PASSTHROUGH_PROVIDERS.has(endpointKey);
 
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(body)) {
+    if (key === 'messages') {
+      cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model);
+      continue;
+    }
+    if (passthroughTopLevel) {
+      cleaned[key] = value;
+      continue;
+    }
     if (OPENAI_ONLY_FIELDS.has(key)) continue;
     if (key === 'max_completion_tokens') {
       // Convert to max_tokens unless already set
@@ -124,7 +157,7 @@ export class ProviderClient {
     } else {
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
-      const sanitized = sanitizeOpenAiBody(body, endpointKey!);
+      const sanitized = sanitizeOpenAiBody(body, endpointKey, model);
       requestBody = { ...sanitized, model: bareModel, stream };
 
       // Inject cache_control for OpenRouter requests targeting Anthropic models
