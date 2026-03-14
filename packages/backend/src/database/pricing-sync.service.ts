@@ -13,6 +13,10 @@ interface OpenRouterModel {
   id: string;
   name?: string;
   context_length?: number;
+  architecture?: {
+    input_modalities?: string[];
+    output_modalities?: string[];
+  };
   pricing?: {
     prompt?: string;
     completion?: string;
@@ -86,9 +90,29 @@ export class PricingSyncService implements OnModuleInit {
     const data = await this.fetchOpenRouterModels();
     if (!data) return 0;
 
-    const updated = await this.syncAllModels(data);
-    await this.resolveUnresolvedModels(data);
-    await this.removeUnsupportedModels();
+    const compatibleModels: OpenRouterModel[] = [];
+    const compatibleCanonicals = new Set<string>();
+    for (const model of data) {
+      if (!this.isChatCompatible(model)) continue;
+      compatibleModels.push(model);
+      const { canonical } = this.deriveNames(model.id);
+      compatibleCanonicals.add(canonical);
+    }
+
+    const incompatibleNames = new Set<string>();
+    for (const model of data) {
+      if (this.isChatCompatible(model)) continue;
+
+      const { canonical } = this.deriveNames(model.id);
+      if (!compatibleCanonicals.has(canonical)) {
+        incompatibleNames.add(canonical);
+      }
+      incompatibleNames.add(model.id);
+    }
+
+    const updated = await this.syncAllModels(compatibleModels);
+    await this.resolveUnresolvedModels(compatibleModels);
+    await this.removeUnsupportedModels(incompatibleNames);
 
     this.logger.log(`Pricing sync complete: ${updated} models updated`);
     if (updated > 0) {
@@ -222,30 +246,27 @@ export class PricingSyncService implements OnModuleInit {
           upserted = true;
         }
 
-        // Update existing OpenRouter copy with the full vendor-prefixed ID
+        // Store an OpenRouter-hosted copy with the full vendor-prefixed ID so
+        // the same model can be surfaced under both its native provider and OpenRouter.
         if (hasVendorPrefix) {
-          const existingCopy = await this.pricingRepo.findOneBy({
-            model_name: model.id,
-          });
-          if (existingCopy) {
-            try {
-              await this.pricingRepo.upsert(
-                {
-                  model_name: model.id,
-                  input_price_per_token: prompt,
-                  output_price_per_token: completion,
-                  ...(contextWindow != null && { context_window: contextWindow }),
-                  ...(displayName && { display_name: displayName }),
-                  updated_at: now,
-                },
-                ['model_name'],
-              );
-              upserted = true;
-            } catch (copyErr) {
-              this.logger.warn(
-                `Failed to store OpenRouter copy for ${model.id}: ${copyErr instanceof Error ? copyErr.message : copyErr}`,
-              );
-            }
+          try {
+            await this.pricingRepo.upsert(
+              {
+                model_name: model.id,
+                provider: 'OpenRouter',
+                input_price_per_token: prompt,
+                output_price_per_token: completion,
+                ...(contextWindow != null && { context_window: contextWindow }),
+                ...(displayName && { display_name: displayName }),
+                updated_at: now,
+              },
+              ['model_name'],
+            );
+            upserted = true;
+          } catch (copyErr) {
+            this.logger.warn(
+              `Failed to store OpenRouter copy for ${model.id}: ${copyErr instanceof Error ? copyErr.message : copyErr}`,
+            );
           }
         }
         if (upserted) updated++;
@@ -296,10 +317,31 @@ export class PricingSyncService implements OnModuleInit {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  private async removeUnsupportedModels(): Promise<void> {
-    const all = await this.pricingRepo.find({ select: ['model_name'] });
+  private isChatCompatible(model: OpenRouterModel): boolean {
+    const inputModalities = model.architecture?.input_modalities?.map((m) => m.toLowerCase());
+    if (inputModalities && inputModalities.length > 0 && !inputModalities.includes('text')) {
+      return false;
+    }
+
+    const outputModalities = model.architecture?.output_modalities?.map((m) => m.toLowerCase());
+    if (outputModalities && outputModalities.length > 0) {
+      return outputModalities.every((m) => m === 'text');
+    }
+
+    return true;
+  }
+
+  private async removeUnsupportedModels(
+    incompatibleNames: ReadonlySet<string> = new Set(),
+  ): Promise<void> {
+    const all = await this.pricingRepo.find({ select: ['model_name', 'provider'] });
     const toDelete: string[] = [];
     for (const row of all) {
+      if (incompatibleNames.has(row.model_name)) {
+        toDelete.push(row.model_name);
+        continue;
+      }
+      if (row.provider === 'OpenRouter') continue;
       const slashIdx = row.model_name.indexOf('/');
       if (slashIdx === -1) continue;
       const prefix = row.model_name.substring(0, slashIdx);

@@ -497,6 +497,21 @@ describe('RoutingController', () => {
       expect(result[0].model_name).toBe('anthropic/claude-sonnet-4');
     });
 
+    it('should include OpenRouter-hosted vendor-prefixed models when OpenRouter is active', async () => {
+      mockRoutingService.getProviders.mockResolvedValue([
+        { provider: 'openrouter', is_active: true },
+      ]);
+      mockPricingCache.getAll.mockReturnValue([
+        makePricing({ model_name: 'qwen/qwen3-235b-a22b', provider: 'OpenRouter' }),
+        makePricing({ model_name: 'qwen3-235b-a22b', provider: 'Alibaba' }),
+      ]);
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      expect(result.map((m) => m.model_name)).toContain('qwen/qwen3-235b-a22b');
+      expect(result.map((m) => m.model_name)).not.toContain('qwen3-235b-a22b');
+    });
+
     it('should return empty array when no active providers', async () => {
       mockRoutingService.getProviders.mockResolvedValue([{ provider: 'openai', is_active: false }]);
       mockPricingCache.getAll.mockReturnValue([

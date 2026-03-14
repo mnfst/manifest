@@ -68,7 +68,7 @@ describe('PricingSyncService', () => {
     else delete process.env['MANIFEST_MODE'];
   });
 
-  it('creates canonical models for new vendor-prefixed models (no OpenRouter copies)', async () => {
+  it('creates canonical and OpenRouter copies for new vendor-prefixed models', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -84,9 +84,22 @@ describe('PricingSyncService', () => {
 
     const updated = await service.syncPricing();
     expect(updated).toBe(2);
-    // 2 canonical upserts only — no OpenRouter copies for non-existing models
-    expect(mockUpsert).toHaveBeenCalledTimes(2);
+    expect(mockUpsert).toHaveBeenCalledTimes(4);
     expect(mockRecordChange).toHaveBeenCalledTimes(2);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'anthropic/claude-opus-4',
+        provider: 'OpenRouter',
+      }),
+      ['model_name'],
+    );
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'openai/gpt-4o',
+        provider: 'OpenRouter',
+      }),
+      ['model_name'],
+    );
   });
 
   it('updates pricing but preserves provider for existing models', async () => {
@@ -145,6 +158,78 @@ describe('PricingSyncService', () => {
 
     const updated = await service.syncPricing();
     expect(updated).toBe(0);
+  });
+
+  it('skips models with non-text output modalities', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'google/gemini-3.1-flash-image-preview',
+            architecture: {
+              input_modalities: ['text', 'image'],
+              output_modalities: ['text', 'image'],
+            },
+            pricing: { prompt: '0.0000005', completion: '0.000003' },
+          },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('skips models with non-text input modalities', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'google/image-only-input-model',
+            architecture: {
+              input_modalities: ['image'],
+              output_modalities: ['text'],
+            },
+            pricing: { prompt: '0.0000005', completion: '0.000003' },
+          },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('keeps multimodal-input models with text-only output modalities', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'openai/gpt-5.4',
+            architecture: {
+              input_modalities: ['text', 'image', 'file'],
+              output_modalities: ['text'],
+            },
+            pricing: { prompt: '0.0000025', completion: '0.000015' },
+          },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ model_name: 'gpt-5.4' }), [
+      'model_name',
+    ]);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({ model_name: 'openai/gpt-5.4', provider: 'OpenRouter' }),
+      ['model_name'],
+    );
   });
 
   it('handles empty data array', async () => {
@@ -226,8 +311,7 @@ describe('PricingSyncService', () => {
       }),
       'sync',
     );
-    // Canonical only — no OpenRouter copy for non-existing model
-    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
   });
 
   it('passes existing model to recordChange when found', async () => {
@@ -408,13 +492,14 @@ describe('PricingSyncService', () => {
     }
   });
 
-  it('removes existing unsupported provider rows on sync', async () => {
+  it('removes existing unsupported provider rows on sync but keeps OpenRouter-hosted rows', async () => {
     mockFind.mockResolvedValue([
-      { model_name: 'ai21/jamba-1-5-large' },
-      { model_name: 'openai/gpt-4o' },
-      { model_name: 'aion-labs/some-model' },
-      { model_name: 'openrouter/auto' },
-      { model_name: 'gpt-4o' },
+      { model_name: 'ai21/jamba-1-5-large', provider: 'AI21' },
+      { model_name: 'openai/gpt-4o', provider: 'OpenRouter' },
+      { model_name: 'aion-labs/some-model', provider: 'Aion Labs' },
+      { model_name: 'bytedance-seed/seed-2.0-lite', provider: 'OpenRouter' },
+      { model_name: 'openrouter/auto', provider: 'OpenRouter' },
+      { model_name: 'gpt-4o', provider: 'OpenAI' },
     ]);
 
     mockFetch.mockResolvedValue({
@@ -425,13 +510,122 @@ describe('PricingSyncService', () => {
     await service.syncPricing();
     expect(mockDelete).toHaveBeenCalledTimes(1);
     const deleteArg = mockDelete.mock.calls[0][0];
-    // Should delete ai21 and aion-labs, but NOT openai, openrouter, or bare models
+    // Should delete unsupported native rows, but NOT OpenRouter-hosted or bare models
     expect(deleteArg.model_name._value).toEqual(
       expect.arrayContaining(['ai21/jamba-1-5-large', 'aion-labs/some-model']),
     );
     expect(deleteArg.model_name._value).not.toContain('openai/gpt-4o');
+    expect(deleteArg.model_name._value).not.toContain('bytedance-seed/seed-2.0-lite');
     expect(deleteArg.model_name._value).not.toContain('openrouter/auto');
     expect(deleteArg.model_name._value).not.toContain('gpt-4o');
+  });
+
+  it('removeUnsupportedModels defaults to an empty incompatible set and preserves openrouter/ prefixes', async () => {
+    mockFind.mockResolvedValue([
+      { model_name: 'ai21/jamba-1-5-large', provider: 'AI21' },
+      { model_name: 'openrouter/auto', provider: 'Legacy' },
+      { model_name: 'gpt-4o', provider: 'OpenAI' },
+    ]);
+
+    await (
+      service as never as { removeUnsupportedModels: () => Promise<void> }
+    ).removeUnsupportedModels();
+
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+    const deleteArg = mockDelete.mock.calls[0][0];
+    expect(deleteArg.model_name._value).toContain('ai21/jamba-1-5-large');
+    expect(deleteArg.model_name._value).not.toContain('openrouter/auto');
+    expect(deleteArg.model_name._value).not.toContain('gpt-4o');
+  });
+
+  it('removes previously synced non-chat-compatible models on sync', async () => {
+    mockFind.mockResolvedValue([
+      { model_name: 'gemini-3.1-flash-image-preview', provider: 'Google' },
+      { model_name: 'google/gemini-3.1-flash-image-preview', provider: 'OpenRouter' },
+      { model_name: 'gpt-4o', provider: 'OpenAI' },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'google/gemini-3.1-flash-image-preview',
+            architecture: {
+              input_modalities: ['text', 'image'],
+              output_modalities: ['text', 'image'],
+            },
+            pricing: { prompt: '0.0000005', completion: '0.000003' },
+          },
+          {
+            id: 'openai/gpt-4o',
+            architecture: {
+              input_modalities: ['text', 'image'],
+              output_modalities: ['text'],
+            },
+            pricing: { prompt: '0.0000025', completion: '0.00001' },
+          },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+    const deleteArg = mockDelete.mock.calls[0][0];
+    expect(deleteArg.model_name._value).toEqual(
+      expect.arrayContaining([
+        'gemini-3.1-flash-image-preview',
+        'google/gemini-3.1-flash-image-preview',
+      ]),
+    );
+    expect(deleteArg.model_name._value).not.toContain('gpt-4o');
+  });
+
+  it('does not delete a compatible canonical model when an incompatible alias shares the same name', async () => {
+    mockFind.mockResolvedValue([
+      { model_name: 'model-x', provider: 'OpenAI' },
+      { model_name: 'openai/model-x', provider: 'OpenRouter' },
+      { model_name: 'google/model-x', provider: 'OpenRouter' },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'google/model-x',
+            architecture: {
+              input_modalities: ['text', 'image'],
+              output_modalities: ['image'],
+            },
+            pricing: { prompt: '0.0000005', completion: '0.000003' },
+          },
+          {
+            id: 'openai/model-x',
+            architecture: {
+              input_modalities: ['text'],
+              output_modalities: ['text'],
+            },
+            pricing: { prompt: '0.0000025', completion: '0.00001' },
+          },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+
+    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ model_name: 'model-x' }), [
+      'model_name',
+    ]);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({ model_name: 'openai/model-x', provider: 'OpenRouter' }),
+      ['model_name'],
+    );
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+    const deleteArg = mockDelete.mock.calls[0][0];
+    expect(deleteArg.model_name._value).toContain('google/model-x');
+    expect(deleteArg.model_name._value).not.toContain('model-x');
+    expect(deleteArg.model_name._value).not.toContain('openai/model-x');
   });
 
   describe('onModuleInit', () => {
@@ -591,10 +785,10 @@ describe('PricingSyncService', () => {
     const canonicalCall = mockUpsert.mock.calls.find((call) => call[0].model_name === 'glm-4-plus');
     expect(canonicalCall).toBeDefined();
     expect(canonicalCall![0]).not.toHaveProperty('provider');
-    // Also updates OpenRouter copy (preserves existing provider)
+    // Also updates the OpenRouter-hosted copy
     const orCall = mockUpsert.mock.calls.find((c) => c[0].model_name === 'zhipuai/glm-4-plus');
     expect(orCall).toBeDefined();
-    expect(orCall![0]).not.toHaveProperty('provider');
+    expect(orCall![0]).toMatchObject({ provider: 'OpenRouter' });
   });
 
   it('maps Amazon provider correctly', async () => {
@@ -613,10 +807,10 @@ describe('PricingSyncService', () => {
     const canonicalCall = mockUpsert.mock.calls.find((call) => call[0].model_name === 'nova-pro');
     expect(canonicalCall).toBeDefined();
     expect(canonicalCall![0]).not.toHaveProperty('provider');
-    // Also updates OpenRouter copy (preserves existing provider)
+    // Also updates the OpenRouter-hosted copy
     const orCall = mockUpsert.mock.calls.find((c) => c[0].model_name === 'amazon/nova-pro');
     expect(orCall).toBeDefined();
-    expect(orCall![0]).not.toHaveProperty('provider');
+    expect(orCall![0]).toMatchObject({ provider: 'OpenRouter' });
   });
 
   it('creates canonical entry for openrouter/auto even when not in seeder', async () => {
@@ -708,8 +902,7 @@ describe('PricingSyncService', () => {
     // Both canonical and OpenRouter copy upserted with context_window
     const orCall = mockUpsert.mock.calls.find((call) => call[0].model_name === 'openai/gpt-4o');
     expect(orCall).toBeDefined();
-    expect(orCall![0]).toMatchObject({ context_window: 128000 });
-    expect(orCall![0]).not.toHaveProperty('provider');
+    expect(orCall![0]).toMatchObject({ context_window: 128000, provider: 'OpenRouter' });
   });
 
   it('stores context_length as context_window for existing models', async () => {
@@ -774,10 +967,10 @@ describe('PricingSyncService', () => {
     expect(orCall).toBeDefined();
     expect(orCall![0]).toMatchObject({
       model_name: 'anthropic/claude-opus-4',
+      provider: 'OpenRouter',
       input_price_per_token: 0.000015,
       output_price_per_token: 0.000075,
     });
-    expect(orCall![0]).not.toHaveProperty('provider');
   });
 
   it('logs warning when OpenRouter copy upsert fails with Error', async () => {
@@ -981,19 +1174,16 @@ describe('PricingSyncService', () => {
     );
     expect(canonicalCall).toBeDefined();
     expect(canonicalCall![0]).not.toHaveProperty('provider');
-    // Also updates OpenRouter copy (preserves existing provider)
+    // Also updates the OpenRouter-hosted copy
     const orCall = mockUpsert.mock.calls.find(
       (call) => call[0].model_name === 'qwen/qwen3-235b-a22b',
     );
     expect(orCall).toBeDefined();
-    expect(orCall![0]).not.toHaveProperty('provider');
+    expect(orCall![0]).toMatchObject({ provider: 'OpenRouter' });
   });
 
-  it('skips OpenRouter copy when copy does not exist in DB', async () => {
-    // Canonical model exists, but OpenRouter copy does not
-    mockFindOneBy
-      .mockResolvedValueOnce({ model_name: 'gpt-4o', provider: 'OpenAI' }) // canonical
-      .mockResolvedValueOnce(null); // OR copy lookup
+  it('creates OpenRouter copy when copy does not exist in DB', async () => {
+    mockFindOneBy.mockResolvedValueOnce({ model_name: 'gpt-4o', provider: 'OpenAI' });
 
     mockFetch.mockResolvedValue({
       ok: true,
@@ -1003,11 +1193,17 @@ describe('PricingSyncService', () => {
     });
 
     await service.syncPricing();
-    // Only canonical upsert, no OpenRouter copy
-    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
     expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ model_name: 'gpt-4o' }), [
       'model_name',
     ]);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model_name: 'openai/gpt-4o',
+        provider: 'OpenRouter',
+      }),
+      ['model_name'],
+    );
   });
 
   it('updates existing OpenRouter copy pricing', async () => {
@@ -1026,9 +1222,9 @@ describe('PricingSyncService', () => {
     const orCall = mockUpsert.mock.calls.find((c) => c[0].model_name === 'openai/gpt-4o');
     expect(orCall).toBeDefined();
     expect(orCall![0]).toMatchObject({
+      provider: 'OpenRouter',
       input_price_per_token: 0.000005,
       output_price_per_token: 0.00002,
     });
-    expect(orCall![0]).not.toHaveProperty('provider');
   });
 });
