@@ -350,18 +350,29 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
   });
 
   function createMockApi() {
-    let startFn: (() => Promise<void>) | null = null;
+    let startFn: (() => void) | null = null;
+    let stopFn: (() => Promise<void>) | null = null;
     return {
       config: {},
       registerProvider: jest.fn(),
       registerService: jest.fn(
-        (svc: { start: () => Promise<void> }) => {
+        (svc: { start: () => void; stop: () => Promise<void> }) => {
           startFn = svc.start;
+          stopFn = svc.stop;
         },
       ),
       registerTool: jest.fn(),
       getStartFn: () => startFn,
+      getStopFn: () => stopFn,
     };
+  }
+
+  /** Flush the fire-and-forget async IIFE that starts the server */
+  async function flushServerStart() {
+    // Allow all microtasks (the async IIFE chain) to settle
+    await new Promise((r) => setImmediate(r));
+    // Extra tick for nested awaits (e.g. checkExistingServer inside catch)
+    await new Promise((r) => setImmediate(r));
   }
 
   it("skips embedded server when existing server is detected proactively", async () => {
@@ -369,12 +380,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
-
-    const startFn = api.getStartFn();
-    expect(startFn).not.toBeNull();
-
-    jest.clearAllMocks();
-    await startFn!();
+    await flushServerStart();
 
     expect(mockLogger.info).toHaveBeenCalledWith(
       expect.stringContaining("Reusing existing server"),
@@ -394,12 +400,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
-
-    const startFn = api.getStartFn();
-    expect(startFn).not.toBeNull();
-
-    jest.clearAllMocks();
-    await startFn!();
+    await flushServerStart();
 
     expect(mockLogger.info).toHaveBeenCalledWith(
       expect.stringContaining("Reusing existing server"),
@@ -416,10 +417,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
-
-    const startFn = api.getStartFn();
-    jest.clearAllMocks();
-    await startFn!();
+    await flushServerStart();
 
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.stringContaining("already in use by another process"),
@@ -432,10 +430,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
-
-    const startFn = api.getStartFn();
-    jest.clearAllMocks();
-    await startFn!();
+    await flushServerStart();
 
     expect(mockLogger.info).toHaveBeenCalledWith(
       expect.stringContaining("Local server running"),
@@ -457,10 +452,7 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
-
-    const startFn = api.getStartFn();
-    jest.clearAllMocks();
-    await startFn!();
+    await flushServerStart();
 
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.stringContaining("Failed to start local server"),
@@ -472,22 +464,73 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
   it("shuts down telemetry on service stop", async () => {
     const { shutdownTelemetry } = require("../src/telemetry");
-    let stopFn: (() => Promise<void>) | null = null;
 
-    const api = {
-      config: {},
-      registerProvider: jest.fn(),
-      registerService: jest.fn((svc: { stop: () => Promise<void> }) => {
-        stopFn = svc.stop;
-      }),
-      registerTool: jest.fn(),
-    };
-
+    const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
+
+    const stopFn = api.getStopFn();
     expect(stopFn).not.toBeNull();
 
     await stopFn!();
     expect(shutdownTelemetry).toHaveBeenCalledWith(mockLogger);
+  });
+
+  it("starts server immediately during registerLocalMode without service lifecycle", async () => {
+    globalThis.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
+    mockServerStart.mockResolvedValue(undefined);
+
+    const api = createMockApi();
+    registerLocalMode(api, testConfig, mockLogger);
+
+    // Server start is fire-and-forget — flush microtasks
+    await flushServerStart();
+
+    // Server started without ever calling the service's start() callback
+    expect(mockServerStart).toHaveBeenCalledWith({
+      port: 2099,
+      host: "127.0.0.1",
+      dbPath: expect.stringContaining("manifest.db"),
+      quiet: true,
+    });
+
+    // The service's start() was never called by us — verifies the fix
+    const startFn = api.getStartFn();
+    expect(startFn).toBeDefined();
+  });
+
+  it("server starts even if registerService start() is never called", async () => {
+    globalThis.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
+    mockServerStart.mockResolvedValue(undefined);
+
+    const api = createMockApi();
+    registerLocalMode(api, testConfig, mockLogger);
+
+    // Simulate the bug: do NOT call api.getStartFn()()
+    await flushServerStart();
+
+    // Server should have started anyway (this is the fix)
+    expect(mockServerStart).toHaveBeenCalled();
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      expect.stringContaining("Local server running"),
+    );
+  });
+
+  it("service start callback is a no-op", async () => {
+    globalThis.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
+    mockServerStart.mockResolvedValue(undefined);
+
+    const api = createMockApi();
+    registerLocalMode(api, testConfig, mockLogger);
+    await flushServerStart();
+
+    // Clear to isolate the start() call
+    mockServerStart.mockClear();
+
+    // Calling start() should do nothing (no duplicate server start)
+    const startFn = api.getStartFn();
+    startFn!();
+
+    expect(mockServerStart).not.toHaveBeenCalled();
   });
 
   it("calls registerCommand with localConfig", () => {
