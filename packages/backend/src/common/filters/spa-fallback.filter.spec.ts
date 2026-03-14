@@ -1,15 +1,12 @@
 import { NotFoundException } from '@nestjs/common';
-import { SpaFallbackFilter } from './spa-fallback.filter';
 
-// Mock fs.existsSync to control indexPath resolution
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  existsSync: jest.fn(),
+jest.mock('../utils/frontend-path', () => ({
+  resolveFrontendDir: jest.fn(),
 }));
 
-import { existsSync } from 'fs';
+import { resolveFrontendDir } from '../utils/frontend-path';
 
-const mockExistsSync = existsSync as jest.MockedFunction<typeof existsSync>;
+const mockResolveFrontendDir = resolveFrontendDir as jest.MockedFunction<typeof resolveFrontendDir>;
 
 function createMockHost(method: string, url: string) {
   const json = jest.fn();
@@ -24,6 +21,7 @@ function createMockHost(method: string, url: string) {
         getRequest: () => req,
         getResponse: () => res,
       }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
     req,
     res,
@@ -33,18 +31,30 @@ function createMockHost(method: string, url: string) {
 describe('SpaFallbackFilter', () => {
   const exception = new NotFoundException();
 
+  // Must re-import after mock setup to pick up the mocked module
+  function loadFilter() {
+    jest.resetModules();
+    jest.mock('../utils/frontend-path', () => ({
+      resolveFrontendDir: mockResolveFrontendDir,
+    }));
+    const { SpaFallbackFilter } =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('./spa-fallback.filter') as typeof import('./spa-fallback.filter');
+    return new SpaFallbackFilter();
+  }
+
   describe('when index.html exists', () => {
-    let filter: SpaFallbackFilter;
+    let filter: ReturnType<typeof loadFilter>;
 
     beforeEach(() => {
-      mockExistsSync.mockReturnValue(true);
-      filter = new SpaFallbackFilter();
+      mockResolveFrontendDir.mockReturnValue('/mock/frontend');
+      filter = loadFilter();
     });
 
     it('serves index.html for GET to a deep SPA route', () => {
       const { host, res } = createMockHost('GET', '/agents/foo/routing');
       filter.catch(exception, host);
-      expect(res.sendFile).toHaveBeenCalledWith(expect.stringContaining('index.html'));
+      expect(res.sendFile).toHaveBeenCalledWith('/mock/frontend/index.html');
       expect(res.status).not.toHaveBeenCalled();
     });
 
@@ -78,11 +88,11 @@ describe('SpaFallbackFilter', () => {
   });
 
   describe('when index.html does not exist', () => {
-    let filter: SpaFallbackFilter;
+    let filter: ReturnType<typeof loadFilter>;
 
     beforeEach(() => {
-      mockExistsSync.mockReturnValue(false);
-      filter = new SpaFallbackFilter();
+      mockResolveFrontendDir.mockReturnValue(null);
+      filter = loadFilter();
     });
 
     it('returns JSON 404 even for GET to a deep SPA route', () => {
