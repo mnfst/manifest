@@ -242,12 +242,11 @@ export class TimeseriesQueriesService {
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
-      .leftJoin('model_pricing', 'mp', 'at.model = mp.model_name')
       .select('at.id', 'id')
       .addSelect('at.timestamp', 'timestamp')
       .addSelect('at.agent_name', 'agent_name')
       .addSelect('at.model', 'model')
-      .addSelect("COALESCE(NULLIF(mp.display_name, ''), at.model)", 'display_name')
+      .addSelect('at.model', 'display_name')
       .addSelect('at.input_tokens', 'input_tokens')
       .addSelect('at.output_tokens', 'output_tokens')
       .addSelect('at.status', 'status')
@@ -271,9 +270,8 @@ export class TimeseriesQueriesService {
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
-      .leftJoin('model_pricing', 'mp', 'at.model = mp.model_name')
       .select("COALESCE(at.model, 'unknown')", 'model')
-      .addSelect("COALESCE(NULLIF(mp.display_name, ''), at.model)", 'display_name')
+      .addSelect('at.model', 'display_name')
       .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
       .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'estimated_cost')
       .addSelect('at.auth_type', 'auth_type')
@@ -284,7 +282,6 @@ export class TimeseriesQueriesService {
     const rows = await qb
       .groupBy('at.model')
       .addGroupBy('at.auth_type')
-      .addGroupBy('mp.display_name')
       .orderBy('tokens', 'DESC')
       .getRawMany();
 
