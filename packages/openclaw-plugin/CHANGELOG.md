@@ -1,5 +1,11 @@
 # manifest
 
+## 5.25.1
+
+### Patch Changes
+
+- 6376414: Fix local mode server not starting (ERR_CONNECTION_REFUSED on port 2099)
+
 ## 5.25.0
 
 ### Minor Changes
