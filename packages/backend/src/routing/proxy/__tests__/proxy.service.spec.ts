@@ -7,6 +7,7 @@ import { ProviderClient } from '../provider-client';
 import { SessionMomentumService } from '../session-momentum.service';
 import { LimitCheckService } from '../../../notifications/services/limit-check.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
+import { shouldTriggerFallback } from '../fallback-status-codes';
 
 describe('ProxyService', () => {
   let service: ProxyService;
@@ -1615,7 +1616,7 @@ describe('ProxyService', () => {
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
 
       expect(result.forward.response.ok).toBe(false);
-      expect(result.forward.response.status).toBe(500);
+      expect(result.forward.response.status).toBe(424);
       expect(result.failedFallbacks).toHaveLength(1);
       expect(result.failedFallbacks![0]).toEqual({
         model: 'deepseek-chat',
@@ -1624,6 +1625,46 @@ describe('ProxyService', () => {
         status: 504,
         errorBody: 'gateway timeout',
       });
+    });
+
+    it('returns non-retriable 424 status when all fallbacks are exhausted', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.5,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('rate limited', { status: 429 }),
+          isGoogle: false,
+          isAnthropic: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('overloaded', { status: 503 }),
+          isGoogle: false,
+          isAnthropic: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('server error', { status: 500 }),
+          isGoogle: false,
+          isAnthropic: false,
+        });
+
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['claude-sonnet-4', 'deepseek-chat'] },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(result.forward.response.status).toBe(424);
+      expect(shouldTriggerFallback(result.forward.response.status)).toBe(false);
+      expect(result.failedFallbacks).toHaveLength(2);
     });
   });
 });

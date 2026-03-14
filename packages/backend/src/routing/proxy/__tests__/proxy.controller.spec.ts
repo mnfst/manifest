@@ -106,7 +106,9 @@ describe('ProxyController', () => {
       convertAnthropicStreamChunk: jest.fn(),
     };
     mockMessageManager = {
-      transaction: jest.fn(async (cb: (manager: unknown) => Promise<unknown>) => cb(mockMessageManager)),
+      transaction: jest.fn(async (cb: (manager: unknown) => Promise<unknown>) =>
+        cb(mockMessageManager),
+      ),
       getRepository: jest.fn(),
       query: jest.fn().mockResolvedValue([]),
       connection: { options: { type: 'sqlite' } },
@@ -523,13 +525,11 @@ describe('ProxyController', () => {
     const insertGate = new Promise<void>((resolve) => {
       releaseInsert = resolve;
     });
-    mockMessageRepo.findOne
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce({
-        id: 'existing-otlp-row',
-        input_tokens: 500,
-        output_tokens: 200,
-      });
+    mockMessageRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce({
+      id: 'existing-otlp-row',
+      input_tokens: 500,
+      output_tokens: 200,
+    });
     mockMessageRepo.insert.mockImplementationOnce(async () => {
       await insertGate;
       return {};
@@ -2541,7 +2541,7 @@ describe('ProxyController', () => {
 
     it('should record failed fallback attempts as separate messages', async () => {
       const mockProviderResp = new Response('primary error', {
-        status: 400,
+        status: 424,
         headers: { 'Content-Type': 'text/plain' },
       });
 
@@ -2566,7 +2566,7 @@ describe('ProxyController', () => {
       });
 
       const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
-      const { res } = mockResponse();
+      const { res, headers } = mockResponse();
 
       await controller.chatCompletions(req as never, res as never);
       await new Promise((r) => setTimeout(r, 10));
@@ -2589,13 +2589,19 @@ describe('ProxyController', () => {
           error_message: 'auth fail',
         }),
       );
+      expect(headers['X-Manifest-Fallback-Exhausted']).toBe('true');
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.objectContaining({ type: 'fallback_exhausted' }),
+        }),
+      );
     });
 
     it('should handle DB failure in recordFailedFallbacks when all fallbacks fail', async () => {
       mockMessageRepo.insert.mockRejectedValue(new Error('DB write failed'));
 
       const mockProviderResp = new Response('primary error', {
-        status: 500,
+        status: 424,
         headers: { 'Content-Type': 'text/plain' },
       });
 
@@ -2626,14 +2632,15 @@ describe('ProxyController', () => {
       await controller.chatCompletions(req as never, res as never);
       await new Promise((r) => setTimeout(r, 50));
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        error: {
-          message: 'Upstream provider internal error',
-          type: 'upstream_error',
-          status: 500,
-        },
-      });
+      expect(res.status).toHaveBeenCalledWith(424);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            type: 'fallback_exhausted',
+            status: 424,
+          }),
+        }),
+      );
     });
 
     it('should handle DB failure in recordPrimaryFailure on successful fallback', async () => {
@@ -2716,7 +2723,7 @@ describe('ProxyController', () => {
 
     it('should mark intermediate failures as handled when all fallbacks fail', async () => {
       const mockProviderResp = new Response('primary error', {
-        status: 500,
+        status: 424,
         headers: { 'Content-Type': 'text/plain' },
       });
 
@@ -2780,7 +2787,7 @@ describe('ProxyController', () => {
 
   it('should pass authType to recordFailedFallbacks when all fallbacks fail', async () => {
     const mockProviderResp = new Response('primary error', {
-      status: 500,
+      status: 424,
       headers: { 'Content-Type': 'text/plain' },
     });
 
@@ -2826,6 +2833,122 @@ describe('ProxyController', () => {
         auth_type: 'subscription',
       }),
     );
+  });
+
+  it('should return 424 with fallback_exhausted type and X-Manifest-Fallback-Exhausted header', async () => {
+    const mockProviderResp = new Response('primary error', {
+      status: 424,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+      failedFallbacks: [
+        {
+          model: 'claude-sonnet-4',
+          provider: 'Anthropic',
+          fallbackIndex: 0,
+          status: 503,
+          errorBody: 'overloaded',
+        },
+        {
+          model: 'deepseek-chat',
+          provider: 'DeepSeek',
+          fallbackIndex: 1,
+          status: 500,
+          errorBody: 'server error',
+        },
+      ],
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res, headers } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(424);
+    expect(headers['X-Manifest-Fallback-Exhausted']).toBe('true');
+    expect(res.json).toHaveBeenCalledWith({
+      error: expect.objectContaining({
+        type: 'fallback_exhausted',
+        status: 424,
+        primary_model: 'gpt-4o',
+        primary_provider: 'OpenAI',
+        attempted_fallbacks: [
+          { model: 'claude-sonnet-4', provider: 'Anthropic', status: 503 },
+          { model: 'deepseek-chat', provider: 'DeepSeek', status: 500 },
+        ],
+      }),
+    });
+  });
+
+  it('should NOT set X-Manifest-Fallback-Exhausted when error has no failed fallbacks', async () => {
+    const mockProviderResp = new Response('bad request', {
+      status: 400,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o-mini',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res, headers } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(headers['X-Manifest-Fallback-Exhausted']).toBeUndefined();
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.objectContaining({ type: 'upstream_error' }),
+      }),
+    );
+  });
+
+  it('should NOT set X-Manifest-Fallback-Exhausted when a fallback succeeded', async () => {
+    const responseBody = { choices: [{ message: { content: 'hello' } }] };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'deepseek-chat',
+        provider: 'DeepSeek',
+        confidence: 0.8,
+        reason: 'scored',
+        fallbackFromModel: 'gemini-flash',
+        fallbackIndex: 0,
+        primaryErrorStatus: 500,
+        primaryErrorBody: 'primary failed',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res, headers } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(headers['X-Manifest-Fallback-Exhausted']).toBeUndefined();
   });
 
   describe('auth_type and subscription cost', () => {
