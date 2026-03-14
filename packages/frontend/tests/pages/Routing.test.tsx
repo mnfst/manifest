@@ -884,7 +884,7 @@ describe("Routing — fallback management", () => {
 
   it("opens fallback picker when Add fallback is clicked", async () => {
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
+    const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]);
     // The model picker modal should open
     expect(await screen.findByText("Select a model")).toBeDefined();
@@ -892,7 +892,7 @@ describe("Routing — fallback management", () => {
 
   it("calls setFallbacks when a fallback model is picked", async () => {
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
+    const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]); // simple tier
     await screen.findByText("Select a model");
 
@@ -918,8 +918,8 @@ describe("Routing — fallback management", () => {
     ]);
 
     const { container } = render(() => <Routing />);
-    // Simple tier has 1 fallback, so it shows the standalone "+ Add fallback" button (not inside empty state)
-    await screen.findAllByText("+ Add fallback");
+    // Simple tier has 1 fallback, so it shows the standalone "Add fallback" button (not inside empty state)
+    await screen.findAllByText("Add fallback");
     const standaloneAddBtn = container.querySelector(".fallback-list__add:not(.fallback-list__empty .fallback-list__add)") as HTMLButtonElement;
     fireEvent.click(standaloneAddBtn);
     await screen.findByText("Select a model");
@@ -933,7 +933,7 @@ describe("Routing — fallback management", () => {
     let resolveSetFallbacks: () => void;
     vi.mocked(setFallbacks).mockReturnValueOnce(new Promise<void>((r) => { resolveSetFallbacks = r; }) as any);
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
+    const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]); // simple tier
     await screen.findByText("Select a model");
 
@@ -952,7 +952,7 @@ describe("Routing — fallback management", () => {
   it("handles setFallbacks error gracefully and rolls back optimistic state", async () => {
     vi.mocked(setFallbacks).mockRejectedValueOnce(new Error("fail"));
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
+    const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]);
     await screen.findByText("Select a model");
 
@@ -1020,7 +1020,7 @@ describe("Routing — fallback management", () => {
 
   it("closes fallback picker when close button is clicked", async () => {
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
+    const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
 

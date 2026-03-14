@@ -301,7 +301,23 @@ const FallbackList: Component<FallbackListProps> = (props) => {
               onClick={props.onAddFallback}
               disabled={props.adding}
             >
-              {props.adding ? <span class="spinner" /> : '+ Add fallback'}
+              {props.adding ? (
+                <span class="spinner" />
+              ) : (
+                <>
+                  <svg
+                    width="16"
+                    height="16"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="m7.12,20.57c.2.23.55.23.75,0l2.4-2.74c.28-.32.05-.83-.38-.83h-1.9V3.5c0-.28-.22-.5-.5-.5s-.5.22-.5.5v13.5h-1.9c-.43,0-.66.51-.38.83l2.4,2.74Z" />
+                    <path d="m14.1,7h1.9v13.5c0,.28.22.5.5.5s.5-.22.5-.5V7h1.9c.43,0,.66-.51.38-.83l-2.4-2.74c-.2-.23-.55-.23-.75,0l-2.4,2.74c-.28.32-.05.83.38.83Z" />
+                  </svg>
+                  Add fallback
+                </>
+              )}
             </button>
           </div>
         }
@@ -312,7 +328,23 @@ const FallbackList: Component<FallbackListProps> = (props) => {
             onClick={props.onAddFallback}
             disabled={props.adding || removingIndex() !== null}
           >
-            {props.adding ? <span class="spinner" /> : '+ Add fallback'}
+            {props.adding ? (
+              <span class="spinner" />
+            ) : (
+              <>
+                <svg
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="m7.12,20.57c.2.23.55.23.75,0l2.4-2.74c.28-.32.05-.83-.38-.83h-1.9V3.5c0-.28-.22-.5-.5-.5s-.5.22-.5.5v13.5h-1.9c-.43,0-.66.51-.38.83l2.4,2.74Z" />
+                  <path d="m14.1,7h1.9v13.5c0,.28.22.5.5.5s.5-.22.5-.5V7h1.9c.43,0,.66-.51.38-.83l-2.4-2.74c-.2-.23-.55-.23-.75,0l-2.4,2.74c-.28.32-.05.83.38.83Z" />
+                </svg>
+                Add fallback
+              </>
+            )}
           </button>
         </Show>
       </Show>

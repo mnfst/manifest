@@ -393,11 +393,20 @@ const ProviderSelectModal: Component<Props> = (props) => {
                 </For>
                 <div class="provider-modal__request-sub">
                   <a
-                    class="provider-modal__request-sub-btn"
+                    class="btn btn--outline btn--sm provider-modal__request-sub-btn"
                     href="https://github.com/mnfst/manifest/discussions/973"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
+                    <svg
+                      width="16"
+                      height="16"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path d="m18.5,9h-1.5v-3.5c0-1.38-1.12-2.5-2.5-2.5H5.5c-1.38,0-2.5,1.12-2.5,2.5v6c0,1.38,1.12,2.5,2.5,2.5h.5v1.5c0,.38.21.73.56.9.14.07.29.11.45.11.21,0,.42-.07.6-.2l2.4-1.8v1c0,1.38,1.12,2.5,2.5,2.5h1.83l3.06,2.3c.18.13.39.2.6.2.15,0,.3-.03.44-.11.34-.17.56-.51.56-.9v-1.55c.48-.1.92-.33,1.26-.68.48-.47.74-1.09.74-1.77v-4c0-1.38-1.12-2.5-2.5-2.5Zm-11.5,6.5v-2c0-.28-.22-.5-.5-.5h-1c-.83,0-1.5-.67-1.5-1.5v-6c0-.83.67-1.5,1.5-1.5h9c.83,0,1.5.67,1.5,1.5v6c0,.83-.67,1.5-1.5,1.5h-4c-.1,0-.19.04-.27.09,0,0-.02,0-.03.01l-3.2,2.4Zm13,0c0,.4-.16.78-.45,1.06-.28.28-.65.44-1.05.44-.28,0-.5.22-.5.5v2l-3.2-2.4c-.09-.06-.19-.1-.3-.1h-2c-.83,0-1.5-.67-1.5-1.5v-1.5h3.5c1.38,0,2.5-1.12,2.5-2.5v-1.5h1.5c.83,0,1.5.67,1.5,1.5v4Z" />
+                    </svg>
                     Request another provider
                   </a>
                 </div>
@@ -478,7 +487,10 @@ const ProviderSelectModal: Component<Props> = (props) => {
                   }}
                 </For>
                 <div class="provider-modal__add-custom">
-                  <button class="provider-modal__add-custom-btn" onClick={openCustomForm}>
+                  <button
+                    class="btn btn--outline btn--sm provider-modal__add-custom-btn"
+                    onClick={openCustomForm}
+                  >
                     <svg
                       width="16"
                       height="16"
