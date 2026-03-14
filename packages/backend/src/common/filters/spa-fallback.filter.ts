@@ -1,12 +1,7 @@
-import {
-  ExceptionFilter,
-  Catch,
-  NotFoundException,
-  ArgumentsHost,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, NotFoundException, ArgumentsHost } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { join } from 'path';
-import { existsSync } from 'fs';
+import { resolveFrontendDir } from '../utils/frontend-path';
 
 const API_PREFIXES = ['/api/', '/otlp/', '/v1/'];
 
@@ -15,11 +10,8 @@ export class SpaFallbackFilter implements ExceptionFilter {
   private readonly indexPath: string | null;
 
   constructor() {
-    const frontendDir =
-      process.env['MANIFEST_FRONTEND_DIR'] ||
-      join(__dirname, '..', '..', '..', '..', 'frontend', 'dist');
-    const candidate = join(frontendDir, 'index.html');
-    this.indexPath = existsSync(candidate) ? candidate : null;
+    const frontendDir = resolveFrontendDir();
+    this.indexPath = frontendDir ? join(frontendDir, 'index.html') : null;
   }
 
   catch(exception: NotFoundException, host: ArgumentsHost) {
