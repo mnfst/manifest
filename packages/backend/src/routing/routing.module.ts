@@ -6,9 +6,9 @@ import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
-import { ModelPricing } from '../entities/model-pricing.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
+import { ModelDiscoveryModule } from './model-discovery/model-discovery.module';
 import { OtlpAuthGuard } from '../otlp/guards/otlp-auth.guard';
 import { RoutingController } from './routing.controller';
 import { CustomProviderController } from './custom-provider.controller';
@@ -36,10 +36,10 @@ import { NotificationsModule } from '../notifications/notifications.module';
       Tenant,
       AgentApiKey,
       AgentMessage,
-      ModelPricing,
       CustomProvider,
     ]),
     ModelPricesModule,
+    ModelDiscoveryModule,
     NotificationsModule,
   ],
   controllers: [RoutingController, CustomProviderController, ResolveController, ProxyController],

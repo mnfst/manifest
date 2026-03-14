@@ -225,13 +225,13 @@ describe('ResolveService', () => {
   });
 
   describe('resolveForTier provider inference fallback', () => {
-    it('should infer provider from pricing.model_name when model has no prefix', async () => {
+    it('should use pricing.provider when model has no prefix', async () => {
       mockRoutingService.getTiers.mockResolvedValue([
         { tier: 'simple', override_model: null, auto_assigned_model: 'gpt-4o-mini' },
       ]);
       mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
       // model 'gpt-4o-mini' has no slash → inferProviderFromModelName returns undefined
-      // pricing.model_name has vendor prefix → inferProviderFromModelName returns 'openai'
+      // pricing.provider has the display name from the cache
       mockPricingCache.getByModel.mockReturnValue({
         model_name: 'openai/gpt-4o-mini',
         provider: 'OpenAI',
@@ -239,7 +239,7 @@ describe('ResolveService', () => {
 
       const result = await service.resolveForTier('agent-1', 'simple');
 
-      expect(result.provider).toBe('openai');
+      expect(result.provider).toBe('OpenAI');
     });
 
     it('should fall back to pricing.provider when no model name has a prefix', async () => {

@@ -1,14 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ModuleRef } from '@nestjs/core';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, MoreThan, Repository } from 'typeorm';
-import { ModelPricing } from '../entities/model-pricing.entity';
-import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
-import { PricingHistoryService } from './pricing-history.service';
-import { UnresolvedModelTrackerService } from '../model-prices/unresolved-model-tracker.service';
-import { ManifestRuntimeService } from '../common/services/manifest-runtime.service';
-import { sqlNow } from '../common/utils/sql-dialect';
 
 interface OpenRouterModel {
   id: string;
@@ -28,6 +19,13 @@ interface OpenRouterResponse {
   data: OpenRouterModel[];
 }
 
+export interface OpenRouterPricingEntry {
+  input: number;
+  output: number;
+  contextWindow?: number;
+  displayName?: string;
+}
+
 const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   anthropic: 'Anthropic',
   openai: 'OpenAI',
@@ -41,105 +39,77 @@ const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   'meta-llama': 'Meta',
   cohere: 'Cohere',
   xai: 'xAI',
-  'x-ai': 'xAI',
   minimax: 'MiniMax',
   'z-ai': 'Z.ai',
   openrouter: 'OpenRouter',
 };
 
-const SUPPORTED_PREFIXES = new Set(Object.keys(PROVIDER_DISPLAY_NAMES));
-
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/models';
-
-const FRESHNESS_HOURS = 12;
 
 @Injectable()
 export class PricingSyncService implements OnModuleInit {
   private readonly logger = new Logger(PricingSyncService.name);
-
-  constructor(
-    @InjectRepository(ModelPricing)
-    private readonly pricingRepo: Repository<ModelPricing>,
-    private readonly pricingCache: ModelPricingCacheService,
-    private readonly pricingHistory: PricingHistoryService,
-    private readonly unresolvedTracker: UnresolvedModelTrackerService,
-    private readonly moduleRef: ModuleRef,
-    private readonly runtime: ManifestRuntimeService,
-  ) {}
+  private cache = new Map<string, OpenRouterPricingEntry>();
+  private lastFetchedAt: Date | null = null;
 
   async onModuleInit(): Promise<void> {
-    // In local mode, LocalBootstrapService orchestrates the sync + purge chain.
-    if (this.runtime.isLocalMode()) return;
-
-    const cutoff = new Date(Date.now() - FRESHNESS_HOURS * 3600_000);
-    const recent = await this.pricingRepo.count({
-      where: { updated_at: MoreThan(cutoff) },
-    });
-    if (recent > 0) {
-      this.logger.log('Pricing data is fresh — skipping startup sync');
-      return;
-    }
-    this.syncPricing().catch((err) => {
-      this.logger.error(`Startup pricing sync failed: ${err}`);
+    this.refreshCache().catch((err) => {
+      this.logger.error(`Startup OpenRouter cache refresh failed: ${err}`);
     });
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
-  async syncPricing(): Promise<number> {
-    this.logger.log('Starting daily model pricing sync from OpenRouter...');
-
-    const modelsBefore = new Set(this.pricingCache.getAll().map((m) => m.model_name));
-
+  async refreshCache(): Promise<number> {
+    this.logger.log('Refreshing OpenRouter pricing cache...');
     const data = await this.fetchOpenRouterModels();
     if (!data) return 0;
 
-    const compatibleModels: OpenRouterModel[] = [];
-    const compatibleCanonicals = new Set<string>();
+    const newCache = new Map<string, OpenRouterPricingEntry>();
+    let count = 0;
+
     for (const model of data) {
       if (!this.isChatCompatible(model)) continue;
-      compatibleModels.push(model);
-      const { canonical } = this.deriveNames(model.id);
-      compatibleCanonicals.add(canonical);
-    }
+      if (!model.pricing) continue;
 
-    const incompatibleNames = new Set<string>();
-    for (const model of data) {
-      if (this.isChatCompatible(model)) continue;
+      const prompt = Number(model.pricing.prompt ?? 0);
+      const completion = Number(model.pricing.completion ?? 0);
+      if (!Number.isFinite(prompt) || !Number.isFinite(completion)) continue;
+      if (prompt < 0 || completion < 0) continue;
 
       const { canonical } = this.deriveNames(model.id);
-      if (!compatibleCanonicals.has(canonical)) {
-        incompatibleNames.add(canonical);
+      const displayName = this.extractDisplayName(model);
+      const entry: OpenRouterPricingEntry = {
+        input: prompt,
+        output: completion,
+        contextWindow: model.context_length ?? undefined,
+        displayName: displayName || undefined,
+      };
+
+      // Store under canonical name (e.g. "claude-opus-4-6")
+      if (!newCache.has(canonical)) {
+        newCache.set(canonical, entry);
       }
-      incompatibleNames.add(model.id);
+      // Also store under full OpenRouter ID (e.g. "anthropic/claude-opus-4-6")
+      newCache.set(model.id, entry);
+      count++;
     }
 
-    const updated = await this.syncAllModels(compatibleModels);
-    await this.resolveUnresolvedModels(compatibleModels);
-    await this.removeUnsupportedModels(incompatibleNames);
+    this.cache = newCache;
+    this.lastFetchedAt = new Date();
+    this.logger.log(`OpenRouter pricing cache loaded: ${count} models`);
+    return count;
+  }
 
-    this.logger.log(`Pricing sync complete: ${updated} models updated`);
-    if (updated > 0) {
-      await this.pricingCache.reload();
-    }
+  lookupPricing(modelId: string): OpenRouterPricingEntry | null {
+    return this.cache.get(modelId) ?? null;
+  }
 
-    // Detect removed models and invalidate routing overrides
-    const modelsAfter = new Set(this.pricingCache.getAll().map((m) => m.model_name));
-    const removed = [...modelsBefore].filter((m) => !modelsAfter.has(m));
+  getAll(): Map<string, OpenRouterPricingEntry> {
+    return this.cache;
+  }
 
-    if (removed.length > 0) {
-      this.logger.warn(`Models removed after sync: ${removed.join(', ')}`);
-      try {
-        const { RoutingService } = await import('../routing/routing.service');
-        const routingService = this.moduleRef.get(RoutingService, {
-          strict: false,
-        });
-        await routingService.invalidateOverridesForRemovedModels(removed);
-      } catch (err) {
-        this.logger.error(`Failed to invalidate overrides: ${err}`);
-      }
-    }
-
-    return updated;
+  getLastFetchedAt(): Date | null {
+    return this.lastFetchedAt;
   }
 
   private async fetchOpenRouterModels(): Promise<OpenRouterModel[] | null> {
@@ -157,140 +127,8 @@ export class PricingSyncService implements OnModuleInit {
     }
   }
 
-  private async syncAllModels(data: OpenRouterModel[]): Promise<number> {
-    let updated = 0;
-    let failed = 0;
-    const now = new Date(sqlNow());
-
-    for (const model of data) {
-      try {
-        if (!model.pricing) continue;
-        const prompt = Number(model.pricing.prompt ?? 0);
-        const completion = Number(model.pricing.completion ?? 0);
-        if (!Number.isFinite(prompt) || !Number.isFinite(completion)) {
-          this.logger.warn(`Skipping ${model.id}: non-finite pricing`);
-          failed++;
-          continue;
-        }
-        if (prompt < 0 || completion < 0) {
-          this.logger.warn(`Skipping ${model.id}: negative pricing`);
-          failed++;
-          continue;
-        }
-
-        if (!model.id.startsWith('openrouter/')) {
-          const slashIdx = model.id.indexOf('/');
-          if (slashIdx === -1 || !SUPPORTED_PREFIXES.has(model.id.substring(0, slashIdx))) {
-            continue;
-          }
-        }
-
-        const { canonical, provider } = this.deriveNames(model.id);
-        const displayName = this.extractDisplayName(model);
-        const existing = await this.pricingRepo.findOneBy({
-          model_name: canonical,
-        });
-
-        const incoming = {
-          model_name: canonical,
-          provider,
-          input_price_per_token: prompt,
-          output_price_per_token: completion,
-        };
-        const contextWindow = model.context_length;
-
-        await this.pricingHistory.recordChange(existing, incoming, 'sync');
-
-        const hasVendorPrefix = model.id.includes('/') && !model.id.startsWith('openrouter/');
-
-        let upserted = false;
-        if (existing) {
-          // Seeded model — update pricing only, preserve provider
-          await this.pricingRepo.upsert(
-            {
-              model_name: canonical,
-              input_price_per_token: prompt,
-              output_price_per_token: completion,
-              ...(contextWindow != null && { context_window: contextWindow }),
-              ...(displayName && { display_name: displayName }),
-              updated_at: now,
-            },
-            ['model_name'],
-          );
-          upserted = true;
-        } else if (hasVendorPrefix) {
-          // No seeded entry — create canonical model with proper provider
-          await this.pricingRepo.upsert(
-            {
-              model_name: canonical,
-              provider,
-              input_price_per_token: prompt,
-              output_price_per_token: completion,
-              ...(contextWindow != null && { context_window: contextWindow }),
-              ...(displayName && { display_name: displayName }),
-              updated_at: now,
-            },
-            ['model_name'],
-          );
-          upserted = true;
-        } else {
-          // No seeded entry — create canonical with correct provider name
-          await this.pricingRepo.upsert(
-            {
-              model_name: canonical,
-              provider,
-              input_price_per_token: prompt,
-              output_price_per_token: completion,
-              ...(contextWindow != null && { context_window: contextWindow }),
-              updated_at: now,
-            },
-            ['model_name'],
-          );
-          upserted = true;
-        }
-
-        // Store an OpenRouter-hosted copy with the full vendor-prefixed ID so
-        // the same model can be surfaced under both its native provider and OpenRouter.
-        if (hasVendorPrefix) {
-          try {
-            await this.pricingRepo.upsert(
-              {
-                model_name: model.id,
-                provider: 'OpenRouter',
-                input_price_per_token: prompt,
-                output_price_per_token: completion,
-                ...(contextWindow != null && { context_window: contextWindow }),
-                ...(displayName && { display_name: displayName }),
-                updated_at: now,
-              },
-              ['model_name'],
-            );
-            upserted = true;
-          } catch (copyErr) {
-            this.logger.warn(
-              `Failed to store OpenRouter copy for ${model.id}: ${copyErr instanceof Error ? copyErr.message : copyErr}`,
-            );
-          }
-        }
-        if (upserted) updated++;
-      } catch (err) {
-        failed++;
-        this.logger.warn(
-          `Failed to sync model ${model.id}: ${err instanceof Error ? err.message : err}`,
-        );
-      }
-    }
-
-    if (failed > 0) {
-      this.logger.warn(`Pricing sync: ${failed} models failed`);
-    }
-    return updated;
-  }
-
   extractDisplayName(model: OpenRouterModel): string {
     if (!model.name) return '';
-    // OpenRouter names look like "Vendor: Model Name (version)"
-    // Strip the vendor prefix (everything before and including ": ")
     const colonIdx = model.name.indexOf(': ');
     if (colonIdx !== -1) return model.name.substring(colonIdx + 2);
     return model.name;
@@ -320,7 +158,7 @@ export class PricingSyncService implements OnModuleInit {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  private isChatCompatible(model: OpenRouterModel): boolean {
+  isChatCompatible(model: OpenRouterModel): boolean {
     const inputModalities = model.architecture?.input_modalities?.map((m) => m.toLowerCase());
     if (inputModalities && inputModalities.length > 0 && !inputModalities.includes('text')) {
       return false;
@@ -332,66 +170,5 @@ export class PricingSyncService implements OnModuleInit {
     }
 
     return true;
-  }
-
-  private async removeUnsupportedModels(
-    incompatibleNames: ReadonlySet<string> = new Set(),
-  ): Promise<void> {
-    const all = await this.pricingRepo.find({ select: ['model_name', 'provider'] });
-    const toDelete: string[] = [];
-    for (const row of all) {
-      if (incompatibleNames.has(row.model_name)) {
-        toDelete.push(row.model_name);
-        continue;
-      }
-      if (row.provider === 'OpenRouter') continue;
-      const slashIdx = row.model_name.indexOf('/');
-      if (slashIdx === -1) continue;
-      const prefix = row.model_name.substring(0, slashIdx);
-      if (prefix === 'openrouter') continue;
-      if (prefix.startsWith('custom:')) continue;
-      if (!SUPPORTED_PREFIXES.has(prefix)) toDelete.push(row.model_name);
-    }
-    if (toDelete.length > 0) {
-      await this.pricingRepo.delete({ model_name: In(toDelete) });
-      this.logger.log(`Removed ${toDelete.length} models from unsupported providers`);
-    }
-  }
-
-  private async resolveUnresolvedModels(data: OpenRouterModel[]): Promise<void> {
-    const unresolved = await this.unresolvedTracker.getUnresolved();
-    if (unresolved.length === 0) return;
-
-    const knownNames = new Set<string>();
-    for (const model of data) {
-      const { canonical } = this.deriveNames(model.id);
-      knownNames.add(canonical);
-      // Also add the full vendor-prefixed ID (OpenRouter copy)
-      if (model.id.includes('/')) knownNames.add(model.id);
-    }
-
-    for (const entry of unresolved) {
-      const resolvedName = this.tryResolve(entry.model_name, knownNames);
-      if (resolvedName) {
-        await this.unresolvedTracker.markResolved(entry.model_name, resolvedName);
-      }
-    }
-  }
-
-  private tryResolve(modelName: string, knownNames: Set<string>): string | null {
-    if (knownNames.has(modelName)) return modelName;
-
-    const stripped = this.stripPrefix(modelName);
-    if (knownNames.has(stripped)) return stripped;
-
-    const noDate = stripped.replace(/-\d{4}-\d{2}-\d{2}$/, '');
-    if (noDate !== stripped && knownNames.has(noDate)) return noDate;
-
-    return null;
-  }
-
-  private stripPrefix(name: string): string {
-    const slashIndex = name.indexOf('/');
-    return slashIndex === -1 ? name : name.substring(slashIndex + 1);
   }
 }

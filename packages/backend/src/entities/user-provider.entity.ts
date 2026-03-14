@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
+import type { DiscoveredModel } from '../routing/model-discovery/model-fetcher';
 
 @Entity('user_providers')
 @Index(['agent_id', 'provider', 'auth_type'], { unique: true })
@@ -33,4 +34,10 @@ export class UserProvider {
 
   @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;
+
+  @Column('simple-json', { nullable: true, default: null })
+  cached_models!: DiscoveredModel[] | null;
+
+  @Column(timestampType(), { nullable: true, default: null })
+  models_fetched_at!: string | null;
 }

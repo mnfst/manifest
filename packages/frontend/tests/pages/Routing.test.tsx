@@ -45,13 +45,13 @@ vi.mock("../../src/services/api.js", () => ({
     { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
   ]),
   getAvailableModels: vi.fn().mockResolvedValue([
-    { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
-    { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
-    { model_name: "gpt-4o", provider: "OpenAI", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
-    { model_name: "gpt-3.5-turbo", provider: "OpenAI", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
-    { model_name: "claude-sonnet-4", provider: "Anthropic", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
-    { model_name: "gemini-pro", provider: "Google", input_price_per_token: 0.00000025, output_price_per_token: 0.0000005, context_window: 32000, capability_reasoning: false, capability_code: false },
-    { model_name: "claude-haiku-3.5", provider: "Anthropic", input_price_per_token: 0.0000008, output_price_per_token: 0.000004, context_window: 200000, capability_reasoning: false, capability_code: true },
+    { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+    { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
+    { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
+    { model_name: "claude-sonnet-4", provider: "Anthropic", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+    { model_name: "gemini-pro", provider: "Google", display_name: "Gemini Pro", input_price_per_token: 0.00000025, output_price_per_token: 0.0000005, context_window: 32000, capability_reasoning: false, capability_code: false },
+    { model_name: "claude-haiku-3.5", provider: "Anthropic", display_name: "Claude Haiku 3.5", input_price_per_token: 0.0000008, output_price_per_token: 0.000004, context_window: 200000, capability_reasoning: false, capability_code: true },
   ]),
   getProviders: (...args: unknown[]) => mockGetProviders(...args),
   connectProvider: vi.fn().mockResolvedValue({}),
@@ -793,7 +793,7 @@ describe("ModelPickerModal — custom providers and filtering", () => {
 
   it("resolves vendor-prefixed model names via labelForModel", () => {
     const models: AvailableModel[] = [
-      { model_name: "openai/gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "openai/gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
     ];
 
     render(() => (
@@ -807,7 +807,7 @@ describe("ModelPickerModal — custom providers and filtering", () => {
       />
     ));
 
-    // labelForModel strips vendor prefix "openai/" and looks up "gpt-4o-mini" → "GPT-4o Mini"
+    // display_name "GPT-4o Mini" is used as the label
     expect(screen.getByText("GPT-4o Mini")).toBeDefined();
   });
 });
@@ -877,8 +877,8 @@ describe("Routing — fallback management", () => {
       { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
-      { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
-      { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+      { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
     ]);
   });
 
@@ -1053,7 +1053,7 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
       { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
-      { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+      { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
     ]);
 
     render(() => <Routing />);
@@ -1073,7 +1073,7 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
       { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
-      { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+      { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
     ]);
 
     render(() => <Routing />);
@@ -1125,9 +1125,9 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
     ]);
 
     render(() => <Routing />);
-    // The model renders as its raw name since no PROVIDERS model matches
+    // getModelLabel falls back to formatModelSlug: "my-unknown-model" → "My Unknown Model"
     await waitFor(() => {
-      expect(screen.getByText("my-unknown-model")).toBeDefined();
+      expect(screen.getByText("My Unknown Model")).toBeDefined();
     });
   });
 

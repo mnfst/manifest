@@ -1,18 +1,17 @@
 import { TierAutoAssignService } from './tier-auto-assign.service';
-import { ModelPricing } from '../entities/model-pricing.entity';
+import { DiscoveredModel } from './model-discovery/model-fetcher';
 
-function makeModel(overrides: Partial<ModelPricing>): ModelPricing {
+function makeModel(overrides: Partial<DiscoveredModel>): DiscoveredModel {
   return {
-    model_name: 'test-model',
+    id: 'test-model',
+    displayName: 'Test Model',
     provider: 'TestProvider',
-    input_price_per_token: 0.00001,
-    output_price_per_token: 0.00003,
-    context_window: 128000,
-    capability_reasoning: false,
-    capability_code: false,
-    quality_score: 3,
-    display_name: '',
-    updated_at: null,
+    contextWindow: 128000,
+    inputPricePerToken: 0.00001,
+    outputPricePerToken: 0.00003,
+    capabilityReasoning: false,
+    capabilityCode: false,
+    qualityScore: 3,
     ...overrides,
   };
 }
@@ -29,20 +28,19 @@ function makeMockRepo() {
 
 describe('TierAutoAssignService', () => {
   let service: TierAutoAssignService;
-  let mockPricingCache: { getAll: jest.Mock; getByModel: jest.Mock };
+  let mockDiscoveryService: { getModelsForAgent: jest.Mock };
   let mockProviderRepo: ReturnType<typeof makeMockRepo>;
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
 
   beforeEach(() => {
-    mockPricingCache = {
-      getAll: jest.fn().mockReturnValue([]),
-      getByModel: jest.fn(),
+    mockDiscoveryService = {
+      getModelsForAgent: jest.fn().mockResolvedValue([]),
     };
     mockProviderRepo = makeMockRepo();
     mockTierRepo = makeMockRepo();
 
     service = new TierAutoAssignService(
-      mockPricingCache as never,
+      mockDiscoveryService as never,
       mockProviderRepo as never,
       mockTierRepo as never,
     );
@@ -55,9 +53,9 @@ describe('TierAutoAssignService', () => {
 
     it('should pick free models (e.g. local Ollama)', () => {
       const free = makeModel({
-        model_name: 'free',
-        input_price_per_token: 0,
-        output_price_per_token: 0,
+        id: 'free',
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
       });
       expect(service.pickBest([free], 'simple')!.model_name).toBe('free');
     });
@@ -66,16 +64,16 @@ describe('TierAutoAssignService', () => {
 
     it('simple: should pick cheapest model', () => {
       const cheap = makeModel({
-        model_name: 'cheap',
-        input_price_per_token: 0.000001,
-        output_price_per_token: 0.000002,
-        quality_score: 1,
+        id: 'cheap',
+        inputPricePerToken: 0.000001,
+        outputPricePerToken: 0.000002,
+        qualityScore: 1,
       });
       const expensive = makeModel({
-        model_name: 'expensive',
-        input_price_per_token: 0.00001,
-        output_price_per_token: 0.00003,
-        quality_score: 5,
+        id: 'expensive',
+        inputPricePerToken: 0.00001,
+        outputPricePerToken: 0.00003,
+        qualityScore: 5,
       });
 
       expect(service.pickBest([cheap, expensive], 'simple')!.model_name).toBe('cheap');
@@ -83,16 +81,16 @@ describe('TierAutoAssignService', () => {
 
     it('simple: quality does not matter', () => {
       const lowQ = makeModel({
-        model_name: 'low-q',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000004,
-        quality_score: 1,
+        id: 'low-q',
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: 1,
       });
       const highQ = makeModel({
-        model_name: 'high-q',
-        input_price_per_token: 0.0000002,
-        output_price_per_token: 0.0000008,
-        quality_score: 5,
+        id: 'high-q',
+        inputPricePerToken: 0.0000002,
+        outputPricePerToken: 0.0000008,
+        qualityScore: 5,
       });
 
       expect(service.pickBest([lowQ, highQ], 'simple')!.model_name).toBe('low-q');
@@ -102,16 +100,16 @@ describe('TierAutoAssignService', () => {
 
     it('standard: should exclude quality 1 models', () => {
       const ultraCheap = makeModel({
-        model_name: 'ultra-cheap',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000004,
-        quality_score: 1,
+        id: 'ultra-cheap',
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: 1,
       });
       const decent = makeModel({
-        model_name: 'decent',
-        input_price_per_token: 0.000001,
-        output_price_per_token: 0.000002,
-        quality_score: 2,
+        id: 'decent',
+        inputPricePerToken: 0.000001,
+        outputPricePerToken: 0.000002,
+        qualityScore: 2,
       });
 
       expect(service.pickBest([ultraCheap, decent], 'standard')!.model_name).toBe('decent');
@@ -119,16 +117,16 @@ describe('TierAutoAssignService', () => {
 
     it('standard: should fallback to cheapest if all are quality 1', () => {
       const a = makeModel({
-        model_name: 'a',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000004,
-        quality_score: 1,
+        id: 'a',
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: 1,
       });
       const b = makeModel({
-        model_name: 'b',
-        input_price_per_token: 0.0000002,
-        output_price_per_token: 0.0000008,
-        quality_score: 1,
+        id: 'b',
+        inputPricePerToken: 0.0000002,
+        outputPricePerToken: 0.0000008,
+        qualityScore: 1,
       });
 
       expect(service.pickBest([a, b], 'standard')!.model_name).toBe('a');
@@ -138,16 +136,16 @@ describe('TierAutoAssignService', () => {
 
     it('complex: should pick highest quality regardless of price', () => {
       const cheap = makeModel({
-        model_name: 'cheap',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000004,
-        quality_score: 1,
+        id: 'cheap',
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: 1,
       });
       const expensive = makeModel({
-        model_name: 'expensive',
-        input_price_per_token: 0.000015,
-        output_price_per_token: 0.000075,
-        quality_score: 5,
+        id: 'expensive',
+        inputPricePerToken: 0.000015,
+        outputPricePerToken: 0.000075,
+        qualityScore: 5,
       });
 
       expect(service.pickBest([cheap, expensive], 'complex')!.model_name).toBe('expensive');
@@ -155,16 +153,16 @@ describe('TierAutoAssignService', () => {
 
     it('complex: should use price as tiebreaker at same quality', () => {
       const cheapQ4 = makeModel({
-        model_name: 'cheap-q4',
-        input_price_per_token: 0.000003,
-        output_price_per_token: 0.000015,
-        quality_score: 4,
+        id: 'cheap-q4',
+        inputPricePerToken: 0.000003,
+        outputPricePerToken: 0.000015,
+        qualityScore: 4,
       });
       const expensiveQ4 = makeModel({
-        model_name: 'expensive-q4',
-        input_price_per_token: 0.000015,
-        output_price_per_token: 0.000075,
-        quality_score: 4,
+        id: 'expensive-q4',
+        inputPricePerToken: 0.000015,
+        outputPricePerToken: 0.000075,
+        qualityScore: 4,
       });
 
       expect(service.pickBest([expensiveQ4, cheapQ4], 'complex')!.model_name).toBe('cheap-q4');
@@ -174,18 +172,18 @@ describe('TierAutoAssignService', () => {
 
     it('reasoning: should pick best reasoning model over cheaper non-reasoning', () => {
       const cheap = makeModel({
-        model_name: 'cheap',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000004,
-        quality_score: 2,
-        capability_reasoning: false,
+        id: 'cheap',
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: 2,
+        capabilityReasoning: false,
       });
       const reasoning = makeModel({
-        model_name: 'reasoning',
-        input_price_per_token: 0.000015,
-        output_price_per_token: 0.000075,
-        quality_score: 5,
-        capability_reasoning: true,
+        id: 'reasoning',
+        inputPricePerToken: 0.000015,
+        outputPricePerToken: 0.000075,
+        qualityScore: 5,
+        capabilityReasoning: true,
       });
 
       expect(service.pickBest([cheap, reasoning], 'reasoning')!.model_name).toBe('reasoning');
@@ -193,18 +191,18 @@ describe('TierAutoAssignService', () => {
 
     it('reasoning: should fallback to complex logic when no reasoning models', () => {
       const lowQ = makeModel({
-        model_name: 'low-q',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000004,
-        quality_score: 1,
-        capability_reasoning: false,
+        id: 'low-q',
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: 1,
+        capabilityReasoning: false,
       });
       const highQ = makeModel({
-        model_name: 'high-q',
-        input_price_per_token: 0.000015,
-        output_price_per_token: 0.000075,
-        quality_score: 5,
-        capability_reasoning: false,
+        id: 'high-q',
+        inputPricePerToken: 0.000015,
+        outputPricePerToken: 0.000075,
+        qualityScore: 5,
+        capabilityReasoning: false,
       });
 
       expect(service.pickBest([lowQ, highQ], 'reasoning')!.model_name).toBe('high-q');
@@ -212,18 +210,18 @@ describe('TierAutoAssignService', () => {
 
     it('reasoning: should pick cheapest reasoning model at same quality', () => {
       const cheapR = makeModel({
-        model_name: 'cheap-r',
-        input_price_per_token: 0.000003,
-        output_price_per_token: 0.000015,
-        quality_score: 4,
-        capability_reasoning: true,
+        id: 'cheap-r',
+        inputPricePerToken: 0.000003,
+        outputPricePerToken: 0.000015,
+        qualityScore: 4,
+        capabilityReasoning: true,
       });
       const expensiveR = makeModel({
-        model_name: 'expensive-r',
-        input_price_per_token: 0.000015,
-        output_price_per_token: 0.000075,
-        quality_score: 4,
-        capability_reasoning: true,
+        id: 'expensive-r',
+        inputPricePerToken: 0.000015,
+        outputPricePerToken: 0.000075,
+        qualityScore: 4,
+        capabilityReasoning: true,
       });
 
       expect(service.pickBest([expensiveR, cheapR], 'reasoning')!.model_name).toBe('cheap-r');
@@ -233,28 +231,28 @@ describe('TierAutoAssignService', () => {
 
     it('should assign different models per tier (Gemini-like catalog)', () => {
       const flashLite = makeModel({
-        model_name: 'gemini-2.5-flash-lite',
+        id: 'gemini-2.5-flash-lite',
         provider: 'Google',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000004,
-        quality_score: 1,
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: 1,
       });
       const flash = makeModel({
-        model_name: 'gemini-2.5-flash',
+        id: 'gemini-2.5-flash',
         provider: 'Google',
-        input_price_per_token: 0.00000015,
-        output_price_per_token: 0.0000006,
-        quality_score: 2,
-        capability_code: true,
+        inputPricePerToken: 0.00000015,
+        outputPricePerToken: 0.0000006,
+        qualityScore: 2,
+        capabilityCode: true,
       });
       const pro = makeModel({
-        model_name: 'gemini-2.5-pro',
+        id: 'gemini-2.5-pro',
         provider: 'Google',
-        input_price_per_token: 0.00000125,
-        output_price_per_token: 0.00001,
-        quality_score: 5,
-        capability_reasoning: true,
-        capability_code: true,
+        inputPricePerToken: 0.00000125,
+        outputPricePerToken: 0.00001,
+        qualityScore: 5,
+        capabilityReasoning: true,
+        capabilityCode: true,
       });
 
       const models = [flashLite, flash, pro];
@@ -267,37 +265,37 @@ describe('TierAutoAssignService', () => {
 
     it('should assign different models per tier (multi-provider catalog)', () => {
       const nano = makeModel({
-        model_name: 'gpt-4.1-nano',
+        id: 'gpt-4.1-nano',
         provider: 'OpenAI',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000003,
-        quality_score: 1,
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000003,
+        qualityScore: 1,
       });
       const deepseekChat = makeModel({
-        model_name: 'deepseek-chat',
+        id: 'deepseek-chat',
         provider: 'DeepSeek',
-        input_price_per_token: 0.00000014,
-        output_price_per_token: 0.00000028,
-        quality_score: 2,
-        capability_code: true,
+        inputPricePerToken: 0.00000014,
+        outputPricePerToken: 0.00000028,
+        qualityScore: 2,
+        capabilityCode: true,
       });
       const opus = makeModel({
-        model_name: 'claude-opus-4',
+        id: 'claude-opus-4',
         provider: 'Anthropic',
-        input_price_per_token: 0.000015,
-        output_price_per_token: 0.000075,
-        quality_score: 5,
-        capability_reasoning: true,
-        capability_code: true,
+        inputPricePerToken: 0.000015,
+        outputPricePerToken: 0.000075,
+        qualityScore: 5,
+        capabilityReasoning: true,
+        capabilityCode: true,
       });
       const sonnet = makeModel({
-        model_name: 'claude-sonnet-4',
+        id: 'claude-sonnet-4',
         provider: 'Anthropic',
-        input_price_per_token: 0.000003,
-        output_price_per_token: 0.000015,
-        quality_score: 4,
-        capability_reasoning: true,
-        capability_code: true,
+        inputPricePerToken: 0.000003,
+        outputPricePerToken: 0.000015,
+        qualityScore: 4,
+        capabilityReasoning: true,
+        capabilityCode: true,
       });
 
       const models = [nano, deepseekChat, opus, sonnet];
@@ -308,18 +306,18 @@ describe('TierAutoAssignService', () => {
       expect(service.pickBest(models, 'reasoning')!.model_name).toBe('claude-opus-4');
     });
 
-    it('should default quality_score to 3 when null', () => {
+    it('should default qualityScore to 3 when null', () => {
       const noQuality = makeModel({
-        model_name: 'no-quality',
-        input_price_per_token: 0.000001,
-        output_price_per_token: 0.000002,
-        quality_score: null as unknown as number,
+        id: 'no-quality',
+        inputPricePerToken: 0.000001,
+        outputPricePerToken: 0.000002,
+        qualityScore: null as unknown as number,
       });
       const highQ = makeModel({
-        model_name: 'high-q',
-        input_price_per_token: 0.00001,
-        output_price_per_token: 0.00003,
-        quality_score: 5,
+        id: 'high-q',
+        inputPricePerToken: 0.00001,
+        outputPricePerToken: 0.00003,
+        qualityScore: 5,
       });
 
       // For complex tier: highest quality wins, null defaults to 3
@@ -328,12 +326,12 @@ describe('TierAutoAssignService', () => {
       expect(result!.score).toBe(5);
     });
 
-    it('should treat null quality_score as 3 for standard tier filtering', () => {
+    it('should treat null qualityScore as 3 for standard tier filtering', () => {
       const nullQ = makeModel({
-        model_name: 'null-q',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000004,
-        quality_score: null as unknown as number,
+        id: 'null-q',
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: null as unknown as number,
       });
 
       // Standard filters quality >= 2. null defaults to 3, so it should be eligible.
@@ -341,30 +339,68 @@ describe('TierAutoAssignService', () => {
       expect(result!.model_name).toBe('null-q');
       expect(result!.score).toBe(3);
     });
+
+    it('should handle null inputPricePerToken as 0', () => {
+      const nullInput = makeModel({
+        id: 'null-input',
+        inputPricePerToken: null,
+        outputPricePerToken: 0.000002,
+        qualityScore: 3,
+      });
+      const priced = makeModel({
+        id: 'priced',
+        inputPricePerToken: 0.00001,
+        outputPricePerToken: 0.000002,
+        qualityScore: 3,
+      });
+
+      // null input treated as 0 makes null-input cheaper
+      expect(service.pickBest([nullInput, priced], 'simple')!.model_name).toBe('null-input');
+    });
+
+    it('should handle null outputPricePerToken as 0', () => {
+      const nullOutput = makeModel({
+        id: 'null-output',
+        inputPricePerToken: 0.000001,
+        outputPricePerToken: null,
+        qualityScore: 3,
+      });
+      const priced = makeModel({
+        id: 'priced',
+        inputPricePerToken: 0.000001,
+        outputPricePerToken: 0.00003,
+        qualityScore: 3,
+      });
+
+      // null output treated as 0 makes null-output cheaper
+      expect(service.pickBest([nullOutput, priced], 'simple')!.model_name).toBe('null-output');
+    });
   });
 
   describe('recalculate', () => {
     it('should assign a single model to all 4 tiers (one provider, one model)', async () => {
-      mockProviderRepo.find.mockResolvedValue([{ provider: 'openai', is_active: true }]);
-      const model = makeModel({ model_name: 'gpt-4o', provider: 'OpenAI' });
-      mockPricingCache.getAll.mockReturnValue([model]);
-      // 2C: Batch find returns empty — all tiers will be batch-inserted
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'openai', is_active: true, auth_type: 'api_key' },
+      ]);
+      const model = makeModel({ id: 'gpt-4o', provider: 'OpenAI' });
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([model]);
       mockTierRepo.find.mockResolvedValue([]);
 
       await service.recalculate('agent-1');
 
-      // 2C: Single batch insert call with all 4 tiers
       expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
-      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string;
+      }[];
       expect(inserted).toHaveLength(4);
       for (const record of inserted) {
         expect(record.auto_assigned_model).toBe('gpt-4o');
       }
     });
 
-    it('should set all auto_assigned_model to null with no providers', async () => {
+    it('should set all auto_assigned_model to null with no models', async () => {
       mockProviderRepo.find.mockResolvedValue([]);
-      mockPricingCache.getAll.mockReturnValue([]);
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([]);
       mockTierRepo.find.mockResolvedValue([]);
 
       await service.recalculate('agent-1');
@@ -380,11 +416,12 @@ describe('TierAutoAssignService', () => {
     });
 
     it('should save all 4 existing tiers when they already exist', async () => {
-      mockProviderRepo.find.mockResolvedValue([{ provider: 'openai', is_active: true }]);
-      const model = makeModel({ model_name: 'gpt-4o', provider: 'OpenAI' });
-      mockPricingCache.getAll.mockReturnValue([model]);
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'openai', is_active: true, auth_type: 'api_key' },
+      ]);
+      const model = makeModel({ id: 'gpt-4o', provider: 'OpenAI' });
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([model]);
 
-      // 2C: Batch find returns all 4 existing tiers
       mockTierRepo.find.mockResolvedValue(
         ['simple', 'standard', 'complex', 'reasoning'].map((tier) => ({
           id: `existing-${tier}`,
@@ -398,10 +435,11 @@ describe('TierAutoAssignService', () => {
 
       await service.recalculate('agent-1');
 
-      // 2C: Single batch save call with all 4 tiers
       expect(mockTierRepo.save).toHaveBeenCalledTimes(1);
       expect(mockTierRepo.insert).not.toHaveBeenCalled();
-      const saved = mockTierRepo.save.mock.calls[0][0] as { auto_assigned_model: string }[];
+      const saved = mockTierRepo.save.mock.calls[0][0] as {
+        auto_assigned_model: string;
+      }[];
       expect(saved).toHaveLength(4);
       for (const record of saved) {
         expect(record.auto_assigned_model).toBe('gpt-4o');
@@ -409,11 +447,11 @@ describe('TierAutoAssignService', () => {
     });
 
     it('should set auto_assigned_model to null when pickBest returns null for existing tier', async () => {
-      mockProviderRepo.find.mockResolvedValue([{ provider: 'openai', is_active: true }]);
-      // No models available (getAll returns empty array), so pickBest returns null
-      mockPricingCache.getAll.mockReturnValue([]);
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'openai', is_active: true, auth_type: 'api_key' },
+      ]);
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([]);
 
-      // 2C: Batch find returns all 4 existing tiers
       mockTierRepo.find.mockResolvedValue(
         ['simple', 'standard', 'complex', 'reasoning'].map((tier) => ({
           id: `existing-${tier}`,
@@ -427,7 +465,6 @@ describe('TierAutoAssignService', () => {
 
       await service.recalculate('agent-1');
 
-      // Should save with null auto_assigned_model (best?.model_name ?? null)
       expect(mockTierRepo.save).toHaveBeenCalledTimes(1);
       const saved = mockTierRepo.save.mock.calls[0][0] as {
         auto_assigned_model: string | null;
@@ -444,20 +481,21 @@ describe('TierAutoAssignService', () => {
         { provider: 'google', is_active: true, auth_type: 'api_key' },
       ]);
       const geminiFlash = makeModel({
-        model_name: 'gemini-2.5-flash',
+        id: 'gemini-2.5-flash',
         provider: 'Google',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000004,
-        quality_score: 2,
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: 2,
       });
       const claudeSonnet = makeModel({
-        model_name: 'claude-sonnet-4',
+        id: 'claude-sonnet-4',
         provider: 'Anthropic',
-        input_price_per_token: 0.000003,
-        output_price_per_token: 0.000015,
-        quality_score: 4,
+        inputPricePerToken: 0.000003,
+        outputPricePerToken: 0.000015,
+        qualityScore: 4,
       });
-      mockPricingCache.getAll.mockReturnValue([geminiFlash, claudeSonnet]);
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([geminiFlash, claudeSonnet]);
+      mockTierRepo.find.mockResolvedValue([]);
 
       await service.recalculate('agent-1');
 
@@ -476,14 +514,20 @@ describe('TierAutoAssignService', () => {
       mockProviderRepo.find.mockResolvedValue([
         { provider: 'openai', is_active: true, auth_type: 'api_key' },
       ]);
-      const gpt4o = makeModel({ model_name: 'gpt-4o', provider: 'OpenAI', quality_score: 4 });
-      mockPricingCache.getAll.mockReturnValue([gpt4o]);
+      const gpt4o = makeModel({
+        id: 'gpt-4o',
+        provider: 'OpenAI',
+        qualityScore: 4,
+      });
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([gpt4o]);
+      mockTierRepo.find.mockResolvedValue([]);
 
       await service.recalculate('agent-1');
 
-      // 2C: Single batch insert call with all 4 tiers
       expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
-      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string;
+      }[];
       expect(inserted).toHaveLength(4);
       for (const record of inserted) {
         expect(record.auto_assigned_model).toBe('gpt-4o');
@@ -496,110 +540,108 @@ describe('TierAutoAssignService', () => {
         { provider: 'openai', is_active: true, auth_type: 'api_key' },
       ]);
       const cheapOpenAI = makeModel({
-        model_name: 'gpt-4.1-nano',
+        id: 'gpt-4.1-nano',
         provider: 'OpenAI',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000003,
-        quality_score: 1,
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000003,
+        qualityScore: 1,
       });
       const expensiveSub = makeModel({
-        model_name: 'claude-sonnet-4',
+        id: 'claude-sonnet-4',
         provider: 'Anthropic',
-        input_price_per_token: 0.000003,
-        output_price_per_token: 0.000015,
-        quality_score: 4,
+        inputPricePerToken: 0.000003,
+        outputPricePerToken: 0.000015,
+        qualityScore: 4,
       });
-      mockPricingCache.getAll.mockReturnValue([cheapOpenAI, expensiveSub]);
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([cheapOpenAI, expensiveSub]);
+      mockTierRepo.find.mockResolvedValue([]);
 
       await service.recalculate('agent-1');
 
-      // Even simple tier should use subscription model over cheaper api_key model
-      // 2C: Single batch insert call with all 4 tiers
       expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
-      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string;
+      }[];
       expect(inserted).toHaveLength(4);
       for (const record of inserted) {
         expect(record.auto_assigned_model).toBe('claude-sonnet-4');
       }
     });
 
-    it('should ignore unsupported subscription providers and use usable providers instead', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'openai', is_active: true, auth_type: 'subscription' },
-        { provider: 'anthropic', is_active: true, auth_type: 'api_key' },
-      ]);
-      const openAi = makeModel({
-        model_name: 'gpt-4o',
-        provider: 'OpenAI',
-        quality_score: 5,
-      });
-      const claude = makeModel({
-        model_name: 'claude-sonnet-4',
-        provider: 'Anthropic',
-        quality_score: 4,
-      });
-      mockPricingCache.getAll.mockReturnValue([openAi, claude]);
-
-      await service.recalculate('agent-1');
-
-      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
-      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
-      for (const record of inserted) {
-        expect(record.auto_assigned_model).toBe('claude-sonnet-4');
-      }
-    });
-
-    it('should ignore unsupported subscription providers when multiple are present', async () => {
+    it('should match models to subscription providers via case-insensitive provider name', async () => {
       mockProviderRepo.find.mockResolvedValue([
         { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
         { provider: 'google', is_active: true, auth_type: 'subscription' },
       ]);
       const claude = makeModel({
-        model_name: 'claude-sonnet-4',
+        id: 'claude-sonnet-4',
         provider: 'Anthropic',
-        input_price_per_token: 0.000003,
-        output_price_per_token: 0.000015,
-        quality_score: 4,
+        inputPricePerToken: 0.000003,
+        outputPricePerToken: 0.000015,
+        qualityScore: 4,
       });
       const gemini = makeModel({
-        model_name: 'gemini-2.5-flash',
+        id: 'gemini-2.5-flash',
         provider: 'Google',
-        input_price_per_token: 0.0000001,
-        output_price_per_token: 0.0000004,
-        quality_score: 2,
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: 2,
       });
-      mockPricingCache.getAll.mockReturnValue([claude, gemini]);
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([claude, gemini]);
+      mockTierRepo.find.mockResolvedValue([]);
 
       await service.recalculate('agent-1');
 
-      // 2C: Single batch insert call with all 4 tiers
       expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
       const inserted = mockTierRepo.insert.mock.calls[0][0] as {
         tier: string;
         auto_assigned_model: string;
       }[];
 
-      // Google subscription is unsupported, so all tiers should fall back to Anthropic.
+      // Simple tier picks cheapest subscription model = gemini-2.5-flash
       const simpleTier = inserted.find((t) => t.tier === 'simple');
       expect(simpleTier).toBeDefined();
-      expect(simpleTier!.auto_assigned_model).toBe('claude-sonnet-4');
+      expect(simpleTier!.auto_assigned_model).toBe('gemini-2.5-flash');
 
-      // Complex also remains on Anthropic.
+      // Complex tier picks highest quality subscription model = claude-sonnet-4
       const complexTier = inserted.find((t) => t.tier === 'complex');
       expect(complexTier).toBeDefined();
       expect(complexTier!.auto_assigned_model).toBe('claude-sonnet-4');
     });
 
-    it('should NOT match OpenRouter models via name prefix inference', async () => {
+    it('should NOT match OpenRouter models to subscription providers', async () => {
       mockProviderRepo.find.mockResolvedValue([
         { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
       ]);
       const orModel = makeModel({
-        model_name: 'anthropic/claude-sonnet-4',
+        id: 'anthropic/claude-sonnet-4',
         provider: 'OpenRouter',
-        quality_score: 4,
+        qualityScore: 4,
       });
-      mockPricingCache.getAll.mockReturnValue([orModel]);
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([orModel]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string | null;
+      }[];
+      // OpenRouter model provider doesn't match 'anthropic', so it goes to keyModels
+      // But there are no api_key providers, so subModels picks from empty set = null
+      // keyModels has the OR model, so it falls back there
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('anthropic/claude-sonnet-4');
+      }
+    });
+
+    it('should assign null when no models match any provider', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
+      ]);
+      // No models returned by discovery
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([]);
+      mockTierRepo.find.mockResolvedValue([]);
 
       await service.recalculate('agent-1');
 
@@ -612,73 +654,38 @@ describe('TierAutoAssignService', () => {
       }
     });
 
-    it('should match direct provider models via name prefix (non-OpenRouter)', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
-      ]);
-      const directModel = makeModel({
-        model_name: 'claude-opus-4-6',
-        provider: 'Anthropic',
-        quality_score: 5,
-      });
-      mockPricingCache.getAll.mockReturnValue([directModel]);
-
-      await service.recalculate('agent-1');
-
-      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
-      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
-      for (const record of inserted) {
-        expect(record.auto_assigned_model).toBe('claude-opus-4-6');
-      }
-    });
-
-    it('should still match OpenRouter models by direct provider name (lowercase match)', async () => {
+    it('should match OpenRouter models as api_key (lowercase match)', async () => {
       mockProviderRepo.find.mockResolvedValue([
         { provider: 'openrouter', is_active: true, auth_type: 'api_key' },
       ]);
       const orModel = makeModel({
-        model_name: 'anthropic/claude-sonnet-4',
+        id: 'anthropic/claude-sonnet-4',
         provider: 'OpenRouter',
-        quality_score: 4,
+        qualityScore: 4,
       });
-      mockPricingCache.getAll.mockReturnValue([orModel]);
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([orModel]);
+      mockTierRepo.find.mockResolvedValue([]);
 
       await service.recalculate('agent-1');
 
       expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
-      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
-      for (const record of inserted) {
-        expect(record.auto_assigned_model).toBe('anthropic/claude-sonnet-4');
-      }
-    });
-
-    it('should use prefix inference for non-OpenRouter providers with vendor prefixes', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, auth_type: 'api_key' },
-      ]);
-      const proxyModel = makeModel({
-        model_name: 'anthropic/claude-sonnet-4',
-        provider: 'SomeProxy',
-        quality_score: 4,
-      });
-      mockPricingCache.getAll.mockReturnValue([proxyModel]);
-
-      await service.recalculate('agent-1');
-
-      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
-      const inserted = mockTierRepo.insert.mock.calls[0][0] as { auto_assigned_model: string }[];
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string;
+      }[];
       for (const record of inserted) {
         expect(record.auto_assigned_model).toBe('anthropic/claude-sonnet-4');
       }
     });
 
     it('should preserve manual overrides during recalculation', async () => {
-      mockProviderRepo.find.mockResolvedValue([{ provider: 'openai', is_active: true }]);
-      mockPricingCache.getAll.mockReturnValue([
-        makeModel({ model_name: 'gpt-4o', provider: 'OpenAI' }),
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'openai', is_active: true, auth_type: 'api_key' },
+      ]);
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeModel({ id: 'gpt-4o', provider: 'OpenAI' }),
       ]);
 
-      // 2C: Batch find returns one existing tier with override
+      // Batch find returns one existing tier with override
       mockTierRepo.find.mockResolvedValue([
         {
           id: 'tier-1',
@@ -705,9 +712,9 @@ describe('TierAutoAssignService', () => {
     });
 
     it('should accept optional providers parameter to skip DB query', async () => {
-      const providers = [{ provider: 'openai', is_active: true }];
-      mockPricingCache.getAll.mockReturnValue([
-        makeModel({ model_name: 'gpt-4o', provider: 'OpenAI' }),
+      const providers = [{ provider: 'openai', is_active: true, auth_type: 'api_key' }];
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeModel({ id: 'gpt-4o', provider: 'OpenAI' }),
       ]);
       mockTierRepo.find.mockResolvedValue([]);
 

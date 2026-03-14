@@ -1,7 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { RoutingService } from './routing.service';
 import { RoutingCacheService } from './routing-cache.service';
-import { ModelPricing } from '../entities/model-pricing.entity';
+import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 
@@ -21,6 +21,7 @@ describe('RoutingService', () => {
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
   let mockAutoAssign: { recalculate: jest.Mock };
   let mockPricingCache: { getByModel: jest.Mock; getAll: jest.Mock };
+  let mockDiscoveryService: { getModelForAgent: jest.Mock };
   let mockRoutingCache: RoutingCacheService;
 
   beforeEach(() => {
@@ -32,6 +33,9 @@ describe('RoutingService', () => {
       getByModel: jest.fn(),
       getAll: jest.fn().mockReturnValue([]),
     };
+    mockDiscoveryService = {
+      getModelForAgent: jest.fn().mockResolvedValue(undefined),
+    };
     mockRoutingCache = new RoutingCacheService();
 
     service = new RoutingService(
@@ -39,6 +43,7 @@ describe('RoutingService', () => {
       mockTierRepo as never,
       mockAutoAssign as never,
       mockPricingCache as never,
+      mockDiscoveryService as unknown as ModelDiscoveryService,
       mockRoutingCache,
     );
   });
@@ -183,7 +188,7 @@ describe('RoutingService', () => {
 
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'Anthropic',
-      } as ModelPricing);
+      });
       mockProviderRepo.find.mockResolvedValue([{ provider: 'anthropic', is_active: true }]);
 
       const result = await service.getEffectiveModel('a1', assignment);
@@ -198,7 +203,7 @@ describe('RoutingService', () => {
 
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'OpenAI',
-      } as ModelPricing);
+      });
       // DB stores "OpenAI" with different case than pricing lowercase
       mockProviderRepo.find.mockResolvedValue([{ provider: 'OpenAI', is_active: true }]);
 
@@ -214,7 +219,7 @@ describe('RoutingService', () => {
 
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'Anthropic',
-      } as ModelPricing);
+      });
       mockProviderRepo.find.mockResolvedValue([]); // no active providers
 
       const result = await service.getEffectiveModel('a1', assignment);
@@ -243,7 +248,7 @@ describe('RoutingService', () => {
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'OpenRouter',
         model_name: 'anthropic/claude-sonnet-4',
-      } as ModelPricing);
+      });
       mockProviderRepo.find.mockResolvedValue([{ provider: 'anthropic', is_active: true }]);
 
       const result = await service.getEffectiveModel('a1', assignment);
@@ -262,6 +267,22 @@ describe('RoutingService', () => {
 
       const result = await service.getEffectiveModel('a1', assignment);
       expect(result).toBe('anthropic/claude-sonnet-4');
+    });
+
+    it('should return override_model when discovered by ModelDiscoveryService', async () => {
+      const assignment = {
+        override_model: 'ollama/llama3',
+        auto_assigned_model: 'gpt-4o',
+      } as TierAssignment;
+
+      mockDiscoveryService.getModelForAgent.mockResolvedValue({
+        id: 'ollama/llama3',
+        provider: 'ollama',
+      });
+
+      const result = await service.getEffectiveModel('a1', assignment);
+      expect(result).toBe('ollama/llama3');
+      expect(mockDiscoveryService.getModelForAgent).toHaveBeenCalledWith('a1', 'ollama/llama3');
     });
 
     it('should return auto_assigned_model when no override', async () => {
@@ -840,7 +861,7 @@ describe('RoutingService', () => {
 
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'OpenAI',
-      } as ModelPricing);
+      });
 
       const result = await service.removeProvider('a1', 'openai');
 
@@ -873,7 +894,7 @@ describe('RoutingService', () => {
         .mockResolvedValueOnce([override]) // overrides query
         .mockResolvedValueOnce([]) // allTiers (fallback cleanup)
         .mockResolvedValueOnce([{ tier: 'simple', auto_assigned_model: null }]); // notification batch fetch
-      mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as ModelPricing);
+      mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
       const result = await service.removeProvider('a1', 'openai');
 
@@ -900,7 +921,7 @@ describe('RoutingService', () => {
         .mockResolvedValueOnce([override]) // overrides query
         .mockResolvedValueOnce([]) // allTiers (fallback cleanup)
         .mockResolvedValueOnce([{ tier: 'custom_tier', auto_assigned_model: null }]); // notification batch fetch
-      mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as ModelPricing);
+      mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
       const result = await service.removeProvider('a1', 'openai');
 
@@ -1041,9 +1062,9 @@ describe('RoutingService', () => {
           }),
         ]);
       mockPricingCache.getByModel
-        .mockReturnValueOnce({ provider: 'Anthropic' } as ModelPricing) // override check
-        .mockReturnValueOnce({ provider: 'Anthropic' } as ModelPricing) // fallback: claude
-        .mockReturnValueOnce({ provider: 'OpenAI' } as ModelPricing); // fallback: gpt-4o
+        .mockReturnValueOnce({ provider: 'Anthropic' }) // override check
+        .mockReturnValueOnce({ provider: 'Anthropic' }) // fallback: claude
+        .mockReturnValueOnce({ provider: 'OpenAI' }); // fallback: gpt-4o
       mockTierRepo.findOne.mockResolvedValue({ auto_assigned_model: 'gpt-4o' });
 
       const result = await service.removeProvider('a1', 'anthropic', 'subscription');
@@ -1103,7 +1124,7 @@ describe('RoutingService', () => {
       mockTierRepo.find.mockResolvedValueOnce([override]);
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'Anthropic',
-      } as ModelPricing);
+      });
 
       const result = await service.removeProvider('a1', 'openai');
 
