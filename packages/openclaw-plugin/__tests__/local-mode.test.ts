@@ -533,6 +533,29 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     expect(mockServerStart).not.toHaveBeenCalled();
   });
 
+  it("does not crash the process when the async IIFE throws unexpectedly", async () => {
+    // checkExistingServer returns true → the IIFE hits logger.info("Reusing…")
+    // Make that logger.info throw to simulate an error outside the inner try/catch
+    globalThis.fetch = jest.fn().mockResolvedValue({ ok: true });
+
+    const throwingLogger = {
+      ...mockLogger,
+      info: jest.fn().mockImplementation((msg: string) => {
+        if (msg.includes("Reusing existing server")) {
+          throw new Error("logger exploded");
+        }
+      }),
+    };
+
+    const api = createMockApi();
+    // Should not throw — the .catch() on the IIFE swallows the error
+    registerLocalMode(api, testConfig, throwingLogger);
+    await flushServerStart();
+
+    // Server was never reached, but no unhandled rejection
+    expect(mockServerStart).not.toHaveBeenCalled();
+  });
+
   it("calls registerCommand with localConfig", () => {
     const { registerCommand } = require("../src/command") as { registerCommand: jest.Mock };
     jest.mock("../src/command", () => ({ registerCommand: jest.fn() }));

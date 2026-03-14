@@ -337,7 +337,10 @@ export function registerLocalMode(api: any, config: ManifestConfig, logger: Plug
         );
       }
     }
-  })();
+  })().catch(() => {
+    // Swallow — errors are already logged inside the IIFE.
+    // This prevents an unhandled promise rejection from crashing the gateway.
+  });
 
   api.registerService({
     id: 'manifest-local',
