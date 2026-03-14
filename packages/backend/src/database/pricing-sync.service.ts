@@ -13,6 +13,10 @@ interface OpenRouterModel {
   id: string;
   name?: string;
   context_length?: number;
+  architecture?: {
+    input_modalities?: string[];
+    output_modalities?: string[];
+  };
   pricing?: {
     prompt?: string;
     completion?: string;
@@ -86,9 +90,21 @@ export class PricingSyncService implements OnModuleInit {
     const data = await this.fetchOpenRouterModels();
     if (!data) return 0;
 
-    const updated = await this.syncAllModels(data);
-    await this.resolveUnresolvedModels(data);
-    await this.removeUnsupportedModels();
+    const compatibleModels: OpenRouterModel[] = [];
+    const incompatibleNames = new Set<string>();
+    for (const model of data) {
+      if (this.isChatCompatible(model)) {
+        compatibleModels.push(model);
+        continue;
+      }
+      const { canonical } = this.deriveNames(model.id);
+      incompatibleNames.add(canonical);
+      incompatibleNames.add(model.id);
+    }
+
+    const updated = await this.syncAllModels(compatibleModels);
+    await this.resolveUnresolvedModels(compatibleModels);
+    await this.removeUnsupportedModels(incompatibleNames);
 
     this.logger.log(`Pricing sync complete: ${updated} models updated`);
     if (updated > 0) {
@@ -293,10 +309,30 @@ export class PricingSyncService implements OnModuleInit {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  private async removeUnsupportedModels(): Promise<void> {
+  private isChatCompatible(model: OpenRouterModel): boolean {
+    const inputModalities = model.architecture?.input_modalities?.map((m) => m.toLowerCase());
+    if (inputModalities && inputModalities.length > 0 && !inputModalities.includes('text')) {
+      return false;
+    }
+
+    const outputModalities = model.architecture?.output_modalities?.map((m) => m.toLowerCase());
+    if (outputModalities && outputModalities.length > 0) {
+      return outputModalities.every((m) => m === 'text');
+    }
+
+    return true;
+  }
+
+  private async removeUnsupportedModels(
+    incompatibleNames: ReadonlySet<string> = new Set(),
+  ): Promise<void> {
     const all = await this.pricingRepo.find({ select: ['model_name', 'provider'] });
     const toDelete: string[] = [];
     for (const row of all) {
+      if (incompatibleNames.has(row.model_name)) {
+        toDelete.push(row.model_name);
+        continue;
+      }
       if (row.provider === 'OpenRouter') continue;
       const slashIdx = row.model_name.indexOf('/');
       if (slashIdx === -1) continue;

@@ -160,6 +160,56 @@ describe('PricingSyncService', () => {
     expect(updated).toBe(0);
   });
 
+  it('skips models with non-text output modalities', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'google/gemini-3.1-flash-image-preview',
+            architecture: {
+              input_modalities: ['text', 'image'],
+              output_modalities: ['text', 'image'],
+            },
+            pricing: { prompt: '0.0000005', completion: '0.000003' },
+          },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(0);
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('keeps multimodal-input models with text-only output modalities', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'openai/gpt-5.4',
+            architecture: {
+              input_modalities: ['text', 'image', 'file'],
+              output_modalities: ['text'],
+            },
+            pricing: { prompt: '0.0000025', completion: '0.000015' },
+          },
+        ],
+      }),
+    });
+
+    const updated = await service.syncPricing();
+    expect(updated).toBe(1);
+    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ model_name: 'gpt-5.4' }), [
+      'model_name',
+    ]);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({ model_name: 'openai/gpt-5.4', provider: 'OpenRouter' }),
+      ['model_name'],
+    );
+  });
+
   it('handles empty data array', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
@@ -445,6 +495,49 @@ describe('PricingSyncService', () => {
     expect(deleteArg.model_name._value).not.toContain('openai/gpt-4o');
     expect(deleteArg.model_name._value).not.toContain('bytedance-seed/seed-2.0-lite');
     expect(deleteArg.model_name._value).not.toContain('openrouter/auto');
+    expect(deleteArg.model_name._value).not.toContain('gpt-4o');
+  });
+
+  it('removes previously synced non-chat-compatible models on sync', async () => {
+    mockFind.mockResolvedValue([
+      { model_name: 'gemini-3.1-flash-image-preview', provider: 'Google' },
+      { model_name: 'google/gemini-3.1-flash-image-preview', provider: 'OpenRouter' },
+      { model_name: 'gpt-4o', provider: 'OpenAI' },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'google/gemini-3.1-flash-image-preview',
+            architecture: {
+              input_modalities: ['text', 'image'],
+              output_modalities: ['text', 'image'],
+            },
+            pricing: { prompt: '0.0000005', completion: '0.000003' },
+          },
+          {
+            id: 'openai/gpt-4o',
+            architecture: {
+              input_modalities: ['text', 'image'],
+              output_modalities: ['text'],
+            },
+            pricing: { prompt: '0.0000025', completion: '0.00001' },
+          },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+    const deleteArg = mockDelete.mock.calls[0][0];
+    expect(deleteArg.model_name._value).toEqual(
+      expect.arrayContaining([
+        'gemini-3.1-flash-image-preview',
+        'google/gemini-3.1-flash-image-preview',
+      ]),
+    );
     expect(deleteArg.model_name._value).not.toContain('gpt-4o');
   });
 
