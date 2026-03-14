@@ -7,7 +7,7 @@ import {
   PROVIDERS,
   STAGES,
 } from "../../src/services/providers";
-import { ROUTING_PROVIDER_API_KEY_URLS, EMAIL_PROVIDER_API_KEY_URLS } from "../../src/services/provider-api-key-urls";
+import { ROUTING_PROVIDER_API_KEY_URLS, EMAIL_PROVIDER_API_KEY_URLS, getRoutingProviderApiKeyUrl, getEmailProviderApiKeyUrl } from "../../src/services/provider-api-key-urls";
 
 /* ── getProvider ────────────────────────────────── */
 
@@ -276,5 +276,29 @@ describe("EMAIL_PROVIDER_API_KEY_URLS", () => {
     expect(EMAIL_PROVIDER_API_KEY_URLS).toHaveProperty("resend");
     expect(EMAIL_PROVIDER_API_KEY_URLS).toHaveProperty("mailgun");
     expect(EMAIL_PROVIDER_API_KEY_URLS).toHaveProperty("sendgrid");
+  });
+});
+
+/* ── getRoutingProviderApiKeyUrl ─────────────── */
+
+describe("getRoutingProviderApiKeyUrl", () => {
+  it("returns a URL for a known provider", () => {
+    expect(getRoutingProviderApiKeyUrl("openai")).toBe("https://platform.openai.com/api-keys");
+  });
+
+  it("returns undefined for an unknown provider", () => {
+    expect(getRoutingProviderApiKeyUrl("unknown")).toBeUndefined();
+  });
+});
+
+/* ── getEmailProviderApiKeyUrl ───────────────── */
+
+describe("getEmailProviderApiKeyUrl", () => {
+  it("returns a URL for a known email provider", () => {
+    expect(getEmailProviderApiKeyUrl("resend")).toBe("https://resend.com/api-keys");
+  });
+
+  it("returns undefined for an unknown provider", () => {
+    expect(getEmailProviderApiKeyUrl("unknown")).toBeUndefined();
   });
 });
