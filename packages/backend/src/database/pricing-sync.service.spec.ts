@@ -67,11 +67,6 @@ describe('PricingSyncService', () => {
     mockDelete.mockResolvedValue(undefined);
   });
 
-  afterAll(() => {
-    if (origManifestMode !== undefined) process.env['MANIFEST_MODE'] = origManifestMode;
-    else delete process.env['MANIFEST_MODE'];
-  });
-
   it('creates canonical models for new vendor-prefixed models (no OpenRouter copies)', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
