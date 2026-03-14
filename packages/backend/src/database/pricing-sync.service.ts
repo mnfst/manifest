@@ -97,6 +97,7 @@ export class PricingSyncService implements OnModuleInit {
     this.cache = newCache;
     this.lastFetchedAt = new Date();
     this.logger.log(`OpenRouter pricing cache loaded: ${count} models`);
+
     return count;
   }
 
