@@ -541,6 +541,53 @@ describe('PricingSyncService', () => {
     expect(deleteArg.model_name._value).not.toContain('gpt-4o');
   });
 
+  it('does not delete a compatible canonical model when an incompatible alias shares the same name', async () => {
+    mockFind.mockResolvedValue([
+      { model_name: 'model-x', provider: 'OpenAI' },
+      { model_name: 'openai/model-x', provider: 'OpenRouter' },
+      { model_name: 'google/model-x', provider: 'OpenRouter' },
+    ]);
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'google/model-x',
+            architecture: {
+              input_modalities: ['text', 'image'],
+              output_modalities: ['image'],
+            },
+            pricing: { prompt: '0.0000005', completion: '0.000003' },
+          },
+          {
+            id: 'openai/model-x',
+            architecture: {
+              input_modalities: ['text'],
+              output_modalities: ['text'],
+            },
+            pricing: { prompt: '0.0000025', completion: '0.00001' },
+          },
+        ],
+      }),
+    });
+
+    await service.syncPricing();
+
+    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ model_name: 'model-x' }), [
+      'model_name',
+    ]);
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({ model_name: 'openai/model-x', provider: 'OpenRouter' }),
+      ['model_name'],
+    );
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+    const deleteArg = mockDelete.mock.calls[0][0];
+    expect(deleteArg.model_name._value).toContain('google/model-x');
+    expect(deleteArg.model_name._value).not.toContain('model-x');
+    expect(deleteArg.model_name._value).not.toContain('openai/model-x');
+  });
+
   describe('onModuleInit', () => {
     it('returns immediately in local mode without calling syncPricing', async () => {
       const original = process.env['MANIFEST_MODE'];

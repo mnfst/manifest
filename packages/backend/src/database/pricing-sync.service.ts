@@ -91,14 +91,22 @@ export class PricingSyncService implements OnModuleInit {
     if (!data) return 0;
 
     const compatibleModels: OpenRouterModel[] = [];
+    const compatibleCanonicals = new Set<string>();
+    for (const model of data) {
+      if (!this.isChatCompatible(model)) continue;
+      compatibleModels.push(model);
+      const { canonical } = this.deriveNames(model.id);
+      compatibleCanonicals.add(canonical);
+    }
+
     const incompatibleNames = new Set<string>();
     for (const model of data) {
-      if (this.isChatCompatible(model)) {
-        compatibleModels.push(model);
-        continue;
-      }
+      if (this.isChatCompatible(model)) continue;
+
       const { canonical } = this.deriveNames(model.id);
-      incompatibleNames.add(canonical);
+      if (!compatibleCanonicals.has(canonical)) {
+        incompatibleNames.add(canonical);
+      }
       incompatibleNames.add(model.id);
     }
 
