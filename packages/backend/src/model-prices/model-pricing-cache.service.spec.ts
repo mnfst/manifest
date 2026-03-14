@@ -281,13 +281,13 @@ describe('ModelPricingCacheService', () => {
     });
 
     it('should return Unknown for models without slash prefix', async () => {
-      // Manual pricing entries have no slash prefix
+      // Manual pricing entries use provider from MANUAL_PRICING map
       mockGetAll.mockReturnValue(new Map());
       await service.reload();
 
       const entry = service.getByModel('glm-5');
       expect(entry).toBeDefined();
-      expect(entry!.provider).toBe('Unknown');
+      expect(entry!.provider).toBe('Z.ai');
     });
   });
 });

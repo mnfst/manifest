@@ -64,7 +64,7 @@ export class ModelPricingCacheService implements OnModuleInit {
       if (!this.cache.has(name)) {
         this.cache.set(name, {
           model_name: name,
-          provider: this.inferProvider(name),
+          provider: pricing.provider,
           input_price_per_token: pricing.input,
           output_price_per_token: pricing.output,
         });
