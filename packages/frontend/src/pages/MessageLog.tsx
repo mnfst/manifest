@@ -45,6 +45,7 @@ interface MessageItem {
   timestamp: string;
   agent_name: string | null;
   model: string | null;
+  display_name?: string | null;
   routing_tier?: string;
   routing_reason?: string;
   input_tokens: number | null;
@@ -550,7 +551,9 @@ const MessageLog: Component = () => {
                                       );
                                     })()
                                   : null}
-                              {item.model ? getModelDisplayName(item.model) : '\u2014'}
+                              {item.model
+                                ? item.display_name || getModelDisplayName(item.model)
+                                : '\u2014'}
                               {item.routing_tier && (
                                 <span class={`tier-badge tier-badge--${item.routing_tier}`}>
                                   {item.routing_tier}

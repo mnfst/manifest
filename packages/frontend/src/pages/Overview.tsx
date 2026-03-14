@@ -35,6 +35,7 @@ interface RecentMessage {
   timestamp: string;
   agent_name: string | null;
   model: string | null;
+  display_name?: string | null;
   routing_tier?: string;
   routing_reason?: string;
   input_tokens: number | null;
@@ -69,6 +70,7 @@ interface OverviewData {
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
   cost_by_model: Array<{
     model: string;
+    display_name?: string;
     tokens: number;
     share_pct: number;
     estimated_cost: number;
@@ -699,7 +701,9 @@ const Overview: Component = () => {
                                       {authBadgeFor(item.auth_type, 8)}
                                     </span>
                                   ) : null}
-                                  {item.model ? getModelDisplayName(item.model) : '\u2014'}
+                                  {item.model
+                                    ? item.display_name || getModelDisplayName(item.model)
+                                    : '\u2014'}
                                   {item.routing_tier && (
                                     <span class={`tier-badge tier-badge--${item.routing_tier}`}>
                                       {item.routing_tier}
@@ -833,7 +837,9 @@ const Overview: Component = () => {
                                       {authBadgeFor(row.auth_type, 8)}
                                     </span>
                                   ) : null}
-                                  {row.model ? getModelDisplayName(row.model) : row.model}
+                                  {row.model
+                                    ? row.display_name || getModelDisplayName(row.model)
+                                    : row.model}
                                 </span>
                               </td>
                               <td>{formatNumber(row.tokens)}</td>
