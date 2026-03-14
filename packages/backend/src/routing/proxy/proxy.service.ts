@@ -169,10 +169,15 @@ export class ProxyService {
 
         // All fallbacks exhausted — return non-retriable 424 so the gateway
         // does not retry the entire chain in an infinite loop.
+        const safeHeaders = new Headers(forward.response.headers);
+        safeHeaders.delete('content-encoding');
+        safeHeaders.delete('content-length');
+        safeHeaders.delete('transfer-encoding');
+
         const rebuilt = new Response(primaryErrorBody, {
           status: FALLBACK_EXHAUSTED_STATUS,
           statusText: 'Failed Dependency',
-          headers: forward.response.headers,
+          headers: safeHeaders,
         });
         this.momentum.recordTier(sessionKey, resolved.tier as Tier);
         return {
