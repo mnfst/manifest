@@ -1,28 +1,21 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-import {
-  readFileSync,
-  writeFileSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  renameSync,
-} from "fs";
-import { join, dirname } from "path";
-import { homedir } from "os";
-import { randomBytes } from "crypto";
-import { ManifestConfig } from "./config";
-import { PluginLogger } from "./telemetry";
-import { initTelemetry, shutdownTelemetry } from "./telemetry";
-import { registerHooks, initMetrics } from "./hooks";
-import { registerRouting } from "./routing";
-import { registerTools } from "./tools";
-import { registerCommand } from "./command";
-import { API_KEY_PREFIX } from "./constants";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, renameSync } from 'fs';
+import { join, dirname } from 'path';
+import { homedir } from 'os';
+import { randomBytes } from 'crypto';
+import { ManifestConfig } from './config';
+import { PluginLogger } from './telemetry';
+import { initTelemetry, shutdownTelemetry } from './telemetry';
+import { registerHooks, initMetrics } from './hooks';
+import { registerRouting } from './routing';
+import { registerTools } from './tools';
+import { registerCommand } from './command';
+import { API_KEY_PREFIX } from './constants';
 
-const CONFIG_DIR = join(homedir(), ".openclaw", "manifest");
-const CONFIG_FILE = join(CONFIG_DIR, "config.json");
-const OPENCLAW_DIR = join(homedir(), ".openclaw");
-const OPENCLAW_CONFIG = join(OPENCLAW_DIR, "openclaw.json");
+const CONFIG_DIR = join(homedir(), '.openclaw', 'manifest');
+const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
+const OPENCLAW_DIR = join(homedir(), '.openclaw');
+const OPENCLAW_CONFIG = join(OPENCLAW_DIR, 'openclaw.json');
 const HEALTH_TIMEOUT_MS = 3000;
 
 interface LocalConfig {
@@ -42,7 +35,7 @@ function loadOrGenerateApiKey(): string {
 
   if (existsSync(CONFIG_FILE)) {
     try {
-      const data = JSON.parse(readFileSync(CONFIG_FILE, "utf-8")) as LocalConfig;
+      const data = JSON.parse(readFileSync(CONFIG_FILE, 'utf-8')) as LocalConfig;
       if (data.apiKey && data.apiKey.startsWith(API_KEY_PREFIX)) {
         return data.apiKey;
       }
@@ -51,23 +44,25 @@ function loadOrGenerateApiKey(): string {
     }
   }
 
-  const key = `${API_KEY_PREFIX}local_${randomBytes(24).toString("hex")}`;
+  const key = `${API_KEY_PREFIX}local_${randomBytes(24).toString('hex')}`;
   let existing: Record<string, unknown> = {};
   if (existsSync(CONFIG_FILE)) {
     try {
-      existing = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
+      existing = JSON.parse(readFileSync(CONFIG_FILE, 'utf-8'));
     } catch {
       // Overwrite if corrupted
     }
   }
-  writeFileSync(CONFIG_FILE, JSON.stringify({ ...existing, apiKey: key }, null, 2), { mode: 0o600 });
+  writeFileSync(CONFIG_FILE, JSON.stringify({ ...existing, apiKey: key }, null, 2), {
+    mode: 0o600,
+  });
   return key;
 }
 
 function readJsonSafe(path: string): Record<string, any> {
   if (!existsSync(path)) return {};
   try {
-    return JSON.parse(readFileSync(path, "utf-8"));
+    return JSON.parse(readFileSync(path, 'utf-8'));
   } catch {
     return {};
   }
@@ -100,12 +95,11 @@ export function injectProviderConfig(
   apiKey: string,
   logger: PluginLogger,
 ): void {
-
   const providerConfig = {
     baseUrl,
-    api: "openai-completions",
+    api: 'openai-completions',
     apiKey,
-    models: [{ id: "auto", name: "auto" }],
+    models: [{ id: 'auto', name: 'auto' }],
   };
 
   // 1. Write to ~/.openclaw/openclaw.json (atomic write)
@@ -123,13 +117,13 @@ export function injectProviderConfig(
 
     const models = config.agents.defaults.models;
     if (Array.isArray(models)) {
-      if (!models.includes("manifest/auto")) models.push("manifest/auto");
-    } else if (typeof models === "object") {
-      if (!("manifest/auto" in models)) models["manifest/auto"] = {};
+      if (!models.includes('manifest/auto')) models.push('manifest/auto');
+    } else if (typeof models === 'object') {
+      if (!('manifest/auto' in models)) models['manifest/auto'] = {};
     }
 
     atomicWriteJson(OPENCLAW_CONFIG, config);
-    logger.debug("[manifest] Wrote provider config to openclaw.json");
+    logger.debug('[manifest] Wrote provider config to openclaw.json');
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.debug(`[manifest] Could not write openclaw.json: ${msg}`);
@@ -143,13 +137,14 @@ export function injectProviderConfig(
   //    This also prevents cloud→local (or local→cloud) mode switches
   //    from leaving a stale baseUrl behind.
   try {
-    const agentsDir = join(OPENCLAW_DIR, "agents");
+    const agentsDir = join(OPENCLAW_DIR, 'agents');
     if (existsSync(agentsDir)) {
-      const agentDirs = readdirSync(agentsDir, { withFileTypes: true })
-        .filter((d) => d.isDirectory());
+      const agentDirs = readdirSync(agentsDir, { withFileTypes: true }).filter((d) =>
+        d.isDirectory(),
+      );
 
       for (const dir of agentDirs) {
-        const modelsPath = join(agentsDir, dir.name, "agent", "models.json");
+        const modelsPath = join(agentsDir, dir.name, 'agent', 'models.json');
         if (!existsSync(modelsPath)) continue;
 
         const data = readJsonSafe(modelsPath);
@@ -157,7 +152,9 @@ export function injectProviderConfig(
 
         delete data.providers.manifest;
         atomicWriteJson(modelsPath, data);
-        logger.debug(`[manifest] Removed stale manifest entry from models.json for agent ${dir.name}`);
+        logger.debug(
+          `[manifest] Removed stale manifest entry from models.json for agent ${dir.name}`,
+        );
       }
     }
   } catch (err: unknown) {
@@ -178,12 +175,12 @@ export function injectProviderConfig(
 
       const rtModels = api.config.agents.defaults.models;
       if (Array.isArray(rtModels)) {
-        if (!rtModels.includes("manifest/auto")) rtModels.push("manifest/auto");
-      } else if (typeof rtModels === "object") {
-        if (!("manifest/auto" in rtModels)) rtModels["manifest/auto"] = {};
+        if (!rtModels.includes('manifest/auto')) rtModels.push('manifest/auto');
+      } else if (typeof rtModels === 'object') {
+        if (!('manifest/auto' in rtModels)) rtModels['manifest/auto'] = {};
       }
     }
-    logger.debug("[manifest] Injected provider into runtime config");
+    logger.debug('[manifest] Injected provider into runtime config');
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.debug(`[manifest] Could not inject runtime config: ${msg}`);
@@ -194,29 +191,27 @@ export function injectProviderConfig(
  * Injects a placeholder auth profile for the `manifest` provider in each
  * agent's auth-profiles.json.
  */
-export function injectAuthProfile(
-  apiKey: string,
-  logger: PluginLogger,
-): void {
-  const agentsDir = join(OPENCLAW_DIR, "agents");
+export function injectAuthProfile(apiKey: string, logger: PluginLogger): void {
+  const agentsDir = join(OPENCLAW_DIR, 'agents');
   if (!existsSync(agentsDir)) {
-    logger.debug("[manifest] No agents directory found, skipping auth profile injection");
+    logger.debug('[manifest] No agents directory found, skipping auth profile injection');
     return;
   }
 
   const profileEntry = {
-    type: "api_key",
-    provider: "manifest",
+    type: 'api_key',
+    provider: 'manifest',
     key: apiKey,
   };
 
   let injected = 0;
   try {
-    const agentDirs = readdirSync(agentsDir, { withFileTypes: true })
-      .filter((d) => d.isDirectory());
+    const agentDirs = readdirSync(agentsDir, { withFileTypes: true }).filter((d) =>
+      d.isDirectory(),
+    );
 
     for (const dir of agentDirs) {
-      const profilePath = join(agentsDir, dir.name, "agent", "auth-profiles.json");
+      const profilePath = join(agentsDir, dir.name, 'agent', 'auth-profiles.json');
       const profileDir = dirname(profilePath);
 
       if (!existsSync(profileDir)) continue;
@@ -225,10 +220,10 @@ export function injectAuthProfile(
       if (!data.version) data.version = 1;
       if (!data.profiles) data.profiles = {};
 
-      const existing = data.profiles["manifest:default"];
+      const existing = data.profiles['manifest:default'];
       if (existing && existing.key === apiKey) continue;
 
-      data.profiles["manifest:default"] = profileEntry;
+      data.profiles['manifest:default'] = profileEntry;
       atomicWriteJson(profilePath, data);
       injected++;
     }
@@ -246,10 +241,7 @@ export function injectAuthProfile(
  * Checks whether a healthy Manifest server is already running on the given
  * host:port by sending a GET /api/v1/health request.
  */
-export async function checkExistingServer(
-  host: string,
-  port: number,
-): Promise<boolean> {
+export async function checkExistingServer(host: string, port: number): Promise<boolean> {
   try {
     const res = await fetch(`http://${host}:${port}/api/v1/health`, {
       signal: AbortSignal.timeout(HEALTH_TIMEOUT_MS),
@@ -260,32 +252,31 @@ export async function checkExistingServer(
   }
 }
 
-export function registerLocalMode(
-  api: any,
-  config: ManifestConfig,
-  logger: PluginLogger,
-) {
+export function registerLocalMode(api: any, config: ManifestConfig, logger: PluginLogger) {
   const port = config.port;
   const host = config.host;
   const apiKey = loadOrGenerateApiKey();
-  const dbPath = join(CONFIG_DIR, "manifest.db");
+  const dbPath = join(CONFIG_DIR, 'manifest.db');
 
-  logger.debug("[manifest] Local mode — starting embedded server...");
+  logger.debug('[manifest] Local mode — starting embedded server...');
 
   // Inject provider config BEFORE routing registration
   injectProviderConfig(api, `http://${host}:${port}/v1`, apiKey, logger);
   injectAuthProfile(apiKey, logger);
 
   // Load the embedded server module
-  let serverModule: { start: (opts: Record<string, unknown>) => Promise<unknown>; version?: string };
+  let serverModule: {
+    start: (opts: Record<string, unknown>) => Promise<unknown>;
+    version?: string;
+  };
   try {
-    serverModule = require("./server");
+    serverModule = require('./server');
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.error(
-      "[manifest] Failed to load embedded server.\n" +
+      '[manifest] Failed to load embedded server.\n' +
         `  Error: ${msg}\n` +
-        "  This is a packaging error — please reinstall the manifest plugin.",
+        '  This is a packaging error — please reinstall the manifest plugin.',
     );
     return;
   }
@@ -303,50 +294,57 @@ export function registerLocalMode(
   registerHooks(api, tracer, localConfig, logger);
   registerRouting(api, localConfig, logger);
 
-  if (typeof api.registerTool === "function") {
+  if (typeof api.registerTool === 'function') {
     registerTools(api, localConfig, logger);
   }
   registerCommand(api, localConfig, logger);
 
   logger.info(`[manifest] 🦚 View your Manifest Dashboard -> http://${host}:${port}`);
 
-  api.registerService({
-    id: "manifest-local",
-    start: async () => {
-      // Proactive check: skip embedded server if one is already running
-      const alreadyRunning = await checkExistingServer(host, port);
-      if (alreadyRunning) {
-        logger.info(`[manifest] Reusing existing server at http://${host}:${port}`);
-        return;
-      }
+  // Start embedded server immediately (fire-and-forget — don't block plugin registration).
+  // OpenClaw does not call start() on services registered via api.registerService(),
+  // so we must boot the server ourselves.
+  (async () => {
+    const alreadyRunning = await checkExistingServer(host, port);
+    if (alreadyRunning) {
+      logger.info(`[manifest] Reusing existing server at http://${host}:${port}`);
+      return;
+    }
 
-      try {
-        await serverModule.start({ port, host, dbPath, quiet: true });
-        logger.info(`[manifest] Local server running on http://${host}:${port}`);
-        logger.info(`[manifest]   Dashboard: http://${host}:${port}`);
-        logger.info(`[manifest]   DB: ${dbPath}`);
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes("EADDRINUSE") || msg.includes("address already in use")) {
-          const isManifest = await checkExistingServer(host, port);
-          if (isManifest) {
-            logger.info(`[manifest] Reusing existing server at http://${host}:${port}`);
-          } else {
-            logger.error(
-              `[manifest] Port ${port} is already in use by another process.\n` +
-                `  Change it with: openclaw config set plugins.entries.manifest.config.port ${port + 1}\n` +
-                `  Then restart the gateway.`,
-            );
-          }
+    try {
+      await serverModule.start({ port, host, dbPath, quiet: true });
+      logger.info(`[manifest] Local server running on http://${host}:${port}`);
+      logger.info(`[manifest]   Dashboard: http://${host}:${port}`);
+      logger.info(`[manifest]   DB: ${dbPath}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('EADDRINUSE') || msg.includes('address already in use')) {
+        const isManifest = await checkExistingServer(host, port);
+        if (isManifest) {
+          logger.info(`[manifest] Reusing existing server at http://${host}:${port}`);
         } else {
           logger.error(
-            `[manifest] Failed to start local server: ${msg}\n` +
-              `  Try reinstalling: openclaw plugins install manifest\n` +
-              `  Then restart: openclaw gateway restart`,
+            `[manifest] Port ${port} is already in use by another process.\n` +
+              `  Change it with: openclaw config set plugins.entries.manifest.config.port ${port + 1}\n` +
+              `  Then restart the gateway.`,
           );
         }
+      } else {
+        logger.error(
+          `[manifest] Failed to start local server: ${msg}\n` +
+            `  Try reinstalling: openclaw plugins install manifest\n` +
+            `  Then restart: openclaw gateway restart`,
+        );
       }
-    },
+    }
+  })().catch(() => {
+    // Swallow — errors are already logged inside the IIFE.
+    // This prevents an unhandled promise rejection from crashing the gateway.
+  });
+
+  api.registerService({
+    id: 'manifest-local',
+    start: () => {}, // no-op — server already started above
     stop: async () => {
       await shutdownTelemetry(logger);
     },
