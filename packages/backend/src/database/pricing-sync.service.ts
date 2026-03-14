@@ -76,7 +76,6 @@ export class PricingSyncService implements OnModuleInit {
       if (!Number.isFinite(prompt) || !Number.isFinite(completion)) continue;
       if (prompt < 0 || completion < 0) continue;
 
-      const { canonical } = this.deriveNames(model.id);
       const displayName = this.extractDisplayName(model);
       const entry: OpenRouterPricingEntry = {
         input: prompt,
@@ -85,11 +84,8 @@ export class PricingSyncService implements OnModuleInit {
         displayName: displayName || undefined,
       };
 
-      // Store under canonical name (e.g. "claude-opus-4-6")
-      if (!newCache.has(canonical)) {
-        newCache.set(canonical, entry);
-      }
-      // Also store under full OpenRouter ID (e.g. "anthropic/claude-opus-4-6")
+      // Store under full OpenRouter ID only (e.g. "anthropic/claude-opus-4-6")
+      // All OpenRouter models are stored under provider "OpenRouter".
       newCache.set(model.id, entry);
       count++;
     }
