@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-03-11
+Last updated: 2026-03-14
 
 ## IMPORTANT: Local Mode First
 
@@ -73,20 +73,32 @@ packages/
 │   │   │   ├── database.module.ts           # TypeORM PostgreSQL config
 │   │   │   ├── database-seeder.service.ts   # Seeds model_pricing + demo data
 │   │   │   ├── local-bootstrap.service.ts   # Seeds local mode (SQLite)
-│   │   │   └── datasource.ts               # CLI DataSource for migration commands
-│   │   ├── entities/                        # TypeORM entities (19 files)
+│   │   │   ├── datasource.ts               # CLI DataSource for migration commands
+│   │   │   ├── pricing-sync.service.ts      # External pricing data sync
+│   │   │   ├── ollama-sync.service.ts       # Ollama model sync
+│   │   │   └── seed-models.ts              # Model pricing seed data
+│   │   ├── entities/                        # TypeORM entities (20 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
-│   │   │   └── ...                          # agent-message, llm-call, security-event, etc.
+│   │   │   └── ...                          # agent-message, agent-log, llm-call, tool-execution, etc.
 │   │   ├── common/
 │   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
 │   │   │   ├── decorators/public.decorator.ts
-│   │   │   ├── dto/range-query.dto.ts
+│   │   │   ├── dto/                         # create-agent, range-query, rename-agent DTOs
+│   │   │   ├── filters/spa-fallback.filter.ts
+│   │   │   ├── interceptors/               # agent-cache, user-cache
+│   │   │   ├── constants/                   # api-key, cache, local-mode, ollama
+│   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache
 │   │   │   ├── utils/range.util.ts
 │   │   │   ├── utils/hash.util.ts           # API key hashing (scrypt KDF)
 │   │   │   ├── utils/crypto.util.ts         # AES-256-GCM encryption
-│   │   │   └── utils/sql-dialect.ts         # Cross-DB SQL helpers (Postgres/SQLite)
+│   │   │   ├── utils/sql-dialect.ts         # Cross-DB SQL helpers (Postgres/SQLite)
+│   │   │   ├── utils/slugify.ts             # Name slugification
+│   │   │   ├── utils/url-validation.ts      # URL validation
+│   │   │   ├── utils/provider-inference.ts  # Provider detection from model names
+│   │   │   ├── utils/period.util.ts         # Time period utilities
+│   │   │   └── utils/product-telemetry.ts   # Anonymous product analytics
 │   │   ├── health/                          # @Public() health check
 │   │   ├── telemetry/                       # POST /api/v1/telemetry (JSON ingestion)
 │   │   ├── analytics/                       # Dashboard analytics
@@ -94,8 +106,11 @@ packages/
 │   │   │   └── services/                    # aggregation + timeseries-queries + query-helpers
 │   │   ├── otlp/                            # OTLP ingestion (traces, metrics, logs)
 │   │   │   ├── guards/otlp-auth.guard.ts    # Bearer token auth (agent API keys)
-│   │   │   └── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
-│   │   ├── routing/                         # LLM routing (providers, tiers, proxy)
+│   │   │   ├── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
+│   │   │   └── services/                    # trace-ingest, metric-ingest, log-ingest, otlp-decoder
+│   │   ├── routing/                         # LLM routing (providers, tiers, proxy, scorer)
+│   │   │   ├── proxy/                       # OpenAI-compatible proxy (anthropic/google adapters)
+│   │   │   └── scorer/                      # Scoring engine with dimensions
 │   │   ├── model-prices/                    # Model pricing management + sync
 │   │   ├── notifications/                   # Alert rules, email providers, cron
 │   │   ├── github/                          # GitHub stars endpoint
@@ -107,26 +122,40 @@ packages/
 │   │   ├── index.tsx                        # Router setup (App + AuthLayout)
 │   │   ├── components/
 │   │   │   ├── AuthGuard.tsx                # Session check, redirect to /login
+│   │   │   ├── GuestGuard.tsx               # Redirect authenticated users away from auth pages
 │   │   │   ├── SocialButtons.tsx            # 3 OAuth provider buttons
 │   │   │   ├── Header.tsx                   # User session data, logout
-│   │   │   └── ...
+│   │   │   ├── Sidebar.tsx                  # Navigation sidebar
+│   │   │   ├── SetupModal.tsx               # Agent setup wizard modal
+│   │   │   └── ...                          # Charts, modals, pagination, etc.
 │   │   ├── pages/
 │   │   │   ├── Login.tsx, Register.tsx       # Auth pages
+│   │   │   ├── ResetPassword.tsx            # Password reset flow
 │   │   │   ├── Workspace.tsx                # Agent grid + create agent
 │   │   │   ├── Overview.tsx                 # Agent dashboard
 │   │   │   ├── MessageLog.tsx               # Paginated messages
 │   │   │   ├── Account.tsx                  # User profile (session data)
 │   │   │   ├── Settings.tsx                 # Agent settings
 │   │   │   ├── Routing.tsx                  # LLM routing config
-│   │   │   ├── Notifications.tsx            # Alert rule management
-│   │   │   └── ModelPrices.tsx              # Model pricing table
+│   │   │   ├── Limits.tsx                   # Alert rule management (token/cost thresholds)
+│   │   │   ├── ModelPrices.tsx              # Model pricing table
+│   │   │   ├── Help.tsx                     # Help page
+│   │   │   └── NotFound.tsx                 # 404 page
 │   │   ├── services/
 │   │   │   ├── auth-client.ts               # Better Auth SolidJS client
 │   │   │   ├── api.ts                       # API functions (credentials: include)
-│   │   │   └── formatters.ts               # Number/cost formatting
+│   │   │   ├── formatters.ts               # Number/cost formatting
+│   │   │   ├── analytics.ts                 # PostHog product analytics
+│   │   │   ├── provider-utils.ts            # LLM provider helpers
+│   │   │   ├── routing.ts, routing-utils.ts # Routing config helpers
+│   │   │   ├── theme.ts                     # Theme management
+│   │   │   ├── toast-store.ts               # Toast notification state
+│   │   │   └── local-mode.ts               # Local mode detection
+│   │   ├── layouts/                         # Layout components
 │   │   └── styles/
 │   └── tests/
-└── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin (includes embedded server)
+├── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin (includes embedded server)
+└── subscription-capabilities/     # Subscription provider config (not in npm workspaces)
 ```
 
 ## Single-Service Deployment
@@ -171,7 +200,7 @@ Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test onl
 - **Agent**: `demo-agent` with OTLP key `dev-otlp-key-001`
 - **API key**: `dev-api-key-manifest-001`
 - **Security events**: 12 sample events for the security dashboard
-- **Model pricing**: 28 models seeded (Anthropic, OpenAI, Google, DeepSeek, etc.)
+- **Model pricing**: 48 models seeded (Anthropic, OpenAI, Google, Meta, Mistral, DeepSeek, xAI, Alibaba/Qwen, etc.)
 
 Seeding is idempotent — it checks for existing records before inserting.
 
@@ -303,9 +332,13 @@ All analytics queries filter by user via `addTenantFilter(qb, userId)` from `que
 | PATCH | `/api/v1/agents/:name` | Session/API Key | Rename agent |
 | GET | `/api/v1/security` | Session/API Key | Security score + events |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
+| GET | `/api/v1/agent/:agentName/usage` | Session/API Key | Per-agent token usage |
+| GET | `/api/v1/agent/:agentName/costs` | Session/API Key | Per-agent cost data |
 | GET/POST/PATCH/DELETE | `/api/v1/notifications` | Session/API Key | Notification rules CRUD |
 | GET/POST/DELETE | `/api/v1/notifications/email-provider` | Session/API Key | Email provider config |
 | GET/POST/PUT/DELETE | `/api/v1/routing/*` | Session/API Key | Routing config |
+| POST | `/api/v1/routing/subscription-providers` | Session/API Key | Subscription provider config |
+| POST | `/api/v1/routing/:agentName/ollama/sync` | Session/API Key | Sync Ollama models |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
 | GET | `/api/v1/events` | Session | SSE real-time events |
