@@ -6,7 +6,7 @@ function testCacheKey(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
-function makeContext(headers: Record<string, string | undefined>, ip = '10.0.0.1') {
+function makeContext(headers: Record<string, string | undefined>, ip = '203.0.113.1') {
   const request: Record<string, unknown> = { headers, ip };
   return {
     req: request,
@@ -214,9 +214,24 @@ describe('OtlpAuthGuard', () => {
       });
     });
 
-    it('still requires auth for non-loopback IPs in local mode', async () => {
+    it('allows private network IPs without auth in local mode', async () => {
       process.env['MANIFEST_MODE'] = 'local';
-      const { ctx } = makeContext({}, '192.168.1.100');
+      const { ctx, req } = makeContext({}, '192.168.1.100');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'local-tenant-001',
+        agentId: 'local-agent-001',
+        agentName: 'local-agent',
+        userId: 'local-user-001',
+      });
+      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('still requires auth for public IPs in local mode', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      const { ctx } = makeContext({}, '8.8.8.8');
       await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
     });
 
@@ -235,9 +250,24 @@ describe('OtlpAuthGuard', () => {
       expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
     });
 
-    it('rejects non-mnfst token from non-loopback IP in local mode', async () => {
+    it('allows non-mnfst token from private network IP in local mode', async () => {
       process.env['MANIFEST_MODE'] = 'local';
-      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '192.168.1.100');
+      const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '192.168.1.100');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'local-tenant-001',
+        agentId: 'local-agent-001',
+        agentName: 'local-agent',
+        userId: 'local-user-001',
+      });
+      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('rejects non-mnfst token from public IP in local mode', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '8.8.8.8');
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     });
 
