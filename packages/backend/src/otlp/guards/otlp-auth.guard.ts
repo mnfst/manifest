@@ -20,8 +20,7 @@ import {
   LOCAL_AGENT_NAME,
   LOCAL_USER_ID,
 } from '../../common/constants/local-mode.constants';
-
-const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+import { isLoopbackIp, isAllowedLocalIp } from '../../common/utils/local-ip';
 const MIN_TOKEN_LENGTH = 12;
 
 function cacheKey(token: string): string {
@@ -63,9 +62,10 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers['authorization'];
 
-    const isLoopback = LOOPBACK_IPS.has(request.ip ?? '');
-    const isLocal = process.env['MANIFEST_MODE'] === 'local' && isLoopback;
-    const isDevLoopback = process.env['NODE_ENV'] === 'development' && isLoopback;
+    const ip = request.ip ?? '';
+    const loopback = isLoopbackIp(ip);
+    const isLocal = process.env['MANIFEST_MODE'] === 'local' && isAllowedLocalIp(ip);
+    const isDevLoopback = process.env['NODE_ENV'] === 'development' && loopback;
 
     // In local mode, trust loopback connections without requiring an API key.
     // Also handles dev-mode gateways that send a dummy/non-mnfst token.

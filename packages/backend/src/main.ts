@@ -7,8 +7,7 @@ import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
 import { LOCAL_USER_ID, LOCAL_EMAIL } from './common/constants/local-mode.constants';
 import { SpaFallbackFilter } from './common/filters/spa-fallback.filter';
-
-const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+import { isAllowedLocalIp } from './common/utils/local-ip';
 
 export async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -67,7 +66,7 @@ export async function bootstrap() {
     // Local mode: simple session endpoints (no Better Auth needed)
     const localSessionHandler = (req: express.Request, res: express.Response) => {
       const ip = req.ip ?? '';
-      if (!LOOPBACK_IPS.has(ip)) {
+      if (!isAllowedLocalIp(ip)) {
         res.status(403).json({ error: 'Forbidden' });
         return;
       }
