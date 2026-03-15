@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { OPENROUTER_PREFIX_TO_PROVIDER } from '../common/constants/providers';
 
 interface OpenRouterModel {
   id: string;
@@ -25,24 +26,6 @@ export interface OpenRouterPricingEntry {
   contextWindow?: number;
   displayName?: string;
 }
-
-const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
-  anthropic: 'Anthropic',
-  openai: 'OpenAI',
-  google: 'Google',
-  deepseek: 'DeepSeek',
-  mistralai: 'Mistral',
-  moonshotai: 'Moonshot',
-  qwen: 'Alibaba',
-  zhipuai: 'Zhipu',
-  amazon: 'Amazon',
-  'meta-llama': 'Meta',
-  cohere: 'Cohere',
-  xai: 'xAI',
-  minimax: 'MiniMax',
-  'z-ai': 'Z.ai',
-  openrouter: 'OpenRouter',
-};
 
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/models';
 
@@ -146,7 +129,7 @@ export class PricingSyncService implements OnModuleInit {
 
     const prefix = openRouterId.substring(0, slashIndex);
     const canonical = openRouterId.substring(slashIndex + 1);
-    const provider = PROVIDER_DISPLAY_NAMES[prefix] ?? this.titleCase(prefix);
+    const provider = OPENROUTER_PREFIX_TO_PROVIDER.get(prefix) ?? this.titleCase(prefix);
 
     return { canonical, provider };
   }
