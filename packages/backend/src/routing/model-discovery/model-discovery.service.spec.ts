@@ -86,11 +86,13 @@ describe('ModelDiscoveryService', () => {
   let providerRepo: ReturnType<typeof makeMockRepo>;
   let customProviderRepo: ReturnType<typeof makeMockRepo>;
   let fetcher: { fetch: jest.Mock };
+  let mockPricingSync: { lookupPricing: jest.Mock };
 
   beforeEach(() => {
     providerRepo = makeMockRepo();
     customProviderRepo = makeMockRepo();
     fetcher = { fetch: jest.fn().mockResolvedValue([]) };
+    mockPricingSync = { lookupPricing: jest.fn().mockReturnValue(null) };
 
     mockDecrypt.mockReturnValue('decrypted-key');
     mockGetSecret.mockReturnValue('secret-32-chars-long-xxxxxxxxxx');
@@ -100,22 +102,12 @@ describe('ModelDiscoveryService', () => {
       providerRepo as never,
       customProviderRepo as never,
       fetcher as unknown as ProviderModelFetcherService,
+      mockPricingSync as never,
     );
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  /* ── setOpenRouterLookup ── */
-
-  describe('setOpenRouterLookup', () => {
-    it('should set the lookup function', () => {
-      const lookup = jest.fn().mockReturnValue(null);
-      service.setOpenRouterLookup(lookup);
-      // Verify indirectly via enrichModel behavior in discoverModels
-      expect(lookup).not.toHaveBeenCalled();
-    });
   });
 
   /* ── discoverModels ── */
@@ -158,20 +150,24 @@ describe('ModelDiscoveryService', () => {
     });
 
     it('should enrich models with openRouter pricing when available', async () => {
-      const lookup = jest.fn().mockReturnValue({
-        input: 0.00003,
-        output: 0.00006,
-        contextWindow: 200000,
-        displayName: 'GPT-4 via OR',
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'openai/gpt-4') {
+          return {
+            input: 0.00003,
+            output: 0.00006,
+            contextWindow: 200000,
+            displayName: 'GPT-4 via OR',
+          };
+        }
+        return null;
       });
-      service.setOpenRouterLookup(lookup);
 
       const models = [makeModel({ id: 'gpt-4' })];
       fetcher.fetch.mockResolvedValue(models);
 
       const result = await service.discoverModels(makeProvider());
 
-      expect(lookup).toHaveBeenCalledWith('gpt-4');
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('openai/gpt-4');
       expect(result[0].inputPricePerToken).toBe(0.00003);
       expect(result[0].outputPricePerToken).toBe(0.00006);
       expect(result[0].contextWindow).toBe(200000);
@@ -179,11 +175,12 @@ describe('ModelDiscoveryService', () => {
     });
 
     it('should use model contextWindow when openRouter has no contextWindow', async () => {
-      const lookup = jest.fn().mockReturnValue({
-        input: 0.00003,
-        output: 0.00006,
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'openai/gpt-4') {
+          return { input: 0.00003, output: 0.00006 };
+        }
+        return null;
       });
-      service.setOpenRouterLookup(lookup);
 
       const models = [makeModel({ id: 'gpt-4', contextWindow: 8192 })];
       fetcher.fetch.mockResolvedValue(models);
@@ -193,12 +190,12 @@ describe('ModelDiscoveryService', () => {
     });
 
     it('should keep model displayName when openRouter displayName is empty', async () => {
-      const lookup = jest.fn().mockReturnValue({
-        input: 0.00003,
-        output: 0.00006,
-        displayName: '',
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'openai/gpt-4') {
+          return { input: 0.00003, output: 0.00006, displayName: '' };
+        }
+        return null;
       });
-      service.setOpenRouterLookup(lookup);
 
       const models = [makeModel({ id: 'gpt-4', displayName: 'GPT-4' })];
       fetcher.fetch.mockResolvedValue(models);
@@ -207,9 +204,8 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].displayName).toBe('GPT-4');
     });
 
-    it('should fall back to manual pricing when openRouter lookup returns null', async () => {
-      const lookup = jest.fn().mockReturnValue(null);
-      service.setOpenRouterLookup(lookup);
+    it('should fall back to manual pricing when pricingSync lookup returns null', async () => {
+      // mockPricingSync.lookupPricing returns null by default
 
       // Use a model ID that exists in MANUAL_PRICING
       const models = [makeModel({ id: 'glm-5' })];
@@ -221,11 +217,18 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].outputPricePerToken).toBe(0.000005);
     });
 
-    it('should fall back to manual pricing when no openRouter lookup set', async () => {
+    it('should fall back to manual pricing when pricingSync is null', async () => {
+      const serviceNoPricing = new ModelDiscoveryService(
+        providerRepo as never,
+        customProviderRepo as never,
+        fetcher as unknown as ProviderModelFetcherService,
+        null,
+      );
+
       const models = [makeModel({ id: 'glm-5' })];
       fetcher.fetch.mockResolvedValue(models);
 
-      const result = await service.discoverModels(makeProvider());
+      const result = await serviceNoPricing.discoverModels(makeProvider());
 
       expect(result[0].inputPricePerToken).toBe(0.000005);
     });
@@ -250,12 +253,9 @@ describe('ModelDiscoveryService', () => {
       ];
       fetcher.fetch.mockResolvedValue(models);
 
-      const lookup = jest.fn();
-      service.setOpenRouterLookup(lookup);
-
       await service.discoverModels(makeProvider());
 
-      expect(lookup).not.toHaveBeenCalled();
+      expect(mockPricingSync.lookupPricing).not.toHaveBeenCalled();
     });
 
     it('should call computeQualityScore for enriched models', async () => {
@@ -476,13 +476,14 @@ describe('ModelDiscoveryService', () => {
   /* ── enrichModel edge cases via discoverModels ── */
 
   describe('enrichModel (via discoverModels)', () => {
-    it('should not use openRouter lookup when fetcher provided zero pricing', async () => {
+    it('should use pricingSync lookup when fetcher provided zero pricing', async () => {
       // inputPricePerToken is 0, which is not > 0, so enrichModel continues to lookup
-      const lookup = jest.fn().mockReturnValue({
-        input: 0.001,
-        output: 0.002,
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'openai/free-model') {
+          return { input: 0.001, output: 0.002 };
+        }
+        return null;
       });
-      service.setOpenRouterLookup(lookup);
 
       const models = [
         makeModel({ id: 'free-model', inputPricePerToken: 0, outputPricePerToken: 0 }),
@@ -490,9 +491,82 @@ describe('ModelDiscoveryService', () => {
       fetcher.fetch.mockResolvedValue(models);
 
       const result = await service.discoverModels(makeProvider());
-      // Should have gone through openRouter lookup since 0 is not > 0
-      expect(lookup).toHaveBeenCalled();
+      // Should have gone through pricingSync lookup since 0 is not > 0
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalled();
       expect(result[0].inputPricePerToken).toBe(0.001);
+    });
+
+    it('should fall back to exact model ID lookup when prefix lookup misses', async () => {
+      // Prefix lookup returns null, but exact model ID lookup returns pricing
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'openai/special-model') return null;
+        if (key === 'special-model') {
+          return { input: 0.0001, output: 0.0002, contextWindow: 64000, displayName: 'Special' };
+        }
+        return null;
+      });
+
+      const models = [makeModel({ id: 'special-model' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('openai/special-model');
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('special-model');
+      expect(result[0].inputPricePerToken).toBe(0.0001);
+      expect(result[0].outputPricePerToken).toBe(0.0002);
+      expect(result[0].contextWindow).toBe(64000);
+      expect(result[0].displayName).toBe('Special');
+    });
+
+    it('should resolve prefix via displayName when provider ID is not a prefix', async () => {
+      // 'Mistral' is the displayName for prefix 'mistralai' in OPENROUTER_PREFIX_TO_PROVIDER
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'mistralai/mistral-large') {
+          return { input: 0.00002, output: 0.00006 };
+        }
+        return null;
+      });
+
+      const models = [makeModel({ id: 'mistral-large' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'Mistral' }));
+
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('mistralai/mistral-large');
+      expect(result[0].inputPricePerToken).toBe(0.00002);
+      expect(result[0].outputPricePerToken).toBe(0.00006);
+    });
+
+    it('should skip prefix lookup when provider has no OpenRouter prefix', async () => {
+      // Use a provider that has no OpenRouter prefix mapping
+      const models = [makeModel({ id: 'unknown-model' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'unknown-provider' }));
+
+      // lookupPricing should still be called for exact match (model.id)
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('unknown-model');
+      expect(result[0].inputPricePerToken).toBeNull();
+    });
+
+    it('should use model defaults when exact match has no contextWindow or displayName', async () => {
+      // No prefix found, exact match returns pricing without optional fields
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'bare-model') {
+          return { input: 0.0005, output: 0.001 };
+        }
+        return null;
+      });
+
+      const models = [makeModel({ id: 'bare-model', contextWindow: 4096, displayName: 'Bare' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'unknown-provider' }));
+
+      expect(result[0].inputPricePerToken).toBe(0.0005);
+      expect(result[0].contextWindow).toBe(4096);
+      expect(result[0].displayName).toBe('Bare');
     });
 
     it('should call computeQualityScore with correct params for manual pricing', async () => {
