@@ -6,7 +6,7 @@ function testCacheKey(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
-function makeContext(headers: Record<string, string | undefined>, ip = '10.0.0.1') {
+function makeContext(headers: Record<string, string | undefined>, ip = '203.0.113.1') {
   const request: Record<string, unknown> = { headers, ip };
   return {
     req: request,
