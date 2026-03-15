@@ -1628,6 +1628,42 @@ describe('ProxyService', () => {
       expect(result.meta.primaryErrorStatus).toBe(401);
     });
 
+    it('resolves custom provider fallback via model prefix', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-test')
+        .mockResolvedValueOnce('sk-custom');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('error', { status: 500 }),
+          isGoogle: false,
+          isAnthropic: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['custom:cp-abc/my-model'] },
+      ] as never);
+      customProviderService.getById.mockResolvedValue({
+        base_url: 'https://my-endpoint.com/v1',
+      } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(result.meta.model).toBe('custom:cp-abc/my-model');
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
+    });
+
     it('returns all failed fallbacks when all fail', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'simple',
