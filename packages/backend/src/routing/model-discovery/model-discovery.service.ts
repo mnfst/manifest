@@ -157,7 +157,7 @@ export class ModelDiscoveryService {
     if (this.pricingSync) {
       const orPrefix = this.findOpenRouterPrefix(providerId);
       if (orPrefix) {
-        const orPricing = this.pricingSync.lookupPricing(`${orPrefix}/${model.id}`);
+        const orPricing = this.lookupWithVariants(orPrefix, model.id);
         if (orPricing) {
           return this.computeScore({
             ...model,
@@ -215,6 +215,52 @@ export class ModelDiscoveryService {
     for (const [prefix, displayName] of OPENROUTER_PREFIX_TO_PROVIDER) {
       if (displayName.toLowerCase() === lower) return prefix;
     }
+    return null;
+  }
+
+  /**
+   * Look up pricing with name normalization variants.
+   * Providers use different conventions: Anthropic uses dashes (claude-sonnet-4-6),
+   * OpenRouter uses dots (claude-sonnet-4.6). Try both.
+   */
+  private lookupWithVariants(
+    prefix: string,
+    modelId: string,
+  ): { input: number; output: number; contextWindow?: number; displayName?: string } | null {
+    if (!this.pricingSync) return null;
+
+    // Try exact match first
+    const exact = this.pricingSync.lookupPricing(`${prefix}/${modelId}`);
+    if (exact) return exact;
+
+    // Try dash-to-dot normalization (claude-sonnet-4-6 → claude-sonnet-4.6)
+    const dotVariant = modelId.replace(/-(\d+)-(\d)/g, '-$1.$2');
+    if (dotVariant !== modelId) {
+      const dotResult = this.pricingSync.lookupPricing(`${prefix}/${dotVariant}`);
+      if (dotResult) return dotResult;
+    }
+
+    // Try dot-to-dash normalization (claude-sonnet-4.6 → claude-sonnet-4-6)
+    const dashVariant = modelId.replace(/\.(\d)/g, '-$1');
+    if (dashVariant !== modelId) {
+      const dashResult = this.pricingSync.lookupPricing(`${prefix}/${dashVariant}`);
+      if (dashResult) return dashResult;
+    }
+
+    // Try stripping date suffix (claude-sonnet-4-5-20250929 → claude-sonnet-4-5)
+    const noDate = modelId.replace(/-\d{8}$/, '');
+    if (noDate !== modelId) {
+      const noDateResult = this.pricingSync.lookupPricing(`${prefix}/${noDate}`);
+      if (noDateResult) return noDateResult;
+
+      // Also try dot variant without date
+      const noDateDot = noDate.replace(/-(\d+)-(\d)/g, '-$1.$2');
+      if (noDateDot !== noDate) {
+        const noDateDotResult = this.pricingSync.lookupPricing(`${prefix}/${noDateDot}`);
+        if (noDateDotResult) return noDateDotResult;
+      }
+    }
+
     return null;
   }
 
