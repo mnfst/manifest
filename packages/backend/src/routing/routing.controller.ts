@@ -74,11 +74,11 @@ export class RoutingController {
       body.authType,
     );
 
-    // Trigger model discovery in background after provider connect
-    this.discoveryService.discoverModels(result).catch((err) => {
-      // Discovery failure is non-fatal — models will be empty until refresh
-      void err;
-    });
+    // Trigger model discovery + tier recalculation in background after provider connect
+    this.discoveryService
+      .discoverModels(result)
+      .then(() => this.routingService.recalculateTiers(agent.id))
+      .catch(() => {});
 
     if (isNew) {
       const providerLabel =
@@ -131,6 +131,7 @@ export class RoutingController {
   async refreshModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     await this.discoveryService.discoverAllForAgent(agent.id);
+    await this.routingService.recalculateTiers(agent.id);
     return { ok: true };
   }
 

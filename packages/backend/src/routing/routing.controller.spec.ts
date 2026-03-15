@@ -54,6 +54,7 @@ describe('RoutingController', () => {
       getFallbacks: jest.fn().mockResolvedValue([]),
       setFallbacks: jest.fn().mockResolvedValue([]),
       clearFallbacks: jest.fn().mockResolvedValue(undefined),
+      recalculateTiers: jest.fn().mockResolvedValue(undefined),
     };
     mockDiscoveryService = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
