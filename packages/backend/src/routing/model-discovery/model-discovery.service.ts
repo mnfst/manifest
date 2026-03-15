@@ -43,7 +43,17 @@ export class ModelDiscoveryService {
       }
     }
 
-    const raw = await this.fetcher.fetch(provider.provider, apiKey, provider.auth_type);
+    let raw = await this.fetcher.fetch(provider.provider, apiKey, provider.auth_type);
+
+    // If native API returned no models, fall back to OpenRouter + manual pricing
+    if (raw.length === 0) {
+      raw = this.buildFallbackModels(provider.provider);
+      if (raw.length > 0) {
+        this.logger.log(
+          `Native API returned 0 models for ${provider.provider} — using ${raw.length} models from pricing data`,
+        );
+      }
+    }
 
     const enriched = raw.map((model) => this.enrichModel(model, provider.provider));
 
@@ -206,6 +216,61 @@ export class ModelDiscoveryService {
       if (displayName.toLowerCase() === lower) return prefix;
     }
     return null;
+  }
+
+  /**
+   * Build a fallback model list from OpenRouter cache + manual pricing
+   * for providers whose native /models API is unavailable.
+   */
+  private buildFallbackModels(providerId: string): DiscoveredModel[] {
+    const models: DiscoveredModel[] = [];
+    const seen = new Set<string>();
+
+    // Check OpenRouter cache for models from this provider
+    if (this.pricingSync) {
+      const orPrefix = this.findOpenRouterPrefix(providerId);
+      if (orPrefix) {
+        for (const [fullId, entry] of this.pricingSync.getAll()) {
+          if (!fullId.startsWith(`${orPrefix}/`)) continue;
+          const modelId = fullId.substring(orPrefix.length + 1);
+          if (seen.has(modelId)) continue;
+          seen.add(modelId);
+          models.push({
+            id: modelId,
+            displayName: entry.displayName || modelId,
+            provider: providerId,
+            contextWindow: entry.contextWindow ?? 128000,
+            inputPricePerToken: entry.input,
+            outputPricePerToken: entry.output,
+            capabilityReasoning: false,
+            capabilityCode: false,
+            qualityScore: 3,
+          });
+        }
+      }
+    }
+
+    // Also check manual pricing
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get(providerId.toLowerCase());
+    const displayName = entry?.displayName;
+    for (const [name, pricing] of MANUAL_PRICING) {
+      if (pricing.provider !== displayName) continue;
+      if (seen.has(name)) continue;
+      seen.add(name);
+      models.push({
+        id: name,
+        displayName: name,
+        provider: providerId,
+        contextWindow: 128000,
+        inputPricePerToken: pricing.input,
+        outputPricePerToken: pricing.output,
+        capabilityReasoning: false,
+        capabilityCode: false,
+        qualityScore: 3,
+      });
+    }
+
+    return models;
   }
 
   private computeScore(model: DiscoveredModel): DiscoveredModel {

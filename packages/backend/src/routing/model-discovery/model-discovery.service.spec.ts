@@ -86,13 +86,16 @@ describe('ModelDiscoveryService', () => {
   let providerRepo: ReturnType<typeof makeMockRepo>;
   let customProviderRepo: ReturnType<typeof makeMockRepo>;
   let fetcher: { fetch: jest.Mock };
-  let mockPricingSync: { lookupPricing: jest.Mock };
+  let mockPricingSync: { lookupPricing: jest.Mock; getAll: jest.Mock };
 
   beforeEach(() => {
     providerRepo = makeMockRepo();
     customProviderRepo = makeMockRepo();
     fetcher = { fetch: jest.fn().mockResolvedValue([]) };
-    mockPricingSync = { lookupPricing: jest.fn().mockReturnValue(null) };
+    mockPricingSync = {
+      lookupPricing: jest.fn().mockReturnValue(null),
+      getAll: jest.fn().mockReturnValue(new Map()),
+    };
 
     mockDecrypt.mockReturnValue('decrypted-key');
     mockGetSecret.mockReturnValue('secret-32-chars-long-xxxxxxxxxx');
