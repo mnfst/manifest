@@ -3,6 +3,9 @@ import { DiscoveredModel, FetcherConfig } from './model-fetcher';
 import { OLLAMA_HOST } from '../../common/constants/ollama';
 
 const FETCH_TIMEOUT_MS = 5000;
+const DEFAULT_CONTEXT_WINDOW = 128000;
+const ANTHROPIC_DEFAULT_CONTEXT = 200000;
+const GEMINI_DEFAULT_CONTEXT = 1000000;
 
 /* ── Shared OpenAI-compatible parser ── */
 
@@ -26,7 +29,7 @@ function parseOpenAI(body: unknown, provider: string): DiscoveredModel[] {
         id: entry.id,
         displayName: entry.id,
         provider,
-        contextWindow: 128000,
+        contextWindow: DEFAULT_CONTEXT_WINDOW,
         inputPricePerToken: null,
         outputPricePerToken: null,
         capabilityReasoning: false,
@@ -62,7 +65,7 @@ function parseAnthropic(body: unknown, provider: string): DiscoveredModel[] {
         id: entry.id,
         displayName: entry.display_name || entry.id,
         provider,
-        contextWindow: 200000,
+        contextWindow: ANTHROPIC_DEFAULT_CONTEXT,
         inputPricePerToken: null,
         outputPricePerToken: null,
         capabilityReasoning: false,
@@ -97,7 +100,7 @@ function parseGemini(body: unknown, provider: string): DiscoveredModel[] {
         id,
         displayName: entry.displayName || id,
         provider,
-        contextWindow: entry.inputTokenLimit ?? 1000000,
+        contextWindow: entry.inputTokenLimit ?? GEMINI_DEFAULT_CONTEXT,
         inputPricePerToken: null,
         outputPricePerToken: null,
         capabilityReasoning: false,
@@ -163,7 +166,7 @@ function parseOllama(body: unknown, provider: string): DiscoveredModel[] {
         id,
         displayName: id,
         provider,
-        contextWindow: 128000,
+        contextWindow: DEFAULT_CONTEXT_WINDOW,
         inputPricePerToken: 0,
         outputPricePerToken: 0,
         capabilityReasoning: false,
