@@ -35,7 +35,9 @@ const ROUTING_PROVIDER_PREFIXES: Record<string, string> = {
   mistralai: 'Mistral',
   moonshotai: 'Moonshot',
   qwen: 'Alibaba',
+  alibaba: 'Alibaba',
   xai: 'xAI',
+  'x-ai': 'xAI',
   minimax: 'MiniMax',
   'z-ai': 'Z.ai',
 };
