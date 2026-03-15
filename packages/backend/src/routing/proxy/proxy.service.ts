@@ -116,11 +116,13 @@ export class ProxyService {
       );
     }
 
-    // Unwrap OAuth JSON token blob (OpenAI subscription stores {t,r,e})
-    if (resolved.auth_type === 'subscription' && resolved.provider.toLowerCase() === 'openai') {
-      const unwrapped = await this.openaiOauth.unwrapToken(apiKey, agentId, userId);
-      if (unwrapped) apiKey = unwrapped;
-    }
+    apiKey = await this.resolveApiKey(
+      resolved.provider,
+      apiKey,
+      resolved.auth_type,
+      agentId,
+      userId,
+    );
 
     this.logger.log(
       `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
@@ -259,11 +261,7 @@ export class ProxyService {
         continue;
       }
 
-      // Unwrap OAuth JSON token blob for OpenAI subscription fallbacks
-      if (authType === 'subscription' && provider.toLowerCase() === 'openai') {
-        const unwrapped = await this.openaiOauth.unwrapToken(apiKey, agentId, userId);
-        if (unwrapped) apiKey = unwrapped;
-      }
+      apiKey = await this.resolveApiKey(provider, apiKey, authType, agentId, userId);
 
       this.logger.log(
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
@@ -295,6 +293,20 @@ export class ProxyService {
       if (!shouldTriggerFallback(forward.response.status)) break;
     }
     return { success: null, failures };
+  }
+
+  private async resolveApiKey(
+    provider: string,
+    apiKey: string,
+    authType: string | undefined,
+    agentId: string,
+    userId: string,
+  ): Promise<string> {
+    if (authType === 'subscription' && provider.toLowerCase() === 'openai') {
+      const unwrapped = await this.openaiOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return unwrapped;
+    }
+    return apiKey;
   }
 
   private async enforceLimits(tenantId?: string, agentName?: string): Promise<void> {

@@ -102,11 +102,12 @@ export class PricingSyncService implements OnModuleInit {
     if (removed.length > 0) {
       this.logger.warn(`Models removed after sync: ${removed.join(', ')}`);
       try {
-        const { RoutingService } = await import('../routing/routing.service');
-        const routingService = this.moduleRef.get(RoutingService, {
+        const { RoutingInvalidationService } =
+          await import('../routing/routing-invalidation.service');
+        const invalidationService = this.moduleRef.get(RoutingInvalidationService, {
           strict: false,
         });
-        await routingService.invalidateOverridesForRemovedModels(removed);
+        await invalidationService.invalidateOverridesForRemovedModels(removed);
       } catch (err) {
         this.logger.error(`Failed to invalidate overrides: ${err}`);
       }

@@ -38,6 +38,9 @@ export class OpenaiOauthController {
     @CurrentUser() user: AuthUser,
     @Req() req: Request,
   ) {
+    if (!agentName) {
+      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
+    }
     const agent = await this.resolveAgent.resolve(user.id, agentName);
     const backendUrl = `${req.protocol}://${req.get('host')}`;
     try {
@@ -54,6 +57,9 @@ export class OpenaiOauthController {
    */
   @Post('revoke')
   async revoke(@Query('agentName') agentName: string, @CurrentUser() user: AuthUser) {
+    if (!agentName) {
+      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
+    }
     const agent = await this.resolveAgent.resolve(user.id, agentName);
     const apiKey = await this.routingService.getProviderApiKey(agent.id, 'openai', 'subscription');
 
@@ -66,6 +72,8 @@ export class OpenaiOauthController {
         this.logger.warn('Could not parse OAuth token blob for revocation');
       }
     }
+
+    await this.routingService.removeProvider(agent.id, 'openai', 'subscription');
 
     return { ok: true };
   }

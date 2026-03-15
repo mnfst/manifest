@@ -1,9 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { randomBytes, createHash } from 'crypto';
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
 import { RoutingService } from './routing.service';
+import { PendingOAuth, OAuthTokenBlob, oauthDoneHtml } from './openai-oauth.types';
 
-const CLIENT_ID = 'app_EMoamEEZ73f0CkXaXp7hrann';
+export { PendingOAuth, OAuthTokenBlob, oauthDoneHtml };
+
+const DEFAULT_CLIENT_ID = 'app_EMoamEEZ73f0CkXaXp7hrann';
 const AUTHORIZE_URL = 'https://auth.openai.com/oauth/authorize';
 const TOKEN_URL = 'https://auth.openai.com/oauth/token';
 const REVOKE_URL = 'https://auth.openai.com/oauth/revoke';
@@ -12,31 +16,26 @@ const CALLBACK_PORT = 1455;
 const REDIRECT_URI = `http://localhost:${CALLBACK_PORT}/auth/callback`;
 const STATE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
-export interface PendingOAuth {
-  verifier: string;
-  agentId: string;
-  userId: string;
-  backendUrl: string;
-  expiresAt: number;
-}
-
-export interface OAuthTokenBlob {
-  /** access token */
-  t: string;
-  /** refresh token */
-  r: string;
-  /** expires at (epoch ms) */
-  e: number;
-}
-
 @Injectable()
 export class OpenaiOauthService {
   private readonly logger = new Logger(OpenaiOauthService.name);
+  /**
+   * In-memory state for pending OAuth flows. Not safe for multi-instance
+   * deployments behind a load balancer — the callback must arrive at the
+   * same instance that initiated the flow.
+   */
   private readonly pending = new Map<string, PendingOAuth>();
   private callbackServer: Server | null = null;
   private serverReady: Promise<void> | null = null;
 
-  constructor(private readonly routingService: RoutingService) {}
+  private readonly clientId: string;
+
+  constructor(
+    private readonly routingService: RoutingService,
+    private readonly configService: ConfigService,
+  ) {
+    this.clientId = this.configService.get<string>('OPENAI_OAUTH_CLIENT_ID') ?? DEFAULT_CLIENT_ID;
+  }
 
   async generateAuthorizationUrl(
     agentId: string,
@@ -60,7 +59,7 @@ export class OpenaiOauthService {
     await this.ensureCallbackServer();
 
     const params = new URLSearchParams({
-      client_id: CLIENT_ID,
+      client_id: this.clientId,
       redirect_uri: REDIRECT_URI,
       response_type: 'code',
       scope: SCOPE,
@@ -89,7 +88,7 @@ export class OpenaiOauthService {
         grant_type: 'authorization_code',
         code,
         redirect_uri: REDIRECT_URI,
-        client_id: CLIENT_ID,
+        client_id: this.clientId,
         code_verifier: pending.verifier,
       }),
     });
@@ -131,7 +130,7 @@ export class OpenaiOauthService {
       body: new URLSearchParams({
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
-        client_id: CLIENT_ID,
+        client_id: this.clientId,
       }),
     });
 
@@ -202,7 +201,7 @@ export class OpenaiOauthService {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
           token,
-          client_id: CLIENT_ID,
+          client_id: this.clientId,
         }),
       });
       if (!response.ok) {
@@ -239,7 +238,11 @@ export class OpenaiOauthService {
         this.serverReady = null;
         if (err.code === 'EADDRINUSE') {
           this.logger.warn(`Port ${CALLBACK_PORT} in use — callback server not started`);
-          reject(new Error(`Port ${CALLBACK_PORT} is already in use. Close the process using it.`));
+          reject(
+            new Error(
+              `Port ${CALLBACK_PORT} is already in use. Run 'lsof -i :${CALLBACK_PORT}' to find the process.`,
+            ),
+          );
         } else {
           this.logger.error(`Callback server error: ${err.message}`);
           reject(new Error(`Callback server failed: ${err.message}`));
@@ -317,25 +320,4 @@ export class OpenaiOauthService {
       if (val.expiresAt < now) this.pending.delete(key);
     }
   }
-}
-
-export function oauthDoneHtml(success: boolean): string {
-  const message = success ? 'manifest-oauth-success' : 'manifest-oauth-error';
-  const text = success
-    ? 'Login successful!'
-    : 'Login failed. Please close this window and try again.';
-
-  return `<!DOCTYPE html>
-<html>
-<head><title>Manifest — OpenAI Login</title></head>
-<body style="font-family:system-ui;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#eee;">
-<p>${text}</p>
-<p id="hint" style="font-size:13px;color:#888;display:none;">You can close this window.</p>
-<script>
-try{var bc=new BroadcastChannel('manifest-oauth');bc.postMessage({type:'${message}'});bc.close();}catch(e){}
-if(window.opener){window.opener.postMessage({type:'${message}'},'*');}
-setTimeout(function(){window.close();document.getElementById('hint').style.display='block';},1500);
-</script>
-</body>
-</html>`;
 }

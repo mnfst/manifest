@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { RoutingService } from './routing.service';
+import { RoutingInvalidationService } from './routing-invalidation.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { ModelPricing } from '../entities/model-pricing.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
@@ -968,11 +969,22 @@ describe('RoutingService', () => {
     });
   });
 
-  /* ── invalidateOverridesForRemovedModels ── */
+  /* ── invalidateOverridesForRemovedModels (delegated to RoutingInvalidationService) ── */
 
-  describe('invalidateOverridesForRemovedModels', () => {
+  describe('RoutingInvalidationService', () => {
+    let invalidationService: RoutingInvalidationService;
+
+    beforeEach(() => {
+      invalidationService = new RoutingInvalidationService(
+        mockTierRepo as never,
+        mockPricingCache as never,
+        mockAutoAssign as never,
+        mockRoutingCache,
+      );
+    });
+
     it('should return early for empty array', async () => {
-      await service.invalidateOverridesForRemovedModels([]);
+      await invalidationService.invalidateOverridesForRemovedModels([]);
 
       expect(mockTierRepo.find).not.toHaveBeenCalled();
     });
@@ -980,7 +992,7 @@ describe('RoutingService', () => {
     it('should return early when no tiers are affected', async () => {
       mockTierRepo.find.mockResolvedValue([]);
 
-      await service.invalidateOverridesForRemovedModels(['deleted-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['deleted-model']);
 
       expect(mockTierRepo.save).not.toHaveBeenCalled();
       expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
@@ -999,7 +1011,7 @@ describe('RoutingService', () => {
       });
       mockTierRepo.find.mockResolvedValue([tier1, tier2]);
 
-      await service.invalidateOverridesForRemovedModels(['old-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['old-model']);
 
       expect(tier1.override_model).toBeNull();
       expect(tier2.override_model).toBeNull();
@@ -1023,7 +1035,7 @@ describe('RoutingService', () => {
           }),
         ]);
 
-      await service.invalidateOverridesForRemovedModels(['old-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['old-model']);
 
       // Should save with only the kept model
       expect(mockTierRepo.save).toHaveBeenCalledWith(
@@ -1043,7 +1055,7 @@ describe('RoutingService', () => {
           }),
         ]);
 
-      await service.invalidateOverridesForRemovedModels(['removed-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['removed-model']);
 
       expect(mockTierRepo.save).toHaveBeenCalledWith(
         expect.arrayContaining([expect.objectContaining({ fallback_models: null })]),
@@ -1064,7 +1076,7 @@ describe('RoutingService', () => {
       });
       mockTierRepo.find.mockResolvedValue([tier1, tier2]);
 
-      await service.invalidateOverridesForRemovedModels(['model-a', 'model-b']);
+      await invalidationService.invalidateOverridesForRemovedModels(['model-a', 'model-b']);
 
       // Same agent — should only recalculate once
       expect(mockAutoAssign.recalculate).toHaveBeenCalledTimes(1);

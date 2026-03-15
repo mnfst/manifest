@@ -23,6 +23,7 @@ describe('OpenaiOauthController', () => {
 
     routingService = {
       getProviderApiKey: jest.fn(),
+      removeProvider: jest.fn().mockResolvedValue({ notifications: [] }),
     } as unknown as jest.Mocked<RoutingService>;
 
     controller = new OpenaiOauthController(oauthService, resolveAgent, routingService);
@@ -49,10 +50,32 @@ describe('OpenaiOauthController', () => {
       expect(result).toEqual({ url: 'https://auth.openai.com/oauth/...' });
     });
 
+    it('throws 400 when agentName is missing', async () => {
+      const req = {
+        protocol: 'http',
+        get: jest.fn().mockReturnValue('localhost:3001'),
+      } as unknown as Request;
+
+      await expect(
+        controller.authorize(undefined as unknown as string, { id: 'user-1' } as never, req),
+      ).rejects.toThrow(HttpException);
+    });
+
+    it('throws 400 when agentName is empty string', async () => {
+      const req = {
+        protocol: 'http',
+        get: jest.fn().mockReturnValue('localhost:3001'),
+      } as unknown as Request;
+
+      await expect(controller.authorize('', { id: 'user-1' } as never, req)).rejects.toThrow(
+        HttpException,
+      );
+    });
+
     it('throws 503 when callback server port is unavailable', async () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
       oauthService.generateAuthorizationUrl.mockRejectedValue(
-        new Error('Port 1455 is already in use. Close the process using it.'),
+        new Error("Port 1455 is already in use. Run 'lsof -i :1455' to find the process."),
       );
 
       const req = {
@@ -67,6 +90,16 @@ describe('OpenaiOauthController', () => {
   });
 
   describe('revoke', () => {
+    it('throws 400 when agentName is missing', async () => {
+      await expect(
+        controller.revoke(undefined as unknown as string, { id: 'user-1' } as never),
+      ).rejects.toThrow(HttpException);
+    });
+
+    it('throws 400 when agentName is empty string', async () => {
+      await expect(controller.revoke('', { id: 'user-1' } as never)).rejects.toThrow(HttpException);
+    });
+
     it('revokes both access and refresh tokens from stored blob', async () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
       const blob = JSON.stringify({ t: 'access-tok', r: 'refresh-tok', e: Date.now() + 3600000 });
@@ -81,6 +114,11 @@ describe('OpenaiOauthController', () => {
       );
       expect(oauthService.revokeToken).toHaveBeenCalledWith('access-tok');
       expect(oauthService.revokeToken).toHaveBeenCalledWith('refresh-tok');
+      expect(routingService.removeProvider).toHaveBeenCalledWith(
+        'agent-id-1',
+        'openai',
+        'subscription',
+      );
       expect(result).toEqual({ ok: true });
     });
 
@@ -91,6 +129,11 @@ describe('OpenaiOauthController', () => {
       const result = await controller.revoke('my-agent', { id: 'user-1' } as never);
 
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
+      expect(routingService.removeProvider).toHaveBeenCalledWith(
+        'agent-id-1',
+        'openai',
+        'subscription',
+      );
       expect(result).toEqual({ ok: true });
     });
 
@@ -101,6 +144,11 @@ describe('OpenaiOauthController', () => {
       const result = await controller.revoke('my-agent', { id: 'user-1' } as never);
 
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
+      expect(routingService.removeProvider).toHaveBeenCalledWith(
+        'agent-id-1',
+        'openai',
+        'subscription',
+      );
       expect(result).toEqual({ ok: true });
     });
   });

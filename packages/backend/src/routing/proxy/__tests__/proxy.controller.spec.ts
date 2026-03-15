@@ -1,5 +1,6 @@
 import { HttpException } from '@nestjs/common';
 import { ProxyController } from '../proxy.controller';
+import { ProxyMessageRecorder } from '../proxy-message-recorder';
 import * as telemetry from '../../../common/utils/product-telemetry';
 
 jest.mock('../../../common/utils/product-telemetry', () => ({
@@ -77,6 +78,7 @@ describe('ProxyController', () => {
   };
   let mockMessageRepo: { insert: jest.Mock };
   let mockPricingCache: { getByModel: jest.Mock };
+  let recorder: ProxyMessageRecorder;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -95,17 +97,17 @@ describe('ProxyController', () => {
     };
     mockMessageRepo = { insert: jest.fn().mockResolvedValue({}) };
     mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
+    recorder = new ProxyMessageRecorder(mockMessageRepo as never, mockPricingCache as never);
     controller = new ProxyController(
       proxyService as never,
       rateLimiter as never,
       providerClient as never,
-      mockMessageRepo as never,
-      mockPricingCache as never,
+      recorder,
     );
   });
 
   afterEach(() => {
-    controller.onModuleDestroy();
+    recorder.onModuleDestroy();
   });
 
   it('should return JSON response for non-streaming OpenAI provider', async () => {
@@ -1761,7 +1763,7 @@ describe('ProxyController', () => {
   describe('rateLimitCooldown eviction', () => {
     it('should evict expired cooldown entries when map exceeds max size', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const cooldownMap = (controller as any).rateLimitCooldown as Map<string, number>;
+      const cooldownMap = (recorder as any).rateLimitCooldown as Map<string, number>;
       const now = Date.now();
 
       // Pre-fill with MAX_COOLDOWN_ENTRIES + 1 expired entries to exceed the limit.
@@ -1810,41 +1812,35 @@ describe('ProxyController', () => {
   describe('periodic cooldown cleanup', () => {
     it('periodic timer evicts expired cooldown entries', () => {
       jest.useFakeTimers();
-      controller.onModuleDestroy(); // stop timer from beforeEach controller
+      recorder.onModuleDestroy(); // stop timer from beforeEach recorder
 
-      const timedController = new ProxyController(
-        proxyService as never,
-        rateLimiter as never,
-        providerClient as never,
+      const timedRecorder = new ProxyMessageRecorder(
         mockMessageRepo as never,
         mockPricingCache as never,
       );
 
-      const cooldownMap = (timedController as any).rateLimitCooldown as Map<string, number>;
+      const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
       cooldownMap.set('t:a', Date.now() - 120_000); // expired
 
       jest.advanceTimersByTime(60_000);
       expect(cooldownMap.size).toBe(0);
 
-      timedController.onModuleDestroy();
+      timedRecorder.onModuleDestroy();
       jest.useRealTimers();
     });
 
     it('onModuleDestroy stops the periodic cleanup timer', () => {
       jest.useFakeTimers();
-      controller.onModuleDestroy(); // stop timer from beforeEach controller
+      recorder.onModuleDestroy(); // stop timer from beforeEach recorder
 
-      const timedController = new ProxyController(
-        proxyService as never,
-        rateLimiter as never,
-        providerClient as never,
+      const timedRecorder = new ProxyMessageRecorder(
         mockMessageRepo as never,
         mockPricingCache as never,
       );
 
-      timedController.onModuleDestroy();
+      timedRecorder.onModuleDestroy();
 
-      const cooldownMap = (timedController as any).rateLimitCooldown as Map<string, number>;
+      const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
       cooldownMap.set('t:a', Date.now() - 120_000);
 
       jest.advanceTimersByTime(120_000);

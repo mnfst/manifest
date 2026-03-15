@@ -24,7 +24,7 @@ export function toResponsesRequest(
   const request: Record<string, unknown> = {
     model,
     input,
-    stream: true,
+    stream: body.stream !== false,
     store: false,
   };
 
@@ -136,6 +136,10 @@ export function transformResponsesStreamChunk(chunk: string, model: string): str
  * The Responses API uses role-specific content types:
  * - user messages: `input_text`
  * - assistant messages: `output_text`
+ *
+ * Note: tool/function messages are not supported by the Responses API
+ * subscription endpoint. They are passed through as input_text, which
+ * may produce unexpected results.
  */
 function convertContent(content: unknown, role: string): unknown {
   const partType = role === 'assistant' ? 'output_text' : 'input_text';
@@ -163,7 +167,7 @@ function formatSSE(
   usage?: Record<string, number>,
 ): string {
   const payload: Record<string, unknown> = {
-    id: `chatcmpl-${randomUUID().replace(/-/g, '').slice(0, 12)}`,
+    id: `chatcmpl-${randomUUID().replace(/-/g, '').slice(0, 29)}`,
     object: 'chat.completion.chunk',
     created: Math.floor(Date.now() / 1000),
     model,

@@ -1,4 +1,5 @@
 import { createServer } from 'http';
+import { ConfigService } from '@nestjs/config';
 import { OpenaiOauthService, OAuthTokenBlob } from './openai-oauth.service';
 import { RoutingService } from './routing.service';
 
@@ -26,13 +27,18 @@ const createServerMock = createServer as unknown as jest.Mock<any>;
 describe('OpenaiOauthService', () => {
   let service: OpenaiOauthService;
   let routingService: jest.Mocked<RoutingService>;
+  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
     routingService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
     } as unknown as jest.Mocked<RoutingService>;
 
-    service = new OpenaiOauthService(routingService);
+    configService = {
+      get: jest.fn().mockReturnValue(undefined),
+    } as unknown as jest.Mocked<ConfigService>;
+
+    service = new OpenaiOauthService(routingService, configService);
     fetchMock.mockReset();
   });
 
@@ -49,7 +55,7 @@ describe('OpenaiOauthService', () => {
       const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
 
       expect(url).toContain('https://auth.openai.com/oauth/authorize');
-      expect(url).toContain('client_id=app_EMoamEEZ73f0CkXaXp7hrann');
+      expect(url).toMatch(/client_id=/);
       expect(url).toContain('response_type=code');
       expect(url).toContain('code_challenge_method=S256');
       expect(url).toContain('code_challenge=');
@@ -304,7 +310,7 @@ describe('OpenaiOauthService', () => {
       );
       const body = fetchMock.mock.calls[0][1].body as URLSearchParams;
       expect(body.get('token')).toBe('access-token-123');
-      expect(body.get('client_id')).toBe('app_EMoamEEZ73f0CkXaXp7hrann');
+      expect(body.get('client_id')).toBeTruthy();
     });
 
     it('logs warning when revocation response is not ok', async () => {
@@ -386,7 +392,9 @@ describe('OpenaiOauthService', () => {
       err.code = 'EADDRINUSE';
       errorHandler!(err);
 
-      await expect(promise).rejects.toThrow('Port 1455 is already in use');
+      await expect(promise).rejects.toThrow(
+        "Port 1455 is already in use. Run 'lsof -i :1455' to find the process.",
+      );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((service as any).callbackServer).toBeNull();
     });

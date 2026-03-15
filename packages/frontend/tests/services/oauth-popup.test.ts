@@ -29,8 +29,8 @@ describe("monitorOAuthPopup", () => {
     // Advance past one polling interval so popup.closed is detected
     vi.advanceTimersByTime(300);
 
-    // Now advance past the 5-minute BroadcastChannel timeout
-    vi.advanceTimersByTime(5 * 60_000);
+    // Now advance past the 30-second BroadcastChannel timeout
+    vi.advanceTimersByTime(30_000);
 
     // fullCleanup should have been called — removeEventListener is evidence
     expect(removeListenerSpy).toHaveBeenCalledWith("message", expect.any(Function));
@@ -71,8 +71,8 @@ describe("monitorOAuthPopup", () => {
     // Clear the spy call count to check if bcTimeout triggers cleanup again
     removeListenerSpy.mockClear();
 
-    // Advance past the 5-minute timeout -- cleanup should NOT run again
-    vi.advanceTimersByTime(5 * 60_000);
+    // Advance past the 30-second timeout -- cleanup should NOT run again
+    vi.advanceTimersByTime(30_000);
 
     // removeEventListener should not be called again (handled flag prevents it)
     expect(removeListenerSpy).not.toHaveBeenCalled();

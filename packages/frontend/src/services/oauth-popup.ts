@@ -77,7 +77,7 @@ export function monitorOAuthPopup(
         if (!handled) {
           fullCleanup();
         }
-      }, 5 * 60_000);
+      }, 30_000);
     }
   }, 300);
 }

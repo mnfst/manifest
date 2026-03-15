@@ -15,6 +15,7 @@ import { CustomProviderController } from './custom-provider.controller';
 import { ResolveController } from './resolve.controller';
 import { ProxyController } from './proxy/proxy.controller';
 import { RoutingService } from './routing.service';
+import { RoutingInvalidationService } from './routing-invalidation.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
@@ -23,6 +24,7 @@ import { TierAutoAssignService } from './tier-auto-assign.service';
 import { ProxyService } from './proxy/proxy.service';
 import { ProviderClient } from './proxy/provider-client';
 import { ProxyRateLimiter } from './proxy/proxy-rate-limiter';
+import { ProxyMessageRecorder } from './proxy/proxy-message-recorder';
 import { SessionMomentumService } from './proxy/session-momentum.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -53,6 +55,7 @@ import { OpenaiOauthController } from './openai-oauth.controller';
   ],
   providers: [
     RoutingService,
+    RoutingInvalidationService,
     RoutingCacheService,
     ResolveAgentService,
     CustomProviderService,
@@ -62,12 +65,14 @@ import { OpenaiOauthController } from './openai-oauth.controller';
     ProxyService,
     ProviderClient,
     ProxyRateLimiter,
+    ProxyMessageRecorder,
     SessionMomentumService,
     OllamaSyncService,
     OpenaiOauthService,
   ],
   exports: [
     RoutingService,
+    RoutingInvalidationService,
     CustomProviderService,
     TierAutoAssignService,
     ResolveAgentService,

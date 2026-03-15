@@ -31,6 +31,8 @@ const anthropicHeaders = (apiKey: string, authType?: string): Record<string, str
 /**
  * ChatGPT subscription OAuth tokens use the Codex backend,
  * which requires specific headers to avoid 403 responses.
+ * Note: These headers mimic the Codex CLI client. This is required for the
+ * endpoint to accept requests, but may break if OpenAI changes validation.
  */
 const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
