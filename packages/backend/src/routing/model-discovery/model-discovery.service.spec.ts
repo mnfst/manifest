@@ -207,20 +207,17 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].displayName).toBe('GPT-4');
     });
 
-    it('should fall back to manual pricing when pricingSync lookup returns null', async () => {
-      // mockPricingSync.lookupPricing returns null by default
-
-      // Use a model ID that exists in MANUAL_PRICING
-      const models = [makeModel({ id: 'glm-5' })];
+    it('should keep null pricing when pricingSync lookup returns null', async () => {
+      const models = [makeModel({ id: 'unknown-model' })];
       fetcher.fetch.mockResolvedValue(models);
 
       const result = await service.discoverModels(makeProvider());
 
-      expect(result[0].inputPricePerToken).toBe(0.000005);
-      expect(result[0].outputPricePerToken).toBe(0.000005);
+      expect(result[0].inputPricePerToken).toBeNull();
+      expect(result[0].outputPricePerToken).toBeNull();
     });
 
-    it('should fall back to manual pricing when pricingSync is null', async () => {
+    it('should keep null pricing when pricingSync is null', async () => {
       const serviceNoPricing = new ModelDiscoveryService(
         providerRepo as never,
         customProviderRepo as never,
@@ -228,12 +225,12 @@ describe('ModelDiscoveryService', () => {
         null,
       );
 
-      const models = [makeModel({ id: 'glm-5' })];
+      const models = [makeModel({ id: 'some-model' })];
       fetcher.fetch.mockResolvedValue(models);
 
       const result = await serviceNoPricing.discoverModels(makeProvider());
 
-      expect(result[0].inputPricePerToken).toBe(0.000005);
+      expect(result[0].inputPricePerToken).toBeNull();
     });
 
     it('should keep null pricing when no pricing source available', async () => {
@@ -572,22 +569,22 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].displayName).toBe('Bare');
     });
 
-    it('should call computeQualityScore with correct params for manual pricing', async () => {
-      mockComputeScore.mockReturnValue(4);
+    it('should call computeQualityScore with null pricing when no source available', async () => {
+      mockComputeScore.mockReturnValue(2);
 
-      const models = [makeModel({ id: 'glm-5' })];
+      const models = [makeModel({ id: 'unknown-model' })];
       fetcher.fetch.mockResolvedValue(models);
 
       const result = await service.discoverModels(makeProvider());
 
       expect(mockComputeScore).toHaveBeenCalledWith(
         expect.objectContaining({
-          model_name: 'glm-5',
-          input_price_per_token: 0.000005,
-          output_price_per_token: 0.000005,
+          model_name: 'unknown-model',
+          input_price_per_token: null,
+          output_price_per_token: null,
         }),
       );
-      expect(result[0].qualityScore).toBe(4);
+      expect(result[0].qualityScore).toBe(2);
     });
 
     it('should call computeQualityScore even when no pricing is found', async () => {

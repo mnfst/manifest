@@ -1,6 +1,5 @@
 import { ModelPricingCacheService } from './model-pricing-cache.service';
 import { PricingSyncService, OpenRouterPricingEntry } from '../database/pricing-sync.service';
-import { MANUAL_PRICING } from '../routing/model-discovery/manual-pricing-reference';
 
 function makeEntry(input: number, output: number): OpenRouterPricingEntry {
   return { input, output };
@@ -79,23 +78,12 @@ describe('ModelPricingCacheService', () => {
       expect(service.getByModel('openrouter/auto')!.provider).toBe('OpenRouter');
     });
 
-    it('should load entries from MANUAL_PRICING', async () => {
+    it('should return empty when no OpenRouter data available', async () => {
       mockGetAll.mockReturnValue(new Map());
       await service.reload();
 
-      const entry = service.getByModel('glm-5');
-      expect(entry).toBeDefined();
-      expect(entry!.provider).toBe('Z.ai');
-      expect(entry!.input_price_per_token).toBe(MANUAL_PRICING.get('glm-5')!.input);
-    });
-
-    it('should not overwrite OpenRouter entries with manual entries', async () => {
-      const orMap = new Map<string, OpenRouterPricingEntry>([['glm-5', makeEntry(0.1, 0.2)]]);
-      mockGetAll.mockReturnValue(orMap);
-      await service.reload();
-
-      const entry = service.getByModel('glm-5');
-      expect(entry!.input_price_per_token).toBe(0.1);
+      expect(service.getAll()).toEqual([]);
+      expect(service.getByModel('glm-5')).toBeUndefined();
     });
 
     it('should clear old entries and load new ones', async () => {

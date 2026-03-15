@@ -5,7 +5,6 @@ import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ProviderModelFetcherService } from './provider-model-fetcher.service';
 import { DiscoveredModel } from './model-fetcher';
-import { MANUAL_PRICING } from './manual-pricing-reference';
 import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { computeQualityScore } from '../../database/quality-score.util';
 import {
@@ -181,16 +180,6 @@ export class ModelDiscoveryService {
       }
     }
 
-    // Try manual pricing reference
-    const manual = MANUAL_PRICING.get(model.id);
-    if (manual) {
-      return this.computeScore({
-        ...model,
-        inputPricePerToken: manual.input,
-        outputPricePerToken: manual.output,
-      });
-    }
-
     return this.computeScore(model);
   }
 
@@ -294,26 +283,6 @@ export class ModelDiscoveryService {
           });
         }
       }
-    }
-
-    // Also check manual pricing
-    const entry = PROVIDER_BY_ID_OR_ALIAS.get(providerId.toLowerCase());
-    const displayName = entry?.displayName;
-    for (const [name, pricing] of MANUAL_PRICING) {
-      if (pricing.provider !== displayName) continue;
-      if (seen.has(name)) continue;
-      seen.add(name);
-      models.push({
-        id: name,
-        displayName: name,
-        provider: providerId,
-        contextWindow: 128000,
-        inputPricePerToken: pricing.input,
-        outputPricePerToken: pricing.output,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 3,
-      });
     }
 
     return models;

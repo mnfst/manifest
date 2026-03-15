@@ -453,7 +453,7 @@ The registry exports derived maps used throughout the codebase:
 
 ### Model Discovery
 
-Each provider's model list is fetched from **that provider's own API first**. If the native API fails or returns no models (some providers like MiniMax don't have a `/models` endpoint), the system falls back to building a model list from the OpenRouter pricing cache + manual pricing reference for that provider.
+Each provider's model list is fetched from **that provider's own API first**. If the native API fails or returns no models (some providers like MiniMax don't have a `/models` endpoint), the system falls back to building a model list from the OpenRouter pricing cache + OpenRouter pricing cache for that provider.
 
 ```
 User connects provider (POST /routing/:agent/providers)
@@ -462,7 +462,7 @@ User connects provider (POST /routing/:agent/providers)
     → if 0 models returned: buildFallbackModels() from OpenRouter cache + manual pricing
   → ModelDiscoveryService.enrichModel()
     → looks up pricing from OpenRouter cache (PricingSyncService)
-    → falls back to manual-pricing-reference.ts for niche providers
+    → falls back to OpenRouter pricing cache for niche providers
     → computes quality score
   → saves to user_providers.cached_models (JSONB column)
   → recalculates tier assignments
@@ -476,10 +476,9 @@ User connects provider (POST /routing/:agent/providers)
 
 ### Model Pricing
 
-The `model_pricing` database table has been **dropped**. Pricing comes from two sources:
+The `model_pricing` database table has been **dropped**. All pricing comes from a single source:
 
-1. **OpenRouter API** (public, fetched daily via cron + on startup) — provides pricing for all major providers. Stored in-memory by `PricingSyncService`.
-2. **Manual pricing reference** (`manual-pricing-reference.ts`) — covers niche providers (Z.ai, Moonshot, MiniMax, Alibaba) not well-represented in OpenRouter.
+- **OpenRouter API** (public, no key needed, fetched daily via cron + on startup) — provides pricing for all providers. Stored in-memory by `PricingSyncService`. No hardcoded pricing data anywhere.
 
 `ModelPricingCacheService` merges both sources and attributes models to their real provider using OpenRouter vendor prefixes (via `OPENROUTER_PREFIX_TO_PROVIDER`). Unsupported community vendors stay under "OpenRouter".
 

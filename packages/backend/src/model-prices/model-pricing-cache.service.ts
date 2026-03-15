@@ -1,7 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { buildAliasMap, resolveModelName } from './model-name-normalizer';
 import { PricingSyncService } from '../database/pricing-sync.service';
-import { MANUAL_PRICING } from '../routing/model-discovery/manual-pricing-reference';
 import { OPENROUTER_PREFIX_TO_PROVIDER } from '../common/constants/providers';
 
 /**
@@ -55,19 +54,6 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
           input_price_per_token: entry.input,
           output_price_per_token: entry.output,
           display_name: displayName,
-        });
-      }
-    }
-
-    // Load from manual pricing reference (niche providers not in OpenRouter)
-    for (const [name, pricing] of MANUAL_PRICING) {
-      if (!this.cache.has(name)) {
-        this.cache.set(name, {
-          model_name: name,
-          provider: pricing.provider,
-          input_price_per_token: pricing.input,
-          output_price_per_token: pricing.output,
-          display_name: null,
         });
       }
     }
