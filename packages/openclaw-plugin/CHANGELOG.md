@@ -1,5 +1,30 @@
 # manifest
 
+## 5.26.0
+
+### Minor Changes
+
+- b27b960: Add expandable message detail logs to the Messages page with chevron button to view related LLM calls, tool executions, agent logs, error details, and fallback chain info
+- 76c3fda: Replace static model seeding with provider-native model discovery via live API calls
+  - Add `ProviderModelFetcherService` with config-driven fetchers for all 12 providers
+  - Add `ModelDiscoveryService` orchestrator that discovers, enriches, and caches models per provider
+  - Refactor `PricingSyncService` into OpenRouter pricing lookup cache (no DB writes)
+  - Refactor `ModelPricingCacheService` to read from OpenRouter cache + manual pricing reference
+  - Add `cached_models` and `models_fetched_at` columns to `user_providers`
+  - Drop `model_pricing`, `model_pricing_history`, and `unresolved_models` tables
+  - Remove static model seed data and hardcoded frontend model lists
+  - Add "Refresh models" button to routing UI
+  - Add `POST /api/v1/routing/:agent/refresh-models` endpoint
+
+### Patch Changes
+
+- f8f93f0: Allow LAN access in local mode by accepting RFC1918 private network IPs alongside loopback
+- 3a79e19: Fix routing fallback chain: trigger fallback on all 4xx/5xx errors, resolve providers via connected provider cache, record real usage data on fallback success, and show fallback icon on all handled messages
+- cf4d6c7: fix: record every provider error so rate-limited calls display as errors instead of success
+- e338ab8: Fix stale agent list after deletion by disabling browser HTTP cache on API requests
+- 9a13cc6: Fix streaming tool calls dropped by Anthropic and Google adapters in the LLM proxy
+- 103260e: Show display names and provider icons in model prices table
+
 ## 5.25.4
 
 ### Patch Changes
