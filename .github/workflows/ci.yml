@@ -134,7 +134,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: plugin
-          directory: packages/openclaw-plugin
+          directory: packages/openclaw-plugin/coverage
           fail_ci_if_error: false
 
   changeset-check:
