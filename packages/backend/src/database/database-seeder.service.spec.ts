@@ -16,7 +16,6 @@ function makeMockRepo() {
   return {
     count: jest.fn().mockResolvedValue(0),
     insert: jest.fn().mockResolvedValue({}),
-    upsert: jest.fn().mockResolvedValue({}),
   };
 }
 
@@ -28,10 +27,8 @@ describe('DatabaseSeederService', () => {
   let mockAgentRepo: ReturnType<typeof makeMockRepo>;
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockApiKeyRepo: ReturnType<typeof makeMockRepo>;
-  let mockPricingRepo: ReturnType<typeof makeMockRepo>;
   let mockSecurityRepo: ReturnType<typeof makeMockRepo>;
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
-  let mockPricingCache: { reload: jest.Mock };
   const originalSeedData = process.env['SEED_DATA'];
   const originalManifestMode = process.env['MANIFEST_MODE'];
 
@@ -44,10 +41,8 @@ describe('DatabaseSeederService', () => {
     mockAgentRepo = makeMockRepo();
     mockAgentKeyRepo = makeMockRepo();
     mockApiKeyRepo = makeMockRepo();
-    mockPricingRepo = makeMockRepo();
     mockSecurityRepo = makeMockRepo();
     mockMessageRepo = makeMockRepo();
-    mockPricingCache = { reload: jest.fn().mockResolvedValue(undefined) };
 
     service = new DatabaseSeederService(
       mockDataSource as never,
@@ -56,10 +51,8 @@ describe('DatabaseSeederService', () => {
       mockAgentRepo as never,
       mockAgentKeyRepo as never,
       mockApiKeyRepo as never,
-      mockPricingRepo as never,
       mockSecurityRepo as never,
       mockMessageRepo as never,
-      mockPricingCache as never,
     );
 
     jest.clearAllMocks();
@@ -91,8 +84,7 @@ describe('DatabaseSeederService', () => {
 
       await service.onModuleInit();
 
-      // Nothing should be called — early return on line 41
-      expect(mockPricingRepo.upsert).not.toHaveBeenCalled();
+      // Nothing should be called — early return
       expect(mockApiKeyRepo.count).not.toHaveBeenCalled();
       expect(mockTenantRepo.count).not.toHaveBeenCalled();
     });
@@ -101,15 +93,6 @@ describe('DatabaseSeederService', () => {
       const ctx = await auth.$context;
       await service.onModuleInit();
       expect(ctx.runMigrations).toHaveBeenCalled();
-    });
-
-    it('should always seed model pricing', async () => {
-      mockConfigService.get.mockReturnValue('production');
-      delete process.env['SEED_DATA'];
-
-      await service.onModuleInit();
-
-      expect(mockPricingRepo.upsert).toHaveBeenCalled();
     });
 
     it('should seed demo data when env is development and SEED_DATA is true', async () => {
@@ -315,66 +298,6 @@ describe('DatabaseSeederService', () => {
       expect(mockTenantRepo.insert).not.toHaveBeenCalled();
       expect(mockAgentRepo.insert).not.toHaveBeenCalled();
       expect(mockAgentKeyRepo.insert).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('seedModelPricing', () => {
-    it('should always upsert model pricing even when data exists', async () => {
-      mockConfigService.get.mockReturnValue('production');
-
-      await service.onModuleInit();
-
-      // All curated models are always upserted (68 total)
-      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(68);
-    });
-
-    it('should upsert with model_name as conflict key', async () => {
-      mockPricingRepo.count.mockResolvedValue(0);
-      mockConfigService.get.mockReturnValue('production');
-
-      await service.onModuleInit();
-
-      for (const call of mockPricingRepo.upsert.mock.calls) {
-        expect(call[1]).toEqual(['model_name']);
-      }
-    });
-
-    it('should reload pricing cache after seeding models', async () => {
-      mockConfigService.get.mockReturnValue('production');
-
-      await service.onModuleInit();
-
-      expect(mockPricingCache.reload).toHaveBeenCalled();
-    });
-
-    it('should not include quality_score in upsert (computed dynamically)', async () => {
-      mockConfigService.get.mockReturnValue('production');
-
-      await service.onModuleInit();
-
-      for (const call of mockPricingRepo.upsert.mock.calls) {
-        expect(call[0]).not.toHaveProperty('quality_score');
-      }
-    });
-
-    it('should include claude-opus-4-6 with correct pricing', async () => {
-      mockPricingRepo.count.mockResolvedValue(0);
-      mockConfigService.get.mockReturnValue('production');
-
-      await service.onModuleInit();
-
-      expect(mockPricingRepo.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          model_name: 'claude-opus-4-6',
-          provider: 'Anthropic',
-          input_price_per_token: 0.000005,
-          output_price_per_token: 0.000025,
-          context_window: 200000,
-          capability_reasoning: true,
-          capability_code: true,
-        }),
-        ['model_name'],
-      );
     });
   });
 

@@ -7,13 +7,10 @@ import { Tenant } from '../entities/tenant.entity';
 import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { ApiKey } from '../entities/api-key.entity';
-import { ModelPricing } from '../entities/model-pricing.entity';
 import { SecurityEvent } from '../entities/security-event.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { hashKey, keyPrefix } from '../common/utils/hash.util';
-import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { seedAgentMessages } from './seed-messages';
-import { SEED_MODELS } from './seed-models';
 
 const SEED_API_KEY = 'dev-api-key-manifest-001';
 const SEED_OTLP_KEY = 'mnfst_dev-otlp-key-001';
@@ -31,10 +28,8 @@ export class DatabaseSeederService implements OnModuleInit {
     @InjectRepository(Agent) private readonly agentRepo: Repository<Agent>,
     @InjectRepository(AgentApiKey) private readonly agentKeyRepo: Repository<AgentApiKey>,
     @InjectRepository(ApiKey) private readonly apiKeyRepo: Repository<ApiKey>,
-    @InjectRepository(ModelPricing) private readonly pricingRepo: Repository<ModelPricing>,
     @InjectRepository(SecurityEvent) private readonly securityRepo: Repository<SecurityEvent>,
     @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
-    private readonly pricingCache: ModelPricingCacheService,
   ) {}
 
   async onModuleInit() {
@@ -42,7 +37,6 @@ export class DatabaseSeederService implements OnModuleInit {
     if (process.env['MANIFEST_MODE'] === 'local') return;
 
     await this.runBetterAuthMigrations();
-    await this.seedModelPricing();
 
     const env = this.configService.get<string>('app.nodeEnv', 'production');
     const shouldSeed =
@@ -74,7 +68,6 @@ export class DatabaseSeederService implements OnModuleInit {
       },
     });
 
-    // Mark email as verified so the seed user can log in without Mailgun
     await this.dataSource.query(`UPDATE "user" SET "emailVerified" = true WHERE email = $1`, [
       'admin@manifest.build',
     ]);
@@ -156,35 +149,6 @@ export class DatabaseSeederService implements OnModuleInit {
     });
 
     this.logger.log(`Seeded tenant/agent with OTLP key: ${SEED_OTLP_KEY.substring(0, 8)}***`);
-  }
-
-  private async seedModelPricing() {
-    for (const [
-      name,
-      provider,
-      inputPrice,
-      outputPrice,
-      ctxWindow,
-      reasoning,
-      code,
-      displayName,
-    ] of SEED_MODELS) {
-      await this.pricingRepo.upsert(
-        {
-          model_name: name,
-          provider,
-          input_price_per_token: inputPrice,
-          output_price_per_token: outputPrice,
-          context_window: ctxWindow,
-          capability_reasoning: reasoning,
-          capability_code: code,
-          display_name: displayName,
-        },
-        ['model_name'],
-      );
-    }
-    await this.pricingCache.reload();
-    this.logger.log('Seeded model pricing data');
   }
 
   private async seedSecurityEvents() {

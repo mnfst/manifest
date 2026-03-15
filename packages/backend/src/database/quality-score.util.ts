@@ -1,4 +1,11 @@
-import { ModelPricing } from '../entities/model-pricing.entity';
+export interface QualityScoreInput {
+  model_name: string;
+  input_price_per_token: number | null;
+  output_price_per_token: number | null;
+  capability_reasoning: boolean;
+  capability_code: boolean;
+  context_window: number;
+}
 
 /**
  * Models where data signals alone cannot determine the correct quality tier.
@@ -31,17 +38,7 @@ const MINI_VARIANT = /\b(mini|nano|haiku|micro)\b/i;
  *   2 = cost-optimized: has code capability
  *   1 = ultra-low: no code, very cheap
  */
-export function computeQualityScore(
-  model: Pick<
-    ModelPricing,
-    | 'model_name'
-    | 'input_price_per_token'
-    | 'output_price_per_token'
-    | 'capability_reasoning'
-    | 'capability_code'
-    | 'context_window'
-  >,
-): number {
+export function computeQualityScore(model: QualityScoreInput): number {
   const override = QUALITY_OVERRIDES.get(model.model_name);
   if (override !== undefined) return override;
   // Also check bare name (e.g. "anthropic/claude-sonnet-4-20250514" → "claude-sonnet-4-20250514")

@@ -25,9 +25,9 @@ const baseTiers = [
 ];
 
 const baseModels = [
-  { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
-  { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
-  { model_name: "openrouter/free", provider: "OpenAI", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
+  { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+  { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+  { model_name: "openrouter/free", provider: "OpenAI", display_name: "Free Models Router", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
 ];
 
 describe("ModelPickerModal", () => {
@@ -100,10 +100,10 @@ describe("ModelPickerModal", () => {
     // Need more than 5 models for search bar to show
     const manyModels = [
       ...baseModels,
-      { model_name: "gpt-4o", provider: "OpenAI", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
-      { model_name: "gpt-3.5-turbo", provider: "OpenAI", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
-      { model_name: "claude-sonnet-4", provider: "Anthropic", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
-      { model_name: "gemini-pro", provider: "Google", input_price_per_token: 0.00000025, output_price_per_token: 0.0000005, context_window: 32000, capability_reasoning: false, capability_code: false },
+      { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-sonnet-4", provider: "Anthropic", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+      { model_name: "gemini-pro", provider: "Google", display_name: "Gemini Pro", input_price_per_token: 0.00000025, output_price_per_token: 0.0000005, context_window: 32000, capability_reasoning: false, capability_code: false },
     ];
     render(() => (
       <ModelPickerModal tierId="simple" models={manyModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
@@ -119,9 +119,9 @@ describe("ModelPickerModal", () => {
     // Need more than 5 models for search bar to show
     const manyModels = [
       ...baseModels,
-      { model_name: "gpt-4o", provider: "OpenAI", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
-      { model_name: "gpt-3.5-turbo", provider: "OpenAI", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
-      { model_name: "claude-sonnet-4", provider: "Anthropic", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+      { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-sonnet-4", provider: "Anthropic", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
     ];
     render(() => (
       <ModelPickerModal tierId="simple" models={manyModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
@@ -142,9 +142,9 @@ describe("ModelPickerModal", () => {
     // Need more than 5 models for search bar to show
     const manyModels = [
       ...baseModels,
-      { model_name: "gpt-4o", provider: "OpenAI", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
-      { model_name: "gpt-3.5-turbo", provider: "OpenAI", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
-      { model_name: "claude-sonnet-4", provider: "Anthropic", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+      { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-sonnet-4", provider: "Anthropic", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
     ];
     render(() => (
       <ModelPickerModal tierId="simple" models={manyModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
@@ -179,12 +179,12 @@ describe("ModelPickerModal", () => {
 
   it("resolves label for vendor-prefixed model names", () => {
     const modelsWithSlash = [
-      { model_name: "anthropic/claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+      { model_name: "anthropic/claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
     ];
     const { container } = render(() => (
       <ModelPickerModal tierId="simple" models={modelsWithSlash} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
-    // Should resolve "anthropic/claude-opus-4-6" -> "claude-opus-4-6" -> look up label
+    // display_name is used as the label
     expect(container.textContent).toContain("Claude Opus 4.6");
   });
 

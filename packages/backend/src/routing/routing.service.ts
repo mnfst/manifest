@@ -4,6 +4,7 @@ import { Not, IsNull, Repository, In } from 'typeorm';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
@@ -30,8 +31,15 @@ export class RoutingService {
     private readonly tierRepo: Repository<TierAssignment>,
     private readonly autoAssign: TierAutoAssignService,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly discoveryService: ModelDiscoveryService,
     private readonly routingCache: RoutingCacheService,
   ) {}
+
+  /** Public entry point for tier recalculation (e.g. after model discovery). */
+  async recalculateTiers(agentId: string): Promise<void> {
+    await this.autoAssign.recalculate(agentId);
+    this.routingCache.invalidateAgent(agentId);
+  }
 
   /* ── Providers ── */
 
@@ -602,6 +610,10 @@ export class RoutingService {
   }
 
   private async isModelAvailable(agentId: string, model: string): Promise<boolean> {
+    // Check discovered models first
+    const discovered = await this.discoveryService.getModelForAgent(agentId, model);
+    if (discovered) return true;
+
     const records = (
       await this.providerRepo.find({
         where: { agent_id: agentId, is_active: true },
@@ -611,14 +623,12 @@ export class RoutingService {
     if (pricing) {
       const names = expandProviderNames([pricing.provider]);
       if (records.find((r) => names.has(r.provider.toLowerCase()))) return true;
-      // Also try the canonical model name's vendor prefix
       const canonicalPrefix = inferProviderFromModelName(pricing.model_name);
       if (canonicalPrefix) {
         const cpNames = expandProviderNames([canonicalPrefix]);
         if (records.find((r) => cpNames.has(r.provider.toLowerCase()))) return true;
       }
     }
-    // Fallback: match by model name prefix (e.g. "anthropic/claude-sonnet-4" → "anthropic")
     const prefix = inferProviderFromModelName(model);
     if (prefix) {
       const prefixNames = expandProviderNames([prefix]);

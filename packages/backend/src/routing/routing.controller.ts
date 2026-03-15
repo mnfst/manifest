@@ -4,9 +4,8 @@ import { AuthUser } from '../auth/auth.instance';
 import { RoutingService } from './routing.service';
 import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
-import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
-import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
 import { trackCloudEvent } from '../common/utils/product-telemetry';
 import {
   AgentNameParamDto,
@@ -22,7 +21,7 @@ export class RoutingController {
   constructor(
     private readonly routingService: RoutingService,
     private readonly customProviderService: CustomProviderService,
-    private readonly pricingCache: ModelPricingCacheService,
+    private readonly discoveryService: ModelDiscoveryService,
     private readonly ollamaSync: OllamaSyncService,
     private readonly resolveAgentService: ResolveAgentService,
   ) {}
@@ -75,6 +74,15 @@ export class RoutingController {
       body.authType,
     );
 
+    // Discover models and recalculate tiers before returning so the
+    // frontend sees updated data immediately (typically ~1-3s).
+    try {
+      await this.discoveryService.discoverModels(result);
+      await this.routingService.recalculateTiers(agent.id);
+    } catch {
+      // Discovery failure is non-fatal — user can retry via "Refresh models"
+    }
+
     if (isNew) {
       const providerLabel =
         body.authType === 'subscription' ? `${body.provider} (Subscription)` : body.provider;
@@ -118,6 +126,16 @@ export class RoutingController {
   @Post('ollama/sync')
   async syncOllama() {
     return this.ollamaSync.sync();
+  }
+
+  /* ── Model refresh ── */
+
+  @Post(':agentName/refresh-models')
+  async refreshModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    await this.discoveryService.discoverAllForAgent(agent.id);
+    await this.routingService.recalculateTiers(agent.id);
+    return { ok: true };
   }
 
   /* ── Tiers ── */
@@ -196,10 +214,7 @@ export class RoutingController {
   @Get(':agentName/available-models')
   async getAvailableModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const providers = await this.routingService.getProviders(agent.id);
-    const activeProviders = expandProviderNames(
-      providers.filter((p) => p.is_active).map((p) => p.provider),
-    );
+    const models = await this.discoveryService.getModelsForAgent(agent.id);
 
     // Build display name map for custom providers
     const customProviders = await this.customProviderService.list(agent.id);
@@ -208,31 +223,22 @@ export class RoutingController {
       cpNameMap.set(CustomProviderService.providerKey(cp.id), cp.name);
     }
 
-    const models = this.pricingCache.getAll();
-    return models
-      .filter((m) => {
-        if (activeProviders.has(m.provider.toLowerCase())) return true;
-        const prefix = inferProviderFromModelName(m.model_name);
-        return prefix != null && activeProviders.has(prefix);
-      })
-      .map((m) => {
-        const isCustom = CustomProviderService.isCustom(m.provider);
-        return {
-          model_name: m.model_name,
-          provider: m.provider,
-          input_price_per_token: m.input_price_per_token,
-          output_price_per_token: m.output_price_per_token,
-          context_window: m.context_window,
-          capability_reasoning: m.capability_reasoning,
-          capability_code: m.capability_code,
-          quality_score: m.quality_score,
-          display_name: isCustom
-            ? CustomProviderService.rawModelName(m.model_name)
-            : m.display_name || null,
-          ...(isCustom && {
-            provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
-          }),
-        };
-      });
+    return models.map((m) => {
+      const isCustom = CustomProviderService.isCustom(m.provider);
+      return {
+        model_name: m.id,
+        provider: m.provider,
+        input_price_per_token: m.inputPricePerToken,
+        output_price_per_token: m.outputPricePerToken,
+        context_window: m.contextWindow,
+        capability_reasoning: m.capabilityReasoning,
+        capability_code: m.capabilityCode,
+        quality_score: m.qualityScore,
+        display_name: isCustom ? CustomProviderService.rawModelName(m.id) : m.displayName || null,
+        ...(isCustom && {
+          provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
+        }),
+      };
+    });
   }
 }

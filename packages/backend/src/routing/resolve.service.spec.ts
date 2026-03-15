@@ -1,11 +1,13 @@
 import { ResolveService } from './resolve.service';
 import { RoutingService } from './routing.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 
 describe('ResolveService', () => {
   let service: ResolveService;
   let mockRoutingService: Record<string, jest.Mock>;
   let mockPricingCache: Record<string, jest.Mock>;
+  let mockDiscoveryService: Record<string, jest.Mock>;
 
   beforeEach(() => {
     mockRoutingService = {
@@ -21,10 +23,14 @@ describe('ResolveService', () => {
     mockPricingCache = {
       getByModel: jest.fn(),
     };
+    mockDiscoveryService = {
+      getModelForAgent: jest.fn().mockResolvedValue(undefined),
+    };
 
     service = new ResolveService(
       mockRoutingService as unknown as RoutingService,
       mockPricingCache as unknown as ModelPricingCacheService,
+      mockDiscoveryService as unknown as ModelDiscoveryService,
     );
   });
 
@@ -225,13 +231,13 @@ describe('ResolveService', () => {
   });
 
   describe('resolveForTier provider inference fallback', () => {
-    it('should infer provider from pricing.model_name when model has no prefix', async () => {
+    it('should use pricing.provider when model has no prefix', async () => {
       mockRoutingService.getTiers.mockResolvedValue([
         { tier: 'simple', override_model: null, auto_assigned_model: 'gpt-4o-mini' },
       ]);
       mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
       // model 'gpt-4o-mini' has no slash → inferProviderFromModelName returns undefined
-      // pricing.model_name has vendor prefix → inferProviderFromModelName returns 'openai'
+      // pricing.provider has the display name from the cache
       mockPricingCache.getByModel.mockReturnValue({
         model_name: 'openai/gpt-4o-mini',
         provider: 'OpenAI',
@@ -239,7 +245,7 @@ describe('ResolveService', () => {
 
       const result = await service.resolveForTier('agent-1', 'simple');
 
-      expect(result.provider).toBe('openai');
+      expect(result.provider).toBe('OpenAI');
     });
 
     it('should fall back to pricing.provider when no model name has a prefix', async () => {
