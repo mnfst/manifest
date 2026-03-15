@@ -176,6 +176,43 @@ describe('Google Adapter', () => {
       expect(props.examples.type).toBe('array');
     });
 
+    it('sanitizes array schemas inside tool parameters', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Do something' }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'my_tool',
+              description: 'A tool',
+              parameters: {
+                type: 'object',
+                properties: {
+                  tags: {
+                    type: 'array',
+                    items: { type: 'string', title: 'Tag Name', default: 'untitled' },
+                  },
+                },
+                required: ['tags'],
+              },
+            },
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const tools = result.tools as Array<{
+        functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
+      }>;
+      const params = tools[0].functionDeclarations[0].parameters;
+      const props = params.properties as Record<string, Record<string, unknown>>;
+
+      // Items should have unsupported fields stripped
+      expect(props.tags.items).toEqual({ type: 'string' });
+      // required array should pass through unchanged (primitive values)
+      expect(params.required).toEqual(['tags']);
+    });
+
     it('handles tools with no parameters', () => {
       const body = {
         messages: [{ role: 'user', content: 'Do something' }],
@@ -332,6 +369,30 @@ describe('Google Adapter', () => {
       const result = toGoogleRequest(body, 'gemini-2.0-flash');
 
       expect(result.generationConfig).toBeUndefined();
+    });
+
+    it('handles tool_calls with empty arguments string in assistant messages', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'noop', arguments: '' },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts[0].functionCall).toEqual({
+        name: 'noop',
+        args: {},
+      });
     });
 
     it('handles tool_calls in assistant messages', () => {
@@ -589,6 +650,22 @@ describe('Google Adapter', () => {
       expect(choices[0].message.content).toBeNull();
     });
 
+    it('maps STOP finish reason to tool_calls when tool calls present', () => {
+      const google = {
+        candidates: [
+          {
+            content: {
+              parts: [{ functionCall: { name: 'search', args: { query: 'cats' } } }],
+            },
+            finishReason: 'STOP',
+          },
+        ],
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{ finish_reason: string }>;
+      expect(choices[0].finish_reason).toBe('tool_calls');
+    });
+
     it('maps MAX_TOKENS finish reason to length', () => {
       const google = {
         candidates: [
@@ -602,6 +679,93 @@ describe('Google Adapter', () => {
       const result = fromGoogleResponse(google, 'gemini-2.0-flash');
       const choices = result.choices as Array<{ finish_reason: string }>;
       expect(choices[0].finish_reason).toBe('length');
+    });
+
+    it('maps MAX_TOKENS to length even when tool calls are present', () => {
+      const google = {
+        candidates: [
+          {
+            content: {
+              parts: [{ functionCall: { name: 'search', args: { q: 'test' } } }],
+            },
+            finishReason: 'MAX_TOKENS',
+          },
+        ],
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{ finish_reason: string }>;
+      // MAX_TOKENS always maps to 'length' regardless of tool calls
+      expect(choices[0].finish_reason).toBe('length');
+    });
+
+    it('maps missing finishReason to tool_calls when tool calls present', () => {
+      const google = {
+        candidates: [
+          {
+            content: {
+              parts: [{ functionCall: { name: 'get_weather', args: { city: 'NYC' } } }],
+            },
+          },
+        ],
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{ finish_reason: string }>;
+      expect(choices[0].finish_reason).toBe('tool_calls');
+    });
+
+    it('handles candidate with missing content property', () => {
+      const google = {
+        candidates: [{ finishReason: 'STOP' }],
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{
+        message: Record<string, unknown>;
+        finish_reason: string;
+      }>;
+      expect(choices[0].message.content).toBeNull();
+      expect(choices[0].finish_reason).toBe('stop');
+    });
+
+    it('handles usageMetadata with missing individual fields', () => {
+      const google = {
+        candidates: [
+          {
+            content: { parts: [{ text: 'ok' }] },
+            finishReason: 'STOP',
+          },
+        ],
+        usageMetadata: {},
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const usage = result.usage as Record<string, unknown>;
+      expect(usage.prompt_tokens).toBe(0);
+      expect(usage.completion_tokens).toBe(0);
+      expect(usage.total_tokens).toBe(0);
+      expect(usage.cache_read_tokens).toBe(0);
+    });
+
+    it('handles multiple function calls in response', () => {
+      const google = {
+        candidates: [
+          {
+            content: {
+              parts: [
+                { functionCall: { name: 'search', args: { q: 'cats' } } },
+                { functionCall: { name: 'search', args: { q: 'dogs' } } },
+              ],
+            },
+            finishReason: 'STOP',
+          },
+        ],
+      };
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{
+        message: Record<string, unknown>;
+        finish_reason: string;
+      }>;
+      const toolCalls = choices[0].message.tool_calls as Array<Record<string, unknown>>;
+      expect(toolCalls).toHaveLength(2);
+      expect(choices[0].finish_reason).toBe('tool_calls');
     });
   });
 
@@ -676,12 +840,123 @@ describe('Google Adapter', () => {
       expect(result).toContain('"total_tokens":0');
     });
 
-    it('handles parts without text property', () => {
+    it('emits tool call delta for functionCall parts', () => {
       const chunk = JSON.stringify({
-        candidates: [{ content: { parts: [{ functionCall: { name: 'fn', args: {} } }] } }],
+        candidates: [
+          { content: { parts: [{ functionCall: { name: 'fn', args: { q: 'test' } } }] } },
+        ],
       });
       const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
-      expect(result).toBeNull(); // no text + no usage = null
+      expect(result).not.toBeNull();
+      const data = JSON.parse(result!.split('\n\n')[0].replace('data: ', ''));
+      expect(data.choices[0].delta.tool_calls).toHaveLength(1);
+      expect(data.choices[0].delta.tool_calls[0].type).toBe('function');
+      expect(data.choices[0].delta.tool_calls[0].function.name).toBe('fn');
+      expect(JSON.parse(data.choices[0].delta.tool_calls[0].function.arguments)).toEqual({
+        q: 'test',
+      });
+    });
+
+    it('emits tool call and text together when both present', () => {
+      const chunk = JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                { text: 'Let me call a tool.' },
+                { functionCall: { name: 'search', args: { query: 'cats' } } },
+              ],
+            },
+          },
+        ],
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      expect(result).not.toBeNull();
+      const data = JSON.parse(result!.split('\n\n')[0].replace('data: ', ''));
+      expect(data.choices[0].delta.content).toBe('Let me call a tool.');
+      expect(data.choices[0].delta.tool_calls).toHaveLength(1);
+      expect(data.choices[0].delta.tool_calls[0].function.name).toBe('search');
+    });
+
+    it('emits finish_reason tool_calls when functionCall with usage', () => {
+      const chunk = JSON.stringify({
+        candidates: [
+          {
+            content: { parts: [{ functionCall: { name: 'fn', args: {} } }] },
+            finishReason: 'STOP',
+          },
+        ],
+        usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5, totalTokenCount: 15 },
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      expect(result).toContain('"finish_reason":"tool_calls"');
+    });
+
+    it('handles multiple functionCall parts with sequential indices', () => {
+      const chunk = JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                { functionCall: { name: 'tool_a', args: { x: 1 } } },
+                { functionCall: { name: 'tool_b', args: { y: 2 } } },
+              ],
+            },
+          },
+        ],
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      const data = JSON.parse(result!.split('\n\n')[0].replace('data: ', ''));
+      expect(data.choices[0].delta.tool_calls).toHaveLength(2);
+      expect(data.choices[0].delta.tool_calls[0].index).toBe(0);
+      expect(data.choices[0].delta.tool_calls[0].function.name).toBe('tool_a');
+      expect(data.choices[0].delta.tool_calls[1].index).toBe(1);
+      expect(data.choices[0].delta.tool_calls[1].function.name).toBe('tool_b');
+    });
+
+    it('handles functionCall with null args', () => {
+      const chunk = JSON.stringify({
+        candidates: [{ content: { parts: [{ functionCall: { name: 'noop', args: null } }] } }],
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      const data = JSON.parse(result!.split('\n\n')[0].replace('data: ', ''));
+      expect(JSON.parse(data.choices[0].delta.tool_calls[0].function.arguments)).toEqual({});
+    });
+
+    it('handles functionCall with undefined args in stream', () => {
+      const chunk = JSON.stringify({
+        candidates: [{ content: { parts: [{ functionCall: { name: 'noop' } }] } }],
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      const data = JSON.parse(result!.split('\n\n')[0].replace('data: ', ''));
+      expect(JSON.parse(data.choices[0].delta.tool_calls[0].function.arguments)).toEqual({});
+    });
+
+    it('includes cachedContentTokenCount in stream usage', () => {
+      const chunk = JSON.stringify({
+        candidates: [{ content: { parts: [{ text: 'done' }] }, finishReason: 'STOP' }],
+        usageMetadata: {
+          promptTokenCount: 100,
+          candidatesTokenCount: 50,
+          totalTokenCount: 150,
+          cachedContentTokenCount: 80,
+        },
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      expect(result).toContain('"cache_read_tokens":80');
+      expect(result).toContain('"cached_tokens":80');
+    });
+
+    it('emits finish_reason stop for STOP without tool calls in stream with usage', () => {
+      const chunk = JSON.stringify({
+        candidates: [{ content: { parts: [{ text: 'done' }] }, finishReason: 'STOP' }],
+        usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5, totalTokenCount: 15 },
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-2.0-flash');
+      const parts = result!.split('\n\n').filter(Boolean);
+      // The finish chunk (second part) should have finish_reason 'stop'
+      const finishChunk = JSON.parse(parts[1].replace('data: ', ''));
+      expect(finishChunk.choices[0].finish_reason).toBe('stop');
     });
 
     it('emits usage when candidates field is missing', () => {
