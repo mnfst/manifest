@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
@@ -8,6 +8,8 @@ import { DiscoveredModel } from './model-fetcher';
 import { MANUAL_PRICING } from './manual-pricing-reference';
 import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { computeQualityScore } from '../../database/quality-score.util';
+import { OPENROUTER_PREFIX_TO_PROVIDER } from '../../common/constants/providers';
+import { PricingSyncService } from '../../database/pricing-sync.service';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
 const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
@@ -22,25 +24,10 @@ export class ModelDiscoveryService {
     @InjectRepository(CustomProvider)
     private readonly customProviderRepo: Repository<CustomProvider>,
     private readonly fetcher: ProviderModelFetcherService,
+    @Optional()
+    @Inject(PricingSyncService)
+    private readonly pricingSync: PricingSyncService | null,
   ) {}
-
-  /**
-   * OpenRouter pricing lookup cache, injected lazily to avoid circular deps.
-   * Set by ModelDiscoveryModule via setOpenRouterLookup().
-   */
-  private openRouterLookup:
-    | ((
-        modelId: string,
-      ) => { input: number; output: number; contextWindow?: number; displayName?: string } | null)
-    | null = null;
-
-  setOpenRouterLookup(
-    fn: (
-      modelId: string,
-    ) => { input: number; output: number; contextWindow?: number; displayName?: string } | null,
-  ): void {
-    this.openRouterLookup = fn;
-  }
 
   async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
     let apiKey = '';
@@ -55,7 +42,7 @@ export class ModelDiscoveryService {
 
     const raw = await this.fetcher.fetch(provider.provider, apiKey, provider.auth_type);
 
-    const enriched = raw.map((model) => this.enrichModel(model));
+    const enriched = raw.map((model) => this.enrichModel(model, provider.provider));
 
     provider.cached_models = enriched;
     provider.models_fetched_at = new Date().toISOString();
@@ -143,22 +130,40 @@ export class ModelDiscoveryService {
     return all.find((m) => m.id === modelName);
   }
 
-  private enrichModel(model: DiscoveredModel): DiscoveredModel {
-    // If the fetcher already provided pricing, use it
+  /**
+   * Enrich a discovered model with pricing from OpenRouter cache or manual reference.
+   * Provider native APIs return model lists but NOT pricing, so we look it up.
+   */
+  private enrichModel(model: DiscoveredModel, providerId: string): DiscoveredModel {
+    // If the fetcher already provided pricing (e.g. OpenRouter), use it
     if (model.inputPricePerToken !== null && model.inputPricePerToken > 0) {
       return this.computeScore(model);
     }
 
-    // Try OpenRouter lookup
-    if (this.openRouterLookup) {
-      const orPricing = this.openRouterLookup(model.id);
-      if (orPricing) {
+    // Look up pricing from OpenRouter cache using vendor-prefixed ID
+    if (this.pricingSync) {
+      const orPrefix = this.findOpenRouterPrefix(providerId);
+      if (orPrefix) {
+        const orPricing = this.pricingSync.lookupPricing(`${orPrefix}/${model.id}`);
+        if (orPricing) {
+          return this.computeScore({
+            ...model,
+            inputPricePerToken: orPricing.input,
+            outputPricePerToken: orPricing.output,
+            contextWindow: orPricing.contextWindow ?? model.contextWindow,
+            displayName: orPricing.displayName || model.displayName,
+          });
+        }
+      }
+      // Also try exact match (for models like "openrouter/auto")
+      const exactPricing = this.pricingSync.lookupPricing(model.id);
+      if (exactPricing) {
         return this.computeScore({
           ...model,
-          inputPricePerToken: orPricing.input,
-          outputPricePerToken: orPricing.output,
-          contextWindow: orPricing.contextWindow ?? model.contextWindow,
-          displayName: orPricing.displayName || model.displayName,
+          inputPricePerToken: exactPricing.input,
+          outputPricePerToken: exactPricing.output,
+          contextWindow: exactPricing.contextWindow ?? model.contextWindow,
+          displayName: exactPricing.displayName || model.displayName,
         });
       }
     }
@@ -174,6 +179,21 @@ export class ModelDiscoveryService {
     }
 
     return this.computeScore(model);
+  }
+
+  /**
+   * Find the OpenRouter vendor prefix for a provider ID.
+   * E.g. "anthropic" → "anthropic", "gemini" → "google", "qwen" → "qwen"
+   */
+  private findOpenRouterPrefix(providerId: string): string | null {
+    const lower = providerId.toLowerCase();
+    // Check if the provider ID is itself an OpenRouter prefix
+    if (OPENROUTER_PREFIX_TO_PROVIDER.has(lower)) return lower;
+    // Check all prefixes to find one mapping to this provider's display name
+    for (const [prefix, displayName] of OPENROUTER_PREFIX_TO_PROVIDER) {
+      if (displayName.toLowerCase() === lower) return prefix;
+    }
+    return null;
   }
 
   private computeScore(model: DiscoveredModel): DiscoveredModel {
