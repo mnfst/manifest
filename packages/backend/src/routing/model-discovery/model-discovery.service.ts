@@ -8,7 +8,10 @@ import { DiscoveredModel } from './model-fetcher';
 import { MANUAL_PRICING } from './manual-pricing-reference';
 import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { computeQualityScore } from '../../database/quality-score.util';
-import { OPENROUTER_PREFIX_TO_PROVIDER } from '../../common/constants/providers';
+import {
+  OPENROUTER_PREFIX_TO_PROVIDER,
+  PROVIDER_BY_ID_OR_ALIAS,
+} from '../../common/constants/providers';
 import { PricingSyncService } from '../../database/pricing-sync.service';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
@@ -189,7 +192,16 @@ export class ModelDiscoveryService {
     const lower = providerId.toLowerCase();
     // Check if the provider ID is itself an OpenRouter prefix
     if (OPENROUTER_PREFIX_TO_PROVIDER.has(lower)) return lower;
-    // Check all prefixes to find one mapping to this provider's display name
+
+    // Use the provider registry to resolve aliases → check each OpenRouter prefix
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get(lower);
+    if (entry) {
+      for (const prefix of entry.openRouterPrefixes) {
+        if (OPENROUTER_PREFIX_TO_PROVIDER.has(prefix)) return prefix;
+      }
+    }
+
+    // Last resort: check display name match
     for (const [prefix, displayName] of OPENROUTER_PREFIX_TO_PROVIDER) {
       if (displayName.toLowerCase() === lower) return prefix;
     }
