@@ -74,11 +74,14 @@ export class RoutingController {
       body.authType,
     );
 
-    // Trigger model discovery + tier recalculation in background after provider connect
-    this.discoveryService
-      .discoverModels(result)
-      .then(() => this.routingService.recalculateTiers(agent.id))
-      .catch(() => {});
+    // Discover models and recalculate tiers before returning so the
+    // frontend sees updated data immediately (typically ~1-3s).
+    try {
+      await this.discoveryService.discoverModels(result);
+      await this.routingService.recalculateTiers(agent.id);
+    } catch {
+      // Discovery failure is non-fatal — user can retry via "Refresh models"
+    }
 
     if (isNew) {
       const providerLabel =
