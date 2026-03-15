@@ -13,12 +13,16 @@ import ErrorState from '../components/ErrorState.jsx';
 import InfoTooltip from '../components/InfoTooltip.jsx';
 import ModelPricesFilterBar from '../components/ModelPricesFilterBar.jsx';
 import Pagination from '../components/Pagination.jsx';
+import { providerIcon } from '../components/ProviderIcon.jsx';
 import { getModelPrices } from '../services/api.js';
+import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { createClientPagination } from '../services/pagination.js';
+import { resolveProviderId } from '../services/routing-utils.js';
 
 interface ModelPrice {
   model_name: string;
   provider: string;
+  display_name: string | null;
   input_price_per_million: number | null;
   output_price_per_million: number | null;
 }
@@ -39,6 +43,7 @@ function formatPrice(price: number | null): string {
 }
 
 const ModelPrices: Component = () => {
+  preloadModelDisplayNames();
   const [data, { refetch }] = createResource(() => getModelPrices() as Promise<ModelPricesData>);
   const [sortKey, setSortKey] = createSignal<SortKey>('provider');
   const [sortDir, setSortDir] = createSignal<SortDir>('asc');
@@ -288,20 +293,37 @@ const ModelPrices: Component = () => {
                 </thead>
                 <tbody>
                   <For each={pager.pageItems()}>
-                    {(model) => (
-                      <tr>
-                        <td style="font-family: var(--font-mono); font-size: var(--font-size-sm);">
-                          {model.model_name}
-                        </td>
-                        <td>{model.provider}</td>
-                        <td style="font-family: var(--font-mono);">
-                          {formatPrice(model.input_price_per_million)}
-                        </td>
-                        <td style="font-family: var(--font-mono);">
-                          {formatPrice(model.output_price_per_million)}
-                        </td>
-                      </tr>
-                    )}
+                    {(model) => {
+                      const displayName = () =>
+                        model.display_name || getModelDisplayName(model.model_name);
+                      const pid = () => resolveProviderId(model.provider);
+                      return (
+                        <tr>
+                          <td>
+                            <div style="font-size: var(--font-size-sm);">{displayName()}</div>
+                            <div style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                              {model.model_name}
+                            </div>
+                          </td>
+                          <td>
+                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                              <Show when={pid()}>
+                                <span style="display: inline-flex; flex-shrink: 0;">
+                                  {providerIcon(pid()!, 16)}
+                                </span>
+                              </Show>
+                              {model.provider}
+                            </span>
+                          </td>
+                          <td style="font-family: var(--font-mono);">
+                            {formatPrice(model.input_price_per_million)}
+                          </td>
+                          <td style="font-family: var(--font-mono);">
+                            {formatPrice(model.output_price_per_million)}
+                          </td>
+                        </tr>
+                      );
+                    }}
                   </For>
                 </tbody>
               </table>
