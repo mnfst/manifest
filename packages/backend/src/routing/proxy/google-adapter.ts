@@ -238,7 +238,9 @@ export function fromGoogleResponse(
     object: 'chat.completion',
     created: Math.floor(Date.now() / 1000),
     model,
-    choices: [{ index: 0, message, finish_reason: mapFinishReason(candidate) }],
+    choices: [
+      { index: 0, message, finish_reason: mapFinishReason(candidate, toolCalls.length > 0) },
+    ],
     usage: usage
       ? {
           prompt_tokens: usage.promptTokenCount ?? 0,
@@ -252,11 +254,12 @@ export function fromGoogleResponse(
   };
 }
 
-function mapFinishReason(candidate: Record<string, unknown>): string {
+function mapFinishReason(candidate: Record<string, unknown>, hasToolCalls = false): string {
   const reason = candidate.finishReason as string | undefined;
-  if (!reason) return 'stop';
+  if (!reason || reason === 'STOP') {
+    return hasToolCalls ? 'tool_calls' : 'stop';
+  }
   const map: Record<string, string> = {
-    STOP: 'stop',
     MAX_TOKENS: 'length',
     SAFETY: 'content_filter',
     RECITATION: 'content_filter',
@@ -282,21 +285,37 @@ export function transformGoogleStreamChunk(chunk: string, model: string): string
   const parts = content?.parts || [];
   const text = parts.map((p) => p.text || '').join('');
 
+  const toolCalls: Record<string, unknown>[] = [];
+  for (const part of parts) {
+    if (part.functionCall) {
+      const fc = part.functionCall as { name: string; args?: Record<string, unknown> };
+      toolCalls.push({
+        index: toolCalls.length,
+        id: `call_${randomUUID()}`,
+        type: 'function',
+        function: { name: fc.name, arguments: JSON.stringify(fc.args ?? {}) },
+      });
+    }
+  }
+
   let result = '';
 
-  if (text) {
+  if (text || toolCalls.length > 0) {
+    const delta: Record<string, unknown> = {};
+    if (text) delta.content = text;
+    if (toolCalls.length > 0) delta.tool_calls = toolCalls;
     result += `data: ${JSON.stringify({
       id: `chatcmpl-${randomUUID()}`,
       object: 'chat.completion.chunk',
       created: Math.floor(Date.now() / 1000),
       model,
-      choices: [{ index: 0, delta: { content: text }, finish_reason: null }],
+      choices: [{ index: 0, delta, finish_reason: null }],
     })}\n\n`;
   }
 
   const usage = data.usageMetadata as Record<string, number> | undefined;
   if (usage) {
-    const finishReason = mapFinishReason(candidate ?? {});
+    const finishReason = mapFinishReason(candidate ?? {}, toolCalls.length > 0);
     result += `data: ${JSON.stringify({
       id: `chatcmpl-${randomUUID()}`,
       object: 'chat.completion.chunk',
