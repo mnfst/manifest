@@ -1400,8 +1400,8 @@ describe('ProxyController', () => {
       );
     });
 
-    it('should truncate long error messages to 500 chars', async () => {
-      const longError = 'x'.repeat(1000);
+    it('should truncate long error messages to 2000 chars', async () => {
+      const longError = 'x'.repeat(3000);
       const mockProviderResp = new Response(longError, {
         status: 403,
         headers: { 'Content-Type': 'text/plain' },
@@ -1426,7 +1426,7 @@ describe('ProxyController', () => {
 
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          error_message: 'x'.repeat(500),
+          error_message: 'x'.repeat(2000),
         }),
       );
     });

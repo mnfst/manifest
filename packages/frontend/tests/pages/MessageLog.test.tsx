@@ -18,9 +18,11 @@ vi.mock("@solidjs/meta", () => ({
 
 const mockGetMessages = vi.fn();
 const mockGetCustomProviders = vi.fn();
+const mockGetMessageDetails = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
+  getMessageDetails: (...args: unknown[]) => mockGetMessageDetails(...args),
 }));
 
 vi.mock("../../src/services/sse.js", () => ({

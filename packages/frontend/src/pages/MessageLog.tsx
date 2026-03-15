@@ -387,6 +387,7 @@ const MessageLog: Component = () => {
                   onFallbackErrorClick={scrollToFallbackSuccess}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
+                  expandable
                 />
               </div>
               <Pagination
