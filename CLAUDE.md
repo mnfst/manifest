@@ -453,12 +453,13 @@ The registry exports derived maps used throughout the codebase:
 
 ### Model Discovery
 
-Each provider's model list comes from **that provider's own API** — never from OpenRouter.
+Each provider's model list is fetched from **that provider's own API first**. If the native API fails or returns no models (some providers like MiniMax don't have a `/models` endpoint), the system falls back to building a model list from the OpenRouter pricing cache + manual pricing reference for that provider.
 
 ```
 User connects provider (POST /routing/:agent/providers)
   → ProviderModelFetcherService.fetch(providerId, apiKey)
     → calls provider's /models endpoint (e.g. api.anthropic.com/v1/models)
+    → if 0 models returned: buildFallbackModels() from OpenRouter cache + manual pricing
   → ModelDiscoveryService.enrichModel()
     → looks up pricing from OpenRouter cache (PricingSyncService)
     → falls back to manual-pricing-reference.ts for niche providers
@@ -468,7 +469,7 @@ User connects provider (POST /routing/:agent/providers)
 ```
 
 - `ProviderModelFetcherService` — config-driven fetcher with parsers for each provider API format (OpenAI-compatible, Anthropic, Gemini, OpenRouter, Ollama)
-- `ModelDiscoveryService` — orchestrator that decrypts keys, fetches, enriches with pricing, caches results
+- `ModelDiscoveryService` — orchestrator that decrypts keys, fetches, enriches with pricing, caches results. Falls back to OpenRouter + manual pricing when native API is unavailable.
 - `cached_models` — per-provider, per-agent JSONB column on `user_providers` table
 - Discovery runs synchronously on provider connect (user sees models immediately)
 - "Refresh models" button triggers `POST /routing/:agent/refresh-models`
@@ -482,7 +483,7 @@ The `model_pricing` database table has been **dropped**. Pricing comes from two 
 
 `ModelPricingCacheService` merges both sources and attributes models to their real provider using OpenRouter vendor prefixes (via `OPENROUTER_PREFIX_TO_PROVIDER`). Unsupported community vendors stay under "OpenRouter".
 
-**CRITICAL**: OpenRouter data is used ONLY as a pricing source. The model list for each provider must come from the provider's own API. OpenRouter models must NEVER be used as the model list for other providers.
+**Priority order for model lists**: (1) Provider's native `/models` API, (2) OpenRouter cache filtered by vendor prefix, (3) Manual pricing reference. OpenRouter is the fallback, not the primary source. When a provider's native API works, its model list takes precedence.
 
 ### Where Models Appear
 
