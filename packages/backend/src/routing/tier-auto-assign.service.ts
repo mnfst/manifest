@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { DiscoveredModel } from './model-discovery/model-fetcher';
@@ -47,30 +46,18 @@ export class TierAutoAssignService {
 
   constructor(
     private readonly discoveryService: ModelDiscoveryService,
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
     @InjectRepository(TierAssignment)
     private readonly tierRepo: Repository<TierAssignment>,
   ) {}
 
-  async recalculate(agentId: string, _providers?: UserProvider[]): Promise<void> {
+  async recalculate(agentId: string): Promise<void> {
     const allModels = await this.discoveryService.getModelsForAgent(agentId);
 
-    // Separate subscription vs API key models by checking provider records
-    const providers =
-      _providers ??
-      (await this.providerRepo.find({
-        where: { agent_id: agentId, is_active: true },
-      }));
-
-    const subProviders = new Set(
-      providers.filter((p) => p.auth_type === 'subscription').map((p) => p.provider.toLowerCase()),
-    );
-
-    const subModels = filterSubModels(
-      allModels.filter((m) => subProviders.has(m.provider.toLowerCase())),
-    );
-    const keyModels = allModels.filter((m) => !subProviders.has(m.provider.toLowerCase()));
+    // Separate subscription vs API key models using the authType field on each model.
+    // filterSubModels further narrows subscription models: if a provider has zero-cost
+    // models (e.g. OpenAI Codex), only those are used for subscription routing.
+    const subModels = filterSubModels(allModels.filter((m) => m.authType === 'subscription'));
+    const keyModels = allModels.filter((m) => m.authType !== 'subscription');
 
     // Batch read all tiers in one query
     const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });

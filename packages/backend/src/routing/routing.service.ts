@@ -184,7 +184,7 @@ export class RoutingService {
         removedProviders,
       );
       if (hadTierAssignments) {
-        await this.autoAssign.recalculate(agentId, usableProviders);
+        await this.autoAssign.recalculate(agentId);
       }
     }
     this.routingCache.invalidateAgent(agentId);
@@ -333,13 +333,12 @@ export class RoutingService {
       await this.tierRepo.insert(created);
 
       // If agent has active providers, recalculate immediately
-      // 2B: Pass providers to avoid duplicate query in recalculate()
       const providers = await this.providerRepo.find({
         where: { agent_id: agentId, is_active: true },
       });
       const usableProviders = providers.filter(isManifestUsableProvider);
       if (usableProviders.length > 0) {
-        await this.autoAssign.recalculate(agentId, usableProviders);
+        await this.autoAssign.recalculate(agentId);
         const result = await this.tierRepo.find({ where: { agent_id: agentId } });
         this.routingCache.setTiers(agentId, result);
         return result;

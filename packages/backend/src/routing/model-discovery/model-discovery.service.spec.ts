@@ -3,6 +3,7 @@ import { ProviderModelFetcherService } from './provider-model-fetcher.service';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { DiscoveredModel } from './model-fetcher';
+import { buildSubscriptionFallbackModels } from './model-fallback';
 
 jest.mock('../../common/utils/crypto.util', () => ({
   decrypt: jest.fn(),
@@ -719,6 +720,361 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].inputPricePerToken).toBe(0.000015);
       expect(result[0].provider).toBe('anthropic');
       expect(result[1].id).toBe('claude-sonnet-4.6');
+    });
+
+    it('should stamp authType as api_key for regular providers', async () => {
+      const models = [makeModel({ id: 'gpt-4o' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider({ auth_type: 'api_key' }));
+
+      expect(result[0].authType).toBe('api_key');
+    });
+
+    it('should stamp authType as subscription for subscription providers', async () => {
+      const models = [makeModel({ id: 'claude-sonnet-4' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-token',
+        }),
+      );
+
+      expect(result[0].authType).toBe('subscription');
+    });
+
+    it('should use subscription fallback when auth_type is subscription and no token', async () => {
+      const orMap = new Map([
+        [
+          'anthropic/claude-opus-4-20260301',
+          {
+            input: 0.000015,
+            output: 0.000075,
+            contextWindow: 200000,
+            displayName: 'Claude Opus 4',
+          },
+        ],
+        [
+          'anthropic/claude-sonnet-4-20260301',
+          {
+            input: 0.000003,
+            output: 0.000015,
+            contextWindow: 200000,
+            displayName: 'Claude Sonnet 4',
+          },
+        ],
+        [
+          'anthropic/claude-haiku-4-20260301',
+          {
+            input: 0.0000008,
+            output: 0.000004,
+            contextWindow: 200000,
+            displayName: 'Claude Haiku 4',
+          },
+        ],
+        [
+          'anthropic/claude-2.1',
+          {
+            input: 0.000008,
+            output: 0.000024,
+            contextWindow: 200000,
+            displayName: 'Claude 2.1',
+          },
+        ],
+        [
+          'openai/gpt-4o',
+          {
+            input: 0.0000025,
+            output: 0.00001,
+            contextWindow: 128000,
+            displayName: 'GPT-4o',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          api_key_encrypted: null,
+        }),
+      );
+
+      // Should only include models matching knownModels prefixes (claude-opus-4, claude-sonnet-4, claude-haiku-4)
+      // and NOT claude-2.1 or openai models
+      expect(result).toHaveLength(3);
+      expect(result.map((m) => m.id).sort()).toEqual([
+        'claude-haiku-4-20260301',
+        'claude-opus-4-20260301',
+        'claude-sonnet-4-20260301',
+      ]);
+      // All should be stamped as subscription
+      for (const m of result) {
+        expect(m.authType).toBe('subscription');
+      }
+      // Should NOT have called the fetcher (no token to call with)
+      expect(fetcher.fetch).not.toHaveBeenCalled();
+    });
+
+    it('should cap context window via subscription capabilities', async () => {
+      const orMap = new Map([
+        [
+          'anthropic/claude-opus-4-20260301',
+          {
+            input: 0.000015,
+            output: 0.000075,
+            contextWindow: 1000000,
+            displayName: 'Claude Opus 4',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          api_key_encrypted: null,
+        }),
+      );
+
+      expect(result).toHaveLength(1);
+      // Anthropic subscription caps at 200000
+      expect(result[0].contextWindow).toBe(200000);
+    });
+
+    it('should return empty when subscription provider has no known models', async () => {
+      const orMap = new Map([
+        [
+          'openai/gpt-4o',
+          { input: 0.0000025, output: 0.00001, contextWindow: 128000, displayName: 'GPT-4o' },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          api_key_encrypted: null,
+        }),
+      );
+
+      // openai has no knownModels in subscription-capabilities, returns empty
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty subscription fallback when pricingSync is null', async () => {
+      const serviceNoPricing = new ModelDiscoveryService(
+        providerRepo as never,
+        customProviderRepo as never,
+        fetcher as unknown as ProviderModelFetcherService,
+        null,
+      );
+
+      const result = await serviceNoPricing.discoverModels(
+        makeProvider({
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          api_key_encrypted: null,
+        }),
+      );
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  /* ── getModelsForAgent auth-type deduplication ── */
+
+  describe('getModelsForAgent (auth-type dedup)', () => {
+    it('should prefer subscription model over api_key duplicate', async () => {
+      const providers = [
+        makeProvider({
+          id: 'p1',
+          provider: 'anthropic',
+          cached_models: [
+            makeModel({ id: 'claude-sonnet-4', provider: 'anthropic', authType: 'api_key' }),
+          ],
+        }),
+        makeProvider({
+          id: 'p2',
+          provider: 'anthropic',
+          cached_models: [
+            makeModel({
+              id: 'claude-sonnet-4',
+              provider: 'anthropic',
+              authType: 'subscription',
+              contextWindow: 200000,
+            }),
+          ],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('claude-sonnet-4');
+      expect(result[0].authType).toBe('subscription');
+      expect(result[0].contextWindow).toBe(200000);
+    });
+
+    it('should not replace subscription with api_key duplicate', async () => {
+      const providers = [
+        makeProvider({
+          id: 'p1',
+          provider: 'anthropic',
+          cached_models: [
+            makeModel({
+              id: 'claude-sonnet-4',
+              provider: 'anthropic',
+              authType: 'subscription',
+            }),
+          ],
+        }),
+        makeProvider({
+          id: 'p2',
+          provider: 'anthropic',
+          cached_models: [
+            makeModel({ id: 'claude-sonnet-4', provider: 'anthropic', authType: 'api_key' }),
+          ],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].authType).toBe('subscription');
+    });
+
+    it('should use provider auth_type as fallback when cached model has no authType', async () => {
+      const providers = [
+        makeProvider({
+          id: 'p1',
+          provider: 'anthropic',
+          auth_type: 'api_key',
+          cached_models: [
+            makeModel({ id: 'claude-sonnet-4', provider: 'anthropic' }), // no authType
+          ],
+        }),
+        makeProvider({
+          id: 'p2',
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({ id: 'claude-sonnet-4', provider: 'anthropic' }), // no authType
+          ],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result).toHaveLength(1);
+      // Legacy model from subscription provider should replace the api_key one
+    });
+  });
+
+  /* ── buildSubscriptionFallbackModels ── */
+
+  describe('buildSubscriptionFallbackModels', () => {
+    it('should return empty for unsupported providers', () => {
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
+      expect(result).toEqual([]);
+    });
+
+    it('should filter OpenRouter cache by known model prefixes', () => {
+      const orMap = new Map([
+        [
+          'anthropic/claude-opus-4-latest',
+          {
+            input: 0.000015,
+            output: 0.000075,
+            contextWindow: 200000,
+            displayName: 'Claude Opus 4',
+          },
+        ],
+        [
+          'anthropic/claude-2.1',
+          { input: 0.000008, output: 0.000024, contextWindow: 200000, displayName: 'Claude 2.1' },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('claude-opus-4-latest');
+      expect(result[0].provider).toBe('anthropic');
+    });
+
+    it('should apply maxContextWindow cap from subscription capabilities', () => {
+      const orMap = new Map([
+        [
+          'anthropic/claude-sonnet-4-20260301',
+          { input: 0.000003, output: 0.000015, contextWindow: 1000000, displayName: 'Sonnet' },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].contextWindow).toBe(200000);
+    });
+
+    it('should return empty when pricingSync is null', () => {
+      const result = buildSubscriptionFallbackModels(null as never, 'anthropic');
+      expect(result).toEqual([]);
+    });
+
+    it('should deduplicate models by id', () => {
+      const orMap = new Map([
+        [
+          'anthropic/claude-opus-4',
+          { input: 0.000015, output: 0.000075, contextWindow: 200000, displayName: 'Opus 4' },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+      expect(result).toHaveLength(1);
+    });
+
+    it('should use default context window when entry has none', () => {
+      const orMap = new Map([
+        ['anthropic/claude-haiku-4-latest', { input: 0.0000008, output: 0.000004 }],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+
+      expect(result).toHaveLength(1);
+      // Default 128000 is below maxContextWindow 200000, so no cap applied
+      expect(result[0].contextWindow).toBe(128000);
+    });
+
+    it('should use model id as displayName when entry has no displayName', () => {
+      const orMap = new Map([
+        [
+          'anthropic/claude-opus-4-latest',
+          { input: 0.000015, output: 0.000075, contextWindow: 200000, displayName: '' },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].displayName).toBe('claude-opus-4-latest');
     });
   });
 });

@@ -16,6 +16,7 @@ export interface DiscoveredModel {
   capabilityReasoning: boolean;
   capabilityCode: boolean;
   qualityScore: number;
+  authType?: 'api_key' | 'subscription';
 }
 
 export interface FetcherConfig {

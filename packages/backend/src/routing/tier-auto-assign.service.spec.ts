@@ -29,21 +29,15 @@ function makeMockRepo() {
 describe('TierAutoAssignService', () => {
   let service: TierAutoAssignService;
   let mockDiscoveryService: { getModelsForAgent: jest.Mock };
-  let mockProviderRepo: ReturnType<typeof makeMockRepo>;
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
 
   beforeEach(() => {
     mockDiscoveryService = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
     };
-    mockProviderRepo = makeMockRepo();
     mockTierRepo = makeMockRepo();
 
-    service = new TierAutoAssignService(
-      mockDiscoveryService as never,
-      mockProviderRepo as never,
-      mockTierRepo as never,
-    );
+    service = new TierAutoAssignService(mockDiscoveryService as never, mockTierRepo as never);
   });
 
   describe('pickBest', () => {
@@ -379,9 +373,6 @@ describe('TierAutoAssignService', () => {
 
   describe('recalculate', () => {
     it('should assign a single model to all 4 tiers (one provider, one model)', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'openai', is_active: true, auth_type: 'api_key' },
-      ]);
       const model = makeModel({ id: 'gpt-4o', provider: 'OpenAI' });
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([model]);
       mockTierRepo.find.mockResolvedValue([]);
@@ -399,7 +390,6 @@ describe('TierAutoAssignService', () => {
     });
 
     it('should set all auto_assigned_model to null with no models', async () => {
-      mockProviderRepo.find.mockResolvedValue([]);
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([]);
       mockTierRepo.find.mockResolvedValue([]);
 
@@ -416,9 +406,6 @@ describe('TierAutoAssignService', () => {
     });
 
     it('should save all 4 existing tiers when they already exist', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'openai', is_active: true, auth_type: 'api_key' },
-      ]);
       const model = makeModel({ id: 'gpt-4o', provider: 'OpenAI' });
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([model]);
 
@@ -447,9 +434,6 @@ describe('TierAutoAssignService', () => {
     });
 
     it('should set auto_assigned_model to null when pickBest returns null for existing tier', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'openai', is_active: true, auth_type: 'api_key' },
-      ]);
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([]);
 
       mockTierRepo.find.mockResolvedValue(
@@ -476,16 +460,13 @@ describe('TierAutoAssignService', () => {
     });
 
     it('should prioritize subscription models over api_key models', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
-        { provider: 'google', is_active: true, auth_type: 'api_key' },
-      ]);
       const geminiFlash = makeModel({
         id: 'gemini-2.5-flash',
         provider: 'Google',
         inputPricePerToken: 0.0000001,
         outputPricePerToken: 0.0000004,
         qualityScore: 2,
+        authType: 'api_key',
       });
       const claudeSonnet = makeModel({
         id: 'claude-sonnet-4',
@@ -493,6 +474,7 @@ describe('TierAutoAssignService', () => {
         inputPricePerToken: 0.000003,
         outputPricePerToken: 0.000015,
         qualityScore: 4,
+        authType: 'subscription',
       });
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([geminiFlash, claudeSonnet]);
       mockTierRepo.find.mockResolvedValue([]);
@@ -511,13 +493,11 @@ describe('TierAutoAssignService', () => {
     });
 
     it('should fall back to api_key models when no subscription models available', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'openai', is_active: true, auth_type: 'api_key' },
-      ]);
       const gpt4o = makeModel({
         id: 'gpt-4o',
         provider: 'OpenAI',
         qualityScore: 4,
+        authType: 'api_key',
       });
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([gpt4o]);
       mockTierRepo.find.mockResolvedValue([]);
@@ -535,16 +515,13 @@ describe('TierAutoAssignService', () => {
     });
 
     it('should use subscription models even when api_key models are cheaper', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
-        { provider: 'openai', is_active: true, auth_type: 'api_key' },
-      ]);
       const cheapOpenAI = makeModel({
         id: 'gpt-4.1-nano',
         provider: 'OpenAI',
         inputPricePerToken: 0.0000001,
         outputPricePerToken: 0.0000003,
         qualityScore: 1,
+        authType: 'api_key',
       });
       const expensiveSub = makeModel({
         id: 'claude-sonnet-4',
@@ -552,6 +529,7 @@ describe('TierAutoAssignService', () => {
         inputPricePerToken: 0.000003,
         outputPricePerToken: 0.000015,
         qualityScore: 4,
+        authType: 'subscription',
       });
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([cheapOpenAI, expensiveSub]);
       mockTierRepo.find.mockResolvedValue([]);
@@ -568,17 +546,14 @@ describe('TierAutoAssignService', () => {
       }
     });
 
-    it('should match models to subscription providers via case-insensitive provider name', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
-        { provider: 'google', is_active: true, auth_type: 'subscription' },
-      ]);
+    it('should split models by authType field for subscription prioritization', async () => {
       const claude = makeModel({
         id: 'claude-sonnet-4',
         provider: 'Anthropic',
         inputPricePerToken: 0.000003,
         outputPricePerToken: 0.000015,
         qualityScore: 4,
+        authType: 'subscription',
       });
       const gemini = makeModel({
         id: 'gemini-2.5-flash',
@@ -586,6 +561,7 @@ describe('TierAutoAssignService', () => {
         inputPricePerToken: 0.0000001,
         outputPricePerToken: 0.0000004,
         qualityScore: 2,
+        authType: 'subscription',
       });
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([claude, gemini]);
       mockTierRepo.find.mockResolvedValue([]);
@@ -609,10 +585,7 @@ describe('TierAutoAssignService', () => {
       expect(complexTier!.auto_assigned_model).toBe('claude-sonnet-4');
     });
 
-    it('should NOT match OpenRouter models to subscription providers', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
-      ]);
+    it('should treat models without authType as api_key', async () => {
       const orModel = makeModel({
         id: 'anthropic/claude-sonnet-4',
         provider: 'OpenRouter',
@@ -635,11 +608,7 @@ describe('TierAutoAssignService', () => {
       }
     });
 
-    it('should assign null when no models match any provider', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
-      ]);
-      // No models returned by discovery
+    it('should assign null when no models available', async () => {
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([]);
       mockTierRepo.find.mockResolvedValue([]);
 
@@ -654,14 +623,12 @@ describe('TierAutoAssignService', () => {
       }
     });
 
-    it('should match OpenRouter models as api_key (lowercase match)', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'openrouter', is_active: true, auth_type: 'api_key' },
-      ]);
+    it('should treat models with api_key authType as non-subscription', async () => {
       const orModel = makeModel({
         id: 'anthropic/claude-sonnet-4',
         provider: 'OpenRouter',
         qualityScore: 4,
+        authType: 'api_key',
       });
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([orModel]);
       mockTierRepo.find.mockResolvedValue([]);
@@ -678,9 +645,6 @@ describe('TierAutoAssignService', () => {
     });
 
     it('should preserve manual overrides during recalculation', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'openai', is_active: true, auth_type: 'api_key' },
-      ]);
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([
         makeModel({ id: 'gpt-4o', provider: 'OpenAI' }),
       ]);
@@ -712,9 +676,6 @@ describe('TierAutoAssignService', () => {
     });
 
     it('should only use zero-cost models for OpenAI subscription (Codex)', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'openai', is_active: true, auth_type: 'subscription' },
-      ]);
       const codexModel = makeModel({
         id: 'gpt-5.3-codex',
         provider: 'OpenAI',
@@ -722,6 +683,7 @@ describe('TierAutoAssignService', () => {
         outputPricePerToken: 0,
         qualityScore: 4,
         capabilityReasoning: true,
+        authType: 'subscription',
       });
       const paidModel = makeModel({
         id: 'gpt-4.1-nano',
@@ -729,6 +691,7 @@ describe('TierAutoAssignService', () => {
         inputPricePerToken: 0.0000001,
         outputPricePerToken: 0.0000004,
         qualityScore: 1,
+        authType: 'subscription',
       });
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([codexModel, paidModel]);
       mockTierRepo.find.mockResolvedValue([]);
@@ -739,22 +702,20 @@ describe('TierAutoAssignService', () => {
       const inserted = mockTierRepo.insert.mock.calls[0][0] as {
         auto_assigned_model: string;
       }[];
-      // All tiers should use Codex model, not gpt-4.1-nano (which needs API key)
+      // All tiers should use Codex model (zero cost), not gpt-4.1-nano (paid)
       for (const record of inserted) {
         expect(record.auto_assigned_model).toBe('gpt-5.3-codex');
       }
     });
 
     it('should keep all models for providers without zero-cost models (Anthropic)', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, auth_type: 'subscription' },
-      ]);
       const sonnet = makeModel({
         id: 'claude-sonnet-4',
         provider: 'Anthropic',
         inputPricePerToken: 0.000003,
         outputPricePerToken: 0.000015,
         qualityScore: 4,
+        authType: 'subscription',
       });
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([sonnet]);
       mockTierRepo.find.mockResolvedValue([]);
@@ -770,18 +731,32 @@ describe('TierAutoAssignService', () => {
       }
     });
 
-    it('should accept optional providers parameter to skip DB query', async () => {
-      const providers = [{ provider: 'openai', is_active: true, auth_type: 'api_key' }];
-      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
-        makeModel({ id: 'gpt-4o', provider: 'OpenAI' }),
-      ]);
+    it('should use authType field from models to separate subscription and api_key', async () => {
+      const subModel = makeModel({
+        id: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        qualityScore: 4,
+        authType: 'subscription',
+      });
+      const keyModel = makeModel({
+        id: 'gpt-4o',
+        provider: 'OpenAI',
+        qualityScore: 3,
+        authType: 'api_key',
+      });
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([subModel, keyModel]);
       mockTierRepo.find.mockResolvedValue([]);
 
-      await service.recalculate('agent-1', providers as never[]);
+      await service.recalculate('agent-1');
 
-      // Should not query providers from DB
-      expect(mockProviderRepo.find).not.toHaveBeenCalled();
       expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string;
+      }[];
+      // Subscription models are prioritized — claude-sonnet-4 should win all tiers
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('claude-sonnet-4');
+      }
     });
   });
 });
