@@ -81,7 +81,17 @@ export class ModelPricingCacheService implements OnModuleInit {
   }
 
   getAll(): PricingEntry[] {
-    return [...this.cache.values()];
+    // Deduplicate: canonical aliases point to the same model_name,
+    // so filter to unique model_name values.
+    const seen = new Set<string>();
+    const result: PricingEntry[] = [];
+    for (const entry of this.cache.values()) {
+      if (!seen.has(entry.model_name)) {
+        seen.add(entry.model_name);
+        result.push(entry);
+      }
+    }
+    return result;
   }
 
   /**
