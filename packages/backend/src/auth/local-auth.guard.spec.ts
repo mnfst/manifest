@@ -107,9 +107,23 @@ describe('LocalAuthGuard', () => {
     expect(request['user']).toBeUndefined();
   });
 
-  it('denies non-loopback requests without API key', async () => {
+  it('auto-authenticates private network IP (192.168.x.x)', async () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     const { context, request } = createMockContext({ ip: '192.168.1.100' });
+
+    const result = await guard.canActivate(context);
+
+    expect(result).toBe(true);
+    expect(request['user']).toEqual({
+      id: 'local-user-001',
+      name: 'Local User',
+      email: 'local@manifest.local',
+    });
+  });
+
+  it('denies public IP requests without API key', async () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    const { context, request } = createMockContext({ ip: '8.8.8.8' });
 
     const result = await guard.canActivate(context);
 
