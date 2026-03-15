@@ -59,7 +59,7 @@ describe("ModelSelectDropdown", () => {
     // Should not show unrelated models
     const allLabels = container.querySelectorAll(".routing-modal__model-label");
     const allTexts = Array.from(allLabels).map((el) => el.textContent);
-    expect(allTexts.some((t) => t === "GPT-4o")).toBe(false);
+    expect(allTexts.some((t) => t === "gpt-4o")).toBe(false);
   });
 
   it("filters models by provider name", async () => {
@@ -82,7 +82,7 @@ describe("ModelSelectDropdown", () => {
 
     const buttons = container.querySelectorAll(".routing-modal__model");
     const gpt4oButton = Array.from(buttons).find((btn) =>
-      btn.textContent?.includes("GPT-4o") && !btn.textContent?.includes("Mini"),
+      btn.textContent?.includes("gpt-4o") && !btn.textContent?.includes("mini"),
     );
     expect(gpt4oButton).toBeDefined();
     fireEvent.click(gpt4oButton!);
@@ -116,7 +116,7 @@ describe("ModelSelectDropdown", () => {
     // Click a model to select it
     const buttons = container.querySelectorAll(".routing-modal__model");
     const gpt4oButton = Array.from(buttons).find((btn) =>
-      btn.textContent?.includes("GPT-4o") && !btn.textContent?.includes("Mini"),
+      btn.textContent?.includes("gpt-4o") && !btn.textContent?.includes("mini"),
     );
     fireEvent.click(gpt4oButton!);
 
@@ -158,18 +158,22 @@ describe("computeCliValue", () => {
 });
 
 describe("labelForModel", () => {
-  it("resolves known model names to display labels", () => {
+  it("returns the label for models found in PROVIDERS, or raw name otherwise", () => {
+    // OpenAI has gpt-4o in its models list, so labelForModel returns the label
     expect(labelForModel("gpt-4o")).toBe("GPT-4o");
-    expect(labelForModel("claude-sonnet-4")).toBe("Claude Sonnet 4");
+    // Anthropic has empty models[], so returns raw name
+    expect(labelForModel("claude-sonnet-4")).toBe("claude-sonnet-4");
   });
 
   it("returns the name as-is for unknown models", () => {
     expect(labelForModel("unknown-model-xyz")).toBe("unknown-model-xyz");
   });
 
-  it("resolves slash-prefixed model names by stripping the prefix", () => {
+  it("returns label or bare name for slash-prefixed models", () => {
+    // OpenAI has gpt-4o in its models list, so cross-provider lookup returns label
     expect(labelForModel("openai/gpt-4o")).toBe("GPT-4o");
-    expect(labelForModel("anthropic/claude-sonnet-4")).toBe("Claude Sonnet 4");
+    // Anthropic has empty models[], so returns bare name
+    expect(labelForModel("anthropic/claude-sonnet-4")).toBe("claude-sonnet-4");
   });
 
   it("returns bare name for unknown slash-prefixed models", () => {

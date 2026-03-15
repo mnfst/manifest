@@ -4,6 +4,8 @@ import request from 'supertest';
 import { createTestApp, TEST_API_KEY, TEST_USER_ID, TEST_TENANT_ID } from './helpers';
 import { detectDialect, portableSql, sqlNow } from '../src/common/utils/sql-dialect';
 import { v4 as uuid } from 'uuid';
+import { PricingSyncService } from '../src/database/pricing-sync.service';
+import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 
 let app: INestApplication;
 
@@ -15,19 +17,15 @@ beforeAll(async () => {
   const sql = (q: string) => portableSql(q, dialect);
   const now = sqlNow();
 
-  // Seed model pricing so costs can be calculated (use INSERT OR IGNORE for sql.js since helpers.ts already seeds gpt-4o)
-  const insertOrIgnore = dialect === 'sqlite' ? 'INSERT OR IGNORE' : 'INSERT';
-  const onConflict = dialect === 'sqlite' ? '' : ' ON CONFLICT (model_name) DO NOTHING';
-  await ds.query(
-    sql(`${insertOrIgnore} INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token, context_window)
-     VALUES ($1, $2, $3, $4, $5)${onConflict}`),
-    ['gpt-4o', 'OpenAI', 0.0000025, 0.00001, 128000],
-  );
+  // Populate PricingSyncService cache with gpt-4o pricing
+  const pricingSync = app.get(PricingSyncService);
+  pricingSync.getAll().set('openai/gpt-4o', {
+    input: 0.0000025,
+    output: 0.00001,
+    contextWindow: 128000,
+  });
 
-  // Reload pricing cache
-  const { ModelPricingCacheService } = await import(
-    '../src/model-prices/model-pricing-cache.service'
-  );
+  // Reload pricing cache from OpenRouter cache + manual pricing
   await app.get(ModelPricingCacheService).reload();
 
   // Seed agent_messages directly (with pre-calculated cost_usd) using the same

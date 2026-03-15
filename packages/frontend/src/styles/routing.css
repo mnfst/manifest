@@ -78,17 +78,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 0;
   border: 1.5px solid hsl(var(--card));
 }
 
 .provider-auth-badge--sub {
-  background: #22c55e;
-  color: #fff;
+  background: #1cc4bf;
+  color: #020817;
 }
 
 .provider-auth-badge--key {
-  background: #f59e0b;
-  color: #fff;
+  background: #f2c79c;
+  color: #020817;
 }
 
 .provider-auth-badge--overlay {
@@ -99,30 +100,28 @@
   border-width: 1.5px;
 }
 
-/* ── Routing cards ─────────────────────────────────── */
+/* ── Routing cards (4-column grid) ─────────────────── */
 .routing-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 .routing-card {
   display: flex;
-  align-items: center;
-  gap: var(--gap-lg);
+  flex-direction: column;
   padding: 16px 20px;
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
+  min-height: 0;
 }
 
 .routing-card__header {
-  flex: 0 0 420px;
-  max-width: 420px;
-  min-width: 420px;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
 
 .routing-card__tier {
@@ -131,15 +130,40 @@
   color: hsl(var(--foreground));
 }
 
-.routing-card__desc {
+.routing-card__reset-btn {
   font-size: var(--font-size-xs);
+  font-weight: 500;
   color: hsl(var(--muted-foreground));
-  line-height: 1.4;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: 2px 0;
+  border-radius: var(--radius);
+  transition: color var(--transition-fast);
+}
+
+.routing-card__reset-btn:hover {
+  color: hsl(var(--destructive));
+}
+
+.routing-card__reset-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.routing-card__reset-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.routing-card__desc {
+  display: none;
 }
 
 .routing-card__body {
-  flex: 1;
   min-width: 0;
+  margin-bottom: 12px;
 }
 
 .routing-card__main {
@@ -157,7 +181,7 @@
 }
 
 .routing-card__sub--subscription {
-  color: #22c55e;
+  color: #64748b;
 }
 
 .routing-card__override {
@@ -208,12 +232,31 @@
   text-align: left;
 }
 
-.routing-card__right {
+/* Model row: model info + edit button side by side */
+.routing-card__model-row {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Fallbacks section inside card */
+.routing-card__fallbacks {
+  flex: 1;
+}
+
+.routing-card__fallbacks-label {
+  display: flex;
+  align-items: center;
   gap: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 6px;
+}
+
+.routing-card__right {
+  display: none;
 }
 
 .routing-card__actions {
@@ -309,27 +352,86 @@
 
 /* ── Fallback list ─────────────────────────────────── */
 .fallback-list__items {
-  list-style: none;
-  padding: 0;
-  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
 
-.fallback-list__item {
+/* Each fallback as a dashed-border mini-card */
+.fallback-list__card {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: var(--font-size-xs);
   color: hsl(var(--foreground));
-  padding: 2px 0;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--radius);
+  background: #f7f5ed;
+  cursor: grab;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    opacity var(--transition-fast),
+    box-shadow var(--transition-fast);
+  position: relative;
+}
+
+.dark .fallback-list__card {
+  background: #121212;
+}
+
+.fallback-list__card:hover {
+  background: hsl(var(--muted) / 0.3);
+}
+
+.fallback-list__card--dragging {
+  opacity: 0.3;
+}
+
+/* Drop indicator — always present as a spacer, highlights when active */
+.fallback-list__drop-indicator {
+  height: 6px;
+  transition: height 0.12s ease;
+  position: relative;
+}
+
+.fallback-list__drop-indicator--active {
+  height: 10px;
+}
+
+.fallback-list__drop-indicator--active::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 50%;
+  height: 2px;
+  border-radius: 1px;
+  background: hsl(var(--primary));
+  transform: translateY(-50%);
+}
+
+/* Drag handle dots */
+.fallback-list__drag-handle {
+  display: flex;
+  align-items: center;
+  color: hsl(var(--muted-foreground) / 0.5);
+  flex-shrink: 0;
+  cursor: grab;
+  transition: color var(--transition-fast);
+}
+
+.fallback-list__card:hover .fallback-list__drag-handle {
+  color: hsl(var(--muted-foreground));
 }
 
 .fallback-list__rank {
   color: hsl(var(--muted-foreground));
-  font-weight: 500;
-  min-width: 16px;
+  font-weight: 600;
+  font-size: 10px;
+  min-width: 14px;
+  flex-shrink: 0;
 }
 
 .fallback-list__icon {
@@ -350,11 +452,13 @@
 .fallback-list__remove {
   background: none;
   border: none;
-  color: hsl(var(--muted-foreground));
+  color: hsl(var(--muted-foreground) / 0.5);
   cursor: pointer;
-  font-size: 14px;
   line-height: 1;
-  padding: 0 2px;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
   transition: color var(--transition-fast);
 }
 
@@ -362,26 +466,85 @@
   color: hsl(var(--destructive));
 }
 
+/* Add fallback — uses btn btn--outline btn--sm, just adds spacing */
 .fallback-list__add {
-  white-space: nowrap;
+  margin-top: 6px;
+  gap: 6px;
+}
+
+/* Empty state — no fallbacks placeholder */
+.fallback-list__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  height: 224px;
+  padding: 20px 12px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.15);
+  box-sizing: border-box;
+}
+
+.fallback-list__empty-icon {
+  color: hsl(var(--muted-foreground) / 0.5);
+  margin-bottom: 6px;
+}
+
+.fallback-list__empty-title {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 2px;
+}
+
+.fallback-list__empty-desc {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground) / 0.7);
+  line-height: 1.4;
+  max-width: 200px;
+}
+
+/* ── Change button: icon/label toggle ────────────── */
+.routing-card__change-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.routing-card__change-icon {
+  display: none;
+}
+
+@media (max-width: 1520px) {
+  .btn.routing-card__change-btn {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .routing-card__change-icon {
+    display: block;
+  }
+
+  .routing-card__change-label {
+    display: none;
+  }
 }
 
 /* ── Responsive ──────────────────────────────────── */
-@media (max-width: 768px) {
-  .routing-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--gap-sm);
+@media (max-width: 1024px) {
+  .routing-cards {
+    grid-template-columns: repeat(2, 1fr);
   }
+}
 
-  .routing-card__header {
-    flex: none;
-    max-width: 100%;
-    min-width: 0;
-  }
-
-  .routing-card__right {
-    align-self: flex-end;
+@media (max-width: 600px) {
+  .routing-cards {
+    grid-template-columns: 1fr;
   }
 
   .provider-toggle__expand {

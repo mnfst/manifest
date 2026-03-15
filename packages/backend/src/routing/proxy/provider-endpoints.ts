@@ -1,4 +1,5 @@
 import { OLLAMA_HOST } from '../../common/constants/ollama';
+import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
 export interface ProviderEndpoint {
   baseUrl: string;
@@ -137,9 +138,14 @@ export function resolveEndpointKey(provider: string): string | null {
   // Custom providers use their own dynamic endpoint
   if (lower.startsWith('custom:')) return lower;
 
-  const aliases: Record<string, string> = {
-    gemini: 'google',
-    'z.ai': 'zai',
-  };
-  return aliases[lower] ?? null;
+  // Look up via SST alias map — check id and all aliases against endpoints
+  const entry = PROVIDER_BY_ID_OR_ALIAS.get(lower);
+  if (entry) {
+    if (PROVIDER_ENDPOINTS[entry.id]) return entry.id;
+    for (const alias of entry.aliases) {
+      if (PROVIDER_ENDPOINTS[alias]) return alias;
+    }
+  }
+
+  return null;
 }

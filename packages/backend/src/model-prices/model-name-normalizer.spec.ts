@@ -3,6 +3,7 @@ import {
   stripDateSuffix,
   buildAliasMap,
   resolveModelName,
+  normalizeDots,
 } from './model-name-normalizer';
 
 describe('model-name-normalizer', () => {
@@ -61,6 +62,20 @@ describe('model-name-normalizer', () => {
 
     it('does not strip non-date numeric suffixes', () => {
       expect(stripDateSuffix('qwen3-235b-a22b')).toBe('qwen3-235b-a22b');
+    });
+  });
+
+  describe('normalizeDots', () => {
+    it('replaces dots with dashes', () => {
+      expect(normalizeDots('claude-opus-4.6')).toBe('claude-opus-4-6');
+    });
+
+    it('replaces multiple dots', () => {
+      expect(normalizeDots('model-1.2.3')).toBe('model-1-2-3');
+    });
+
+    it('returns name unchanged when no dots', () => {
+      expect(normalizeDots('claude-opus-4-6')).toBe('claude-opus-4-6');
     });
   });
 
@@ -167,6 +182,32 @@ describe('model-name-normalizer', () => {
     it('resolves minimax/ prefixed model', () => {
       const map = buildAliasMap(['minimax-m2.5']);
       expect(resolveModelName('minimax/minimax-m2.5', map)).toBe('minimax-m2.5');
+    });
+
+    it('resolves dot-variant to dash-canonical via normalization', () => {
+      expect(resolveModelName('claude-opus-4.6', aliasMap)).toBe('claude-opus-4-6');
+    });
+
+    it('resolves prefixed dot-variant', () => {
+      expect(resolveModelName('anthropic/claude-opus-4.6', aliasMap)).toBe('claude-opus-4-6');
+    });
+
+    it('resolves dot-variant with date suffix', () => {
+      const map = buildAliasMap(['claude-sonnet-4-6']);
+      expect(resolveModelName('claude-sonnet-4.6-2025-06-01', map)).toBe('claude-sonnet-4-6');
+    });
+
+    it('prioritizes exact match over dot normalization', () => {
+      expect(resolveModelName('gpt-4.1', aliasMap)).toBe('gpt-4.1');
+    });
+
+    it('returns undefined for unknown dot-variant', () => {
+      expect(resolveModelName('unknown-1.0', aliasMap)).toBeUndefined();
+    });
+
+    it('resolves dot-variant through alias after normalization', () => {
+      const map = buildAliasMap(['claude-sonnet-4-5-20250929']);
+      expect(resolveModelName('claude-sonnet-4.5', map)).toBe('claude-sonnet-4-5-20250929');
     });
   });
 });

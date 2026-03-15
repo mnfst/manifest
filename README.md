@@ -57,6 +57,7 @@ Manifest is available in cloud and local versions. While both versions install t
 - You don't want the telemetry data to move from your computer
 - You don’t need multi-device access
 - You don't want to subscribe to a cloud service
+- You are using a local model like Ollama
 
 If you don't know which version to choose, start with the **cloud version**.
 

@@ -97,7 +97,7 @@ describe("ProviderSelectModal", () => {
     fireEvent.click(screen.getByText("API Keys"));
     expect(screen.getByText("OpenAI")).toBeDefined();
     expect(screen.getByText("Anthropic")).toBeDefined();
-    expect(screen.getByText("Gemini")).toBeDefined();
+    expect(screen.getByText("Google")).toBeDefined();
     expect(screen.getByText("DeepSeek")).toBeDefined();
     expect(screen.getByText("OpenRouter")).toBeDefined();
   });
@@ -178,6 +178,18 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("OpenAI"));
       expect(screen.getByLabelText("OpenAI API key")).toBeDefined();
+    });
+
+    it("shows where-to-get API key link for selected provider", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("API Keys"));
+      fireEvent.click(screen.getByText("OpenAI"));
+
+      const link = screen.getByRole("link", { name: "Get OpenAI API key" });
+      expect(link.getAttribute("href")).toBe("https://platform.openai.com/api-keys");
+      expect(link.getAttribute("target")).toBe("_blank");
     });
 
     it("returns to list view when back button is clicked", async () => {
@@ -561,11 +573,11 @@ describe("ProviderSelectModal", () => {
       ));
       fireEvent.click(screen.getByText("API Keys"));
       expect(screen.getByText("Groq")).toBeDefined();
-      expect(screen.getByText("2 models")).toBeDefined();
+      expect(screen.getByText("Custom")).toBeDefined();
     });
 
     it("renders custom provider icon letter", () => {
-      render(() => (
+      const { container } = render(() => (
         <ProviderSelectModal
           providers={[]}
           customProviders={customProviderData}
@@ -575,7 +587,9 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("API Keys"));
-      const letter = document.querySelector(".custom-provider-section .provider-card__logo-letter");
+      // Find the Groq provider toggle and check its logo letter
+      const groqToggle = screen.getByText("Groq").closest(".provider-toggle");
+      const letter = groqToggle?.querySelector(".provider-card__logo-letter");
       expect(letter).not.toBeNull();
       expect(letter!.textContent).toBe("G");
     });
@@ -639,7 +653,8 @@ describe("ProviderSelectModal", () => {
         />
       ));
       fireEvent.click(screen.getByText("API Keys"));
-      expect(screen.getByText("1 model")).toBeDefined();
+      // Custom providers show the "Custom" tag
+      expect(screen.getByText("Custom")).toBeDefined();
     });
   });
 
@@ -768,9 +783,9 @@ describe("ProviderSelectModal", () => {
       const { container } = render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
-      const activeTab = container.querySelector(".provider-modal__tab--active");
+      const activeTab = container.querySelector(".panel__tab--active");
       expect(activeTab).not.toBeNull();
-      expect(activeTab!.textContent).toBe("Subscription");
+      expect(activeTab!.textContent).toContain("Subscription");
     });
 
     it("renders subscription providers with toggle switches", () => {
@@ -1507,7 +1522,6 @@ describe("ProviderSelectModal", () => {
 
     it("calls onUpdate when custom provider form triggers onDeleted", async () => {
       mockDeleteCustomProvider.mockResolvedValue({ ok: true });
-      vi.spyOn(window, "confirm").mockReturnValue(true);
 
       const customProviders = [
         {
@@ -1532,8 +1546,14 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("API Keys"));
       fireEvent.click(screen.getByText("TestProv"));
 
-      // Click Delete provider button (the exact label in CustomProviderForm)
+      // Click Delete provider button to open confirmation dialog
       fireEvent.click(screen.getByText("Delete provider"));
+
+      // Confirm deletion in the confirmation dialog
+      await waitFor(() => {
+        expect(screen.getByText("Delete")).toBeDefined();
+      });
+      fireEvent.click(screen.getByText("Delete"));
 
       await waitFor(() => {
         expect(mockDeleteCustomProvider).toHaveBeenCalledWith("test-agent", "cp-1");
@@ -1541,8 +1561,6 @@ describe("ProviderSelectModal", () => {
       expect(onUpdate).toHaveBeenCalled();
       // Should navigate back to list view
       expect(screen.getByText("Done")).toBeDefined();
-
-      vi.restoreAllMocks();
     });
   });
 });

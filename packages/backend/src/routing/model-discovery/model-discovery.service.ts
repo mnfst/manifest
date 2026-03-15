@@ -1,0 +1,302 @@
+import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserProvider } from '../../entities/user-provider.entity';
+import { CustomProvider } from '../../entities/custom-provider.entity';
+import { ProviderModelFetcherService } from './provider-model-fetcher.service';
+import { DiscoveredModel } from './model-fetcher';
+import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
+import { computeQualityScore } from '../../database/quality-score.util';
+import {
+  OPENROUTER_PREFIX_TO_PROVIDER,
+  PROVIDER_BY_ID_OR_ALIAS,
+} from '../../common/constants/providers';
+import { PricingSyncService } from '../../database/pricing-sync.service';
+// Import static helpers directly to avoid circular dependency with RoutingModule
+const customProviderKey = (id: string) => `custom:${id}`;
+const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
+
+@Injectable()
+export class ModelDiscoveryService {
+  private readonly logger = new Logger(ModelDiscoveryService.name);
+
+  constructor(
+    @InjectRepository(UserProvider)
+    private readonly providerRepo: Repository<UserProvider>,
+    @InjectRepository(CustomProvider)
+    private readonly customProviderRepo: Repository<CustomProvider>,
+    private readonly fetcher: ProviderModelFetcherService,
+    @Optional()
+    @Inject(PricingSyncService)
+    private readonly pricingSync: PricingSyncService | null,
+  ) {}
+
+  async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
+    let apiKey = '';
+    if (provider.api_key_encrypted) {
+      try {
+        apiKey = decrypt(provider.api_key_encrypted, getEncryptionSecret());
+      } catch {
+        this.logger.warn(`Failed to decrypt key for provider ${provider.provider}`);
+        return [];
+      }
+    }
+
+    let raw = await this.fetcher.fetch(provider.provider, apiKey, provider.auth_type);
+
+    // If native API returned no models, fall back to OpenRouter + manual pricing
+    if (raw.length === 0) {
+      raw = this.buildFallbackModels(provider.provider);
+      if (raw.length > 0) {
+        this.logger.log(
+          `Native API returned 0 models for ${provider.provider} — using ${raw.length} models from pricing data`,
+        );
+      }
+    }
+
+    const enriched = raw.map((model) => this.enrichModel(model, provider.provider));
+
+    provider.cached_models = enriched;
+    provider.models_fetched_at = new Date().toISOString();
+    await this.providerRepo.save(provider);
+
+    this.logger.log(
+      `Discovered ${enriched.length} models for provider ${provider.provider} (agent ${provider.agent_id})`,
+    );
+    return enriched;
+  }
+
+  async discoverAllForAgent(agentId: string): Promise<void> {
+    const providers = await this.providerRepo.find({
+      where: { agent_id: agentId, is_active: true },
+    });
+    await Promise.all(
+      providers
+        .filter((p) => !p.provider.startsWith('custom:'))
+        .map((p) =>
+          this.discoverModels(p).catch((err) => {
+            this.logger.warn(`Discovery failed for ${p.provider}: ${err}`);
+          }),
+        ),
+    );
+  }
+
+  async getModelsForAgent(agentId: string): Promise<DiscoveredModel[]> {
+    const providers = await this.providerRepo.find({
+      where: { agent_id: agentId, is_active: true },
+    });
+
+    const models: DiscoveredModel[] = [];
+    const seen = new Set<string>();
+
+    for (const p of providers) {
+      if (p.provider.startsWith('custom:')) continue;
+      const cached = p.cached_models;
+      if (!Array.isArray(cached)) continue;
+      for (const m of cached) {
+        if (!seen.has(m.id)) {
+          seen.add(m.id);
+          models.push(m);
+        }
+      }
+    }
+
+    // Merge custom provider models
+    const customProviders = await this.customProviderRepo.find({
+      where: { agent_id: agentId },
+    });
+    for (const cp of customProviders) {
+      if (!Array.isArray(cp.models)) continue;
+      const cpKey = customProviderKey(cp.id);
+      for (const m of cp.models) {
+        const modelKey = customModelKey(cp.id, m.model_name);
+        if (seen.has(modelKey)) continue;
+        seen.add(modelKey);
+        const inputPerToken =
+          m.input_price_per_million_tokens != null
+            ? m.input_price_per_million_tokens / 1_000_000
+            : null;
+        const outputPerToken =
+          m.output_price_per_million_tokens != null
+            ? m.output_price_per_million_tokens / 1_000_000
+            : null;
+        models.push({
+          id: modelKey,
+          displayName: m.model_name,
+          provider: cpKey,
+          contextWindow: m.context_window ?? 128000,
+          inputPricePerToken: inputPerToken,
+          outputPricePerToken: outputPerToken,
+          capabilityReasoning: false,
+          capabilityCode: false,
+          qualityScore: 2,
+        });
+      }
+    }
+
+    return models;
+  }
+
+  async getModelForAgent(agentId: string, modelName: string): Promise<DiscoveredModel | undefined> {
+    const all = await this.getModelsForAgent(agentId);
+    return all.find((m) => m.id === modelName);
+  }
+
+  /**
+   * Enrich a discovered model with pricing from OpenRouter cache or manual reference.
+   * Provider native APIs return model lists but NOT pricing, so we look it up.
+   */
+  private enrichModel(model: DiscoveredModel, providerId: string): DiscoveredModel {
+    // If the fetcher already provided pricing (e.g. OpenRouter), use it
+    if (model.inputPricePerToken !== null && model.inputPricePerToken > 0) {
+      return this.computeScore(model);
+    }
+
+    // Look up pricing from OpenRouter cache using vendor-prefixed ID
+    if (this.pricingSync) {
+      const orPrefix = this.findOpenRouterPrefix(providerId);
+      if (orPrefix) {
+        const orPricing = this.lookupWithVariants(orPrefix, model.id);
+        if (orPricing) {
+          return this.computeScore({
+            ...model,
+            inputPricePerToken: orPricing.input,
+            outputPricePerToken: orPricing.output,
+            contextWindow: orPricing.contextWindow ?? model.contextWindow,
+            displayName: orPricing.displayName || model.displayName,
+          });
+        }
+      }
+      // Also try exact match (for models like "openrouter/auto")
+      const exactPricing = this.pricingSync.lookupPricing(model.id);
+      if (exactPricing) {
+        return this.computeScore({
+          ...model,
+          inputPricePerToken: exactPricing.input,
+          outputPricePerToken: exactPricing.output,
+          contextWindow: exactPricing.contextWindow ?? model.contextWindow,
+          displayName: exactPricing.displayName || model.displayName,
+        });
+      }
+    }
+
+    return this.computeScore(model);
+  }
+
+  /**
+   * Find the OpenRouter vendor prefix for a provider ID.
+   * E.g. "anthropic" → "anthropic", "gemini" → "google", "qwen" → "qwen"
+   */
+  private findOpenRouterPrefix(providerId: string): string | null {
+    const lower = providerId.toLowerCase();
+    // Check if the provider ID is itself an OpenRouter prefix
+    if (OPENROUTER_PREFIX_TO_PROVIDER.has(lower)) return lower;
+
+    // Use the provider registry to resolve aliases → check each OpenRouter prefix
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get(lower);
+    if (entry) {
+      for (const prefix of entry.openRouterPrefixes) {
+        if (OPENROUTER_PREFIX_TO_PROVIDER.has(prefix)) return prefix;
+      }
+    }
+
+    // Last resort: check display name match
+    for (const [prefix, displayName] of OPENROUTER_PREFIX_TO_PROVIDER) {
+      if (displayName.toLowerCase() === lower) return prefix;
+    }
+    return null;
+  }
+
+  /**
+   * Look up pricing with name normalization variants.
+   * Providers use different conventions: Anthropic uses dashes (claude-sonnet-4-6),
+   * OpenRouter uses dots (claude-sonnet-4.6). Try both.
+   */
+  private lookupWithVariants(
+    prefix: string,
+    modelId: string,
+  ): { input: number; output: number; contextWindow?: number; displayName?: string } | null {
+    if (!this.pricingSync) return null;
+
+    // Try exact match first
+    const exact = this.pricingSync.lookupPricing(`${prefix}/${modelId}`);
+    if (exact) return exact;
+
+    // Try dash-to-dot normalization (claude-sonnet-4-6 → claude-sonnet-4.6)
+    const dotVariant = modelId.replace(/-(\d+)-(\d)/g, '-$1.$2');
+    if (dotVariant !== modelId) {
+      const dotResult = this.pricingSync.lookupPricing(`${prefix}/${dotVariant}`);
+      if (dotResult) return dotResult;
+    }
+
+    // Try dot-to-dash normalization (claude-sonnet-4.6 → claude-sonnet-4-6)
+    const dashVariant = modelId.replace(/\.(\d)/g, '-$1');
+    if (dashVariant !== modelId) {
+      const dashResult = this.pricingSync.lookupPricing(`${prefix}/${dashVariant}`);
+      if (dashResult) return dashResult;
+    }
+
+    // Try stripping date suffix (claude-sonnet-4-5-20250929 → claude-sonnet-4-5)
+    const noDate = modelId.replace(/-\d{8}$/, '');
+    if (noDate !== modelId) {
+      const noDateResult = this.pricingSync.lookupPricing(`${prefix}/${noDate}`);
+      if (noDateResult) return noDateResult;
+
+      // Also try dot variant without date
+      const noDateDot = noDate.replace(/-(\d+)-(\d)/g, '-$1.$2');
+      if (noDateDot !== noDate) {
+        const noDateDotResult = this.pricingSync.lookupPricing(`${prefix}/${noDateDot}`);
+        if (noDateDotResult) return noDateDotResult;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Build a fallback model list from OpenRouter cache + manual pricing
+   * for providers whose native /models API is unavailable.
+   */
+  private buildFallbackModels(providerId: string): DiscoveredModel[] {
+    const models: DiscoveredModel[] = [];
+    const seen = new Set<string>();
+
+    // Check OpenRouter cache for models from this provider
+    if (this.pricingSync) {
+      const orPrefix = this.findOpenRouterPrefix(providerId);
+      if (orPrefix) {
+        for (const [fullId, entry] of this.pricingSync.getAll()) {
+          if (!fullId.startsWith(`${orPrefix}/`)) continue;
+          const modelId = fullId.substring(orPrefix.length + 1);
+          if (seen.has(modelId)) continue;
+          seen.add(modelId);
+          models.push({
+            id: modelId,
+            displayName: entry.displayName || modelId,
+            provider: providerId,
+            contextWindow: entry.contextWindow ?? 128000,
+            inputPricePerToken: entry.input,
+            outputPricePerToken: entry.output,
+            capabilityReasoning: false,
+            capabilityCode: false,
+            qualityScore: 3,
+          });
+        }
+      }
+    }
+
+    return models;
+  }
+
+  private computeScore(model: DiscoveredModel): DiscoveredModel {
+    const score = computeQualityScore({
+      model_name: model.id,
+      input_price_per_token: model.inputPricePerToken,
+      output_price_per_token: model.outputPricePerToken,
+      capability_reasoning: model.capabilityReasoning,
+      capability_code: model.capabilityCode,
+      context_window: model.contextWindow,
+    });
+    return { ...model, qualityScore: score };
+  }
+}

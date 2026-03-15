@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Delete,
   ForbiddenException,
@@ -10,6 +11,7 @@ import {
   Post,
   UseInterceptors,
 } from '@nestjs/common';
+import { QueryFailedError } from 'typeorm';
 import { CacheTTL } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
@@ -52,12 +54,20 @@ export class AgentsController {
       throw new BadRequestException('Agent name produces an empty slug');
     }
     const displayName = body.name.trim();
-    const result = await this.apiKeyGenerator.onboardAgent({
-      tenantName: user.id,
-      agentName: slug,
-      displayName,
-      email: user.email,
-    });
+    let result: { tenantId: string; agentId: string; apiKey: string };
+    try {
+      result = await this.apiKeyGenerator.onboardAgent({
+        tenantName: user.id,
+        agentName: slug,
+        displayName,
+        email: user.email,
+      });
+    } catch (error) {
+      if (error instanceof QueryFailedError && /unique|duplicate/i.test(error.message)) {
+        throw new ConflictException(`Agent "${slug}" already exists`);
+      }
+      throw error;
+    }
     trackCloudEvent('agent_created', user.id, { agent_name: slug });
     return {
       agent: { id: result.agentId, name: slug, display_name: displayName },

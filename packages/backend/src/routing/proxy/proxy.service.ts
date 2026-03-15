@@ -8,7 +8,7 @@ import { ProviderClient, ForwardResult } from './provider-client';
 import { buildCustomEndpoint, ProviderEndpoint } from './provider-endpoints';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
-import { shouldTriggerFallback } from './fallback-status-codes';
+import { shouldTriggerFallback, FALLBACK_EXHAUSTED_STATUS } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../provider-aliases';
 import { Tier, ScorerMessage } from '../scorer/types';
 
@@ -178,12 +178,17 @@ export class ProxyService {
           };
         }
 
-        // All fallbacks exhausted — rebuild the primary error response
-        // since the original body was consumed.
+        // All fallbacks exhausted — return non-retriable 424 so the gateway
+        // does not retry the entire chain in an infinite loop.
+        const safeHeaders = new Headers(forward.response.headers);
+        safeHeaders.delete('content-encoding');
+        safeHeaders.delete('content-length');
+        safeHeaders.delete('transfer-encoding');
+
         const rebuilt = new Response(primaryErrorBody, {
-          status: forward.response.status,
-          statusText: forward.response.statusText,
-          headers: forward.response.headers,
+          status: FALLBACK_EXHAUSTED_STATUS,
+          statusText: 'Failed Dependency',
+          headers: safeHeaders,
         });
         this.momentum.recordTier(sessionKey, resolved.tier as Tier);
         return {
@@ -243,15 +248,23 @@ export class ProxyService {
     for (let i = 0; i < fallbackModels.length; i++) {
       const model = fallbackModels[i];
       const pricing = this.pricingCache.getByModel(model);
-      if (!pricing) {
-        this.logger.debug(`Fallback ${i}: skipping model=${model} (no pricing data)`);
-        continue;
+
+      // Determine provider: custom prefix → model name inference → pricing cache → user's connected providers
+      let provider: string | undefined;
+      if (CustomProviderService.isCustom(model)) {
+        const slashIdx = model.indexOf('/');
+        provider = slashIdx > 0 ? model.substring(0, slashIdx) : model;
+      } else {
+        provider =
+          inferProviderFromModelName(model) ??
+          pricing?.provider ??
+          (await this.routingService.findProviderForModel(agentId, model));
       }
 
-      const provider =
-        inferProviderFromModelName(model) ??
-        inferProviderFromModelName(pricing.model_name) ??
-        pricing.provider;
+      if (!provider) {
+        this.logger.debug(`Fallback ${i}: skipping model=${model} (no provider data)`);
+        continue;
+      }
       const authType = await this.routingService.getAuthType(agentId, provider);
       let apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
       if (apiKey === null) {
@@ -316,12 +329,12 @@ export class ProxyService {
 
     const fmt =
       exceeded.metricType === 'cost'
-        ? `$${exceeded.actual.toFixed(2)}`
-        : exceeded.actual.toLocaleString();
+        ? `$${Number(exceeded.actual).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : Number(exceeded.actual).toLocaleString(undefined, { maximumFractionDigits: 0 });
     const threshFmt =
       exceeded.metricType === 'cost'
-        ? `$${exceeded.threshold.toFixed(2)}`
-        : exceeded.threshold.toLocaleString();
+        ? `$${Number(exceeded.threshold).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : Number(exceeded.threshold).toLocaleString(undefined, { maximumFractionDigits: 0 });
     throw new HttpException(
       {
         error: {

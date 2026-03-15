@@ -1,54 +1,21 @@
-/* ── Custom provider badge color ──────────────────── */
-:root {
-  --custom-provider-color: #6366f1;
-}
-
-/* ── Provider modal tabs ─────────────────────────── */
-.provider-modal__tabs {
-  display: flex;
-  gap: 0;
+/* ── Provider modal tabs wrapper ─────────────────── */
+.provider-modal__tabs-wrapper {
   padding: 0 24px;
-  border-bottom: 1px solid hsl(var(--border));
+  margin-bottom: 12px;
 }
 
-.provider-modal__tab {
+.provider-modal__tabs-wrapper .panel__tabs {
+  width: 100%;
+}
+
+.provider-modal__tabs-wrapper .panel__tab {
   flex: 1;
-  padding: 10px 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   gap: 6px;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  font-family: var(--font-family);
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  text-align: center;
-  transition:
-    color var(--transition-fast),
-    border-color var(--transition-fast);
-}
-
-.provider-modal__tab:hover {
-  color: hsl(var(--foreground));
-}
-
-.provider-modal__tab--active {
-  color: hsl(var(--foreground));
-  border-bottom-color: hsl(var(--primary));
-}
-
-.provider-modal__tab:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: -2px;
-  border-radius: 2px;
 }
 
 .provider-modal__tab-icon {
   flex-shrink: 0;
+  display: block;
 }
 
 .provider-modal__tab-hint {
@@ -61,8 +28,9 @@
 /* ── Provider toggle (modal rows) ─────────────────── */
 .provider-modal__list {
   padding: 8px 0;
-  max-height: 400px;
+  max-height: 416px;
   overflow-y: auto;
+  position: relative;
 }
 
 .provider-modal__request-link {
@@ -147,6 +115,19 @@
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
   font-style: italic;
+}
+
+.provider-toggle__tag {
+  font-size: 10px;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  padding: 1px 6px;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--foreground) / 0.4);
+  white-space: nowrap;
+  line-height: 1.4;
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 /* Toggle switch */
@@ -363,6 +344,21 @@
   margin-top: 4px;
 }
 
+.provider-detail__key-help {
+  margin: 6px 0 0;
+  font-size: var(--font-size-xs);
+}
+
+.provider-detail__key-help-link {
+  color: hsl(var(--muted-foreground));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.provider-detail__key-help-link:hover {
+  color: hsl(var(--foreground));
+}
+
 .provider-detail__key-row {
   display: flex;
   align-items: center;
@@ -552,20 +548,27 @@
   outline-offset: 2px;
 }
 
-/* ── Custom provider list (in modal) ──────────────── */
-.custom-provider-section {
-  border-top: 1px solid hsl(var(--border));
-  padding-top: 8px;
-  margin-top: 4px;
+/* ── Add custom provider button ───────────────────── */
+/* Request another subscription provider — right-aligned bordered link */
+.provider-modal__request-sub {
+  padding: 8px 24px 4px;
+  display: flex;
+  justify-content: flex-end;
 }
 
-.custom-provider-section__header {
-  padding: 6px 24px;
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.provider-modal__request-sub-btn {
+  gap: 6px;
+  text-decoration: none;
+}
+
+.provider-modal__add-custom {
+  padding: 8px 24px 4px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.provider-modal__add-custom-btn {
+  gap: 6px;
 }
 
 .custom-provider-item {
@@ -663,5 +666,5 @@
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.02em;
-  line-height: 1;
+  line-height: 0;
 }

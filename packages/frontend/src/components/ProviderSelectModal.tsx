@@ -3,12 +3,14 @@ import { PROVIDERS } from '../services/providers.js';
 import {
   connectProvider,
   disconnectProvider,
-  type RoutingProvider,
-  type CustomProviderData,
   type AuthType,
+  type CustomProviderData,
+  type RoutingProvider,
 } from '../services/api.js';
-import { toast } from '../services/toast-store.js';
+import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { isLocalMode } from '../services/local-mode.js';
+import { customProviderColor } from '../services/formatters.js';
+import { toast } from '../services/toast-store.js';
 import CustomProviderForm from './CustomProviderForm.js';
 import ProviderDetailView from './ProviderDetailView.js';
 import ProviderApiKeyTab from './ProviderApiKeyTab.js';
@@ -35,7 +37,6 @@ const ProviderSelectModal: Component<Props> = (props) => {
   const [editing, setEditing] = createSignal(false);
   const [validationError, setValidationError] = createSignal<string | null>(null);
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
-
   const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
   const apiKeyProviders = () =>
     isLocalMode()
@@ -193,56 +194,58 @@ const ProviderSelectModal: Component<Props> = (props) => {
             </div>
 
             {/* -- Tabs -- */}
-            <div class="provider-modal__tabs" role="tablist">
-              <button
-                role="tab"
-                aria-selected={activeTab() === 'subscription'}
-                class="provider-modal__tab"
-                classList={{ 'provider-modal__tab--active': activeTab() === 'subscription' }}
-                onClick={() => setActiveTab('subscription')}
-              >
-                <svg
-                  class="provider-modal__tab-icon"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  style="color: #22c55e"
+            <div class="provider-modal__tabs-wrapper">
+              <div class="panel__tabs" role="tablist">
+                <button
+                  role="tab"
+                  aria-selected={activeTab() === 'subscription'}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': activeTab() === 'subscription' }}
+                  onClick={() => setActiveTab('subscription')}
                 >
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Subscription
-              </button>
-              <button
-                role="tab"
-                aria-selected={activeTab() === 'api_key'}
-                class="provider-modal__tab"
-                classList={{ 'provider-modal__tab--active': activeTab() === 'api_key' }}
-                onClick={() => setActiveTab('api_key')}
-              >
-                <svg
-                  class="provider-modal__tab-icon"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  style="color: #f59e0b"
+                  <svg
+                    class="provider-modal__tab-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    style="color: #1cc4bf"
+                  >
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  Subscription
+                </button>
+                <button
+                  role="tab"
+                  aria-selected={activeTab() === 'api_key'}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': activeTab() === 'api_key' }}
+                  onClick={() => setActiveTab('api_key')}
                 >
-                  <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                </svg>
-                API Keys
-              </button>
+                  <svg
+                    class="provider-modal__tab-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    style="color: #e59d55"
+                  >
+                    <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                  </svg>
+                  API Keys
+                </button>
+              </div>
             </div>
 
             {/* -- Subscription Tab -- */}
@@ -271,7 +274,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
             </Show>
 
             <div class="provider-modal__footer">
-              <button class="btn btn--primary" onClick={props.onClose}>
+              <button class="btn btn--primary btn--sm" onClick={props.onClose}>
                 Done
               </button>
             </div>

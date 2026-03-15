@@ -9,6 +9,7 @@ import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { initSseHeaders, pipeStream, StreamUsage } from './stream-writer';
+import { sanitizeProviderError } from './proxy-error-sanitizer';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
 
 const MAX_SEEN_USERS = 10_000;
@@ -102,27 +103,52 @@ export class ProxyController {
               meta.auth_type,
             )
             .catch((e) => this.logger.warn(`Failed to record primary failure: ${e}`));
-        } else {
-          this.recorder
-            .recordProviderError(
-              req.ingestionContext,
-              errorStatus,
-              errorBody,
-              meta.model,
-              meta.tier,
-              traceId,
-              meta.fallbackFromModel,
-              meta.fallbackIndex,
-              meta.auth_type,
-            )
-            .catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
+
+          this.logger.warn(`Fallback chain exhausted: ${errorBody.slice(0, 200)}`);
+          res.status(errorStatus);
+          for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
+          res.setHeader('X-Manifest-Fallback-Exhausted', 'true');
+          res.json({
+            error: {
+              message: sanitizeProviderError(errorStatus, errorBody),
+              type: 'fallback_exhausted',
+              status: errorStatus,
+              primary_model: meta.model,
+              primary_provider: meta.provider,
+              attempted_fallbacks: failedFallbacks.map((f) => ({
+                model: f.model,
+                provider: f.provider,
+                status: f.status,
+              })),
+            },
+          });
+          return;
         }
 
+        this.recorder
+          .recordProviderError(
+            req.ingestionContext,
+            errorStatus,
+            errorBody,
+            meta.model,
+            meta.tier,
+            traceId,
+            meta.fallbackFromModel,
+            meta.fallbackIndex,
+            meta.auth_type,
+          )
+          .catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
+
+        this.logger.warn(`Upstream error ${errorStatus}: ${errorBody.slice(0, 200)}`);
         res.status(errorStatus);
         for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
-        const contentType = providerResponse.headers.get('content-type');
-        if (contentType) res.setHeader('Content-Type', contentType);
-        res.send(errorBody);
+        res.json({
+          error: {
+            message: sanitizeProviderError(errorStatus, errorBody),
+            type: 'upstream_error',
+            status: errorStatus,
+          },
+        });
         return;
       }
 
@@ -130,11 +156,13 @@ export class ProxyController {
       // Failed upstream responses (retries by the gateway) are free.
       this.rateLimiter.recordSuccess(userId);
 
-      // When a fallback was used, record the full chain with coordinated
-      // timestamps so messages appear in order: primary (earliest) -> intermediate
-      // failures -> fallback success (latest, appears first in list).
+      // When a fallback was used, record failures now (they don't need token data).
+      // The fallback success record is deferred until after the response is processed
+      // so we can include real usage/cost data.
+      let fallbackBaseTime: number | undefined;
+      let fallbackSuccessTs: string | undefined;
       if (meta.fallbackFromModel) {
-        const baseTime = Date.now();
+        fallbackBaseTime = Date.now();
         const failures = failedFallbacks ?? [];
 
         this.recorder
@@ -143,7 +171,7 @@ export class ProxyController {
             meta.tier,
             meta.fallbackFromModel,
             meta.primaryErrorBody ?? `Provider returned HTTP ${meta.primaryErrorStatus ?? 500}`,
-            new Date(baseTime).toISOString(),
+            new Date(fallbackBaseTime).toISOString(),
             meta.auth_type,
           )
           .catch((e) => this.logger.warn(`Failed to record primary failure: ${e}`));
@@ -155,24 +183,12 @@ export class ProxyController {
               meta.tier,
               meta.fallbackFromModel,
               failures,
-              { baseTimeMs: baseTime, markHandled: true, authType: meta.auth_type },
+              { baseTimeMs: fallbackBaseTime, markHandled: true, authType: meta.auth_type },
             )
             .catch((e) => this.logger.warn(`Failed to record fallback errors: ${e}`));
         }
 
-        const successTs = new Date(baseTime + (failures.length + 1) * 100).toISOString();
-        this.recorder
-          .recordFallbackSuccess(
-            req.ingestionContext,
-            meta.model,
-            meta.tier,
-            traceId,
-            meta.fallbackFromModel,
-            meta.fallbackIndex ?? 0,
-            successTs,
-            meta.auth_type,
-          )
-          .catch((e) => this.logger.warn(`Failed to record fallback success: ${e}`));
+        fallbackSuccessTs = new Date(fallbackBaseTime + (failures.length + 1) * 100).toISOString();
       }
 
       let streamUsage: StreamUsage | null = null;
@@ -231,9 +247,22 @@ export class ProxyController {
         res.json(responseBody);
       }
 
-      // Record successful message with real token data (non-fallback only).
-      // For fallback successes, recordFallbackSuccess already creates the record.
-      if (!meta.fallbackFromModel && streamUsage) {
+      // Record successful message with real token data.
+      if (meta.fallbackFromModel && fallbackSuccessTs) {
+        this.recorder
+          .recordFallbackSuccess(
+            req.ingestionContext,
+            meta.model,
+            meta.tier,
+            traceId,
+            meta.fallbackFromModel,
+            meta.fallbackIndex ?? 0,
+            fallbackSuccessTs,
+            meta.auth_type,
+            streamUsage ?? undefined,
+          )
+          .catch((e) => this.logger.warn(`Failed to record fallback success: ${e}`));
+      } else if (streamUsage) {
         this.recorder
           .recordSuccessMessage(
             req.ingestionContext,
@@ -243,6 +272,7 @@ export class ProxyController {
             streamUsage,
             traceId,
             meta.auth_type,
+            sessionKey,
           )
           .catch((e) => this.logger.warn(`Failed to record success message: ${e}`));
       }

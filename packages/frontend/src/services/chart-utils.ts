@@ -1,7 +1,7 @@
-import { onMount, onCleanup, createEffect, on } from "solid-js";
-import type { Accessor } from "solid-js";
-import uPlot from "uplot";
-import { getHslA } from "./theme.js";
+import { onMount, onCleanup, createEffect, on } from 'solid-js';
+import type { Accessor } from 'solid-js';
+import uPlot from 'uplot';
+import { getHslA } from './theme.js';
 
 export function makeGradientFill(topColor: string, bottomColor: string): uPlot.Series.Fill {
   return ((u: uPlot) => {
@@ -14,7 +14,7 @@ export function makeGradientFill(topColor: string, bottomColor: string): uPlot.S
 }
 
 export function makeGradientFillFromVar(cssVar: string, alpha: number): uPlot.Series.Fill {
-  return makeGradientFill(getHslA(cssVar, alpha), "transparent");
+  return makeGradientFill(getHslA(cssVar, alpha), 'transparent');
 }
 
 interface UseChartLifecycleOptions<T> {
@@ -32,7 +32,10 @@ export function useChartLifecycle<T>(opts: UseChartLifecycleOptions<T>): void {
   function tryCreate() {
     if (chart) return;
     const built = opts.buildChart();
-    if (built) chart = built;
+    if (built) {
+      chart = built;
+      chart.setCursor({ left: -1, top: -1 });
+    }
   }
 
   onMount(() => {
@@ -50,10 +53,19 @@ export function useChartLifecycle<T>(opts: UseChartLifecycleOptions<T>): void {
     setTimeout(tryCreate, 50);
   });
 
-  createEffect(on(opts.data, () => {
-    if (chart) { chart.destroy(); chart = null; }
-    if (opts.data()?.length) setTimeout(tryCreate, 0);
-  }, { defer: true }));
+  createEffect(
+    on(
+      opts.data,
+      () => {
+        if (chart) {
+          chart.destroy();
+          chart = null;
+        }
+        if (opts.data()?.length) setTimeout(tryCreate, 0);
+      },
+      { defer: true },
+    ),
+  );
 
   onCleanup(() => {
     ro?.disconnect();
@@ -64,98 +76,279 @@ export function useChartLifecycle<T>(opts: UseChartLifecycleOptions<T>): void {
 
 export function createCursorSnap(bgColor: string, pointColor: string): uPlot.Cursor {
   return {
-    show: true, x: true, y: false,
+    show: true,
+    x: true,
+    y: false,
     drag: { x: false, y: false },
     points: { show: true, size: 8, fill: pointColor, stroke: bgColor, width: 2 },
     move: (u: uPlot, left: number, top: number) => {
       const idx = u.posToIdx(left);
-      const snappedLeft = idx != null && u.data[0]?.[idx] != null
-        ? Math.round(u.valToPos(u.data[0][idx]!, "x"))
-        : left;
+      const snappedLeft =
+        idx != null && u.data[0]?.[idx] != null
+          ? Math.round(u.valToPos(u.data[0][idx]!, 'x'))
+          : left;
       return [snappedLeft, top];
     },
   };
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function formatLegendTimestamp(_u: uPlot, epochSec: number): string {
-  if (epochSec == null) return "---";
+  if (epochSec == null || isNaN(epochSec)) return '';
   const d = new Date(epochSec * 1000);
-  const mon = MONTHS[d.getUTCMonth()]!;
-  const day = d.getUTCDate();
-  const hh = String(d.getUTCHours()).padStart(2, "0");
-  const mm = String(d.getUTCMinutes()).padStart(2, "0");
-  const ss = String(d.getUTCSeconds()).padStart(2, "0");
-  return `${mon} ${day}, ${hh}:${mm}:${ss}`;
+  const mon = MONTHS[d.getMonth()]!;
+  const day = d.getDate();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${mon} ${day}, ${hh}:${mm}`;
+}
+
+export function createFormatLegendTimestamp(
+  range?: string,
+): (_u: uPlot, epochSec: number) => string {
+  const multiDay = MULTI_DAY_RANGES.has(range ?? '');
+  return (_u: uPlot, epochSec: number): string => {
+    if (epochSec == null || isNaN(epochSec)) return '';
+    const d = new Date(epochSec * 1000);
+    const mon = MONTHS[d.getMonth()]!;
+    const day = d.getDate();
+    if (multiDay) return `${mon} ${day}`;
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${mon} ${day}, ${hh}:${mm}`;
+  };
 }
 
 export function formatLegendCost(_u: uPlot, val: number): string {
-  if (val == null) return "---";
-  if (val > 0 && val < 0.01) return "< $0.01";
+  if (val == null || isNaN(val)) return '';
+  if (val > 0 && val < 0.01) return '< $0.01';
   return `$${val.toFixed(2)}`;
 }
 
 export function formatLegendTokens(_u: uPlot, val: number): string {
-  if (val == null) return "---";
-  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
-  if (val >= 1_000) return `${(val / 1_000).toFixed(1)}k`;
+  if (val == null || isNaN(val)) return '';
+  val = Math.round(val);
+  if (val >= 1_000_000) {
+    const v = val / 1_000_000;
+    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}M`;
+  }
+  if (val >= 1_000) {
+    const v = val / 1_000;
+    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}k`;
+  }
   return val.toString();
 }
 
 const RANGE_MAP: Record<string, number> = {
-  "1h": 3600,
-  "6h": 21600,
-  "24h": 86400,
-  "7d": 604800,
-  "30d": 2592000,
+  '1h': 3600,
+  '24h': 86400,
+  '7d': 604800,
+  '30d': 2592000,
 };
+
+const MULTI_DAY_RANGES = new Set(['7d', '30d']);
+const INTRADAY_RANGES = new Set(['1h', '24h']);
+
+const RANGE_DAYS: Record<string, number> = { '7d': 7, '30d': 30 };
+const RANGE_HOURS: Record<string, number> = { '24h': 24 };
 
 export function rangeToSeconds(range: string): number {
   return RANGE_MAP[range] ?? 86400;
 }
 
-export function formatAxisTimestamp(epochSec: number, rangeSeconds: number): string {
+/**
+ * Fill missing days/hours in sparse backend data so charts have
+ * evenly spaced data points. For multi-day ranges, fills one point per
+ * calendar day. For the 24h range, fills one point per hour up to the
+ * current hour.
+ */
+export function fillDailyGaps<T extends Record<string, unknown>>(
+  data: T[],
+  range: string,
+  dateField: string,
+  zeroEntry: (date: string) => T,
+): T[] {
+  const hours = RANGE_HOURS[range];
+  if (hours) {
+    // Use local time to match the backend, which stores timestamps in the
+    // Node process's local timezone via the pg driver.
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+
+    const hourMap = new Map<string, T>();
+    for (let i = hours; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 3600000);
+      const y = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const da = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const key = `${y}-${mo}-${da}T${hh}:00:00`;
+      hourMap.set(key, zeroEntry(key));
+    }
+
+    for (const row of data) {
+      const key = String(row[dateField] ?? '');
+      if (hourMap.has(key)) {
+        hourMap.set(key, row);
+      }
+    }
+
+    return Array.from(hourMap.values());
+  }
+
+  const days = RANGE_DAYS[range];
+  if (!days) return data;
+
+  // Use local midnight so date labels match the user's calendar
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const dateMap = new Map<string, T>();
+  for (let i = days; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const y = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const da = String(d.getDate()).padStart(2, '0');
+    const key = `${y}-${mo}-${da}`;
+    dateMap.set(key, zeroEntry(key));
+  }
+
+  for (const row of data) {
+    const key = String(row[dateField] ?? '');
+    if (dateMap.has(key)) {
+      dateMap.set(key, row);
+    }
+  }
+
+  return Array.from(dateMap.values());
+}
+
+export function formatAxisTimestamp(epochSec: number, range: string): string {
   const d = new Date(epochSec * 1000);
-  const hh = String(d.getUTCHours()).padStart(2, "0");
-  const mm = String(d.getUTCMinutes()).padStart(2, "0");
-  if (rangeSeconds <= 86400) return `${hh}:${mm}`;
-  const mon = MONTHS[d.getUTCMonth()]!;
-  const day = d.getUTCDate();
-  if (rangeSeconds <= 7 * 86400) return `${mon} ${day}`;
+  if (INTRADAY_RANGES.has(range)) {
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+  const mon = MONTHS[d.getMonth()]!;
+  const day = d.getDate();
   return `${mon} ${day}`;
 }
 
+export function isMultiDayRange(range?: string): boolean {
+  return MULTI_DAY_RANGES.has(range ?? '');
+}
+
 export function createBaseAxes(axisColor: string, gridColor: string, range?: string): uPlot.Axis[] {
+  const multiDay = MULTI_DAY_RANGES.has(range ?? '');
+  // Resolve the effective range label for axis formatting: if an explicit range
+  // is provided use it; otherwise fall back to a dynamic span-based label so
+  // formatAxisTimestamp still receives a valid range string.
+  const effectiveRange = range ?? '';
+  const xAxis: uPlot.Axis = {
+    stroke: axisColor,
+    grid: { stroke: gridColor, width: 1 },
+    ticks: { stroke: gridColor, width: 1 },
+    font: '11px "DM Sans", sans-serif',
+    gap: 8,
+    // For multi-day ranges, place grid lines exactly at each data point
+    ...(multiDay ? { splits: (u: uPlot) => Array.from(u.data[0]) } : {}),
+    values: (u: uPlot, vals: number[]) => {
+      // When no explicit range was provided, derive one from the visible span
+      let labelRange = effectiveRange;
+      if (!labelRange) {
+        const span =
+          (u.scales.x?.max ?? vals[vals.length - 1] ?? 0) - (u.scales.x?.min ?? vals[0] ?? 0);
+        labelRange = span > 86400 ? '7d' : '24h';
+      }
+      const labels = vals.map((v) => formatAxisTimestamp(v, labelRange));
+      // Dedup consecutive identical labels
+      const deduped = labels.map((l, i) => (i > 0 && l === labels[i - 1] ? '' : l));
+      // Thin labels for multi-day ranges so they don't overlap
+      if (multiDay) {
+        const uniqueLabels = deduped.filter((l) => l !== '');
+        const step = uniqueLabels.length > 20 ? 5 : uniqueLabels.length > 14 ? 3 : 1;
+        if (step > 1) {
+          let count = 0;
+          return deduped.map((l) => {
+            if (l === '') return '';
+            return count++ % step === 0 ? l : '';
+          });
+        }
+      }
+      return deduped;
+    },
+  };
+
   return [
+    xAxis,
     {
       stroke: axisColor,
       grid: { stroke: gridColor, width: 1 },
-      ticks: { stroke: gridColor, width: 1 },
-      font: '11px "Inter"',
+      ticks: { show: false },
+      font: '11px "DM Sans", sans-serif',
+      size: 54,
       gap: 8,
-      values: (u: uPlot, vals: number[]) => {
-        const span = range
-          ? rangeToSeconds(range)
-          : (u.scales.x?.max ?? vals[vals.length - 1] ?? 0) - (u.scales.x?.min ?? vals[0] ?? 0);
-        return vals.map((v) => formatAxisTimestamp(v, span));
-      },
     },
-    { stroke: axisColor, grid: { stroke: gridColor, width: 1 }, ticks: { show: false }, font: '11px "Inter"', size: 54, gap: 8 },
   ];
 }
 
-export function parseTimestamps(data: Array<{ hour?: string; date?: string } & Record<string, unknown>>): number[] {
-  return data.map((d) => new Date(((d.hour ?? d.date) as string ?? "").replace(" ", "T") + "Z").getTime() / 1000);
+export function parseTimestamps(
+  data: Array<{ hour?: string; date?: string } & Record<string, unknown>>,
+): number[] {
+  return data.map((d) => {
+    if (d.hour) {
+      // Hour strings from the backend are in local time (the pg driver
+      // serialises JS Dates using the Node process's local timezone).
+      // Parse without appending 'Z' so they stay in local time.
+      const iso = d.hour.replace(' ', 'T');
+      return new Date(iso).getTime() / 1000;
+    }
+    const dateStr = (d.date as string) ?? '';
+    const [y, m, day] = dateStr.split('-').map(Number);
+    return new Date(y!, m! - 1, day!).getTime() / 1000;
+  });
 }
 
 const MIN_SPAN = 6 * 3600; // 6 hours in seconds
 
 export function timeScaleRange(_u: uPlot, min: number, max: number): [number, number] {
-  const span = max - min;
+  const now = Date.now() / 1000;
+  const clampedMax = Math.min(max, now);
+  const span = clampedMax - min;
   if (span < MIN_SPAN) {
-    const mid = (min + max) / 2;
-    return [mid - MIN_SPAN / 2, mid + MIN_SPAN / 2];
+    return [clampedMax - MIN_SPAN, clampedMax];
   }
-  return [min, max];
+  return [min, clampedMax];
+}
+
+export function createTimeScaleRange(
+  range?: string,
+): (_u: uPlot, min: number, max: number) => [number, number] {
+  const multiDay = MULTI_DAY_RANGES.has(range ?? '');
+  const intraday = INTRADAY_RANGES.has(range ?? '');
+  const rangeSec = range ? rangeToSeconds(range) : 0;
+  return (_u: uPlot, min: number, max: number): [number, number] => {
+    const now = Date.now() / 1000;
+    if (multiDay) {
+      // Use exact data extent — no padding — so first/last points
+      // sit at chart edges and every day is equally spaced.
+      return [min, max];
+    }
+    if (intraday) {
+      return [now - rangeSec, now];
+    }
+    const clampedMax = Math.min(max, now);
+    const span = clampedMax - min;
+    if (span < MIN_SPAN) {
+      return [clampedMax - MIN_SPAN, clampedMax];
+    }
+    return [min, clampedMax];
+  };
+}
+
+export function sanitizeNumbers(values: number[]): (number | null)[] {
+  return values.map((v) => (Number.isFinite(v) ? v : null));
 }

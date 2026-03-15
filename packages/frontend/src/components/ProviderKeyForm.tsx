@@ -7,6 +7,7 @@ import {
   revokeOpenaiOAuth,
   type AuthType,
 } from '../services/api.js';
+import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { toast } from '../services/toast-store.js';
 
 export interface ProviderKeyFormProps {
@@ -41,6 +42,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
     props.isSubMode()
       ? `New ${props.provDef.name} setup token`
       : `New ${props.provDef.name} API key`;
+  const whereToGetUrl = getRoutingProviderApiKeyUrl(props.provId);
 
   const handleConnect = async () => {
     const result = props.isSubMode()
@@ -144,6 +146,18 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
           <Show when={props.validationError()}>
             <div class="provider-detail__error">{props.validationError()}</div>
           </Show>
+          <Show when={whereToGetUrl && !props.isSubMode()}>
+            <p class="provider-detail__key-help">
+              <a
+                class="provider-detail__key-help-link"
+                href={whereToGetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get {props.provDef.name} API key
+              </a>
+            </p>
+          </Show>
         </div>
         <button
           class="btn btn--primary provider-detail__action"
@@ -226,6 +240,18 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
             />
             <Show when={props.validationError()}>
               <div class="provider-detail__error">{props.validationError()}</div>
+            </Show>
+            <Show when={whereToGetUrl && !props.isSubMode()}>
+              <p class="provider-detail__key-help">
+                <a
+                  class="provider-detail__key-help-link"
+                  href={whereToGetUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Get {props.provDef.name} API key
+                </a>
+              </p>
             </Show>
             <button
               class="btn btn--primary provider-detail__action"

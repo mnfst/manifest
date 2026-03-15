@@ -34,11 +34,17 @@ export function validateProviderConfig(
   if (provider === 'mailgun') {
     if (!trimmedDomain) {
       errors.push('Domain is required for Mailgun');
+    } else if (trimmedDomain.length > 253) {
+      errors.push('Domain name exceeds maximum length');
     } else if (!DOMAIN_RE.test(trimmedDomain)) {
       errors.push('Invalid domain format');
     }
-  } else if (trimmedDomain && !DOMAIN_RE.test(trimmedDomain)) {
-    errors.push('Invalid domain format');
+  } else if (trimmedDomain) {
+    if (trimmedDomain.length > 253) {
+      errors.push('Domain name exceeds maximum length');
+    } else if (!DOMAIN_RE.test(trimmedDomain)) {
+      errors.push('Invalid domain format');
+    }
   }
 
   return {

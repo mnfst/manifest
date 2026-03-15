@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, fireEvent } from "@solidjs/testing-library";
 
+vi.mock("../../src/services/model-display.js", () => ({
+  getModelDisplayName: (slug: string) => slug,
+}));
+
 vi.mock("../../src/services/routing-utils.js", () => ({
   resolveProviderId: (provider: string) => {
     const map: Record<string, string> = { OpenAI: "openai", Anthropic: "anthropic" };

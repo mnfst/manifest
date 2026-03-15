@@ -31,8 +31,8 @@ const Help: Component = () => {
               href="https://calendly.com/sebastien-manifest/30min?month=2026-02"
               target="_blank"
               rel="noopener noreferrer"
-              class="btn btn--outline"
-              style="font-size: var(--font-size-sm); text-decoration: none;"
+              class="btn btn--outline btn--sm"
+              style="text-decoration: none;"
             >
               Book
               <svg
@@ -63,8 +63,8 @@ const Help: Component = () => {
           <div class="settings-card__control">
             <a
               href="mailto:sebastien@manifest.build"
-              class="btn btn--outline"
-              style="font-size: var(--font-size-sm); text-decoration: none;"
+              class="btn btn--outline btn--sm"
+              style="text-decoration: none;"
             >
               Contact
               <svg

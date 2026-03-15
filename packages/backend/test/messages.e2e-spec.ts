@@ -75,14 +75,14 @@ describe('GET /api/v1/messages', () => {
     expect(item).toHaveProperty('status');
   });
 
-  it('filters by status', async () => {
+  it('filters by provider', async () => {
     const res = await request(app.getHttpServer())
-      .get('/api/v1/messages?range=24h&status=error')
+      .get('/api/v1/messages?range=24h&provider=openai')
       .set('x-api-key', TEST_API_KEY)
       .expect(200);
 
     expect(
-      res.body.items.every((item: Record<string, string>) => item['status'] === 'error'),
+      res.body.items.every((item: Record<string, string>) => item['model'] === 'gpt-4o'),
     ).toBe(true);
   });
 

@@ -81,9 +81,9 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
                 </span>
               </span>
               <span class="provider-toggle__info">
-                <span class="provider-toggle__name">{cp.name}</span>
-                <span class="provider-toggle__local-only">
-                  {cp.models.length} model{cp.models.length !== 1 ? 's' : ''}
+                <span class="provider-toggle__name">
+                  {cp.name}
+                  <span class="provider-toggle__tag">Custom</span>
                 </span>
               </span>
             </button>

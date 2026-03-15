@@ -1,4 +1,4 @@
-import { For, Show, type Component } from 'solid-js';
+import { createSignal, For, Show, type Component } from 'solid-js';
 import { PROVIDERS } from '../services/providers.js';
 import type { StageDef } from '../services/providers.js';
 import { getModelLabel } from '../services/provider-utils.js';
@@ -71,6 +71,9 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   };
   const isManual = () =>
     props.tier()?.override_model !== null && props.tier()?.override_model !== undefined;
+  const hasFallbacks = () => (props.tier()?.fallback_models ?? []).length > 0;
+  const hasCustomizations = () => isManual() || hasFallbacks();
+  const [confirmReset, setConfirmReset] = createSignal(false);
 
   const modelInfo = (modelName: string): AvailableModel | undefined => {
     const all = props.models();
@@ -239,10 +242,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                   Change
                 </Show>
               </button>
-              <Show when={isManual()}>
+              <Show when={hasCustomizations()}>
                 <button
                   class="routing-action"
-                  onClick={() => props.onReset(props.stage.id)}
+                  onClick={() => setConfirmReset(true)}
                   disabled={props.resettingTier() === props.stage.id || props.resettingAll()}
                 >
                   {props.resettingTier() === props.stage.id ? <span class="spinner" /> : 'Reset'}
@@ -264,6 +267,42 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             />
           </div>
         </Show>
+      </Show>
+
+      <Show when={confirmReset()}>
+        <div
+          class="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setConfirmReset(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setConfirmReset(false);
+          }}
+        >
+          <div class="modal-card" style="max-width: 420px;">
+            <h2 style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;">
+              Reset tier?
+            </h2>
+            <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+              This will clear the model override and remove all fallback models for this tier.
+            </p>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+              <button class="btn btn--outline" onClick={() => setConfirmReset(false)}>
+                Cancel
+              </button>
+              <button
+                class="btn btn--danger"
+                disabled={props.resettingTier() === props.stage.id}
+                onClick={() => {
+                  setConfirmReset(false);
+                  props.onReset(props.stage.id);
+                }}
+              >
+                {props.resettingTier() === props.stage.id ? <span class="spinner" /> : 'Reset'}
+              </button>
+            </div>
+          </div>
+        </div>
       </Show>
     </div>
   );

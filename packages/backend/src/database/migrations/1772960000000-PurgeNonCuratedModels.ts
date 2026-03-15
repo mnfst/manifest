@@ -2,8 +2,12 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 const CURATED_MODELS = [
   'claude-opus-4-6',
+  'claude-sonnet-4-6',
   'claude-sonnet-4-5-20250929',
+  'claude-opus-4-5-20251101',
+  'claude-opus-4-1-20250805',
   'claude-sonnet-4-20250514',
+  'claude-opus-4-20250514',
   'claude-haiku-4-5-20251001',
   'gpt-4o',
   'gpt-4o-mini',

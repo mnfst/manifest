@@ -6,7 +6,7 @@ import { registerTools } from './tools';
 import { registerCommand } from './command';
 import { verifyConnection } from './verify';
 import { registerLocalMode, injectProviderConfig, injectAuthProfile } from './local-mode';
-import { trackPluginEvent } from './product-telemetry';
+import { trackPluginEvent, identifyUser } from './product-telemetry';
 import { discoverSubscriptionProviders, registerSubscriptionProviders } from './subscription';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -122,6 +122,9 @@ module.exports = {
             if (check.error) {
               logger.warn?.(`[manifest] Connection check failed: ${check.error}`);
               return;
+            }
+            if (check.telemetryId) {
+              identifyUser(check.telemetryId);
             }
             const agent = check.agentName ? ` (agent: ${check.agentName})` : '';
             logger.info(`[manifest] Connection verified${agent}`);

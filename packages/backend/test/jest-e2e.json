@@ -1,6 +1,7 @@
 {
   "moduleFileExtensions": ["js", "json", "ts", "tsx"],
   "rootDir": ".",
+  "coverageDirectory": "../coverage",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {

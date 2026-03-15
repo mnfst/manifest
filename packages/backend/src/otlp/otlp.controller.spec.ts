@@ -6,6 +6,7 @@ import { MetricIngestService } from './services/metric-ingest.service';
 import { LogIngestService } from './services/log-ingest.service';
 import { OtlpAuthGuard } from './guards/otlp-auth.guard';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
+import { ManifestRuntimeService } from '../common/services/manifest-runtime.service';
 import { trackEvent, trackCloudEvent } from '../common/utils/product-telemetry';
 import { existsSync } from 'fs';
 
@@ -28,6 +29,7 @@ describe('OtlpController', () => {
   let mockMetricIngest: Record<string, jest.Mock>;
   let mockLogIngest: Record<string, jest.Mock>;
   let mockEventBus: Record<string, jest.Mock>;
+  let mockRuntime: { isLocalMode: jest.Mock };
 
   beforeEach(async () => {
     mockDecoder = {
@@ -39,6 +41,7 @@ describe('OtlpController', () => {
     mockMetricIngest = { ingest: jest.fn().mockResolvedValue({ accepted: 3 }) };
     mockLogIngest = { ingest: jest.fn().mockResolvedValue({ accepted: 2 }) };
     mockEventBus = { emit: jest.fn() };
+    mockRuntime = { isLocalMode: jest.fn().mockReturnValue(false) };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OtlpController],
@@ -48,6 +51,7 @@ describe('OtlpController', () => {
         { provide: MetricIngestService, useValue: mockMetricIngest },
         { provide: LogIngestService, useValue: mockLogIngest },
         { provide: IngestEventBusService, useValue: mockEventBus },
+        { provide: ManifestRuntimeService, useValue: mockRuntime },
       ],
     })
       .overrideGuard(OtlpAuthGuard)
@@ -127,34 +131,29 @@ describe('OtlpController', () => {
   });
 
   describe('trackFirstTelemetry', () => {
-    const origMode = process.env['MANIFEST_MODE'];
-
     beforeEach(() => {
       (trackEvent as jest.Mock).mockClear();
       (trackCloudEvent as jest.Mock).mockClear();
       (existsSync as jest.Mock).mockReturnValue(false);
-    });
-
-    afterEach(() => {
-      if (origMode === undefined) delete process.env['MANIFEST_MODE'];
-      else process.env['MANIFEST_MODE'] = origMode;
+      mockRuntime.isLocalMode.mockReturnValue(false);
     });
 
     it('calls trackCloudEvent in cloud mode', async () => {
-      delete process.env['MANIFEST_MODE'];
       await controller.ingestTraces(makeReq('application/json', {}, undefined));
 
-      expect(trackCloudEvent).toHaveBeenCalledWith('plugin_registered', 'test-user', {
-        source: 'backend',
-      });
       expect(trackCloudEvent).toHaveBeenCalledWith('first_telemetry_received', 'test-user', {
         agent_id_hash: 'test-age',
       });
+      expect(trackCloudEvent).not.toHaveBeenCalledWith(
+        'plugin_registered',
+        expect.anything(),
+        expect.anything(),
+      );
       expect(trackEvent).not.toHaveBeenCalled();
     });
 
     it('calls trackEvent in local mode', async () => {
-      process.env['MANIFEST_MODE'] = 'local';
+      mockRuntime.isLocalMode.mockReturnValue(true);
       (existsSync as jest.Mock).mockReturnValue(false);
       await controller.ingestTraces(makeReq('application/json', {}, undefined));
 
@@ -165,7 +164,7 @@ describe('OtlpController', () => {
     });
 
     it('skips tracking in local mode when marker file exists', async () => {
-      process.env['MANIFEST_MODE'] = 'local';
+      mockRuntime.isLocalMode.mockReturnValue(true);
       (existsSync as jest.Mock).mockReturnValue(true);
       await controller.ingestTraces(makeReq('application/json', {}, undefined));
 
@@ -174,46 +173,46 @@ describe('OtlpController', () => {
     });
 
     it('deduplicates by agentId in cloud mode', async () => {
-      delete process.env['MANIFEST_MODE'];
       await controller.ingestTraces(makeReq('application/json', {}, undefined));
       await controller.ingestTraces(makeReq('application/json', {}, undefined));
 
-      // 2 calls on first ingest (plugin_registered + first_telemetry_received), 0 on second
-      expect(trackCloudEvent).toHaveBeenCalledTimes(2);
+      // 1 call on first ingest (first_telemetry_received), 0 on second
+      expect(trackCloudEvent).toHaveBeenCalledTimes(1);
     });
 
-    it('emits plugin_registered with source backend via metrics ingestion', async () => {
-      delete process.env['MANIFEST_MODE'];
+    it('emits first_telemetry_received via metrics ingestion', async () => {
       await controller.ingestMetrics(makeReq('application/json', {}, undefined));
 
-      expect(trackCloudEvent).toHaveBeenCalledWith('plugin_registered', 'test-user', {
-        source: 'backend',
-      });
       expect(trackCloudEvent).toHaveBeenCalledWith('first_telemetry_received', 'test-user', {
         agent_id_hash: 'test-age',
       });
+      expect(trackCloudEvent).not.toHaveBeenCalledWith(
+        'plugin_registered',
+        expect.anything(),
+        expect.anything(),
+      );
     });
 
-    it('emits plugin_registered with source backend via logs ingestion', async () => {
-      delete process.env['MANIFEST_MODE'];
+    it('emits first_telemetry_received via logs ingestion', async () => {
       await controller.ingestLogs(makeReq('application/json', {}, undefined));
 
-      expect(trackCloudEvent).toHaveBeenCalledWith('plugin_registered', 'test-user', {
-        source: 'backend',
-      });
       expect(trackCloudEvent).toHaveBeenCalledWith('first_telemetry_received', 'test-user', {
         agent_id_hash: 'test-age',
       });
+      expect(trackCloudEvent).not.toHaveBeenCalledWith(
+        'plugin_registered',
+        expect.anything(),
+        expect.anything(),
+      );
     });
 
     it('deduplicates across different ingestion methods for the same agent', async () => {
-      delete process.env['MANIFEST_MODE'];
       await controller.ingestTraces(makeReq('application/json', {}, undefined));
       await controller.ingestMetrics(makeReq('application/json', {}, undefined));
       await controller.ingestLogs(makeReq('application/json', {}, undefined));
 
-      // Only the first call (traces) should trigger events
-      expect(trackCloudEvent).toHaveBeenCalledTimes(2);
+      // Only the first call (traces) should trigger the event
+      expect(trackCloudEvent).toHaveBeenCalledTimes(1);
     });
 
     it('tracks separately for different agentIds in cloud mode', async () => {
@@ -246,8 +245,8 @@ describe('OtlpController', () => {
       await controller.ingestTraces(reqAgent1);
       await controller.ingestTraces(reqAgent2);
 
-      // 2 events per agent = 4 total
-      expect(trackCloudEvent).toHaveBeenCalledTimes(4);
+      // 1 event per agent = 2 total
+      expect(trackCloudEvent).toHaveBeenCalledTimes(2);
     });
 
     it('uses userId as the distinct_id key for trackCloudEvent', async () => {
@@ -267,12 +266,14 @@ describe('OtlpController', () => {
 
       await controller.ingestTraces(req);
 
-      expect(trackCloudEvent).toHaveBeenCalledWith('plugin_registered', 'user-abc-123', {
-        source: 'backend',
-      });
       expect(trackCloudEvent).toHaveBeenCalledWith('first_telemetry_received', 'user-abc-123', {
         agent_id_hash: 'my-agent',
       });
+      expect(trackCloudEvent).not.toHaveBeenCalledWith(
+        'plugin_registered',
+        expect.anything(),
+        expect.anything(),
+      );
     });
 
     it('does not emit events when no data is accepted', async () => {

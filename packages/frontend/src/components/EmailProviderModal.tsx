@@ -3,6 +3,7 @@ import { Portal } from 'solid-js/web';
 import { setEmailProvider, testEmailProvider, testSavedEmailProvider } from '../services/api.js';
 import { authClient } from '../services/auth-client.js';
 import { isLocalMode } from '../services/local-mode.js';
+import { getEmailProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { toast } from '../services/toast-store.js';
 
 const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
@@ -238,6 +239,8 @@ const EmailProviderModal: Component<Props> = (props) => {
     return props.editMode ? 'Test & Save' : 'Test & Connect';
   };
 
+  const keyDocsUrl = () => getEmailProviderApiKeyUrl(provider());
+
   const keyPlaceholder = () => {
     switch (provider()) {
       case 'resend':
@@ -314,7 +317,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                 <div class="masked-key">
                   <span class="masked-key__value">{maskedKey()}</span>
                   <button
-                    class="btn btn--ghost masked-key__edit"
+                    class="btn btn--ghost btn--sm masked-key__edit"
                     type="button"
                     onClick={() => {
                       setEditingKey(true);
@@ -330,6 +333,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                 class="modal-card__input"
                 classList={{ 'modal-card__input--error': !!keyError() }}
                 type="password"
+                autocomplete="new-password"
                 placeholder={keyPlaceholder()}
                 value={apiKey()}
                 onInput={(e) => {
@@ -342,6 +346,18 @@ const EmailProviderModal: Component<Props> = (props) => {
             </Show>
             <Show when={keyError()}>
               <p class="modal-card__field-error">{keyError()}</p>
+            </Show>
+            <Show when={keyDocsUrl()}>
+              <p class="modal-card__field-hint">
+                <a
+                  class="modal-card__field-link"
+                  href={keyDocsUrl()!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Get {PROVIDER_NAMES[provider()] ?? provider()} API key
+                </a>
+              </p>
             </Show>
 
             <Show when={needsDomain()}>
@@ -380,7 +396,7 @@ const EmailProviderModal: Component<Props> = (props) => {
 
             <div class="modal-card__footer modal-card__footer--split">
               <button
-                class="btn btn--ghost"
+                class="btn btn--ghost btn--sm"
                 onClick={handleTestOnly}
                 disabled={busy() || isDisabled()}
                 type="button"
@@ -388,7 +404,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                 {testing() ? <span class="spinner" /> : 'Send test email'}
               </button>
               <button
-                class="btn btn--primary"
+                class="btn btn--primary btn--sm"
                 onClick={handleSave}
                 disabled={busy() || isDisabled()}
               >

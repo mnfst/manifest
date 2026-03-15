@@ -25,9 +25,9 @@ const baseTiers = [
 ];
 
 const baseModels = [
-  { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
-  { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
-  { model_name: "openrouter/free", provider: "OpenAI", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
+  { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+  { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+  { model_name: "openrouter/free", provider: "OpenAI", display_name: "Free Models Router", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
 ];
 
 describe("ModelPickerModal", () => {
@@ -97,8 +97,16 @@ describe("ModelPickerModal", () => {
   });
 
   it("filters models by search query", () => {
+    // Need more than 5 models for search bar to show
+    const manyModels = [
+      ...baseModels,
+      { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-sonnet-4", provider: "Anthropic", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+      { model_name: "gemini-pro", provider: "Google", display_name: "Gemini Pro", input_price_per_token: 0.00000025, output_price_per_token: 0.0000005, context_window: 32000, capability_reasoning: false, capability_code: false },
+    ];
     render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+      <ModelPickerModal tierId="simple" models={manyModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
     const input = screen.getByLabelText("Search models or providers");
     fireEvent.input(input, { target: { value: "claude" } });
@@ -108,8 +116,15 @@ describe("ModelPickerModal", () => {
   });
 
   it("shows no models match message when search has no results", () => {
+    // Need more than 5 models for search bar to show
+    const manyModels = [
+      ...baseModels,
+      { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-sonnet-4", provider: "Anthropic", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+    ];
     render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+      <ModelPickerModal tierId="simple" models={manyModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
     const input = screen.getByLabelText("Search models or providers");
     fireEvent.input(input, { target: { value: "zzzzzzz" } });
@@ -124,8 +139,15 @@ describe("ModelPickerModal", () => {
   });
 
   it("filters by provider name when search matches provider", () => {
+    // Need more than 5 models for search bar to show
+    const manyModels = [
+      ...baseModels,
+      { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-sonnet-4", provider: "Anthropic", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+    ];
     render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+      <ModelPickerModal tierId="simple" models={manyModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
     const input = screen.getByLabelText("Search models or providers");
     fireEvent.input(input, { target: { value: "openai" } });
@@ -133,18 +155,15 @@ describe("ModelPickerModal", () => {
     expect(screen.getByText("OpenAI")).toBeDefined();
   });
 
-  it("shows free models only when checkbox checked", () => {
+  it("shows free models only when pill button clicked", () => {
     render(() => (
       <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
-    const checkbox = screen.getByText("Free models only").parentElement!.querySelector("input")!;
-    fireEvent.change(checkbox, { target: { checked: true } });
-    // Only the free model (openrouter/free) should be shown
-    const { container } = render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    // Just verify the checkbox renders
-    expect(screen.getAllByText("Free models only").length).toBeGreaterThanOrEqual(1);
+    // Free models filter is a checkbox-style pill button
+    const pill = screen.getByText("Free models only");
+    fireEvent.click(pill);
+    // After clicking, still shows "Free models only" (with check icon)
+    expect(screen.getByText("Free models only")).toBeDefined();
   });
 
   it("sorts openrouter/free to the top of its group", () => {
@@ -160,12 +179,12 @@ describe("ModelPickerModal", () => {
 
   it("resolves label for vendor-prefixed model names", () => {
     const modelsWithSlash = [
-      { model_name: "anthropic/claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+      { model_name: "anthropic/claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
     ];
     const { container } = render(() => (
       <ModelPickerModal tierId="simple" models={modelsWithSlash} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
-    // Should resolve "anthropic/claude-opus-4-6" -> "claude-opus-4-6" -> look up label
+    // display_name is used as the label
     expect(container.textContent).toContain("Claude Opus 4.6");
   });
 
@@ -189,18 +208,28 @@ describe("ModelPickerModal", () => {
     expect(container.textContent).toContain("totally-custom-model");
   });
 
-  it("always renders both Subscription and API Keys tabs", () => {
-    // No connectedProviders passed at all — tabs should still render
-    render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    expect(screen.getByText("Subscription")).toBeDefined();
-    expect(screen.getByText("API Keys")).toBeDefined();
-  });
-
-  it("renders tabs even when no subscription providers exist", () => {
+  it("hides tabs when only api_key providers are connected", () => {
+    // Only api_key providers — tabs should NOT render (need both types)
     const providers = [
       { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(container.querySelector(".panel__tab")).toBeNull();
+  });
+
+  it("shows tabs when both subscription and api_key providers are connected", () => {
+    const providers = [
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+      { id: "p2", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
     ];
     render(() => (
       <ModelPickerModal
@@ -341,8 +370,9 @@ describe("ModelPickerModal", () => {
     expect(container.querySelector('.routing-modal__filter-toggle')).toBeNull();
   });
 
-  it("shows 'No subscription providers connected' when subscription tab has no matching providers", () => {
-    // connectedProviders has an entry (so filtering is active) but none with auth_type=subscription
+  it("shows empty message when only api_key connected and no subscription providers", () => {
+    // Only api_key provider connected — tabs hidden, default to api_key tab
+    // The subscription empty message isn't reachable without tabs
     const providers = [
       { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
     ];
@@ -356,15 +386,15 @@ describe("ModelPickerModal", () => {
         onClose={onClose}
       />
     ));
-    // Switch to subscription tab
-    fireEvent.click(screen.getByText("Subscription"));
-    expect(screen.getByText("No subscription providers connected. Connect a provider to see models.")).toBeDefined();
+    // Should show OpenAI models on api_key tab (default when no subscription)
+    expect(screen.getByText("OpenAI")).toBeDefined();
   });
 
   it("shows 'No API key providers connected' when api_key tab has no matching providers", () => {
-    // Only subscription provider connected → API Keys tab shows empty message
+    // Both types connected so tabs show, but api_key tab has no matching models
     const providers = [
       { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+      { id: "p2", provider: "unknownprovider", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
     ];
     render(() => (
       <ModelPickerModal
@@ -423,12 +453,12 @@ describe("ModelPickerModal", () => {
     ));
     // Switch to API Keys tab
     fireEvent.click(screen.getByText("API Keys"));
-    // Enable free models filter
-    const checkbox = container.querySelector('.routing-modal__filter-toggle input[type="checkbox"]') as HTMLInputElement;
-    fireEvent.change(checkbox, { target: { checked: true } });
+    // Enable free models filter via pill button
+    const pill = container.querySelector('.routing-modal__filter-pill') as HTMLButtonElement;
+    fireEvent.click(pill);
     // Switch to Subscription tab — showFreeOnly should be reset
     fireEvent.click(screen.getByText("Subscription"));
     // No filter bar should show on subscription tab
-    expect(container.querySelector('.routing-modal__filter-toggle')).toBeNull();
+    expect(container.querySelector('.routing-modal__filter-bar')).toBeNull();
   });
 });

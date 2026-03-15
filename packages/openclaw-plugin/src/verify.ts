@@ -1,20 +1,20 @@
-import { ManifestConfig } from "./config";
+import { ManifestConfig } from './config';
 
 export interface VerifyResult {
   endpointReachable: boolean;
   authValid: boolean;
   agentName: string | null;
+  telemetryId: string | null;
   error: string | null;
 }
 
-export async function verifyConnection(
-  config: ManifestConfig,
-): Promise<VerifyResult> {
-  const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, "");
+export async function verifyConnection(config: ManifestConfig): Promise<VerifyResult> {
+  const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, '');
   const result: VerifyResult = {
     endpointReachable: false,
     authValid: false,
     agentName: null,
+    telemetryId: null,
     error: null,
   };
 
@@ -39,15 +39,12 @@ export async function verifyConnection(
     const authHeaders: Record<string, string> = config.apiKey
       ? { Authorization: `Bearer ${config.apiKey}` }
       : {};
-    const usageRes = await fetch(
-      `${baseUrl}/api/v1/agent/usage?range=24h`,
-      {
-        headers: authHeaders,
-        signal: AbortSignal.timeout(5000),
-      },
-    );
+    const usageRes = await fetch(`${baseUrl}/api/v1/agent/usage?range=24h`, {
+      headers: authHeaders,
+      signal: AbortSignal.timeout(5000),
+    });
     if (usageRes.status === 401 || usageRes.status === 403) {
-      result.error = "API key rejected — check your mnfst_ key is correct";
+      result.error = 'API key rejected — check your mnfst_ key is correct';
       return result;
     }
     if (!usageRes.ok) {
@@ -57,8 +54,11 @@ export async function verifyConnection(
     result.authValid = true;
 
     const body = (await usageRes.json()) as Record<string, unknown>;
-    if (body && typeof body.agentName === "string") {
+    if (body && typeof body.agentName === 'string') {
       result.agentName = body.agentName;
+    }
+    if (body && typeof body.telemetryId === 'string') {
+      result.telemetryId = body.telemetryId;
     }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

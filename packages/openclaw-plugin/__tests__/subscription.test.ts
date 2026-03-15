@@ -56,15 +56,14 @@ describe("discoverSubscriptionProviders", () => {
 
     const result = discoverSubscriptionProviders(mockLogger);
 
-    expect(result).toHaveLength(2);
-    expect(result).toEqual(
-      expect.arrayContaining([
-        { openclawId: "anthropic", manifestId: "anthropic", authType: "oauth" },
-        { openclawId: "openai-codex", manifestId: "openai", authType: "setup_token" },
-      ]),
+    expect(result).toEqual([
+      { openclawId: "anthropic", manifestId: "anthropic", authType: "oauth" },
+    ]);
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      "[manifest] Ignoring unsupported subscription provider: openai-codex -> openai",
     );
     expect(mockLogger.info).toHaveBeenCalledWith(
-      expect.stringContaining("Detected 2 subscription provider(s)"),
+      expect.stringContaining("Detected 1 subscription provider(s)"),
     );
   });
 
@@ -178,6 +177,7 @@ describe("discoverSubscriptionProviders", () => {
   });
 
   it("handles malformed JSON in auth-profiles.json", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     mockExistsSync.mockReturnValue(true);
     mockReaddirSync.mockReturnValue([
       { name: "agent-1", isDirectory: () => true } as any,
@@ -186,9 +186,13 @@ describe("discoverSubscriptionProviders", () => {
 
     const result = discoverSubscriptionProviders(mockLogger);
     expect(result).toEqual([]);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[manifest] Failed to read JSON file"),
+    );
+    warnSpy.mockRestore();
   });
 
-  it("maps all known OpenClaw provider aliases", () => {
+  it("filters mapped providers that do not support Manifest subscription auth", () => {
     mockExistsSync.mockReturnValue(true);
     mockReaddirSync.mockReturnValue([
       { name: "agent-1", isDirectory: () => true } as any,
@@ -196,6 +200,7 @@ describe("discoverSubscriptionProviders", () => {
     mockReadFileSync.mockReturnValue(
       JSON.stringify({
         profiles: {
+          aa: { type: "oauth", provider: "anthropic" },
           a: { type: "oauth", provider: "google-gemini" },
           b: { type: "oauth", provider: "github-copilot" },
           c: { type: "oauth", provider: "qwen-portal" },
@@ -206,15 +211,15 @@ describe("discoverSubscriptionProviders", () => {
     );
 
     const result = discoverSubscriptionProviders(mockLogger);
-    const ids = result.map((p) => p.manifestId).sort();
-    expect(ids).toEqual(["gemini", "minimax", "moonshot", "openai", "qwen"]);
+    expect(result).toEqual([
+      { openclawId: "anthropic", manifestId: "anthropic", authType: "oauth" },
+    ]);
   });
 });
 
 describe("registerSubscriptionProviders", () => {
   const mockProviders: SubscriptionProvider[] = [
     { openclawId: "anthropic", manifestId: "anthropic", authType: "oauth" },
-    { openclawId: "openai-codex", manifestId: "openai", authType: "setup_token" },
   ];
 
   const mockFetch = jest.fn();
@@ -230,7 +235,7 @@ describe("registerSubscriptionProviders", () => {
   it("posts providers to the subscription endpoint", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ registered: 2 }),
+      json: () => Promise.resolve({ registered: 1 }),
     });
 
     await registerSubscriptionProviders(
@@ -248,12 +253,12 @@ describe("registerSubscriptionProviders", () => {
           Authorization: "Bearer mnfst_test",
         }),
         body: JSON.stringify({
-          providers: [{ provider: "anthropic" }, { provider: "openai" }],
+          providers: [{ provider: "anthropic" }],
         }),
       }),
     );
     expect(mockLogger.info).toHaveBeenCalledWith(
-      "[manifest] Registered 2 subscription provider(s)",
+      "[manifest] Registered 1 subscription provider(s)",
     );
   });
 

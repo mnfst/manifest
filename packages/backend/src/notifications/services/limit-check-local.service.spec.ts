@@ -1,9 +1,15 @@
+jest.mock('../../common/constants/local-mode.constants', () => ({
+  LOCAL_EMAIL: 'local@manifest.local',
+  readLocalNotificationEmail: jest.fn().mockReturnValue(null),
+}));
+
 import { Subject } from 'rxjs';
 import { LimitCheckService } from './limit-check.service';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
+import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
 import { DataSource } from 'typeorm';
 
 describe('LimitCheckService (sql.js / local mode)', () => {
@@ -12,6 +18,7 @@ describe('LimitCheckService (sql.js / local mode)', () => {
   let mockGetActiveBlockRules: jest.Mock;
   let mockGetConsumption: jest.Mock;
   let ingestSubject: Subject<string>;
+  let mockRuntime: { isLocalMode: jest.Mock; getAuthBaseUrl: jest.Mock };
 
   beforeEach(() => {
     mockGetActiveBlockRules = jest.fn().mockResolvedValue([]);
@@ -36,10 +43,24 @@ describe('LimitCheckService (sql.js / local mode)', () => {
       getFullConfig: jest.fn().mockResolvedValue(null),
     } as unknown as EmailProviderConfigService;
 
-    ingestSubject = new Subject<string>();
-    const ingestBus = { all: () => ingestSubject.asObservable() } as unknown as IngestEventBusService;
+    mockRuntime = {
+      isLocalMode: jest.fn().mockReturnValue(true),
+      getAuthBaseUrl: jest.fn().mockReturnValue('http://localhost:3001'),
+    };
 
-    service = new LimitCheckService(ds, rulesService, emailService, emailProviderConfig, ingestBus);
+    ingestSubject = new Subject<string>();
+    const ingestBus = {
+      all: () => ingestSubject.asObservable(),
+    } as unknown as IngestEventBusService;
+
+    service = new LimitCheckService(
+      ds,
+      rulesService,
+      emailService,
+      emailProviderConfig,
+      ingestBus,
+      mockRuntime as unknown as ManifestRuntimeService,
+    );
     service.onModuleInit();
   });
 
@@ -49,13 +70,20 @@ describe('LimitCheckService (sql.js / local mode)', () => {
   });
 
   it('uses ? placeholders in notification_logs check for sql.js', async () => {
-    mockGetActiveBlockRules.mockResolvedValue([{
-      id: 'r1', tenant_id: 't1', agent_name: 'a1', user_id: 'u1',
-      metric_type: 'tokens', threshold: 100, period: 'day',
-    }]);
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 't1',
+        agent_name: 'a1',
+        user_id: 'u1',
+        metric_type: 'tokens',
+        threshold: 100,
+        period: 'day',
+      },
+    ]);
     mockGetConsumption.mockResolvedValue(200);
     mockQuery
-      .mockResolvedValueOnce([])  // notification_logs check
+      .mockResolvedValueOnce([]) // notification_logs check
       .mockResolvedValueOnce([]); // user email lookup
 
     await service.checkLimits('t1', 'a1');
@@ -67,13 +95,20 @@ describe('LimitCheckService (sql.js / local mode)', () => {
   });
 
   it('uses ? placeholders in user email lookup for sql.js', async () => {
-    mockGetActiveBlockRules.mockResolvedValue([{
-      id: 'r1', tenant_id: 't1', agent_name: 'a1', user_id: 'u1',
-      metric_type: 'tokens', threshold: 100, period: 'day',
-    }]);
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 't1',
+        agent_name: 'a1',
+        user_id: 'u1',
+        metric_type: 'tokens',
+        threshold: 100,
+        period: 'day',
+      },
+    ]);
     mockGetConsumption.mockResolvedValue(200);
     mockQuery
-      .mockResolvedValueOnce([])  // notification_logs check
+      .mockResolvedValueOnce([]) // notification_logs check
       .mockResolvedValueOnce([]); // user email lookup
 
     await service.checkLimits('t1', 'a1');
@@ -87,10 +122,17 @@ describe('LimitCheckService (sql.js / local mode)', () => {
   });
 
   it('still returns LimitExceeded correctly in local mode', async () => {
-    mockGetActiveBlockRules.mockResolvedValue([{
-      id: 'r1', tenant_id: 't1', agent_name: 'a1', user_id: 'u1',
-      metric_type: 'cost', threshold: 5, period: 'month',
-    }]);
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 't1',
+        agent_name: 'a1',
+        user_id: 'u1',
+        metric_type: 'cost',
+        threshold: 5,
+        period: 'month',
+      },
+    ]);
     mockGetConsumption.mockResolvedValue(10);
 
     const result = await service.checkLimits('t1', 'a1');

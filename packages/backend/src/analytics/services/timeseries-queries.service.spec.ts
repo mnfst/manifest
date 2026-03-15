@@ -18,6 +18,7 @@ describe('TimeseriesQueriesService', () => {
     const mockTurnQb = {
       select: jest.fn().mockReturnThis(),
       addSelect: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       orWhere: jest.fn().mockReturnThis(),
@@ -135,6 +136,30 @@ describe('TimeseriesQueriesService', () => {
       expect(result[1].share_pct).toBe(30);
       expect(result[0].auth_type).toBe('subscription');
       expect(result[1].auth_type).toBe('api_key');
+    });
+
+    it('returns display_name from model_pricing when available', async () => {
+      mockGetRawMany.mockResolvedValue([
+        {
+          model: 'gpt-4o',
+          display_name: 'GPT-4o',
+          tokens: 500,
+          estimated_cost: 2.0,
+          auth_type: null,
+        },
+      ]);
+
+      const result = await service.getCostByModel('7d', 'u1');
+      expect(result[0].display_name).toBe('GPT-4o');
+    });
+
+    it('falls back to model slug when display_name is missing', async () => {
+      mockGetRawMany.mockResolvedValue([
+        { model: 'custom-model', tokens: 100, estimated_cost: 1.0, auth_type: null },
+      ]);
+
+      const result = await service.getCostByModel('7d', 'u1');
+      expect(result[0].display_name).toBe('custom-model');
     });
 
     it('returns 0 share_pct when total tokens is 0', async () => {
@@ -397,6 +422,7 @@ describe('TimeseriesQueriesService (sql.js / local mode)', () => {
     const mockTurnQb = {
       select: mockSelect,
       addSelect: mockAddSelect,
+      leftJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       orWhere: jest.fn().mockReturnThis(),

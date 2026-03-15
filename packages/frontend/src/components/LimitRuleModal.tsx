@@ -212,7 +212,7 @@ const LimitRuleModal: Component<Props> = (props) => {
 
             <div class="modal-card__footer">
               <button
-                class="btn btn--primary"
+                class="btn btn--primary btn--sm"
                 disabled={!threshold() || Number(threshold()) <= 0 || saving()}
                 onClick={handleSave}
               >

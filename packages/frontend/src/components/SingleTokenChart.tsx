@@ -7,8 +7,12 @@ import {
   useChartLifecycle,
   createCursorSnap,
   createBaseAxes,
-  timeScaleRange,
-  formatLegendTimestamp,
+  parseTimestamps,
+  createTimeScaleRange,
+  createFormatLegendTimestamp,
+  isMultiDayRange,
+  sanitizeNumbers,
+  fillDailyGaps,
 } from '../services/chart-utils.js';
 
 interface SingleTokenChartProps {
@@ -41,12 +45,12 @@ const SingleTokenChart: Component<SingleTokenChartProps> = (props) => {
           padding: [16, 16, 0, 0],
           cursor: createCursorSnap(bgColor, color),
           scales: {
-            x: { time: true, range: timeScaleRange },
+            x: { time: !isMultiDayRange(props.range), range: createTimeScaleRange(props.range) },
             y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.1 : 10] },
           },
           axes: createBaseAxes(axisColor, gridColor, props.range),
           series: [
-            { value: formatLegendTimestamp },
+            { value: createFormatLegendTimestamp(props.range) },
             {
               label: props.label,
               stroke: color,
@@ -55,10 +59,18 @@ const SingleTokenChart: Component<SingleTokenChartProps> = (props) => {
             },
           ],
         },
-        [
-          props.data.map((d) => new Date(d.time.replace(' ', 'T') + 'Z').getTime() / 1000),
-          props.data.map((d) => d.value),
-        ],
+        (() => {
+          const filled = fillDailyGaps(props.data, props.range ?? '', 'time', (date) => ({
+            time: date,
+            value: 0,
+          }));
+          // Convert to hour/date format so parseTimestamps handles both
+          // intraday ("2026-03-11T10:00:00") and daily ("2026-03-11") consistently
+          const forParse = filled.map((d) =>
+            d.time.includes('T') || d.time.includes(' ') ? { hour: d.time } : { date: d.time },
+          );
+          return [parseTimestamps(forParse), sanitizeNumbers(filled.map((d) => d.value))];
+        })(),
         el,
       );
     },

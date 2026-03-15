@@ -1,5 +1,73 @@
 # manifest
 
+## 5.25.4
+
+### Patch Changes
+
+- dac8d01: fix: preserve custom provider models and x-ai prefix during pricing sync cleanup
+
+## 5.25.3
+
+### Patch Changes
+
+- aed1eb5: Strip DeepSeek-specific `reasoning_content` from forwarded chat history unless the target endpoint/model supports it, preventing cross-provider chat completion failures when a conversation switches models.
+- 4293eab: Add the missing `compression` runtime dependency to the published OpenClaw plugin package and test that plugin runtime dependencies stay in sync with backend runtime dependencies.
+- 9ad6e97: Resolve model display names on the backend via LEFT JOIN with model_pricing, ensuring consistent display names between Overview and Messages pages regardless of frontend cache state.
+- 2773025: Return HTTP 424 when fallback chain is exhausted to prevent infinite retry loops
+- f28b952: Fix 404 on page reload for SPA routes in local mode by centralizing frontend directory resolution with proper fallback chain for both monorepo and embedded npm package layouts.
+- 2232b79: Remove process.env string obfuscation, reduce minification level, add source maps, and externalize child_process to avoid VirusTotal false positives
+- 51e362f: Ignore unsupported subscription providers in Manifest routing, clean up stale unsupported subscription connections from existing installs, and include shared subscription capability files in the published plugin package.
+- d89b44d: Security hardening: SSRF validation for custom provider URLs, encrypted email provider API keys, OTLP auth guard improvements (min token length, hashed cache keys, cache invalidation on rotation), telemetry DTO string length limits, SessionGuard exception handling, login rate limiting, provider error sanitization, DATABASE_URL validation, API key guard audit logging, domain length validation, test email recipient validation
+- 7d3e3a0: Add smoke test suite covering auth, agent creation, OTLP ingestion, routing, proxy, limits, and fallback chains
+- a23f676: Fix the OpenClaw plugin installation warnings and package the embedded backend dependencies correctly.
+- f288e0c: Add "Where to get API key" links below provider API key inputs in routing and email provider modals.
+- 8cee3f6: Preserve compatible OpenRouter text models during pricing sync while filtering out non-chat OpenRouter models from the local model list.
+
+## 5.25.2
+
+### Patch Changes
+
+- 00e5978: Update routing page button styles: responsive icon-only change button, fallback card background colors, and streamlined add-fallback button text
+
+## 5.25.1
+
+### Patch Changes
+
+- 6376414: Fix local mode server not starting (ERR_CONNECTION_REFUSED on port 2099)
+
+## 5.25.0
+
+### Minor Changes
+
+- 9797337: Redesign routing page: 4-column tier layout with drag-and-drop fallback reordering, auto-remove fallback when promoted to primary, model role tags in picker, and consistent btn--outline styling
+
+### Patch Changes
+
+- 9ccb05c: Standardize all buttons to use btn--sm (32px height) for consistent UI across the dashboard
+- 0db1194: Fix Moonshot and Z.ai provider logos visibility in dark mode by using currentColor instead of hardcoded dark fills
+- 6e977e0: Fix custom model pricing fields ignoring comma decimal separators (e.g. "0,59" now correctly parsed as 0.59)
+- 8dda8c9: Replace unusable status and model filters on the Messages page with a provider filter that only shows providers present in the user's data. Add horizontal scroll for the message table on small screens.
+- 39aebd3: Hide Agent setup tab on Settings page in local mode
+
+## 5.24.2
+
+### Patch Changes
+
+- 894ea4f: Fix cloud mode product telemetry funnel by linking plugin and backend identities via PostHog $identify
+- f6e336d: Accept dev-mode loopback connections in cloud mode and improve error status reporting in OTLP traces
+- e1c3778: Prevent subscription providers from overriding explicit API key connections in routing
+- ba6a7cf: Return 409 Conflict instead of 500 when creating an agent with a duplicate name
+
+## 5.24.1
+
+### Patch Changes
+
+- d14025f: Fix 24h chart timezone shift by aligning SQL queries and frontend parsing to local time
+- 76dba1c: Fix heartbeat detection to check only the last user message instead of all messages in conversation history
+- 436f583: Distinguish subscription providers from API key providers in PostHog tracking by appending (Subscription) suffix
+- 3c62a81: Fix subscription providers being re-activated on every gateway restart
+- 3aaf6d4: Fix number formatting in threshold alert emails - tokens now display with comma separators and no decimal places, costs display with 2 decimal places and comma separators
+
 ## 5.24.0
 
 ### Minor Changes

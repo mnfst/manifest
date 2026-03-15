@@ -23,6 +23,57 @@ interface GeminiPart {
   functionResponse?: { name: string; response: Record<string, unknown> };
 }
 
+/**
+ * JSON Schema fields not supported by the Gemini API.
+ * These must be stripped recursively before sending tool parameters.
+ */
+const UNSUPPORTED_SCHEMA_FIELDS = new Set([
+  'patternProperties',
+  'additionalProperties',
+  '$schema',
+  '$id',
+  '$ref',
+  '$defs',
+  'definitions',
+  'allOf',
+  'anyOf',
+  'oneOf',
+  'not',
+  'if',
+  'then',
+  'else',
+  'dependentSchemas',
+  'dependentRequired',
+  'unevaluatedProperties',
+  'unevaluatedItems',
+  'contentMediaType',
+  'contentEncoding',
+  'examples',
+  'default',
+  'const',
+  'title',
+]);
+
+function sanitizeSchema(schema: unknown, isPropertiesMap = false): unknown {
+  if (schema === null || schema === undefined || typeof schema !== 'object') {
+    return schema;
+  }
+
+  if (Array.isArray(schema)) {
+    return schema.map((item) => sanitizeSchema(item));
+  }
+
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(schema as Record<string, unknown>)) {
+    // Inside a `properties` map, keys are user-defined property names
+    // (e.g. "title", "default"), not JSON Schema keywords — keep them all.
+    // Their values are sub-schemas, so recurse normally (not as properties map).
+    if (!isPropertiesMap && UNSUPPORTED_SCHEMA_FIELDS.has(key)) continue;
+    result[key] = sanitizeSchema(value, key === 'properties');
+  }
+  return result;
+}
+
 /* ── Request conversion ── */
 
 function mapRole(role: string): string {
@@ -90,7 +141,7 @@ function convertTools(tools?: Record<string, unknown>[]): Record<string, unknown
       return {
         name: fn.name,
         description: fn.description,
-        parameters: fn.parameters,
+        parameters: fn.parameters ? sanitizeSchema(fn.parameters) : undefined,
       };
     })
     .filter(Boolean);
@@ -187,7 +238,9 @@ export function fromGoogleResponse(
     object: 'chat.completion',
     created: Math.floor(Date.now() / 1000),
     model,
-    choices: [{ index: 0, message, finish_reason: mapFinishReason(candidate) }],
+    choices: [
+      { index: 0, message, finish_reason: mapFinishReason(candidate, toolCalls.length > 0) },
+    ],
     usage: usage
       ? {
           prompt_tokens: usage.promptTokenCount ?? 0,
@@ -201,11 +254,12 @@ export function fromGoogleResponse(
   };
 }
 
-function mapFinishReason(candidate: Record<string, unknown>): string {
+function mapFinishReason(candidate: Record<string, unknown>, hasToolCalls = false): string {
   const reason = candidate.finishReason as string | undefined;
-  if (!reason) return 'stop';
+  if (!reason || reason === 'STOP') {
+    return hasToolCalls ? 'tool_calls' : 'stop';
+  }
   const map: Record<string, string> = {
-    STOP: 'stop',
     MAX_TOKENS: 'length',
     SAFETY: 'content_filter',
     RECITATION: 'content_filter',
@@ -231,21 +285,37 @@ export function transformGoogleStreamChunk(chunk: string, model: string): string
   const parts = content?.parts || [];
   const text = parts.map((p) => p.text || '').join('');
 
+  const toolCalls: Record<string, unknown>[] = [];
+  for (const part of parts) {
+    if (part.functionCall) {
+      const fc = part.functionCall as { name: string; args?: Record<string, unknown> };
+      toolCalls.push({
+        index: toolCalls.length,
+        id: `call_${randomUUID()}`,
+        type: 'function',
+        function: { name: fc.name, arguments: JSON.stringify(fc.args ?? {}) },
+      });
+    }
+  }
+
   let result = '';
 
-  if (text) {
+  if (text || toolCalls.length > 0) {
+    const delta: Record<string, unknown> = {};
+    if (text) delta.content = text;
+    if (toolCalls.length > 0) delta.tool_calls = toolCalls;
     result += `data: ${JSON.stringify({
       id: `chatcmpl-${randomUUID()}`,
       object: 'chat.completion.chunk',
       created: Math.floor(Date.now() / 1000),
       model,
-      choices: [{ index: 0, delta: { content: text }, finish_reason: null }],
+      choices: [{ index: 0, delta, finish_reason: null }],
     })}\n\n`;
   }
 
   const usage = data.usageMetadata as Record<string, number> | undefined;
   if (usage) {
-    const finishReason = mapFinishReason(candidate ?? {});
+    const finishReason = mapFinishReason(candidate ?? {}, toolCalls.length > 0);
     result += `data: ${JSON.stringify({
       id: `chatcmpl-${randomUUID()}`,
       object: 'chat.completion.chunk',

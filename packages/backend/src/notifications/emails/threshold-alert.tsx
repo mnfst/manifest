@@ -40,8 +40,10 @@ function formatTimestamp(raw: string): string {
 }
 
 function formatValue(value: number, metric: string): string {
-  if (metric === 'cost') return `$${value.toFixed(4)}`;
-  return value.toLocaleString();
+  const num = Number(value);
+  if (metric === 'cost')
+    return `$${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return num.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
 
 export function ThresholdAlertEmail(props: ThresholdAlertProps) {

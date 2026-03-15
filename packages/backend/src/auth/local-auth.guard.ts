@@ -1,14 +1,13 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
-import { LOCAL_USER_ID, LOCAL_EMAIL, readLocalNotificationEmail } from '../common/constants/local-mode.constants';
-
-const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+import {
+  LOCAL_USER_ID,
+  LOCAL_EMAIL,
+  readLocalNotificationEmail,
+} from '../common/constants/local-mode.constants';
+import { isAllowedLocalIp } from '../common/utils/local-ip';
 
 @Injectable()
 export class LocalAuthGuard implements CanActivate {
@@ -27,7 +26,7 @@ export class LocalAuthGuard implements CanActivate {
     if (request.headers['x-api-key']) return true;
 
     const clientIp = request.ip ?? '';
-    if (LOOPBACK_IPS.has(clientIp)) {
+    if (isAllowedLocalIp(clientIp)) {
       const configEmail = readLocalNotificationEmail();
       (request as Request & { user: unknown }).user = {
         id: LOCAL_USER_ID,

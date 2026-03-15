@@ -45,8 +45,13 @@ vi.mock("../../src/services/api.js", () => ({
     { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
   ]),
   getAvailableModels: vi.fn().mockResolvedValue([
-    { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
-    { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+    { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
+    { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
+    { model_name: "claude-sonnet-4", provider: "Anthropic", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+    { model_name: "gemini-pro", provider: "Google", display_name: "Gemini Pro", input_price_per_token: 0.00000025, output_price_per_token: 0.0000005, context_window: 32000, capability_reasoning: false, capability_code: false },
+    { model_name: "claude-haiku-3.5", provider: "Anthropic", display_name: "Claude Haiku 3.5", input_price_per_token: 0.0000008, output_price_per_token: 0.000004, context_window: 200000, capability_reasoning: false, capability_code: true },
   ]),
   getProviders: (...args: unknown[]) => mockGetProviders(...args),
   connectProvider: vi.fn().mockResolvedValue({}),
@@ -93,9 +98,12 @@ describe("Routing — enabled state (providers active)", () => {
     expect(screen.getByText("Reasoning")).toBeDefined();
   });
 
-  it("renders tier descriptions", async () => {
+  it("renders tier labels", async () => {
     render(() => <Routing />);
-    expect(await screen.findByText("Heartbeats, greetings, and low-cost tasks that any model can handle.")).toBeDefined();
+    expect(await screen.findByText("Simple")).toBeDefined();
+    expect(screen.getByText("Standard")).toBeDefined();
+    expect(screen.getByText("Complex")).toBeDefined();
+    expect(screen.getByText("Reasoning")).toBeDefined();
   });
 
   it("shows auto tag for non-override tiers", async () => {
@@ -107,19 +115,19 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows Change button for all tiers", async () => {
     render(() => <Routing />);
-    const changeButtons = await screen.findAllByText("Change");
-    expect(changeButtons.length).toBe(4);
+    const editButtons = await screen.findAllByText("Change");
+    expect(editButtons.length).toBe(4);
   });
 
-  it("renders Add fallback button in tier cards", async () => {
+  it("renders fallback empty state in tier cards", async () => {
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
-    expect(addButtons.length).toBe(4); // one per tier
+    const emptyStates = await screen.findAllByText("No fallback");
+    expect(emptyStates.length).toBe(4); // one per tier
   });
 
-  it("shows Reset button for override tiers", async () => {
+  it("shows Reset all to auto button for override tiers", async () => {
     render(() => <Routing />);
-    expect(await screen.findByText("Reset")).toBeDefined();
+    expect(await screen.findByText("Reset all to auto")).toBeDefined();
   });
 
   it("shows Reset all to auto button when overrides exist", async () => {
@@ -149,18 +157,18 @@ describe("Routing — enabled state (providers active)", () => {
     expect(breadcrumb).toBeDefined();
   });
 
-  it("opens model picker when Override button is clicked", async () => {
+  it("opens model picker when Change button is clicked", async () => {
     render(() => <Routing />);
-    const overrideButtons = await screen.findAllByText("Change");
-    fireEvent.click(overrideButtons[0]);
+    const editButtons = await screen.findAllByText("Change");
+    fireEvent.click(editButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
   });
 
   it("opens model picker when Change button is clicked on override tier", async () => {
     render(() => <Routing />);
-    const changeButtons = await screen.findAllByText("Change");
+    const editButtons = await screen.findAllByText("Change");
     // complex tier (index 2) has an override
-    fireEvent.click(changeButtons[2]);
+    fireEvent.click(editButtons[2]);
     expect(await screen.findByText("Select a model")).toBeDefined();
   });
 
@@ -276,34 +284,6 @@ describe("Routing — enabled state (providers active)", () => {
     });
   });
 
-  it("calls resetTier when Reset button is clicked", async () => {
-    render(() => <Routing />);
-    const resetBtn = await screen.findByText("Reset");
-    fireEvent.click(resetBtn);
-
-    await waitFor(() => {
-      expect(resetTier).toHaveBeenCalledWith("test-agent", "complex");
-    });
-    await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith("Reset to auto");
-    });
-  });
-
-  it("shows Resetting... and disables button during resetTier", async () => {
-    let resolveReset: () => void;
-    vi.mocked(resetTier).mockReturnValue(new Promise<void>((r) => { resolveReset = r; }) as any);
-    render(() => <Routing />);
-    const resetBtn = await screen.findByText("Reset");
-    fireEvent.click(resetBtn);
-
-    await waitFor(() => {
-      expect(resetBtn.querySelector(".spinner")).not.toBeNull();
-      expect(resetBtn.disabled).toBe(true);
-    });
-
-    resolveReset!();
-  });
-
   it("calls resetAllTiers when Reset all to auto is clicked", async () => {
     render(() => <Routing />);
     const resetAllBtn = await screen.findByText("Reset all to auto");
@@ -414,6 +394,92 @@ describe("Routing — enabled state (providers active)", () => {
     await screen.findByText("2 connections");
     expect(screen.queryByText("Included in subscription")).toBeDefined();
   });
+
+  it("shows Reset button only for edited tiers", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetButtons = screen.queryAllByText("Reset");
+    // Only "complex" tier has override_model set
+    expect(resetButtons.length).toBe(1);
+  });
+
+  it("shows Reset button when tier has fallbacks but no override", async () => {
+    const { getTierAssignments } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValueOnce([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: ["gpt-4o"], updated_at: "2025-01-01" } as any,
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" } as any,
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" } as any,
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" } as any,
+    ]);
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    // "simple" tier has fallbacks → Reset should appear
+    const resetButtons = screen.queryAllByText("Reset");
+    expect(resetButtons.length).toBe(1);
+  });
+
+  it("opens confirmation modal when Reset is clicked", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+  });
+
+  it("calls resetTier when confirmed", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+    // Click the confirm "Reset" button inside the modal
+    const modalButtons = screen.getAllByText("Reset");
+    const confirmBtn = modalButtons.find((el) => el.classList.contains("btn--danger"));
+    expect(confirmBtn).toBeDefined();
+    fireEvent.click(confirmBtn!);
+    await waitFor(() => {
+      expect(resetTier).toHaveBeenCalledWith("test-agent", "complex");
+    });
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("Tier reset to auto");
+    });
+  });
+
+  it("closes reset modal on Cancel", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+    fireEvent.click(screen.getByText("Cancel"));
+    await waitFor(() => {
+      expect(screen.queryByText("Reset tier?")).toBeNull();
+    });
+  });
+
+  it("handles resetTier error gracefully", async () => {
+    vi.mocked(resetTier).mockRejectedValueOnce(new Error("fail"));
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    const resetBtn = screen.getByText("Reset");
+    fireEvent.click(resetBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+    const modalButtons = screen.getAllByText("Reset");
+    const confirmBtn = modalButtons.find((el) => el.classList.contains("btn--danger"));
+    fireEvent.click(confirmBtn!);
+    await waitFor(() => {
+      expect(resetTier).toHaveBeenCalled();
+    });
+    // Should not crash — error is handled silently (fetchMutate shows toast)
+  });
 });
 
 describe("Routing — disabled state (no active providers)", () => {
@@ -465,17 +531,6 @@ describe("Routing — helper functions", () => {
     // Should not throw
     await waitFor(() => {
       expect(overrideTier).toHaveBeenCalled();
-    });
-  });
-
-  it("handles resetTier error gracefully", async () => {
-    vi.mocked(resetTier).mockRejectedValueOnce(new Error("fail"));
-    render(() => <Routing />);
-    const resetBtn = await screen.findByText("Reset");
-    fireEvent.click(resetBtn);
-
-    await waitFor(() => {
-      expect(resetTier).toHaveBeenCalled();
     });
   });
 
@@ -727,9 +782,9 @@ describe("ModelPickerModal — custom providers and filtering", () => {
       />
     ));
 
-    // Enable free models only filter
-    const checkbox = container.querySelector('.routing-modal__filter-toggle input[type="checkbox"]') as HTMLInputElement;
-    fireEvent.change(checkbox, { target: { checked: true } });
+    // Enable free models only filter via pill button
+    const pill = container.querySelector('.routing-modal__filter-pill') as HTMLButtonElement;
+    fireEvent.click(pill);
 
     // free-model (price=0) should show, null-price-model (price=null) should NOT show
     expect(screen.getByText("free-model")).toBeDefined();
@@ -738,7 +793,7 @@ describe("ModelPickerModal — custom providers and filtering", () => {
 
   it("resolves vendor-prefixed model names via labelForModel", () => {
     const models: AvailableModel[] = [
-      { model_name: "openai/gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "openai/gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
     ];
 
     render(() => (
@@ -752,7 +807,7 @@ describe("ModelPickerModal — custom providers and filtering", () => {
       />
     ));
 
-    // labelForModel strips vendor prefix "openai/" and looks up "gpt-4o-mini" → "GPT-4o Mini"
+    // display_name "GPT-4o Mini" is used as the label
     expect(screen.getByText("GPT-4o Mini")).toBeDefined();
   });
 });
@@ -822,14 +877,14 @@ describe("Routing — fallback management", () => {
       { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
-      { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
-      { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+      { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
     ]);
   });
 
   it("opens fallback picker when Add fallback is clicked", async () => {
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
+    const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]);
     // The model picker modal should open
     expect(await screen.findByText("Select a model")).toBeDefined();
@@ -837,7 +892,7 @@ describe("Routing — fallback management", () => {
 
   it("calls setFallbacks when a fallback model is picked", async () => {
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
+    const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]); // simple tier
     await screen.findByText("Select a model");
 
@@ -862,9 +917,11 @@ describe("Routing — fallback management", () => {
       { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
     ]);
 
-    render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
-    fireEvent.click(addButtons[0]); // simple tier
+    const { container } = render(() => <Routing />);
+    // Simple tier has 1 fallback, so it shows the standalone "Add fallback" button (not inside empty state)
+    await screen.findAllByText("Add fallback");
+    const standaloneAddBtn = container.querySelector(".fallback-list__add:not(.fallback-list__empty .fallback-list__add)") as HTMLButtonElement;
+    fireEvent.click(standaloneAddBtn);
     await screen.findByText("Select a model");
 
     // Both gpt-4o-mini (primary) and claude-opus-4-6 (existing fallback) are filtered out
@@ -876,7 +933,7 @@ describe("Routing — fallback management", () => {
     let resolveSetFallbacks: () => void;
     vi.mocked(setFallbacks).mockReturnValueOnce(new Promise<void>((r) => { resolveSetFallbacks = r; }) as any);
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
+    const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]); // simple tier
     await screen.findByText("Select a model");
 
@@ -895,7 +952,7 @@ describe("Routing — fallback management", () => {
   it("handles setFallbacks error gracefully and rolls back optimistic state", async () => {
     vi.mocked(setFallbacks).mockRejectedValueOnce(new Error("fail"));
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
+    const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]);
     await screen.findByText("Select a model");
 
@@ -920,7 +977,7 @@ describe("Routing — fallback management", () => {
     await waitFor(() => {
       const ranks = container.querySelectorAll(".fallback-list__rank");
       expect(ranks.length).toBe(1);
-      expect(ranks[0].textContent).toBe("1.");
+      expect(ranks[0].textContent).toBe("1");
     });
   });
 
@@ -946,7 +1003,7 @@ describe("Routing — fallback management", () => {
       const removeButtons = container.querySelectorAll(".fallback-list__remove");
       expect(removeButtons.length).toBe(1);
       // Custom provider letter icon should render (accessing customProviders prop)
-      const letterIcon = container.querySelector(".fallback-list__item .provider-card__logo-letter");
+      const letterIcon = container.querySelector(".fallback-list__card .provider-card__logo-letter");
       expect(letterIcon).not.toBeNull();
       expect(letterIcon!.textContent).toBe("M");
     });
@@ -963,7 +1020,7 @@ describe("Routing — fallback management", () => {
 
   it("closes fallback picker when close button is clicked", async () => {
     render(() => <Routing />);
-    const addButtons = await screen.findAllByText("+ Add fallback");
+    const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
 
@@ -996,7 +1053,7 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
       { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
-      { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+      { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
     ]);
 
     render(() => <Routing />);
@@ -1016,7 +1073,7 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
       { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     vi.mocked(getAvailableModels).mockResolvedValue([
-      { model_name: "claude-opus-4-6", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+      { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
     ]);
 
     render(() => <Routing />);
@@ -1068,9 +1125,9 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
     ]);
 
     render(() => <Routing />);
-    // The model renders as its raw name since no PROVIDERS model matches
+    // getModelLabel falls back to formatModelSlug: "my-unknown-model" → "My Unknown Model"
     await waitFor(() => {
-      expect(screen.getByText("my-unknown-model")).toBeDefined();
+      expect(screen.getByText("My Unknown Model")).toBeDefined();
     });
   });
 

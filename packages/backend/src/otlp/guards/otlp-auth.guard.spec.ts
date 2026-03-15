@@ -1,7 +1,12 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { createHash } from 'crypto';
 import { OtlpAuthGuard } from './otlp-auth.guard';
 
-function makeContext(headers: Record<string, string | undefined>, ip = '10.0.0.1') {
+function testCacheKey(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+function makeContext(headers: Record<string, string | undefined>, ip = '203.0.113.1') {
   const request: Record<string, unknown> = { headers, ip };
   return {
     req: request,
@@ -18,6 +23,7 @@ describe('OtlpAuthGuard', () => {
   let mockGetOne: jest.Mock;
   let mockCreateQueryBuilder: jest.Mock;
   let mockUpdate: jest.Mock;
+  let mockFindOne: jest.Mock;
 
   beforeEach(() => {
     mockGetOne = jest.fn().mockResolvedValue(null);
@@ -37,7 +43,12 @@ describe('OtlpAuthGuard', () => {
       }
       return Promise.resolve({});
     });
-    const mockRepo = { createQueryBuilder: mockCreateQueryBuilder, update: mockUpdate } as never;
+    mockFindOne = jest.fn().mockResolvedValue(null);
+    const mockRepo = {
+      createQueryBuilder: mockCreateQueryBuilder,
+      update: mockUpdate,
+      findOne: mockFindOne,
+    } as never;
     guard = new OtlpAuthGuard(mockRepo);
     guard.clearCache();
   });
@@ -61,6 +72,19 @@ describe('OtlpAuthGuard', () => {
   it('rejects token without mnfst_ prefix', async () => {
     const { ctx } = makeContext({ authorization: 'Bearer osk_some_old_key' });
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+  });
+
+  it('rejects mnfst_ token shorter than minimum length', async () => {
+    const { ctx } = makeContext({ authorization: 'Bearer mnfst_ab' });
+    await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+  });
+
+  it('rejects bare mnfst_ prefix with no suffix', async () => {
+    const { ctx } = makeContext({ authorization: 'Bearer mnfst_' });
     await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
   });
@@ -190,9 +214,24 @@ describe('OtlpAuthGuard', () => {
       });
     });
 
-    it('still requires auth for non-loopback IPs in local mode', async () => {
+    it('allows private network IPs without auth in local mode', async () => {
       process.env['MANIFEST_MODE'] = 'local';
-      const { ctx } = makeContext({}, '192.168.1.100');
+      const { ctx, req } = makeContext({}, '192.168.1.100');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'local-tenant-001',
+        agentId: 'local-agent-001',
+        agentName: 'local-agent',
+        userId: 'local-user-001',
+      });
+      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('still requires auth for public IPs in local mode', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      const { ctx } = makeContext({}, '8.8.8.8');
       await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
     });
 
@@ -211,9 +250,24 @@ describe('OtlpAuthGuard', () => {
       expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
     });
 
-    it('rejects non-mnfst token from non-loopback IP in local mode', async () => {
+    it('allows non-mnfst token from private network IP in local mode', async () => {
       process.env['MANIFEST_MODE'] = 'local';
-      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '192.168.1.100');
+      const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '192.168.1.100');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'local-tenant-001',
+        agentId: 'local-agent-001',
+        agentName: 'local-agent',
+        userId: 'local-user-001',
+      });
+      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('rejects non-mnfst token from public IP in local mode', async () => {
+      process.env['MANIFEST_MODE'] = 'local';
+      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '8.8.8.8');
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     });
 
@@ -227,6 +281,112 @@ describe('OtlpAuthGuard', () => {
       delete process.env['MANIFEST_MODE'];
       const { ctx } = makeContext({}, '127.0.0.1');
       await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('dev loopback bypass in development mode', () => {
+    const origMode = process.env['MANIFEST_MODE'];
+    const origNodeEnv = process.env['NODE_ENV'];
+
+    beforeEach(() => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      process.env['NODE_ENV'] = 'development';
+    });
+
+    afterEach(() => {
+      if (origMode === undefined) delete process.env['MANIFEST_MODE'];
+      else process.env['MANIFEST_MODE'] = origMode;
+      if (origNodeEnv === undefined) delete process.env['NODE_ENV'];
+      else process.env['NODE_ENV'] = origNodeEnv;
+    });
+
+    it('allows loopback with non-mnfst token in dev mode by resolving first active key', async () => {
+      mockFindOne.mockResolvedValue({
+        tenant_id: 'dev-tenant',
+        agent_id: 'dev-agent',
+        agent: { name: 'demo-agent' },
+        tenant: { name: 'dev-user' },
+      });
+      const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'dev-tenant',
+        agentId: 'dev-agent',
+        agentName: 'demo-agent',
+        userId: 'dev-user',
+      });
+      expect(mockFindOne).toHaveBeenCalledWith({
+        where: { is_active: true },
+        relations: ['agent', 'tenant'],
+      });
+    });
+
+    it('allows loopback without auth header in dev mode', async () => {
+      mockFindOne.mockResolvedValue({
+        tenant_id: 'dev-tenant',
+        agent_id: 'dev-agent',
+        agent: { name: 'demo-agent' },
+        tenant: { name: 'dev-user' },
+      });
+      const { ctx, req } = makeContext({}, '127.0.0.1');
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'dev-tenant',
+        agentId: 'dev-agent',
+        agentName: 'demo-agent',
+        userId: 'dev-user',
+      });
+    });
+
+    it('rejects loopback without auth when no active keys exist in DB', async () => {
+      mockFindOne.mockResolvedValue(null);
+      const { ctx } = makeContext({}, '127.0.0.1');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Authorization header required');
+    });
+
+    it('rejects non-mnfst token when no active keys exist in DB', async () => {
+      mockFindOne.mockResolvedValue(null);
+      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    });
+
+    it('rejects non-mnfst token from non-loopback IP in dev mode', async () => {
+      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '192.168.1.100');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    });
+
+    it('rejects loopback with non-mnfst token in production mode', async () => {
+      process.env['NODE_ENV'] = 'production';
+      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    });
+
+    it('rejects loopback with non-mnfst token in test mode', async () => {
+      process.env['NODE_ENV'] = 'test';
+      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    });
+
+    it('caches dev context and reuses it on subsequent calls', async () => {
+      mockFindOne.mockResolvedValue({
+        tenant_id: 'dev-tenant',
+        agent_id: 'dev-agent',
+        agent: { name: 'demo-agent' },
+        tenant: { name: 'dev-user' },
+      });
+
+      const { ctx: ctx1 } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
+      await guard.canActivate(ctx1);
+      expect(mockFindOne).toHaveBeenCalledTimes(1);
+
+      mockFindOne.mockClear();
+      const { ctx: ctx2 } = makeContext({ authorization: 'Bearer dev-no-auth' }, '::1');
+      await guard.canActivate(ctx2);
+      expect(mockFindOne).not.toHaveBeenCalled();
     });
   });
 
@@ -281,8 +441,9 @@ describe('OtlpAuthGuard', () => {
     const internalCache = (guard as any).cache as Map<string, unknown>;
 
     // Fill to exactly MAX_CACHE_SIZE so the next insert triggers eviction
+    const firstFillerHash = testCacheKey('mnfst_filler-0');
     for (let i = 0; i < 10_000; i++) {
-      internalCache.set(`mnfst_filler-${i}`, {
+      internalCache.set(testCacheKey(`mnfst_filler-${i}`), {
         tenantId: 't',
         agentId: 'a',
         agentName: 'n',
@@ -306,16 +467,18 @@ describe('OtlpAuthGuard', () => {
 
     expect(result).toBe(true);
     // The first filler key should have been evicted
-    expect(internalCache.has('mnfst_filler-0')).toBe(false);
-    // The new key should be in the cache
-    expect(internalCache.has('mnfst_overflow-key')).toBe(true);
+    expect(internalCache.has(firstFillerHash)).toBe(false);
+    // The new key should be in the cache (stored as hash)
+    expect(internalCache.has(testCacheKey('mnfst_overflow-key'))).toBe(true);
   });
 
   it('evictExpired removes entries whose expiresAt has passed', async () => {
     const internalCache = (guard as any).cache as Map<string, unknown>;
 
-    // Insert an expired entry
-    internalCache.set('mnfst_expired-cache', {
+    // Insert an expired entry (using hashed keys as the cache now stores hashes)
+    const expiredHash = testCacheKey('mnfst_expired-cache');
+    const validHash = testCacheKey('mnfst_valid-cache');
+    internalCache.set(expiredHash, {
       tenantId: 't',
       agentId: 'a',
       agentName: 'n',
@@ -323,7 +486,7 @@ describe('OtlpAuthGuard', () => {
       expiresAt: Date.now() - 1000, // expired 1 second ago
     });
     // Insert a valid entry
-    internalCache.set('mnfst_valid-cache', {
+    internalCache.set(validHash, {
       tenantId: 't2',
       agentId: 'a2',
       agentName: 'n2',
@@ -346,21 +509,25 @@ describe('OtlpAuthGuard', () => {
     await guard.canActivate(ctx);
 
     // The expired entry should have been removed
-    expect(internalCache.has('mnfst_expired-cache')).toBe(false);
+    expect(internalCache.has(expiredHash)).toBe(false);
     // The valid entry should still be there
-    expect(internalCache.has('mnfst_valid-cache')).toBe(true);
-    // The new key should also be cached
-    expect(internalCache.has('mnfst_trigger-evict-key')).toBe(true);
+    expect(internalCache.has(validHash)).toBe(true);
+    // The new key should also be cached (as hash)
+    expect(internalCache.has(testCacheKey('mnfst_trigger-evict-key'))).toBe(true);
   });
 
   it('periodic timer fires evictExpired', () => {
     jest.useFakeTimers();
 
-    const mockRepo = { createQueryBuilder: mockCreateQueryBuilder, update: mockUpdate } as never;
+    const mockRepo = {
+      createQueryBuilder: mockCreateQueryBuilder,
+      update: mockUpdate,
+      findOne: mockFindOne,
+    } as never;
     const timedGuard = new OtlpAuthGuard(mockRepo);
 
     const internalCache = (timedGuard as any).cache as Map<string, unknown>;
-    internalCache.set('mnfst_stale', {
+    internalCache.set(testCacheKey('mnfst_stale'), {
       tenantId: 't',
       agentId: 'a',
       agentName: 'n',
@@ -379,14 +546,18 @@ describe('OtlpAuthGuard', () => {
   it('onModuleDestroy stops the periodic cleanup timer', () => {
     jest.useFakeTimers();
 
-    const mockRepo = { createQueryBuilder: mockCreateQueryBuilder, update: mockUpdate } as never;
+    const mockRepo = {
+      createQueryBuilder: mockCreateQueryBuilder,
+      update: mockUpdate,
+      findOne: mockFindOne,
+    } as never;
     const timedGuard = new OtlpAuthGuard(mockRepo);
 
     const internalCache = (timedGuard as any).cache as Map<string, unknown>;
     timedGuard.onModuleDestroy();
 
     // After destroy, add an expired entry — timer should not evict it
-    internalCache.set('mnfst_leftover', {
+    internalCache.set(testCacheKey('mnfst_leftover'), {
       tenantId: 't',
       agentId: 'a',
       agentName: 'n',
@@ -398,6 +569,26 @@ describe('OtlpAuthGuard', () => {
     expect(internalCache.size).toBe(1);
 
     jest.useRealTimers();
+  });
+
+  it('does not store plaintext tokens in cache', async () => {
+    mockGetOne.mockResolvedValue({
+      tenant_id: 'tenant-1',
+      agent_id: 'agent-1',
+      expires_at: null,
+      agent: { name: 'test-agent' },
+      tenant: { name: 'user-1' },
+    });
+
+    const token = 'mnfst_plaintext-check-key';
+    const { ctx } = makeContext({ authorization: `Bearer ${token}` });
+    await guard.canActivate(ctx);
+
+    const internalCache = (guard as any).cache as Map<string, unknown>;
+    // The cache must NOT contain the plaintext token as a key
+    expect(internalCache.has(token)).toBe(false);
+    // It should contain the SHA-256 hash of the token
+    expect(internalCache.has(testCacheKey(token))).toBe(true);
   });
 
   it('invalidateCache removes a specific key from cache', async () => {

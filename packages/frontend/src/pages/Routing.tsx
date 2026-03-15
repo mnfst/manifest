@@ -25,6 +25,7 @@ import {
   resetTier,
   resetAllTiers,
   setFallbacks,
+  refreshModels,
   type TierAssignment,
   type AuthType,
 } from '../services/api.js';
@@ -52,12 +53,14 @@ const Routing: Component = () => {
   const [disabling, setDisabling] = createSignal(false);
   const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
-  const [resettingTier, setResettingTier] = createSignal<string | null>(null);
   const [changingTier, setChangingTier] = createSignal<string | null>(null);
   const [resettingAll, setResettingAll] = createSignal(false);
+  const [resettingTier, setResettingTier] = createSignal<string | null>(null);
+  const [confirmResetTier, setConfirmResetTier] = createSignal<string | null>(null);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
   const [addingFallback, setAddingFallback] = createSignal<string | null>(null);
   const [fallbackOverrides, setFallbackOverrides] = createSignal<Record<string, string[]>>({});
+  const [refreshingModels, setRefreshingModels] = createSignal(false);
 
   const getFallbacksFor = (tierId: string): string[] => {
     const overrides = fallbackOverrides();
@@ -82,21 +85,6 @@ const Routing: Component = () => {
     }
   };
 
-  const handleReset = async (tierId: string) => {
-    setResettingTier(tierId);
-    try {
-      await resetTier(agentName(), tierId);
-      mutateTiers((prev) =>
-        prev?.map((t) => (t.tier === tierId ? { ...t, override_model: null } : t)),
-      );
-      toast.success('Reset to auto');
-    } catch {
-      // error toast from fetchMutate
-    } finally {
-      setResettingTier(null);
-    }
-  };
-
   const handleResetAll = async () => {
     setResettingAll(true);
     try {
@@ -107,6 +95,24 @@ const Routing: Component = () => {
       // error toast from fetchMutate
     } finally {
       setResettingAll(false);
+    }
+  };
+
+  const handleReset = async (tierId: string) => {
+    setConfirmResetTier(null);
+    setResettingTier(tierId);
+    try {
+      await resetTier(agentName(), tierId);
+      mutateTiers((prev) =>
+        prev?.map((t) =>
+          t.tier === tierId ? { ...t, override_model: null, fallback_models: [] } : t,
+        ),
+      );
+      toast.success('Tier reset to auto');
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      setResettingTier(null);
     }
   };
 
@@ -188,7 +194,7 @@ const Routing: Component = () => {
   const hasOverrides = () => tiers()?.some((t) => t.override_model !== null) ?? false;
 
   return (
-    <div class="container--md">
+    <div class="container--lg">
       <Title>{agentDisplayName() ?? agentName()} Routing - Manifest</Title>
       <Meta
         name="description"
@@ -204,9 +210,30 @@ const Routing: Component = () => {
           </span>
         </div>
         <Show when={!connectedProviders.loading && isEnabled()}>
-          <button class="btn btn--primary btn--sm" onClick={() => setShowProviderModal(true)}>
-            Connect providers
-          </button>
+          <div style="display: flex; gap: 8px;">
+            <button
+              class="btn btn--outline btn--sm"
+              disabled={refreshingModels()}
+              onClick={async () => {
+                setRefreshingModels(true);
+                try {
+                  await refreshModels(agentName());
+                  refetchModels();
+                  refetchTiers();
+                  toast.success('Models refreshed');
+                } catch {
+                  toast.error('Failed to refresh models');
+                } finally {
+                  setRefreshingModels(false);
+                }
+              }}
+            >
+              {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
+            </button>
+            <button class="btn btn--primary btn--sm" onClick={() => setShowProviderModal(true)}>
+              Connect providers
+            </button>
+          </div>
         </Show>
       </div>
 

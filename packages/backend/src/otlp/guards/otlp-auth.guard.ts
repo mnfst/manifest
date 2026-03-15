@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { createHash } from 'crypto';
 import { Request } from 'express';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
@@ -19,8 +20,12 @@ import {
   LOCAL_AGENT_NAME,
   LOCAL_USER_ID,
 } from '../../common/constants/local-mode.constants';
+import { isLoopbackIp, isAllowedLocalIp } from '../../common/utils/local-ip';
+const MIN_TOKEN_LENGTH = 12;
 
-const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+function cacheKey(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
 
 interface CachedKey {
   tenantId: string;
@@ -34,6 +39,7 @@ interface CachedKey {
 export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
   private readonly logger = new Logger(OtlpAuthGuard.name);
   private cache = new Map<string, CachedKey>();
+  private devContext: { context: IngestionContext; expiresAt: number } | null = null;
   private readonly CACHE_TTL_MS = 5 * 60 * 1000;
   private readonly MAX_CACHE_SIZE = 10_000;
   private readonly cleanupTimer: ReturnType<typeof setInterval>;
@@ -56,7 +62,10 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers['authorization'];
 
-    const isLocal = process.env['MANIFEST_MODE'] === 'local' && LOOPBACK_IPS.has(request.ip ?? '');
+    const ip = request.ip ?? '';
+    const loopback = isLoopbackIp(ip);
+    const isLocal = process.env['MANIFEST_MODE'] === 'local' && isAllowedLocalIp(ip);
+    const isDevLoopback = process.env['NODE_ENV'] === 'development' && loopback;
 
     // In local mode, trust loopback connections without requiring an API key.
     // Also handles dev-mode gateways that send a dummy/non-mnfst token.
@@ -68,6 +77,15 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
         userId: LOCAL_USER_ID,
       };
       return true;
+    }
+
+    // In development, trust loopback connections and resolve to first active agent.
+    if (!authHeader && isDevLoopback) {
+      const devCtx = await this.resolveDevContext();
+      if (devCtx) {
+        (request as Request & { ingestionContext: IngestionContext }).ingestionContext = devCtx;
+        return true;
+      }
     }
 
     if (!authHeader) {
@@ -93,10 +111,21 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
         };
         return true;
       }
+      if (isDevLoopback) {
+        const devCtx = await this.resolveDevContext();
+        if (devCtx) {
+          (request as Request & { ingestionContext: IngestionContext }).ingestionContext = devCtx;
+          return true;
+        }
+      }
       throw new UnauthorizedException('Invalid API key format');
     }
 
-    const cached = this.cache.get(token);
+    if (token.length < MIN_TOKEN_LENGTH) {
+      throw new UnauthorizedException('Invalid API key format');
+    }
+
+    const cached = this.cache.get(cacheKey(token));
     if (cached && cached.expiresAt > Date.now()) {
       (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
         tenantId: cached.tenantId,
@@ -135,7 +164,7 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
       if (firstKey) this.cache.delete(firstKey);
     }
 
-    this.cache.set(token, {
+    this.cache.set(cacheKey(token), {
       tenantId: keyRecord.tenant_id,
       agentId: keyRecord.agent_id,
       agentName: keyRecord.agent.name,
@@ -154,11 +183,34 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
   }
 
   invalidateCache(key: string) {
-    this.cache.delete(key);
+    this.cache.delete(cacheKey(key));
   }
 
   clearCache() {
     this.cache.clear();
+  }
+
+  private async resolveDevContext(): Promise<IngestionContext | null> {
+    if (this.devContext && this.devContext.expiresAt > Date.now()) {
+      return this.devContext.context;
+    }
+
+    const keyRecord = await this.keyRepo.findOne({
+      where: { is_active: true },
+      relations: ['agent', 'tenant'],
+    });
+
+    if (!keyRecord) return null;
+
+    const ctx: IngestionContext = {
+      tenantId: keyRecord.tenant_id,
+      agentId: keyRecord.agent_id,
+      agentName: keyRecord.agent.name,
+      userId: keyRecord.tenant.name,
+    };
+
+    this.devContext = { context: ctx, expiresAt: Date.now() + this.CACHE_TTL_MS };
+    return ctx;
   }
 
   private evictExpired() {

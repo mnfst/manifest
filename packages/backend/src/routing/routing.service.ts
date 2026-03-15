@@ -4,12 +4,14 @@ import { Not, IsNull, Repository, In } from 'typeorm';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
 import { encrypt, decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
 import { TIERS } from './scorer/types';
+import { isManifestUsableProvider, isSupportedSubscriptionProvider } from './subscription-support';
 
 const TIER_LABELS: Record<string, string> = {
   simple: 'Simple',
@@ -29,8 +31,15 @@ export class RoutingService {
     private readonly tierRepo: Repository<TierAssignment>,
     private readonly autoAssign: TierAutoAssignService,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly discoveryService: ModelDiscoveryService,
     private readonly routingCache: RoutingCacheService,
   ) {}
+
+  /** Public entry point for tier recalculation (e.g. after model discovery). */
+  async recalculateTiers(agentId: string): Promise<void> {
+    await this.autoAssign.recalculate(agentId);
+    this.routingCache.invalidateAgent(agentId);
+  }
 
   /* ── Providers ── */
 
@@ -38,7 +47,10 @@ export class RoutingService {
     const cached = this.routingCache.getProviders(agentId);
     if (cached) return cached;
 
-    const providers = await this.providerRepo.find({ where: { agent_id: agentId } });
+    await this.cleanupUnsupportedSubscriptionProviders(agentId);
+    const providers = (await this.providerRepo.find({ where: { agent_id: agentId } })).filter(
+      isManifestUsableProvider,
+    );
     this.routingCache.setProviders(agentId, providers);
     return providers;
   }
@@ -66,6 +78,7 @@ export class RoutingService {
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await this.providerRepo.save(existing);
+
       await this.autoAssign.recalculate(agentId);
       this.routingCache.invalidateAgent(agentId);
       return { provider: existing, isNew: false };
@@ -85,9 +98,141 @@ export class RoutingService {
     });
 
     await this.providerRepo.insert(record);
+
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
     return { provider: record, isNew: true };
+  }
+
+  async registerSubscriptionProvider(
+    agentId: string,
+    userId: string,
+    provider: string,
+  ): Promise<{ isNew: boolean }> {
+    if (!isSupportedSubscriptionProvider(provider)) {
+      this.logger.debug(`Ignoring unsupported subscription provider registration for ${provider}`);
+      return { isNew: false };
+    }
+
+    const existing = await this.providerRepo.findOne({
+      where: { agent_id: agentId, provider, auth_type: 'subscription' },
+    });
+
+    if (existing) return { isNew: false };
+
+    // Skip if user already added an explicit API key for this provider
+    const hasApiKey = await this.providerRepo.findOne({
+      where: { agent_id: agentId, provider, auth_type: 'api_key', is_active: true },
+    });
+    if (hasApiKey) return { isNew: false };
+
+    const record: UserProvider = Object.assign(new UserProvider(), {
+      id: randomUUID(),
+      user_id: userId,
+      agent_id: agentId,
+      provider,
+      auth_type: 'subscription',
+      api_key_encrypted: null,
+      key_prefix: null,
+      is_active: true,
+      connected_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    await this.providerRepo.insert(record);
+    await this.autoAssign.recalculate(agentId);
+    this.routingCache.invalidateAgent(agentId);
+    return { isNew: true };
+  }
+
+  private async cleanupUnsupportedSubscriptionProviders(agentId: string): Promise<void> {
+    const activeProviders = await this.providerRepo.find({
+      where: { agent_id: agentId, is_active: true },
+    });
+    const unsupported = activeProviders.filter(
+      (record) => record.auth_type === 'subscription' && !isManifestUsableProvider(record),
+    );
+    if (unsupported.length === 0) return;
+
+    const now = new Date().toISOString();
+    for (const record of unsupported) {
+      record.is_active = false;
+      record.updated_at = now;
+    }
+    await this.providerRepo.save(unsupported);
+
+    const unsupportedIds = new Set(unsupported.map((record) => record.id));
+    const remainingActive = activeProviders.filter((record) => !unsupportedIds.has(record.id));
+    const usableProviders = remainingActive.filter(isManifestUsableProvider);
+
+    const removedProviders = Array.from(
+      new Set(
+        unsupported
+          .map((record) => record.provider)
+          .filter(
+            (provider) =>
+              !usableProviders.some(
+                (record) => record.provider.toLowerCase() === provider.toLowerCase(),
+              ),
+          ),
+      ),
+    );
+
+    if (removedProviders.length > 0) {
+      const { hadTierAssignments } = await this.clearTierAssignmentsForProviders(
+        agentId,
+        removedProviders,
+      );
+      if (hadTierAssignments) {
+        await this.autoAssign.recalculate(agentId, usableProviders);
+      }
+    }
+    this.routingCache.invalidateAgent(agentId);
+  }
+
+  private async clearTierAssignmentsForProviders(
+    agentId: string,
+    providers: string[],
+  ): Promise<{ invalidated: { tier: string; modelName: string }[]; hadTierAssignments: boolean }> {
+    if (providers.length === 0) return { invalidated: [], hadTierAssignments: false };
+
+    const providerNames = new Set(providers.map((provider) => provider.toLowerCase()));
+    const overrides = await this.tierRepo.find({
+      where: { agent_id: agentId, override_model: Not(IsNull()) },
+    });
+
+    const invalidated: { tier: string; modelName: string }[] = [];
+    const tiersToSave: TierAssignment[] = [];
+    for (const tier of overrides) {
+      const pricing = this.pricingCache.getByModel(tier.override_model!);
+      if (pricing && providerNames.has(pricing.provider.toLowerCase())) {
+        invalidated.push({ tier: tier.tier, modelName: tier.override_model! });
+        tier.override_model = null;
+        tier.override_auth_type = null;
+        tier.updated_at = new Date().toISOString();
+        tiersToSave.push(tier);
+      }
+    }
+
+    const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
+    const hadTierAssignments = allTiers.length > 0;
+    const savedIds = new Set(tiersToSave.map((tier) => tier.id));
+    for (const tier of allTiers) {
+      if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
+      const filtered = tier.fallback_models.filter((model) => {
+        const pricing = this.pricingCache.getByModel(model);
+        return !pricing || !providerNames.has(pricing.provider.toLowerCase());
+      });
+      if (filtered.length !== tier.fallback_models.length) {
+        tier.fallback_models = filtered.length > 0 ? filtered : null;
+        tier.updated_at = new Date().toISOString();
+        if (!savedIds.has(tier.id)) tiersToSave.push(tier);
+      }
+    }
+
+    if (tiersToSave.length > 0) await this.tierRepo.save(tiersToSave);
+
+    return { invalidated, hadTierAssignments };
   }
 
   async removeProvider(
@@ -107,57 +252,19 @@ export class RoutingService {
     await this.providerRepo.save(existing);
 
     // Check if the provider still has another active record (different auth type)
-    const otherActive = await this.providerRepo.findOne({
+    const otherActive = await this.providerRepo.find({
       where: { agent_id: agentId, provider, is_active: true },
     });
 
-    if (otherActive) {
+    if (otherActive.some((record) => isManifestUsableProvider(record))) {
       // Provider is still available via the other auth type — skip override clearing
       this.routingCache.invalidateAgent(agentId);
       return { notifications: [] };
     }
 
-    // No active records left — clear overrides that use this provider's models
-    const overrides = await this.tierRepo.find({
-      where: { agent_id: agentId, override_model: Not(IsNull()) },
-    });
-
-    const invalidated: { tier: string; modelName: string }[] = [];
-    const tiersToSave: TierAssignment[] = [];
-    for (const tier of overrides) {
-      const pricing = this.pricingCache.getByModel(tier.override_model!);
-      if (pricing && pricing.provider.toLowerCase() === provider.toLowerCase()) {
-        invalidated.push({ tier: tier.tier, modelName: tier.override_model! });
-        tier.override_model = null;
-        tier.override_auth_type = null;
-        tier.updated_at = new Date().toISOString();
-        tiersToSave.push(tier);
-      }
-    }
-
-    // Clean fallback models belonging to the disconnected provider
-    const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
-    const savedIds = new Set(tiersToSave.map((t) => t.id));
-    for (const tier of allTiers) {
-      if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
-      const filtered = tier.fallback_models.filter((m) => {
-        const p = this.pricingCache.getByModel(m);
-        return !p || p.provider.toLowerCase() !== provider.toLowerCase();
-      });
-      if (filtered.length !== tier.fallback_models.length) {
-        tier.fallback_models = filtered.length > 0 ? filtered : null;
-        tier.updated_at = new Date().toISOString();
-        if (!savedIds.has(tier.id)) tiersToSave.push(tier);
-      }
-    }
-
-    // Batch save all tier mutations
-    if (tiersToSave.length > 0) await this.tierRepo.save(tiersToSave);
+    const { invalidated } = await this.clearTierAssignmentsForProviders(agentId, [provider]);
 
     // Deactivate provider and recalculate
-    existing.is_active = false;
-    existing.updated_at = new Date().toISOString();
-    await this.providerRepo.save(existing);
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
 
@@ -207,6 +314,7 @@ export class RoutingService {
     const cached = this.routingCache.getTiers(agentId);
     if (cached) return cached;
 
+    await this.cleanupUnsupportedSubscriptionProviders(agentId);
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
 
     if (rows.length === 0) {
@@ -229,8 +337,9 @@ export class RoutingService {
       const providers = await this.providerRepo.find({
         where: { agent_id: agentId, is_active: true },
       });
-      if (providers.length > 0) {
-        await this.autoAssign.recalculate(agentId, providers);
+      const usableProviders = providers.filter(isManifestUsableProvider);
+      if (usableProviders.length > 0) {
+        await this.autoAssign.recalculate(agentId, usableProviders);
         const result = await this.tierRepo.find({ where: { agent_id: agentId } });
         this.routingCache.setTiers(agentId, result);
         return result;
@@ -258,6 +367,10 @@ export class RoutingService {
     if (existing) {
       existing.override_model = model;
       existing.override_auth_type = authType ?? null;
+      if (existing.fallback_models?.includes(model)) {
+        const filtered = existing.fallback_models.filter((m) => m !== model);
+        existing.fallback_models = filtered.length > 0 ? filtered : null;
+      }
       existing.updated_at = new Date().toISOString();
       await this.tierRepo.save(existing);
       this.routingCache.invalidateAgent(agentId);
@@ -374,7 +487,9 @@ export class RoutingService {
       where: { agent_id: agentId, is_active: true },
     });
 
-    const matches = records.filter((r) => names.has(r.provider.toLowerCase()));
+    const matches = records.filter(
+      (r) => isManifestUsableProvider(r) && names.has(r.provider.toLowerCase()),
+    );
     if (matches.length === 0) return null;
 
     // Sort preferred auth type first (default: api_key for backward compat)
@@ -413,6 +528,17 @@ export class RoutingService {
     return withKey?.auth_type ?? matches[0]?.auth_type ?? 'api_key';
   }
 
+  /* ── Provider lookup by cached models ── */
+
+  async findProviderForModel(agentId: string, model: string): Promise<string | undefined> {
+    const providers = await this.getProviders(agentId);
+    for (const p of providers) {
+      if (!p.cached_models) continue;
+      if (p.cached_models.some((m) => m.id === model)) return p.provider;
+    }
+    return undefined;
+  }
+
   /* ── Runtime helper ── */
 
   async getEffectiveModel(agentId: string, assignment: TierAssignment): Promise<string | null> {
@@ -435,21 +561,25 @@ export class RoutingService {
   }
 
   private async isModelAvailable(agentId: string, model: string): Promise<boolean> {
-    const records = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
-    });
+    // Check discovered models first
+    const discovered = await this.discoveryService.getModelForAgent(agentId, model);
+    if (discovered) return true;
+
+    const records = (
+      await this.providerRepo.find({
+        where: { agent_id: agentId, is_active: true },
+      })
+    ).filter(isManifestUsableProvider);
     const pricing = this.pricingCache.getByModel(model);
     if (pricing) {
       const names = expandProviderNames([pricing.provider]);
       if (records.find((r) => names.has(r.provider.toLowerCase()))) return true;
-      // Also try the canonical model name's vendor prefix
       const canonicalPrefix = inferProviderFromModelName(pricing.model_name);
       if (canonicalPrefix) {
         const cpNames = expandProviderNames([canonicalPrefix]);
         if (records.find((r) => cpNames.has(r.provider.toLowerCase()))) return true;
       }
     }
-    // Fallback: match by model name prefix (e.g. "anthropic/claude-sonnet-4" → "anthropic")
     const prefix = inferProviderFromModelName(model);
     if (prefix) {
       const prefixNames = expandProviderNames([prefix]);
