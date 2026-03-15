@@ -2029,4 +2029,15 @@ describe('RoutingService', () => {
       expect(result).toBe('api_key');
     });
   });
+
+  describe('recalculateTiers', () => {
+    it('should call autoAssign.recalculate and invalidate cache', async () => {
+      const invalidateSpy = jest.spyOn(mockRoutingCache, 'invalidateAgent');
+
+      await service.recalculateTiers('agent-1');
+
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(invalidateSpy).toHaveBeenCalledWith('agent-1');
+    });
+  });
 });
