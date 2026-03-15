@@ -45,7 +45,7 @@ describe('GET /api/v1/model-prices', () => {
       (m: { model_name: string }) => m.model_name === 'openai/gpt-4o',
     );
     expect(gpt4o).toBeDefined();
-    expect(gpt4o.provider).toBe('OpenRouter');
+    expect(gpt4o.provider).toBe('OpenAI');
     expect(gpt4o.input_price_per_million).toBeCloseTo(2.5, 1);
     expect(gpt4o.output_price_per_million).toBeCloseTo(10, 1);
   });
@@ -56,8 +56,9 @@ describe('GET /api/v1/model-prices', () => {
     const providers = new Set(
       res.body.models.map((m: { provider: string }) => m.provider),
     );
-    // All OpenRouter models are under "OpenRouter" provider
-    expect(providers.has('OpenRouter')).toBe(true);
+    // Supported providers extracted from OpenRouter data
+    expect(providers.has('OpenAI')).toBe(true);
+    expect(providers.has('Anthropic')).toBe(true);
     // Manual pricing entries keep their real provider
     expect(providers.has('Z.ai')).toBe(true);
   });

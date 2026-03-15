@@ -414,6 +414,9 @@ To add a new font or icon library:
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
 - **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SMTP email providers.
 - **LLM Routing**: Tier-based model routing with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`.
+- **Model Discovery**: Models available for routing come from each provider's native API (`ProviderModelFetcherService`), NOT from OpenRouter. When a user connects a provider with an API key, `ModelDiscoveryService` calls the provider's `/models` endpoint and caches results in `user_providers.cached_models`. OpenRouter is treated as its own provider — its models are NOT split across other providers.
+- **Model Pricing**: The pricing reference (`ModelPricingCacheService`) uses OpenRouter's public API as a pricing data source, but attributes models to their real provider (OpenAI, Anthropic, etc.) using the vendor prefix in OpenRouter IDs. Models from unsupported community vendors stay under "OpenRouter". Manual pricing entries in `manual-pricing-reference.ts` cover niche providers (Z.ai, Moonshot, MiniMax, Alibaba) not well-represented in OpenRouter.
+- **CRITICAL — Provider Model Separation**: Each provider's model list MUST come from that provider's own API. OpenRouter models must NEVER be used as the model list for other providers. The `model_pricing` table has been dropped — there is no shared global model table. Provider models are per-user, per-connection, cached in `user_providers.cached_models`.
 
 ## Releases & Changesets
 
