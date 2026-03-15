@@ -424,6 +424,28 @@ describe('MessageTable', () => {
       expect(badge!.querySelector('svg')).not.toBeNull();
     });
 
+    it('renders separate SVG icons for multiple fallback_error rows', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[
+            makeRow({ id: 'row-1', status: 'fallback_error', error_message: 'err 1' }),
+            makeRow({ id: 'row-2', status: 'fallback_error', error_message: 'err 2' }),
+          ]}
+          columns={['status']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+        />
+      ));
+      const badges = container.querySelectorAll('.status-badge--fallback_error');
+      expect(badges.length).toBe(2);
+      const svg1 = badges[0]!.querySelector('svg');
+      const svg2 = badges[1]!.querySelector('svg');
+      expect(svg1).not.toBeNull();
+      expect(svg2).not.toBeNull();
+      // Each row has its own SVG node (not the same DOM element)
+      expect(svg1).not.toBe(svg2);
+    });
+
     it('calls onFallbackErrorClick when fallback_error badge is clicked', () => {
       const handler = vi.fn();
       const { container } = render(() => (

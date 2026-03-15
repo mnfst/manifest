@@ -236,13 +236,16 @@ export class ProxyService {
       const model = fallbackModels[i];
       const pricing = this.pricingCache.getByModel(model);
 
-      // Determine provider: custom models use their prefix, others use pricing cache
+      // Determine provider: custom prefix → model name inference → pricing cache → user's connected providers
       let provider: string | undefined;
       if (CustomProviderService.isCustom(model)) {
         const slashIdx = model.indexOf('/');
         provider = slashIdx > 0 ? model.substring(0, slashIdx) : model;
-      } else if (pricing) {
-        provider = inferProviderFromModelName(model) ?? pricing.provider;
+      } else {
+        provider =
+          inferProviderFromModelName(model) ??
+          pricing?.provider ??
+          (await this.routingService.findProviderForModel(agentId, model));
       }
 
       if (!provider) {

@@ -2040,4 +2040,35 @@ describe('RoutingService', () => {
       expect(invalidateSpy).toHaveBeenCalledWith('agent-1');
     });
   });
+
+  describe('findProviderForModel', () => {
+    it('should return the provider that has the model in cached_models', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, cached_models: [{ id: 'claude-opus-4-6' }] },
+        { provider: 'gemini', is_active: true, cached_models: [{ id: 'gemini-2.5-flash' }] },
+      ]);
+
+      const result = await service.findProviderForModel('a1', 'claude-opus-4-6');
+      expect(result).toBe('anthropic');
+    });
+
+    it('should return undefined when no provider has the model', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, cached_models: [{ id: 'claude-opus-4-6' }] },
+      ]);
+
+      const result = await service.findProviderForModel('a1', 'unknown-model');
+      expect(result).toBeUndefined();
+    });
+
+    it('should skip providers with null cached_models', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, cached_models: null },
+        { provider: 'gemini', is_active: true, cached_models: [{ id: 'gemini-2.5-flash' }] },
+      ]);
+
+      const result = await service.findProviderForModel('a1', 'gemini-2.5-flash');
+      expect(result).toBe('gemini');
+    });
+  });
 });

@@ -236,6 +236,7 @@ const CustomProviderForm: Component<Props> = (props) => {
               id="cp-api-key"
               class="provider-detail__input"
               type="password"
+              autocomplete="new-password"
               placeholder="sk-..."
               value={apiKey()}
               onInput={(e) => setApiKey(e.currentTarget.value)}

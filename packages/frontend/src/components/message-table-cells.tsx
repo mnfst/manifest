@@ -24,40 +24,44 @@ const MONO = 'font-family: var(--font-mono);';
 const MONO_XS =
   'font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));';
 
-export const HEARTBEAT_SVG = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    aria-hidden="true"
-  >
-    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-  </svg>
-);
+export function HeartbeatIcon(): JSX.Element {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  );
+}
 
-export const FALLBACK_SVG = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="11"
-    height="11"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    style="margin-right: 3px; flex-shrink: 0;"
-  >
-    <polyline points="15 17 20 12 15 7" />
-    <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
-  </svg>
-);
+export function FallbackIcon(): JSX.Element {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="11"
+      height="11"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      style="margin-right: 3px; flex-shrink: 0;"
+    >
+      <polyline points="15 17 20 12 15 7" />
+      <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
+    </svg>
+  );
+}
 
 const HEADER_LABELS: Record<MessageColumnKey, string> = {
   date: 'Date',
@@ -104,7 +108,7 @@ export function MessageCell(item: MessageRow): JSX.Element {
           title="Heartbeat"
           style="display: inline-flex; align-items: center; margin-left: 4px; color: hsl(var(--muted-foreground)); opacity: 0.7;"
         >
-          {HEARTBEAT_SVG}
+          {<HeartbeatIcon />}
         </span>
       )}
     </td>
@@ -230,6 +234,7 @@ export function StatusCell(
         when={item.error_message}
         fallback={
           <span class={`status-badge status-badge--${item.status}`}>
+            {item.status === 'fallback_error' && <FallbackIcon />}
             {item.status === 'rate_limited' ? (
               <A href={`/agents/${encodeURIComponent(agentName)}/limits`}>
                 {formatStatus(item.status)}
@@ -254,7 +259,7 @@ export function StatusCell(
                 : undefined
             }
           >
-            {item.status === 'fallback_error' && FALLBACK_SVG}
+            {item.status === 'fallback_error' && <FallbackIcon />}
             {formatStatus(item.status)}
           </span>
           <span class="status-badge-tooltip__bubble">

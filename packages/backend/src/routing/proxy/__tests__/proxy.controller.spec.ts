@@ -706,7 +706,7 @@ describe('ProxyController', () => {
     expect(mockMessageRepo.insert).not.toHaveBeenCalled();
   });
 
-  it('should not record success message for fallback responses', async () => {
+  it('should record usage data on fallback success', async () => {
     const responseBody = {
       choices: [{ message: { content: 'hello' } }],
       usage: { prompt_tokens: 500, completion_tokens: 200 },
@@ -735,14 +735,67 @@ describe('ProxyController', () => {
     await controller.chatCompletions(req as never, res as never);
     await new Promise((r) => setTimeout(r, 10));
 
-    // Only the fallback chain messages should be recorded, not a duplicate success
     const insertCalls = mockMessageRepo.insert.mock.calls;
-    const hasSuccessWithTokens = insertCalls.some(
+    const successRecord = insertCalls.find(
       (call: unknown[]) =>
         (call[0] as Record<string, unknown>).status === 'ok' &&
         (call[0] as Record<string, unknown>).input_tokens === 500,
     );
-    expect(hasSuccessWithTokens).toBe(false);
+    expect(successRecord).toBeDefined();
+    const record = successRecord![0] as Record<string, unknown>;
+    expect(record.output_tokens).toBe(200);
+    expect(record.fallback_from_model).toBe('claude-sonnet-4-20250514');
+    expect(record.fallback_index).toBe(0);
+  });
+
+  it('should compute cost on fallback success when pricing is available', async () => {
+    mockPricingCache.getByModel.mockReturnValue({
+      input_price_per_token: 0.000005,
+      output_price_per_token: 0.00002,
+    });
+
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 800, completion_tokens: 300 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'standard',
+        model: 'deepseek-chat',
+        provider: 'DeepSeek',
+        confidence: 0.8,
+        reason: 'scored',
+        fallbackFromModel: 'gpt-4o',
+        fallbackIndex: 0,
+        primaryErrorStatus: 401,
+        primaryErrorBody: 'Unauthorized',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    const insertCalls = mockMessageRepo.insert.mock.calls;
+    const successRecord = insertCalls.find(
+      (call: unknown[]) =>
+        (call[0] as Record<string, unknown>).status === 'ok' &&
+        (call[0] as Record<string, unknown>).input_tokens === 800,
+    );
+    expect(successRecord).toBeDefined();
+    const record = successRecord![0] as Record<string, unknown>;
+    expect(record.output_tokens).toBe(300);
+    expect(record.cost_usd).toBe(800 * 0.000005 + 300 * 0.00002);
+    expect(record.fallback_from_model).toBe('gpt-4o');
+    expect(record.fallback_index).toBe(0);
   });
 
   it('should compute cost when pricing is available', async () => {
