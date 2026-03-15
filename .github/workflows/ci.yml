@@ -140,7 +140,7 @@ jobs:
   changeset-check:
     name: Changeset status
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
     steps:
       - uses: actions/checkout@v4
         with:
