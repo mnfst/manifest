@@ -1,5 +1,11 @@
 # manifest
 
+## 5.25.5
+
+### Patch Changes
+
+- cf4d6c7: fix: record every provider error so rate-limited calls display as errors instead of success
+
 ## 5.25.4
 
 ### Patch Changes
