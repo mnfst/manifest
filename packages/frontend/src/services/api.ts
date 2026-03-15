@@ -498,6 +498,7 @@ export function clearFallbacks(agentName: string, tier: string) {
 export interface AvailableModel {
   model_name: string;
   provider: string;
+  auth_type?: AuthType;
   input_price_per_token: number | null;
   output_price_per_token: number | null;
   context_window: number;

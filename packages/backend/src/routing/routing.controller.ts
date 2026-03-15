@@ -228,6 +228,7 @@ export class RoutingController {
       return {
         model_name: m.id,
         provider: m.provider,
+        auth_type: m.authType ?? 'api_key',
         input_price_per_token: m.inputPricePerToken,
         output_price_per_token: m.outputPricePerToken,
         context_window: m.contextWindow,

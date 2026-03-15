@@ -102,10 +102,7 @@ describe('RoutingService', () => {
 
       const result = await service.getTiers('a1');
 
-      // 2B: providers are now passed to avoid duplicate query
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1', [
-        { provider: 'openai', is_active: true },
-      ]);
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(result).toHaveLength(4);
       expect(result[0].auto_assigned_model).toBe('gpt-4o');
     });
@@ -165,7 +162,7 @@ describe('RoutingService', () => {
           }),
         ]),
       );
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1', []);
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(result).toEqual(recalculatedRows);
     });
 

@@ -561,6 +561,7 @@ describe('RoutingController', () => {
       expect(result[0]).toEqual({
         model_name: 'gpt-4o',
         provider: 'openai',
+        auth_type: 'api_key',
         input_price_per_token: 0.0000025,
         output_price_per_token: 0.00001,
         context_window: 128000,
@@ -579,6 +580,7 @@ describe('RoutingController', () => {
       const result = await controller.getAvailableModels(mockUser, mockAgentName);
 
       expect(Object.keys(result[0]).sort()).toEqual([
+        'auth_type',
         'capability_code',
         'capability_reasoning',
         'context_window',
