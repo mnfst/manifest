@@ -10,7 +10,7 @@ async function fetchJson<T>(path: string, params?: Record<string, string | undef
     }
   }
 
-  const res = await fetch(url.toString(), { credentials: 'include' });
+  const res = await fetch(url.toString(), { credentials: 'include', cache: 'no-store' });
   if (res.status === 401) {
     // Session expired or user logged out — silently redirect to login
     if (window.location.pathname !== '/login') {

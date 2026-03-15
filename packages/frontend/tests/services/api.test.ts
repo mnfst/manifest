@@ -111,7 +111,7 @@ describe("getAgents", () => {
 
     const result = await getAgents();
     expect(result).toEqual(payload);
-    expect(mockFetch).toHaveBeenCalledWith("http://localhost:3000/api/v1/agents", { credentials: "include" });
+    expect(mockFetch).toHaveBeenCalledWith("http://localhost:3000/api/v1/agents", { credentials: "include", cache: "no-store" });
   });
 });
 
@@ -266,7 +266,7 @@ describe("getAgentKey", () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/agents/bot/key"),
-      { credentials: "include" },
+      { credentials: "include", cache: "no-store" },
     );
   });
 });
@@ -428,7 +428,7 @@ describe("getModelPrices", () => {
     expect(result).toEqual(prices);
     expect(mockFetch).toHaveBeenCalledWith(
       "http://localhost:3000/api/v1/model-prices",
-      { credentials: "include" },
+      { credentials: "include", cache: "no-store" },
     );
   });
 });
@@ -476,7 +476,7 @@ describe("getProviders", () => {
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
       "http://localhost:3000/api/v1/routing/my-agent/providers",
-      { credentials: "include" },
+      { credentials: "include", cache: "no-store" },
     );
   });
 });
@@ -573,7 +573,7 @@ describe("getTierAssignments", () => {
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
       "http://localhost:3000/api/v1/routing/my-agent/tiers",
-      { credentials: "include" },
+      { credentials: "include", cache: "no-store" },
     );
   });
 });
@@ -659,7 +659,7 @@ describe("getAvailableModels", () => {
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
       "http://localhost:3000/api/v1/routing/my-agent/available-models",
-      { credentials: "include" },
+      { credentials: "include", cache: "no-store" },
     );
   });
 });

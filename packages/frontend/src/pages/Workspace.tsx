@@ -7,6 +7,7 @@ import { toast } from '../services/toast-store.js';
 import { formatNumber, formatCost } from '../services/formatters.js';
 import Sparkline from '../components/Sparkline.jsx';
 import { checkLocalMode } from '../services/local-mode.js';
+import { pingCount } from '../services/sse.js';
 
 interface Agent {
   agent_name: string;
@@ -106,7 +107,10 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
 const Workspace: Component = () => {
   const navigate = useNavigate();
-  const [data, { refetch }] = createResource(() => getAgents() as Promise<AgentsData>);
+  const [data, { refetch }] = createResource(
+    () => ({ _ping: pingCount() }),
+    () => getAgents() as Promise<AgentsData>,
+  );
   const [modalOpen, setModalOpen] = createSignal(false);
 
   onMount(async () => {
