@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-03-14
+Last updated: 2026-03-15
 
 ## IMPORTANT: Local Mode First
 
@@ -414,10 +414,84 @@ To add a new font or icon library:
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
 - **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SMTP email providers.
 - **LLM Routing**: Tier-based model routing with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`.
-- **Model Discovery**: Models available for routing come from each provider's native API (`ProviderModelFetcherService`), NOT from OpenRouter. When a user connects a provider with an API key, `ModelDiscoveryService` calls the provider's `/models` endpoint and caches results in `user_providers.cached_models`. OpenRouter is treated as its own provider — its models are NOT split across other providers.
-- **Model Pricing**: The pricing reference (`ModelPricingCacheService`) uses OpenRouter's public API as a pricing data source, but attributes models to their real provider (OpenAI, Anthropic, etc.) using the vendor prefix in OpenRouter IDs. Models from unsupported community vendors stay under "OpenRouter". Manual pricing entries in `manual-pricing-reference.ts` cover niche providers (Z.ai, Moonshot, MiniMax, Alibaba) not well-represented in OpenRouter.
-- **CRITICAL — Provider Model Separation**: Each provider's model list MUST come from that provider's own API. OpenRouter models must NEVER be used as the model list for other providers. The `model_pricing` table has been dropped — there is no shared global model table. Provider models are per-user, per-connection, cached in `user_providers.cached_models`.
-- **Provider Registry (Single Source of Truth)**: All provider IDs, display names, aliases, and OpenRouter prefix mappings are defined in `common/constants/providers.ts` (`PROVIDER_REGISTRY`). This file exports derived maps (`PROVIDER_BY_ID`, `PROVIDER_BY_ID_OR_ALIAS`, `OPENROUTER_PREFIX_TO_PROVIDER`, `expandProviderNames`). **NEVER hardcode provider names/IDs in other files** — always import from the registry. To add a new provider: (1) add entry to `PROVIDER_REGISTRY`, (2) add `FetcherConfig` in `provider-model-fetcher.service.ts`, (3) add `ProviderEndpoint` in `proxy/provider-endpoints.ts`, (4) add `ProviderDef` in `frontend/src/services/providers.ts`.
+
+## Providers & Models
+
+### Provider Registry (Single Source of Truth)
+
+All provider definitions live in `common/constants/providers.ts` (`PROVIDER_REGISTRY`). This is the **only** place to define provider IDs, display names, aliases, and OpenRouter prefix mappings. Never hardcode provider names elsewhere — always import from the registry.
+
+The registry exports derived maps used throughout the codebase:
+- `PROVIDER_BY_ID` — lookup by canonical ID (e.g. `anthropic`, `gemini`)
+- `PROVIDER_BY_ID_OR_ALIAS` — lookup by ID or alias (e.g. `google` → gemini entry)
+- `OPENROUTER_PREFIX_TO_PROVIDER` — OpenRouter vendor prefix → display name (e.g. `openai` → `OpenAI`)
+- `expandProviderNames()` — expands a set of names to include aliases
+
+**Supported providers (12):**
+
+| ID | Display Name | Aliases | OpenRouter Prefixes | Notes |
+|----|-------------|---------|-------------------|-------|
+| `anthropic` | Anthropic | — | `anthropic` | Supports subscription auth |
+| `openai` | OpenAI | — | `openai` | |
+| `gemini` | Google | `google` | `google` | Key-in-URL auth for model list |
+| `deepseek` | DeepSeek | — | `deepseek` | |
+| `mistral` | Mistral | — | `mistralai` | |
+| `moonshot` | Moonshot | `kimi` | `moonshotai` | |
+| `xai` | xAI | — | `xai`, `x-ai` | |
+| `minimax` | MiniMax | — | `minimax` | |
+| `qwen` | Alibaba | `alibaba` | `qwen`, `alibaba` | |
+| `zai` | Z.ai | `z.ai` | `z-ai`, `zhipuai` | |
+| `openrouter` | OpenRouter | — | `openrouter` | Public API, no key needed for model list |
+| `ollama` | Ollama | — | — | Local only, no key needed |
+
+### Adding a New Provider
+
+1. Add entry to `PROVIDER_REGISTRY` in `common/constants/providers.ts`
+2. Add `FetcherConfig` in `routing/model-discovery/provider-model-fetcher.service.ts`
+3. Add `ProviderEndpoint` in `routing/proxy/provider-endpoints.ts`
+4. Add `ProviderDef` in `frontend/src/services/providers.ts`
+
+### Model Discovery
+
+Each provider's model list comes from **that provider's own API** — never from OpenRouter.
+
+```
+User connects provider (POST /routing/:agent/providers)
+  → ProviderModelFetcherService.fetch(providerId, apiKey)
+    → calls provider's /models endpoint (e.g. api.anthropic.com/v1/models)
+  → ModelDiscoveryService.enrichModel()
+    → looks up pricing from OpenRouter cache (PricingSyncService)
+    → falls back to manual-pricing-reference.ts for niche providers
+    → computes quality score
+  → saves to user_providers.cached_models (JSONB column)
+  → recalculates tier assignments
+```
+
+- `ProviderModelFetcherService` — config-driven fetcher with parsers for each provider API format (OpenAI-compatible, Anthropic, Gemini, OpenRouter, Ollama)
+- `ModelDiscoveryService` — orchestrator that decrypts keys, fetches, enriches with pricing, caches results
+- `cached_models` — per-provider, per-agent JSONB column on `user_providers` table
+- Discovery runs synchronously on provider connect (user sees models immediately)
+- "Refresh models" button triggers `POST /routing/:agent/refresh-models`
+
+### Model Pricing
+
+The `model_pricing` database table has been **dropped**. Pricing comes from two sources:
+
+1. **OpenRouter API** (public, fetched daily via cron + on startup) — provides pricing for all major providers. Stored in-memory by `PricingSyncService`.
+2. **Manual pricing reference** (`manual-pricing-reference.ts`) — covers niche providers (Z.ai, Moonshot, MiniMax, Alibaba) not well-represented in OpenRouter.
+
+`ModelPricingCacheService` merges both sources and attributes models to their real provider using OpenRouter vendor prefixes (via `OPENROUTER_PREFIX_TO_PROVIDER`). Unsupported community vendors stay under "OpenRouter".
+
+**CRITICAL**: OpenRouter data is used ONLY as a pricing source. The model list for each provider must come from the provider's own API. OpenRouter models must NEVER be used as the model list for other providers.
+
+### Where Models Appear
+
+| Page | Source | What's shown |
+|------|--------|-------------|
+| **Model Prices** | `ModelPricingCacheService.getAll()` | All models from OpenRouter + manual pricing, attributed to real providers |
+| **Routing (available models)** | `ModelDiscoveryService.getModelsForAgent()` | Only models from user's connected providers (discovered via native API) |
+| **Routing (tier assignments)** | `TierAutoAssignService.recalculate()` | Auto-assigned from discovered models based on quality/price scoring |
+| **Messages / Overview** | Stored in `agent_messages.model` column | Raw model name from telemetry, display name resolved via `model-display.ts` cache |
 
 ## Releases & Changesets
 
