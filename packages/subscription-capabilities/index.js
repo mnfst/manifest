@@ -5,6 +5,12 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
     subscriptionKeyPlaceholder: 'Paste your setup-token',
     subscriptionCommand: 'claude setup-token',
     subscriptionTokenPrefix: 'sk-ant-oat',
+    knownModels: Object.freeze(['claude-opus-4', 'claude-sonnet-4', 'claude-haiku-4']),
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
   }),
 });
 
@@ -24,9 +30,21 @@ function supportsSubscriptionProvider(providerId) {
   return getSubscriptionProviderConfig(providerId) !== null;
 }
 
+function getSubscriptionKnownModels(providerId) {
+  const config = getSubscriptionProviderConfig(providerId);
+  return config?.knownModels ?? null;
+}
+
+function getSubscriptionCapabilities(providerId) {
+  const config = getSubscriptionProviderConfig(providerId);
+  return config?.subscriptionCapabilities ?? null;
+}
+
 module.exports = {
   SUBSCRIPTION_PROVIDER_CONFIGS,
   SUPPORTED_SUBSCRIPTION_PROVIDER_IDS,
   getSubscriptionProviderConfig,
   supportsSubscriptionProvider,
+  getSubscriptionKnownModels,
+  getSubscriptionCapabilities,
 };
