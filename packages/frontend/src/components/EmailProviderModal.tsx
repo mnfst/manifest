@@ -333,6 +333,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                 class="modal-card__input"
                 classList={{ 'modal-card__input--error': !!keyError() }}
                 type="password"
+                autocomplete="new-password"
                 placeholder={keyPlaceholder()}
                 value={apiKey()}
                 onInput={(e) => {

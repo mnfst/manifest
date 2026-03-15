@@ -665,6 +665,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                         class="provider-detail__input"
                         classList={{ 'provider-detail__input--error': !!validationError() }}
                         type="password"
+                        autocomplete="new-password"
                         placeholder={placeholder()}
                         aria-label={inputAriaLabel()}
                         value={keyInput()}
@@ -762,6 +763,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
                           class="provider-detail__input"
                           classList={{ 'provider-detail__input--error': !!validationError() }}
                           type="password"
+                          autocomplete="new-password"
                           placeholder={placeholder()}
                           aria-label={editAriaLabel()}
                           value={keyInput()}

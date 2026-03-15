@@ -588,6 +588,17 @@ export class RoutingService {
     return withKey?.auth_type ?? matches[0]?.auth_type ?? 'api_key';
   }
 
+  /* ── Provider lookup by cached models ── */
+
+  async findProviderForModel(agentId: string, model: string): Promise<string | undefined> {
+    const providers = await this.getProviders(agentId);
+    for (const p of providers) {
+      if (!p.cached_models) continue;
+      if (p.cached_models.some((m) => m.id === model)) return p.provider;
+    }
+    return undefined;
+  }
+
   /* ── Runtime helper ── */
 
   async getEffectiveModel(agentId: string, assignment: TierAssignment): Promise<string | null> {

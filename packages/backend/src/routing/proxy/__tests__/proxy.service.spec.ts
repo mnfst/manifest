@@ -28,6 +28,7 @@ describe('ProxyService', () => {
       getProviderApiKey: jest.fn(),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       getTiers: jest.fn().mockResolvedValue([]),
+      findProviderForModel: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<RoutingService>;
 
     providerClient = {
@@ -1285,7 +1286,7 @@ describe('ProxyService', () => {
       });
     });
 
-    it('stops fallback chain on non-retriable error', async () => {
+    it('stops fallback chain on 424 (fallback exhausted)', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         model: 'gpt-4o',
@@ -1305,7 +1306,7 @@ describe('ProxyService', () => {
           isAnthropic: false,
         })
         .mockResolvedValueOnce({
-          response: new Response('bad request', { status: 400 }),
+          response: new Response('exhausted', { status: 424 }),
           isGoogle: false,
           isAnthropic: false,
         });
@@ -1316,14 +1317,14 @@ describe('ProxyService', () => {
 
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
 
-      // Chain stopped at model-a's 400, model-b never tried
+      // Chain stopped at model-a's 424, model-b never tried
       expect(result.forward.response.ok).toBe(false);
       expect(providerClient.forward).toHaveBeenCalledTimes(2);
       expect(result.failedFallbacks).toHaveLength(1);
-      expect(result.failedFallbacks![0].status).toBe(400);
+      expect(result.failedFallbacks![0].status).toBe(424);
     });
 
-    it('does not attempt fallbacks when primary returns non-retriable error', async () => {
+    it('does not attempt fallbacks when primary returns a redirect', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         model: 'gpt-4o',
@@ -1334,7 +1335,7 @@ describe('ProxyService', () => {
       });
       routingService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
-        response: new Response('bad request', { status: 400 }),
+        response: new Response('redirect', { status: 301 }),
         isGoogle: false,
         isAnthropic: false,
       });
@@ -1342,7 +1343,7 @@ describe('ProxyService', () => {
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
 
       expect(routingService.getTiers).not.toHaveBeenCalled();
-      expect(result.forward.response.status).toBe(400);
+      expect(result.forward.response.status).toBe(301);
     });
 
     it('falls back from api_key primary to subscription fallback model', async () => {
@@ -1583,6 +1584,84 @@ describe('ProxyService', () => {
       // Verify getAuthType was called for both fallback providers
       expect(routingService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic');
       expect(routingService.getAuthType).toHaveBeenCalledWith('agent-1', 'DeepSeek');
+    });
+
+    it('resolves fallback provider via findProviderForModel when pricing and name inference fail', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-test') // primary
+        .mockResolvedValueOnce('sk-niche'); // fallback
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('auth error', { status: 401 }),
+          isGoogle: false,
+          isAnthropic: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['niche-model-v1'] },
+      ] as never);
+      // No pricing data for this model
+      pricingCache.getByModel.mockReturnValue(null as never);
+      // inferProviderFromModelName returns undefined (no slash prefix)
+      // findProviderForModel finds it in the user's connected providers
+      routingService.findProviderForModel.mockResolvedValue('niche-provider');
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(routingService.findProviderForModel).toHaveBeenCalledWith('agent-1', 'niche-model-v1');
+      expect(result.meta.model).toBe('niche-model-v1');
+      expect(result.meta.provider).toBe('niche-provider');
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
+      expect(result.meta.fallbackIndex).toBe(0);
+      expect(result.meta.primaryErrorStatus).toBe(401);
+    });
+
+    it('resolves custom provider fallback via model prefix', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-test')
+        .mockResolvedValueOnce('sk-custom');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('error', { status: 500 }),
+          isGoogle: false,
+          isAnthropic: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['custom:cp-abc/my-model'] },
+      ] as never);
+      customProviderService.getById.mockResolvedValue({
+        base_url: 'https://my-endpoint.com/v1',
+      } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(result.meta.model).toBe('custom:cp-abc/my-model');
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
     });
 
     it('returns all failed fallbacks when all fail', async () => {

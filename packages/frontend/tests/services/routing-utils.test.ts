@@ -104,6 +104,12 @@ describe("inferProviderFromModel", () => {
     expect(inferProviderFromModel("gemini-2.5-pro")).toBe("gemini");
   });
 
+  it("detects Gemma models as Gemini (Google) provider", () => {
+    expect(inferProviderFromModel("gemma-3n-e2b-it")).toBe("gemini");
+    expect(inferProviderFromModel("gemma-2-9b")).toBe("gemini");
+    expect(inferProviderFromModel("gemma-7b")).toBe("gemini");
+  });
+
   it("detects DeepSeek models", () => {
     expect(inferProviderFromModel("deepseek-chat")).toBe("deepseek");
     expect(inferProviderFromModel("deepseek-reasoner")).toBe("deepseek");

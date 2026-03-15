@@ -40,7 +40,7 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^openrouter\//, 'openrouter'],
   [/^claude-/, 'anthropic'],
   [/^gpt-|^o[134]-|^o[134] |^chatgpt-/, 'openai'],
-  [/^gemini-/, 'gemini'],
+  [/^gemini-|^gemma-/, 'gemini'],
   [/^deepseek-/, 'deepseek'],
   [/^grok-/, 'xai'],
   [/^mistral-|^codestral|^pixtral|^open-mistral/, 'mistral'],
