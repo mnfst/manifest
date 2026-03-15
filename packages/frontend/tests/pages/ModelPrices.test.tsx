@@ -15,6 +15,22 @@ vi.mock("../../src/services/api.js", () => ({
   getModelPrices: () => mockGetModelPrices(),
 }));
 
+vi.mock("../../src/services/model-display.js", () => ({
+  getModelDisplayName: (slug: string) => slug,
+  preloadModelDisplayNames: () => {},
+}));
+
+vi.mock("../../src/services/routing-utils.js", () => ({
+  resolveProviderId: (provider: string) => {
+    const map: Record<string, string> = { OpenAI: "openai", Anthropic: "anthropic", Google: "gemini" };
+    return map[provider] ?? null;
+  },
+}));
+
+vi.mock("../../src/components/ProviderIcon.jsx", () => ({
+  providerIcon: (id: string, size: number) => <svg data-provider={id} width={size} height={size} />,
+}));
+
 vi.mock("../../src/services/toast-store.js", () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
