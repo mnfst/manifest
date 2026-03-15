@@ -601,5 +601,124 @@ describe('ModelDiscoveryService', () => {
         }),
       );
     });
+
+    it('should resolve pricing via dash-to-dot normalization', async () => {
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'anthropic/claude-sonnet-4.6') {
+          return { input: 0.00003, output: 0.00015 };
+        }
+        return null;
+      });
+
+      const models = [makeModel({ id: 'claude-sonnet-4-6' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'anthropic' }));
+
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('anthropic/claude-sonnet-4-6');
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('anthropic/claude-sonnet-4.6');
+      expect(result[0].inputPricePerToken).toBe(0.00003);
+      expect(result[0].outputPricePerToken).toBe(0.00015);
+    });
+
+    it('should resolve pricing via dot-to-dash normalization', async () => {
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'anthropic/claude-sonnet-4-6') {
+          return { input: 0.00003, output: 0.00015 };
+        }
+        return null;
+      });
+
+      const models = [makeModel({ id: 'claude-sonnet-4.6' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'anthropic' }));
+
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('anthropic/claude-sonnet-4.6');
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('anthropic/claude-sonnet-4-6');
+      expect(result[0].inputPricePerToken).toBe(0.00003);
+      expect(result[0].outputPricePerToken).toBe(0.00015);
+    });
+
+    it('should resolve pricing by stripping date suffix', async () => {
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'anthropic/claude-sonnet-4-5') {
+          return { input: 0.00003, output: 0.00015 };
+        }
+        return null;
+      });
+
+      const models = [makeModel({ id: 'claude-sonnet-4-5-20250929' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'anthropic' }));
+
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith(
+        'anthropic/claude-sonnet-4-5-20250929',
+      );
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('anthropic/claude-sonnet-4-5');
+      expect(result[0].inputPricePerToken).toBe(0.00003);
+    });
+
+    it('should resolve pricing by stripping date suffix then applying dot variant', async () => {
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'anthropic/claude-sonnet-4.5') {
+          return { input: 0.00003, output: 0.00015 };
+        }
+        return null;
+      });
+
+      const models = [makeModel({ id: 'claude-sonnet-4-5-20250929' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'anthropic' }));
+
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('anthropic/claude-sonnet-4.5');
+      expect(result[0].inputPricePerToken).toBe(0.00003);
+    });
+
+    it('should build fallback models from OpenRouter cache when native API returns empty', async () => {
+      fetcher.fetch.mockResolvedValue([]);
+
+      const orMap = new Map([
+        [
+          'anthropic/claude-opus-4.6',
+          {
+            input: 0.000015,
+            output: 0.000075,
+            contextWindow: 200000,
+            displayName: 'Claude Opus 4.6',
+          },
+        ],
+        [
+          'anthropic/claude-sonnet-4.6',
+          {
+            input: 0.000003,
+            output: 0.000015,
+            contextWindow: 200000,
+            displayName: 'Claude Sonnet 4.6',
+          },
+        ],
+        [
+          'openai/gpt-4o',
+          {
+            input: 0.0000025,
+            output: 0.00001,
+            contextWindow: 128000,
+            displayName: 'GPT-4o',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'anthropic' }));
+
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('claude-opus-4.6');
+      expect(result[0].displayName).toBe('Claude Opus 4.6');
+      expect(result[0].inputPricePerToken).toBe(0.000015);
+      expect(result[0].provider).toBe('anthropic');
+      expect(result[1].id).toBe('claude-sonnet-4.6');
+    });
   });
 });

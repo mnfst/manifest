@@ -78,6 +78,19 @@ describe('ModelPricingCacheService', () => {
       expect(service.getByModel('openrouter/auto')!.provider).toBe('OpenRouter');
     });
 
+    it('should handle model with no slash prefix', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['some-model', makeEntry(0.001, 0.002)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
+
+      const entry = service.getByModel('some-model');
+      expect(entry).toBeDefined();
+      expect(entry!.provider).toBe('OpenRouter');
+      expect(entry!.model_name).toBe('some-model');
+    });
+
     it('should return empty when no OpenRouter data available', async () => {
       mockGetAll.mockReturnValue(new Map());
       await service.reload();
