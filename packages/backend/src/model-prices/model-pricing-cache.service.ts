@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { buildAliasMap, resolveModelName } from './model-name-normalizer';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { MANUAL_PRICING } from '../routing/model-discovery/manual-pricing-reference';
+import { OPENROUTER_PREFIX_TO_PROVIDER } from '../common/constants/providers';
 
 /**
  * Lightweight pricing entry used for cost calculation and provider detection.
@@ -13,34 +14,6 @@ export interface PricingEntry {
   input_price_per_token: number | null;
   output_price_per_token: number | null;
 }
-
-/**
- * OpenRouter vendor prefixes → display names for providers we support in routing.
- * Models from these vendors are extracted from OpenRouter data and attributed
- * to their native provider. Their canonical name (without prefix) is used as
- * the model_name. All other vendors are kept under "OpenRouter" with their
- * full vendor-prefixed ID.
- *
- * IMPORTANT: OpenRouter data is used ONLY as a pricing source. The model list
- * for each provider should come from the provider's own API via
- * ProviderModelFetcherService (used in model discovery). This cache is a
- * pricing reference for cost calculations, not the source of truth for
- * available models.
- */
-const ROUTING_PROVIDER_PREFIXES: Record<string, string> = {
-  anthropic: 'Anthropic',
-  openai: 'OpenAI',
-  google: 'Google',
-  deepseek: 'DeepSeek',
-  mistralai: 'Mistral',
-  moonshotai: 'Moonshot',
-  qwen: 'Alibaba',
-  alibaba: 'Alibaba',
-  xai: 'xAI',
-  'x-ai': 'xAI',
-  minimax: 'MiniMax',
-  'z-ai': 'Z.ai',
-};
 
 @Injectable()
 export class ModelPricingCacheService implements OnModuleInit {
@@ -130,7 +103,7 @@ export class ModelPricingCacheService implements OnModuleInit {
     }
 
     const prefix = openRouterId.substring(0, slashIdx);
-    const displayName = ROUTING_PROVIDER_PREFIXES[prefix];
+    const displayName = OPENROUTER_PREFIX_TO_PROVIDER.get(prefix);
     if (displayName) {
       return {
         provider: displayName,

@@ -436,9 +436,10 @@ describe('PricingSyncService', () => {
         canonical: 'mistral-large',
         provider: 'Mistral',
       });
+      // meta-llama is not a supported routing provider — title-cased
       expect(service.deriveNames('meta-llama/llama-3')).toEqual({
         canonical: 'llama-3',
-        provider: 'Meta',
+        provider: 'Meta-llama',
       });
       expect(service.deriveNames('cohere/command-r')).toEqual({
         canonical: 'command-r',
@@ -458,7 +459,7 @@ describe('PricingSyncService', () => {
       });
       expect(service.deriveNames('zhipuai/glm-4-plus')).toEqual({
         canonical: 'glm-4-plus',
-        provider: 'Zhipu',
+        provider: 'Z.ai',
       });
       expect(service.deriveNames('amazon/nova-pro')).toEqual({
         canonical: 'nova-pro',
