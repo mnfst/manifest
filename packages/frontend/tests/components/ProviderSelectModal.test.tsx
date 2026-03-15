@@ -85,7 +85,7 @@ describe("ProviderSelectModal", () => {
     fireEvent.click(screen.getByText("API Keys"));
     expect(screen.getByText("OpenAI")).toBeDefined();
     expect(screen.getByText("Anthropic")).toBeDefined();
-    expect(screen.getByText("Gemini")).toBeDefined();
+    expect(screen.getByText("Google")).toBeDefined();
     expect(screen.getByText("DeepSeek")).toBeDefined();
     expect(screen.getByText("OpenRouter")).toBeDefined();
   });

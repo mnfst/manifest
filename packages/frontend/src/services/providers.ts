@@ -62,7 +62,7 @@ export const PROVIDERS: ProviderDef[] = [
   },
   {
     id: 'gemini',
-    name: 'Gemini',
+    name: 'Google',
     color: '#4285f4',
     initial: 'G',
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
@@ -84,7 +84,7 @@ export const PROVIDERS: ProviderDef[] = [
   },
   {
     id: 'mistral',
-    name: 'Mistral AI',
+    name: 'Mistral',
     color: '#f97316',
     initial: 'M',
     subtitle: 'Mistral Large, Codestral, Pixtral',

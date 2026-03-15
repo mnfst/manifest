@@ -21,7 +21,7 @@ export class ModelPricesService {
           r.input_price_per_token != null ? Number(r.input_price_per_token) * 1_000_000 : null,
         output_price_per_million:
           r.output_price_per_token != null ? Number(r.output_price_per_token) * 1_000_000 : null,
-        display_name: null,
+        display_name: r.display_name || null,
       })),
       lastSyncedAt,
     };

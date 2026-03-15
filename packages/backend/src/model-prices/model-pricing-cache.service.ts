@@ -13,6 +13,7 @@ export interface PricingEntry {
   provider: string;
   input_price_per_token: number | null;
   output_price_per_token: number | null;
+  display_name: string | null;
 }
 
 @Injectable()
@@ -34,12 +35,15 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
     for (const [fullId, entry] of orCache) {
       const { provider, canonical } = this.resolveProviderAndName(fullId);
 
+      const displayName = entry.displayName ?? null;
+
       // Store under full OpenRouter ID (e.g. "anthropic/claude-opus-4-6")
       this.cache.set(fullId, {
         model_name: fullId,
         provider,
         input_price_per_token: entry.input,
         output_price_per_token: entry.output,
+        display_name: displayName,
       });
 
       // For supported providers, also store under canonical name (e.g. "claude-opus-4-6")
@@ -50,6 +54,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
           provider,
           input_price_per_token: entry.input,
           output_price_per_token: entry.output,
+          display_name: displayName,
         });
       }
     }
@@ -62,6 +67,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
           provider: pricing.provider,
           input_price_per_token: pricing.input,
           output_price_per_token: pricing.output,
+          display_name: null,
         });
       }
     }
