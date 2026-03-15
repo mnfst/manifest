@@ -35,6 +35,12 @@ export class RoutingService {
     private readonly routingCache: RoutingCacheService,
   ) {}
 
+  /** Public entry point for tier recalculation (e.g. after model discovery). */
+  async recalculateTiers(agentId: string): Promise<void> {
+    await this.autoAssign.recalculate(agentId);
+    this.routingCache.invalidateAgent(agentId);
+  }
+
   /* ── Providers ── */
 
   async getProviders(agentId: string): Promise<UserProvider[]> {
