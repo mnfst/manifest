@@ -515,7 +515,7 @@ export class TraceIngestService {
     const spanTime = new Date(nanoToDatetime(span.startTimeUnixNano)).getTime();
     const hasNearbyError = dedup.recentErrors.some((e) => {
       const errorTime = new Date(e.timestamp).getTime();
-      return Math.abs(errorTime - spanTime) <= 30_000;
+      return Math.abs(errorTime - spanTime) <= 60_000;
     });
     if (hasNearbyError) return null;
 
