@@ -36,9 +36,12 @@ export class PricingSyncService implements OnModuleInit {
   private lastFetchedAt: Date | null = null;
 
   async onModuleInit(): Promise<void> {
-    this.refreshCache().catch((err) => {
+    // Await startup fetch so ModelPricingCacheService.reload() has data
+    try {
+      await this.refreshCache();
+    } catch (err) {
       this.logger.error(`Startup OpenRouter cache refresh failed: ${err}`);
-    });
+    }
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)

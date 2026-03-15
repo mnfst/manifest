@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { buildAliasMap, resolveModelName } from './model-name-normalizer';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { MANUAL_PRICING } from '../routing/model-discovery/manual-pricing-reference';
@@ -16,14 +16,14 @@ export interface PricingEntry {
 }
 
 @Injectable()
-export class ModelPricingCacheService implements OnModuleInit {
+export class ModelPricingCacheService implements OnApplicationBootstrap {
   private readonly logger = new Logger(ModelPricingCacheService.name);
   private readonly cache = new Map<string, PricingEntry>();
   private aliasMap = new Map<string, string>();
 
   constructor(private readonly pricingSync: PricingSyncService) {}
 
-  async onModuleInit(): Promise<void> {
+  async onApplicationBootstrap(): Promise<void> {
     await this.reload();
   }
 

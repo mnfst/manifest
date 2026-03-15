@@ -19,7 +19,7 @@ describe('ModelPricingCacheService', () => {
   describe('onModuleInit', () => {
     it('should call reload()', async () => {
       const spy = jest.spyOn(service, 'reload').mockResolvedValue();
-      await service.onModuleInit();
+      await service.onApplicationBootstrap();
       expect(spy).toHaveBeenCalledTimes(1);
     });
   });
