@@ -953,6 +953,34 @@ describe('ModelDiscoveryService', () => {
       expect(result).toHaveLength(1);
       expect(result[0].authType).toBe('subscription');
     });
+
+    it('should use provider auth_type as fallback when cached model has no authType', async () => {
+      const providers = [
+        makeProvider({
+          id: 'p1',
+          provider: 'anthropic',
+          auth_type: 'api_key',
+          cached_models: [
+            makeModel({ id: 'claude-sonnet-4', provider: 'anthropic' }), // no authType
+          ],
+        }),
+        makeProvider({
+          id: 'p2',
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({ id: 'claude-sonnet-4', provider: 'anthropic' }), // no authType
+          ],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result).toHaveLength(1);
+      // Legacy model from subscription provider should replace the api_key one
+    });
   });
 
   /* ── buildSubscriptionFallbackModels ── */

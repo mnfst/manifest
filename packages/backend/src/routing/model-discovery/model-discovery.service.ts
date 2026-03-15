@@ -111,12 +111,14 @@ export class ModelDiscoveryService {
       if (p.provider.startsWith('custom:')) continue;
       const cached = p.cached_models;
       if (!Array.isArray(cached)) continue;
+      const providerAuthType = p.auth_type === 'subscription' ? 'subscription' : 'api_key';
       for (const m of cached) {
+        const effectiveAuthType = m.authType ?? providerAuthType;
         if (!seen.has(m.id)) {
           seen.set(m.id, models.length);
           models.push(m);
         } else if (
-          m.authType === 'subscription' &&
+          effectiveAuthType === 'subscription' &&
           models[seen.get(m.id)!]?.authType !== 'subscription'
         ) {
           models[seen.get(m.id)!] = m;
