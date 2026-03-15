@@ -55,6 +55,10 @@ vi.mock('../../src/components/InfoTooltip.jsx', () => ({
   default: (props: any) => <span data-testid="info-tooltip" title={props.text} />,
 }));
 
+vi.mock('../../src/components/MessageDetails.jsx', () => ({
+  default: (props: any) => <div data-testid="message-details" data-id={props.messageId} />,
+}));
+
 import MessageTable from '../../src/components/MessageTable';
 
 function makeRow(overrides: Partial<MessageRow> = {}): MessageRow {
@@ -463,6 +467,117 @@ describe('MessageTable', () => {
       ));
       const bodyRow = container.querySelector('tbody tr');
       expect(bodyRow!.getAttribute('id')).toBeNull();
+    });
+  });
+
+  describe('expand details', () => {
+    it('renders chevron button for each row when expandable', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow(), makeRow({ id: 'row-2' })]}
+          columns={['date']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          expandable
+        />
+      ));
+      const buttons = container.querySelectorAll('.msg-detail__chevron-btn');
+      expect(buttons.length).toBe(2);
+    });
+
+    it('does not render chevron when expandable is false', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['date']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+        />
+      ));
+      expect(container.querySelector('.msg-detail__chevron-btn')).toBeNull();
+      expect(container.querySelector('.msg-detail__chevron-th')).toBeNull();
+    });
+
+    it('expands details panel when chevron is clicked', async () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['date']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          expandable
+        />
+      ));
+      expect(container.querySelector('[data-testid="message-details"]')).toBeNull();
+      const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
+      fireEvent.click(btn);
+      expect(container.querySelector('[data-testid="message-details"]')).not.toBeNull();
+    });
+
+    it('collapses details panel on second click', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['date']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          expandable
+        />
+      ));
+      const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
+      fireEvent.click(btn);
+      expect(container.querySelector('[data-testid="message-details"]')).not.toBeNull();
+      fireEvent.click(btn);
+      expect(container.querySelector('[data-testid="message-details"]')).toBeNull();
+    });
+
+    it('adds open class to chevron button when expanded', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['date']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          expandable
+        />
+      ));
+      const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLElement;
+      expect(btn.classList.contains('msg-detail__chevron-btn--open')).toBe(false);
+      fireEvent.click(btn);
+      expect(btn.classList.contains('msg-detail__chevron-btn--open')).toBe(true);
+    });
+
+    it('passes correct messageId to MessageDetails', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ id: 'specific-msg-id' })]}
+          columns={['date']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          expandable
+        />
+      ));
+      const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
+      fireEvent.click(btn);
+      const details = container.querySelector('[data-testid="message-details"]');
+      expect(details).not.toBeNull();
+      expect(details!.getAttribute('data-id')).toBe('specific-msg-id');
+    });
+
+    it('sets aria-label on chevron button', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['date']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          expandable
+        />
+      ));
+      const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLElement;
+      expect(btn.getAttribute('aria-label')).toBe('Expand details');
+      fireEvent.click(btn);
+      expect(btn.getAttribute('aria-label')).toBe('Collapse details');
     });
   });
 

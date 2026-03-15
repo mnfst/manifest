@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessagesController } from './messages.controller';
 import { MessagesQueryService } from '../services/messages-query.service';
+import { MessageDetailsService } from '../services/message-details.service';
 
 describe('MessagesController', () => {
   let controller: MessagesController;
   let mockGetMessages: jest.Mock;
+  let mockGetDetails: jest.Mock;
 
   beforeEach(async () => {
     mockGetMessages = jest.fn().mockResolvedValue({
@@ -14,12 +16,23 @@ describe('MessagesController', () => {
       providers: [],
     });
 
+    mockGetDetails = jest.fn().mockResolvedValue({
+      message: { id: 'msg-1', status: 'ok' },
+      llm_calls: [],
+      tool_executions: [],
+      agent_logs: [],
+    });
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MessagesController],
       providers: [
         {
           provide: MessagesQueryService,
           useValue: { getMessages: mockGetMessages },
+        },
+        {
+          provide: MessageDetailsService,
+          useValue: { getDetails: mockGetDetails },
         },
       ],
     }).compile();
@@ -90,6 +103,28 @@ describe('MessagesController', () => {
 
     const user = { id: 'u1' };
     const result = await controller.getMessages({} as never, user as never);
+
+    expect(result).toEqual(expected);
+  });
+
+  it('delegates getMessageDetails to message details service', async () => {
+    const user = { id: 'u1' };
+    await controller.getMessageDetails('msg-123', user as never);
+
+    expect(mockGetDetails).toHaveBeenCalledWith('msg-123', 'u1');
+  });
+
+  it('returns message details result', async () => {
+    const expected = {
+      message: { id: 'msg-1', status: 'ok' },
+      llm_calls: [{ id: 'lc-1' }],
+      tool_executions: [],
+      agent_logs: [],
+    };
+    mockGetDetails.mockResolvedValue(expected);
+
+    const user = { id: 'u1' };
+    const result = await controller.getMessageDetails('msg-1', user as never);
 
     expect(result).toEqual(expected);
   });

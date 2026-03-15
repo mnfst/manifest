@@ -3,10 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
+import { LlmCall } from '../entities/llm-call.entity';
+import { ToolExecution } from '../entities/tool-execution.entity';
+import { AgentLog } from '../entities/agent-log.entity';
 import { OtlpModule } from '../otlp/otlp.module';
 import { AggregationService } from './services/aggregation.service';
 import { TimeseriesQueriesService } from './services/timeseries-queries.service';
 import { MessagesQueryService } from './services/messages-query.service';
+import { MessageDetailsService } from './services/message-details.service';
 import { AgentAnalyticsService } from './services/agent-analytics.service';
 import { OverviewController } from './controllers/overview.controller';
 import { TokensController } from './controllers/tokens.controller';
@@ -16,7 +20,10 @@ import { AgentsController } from './controllers/agents.controller';
 import { AgentAnalyticsController } from './controllers/agent-analytics.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([AgentMessage, Agent, Tenant]), OtlpModule],
+  imports: [
+    TypeOrmModule.forFeature([AgentMessage, Agent, Tenant, LlmCall, ToolExecution, AgentLog]),
+    OtlpModule,
+  ],
   controllers: [
     OverviewController,
     TokensController,
@@ -29,6 +36,7 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
     AggregationService,
     TimeseriesQueriesService,
     MessagesQueryService,
+    MessageDetailsService,
     AgentAnalyticsService,
   ],
 })
