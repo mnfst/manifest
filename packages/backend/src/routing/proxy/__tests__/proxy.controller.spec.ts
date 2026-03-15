@@ -131,10 +131,6 @@ describe('ProxyController', () => {
     );
   });
 
-  afterEach(() => {
-    controller.onModuleDestroy();
-  });
-
   it('should return JSON response for non-streaming OpenAI provider', async () => {
     const responseBody = { choices: [{ message: { content: 'hello' } }] };
     const mockProviderResp = new Response(JSON.stringify(responseBody), {
@@ -947,21 +943,21 @@ describe('ProxyController', () => {
     );
   });
 
-  it('should only record one rate_limited message per 60s cooldown', async () => {
+  it('should record every rate_limited message without cooldown', async () => {
     const limitError = new HttpException({ error: { message: 'Limit exceeded' } }, 429);
     proxyService.proxyRequest.mockRejectedValue(limitError);
 
-    // First 429 — should record
+    // First 429
     const req1 = mockRequest({ messages: [{ role: 'user', content: 'a' }] });
     const { res: res1 } = mockResponse();
     await controller.chatCompletions(req1 as never, res1 as never);
 
-    // Second 429 (same agent, within cooldown) — should skip
+    // Second 429 (same agent) — should also record
     const req2 = mockRequest({ messages: [{ role: 'user', content: 'b' }] });
     const { res: res2 } = mockResponse();
     await controller.chatCompletions(req2 as never, res2 as never);
 
-    expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
+    expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
   });
 
   it('should use x-session-key header when present', async () => {
@@ -1263,7 +1259,7 @@ describe('ProxyController', () => {
       });
     });
 
-    it('should apply 429 cooldown for provider responses', async () => {
+    it('should record every 429 provider response without cooldown', async () => {
       const makeResp = () =>
         new Response('{"error":"rate limit"}', {
           status: 429,
@@ -1302,8 +1298,8 @@ describe('ProxyController', () => {
       await controller.chatCompletions(req2 as never, res2 as never);
       await new Promise((r) => setTimeout(r, 10));
 
-      // Only first 429 should be recorded (cooldown)
-      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
+      // Both 429s should be recorded (no cooldown)
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
     });
 
     it('should store trace_id from traceparent header in error records', async () => {
@@ -1955,147 +1951,6 @@ describe('ProxyController', () => {
       await controller.chatCompletions(req as never, res as never);
 
       expect(res.status).toHaveBeenCalledWith(429);
-    });
-
-    it('should allow recording after cooldown expires', async () => {
-      jest.useFakeTimers();
-
-      const limitError = new HttpException('Limit exceeded', 429);
-      proxyService.proxyRequest.mockRejectedValue(limitError);
-
-      // First 429 — should record
-      const req1 = mockRequest({ messages: [{ role: 'user', content: 'a' }] });
-      const { res: res1 } = mockResponse();
-      await controller.chatCompletions(req1 as never, res1 as never);
-      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
-
-      // Advance past cooldown (60s)
-      jest.advanceTimersByTime(60_001);
-
-      // Second 429 after cooldown — should record again
-      const req2 = mockRequest({ messages: [{ role: 'user', content: 'b' }] });
-      const { res: res2 } = mockResponse();
-      await controller.chatCompletions(req2 as never, res2 as never);
-      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
-
-      jest.useRealTimers();
-    });
-
-    it('should allow recording for different agents within cooldown', async () => {
-      const limitError = new HttpException('Limit exceeded', 429);
-      proxyService.proxyRequest.mockRejectedValue(limitError);
-
-      // First agent
-      const req1 = mockRequest({ messages: [{ role: 'user', content: 'a' }] });
-      const { res: res1 } = mockResponse();
-      await controller.chatCompletions(req1 as never, res1 as never);
-
-      // Different agent (different agentId means different cooldown key)
-      const req2 = {
-        ingestionContext: {
-          userId: 'user-1',
-          tenantId: 'tenant-1',
-          agentId: 'agent-2',
-          agentName: 'other-agent',
-        },
-        body: { messages: [{ role: 'user', content: 'b' }] },
-        headers: {},
-      };
-      const { res: res2 } = mockResponse();
-      await controller.chatCompletions(req2 as never, res2 as never);
-
-      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
-    });
-  });
-
-  describe('rateLimitCooldown eviction', () => {
-    it('should evict expired cooldown entries when map exceeds max size', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const cooldownMap = (controller as any).rateLimitCooldown as Map<string, number>;
-      const now = Date.now();
-
-      // Pre-fill with MAX_COOLDOWN_ENTRIES + 1 expired entries to exceed the limit.
-      // Use keys that do NOT match the request's tenant-1:agent-1 key.
-      for (let i = 0; i < 1001; i++) {
-        cooldownMap.set(`t-${i}:a-${i}`, now - 120_000); // expired (>60s ago)
-      }
-
-      expect(cooldownMap.size).toBe(1001);
-
-      // Trigger a 429 provider error - this adds the tenant-1:agent-1 key,
-      // bringing size to 1002, which triggers eviction of expired entries
-      const mockProviderResp = new Response('{"error":"rate limit"}', {
-        status: 429,
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      proxyService.proxyRequest.mockResolvedValue({
-        forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
-        meta: {
-          tier: 'standard',
-          model: 'gpt-4o',
-          provider: 'OpenAI',
-          confidence: 0.8,
-          reason: 'scored',
-        },
-      });
-
-      const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
-      const { res } = mockResponse();
-
-      await controller.chatCompletions(req as never, res as never);
-      await new Promise((r) => setTimeout(r, 50));
-
-      // All 1001 expired entries should have been evicted, leaving only the fresh one
-      expect(cooldownMap.size).toBe(1);
-      expect(cooldownMap.has('tenant-1:agent-1')).toBe(true);
-    });
-  });
-
-  describe('periodic cooldown cleanup', () => {
-    it('periodic timer evicts expired cooldown entries', () => {
-      jest.useFakeTimers();
-      controller.onModuleDestroy(); // stop timer from beforeEach controller
-
-      const timedController = new ProxyController(
-        proxyService as never,
-        rateLimiter as never,
-        providerClient as never,
-        mockMessageRepo as never,
-        mockPricingCache as never,
-      );
-
-      const cooldownMap = (timedController as any).rateLimitCooldown as Map<string, number>;
-      cooldownMap.set('t:a', Date.now() - 120_000); // expired
-
-      jest.advanceTimersByTime(60_000);
-      expect(cooldownMap.size).toBe(0);
-
-      timedController.onModuleDestroy();
-      jest.useRealTimers();
-    });
-
-    it('onModuleDestroy stops the periodic cleanup timer', () => {
-      jest.useFakeTimers();
-      controller.onModuleDestroy(); // stop timer from beforeEach controller
-
-      const timedController = new ProxyController(
-        proxyService as never,
-        rateLimiter as never,
-        providerClient as never,
-        mockMessageRepo as never,
-        mockPricingCache as never,
-      );
-
-      timedController.onModuleDestroy();
-
-      const cooldownMap = (timedController as any).rateLimitCooldown as Map<string, number>;
-      cooldownMap.set('t:a', Date.now() - 120_000);
-
-      jest.advanceTimersByTime(120_000);
-      expect(cooldownMap.size).toBe(1); // not evicted because timer stopped
-
-      jest.useRealTimers();
     });
   });
 

@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-  Logger,
-  HttpException,
-  OnModuleDestroy,
-} from '@nestjs/common';
+import { Controller, Post, Req, Res, UseGuards, Logger, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { Request, Response as ExpressResponse } from 'express';
@@ -31,16 +22,12 @@ const MAX_SEEN_USERS = 10_000;
 @Public()
 @UseGuards(OtlpAuthGuard)
 @SkipThrottle()
-export class ProxyController implements OnModuleDestroy {
+export class ProxyController {
   private readonly logger = new Logger(ProxyController.name);
   private readonly seenUsers = new Set<string>();
-  private readonly rateLimitCooldown = new Map<string, number>();
   private readonly successWriteLocks = new Map<string, Promise<void>>();
-  private readonly RATE_LIMIT_COOLDOWN_MS = 60_000;
-  private readonly MAX_COOLDOWN_ENTRIES = 1_000;
   private readonly SUCCESS_SESSION_DEDUP_WINDOW_MS = 30_000;
   private readonly SUCCESS_END_TIME_GRACE_MS = 5_000;
-  private readonly cooldownCleanupTimer: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly proxyService: ProxyService,
@@ -49,16 +36,7 @@ export class ProxyController implements OnModuleDestroy {
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
     private readonly pricingCache: ModelPricingCacheService,
-  ) {
-    this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
-    if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
-      this.cooldownCleanupTimer.unref();
-    }
-  }
-
-  onModuleDestroy(): void {
-    clearInterval(this.cooldownCleanupTimer);
-  }
+  ) {}
 
   @Post('chat/completions')
   async chatCompletions(
@@ -327,20 +305,6 @@ export class ProxyController implements OnModuleDestroy {
     fallbackIndex?: number,
     authType?: string,
   ): Promise<void> {
-    if (httpStatus === 429) {
-      const key = `${ctx.tenantId}:${ctx.agentId}`;
-      const now = Date.now();
-      const lastRecorded = this.rateLimitCooldown.get(key) ?? 0;
-      if (now - lastRecorded < this.RATE_LIMIT_COOLDOWN_MS) return;
-      this.rateLimitCooldown.set(key, now);
-
-      if (this.rateLimitCooldown.size > this.MAX_COOLDOWN_ENTRIES) {
-        for (const [k, v] of this.rateLimitCooldown) {
-          if (now - v >= this.RATE_LIMIT_COOLDOWN_MS) this.rateLimitCooldown.delete(k);
-        }
-      }
-    }
-
     const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
     await this.messageRepo.insert({
@@ -706,13 +670,6 @@ export class ProxyController implements OnModuleDestroy {
     if (!header) return undefined;
     const parts = header.split('-');
     return parts.length >= 2 ? parts[1] : undefined;
-  }
-
-  private evictExpiredCooldowns(): void {
-    const now = Date.now();
-    for (const [k, v] of this.rateLimitCooldown) {
-      if (now - v >= this.RATE_LIMIT_COOLDOWN_MS) this.rateLimitCooldown.delete(k);
-    }
   }
 
   private trackFirstProxyRequest(
