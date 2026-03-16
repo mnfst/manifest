@@ -1,5 +1,20 @@
 # manifest
 
+## 5.27.0
+
+### Minor Changes
+
+- 5835963: Add OpenAI subscription routing support with zero-cost billing
+- cdd1d14: Add subscription model discovery with fallback models and auth-type-aware deduplication
+
+### Patch Changes
+
+- 0ec6da5: Skip ephemeral callback server in cloud mode and show paste-URL input immediately after OAuth popup opens
+- 04e8868: Revert dynamic OAuth redirect_uri and add paste-URL fallback for cloud deployments
+- 389c2ff: Fix OpenAI OAuth callback to use backend URL in production instead of hardcoded localhost:1455
+- 94a8e9f: Prevent browser password save prompt on API key and token inputs by using CSS text-security masking instead of type="password"
+- d9e34c2: Sync openclaw.plugin.json version with package.json automatically during changeset version bumps
+
 ## 5.26.0
 
 ### Minor Changes
