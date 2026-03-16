@@ -1,0 +1,74 @@
+/* ── Skeleton Loaders ─────────────────────────────── */
+.skeleton {
+  background: hsl(var(--muted));
+  border-radius: calc(var(--radius) - 2px);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton--text {
+  display: block;
+  height: 14px;
+}
+
+.skeleton--rect {
+  display: block;
+}
+
+/* ── Spinner ──────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid hsl(var(--muted));
+  border-top-color: hsl(var(--foreground));
+  border-radius: 50%;
+  animation: spinner-spin 0.6s linear infinite;
+}
+
+.btn .spinner {
+  margin: 0 12px;
+  border-color: hsl(var(--primary-foreground) / 0.3);
+  border-top-color: hsl(var(--primary-foreground));
+}
+
+.btn--outline .spinner,
+.btn--ghost .spinner {
+  border-color: hsl(var(--muted));
+  border-top-color: hsl(var(--foreground));
+}
+
+.btn--danger .spinner {
+  border-color: hsl(var(--destructive-foreground) / 0.3);
+  border-top-color: hsl(var(--destructive-foreground));
+}
+
+@keyframes spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Screen-reader only ──────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+@keyframes skeleton-pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}

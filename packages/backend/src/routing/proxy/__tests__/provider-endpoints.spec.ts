@@ -93,4 +93,64 @@ describe('PROVIDER_ENDPOINTS', () => {
   it('zai uses openai format', () => {
     expect(PROVIDER_ENDPOINTS['zai'].format).toBe('openai');
   });
+
+  it('anthropic uses x-api-key for api_key auth', () => {
+    const headers = PROVIDER_ENDPOINTS['anthropic'].buildHeaders('sk-ant-test');
+    expect(headers['x-api-key']).toBe('sk-ant-test');
+    expect(headers['Authorization']).toBeUndefined();
+  });
+
+  it('anthropic uses Bearer + oauth beta header for subscription auth', () => {
+    const headers = PROVIDER_ENDPOINTS['anthropic'].buildHeaders('skst-token', 'subscription');
+    expect(headers['Authorization']).toBe('Bearer skst-token');
+    expect(headers['anthropic-beta']).toBe('oauth-2025-04-20');
+    expect(headers['x-api-key']).toBeUndefined();
+  });
+
+  it('anthropic does not include oauth beta header for api_key auth', () => {
+    const headers = PROVIDER_ENDPOINTS['anthropic'].buildHeaders('sk-ant-test');
+    expect(headers['anthropic-beta']).toBeUndefined();
+  });
+
+  it('anthropic buildPath returns /v1/messages', () => {
+    const path = PROVIDER_ENDPOINTS['anthropic'].buildPath('claude-sonnet-4');
+    expect(path).toBe('/v1/messages');
+  });
+
+  it('google buildHeaders returns Content-Type only', () => {
+    const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('');
+    expect(headers).toEqual({ 'Content-Type': 'application/json' });
+  });
+
+  it('google buildPath includes model name with generateContent suffix', () => {
+    const path = PROVIDER_ENDPOINTS['google'].buildPath('gemini-2.0-flash');
+    expect(path).toBe('/v1beta/models/gemini-2.0-flash:generateContent');
+  });
+
+  it('openrouter buildPath returns /api/v1/chat/completions', () => {
+    const path = PROVIDER_ENDPOINTS['openrouter'].buildPath('openai/gpt-4o');
+    expect(path).toBe('/api/v1/chat/completions');
+  });
+
+  it('openai-subscription uses chatgpt.com backend base URL', () => {
+    const ep = PROVIDER_ENDPOINTS['openai-subscription'];
+    expect(ep.baseUrl).toBe('https://chatgpt.com/backend-api');
+  });
+
+  it('openai-subscription builds /codex/responses path', () => {
+    const path = PROVIDER_ENDPOINTS['openai-subscription'].buildPath('gpt-5');
+    expect(path).toBe('/codex/responses');
+  });
+
+  it('openai-subscription uses chatgpt format', () => {
+    expect(PROVIDER_ENDPOINTS['openai-subscription'].format).toBe('chatgpt');
+  });
+
+  it('openai-subscription headers include originator and user-agent', () => {
+    const headers = PROVIDER_ENDPOINTS['openai-subscription'].buildHeaders('oauth-token');
+    expect(headers['Authorization']).toBe('Bearer oauth-token');
+    expect(headers['Content-Type']).toBe('application/json');
+    expect(headers['originator']).toBe('codex_cli_rs');
+    expect(headers['user-agent']).toBe('codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown');
+  });
 });

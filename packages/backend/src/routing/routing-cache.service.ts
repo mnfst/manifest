@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
+import { CustomProvider } from '../entities/custom-provider.entity';
 
 const TTL_MS = 120_000; // 2 minutes
 const MAX_ENTRIES = 5_000;
@@ -30,6 +31,7 @@ function setWithEviction<T>(map: Map<string, CachedEntry<T>>, key: string, data:
 export class RoutingCacheService {
   private readonly tiers = new Map<string, CachedEntry<TierAssignment[]>>();
   private readonly providers = new Map<string, CachedEntry<UserProvider[]>>();
+  private readonly customProviders = new Map<string, CachedEntry<CustomProvider[]>>();
   private readonly apiKeys = new Map<string, CachedEntry<string | null>>();
 
   getTiers(agentId: string): TierAssignment[] | null {
@@ -48,17 +50,26 @@ export class RoutingCacheService {
     setWithEviction(this.providers, agentId, data);
   }
 
-  getApiKey(agentId: string, provider: string): string | null | undefined {
-    return getOrExpire(this.apiKeys, `${agentId}:${provider}`);
+  getCustomProviders(agentId: string): CustomProvider[] | null {
+    return getOrExpire(this.customProviders, agentId) ?? null;
   }
 
-  setApiKey(agentId: string, provider: string, apiKey: string | null): void {
-    setWithEviction(this.apiKeys, `${agentId}:${provider}`, apiKey);
+  setCustomProviders(agentId: string, data: CustomProvider[]): void {
+    setWithEviction(this.customProviders, agentId, data);
+  }
+
+  getApiKey(agentId: string, provider: string, authType?: string): string | null | undefined {
+    return getOrExpire(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}`);
+  }
+
+  setApiKey(agentId: string, provider: string, apiKey: string | null, authType?: string): void {
+    setWithEviction(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}`, apiKey);
   }
 
   invalidateAgent(agentId: string): void {
     this.tiers.delete(agentId);
     this.providers.delete(agentId);
+    this.customProviders.delete(agentId);
     const prefix = `${agentId}:`;
     const toDelete = [...this.apiKeys.keys()].filter((k) => k.startsWith(prefix));
     for (const k of toDelete) this.apiKeys.delete(k);

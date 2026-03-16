@@ -1,13 +1,39 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
-import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
-import { ModelPricing } from '../entities/model-pricing.entity';
+import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
+import { DiscoveredModel } from './model-discovery/model-fetcher';
 import { randomUUID } from 'crypto';
-import { expandProviderNames } from './provider-aliases';
 import { TIERS, Tier } from './scorer/types';
+
+/**
+ * OpenAI subscription tokens only work with Codex models (zero cost).
+ * Paid API models like gpt-4o need API keys. Per-provider: if zero-cost
+ * models exist from a provider, only those are subscription-compatible.
+ * Providers without zero-cost models (e.g. Anthropic) keep all models.
+ */
+function filterSubModels(models: DiscoveredModel[]): DiscoveredModel[] {
+  const byProvider = new Map<string, DiscoveredModel[]>();
+  for (const m of models) {
+    const key = m.provider.toLowerCase();
+    const arr = byProvider.get(key) ?? [];
+    arr.push(m);
+    byProvider.set(key, arr);
+  }
+
+  const result: DiscoveredModel[] = [];
+  for (const providerModels of byProvider.values()) {
+    const zeroCost = providerModels.filter(
+      (m) =>
+        (m.inputPricePerToken == null || m.inputPricePerToken === 0) &&
+        (m.outputPricePerToken == null || m.outputPricePerToken === 0),
+    );
+    // If zero-cost models exist (e.g. OpenAI Codex), use only those
+    result.push(...(zeroCost.length > 0 ? zeroCost : providerModels));
+  }
+  return result;
+}
 
 interface ScoredModel {
   model_name: string;
@@ -19,26 +45,21 @@ export class TierAutoAssignService {
   private readonly logger = new Logger(TierAutoAssignService.name);
 
   constructor(
-    private readonly pricingCache: ModelPricingCacheService,
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
+    private readonly discoveryService: ModelDiscoveryService,
     @InjectRepository(TierAssignment)
     private readonly tierRepo: Repository<TierAssignment>,
   ) {}
 
-  async recalculate(agentId: string, providers?: UserProvider[]): Promise<void> {
-    // 2B: Accept optional providers to avoid duplicate query
-    const resolvedProviders =
-      providers ??
-      (await this.providerRepo.find({
-        where: { agent_id: agentId, is_active: true },
-      }));
-    const activeProviders = expandProviderNames(resolvedProviders.map((p) => p.provider));
+  async recalculate(agentId: string): Promise<void> {
+    const allModels = await this.discoveryService.getModelsForAgent(agentId);
 
-    const allModels = this.pricingCache.getAll();
-    const available = allModels.filter((m) => activeProviders.has(m.provider.toLowerCase()));
+    // Separate subscription vs API key models using the authType field on each model.
+    // filterSubModels further narrows subscription models: if a provider has zero-cost
+    // models (e.g. OpenAI Codex), only those are used for subscription routing.
+    const subModels = filterSubModels(allModels.filter((m) => m.authType === 'subscription'));
+    const keyModels = allModels.filter((m) => m.authType !== 'subscription');
 
-    // 2C: Batch read all tiers in one query
+    // Batch read all tiers in one query
     const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
     const tierMap = new Map(allTiers.map((t) => [t.tier, t]));
 
@@ -46,7 +67,8 @@ export class TierAutoAssignService {
     const toInsert: Record<string, unknown>[] = [];
 
     for (const tier of TIERS) {
-      const best = this.pickBest(available, tier);
+      // Subscription models always take priority over API key models
+      const best = this.pickBest(subModels, tier) ?? this.pickBest(keyModels, tier);
       const existing = tierMap.get(tier);
 
       if (existing) {
@@ -65,7 +87,7 @@ export class TierAutoAssignService {
       }
     }
 
-    // 2C: Batch write
+    // Batch write
     if (toSave.length > 0) await this.tierRepo.save(toSave);
     if (toInsert.length > 0) await this.tierRepo.insert(toInsert);
 
@@ -81,49 +103,44 @@ export class TierAutoAssignService {
    * REASONING — highest quality among reasoning-capable models;
    *             falls back to COMPLEX if none have reasoning.
    */
-  pickBest(models: ModelPricing[], tier: Tier): ScoredModel | null {
+  pickBest(models: DiscoveredModel[], tier: Tier): ScoredModel | null {
     if (models.length === 0) return null;
 
-    const totalPrice = (m: ModelPricing) =>
-      (m.input_price_per_token != null ? Number(m.input_price_per_token) : 0) +
-      (m.output_price_per_token != null ? Number(m.output_price_per_token) : 0);
+    const totalPrice = (m: DiscoveredModel) =>
+      (m.inputPricePerToken != null ? Number(m.inputPricePerToken) : 0) +
+      (m.outputPricePerToken != null ? Number(m.outputPricePerToken) : 0);
 
-    const quality = (m: ModelPricing) => m.quality_score ?? 3;
+    const quality = (m: DiscoveredModel) => m.qualityScore ?? 3;
 
     // Sort by price ascending (cheapest first, including free local models)
     const byPrice = [...models].sort((a, b) => totalPrice(a) - totalPrice(b));
 
-    let picked: ModelPricing;
+    let picked: DiscoveredModel;
 
     switch (tier) {
       case 'simple': {
-        // Cheapest model wins
         picked = byPrice[0];
         break;
       }
 
       case 'standard': {
-        // Cheapest among quality >= 2; fallback to cheapest overall
         const eligible = byPrice.filter((m) => quality(m) >= 2);
         picked = eligible.length > 0 ? eligible[0] : byPrice[0];
         break;
       }
 
       case 'complex': {
-        // Best quality first, then cheapest as tiebreaker
         const byQuality = [...byPrice].sort((a, b) => quality(b) - quality(a));
         picked = byQuality[0];
         break;
       }
 
       case 'reasoning': {
-        // Among reasoning-capable: best quality, then cheapest
-        const reasoningModels = byPrice.filter((m) => m.capability_reasoning);
+        const reasoningModels = byPrice.filter((m) => m.capabilityReasoning);
         if (reasoningModels.length > 0) {
           const byQuality = [...reasoningModels].sort((a, b) => quality(b) - quality(a));
           picked = byQuality[0];
         } else {
-          // Fallback to COMPLEX logic
           const byQuality = [...byPrice].sort((a, b) => quality(b) - quality(a));
           picked = byQuality[0];
         }
@@ -131,6 +148,6 @@ export class TierAutoAssignService {
       }
     }
 
-    return { model_name: picked.model_name, score: quality(picked) };
+    return { model_name: picked.id, score: quality(picked) };
   }
 }

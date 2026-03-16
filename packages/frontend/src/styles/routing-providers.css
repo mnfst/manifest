@@ -1,13 +1,36 @@
-/* ── Custom provider badge color ──────────────────── */
-:root {
-  --custom-provider-color: #6366f1;
+/* ── Provider modal tabs wrapper ─────────────────── */
+.provider-modal__tabs-wrapper {
+  padding: 0 24px;
+  margin-bottom: 12px;
+}
+
+.provider-modal__tabs-wrapper .panel__tabs {
+  width: 100%;
+}
+
+.provider-modal__tabs-wrapper .panel__tab {
+  flex: 1;
+  gap: 6px;
+}
+
+.provider-modal__tab-icon {
+  flex-shrink: 0;
+  display: block;
+}
+
+.provider-modal__tab-hint {
+  padding: 10px 24px 4px;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
 }
 
 /* ── Provider toggle (modal rows) ─────────────────── */
 .provider-modal__list {
   padding: 8px 0;
-  max-height: 400px;
+  max-height: 416px;
   overflow-y: auto;
+  position: relative;
 }
 
 .provider-modal__request-link {
@@ -92,6 +115,19 @@
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
   font-style: italic;
+}
+
+.provider-toggle__tag {
+  font-size: 10px;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  padding: 1px 6px;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--foreground) / 0.4);
+  white-space: nowrap;
+  line-height: 1.4;
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 /* Toggle switch */
@@ -204,11 +240,15 @@
   justify-content: center;
   background: none;
   border: none;
-  padding: 0;
+  padding: 8px;
+  margin: -8px;
+  margin-bottom: 4px;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
-  margin-bottom: 12px;
   transition: color var(--transition-fast);
+  /* Ensure 44px minimum touch target */
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .provider-detail__back:hover {
@@ -283,6 +323,11 @@
   color: hsl(var(--muted-foreground) / 0.6);
 }
 
+.provider-detail__input--masked {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
 .provider-detail__input--disabled {
   opacity: 0.7;
   font-family: var(--font-mono, monospace);
@@ -302,6 +347,21 @@
   font-size: var(--font-size-xs);
   color: hsl(var(--destructive));
   margin-top: 4px;
+}
+
+.provider-detail__key-help {
+  margin: 6px 0 0;
+  font-size: var(--font-size-xs);
+}
+
+.provider-detail__key-help-link {
+  color: hsl(var(--muted-foreground));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.provider-detail__key-help-link:hover {
+  color: hsl(var(--foreground));
 }
 
 .provider-detail__key-row {
@@ -330,6 +390,13 @@
 .provider-detail__no-key {
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));
+}
+
+.provider-detail__hint {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
 .provider-detail__disconnect {
@@ -486,20 +553,27 @@
   outline-offset: 2px;
 }
 
-/* ── Custom provider list (in modal) ──────────────── */
-.custom-provider-section {
-  border-top: 1px solid hsl(var(--border));
-  padding-top: 8px;
-  margin-top: 4px;
+/* ── Add custom provider button ───────────────────── */
+/* Request another subscription provider — right-aligned bordered link */
+.provider-modal__request-sub {
+  padding: 8px 24px 4px;
+  display: flex;
+  justify-content: flex-end;
 }
 
-.custom-provider-section__header {
-  padding: 6px 24px;
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.provider-modal__request-sub-btn {
+  gap: 6px;
+  text-decoration: none;
+}
+
+.provider-modal__add-custom {
+  padding: 8px 24px 4px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.provider-modal__add-custom-btn {
+  gap: 6px;
 }
 
 .custom-provider-item {
@@ -597,5 +671,5 @@
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.02em;
-  line-height: 1;
+  line-height: 0;
 }

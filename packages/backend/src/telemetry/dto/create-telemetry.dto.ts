@@ -8,6 +8,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -17,17 +18,21 @@ export class SecurityEventDto {
   severity!: string;
 
   @IsString()
+  @MaxLength(256)
   category!: string;
 
   @IsString()
+  @MaxLength(4096)
   description!: string;
 }
 
 export class TelemetryEventDto {
   @IsString()
+  @MaxLength(50)
   timestamp!: string;
 
   @IsString()
+  @MaxLength(4096)
   description!: string;
 
   @IsIn(['agent', 'browser', 'voice', 'whatsapp', 'api', 'other'])
@@ -38,14 +43,17 @@ export class TelemetryEventDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(256)
   model?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(256)
   agent_name?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(256)
   skill_name?: string;
 
   @IsOptional()

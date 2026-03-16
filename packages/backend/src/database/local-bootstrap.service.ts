@@ -12,8 +12,6 @@ import { AgentMessage } from '../entities/agent-message.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { hashKey, keyPrefix } from '../common/utils/hash.util';
-import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
-import { PricingSyncService } from './pricing-sync.service';
 import {
   LOCAL_USER_ID,
   LOCAL_EMAIL,
@@ -35,13 +33,10 @@ export class LocalBootstrapService implements OnModuleInit {
     @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
     @InjectRepository(UserProvider) private readonly providerRepo: Repository<UserProvider>,
     @InjectRepository(TierAssignment) private readonly tierRepo: Repository<TierAssignment>,
-    private readonly pricingCache: ModelPricingCacheService,
-    private readonly pricingSync: PricingSyncService,
     private readonly moduleRef: ModuleRef,
   ) {}
 
   async onModuleInit() {
-    await this.pricingCache.reload();
     await this.ensureTenantAndAgent();
     await this.fixupRoutingAgentIds();
     await this.recalculateTiersIfNeeded();
@@ -52,10 +47,22 @@ export class LocalBootstrapService implements OnModuleInit {
     });
     this.logger.log('Local mode bootstrap complete');
 
-    // Fetch fresh prices from OpenRouter in the background
-    this.pricingSync.syncPricing().catch((err) => {
-      this.logger.warn(`Background pricing sync failed: ${err}`);
+    // Discover models for all active providers in the background
+    this.discoverModelsInBackground().catch((err) => {
+      this.logger.warn(`Background model discovery failed: ${err}`);
     });
+  }
+
+  private async discoverModelsInBackground(): Promise<void> {
+    try {
+      const { ModelDiscoveryService } =
+        await import('../routing/model-discovery/model-discovery.service');
+      const discovery = this.moduleRef.get(ModelDiscoveryService, { strict: false });
+      await discovery.discoverAllForAgent(LOCAL_AGENT_ID);
+      await this.recalculateTiersIfNeeded();
+    } catch (err) {
+      this.logger.warn(`Model discovery failed: ${err}`);
+    }
   }
 
   private async ensureTenantAndAgent() {
@@ -81,8 +88,6 @@ export class LocalBootstrapService implements OnModuleInit {
       this.logger.log(`Created tenant/agent for local mode`);
     }
 
-    // Always reconcile the API key — it may have been regenerated
-    // since the tenant was first created.
     const apiKey = this.readApiKeyFromConfig();
     if (apiKey) {
       await this.registerApiKey(apiKey);
@@ -121,9 +126,6 @@ export class LocalBootstrapService implements OnModuleInit {
   }
 
   private async fixupRoutingAgentIds() {
-    // Fix routing rows missing agent_id (from pre-migration SQLite DBs).
-    // SQLite uses synchronize:true so the column is added automatically but
-    // existing rows will have NULL agent_id.
     const orphanedProviders = await this.providerRepo.find({
       where: { agent_id: IsNull() as unknown as string },
     });

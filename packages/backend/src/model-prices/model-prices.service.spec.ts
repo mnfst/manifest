@@ -2,37 +2,32 @@ import { ModelPricesService } from './model-prices.service';
 
 describe('ModelPricesService', () => {
   let service: ModelPricesService;
-  let mockQuery: jest.Mock;
-  let mockGetUnresolved: jest.Mock;
-  let mockGetHistory: jest.Mock;
-  let mockSyncPricing: jest.Mock;
+  let mockPricingCache: { getAll: jest.Mock; reload: jest.Mock };
+  let mockPricingSync: { getLastFetchedAt: jest.Mock; refreshCache: jest.Mock };
 
   beforeEach(() => {
-    mockQuery = jest.fn().mockResolvedValue([]);
-    const mockDataSource = { query: mockQuery } as never;
-    mockGetUnresolved = jest.fn().mockResolvedValue([]);
-    const mockTracker = { getUnresolved: mockGetUnresolved } as never;
-    mockGetHistory = jest.fn().mockResolvedValue([]);
-    const mockHistory = { getHistory: mockGetHistory } as never;
-    mockSyncPricing = jest.fn().mockResolvedValue(0);
-    const mockSync = { syncPricing: mockSyncPricing } as never;
-    service = new ModelPricesService(mockDataSource, mockTracker, mockHistory, mockSync);
+    mockPricingCache = {
+      getAll: jest.fn().mockReturnValue([]),
+      reload: jest.fn().mockResolvedValue(undefined),
+    };
+    mockPricingSync = {
+      getLastFetchedAt: jest.fn().mockReturnValue(null),
+      refreshCache: jest.fn().mockResolvedValue(0),
+    };
+    service = new ModelPricesService(mockPricingCache as never, mockPricingSync as never);
   });
 
   describe('getAll', () => {
     it('should return transformed models with per-million pricing', async () => {
-      mockQuery
-        .mockResolvedValueOnce([
-          {
-            model_name: 'gpt-4o',
-            provider: 'OpenAI',
-            input_price_per_token: 0.0000025,
-            output_price_per_token: 0.00001,
-            updated_at: '2025-06-01',
-            display_name: 'GPT-4o',
-          },
-        ])
-        .mockResolvedValueOnce([{ last_synced: '2025-06-01' }]);
+      mockPricingCache.getAll.mockReturnValue([
+        {
+          model_name: 'gpt-4o',
+          provider: 'OpenAI',
+          input_price_per_token: 0.0000025,
+          output_price_per_token: 0.00001,
+        },
+      ]);
+      mockPricingSync.getLastFetchedAt.mockReturnValue(new Date('2025-06-01T00:00:00Z'));
 
       const result = await service.getAll();
 
@@ -42,25 +37,21 @@ describe('ModelPricesService', () => {
           provider: 'OpenAI',
           input_price_per_million: 2.5,
           output_price_per_million: 10,
-          display_name: 'GPT-4o',
+          display_name: null,
         },
       ]);
-      expect(result.lastSyncedAt).toBe('2025-06-01');
+      expect(result.lastSyncedAt).toBe('2025-06-01T00:00:00.000Z');
     });
 
     it('should use "Unknown" when provider is empty', async () => {
-      mockQuery
-        .mockResolvedValueOnce([
-          {
-            model_name: 'test-model',
-            provider: '',
-            input_price_per_token: 0.000001,
-            output_price_per_token: 0.000002,
-            updated_at: null,
-            display_name: '',
-          },
-        ])
-        .mockResolvedValueOnce([{ last_synced: null }]);
+      mockPricingCache.getAll.mockReturnValue([
+        {
+          model_name: 'test-model',
+          provider: '',
+          input_price_per_token: 0.000001,
+          output_price_per_token: 0.000002,
+        },
+      ]);
 
       const result = await service.getAll();
 
@@ -68,8 +59,9 @@ describe('ModelPricesService', () => {
       expect(result.models[0].display_name).toBeNull();
     });
 
-    it('should return null lastSyncedAt when no updated_at values', async () => {
-      mockQuery.mockResolvedValueOnce([]).mockResolvedValueOnce([{ last_synced: null }]);
+    it('should return null lastSyncedAt when getLastFetchedAt returns null', async () => {
+      mockPricingCache.getAll.mockReturnValue([]);
+      mockPricingSync.getLastFetchedAt.mockReturnValue(null);
 
       const result = await service.getAll();
 
@@ -77,27 +69,15 @@ describe('ModelPricesService', () => {
       expect(result.lastSyncedAt).toBeNull();
     });
 
-    it('should handle missing last_synced row gracefully', async () => {
-      mockQuery.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
-
-      const result = await service.getAll();
-
-      expect(result.lastSyncedAt).toBeNull();
-    });
-
     it('should correctly calculate per-million prices for very small token prices', async () => {
-      mockQuery
-        .mockResolvedValueOnce([
-          {
-            model_name: 'cheap-model',
-            provider: 'Test',
-            input_price_per_token: 0.00000006,
-            output_price_per_token: 0.00000024,
-            updated_at: null,
-            display_name: '',
-          },
-        ])
-        .mockResolvedValueOnce([{ last_synced: null }]);
+      mockPricingCache.getAll.mockReturnValue([
+        {
+          model_name: 'cheap-model',
+          provider: 'Test',
+          input_price_per_token: 0.00000006,
+          output_price_per_token: 0.00000024,
+        },
+      ]);
 
       const result = await service.getAll();
 
@@ -106,18 +86,14 @@ describe('ModelPricesService', () => {
     });
 
     it('should pass through null prices as null', async () => {
-      mockQuery
-        .mockResolvedValueOnce([
-          {
-            model_name: 'custom-model',
-            provider: 'custom:abc',
-            input_price_per_token: null,
-            output_price_per_token: null,
-            updated_at: null,
-            display_name: '',
-          },
-        ])
-        .mockResolvedValueOnce([{ last_synced: null }]);
+      mockPricingCache.getAll.mockReturnValue([
+        {
+          model_name: 'custom-model',
+          provider: 'custom:abc',
+          input_price_per_token: null,
+          output_price_per_token: null,
+        },
+      ]);
 
       const result = await service.getAll();
 
@@ -126,18 +102,14 @@ describe('ModelPricesService', () => {
     });
 
     it('should handle mixed null and non-null prices', async () => {
-      mockQuery
-        .mockResolvedValueOnce([
-          {
-            model_name: 'partial-model',
-            provider: 'custom:abc',
-            input_price_per_token: 0.000001,
-            output_price_per_token: null,
-            updated_at: null,
-            display_name: '',
-          },
-        ])
-        .mockResolvedValueOnce([{ last_synced: null }]);
+      mockPricingCache.getAll.mockReturnValue([
+        {
+          model_name: 'partial-model',
+          provider: 'custom:abc',
+          input_price_per_token: 0.000001,
+          output_price_per_token: null,
+        },
+      ]);
 
       const result = await service.getAll();
 
@@ -145,27 +117,22 @@ describe('ModelPricesService', () => {
       expect(result.models[0].output_price_per_million).toBeNull();
     });
 
-    it('should return multiple models sorted by provider', async () => {
-      mockQuery
-        .mockResolvedValueOnce([
-          {
-            model_name: 'claude-opus-4-6',
-            provider: 'Anthropic',
-            input_price_per_token: 0.000015,
-            output_price_per_token: 0.000075,
-            updated_at: '2025-06-01',
-            display_name: 'Claude Opus 4.6',
-          },
-          {
-            model_name: 'gpt-4o',
-            provider: 'OpenAI',
-            input_price_per_token: 0.0000025,
-            output_price_per_token: 0.00001,
-            updated_at: '2025-06-01',
-            display_name: 'GPT-4o',
-          },
-        ])
-        .mockResolvedValueOnce([{ last_synced: '2025-06-01' }]);
+    it('should return multiple models', async () => {
+      mockPricingCache.getAll.mockReturnValue([
+        {
+          model_name: 'claude-opus-4-6',
+          provider: 'Anthropic',
+          input_price_per_token: 0.000015,
+          output_price_per_token: 0.000075,
+        },
+        {
+          model_name: 'gpt-4o',
+          provider: 'OpenAI',
+          input_price_per_token: 0.0000025,
+          output_price_per_token: 0.00001,
+        },
+      ]);
+      mockPricingSync.getLastFetchedAt.mockReturnValue(new Date('2025-06-01T00:00:00Z'));
 
       const result = await service.getAll();
 
@@ -176,106 +143,37 @@ describe('ModelPricesService', () => {
   });
 
   describe('triggerSync', () => {
-    it('should call syncPricing and return the update count', async () => {
-      mockSyncPricing.mockResolvedValue(15);
+    it('should call refreshCache and reload, then return update count', async () => {
+      mockPricingSync.refreshCache.mockResolvedValue(15);
 
       const result = await service.triggerSync();
 
-      expect(mockSyncPricing).toHaveBeenCalledTimes(1);
+      expect(mockPricingSync.refreshCache).toHaveBeenCalledTimes(1);
+      expect(mockPricingCache.reload).toHaveBeenCalledTimes(1);
       expect(result).toEqual({ updated: 15 });
     });
 
     it('should return 0 when no models were updated', async () => {
-      mockSyncPricing.mockResolvedValue(0);
+      mockPricingSync.refreshCache.mockResolvedValue(0);
 
       const result = await service.triggerSync();
 
       expect(result).toEqual({ updated: 0 });
     });
-  });
 
-  describe('getUnresolved', () => {
-    it('should return unresolved models from the tracker', async () => {
-      const unresolved = [
-        { model_name: 'unknown-model-1', occurrence_count: 5 },
-        { model_name: 'unknown-model-2', occurrence_count: 2 },
-      ];
-      mockGetUnresolved.mockResolvedValue(unresolved);
+    it('should reload cache after refreshCache completes', async () => {
+      const callOrder: string[] = [];
+      mockPricingSync.refreshCache.mockImplementation(async () => {
+        callOrder.push('refreshCache');
+        return 5;
+      });
+      mockPricingCache.reload.mockImplementation(async () => {
+        callOrder.push('reload');
+      });
 
-      const result = await service.getUnresolved();
+      await service.triggerSync();
 
-      expect(result).toEqual(unresolved);
-      expect(mockGetUnresolved).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return empty array when no unresolved models exist', async () => {
-      mockGetUnresolved.mockResolvedValue([]);
-
-      const result = await service.getUnresolved();
-
-      expect(result).toEqual([]);
-    });
-  });
-
-  describe('getHistory', () => {
-    it('should return history records with per-million pricing', async () => {
-      mockGetHistory.mockResolvedValue([
-        {
-          model_name: 'gpt-4o',
-          input_price_per_token: 0.0000025,
-          output_price_per_token: 0.00001,
-          changed_at: '2025-06-01',
-          source: 'sync',
-        },
-      ]);
-
-      const result = await service.getHistory('gpt-4o');
-
-      expect(result).toEqual([
-        {
-          model_name: 'gpt-4o',
-          input_price_per_token: 0.0000025,
-          output_price_per_token: 0.00001,
-          input_price_per_million: 2.5,
-          output_price_per_million: 10,
-          changed_at: '2025-06-01',
-          source: 'sync',
-        },
-      ]);
-      expect(mockGetHistory).toHaveBeenCalledWith('gpt-4o');
-    });
-
-    it('should return empty array when no history exists', async () => {
-      mockGetHistory.mockResolvedValue([]);
-
-      const result = await service.getHistory('nonexistent-model');
-
-      expect(result).toEqual([]);
-    });
-
-    it('should handle multiple history records', async () => {
-      mockGetHistory.mockResolvedValue([
-        {
-          model_name: 'gpt-4o',
-          input_price_per_token: 0.000003,
-          output_price_per_token: 0.000012,
-          changed_at: '2025-07-01',
-          source: 'sync',
-        },
-        {
-          model_name: 'gpt-4o',
-          input_price_per_token: 0.0000025,
-          output_price_per_token: 0.00001,
-          changed_at: '2025-06-01',
-          source: 'sync',
-        },
-      ]);
-
-      const result = await service.getHistory('gpt-4o');
-
-      expect(result).toHaveLength(2);
-      expect(result[0].input_price_per_million).toBe(3);
-      expect(result[1].input_price_per_million).toBe(2.5);
+      expect(callOrder).toEqual(['refreshCache', 'reload']);
     });
   });
 });

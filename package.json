@@ -45,7 +45,7 @@
     "lint": "eslint packages/backend/src packages/frontend/src packages/openclaw-plugin/src",
     "format": "prettier --write 'packages/*/src/**/*.{ts,tsx,css}'",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && node scripts/sync-plugin-version.js",
     "release": "changeset publish",
     "prepare": "husky"
   },

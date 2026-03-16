@@ -76,6 +76,7 @@ const mockLogger = {
 
 const config: ManifestConfig = {
   mode: "cloud",
+  devMode: false,
   apiKey: "mnfst_test",
   endpoint: "http://localhost:3001/otlp",
   port: 2099,
@@ -84,6 +85,7 @@ const config: ManifestConfig = {
 
 const localConfig: ManifestConfig = {
   mode: "local",
+  devMode: false,
   apiKey: "",
   endpoint: "http://localhost:38238/otlp",
   port: 2099,
@@ -91,7 +93,8 @@ const localConfig: ManifestConfig = {
 };
 
 const devConfig: ManifestConfig = {
-  mode: "dev",
+  mode: "cloud",
+  devMode: true,
   apiKey: "",
   endpoint: "http://localhost:38238/otlp",
   port: 2099,
@@ -738,6 +741,25 @@ describe("registerHooks", () => {
       });
     });
 
+    it("sets ERROR status on turn span when event.error is present without success=false", () => {
+      api.emit("message_received", { sessionKey: "sess-err-obj" });
+      api.emit("before_agent_start", { sessionKey: "sess-err-obj" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-err-obj",
+        error: { message: "HTTP 401: Unauthorized" },
+        messages: [],
+      });
+
+      expect(turnSpan.setStatus).toHaveBeenCalledWith({
+        code: SpanStatusCode.ERROR,
+        message: "HTTP 401: Unauthorized",
+      });
+      expect(turnSpan.end).toHaveBeenCalled();
+    });
+
     it("does not set ERROR status when event.success is true", () => {
       api.emit("message_received", { sessionKey: "sess-ok" });
       api.emit("before_agent_start", { sessionKey: "sess-ok" });
@@ -908,6 +930,78 @@ describe("registerHooks", () => {
       );
     });
 
+    it("does not detect heartbeat when HEARTBEAT_OK is only in an earlier user message", () => {
+      api.emit("message_received", { sessionKey: "hb-buried-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-buried-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-buried-sess",
+        messages: [
+          { role: "user", content: "Check tasks and reply HEARTBEAT_OK if nothing needs attention." },
+          {
+            role: "assistant",
+            model: "gpt-4o-mini",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+          { role: "user", content: "Thanks, anything else?" },
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 500, output: 200 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "heartbeat",
+      );
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "simple",
+      );
+    });
+
+    it("detects heartbeat when HEARTBEAT_OK is in the last user message of multi-turn conversation", () => {
+      api.emit("message_received", { sessionKey: "hb-last-sess" });
+      api.emit("before_agent_start", { sessionKey: "hb-last-sess" });
+
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "hb-last-sess",
+        messages: [
+          { role: "user", content: "What is the weather?" },
+          {
+            role: "assistant",
+            model: "gpt-4o",
+            provider: "OpenAI",
+            usage: { input: 100, output: 50 },
+          },
+          { role: "user", content: "Check tasks and reply HEARTBEAT_OK if nothing needs attention." },
+          {
+            role: "assistant",
+            model: "gpt-4o-mini",
+            provider: "OpenAI",
+            usage: { input: 50, output: 10 },
+          },
+        ],
+      });
+
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_REASON,
+        "heartbeat",
+      );
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(
+        ATTRS.ROUTING_TIER,
+        "simple",
+      );
+    });
+
     it("does not set ROUTING_REASON when no heartbeat sentinel", () => {
       api.emit("message_received", { sessionKey: "no-hb-sess" });
       api.emit("before_agent_start", { sessionKey: "no-hb-sess" });
@@ -993,6 +1087,7 @@ describe("registerHooks", () => {
         model: "gpt-4o",
         provider: "OpenAI",
         reason: "scored",
+        auth_type: "api_key",
       });
 
       localApi.emit("message_received", { sessionKey: "route-sess" });
@@ -1039,6 +1134,7 @@ describe("registerHooks", () => {
         model: "claude-sonnet-4",
         provider: "Anthropic",
         reason: "multi-step",
+        auth_type: "api_key",
       });
 
       devApi.emit("message_received", { sessionKey: "dev-sess" });
@@ -1080,6 +1176,7 @@ describe("registerHooks", () => {
         model: "gpt-4o",
         provider: "OpenAI",
         reason: "scored",
+        auth_type: "api_key",
       });
 
       cloudApi.emit("message_received", { sessionKey: "cloud-sess" });
@@ -1124,6 +1221,7 @@ describe("registerHooks", () => {
         model: "gpt-4o-mini",
         provider: "OpenAI",
         reason: "scored",
+        auth_type: "api_key",
       });
 
       localApi.emit("message_received", { sessionKey: "hb-route" });

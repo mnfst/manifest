@@ -3,6 +3,7 @@ import { ManifestConfig } from "../src/config";
 
 const baseConfig: ManifestConfig = {
   mode: "cloud",
+  devMode: false,
   apiKey: "mnfst_test123",
   endpoint: "http://localhost:3001/otlp",
   port: 2099,
@@ -23,7 +24,7 @@ describe("verifyConnection", () => {
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ agentName: "my-agent" }),
+        json: async () => ({ agentName: "my-agent", telemetryId: "abc123" }),
       });
 
     const result = await verifyConnection(baseConfig);
@@ -31,6 +32,7 @@ describe("verifyConnection", () => {
     expect(result.endpointReachable).toBe(true);
     expect(result.authValid).toBe(true);
     expect(result.agentName).toBe("my-agent");
+    expect(result.telemetryId).toBe("abc123");
     expect(result.error).toBeNull();
   });
 
@@ -162,7 +164,36 @@ describe("verifyConnection", () => {
 
     expect(result.authValid).toBe(true);
     expect(result.agentName).toBeNull();
+    expect(result.telemetryId).toBeNull();
     expect(result.error).toBeNull();
+  });
+
+  it("extracts telemetryId from usage response", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, status: 200 })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ agentName: "agent-1", telemetryId: "hash123456789abc" }),
+      });
+
+    const result = await verifyConnection(baseConfig);
+
+    expect(result.telemetryId).toBe("hash123456789abc");
+  });
+
+  it("sets telemetryId to null when not present in response", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, status: 200 })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ agentName: "agent-1" }),
+      });
+
+    const result = await verifyConnection(baseConfig);
+
+    expect(result.telemetryId).toBeNull();
   });
 
   it("handles non-ok status from usage endpoint", async () => {
@@ -177,8 +208,8 @@ describe("verifyConnection", () => {
     expect(result.error).toContain("500");
   });
 
-  it("sends no Authorization header when apiKey is empty (dev mode)", async () => {
-    const devConfig = { ...baseConfig, mode: "dev" as const, apiKey: "" };
+  it("sends no Authorization header when apiKey is empty (devMode)", async () => {
+    const devConfig = { ...baseConfig, devMode: true, apiKey: "" };
     mockFetch
       .mockResolvedValueOnce({ ok: true, status: 200 })
       .mockResolvedValueOnce({

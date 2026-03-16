@@ -64,16 +64,14 @@ const Sidebar: Component = () => {
         >
           Limits
         </A>
-        <Show when={!isLocalMode()}>
-          <A
-            href={path('/settings')}
-            class="sidebar__link"
-            classList={{ active: isActive('/settings') }}
-            aria-current={isActive('/settings') ? 'page' : undefined}
-          >
-            Settings
-          </A>
-        </Show>
+        <A
+          href={path('/settings')}
+          class="sidebar__link"
+          classList={{ active: isActive('/settings') }}
+          aria-current={isActive('/settings') ? 'page' : undefined}
+        >
+          Settings
+        </A>
       </Show>
 
       <Show when={getAgentName()}>

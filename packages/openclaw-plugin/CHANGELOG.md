@@ -1,5 +1,161 @@
 # manifest
 
+## 5.26.0
+
+### Minor Changes
+
+- b27b960: Add expandable message detail logs to the Messages page with chevron button to view related LLM calls, tool executions, agent logs, error details, and fallback chain info
+- 76c3fda: Replace static model seeding with provider-native model discovery via live API calls
+  - Add `ProviderModelFetcherService` with config-driven fetchers for all 12 providers
+  - Add `ModelDiscoveryService` orchestrator that discovers, enriches, and caches models per provider
+  - Refactor `PricingSyncService` into OpenRouter pricing lookup cache (no DB writes)
+  - Refactor `ModelPricingCacheService` to read from OpenRouter cache + manual pricing reference
+  - Add `cached_models` and `models_fetched_at` columns to `user_providers`
+  - Drop `model_pricing`, `model_pricing_history`, and `unresolved_models` tables
+  - Remove static model seed data and hardcoded frontend model lists
+  - Add "Refresh models" button to routing UI
+  - Add `POST /api/v1/routing/:agent/refresh-models` endpoint
+
+### Patch Changes
+
+- f8f93f0: Allow LAN access in local mode by accepting RFC1918 private network IPs alongside loopback
+- 3a79e19: Fix routing fallback chain: trigger fallback on all 4xx/5xx errors, resolve providers via connected provider cache, record real usage data on fallback success, and show fallback icon on all handled messages
+- cf4d6c7: fix: record every provider error so rate-limited calls display as errors instead of success
+- e338ab8: Fix stale agent list after deletion by disabling browser HTTP cache on API requests
+- 9a13cc6: Fix streaming tool calls dropped by Anthropic and Google adapters in the LLM proxy
+- 103260e: Show display names and provider icons in model prices table
+
+## 5.25.4
+
+### Patch Changes
+
+- dac8d01: fix: preserve custom provider models and x-ai prefix during pricing sync cleanup
+
+## 5.25.3
+
+### Patch Changes
+
+- aed1eb5: Strip DeepSeek-specific `reasoning_content` from forwarded chat history unless the target endpoint/model supports it, preventing cross-provider chat completion failures when a conversation switches models.
+- 4293eab: Add the missing `compression` runtime dependency to the published OpenClaw plugin package and test that plugin runtime dependencies stay in sync with backend runtime dependencies.
+- 9ad6e97: Resolve model display names on the backend via LEFT JOIN with model_pricing, ensuring consistent display names between Overview and Messages pages regardless of frontend cache state.
+- 2773025: Return HTTP 424 when fallback chain is exhausted to prevent infinite retry loops
+- f28b952: Fix 404 on page reload for SPA routes in local mode by centralizing frontend directory resolution with proper fallback chain for both monorepo and embedded npm package layouts.
+- 2232b79: Remove process.env string obfuscation, reduce minification level, add source maps, and externalize child_process to avoid VirusTotal false positives
+- 51e362f: Ignore unsupported subscription providers in Manifest routing, clean up stale unsupported subscription connections from existing installs, and include shared subscription capability files in the published plugin package.
+- d89b44d: Security hardening: SSRF validation for custom provider URLs, encrypted email provider API keys, OTLP auth guard improvements (min token length, hashed cache keys, cache invalidation on rotation), telemetry DTO string length limits, SessionGuard exception handling, login rate limiting, provider error sanitization, DATABASE_URL validation, API key guard audit logging, domain length validation, test email recipient validation
+- 7d3e3a0: Add smoke test suite covering auth, agent creation, OTLP ingestion, routing, proxy, limits, and fallback chains
+- a23f676: Fix the OpenClaw plugin installation warnings and package the embedded backend dependencies correctly.
+- f288e0c: Add "Where to get API key" links below provider API key inputs in routing and email provider modals.
+- 8cee3f6: Preserve compatible OpenRouter text models during pricing sync while filtering out non-chat OpenRouter models from the local model list.
+
+## 5.25.2
+
+### Patch Changes
+
+- 00e5978: Update routing page button styles: responsive icon-only change button, fallback card background colors, and streamlined add-fallback button text
+
+## 5.25.1
+
+### Patch Changes
+
+- 6376414: Fix local mode server not starting (ERR_CONNECTION_REFUSED on port 2099)
+
+## 5.25.0
+
+### Minor Changes
+
+- 9797337: Redesign routing page: 4-column tier layout with drag-and-drop fallback reordering, auto-remove fallback when promoted to primary, model role tags in picker, and consistent btn--outline styling
+
+### Patch Changes
+
+- 9ccb05c: Standardize all buttons to use btn--sm (32px height) for consistent UI across the dashboard
+- 0db1194: Fix Moonshot and Z.ai provider logos visibility in dark mode by using currentColor instead of hardcoded dark fills
+- 6e977e0: Fix custom model pricing fields ignoring comma decimal separators (e.g. "0,59" now correctly parsed as 0.59)
+- 8dda8c9: Replace unusable status and model filters on the Messages page with a provider filter that only shows providers present in the user's data. Add horizontal scroll for the message table on small screens.
+- 39aebd3: Hide Agent setup tab on Settings page in local mode
+
+## 5.24.2
+
+### Patch Changes
+
+- 894ea4f: Fix cloud mode product telemetry funnel by linking plugin and backend identities via PostHog $identify
+- f6e336d: Accept dev-mode loopback connections in cloud mode and improve error status reporting in OTLP traces
+- e1c3778: Prevent subscription providers from overriding explicit API key connections in routing
+- ba6a7cf: Return 409 Conflict instead of 500 when creating an agent with a duplicate name
+
+## 5.24.1
+
+### Patch Changes
+
+- d14025f: Fix 24h chart timezone shift by aligning SQL queries and frontend parsing to local time
+- 76dba1c: Fix heartbeat detection to check only the last user message instead of all messages in conversation history
+- 436f583: Distinguish subscription providers from API key providers in PostHog tracking by appending (Subscription) suffix
+- 3c62a81: Fix subscription providers being re-activated on every gateway restart
+- 3aaf6d4: Fix number formatting in threshold alert emails - tokens now display with comma separators and no decimal places, costs display with 2 decimal places and comma separators
+
+## 5.24.0
+
+### Minor Changes
+
+- 4e08bb4: Add OAuth/subscription routing support for Anthropic Claude tokens
+  - Subscription tab now accepts Claude setup-tokens (sk-ant-oat) with dedicated input UI
+  - Backend stores and proxies subscription tokens (previously rejected)
+  - Proxy sends correct Authorization: Bearer + anthropic-beta headers for subscription tokens
+  - Fix case-insensitive provider matching for subscription cost/auth_type inference
+  - Fix DELETE provider endpoint rejecting requests with validation error
+  - Fix token whitespace corruption when pasting from terminal
+  - Subscription badge overlay on provider icons in message log and overview
+  - Proxy messages now store auth_type and set cost to zero for subscriptions
+  - Fix duplicate messages: OTLP dedup remaps trace to proxy-recorded message
+  - Conditional rollup preserves proxy token data instead of overwriting
+  - ModelPickerModal always shows subscription/API key tabs with contextual empty states
+  - Purge non-curated models after OpenRouter sync in local mode
+  - Tier auto-assign excludes OpenRouter models from prefix-based provider inference
+
+- dab83ca: Replace 3-mode system (cloud/local/dev) with 2-axis configuration (mode × devMode). The `mode` field now only accepts `cloud` or `local` for deployment model, while `devMode` (boolean) independently controls development behaviors like skipping API keys and faster metrics. The old `mode: "dev"` is still accepted for backward compatibility but logs a deprecation warning. `devMode` is auto-detected when the endpoint is a loopback address and no `mnfst_*` API key is provided.
+
+### Patch Changes
+
+- 8758f8c: Add auth badge (subscription/api key) to provider icons across all pages for consistency
+- Fix auth_type propagation on error/fallback records, dual-auth subscription billing, migration index names, and SSE passthrough buffer overflow
+- 3d4eb56: Reduce custom-providers endpoint latency with caching and query parallelization
+- 100b33d: Improve frontend performance with route-level code splitting, vendor chunk separation, and asset loading optimizations
+- 3efa632: Optimize slow backend endpoints for sub-500ms response times: parallelize independent DB queries, batch saves, pre-fetch dedup context, derive summaries from timeseries data, and group notification cron evaluation.
+
+## 5.23.1
+
+### Patch Changes
+
+- b226346: Reduce agents endpoint latency by parallelizing queries and using daily sparkline buckets
+- 746fe2b: Optimize messages page latency: configurable connection pool, agent-scoped model queries, count cache for pagination, custom-providers short-circuit, and composite index migration
+- 07f3fb9: Reduce overview endpoint latency by merging parallel queries and resolving tenant once
+
+## 5.23.0
+
+### Minor Changes
+
+- f792f3c: Add animated skeleton loaders and spinner buttons across the frontend
+
+## 5.22.1
+
+### Patch Changes
+
+- 35b326c: Add migration to backfill tenant_id on agent_messages from tenants table
+- e4f5b10: Drop 4 unused composite indexes on write-only OTLP ingestion tables (tool_executions, token_usage_snapshots, cost_snapshots, agent_logs) to reduce write amplification
+- 45dd667: Fix missing canonical provider models in local mode and improve routing page UX
+  - Create canonical model entries (e.g. `gemini-2.5-pro` with provider "Google") during pricing sync when no seeded entry exists, fixing local mode showing only OpenRouter-branded models
+  - Replace full tier list refetch with local state mutations on model change, reset, and fallback operations for instant UI updates
+  - Add loading indicator ("Changing...") on the Change button while model override is saving
+  - Add toast notification when removing a fallback model
+
+- 3143303: Fix token values showing as 0 for OTLP-ingested messages by capturing usage directly from proxy responses
+- 8ec8b25: Fix routing model picker showing non-curated models from OpenRouter
+- 78e8ec2: Progressive rendering for Routing page skeleton loading state
+- a1dd405: Speed up Overview and Messages pages
+  - Parallelize messages endpoint DB queries (count, data, models run concurrently via Promise.all)
+  - Show stale data during SSE refetches instead of flashing skeleton loaders
+  - Debounce cost filter inputs on Messages page (400ms) to prevent rapid-fire API calls
+
 ## 5.22.0
 
 ### Minor Changes

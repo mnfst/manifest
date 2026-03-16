@@ -34,3 +34,13 @@ if (existsSync(backendDist)) {
 } else {
   console.warn('Backend dist not found — skipping backend copy. Build backend first.');
 }
+
+const subCaps = join(__dirname, '..', '..', 'subscription-capabilities');
+const subCapsTarget = join(__dirname, '..', 'subscription-capabilities');
+
+if (existsSync(subCaps)) {
+  cpSync(subCaps, subCapsTarget, { recursive: true });
+  console.log('Copied subscription-capabilities/');
+} else {
+  console.warn('subscription-capabilities not found — skipping.');
+}

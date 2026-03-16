@@ -26,9 +26,11 @@ vi.mock("../../src/services/routing.js", () => ({
 }));
 
 let mockIsLocalMode: boolean | null = false;
+let mockIsDevMode = false;
 vi.mock("../../src/services/local-mode.js", () => ({
   checkLocalMode: vi.fn().mockResolvedValue(false),
   isLocalMode: () => mockIsLocalMode,
+  isDevMode: () => mockIsDevMode,
 }));
 
 let mockAgentDisplayName: string | null = null;
@@ -43,6 +45,7 @@ beforeEach(() => {
   sessionStorage.clear();
   mockAgentName = null;
   mockIsLocalMode = false;
+  mockIsDevMode = false;
   mockAgentDisplayName = null;
 });
 
@@ -96,6 +99,14 @@ describe("Header", () => {
     await vi.waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/login", { replace: true });
     });
+  });
+
+  it("closes dropdown when clicking outside", async () => {
+    render(() => <Header />);
+    await fireEvent.click(screen.getByLabelText("User menu"));
+    expect(screen.getByText("Alice")).toBeDefined();
+    await fireEvent.click(document.body);
+    expect(screen.queryByText("Alice")).toBeNull();
   });
 });
 
@@ -208,6 +219,41 @@ describe("Header - GitHub star button", () => {
     render(() => <Header />);
     expect(fetchSpy).not.toHaveBeenCalled();
   });
+
+  it("uses cached star count from sessionStorage", async () => {
+    sessionStorage.setItem("github-star-count", "9999");
+    sessionStorage.setItem("github-star-ts", String(Date.now()));
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    render(() => <Header />);
+    await vi.waitFor(() => {
+      expect(screen.getByText("9,999")).toBeDefined();
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("fetches fresh count when cache is expired", async () => {
+    sessionStorage.setItem("github-star-count", "9999");
+    sessionStorage.setItem("github-star-ts", String(Date.now() - 4000000));
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify({ stars: 5555 }))
+    );
+    render(() => <Header />);
+    await vi.waitFor(() => {
+      expect(screen.getByText("5,555")).toBeDefined();
+    });
+  });
+
+  it("caches star count in sessionStorage after fetch", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify({ stars: 4321 }))
+    );
+    render(() => <Header />);
+    await vi.waitFor(() => {
+      expect(screen.getByText("4,321")).toBeDefined();
+    });
+    expect(sessionStorage.getItem("github-star-count")).toBe("4321");
+    expect(sessionStorage.getItem("github-star-ts")).toBeDefined();
+  });
 });
 
 describe("Header - local mode", () => {
@@ -225,16 +271,37 @@ describe("Header - local mode", () => {
     expect(logoLink.getAttribute("href")).toBe("/");
   });
 
-  it("hides Cloud badge in local mode", () => {
+  it("shows Local badge in local mode", () => {
     mockIsLocalMode = true;
     render(() => <Header />);
-    expect(screen.queryByText("Cloud")).toBeNull();
+    expect(screen.getByText("Local")).toBeDefined();
   });
 
-  it("hides Dev badge in cloud mode", () => {
+  it("hides Local badge in cloud mode", () => {
     mockIsLocalMode = false;
     render(() => <Header />);
+    expect(screen.queryByText("Local")).toBeNull();
+  });
+
+  it("shows Dev badge when devMode is true and not local", () => {
+    mockIsDevMode = true;
+    mockIsLocalMode = false;
+    render(() => <Header />);
+    expect(screen.getByText("Dev")).toBeDefined();
+  });
+
+  it("hides Dev badge when devMode is false", () => {
+    mockIsDevMode = false;
+    render(() => <Header />);
     expect(screen.queryByText("Dev")).toBeNull();
+  });
+
+  it("shows both Local and Dev badges when both local and devMode", () => {
+    mockIsLocalMode = true;
+    mockIsDevMode = true;
+    render(() => <Header />);
+    expect(screen.getByText("Local")).toBeDefined();
+    expect(screen.getByText("Dev")).toBeDefined();
   });
 
   it("hides Workspace breadcrumb in local mode", () => {

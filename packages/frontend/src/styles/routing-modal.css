@@ -1,7 +1,7 @@
 /* ── Model picker modal ───────────────────────────── */
 .routing-modal__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 20px 24px 16px;
   flex-shrink: 0;
@@ -45,7 +45,9 @@
   font-size: var(--font-size-sm);
   font-family: var(--font-family);
   outline: none;
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
   box-sizing: border-box;
 }
 
@@ -64,18 +66,41 @@
   flex-shrink: 0;
 }
 
-.routing-modal__filter-toggle {
-  display: flex;
+.routing-modal__filter-pill {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 5px 14px;
   font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+  font-weight: 500;
   color: hsl(var(--muted-foreground));
+  background: transparent;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
   cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
-.routing-modal__filter-toggle input[type="checkbox"] {
-  accent-color: hsl(var(--primary));
-  cursor: pointer;
+.routing-modal__filter-pill:hover {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
+}
+
+.routing-modal__filter-pill--active {
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--foreground) / 0.3);
+}
+
+.routing-modal__filter-pill--active:hover {
+  background: hsl(var(--muted) / 0.5);
+}
+
+.routing-modal__filter-check {
+  flex-shrink: 0;
 }
 
 .routing-modal__list {
@@ -161,11 +186,30 @@
   font-family: var(--font-mono, monospace);
 }
 
+.routing-modal__model-id--subscription {
+  color: #64748b;
+  font-family: var(--font-family);
+}
+
 .routing-modal__recommended {
   font-size: var(--font-size-xs);
   color: hsl(var(--success));
   font-weight: 500;
   margin-left: 4px;
+}
+
+.routing-modal__role-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 2px 6px;
+  margin-left: 6px;
+  border-radius: 4px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  vertical-align: middle;
+  letter-spacing: 0.01em;
 }
 
 .routing-modal__empty {
@@ -203,7 +247,9 @@
   border-radius: var(--radius);
   cursor: pointer;
   font-family: var(--font-family);
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .routing-modal__selected-display:hover {

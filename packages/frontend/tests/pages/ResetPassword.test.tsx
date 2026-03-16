@@ -96,7 +96,8 @@ describe("ResetPassword - Request form (no token)", () => {
     fireEvent.input(emailInput, { target: { value: "test@test.com" } });
     fireEvent.submit(container.querySelector("form")!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Sending...");
+      const btn = container.querySelector('button[type="submit"]') as HTMLButtonElement;
+      expect(btn.querySelector(".spinner")).not.toBeNull();
     });
   });
 });
@@ -193,7 +194,8 @@ describe("ResetPassword - Set new password form (with token)", () => {
     fireEvent.input(inputs[1], { target: { value: "newpass123" } });
     fireEvent.submit(container.querySelector("form")!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Resetting...");
+      const btn = container.querySelector('button[type="submit"]') as HTMLButtonElement;
+      expect(btn.querySelector(".spinner")).not.toBeNull();
     });
   });
 

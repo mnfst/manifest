@@ -6,9 +6,6 @@ import { AgentMessage } from '../entities/agent-message.entity';
 import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
 import { SecurityEvent } from '../entities/security-event.entity';
-import { ModelPricing } from '../entities/model-pricing.entity';
-import { ModelPricingHistory } from '../entities/model-pricing-history.entity';
-import { UnresolvedModel } from '../entities/unresolved-model.entity';
 import { TokenUsageSnapshot } from '../entities/token-usage-snapshot.entity';
 import { CostSnapshot } from '../entities/cost-snapshot.entity';
 import { AgentLog } from '../entities/agent-log.entity';
@@ -44,6 +41,7 @@ import { PerAgentRouting1772500000000 } from './migrations/1772500000000-PerAgen
 import { AddCustomProviders1772668898071 } from './migrations/1772668898071-AddCustomProviders';
 import { NullablePricing1772682112419 } from './migrations/1772682112419-NullablePricing';
 import { AddPerformanceIndexes1772843035514 } from './migrations/1772843035514-AddPerformanceIndexes';
+import { AddProviderAuthType1772900000000 } from './migrations/1772900000000-AddProviderAuthType';
 import { AddDashboardIndexes1772905146384 } from './migrations/1772905146384-AddDashboardIndexes';
 import { AddFallbacks1772905260464 } from './migrations/1772905260464-AddFallbacks';
 import { AddModelDisplayName1772920000000 } from './migrations/1772920000000-AddModelDisplayName';
@@ -51,15 +49,19 @@ import { DropRedundantIndexes1772940000000 } from './migrations/1772940000000-Dr
 import { BackfillTenantId1772948502780 } from './migrations/1772948502780-BackfillTenantId';
 import { DropUnusedIndexes1772960000000 } from './migrations/1772960000000-DropUnusedIndexes';
 import { PurgeNonCuratedModels1772960000000 } from './migrations/1772960000000-PurgeNonCuratedModels';
+import { ExpandProviderUniqueKey1773000000000 } from './migrations/1773000000000-ExpandProviderUniqueKey';
+import { AddOverrideAuthType1773100000000 } from './migrations/1773100000000-AddOverrideAuthType';
+import { AddMessageAuthType1773200000000 } from './migrations/1773200000000-AddMessageAuthType';
+import { AddModelsAgentIndex1773202787708 } from './migrations/1773202787708-AddModelsAgentIndex';
+import { AddEmailProviderKeyPrefix1773300000000 } from './migrations/1773300000000-AddEmailProviderKeyPrefix';
+import { AddProviderModelCache1773400000000 } from './migrations/1773400000000-AddProviderModelCache';
+import { DropModelPricingTables1773500000000 } from './migrations/1773500000000-DropModelPricingTables';
 
 const entities = [
   AgentMessage,
   LlmCall,
   ToolExecution,
   SecurityEvent,
-  ModelPricing,
-  ModelPricingHistory,
-  UnresolvedModel,
   TokenUsageSnapshot,
   CostSnapshot,
   AgentLog,
@@ -75,10 +77,6 @@ const entities = [
   CustomProvider,
 ];
 
-// Migration execution order is determined by array order below.
-// Three timestamp pairs collide (1771600000000, 1771700000000, 1771800000000)
-// but cannot be renamed since they are already applied in production databases.
-// Future migrations MUST use unique timestamps (e.g. Date.now()).
 const migrations = [
   InitialSchema1771464895790,
   HashApiKeys1771500000000,
@@ -99,6 +97,7 @@ const migrations = [
   AddCustomProviders1772668898071,
   NullablePricing1772682112419,
   AddPerformanceIndexes1772843035514,
+  AddProviderAuthType1772900000000,
   AddDashboardIndexes1772905146384,
   AddFallbacks1772905260464,
   AddModelDisplayName1772920000000,
@@ -106,6 +105,13 @@ const migrations = [
   BackfillTenantId1772948502780,
   DropUnusedIndexes1772960000000,
   PurgeNonCuratedModels1772960000000,
+  ExpandProviderUniqueKey1773000000000,
+  AddOverrideAuthType1773100000000,
+  AddMessageAuthType1773200000000,
+  AddModelsAgentIndex1773202787708,
+  AddEmailProviderKeyPrefix1773300000000,
+  AddProviderModelCache1773400000000,
+  DropModelPricingTables1773500000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -143,7 +149,7 @@ function buildModeServices() {
           migrations,
           logging: false,
           extra: {
-            max: 5,
+            max: config.get<number>('app.dbPoolMax') ?? 20,
             idleTimeoutMillis: 30000,
           },
         };
@@ -155,7 +161,6 @@ function buildModeServices() {
       AgentApiKey,
       AgentMessage,
       ApiKey,
-      ModelPricing,
       SecurityEvent,
       UserProvider,
       TierAssignment,

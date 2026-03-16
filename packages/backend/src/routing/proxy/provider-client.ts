@@ -7,6 +7,11 @@ import {
   transformAnthropicStreamChunk,
   createAnthropicStreamTransformer,
 } from './anthropic-adapter';
+import {
+  toResponsesRequest,
+  fromResponsesResponse,
+  transformResponsesStreamChunk,
+} from './chatgpt-adapter';
 import { injectOpenRouterCacheControl } from './cache-injection';
 
 /**
@@ -25,9 +30,33 @@ const OPENAI_ONLY_FIELDS = new Set([
 ]);
 
 /**
- * Providers that accept the full OpenAI request schema without modification.
+ * Providers that accept the full OpenAI top-level request schema without modification.
+ * Nested message fields may still need target-aware cleanup.
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+
+function supportsReasoningContent(endpointKey: string, model: string): boolean {
+  if (endpointKey === 'deepseek') return true;
+  if (endpointKey === 'openrouter') return model.toLowerCase().startsWith('deepseek/');
+  return false;
+}
+
+function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: string): unknown {
+  if (!Array.isArray(messages)) return messages;
+
+  const preserveReasoningContent = supportsReasoningContent(endpointKey, model);
+  return messages.map((message) => {
+    if (!message || typeof message !== 'object' || Array.isArray(message)) {
+      return message;
+    }
+
+    const cleaned = { ...(message as Record<string, unknown>) };
+    if (!preserveReasoningContent) {
+      delete cleaned.reasoning_content;
+    }
+    return cleaned;
+  });
+}
 
 /**
  * Strip OpenAI-specific fields and normalise `max_completion_tokens` → `max_tokens`
@@ -36,11 +65,20 @@ const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
 function sanitizeOpenAiBody(
   body: Record<string, unknown>,
   endpointKey: string,
+  model: string,
 ): Record<string, unknown> {
-  if (PASSTHROUGH_PROVIDERS.has(endpointKey)) return body;
+  const passthroughTopLevel = PASSTHROUGH_PROVIDERS.has(endpointKey);
 
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(body)) {
+    if (key === 'messages') {
+      cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model);
+      continue;
+    }
+    if (passthroughTopLevel) {
+      cleaned[key] = value;
+      continue;
+    }
     if (OPENAI_ONLY_FIELDS.has(key)) continue;
     if (key === 'max_completion_tokens') {
       // Convert to max_tokens unless already set
@@ -58,9 +96,22 @@ export interface ForwardResult {
   isGoogle: boolean;
   /** True when we converted from Anthropic format (needs SSE transform). */
   isAnthropic: boolean;
+  /** True when we converted from ChatGPT Responses API format (needs SSE transform). */
+  isChatGpt: boolean;
 }
 
 const PROVIDER_TIMEOUT_MS = 180_000;
+
+/**
+ * Strip vendor prefix from model name (e.g. "anthropic/claude-sonnet-4" → "claude-sonnet-4").
+ * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
+ */
+function stripModelPrefix(model: string, endpointKey: string): string {
+  // OpenRouter accepts and expects vendor prefixes
+  if (endpointKey === 'openrouter') return model;
+  const slashIdx = model.indexOf('/');
+  return slashIdx > 0 ? model.substring(slashIdx + 1) : model;
+}
 
 @Injectable()
 export class ProviderClient {
@@ -75,6 +126,7 @@ export class ProviderClient {
     signal?: AbortSignal,
     extraHeaders?: Record<string, string>,
     customEndpoint?: ProviderEndpoint,
+    authType?: string,
   ): Promise<ForwardResult> {
     let endpoint: ProviderEndpoint;
     let endpointKey: string;
@@ -83,36 +135,46 @@ export class ProviderClient {
       endpoint = customEndpoint;
       endpointKey = 'custom';
     } else {
-      const resolved = resolveEndpointKey(provider);
+      let resolved = resolveEndpointKey(provider);
       if (!resolved) {
         throw new Error(`No endpoint configured for provider: ${provider}`);
+      }
+      // ChatGPT subscription tokens use a different backend endpoint
+      if (resolved === 'openai' && authType === 'subscription') {
+        resolved = 'openai-subscription';
       }
       endpointKey = resolved;
       endpoint = PROVIDER_ENDPOINTS[endpointKey];
     }
     const isGoogle = endpoint.format === 'google';
     const isAnthropic = endpoint.format === 'anthropic';
+    const isChatGpt = endpoint.format === 'chatgpt';
 
+    const bareModel = stripModelPrefix(model, endpointKey);
     let url: string;
     let headers: Record<string, string>;
     let requestBody: Record<string, unknown>;
 
     if (isGoogle) {
-      url = `${endpoint.baseUrl}${endpoint.buildPath(model)}?key=${apiKey}`;
+      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}?key=${apiKey}`;
       if (stream) url += '&alt=sse';
-      headers = endpoint.buildHeaders(apiKey);
-      requestBody = toGoogleRequest(body, model);
+      headers = endpoint.buildHeaders(apiKey, authType);
+      requestBody = toGoogleRequest(body, bareModel);
     } else if (isAnthropic) {
-      url = `${endpoint.baseUrl}${endpoint.buildPath(model)}`;
-      headers = endpoint.buildHeaders(apiKey);
-      requestBody = toAnthropicRequest(body, model);
-      requestBody.model = model;
+      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+      headers = endpoint.buildHeaders(apiKey, authType);
+      requestBody = toAnthropicRequest(body, bareModel);
+      requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
+    } else if (isChatGpt) {
+      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+      headers = endpoint.buildHeaders(apiKey, authType);
+      requestBody = toResponsesRequest(body, bareModel);
     } else {
-      url = `${endpoint.baseUrl}${endpoint.buildPath(model)}`;
-      headers = endpoint.buildHeaders(apiKey);
-      const sanitized = sanitizeOpenAiBody(body, endpointKey!);
-      requestBody = { ...sanitized, model, stream };
+      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+      headers = endpoint.buildHeaders(apiKey, authType);
+      const sanitized = sanitizeOpenAiBody(body, endpointKey, model);
+      requestBody = { ...sanitized, model: bareModel, stream };
 
       // Inject cache_control for OpenRouter requests targeting Anthropic models
       if (endpointKey === 'openrouter' && model.startsWith('anthropic/')) {
@@ -137,7 +199,17 @@ export class ProviderClient {
       signal: fetchSignal,
     });
 
-    return { response, isGoogle, isAnthropic };
+    return { response, isGoogle, isAnthropic, isChatGpt };
+  }
+
+  /** Convert a ChatGPT Responses API response to OpenAI format. */
+  convertChatGptResponse(body: Record<string, unknown>, model: string): Record<string, unknown> {
+    return fromResponsesResponse(body, model);
+  }
+
+  /** Convert a ChatGPT Responses API SSE chunk to OpenAI format. */
+  convertChatGptStreamChunk(chunk: string, model: string): string | null {
+    return transformResponsesStreamChunk(chunk, model);
   }
 
   /** Convert a Google non-streaming response to OpenAI format. */

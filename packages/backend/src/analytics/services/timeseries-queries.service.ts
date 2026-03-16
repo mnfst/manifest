@@ -4,7 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
-import { addTenantFilter, downsample } from './query-helpers';
+import { addTenantFilter } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
   DbDialect,
@@ -155,8 +155,56 @@ export class TimeseriesQueriesService {
     }));
   }
 
-  async getActiveSkills(range: string, userId: string, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    agentName?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly
+      ? sqlHourBucket('at.timestamp', this.dialect)
+      : sqlDateBucket('at.timestamp', this.dialect);
+    const bucketAlias = hourly ? 'hour' : 'date';
+
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
+      .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
+      .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'cost')
+      .addSelect('COUNT(*)', 'count')
+      .where('at.timestamp >= :cutoff', { cutoff });
+    addTenantFilter(qb, userId, agentName, tenantId);
+    const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
+
+    const tokenUsage: {
+      hour?: string;
+      date?: string;
+      input_tokens: number;
+      output_tokens: number;
+    }[] = [];
+    const costUsage: { hour?: string; date?: string; cost: number }[] = [];
+    const messageUsage: { hour?: string; date?: string; count: number }[] = [];
+
+    for (const r of rows) {
+      const bucket = String(r[bucketAlias]);
+      tokenUsage.push({
+        [bucketAlias]: bucket,
+        input_tokens: Number(r['input_tokens'] ?? 0),
+        output_tokens: Number(r['output_tokens'] ?? 0),
+      } as never);
+      costUsage.push({ [bucketAlias]: bucket, cost: Number(r['cost'] ?? 0) } as never);
+      messageUsage.push({ [bucketAlias]: bucket, count: Number(r['count'] ?? 0) } as never);
+    }
+
+    return { tokenUsage, costUsage, messageUsage };
+  }
+
+  async getActiveSkills(range: string, userId: string, agentName?: string, tenantId?: string) {
+    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
@@ -168,7 +216,7 @@ export class TimeseriesQueriesService {
       .addSelect('MAX(at.timestamp)', 'last_active_at')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.skill_name IS NOT NULL');
-    addTenantFilter(qb, userId, agentName, tenantId);
+    addTenantFilter(qb, userId, agentName, resolved);
     const rows = await qb.groupBy('at.skill_name').orderBy('run_count', 'DESC').getRawMany();
     return rows.map((r: Record<string, unknown>) => ({
       name: String(r['name']),
@@ -179,8 +227,14 @@ export class TimeseriesQueriesService {
     }));
   }
 
-  async getRecentActivity(range: string, userId: string, limit = 5, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getRecentActivity(
+    range: string,
+    userId: string,
+    limit = 5,
+    agentName?: string,
+    tenantId?: string,
+  ) {
+    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
@@ -192,6 +246,7 @@ export class TimeseriesQueriesService {
       .addSelect('at.timestamp', 'timestamp')
       .addSelect('at.agent_name', 'agent_name')
       .addSelect('at.model', 'model')
+      .addSelect('at.model', 'display_name')
       .addSelect('at.input_tokens', 'input_tokens')
       .addSelect('at.output_tokens', 'output_tokens')
       .addSelect('at.status', 'status')
@@ -200,28 +255,35 @@ export class TimeseriesQueriesService {
       .addSelect('at.routing_tier', 'routing_tier')
       .addSelect('at.routing_reason', 'routing_reason')
       .addSelect('at.error_message', 'error_message')
+      .addSelect('at.auth_type', 'auth_type')
       .addSelect('at.fallback_from_model', 'fallback_from_model')
       .addSelect('at.fallback_index', 'fallback_index')
       .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(qb, userId, agentName, tenantId);
+    addTenantFilter(qb, userId, agentName, resolved);
     return qb.orderBy('at.timestamp', 'DESC').limit(limit).getRawMany();
   }
 
-  async getCostByModel(range: string, userId: string, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getCostByModel(range: string, userId: string, agentName?: string, tenantId?: string) {
+    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .select("COALESCE(at.model, 'unknown')", 'model')
+      .addSelect('at.model', 'display_name')
       .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
       .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'estimated_cost')
+      .addSelect('at.auth_type', 'auth_type')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL')
       .andWhere("at.model != ''");
-    addTenantFilter(qb, userId, agentName, tenantId);
-    const rows = await qb.groupBy('at.model').orderBy('tokens', 'DESC').getRawMany();
+    addTenantFilter(qb, userId, agentName, resolved);
+    const rows = await qb
+      .groupBy('at.model')
+      .addGroupBy('at.auth_type')
+      .orderBy('tokens', 'DESC')
+      .getRawMany();
 
     const totalTokens = rows.reduce(
       (sum: number, r: Record<string, unknown>) => sum + Number(r['tokens'] ?? 0),
@@ -229,29 +291,25 @@ export class TimeseriesQueriesService {
     );
     return rows.map((r: Record<string, unknown>) => ({
       model: String(r['model']),
+      display_name: r['display_name'] ? String(r['display_name']) : String(r['model']),
       tokens: Number(r['tokens'] ?? 0),
       share_pct:
         totalTokens === 0 ? 0 : Math.round((Number(r['tokens'] ?? 0) / totalTokens) * 1000) / 10,
       estimated_cost: Number(r['estimated_cost'] ?? 0),
+      auth_type: r['auth_type'] ? String(r['auth_type']) : null,
     }));
   }
 
-  async getAgentList(userId: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getAgentList(userId: string, tenantId?: string) {
+    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
 
-    // 1C: Skip tenant JOIN when tenantId is cached
     const agentQb = this.agentRepo.createQueryBuilder('a');
-    if (tenantId) {
-      agentQb.where('a.tenant_id = :tenantId', { tenantId });
+    if (resolved) {
+      agentQb.where('a.tenant_id = :tenantId', { tenantId: resolved });
     } else {
       agentQb.leftJoin('a.tenant', 't').where('t.name = :userId', { userId });
     }
-    const agents = await agentQb
-      .andWhere('a.is_active = true')
-      .orderBy('a.created_at', 'DESC')
-      .getMany();
 
-    // 1A: Add 30-day timestamp filter to stats query
     const statsCutoff = computeCutoff('30 days');
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
     const statsQb = this.turnRepo
@@ -263,27 +321,27 @@ export class TimeseriesQueriesService {
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total_tokens')
       .where('at.agent_name IS NOT NULL')
       .andWhere('at.timestamp >= :statsCutoff', { statsCutoff });
-    addTenantFilter(statsQb, userId, undefined, tenantId);
+    addTenantFilter(statsQb, userId, undefined, resolved);
 
     const sparkCutoff = computeCutoff('7 days');
-    const hourExpr = sqlHourBucket('at.timestamp', this.dialect);
+    const dateExpr = sqlDateBucket('at.timestamp', this.dialect);
     const sparkQb = this.turnRepo
       .createQueryBuilder('at')
       .select('at.agent_name', 'agent_name')
-      .addSelect(hourExpr, 'hour')
+      .addSelect(dateExpr, 'date')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .where('at.timestamp >= :sparkCutoff', { sparkCutoff })
       .andWhere('at.agent_name IS NOT NULL');
-    addTenantFilter(sparkQb, userId, undefined, tenantId);
+    addTenantFilter(sparkQb, userId, undefined, resolved);
 
-    // 1B: Parallelize stats + sparkline queries
-    const [statsRows, sparkRows] = await Promise.all([
+    const [agents, statsRows, sparkRows] = await Promise.all([
+      agentQb.andWhere('a.is_active = true').orderBy('a.created_at', 'DESC').getMany(),
       statsQb.groupBy('at.agent_name').orderBy('last_active', 'DESC').getRawMany(),
       sparkQb
         .groupBy('at.agent_name')
-        .addGroupBy('hour')
+        .addGroupBy('date')
         .orderBy('at.agent_name', 'ASC')
-        .addOrderBy('hour', 'ASC')
+        .addOrderBy('date', 'ASC')
         .getRawMany(),
     ]);
 
@@ -309,7 +367,7 @@ export class TimeseriesQueriesService {
         last_active: String(stats?.['last_active'] ?? a.created_at ?? ''),
         total_cost: Number(stats?.['total_cost'] ?? 0),
         total_tokens: Number(stats?.['total_tokens'] ?? 0),
-        sparkline: downsample(sparkMap.get(name) ?? [], 24),
+        sparkline: sparkMap.get(name) ?? [],
       };
     });
   }

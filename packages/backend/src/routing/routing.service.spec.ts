@@ -1,7 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
 import { RoutingService } from './routing.service';
+import { RoutingInvalidationService } from './routing-invalidation.service';
 import { RoutingCacheService } from './routing-cache.service';
-import { ModelPricing } from '../entities/model-pricing.entity';
+import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 
@@ -21,6 +22,7 @@ describe('RoutingService', () => {
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
   let mockAutoAssign: { recalculate: jest.Mock };
   let mockPricingCache: { getByModel: jest.Mock; getAll: jest.Mock };
+  let mockDiscoveryService: { getModelForAgent: jest.Mock };
   let mockRoutingCache: RoutingCacheService;
 
   beforeEach(() => {
@@ -32,6 +34,9 @@ describe('RoutingService', () => {
       getByModel: jest.fn(),
       getAll: jest.fn().mockReturnValue([]),
     };
+    mockDiscoveryService = {
+      getModelForAgent: jest.fn().mockResolvedValue(undefined),
+    };
     mockRoutingCache = new RoutingCacheService();
 
     service = new RoutingService(
@@ -39,6 +44,7 @@ describe('RoutingService', () => {
       mockTierRepo as never,
       mockAutoAssign as never,
       mockPricingCache as never,
+      mockDiscoveryService as unknown as ModelDiscoveryService,
       mockRoutingCache,
     );
   });
@@ -97,12 +103,68 @@ describe('RoutingService', () => {
 
       const result = await service.getTiers('a1');
 
-      // 2B: providers are now passed to avoid duplicate query
-      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1', [
-        { provider: 'openai', is_active: true },
-      ]);
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(result).toHaveLength(4);
       expect(result[0].auto_assigned_model).toBe('gpt-4o');
+    });
+
+    it('should recalculate existing tiers when unsupported subscription providers are present', async () => {
+      const existingRows = [
+        Object.assign(new TierAssignment(), {
+          id: 't1',
+          agent_id: 'a1',
+          tier: 'simple',
+          auto_assigned_model: 'gpt-4o',
+        }),
+        Object.assign(new TierAssignment(), {
+          id: 't2',
+          agent_id: 'a1',
+          tier: 'standard',
+          auto_assigned_model: 'gpt-4o',
+        }),
+        Object.assign(new TierAssignment(), {
+          id: 't3',
+          agent_id: 'a1',
+          tier: 'complex',
+          auto_assigned_model: 'gpt-4o',
+        }),
+        Object.assign(new TierAssignment(), {
+          id: 't4',
+          agent_id: 'a1',
+          tier: 'reasoning',
+          auto_assigned_model: 'gpt-4o',
+        }),
+      ];
+      const recalculatedRows = [
+        { tier: 'simple', auto_assigned_model: null },
+        { tier: 'standard', auto_assigned_model: null },
+        { tier: 'complex', auto_assigned_model: null },
+        { tier: 'reasoning', auto_assigned_model: null },
+      ];
+      mockTierRepo.find
+        .mockResolvedValueOnce([]) // cleanup: overrides query
+        .mockResolvedValueOnce(existingRows) // cleanup: all tiers query
+        .mockResolvedValueOnce(recalculatedRows); // getTiers: rows after cleanup/recalculate
+      mockProviderRepo.find
+        .mockResolvedValueOnce([
+          { id: 'p1', provider: 'deepseek', is_active: true, auth_type: 'subscription' },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.getTiers('a1');
+
+      expect(mockProviderRepo.save).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'p1',
+            provider: 'deepseek',
+            auth_type: 'subscription',
+            is_active: false,
+          }),
+        ]),
+      );
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
+      expect(result).toEqual(recalculatedRows);
     });
 
     it('should not recalculate when agent has no active providers', async () => {
@@ -124,7 +186,7 @@ describe('RoutingService', () => {
 
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'Anthropic',
-      } as ModelPricing);
+      });
       mockProviderRepo.find.mockResolvedValue([{ provider: 'anthropic', is_active: true }]);
 
       const result = await service.getEffectiveModel('a1', assignment);
@@ -139,7 +201,7 @@ describe('RoutingService', () => {
 
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'OpenAI',
-      } as ModelPricing);
+      });
       // DB stores "OpenAI" with different case than pricing lowercase
       mockProviderRepo.find.mockResolvedValue([{ provider: 'OpenAI', is_active: true }]);
 
@@ -155,7 +217,7 @@ describe('RoutingService', () => {
 
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'Anthropic',
-      } as ModelPricing);
+      });
       mockProviderRepo.find.mockResolvedValue([]); // no active providers
 
       const result = await service.getEffectiveModel('a1', assignment);
@@ -172,6 +234,53 @@ describe('RoutingService', () => {
 
       const result = await service.getEffectiveModel('a1', assignment);
       expect(result).toBe('gpt-4o');
+    });
+
+    it('should match override via pricing model_name prefix (OpenRouter scenario)', async () => {
+      const assignment = {
+        override_model: 'anthropic/claude-sonnet-4',
+        auto_assigned_model: 'gpt-4o',
+      } as TierAssignment;
+
+      // pricing.provider is "OpenRouter" (doesn't match), but model_name has "anthropic/" prefix
+      mockPricingCache.getByModel.mockReturnValue({
+        provider: 'OpenRouter',
+        model_name: 'anthropic/claude-sonnet-4',
+      });
+      mockProviderRepo.find.mockResolvedValue([{ provider: 'anthropic', is_active: true }]);
+
+      const result = await service.getEffectiveModel('a1', assignment);
+      expect(result).toBe('anthropic/claude-sonnet-4');
+    });
+
+    it('should match override by model name prefix when no pricing entry', async () => {
+      const assignment = {
+        override_model: 'anthropic/claude-sonnet-4',
+        auto_assigned_model: 'gpt-4o',
+      } as TierAssignment;
+
+      // No pricing entry — falls through to model name prefix extraction
+      mockPricingCache.getByModel.mockReturnValue(undefined);
+      mockProviderRepo.find.mockResolvedValue([{ provider: 'anthropic', is_active: true }]);
+
+      const result = await service.getEffectiveModel('a1', assignment);
+      expect(result).toBe('anthropic/claude-sonnet-4');
+    });
+
+    it('should return override_model when discovered by ModelDiscoveryService', async () => {
+      const assignment = {
+        override_model: 'ollama/llama3',
+        auto_assigned_model: 'gpt-4o',
+      } as TierAssignment;
+
+      mockDiscoveryService.getModelForAgent.mockResolvedValue({
+        id: 'ollama/llama3',
+        provider: 'ollama',
+      });
+
+      const result = await service.getEffectiveModel('a1', assignment);
+      expect(result).toBe('ollama/llama3');
+      expect(mockDiscoveryService.getModelForAgent).toHaveBeenCalledWith('a1', 'ollama/llama3');
     });
 
     it('should return auto_assigned_model when no override', async () => {
@@ -208,7 +317,66 @@ describe('RoutingService', () => {
       const result = await service.getProviders('a1');
 
       expect(mockProviderRepo.find).toHaveBeenCalledWith({ where: { agent_id: 'a1' } });
-      expect(result).toBe(providers);
+      expect(result).toEqual(providers);
+    });
+
+    it('should deactivate persisted unsupported subscription providers and hide them', async () => {
+      mockProviderRepo.find
+        .mockResolvedValueOnce([
+          {
+            id: 'p1',
+            agent_id: 'a1',
+            provider: 'deepseek',
+            auth_type: 'subscription',
+            is_active: true,
+          },
+          {
+            id: 'p2',
+            agent_id: 'a1',
+            provider: 'anthropic',
+            auth_type: 'subscription',
+            is_active: true,
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            id: 'p1',
+            agent_id: 'a1',
+            provider: 'deepseek',
+            auth_type: 'subscription',
+            is_active: false,
+          },
+          {
+            id: 'p2',
+            agent_id: 'a1',
+            provider: 'anthropic',
+            auth_type: 'subscription',
+            is_active: true,
+          },
+        ]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      const result = await service.getProviders('a1');
+
+      expect(mockProviderRepo.save).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'p1',
+            provider: 'deepseek',
+            auth_type: 'subscription',
+            is_active: false,
+          }),
+        ]),
+      );
+      expect(result).toEqual([
+        {
+          id: 'p2',
+          agent_id: 'a1',
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          is_active: true,
+        },
+      ]);
     });
 
     it('should return cached providers without hitting DB', async () => {
@@ -279,7 +447,7 @@ describe('RoutingService', () => {
         key_prefix: 'old-key-',
         is_active: false,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
 
       const result = await service.upsertProvider('a1', 'u1', 'openai', 'new-key');
 
@@ -309,7 +477,7 @@ describe('RoutingService', () => {
         key_prefix: 'old-pref',
         is_active: false,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
 
       const result = await service.upsertProvider('a1', 'u1', 'openai');
 
@@ -359,7 +527,7 @@ describe('RoutingService', () => {
         connected_at: originalConnectedAt,
         updated_at: '2025-01-01T00:00:00.000Z',
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
 
       const before = new Date().toISOString();
       await service.upsertProvider('a1', 'u1', 'openai', 'new-key');
@@ -367,6 +535,69 @@ describe('RoutingService', () => {
       const saved = mockProviderRepo.save.mock.calls[0][0];
       expect(saved.connected_at).toBe(originalConnectedAt);
       expect(saved.updated_at >= before).toBe(true);
+    });
+
+    it('should store encrypted key for subscription provider with apiKey', async () => {
+      mockProviderRepo.findOne.mockResolvedValue(null);
+
+      const result = await service.upsertProvider(
+        'a1',
+        'u1',
+        'anthropic',
+        'setup-token-value',
+        'subscription',
+      );
+
+      const inserted = mockProviderRepo.insert.mock.calls[0][0];
+      expect(inserted.auth_type).toBe('subscription');
+      expect(inserted.api_key_encrypted).toContain(':');
+      expect(inserted.key_prefix).toBe('setup-to');
+      expect(result.isNew).toBe(true);
+    });
+
+    it('should create subscription provider without apiKey (null encrypted)', async () => {
+      mockProviderRepo.findOne.mockResolvedValue(null);
+
+      const result = await service.upsertProvider(
+        'a1',
+        'u1',
+        'anthropic',
+        undefined,
+        'subscription',
+      );
+
+      const inserted = mockProviderRepo.insert.mock.calls[0][0];
+      expect(inserted.auth_type).toBe('subscription');
+      expect(inserted.api_key_encrypted).toBeNull();
+      expect(inserted.key_prefix).toBeNull();
+      expect(result.isNew).toBe(true);
+    });
+
+    it('should store token when updating existing subscription provider with apiKey', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        user_id: 'u1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        api_key_encrypted: null,
+        key_prefix: null,
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.upsertProvider(
+        'a1',
+        'u1',
+        'anthropic',
+        'new-setup-token',
+        'subscription',
+      );
+
+      expect(result.provider.auth_type).toBe('subscription');
+      expect(result.provider.api_key_encrypted).toContain(':');
+      expect(result.provider.key_prefix).toBe('new-setu');
+      expect(result.isNew).toBe(false);
     });
 
     it('should generate a UUID id for new provider', async () => {
@@ -379,6 +610,174 @@ describe('RoutingService', () => {
       expect(typeof inserted.id).toBe('string');
       // UUID v4 format: 8-4-4-4-12
       expect(inserted.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    });
+
+    it('should not deactivate subscription when adding API key provider', async () => {
+      mockProviderRepo.findOne.mockResolvedValueOnce(null);
+
+      await service.upsertProvider('a1', 'u1', 'anthropic', 'sk-ant-key');
+
+      expect(mockProviderRepo.insert).toHaveBeenCalled();
+      // save should NOT be called — no subscription deactivation
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should keep subscription active when updating existing API key provider', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'api_key',
+        api_key_encrypted: 'old-enc',
+        key_prefix: 'old-pref',
+        is_active: false,
+      });
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+
+      await service.upsertProvider('a1', 'u1', 'anthropic', 'new-key');
+
+      // Only one save: update existing api_key provider — subscription untouched
+      expect(mockProviderRepo.save).toHaveBeenCalledTimes(1);
+      expect(mockProviderRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'p1', is_active: true }),
+      );
+    });
+
+    it('should allow subscription and api_key to coexist for same provider', async () => {
+      // First: add subscription (no existing)
+      mockProviderRepo.findOne.mockResolvedValueOnce(null);
+      await service.upsertProvider('a1', 'u1', 'anthropic', undefined, 'subscription');
+      expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          is_active: true,
+        }),
+      );
+
+      jest.clearAllMocks();
+
+      // Second: add api_key (no existing api_key record)
+      mockProviderRepo.findOne.mockResolvedValueOnce(null);
+      await service.upsertProvider('a1', 'u1', 'anthropic', 'sk-ant-key');
+      expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'anthropic', auth_type: 'api_key', is_active: true }),
+      );
+      // No save call means no subscription was deactivated
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should allow api_key and subscription to coexist when added in reverse order', async () => {
+      // First: add api_key (no existing)
+      mockProviderRepo.findOne.mockResolvedValueOnce(null);
+      await service.upsertProvider('a1', 'u1', 'anthropic', 'sk-ant-key');
+      expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'anthropic', auth_type: 'api_key', is_active: true }),
+      );
+
+      jest.clearAllMocks();
+
+      // Second: add subscription (no existing subscription record)
+      mockProviderRepo.findOne.mockResolvedValueOnce(null);
+      await service.upsertProvider('a1', 'u1', 'anthropic', undefined, 'subscription');
+      expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          is_active: true,
+        }),
+      );
+      // No save call means no api_key was deactivated
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  /* ── registerSubscriptionProvider ── */
+
+  describe('registerSubscriptionProvider', () => {
+    it('should ignore unsupported subscription providers', async () => {
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'deepseek');
+
+      expect(result).toEqual({ isNew: false });
+      expect(mockProviderRepo.findOne).not.toHaveBeenCalled();
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
+      expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
+    });
+
+    it('should create new provider when none exists', async () => {
+      // First findOne: no existing subscription. Second findOne: no existing API key.
+      mockProviderRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'anthropic');
+
+      expect(result).toEqual({ isNew: true });
+      expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          agent_id: 'a1',
+          user_id: 'u1',
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          is_active: true,
+          api_key_encrypted: null,
+          key_prefix: null,
+        }),
+      );
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
+    });
+
+    it('should skip active existing provider', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'anthropic');
+
+      expect(result).toEqual({ isNew: false });
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
+      expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
+    });
+
+    it('should skip inactive (user-deactivated) provider', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: false,
+      });
+      mockProviderRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'anthropic');
+
+      expect(result).toEqual({ isNew: false });
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
+      expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
+    });
+
+    it('should skip when active API key already exists for same provider', async () => {
+      const apiKeyProvider = Object.assign(new UserProvider(), {
+        id: 'p2',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'api_key',
+        is_active: true,
+      });
+      // First findOne: no existing subscription
+      // Second findOne: active API key exists
+      mockProviderRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(apiKeyProvider);
+
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'anthropic');
+
+      expect(result).toEqual({ isNew: false });
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
+      expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
     });
   });
 
@@ -398,7 +797,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing); // find the record
+      mockProviderRepo.find.mockResolvedValue([]); // no other active record
       mockTierRepo.find.mockResolvedValue([]); // no overrides
 
       const result = await service.removeProvider('a1', 'openai');
@@ -411,6 +811,32 @@ describe('RoutingService', () => {
       expect(result.notifications).toEqual([]);
     });
 
+    it('should skip override clearing when another auth type is still active', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: true,
+      });
+      const otherActive = Object.assign(new UserProvider(), {
+        id: 'p2',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'api_key',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing); // find the subscription record
+      mockProviderRepo.find.mockResolvedValue([otherActive]); // api_key record still active
+
+      const result = await service.removeProvider('a1', 'anthropic', 'subscription');
+
+      expect(existing.is_active).toBe(false);
+      expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
+      expect(mockTierRepo.find).not.toHaveBeenCalled();
+      expect(result.notifications).toEqual([]);
+    });
+
     it('should invalidate overrides belonging to the removed provider', async () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',
@@ -418,27 +844,28 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing); // find the record
+      mockProviderRepo.find.mockResolvedValue([]); // no other active record
 
       const override = Object.assign(new TierAssignment(), {
         agent_id: 'a1',
         tier: 'complex',
         override_model: 'gpt-4o',
       });
-      mockTierRepo.find.mockResolvedValueOnce([override]); // overrides query
-      mockTierRepo.findOne.mockResolvedValue({
-        auto_assigned_model: 'claude-opus-4-6',
-      });
+      mockTierRepo.find
+        .mockResolvedValueOnce([override]) // overrides query
+        .mockResolvedValueOnce([]) // allTiers query (fallback cleanup)
+        .mockResolvedValueOnce([{ tier: 'complex', auto_assigned_model: 'claude-opus-4-6' }]); // notification batch fetch
 
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'OpenAI',
-      } as ModelPricing);
+      });
 
       const result = await service.removeProvider('a1', 'openai');
 
       expect(override.override_model).toBeNull();
       expect(mockTierRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ override_model: null }),
+        expect.arrayContaining([expect.objectContaining({ override_model: null })]),
       );
       expect(result.notifications).toHaveLength(1);
       expect(result.notifications[0]).toContain('gpt-4o');
@@ -453,18 +880,19 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
 
       const override = Object.assign(new TierAssignment(), {
         agent_id: 'a1',
         tier: 'simple',
         override_model: 'gpt-4o',
       });
-      mockTierRepo.find.mockResolvedValueOnce([override]);
-      mockTierRepo.findOne.mockResolvedValue({
-        auto_assigned_model: null,
-      });
-      mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as ModelPricing);
+      mockTierRepo.find
+        .mockResolvedValueOnce([override]) // overrides query
+        .mockResolvedValueOnce([]) // allTiers (fallback cleanup)
+        .mockResolvedValueOnce([{ tier: 'simple', auto_assigned_model: null }]); // notification batch fetch
+      mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
       const result = await service.removeProvider('a1', 'openai');
 
@@ -479,18 +907,19 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
 
       const override = Object.assign(new TierAssignment(), {
         agent_id: 'a1',
         tier: 'custom_tier',
         override_model: 'gpt-4o',
       });
-      mockTierRepo.find.mockResolvedValueOnce([override]);
-      mockTierRepo.findOne.mockResolvedValue({
-        auto_assigned_model: null,
-      });
-      mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as ModelPricing);
+      mockTierRepo.find
+        .mockResolvedValueOnce([override]) // overrides query
+        .mockResolvedValueOnce([]) // allTiers (fallback cleanup)
+        .mockResolvedValueOnce([{ tier: 'custom_tier', auto_assigned_model: null }]); // notification batch fetch
+      mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
       const result = await service.removeProvider('a1', 'openai');
 
@@ -506,7 +935,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing); // existing lookup
+      mockProviderRepo.find.mockResolvedValue([]); // otherActive check
       mockTierRepo.find
         .mockResolvedValueOnce([]) // overrides query
         .mockResolvedValueOnce([
@@ -524,13 +954,9 @@ describe('RoutingService', () => {
       await service.removeProvider('a1', 'openai');
 
       // The save for fallback cleanup should have only claude-sonnet-4
-      const fallbackSaveCall = mockTierRepo.save.mock.calls.find(
-        (c: unknown[]) => (c[0] as { fallback_models?: string[] }).fallback_models !== undefined,
+      expect(mockTierRepo.save).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ fallback_models: ['claude-sonnet-4'] })]),
       );
-      expect(fallbackSaveCall).toBeDefined();
-      expect(
-        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
-      ).toEqual(['claude-sonnet-4']);
     });
 
     it('should skip tiers with null or empty fallback_models during cleanup', async () => {
@@ -540,7 +966,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
       mockTierRepo.find
         .mockResolvedValueOnce([]) // overrides query
         .mockResolvedValueOnce([
@@ -568,13 +995,9 @@ describe('RoutingService', () => {
       await service.removeProvider('a1', 'openai');
 
       // Only the standard tier (with actual fallback_models) should be saved
-      const fallbackSaveCall = mockTierRepo.save.mock.calls.find(
-        (c: unknown[]) => (c[0] as { fallback_models?: string[] }).fallback_models !== undefined,
+      expect(mockTierRepo.save).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ fallback_models: ['claude-sonnet-4'] })]),
       );
-      expect(fallbackSaveCall).toBeDefined();
-      expect(
-        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
-      ).toEqual(['claude-sonnet-4']);
     });
 
     it('should set fallback_models to null when all belong to removed provider', async () => {
@@ -584,7 +1007,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
       mockTierRepo.find
         .mockResolvedValueOnce([]) // overrides query
         .mockResolvedValueOnce([
@@ -601,14 +1025,83 @@ describe('RoutingService', () => {
 
       await service.removeProvider('a1', 'openai');
 
-      // All fallbacks removed → fallback_models set to null (line 121)
-      const fallbackSaveCall = mockTierRepo.save.mock.calls.find(
-        (c: unknown[]) => 'fallback_models' in (c[0] as Record<string, unknown>),
+      // All fallbacks removed → fallback_models set to null
+      expect(mockTierRepo.save).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ fallback_models: null })]),
       );
-      expect(fallbackSaveCall).toBeDefined();
-      expect(
-        (fallbackSaveCall![0] as { fallback_models: string[] | null }).fallback_models,
-      ).toBeNull();
+    });
+
+    it('should clean fallback models and overrides when subscription auth removed and no other active record', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing); // find the subscription record
+      mockProviderRepo.find.mockResolvedValue([]); // no other active record for anthropic
+
+      const override = Object.assign(new TierAssignment(), {
+        id: 'tier-override-1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: 'claude-sonnet-4',
+      });
+      mockTierRepo.find
+        .mockResolvedValueOnce([override]) // overrides query
+        .mockResolvedValueOnce([
+          // allTiers query for fallback cleanup
+          Object.assign(new TierAssignment(), {
+            id: 'tier-fallback-1',
+            agent_id: 'a1',
+            tier: 'standard',
+            fallback_models: ['claude-sonnet-4', 'gpt-4o'],
+          }),
+        ]);
+      mockPricingCache.getByModel
+        .mockReturnValueOnce({ provider: 'Anthropic' }) // override check
+        .mockReturnValueOnce({ provider: 'Anthropic' }) // fallback: claude
+        .mockReturnValueOnce({ provider: 'OpenAI' }); // fallback: gpt-4o
+      mockTierRepo.findOne.mockResolvedValue({ auto_assigned_model: 'gpt-4o' });
+
+      const result = await service.removeProvider('a1', 'anthropic', 'subscription');
+
+      // Override should be cleared
+      expect(override.override_model).toBeNull();
+      // Fallback should only contain gpt-4o (claude-sonnet-4 removed)
+      // Batch save passes an array of tiers
+      const batchSaveCall = mockTierRepo.save.mock.calls.find((c: unknown[]) =>
+        Array.isArray(c[0]),
+      );
+      expect(batchSaveCall).toBeDefined();
+      const savedTiers = batchSaveCall![0] as { fallback_models?: string[] | null }[];
+      const fallbackTier = savedTiers.find(
+        (t) => t.fallback_models !== undefined && t.fallback_models !== null,
+      );
+      expect(fallbackTier).toBeDefined();
+      expect(fallbackTier!.fallback_models).toEqual(['gpt-4o']);
+      expect(result.notifications).toHaveLength(1);
+      expect(result.notifications[0]).toContain('claude-sonnet-4');
+    });
+
+    it('should pass authType to findOne when provided', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'anthropic',
+        auth_type: 'api_key',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      await service.removeProvider('a1', 'anthropic', 'api_key');
+
+      expect(mockProviderRepo.findOne).toHaveBeenNthCalledWith(1, {
+        where: { agent_id: 'a1', provider: 'anthropic', auth_type: 'api_key' },
+      });
     });
 
     it('should not invalidate overrides from other providers', async () => {
@@ -618,7 +1111,8 @@ describe('RoutingService', () => {
         provider: 'openai',
         is_active: true,
       });
-      mockProviderRepo.findOne.mockResolvedValue(existing);
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
 
       const override = Object.assign(new TierAssignment(), {
         agent_id: 'a1',
@@ -628,7 +1122,7 @@ describe('RoutingService', () => {
       mockTierRepo.find.mockResolvedValueOnce([override]);
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'Anthropic',
-      } as ModelPricing);
+      });
 
       const result = await service.removeProvider('a1', 'openai');
 
@@ -658,6 +1152,50 @@ describe('RoutingService', () => {
       expect(result.override_model).toBe('claude-opus-4-6');
     });
 
+    it('should store override_auth_type when authType is provided', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: null,
+        override_auth_type: null,
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride(
+        'a1',
+        'u1',
+        'complex',
+        'claude-sonnet-4',
+        'subscription',
+      );
+
+      expect(result.override_model).toBe('claude-sonnet-4');
+      expect(result.override_auth_type).toBe('subscription');
+      expect(mockTierRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          override_model: 'claude-sonnet-4',
+          override_auth_type: 'subscription',
+        }),
+      );
+    });
+
+    it('should set override_auth_type to null when authType is not provided', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: 'old-model',
+        override_auth_type: 'subscription',
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'complex', 'gpt-4o');
+
+      expect(result.override_model).toBe('gpt-4o');
+      expect(result.override_auth_type).toBeNull();
+    });
+
     it('should create new tier row when none exists', async () => {
       mockTierRepo.findOne.mockResolvedValue(null);
 
@@ -673,6 +1211,102 @@ describe('RoutingService', () => {
         }),
       );
       expect(result.override_model).toBe('o1-pro');
+    });
+
+    it('should remove model from fallbacks when it becomes primary (5 fallbacks, pick #3)', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'standard',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'standard', 'fb-3');
+
+      expect(result.override_model).toBe('fb-3');
+      expect(result.fallback_models).toEqual(['fb-1', 'fb-2', 'fb-4', 'fb-5']);
+    });
+
+    it('should remove model from fallbacks when it becomes primary (5 fallbacks, pick #1)', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'standard',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'standard', 'fb-1');
+
+      expect(result.override_model).toBe('fb-1');
+      expect(result.fallback_models).toEqual(['fb-2', 'fb-3', 'fb-4', 'fb-5']);
+    });
+
+    it('should remove model from fallbacks when it becomes primary (5 fallbacks, pick #5)', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'standard',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'standard', 'fb-5');
+
+      expect(result.override_model).toBe('fb-5');
+      expect(result.fallback_models).toEqual(['fb-1', 'fb-2', 'fb-3', 'fb-4']);
+    });
+
+    it('should set fallback_models to null when the only fallback becomes primary', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'simple',
+        override_model: 'old-primary',
+        fallback_models: ['only-fb'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'simple', 'only-fb');
+
+      expect(result.override_model).toBe('only-fb');
+      expect(result.fallback_models).toBeNull();
+    });
+
+    it('should preserve fallback_models when new primary is not in fallbacks', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: 'old-primary',
+        fallback_models: ['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5'],
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'complex', 'totally-new-model');
+
+      expect(result.override_model).toBe('totally-new-model');
+      expect(result.fallback_models).toEqual(['fb-1', 'fb-2', 'fb-3', 'fb-4', 'fb-5']);
+    });
+
+    it('should preserve fallback_models when fallbacks are null', async () => {
+      const existing = Object.assign(new TierAssignment(), {
+        id: 't1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: 'old-primary',
+        fallback_models: null,
+      });
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride('a1', 'u1', 'complex', 'new-model');
+
+      expect(result.override_model).toBe('new-model');
+      expect(result.fallback_models).toBeNull();
     });
   });
 
@@ -736,11 +1370,22 @@ describe('RoutingService', () => {
     });
   });
 
-  /* ── invalidateOverridesForRemovedModels ── */
+  /* ── invalidateOverridesForRemovedModels (delegated to RoutingInvalidationService) ── */
 
-  describe('invalidateOverridesForRemovedModels', () => {
+  describe('RoutingInvalidationService', () => {
+    let invalidationService: RoutingInvalidationService;
+
+    beforeEach(() => {
+      invalidationService = new RoutingInvalidationService(
+        mockTierRepo as never,
+        mockPricingCache as never,
+        mockAutoAssign as never,
+        mockRoutingCache,
+      );
+    });
+
     it('should return early for empty array', async () => {
-      await service.invalidateOverridesForRemovedModels([]);
+      await invalidationService.invalidateOverridesForRemovedModels([]);
 
       expect(mockTierRepo.find).not.toHaveBeenCalled();
     });
@@ -748,7 +1393,7 @@ describe('RoutingService', () => {
     it('should return early when no tiers are affected', async () => {
       mockTierRepo.find.mockResolvedValue([]);
 
-      await service.invalidateOverridesForRemovedModels(['deleted-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['deleted-model']);
 
       expect(mockTierRepo.save).not.toHaveBeenCalled();
       expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
@@ -767,11 +1412,13 @@ describe('RoutingService', () => {
       });
       mockTierRepo.find.mockResolvedValue([tier1, tier2]);
 
-      await service.invalidateOverridesForRemovedModels(['old-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['old-model']);
 
       expect(tier1.override_model).toBeNull();
       expect(tier2.override_model).toBeNull();
-      expect(mockTierRepo.save).toHaveBeenCalledTimes(2);
+      // Batch save: all tiers saved in one call
+      expect(mockTierRepo.save).toHaveBeenCalledTimes(1);
+      expect(mockTierRepo.save).toHaveBeenCalledWith(expect.arrayContaining([tier1, tier2]));
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a2');
     });
@@ -789,11 +1436,11 @@ describe('RoutingService', () => {
           }),
         ]);
 
-      await service.invalidateOverridesForRemovedModels(['old-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['old-model']);
 
       // Should save with only the kept model
       expect(mockTierRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ fallback_models: ['keep-model'] }),
+        expect.arrayContaining([expect.objectContaining({ fallback_models: ['keep-model'] })]),
       );
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
     });
@@ -809,10 +1456,10 @@ describe('RoutingService', () => {
           }),
         ]);
 
-      await service.invalidateOverridesForRemovedModels(['removed-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['removed-model']);
 
       expect(mockTierRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ fallback_models: null }),
+        expect.arrayContaining([expect.objectContaining({ fallback_models: null })]),
       );
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('a1');
     });
@@ -830,7 +1477,7 @@ describe('RoutingService', () => {
       });
       mockTierRepo.find.mockResolvedValue([tier1, tier2]);
 
-      await service.invalidateOverridesForRemovedModels(['model-a', 'model-b']);
+      await invalidationService.invalidateOverridesForRemovedModels(['model-a', 'model-b']);
 
       // Same agent — should only recalculate once
       expect(mockAutoAssign.recalculate).toHaveBeenCalledTimes(1);
@@ -1019,6 +1666,74 @@ describe('RoutingService', () => {
       expect(mockProviderRepo.find).not.toHaveBeenCalled();
     });
 
+    it('should return decrypted token for subscription provider with stored key', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const encrypted = encrypt('skst-token-123', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: encrypted,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('a1', 'anthropic');
+      expect(result).toBe('skst-token-123');
+    });
+
+    it('should ignore unsupported subscription provider keys', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const encrypted = encrypt('sk-deepseek-sub', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'deepseek',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: encrypted,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('a1', 'deepseek', 'subscription');
+      expect(result).toBeNull();
+    });
+
+    it('should return null for subscription provider without stored key', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: null,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('a1', 'anthropic');
+      expect(result).toBeNull();
+    });
+
+    it('should return null for subscription provider when decrypt fails', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: 'invalid:encrypted:data:format',
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('a1', 'anthropic');
+      expect(result).toBeNull();
+    });
+
     it('should return empty string for ollama in any case', async () => {
       const result = await service.getProviderApiKey('a1', 'OLLAMA');
       expect(result).toBe('');
@@ -1063,6 +1778,139 @@ describe('RoutingService', () => {
       expect(result).toBeNull();
     });
 
+    it('should prefer api_key over subscription when both exist', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const apiKeyEncrypted = encrypt('sk-api-key-123', secret);
+      const subTokenEncrypted = encrypt('skst-sub-token', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: subTokenEncrypted,
+        },
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'api_key',
+          api_key_encrypted: apiKeyEncrypted,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('a1', 'anthropic');
+      expect(result).toBe('sk-api-key-123');
+    });
+
+    it('should fall back to subscription when api_key has no encrypted key', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const subTokenEncrypted = encrypt('skst-sub-token', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'api_key',
+          api_key_encrypted: null,
+        },
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: subTokenEncrypted,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('a1', 'anthropic');
+      expect(result).toBe('skst-sub-token');
+    });
+
+    it('should prefer subscription when preferredAuthType is subscription', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const apiKeyEncrypted = encrypt('sk-api-key', secret);
+      const subTokenEncrypted = encrypt('skst-sub-token', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'api_key',
+          api_key_encrypted: apiKeyEncrypted,
+        },
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: subTokenEncrypted,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('a1', 'anthropic', 'subscription');
+      expect(result).toBe('skst-sub-token');
+    });
+
+    it('should prefer api_key when preferredAuthType is api_key with both present', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const apiKeyEncrypted = encrypt('sk-api-key', secret);
+      const subTokenEncrypted = encrypt('skst-sub-token', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: subTokenEncrypted,
+        },
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'api_key',
+          api_key_encrypted: apiKeyEncrypted,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('a1', 'anthropic', 'api_key');
+      expect(result).toBe('sk-api-key');
+    });
+
+    it('should fall back to subscription when preferred api_key has no encrypted key', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const subTokenEncrypted = encrypt('skst-fallback', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'api_key',
+          api_key_encrypted: null,
+        },
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: subTokenEncrypted,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('a1', 'anthropic', 'api_key');
+      expect(result).toBe('skst-fallback');
+    });
+
     it('should return null for custom: provider when decrypt fails', async () => {
       mockProviderRepo.findOne.mockResolvedValue({
         agent_id: 'a1',
@@ -1073,6 +1921,163 @@ describe('RoutingService', () => {
 
       const result = await service.getProviderApiKey('a1', 'custom:cp-uuid');
       expect(result).toBeNull();
+    });
+  });
+
+  describe('getAuthType', () => {
+    it('should return subscription when active subscription provider with encrypted key exists', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: 'enc-token',
+        },
+      ]);
+
+      const result = await service.getAuthType('a1', 'anthropic');
+      expect(result).toBe('subscription');
+    });
+
+    it('should return api_key when only api_key provider exists', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'api_key',
+          api_key_encrypted: 'enc-key',
+        },
+      ]);
+
+      const result = await service.getAuthType('a1', 'anthropic');
+      expect(result).toBe('api_key');
+    });
+
+    it('should return api_key as default when no providers match', async () => {
+      mockProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getAuthType('a1', 'anthropic');
+      expect(result).toBe('api_key');
+    });
+
+    it('should prefer subscription over api_key when both exist with encrypted key', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'api_key',
+          api_key_encrypted: 'enc-api-key',
+        },
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: 'enc-sub-token',
+        },
+      ]);
+
+      const result = await service.getAuthType('a1', 'anthropic');
+      expect(result).toBe('subscription');
+    });
+
+    it('should fall back to subscription when only keyless subscription exists', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: null,
+        },
+      ]);
+
+      const result = await service.getAuthType('a1', 'anthropic');
+      // No record has a key, so falls through to matches[0]?.auth_type
+      expect(result).toBe('subscription');
+    });
+
+    it('should prefer api_key when subscription has no key but api_key does', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: null,
+        },
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'api_key',
+          api_key_encrypted: 'enc-real-key',
+        },
+      ]);
+
+      const result = await service.getAuthType('a1', 'anthropic');
+      // Subscription has no key; api_key record has a key — use api_key
+      expect(result).toBe('api_key');
+    });
+
+    it('should skip inactive providers', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: false,
+          auth_type: 'subscription',
+          api_key_encrypted: 'enc-token',
+        },
+      ]);
+
+      const result = await service.getAuthType('a1', 'anthropic');
+      expect(result).toBe('api_key');
+    });
+  });
+
+  describe('recalculateTiers', () => {
+    it('should call autoAssign.recalculate and invalidate cache', async () => {
+      const invalidateSpy = jest.spyOn(mockRoutingCache, 'invalidateAgent');
+
+      await service.recalculateTiers('agent-1');
+
+      expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(invalidateSpy).toHaveBeenCalledWith('agent-1');
+    });
+  });
+
+  describe('findProviderForModel', () => {
+    it('should return the provider that has the model in cached_models', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, cached_models: [{ id: 'claude-opus-4-6' }] },
+        { provider: 'gemini', is_active: true, cached_models: [{ id: 'gemini-2.5-flash' }] },
+      ]);
+
+      const result = await service.findProviderForModel('a1', 'claude-opus-4-6');
+      expect(result).toBe('anthropic');
+    });
+
+    it('should return undefined when no provider has the model', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, cached_models: [{ id: 'claude-opus-4-6' }] },
+      ]);
+
+      const result = await service.findProviderForModel('a1', 'unknown-model');
+      expect(result).toBeUndefined();
+    });
+
+    it('should skip providers with null cached_models', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        { provider: 'anthropic', is_active: true, cached_models: null },
+        { provider: 'gemini', is_active: true, cached_models: [{ id: 'gemini-2.5-flash' }] },
+      ]);
+
+      const result = await service.findProviderForModel('a1', 'gemini-2.5-flash');
+      expect(result).toBe('gemini');
     });
   });
 });

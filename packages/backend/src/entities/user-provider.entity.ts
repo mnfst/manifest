@@ -1,8 +1,9 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
+import type { DiscoveredModel } from '../routing/model-discovery/model-fetcher';
 
 @Entity('user_providers')
-@Index(['agent_id', 'provider'], { unique: true })
+@Index(['agent_id', 'provider', 'auth_type'], { unique: true })
 export class UserProvider {
   @PrimaryColumn('varchar')
   id!: string;
@@ -22,6 +23,9 @@ export class UserProvider {
   @Column('varchar', { nullable: true, default: null })
   key_prefix!: string | null;
 
+  @Column('varchar', { default: 'api_key' })
+  auth_type!: 'api_key' | 'subscription';
+
   @Column('boolean', { default: true })
   is_active!: boolean;
 
@@ -30,4 +34,10 @@ export class UserProvider {
 
   @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;
+
+  @Column('simple-json', { nullable: true, default: null })
+  cached_models!: DiscoveredModel[] | null;
+
+  @Column(timestampType(), { nullable: true, default: null })
+  models_fetched_at!: string | null;
 }

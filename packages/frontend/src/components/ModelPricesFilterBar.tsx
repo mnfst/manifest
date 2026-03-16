@@ -1,4 +1,5 @@
 import { createSignal, createMemo, For, Show, onCleanup, type Component } from 'solid-js';
+import { getModelDisplayName } from '../services/model-display.js';
 import { resolveProviderId } from '../services/routing-utils.js';
 import { providerIcon } from './ProviderIcon.jsx';
 
@@ -266,7 +267,9 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
                           role="option"
                           aria-selected={highlightIndex() === idx()}
                         >
-                          <span class="model-filter__dropdown-item-name">{model}</span>
+                          <span class="model-filter__dropdown-item-name">
+                            {getModelDisplayName(model)}
+                          </span>
                           <span class="model-filter__dropdown-item-type">Model</span>
                         </button>
                       );
@@ -310,7 +313,9 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
                 <Show when={tag.type === 'Model'}>
                   <span class="model-filter__tag-type">Model:</span>
                 </Show>
-                <span class="model-filter__tag-value">{tag.value}</span>
+                <span class="model-filter__tag-value">
+                  {tag.type === 'Model' ? getModelDisplayName(tag.value) : tag.value}
+                </span>
                 <button
                   class="model-filter__tag-remove"
                   onClick={() => removeTag(tag)}

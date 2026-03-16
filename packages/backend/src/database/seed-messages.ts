@@ -27,11 +27,12 @@ export async function seedAgentMessages(
   const count = await messageRepo.count();
   if (count > 0) return;
 
-  const models = [
-    'claude-sonnet-4-5-20250929',
-    'gpt-4o',
-    'claude-haiku-4-5-20251001',
-    'gemini-2.5-flash',
+  const models: { name: string; auth_type: 'subscription' | 'api_key' }[] = [
+    { name: 'claude-sonnet-4-5-20250929', auth_type: 'subscription' },
+    { name: 'gpt-4o', auth_type: 'api_key' },
+    { name: 'claude-haiku-4-5-20251001', auth_type: 'subscription' },
+    { name: 'gemini-2.5-flash', auth_type: 'api_key' },
+    { name: 'gpt-4.1', auth_type: 'subscription' },
   ];
   const now = Date.now();
   const messages: Array<Partial<AgentMessage>> = [];
@@ -49,7 +50,7 @@ export async function seedAgentMessages(
 
     for (let m = 0; m < msgCount; m++) {
       idx++;
-      const model = models[idx % models.length]!;
+      const entry = models[idx % models.length]!;
       const rawTs = hourBase + Math.floor(seededRandom(idx) * 3500000);
       const ts = new Date(Math.min(rawTs, now)).toISOString();
 
@@ -65,12 +66,14 @@ export async function seedAgentMessages(
         user_id: userId,
         agent_name: ctx.agentName,
         timestamp: ts,
-        model,
+        model: entry.name,
+        auth_type: entry.auth_type,
         input_tokens: inputBase,
         output_tokens: outputBase,
         cache_read_tokens: cacheRead,
         cache_creation_tokens: 0,
-        cost_usd: inputBase * 0.000003 + outputBase * 0.000015,
+        cost_usd:
+          entry.auth_type === 'subscription' ? 0 : inputBase * 0.000003 + outputBase * 0.000015,
         duration_ms: 200 + Math.floor(seededRandom(idx * 13) * 4800),
         status: seededRandom(idx * 17) > 0.95 ? 'error' : 'ok',
         error_message: seededRandom(idx * 17) > 0.95 ? 'Rate limit exceeded' : null,

@@ -9,13 +9,15 @@ jest.mock('../../common/utils/product-telemetry', () => ({
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { QueryFailedError } from 'typeorm';
 import { AgentsController } from './agents.controller';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
 import { AggregationService } from '../services/aggregation.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { readLocalApiKey } from '../../common/constants/local-mode.constants';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
+import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 const mockReadLocalApiKey = readLocalApiKey as jest.MockedFunction<typeof readLocalApiKey>;
 
@@ -27,6 +29,7 @@ describe('AgentsController', () => {
   let mockConfigGet: jest.Mock;
   let mockDeleteAgent: jest.Mock;
   let mockRenameAgent: jest.Mock;
+  let mockTenantResolve: jest.Mock;
 
   const origMode = process.env['MANIFEST_MODE'];
 
@@ -45,6 +48,7 @@ describe('AgentsController', () => {
     mockConfigGet = jest.fn().mockReturnValue('');
     mockDeleteAgent = jest.fn().mockResolvedValue(undefined);
     mockRenameAgent = jest.fn().mockResolvedValue(undefined);
+    mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -70,6 +74,10 @@ describe('AgentsController', () => {
           provide: ConfigService,
           useValue: { get: mockConfigGet },
         },
+        {
+          provide: TenantCacheService,
+          useValue: { resolve: mockTenantResolve },
+        },
       ],
     }).compile();
 
@@ -82,7 +90,15 @@ describe('AgentsController', () => {
 
     expect(result.agents).toHaveLength(2);
     expect(result.agents[0].agent_name).toBe('bot-1');
-    expect(mockGetAgentList).toHaveBeenCalledWith('u1');
+    expect(mockGetAgentList).toHaveBeenCalledWith('u1', 'tenant-123');
+  });
+
+  it('passes undefined tenantId when tenant not found', async () => {
+    mockTenantResolve.mockResolvedValueOnce(null);
+    const user = { id: 'u1' };
+    await controller.getAgents(user as never);
+
+    expect(mockGetAgentList).toHaveBeenCalledWith('u1', undefined);
   });
 
   it('returns agent key prefix without pluginEndpoint when env is not set', async () => {
@@ -185,6 +201,7 @@ describe('AgentsController', () => {
           useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
       ],
     }).compile();
 
@@ -221,6 +238,7 @@ describe('AgentsController', () => {
           useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
       ],
     }).compile();
 
@@ -230,5 +248,61 @@ describe('AgentsController', () => {
       BadRequestException,
     );
     expect(mockOnboard).not.toHaveBeenCalled();
+  });
+
+  it('throws ConflictException when onboardAgent hits unique constraint', async () => {
+    const queryError = new QueryFailedError('INSERT', [], new Error('unique constraint violation'));
+    const mockOnboard = jest.fn().mockRejectedValue(queryError);
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register()],
+      controllers: [AgentsController],
+      providers: [
+        { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
+        {
+          provide: AggregationService,
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+        },
+        {
+          provide: ApiKeyGeneratorService,
+          useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+      ],
+    }).compile();
+
+    const ctrl = module.get<AgentsController>(AgentsController);
+    const user = { id: 'user-123', email: 'test@example.com' };
+    await expect(ctrl.createAgent(user as never, { name: 'My Agent' } as never)).rejects.toThrow(
+      ConflictException,
+    );
+  });
+
+  it('re-throws non-duplicate QueryFailedError from onboardAgent', async () => {
+    const queryError = new QueryFailedError('INSERT', [], new Error('connection refused'));
+    const mockOnboard = jest.fn().mockRejectedValue(queryError);
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register()],
+      controllers: [AgentsController],
+      providers: [
+        { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
+        {
+          provide: AggregationService,
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+        },
+        {
+          provide: ApiKeyGeneratorService,
+          useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+      ],
+    }).compile();
+
+    const ctrl = module.get<AgentsController>(AgentsController);
+    const user = { id: 'user-123', email: 'test@example.com' };
+    await expect(ctrl.createAgent(user as never, { name: 'My Agent' } as never)).rejects.toThrow(
+      QueryFailedError,
+    );
   });
 });

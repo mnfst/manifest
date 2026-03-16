@@ -9,6 +9,7 @@ import { NotificationCronService } from './notification-cron.service';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
+import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
 import { readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
 
 const activeRule = {
@@ -27,12 +28,17 @@ describe('NotificationCronService', () => {
   let mockGetAllActiveRules: jest.Mock;
   let mockGetConsumption: jest.Mock;
   let mockSendThresholdAlert: jest.Mock;
+  let mockRuntime: { isLocalMode: jest.Mock; getAuthBaseUrl: jest.Mock };
 
   beforeEach(async () => {
     mockQuery = jest.fn();
     mockGetAllActiveRules = jest.fn();
     mockGetConsumption = jest.fn();
     mockSendThresholdAlert = jest.fn().mockResolvedValue(true);
+    mockRuntime = {
+      isLocalMode: jest.fn().mockReturnValue(false),
+      getAuthBaseUrl: jest.fn().mockReturnValue('http://localhost:3001'),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -53,6 +59,7 @@ describe('NotificationCronService', () => {
           provide: EmailProviderConfigService,
           useValue: { getFullConfig: jest.fn().mockResolvedValue(null) },
         },
+        { provide: ManifestRuntimeService, useValue: mockRuntime },
       ],
     }).compile();
 
@@ -94,19 +101,30 @@ describe('NotificationCronService', () => {
     loggerSpy.mockRestore();
   });
 
+  it('skips rule when consumption fetch fails', async () => {
+    mockGetAllActiveRules.mockResolvedValue([activeRule]);
+    mockGetConsumption.mockRejectedValue(new Error('DB timeout'));
+
+    const loggerSpy = jest.spyOn(service['logger'], 'error').mockImplementation();
+    const result = await service.checkThresholds();
+    expect(result).toBe(0);
+    expect(loggerSpy).toHaveBeenCalledWith(expect.stringContaining('Error fetching consumption'));
+    loggerSpy.mockRestore();
+  });
+
   it('skips rule when already notified for current period (dedup)', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
+    mockGetConsumption.mockResolvedValue(200000);
     mockQuery.mockResolvedValueOnce([{ 1: 1 }]); // dedup check returns existing log
 
     const result = await service.checkThresholds();
     expect(result).toBe(0);
-    expect(mockGetConsumption).not.toHaveBeenCalled();
   });
 
   it('does not trigger when consumption is below threshold', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockQuery.mockResolvedValueOnce([]); // no dedup
     mockGetConsumption.mockResolvedValue(50000); // below threshold
+    mockQuery.mockResolvedValueOnce([]); // no dedup
 
     const result = await service.checkThresholds();
     expect(result).toBe(0);
@@ -171,6 +189,7 @@ describe('NotificationCronService', () => {
 
   it('uses PostgreSQL numbered params ($1, $2) in dedup query', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
+    mockGetConsumption.mockResolvedValue(200000);
     mockQuery.mockResolvedValueOnce([{ 1: 1 }]); // dedup hit
 
     await service.checkThresholds();
@@ -222,16 +241,18 @@ describe('NotificationCronService', () => {
     const rule2 = { ...activeRule, id: 'rule-2', threshold: 500000 };
     mockGetAllActiveRules.mockResolvedValue([activeRule, rule2]);
 
-    // Rule 1: triggers
+    // Both rules share the same group (same tenant/agent/period/metric)
+    // Consumption fetched once for the group
+    mockGetConsumption.mockResolvedValueOnce(150000); // above 100k, below 500k
+
+    // Rule 1: triggers (150k > 100k)
     mockQuery
       .mockResolvedValueOnce([]) // no dedup rule-1
       .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email rule-1
       .mockResolvedValueOnce(undefined); // INSERT rule-1
-    mockGetConsumption.mockResolvedValueOnce(150000); // above 100k
 
-    // Rule 2: does not trigger
+    // Rule 2: does not trigger (150k < 500k)
     mockQuery.mockResolvedValueOnce([]); // no dedup rule-2
-    mockGetConsumption.mockResolvedValueOnce(100000); // below 500k
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
@@ -281,7 +302,10 @@ describe('NotificationCronService', () => {
     const rule2 = { ...activeRule, id: 'rule-2' };
     mockGetAllActiveRules.mockResolvedValue([activeRule, rule2]);
 
-    // Rule 1: throws
+    // Both rules share same group; consumption fetched once
+    mockGetConsumption.mockResolvedValueOnce(200000);
+
+    // Rule 1: dedup query throws
     mockQuery.mockRejectedValueOnce(new Error('DB down'));
 
     // Rule 2: triggers
@@ -289,7 +313,6 @@ describe('NotificationCronService', () => {
       .mockResolvedValueOnce([]) // no dedup
       .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
       .mockResolvedValueOnce(undefined); // INSERT
-    mockGetConsumption.mockResolvedValueOnce(200000);
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
@@ -309,8 +332,7 @@ describe('NotificationCronService', () => {
   });
 
   it('uses local config notification email in local mode', async () => {
-    const originalMode = process.env['MANIFEST_MODE'];
-    process.env['MANIFEST_MODE'] = 'local';
+    mockRuntime.isLocalMode.mockReturnValue(true);
     (readLocalNotificationEmail as jest.Mock).mockReturnValue('real@user.com');
 
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
@@ -327,13 +349,11 @@ describe('NotificationCronService', () => {
       undefined,
     );
 
-    process.env['MANIFEST_MODE'] = originalMode;
     (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
   });
 
   it('falls back to DB email when local config email not set in local mode', async () => {
-    const originalMode = process.env['MANIFEST_MODE'];
-    process.env['MANIFEST_MODE'] = 'local';
+    mockRuntime.isLocalMode.mockReturnValue(true);
     (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
 
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
@@ -350,8 +370,6 @@ describe('NotificationCronService', () => {
       expect.any(Object),
       undefined,
     );
-
-    process.env['MANIFEST_MODE'] = originalMode;
   });
 });
 
@@ -361,6 +379,7 @@ describe('NotificationCronService (sql.js / local mode)', () => {
   let mockGetAllActiveRules: jest.Mock;
   let mockGetConsumption: jest.Mock;
   let mockSendThresholdAlert: jest.Mock;
+  let mockRuntime: { isLocalMode: jest.Mock; getAuthBaseUrl: jest.Mock };
 
   const localRule = {
     id: 'rule-1',
@@ -377,6 +396,10 @@ describe('NotificationCronService (sql.js / local mode)', () => {
     mockGetAllActiveRules = jest.fn();
     mockGetConsumption = jest.fn();
     mockSendThresholdAlert = jest.fn().mockResolvedValue(true);
+    mockRuntime = {
+      isLocalMode: jest.fn().mockReturnValue(false),
+      getAuthBaseUrl: jest.fn().mockReturnValue('http://localhost:3001'),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -397,6 +420,7 @@ describe('NotificationCronService (sql.js / local mode)', () => {
           provide: EmailProviderConfigService,
           useValue: { getFullConfig: jest.fn().mockResolvedValue(null) },
         },
+        { provide: ManifestRuntimeService, useValue: mockRuntime },
       ],
     }).compile();
 
@@ -405,6 +429,7 @@ describe('NotificationCronService (sql.js / local mode)', () => {
 
   it('uses ? placeholders in dedup query for sql.js', async () => {
     mockGetAllActiveRules.mockResolvedValue([localRule]);
+    mockGetConsumption.mockResolvedValue(200000);
     mockQuery.mockResolvedValueOnce([{ 1: 1 }]); // dedup hit
 
     await service.checkThresholds();

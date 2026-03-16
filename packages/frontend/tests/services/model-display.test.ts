@@ -5,7 +5,7 @@ vi.mock("../../src/services/api.js", () => ({
   getModelPrices: () => mockGetModelPrices(),
 }));
 
-vi.mock("../../src/services/providers.js", () => ({
+vi.mock("../../src/services/provider-utils.js", () => ({
   getModelLabel: (_providerId: string, model: string) => `label:${model}`,
 }));
 

@@ -228,20 +228,19 @@ export function registerHooks(
       }
     }
 
-    // Detect heartbeat from messages — if any user message contains
-    // HEARTBEAT_OK, override the reason so it's identifiable in telemetry.
+    // Detect heartbeat — only if the LAST user message contains HEARTBEAT_OK.
     // Content can be a string or array of content parts (multi-modal format).
-    const hasHeartbeat = messages.some((m: any) => {
-      if (!m || m.role !== 'user') return false;
-      if (typeof m.content === 'string') return m.content.includes('HEARTBEAT_OK');
-      if (Array.isArray(m.content)) {
-        return m.content.some(
-          (p: any) =>
-            p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
-        );
-      }
-      return false;
-    });
+    const lastUserMsg = [...messages].reverse().find((m: any) => m?.role === 'user');
+    const hasHeartbeat = lastUserMsg
+      ? typeof lastUserMsg.content === 'string'
+        ? lastUserMsg.content.includes('HEARTBEAT_OK')
+        : Array.isArray(lastUserMsg.content)
+          ? lastUserMsg.content.some(
+              (p: any) =>
+                p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
+            )
+          : false
+      : false;
     if (hasHeartbeat) {
       routingReason = 'heartbeat';
       routingTier = 'simple';
@@ -264,7 +263,7 @@ export function registerHooks(
       if (routingReason) {
         active.turn.setAttribute(ATTRS.ROUTING_REASON, routingReason);
       }
-      if (event.success === false) {
+      if (event.success === false || event.error != null) {
         const errMsg = event.error?.message || event.errorMessage || 'Agent turn failed';
         active.turn.setStatus({
           code: SpanStatusCode.ERROR,

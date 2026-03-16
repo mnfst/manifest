@@ -1,4 +1,12 @@
+jest.mock('../common/utils/url-validation', () => ({
+  validatePublicUrl: jest.fn().mockResolvedValue(undefined),
+}));
+
+import { BadRequestException } from '@nestjs/common';
 import { CustomProviderService } from './custom-provider.service';
+import { validatePublicUrl } from '../common/utils/url-validation';
+
+const mockValidatePublicUrl = validatePublicUrl as jest.MockedFunction<typeof validatePublicUrl>;
 
 describe('CustomProviderService (static helpers)', () => {
   describe('providerKey', () => {
@@ -48,9 +56,8 @@ describe('CustomProviderService (static helpers)', () => {
 describe('CustomProviderService (with mocks)', () => {
   let service: CustomProviderService;
   let mockRepo: Record<string, jest.Mock>;
-  let mockPricingRepo: Record<string, jest.Mock>;
   let mockRoutingService: Record<string, jest.Mock>;
-  let mockPricingCache: Record<string, jest.Mock>;
+  let mockRoutingCache: Record<string, jest.Mock>;
   let mockAutoAssign: Record<string, jest.Mock>;
 
   beforeEach(() => {
@@ -59,22 +66,16 @@ describe('CustomProviderService (with mocks)', () => {
       findOne: jest.fn().mockResolvedValue(null),
       insert: jest.fn().mockResolvedValue(undefined),
       remove: jest.fn().mockResolvedValue(undefined),
-    };
-    mockPricingRepo = {
       save: jest.fn().mockResolvedValue(undefined),
-      upsert: jest.fn().mockResolvedValue(undefined),
-      createQueryBuilder: jest.fn().mockReturnValue({
-        delete: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        execute: jest.fn().mockResolvedValue(undefined),
-      }),
     };
     mockRoutingService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
       removeProvider: jest.fn().mockResolvedValue({ notifications: [] }),
     };
-    mockPricingCache = {
-      reload: jest.fn().mockResolvedValue(undefined),
+    mockRoutingCache = {
+      getCustomProviders: jest.fn().mockReturnValue(null),
+      setCustomProviders: jest.fn(),
+      invalidateAgent: jest.fn(),
     };
     mockAutoAssign = {
       recalculate: jest.fn().mockResolvedValue(undefined),
@@ -82,22 +83,32 @@ describe('CustomProviderService (with mocks)', () => {
 
     service = new CustomProviderService(
       mockRepo as never,
-      mockPricingRepo as never,
       mockRoutingService as never,
-      mockPricingCache as never,
+      mockRoutingCache as never,
       mockAutoAssign as never,
     );
   });
 
   describe('list', () => {
-    it('queries by agent_id', async () => {
+    it('queries by agent_id on cache miss', async () => {
       await service.list('agent-1');
+      expect(mockRoutingCache.getCustomProviders).toHaveBeenCalledWith('agent-1');
       expect(mockRepo.find).toHaveBeenCalledWith({ where: { agent_id: 'agent-1' } });
+      expect(mockRoutingCache.setCustomProviders).toHaveBeenCalledWith('agent-1', []);
+    });
+
+    it('returns cached data on cache hit', async () => {
+      const cached = [{ id: 'cp-1', name: 'Groq' }];
+      mockRoutingCache.getCustomProviders.mockReturnValue(cached);
+
+      const result = await service.list('agent-1');
+      expect(result).toBe(cached);
+      expect(mockRepo.find).not.toHaveBeenCalled();
     });
   });
 
   describe('create', () => {
-    it('creates provider, pricing rows, and user provider', async () => {
+    it('creates provider and calls upsertProvider', async () => {
       const dto = {
         name: 'Groq',
         base_url: 'https://api.groq.com/openai/v1',
@@ -117,9 +128,22 @@ describe('CustomProviderService (with mocks)', () => {
       expect(result.base_url).toBe('https://api.groq.com/openai/v1');
       expect(result.models).toHaveLength(1);
       expect(mockRepo.insert).toHaveBeenCalledTimes(1);
-      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(1);
       expect(mockRoutingService.upsertProvider).toHaveBeenCalledTimes(1);
-      expect(mockPricingCache.reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects private/internal URLs via SSRF validation', async () => {
+      mockValidatePublicUrl.mockRejectedValueOnce(
+        new Error('URLs pointing to private or internal networks are not allowed'),
+      );
+      const dto = {
+        name: 'Evil',
+        base_url: 'http://127.0.0.1:8080',
+        models: [{ model_name: 'test' }],
+      };
+      await expect(service.create('agent-1', 'user-1', dto as never)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(mockValidatePublicUrl).toHaveBeenCalledWith('http://127.0.0.1:8080');
     });
 
     it('throws ConflictException for duplicate name', async () => {
@@ -134,48 +158,56 @@ describe('CustomProviderService (with mocks)', () => {
       );
     });
 
-    it('reloads pricing cache before upsertProvider', async () => {
-      const callOrder: string[] = [];
-      mockPricingCache.reload.mockImplementation(async () => {
-        callOrder.push('reload');
-      });
-      mockRoutingService.upsertProvider.mockImplementation(async () => {
-        callOrder.push('upsert');
-        return { provider: {}, isNew: true };
-      });
-
+    it('preserves undefined (null) prices when optional model fields are omitted', async () => {
       const dto = {
-        name: 'Order',
-        base_url: 'https://api.example.com/v1',
-        models: [{ model_name: 'test' }],
+        name: 'Local',
+        base_url: 'http://localhost:8000',
+        models: [{ model_name: 'my-model' }],
       };
-      await service.create('agent-1', 'user-1', dto as never);
+      const result = await service.create('agent-1', 'user-1', dto as never);
 
-      expect(callOrder).toEqual(['reload', 'upsert']);
+      // Model should preserve undefined prices, default context window
+      expect(result.models[0].input_price_per_million_tokens).toBeUndefined();
+      expect(result.models[0].output_price_per_million_tokens).toBeUndefined();
+      expect(result.models[0].context_window).toBe(128000);
     });
 
-    it('converts per-million pricing to per-token', async () => {
+    it('stores explicit zero prices as 0', async () => {
       const dto = {
-        name: 'Test',
-        base_url: 'https://api.example.com/v1',
+        name: 'Free',
+        base_url: 'http://localhost:8000',
         models: [
           {
-            model_name: 'model-a',
-            input_price_per_million_tokens: 1.0,
-            output_price_per_million_tokens: 2.0,
+            model_name: 'free-model',
+            input_price_per_million_tokens: 0,
+            output_price_per_million_tokens: 0,
           },
         ],
       };
-      await service.create('agent-1', 'user-1', dto as never);
+      const result = await service.create('agent-1', 'user-1', dto as never);
 
-      const upsertedRows = mockPricingRepo.upsert.mock.calls[0][0];
-      expect(upsertedRows[0].input_price_per_token).toBeCloseTo(0.000001);
-      expect(upsertedRows[0].output_price_per_token).toBeCloseTo(0.000002);
+      expect(result.models[0].input_price_per_million_tokens).toBe(0);
+      expect(result.models[0].output_price_per_million_tokens).toBe(0);
+    });
+
+    it('creates multiple models in the custom provider', async () => {
+      const dto = {
+        name: 'Multi',
+        base_url: 'https://api.example.com/v1',
+        models: [
+          { model_name: 'model-a', input_price_per_million_tokens: 1.0 },
+          { model_name: 'model-b', output_price_per_million_tokens: 2.0 },
+        ],
+      };
+      const result = await service.create('agent-1', 'user-1', dto as never);
+
+      expect(result.models).toHaveLength(2);
+      expect(mockRepo.insert).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('remove', () => {
-    it('removes provider, pricing rows, and custom provider', async () => {
+    it('removes provider and custom provider row', async () => {
       mockRepo.findOne.mockResolvedValue({
         id: 'cp-1',
         agent_id: 'agent-1',
@@ -185,8 +217,6 @@ describe('CustomProviderService (with mocks)', () => {
       await service.remove('agent-1', 'cp-1');
 
       expect(mockRoutingService.removeProvider).toHaveBeenCalledTimes(1);
-      expect(mockPricingRepo.createQueryBuilder).toHaveBeenCalledTimes(1);
-      expect(mockPricingCache.reload).toHaveBeenCalledTimes(1);
       expect(mockRepo.remove).toHaveBeenCalledTimes(1);
     });
 
@@ -206,9 +236,7 @@ describe('CustomProviderService (with mocks)', () => {
 
       await service.remove('agent-1', 'cp-1');
 
-      // Should still delete pricing rows, reload cache, and remove the custom provider
-      expect(mockPricingRepo.createQueryBuilder).toHaveBeenCalledTimes(1);
-      expect(mockPricingCache.reload).toHaveBeenCalledTimes(1);
+      // Should still remove the custom provider
       expect(mockRepo.remove).toHaveBeenCalledTimes(1);
     });
   });
@@ -250,7 +278,6 @@ describe('CustomProviderService (with mocks)', () => {
 
     beforeEach(() => {
       mockRepo.findOne.mockResolvedValue({ ...existingCp });
-      mockRepo.save = jest.fn().mockResolvedValue(undefined);
     });
 
     it('updates name and base_url', async () => {
@@ -265,6 +292,18 @@ describe('CustomProviderService (with mocks)', () => {
       expect(result.name).toBe('Updated Groq');
       expect(result.base_url).toBe('https://new-url.com/v1');
       expect(mockRepo.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects private URL on base_url update', async () => {
+      mockValidatePublicUrl.mockRejectedValueOnce(
+        new Error('URLs pointing to private or internal networks are not allowed'),
+      );
+      await expect(
+        service.update('agent-1', 'cp-1', 'user-1', {
+          base_url: 'http://10.0.0.5:3000',
+        } as never),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockValidatePublicUrl).toHaveBeenCalledWith('http://10.0.0.5:3000');
     });
 
     it('throws NotFoundException when provider not found', async () => {
@@ -294,15 +333,13 @@ describe('CustomProviderService (with mocks)', () => {
       expect(mockRepo.findOne).toHaveBeenCalledTimes(1);
     });
 
-    it('syncs models when provided', async () => {
+    it('updates models when provided', async () => {
       await service.update('agent-1', 'cp-1', 'user-1', {
         models: [{ model_name: 'new-model', input_price_per_million_tokens: 1.0 }],
       } as never);
 
-      // Should delete old pricing rows and upsert new ones
-      expect(mockPricingRepo.createQueryBuilder).toHaveBeenCalledTimes(1);
-      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(1);
-      expect(mockPricingCache.reload).toHaveBeenCalledTimes(1);
+      expect(mockRepo.save).toHaveBeenCalledTimes(1);
+      expect(mockRoutingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
     it('updates API key when explicitly provided', async () => {
@@ -350,6 +387,14 @@ describe('CustomProviderService (with mocks)', () => {
       expect(mockRoutingService.upsertProvider).not.toHaveBeenCalled();
     });
 
+    it('invalidates routing cache after save', async () => {
+      mockRepo.findOne.mockResolvedValueOnce({ ...existingCp }).mockResolvedValueOnce(null);
+
+      await service.update('agent-1', 'cp-1', 'user-1', { name: 'New Name' } as never);
+
+      expect(mockRoutingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
     it('does not double-recalculate when both models and apiKey change', async () => {
       await service.update('agent-1', 'cp-1', 'user-1', {
         models: [{ model_name: 'new-model' }],
@@ -359,65 +404,6 @@ describe('CustomProviderService (with mocks)', () => {
       // upsertProvider internally recalculates, so autoAssign should NOT be called
       expect(mockRoutingService.upsertProvider).toHaveBeenCalledTimes(1);
       expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('create (default values)', () => {
-    it('preserves undefined (null) prices when optional model fields are omitted', async () => {
-      const dto = {
-        name: 'Local',
-        base_url: 'http://localhost:8000',
-        models: [{ model_name: 'my-model' }],
-      };
-      const result = await service.create('agent-1', 'user-1', dto as never);
-
-      // Model should preserve undefined prices, default context window
-      expect(result.models[0].input_price_per_million_tokens).toBeUndefined();
-      expect(result.models[0].output_price_per_million_tokens).toBeUndefined();
-      expect(result.models[0].context_window).toBe(128000);
-
-      // Pricing row should use null for unknown prices
-      const upsertedRows = mockPricingRepo.upsert.mock.calls[0][0];
-      expect(upsertedRows[0].input_price_per_token).toBeNull();
-      expect(upsertedRows[0].output_price_per_token).toBeNull();
-      expect(upsertedRows[0].context_window).toBe(128000);
-    });
-
-    it('stores explicit zero prices as 0 (not null)', async () => {
-      const dto = {
-        name: 'Free',
-        base_url: 'http://localhost:8000',
-        models: [
-          {
-            model_name: 'free-model',
-            input_price_per_million_tokens: 0,
-            output_price_per_million_tokens: 0,
-          },
-        ],
-      };
-      const result = await service.create('agent-1', 'user-1', dto as never);
-
-      expect(result.models[0].input_price_per_million_tokens).toBe(0);
-      expect(result.models[0].output_price_per_million_tokens).toBe(0);
-
-      const upsertedRows = mockPricingRepo.upsert.mock.calls[0][0];
-      expect(upsertedRows[0].input_price_per_token).toBe(0);
-      expect(upsertedRows[0].output_price_per_token).toBe(0);
-    });
-
-    it('creates multiple model pricing rows in single upsert', async () => {
-      const dto = {
-        name: 'Multi',
-        base_url: 'https://api.example.com/v1',
-        models: [
-          { model_name: 'model-a', input_price_per_million_tokens: 1.0 },
-          { model_name: 'model-b', output_price_per_million_tokens: 2.0 },
-        ],
-      };
-      await service.create('agent-1', 'user-1', dto as never);
-
-      expect(mockPricingRepo.upsert).toHaveBeenCalledTimes(1);
-      expect(mockPricingRepo.upsert.mock.calls[0][0]).toHaveLength(2);
     });
   });
 });

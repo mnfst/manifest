@@ -19,18 +19,22 @@ export function timestampType(): 'datetime' | 'timestamp' {
  * Evaluated at decorator time using MANIFEST_MODE env var.
  */
 export function timestampDefault(): () => string {
-  return process.env['MANIFEST_MODE'] === 'local'
-    ? () => 'CURRENT_TIMESTAMP'
-    : () => 'NOW()';
+  return process.env['MANIFEST_MODE'] === 'local' ? () => 'CURRENT_TIMESTAMP' : () => 'NOW()';
 }
 
 /**
  * Convert a Postgres-style interval string (e.g. '7 days', '24 hours')
  * to a JS Date cutoff. Both Postgres and SQLite can compare ISO timestamps.
+ *
+ * Returns a local-time ISO string (no 'Z' suffix) because the pg driver
+ * serialises JS Dates in the Node process's local timezone and PostgreSQL
+ * stores them as `timestamp without time zone`. Comparing with a local-time
+ * cutoff avoids the ~TZ-offset data gap that UTC cutoffs would cause.
  */
 export function computeCutoff(interval: string): string {
   const ms = intervalToMs(interval);
-  return new Date(Date.now() - ms).toISOString();
+  const cutoff = new Date(Date.now() - ms);
+  return formatLocalIso(cutoff);
 }
 
 function intervalToMs(interval: string): number {
@@ -46,13 +50,17 @@ function intervalToMs(interval: string): number {
 }
 
 export function sqlNow(): string {
-  return new Date().toISOString();
+  return formatLocalIso(new Date());
 }
 
 export function sqlHourBucket(col: string, dialect: DbDialect): string {
-  return dialect === 'sqlite'
-    ? `strftime('%Y-%m-%dT%H:00:00', ${col})`
-    : `to_char(date_trunc('hour', ${col}), 'YYYY-MM-DD"T"HH24:MI:SS')`;
+  if (dialect === 'sqlite') {
+    return `strftime('%Y-%m-%dT%H:00:00', ${col})`;
+  }
+  // Stored values are already in the Node process's local timezone (the pg
+  // driver serialises JS Dates using local time into `timestamp without time
+  // zone` columns). Truncate directly — no AT TIME ZONE conversion needed.
+  return `to_char(date_trunc('hour', ${col}), 'YYYY-MM-DD"T"HH24:MI:SS')`;
 }
 
 export function sqlDateBucket(col: string, dialect: DbDialect): string {
@@ -85,7 +93,18 @@ export function portableSql(sql: string, dialect: DbDialect): string {
 
 export function sqlCastInterval(paramName: string, dialect: DbDialect): string {
   // For sqlite we use computeCutoff() instead, so this is only for postgres
-  return dialect === 'sqlite'
-    ? `:${paramName}`
-    : `CAST(:${paramName} AS interval)`;
+  return dialect === 'sqlite' ? `:${paramName}` : `CAST(:${paramName} AS interval)`;
+}
+
+/**
+ * Format a Date as a local-time ISO-8601 string without timezone suffix.
+ * Matches the format PostgreSQL stores for `timestamp without time zone`
+ * when the pg driver serialises JS Dates in the Node process's local TZ.
+ */
+function formatLocalIso(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  );
 }

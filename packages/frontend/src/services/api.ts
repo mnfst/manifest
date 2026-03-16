@@ -10,7 +10,7 @@ async function fetchJson<T>(path: string, params?: Record<string, string | undef
     }
   }
 
-  const res = await fetch(url.toString(), { credentials: 'include' });
+  const res = await fetch(url.toString(), { credentials: 'include', cache: 'no-store' });
   if (res.status === 401) {
     // Session expired or user logged out — silently redirect to login
     if (window.location.pathname !== '/login') {
@@ -67,14 +67,84 @@ export function getCosts(range = '24h', agentName?: string) {
 export function getMessages(
   params: {
     range?: string;
-    status?: string;
+    provider?: string;
     service_type?: string;
     cursor?: string;
     limit?: string;
     agent_name?: string;
+    cost_min?: string;
+    cost_max?: string;
   } = {},
 ) {
   return fetchJson('/messages', params);
+}
+
+export interface MessageDetailLlmCall {
+  id: string;
+  call_index: number | null;
+  request_model: string | null;
+  response_model: string | null;
+  gen_ai_system: string | null;
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_tokens: number;
+  cache_creation_tokens: number;
+  duration_ms: number | null;
+  ttft_ms: number | null;
+  temperature: number | null;
+  max_output_tokens: number | null;
+  timestamp: string;
+}
+
+export interface MessageDetailToolExecution {
+  id: string;
+  llm_call_id: string | null;
+  tool_name: string;
+  duration_ms: number | null;
+  status: string;
+  error_message: string | null;
+}
+
+export interface MessageDetailLog {
+  id: string;
+  severity: string;
+  body: string | null;
+  timestamp: string;
+  span_id: string | null;
+}
+
+export interface MessageDetailResponse {
+  message: {
+    id: string;
+    timestamp: string;
+    agent_name: string | null;
+    model: string | null;
+    status: string;
+    error_message: string | null;
+    description: string | null;
+    service_type: string | null;
+    input_tokens: number;
+    output_tokens: number;
+    cache_read_tokens: number;
+    cache_creation_tokens: number;
+    cost_usd: number | null;
+    duration_ms: number | null;
+    trace_id: string | null;
+    routing_tier: string | null;
+    routing_reason: string | null;
+    auth_type: string | null;
+    skill_name: string | null;
+    fallback_from_model: string | null;
+    fallback_index: number | null;
+    session_key: string | null;
+  };
+  llm_calls: MessageDetailLlmCall[];
+  tool_executions: MessageDetailToolExecution[];
+  agent_logs: MessageDetailLog[];
+}
+
+export function getMessageDetails(id: string) {
+  return fetchJson<MessageDetailResponse>(`/messages/${encodeURIComponent(id)}/details`);
 }
 
 export function getSecurity(range = '24h') {
@@ -311,9 +381,12 @@ export function getRoutingStatus(agentName: string) {
 
 /* -- Routing: Providers -- */
 
+export type AuthType = 'api_key' | 'subscription';
+
 export interface RoutingProvider {
   id: string;
   provider: string;
+  auth_type: AuthType;
   is_active: boolean;
   has_api_key: boolean;
   key_prefix?: string | null;
@@ -324,8 +397,11 @@ export function getProviders(agentName: string) {
   return fetchJson<RoutingProvider[]>(`/routing/${encodeURIComponent(agentName)}/providers`);
 }
 
-export function connectProvider(agentName: string, data: { provider: string; apiKey?: string }) {
-  return fetchMutate<{ id: string; provider: string; is_active: boolean }>(
+export function connectProvider(
+  agentName: string,
+  data: { provider: string; apiKey?: string; authType?: AuthType },
+) {
+  return fetchMutate<{ id: string; provider: string; auth_type: AuthType; is_active: boolean }>(
     `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers`,
     {
       method: 'POST',
@@ -342,11 +418,31 @@ export function deactivateAllProviders(agentName: string) {
   );
 }
 
-export function disconnectProvider(agentName: string, provider: string) {
-  return fetchMutate<{ ok: boolean; notifications: string[] }>(
-    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers/${encodeURIComponent(provider)}`,
-    { method: 'DELETE' },
+export function getOpenaiOAuthUrl(agentName: string) {
+  return fetchJson<{ url: string }>(`/oauth/openai/authorize`, {
+    agentName,
+  });
+}
+
+export function submitOpenaiOAuthCallback(code: string, state: string) {
+  return fetchMutate<{ ok: boolean }>(`${BASE_URL}/oauth/openai/callback`, {
+    method: 'POST',
+    body: JSON.stringify({ code, state }),
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+export function revokeOpenaiOAuth(agentName: string) {
+  return fetchMutate<{ ok: boolean }>(
+    `${BASE_URL}/oauth/openai/revoke?agentName=${encodeURIComponent(agentName)}`,
+    { method: 'POST' },
   );
+}
+
+export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {
+  const base = `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers/${encodeURIComponent(provider)}`;
+  const url = authType ? `${base}?authType=${authType}` : base;
+  return fetchMutate<{ ok: boolean; notifications: string[] }>(url, { method: 'DELETE' });
 }
 
 /* -- Routing: Tier Assignments -- */
@@ -356,6 +452,7 @@ export interface TierAssignment {
   agent_id: string;
   tier: string;
   override_model: string | null;
+  override_auth_type: AuthType | null;
   auto_assigned_model: string | null;
   fallback_models: string[] | null;
   updated_at: string;
@@ -365,13 +462,13 @@ export function getTierAssignments(agentName: string) {
   return fetchJson<TierAssignment[]>(`/routing/${encodeURIComponent(agentName)}/tiers`);
 }
 
-export function overrideTier(agentName: string, tier: string, model: string) {
+export function overrideTier(agentName: string, tier: string, model: string, authType?: AuthType) {
   return fetchMutate<TierAssignment>(
     `${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model }),
+      body: JSON.stringify({ model, ...(authType && { authType }) }),
     },
   );
 }
@@ -422,6 +519,7 @@ export function clearFallbacks(agentName: string, tier: string) {
 export interface AvailableModel {
   model_name: string;
   provider: string;
+  auth_type?: AuthType;
   input_price_per_token: number | null;
   output_price_per_token: number | null;
   context_window: number;
@@ -434,6 +532,13 @@ export interface AvailableModel {
 
 export function getAvailableModels(agentName: string) {
   return fetchJson<AvailableModel[]>(`/routing/${encodeURIComponent(agentName)}/available-models`);
+}
+
+export function refreshModels(agentName: string) {
+  return fetchMutate<{ ok: boolean }>(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/refresh-models`,
+    { method: 'POST' },
+  );
 }
 
 /* -- Routing: Custom Providers -- */

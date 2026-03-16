@@ -22,12 +22,15 @@ export class NotificationRulesService {
         `SELECT nr.*, COALESCE(nl.trigger_count, 0) AS trigger_count
          FROM notification_rules nr
          LEFT JOIN (
-           SELECT rule_id, COUNT(*) AS trigger_count FROM notification_logs GROUP BY rule_id
+           SELECT rule_id, COUNT(*) AS trigger_count
+           FROM notification_logs
+           WHERE rule_id IN (SELECT id FROM notification_rules WHERE user_id = $1 AND agent_name = $2)
+           GROUP BY rule_id
          ) nl ON nl.rule_id = nr.id
-         WHERE nr.user_id = $1 AND nr.agent_name = $2
+         WHERE nr.user_id = $3 AND nr.agent_name = $4
          ORDER BY nr.created_at DESC`,
       ),
-      [userId, agentName],
+      [userId, agentName, userId, agentName],
     );
   }
 
@@ -42,12 +45,25 @@ export class NotificationRulesService {
          (id, tenant_id, agent_id, agent_name, user_id, metric_type, threshold, period, action, is_active, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       ),
-      [id, agent.tenant_id, agent.id, dto.agent_name, userId,
-       dto.metric_type, dto.threshold, dto.period, dto.action ?? 'notify',
-       this.dialect === 'sqlite' ? 1 : true, now, now],
+      [
+        id,
+        agent.tenant_id,
+        agent.id,
+        dto.agent_name,
+        userId,
+        dto.metric_type,
+        dto.threshold,
+        dto.period,
+        dto.action ?? 'notify',
+        this.dialect === 'sqlite' ? 1 : true,
+        now,
+        now,
+      ],
     );
 
-    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [id]);
+    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [
+      id,
+    ]);
     return rows[0];
   }
 
@@ -58,10 +74,22 @@ export class NotificationRulesService {
     const params: unknown[] = [];
     let paramIdx = 1;
 
-    if (dto.metric_type !== undefined) { sets.push(`metric_type = $${paramIdx++}`); params.push(dto.metric_type); }
-    if (dto.threshold !== undefined) { sets.push(`threshold = $${paramIdx++}`); params.push(dto.threshold); }
-    if (dto.period !== undefined) { sets.push(`period = $${paramIdx++}`); params.push(dto.period); }
-    if (dto.action !== undefined) { sets.push(`action = $${paramIdx++}`); params.push(dto.action); }
+    if (dto.metric_type !== undefined) {
+      sets.push(`metric_type = $${paramIdx++}`);
+      params.push(dto.metric_type);
+    }
+    if (dto.threshold !== undefined) {
+      sets.push(`threshold = $${paramIdx++}`);
+      params.push(dto.threshold);
+    }
+    if (dto.period !== undefined) {
+      sets.push(`period = $${paramIdx++}`);
+      params.push(dto.period);
+    }
+    if (dto.action !== undefined) {
+      sets.push(`action = $${paramIdx++}`);
+      params.push(dto.action);
+    }
     if (dto.is_active !== undefined) {
       sets.push(`is_active = $${paramIdx++}`);
       params.push(this.dialect === 'sqlite' ? (dto.is_active ? 1 : 0) : dto.is_active);
@@ -74,9 +102,14 @@ export class NotificationRulesService {
     params.push(now);
     params.push(ruleId);
 
-    await this.ds.query(this.sql(`UPDATE notification_rules SET ${sets.join(', ')} WHERE id = $${paramIdx}`), params);
+    await this.ds.query(
+      this.sql(`UPDATE notification_rules SET ${sets.join(', ')} WHERE id = $${paramIdx}`),
+      params,
+    );
 
-    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [ruleId]);
+    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [
+      ruleId,
+    ]);
     return rows[0];
   }
 
@@ -92,9 +125,10 @@ export class NotificationRulesService {
     periodStart: string,
     periodEnd: string,
   ): Promise<number> {
-    const expr = metric === 'tokens'
-      ? 'COALESCE(SUM(input_tokens + output_tokens), 0)'
-      : 'COALESCE(SUM(cost_usd), 0)';
+    const expr =
+      metric === 'tokens'
+        ? 'COALESCE(SUM(input_tokens + output_tokens), 0)'
+        : 'COALESCE(SUM(cost_usd), 0)';
 
     const rows = await this.ds.query(
       this.sql(
@@ -152,7 +186,9 @@ export class NotificationRulesService {
   }
 
   async getRule(ruleId: string) {
-    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [ruleId]);
+    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [
+      ruleId,
+    ]);
     return rows[0];
   }
 }

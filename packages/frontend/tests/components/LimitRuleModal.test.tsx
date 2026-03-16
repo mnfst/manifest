@@ -437,7 +437,7 @@ describe("LimitRuleModal", () => {
     fireEvent.click(btn);
 
     await vi.waitFor(() => {
-      expect(btn.textContent).toBe("Saving...");
+      expect(btn.querySelector(".spinner")).not.toBeNull();
       expect(btn.disabled).toBe(true);
     });
 

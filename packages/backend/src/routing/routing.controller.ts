@@ -1,16 +1,17 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { RoutingService } from './routing.service';
 import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
-import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
-import { expandProviderNames } from './provider-aliases';
 import { trackCloudEvent } from '../common/utils/product-telemetry';
 import {
   AgentNameParamDto,
+  AgentProviderParamDto,
   ConnectProviderDto,
+  RemoveProviderQueryDto,
   SetOverrideDto,
   SetFallbacksDto,
 } from './dto/routing.dto';
@@ -20,7 +21,7 @@ export class RoutingController {
   constructor(
     private readonly routingService: RoutingService,
     private readonly customProviderService: CustomProviderService,
-    private readonly pricingCache: ModelPricingCacheService,
+    private readonly discoveryService: ModelDiscoveryService,
     private readonly ollamaSync: OllamaSyncService,
     private readonly resolveAgentService: ResolveAgentService,
   ) {}
@@ -44,6 +45,7 @@ export class RoutingController {
     return providers.map((p) => ({
       id: p.id,
       provider: p.provider,
+      auth_type: p.auth_type ?? 'api_key',
       is_active: p.is_active,
       has_api_key: !!p.api_key_encrypted,
       key_prefix: p.key_prefix ?? null,
@@ -69,17 +71,30 @@ export class RoutingController {
       user.id,
       body.provider,
       body.apiKey,
+      body.authType,
     );
 
+    // Discover models and recalculate tiers before returning so the
+    // frontend sees updated data immediately (typically ~1-3s).
+    try {
+      await this.discoveryService.discoverModels(result);
+      await this.routingService.recalculateTiers(agent.id);
+    } catch {
+      // Discovery failure is non-fatal — user can retry via "Refresh models"
+    }
+
     if (isNew) {
+      const providerLabel =
+        body.authType === 'subscription' ? `${body.provider} (Subscription)` : body.provider;
       trackCloudEvent('routing_provider_connected', user.id, {
-        provider: body.provider,
+        provider: providerLabel,
       });
     }
 
     return {
       id: result.id,
       provider: result.provider,
+      auth_type: result.auth_type ?? 'api_key',
       is_active: result.is_active,
     };
   }
@@ -94,11 +109,15 @@ export class RoutingController {
   @Delete(':agentName/providers/:provider')
   async removeProvider(
     @CurrentUser() user: AuthUser,
-    @Param('agentName') agentName: string,
-    @Param('provider') provider: string,
+    @Param() params: AgentProviderParamDto,
+    @Query() query: RemoveProviderQueryDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    const { notifications } = await this.routingService.removeProvider(agent.id, provider);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const { notifications } = await this.routingService.removeProvider(
+      agent.id,
+      params.provider,
+      query.authType,
+    );
     return { ok: true, notifications };
   }
 
@@ -107,6 +126,16 @@ export class RoutingController {
   @Post('ollama/sync')
   async syncOllama() {
     return this.ollamaSync.sync();
+  }
+
+  /* ── Model refresh ── */
+
+  @Post(':agentName/refresh-models')
+  async refreshModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    await this.discoveryService.discoverAllForAgent(agent.id);
+    await this.routingService.recalculateTiers(agent.id);
+    return { ok: true };
   }
 
   /* ── Tiers ── */
@@ -125,7 +154,7 @@ export class RoutingController {
     @Body() body: SetOverrideDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.routingService.setOverride(agent.id, user.id, tier, body.model);
+    return this.routingService.setOverride(agent.id, user.id, tier, body.model, body.authType);
   }
 
   @Delete(':agentName/tiers/:tier')
@@ -185,10 +214,7 @@ export class RoutingController {
   @Get(':agentName/available-models')
   async getAvailableModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const providers = await this.routingService.getProviders(agent.id);
-    const activeProviders = expandProviderNames(
-      providers.filter((p) => p.is_active).map((p) => p.provider),
-    );
+    const models = await this.discoveryService.getModelsForAgent(agent.id);
 
     // Build display name map for custom providers
     const customProviders = await this.customProviderService.list(agent.id);
@@ -197,27 +223,23 @@ export class RoutingController {
       cpNameMap.set(CustomProviderService.providerKey(cp.id), cp.name);
     }
 
-    const models = this.pricingCache.getAll();
-    return models
-      .filter((m) => activeProviders.has(m.provider.toLowerCase()))
-      .map((m) => {
-        const isCustom = CustomProviderService.isCustom(m.provider);
-        return {
-          model_name: m.model_name,
-          provider: m.provider,
-          input_price_per_token: m.input_price_per_token,
-          output_price_per_token: m.output_price_per_token,
-          context_window: m.context_window,
-          capability_reasoning: m.capability_reasoning,
-          capability_code: m.capability_code,
-          quality_score: m.quality_score,
-          display_name: isCustom
-            ? CustomProviderService.rawModelName(m.model_name)
-            : m.display_name || null,
-          ...(isCustom && {
-            provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
-          }),
-        };
-      });
+    return models.map((m) => {
+      const isCustom = CustomProviderService.isCustom(m.provider);
+      return {
+        model_name: m.id,
+        provider: m.provider,
+        auth_type: m.authType ?? 'api_key',
+        input_price_per_token: m.inputPricePerToken,
+        output_price_per_token: m.outputPricePerToken,
+        context_window: m.contextWindow,
+        capability_reasoning: m.capabilityReasoning,
+        capability_code: m.capabilityCode,
+        quality_score: m.qualityScore,
+        display_name: isCustom ? CustomProviderService.rawModelName(m.id) : m.displayName || null,
+        ...(isCustom && {
+          provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
+        }),
+      };
+    });
   }
 }

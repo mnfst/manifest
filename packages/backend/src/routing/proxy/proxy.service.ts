@@ -2,12 +2,14 @@ import { Injectable, Logger, BadRequestException, HttpException } from '@nestjs/
 import { ResolveService } from '../resolve.service';
 import { RoutingService } from '../routing.service';
 import { CustomProviderService } from '../custom-provider.service';
+import { OpenaiOauthService } from '../openai-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import { buildCustomEndpoint, ProviderEndpoint } from './provider-endpoints';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
-import { shouldTriggerFallback } from './fallback-status-codes';
+import { shouldTriggerFallback, FALLBACK_EXHAUSTED_STATUS } from './fallback-status-codes';
+import { inferProviderFromModelName } from '../provider-aliases';
 import { Tier, ScorerMessage } from '../scorer/types';
 
 /**
@@ -25,6 +27,7 @@ export interface RoutingMeta {
   provider: string;
   confidence: number;
   reason: string;
+  auth_type?: string;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
@@ -53,6 +56,7 @@ export class ProxyService {
     private readonly resolveService: ResolveService,
     private readonly routingService: RoutingService,
     private readonly customProviderService: CustomProviderService,
+    private readonly openaiOauth: OpenaiOauthService,
     private readonly providerClient: ProviderClient,
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
@@ -101,15 +105,27 @@ export class ProxyService {
       );
     }
 
-    const apiKey = await this.routingService.getProviderApiKey(agentId, resolved.provider);
+    let apiKey = await this.routingService.getProviderApiKey(
+      agentId,
+      resolved.provider,
+      resolved.auth_type,
+    );
     if (apiKey === null) {
       throw new BadRequestException(
         `No API key found for provider: ${resolved.provider}. Re-connect the provider with an API key.`,
       );
     }
 
+    apiKey = await this.resolveApiKey(
+      resolved.provider,
+      apiKey,
+      resolved.auth_type,
+      agentId,
+      userId,
+    );
+
     this.logger.log(
-      `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} confidence=${resolved.confidence}`,
+      `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
     );
 
     const stream = body.stream === true;
@@ -121,6 +137,7 @@ export class ProxyService {
       stream,
       sessionKey,
       signal,
+      resolved.auth_type,
     );
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
@@ -132,6 +149,7 @@ export class ProxyService {
         const primaryErrorBody = await forward.response.text();
         const { success, failures } = await this.tryFallbacks(
           agentId,
+          userId,
           fallbackModels,
           body,
           stream,
@@ -150,6 +168,7 @@ export class ProxyService {
               provider: success.provider,
               confidence: resolved.confidence,
               reason: resolved.reason,
+              auth_type: resolved.auth_type,
               fallbackFromModel: resolved.model,
               fallbackIndex: success.fallbackIndex,
               primaryErrorStatus: forward.response.status,
@@ -159,12 +178,17 @@ export class ProxyService {
           };
         }
 
-        // All fallbacks exhausted — rebuild the primary error response
-        // since the original body was consumed.
+        // All fallbacks exhausted — return non-retriable 424 so the gateway
+        // does not retry the entire chain in an infinite loop.
+        const safeHeaders = new Headers(forward.response.headers);
+        safeHeaders.delete('content-encoding');
+        safeHeaders.delete('content-length');
+        safeHeaders.delete('transfer-encoding');
+
         const rebuilt = new Response(primaryErrorBody, {
-          status: forward.response.status,
-          statusText: forward.response.statusText,
-          headers: forward.response.headers,
+          status: FALLBACK_EXHAUSTED_STATUS,
+          statusText: 'Failed Dependency',
+          headers: safeHeaders,
         });
         this.momentum.recordTier(sessionKey, resolved.tier as Tier);
         return {
@@ -172,6 +196,7 @@ export class ProxyService {
             response: rebuilt,
             isGoogle: forward.isGoogle,
             isAnthropic: forward.isAnthropic,
+            isChatGpt: forward.isChatGpt,
           },
           meta: {
             tier: resolved.tier as Tier,
@@ -179,6 +204,7 @@ export class ProxyService {
             provider: resolved.provider,
             confidence: resolved.confidence,
             reason: resolved.reason,
+            auth_type: resolved.auth_type,
           },
           failedFallbacks: failures,
         };
@@ -195,12 +221,14 @@ export class ProxyService {
         provider: resolved.provider,
         confidence: resolved.confidence,
         reason: resolved.reason,
+        auth_type: resolved.auth_type,
       },
     };
   }
 
   private async tryFallbacks(
     agentId: string,
+    userId: string,
     fallbackModels: string[],
     body: Record<string, unknown>,
     stream: boolean,
@@ -220,14 +248,36 @@ export class ProxyService {
     for (let i = 0; i < fallbackModels.length; i++) {
       const model = fallbackModels[i];
       const pricing = this.pricingCache.getByModel(model);
-      if (!pricing) continue;
 
-      const provider = pricing.provider;
-      const apiKey = await this.routingService.getProviderApiKey(agentId, provider);
-      if (apiKey === null) continue;
+      // Determine provider: custom prefix → model name inference → pricing cache → user's connected providers
+      let provider: string | undefined;
+      if (CustomProviderService.isCustom(model)) {
+        const slashIdx = model.indexOf('/');
+        provider = slashIdx > 0 ? model.substring(0, slashIdx) : model;
+      } else {
+        provider =
+          inferProviderFromModelName(model) ??
+          pricing?.provider ??
+          (await this.routingService.findProviderForModel(agentId, model));
+      }
+
+      if (!provider) {
+        this.logger.debug(`Fallback ${i}: skipping model=${model} (no provider data)`);
+        continue;
+      }
+      const authType = await this.routingService.getAuthType(agentId, provider);
+      let apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
+      if (apiKey === null) {
+        this.logger.debug(
+          `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
+        );
+        continue;
+      }
+
+      apiKey = await this.resolveApiKey(provider, apiKey, authType, agentId, userId);
 
       this.logger.log(
-        `Fallback ${i}: trying model=${model} provider=${provider} (primary=${primaryModel})`,
+        `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
       );
 
       const forward = await this.forwardToProvider(
@@ -238,6 +288,7 @@ export class ProxyService {
         stream,
         sessionKey,
         signal,
+        authType,
       );
 
       if (forward.response.ok) {
@@ -257,6 +308,20 @@ export class ProxyService {
     return { success: null, failures };
   }
 
+  private async resolveApiKey(
+    provider: string,
+    apiKey: string,
+    authType: string | undefined,
+    agentId: string,
+    userId: string,
+  ): Promise<string> {
+    if (authType === 'subscription' && provider.toLowerCase() === 'openai') {
+      const unwrapped = await this.openaiOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return unwrapped;
+    }
+    return apiKey;
+  }
+
   private async enforceLimits(tenantId?: string, agentName?: string): Promise<void> {
     if (!tenantId || !agentName) return;
     const exceeded = await this.limitCheck.checkLimits(tenantId, agentName);
@@ -264,12 +329,12 @@ export class ProxyService {
 
     const fmt =
       exceeded.metricType === 'cost'
-        ? `$${exceeded.actual.toFixed(2)}`
-        : exceeded.actual.toLocaleString();
+        ? `$${Number(exceeded.actual).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : Number(exceeded.actual).toLocaleString(undefined, { maximumFractionDigits: 0 });
     const threshFmt =
       exceeded.metricType === 'cost'
-        ? `$${exceeded.threshold.toFixed(2)}`
-        : exceeded.threshold.toLocaleString();
+        ? `$${Number(exceeded.threshold).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : Number(exceeded.threshold).toLocaleString(undefined, { maximumFractionDigits: 0 });
     throw new HttpException(
       {
         error: {
@@ -289,17 +354,15 @@ export class ProxyService {
   }
 
   private detectHeartbeat(scoringMessages: ScorerMessage[]): boolean {
-    return scoringMessages.some((m) => {
-      if (m.role !== 'user') return false;
-      if (typeof m.content === 'string') return m.content.includes('HEARTBEAT_OK');
-      if (Array.isArray(m.content)) {
-        return m.content.some(
-          (p: { type?: string; text?: string }) =>
-            p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
-        );
-      }
-      return false;
-    });
+    const lastUser = [...scoringMessages].reverse().find((m) => m.role === 'user');
+    if (!lastUser) return false;
+    if (typeof lastUser.content === 'string') return lastUser.content.includes('HEARTBEAT_OK');
+    if (Array.isArray(lastUser.content)) {
+      return (lastUser.content as { type?: string; text?: string }[]).some(
+        (p) => p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
+      );
+    }
+    return false;
   }
 
   private async forwardToProvider(
@@ -310,6 +373,7 @@ export class ProxyService {
     stream: boolean,
     sessionKey: string,
     signal?: AbortSignal,
+    authType?: string,
   ): Promise<ForwardResult> {
     const extraHeaders: Record<string, string> = {};
     if (provider === 'xai') {
@@ -338,6 +402,7 @@ export class ProxyService {
       signal,
       hasExtraHeaders ? extraHeaders : undefined,
       customEndpoint,
+      authType,
     );
   }
 }

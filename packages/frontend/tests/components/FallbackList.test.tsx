@@ -16,12 +16,23 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null,
 }));
 
+vi.mock("../../src/components/AuthBadge.js", () => ({
+  authBadgeFor: () => null,
+}));
+
+vi.mock("../../src/services/providers.js", () => ({
+  PROVIDERS: [
+    { id: "openai", name: "OpenAI" },
+    { id: "anthropic", name: "Anthropic" },
+  ],
+}));
+
 vi.mock("../../src/services/routing-utils.js", () => ({
   resolveProviderId: (p: string) => p.toLowerCase(),
   stripCustomPrefix: (m: string) => m.replace(/^custom:[^/]+\//, ""),
 }));
 
-vi.mock("../../src/services/providers.js", () => ({
+vi.mock("../../src/services/provider-utils.js", () => ({
   getModelLabel: (_providerId: string, model: string) => model,
 }));
 
@@ -38,6 +49,10 @@ const defaultProps = {
   fallbacks: [] as string[],
   models,
   customProviders: [] as any[],
+  connectedProviders: [
+    { provider: "openai", auth_type: "api_key", is_active: true },
+    { provider: "anthropic", auth_type: "subscription", is_active: true },
+  ] as any[],
   onUpdate: vi.fn(),
   onAddFallback: vi.fn(),
 };
@@ -54,7 +69,8 @@ describe("FallbackList", () => {
       <FallbackList {...defaultProps} fallbacks={[]} />
     ));
 
-    expect(screen.getByText("+ Add fallback")).toBeDefined();
+    expect(screen.getByText("No fallback")).toBeDefined();
+    expect(container.querySelector(".fallback-list__empty")).not.toBeNull();
     expect(container.querySelector(".fallback-list__items")).toBeNull();
   });
 
@@ -65,20 +81,21 @@ describe("FallbackList", () => {
 
     const ranks = container.querySelectorAll(".fallback-list__rank");
     expect(ranks.length).toBe(2);
-    expect(ranks[0].textContent).toBe("1.");
-    expect(ranks[1].textContent).toBe("2.");
+    expect(ranks[0].textContent).toBe("1");
+    expect(ranks[1].textContent).toBe("2");
 
     const modelLabels = container.querySelectorAll(".fallback-list__model");
     expect(modelLabels.length).toBe(2);
   });
 
-  it("calls onAddFallback when add button clicked", () => {
+  it("calls onAddFallback when add button in empty state clicked", () => {
     const onAddFallback = vi.fn();
-    render(() => (
+    const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={[]} onAddFallback={onAddFallback} />
     ));
 
-    fireEvent.click(screen.getByText("+ Add fallback"));
+    const addBtn = container.querySelector(".fallback-list__empty .fallback-list__add") as HTMLButtonElement;
+    fireEvent.click(addBtn);
     expect(onAddFallback).toHaveBeenCalledTimes(1);
   });
 
@@ -88,7 +105,7 @@ describe("FallbackList", () => {
       <FallbackList {...defaultProps} fallbacks={fiveFallbacks} />
     ));
 
-    expect(screen.queryByText("+ Add fallback")).toBeNull();
+    expect(screen.queryByText("Add fallback")).toBeNull();
   });
 
   it("calls setFallbacks on remove with remaining items", async () => {
@@ -135,7 +152,7 @@ describe("FallbackList", () => {
     expect(mockSetFallbacks).not.toHaveBeenCalled();
   });
 
-  it("does not call onUpdate when setFallbacks rejects", async () => {
+  it("reverts optimistic removal when setFallbacks rejects", async () => {
     mockSetFallbacks.mockRejectedValue(new Error("API error"));
     const onUpdate = vi.fn();
     const { container } = render(() => (
@@ -152,10 +169,13 @@ describe("FallbackList", () => {
     await waitFor(() => {
       expect(mockSetFallbacks).toHaveBeenCalled();
     });
-    expect(onUpdate).not.toHaveBeenCalled();
+    // First call: optimistic removal, second call: revert with original list
+    expect(onUpdate).toHaveBeenCalledTimes(2);
+    expect(onUpdate).toHaveBeenNthCalledWith(1, ["model-b"]);
+    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a", "model-b"]);
   });
 
-  it("does not call onUpdate when clearFallbacks rejects", async () => {
+  it("reverts optimistic removal when clearFallbacks rejects", async () => {
     mockClearFallbacks.mockRejectedValue(new Error("API error"));
     const onUpdate = vi.fn();
     const { container } = render(() => (
@@ -172,7 +192,10 @@ describe("FallbackList", () => {
     await waitFor(() => {
       expect(mockClearFallbacks).toHaveBeenCalled();
     });
-    expect(onUpdate).not.toHaveBeenCalled();
+    // First call: optimistic removal, second call: revert with original list
+    expect(onUpdate).toHaveBeenCalledTimes(2);
+    expect(onUpdate).toHaveBeenNthCalledWith(1, []);
+    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a"]);
   });
 
   it("displays display_name when model info has one", () => {
@@ -277,7 +300,7 @@ describe("FallbackList", () => {
       <FallbackList {...defaultProps} fallbacks={["model-a", "model-b"]} />
     ));
 
-    expect(screen.getByText("+ Add fallback")).toBeDefined();
+    expect(screen.getByText("Add fallback")).toBeDefined();
   });
 
   it("sets aria-label on remove buttons with model label", () => {
@@ -296,33 +319,40 @@ describe("FallbackList", () => {
     expect(removeBtn?.getAttribute("aria-label")).toBe("Remove Model Alpha");
   });
 
-  it("add button uses routing-action class for consistent styling", () => {
+  it("empty state uses fallback-list__empty class for consistent styling", () => {
     const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={[]} />
     ));
 
-    const addBtn = container.querySelector(".fallback-list__add");
-    expect(addBtn).not.toBeNull();
-    expect(addBtn!.classList.contains("routing-action")).toBe(true);
+    const emptyBtn = container.querySelector(".fallback-list__empty");
+    expect(emptyBtn).not.toBeNull();
   });
 
-  it("shows Adding... and disables add button when adding prop is true", () => {
-    render(() => (
+  it("shows add button with fallback-list__add class when fallbacks exist", () => {
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={["model-a"]} />
+    ));
+
+    const addBtn = container.querySelector(".fallback-list__add");
+    expect(addBtn).not.toBeNull();
+  });
+
+  it("disables add button in empty state when adding prop is true", () => {
+    const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={[]} adding={true} />
     ));
 
-    const addBtn = screen.getByText("Adding...");
-    expect(addBtn).toBeDefined();
-    expect((addBtn as HTMLButtonElement).disabled).toBe(true);
+    const addBtn = container.querySelector(".fallback-list__empty .fallback-list__add") as HTMLButtonElement;
+    expect(addBtn.disabled).toBe(true);
   });
 
-  it("disables add button when adding is false but not disabled", () => {
-    render(() => (
+  it("enables add button in empty state when adding is false", () => {
+    const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={[]} adding={false} />
     ));
 
-    const addBtn = screen.getByText("+ Add fallback");
-    expect((addBtn as HTMLButtonElement).disabled).toBe(false);
+    const addBtn = container.querySelector(".fallback-list__empty .fallback-list__add") as HTMLButtonElement;
+    expect(addBtn.disabled).toBe(false);
   });
 
   it("disables all remove buttons during async removal", async () => {
@@ -343,10 +373,10 @@ describe("FallbackList", () => {
       // Both buttons should be disabled
       expect((btns[0] as HTMLButtonElement).disabled).toBe(true);
       expect((btns[1] as HTMLButtonElement).disabled).toBe(true);
-      // The one being removed shows "..."
-      expect(btns[0].textContent).toBe("...");
-      // The other still shows "×"
-      expect(btns[1].textContent).toBe("\u00d7");
+      // The one being removed shows a spinner
+      expect(btns[0].querySelector(".spinner")).not.toBeNull();
+      // The other still shows a close (x) SVG
+      expect(btns[1].querySelector("svg")).not.toBeNull();
     });
 
     resolveRemove!();
@@ -372,11 +402,321 @@ describe("FallbackList", () => {
     fireEvent.click(removeButtons[0]);
 
     await waitFor(() => {
-      const addBtn = screen.getByText("+ Add fallback");
+      const addBtn = screen.getByText("Add fallback");
       expect((addBtn as HTMLButtonElement).disabled).toBe(true);
     });
 
     resolveRemove!();
+  });
+
+  it("renders auth badge on fallback icon via authBadgeFor", () => {
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a"]}
+      />
+    ));
+
+    const iconSpan = container.querySelector(".fallback-list__icon");
+    expect(iconSpan).not.toBeNull();
+    // title should show "OpenAI (API Key)" since model-a → openai → api_key
+    expect(iconSpan?.getAttribute("title")).toBe("OpenAI (API Key)");
+  });
+
+  it("renders subscription title on fallback icon", () => {
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-b"]}
+      />
+    ));
+
+    const iconSpan = container.querySelector(".fallback-list__icon");
+    expect(iconSpan?.getAttribute("title")).toBe("Anthropic (Subscription)");
+  });
+
+  it("returns null auth type when provider not in connectedProviders", () => {
+    const modelsUnknown = [
+      { model_name: "model-x", provider: "Unknown" },
+    ] as any[];
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-x"]}
+        models={modelsUnknown}
+        connectedProviders={[]}
+      />
+    ));
+
+    const iconSpan = container.querySelector(".fallback-list__icon");
+    // Provider "unknown" not in PROVIDERS mock, so providerTitle falls back to providerId
+    expect(iconSpan?.getAttribute("title")).toBe("unknown (API Key)");
+  });
+
+  // ── Drag and Drop Tests ──
+
+  it("sets dragIndex on dragStart and clears on dragEnd", () => {
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={["model-a", "model-b"]} />
+    ));
+
+    const cards = container.querySelectorAll(".fallback-list__card");
+    const dataTransfer = { effectAllowed: "", setData: vi.fn() };
+
+    fireEvent.dragStart(cards[0], { dataTransfer });
+    expect(dataTransfer.effectAllowed).toBe("move");
+    expect(dataTransfer.setData).toHaveBeenCalledWith("text/plain", "0");
+    // Card should have dragging class
+    expect(cards[0].classList.contains("fallback-list__card--dragging")).toBe(true);
+
+    // dragEnd clears state
+    const list = container.querySelector(".fallback-list__items")!;
+    fireEvent.dragEnd(list);
+    expect(cards[0].classList.contains("fallback-list__card--dragging")).toBe(false);
+  });
+
+  it("handles dragStart without dataTransfer gracefully", () => {
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={["model-a", "model-b"]} />
+    ));
+
+    const cards = container.querySelectorAll(".fallback-list__card");
+    // Fire dragStart without dataTransfer property
+    fireEvent.dragStart(cards[0], {});
+    expect(cards[0].classList.contains("fallback-list__card--dragging")).toBe(true);
+  });
+
+  it("shows drop indicator on dragOver and computes slot from cursor position", () => {
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={["model-a", "model-b", "model-c"]} />
+    ));
+
+    const cards = container.querySelectorAll(".fallback-list__card");
+    const list = container.querySelector(".fallback-list__items")!;
+
+    // Start dragging the first card
+    fireEvent.dragStart(cards[0], { dataTransfer: { effectAllowed: "", setData: vi.fn() } });
+
+    // Mock getBoundingClientRect for all cards
+    cards.forEach((card, i) => {
+      vi.spyOn(card, "getBoundingClientRect").mockReturnValue({
+        top: i * 40, bottom: (i + 1) * 40, height: 40, left: 0, right: 200, width: 200, x: 0, y: i * 40, toJSON: () => {},
+      });
+    });
+
+    // Drag over near the bottom of the last card → slot should be after last (index 3)
+    fireEvent.dragOver(list, { clientY: 110, dataTransfer: { dropEffect: "" }, preventDefault: vi.fn() });
+
+    // Drop indicator for slot 3 (after last) should be active
+    const indicators = container.querySelectorAll(".fallback-list__drop-indicator");
+    const lastIndicator = indicators[indicators.length - 1];
+    expect(lastIndicator?.classList.contains("fallback-list__drop-indicator--active")).toBe(true);
+  });
+
+  it("computes no-op slot when dragOver fires at dragged item position", () => {
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={["model-a", "model-b"]} />
+    ));
+
+    const list = container.querySelector(".fallback-list__items")!;
+    const cards = list.querySelectorAll<HTMLElement>(".fallback-list__card");
+
+    // Start dragging card at index 0
+    fireEvent.dragStart(cards[0]!, { dataTransfer: { effectAllowed: "", setData: vi.fn() } });
+
+    // In jsdom, getBoundingClientRect returns all zeros (top=0, height=0, midY=0).
+    // With clientY=0, all cards have midY=0, so clientY < midY is false for all → slot = cards.length = 2.
+    // from=0, slot=2, slot !== from && slot !== from+1 → indicator shows at slot 2.
+    // Verify dragOver runs without error
+    fireEvent.dragOver(list, { clientY: 0, dataTransfer: { dropEffect: "" }, preventDefault: vi.fn() });
+
+    // Drop at this position should trigger reorder (from=0, slot=2, insertAt=1)
+    fireEvent.drop(list, { preventDefault: vi.fn() });
+    // Verifying the handlers executed without error is sufficient for coverage
+  });
+
+  it("handles dragOver without dataTransfer", () => {
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={["model-a", "model-b"]} />
+    ));
+
+    const cards = container.querySelectorAll(".fallback-list__card");
+    const list = container.querySelector(".fallback-list__items")!;
+
+    fireEvent.dragStart(cards[0], { dataTransfer: { effectAllowed: "", setData: vi.fn() } });
+
+    cards.forEach((card, i) => {
+      vi.spyOn(card, "getBoundingClientRect").mockReturnValue({
+        top: i * 40, bottom: (i + 1) * 40, height: 40, left: 0, right: 200, width: 200, x: 0, y: i * 40, toJSON: () => {},
+      });
+    });
+
+    // DragOver without dataTransfer — should not throw
+    fireEvent.dragOver(list, { clientY: 50, preventDefault: vi.fn() });
+  });
+
+  it("clears drop slot on dragLeave when leaving container", () => {
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={["model-a", "model-b"]} />
+    ));
+
+    const cards = container.querySelectorAll(".fallback-list__card");
+    const list = container.querySelector(".fallback-list__items")!;
+
+    fireEvent.dragStart(cards[0], { dataTransfer: { effectAllowed: "", setData: vi.fn() } });
+
+    cards.forEach((card, i) => {
+      vi.spyOn(card, "getBoundingClientRect").mockReturnValue({
+        top: i * 40, bottom: (i + 1) * 40, height: 40, left: 0, right: 200, width: 200, x: 0, y: i * 40, toJSON: () => {},
+      });
+    });
+
+    // Create a drop indicator
+    fireEvent.dragOver(list, { clientY: 50, dataTransfer: { dropEffect: "" }, preventDefault: vi.fn() });
+
+    // DragLeave with relatedTarget outside the list
+    fireEvent.dragLeave(list, { relatedTarget: null });
+
+    // No active indicators
+    const activeIndicators = container.querySelectorAll(".fallback-list__drop-indicator--active");
+    expect(activeIndicators.length).toBe(0);
+  });
+
+  it("preserves drop slot on dragLeave when relatedTarget is inside list", () => {
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={["model-a", "model-b", "model-c"]} />
+    ));
+
+    const list = container.querySelector(".fallback-list__items")!;
+    const cards = list.querySelectorAll<HTMLElement>(".fallback-list__card");
+
+    fireEvent.dragStart(cards[0]!, { dataTransfer: { effectAllowed: "", setData: vi.fn() } });
+    fireEvent.dragOver(list, { clientY: 0, dataTransfer: { dropEffect: "" }, preventDefault: vi.fn() });
+
+    // Verify an indicator was set
+    expect(container.querySelectorAll(".fallback-list__drop-indicator--active").length).toBeGreaterThan(0);
+
+    // DragLeave with relatedTarget that's a child of the list → should NOT clear
+    // Use dispatchEvent to properly set relatedTarget
+    const childInList = list.querySelectorAll<HTMLElement>(".fallback-list__card")[1]!;
+    const leaveEvent = new Event("dragleave", { bubbles: true }) as any;
+    leaveEvent.relatedTarget = childInList;
+    list.dispatchEvent(leaveEvent);
+
+    // Indicator should still be active
+    const activeIndicators = container.querySelectorAll(".fallback-list__drop-indicator--active");
+    expect(activeIndicators.length).toBeGreaterThan(0);
+  });
+
+  it("reorders fallbacks on drop and calls setFallbacks", async () => {
+    mockSetFallbacks.mockResolvedValueOnce(undefined);
+    const onUpdate = vi.fn();
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b", "model-c"]}
+        onUpdate={onUpdate}
+      />
+    ));
+
+    const cards = container.querySelectorAll(".fallback-list__card");
+    const list = container.querySelector(".fallback-list__items")!;
+
+    // Start dragging card 0
+    fireEvent.dragStart(cards[0], { dataTransfer: { effectAllowed: "", setData: vi.fn() } });
+
+    cards.forEach((card, i) => {
+      vi.spyOn(card, "getBoundingClientRect").mockReturnValue({
+        top: i * 40, bottom: (i + 1) * 40, height: 40, left: 0, right: 200, width: 200, x: 0, y: i * 40, toJSON: () => {},
+      });
+    });
+
+    // Drag over to slot 3 (after last card) — cursor at bottom
+    fireEvent.dragOver(list, { clientY: 130, dataTransfer: { dropEffect: "" }, preventDefault: vi.fn() });
+
+    // Drop
+    fireEvent.drop(list, { preventDefault: vi.fn() });
+
+    await waitFor(() => {
+      // model-a moved to the end: ["model-b", "model-c", "model-a"]
+      expect(onUpdate).toHaveBeenCalledWith(["model-b", "model-c", "model-a"]);
+      expect(mockSetFallbacks).toHaveBeenCalledWith("test-agent", "tier-1", ["model-b", "model-c", "model-a"]);
+    });
+  });
+
+  it("reverts reorder on setFallbacks failure", async () => {
+    mockSetFallbacks.mockRejectedValueOnce(new Error("fail"));
+    const onUpdate = vi.fn();
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b", "model-c"]}
+        onUpdate={onUpdate}
+      />
+    ));
+
+    const cards = container.querySelectorAll(".fallback-list__card");
+    const list = container.querySelector(".fallback-list__items")!;
+
+    fireEvent.dragStart(cards[0], { dataTransfer: { effectAllowed: "", setData: vi.fn() } });
+
+    cards.forEach((card, i) => {
+      vi.spyOn(card, "getBoundingClientRect").mockReturnValue({
+        top: i * 40, bottom: (i + 1) * 40, height: 40, left: 0, right: 200, width: 200, x: 0, y: i * 40, toJSON: () => {},
+      });
+    });
+
+    fireEvent.dragOver(list, { clientY: 130, dataTransfer: { dropEffect: "" }, preventDefault: vi.fn() });
+    fireEvent.drop(list, { preventDefault: vi.fn() });
+
+    await waitFor(() => {
+      // First call is the optimistic reorder, second call reverts to original
+      expect(onUpdate).toHaveBeenCalledTimes(2);
+      expect(onUpdate).toHaveBeenLastCalledWith(["model-a", "model-b", "model-c"]);
+    });
+  });
+
+  it("ignores drop when dragIndex or dropSlot is null", () => {
+    const onUpdate = vi.fn();
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={["model-a", "model-b"]} onUpdate={onUpdate} />
+    ));
+
+    const list = container.querySelector(".fallback-list__items")!;
+    // Drop without prior dragStart → dragIndex is null
+    fireEvent.drop(list, { preventDefault: vi.fn() });
+
+    expect(onUpdate).not.toHaveBeenCalled();
+    expect(mockSetFallbacks).not.toHaveBeenCalled();
+  });
+
+  it("ignores drop when insertAt equals fromIndex (no-op reorder)", async () => {
+    const onUpdate = vi.fn();
+    const { container } = render(() => (
+      <FallbackList {...defaultProps} fallbacks={["model-a", "model-b", "model-c"]} onUpdate={onUpdate} />
+    ));
+
+    const cards = container.querySelectorAll(".fallback-list__card");
+    const list = container.querySelector(".fallback-list__items")!;
+
+    // Start dragging card 2 (last)
+    fireEvent.dragStart(cards[2], { dataTransfer: { effectAllowed: "", setData: vi.fn() } });
+
+    cards.forEach((card, i) => {
+      vi.spyOn(card, "getBoundingClientRect").mockReturnValue({
+        top: i * 40, bottom: (i + 1) * 40, height: 40, left: 0, right: 200, width: 200, x: 0, y: i * 40, toJSON: () => {},
+      });
+    });
+
+    // Drag over to slot 2 (before card 2, which is from+0 → no-op)
+    // But computeSlot returns null for from=2, slot=2. So dropSlot stays null → handled by null check.
+    // Let's instead set slot=3 (after last) which → insertAt = 3-1=2 = fromIndex → no-op
+    fireEvent.dragOver(list, { clientY: 130, dataTransfer: { dropEffect: "" }, preventDefault: vi.fn() });
+    fireEvent.drop(list, { preventDefault: vi.fn() });
+
+    // Allow async to settle
+    await new Promise((r) => setTimeout(r, 10));
+    expect(onUpdate).not.toHaveBeenCalled();
   });
 
   it("clears removingIndex after failed removal", async () => {

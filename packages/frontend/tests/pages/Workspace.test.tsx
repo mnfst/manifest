@@ -37,6 +37,10 @@ vi.mock("../../src/services/local-mode.js", () => ({
   checkLocalMode: (...args: unknown[]) => mockCheckLocalMode(...args),
 }));
 
+vi.mock("../../src/services/sse.js", () => ({
+  pingCount: () => 0,
+}));
+
 import Workspace from "../../src/pages/Workspace";
 
 describe("Workspace", () => {
@@ -174,10 +178,11 @@ describe("Workspace", () => {
     fireEvent.input(input, { target: { value: "new-agent" } });
     fireEvent.click(screen.getByText("Create"));
     await vi.waitFor(() => {
-      expect(screen.getByText("Creating...")).toBeDefined();
+      const btns = container.querySelectorAll(".modal-card button.btn--primary");
+      const createBtn = btns[btns.length - 1] as HTMLButtonElement;
+      expect(createBtn.querySelector(".spinner")).not.toBeNull();
+      expect(createBtn.disabled).toBe(true);
     });
-    const createBtn = screen.getByText("Creating...") as HTMLButtonElement;
-    expect(createBtn.disabled).toBe(true);
     resolveCreate!({ agent: { name: "new-agent" }, apiKey: "k" });
   });
 

@@ -2,6 +2,7 @@
 jest.mock('typeorm', () => ({
   Repository: jest.fn(),
   IsNull: jest.fn().mockReturnValue({ _type: 'isNull' }),
+  In: jest.fn((values: string[]) => ({ _type: 'in', _value: values })),
 }));
 
 jest.mock('@nestjs/typeorm', () => ({
@@ -14,16 +15,6 @@ jest.mock('fs', () => ({
   readFileSync: jest.fn(),
   writeFileSync: jest.fn(),
   mkdirSync: jest.fn(),
-}));
-
-// Mock pricing-sync to avoid deep import chain
-jest.mock('./pricing-sync.service', () => ({
-  PricingSyncService: jest.fn(),
-}));
-
-// Mock model-pricing-cache
-jest.mock('../model-prices/model-pricing-cache.service', () => ({
-  ModelPricingCacheService: jest.fn(),
 }));
 
 // Mock product telemetry
@@ -44,6 +35,11 @@ jest.mock('../routing/tier-auto-assign.service', () => ({
   TierAutoAssignService: class TierAutoAssignService {},
 }));
 
+// Mock model-discovery to avoid deep import chain
+jest.mock('../routing/model-discovery/model-discovery.service', () => ({
+  ModelDiscoveryService: class ModelDiscoveryService {},
+}));
+
 import { LocalBootstrapService } from './local-bootstrap.service';
 import { trackEvent } from '../common/utils/product-telemetry';
 import { existsSync, readFileSync } from 'fs';
@@ -55,6 +51,7 @@ function makeMockRepo() {
     upsert: jest.fn().mockResolvedValue({}),
     find: jest.fn().mockResolvedValue([]),
     save: jest.fn().mockResolvedValue({}),
+    delete: jest.fn().mockResolvedValue({}),
   };
 }
 
@@ -66,9 +63,8 @@ describe('LocalBootstrapService', () => {
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
   let mockProviderRepo: ReturnType<typeof makeMockRepo>;
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
-  let mockPricingCache: { reload: jest.Mock };
-  let mockPricingSync: { syncPricing: jest.Mock };
   let mockRecalculate: jest.Mock;
+  let mockDiscoverAllForAgent: jest.Mock;
   let mockModuleRef: { get: jest.Mock };
 
   beforeEach(() => {
@@ -79,10 +75,20 @@ describe('LocalBootstrapService', () => {
     mockMessageRepo = makeMockRepo();
     mockProviderRepo = makeMockRepo();
     mockTierRepo = makeMockRepo();
-    mockPricingCache = { reload: jest.fn().mockResolvedValue(undefined) };
-    mockPricingSync = { syncPricing: jest.fn().mockResolvedValue(undefined) };
     mockRecalculate = jest.fn().mockResolvedValue(undefined);
-    mockModuleRef = { get: jest.fn().mockReturnValue({ recalculate: mockRecalculate }) };
+    mockDiscoverAllForAgent = jest.fn().mockResolvedValue(undefined);
+    mockModuleRef = {
+      get: jest.fn().mockImplementation((token) => {
+        const name = typeof token === 'function' ? token.name : String(token);
+        if (name === 'TierAutoAssignService') {
+          return { recalculate: mockRecalculate };
+        }
+        if (name === 'ModelDiscoveryService') {
+          return { discoverAllForAgent: mockDiscoverAllForAgent };
+        }
+        return {};
+      }),
+    };
 
     service = new LocalBootstrapService(
       mockTenantRepo as never,
@@ -91,8 +97,6 @@ describe('LocalBootstrapService', () => {
       mockMessageRepo as never,
       mockProviderRepo as never,
       mockTierRepo as never,
-      mockPricingCache as never,
-      mockPricingSync as never,
       mockModuleRef as never,
     );
   });
@@ -100,9 +104,9 @@ describe('LocalBootstrapService', () => {
   describe('onModuleInit', () => {
     it('runs full bootstrap sequence', async () => {
       await service.onModuleInit();
+      // Wait for background discovery to complete
+      await new Promise((r) => setTimeout(r, 10));
 
-      expect(mockPricingCache.reload).toHaveBeenCalled();
-      // Verify tenant name equals LOCAL_USER_ID (guard/bootstrap consistency)
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { LOCAL_USER_ID } = require('../common/constants/local-mode.constants');
       const tenantInsertArg = mockTenantRepo.insert.mock.calls[0][0];
@@ -121,7 +125,6 @@ describe('LocalBootstrapService', () => {
           tenant_id: 'local-tenant-001',
         }),
       );
-      expect(mockPricingSync.syncPricing).toHaveBeenCalled();
     });
 
     it('skips tenant/agent when tenant already exists', async () => {
@@ -205,6 +208,15 @@ describe('LocalBootstrapService', () => {
       expect(mockAgentKeyRepo.upsert).not.toHaveBeenCalled();
     });
 
+    it('does not register when apiKey is not a string', async () => {
+      (existsSync as jest.Mock).mockReturnValue(true);
+      (readFileSync as jest.Mock).mockReturnValue(JSON.stringify({ apiKey: 12345 }));
+
+      await service.onModuleInit();
+
+      expect(mockAgentKeyRepo.upsert).not.toHaveBeenCalled();
+    });
+
     it('reconciles API key even when tenant already exists', async () => {
       (existsSync as jest.Mock).mockReturnValue(true);
       (readFileSync as jest.Mock).mockReturnValue(
@@ -223,14 +235,6 @@ describe('LocalBootstrapService', () => {
         }),
         ['id'],
       );
-    });
-  });
-
-  describe('error handling', () => {
-    it('handles background pricing sync failure gracefully', async () => {
-      mockPricingSync.syncPricing.mockRejectedValue(new Error('network error'));
-
-      await expect(service.onModuleInit()).resolves.not.toThrow();
     });
   });
 
@@ -310,11 +314,73 @@ describe('LocalBootstrapService', () => {
 
     it('handles tier recalculation failure gracefully', async () => {
       mockProviderRepo.count.mockResolvedValue(1);
-      mockModuleRef.get.mockImplementation(() => {
-        throw new Error('Module not found');
+      mockModuleRef.get.mockImplementation((token) => {
+        const name = typeof token === 'function' ? token.name : String(token);
+        if (name === 'TierAutoAssignService') {
+          throw new Error('Module not found');
+        }
+        if (name === 'ModelDiscoveryService') {
+          return { discoverAllForAgent: mockDiscoverAllForAgent };
+        }
+        return {};
       });
 
       await expect(service.onModuleInit()).resolves.not.toThrow();
+    });
+  });
+
+  describe('background model discovery', () => {
+    it('calls discoverAllForAgent in background after bootstrap', async () => {
+      await service.onModuleInit();
+      // Wait for background promise to resolve
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockDiscoverAllForAgent).toHaveBeenCalledWith('local-agent-001');
+    });
+
+    it('handles background discovery failure gracefully', async () => {
+      mockDiscoverAllForAgent.mockRejectedValue(new Error('network error'));
+
+      await expect(service.onModuleInit()).resolves.not.toThrow();
+      // Wait for background promise to settle
+      await new Promise((r) => setTimeout(r, 10));
+    });
+
+    it('recalculates tiers after successful discovery', async () => {
+      mockProviderRepo.count.mockResolvedValue(1);
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // recalculate should be called: once in onModuleInit and once after discovery
+      expect(mockRecalculate).toHaveBeenCalledWith('local-agent-001');
+    });
+
+    it('handles moduleRef.get failure for ModelDiscoveryService gracefully', async () => {
+      mockModuleRef.get.mockImplementation((token) => {
+        const name = typeof token === 'function' ? token.name : String(token);
+        if (name === 'ModelDiscoveryService') {
+          throw new Error('ModelDiscoveryService not available');
+        }
+        if (name === 'TierAutoAssignService') {
+          return { recalculate: mockRecalculate };
+        }
+        return {};
+      });
+
+      await expect(service.onModuleInit()).resolves.not.toThrow();
+      await new Promise((r) => setTimeout(r, 10));
+    });
+
+    it('handles outer .catch when discoverModelsInBackground rejects unexpectedly', async () => {
+      // Override the private method to reject, triggering the outer .catch on line 52
+
+      jest
+        .spyOn(service as any, 'discoverModelsInBackground')
+        .mockRejectedValue(new Error('unexpected rejection'));
+
+      await expect(service.onModuleInit()).resolves.not.toThrow();
+      await new Promise((r) => setTimeout(r, 10));
     });
   });
 });

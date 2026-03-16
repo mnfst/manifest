@@ -12,8 +12,10 @@ import {
   sqlCastFloat,
   sqlSanitizeCost,
 } from '../../common/utils/sql-dialect';
+import { inferProviderFromModel } from '../../common/utils/provider-inference';
 
 const MODELS_CACHE_TTL_MS = 60_000;
+const COUNT_CACHE_TTL_MS = 30_000;
 const MAX_CACHE_ENTRIES = 5_000;
 
 interface CachedModels {
@@ -21,10 +23,16 @@ interface CachedModels {
   expiresAt: number;
 }
 
+interface CachedCount {
+  count: number;
+  expiresAt: number;
+}
+
 @Injectable()
 export class MessagesQueryService {
   private readonly dialect: DbDialect;
   private readonly modelsCache = new Map<string, CachedModels>();
+  private readonly countCache = new Map<string, CachedCount>();
 
   constructor(
     @InjectRepository(AgentMessage)
@@ -38,9 +46,8 @@ export class MessagesQueryService {
   async getMessages(params: {
     range?: string;
     userId: string;
-    status?: string;
+    provider?: string;
     service_type?: string;
-    model?: string;
     cost_min?: number;
     cost_max?: number;
     limit: number;
@@ -57,10 +64,8 @@ export class MessagesQueryService {
 
     addTenantFilter(baseQb, params.userId, undefined, tenantId);
 
-    if (params.status) baseQb.andWhere('at.status = :status', { status: params.status });
     if (params.service_type)
       baseQb.andWhere('at.service_type = :serviceType', { serviceType: params.service_type });
-    if (params.model) baseQb.andWhere('at.model = :model', { model: params.model });
     if (params.cost_min !== undefined)
       baseQb.andWhere('at.cost_usd >= :costMin', { costMin: params.cost_min });
     if (params.cost_max !== undefined)
@@ -68,7 +73,25 @@ export class MessagesQueryService {
     if (params.agent_name)
       baseQb.andWhere('at.agent_name = :filterAgent', { filterAgent: params.agent_name });
 
-    // Count (without cursor)
+    // Provider filter: resolve matching models from the cached distinct list
+    if (params.provider) {
+      const allModels = await this.getDistinctModels(
+        params.userId,
+        params.range,
+        tenantId,
+        params.agent_name,
+      );
+      const matching = allModels.filter((m) => inferProviderFromModel(m) === params.provider);
+      if (matching.length === 0) {
+        // No models match this provider — short-circuit with empty result
+        const providers = this.deriveProviders(allModels);
+        return { items: [], next_cursor: null, total_count: 0, providers };
+      }
+      baseQb.andWhere('at.model IN (:...providerModels)', { providerModels: matching });
+    }
+
+    // Count (without cursor) — use cache for repeat/paginated requests
+    const countCacheKey = this.buildCountCacheKey(params);
     const countQb = baseQb.clone().select('COUNT(*)', 'total');
 
     // Data (with cursor) — treat negative costs as NULL (invalid pricing)
@@ -79,6 +102,7 @@ export class MessagesQueryService {
       .addSelect('at.timestamp', 'timestamp')
       .addSelect('at.agent_name', 'agent_name')
       .addSelect('at.model', 'model')
+      .addSelect('at.model', 'display_name')
       .addSelect('at.description', 'description')
       .addSelect('at.service_type', 'service_type')
       .addSelect('at.input_tokens', 'input_tokens')
@@ -92,6 +116,7 @@ export class MessagesQueryService {
       .addSelect('at.cache_creation_tokens', 'cache_creation_tokens')
       .addSelect('at.duration_ms', 'duration_ms')
       .addSelect('at.error_message', 'error_message')
+      .addSelect('at.auth_type', 'auth_type')
       .addSelect('at.fallback_from_model', 'fallback_from_model')
       .addSelect('at.fallback_index', 'fallback_index');
 
@@ -114,18 +139,26 @@ export class MessagesQueryService {
       }
     }
 
-    // Run count, data, and models queries in parallel
-    const [countResult, rows, models] = await Promise.all([
-      countQb.getRawOne(),
+    // Run count, data, and models queries in parallel (count cached on paginated requests)
+    const cachedCount = params.cursor ? this.countCache.get(countCacheKey) : undefined;
+    const countHit = cachedCount && cachedCount.expiresAt > Date.now();
+    const [countResult, rows, allModels] = await Promise.all([
+      countHit ? null : countQb.getRawOne(),
       dataQb
         .orderBy('at.timestamp', 'DESC')
         .addOrderBy('at.id', 'DESC')
         .limit(params.limit + 1)
         .getRawMany(),
-      this.getDistinctModels(params.userId, params.range, tenantId),
+      this.getDistinctModels(params.userId, params.range, tenantId, params.agent_name),
     ]);
 
-    const totalCount = Number(countResult?.total ?? 0);
+    let totalCount: number;
+    if (countHit) {
+      totalCount = cachedCount.count;
+    } else {
+      totalCount = Number(countResult?.total ?? 0);
+      this.setCountCache(countCacheKey, totalCount);
+    }
     const hasMore = rows.length > params.limit;
     const items = rows.slice(0, params.limit);
     const lastItem = items[items.length - 1] as Record<string, unknown> | undefined;
@@ -134,20 +167,33 @@ export class MessagesQueryService {
     const lastId = lastItem?.['id'];
     const nextCursor = hasMore && lastItem ? `${tsStr}|${String(lastId)}` : null;
 
+    const providers = this.deriveProviders(allModels);
+
     return {
       items,
       next_cursor: nextCursor,
       total_count: totalCount,
-      models,
+      providers,
     };
+  }
+
+  /** Derive sorted unique provider IDs from a list of model names. */
+  private deriveProviders(models: string[]): string[] {
+    const seen = new Set<string>();
+    for (const m of models) {
+      const p = inferProviderFromModel(m);
+      if (p) seen.add(p);
+    }
+    return [...seen].sort();
   }
 
   private async getDistinctModels(
     userId: string,
     range?: string,
     tenantId?: string,
+    agentName?: string,
   ): Promise<string[]> {
-    const cacheKey = `${userId}:${range ?? 'all'}`;
+    const cacheKey = `${userId}:${agentName ?? ''}:${range ?? 'all'}`;
     const cached = this.modelsCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) {
       return cached.models;
@@ -163,7 +209,7 @@ export class MessagesQueryService {
     if (cutoff) {
       modelsQb.andWhere('at.timestamp >= :cutoff', { cutoff });
     }
-    addTenantFilter(modelsQb, userId, undefined, tenantId);
+    addTenantFilter(modelsQb, userId, agentName, tenantId);
     const modelsResult = await modelsQb.orderBy('at.model', 'ASC').getRawMany();
 
     const models = modelsResult.map((r: Record<string, unknown>) => String(r['model']));
@@ -173,5 +219,33 @@ export class MessagesQueryService {
     }
     this.modelsCache.set(cacheKey, { models, expiresAt: Date.now() + MODELS_CACHE_TTL_MS });
     return models;
+  }
+
+  private buildCountCacheKey(params: {
+    userId: string;
+    range?: string;
+    provider?: string;
+    service_type?: string;
+    agent_name?: string;
+    cost_min?: number;
+    cost_max?: number;
+  }): string {
+    return [
+      params.userId,
+      params.range ?? '',
+      params.provider ?? '',
+      params.service_type ?? '',
+      params.agent_name ?? '',
+      params.cost_min ?? '',
+      params.cost_max ?? '',
+    ].join(':');
+  }
+
+  private setCountCache(key: string, count: number): void {
+    if (this.countCache.size >= MAX_CACHE_ENTRIES && !this.countCache.has(key)) {
+      const firstKey = this.countCache.keys().next().value;
+      if (firstKey !== undefined) this.countCache.delete(firstKey);
+    }
+    this.countCache.set(key, { count, expiresAt: Date.now() + COUNT_CACHE_TTL_MS });
   }
 }

@@ -8,6 +8,7 @@ import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { hashKey, keyPrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
+import { OtlpAuthGuard } from '../guards/otlp-auth.guard';
 
 @Injectable()
 export class ApiKeyGeneratorService {
@@ -18,6 +19,7 @@ export class ApiKeyGeneratorService {
     private readonly agentRepo: Repository<Agent>,
     @InjectRepository(AgentApiKey)
     private readonly keyRepo: Repository<AgentApiKey>,
+    private readonly otlpAuthGuard: OtlpAuthGuard,
   ) {}
 
   private generateKey(): string {
@@ -102,6 +104,7 @@ export class ApiKeyGeneratorService {
     if (!agent) throw new NotFoundException('Agent not found or access denied');
 
     await this.keyRepo.delete({ agent_id: agent.id });
+    this.otlpAuthGuard.clearCache();
 
     const rawKey = this.generateKey();
     const keyId = uuidv4();

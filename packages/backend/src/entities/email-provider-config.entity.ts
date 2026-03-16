@@ -1,9 +1,4 @@
-import {
-  Entity,
-  Column,
-  PrimaryColumn,
-  Index,
-} from 'typeorm';
+import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 
 @Entity('email_provider_configs')
@@ -20,6 +15,9 @@ export class EmailProviderConfig {
 
   @Column('varchar')
   api_key_encrypted!: string;
+
+  @Column('varchar', { nullable: true })
+  key_prefix!: string | null;
 
   @Column('varchar', { nullable: true })
   domain!: string | null;

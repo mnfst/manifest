@@ -17,10 +17,10 @@ import { SessionGuard } from './session.guard';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { auth } = require('./auth.instance');
 
-function createMockContext(overrides: {
-  ip?: string;
-  headers?: Record<string, string>;
-}): { context: ExecutionContext; request: Record<string, unknown> } {
+function createMockContext(overrides: { ip?: string; headers?: Record<string, string> }): {
+  context: ExecutionContext;
+  request: Record<string, unknown>;
+} {
   const request: Record<string, unknown> = {
     ip: overrides.ip ?? '127.0.0.1',
     headers: overrides.headers ?? {},
@@ -88,6 +88,17 @@ describe('SessionGuard', () => {
   it('returns true even when no session found', async () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     (auth.api.getSession as jest.Mock).mockResolvedValue(null);
+    const { context, request } = createMockContext({});
+
+    const result = await guard.canActivate(context);
+
+    expect(result).toBe(true);
+    expect(request['user']).toBeUndefined();
+  });
+
+  it('returns true and leaves user undefined when getSession throws', async () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    (auth.api.getSession as jest.Mock).mockRejectedValue(new Error('DB connection lost'));
     const { context, request } = createMockContext({});
 
     const result = await guard.canActivate(context);

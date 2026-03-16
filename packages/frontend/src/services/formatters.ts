@@ -3,10 +3,12 @@
  */
 export function formatNumber(n: number): string {
   if (n >= 1_000_000) {
-    return `${(n / 1_000_000).toFixed(1)}M`;
+    const v = n / 1_000_000;
+    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}M`;
   }
   if (n >= 1_000) {
-    return `${(n / 1_000).toFixed(1)}k`;
+    const v = n / 1_000;
+    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}k`;
   }
   return n.toString();
 }
@@ -102,6 +104,30 @@ export function formatErrorMessage(raw: string): string {
     /* not JSON, fall through */
   }
   return raw;
+}
+
+/**
+ * Deterministic color for custom provider avatars based on name.
+ */
+const CUSTOM_PROVIDER_COLORS = [
+  '#2430F0', // indigo
+  '#FF006E', // pink
+  '#F0953A', // amber
+  '#00CECB', // emerald
+  '#3b82f6', // blue
+  '#942FFA', // violet
+  '#E44B4D', // red
+  '#14b8a6', // teal
+  '#ECBD23', // orange
+  '#24BAF0', // cyan
+];
+
+export function customProviderColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  }
+  return CUSTOM_PROVIDER_COLORS[Math.abs(hash) % CUSTOM_PROVIDER_COLORS.length]!;
 }
 
 /**

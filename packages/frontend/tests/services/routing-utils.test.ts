@@ -22,8 +22,8 @@ describe("pricePerM", () => {
     expect(pricePerM(undefined)).toBe("\u2014");
   });
 
-  it('returns "$0.00" for very small non-zero price', () => {
-    expect(pricePerM(0.000000000001)).toBe("$0.00");
+  it('returns "< $0.01" for very small non-zero price', () => {
+    expect(pricePerM(0.000000000001)).toBe("< $0.01");
   });
 
   it("formats a normal price", () => {
@@ -53,7 +53,7 @@ describe("resolveProviderId", () => {
   });
 
   it("resolves by display name (case-insensitive)", () => {
-    expect(resolveProviderId("Mistral AI")).toBe("mistral");
+    expect(resolveProviderId("Mistral")).toBe("mistral");
     expect(resolveProviderId("xAI")).toBe("xai");
     expect(resolveProviderId("Moonshot")).toBe("moonshot");
     expect(resolveProviderId("MiniMax")).toBe("minimax");
@@ -102,6 +102,12 @@ describe("inferProviderFromModel", () => {
 
   it("detects Gemini models", () => {
     expect(inferProviderFromModel("gemini-2.5-pro")).toBe("gemini");
+  });
+
+  it("detects Gemma models as Gemini (Google) provider", () => {
+    expect(inferProviderFromModel("gemma-3n-e2b-it")).toBe("gemini");
+    expect(inferProviderFromModel("gemma-2-9b")).toBe("gemini");
+    expect(inferProviderFromModel("gemma-7b")).toBe("gemini");
   });
 
   it("detects DeepSeek models", () => {
@@ -166,7 +172,7 @@ describe("inferProviderName", () => {
   it("returns provider display name for known models", () => {
     expect(inferProviderName("gpt-4o")).toBe("OpenAI");
     expect(inferProviderName("claude-opus-4")).toBe("Anthropic");
-    expect(inferProviderName("gemini-2.5-pro")).toBe("Gemini");
+    expect(inferProviderName("gemini-2.5-pro")).toBe("Google");
   });
 
   it("returns Ollama for colon-tagged models", () => {

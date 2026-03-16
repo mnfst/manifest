@@ -224,6 +224,110 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('ChatGPT subscription provider', () => {
+    it('routes to chatgpt.com Codex backend with subscription authType', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward(
+        'openai',
+        'oauth-token',
+        'gpt-5',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://chatgpt.com/backend-api/codex/responses');
+      expect(result.isChatGpt).toBe(true);
+      expect(result.isGoogle).toBe(false);
+      expect(result.isAnthropic).toBe(false);
+
+      const headers = mockFetch.mock.calls[0][1].headers;
+      expect(headers['originator']).toBe('codex_cli_rs');
+      expect(headers['Authorization']).toBe('Bearer oauth-token');
+    });
+
+    it('converts request body using toResponsesRequest', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'Be helpful.' },
+          { role: 'user', content: 'Hello' },
+        ],
+      };
+      await client.forward(
+        'openai',
+        'token',
+        'gpt-5.3-codex',
+        bodyWithSystem,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.instructions).toBe('Be helpful.');
+      expect(sentBody.input).toEqual([
+        { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
+      ]);
+      expect(sentBody.model).toBe('gpt-5.3-codex');
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.store).toBe(false);
+    });
+
+    it('sets isChatGpt=false for regular OpenAI api_key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward('openai', 'sk-test', 'gpt-4o', body, false);
+
+      expect(result.isChatGpt).toBe(false);
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('api.openai.com');
+    });
+  });
+
+  describe('convertChatGptResponse', () => {
+    it('delegates to fromResponsesResponse', () => {
+      const data = {
+        output: [
+          {
+            type: 'message',
+            content: [{ type: 'output_text', text: 'Hello' }],
+          },
+        ],
+        usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+      };
+      const result = client.convertChatGptResponse(data, 'gpt-5');
+
+      expect(result.object).toBe('chat.completion');
+      expect(result.model).toBe('gpt-5');
+      const choices = result.choices as { message: { content: string } }[];
+      expect(choices[0].message.content).toBe('Hello');
+    });
+  });
+
+  describe('convertChatGptStreamChunk', () => {
+    it('converts output_text delta to chat completion chunk', () => {
+      const chunk = 'event: response.output_text.delta\ndata: {"delta":"Hi"}';
+      const result = client.convertChatGptStreamChunk(chunk, 'gpt-5');
+
+      expect(result).toContain('data: ');
+      expect(result).toContain('"chat.completion.chunk"');
+    });
+
+    it('returns null for irrelevant events', () => {
+      const result = client.convertChatGptStreamChunk('event: response.created\ndata: {}', 'gpt-5');
+      expect(result).toBeNull();
+    });
+  });
+
   describe('OpenRouter Anthropic cache injection', () => {
     it('injects cache_control for anthropic/ models on openrouter', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
@@ -496,6 +600,26 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Vendor prefix stripping', () => {
+    it('strips vendor prefix for non-OpenRouter providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openai', 'sk-test', 'anthropic/claude-sonnet-4', body, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('claude-sonnet-4');
+    });
+
+    it('preserves vendor prefix for OpenRouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('openrouter', 'sk-or', 'anthropic/claude-sonnet-4', body, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('anthropic/claude-sonnet-4');
+    });
+  });
+
   describe('Body sanitization for non-OpenAI providers', () => {
     const bodyWithOpenAiFields = {
       messages: [{ role: 'user', content: 'Hello' }],
@@ -506,6 +630,17 @@ describe('ProviderClient', () => {
       service_tier: 'default',
       stream_options: { include_usage: true },
     };
+    const makeBodyWithReasoningContent = () => ({
+      messages: [
+        { role: 'user', content: 'Hello' },
+        {
+          role: 'assistant',
+          content: 'Hi',
+          reasoning_content: 'Detailed internal reasoning',
+        },
+      ],
+      temperature: 0.7,
+    });
 
     it('strips OpenAI-only fields for Mistral', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
@@ -546,6 +681,113 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.store).toBeUndefined();
       expect(sentBody.service_tier).toBeUndefined();
+    });
+
+    it('strips reasoning_content for Mistral assistant messages without mutating the input', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithReasoningContent = makeBodyWithReasoningContent();
+
+      await client.forward('mistral', 'sk-mi', 'mistral-small', bodyWithReasoningContent, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[1].reasoning_content).toBeUndefined();
+      expect(bodyWithReasoningContent.messages[1].reasoning_content).toBe(
+        'Detailed internal reasoning',
+      );
+    });
+
+    it('preserves reasoning_content for DeepSeek reasoning models', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithReasoningContent = makeBodyWithReasoningContent();
+
+      await client.forward(
+        'deepseek',
+        'sk-ds',
+        'deepseek-reasoner',
+        bodyWithReasoningContent,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[1].reasoning_content).toBe('Detailed internal reasoning');
+    });
+
+    it('strips reasoning_content for native OpenAI targets', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithReasoningContent = makeBodyWithReasoningContent();
+
+      await client.forward('openai', 'sk-test', 'gpt-4o', bodyWithReasoningContent, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[1].reasoning_content).toBeUndefined();
+    });
+
+    it('strips reasoning_content for non-DeepSeek OpenRouter targets', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithReasoningContent = makeBodyWithReasoningContent();
+
+      await client.forward('openrouter', 'sk-or', 'openai/gpt-4o', bodyWithReasoningContent, false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[1].reasoning_content).toBeUndefined();
+    });
+
+    it('preserves reasoning_content for DeepSeek models on OpenRouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithReasoningContent = makeBodyWithReasoningContent();
+
+      await client.forward(
+        'openrouter',
+        'sk-or',
+        'deepseek/deepseek-r1',
+        bodyWithReasoningContent,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[1].reasoning_content).toBe('Detailed internal reasoning');
+    });
+
+    it('leaves non-array messages unchanged during sanitization', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithNonArrayMessages = {
+        messages: { role: 'assistant', reasoning_content: 'Detailed internal reasoning' },
+        temperature: 0.7,
+      };
+
+      await client.forward(
+        'mistral',
+        'sk-mi',
+        'mistral-small',
+        bodyWithNonArrayMessages as unknown as Record<string, unknown>,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toEqual(bodyWithNonArrayMessages.messages);
+    });
+
+    it('preserves non-object entries inside the messages array', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithMixedMessages = {
+        messages: [
+          'unexpected-entry',
+          { role: 'assistant', reasoning_content: 'Detailed internal reasoning' },
+        ],
+        temperature: 0.7,
+      };
+
+      await client.forward(
+        'mistral',
+        'sk-mi',
+        'mistral-small',
+        bodyWithMixedMessages as unknown as Record<string, unknown>,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[0]).toBe('unexpected-entry');
+      expect(sentBody.messages[1].reasoning_content).toBeUndefined();
     });
 
     it('preserves all fields for OpenAI', async () => {

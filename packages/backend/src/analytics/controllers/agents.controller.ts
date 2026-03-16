@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Delete,
   ForbiddenException,
@@ -10,6 +11,7 @@ import {
   Post,
   UseInterceptors,
 } from '@nestjs/common';
+import { QueryFailedError } from 'typeorm';
 import { CacheTTL } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
@@ -24,6 +26,7 @@ import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants'
 import { readLocalApiKey } from '../../common/constants/local-mode.constants';
 import { trackCloudEvent } from '../../common/utils/product-telemetry';
 import { slugify } from '../../common/utils/slugify';
+import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 @Controller('api/v1')
 export class AgentsController {
@@ -32,13 +35,15 @@ export class AgentsController {
     private readonly aggregation: AggregationService,
     private readonly apiKeyGenerator: ApiKeyGeneratorService,
     private readonly config: ConfigService,
+    private readonly tenantCache: TenantCacheService,
   ) {}
 
   @Get('agents')
   @UseInterceptors(UserCacheInterceptor)
   @CacheTTL(AGENT_LIST_CACHE_TTL_MS)
   async getAgents(@CurrentUser() user: AuthUser) {
-    const agents = await this.timeseries.getAgentList(user.id);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    const agents = await this.timeseries.getAgentList(user.id, tenantId);
     return { agents };
   }
 
@@ -49,12 +54,20 @@ export class AgentsController {
       throw new BadRequestException('Agent name produces an empty slug');
     }
     const displayName = body.name.trim();
-    const result = await this.apiKeyGenerator.onboardAgent({
-      tenantName: user.id,
-      agentName: slug,
-      displayName,
-      email: user.email,
-    });
+    let result: { tenantId: string; agentId: string; apiKey: string };
+    try {
+      result = await this.apiKeyGenerator.onboardAgent({
+        tenantName: user.id,
+        agentName: slug,
+        displayName,
+        email: user.email,
+      });
+    } catch (error) {
+      if (error instanceof QueryFailedError && /unique|duplicate/i.test(error.message)) {
+        throw new ConflictException(`Agent "${slug}" already exists`);
+      }
+      throw error;
+    }
     trackCloudEvent('agent_created', user.id, { agent_name: slug });
     return {
       agent: { id: result.agentId, name: slug, display_name: displayName },

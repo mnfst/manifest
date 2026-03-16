@@ -5,9 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import { appConfig } from './config/app.config';
+import { resolveFrontendDir } from './common/utils/frontend-path';
 import { DASHBOARD_CACHE_TTL_MS } from './common/constants/cache.constants';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { ApiKey } from './entities/api-key.entity';
@@ -30,10 +29,9 @@ import { GithubModule } from './github/github.module';
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const sessionGuardClass = isLocalMode ? LocalAuthGuard : SessionGuard;
 
-const frontendPath =
-  process.env['MANIFEST_FRONTEND_DIR'] || join(__dirname, '..', '..', 'frontend', 'dist');
+const frontendPath = resolveFrontendDir();
 const ONE_YEAR_S = 365 * 24 * 60 * 60;
-const serveStaticImports = existsSync(frontendPath)
+const serveStaticImports = frontendPath
   ? [
       ServeStaticModule.forRoot({
         rootPath: frontendPath,

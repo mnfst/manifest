@@ -8,6 +8,7 @@ import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
 import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
+import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 @Controller('api/v1')
 @UseInterceptors(UserCacheInterceptor)
@@ -16,6 +17,7 @@ export class OverviewController {
   constructor(
     private readonly aggregation: AggregationService,
     private readonly timeseries: TimeseriesQueriesService,
+    private readonly tenantCache: TenantCacheService,
   ) {}
 
   @Get('overview')
@@ -23,38 +25,29 @@ export class OverviewController {
     const range = query.range ?? '24h';
     const agentName = query.agent_name;
     const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
 
-    const [
-      tokenSummary, costSummary, messages, costByModel, recentActivity,
-      hourlyTokens, dailyTokens, hourlyCosts, dailyCosts,
-      hourlyMessages, dailyMessages, activeSkills, hasData,
-    ] = await Promise.all([
-      this.aggregation.getTokenSummary(range, user.id, agentName),
-      this.aggregation.getCostSummary(range, user.id, agentName),
-      this.aggregation.getMessageCount(range, user.id, agentName),
-      this.timeseries.getCostByModel(range, user.id, agentName),
-      this.timeseries.getRecentActivity(range, user.id, 5, agentName),
-      hourly ? this.timeseries.getHourlyTokens(range, user.id, agentName) : Promise.resolve([]),
-      hourly ? Promise.resolve([]) : this.timeseries.getDailyTokens(range, user.id, agentName),
-      hourly ? this.timeseries.getHourlyCosts(range, user.id, agentName) : Promise.resolve([]),
-      hourly ? Promise.resolve([]) : this.timeseries.getDailyCosts(range, user.id, agentName),
-      hourly ? this.timeseries.getHourlyMessages(range, user.id, agentName) : Promise.resolve([]),
-      hourly ? Promise.resolve([]) : this.timeseries.getDailyMessages(range, user.id, agentName),
-      this.timeseries.getActiveSkills(range, user.id, agentName),
-      this.aggregation.hasAnyData(user.id, agentName),
-    ]);
+    const [summary, tsData, costByModel, recentActivity, activeSkills, hasData] = await Promise.all(
+      [
+        this.aggregation.getSummaryMetrics(range, user.id, tenantId, agentName),
+        this.timeseries.getTimeseries(range, user.id, hourly, tenantId, agentName),
+        this.timeseries.getCostByModel(range, user.id, agentName, tenantId),
+        this.timeseries.getRecentActivity(range, user.id, 5, agentName, tenantId),
+        this.timeseries.getActiveSkills(range, user.id, agentName, tenantId),
+        this.aggregation.hasAnyData(user.id, agentName, tenantId),
+      ],
+    );
 
     return {
       summary: {
-        tokens_today: tokenSummary.tokens_today,
-        cost_today: costSummary,
-        messages,
-        // TODO: implement real service health tracking
+        tokens_today: summary.tokens.tokens_today,
+        cost_today: summary.cost,
+        messages: summary.messages,
         services_hit: { total: 0, healthy: 0, issues: 0 },
       },
-      token_usage: hourly ? hourlyTokens : dailyTokens,
-      cost_usage: hourly ? hourlyCosts : dailyCosts,
-      message_usage: hourly ? hourlyMessages : dailyMessages,
+      token_usage: tsData.tokenUsage,
+      cost_usage: tsData.costUsage,
+      message_usage: tsData.messageUsage,
       cost_by_model: costByModel,
       recent_activity: recentActivity,
       active_skills: activeSkills,

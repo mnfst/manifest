@@ -389,6 +389,19 @@ describe('pipeStream', () => {
     expect(res.end).toHaveBeenCalled();
   });
 
+  it('should throw when passthrough buffer exceeds MAX_SSE_BUFFER_SIZE', async () => {
+    const { res } = mockResponse();
+    // Create a stream that sends a massive chunk with no event boundary (\n\n)
+    const hugeChunk = 'x'.repeat(1_048_577); // 1 byte over the 1MB limit
+    const stream = createReadableStream([hugeChunk]);
+
+    // No transform → passthrough path
+    await expect(pipeStream(stream, res as never)).rejects.toThrow(
+      'SSE buffer overflow: provider sent data without event boundaries',
+    );
+    expect(res.end).toHaveBeenCalled();
+  });
+
   it('should handle multiple chunks that split an SSE event with transform', async () => {
     const { res, written } = mockResponse();
     // An SSE event split across two TCP reads

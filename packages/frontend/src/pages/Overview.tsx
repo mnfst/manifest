@@ -12,6 +12,7 @@ import { getOverview, getCustomProviders, type CustomProviderData } from '../ser
 import {
   formatCost,
   formatErrorMessage,
+  customProviderColor,
   formatNumber,
   formatStatus,
   formatTime,
@@ -23,27 +24,13 @@ import {
 } from '../services/routing-utils.js';
 import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import { isLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import MessageTable from '../components/MessageTable.jsx';
+import { COMPACT_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import '../styles/overview.css';
-
-interface RecentMessage {
-  id: string;
-  timestamp: string;
-  agent_name: string | null;
-  model: string | null;
-  routing_tier?: string;
-  routing_reason?: string;
-  input_tokens: number | null;
-  output_tokens: number | null;
-  total_tokens: number | null;
-  cost: number | null;
-  status: string;
-  error_message?: string | null;
-  fallback_from_model?: string | null;
-  fallback_index?: number | null;
-}
 
 interface OverviewData {
   summary: {
@@ -66,11 +53,13 @@ interface OverviewData {
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
   cost_by_model: Array<{
     model: string;
+    display_name?: string;
     tokens: number;
     share_pct: number;
     estimated_cost: number;
+    auth_type: string | null;
   }>;
-  recent_activity: RecentMessage[];
+  recent_activity: MessageRow[];
   active_skills: Array<{
     name: string;
     agent_name: string | null;
@@ -87,7 +76,19 @@ const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
   const location = useLocation<{ newAgent?: boolean; newApiKey?: string }>();
   preloadModelDisplayNames();
-  const [range, setRange] = createSignal('7d');
+  const RANGE_STORAGE_KEY = 'manifest_chart_range';
+  const VALID_RANGES = new Set(['24h', '7d', '30d']);
+  const savedRange = localStorage.getItem(RANGE_STORAGE_KEY);
+  const [range, setRange] = createSignal(
+    savedRange && VALID_RANGES.has(savedRange) ? savedRange : '30d',
+  );
+  const [userSelectedRange, setUserSelectedRange] = createSignal(!!savedRange);
+
+  const handleRangeChange = (value: string) => {
+    setRange(value);
+    setUserSelectedRange(true);
+    localStorage.setItem(RANGE_STORAGE_KEY, value);
+  };
   const [activeView, setActiveView] = createSignal<ActiveView>('cost');
   const [setupOpen, setSetupOpen] = createSignal(
     !!(location.state as { newAgent?: boolean } | undefined)?.newAgent,
@@ -132,14 +133,37 @@ const Overview: Component = () => {
     }
   });
 
-  const trendBadge = (pct: number, value?: number) => {
+  const SMART_RANGES: string[] = ['30d', '7d', '24h'];
+
+  createEffect(() => {
+    if (userSelectedRange()) return;
+    const d = data();
+    if (!d || d.has_data === false) return;
+    const hasData =
+      (d.token_usage?.length ?? 0) > 0 ||
+      (d.cost_usage?.length ?? 0) > 0 ||
+      (d.message_usage?.length ?? 0) > 0;
+    if (hasData) return;
+    const currentIdx = SMART_RANGES.indexOf(range());
+    if (currentIdx < 0 || currentIdx >= SMART_RANGES.length - 1) return;
+    setRange(SMART_RANGES[currentIdx + 1]!);
+  });
+
+  const trendBadge = (pct: number, value?: number, mode?: 'default' | 'inverted' | 'neutral') => {
     if (pct === 0) return null;
     // Don't show trend when the metric value itself is effectively zero
     if (value !== undefined && Math.abs(value) < 0.005) return null;
     // Clamp absurd percentages (safety net for floating-point edge cases)
     const clamped = Math.max(-999, Math.min(999, Math.round(pct)));
     if (clamped === 0) return null;
-    const cls = clamped > 0 ? 'trend trend--up' : 'trend trend--down';
+    let cls: string;
+    if (mode === 'neutral') {
+      cls = 'trend trend--neutral';
+    } else if (mode === 'inverted') {
+      cls = clamped > 0 ? 'trend trend--up-bad' : 'trend trend--down-good';
+    } else {
+      cls = clamped > 0 ? 'trend trend--up' : 'trend trend--down';
+    }
     const sign = clamped > 0 ? '+' : '';
     return (
       <span class={cls}>
@@ -172,9 +196,8 @@ const Overview: Component = () => {
           <Show when={!isNewAgent()}>
             <Select
               value={range()}
-              onChange={setRange}
+              onChange={handleRangeChange}
               options={[
-                { label: 'Last hour', value: '1h' },
                 { label: 'Last 24 hours', value: '24h' },
                 { label: 'Last 7 days', value: '7d' },
                 { label: 'Last 30 days', value: '30d' },
@@ -188,7 +211,7 @@ const Overview: Component = () => {
               !setupCompleted()
             }
           >
-            <button class="btn btn--primary" onClick={() => setSetupOpen(true)}>
+            <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
           </Show>
@@ -199,51 +222,115 @@ const Overview: Component = () => {
         when={data() !== undefined || !data.loading}
         fallback={
           <>
-            <div class="chart-card" style="min-height: 360px;">
+            <div class="chart-card">
               <div class="chart-card__header">
-                <div class="chart-card__stat" style="flex: 1;">
-                  <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                  <div
-                    class="skeleton skeleton--text"
-                    style="width: 100px; height: 28px; margin-top: 6px;"
-                  />
+                <div class="chart-card__stat chart-card__stat--active">
+                  <span class="chart-card__label">Cost</span>
+                  <div class="chart-card__value-row">
+                    <div class="skeleton skeleton--text" style="width: 80px; height: 28px;" />
+                  </div>
                 </div>
-                <div class="chart-card__stat" style="flex: 1;">
-                  <div class="skeleton skeleton--text" style="width: 80px; height: 14px;" />
-                  <div
-                    class="skeleton skeleton--text"
-                    style="width: 100px; height: 28px; margin-top: 6px;"
-                  />
+                <div class="chart-card__stat">
+                  <span class="chart-card__label">Token usage</span>
+                  <div class="chart-card__value-row">
+                    <div class="skeleton skeleton--text" style="width: 70px; height: 28px;" />
+                  </div>
                 </div>
-                <div class="chart-card__stat" style="flex: 1; border-right: none;">
-                  <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                  <div
-                    class="skeleton skeleton--text"
-                    style="width: 80px; height: 28px; margin-top: 6px;"
-                  />
+                <div class="chart-card__stat">
+                  <span class="chart-card__label">Messages</span>
+                  <div class="chart-card__value-row">
+                    <div class="skeleton skeleton--text" style="width: 50px; height: 28px;" />
+                  </div>
                 </div>
               </div>
               <div class="chart-card__body">
-                <div class="skeleton skeleton--rect" style="width: 100%; height: 240px;" />
+                <div class="skeleton skeleton--rect" style="width: 100%; height: 260px;" />
               </div>
             </div>
             <div class="panel">
               <div
-                class="skeleton skeleton--text"
-                style="width: 120px; height: 16px; margin-bottom: 16px;"
-              />
-              <For each={[1, 2, 3, 4, 5]}>
-                {() => (
-                  <div style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border));">
-                    <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 80px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 60px; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 40px; height: 14px;" />
-                  </div>
-                )}
-              </For>
+                class="panel__title"
+                style="display: flex; justify-content: space-between; align-items: center;"
+              >
+                Recent Messages
+                <span class="view-more-link" style="pointer-events: none; opacity: 0.4;">
+                  View more
+                </span>
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Message</th>
+                    <th>Cost</th>
+                    <th>Model</th>
+                    <th>Tokens</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={[1, 2, 3, 4, 5]}>
+                    {() => (
+                      <tr>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 70%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 70%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 40%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50%;" />
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </div>
+            <div class="panel" style="margin-top: var(--gap-lg);">
+              <div class="panel__title">Cost by Model</div>
+              <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: -8px 0 12px;">
+                How much each AI model is costing you
+              </p>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>Tokens</th>
+                    <th>% of total</th>
+                    <th>Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={[1, 2, 3]}>
+                    {() => (
+                      <tr>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 60%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 40%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 50%;" />
+                        </td>
+                        <td>
+                          <div class="skeleton skeleton--text" style="width: 40%;" />
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
             </div>
           </>
         }
@@ -257,7 +344,7 @@ const Overview: Component = () => {
                   <div class="empty-state__title">No activity yet</div>
                   <p>Connect your agent and send a message. Usage data shows up here.</p>
                   <button
-                    class="btn btn--primary"
+                    class="btn btn--primary btn--sm"
                     style="margin-top: var(--gap-md);"
                     onClick={() => setSetupOpen(true)}
                   >
@@ -268,6 +355,7 @@ const Overview: Component = () => {
                       src="/example-overview.svg"
                       alt="Example dashboard overview showing cost and token charts"
                       class="empty-state__img"
+                      loading="lazy"
                     />
                   </div>
                 </div>
@@ -393,6 +481,7 @@ const Overview: Component = () => {
                           {trendBadge(
                             d().summary?.cost_today?.trend_pct ?? 0,
                             d().summary?.cost_today?.value ?? 0,
+                            'inverted',
                           )}
                         </div>
                       </div>
@@ -414,6 +503,7 @@ const Overview: Component = () => {
                           {trendBadge(
                             d().summary?.tokens_today?.trend_pct ?? 0,
                             d().summary?.tokens_today?.value ?? 0,
+                            'inverted',
                           )}
                         </div>
                       </div>
@@ -430,6 +520,7 @@ const Overview: Component = () => {
                           {trendBadge(
                             d().summary?.messages?.trend_pct ?? 0,
                             d().summary?.messages?.value ?? 0,
+                            'neutral',
                           )}
                         </div>
                       </div>
@@ -490,166 +581,12 @@ const Overview: Component = () => {
                         View more
                       </A>
                     </div>
-                    <table class="data-table">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Message</th>
-                          <th>Cost</th>
-                          <th>Model</th>
-                          <th>Tokens</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <For each={d().recent_activity?.slice(0, 5) ?? []}>
-                          {(item) => (
-                            <tr>
-                              <td style="white-space: nowrap; font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                                {formatTime(item.timestamp)}
-                              </td>
-                              <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                                {item.id.slice(0, 8)}
-                                {item.routing_reason === 'heartbeat' && (
-                                  <span
-                                    title="Heartbeat"
-                                    style="display: inline-flex; align-items: center; margin-left: 4px; color: hsl(var(--muted-foreground)); opacity: 0.7;"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="12"
-                                      height="12"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      stroke-width="2"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      aria-hidden="true"
-                                    >
-                                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                                    </svg>
-                                  </span>
-                                )}
-                              </td>
-                              <td
-                                style="font-family: var(--font-mono);"
-                                title={
-                                  item.cost != null && item.cost > 0 && item.cost < 0.01
-                                    ? `$${item.cost.toFixed(6)}`
-                                    : undefined
-                                }
-                              >
-                                {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}
-                              </td>
-                              <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                                <span style="display: inline-flex; align-items: center; gap: 4px;">
-                                  {item.model && inferProviderFromModel(item.model) === 'custom' ? (
-                                    (() => {
-                                      const provName = customProviderName(item.model!);
-                                      const letter = (provName ?? stripCustomPrefix(item.model!))
-                                        .charAt(0)
-                                        .toUpperCase();
-                                      return (
-                                        <span
-                                          class="provider-card__logo-letter"
-                                          title={provName}
-                                          style={{
-                                            background: 'var(--custom-provider-color)',
-                                            width: '16px',
-                                            height: '16px',
-                                            'font-size': '9px',
-                                            'flex-shrink': '0',
-                                            'border-radius': '50%',
-                                          }}
-                                        >
-                                          {letter}
-                                        </span>
-                                      );
-                                    })()
-                                  ) : item.model && inferProviderFromModel(item.model) ? (
-                                    <span
-                                      title={inferProviderName(item.model)}
-                                      style="display: inline-flex; flex-shrink: 0;"
-                                    >
-                                      {providerIcon(inferProviderFromModel(item.model)!, 14)}
-                                    </span>
-                                  ) : null}
-                                  {item.model ? getModelDisplayName(item.model) : '\u2014'}
-                                  {item.routing_tier && (
-                                    <span class={`tier-badge tier-badge--${item.routing_tier}`}>
-                                      {item.routing_tier}
-                                    </span>
-                                  )}
-                                  {item.fallback_from_model && (
-                                    <span
-                                      class="tier-badge tier-badge--fallback"
-                                      title={`Fallback from ${getModelDisplayName(item.fallback_from_model)}`}
-                                    >
-                                      fallback
-                                    </span>
-                                  )}
-                                </span>
-                              </td>
-                              <td style="font-family: var(--font-mono);">
-                                {item.total_tokens != null
-                                  ? formatNumber(item.total_tokens)
-                                  : '\u2014'}
-                              </td>
-                              <td>
-                                <Show
-                                  when={item.error_message}
-                                  fallback={
-                                    <span class={`status-badge status-badge--${item.status}`}>
-                                      {item.status === 'rate_limited' ? (
-                                        <A
-                                          href={`/agents/${encodeURIComponent(params.agentName)}/limits`}
-                                        >
-                                          {formatStatus(item.status)}
-                                        </A>
-                                      ) : (
-                                        formatStatus(item.status)
-                                      )}
-                                    </span>
-                                  }
-                                >
-                                  <span
-                                    class="status-badge-tooltip"
-                                    tabindex="0"
-                                    role="note"
-                                    aria-label={formatErrorMessage(item.error_message!)}
-                                  >
-                                    <span class={`status-badge status-badge--${item.status}`}>
-                                      {item.status === 'fallback_error' && (
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width="11"
-                                          height="11"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          stroke-width="2.5"
-                                          stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          style="margin-right: 3px; flex-shrink: 0;"
-                                        >
-                                          <polyline points="15 17 20 12 15 7" />
-                                          <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
-                                        </svg>
-                                      )}
-                                      {formatStatus(item.status)}
-                                    </span>
-                                    <span class="status-badge-tooltip__bubble">
-                                      {formatErrorMessage(item.error_message!)}
-                                    </span>
-                                  </span>
-                                </Show>
-                              </td>
-                            </tr>
-                          )}
-                        </For>
-                      </tbody>
-                    </table>
+                    <MessageTable
+                      items={d().recent_activity?.slice(0, 5) ?? []}
+                      columns={COMPACT_COLUMNS}
+                      agentName={params.agentName}
+                      customProviderName={customProviderName}
+                    />
                   </div>
 
                   {/* Cost by Model */}
@@ -668,7 +605,11 @@ const Overview: Component = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        <For each={d().cost_by_model ?? []}>
+                        <For
+                          each={[...(d().cost_by_model ?? [])].sort(
+                            (a, b) => b.estimated_cost - a.estimated_cost,
+                          )}
+                        >
                           {(row) => (
                             <tr>
                               <td style="font-family: var(--font-mono); font-size: var(--font-size-sm);">
@@ -684,7 +625,7 @@ const Overview: Component = () => {
                                           class="provider-card__logo-letter"
                                           title={provName}
                                           style={{
-                                            background: 'var(--custom-provider-color)',
+                                            background: customProviderColor(provName ?? ''),
                                             width: '16px',
                                             height: '16px',
                                             'font-size': '9px',
@@ -698,13 +639,16 @@ const Overview: Component = () => {
                                     })()
                                   ) : row.model && inferProviderFromModel(row.model) ? (
                                     <span
-                                      title={inferProviderName(row.model)}
-                                      style="display: inline-flex; flex-shrink: 0;"
+                                      title={`${inferProviderName(row.model)} (${authLabel(row.auth_type)})`}
+                                      style="display: inline-flex; flex-shrink: 0; position: relative;"
                                     >
                                       {providerIcon(inferProviderFromModel(row.model)!, 14)}
+                                      {authBadgeFor(row.auth_type, 8)}
                                     </span>
                                   ) : null}
-                                  {row.model ? getModelDisplayName(row.model) : row.model}
+                                  {row.model
+                                    ? row.display_name || getModelDisplayName(row.model)
+                                    : row.model}
                                 </span>
                               </td>
                               <td>{formatNumber(row.tokens)}</td>

@@ -13,12 +13,16 @@ import ErrorState from '../components/ErrorState.jsx';
 import InfoTooltip from '../components/InfoTooltip.jsx';
 import ModelPricesFilterBar from '../components/ModelPricesFilterBar.jsx';
 import Pagination from '../components/Pagination.jsx';
+import { providerIcon } from '../components/ProviderIcon.jsx';
 import { getModelPrices } from '../services/api.js';
+import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { createClientPagination } from '../services/pagination.js';
+import { resolveProviderId } from '../services/routing-utils.js';
 
 interface ModelPrice {
   model_name: string;
   provider: string;
+  display_name: string | null;
   input_price_per_million: number | null;
   output_price_per_million: number | null;
 }
@@ -39,6 +43,7 @@ function formatPrice(price: number | null): string {
 }
 
 const ModelPrices: Component = () => {
+  preloadModelDisplayNames();
   const [data, { refetch }] = createResource(() => getModelPrices() as Promise<ModelPricesData>);
   const [sortKey, setSortKey] = createSignal<SortKey>('provider');
   const [sortDir, setSortDir] = createSignal<SortDir>('asc');
@@ -186,21 +191,48 @@ const ModelPrices: Component = () => {
       <Show
         when={!data.loading}
         fallback={
-          <div class="panel">
-            <div
-              class="skeleton skeleton--text"
-              style="width: 120px; height: 16px; margin-bottom: 16px;"
-            />
-            <For each={[1, 2, 3, 4, 5, 6, 7, 8]}>
-              {() => (
-                <div style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border));">
-                  <div class="skeleton skeleton--text" style="width: 200px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 80px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 100px; height: 14px;" />
-                  <div class="skeleton skeleton--text" style="width: 100px; height: 14px;" />
+          <div class="panel" style="min-height: 600px;">
+            <div class="model-filter">
+              <div class="model-filter__row">
+                <div
+                  class="skeleton skeleton--text"
+                  style="width: 280px; height: 36px; border-radius: var(--radius);"
+                />
+                <div class="model-filter__summary">
+                  <div class="skeleton skeleton--text" style="width: 80px;" />
                 </div>
-              )}
-            </For>
+              </div>
+            </div>
+            <table class="data-table" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>Provider</th>
+                  <th>Cost to send / 1M tokens</th>
+                  <th>Cost to receive / 1M tokens</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}>
+                  {() => (
+                    <tr>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 70%;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 60%;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 50%;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 50%;" />
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
           </div>
         }
       >
@@ -228,7 +260,7 @@ const ModelPrices: Component = () => {
                     Try selecting a different provider or model, or clear all filters to see every
                     model.
                   </p>
-                  <button class="btn btn--outline" onClick={clearFilters} type="button">
+                  <button class="btn btn--outline btn--sm" onClick={clearFilters} type="button">
                     Clear filters
                   </button>
                 </div>
@@ -261,20 +293,37 @@ const ModelPrices: Component = () => {
                 </thead>
                 <tbody>
                   <For each={pager.pageItems()}>
-                    {(model) => (
-                      <tr>
-                        <td style="font-family: var(--font-mono); font-size: var(--font-size-sm);">
-                          {model.model_name}
-                        </td>
-                        <td>{model.provider}</td>
-                        <td style="font-family: var(--font-mono);">
-                          {formatPrice(model.input_price_per_million)}
-                        </td>
-                        <td style="font-family: var(--font-mono);">
-                          {formatPrice(model.output_price_per_million)}
-                        </td>
-                      </tr>
-                    )}
+                    {(model) => {
+                      const displayName = () =>
+                        model.display_name || getModelDisplayName(model.model_name);
+                      const pid = () => resolveProviderId(model.provider);
+                      return (
+                        <tr>
+                          <td>
+                            <div style="font-size: var(--font-size-sm);">{displayName()}</div>
+                            <div style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                              {model.model_name}
+                            </div>
+                          </td>
+                          <td>
+                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                              <Show when={pid()}>
+                                <span style="display: inline-flex; flex-shrink: 0;">
+                                  {providerIcon(pid()!, 16)}
+                                </span>
+                              </Show>
+                              {model.provider}
+                            </span>
+                          </td>
+                          <td style="font-family: var(--font-mono);">
+                            {formatPrice(model.input_price_per_million)}
+                          </td>
+                          <td style="font-family: var(--font-mono);">
+                            {formatPrice(model.output_price_per_million)}
+                          </td>
+                        </tr>
+                      );
+                    }}
                   </For>
                 </tbody>
               </table>

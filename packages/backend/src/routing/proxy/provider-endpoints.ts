@@ -1,10 +1,11 @@
 import { OLLAMA_HOST } from '../../common/constants/ollama';
+import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
 export interface ProviderEndpoint {
   baseUrl: string;
-  buildHeaders: (apiKey: string) => Record<string, string>;
+  buildHeaders: (apiKey: string, authType?: string) => Record<string, string>;
   buildPath: (model: string) => string;
-  format: 'openai' | 'google' | 'anthropic';
+  format: 'openai' | 'google' | 'anthropic' | 'chatgpt';
 }
 
 const openaiHeaders = (apiKey: string) => ({
@@ -14,10 +15,32 @@ const openaiHeaders = (apiKey: string) => ({
 
 const openaiPath = () => '/v1/chat/completions';
 
-const anthropicHeaders = (apiKey: string) => ({
-  'x-api-key': apiKey,
+const anthropicHeaders = (apiKey: string, authType?: string): Record<string, string> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'anthropic-version': '2023-06-01',
+  };
+  if (authType === 'subscription') {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+    headers['anthropic-beta'] = 'oauth-2025-04-20';
+  } else {
+    headers['x-api-key'] = apiKey;
+  }
+  return headers;
+};
+
+/**
+ * ChatGPT subscription OAuth tokens use the Codex backend,
+ * which requires specific headers to avoid 403 responses.
+ * Note: These headers mimic the Codex CLI client. This is required for the
+ * endpoint to accept requests, but may break if OpenAI changes validation.
+ */
+const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
+const chatgptSubscriptionHeaders = (apiKey: string) => ({
+  Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
-  'anthropic-version': '2023-06-01',
+  originator: 'codex_cli_rs',
+  'user-agent': 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown',
 });
 
 export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
@@ -26,6 +49,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+  },
+  'openai-subscription': {
+    baseUrl: CHATGPT_SUBSCRIPTION_BASE,
+    buildHeaders: chatgptSubscriptionHeaders,
+    buildPath: () => '/codex/responses',
+    format: 'chatgpt',
   },
   anthropic: {
     baseUrl: 'https://api.anthropic.com',
@@ -109,9 +138,14 @@ export function resolveEndpointKey(provider: string): string | null {
   // Custom providers use their own dynamic endpoint
   if (lower.startsWith('custom:')) return lower;
 
-  const aliases: Record<string, string> = {
-    gemini: 'google',
-    'z.ai': 'zai',
-  };
-  return aliases[lower] ?? null;
+  // Look up via SST alias map — check id and all aliases against endpoints
+  const entry = PROVIDER_BY_ID_OR_ALIAS.get(lower);
+  if (entry) {
+    if (PROVIDER_ENDPOINTS[entry.id]) return entry.id;
+    for (const alias of entry.aliases) {
+      if (PROVIDER_ENDPOINTS[alias]) return alias;
+    }
+  }
+
+  return null;
 }

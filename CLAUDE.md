@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-03-05
+Last updated: 2026-03-15
 
 ## IMPORTANT: Local Mode First
 
@@ -17,14 +17,15 @@ MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
   node -r dotenv/config packages/backend/dist/main.js
 
 # 2. Configure the plugin
-openclaw config set plugins.entries.manifest.config.mode dev
+openclaw config set plugins.entries.manifest.config.mode cloud
+openclaw config set plugins.entries.manifest.config.devMode true
 openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp
 
 # 3. Restart the gateway
 openclaw gateway restart
 ```
 
-No API key needed. The dashboard shows an orange **Dev** badge in the header when running in local mode. Dev mode uses the OTLP loopback bypass — the `OtlpAuthGuard` trusts same-machine connections without Bearer token auth.
+No API key needed. The dashboard shows an orange **Dev** badge in the header when running in development environment (`NODE_ENV !== 'production'`). Dev mode uses the OTLP loopback bypass — the `OtlpAuthGuard` trusts same-machine connections without Bearer token auth. Note: `devMode` is auto-detected when the endpoint is a loopback address and no `mnfst_*` API key is provided.
 
 ### Resetting OpenClaw Plugin Settings
 
@@ -32,7 +33,8 @@ If the plugin gets into a bad state (stale config, wrong endpoint, cached errors
 
 ```bash
 # Reset plugin config to defaults
-openclaw config set plugins.entries.manifest.config.mode dev
+openclaw config set plugins.entries.manifest.config.mode cloud
+openclaw config set plugins.entries.manifest.config.devMode true
 openclaw config set plugins.entries.manifest.config.endpoint http://localhost:<PORT>/otlp
 
 # Force restart the gateway (kills existing process and starts fresh)
@@ -41,7 +43,7 @@ openclaw gateway restart
 
 **Important notes:**
 - The OpenClaw config lives at `~/.openclaw/openclaw.json`. The gateway may restore certain fields (like `apiKey`) on restart — editing the file directly doesn't always stick.
-- In dev mode, the gateway sends `Authorization: Bearer dev-no-auth` to the proxy. The `OtlpAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in local mode, so this works without real API keys.
+- When `devMode` is true, the gateway sends `Authorization: Bearer dev-no-auth` to the proxy. The `OtlpAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in local mode, so this works without real API keys.
 - After restarting the backend server, **always restart the gateway too** (`openclaw gateway restart`) — the OTLP pipeline doesn't automatically reconnect.
 - The gateway batches OTLP telemetry and sends it every ~10-30 seconds. New messages may take a moment to appear in the dashboard.
 
@@ -71,20 +73,32 @@ packages/
 │   │   │   ├── database.module.ts           # TypeORM PostgreSQL config
 │   │   │   ├── database-seeder.service.ts   # Seeds model_pricing + demo data
 │   │   │   ├── local-bootstrap.service.ts   # Seeds local mode (SQLite)
-│   │   │   └── datasource.ts               # CLI DataSource for migration commands
-│   │   ├── entities/                        # TypeORM entities (19 files)
+│   │   │   ├── datasource.ts               # CLI DataSource for migration commands
+│   │   │   ├── pricing-sync.service.ts      # External pricing data sync
+│   │   │   ├── ollama-sync.service.ts       # Ollama model sync
+│   │   │   └── seed-models.ts              # Model pricing seed data
+│   │   ├── entities/                        # TypeORM entities (20 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
-│   │   │   └── ...                          # agent-message, llm-call, security-event, etc.
+│   │   │   └── ...                          # agent-message, agent-log, llm-call, tool-execution, etc.
 │   │   ├── common/
 │   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
 │   │   │   ├── decorators/public.decorator.ts
-│   │   │   ├── dto/range-query.dto.ts
+│   │   │   ├── dto/                         # create-agent, range-query, rename-agent DTOs
+│   │   │   ├── filters/spa-fallback.filter.ts
+│   │   │   ├── interceptors/               # agent-cache, user-cache
+│   │   │   ├── constants/                   # api-key, cache, local-mode, ollama
+│   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache
 │   │   │   ├── utils/range.util.ts
 │   │   │   ├── utils/hash.util.ts           # API key hashing (scrypt KDF)
 │   │   │   ├── utils/crypto.util.ts         # AES-256-GCM encryption
-│   │   │   └── utils/sql-dialect.ts         # Cross-DB SQL helpers (Postgres/SQLite)
+│   │   │   ├── utils/sql-dialect.ts         # Cross-DB SQL helpers (Postgres/SQLite)
+│   │   │   ├── utils/slugify.ts             # Name slugification
+│   │   │   ├── utils/url-validation.ts      # URL validation
+│   │   │   ├── utils/provider-inference.ts  # Provider detection from model names
+│   │   │   ├── utils/period.util.ts         # Time period utilities
+│   │   │   └── utils/product-telemetry.ts   # Anonymous product analytics
 │   │   ├── health/                          # @Public() health check
 │   │   ├── telemetry/                       # POST /api/v1/telemetry (JSON ingestion)
 │   │   ├── analytics/                       # Dashboard analytics
@@ -92,8 +106,11 @@ packages/
 │   │   │   └── services/                    # aggregation + timeseries-queries + query-helpers
 │   │   ├── otlp/                            # OTLP ingestion (traces, metrics, logs)
 │   │   │   ├── guards/otlp-auth.guard.ts    # Bearer token auth (agent API keys)
-│   │   │   └── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
-│   │   ├── routing/                         # LLM routing (providers, tiers, proxy)
+│   │   │   ├── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
+│   │   │   └── services/                    # trace-ingest, metric-ingest, log-ingest, otlp-decoder
+│   │   ├── routing/                         # LLM routing (providers, tiers, proxy, scorer)
+│   │   │   ├── proxy/                       # OpenAI-compatible proxy (anthropic/google adapters)
+│   │   │   └── scorer/                      # Scoring engine with dimensions
 │   │   ├── model-prices/                    # Model pricing management + sync
 │   │   ├── notifications/                   # Alert rules, email providers, cron
 │   │   ├── github/                          # GitHub stars endpoint
@@ -105,26 +122,40 @@ packages/
 │   │   ├── index.tsx                        # Router setup (App + AuthLayout)
 │   │   ├── components/
 │   │   │   ├── AuthGuard.tsx                # Session check, redirect to /login
+│   │   │   ├── GuestGuard.tsx               # Redirect authenticated users away from auth pages
 │   │   │   ├── SocialButtons.tsx            # 3 OAuth provider buttons
 │   │   │   ├── Header.tsx                   # User session data, logout
-│   │   │   └── ...
+│   │   │   ├── Sidebar.tsx                  # Navigation sidebar
+│   │   │   ├── SetupModal.tsx               # Agent setup wizard modal
+│   │   │   └── ...                          # Charts, modals, pagination, etc.
 │   │   ├── pages/
 │   │   │   ├── Login.tsx, Register.tsx       # Auth pages
+│   │   │   ├── ResetPassword.tsx            # Password reset flow
 │   │   │   ├── Workspace.tsx                # Agent grid + create agent
 │   │   │   ├── Overview.tsx                 # Agent dashboard
 │   │   │   ├── MessageLog.tsx               # Paginated messages
 │   │   │   ├── Account.tsx                  # User profile (session data)
 │   │   │   ├── Settings.tsx                 # Agent settings
 │   │   │   ├── Routing.tsx                  # LLM routing config
-│   │   │   ├── Notifications.tsx            # Alert rule management
-│   │   │   └── ModelPrices.tsx              # Model pricing table
+│   │   │   ├── Limits.tsx                   # Alert rule management (token/cost thresholds)
+│   │   │   ├── ModelPrices.tsx              # Model pricing table
+│   │   │   ├── Help.tsx                     # Help page
+│   │   │   └── NotFound.tsx                 # 404 page
 │   │   ├── services/
 │   │   │   ├── auth-client.ts               # Better Auth SolidJS client
 │   │   │   ├── api.ts                       # API functions (credentials: include)
-│   │   │   └── formatters.ts               # Number/cost formatting
+│   │   │   ├── formatters.ts               # Number/cost formatting
+│   │   │   ├── analytics.ts                 # PostHog product analytics
+│   │   │   ├── provider-utils.ts            # LLM provider helpers
+│   │   │   ├── routing.ts, routing-utils.ts # Routing config helpers
+│   │   │   ├── theme.ts                     # Theme management
+│   │   │   ├── toast-store.ts               # Toast notification state
+│   │   │   └── local-mode.ts               # Local mode detection
+│   │   ├── layouts/                         # Layout components
 │   │   └── styles/
 │   └── tests/
-└── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin (includes embedded server)
+├── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin (includes embedded server)
+└── subscription-capabilities/     # Subscription provider config (not in npm workspaces)
 ```
 
 ## Single-Service Deployment
@@ -169,7 +200,7 @@ Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test onl
 - **Agent**: `demo-agent` with OTLP key `dev-otlp-key-001`
 - **API key**: `dev-api-key-manifest-001`
 - **Security events**: 12 sample events for the security dashboard
-- **Model pricing**: 28 models seeded (Anthropic, OpenAI, Google, DeepSeek, etc.)
+- **Model pricing**: 48 models seeded (Anthropic, OpenAI, Google, Meta, Mistral, DeepSeek, xAI, Alibaba/Qwen, etc.)
 
 Seeding is idempotent — it checks for existing records before inserting.
 
@@ -301,9 +332,13 @@ All analytics queries filter by user via `addTenantFilter(qb, userId)` from `que
 | PATCH | `/api/v1/agents/:name` | Session/API Key | Rename agent |
 | GET | `/api/v1/security` | Session/API Key | Security score + events |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
+| GET | `/api/v1/agent/:agentName/usage` | Session/API Key | Per-agent token usage |
+| GET | `/api/v1/agent/:agentName/costs` | Session/API Key | Per-agent cost data |
 | GET/POST/PATCH/DELETE | `/api/v1/notifications` | Session/API Key | Notification rules CRUD |
 | GET/POST/DELETE | `/api/v1/notifications/email-provider` | Session/API Key | Email provider config |
 | GET/POST/PUT/DELETE | `/api/v1/routing/*` | Session/API Key | Routing config |
+| POST | `/api/v1/routing/subscription-providers` | Session/API Key | Subscription provider config |
+| POST | `/api/v1/routing/:agentName/ollama/sync` | Session/API Key | Sync Ollama models |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
 | GET | `/api/v1/events` | Session | SSE real-time events |
@@ -379,6 +414,84 @@ To add a new font or icon library:
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
 - **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SMTP email providers.
 - **LLM Routing**: Tier-based model routing with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`.
+
+## Providers & Models
+
+### Provider Registry (Single Source of Truth)
+
+All provider definitions live in `common/constants/providers.ts` (`PROVIDER_REGISTRY`). This is the **only** place to define provider IDs, display names, aliases, and OpenRouter prefix mappings. Never hardcode provider names elsewhere — always import from the registry.
+
+The registry exports derived maps used throughout the codebase:
+- `PROVIDER_BY_ID` — lookup by canonical ID (e.g. `anthropic`, `gemini`)
+- `PROVIDER_BY_ID_OR_ALIAS` — lookup by ID or alias (e.g. `google` → gemini entry)
+- `OPENROUTER_PREFIX_TO_PROVIDER` — OpenRouter vendor prefix → display name (e.g. `openai` → `OpenAI`)
+- `expandProviderNames()` — expands a set of names to include aliases
+
+**Supported providers (12):**
+
+| ID | Display Name | Aliases | OpenRouter Prefixes | Notes |
+|----|-------------|---------|-------------------|-------|
+| `anthropic` | Anthropic | — | `anthropic` | Supports subscription auth |
+| `openai` | OpenAI | — | `openai` | |
+| `gemini` | Google | `google` | `google` | Key-in-URL auth for model list |
+| `deepseek` | DeepSeek | — | `deepseek` | |
+| `mistral` | Mistral | — | `mistralai` | |
+| `moonshot` | Moonshot | `kimi` | `moonshotai` | |
+| `xai` | xAI | — | `xai`, `x-ai` | |
+| `minimax` | MiniMax | — | `minimax` | |
+| `qwen` | Alibaba | `alibaba` | `qwen`, `alibaba` | |
+| `zai` | Z.ai | `z.ai` | `z-ai`, `zhipuai` | |
+| `openrouter` | OpenRouter | — | `openrouter` | Public API, no key needed for model list |
+| `ollama` | Ollama | — | — | Local only, no key needed |
+
+### Adding a New Provider
+
+1. Add entry to `PROVIDER_REGISTRY` in `common/constants/providers.ts`
+2. Add `FetcherConfig` in `routing/model-discovery/provider-model-fetcher.service.ts`
+3. Add `ProviderEndpoint` in `routing/proxy/provider-endpoints.ts`
+4. Add `ProviderDef` in `frontend/src/services/providers.ts`
+
+### Model Discovery
+
+Each provider's model list is fetched from **that provider's own API first**. If the native API fails or returns no models (some providers like MiniMax don't have a `/models` endpoint), the system falls back to building a model list from the OpenRouter pricing cache + OpenRouter pricing cache for that provider.
+
+```
+User connects provider (POST /routing/:agent/providers)
+  → ProviderModelFetcherService.fetch(providerId, apiKey)
+    → calls provider's /models endpoint (e.g. api.anthropic.com/v1/models)
+    → if 0 models returned: buildFallbackModels() from OpenRouter cache + manual pricing
+  → ModelDiscoveryService.enrichModel()
+    → looks up pricing from OpenRouter cache (PricingSyncService)
+    → falls back to OpenRouter pricing cache for niche providers
+    → computes quality score
+  → saves to user_providers.cached_models (JSONB column)
+  → recalculates tier assignments
+```
+
+- `ProviderModelFetcherService` — config-driven fetcher with parsers for each provider API format (OpenAI-compatible, Anthropic, Gemini, OpenRouter, Ollama)
+- `ModelDiscoveryService` — orchestrator that decrypts keys, fetches, enriches with pricing, caches results. Falls back to OpenRouter + manual pricing when native API is unavailable.
+- `cached_models` — per-provider, per-agent JSONB column on `user_providers` table
+- Discovery runs synchronously on provider connect (user sees models immediately)
+- "Refresh models" button triggers `POST /routing/:agent/refresh-models`
+
+### Model Pricing
+
+The `model_pricing` database table has been **dropped**. All pricing comes from a single source:
+
+- **OpenRouter API** (public, no key needed, fetched daily via cron + on startup) — provides pricing for all providers. Stored in-memory by `PricingSyncService`. No hardcoded pricing data anywhere.
+
+`ModelPricingCacheService` merges both sources and attributes models to their real provider using OpenRouter vendor prefixes (via `OPENROUTER_PREFIX_TO_PROVIDER`). Unsupported community vendors stay under "OpenRouter".
+
+**Priority order for model lists**: (1) Provider's native `/models` API, (2) OpenRouter cache filtered by vendor prefix, (3) Manual pricing reference. OpenRouter is the fallback, not the primary source. When a provider's native API works, its model list takes precedence.
+
+### Where Models Appear
+
+| Page | Source | What's shown |
+|------|--------|-------------|
+| **Model Prices** | `ModelPricingCacheService.getAll()` | All models from OpenRouter + manual pricing, attributed to real providers |
+| **Routing (available models)** | `ModelDiscoveryService.getModelsForAgent()` | Only models from user's connected providers (discovered via native API) |
+| **Routing (tier assignments)** | `TierAutoAssignService.recalculate()` | Auto-assigned from discovered models based on quality/price scoring |
+| **Messages / Overview** | Stored in `agent_messages.model` column | Raw model name from telemetry, display name resolved via `model-display.ts` cache |
 
 ## Releases & Changesets
 

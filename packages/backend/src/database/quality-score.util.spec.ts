@@ -1,15 +1,6 @@
-import { computeQualityScore, QUALITY_OVERRIDES } from './quality-score.util';
-import { ModelPricing } from '../entities/model-pricing.entity';
+import { computeQualityScore, QUALITY_OVERRIDES, QualityScoreInput } from './quality-score.util';
 
-type ScoreInput = Pick<
-  ModelPricing,
-  | 'model_name'
-  | 'input_price_per_token'
-  | 'output_price_per_token'
-  | 'capability_reasoning'
-  | 'capability_code'
-  | 'context_window'
->;
+type ScoreInput = QualityScoreInput;
 
 function makeModel(overrides: Partial<ScoreInput> = {}): ScoreInput {
   return {
@@ -311,6 +302,117 @@ describe('computeQualityScore', () => {
         capability_reasoning: false,
       });
       expect(computeQualityScore(model)).toBe(1);
+    });
+  });
+
+  describe('Q1 with capabilities', () => {
+    it('should score 1 for very cheap reasoning-only model (capabilities branch fallthrough)', () => {
+      const model = makeModel({
+        model_name: 'cheap-reasoner',
+        input_price_per_token: 0.0000001,
+        output_price_per_token: 0.0000001,
+        capability_reasoning: true,
+        capability_code: false,
+      });
+      // totalPerM = 0.2 < 0.5, reasoning only (not code), not mini → no Q3/Q4/Q5 match
+      // Falls through to return 1 inside hasCapabilities branch
+      expect(computeQualityScore(model)).toBe(1);
+    });
+  });
+
+  /* ── Vendor-prefixed override lookup ── */
+
+  describe('vendor-prefixed overrides', () => {
+    it('should match override via bare name for prefixed model', () => {
+      const model = makeModel({ model_name: 'anthropic/claude-sonnet-4-20250514' });
+      expect(computeQualityScore(model)).toBe(4);
+    });
+
+    it('should not strip prefix when no slash present', () => {
+      const model = makeModel({ model_name: 'claude-sonnet-4-20250514' });
+      expect(computeQualityScore(model)).toBe(4);
+    });
+  });
+
+  /* ── Price-only fallback (no capability flags) ── */
+
+  describe('price-only fallback (null capabilities)', () => {
+    const noCaps: Partial<ScoreInput> = {
+      capability_reasoning: null as unknown as boolean,
+      capability_code: null as unknown as boolean,
+    };
+
+    it('should score 5 for very expensive model ($20+/M)', () => {
+      const model = makeModel({
+        ...noCaps,
+        model_name: 'anthropic/claude-opus-4',
+        input_price_per_token: 0.000015,
+        output_price_per_token: 0.000075,
+      });
+      expect(computeQualityScore(model)).toBe(5);
+    });
+
+    it('should score 4 for expensive model ($5-20/M)', () => {
+      const model = makeModel({
+        ...noCaps,
+        model_name: 'anthropic/claude-sonnet-4',
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000015,
+      });
+      expect(computeQualityScore(model)).toBe(4);
+    });
+
+    it('should score 3 for mid-price non-mini model ($1-5/M)', () => {
+      const model = makeModel({
+        ...noCaps,
+        model_name: 'anthropic/claude-3.5-sonnet',
+        input_price_per_token: 0.000003,
+        output_price_per_token: 0.000003,
+      });
+      // totalPerM = 6.0 >= 5.0, not mini
+      expect(computeQualityScore(model)).toBe(4);
+    });
+
+    it('should score 2 for mid-price mini model (haiku)', () => {
+      const model = makeModel({
+        ...noCaps,
+        model_name: 'anthropic/claude-3.5-haiku',
+        input_price_per_token: 0.0000008,
+        output_price_per_token: 0.000004,
+      });
+      // totalPerM = 4.8, but isMini (haiku) → capped at 2
+      expect(computeQualityScore(model)).toBe(2);
+    });
+
+    it('should score 2 for cheap model ($0.30-1/M)', () => {
+      const model = makeModel({
+        ...noCaps,
+        model_name: 'anthropic/claude-3-haiku',
+        input_price_per_token: 0.00000025,
+        output_price_per_token: 0.00000125,
+      });
+      expect(computeQualityScore(model)).toBe(2);
+    });
+
+    it('should score 1 for very cheap model (<$0.30/M)', () => {
+      const model = makeModel({
+        ...noCaps,
+        model_name: 'amazon/nova-micro-v1',
+        input_price_per_token: 0.000000035,
+        output_price_per_token: 0.00000014,
+      });
+      expect(computeQualityScore(model)).toBe(1);
+    });
+
+    it('should score 2 for mini variant even at high price', () => {
+      const model = makeModel({
+        ...noCaps,
+        model_name: 'openai/gpt-4.1-mini',
+        input_price_per_token: 0.000005,
+        output_price_per_token: 0.000015,
+      });
+      // Mini → capped, price $20/M but isMini so price-only branch: 2
+      expect(computeQualityScore(model)).toBe(2);
     });
   });
 });

@@ -1,4 +1,11 @@
-import { ModelPricing } from '../entities/model-pricing.entity';
+export interface QualityScoreInput {
+  model_name: string;
+  input_price_per_token: number | null;
+  output_price_per_token: number | null;
+  capability_reasoning: boolean;
+  capability_code: boolean;
+  context_window: number;
+}
 
 /**
  * Models where data signals alone cannot determine the correct quality tier.
@@ -31,19 +38,16 @@ const MINI_VARIANT = /\b(mini|nano|haiku|micro)\b/i;
  *   2 = cost-optimized: has code capability
  *   1 = ultra-low: no code, very cheap
  */
-export function computeQualityScore(
-  model: Pick<
-    ModelPricing,
-    | 'model_name'
-    | 'input_price_per_token'
-    | 'output_price_per_token'
-    | 'capability_reasoning'
-    | 'capability_code'
-    | 'context_window'
-  >,
-): number {
+export function computeQualityScore(model: QualityScoreInput): number {
   const override = QUALITY_OVERRIDES.get(model.model_name);
   if (override !== undefined) return override;
+  // Also check bare name (e.g. "anthropic/claude-sonnet-4-20250514" → "claude-sonnet-4-20250514")
+  const slashIdx = model.model_name.indexOf('/');
+  if (slashIdx > 0) {
+    const bare = model.model_name.substring(slashIdx + 1);
+    const bareOverride = QUALITY_OVERRIDES.get(bare);
+    if (bareOverride !== undefined) return bareOverride;
+  }
 
   // Null-price models (unknown pricing, e.g. custom providers without price info)
   if (model.input_price_per_token == null || model.output_price_per_token == null) return 2;
@@ -54,7 +58,9 @@ export function computeQualityScore(
   const hasCode = model.capability_code;
   const hasBoth = hasReasoning && hasCode;
   const bigContext = model.context_window >= 1_000_000;
-  const isMini = MINI_VARIANT.test(model.model_name);
+  const nameForMatch = slashIdx > 0 ? model.model_name.substring(slashIdx + 1) : model.model_name;
+  const isMini = MINI_VARIANT.test(nameForMatch);
+  const hasCapabilities = hasReasoning === true || hasCode === true;
 
   // Zero-price models (local, e.g. Ollama) — score on capabilities only
   if (totalPerM === 0) {
@@ -65,22 +71,23 @@ export function computeQualityScore(
     return 1;
   }
 
-  // Q5: Frontier — expensive with strong capabilities
-  if (totalPerM >= 8.0 && hasBoth && !isMini) return 5;
-  if (totalPerM >= 8.0 && hasCode && bigContext) return 5;
+  // When capability flags are present, use the full decision tree
+  if (hasCapabilities) {
+    if (totalPerM >= 8.0 && hasBoth && !isMini) return 5;
+    if (totalPerM >= 8.0 && hasCode && bigContext) return 5;
+    if (totalPerM >= 1.0 && hasReasoning && !isMini) return 4;
+    if (totalPerM >= 8.0 && hasCode) return 4;
+    if (totalPerM >= 3.0 && hasCode && !isMini) return 3;
+    if (totalPerM >= 0.5 && hasBoth && !isMini) return 3;
+    if (hasReasoning && isMini && totalPerM >= 0.5) return 3;
+    if (hasCode) return 2;
+    return 1;
+  }
 
-  // Q4: High-capability — reasoning above $1/M (not mini), or expensive code-only
-  if (totalPerM >= 1.0 && hasReasoning && !isMini) return 4;
-  if (totalPerM >= 8.0 && hasCode) return 4;
-
-  // Q3: Mid-range — mid-price code (not mini), cheap dual-cap, or reasoning minis
-  if (totalPerM >= 3.0 && hasCode && !isMini) return 3;
-  if (totalPerM >= 0.5 && hasBoth && !isMini) return 3;
-  if (hasReasoning && isMini && totalPerM >= 0.5) return 3;
-
-  // Q2: Cost-optimized — has code capability
-  if (hasCode) return 2;
-
-  // Q1: Ultra-low — no code capability
+  // Price-only fallback (e.g. OpenRouter models without capability flags)
+  if (totalPerM >= 20.0 && !isMini) return 5;
+  if (totalPerM >= 5.0 && !isMini) return 4;
+  if (totalPerM >= 1.0 && !isMini) return 3;
+  if (totalPerM >= 0.3) return 2;
   return 1;
 }

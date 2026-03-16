@@ -31,7 +31,7 @@ OpenClaw costs
 ## What do you get?
 
 - 🔀 **Route requests to the right model** — cut costs up to 70%
-- 📊 **Track spending** — see tokens and costs per model in real time
+- 🔄 **Automatic fallbacks** — if a model fails, retry with backup models instantly
 - 🔔 **Set limits** — get alerts when usage goes over a threshold
 
 ## Why Manifest
@@ -57,6 +57,7 @@ Manifest is available in cloud and local versions. While both versions install t
 - You don't want the telemetry data to move from your computer
 - You don’t need multi-device access
 - You don't want to subscribe to a cloud service
+- You are using a local model like Ollama
 
 If you don't know which version to choose, start with the **cloud version**.
 

@@ -7,6 +7,7 @@ import { toast } from '../services/toast-store.js';
 import { formatNumber, formatCost } from '../services/formatters.js';
 import Sparkline from '../components/Sparkline.jsx';
 import { checkLocalMode } from '../services/local-mode.js';
+import { pingCount } from '../services/sse.js';
 
 interface Agent {
   agent_name: string;
@@ -91,11 +92,11 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
           <div class="modal-card__footer">
             <button
-              class="btn btn--primary"
+              class="btn btn--primary btn--sm"
               onClick={handleCreate}
               disabled={!name().trim() || creating()}
             >
-              {creating() ? 'Creating...' : 'Create'}
+              {creating() ? <span class="spinner" /> : 'Create'}
             </button>
           </div>
         </div>
@@ -106,7 +107,10 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
 const Workspace: Component = () => {
   const navigate = useNavigate();
-  const [data, { refetch }] = createResource(() => getAgents() as Promise<AgentsData>);
+  const [data, { refetch }] = createResource(
+    () => ({ _ping: pingCount() }),
+    () => getAgents() as Promise<AgentsData>,
+  );
   const [modalOpen, setModalOpen] = createSignal(false);
 
   onMount(async () => {
@@ -128,7 +132,7 @@ const Workspace: Component = () => {
           <h1>My Agents</h1>
           <span class="breadcrumb">View and manage all your connected AI agents</span>
         </div>
-        <button class="btn btn--primary" onClick={() => setModalOpen(true)}>
+        <button class="btn btn--primary btn--sm" onClick={() => setModalOpen(true)}>
           <svg
             width="14"
             height="14"
@@ -176,7 +180,7 @@ const Workspace: Component = () => {
                 <div class="empty-state__title">No agents yet</div>
                 <p>Create an agent to see its LLM calls, tokens, and costs.</p>
                 <button
-                  class="btn btn--primary"
+                  class="btn btn--primary btn--sm"
                   style="margin-top: var(--gap-md);"
                   onClick={() => setModalOpen(true)}
                 >

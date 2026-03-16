@@ -47,7 +47,7 @@ describe('PurgeNonCuratedModels1772960000000', () => {
       expect(params).toContain('gpt-4o');
       expect(params).toContain('openrouter/auto');
       expect(params).toContain('glm-4-flash');
-      expect(params.length).toBe(64);
+      expect(params.length).toBe(68);
     });
   });
 

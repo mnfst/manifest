@@ -1,4 +1,4 @@
-import { parseConfig, validateConfig, ManifestConfig } from './config';
+import { parseConfigWithDeprecation, validateConfig, ManifestConfig } from './config';
 import { initTelemetry, shutdownTelemetry, PluginLogger } from './telemetry';
 import { registerHooks, initMetrics } from './hooks';
 import { registerRouting } from './routing';
@@ -6,7 +6,8 @@ import { registerTools } from './tools';
 import { registerCommand } from './command';
 import { verifyConnection } from './verify';
 import { registerLocalMode, injectProviderConfig, injectAuthProfile } from './local-mode';
-import { trackPluginEvent } from './product-telemetry';
+import { trackPluginEvent, identifyUser } from './product-telemetry';
+import { discoverSubscriptionProviders, registerSubscriptionProviders } from './subscription';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 module.exports = {
@@ -21,8 +22,17 @@ module.exports = {
       warn: (...args: unknown[]) => console.warn(...args),
     };
 
-    const config: ManifestConfig = parseConfig(api.pluginConfig);
-    if (config.mode !== 'dev') {
+    const { config, _deprecatedDevMode } = parseConfigWithDeprecation(api.pluginConfig);
+
+    if (_deprecatedDevMode) {
+      logger.warn?.(
+        '[manifest] mode: "dev" is deprecated. Use mode: "cloud" with devMode: true instead.\n' +
+          '  openclaw config set plugins.entries.manifest.config.mode cloud\n' +
+          '  openclaw config set plugins.entries.manifest.config.devMode true',
+      );
+    }
+
+    if (!config.devMode) {
       trackPluginEvent('plugin_registered', undefined, config.mode);
       trackPluginEvent('plugin_mode_selected', { mode: config.mode }, config.mode);
     }
@@ -34,7 +44,7 @@ module.exports = {
 
     const error = validateConfig(config);
     if (error) {
-      if (config.mode === 'cloud' && !config.apiKey) {
+      if (!config.devMode && config.mode === 'cloud' && !config.apiKey) {
         logger.info(
           '[manifest] Cloud mode requires an API key:\n' +
             '  openclaw config set plugins.entries.manifest.config.apiKey mnfst_YOUR_KEY\n' +
@@ -63,61 +73,20 @@ module.exports = {
     }
 
     // Derive the base origin from the OTLP endpoint (strip /otlp suffix).
-    // Used by both dev and cloud modes to build the provider baseUrl.
     const baseOrigin = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, '');
 
-    // Dev mode: connect to an external server without API key
-    if (config.mode === 'dev') {
-      logger.info('[manifest] Dev mode — connecting to external server...');
+    // Unified cloud/dev path
+    const effectiveKey = config.devMode ? 'dev-no-auth' : config.apiKey;
+    const serviceId = config.devMode ? 'manifest-dev' : 'manifest-telemetry';
 
-      const devPlaceholderKey = 'dev-no-auth';
-      injectProviderConfig(api, `${baseOrigin}/v1`, devPlaceholderKey, logger);
-      injectAuthProfile(devPlaceholderKey, logger);
+    logger.info(
+      config.devMode
+        ? '[manifest] Dev mode — connecting to external server...'
+        : '[manifest] Initializing observability pipeline...',
+    );
 
-      const { tracer, meter } = initTelemetry(config, logger);
-      initMetrics(meter);
-      registerHooks(api, tracer, config, logger);
-      registerRouting(api, config, logger);
-
-      if (typeof api.registerTool === 'function') {
-        registerTools(api, config, logger);
-      }
-      registerCommand(api, config, logger);
-
-      logger.info(`[manifest]   Dashboard: ${baseOrigin}`);
-
-      api.registerService({
-        id: 'manifest-dev',
-        start: () => {
-          logger.info('[manifest] Dev mode pipeline active');
-          logger.info(`[manifest]   Endpoint=${config.endpoint}`);
-
-          verifyConnection(config)
-            .then((check) => {
-              if (check.error) {
-                logger.warn?.(`[manifest] Connection check failed: ${check.error}`);
-                return;
-              }
-              const agent = check.agentName ? ` (agent: ${check.agentName})` : '';
-              logger.info(`[manifest] Connection verified${agent}`);
-            })
-            .catch(() => {});
-        },
-        stop: async () => {
-          await shutdownTelemetry(logger);
-        },
-      });
-
-      return;
-    }
-
-    // Cloud mode
-    logger.info('[manifest] Initializing observability pipeline...');
-
-    // Sync the provider config file so the gateway uses the correct
-    // baseUrl and apiKey for proxy requests after restarts.
-    injectProviderConfig(api, `${baseOrigin}/v1`, config.apiKey, logger);
-    injectAuthProfile(config.apiKey, logger);
+    injectProviderConfig(api, `${baseOrigin}/v1`, effectiveKey, logger);
+    injectAuthProfile(effectiveKey, logger);
 
     const { tracer, meter } = initTelemetry(config, logger);
     initMetrics(meter);
@@ -126,30 +95,46 @@ module.exports = {
 
     if (typeof api.registerTool === 'function') {
       registerTools(api, config, logger);
-    } else {
+    } else if (!config.devMode) {
       logger.info('[manifest] Agent tools not available in this OpenClaw version');
     }
     registerCommand(api, config, logger);
 
+    if (config.devMode) {
+      logger.info(`[manifest]   Dashboard: ${baseOrigin}`);
+    }
+
+    // Discover subscription providers from OpenClaw auth profiles
+    const subscriptions = discoverSubscriptionProviders(logger);
+
     api.registerService({
-      id: 'manifest-telemetry',
+      id: serviceId,
       start: () => {
-        logger.info('[manifest] Observability pipeline active');
+        logger.info(
+          config.devMode
+            ? '[manifest] Dev mode pipeline active'
+            : '[manifest] Observability pipeline active',
+        );
         logger.info(`[manifest]   Endpoint=${config.endpoint}`);
 
-        // Non-blocking connection verify after startup
         verifyConnection(config)
           .then((check) => {
             if (check.error) {
               logger.warn?.(`[manifest] Connection check failed: ${check.error}`);
               return;
             }
+            if (check.telemetryId) {
+              identifyUser(check.telemetryId);
+            }
             const agent = check.agentName ? ` (agent: ${check.agentName})` : '';
             logger.info(`[manifest] Connection verified${agent}`);
           })
-          .catch(() => {
-            // Swallow — startup should never fail on verify
-          });
+          .catch(() => {});
+
+        // Register subscription providers after startup
+        registerSubscriptionProviders(subscriptions, config.endpoint, effectiveKey, logger).catch(
+          () => {},
+        );
       },
       stop: async () => {
         await shutdownTelemetry(logger);
