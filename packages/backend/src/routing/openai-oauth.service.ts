@@ -58,10 +58,10 @@ export class OpenaiOauthService {
       expiresAt: Date.now() + STATE_TTL_MS,
     });
 
-    // Only start the ephemeral callback server in local mode.
-    // In cloud mode, the redirect goes to the user's localhost (not the server's),
+    // Skip the ephemeral callback server in cloud mode.
+    // In cloud, the redirect goes to the user's localhost (not the server's),
     // so the frontend handles it via the paste-URL fallback.
-    if (process.env['MANIFEST_MODE'] === 'local') {
+    if (process.env['MANIFEST_MODE'] !== 'cloud') {
       await this.ensureCallbackServer();
     }
 
