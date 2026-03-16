@@ -575,59 +575,17 @@ describe('OpenaiOauthService', () => {
       expect(res.end).toHaveBeenCalledWith(expect.stringContaining('manifest-oauth-error'));
     });
 
-    it('uses backend URL as redirect_uri when backendUrl is provided (no ephemeral server)', async () => {
-      createServerMock.mockClear();
-
+    it('always uses localhost:1455 as redirect_uri (Codex CLI OAuth app constraint)', async () => {
+      // Even with backendUrl, redirect_uri must be localhost:1455
+      // because the Codex CLI OAuth app only allows that redirect URI
       const url = await service.generateAuthorizationUrl(
         'agent-1',
         'user-1',
         'https://app.manifest.build',
       );
-
-      // Should use backend URL, not localhost:1455
-      expect(url).toContain(
-        `redirect_uri=${encodeURIComponent('https://app.manifest.build/api/v1/oauth/openai/callback')}`,
-      );
-      // Should NOT start a callback server
-      expect(createServerMock).not.toHaveBeenCalled();
-    });
-
-    it('uses localhost:1455 redirect_uri when no backendUrl (local mode)', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (service as any).callbackServer = null;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (service as any).serverReady = null;
-
-      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
 
       expect(url).toContain(
         `redirect_uri=${encodeURIComponent('http://localhost:1455/auth/callback')}`,
-      );
-    });
-
-    it('exchanges code with matching redirect_uri from pending state', async () => {
-      const url = await service.generateAuthorizationUrl(
-        'agent-1',
-        'user-1',
-        'https://app.manifest.build',
-      );
-      const state = new URL(url).searchParams.get('state')!;
-
-      fetchMock.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          access_token: 'tok',
-          refresh_token: 'ref',
-          expires_in: 3600,
-        }),
-      });
-
-      await service.exchangeCode(state, 'auth-code');
-
-      // Token exchange should use the same redirect_uri as the authorize request
-      const body = fetchMock.mock.calls[0][1].body as URLSearchParams;
-      expect(body.get('redirect_uri')).toBe(
-        'https://app.manifest.build/api/v1/oauth/openai/callback',
       );
     });
 

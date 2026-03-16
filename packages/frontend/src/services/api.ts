@@ -424,6 +424,14 @@ export function getOpenaiOAuthUrl(agentName: string) {
   });
 }
 
+export function submitOpenaiOAuthCallback(code: string, state: string) {
+  return fetchMutate<{ ok: boolean }>(`${BASE_URL}/oauth/openai/callback`, {
+    method: 'POST',
+    body: JSON.stringify({ code, state }),
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
 export function revokeOpenaiOAuth(agentName: string) {
   return fetchMutate<{ ok: boolean }>(
     `${BASE_URL}/oauth/openai/revoke?agentName=${encodeURIComponent(agentName)}`,

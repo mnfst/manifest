@@ -3,7 +3,6 @@ export interface PendingOAuth {
   agentId: string;
   userId: string;
   backendUrl: string;
-  redirectUri: string;
   expiresAt: number;
 }
 
