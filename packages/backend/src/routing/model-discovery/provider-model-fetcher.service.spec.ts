@@ -15,9 +15,10 @@ describe('ProviderModelFetcherService', () => {
 
   /* ── PROVIDER_CONFIGS sanity ── */
 
-  it('should have configs for all 12 providers', () => {
+  it('should have configs for all providers including openai-subscription', () => {
     const expected = [
       'openai',
+      'openai-subscription',
       'deepseek',
       'mistral',
       'moonshot',
@@ -636,6 +637,175 @@ describe('ProviderModelFetcherService', () => {
         expect.objectContaining({ headers: {} }),
       );
     });
+  });
+
+  /* ── OpenAI subscription parser ── */
+
+  describe('parseOpenaiSubscription (via openai provider with subscription authType)', () => {
+    it('should parse valid Codex models response', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              slug: 'gpt-5.3-codex',
+              display_name: 'GPT-5.3 Codex',
+              context_window: 192000,
+              visibility: 'list',
+              supported_in_api: true,
+              priority: 10,
+            },
+            {
+              slug: 'gpt-5.2-codex',
+              display_name: 'GPT-5.2 Codex',
+              context_window: 200000,
+              visibility: 'list',
+              supported_in_api: true,
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'oauth-token', 'subscription');
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'gpt-5.3-codex',
+          displayName: 'GPT-5.3 Codex',
+          provider: 'openai',
+          contextWindow: 192000,
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityCode: true,
+          qualityScore: 3,
+        }),
+      );
+      expect(result[1].id).toBe('gpt-5.2-codex');
+    });
+
+    it('should filter out models with visibility !== list', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [
+            { slug: 'visible-model', visibility: 'list' },
+            { slug: 'hidden-model', visibility: 'hidden' },
+            { slug: 'no-visibility' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'token', 'subscription');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('visible-model');
+    });
+
+    it('should use slug as displayName when display_name is missing', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [{ slug: 'gpt-5.4', visibility: 'list' }],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'token', 'subscription');
+      expect(result[0].displayName).toBe('gpt-5.4');
+    });
+
+    it('should default context_window to 200000', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [{ slug: 'test-model', visibility: 'list' }],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'token', 'subscription');
+      expect(result[0].contextWindow).toBe(200000);
+    });
+
+    it('should return [] when models is not an array', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ models: 'not-array' }),
+      });
+
+      const result = await service.fetch('openai', 'token', 'subscription');
+      expect(result).toEqual([]);
+    });
+
+    it('should return [] when models is missing', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      const result = await service.fetch('openai', 'token', 'subscription');
+      expect(result).toEqual([]);
+    });
+
+    it('should filter out entries without string slug', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [
+            { slug: 123, visibility: 'list' },
+            { visibility: 'list' },
+            { slug: 'valid', visibility: 'list' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'token', 'subscription');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('valid');
+    });
+
+    it('should send Codex CLI headers', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ models: [] }),
+      });
+
+      await service.fetch('openai', 'my-oauth-token', 'subscription');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://chatgpt.com/backend-api/codex/models?client_version=0.99.0',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer my-oauth-token',
+            originator: 'codex_cli_rs',
+          }),
+        }),
+      );
+    });
+  });
+
+  /* ── OpenAI subscription routing ── */
+
+  it('should route openai+subscription to openai-subscription config', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ models: [] }),
+    });
+
+    await service.fetch('openai', 'token', 'subscription');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('chatgpt.com/backend-api/codex/models'),
+      expect.anything(),
+    );
+  });
+
+  it('should use regular openai config when authType is not subscription', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch('openai', 'sk-key', 'api_key');
+
+    expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/models', expect.anything());
   });
 
   /* ── Case insensitivity ── */

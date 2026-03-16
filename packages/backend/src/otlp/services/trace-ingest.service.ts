@@ -30,6 +30,7 @@ interface SpanEntry {
 
 interface DedupContext {
   errorTraceIds: Set<string>;
+  successTraceIds: Set<string>;
   recentErrors: { id: string; timestamp: string }[];
   recentOkMessages: { id: string; timestamp: string; input_tokens: number }[];
   recentMessages: {
@@ -231,44 +232,58 @@ export class TraceIngestService {
     }
 
     // Batch fetch all dedup data in parallel
-    const [errorByTrace, recentErrors, recentOkMessages, recentMessages] = await Promise.all([
-      traceIds.length > 0
-        ? turnRepo.find({
-            where: {
-              trace_id: In(traceIds),
-              tenant_id: ctx.tenantId,
-              status: In(['error', 'rate_limited']),
-            },
-            select: ['id', 'trace_id'],
-          })
-        : Promise.resolve([]),
-      turnRepo.find({
-        where: {
-          tenant_id: ctx.tenantId,
-          agent_id: ctx.agentId,
-          status: In(['error', 'rate_limited']),
-        },
-        select: ['id', 'timestamp'],
-        order: { timestamp: 'DESC' },
-        take: 10,
-      }),
-      turnRepo.find({
-        where: { tenant_id: ctx.tenantId, agent_id: ctx.agentId, status: 'ok' },
-        select: ['id', 'timestamp', 'input_tokens'],
-        order: { timestamp: 'DESC' },
-        take: 10,
-      }),
-      turnRepo.find({
-        where: { tenant_id: ctx.tenantId, agent_id: ctx.agentId },
-        select: ['id', 'timestamp', 'input_tokens', 'output_tokens', 'model', 'session_key'],
-        order: { timestamp: 'DESC' },
-        take: 10,
-      }),
-    ]);
+    const [errorByTrace, successByTrace, recentErrors, recentOkMessages, recentMessages] =
+      await Promise.all([
+        traceIds.length > 0
+          ? turnRepo.find({
+              where: {
+                trace_id: In(traceIds),
+                tenant_id: ctx.tenantId,
+                status: In(['error', 'rate_limited']),
+              },
+              select: ['id', 'trace_id'],
+            })
+          : Promise.resolve([]),
+        traceIds.length > 0
+          ? turnRepo.find({
+              where: {
+                trace_id: In(traceIds),
+                tenant_id: ctx.tenantId,
+                status: 'ok',
+              },
+              select: ['id', 'trace_id'],
+            })
+          : Promise.resolve([]),
+        turnRepo.find({
+          where: {
+            tenant_id: ctx.tenantId,
+            agent_id: ctx.agentId,
+            status: In(['error', 'rate_limited']),
+          },
+          select: ['id', 'timestamp'],
+          order: { timestamp: 'DESC' },
+          take: 10,
+        }),
+        turnRepo.find({
+          where: { tenant_id: ctx.tenantId, agent_id: ctx.agentId, status: 'ok' },
+          select: ['id', 'timestamp', 'input_tokens'],
+          order: { timestamp: 'DESC' },
+          take: 10,
+        }),
+        turnRepo.find({
+          where: { tenant_id: ctx.tenantId, agent_id: ctx.agentId },
+          select: ['id', 'timestamp', 'input_tokens', 'output_tokens', 'model', 'session_key'],
+          order: { timestamp: 'DESC' },
+          take: 10,
+        }),
+      ]);
 
     return {
       errorTraceIds: new Set(
         errorByTrace.map((e) => (e as unknown as { trace_id: string }).trace_id),
+      ),
+      successTraceIds: new Set(
+        successByTrace.map((e) => (e as unknown as { trace_id: string }).trace_id),
       ),
       recentErrors: recentErrors.map((e) => ({ id: e.id, timestamp: e.timestamp })),
       recentOkMessages: recentOkMessages.map((m) => ({
@@ -507,9 +522,10 @@ export class TraceIngestService {
     dedup: DedupContext,
     subOnlyProviders: Set<string>,
   ): Record<string, unknown> | null {
-    // Skip if the proxy already recorded an error for this trace (avoids duplicates).
+    // Skip if the proxy already recorded a message for this trace (avoids duplicates).
     const traceId = toHexString(span.traceId);
     if (traceId && dedup.errorTraceIds.has(traceId)) return null;
+    if (traceId && dedup.successTraceIds.has(traceId)) return null;
 
     // Fallback dedup: check pre-fetched recent errors for timestamp proximity.
     const spanTime = new Date(nanoToDatetime(span.startTimeUnixNano)).getTime();
@@ -519,15 +535,28 @@ export class TraceIngestService {
     });
     if (hasNearbyError) return null;
 
-    // Proxy dedup: if this span carries 0 tokens, check pre-fetched OK messages.
+    // Proxy dedup: skip if a recent OK message already covers this span.
+    // Case 1: OTLP span has 0 tokens → proxy already recorded the full data.
+    // Case 2: OTLP span has tokens → proxy also recorded tokens; match by model + similar count.
     const spanInputTokens = attrNumber(attrs, 'gen_ai.usage.input_tokens') ?? 0;
     const spanOutputTokens = attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0;
+    const spanModel =
+      attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model');
     if (spanInputTokens === 0 && spanOutputTokens === 0) {
       const hasProxyData = dedup.recentOkMessages.some((m) => {
         const mTime = new Date(m.timestamp).getTime();
         return Math.abs(mTime - spanTime) <= 60_000 && m.input_tokens > 0;
       });
       if (hasProxyData) return null;
+    } else {
+      // Both OTLP and proxy have tokens — match by model + input token count within time window
+      const hasMatchingProxy = dedup.recentMessages.some((m) => {
+        if (m.model !== spanModel && !m.model?.startsWith(`${spanModel}-`)) return false;
+        const mTime = new Date(m.timestamp).getTime();
+        if (Math.abs(mTime - spanTime) > 30_000) return false;
+        return m.input_tokens === spanInputTokens;
+      });
+      if (hasMatchingProxy) return null;
     }
 
     // DB-level ghost dedup: if this span is empty-ok, check pre-fetched recent messages.

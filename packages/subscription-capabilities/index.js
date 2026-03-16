@@ -12,6 +12,24 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
       supportsBatching: false,
     }),
   }),
+  openai: Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'ChatGPT Plus/Pro/Team',
+    subscriptionOAuth: true,
+    knownModels: Object.freeze([
+      'gpt-5.4',
+      'gpt-5.3-codex',
+      'gpt-5.2-codex',
+      'gpt-5.2',
+      'gpt-5.1-codex-max',
+      'gpt-5.1-codex',
+    ]),
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
 });
 
 const SUPPORTED_SUBSCRIPTION_PROVIDER_IDS = Object.freeze(

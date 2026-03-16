@@ -44,6 +44,7 @@ export class ProxyController {
 
     const clientAbort = new AbortController();
     res.once('close', () => clientAbort.abort());
+    const startTime = Date.now();
 
     try {
       this.rateLimiter.checkLimit(userId);
@@ -263,6 +264,7 @@ export class ProxyController {
           )
           .catch((e) => this.logger.warn(`Failed to record fallback success: ${e}`));
       } else if (streamUsage) {
+        const durationMs = Date.now() - startTime;
         this.recorder
           .recordSuccessMessage(
             req.ingestionContext,
@@ -273,6 +275,7 @@ export class ProxyController {
             traceId,
             meta.auth_type,
             sessionKey,
+            durationMs,
           )
           .catch((e) => this.logger.warn(`Failed to record success message: ${e}`));
       }

@@ -147,7 +147,7 @@ describe('RoutingService', () => {
         .mockResolvedValueOnce(recalculatedRows); // getTiers: rows after cleanup/recalculate
       mockProviderRepo.find
         .mockResolvedValueOnce([
-          { id: 'p1', provider: 'openai', is_active: true, auth_type: 'subscription' },
+          { id: 'p1', provider: 'deepseek', is_active: true, auth_type: 'subscription' },
         ])
         .mockResolvedValueOnce([]);
 
@@ -157,7 +157,7 @@ describe('RoutingService', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: 'p1',
-            provider: 'openai',
+            provider: 'deepseek',
             auth_type: 'subscription',
             is_active: false,
           }),
@@ -326,7 +326,7 @@ describe('RoutingService', () => {
           {
             id: 'p1',
             agent_id: 'a1',
-            provider: 'openai',
+            provider: 'deepseek',
             auth_type: 'subscription',
             is_active: true,
           },
@@ -342,7 +342,7 @@ describe('RoutingService', () => {
           {
             id: 'p1',
             agent_id: 'a1',
-            provider: 'openai',
+            provider: 'deepseek',
             auth_type: 'subscription',
             is_active: false,
           },
@@ -362,7 +362,7 @@ describe('RoutingService', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: 'p1',
-            provider: 'openai',
+            provider: 'deepseek',
             auth_type: 'subscription',
             is_active: false,
           }),
@@ -696,7 +696,7 @@ describe('RoutingService', () => {
 
   describe('registerSubscriptionProvider', () => {
     it('should ignore unsupported subscription providers', async () => {
-      const result = await service.registerSubscriptionProvider('a1', 'u1', 'openai');
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'deepseek');
 
       expect(result).toEqual({ isNew: false });
       expect(mockProviderRepo.findOne).not.toHaveBeenCalled();
@@ -1688,19 +1688,19 @@ describe('RoutingService', () => {
     it('should ignore unsupported subscription provider keys', async () => {
       const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
       const secret = getEncryptionSecret();
-      const encrypted = encrypt('sk-openai-sub', secret);
+      const encrypted = encrypt('sk-deepseek-sub', secret);
 
       mockProviderRepo.find.mockResolvedValue([
         {
           agent_id: 'a1',
-          provider: 'openai',
+          provider: 'deepseek',
           is_active: true,
           auth_type: 'subscription',
           api_key_encrypted: encrypted,
         },
       ]);
 
-      const result = await service.getProviderApiKey('a1', 'openai', 'subscription');
+      const result = await service.getProviderApiKey('a1', 'deepseek', 'subscription');
       expect(result).toBeNull();
     });
 

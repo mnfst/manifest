@@ -28,17 +28,23 @@ describe('OpenaiOauthService', () => {
   let service: OpenaiOauthService;
   let routingService: jest.Mocked<RoutingService>;
   let configService: jest.Mocked<ConfigService>;
+  let discoveryService: { discoverModels: jest.Mock };
 
   beforeEach(() => {
     routingService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
+      recalculateTiers: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<RoutingService>;
 
     configService = {
       get: jest.fn().mockReturnValue(undefined),
     } as unknown as jest.Mocked<ConfigService>;
 
-    service = new OpenaiOauthService(routingService, configService);
+    discoveryService = {
+      discoverModels: jest.fn().mockResolvedValue([]),
+    };
+
+    service = new OpenaiOauthService(routingService, configService, discoveryService as never);
     fetchMock.mockReset();
   });
 
@@ -149,6 +155,28 @@ describe('OpenaiOauthService', () => {
       });
 
       await expect(service.exchangeCode(state, 'code')).rejects.toThrow('Token exchange failed');
+    });
+
+    it('logs warning but does not throw when model discovery fails', async () => {
+      discoveryService.discoverModels.mockRejectedValueOnce(new Error('discovery boom'));
+
+      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
+      const state = new URL(url).searchParams.get('state')!;
+
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          access_token: 'tok',
+          refresh_token: 'ref',
+          expires_in: 3600,
+        }),
+      });
+
+      // Should not throw despite discovery failure
+      await service.exchangeCode(state, 'code');
+
+      expect(routingService.upsertProvider).toHaveBeenCalled();
+      expect(discoveryService.discoverModels).toHaveBeenCalled();
     });
 
     it('removes state after successful exchange', async () => {

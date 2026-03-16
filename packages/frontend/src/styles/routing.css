@@ -256,32 +256,45 @@
 }
 
 .routing-card__right {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .routing-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex-shrink: 0;
 }
 
 .routing-action {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
   color: hsl(var(--muted-foreground));
-  background: none;
-  border: none;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
   cursor: pointer;
   font-family: var(--font-family);
-  padding: 4px 8px;
-  transition: color var(--transition-fast);
+  height: 2rem;
+  padding: 0 0.75rem;
+  transition: all var(--transition-fast);
 }
 
 .routing-action:hover {
-  color: hsl(var(--foreground));
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
 }
 
 .routing-action:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
-  border-radius: var(--radius);
+}
+
+.routing-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .routing-action--danger:hover {

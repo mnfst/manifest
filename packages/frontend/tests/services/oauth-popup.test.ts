@@ -35,9 +35,9 @@ describe("monitorOAuthPopup", () => {
     // fullCleanup should have been called — removeEventListener is evidence
     expect(removeListenerSpy).toHaveBeenCalledWith("message", expect.any(Function));
 
-    // Neither callback was called (the popup just closed without a result)
+    // Popup closed without a result — onFailure should be called to unblock UI
     expect(onSuccess).not.toHaveBeenCalled();
-    expect(onFailure).not.toHaveBeenCalled();
+    expect(onFailure).toHaveBeenCalledTimes(1);
 
     removeListenerSpy.mockRestore();
   });

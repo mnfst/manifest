@@ -176,6 +176,40 @@ function parseOllama(body: unknown, provider: string): DiscoveredModel[] {
     });
 }
 
+/* ── OpenAI subscription (Codex CLI models API) ── */
+
+interface OpenAISubscriptionModelEntry {
+  slug: string;
+  display_name?: string;
+  context_window?: number;
+  visibility?: string;
+  supported_in_api?: boolean;
+}
+
+function parseOpenaiSubscription(body: unknown, provider: string): DiscoveredModel[] {
+  const data = (body as { models?: unknown[] })?.models;
+  if (!Array.isArray(data)) return [];
+  return data
+    .filter((m: unknown) => {
+      const entry = m as OpenAISubscriptionModelEntry;
+      return typeof entry.slug === 'string' && entry.visibility === 'list';
+    })
+    .map((m: unknown) => {
+      const entry = m as OpenAISubscriptionModelEntry;
+      return {
+        id: entry.slug,
+        displayName: entry.display_name || entry.slug,
+        provider,
+        contextWindow: entry.context_window ?? 200000,
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+        capabilityReasoning: false,
+        capabilityCode: true,
+        qualityScore: 3,
+      };
+    });
+}
+
 /* ── Provider configs ── */
 
 export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
@@ -183,6 +217,16 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.openai.com/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  'openai-subscription': {
+    endpoint: 'https://chatgpt.com/backend-api/codex/models?client_version=0.99.0',
+    buildHeaders: (key: string) => ({
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      originator: 'codex_cli_rs',
+      'user-agent': 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown',
+    }),
+    parse: parseOpenaiSubscription,
   },
   deepseek: {
     endpoint: 'https://api.deepseek.com/models',
@@ -258,7 +302,12 @@ export class ProviderModelFetcherService {
   private readonly logger = new Logger(ProviderModelFetcherService.name);
 
   async fetch(providerId: string, apiKey: string, authType?: string): Promise<DiscoveredModel[]> {
-    const config = PROVIDER_CONFIGS[providerId.toLowerCase()];
+    let configKey = providerId.toLowerCase();
+    // OpenAI subscription tokens use a different models endpoint
+    if (configKey === 'openai' && authType === 'subscription') {
+      configKey = 'openai-subscription';
+    }
+    const config = PROVIDER_CONFIGS[configKey];
     if (!config) {
       this.logger.warn(`No fetcher config for provider: ${providerId}`);
       return [];

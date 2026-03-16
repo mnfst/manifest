@@ -7,9 +7,10 @@ export interface SubscriptionCapabilities {
 export interface SubscriptionProviderConfig {
   supportsSubscription: true;
   subscriptionLabel: string;
-  subscriptionKeyPlaceholder: string;
+  subscriptionKeyPlaceholder?: string;
   subscriptionCommand?: string;
   subscriptionTokenPrefix?: string;
+  subscriptionOAuth?: boolean;
   knownModels?: readonly string[];
   subscriptionCapabilities?: Readonly<SubscriptionCapabilities>;
 }

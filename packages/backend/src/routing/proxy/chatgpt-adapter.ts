@@ -53,7 +53,8 @@ export function fromResponsesResponse(
     }
   }
 
-  const usage = (data.usage as Record<string, number>) ?? {};
+  const usage = (data.usage as Record<string, unknown>) ?? {};
+  const inputDetails = usage.input_tokens_details as Record<string, number> | undefined;
 
   return {
     id: `chatcmpl-${randomUUID().replace(/-/g, '').slice(0, 29)}`,
@@ -68,9 +69,11 @@ export function fromResponsesResponse(
       },
     ],
     usage: {
-      prompt_tokens: usage.input_tokens ?? 0,
-      completion_tokens: usage.output_tokens ?? 0,
-      total_tokens: usage.total_tokens ?? 0,
+      prompt_tokens: (usage.input_tokens as number) ?? 0,
+      completion_tokens: (usage.output_tokens as number) ?? 0,
+      total_tokens: (usage.total_tokens as number) ?? 0,
+      cache_read_tokens: inputDetails?.cached_tokens ?? 0,
+      cache_creation_tokens: 0,
     },
   };
 }
@@ -115,11 +118,18 @@ export function transformResponsesStreamChunk(chunk: string, model: string): str
     const respUsage = (data?.response as Record<string, unknown>)?.usage as
       | Record<string, number>
       | undefined;
+    const respDetails = (data?.response as Record<string, unknown>)?.usage as
+      | Record<string, unknown>
+      | undefined;
+    const cachedTokens =
+      (respDetails?.input_tokens_details as Record<string, number> | undefined)?.cached_tokens ?? 0;
     const usage = respUsage
       ? {
           prompt_tokens: respUsage.input_tokens ?? 0,
           completion_tokens: respUsage.output_tokens ?? 0,
           total_tokens: respUsage.total_tokens ?? 0,
+          cache_read_tokens: cachedTokens,
+          cache_creation_tokens: 0,
         }
       : undefined;
     const finish = formatSSE({ delta: {}, finish_reason: 'stop' }, model, usage);

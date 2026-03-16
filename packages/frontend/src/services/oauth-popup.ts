@@ -75,7 +75,7 @@ export function monitorOAuthPopup(
       clearInterval(pollRef);
       bcTimeout = setTimeout(() => {
         if (!handled) {
-          fullCleanup();
+          handleResult(false);
         }
       }, 30_000);
     }

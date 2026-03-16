@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { randomBytes, createHash } from 'crypto';
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
 import { RoutingService } from './routing.service';
+import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { PendingOAuth, OAuthTokenBlob, oauthDoneHtml } from './openai-oauth.types';
 
 export { PendingOAuth, OAuthTokenBlob, oauthDoneHtml };
@@ -33,6 +34,7 @@ export class OpenaiOauthService {
   constructor(
     private readonly routingService: RoutingService,
     private readonly configService: ConfigService,
+    private readonly discoveryService: ModelDiscoveryService,
   ) {
     this.clientId = this.configService.get<string>('OPENAI_OAUTH_CLIENT_ID') ?? DEFAULT_CLIENT_ID;
   }
@@ -111,13 +113,21 @@ export class OpenaiOauthService {
       e: Date.now() + data.expires_in * 1000,
     };
 
-    await this.routingService.upsertProvider(
+    const { provider: savedProvider } = await this.routingService.upsertProvider(
       pending.agentId,
       pending.userId,
       'openai',
       JSON.stringify(blob),
       'subscription',
     );
+
+    // Discover models so tier auto-assignment has data
+    try {
+      await this.discoveryService.discoverModels(savedProvider);
+      await this.routingService.recalculateTiers(pending.agentId);
+    } catch (err) {
+      this.logger.warn(`Model discovery after OAuth failed: ${err}`);
+    }
 
     this.logger.log(`OpenAI OAuth token stored for agent=${pending.agentId}`);
     this.shutdownCallbackServerIfIdle();

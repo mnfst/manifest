@@ -215,6 +215,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     traceId?: string,
     authType?: string,
     sessionKey?: string,
+    durationMs?: number,
   ): Promise<void> {
     if (usage.prompt_tokens === 0 && usage.completion_tokens === 0) return;
 
@@ -261,6 +262,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               cost_usd: costUsd,
               auth_type: authType ?? null,
               user_id: ctx.userId,
+              duration_ms: durationMs ?? null,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
@@ -289,6 +291,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             fallback_from_model: null,
             fallback_index: null,
             user_id: ctx.userId,
+            duration_ms: durationMs ?? null,
           });
         });
       },
