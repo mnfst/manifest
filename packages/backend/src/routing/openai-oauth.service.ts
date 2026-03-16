@@ -14,7 +14,8 @@ const TOKEN_URL = 'https://auth.openai.com/oauth/token';
 const REVOKE_URL = 'https://auth.openai.com/oauth/revoke';
 const SCOPE = 'openid profile email offline_access';
 const CALLBACK_PORT = 1455;
-const REDIRECT_URI = `http://localhost:${CALLBACK_PORT}/auth/callback`;
+const LOCAL_REDIRECT_URI = `http://localhost:${CALLBACK_PORT}/auth/callback`;
+const CALLBACK_PATH = '/api/v1/oauth/openai/callback';
 const STATE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 @Injectable()
@@ -50,19 +51,26 @@ export class OpenaiOauthService {
     const verifier = randomBytes(32).toString('base64url');
     const challenge = createHash('sha256').update(verifier).digest('base64url');
 
+    // In production (backendUrl provided), the callback goes to the backend itself.
+    // In local mode (no backendUrl), an ephemeral server on port 1455 handles it.
+    const redirectUri = backendUrl ? `${backendUrl}${CALLBACK_PATH}` : LOCAL_REDIRECT_URI;
+
     this.pending.set(state, {
       verifier,
       agentId,
       userId,
       backendUrl: backendUrl ?? '',
+      redirectUri,
       expiresAt: Date.now() + STATE_TTL_MS,
     });
 
-    await this.ensureCallbackServer();
+    if (!backendUrl) {
+      await this.ensureCallbackServer();
+    }
 
     const params = new URLSearchParams({
       client_id: this.clientId,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: redirectUri,
       response_type: 'code',
       scope: SCOPE,
       state,
@@ -89,7 +97,7 @@ export class OpenaiOauthService {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: pending.redirectUri,
         client_id: this.clientId,
         code_verifier: pending.verifier,
       }),
@@ -228,6 +236,11 @@ export class OpenaiOauthService {
   /** Returns the number of pending OAuth states (for testing). */
   getPendingCount(): number {
     return this.pending.size;
+  }
+
+  /** Remove a pending OAuth state (e.g., when the provider returns an error). */
+  clearPendingState(state: string): void {
+    this.pending.delete(state);
   }
 
   /**
