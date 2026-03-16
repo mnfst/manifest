@@ -238,6 +238,11 @@ export class OpenaiOauthService {
     return this.pending.size;
   }
 
+  /** Remove a pending OAuth state (e.g., when the provider returns an error). */
+  clearPendingState(state: string): void {
+    this.pending.delete(state);
+  }
+
   /**
    * Spins up a tiny HTTP server on port 1455 to receive the OAuth callback.
    * OpenAI's registered redirect_uri for this client_id is

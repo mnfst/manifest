@@ -97,6 +97,7 @@ export class OpenaiOauthController {
 
     if (error) {
       this.logger.error(`OAuth callback error: ${errorDesc || error}`);
+      if (state) this.oauthService.clearPendingState(state);
       res.send(oauthDoneHtml(false));
       return;
     }
