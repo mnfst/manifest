@@ -112,7 +112,7 @@ describe("EmailProviderSetup", () => {
       expect(document.querySelector(".modal-overlay")).not.toBeNull();
     });
     // Enter API key
-    const keyInput = document.querySelector('input[type="password"]')!;
+    const keyInput = document.querySelector('input[autocomplete="off"]')!;
     fireEvent.input(keyInput, { target: { value: "re_testkey12345" } });
     // Click Test & Save
     const saveBtn = document.querySelector(".btn--primary")!;
