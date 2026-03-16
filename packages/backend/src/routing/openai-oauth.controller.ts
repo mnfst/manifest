@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Post,
@@ -79,35 +80,27 @@ export class OpenaiOauthController {
   }
 
   /**
-   * OAuth callback endpoint for production deployments.
-   * OpenAI redirects here with ?code=...&state=... after user authorizes.
-   * Exchanges the code for tokens, then serves the done page.
+   * Manual OAuth callback for cloud deployments.
+   * When the popup redirects to localhost:1455 and fails (no local server),
+   * the frontend extracts code+state from the failed URL and POSTs here.
    */
-  @Get('callback')
-  @Public()
+  @Post('callback')
   async callback(
-    @Query('code') code: string,
-    @Query('state') state: string,
-    @Query('error') error: string,
-    @Query('error_description') errorDesc: string,
-    @Res() res: Response,
+    @Body('code') code: string,
+    @Body('state') state: string,
+    @CurrentUser() user: AuthUser,
   ) {
-    res.setHeader('Content-Type', 'text/html');
-    res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'unsafe-inline'");
-
-    if (error) {
-      this.logger.error(`OAuth callback error: ${errorDesc || error}`);
-      if (state) this.oauthService.clearPendingState(state);
-      res.send(oauthDoneHtml(false));
-      return;
+    if (!code || !state) {
+      throw new HttpException('code and state are required', HttpStatus.BAD_REQUEST);
     }
 
     try {
       await this.oauthService.exchangeCode(state, code);
-      res.send(oauthDoneHtml(true));
+      return { ok: true };
     } catch (err) {
-      this.logger.error(`OAuth callback exchange failed: ${err}`);
-      res.send(oauthDoneHtml(false));
+      const message = err instanceof Error ? err.message : 'Token exchange failed';
+      this.logger.error(`OAuth callback exchange failed: ${message}`);
+      throw new HttpException(message, HttpStatus.BAD_REQUEST);
     }
   }
 

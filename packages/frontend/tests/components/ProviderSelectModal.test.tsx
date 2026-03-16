@@ -1298,7 +1298,7 @@ describe("ProviderSelectModal", () => {
       vi.restoreAllMocks();
     });
 
-    it("detects failed OAuth callback via polling", async () => {
+    it("detects failed OAuth callback via polling and shows paste URL fallback", async () => {
       const mockPopup = {
         closed: false,
         close: vi.fn(),
@@ -1312,8 +1312,9 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByText("Log in with OpenAI"));
 
+      // onFailure shows paste URL fallback instead of toast
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith("OAuth login failed. Please try again.");
+        expect(screen.getByPlaceholderText("http://localhost:1455/auth/callback?code=...")).toBeDefined();
       });
       expect(mockPopup.close).toHaveBeenCalled();
       expect(onUpdate).not.toHaveBeenCalled();
@@ -1446,7 +1447,7 @@ describe("ProviderSelectModal", () => {
       vi.restoreAllMocks();
     });
 
-    it("detects failed OAuth via postMessage", async () => {
+    it("detects failed OAuth via postMessage and shows paste URL fallback", async () => {
       const mockPopup = {
         closed: false,
         close: vi.fn(),
@@ -1467,8 +1468,9 @@ describe("ProviderSelectModal", () => {
         new MessageEvent("message", { data: { type: "manifest-oauth-error" } }),
       );
 
+      // onFailure shows paste URL fallback instead of toast
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith("OAuth login failed. Please try again.");
+        expect(screen.getByPlaceholderText("http://localhost:1455/auth/callback?code=...")).toBeDefined();
       });
       expect(mockPopup.close).toHaveBeenCalled();
       expect(onUpdate).not.toHaveBeenCalled();
