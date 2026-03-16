@@ -323,6 +323,11 @@
   color: hsl(var(--muted-foreground) / 0.6);
 }
 
+.provider-detail__input--masked {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
 .provider-detail__input--disabled {
   opacity: 0.7;
   font-family: var(--font-mono, monospace);

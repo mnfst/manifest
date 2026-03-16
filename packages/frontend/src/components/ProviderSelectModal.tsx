@@ -663,9 +663,12 @@ const ProviderSelectModal: Component<Props> = (props) => {
                       <label class="provider-detail__label">{fieldLabel()}</label>
                       <input
                         class="provider-detail__input"
-                        classList={{ 'provider-detail__input--error': !!validationError() }}
-                        type="password"
-                        autocomplete="new-password"
+                        classList={{
+                          'provider-detail__input--error': !!validationError(),
+                          'provider-detail__input--masked': true,
+                        }}
+                        type="text"
+                        autocomplete="off"
                         placeholder={placeholder()}
                         aria-label={inputAriaLabel()}
                         value={keyInput()}
@@ -761,9 +764,12 @@ const ProviderSelectModal: Component<Props> = (props) => {
                       <Show when={editing()}>
                         <input
                           class="provider-detail__input"
-                          classList={{ 'provider-detail__input--error': !!validationError() }}
-                          type="password"
-                          autocomplete="new-password"
+                          classList={{
+                            'provider-detail__input--error': !!validationError(),
+                            'provider-detail__input--masked': true,
+                          }}
+                          type="text"
+                          autocomplete="off"
                           placeholder={placeholder()}
                           aria-label={editAriaLabel()}
                           value={keyInput()}
