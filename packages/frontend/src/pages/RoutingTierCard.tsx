@@ -53,7 +53,7 @@ export interface RoutingTierCardProps {
   addingFallback: () => string | null;
   agentName: () => string;
   onDropdownOpen: (tierId: string) => void;
-  onOverride: (tierId: string, model: string, authType?: AuthType) => void;
+  onOverride: (tierId: string, model: string, providerId: string, authType?: AuthType) => void;
   onReset: (tierId: string) => void;
   onFallbackUpdate: (tierId: string, fallbacks: string[]) => void;
   onAddFallback: (tierId: string) => void;
