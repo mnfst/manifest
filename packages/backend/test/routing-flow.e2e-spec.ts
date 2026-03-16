@@ -273,7 +273,7 @@ describe('Subscription providers respect supported capabilities', () => {
 
   it('registers only supported subscription providers as active', async () => {
     const res = await bearer(api().post('/api/v1/routing/subscription-providers'))
-      .send({ providers: [{ provider: 'openai' }, { provider: 'anthropic' }] })
+      .send({ providers: [{ provider: 'deepseek' }, { provider: 'anthropic' }] })
       .expect(200);
 
     expect(res.body.registered).toBe(1);
@@ -305,20 +305,20 @@ describe('Subscription providers respect supported capabilities', () => {
 
   it('re-registering same providers does not re-activate removed or unsupported ones', async () => {
     const res = await bearer(api().post('/api/v1/routing/subscription-providers'))
-      .send({ providers: [{ provider: 'openai' }, { provider: 'anthropic' }] })
+      .send({ providers: [{ provider: 'deepseek' }, { provider: 'anthropic' }] })
       .expect(200);
 
-    // openai is unsupported and anthropic already exists but was deactivated by the user
+    // deepseek is unsupported and anthropic already exists but was deactivated by the user
     expect(res.body.registered).toBe(0);
 
-    // openai subscription should not exist in Manifest at all
+    // deepseek subscription should not exist in Manifest at all
     const providers = await auth(api().get('/api/v1/routing/test-agent/providers'))
       .expect(200);
-    const openai = providers.body.find(
+    const deepseek = providers.body.find(
       (p: { provider: string; auth_type: string }) =>
-        p.provider === 'openai' && p.auth_type === 'subscription',
+        p.provider === 'deepseek' && p.auth_type === 'subscription',
     );
-    expect(openai).toBeUndefined();
+    expect(deepseek).toBeUndefined();
 
     // anthropic subscription should still be inactive
     const anthropic = providers.body.find(
@@ -341,25 +341,25 @@ describe('Persisted unsupported subscriptions are cleaned up on read', () => {
 
     await ds.query(
       sql(`DELETE FROM user_providers WHERE agent_id = $1 AND provider = $2 AND auth_type = $3`),
-      [TEST_AGENT_ID, 'openai', 'subscription'],
+      [TEST_AGENT_ID, 'deepseek', 'subscription'],
     );
     await ds.query(
       sql(`INSERT INTO user_providers (id, user_id, agent_id, provider, api_key_encrypted, key_prefix, auth_type, is_active, connected_at, updated_at)
            VALUES ($1, $2, $3, $4, NULL, NULL, $5, true, $6, $7)`),
-      ['stale-openai-sub', TEST_USER_ID, TEST_AGENT_ID, 'openai', 'subscription', now, now],
+      ['stale-deepseek-sub', TEST_USER_ID, TEST_AGENT_ID, 'deepseek', 'subscription', now, now],
     );
 
     const providers = await auth(api().get('/api/v1/routing/test-agent/providers'))
       .expect(200);
-    const openai = providers.body.find(
+    const deepseek = providers.body.find(
       (p: { provider: string; auth_type: string }) =>
-        p.provider === 'openai' && p.auth_type === 'subscription',
+        p.provider === 'deepseek' && p.auth_type === 'subscription',
     );
-    expect(openai).toBeUndefined();
+    expect(deepseek).toBeUndefined();
 
     const rows = await ds.query(
       sql(`SELECT is_active FROM user_providers WHERE id = $1`),
-      ['stale-openai-sub'],
+      ['stale-deepseek-sub'],
     );
     const isActive = rows[0]?.is_active === true || rows[0]?.is_active === 1;
     expect(isActive).toBe(false);

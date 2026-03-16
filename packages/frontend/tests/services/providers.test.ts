@@ -1,12 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  getModelLabel,
-  getProvider,
-  validateApiKey,
-  validateSubscriptionKey,
-  PROVIDERS,
-  STAGES,
-} from "../../src/services/providers";
+import { PROVIDERS, STAGES, getModelLabel, getProvider } from "../../src/services/providers";
+import { validateApiKey, validateSubscriptionKey } from "../../src/services/provider-utils";
 import { ROUTING_PROVIDER_API_KEY_URLS, EMAIL_PROVIDER_API_KEY_URLS, getRoutingProviderApiKeyUrl, getEmailProviderApiKeyUrl } from "../../src/services/provider-api-key-urls";
 
 /* ── getProvider ────────────────────────────────── */
@@ -133,15 +127,53 @@ describe("validateSubscriptionKey", () => {
       valid: true,
     });
   });
+
+  it("returns valid for an OpenAI subscription token (JWT format)", () => {
+    const openai = getProvider("openai")!;
+    expect(validateSubscriptionKey(openai, "eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp")).toEqual({
+      valid: true,
+    });
+  });
+
+  it("returns invalid for an empty OpenAI subscription token", () => {
+    const openai = getProvider("openai")!;
+    expect(validateSubscriptionKey(openai, "")).toEqual({
+      valid: false,
+      error: "Token is required",
+    });
+  });
+
+  it("returns invalid for a too-short OpenAI subscription token", () => {
+    const openai = getProvider("openai")!;
+    expect(validateSubscriptionKey(openai, "short")).toEqual({
+      valid: false,
+      error: "Token is too short (minimum 10 characters)",
+    });
+  });
+
+  it("rejects an OpenAI API key in subscription mode", () => {
+    const openai = getProvider("openai")!;
+    expect(validateSubscriptionKey(openai, "sk-proj-1234567890abcdef")).toEqual({
+      valid: false,
+      error: "This looks like an API key. Use the API Key tab instead.",
+    });
+  });
+
+  it("does not reject non-API-key tokens for providers without API_KEY_PREFIXES", () => {
+    const deepseek = getProvider("deepseek")!;
+    expect(validateSubscriptionKey(deepseek, "some-valid-token-here")).toEqual({
+      valid: true,
+    });
+  });
 });
 
 /* ── getModelLabel ──────────────────────────────── */
 
 describe("getModelLabel", () => {
-  it("falls back to formatModelSlug for unknown models", () => {
-    // PROVIDERS have empty models[], so getModelLabel always falls back to formatModelSlug
-    // formatModelSlug replaces dashes with spaces and capitalizes each word
-    expect(getModelLabel("openai", "gpt-4o")).toBe("Gpt 4o");
+  it("returns the static label for known models", () => {
+    // OpenAI has a static models list, so exact match returns the label
+    expect(getModelLabel("openai", "gpt-4o")).toBe("GPT-4o");
+    // Anthropic has empty models[], so getModelLabel falls back to formatModelSlug
     expect(getModelLabel("anthropic", "claude-opus-4")).toBe("Claude Opus 4");
   });
 
@@ -160,17 +192,17 @@ describe("getModelLabel", () => {
     expect(getModelLabel("anthropic", "claude-sonnet-4-1234567")).toBe("Claude Sonnet 4 1234567");
   });
 
-  it("formats via formatModelSlug for extended model names", () => {
-    // No prefix match since models are empty; formatModelSlug processes full slug
-    expect(getModelLabel("openai", "gpt-4o-something-custom")).toBe("Gpt 4o Something Custom");
+  it("returns prefix-matched label for extended model names", () => {
+    // OpenAI has gpt-4o in its models list; prefix match returns that label
+    expect(getModelLabel("openai", "gpt-4o-something-custom")).toBe("GPT-4o");
   });
 
   it("formats via formatModelSlug as fallback when nothing matches", () => {
     expect(getModelLabel("openai", "completely-unknown-model")).toBe("Completely Unknown Model");
   });
 
-  it("formats dated model variant via formatModelSlug", () => {
-    expect(getModelLabel("openai", "gpt-4o-2024-11-20")).toBe("Gpt 4o 2024 11 20");
+  it("returns static label for dated model variant", () => {
+    expect(getModelLabel("openai", "gpt-4o-2024-11-20")).toBe("GPT-4o (2024-11-20)");
   });
 
   it("formats anthropic dated models via formatModelSlug", () => {
@@ -179,10 +211,11 @@ describe("getModelLabel", () => {
     expect(getModelLabel("anthropic", "claude-opus-4-20260101")).toBe("Claude Opus 4 20260101");
   });
 
-  it("formats vendor-prefixed model bare name via formatModelSlug", () => {
-    // No cross-provider lookup succeeds (models are empty), so formatModelSlug on bare name
+  it("resolves vendor-prefixed model names via cross-provider lookup", () => {
+    // Anthropic has empty models[], so formatModelSlug on bare name
     expect(getModelLabel("openrouter", "anthropic/claude-opus-4-6")).toBe("Claude Opus 4 6");
-    expect(getModelLabel("openrouter", "openai/gpt-4o")).toBe("Gpt 4o");
+    // OpenAI has gpt-4o in its models list, so cross-provider lookup finds it
+    expect(getModelLabel("openrouter", "openai/gpt-4o")).toBe("GPT-4o");
   });
 
   it("formats bare name via formatModelSlug when vendor-prefixed model is unknown", () => {
@@ -198,6 +231,12 @@ describe("getModelLabel", () => {
   it("formats vendor-prefixed model with dashes via formatModelSlug", () => {
     // "anthropic/claude-opus-4-6" → bare "claude-opus-4-6" → formatModelSlug → "Claude Opus 4 6"
     expect(getModelLabel("openrouter", "anthropic/claude-opus-4-6")).toBe("Claude Opus 4 6");
+  });
+
+  it("falls through dot-to-dash normalization when normalized model is not found", () => {
+    // "vendor/unknown.model.name" → bare "unknown.model.name" → not found →
+    // normalized "unknown-model-name" → still not found → returns bare
+    expect(getModelLabel("openrouter", "vendor/unknown.model.name")).toBe("Unknown.Model.Name");
   });
 });
 
@@ -232,6 +271,21 @@ describe("PROVIDERS", () => {
       expect(p.subtitle).toBeTruthy();
       expect(Array.isArray(p.models)).toBe(true);
     }
+  });
+
+  it("OpenAI supports subscription with OAuth browser flow", () => {
+    const openai = PROVIDERS.find((p) => p.id === "openai")!;
+    expect(openai.supportsSubscription).toBe(true);
+    expect(openai.subscriptionLabel).toBe("ChatGPT Plus/Pro/Team");
+    expect(openai.subscriptionKeyPlaceholder).toBeUndefined();
+    expect(openai.subscriptionCommand).toBeUndefined();
+    expect(openai.subscriptionOAuth).toBe(true);
+  });
+
+  it("Anthropic supports subscription", () => {
+    const anthropic = PROVIDERS.find((p) => p.id === "anthropic")!;
+    expect(anthropic.supportsSubscription).toBe(true);
+    expect(anthropic.subscriptionLabel).toBe("Claude Max / Pro subscription");
   });
 
   it("requires an API key URL for every provider that needs one", () => {

@@ -122,40 +122,62 @@ export function buildFallbackModels(
  * Build a curated fallback model list for subscription providers without a token.
  * Uses knownModels prefixes from subscription-capabilities to filter the OpenRouter cache,
  * and applies capability restrictions (e.g., context window caps).
+ * Any knownModels not found in OpenRouter are added directly as zero-cost entries.
  */
 export function buildSubscriptionFallbackModels(
   pricingSync: PricingLookup | null,
   providerId: string,
 ): DiscoveredModel[] {
   const knownPrefixes = getSubscriptionKnownModels(providerId);
-  if (!knownPrefixes || !pricingSync) return [];
-
-  const orPrefix = findOpenRouterPrefix(providerId);
-  if (!orPrefix) return [];
+  if (!knownPrefixes) return [];
 
   const capabilities = getSubscriptionCapabilities(providerId);
   const models: DiscoveredModel[] = [];
   const seen = new Set<string>();
 
-  for (const [fullId, entry] of pricingSync.getAll()) {
-    if (!fullId.startsWith(`${orPrefix}/`)) continue;
-    const modelId = fullId.substring(orPrefix.length + 1);
-    if (!knownPrefixes.some((p: string) => modelId.startsWith(p))) continue;
-    if (seen.has(modelId)) continue;
-    seen.add(modelId);
+  const orPrefix = pricingSync ? findOpenRouterPrefix(providerId) : null;
 
-    let contextWindow = entry.contextWindow ?? 128000;
-    if (capabilities?.maxContextWindow && contextWindow > capabilities.maxContextWindow) {
-      contextWindow = capabilities.maxContextWindow;
+  if (pricingSync && orPrefix) {
+    for (const [fullId, entry] of pricingSync.getAll()) {
+      if (!fullId.startsWith(`${orPrefix}/`)) continue;
+      const modelId = fullId.substring(orPrefix.length + 1);
+      if (!knownPrefixes.some((p: string) => modelId.startsWith(p))) continue;
+      if (seen.has(modelId)) continue;
+      seen.add(modelId);
+
+      let contextWindow = entry.contextWindow ?? 128000;
+      if (capabilities?.maxContextWindow && contextWindow > capabilities.maxContextWindow) {
+        contextWindow = capabilities.maxContextWindow;
+      }
+
+      models.push({
+        id: modelId,
+        displayName: entry.displayName || modelId,
+        provider: providerId,
+        contextWindow,
+        inputPricePerToken: entry.input,
+        outputPricePerToken: entry.output,
+        capabilityReasoning: false,
+        capabilityCode: false,
+        qualityScore: 3,
+      });
     }
+  }
 
+  // Add any knownModels not already covered by discovered models.
+  // A knownModel is "covered" if any discovered model starts with it as a prefix
+  // (e.g., "claude-opus-4" is covered by "claude-opus-4-20260301").
+  const defaultCtx = capabilities?.maxContextWindow ?? 200000;
+  for (const modelId of knownPrefixes) {
+    const covered = models.some((m) => m.id === modelId || m.id.startsWith(`${modelId}-`));
+    if (covered) continue;
     models.push({
       id: modelId,
-      displayName: entry.displayName || modelId,
+      displayName: modelId,
       provider: providerId,
-      contextWindow,
-      inputPricePerToken: entry.input,
-      outputPricePerToken: entry.output,
+      contextWindow: defaultCtx,
+      inputPricePerToken: 0,
+      outputPricePerToken: 0,
       capabilityReasoning: false,
       capabilityCode: false,
       qualityScore: 3,
@@ -163,4 +185,39 @@ export function buildSubscriptionFallbackModels(
   }
 
   return models;
+}
+
+/**
+ * Supplement discovered models with knownModels from subscription-capabilities.
+ * Ensures subscription users always have the known models available as selectable options,
+ * even if the live API or OpenRouter cache didn't return them.
+ */
+export function supplementWithKnownModels(
+  raw: DiscoveredModel[],
+  providerId: string,
+): DiscoveredModel[] {
+  const knownModels = getSubscriptionKnownModels(providerId);
+  if (!knownModels) return raw;
+
+  const capabilities = getSubscriptionCapabilities(providerId);
+  const defaultCtx = capabilities?.maxContextWindow ?? 200000;
+
+  for (const modelId of knownModels) {
+    // Skip if this model or a more specific version (e.g., with date suffix) already exists
+    const covered = raw.some((m) => m.id === modelId || m.id.startsWith(`${modelId}-`));
+    if (covered) continue;
+    raw.push({
+      id: modelId,
+      displayName: modelId,
+      provider: providerId,
+      contextWindow: defaultCtx,
+      inputPricePerToken: 0,
+      outputPricePerToken: 0,
+      capabilityReasoning: false,
+      capabilityCode: false,
+      qualityScore: 3,
+    });
+  }
+
+  return raw;
 }

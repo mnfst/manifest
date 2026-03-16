@@ -13,6 +13,7 @@ import {
   lookupWithVariants,
   buildFallbackModels,
   buildSubscriptionFallbackModels,
+  supplementWithKnownModels,
 } from './model-fallback';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
@@ -44,6 +45,23 @@ export class ModelDiscoveryService {
       }
     }
 
+    // For OpenAI subscription, the stored "key" is a JSON blob with access/refresh tokens.
+    // Unwrap it to get the actual Bearer token for the models API.
+    if (
+      provider.auth_type === 'subscription' &&
+      provider.provider.toLowerCase() === 'openai' &&
+      apiKey
+    ) {
+      try {
+        const blob = JSON.parse(apiKey) as { t?: string };
+        if (blob.t) {
+          apiKey = blob.t;
+        }
+      } catch {
+        // Not a JSON blob — use as-is
+      }
+    }
+
     let raw: DiscoveredModel[];
 
     // Subscription providers without a token: use curated fallback
@@ -66,6 +84,12 @@ export class ModelDiscoveryService {
           );
         }
       }
+    }
+
+    // For subscription providers, supplement with knownModels so users can
+    // always select them, even if the live API or OpenRouter didn't return them.
+    if (provider.auth_type === 'subscription') {
+      raw = supplementWithKnownModels(raw, provider.provider);
     }
 
     const authType = provider.auth_type === 'subscription' ? 'subscription' : 'api_key';

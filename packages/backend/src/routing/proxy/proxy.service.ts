@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException, HttpException } from '@nestjs/
 import { ResolveService } from '../resolve.service';
 import { RoutingService } from '../routing.service';
 import { CustomProviderService } from '../custom-provider.service';
+import { OpenaiOauthService } from '../openai-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import { buildCustomEndpoint, ProviderEndpoint } from './provider-endpoints';
@@ -55,6 +56,7 @@ export class ProxyService {
     private readonly resolveService: ResolveService,
     private readonly routingService: RoutingService,
     private readonly customProviderService: CustomProviderService,
+    private readonly openaiOauth: OpenaiOauthService,
     private readonly providerClient: ProviderClient,
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
@@ -103,7 +105,7 @@ export class ProxyService {
       );
     }
 
-    const apiKey = await this.routingService.getProviderApiKey(
+    let apiKey = await this.routingService.getProviderApiKey(
       agentId,
       resolved.provider,
       resolved.auth_type,
@@ -113,6 +115,14 @@ export class ProxyService {
         `No API key found for provider: ${resolved.provider}. Re-connect the provider with an API key.`,
       );
     }
+
+    apiKey = await this.resolveApiKey(
+      resolved.provider,
+      apiKey,
+      resolved.auth_type,
+      agentId,
+      userId,
+    );
 
     this.logger.log(
       `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
@@ -139,6 +149,7 @@ export class ProxyService {
         const primaryErrorBody = await forward.response.text();
         const { success, failures } = await this.tryFallbacks(
           agentId,
+          userId,
           fallbackModels,
           body,
           stream,
@@ -185,6 +196,7 @@ export class ProxyService {
             response: rebuilt,
             isGoogle: forward.isGoogle,
             isAnthropic: forward.isAnthropic,
+            isChatGpt: forward.isChatGpt,
           },
           meta: {
             tier: resolved.tier as Tier,
@@ -216,6 +228,7 @@ export class ProxyService {
 
   private async tryFallbacks(
     agentId: string,
+    userId: string,
     fallbackModels: string[],
     body: Record<string, unknown>,
     stream: boolean,
@@ -253,13 +266,15 @@ export class ProxyService {
         continue;
       }
       const authType = await this.routingService.getAuthType(agentId, provider);
-      const apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
+      let apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
       if (apiKey === null) {
         this.logger.debug(
           `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
         );
         continue;
       }
+
+      apiKey = await this.resolveApiKey(provider, apiKey, authType, agentId, userId);
 
       this.logger.log(
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
@@ -291,6 +306,20 @@ export class ProxyService {
       if (!shouldTriggerFallback(forward.response.status)) break;
     }
     return { success: null, failures };
+  }
+
+  private async resolveApiKey(
+    provider: string,
+    apiKey: string,
+    authType: string | undefined,
+    agentId: string,
+    userId: string,
+  ): Promise<string> {
+    if (authType === 'subscription' && provider.toLowerCase() === 'openai') {
+      const unwrapped = await this.openaiOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return unwrapped;
+    }
+    return apiKey;
   }
 
   private async enforceLimits(tenantId?: string, agentName?: string): Promise<void> {

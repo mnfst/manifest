@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { RoutingService } from './routing.service';
+import { RoutingInvalidationService } from './routing-invalidation.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { TierAssignment } from '../entities/tier-assignment.entity';
@@ -146,7 +147,7 @@ describe('RoutingService', () => {
         .mockResolvedValueOnce(recalculatedRows); // getTiers: rows after cleanup/recalculate
       mockProviderRepo.find
         .mockResolvedValueOnce([
-          { id: 'p1', provider: 'openai', is_active: true, auth_type: 'subscription' },
+          { id: 'p1', provider: 'deepseek', is_active: true, auth_type: 'subscription' },
         ])
         .mockResolvedValueOnce([]);
 
@@ -156,7 +157,7 @@ describe('RoutingService', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: 'p1',
-            provider: 'openai',
+            provider: 'deepseek',
             auth_type: 'subscription',
             is_active: false,
           }),
@@ -325,7 +326,7 @@ describe('RoutingService', () => {
           {
             id: 'p1',
             agent_id: 'a1',
-            provider: 'openai',
+            provider: 'deepseek',
             auth_type: 'subscription',
             is_active: true,
           },
@@ -341,7 +342,7 @@ describe('RoutingService', () => {
           {
             id: 'p1',
             agent_id: 'a1',
-            provider: 'openai',
+            provider: 'deepseek',
             auth_type: 'subscription',
             is_active: false,
           },
@@ -361,7 +362,7 @@ describe('RoutingService', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: 'p1',
-            provider: 'openai',
+            provider: 'deepseek',
             auth_type: 'subscription',
             is_active: false,
           }),
@@ -695,7 +696,7 @@ describe('RoutingService', () => {
 
   describe('registerSubscriptionProvider', () => {
     it('should ignore unsupported subscription providers', async () => {
-      const result = await service.registerSubscriptionProvider('a1', 'u1', 'openai');
+      const result = await service.registerSubscriptionProvider('a1', 'u1', 'deepseek');
 
       expect(result).toEqual({ isNew: false });
       expect(mockProviderRepo.findOne).not.toHaveBeenCalled();
@@ -1369,11 +1370,22 @@ describe('RoutingService', () => {
     });
   });
 
-  /* ── invalidateOverridesForRemovedModels ── */
+  /* ── invalidateOverridesForRemovedModels (delegated to RoutingInvalidationService) ── */
 
-  describe('invalidateOverridesForRemovedModels', () => {
+  describe('RoutingInvalidationService', () => {
+    let invalidationService: RoutingInvalidationService;
+
+    beforeEach(() => {
+      invalidationService = new RoutingInvalidationService(
+        mockTierRepo as never,
+        mockPricingCache as never,
+        mockAutoAssign as never,
+        mockRoutingCache,
+      );
+    });
+
     it('should return early for empty array', async () => {
-      await service.invalidateOverridesForRemovedModels([]);
+      await invalidationService.invalidateOverridesForRemovedModels([]);
 
       expect(mockTierRepo.find).not.toHaveBeenCalled();
     });
@@ -1381,7 +1393,7 @@ describe('RoutingService', () => {
     it('should return early when no tiers are affected', async () => {
       mockTierRepo.find.mockResolvedValue([]);
 
-      await service.invalidateOverridesForRemovedModels(['deleted-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['deleted-model']);
 
       expect(mockTierRepo.save).not.toHaveBeenCalled();
       expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
@@ -1400,7 +1412,7 @@ describe('RoutingService', () => {
       });
       mockTierRepo.find.mockResolvedValue([tier1, tier2]);
 
-      await service.invalidateOverridesForRemovedModels(['old-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['old-model']);
 
       expect(tier1.override_model).toBeNull();
       expect(tier2.override_model).toBeNull();
@@ -1424,7 +1436,7 @@ describe('RoutingService', () => {
           }),
         ]);
 
-      await service.invalidateOverridesForRemovedModels(['old-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['old-model']);
 
       // Should save with only the kept model
       expect(mockTierRepo.save).toHaveBeenCalledWith(
@@ -1444,7 +1456,7 @@ describe('RoutingService', () => {
           }),
         ]);
 
-      await service.invalidateOverridesForRemovedModels(['removed-model']);
+      await invalidationService.invalidateOverridesForRemovedModels(['removed-model']);
 
       expect(mockTierRepo.save).toHaveBeenCalledWith(
         expect.arrayContaining([expect.objectContaining({ fallback_models: null })]),
@@ -1465,7 +1477,7 @@ describe('RoutingService', () => {
       });
       mockTierRepo.find.mockResolvedValue([tier1, tier2]);
 
-      await service.invalidateOverridesForRemovedModels(['model-a', 'model-b']);
+      await invalidationService.invalidateOverridesForRemovedModels(['model-a', 'model-b']);
 
       // Same agent — should only recalculate once
       expect(mockAutoAssign.recalculate).toHaveBeenCalledTimes(1);
@@ -1676,19 +1688,19 @@ describe('RoutingService', () => {
     it('should ignore unsupported subscription provider keys', async () => {
       const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
       const secret = getEncryptionSecret();
-      const encrypted = encrypt('sk-openai-sub', secret);
+      const encrypted = encrypt('sk-deepseek-sub', secret);
 
       mockProviderRepo.find.mockResolvedValue([
         {
           agent_id: 'a1',
-          provider: 'openai',
+          provider: 'deepseek',
           is_active: true,
           auth_type: 'subscription',
           api_key_encrypted: encrypted,
         },
       ]);
 
-      const result = await service.getProviderApiKey('a1', 'openai', 'subscription');
+      const result = await service.getProviderApiKey('a1', 'deepseek', 'subscription');
       expect(result).toBeNull();
     });
 

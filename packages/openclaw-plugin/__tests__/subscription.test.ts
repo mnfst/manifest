@@ -58,12 +58,10 @@ describe("discoverSubscriptionProviders", () => {
 
     expect(result).toEqual([
       { openclawId: "anthropic", manifestId: "anthropic", authType: "oauth" },
+      { openclawId: "openai-codex", manifestId: "openai", authType: "setup_token" },
     ]);
-    expect(mockLogger.debug).toHaveBeenCalledWith(
-      "[manifest] Ignoring unsupported subscription provider: openai-codex -> openai",
-    );
     expect(mockLogger.info).toHaveBeenCalledWith(
-      expect.stringContaining("Detected 1 subscription provider(s)"),
+      expect.stringContaining("Detected 2 subscription provider(s)"),
     );
   });
 
@@ -213,6 +211,7 @@ describe("discoverSubscriptionProviders", () => {
     const result = discoverSubscriptionProviders(mockLogger);
     expect(result).toEqual([
       { openclawId: "anthropic", manifestId: "anthropic", authType: "oauth" },
+      { openclawId: "github-copilot", manifestId: "openai", authType: "oauth" },
     ]);
   });
 });

@@ -5,7 +5,7 @@ export interface ProviderEndpoint {
   baseUrl: string;
   buildHeaders: (apiKey: string, authType?: string) => Record<string, string>;
   buildPath: (model: string) => string;
-  format: 'openai' | 'google' | 'anthropic';
+  format: 'openai' | 'google' | 'anthropic' | 'chatgpt';
 }
 
 const openaiHeaders = (apiKey: string) => ({
@@ -29,12 +29,32 @@ const anthropicHeaders = (apiKey: string, authType?: string): Record<string, str
   return headers;
 };
 
+/**
+ * ChatGPT subscription OAuth tokens use the Codex backend,
+ * which requires specific headers to avoid 403 responses.
+ * Note: These headers mimic the Codex CLI client. This is required for the
+ * endpoint to accept requests, but may break if OpenAI changes validation.
+ */
+const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
+const chatgptSubscriptionHeaders = (apiKey: string) => ({
+  Authorization: `Bearer ${apiKey}`,
+  'Content-Type': 'application/json',
+  originator: 'codex_cli_rs',
+  'user-agent': 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown',
+});
+
 export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   openai: {
     baseUrl: 'https://api.openai.com',
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+  },
+  'openai-subscription': {
+    baseUrl: CHATGPT_SUBSCRIPTION_BASE,
+    buildHeaders: chatgptSubscriptionHeaders,
+    buildPath: () => '/codex/responses',
+    format: 'chatgpt',
   },
   anthropic: {
     baseUrl: 'https://api.anthropic.com',

@@ -3,6 +3,7 @@ import { ProxyService } from '../proxy.service';
 import { ResolveService } from '../../resolve.service';
 import { RoutingService } from '../../routing.service';
 import { CustomProviderService } from '../../custom-provider.service';
+import { OpenaiOauthService } from '../../openai-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { SessionMomentumService } from '../session-momentum.service';
 import { LimitCheckService } from '../../../notifications/services/limit-check.service';
@@ -14,6 +15,7 @@ describe('ProxyService', () => {
   let resolveService: jest.Mocked<ResolveService>;
   let routingService: jest.Mocked<RoutingService>;
   let customProviderService: jest.Mocked<CustomProviderService>;
+  let openaiOauth: jest.Mocked<OpenaiOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let momentum: SessionMomentumService;
   let limitCheck: jest.Mocked<LimitCheckService>;
@@ -46,6 +48,13 @@ describe('ProxyService', () => {
       getById: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<CustomProviderService>;
 
+    openaiOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+      generateAuthorizationUrl: jest.fn(),
+      exchangeCode: jest.fn(),
+      refreshAccessToken: jest.fn(),
+    } as unknown as jest.Mocked<OpenaiOauthService>;
+
     pricingCache = {
       getByModel: jest.fn().mockReturnValue(null),
       getAll: jest.fn().mockReturnValue([]),
@@ -55,6 +64,7 @@ describe('ProxyService', () => {
       resolveService,
       routingService,
       customProviderService,
+      openaiOauth,
       providerClient,
       momentum,
       limitCheck,
@@ -130,6 +140,7 @@ describe('ProxyService', () => {
       response: mockResponse,
       isGoogle: false,
       isAnthropic: false,
+      isChatGpt: false,
     });
 
     const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
@@ -177,6 +188,7 @@ describe('ProxyService', () => {
       response: new Response('{}', { status: 200 }),
       isGoogle: false,
       isAnthropic: false,
+      isChatGpt: false,
     });
 
     await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
@@ -205,6 +217,7 @@ describe('ProxyService', () => {
       response: new Response('{}', { status: 200 }),
       isGoogle: false,
       isAnthropic: false,
+      isChatGpt: false,
     });
 
     const bodyWithTools = {
@@ -254,6 +267,7 @@ describe('ProxyService', () => {
       response: new Response('{}', { status: 200 }),
       isGoogle: false,
       isAnthropic: false,
+      isChatGpt: false,
     });
 
     const abortController = new AbortController();
@@ -306,6 +320,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const result = await service.proxyRequest('agent-1', 'user-1', heartbeatBody, 'sess-1');
@@ -330,6 +345,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       await service.proxyRequest('agent-1', 'user-1', heartbeatBody, 'sess-1');
@@ -374,6 +390,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const result = await service.proxyRequest('agent-1', 'user-1', buriedHeartbeatBody, 'sess-1');
@@ -410,6 +427,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const result = await service.proxyRequest(
@@ -455,6 +473,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const result = await service.proxyRequest('agent-1', 'user-1', arrayContentBody, 'sess-1');
@@ -488,6 +507,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const result = await service.proxyRequest('agent-1', 'user-1', objectContentBody, 'default');
@@ -511,6 +531,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const bodyWithNullContent = {
@@ -538,6 +559,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       await service.proxyRequest('agent-1', 'user-1', body, 'default');
@@ -561,6 +583,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
     };
 
@@ -647,6 +670,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
     };
 
@@ -774,6 +798,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const bodyWithMaxTokens = {
@@ -810,6 +835,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       await service.proxyRequest('agent-1', 'user-1', body, 'my-session');
@@ -843,6 +869,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const bodyWithAssistant = {
@@ -875,6 +902,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const bodyWithOnlySystem = {
@@ -930,6 +958,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
@@ -968,6 +997,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
@@ -1003,6 +1033,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
@@ -1038,6 +1069,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
@@ -1088,6 +1120,7 @@ describe('ProxyService', () => {
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
@@ -1114,11 +1147,13 @@ describe('ProxyService', () => {
           response: new Response('error', { status: 429 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: true,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['claude-sonnet-4'] },
@@ -1148,6 +1183,7 @@ describe('ProxyService', () => {
         response: new Response('error', { status: 500 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
       routingService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: null },
@@ -1175,11 +1211,13 @@ describe('ProxyService', () => {
           response: new Response('error', { status: 502 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: true,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['unknown-model', 'claude-sonnet-4'] },
@@ -1213,11 +1251,13 @@ describe('ProxyService', () => {
           response: new Response('overloaded', { status: 500 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['claude-sonnet-4', 'deepseek-chat'] },
@@ -1255,16 +1295,19 @@ describe('ProxyService', () => {
           response: new Response('overloaded', { status: 500 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('rate limited', { status: 429 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['model-a', 'model-b'] },
@@ -1304,11 +1347,13 @@ describe('ProxyService', () => {
           response: new Response('overloaded', { status: 500 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('exhausted', { status: 424 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['model-a', 'model-b'] },
@@ -1338,6 +1383,7 @@ describe('ProxyService', () => {
         response: new Response('redirect', { status: 301 }),
         isGoogle: false,
         isAnthropic: false,
+        isChatGpt: false,
       });
 
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
@@ -1366,11 +1412,13 @@ describe('ProxyService', () => {
           response: new Response('rate limited', { status: 429 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: true,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['claude-sonnet-4'] },
@@ -1440,11 +1488,13 @@ describe('ProxyService', () => {
           response: new Response('overloaded', { status: 503 }),
           isGoogle: false,
           isAnthropic: true,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'complex', fallback_models: ['gpt-4o'] },
@@ -1504,11 +1554,13 @@ describe('ProxyService', () => {
           response: new Response('server error', { status: 500 }),
           isGoogle: false,
           isAnthropic: true,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('{}', { status: 200 }),
           isGoogle: true,
           isAnthropic: false,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['gemini-2.5-flash'] },
@@ -1559,11 +1611,13 @@ describe('ProxyService', () => {
           response: new Response('rate limited', { status: 429 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['claude-sonnet-4', 'deepseek-chat'] },
@@ -1603,11 +1657,13 @@ describe('ProxyService', () => {
           response: new Response('auth error', { status: 401 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['niche-model-v1'] },
@@ -1645,11 +1701,13 @@ describe('ProxyService', () => {
           response: new Response('error', { status: 500 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['custom:cp-abc/my-model'] },
@@ -1681,11 +1739,13 @@ describe('ProxyService', () => {
           response: new Response('server error', { status: 500 }),
           isGoogle: true,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('gateway timeout', { status: 504 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         });
       routingService.getTiers.mockResolvedValue([
         { tier: 'simple', fallback_models: ['deepseek-chat'] },
@@ -1722,16 +1782,19 @@ describe('ProxyService', () => {
           response: new Response('rate limited', { status: 429 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('overloaded', { status: 503 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         })
         .mockResolvedValueOnce({
           response: new Response('server error', { status: 500 }),
           isGoogle: false,
           isAnthropic: false,
+          isChatGpt: false,
         });
 
       routingService.getTiers.mockResolvedValue([
@@ -1744,6 +1807,143 @@ describe('ProxyService', () => {
       expect(result.forward.response.status).toBe(424);
       expect(shouldTriggerFallback(result.forward.response.status)).toBe(false);
       expect(result.failedFallbacks).toHaveLength(2);
+    });
+  });
+
+  describe('OpenAI OAuth token unwrap', () => {
+    it('unwraps JSON token blob for OpenAI subscription', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'openai',
+        confidence: 1.0,
+        score: 0.5,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      const tokenBlob = JSON.stringify({
+        t: 'access-tok',
+        r: 'refresh-tok',
+        e: Date.now() + 60000,
+      });
+      routingService.getProviderApiKey.mockResolvedValue(tokenBlob);
+      openaiOauth.unwrapToken.mockResolvedValue('access-tok');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('ok', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(tokenBlob, 'agent-1', 'user-1');
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'openai',
+        'access-tok',
+        'gpt-4o',
+        expect.any(Object),
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+    });
+
+    it('skips unwrap for non-OpenAI subscription providers', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'claude-sonnet-4',
+        provider: 'anthropic',
+        confidence: 1.0,
+        score: 0.5,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-ant-oat-token');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('ok', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+
+      expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
+    it('skips unwrap for OpenAI api_key auth', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'openai',
+        confidence: 1.0,
+        score: 0.5,
+        reason: 'scored',
+        auth_type: 'api_key',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-key-1234');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('ok', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+
+      expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
+    it('unwraps OAuth token in fallback flow for OpenAI subscription', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'claude-sonnet-4',
+        provider: 'anthropic',
+        confidence: 1.0,
+        score: 0.5,
+        reason: 'scored',
+        auth_type: 'api_key',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-ant-key') // primary
+        .mockResolvedValueOnce('{"t":"fb-tok","r":"fb-ref","e":9999999999999}'); // fallback
+      routingService.getAuthType.mockResolvedValueOnce('subscription');
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['gpt-4o'] } as never,
+      ]);
+
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('error', { status: 429 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('ok', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        });
+
+      pricingCache.getByModel.mockReturnValue({
+        model_name: 'gpt-4o',
+        provider: 'OpenAI',
+      } as never);
+
+      openaiOauth.unwrapToken.mockResolvedValue('fb-tok');
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(
+        '{"t":"fb-tok","r":"fb-ref","e":9999999999999}',
+        'agent-1',
+        'user-1',
+      );
+      expect(result.meta.model).toBe('gpt-4o');
     });
   });
 });

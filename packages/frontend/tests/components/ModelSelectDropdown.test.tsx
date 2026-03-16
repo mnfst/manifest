@@ -87,7 +87,7 @@ describe("ModelSelectDropdown", () => {
     expect(gpt4oButton).toBeDefined();
     fireEvent.click(gpt4oButton!);
 
-    expect(onSelect).toHaveBeenCalledWith("openai/gpt-4o", "gpt-4o");
+    expect(onSelect).toHaveBeenCalledWith("openai/gpt-4o", "GPT-4o");
   });
 
   it("shows empty state when no models match search", async () => {
@@ -158,9 +158,10 @@ describe("computeCliValue", () => {
 });
 
 describe("labelForModel", () => {
-  it("returns the raw name when PROVIDERS have no models", () => {
-    // PROVIDERS models are empty, so labelForModel returns the name as-is
-    expect(labelForModel("gpt-4o")).toBe("gpt-4o");
+  it("returns the label for models found in PROVIDERS, or raw name otherwise", () => {
+    // OpenAI has gpt-4o in its models list, so labelForModel returns the label
+    expect(labelForModel("gpt-4o")).toBe("GPT-4o");
+    // Anthropic has empty models[], so returns raw name
     expect(labelForModel("claude-sonnet-4")).toBe("claude-sonnet-4");
   });
 
@@ -168,9 +169,10 @@ describe("labelForModel", () => {
     expect(labelForModel("unknown-model-xyz")).toBe("unknown-model-xyz");
   });
 
-  it("returns bare name for slash-prefixed models", () => {
-    // PROVIDERS have no models, so slash-prefixed names return the bare name
-    expect(labelForModel("openai/gpt-4o")).toBe("gpt-4o");
+  it("returns label or bare name for slash-prefixed models", () => {
+    // OpenAI has gpt-4o in its models list, so cross-provider lookup returns label
+    expect(labelForModel("openai/gpt-4o")).toBe("GPT-4o");
+    // Anthropic has empty models[], so returns bare name
     expect(labelForModel("anthropic/claude-sonnet-4")).toBe("claude-sonnet-4");
   });
 

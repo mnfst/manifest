@@ -15,6 +15,7 @@ import { CustomProviderController } from './custom-provider.controller';
 import { ResolveController } from './resolve.controller';
 import { ProxyController } from './proxy/proxy.controller';
 import { RoutingService } from './routing.service';
+import { RoutingInvalidationService } from './routing-invalidation.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
@@ -23,9 +24,12 @@ import { TierAutoAssignService } from './tier-auto-assign.service';
 import { ProxyService } from './proxy/proxy.service';
 import { ProviderClient } from './proxy/provider-client';
 import { ProxyRateLimiter } from './proxy/proxy-rate-limiter';
+import { ProxyMessageRecorder } from './proxy/proxy-message-recorder';
 import { SessionMomentumService } from './proxy/session-momentum.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { OpenaiOauthService } from './openai-oauth.service';
+import { OpenaiOauthController } from './openai-oauth.controller';
 
 @Module({
   imports: [
@@ -42,9 +46,16 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ModelDiscoveryModule,
     NotificationsModule,
   ],
-  controllers: [RoutingController, CustomProviderController, ResolveController, ProxyController],
+  controllers: [
+    RoutingController,
+    CustomProviderController,
+    ResolveController,
+    ProxyController,
+    OpenaiOauthController,
+  ],
   providers: [
     RoutingService,
+    RoutingInvalidationService,
     RoutingCacheService,
     ResolveAgentService,
     CustomProviderService,
@@ -54,9 +65,18 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ProxyService,
     ProviderClient,
     ProxyRateLimiter,
+    ProxyMessageRecorder,
     SessionMomentumService,
     OllamaSyncService,
+    OpenaiOauthService,
   ],
-  exports: [RoutingService, CustomProviderService, TierAutoAssignService, ResolveAgentService],
+  exports: [
+    RoutingService,
+    RoutingInvalidationService,
+    CustomProviderService,
+    TierAutoAssignService,
+    ResolveAgentService,
+    OpenaiOauthService,
+  ],
 })
 export class RoutingModule {}

@@ -20,6 +20,8 @@ export interface ProviderDef {
   subscriptionKeyPlaceholder?: string;
   /** Instructions text shown in the subscription detail view. */
   subscriptionCommand?: string;
+  /** Provider uses browser-based OAuth flow (popup window). */
+  subscriptionOAuth?: boolean;
 }
 
 export const PROVIDERS: ProviderDef[] = [
@@ -126,7 +128,26 @@ export const PROVIDERS: ProviderDef[] = [
     keyPrefix: 'sk-',
     minKeyLength: 50,
     keyPlaceholder: 'sk-...',
-    models: [],
+    supportsSubscription: true,
+    subscriptionLabel: 'ChatGPT Plus/Pro/Team',
+    subscriptionOAuth: true,
+    models: [
+      { label: 'GPT-4o', value: 'gpt-4o' },
+      { label: 'GPT-4o Mini', value: 'gpt-4o-mini' },
+      { label: 'GPT-4o (2024-11-20)', value: 'gpt-4o-2024-11-20' },
+      { label: 'GPT-4.1', value: 'gpt-4.1' },
+      { label: 'GPT-4.1 Mini', value: 'gpt-4.1-mini' },
+      { label: 'GPT-4.1 Nano', value: 'gpt-4.1-nano' },
+      { label: 'GPT-4 Turbo', value: 'gpt-4-turbo' },
+      { label: 'GPT-4 Turbo (2024-04-09)', value: 'gpt-4-turbo-2024-04-09' },
+      { label: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo' },
+      { label: 'o3', value: 'o3' },
+      { label: 'o3 Mini', value: 'o3-mini' },
+      { label: 'o4 Mini', value: 'o4-mini' },
+      { label: 'o1', value: 'o1' },
+      { label: 'o1 Mini', value: 'o1-mini' },
+      { label: 'o1 Preview', value: 'o1-preview' },
+    ],
   },
   {
     id: 'openrouter',
@@ -199,10 +220,5 @@ export const STAGES: StageDef[] = [
   },
 ];
 
-/* ── Helpers — re-exported from provider-utils.ts ── */
-export {
-  getProvider,
-  validateApiKey,
-  validateSubscriptionKey,
-  getModelLabel,
-} from './provider-utils.js';
+/* ── Helpers ── */
+export { getProvider, getModelLabel } from './provider-utils.js';

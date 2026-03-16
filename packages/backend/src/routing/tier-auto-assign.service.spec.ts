@@ -675,6 +675,62 @@ describe('TierAutoAssignService', () => {
       );
     });
 
+    it('should only use zero-cost models for OpenAI subscription (Codex)', async () => {
+      const codexModel = makeModel({
+        id: 'gpt-5.3-codex',
+        provider: 'OpenAI',
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+        qualityScore: 4,
+        capabilityReasoning: true,
+        authType: 'subscription',
+      });
+      const paidModel = makeModel({
+        id: 'gpt-4.1-nano',
+        provider: 'OpenAI',
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: 1,
+        authType: 'subscription',
+      });
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([codexModel, paidModel]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string;
+      }[];
+      // All tiers should use Codex model (zero cost), not gpt-4.1-nano (paid)
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('gpt-5.3-codex');
+      }
+    });
+
+    it('should keep all models for providers without zero-cost models (Anthropic)', async () => {
+      const sonnet = makeModel({
+        id: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        inputPricePerToken: 0.000003,
+        outputPricePerToken: 0.000015,
+        qualityScore: 4,
+        authType: 'subscription',
+      });
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([sonnet]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        auto_assigned_model: string;
+      }[];
+      for (const record of inserted) {
+        expect(record.auto_assigned_model).toBe('claude-sonnet-4');
+      }
+    });
+
     it('should use authType field from models to separate subscription and api_key', async () => {
       const subModel = makeModel({
         id: 'claude-sonnet-4',

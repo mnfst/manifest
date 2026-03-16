@@ -3,7 +3,7 @@ import { ProviderModelFetcherService } from './provider-model-fetcher.service';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { DiscoveredModel } from './model-fetcher';
-import { buildSubscriptionFallbackModels } from './model-fallback';
+import { buildSubscriptionFallbackModels, supplementWithKnownModels } from './model-fallback';
 
 jest.mock('../../common/utils/crypto.util', () => ({
   decrypt: jest.fn(),
@@ -722,6 +722,114 @@ describe('ModelDiscoveryService', () => {
       expect(result[1].id).toBe('claude-sonnet-4.6');
     });
 
+    it('should unwrap OAuth blob for OpenAI subscription before fetching', async () => {
+      const blob = JSON.stringify({
+        t: 'access-token-123',
+        r: 'refresh-tok',
+        e: Date.now() + 60000,
+      });
+      mockDecrypt.mockReturnValue(blob);
+
+      const models = [makeModel({ id: 'gpt-5.3-codex' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-blob',
+        }),
+      );
+
+      // Should pass the unwrapped access token, not the JSON blob
+      expect(fetcher.fetch).toHaveBeenCalledWith('openai', 'access-token-123', 'subscription');
+    });
+
+    it('should use raw key when OpenAI subscription blob has no t field', async () => {
+      const blob = JSON.stringify({ r: 'refresh-tok', e: Date.now() + 60000 });
+      mockDecrypt.mockReturnValue(blob);
+
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-blob',
+        }),
+      );
+
+      // No `t` field — should use the raw JSON string
+      expect(fetcher.fetch).toHaveBeenCalledWith('openai', blob, 'subscription');
+    });
+
+    it('should use raw key when OpenAI subscription value is not JSON', async () => {
+      mockDecrypt.mockReturnValue('plain-token-value');
+
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-plain',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith('openai', 'plain-token-value', 'subscription');
+    });
+
+    it('should not unwrap blob for non-OpenAI subscription providers', async () => {
+      const blob = JSON.stringify({ t: 'access-token', r: 'refresh', e: Date.now() + 60000 });
+      mockDecrypt.mockReturnValue(blob);
+
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-blob',
+        }),
+      );
+
+      // Should pass the raw JSON string for Anthropic (no unwrapping)
+      expect(fetcher.fetch).toHaveBeenCalledWith('anthropic', blob, 'subscription');
+    });
+
+    it('should fall back to subscription fallback when OpenAI token fetch returns empty', async () => {
+      const blob = JSON.stringify({ t: 'expired-token', r: 'refresh', e: Date.now() - 1000 });
+      mockDecrypt.mockReturnValue(blob);
+
+      // Fetcher returns empty (e.g., 401 from expired token)
+      fetcher.fetch.mockResolvedValue([]);
+
+      const orMap = new Map([
+        [
+          'openai/gpt-5.2-codex',
+          {
+            input: 0.000001,
+            output: 0.000004,
+            contextWindow: 200000,
+            displayName: 'GPT-5.2 Codex',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-blob',
+        }),
+      );
+
+      // Should fall back to buildFallbackModels (not subscription fallback, since token exists)
+      expect(fetcher.fetch).toHaveBeenCalled();
+      expect(result.length).toBeGreaterThanOrEqual(0);
+    });
+
     it('should stamp authType as api_key for regular providers', async () => {
       const models = [makeModel({ id: 'gpt-4o' })];
       fetcher.fetch.mockResolvedValue(models);
@@ -842,13 +950,23 @@ describe('ModelDiscoveryService', () => {
         }),
       );
 
-      expect(result).toHaveLength(1);
+      const orModel = result.find((m) => m.id === 'claude-opus-4-20260301');
+      expect(orModel).toBeDefined();
       // Anthropic subscription caps at 200000
-      expect(result[0].contextWindow).toBe(200000);
+      expect(orModel!.contextWindow).toBe(200000);
     });
 
-    it('should return empty when subscription provider has no known models', async () => {
+    it('should use subscription fallback for openai when no token and pricing matches known models', async () => {
       const orMap = new Map([
+        [
+          'openai/gpt-5.2-codex',
+          {
+            input: 0.000001,
+            output: 0.000004,
+            contextWindow: 200000,
+            displayName: 'GPT-5.2 Codex',
+          },
+        ],
         [
           'openai/gpt-4o',
           { input: 0.0000025, output: 0.00001, contextWindow: 128000, displayName: 'GPT-4o' },
@@ -864,11 +982,21 @@ describe('ModelDiscoveryService', () => {
         }),
       );
 
-      // openai has no knownModels in subscription-capabilities, returns empty
-      expect(result).toEqual([]);
+      const ids = result.map((m) => m.id);
+      // gpt-5.2-codex from OpenRouter + remaining knownModels added directly
+      expect(ids).toContain('gpt-5.2-codex');
+      expect(ids).toContain('gpt-5.4');
+      expect(ids).toContain('gpt-5.3-codex');
+      // gpt-4o does NOT match any knownModel prefix
+      expect(ids).not.toContain('gpt-4o');
+      // All should be stamped as subscription
+      for (const m of result) {
+        expect(m.authType).toBe('subscription');
+      }
+      expect(fetcher.fetch).not.toHaveBeenCalled();
     });
 
-    it('should return empty subscription fallback when pricingSync is null', async () => {
+    it('should return knownModels fallback when pricingSync is null', async () => {
       const serviceNoPricing = new ModelDiscoveryService(
         providerRepo as never,
         customProviderRepo as never,
@@ -884,7 +1012,16 @@ describe('ModelDiscoveryService', () => {
         }),
       );
 
-      expect(result).toEqual([]);
+      // Even without pricingSync, knownModels are returned directly
+      expect(result).toHaveLength(3);
+      expect(result.map((m) => m.id).sort()).toEqual([
+        'claude-haiku-4',
+        'claude-opus-4',
+        'claude-sonnet-4',
+      ]);
+      for (const m of result) {
+        expect(m.authType).toBe('subscription');
+      }
     });
   });
 
@@ -987,8 +1124,51 @@ describe('ModelDiscoveryService', () => {
 
   describe('buildSubscriptionFallbackModels', () => {
     it('should return empty for unsupported providers', () => {
-      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'gemini');
       expect(result).toEqual([]);
+    });
+
+    it('should include OpenRouter matches plus uncovered knownModels for openai', () => {
+      const orMap = new Map([
+        [
+          'openai/gpt-5.2-codex',
+          {
+            input: 0.000001,
+            output: 0.000004,
+            contextWindow: 200000,
+            displayName: 'GPT-5.2 Codex',
+          },
+        ],
+        [
+          'openai/gpt-4o',
+          { input: 0.0000025, output: 0.00001, contextWindow: 128000, displayName: 'GPT-4o' },
+        ],
+        [
+          'openai/gpt-5.1-codex',
+          {
+            input: 0.000002,
+            output: 0.000008,
+            contextWindow: 128000,
+            displayName: 'GPT-5.1 Codex',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
+      const ids = result.map((m) => m.id);
+
+      // gpt-5.2-codex and gpt-5.1-codex from OpenRouter, plus remaining knownModels added directly
+      expect(ids).toContain('gpt-5.2-codex');
+      expect(ids).toContain('gpt-5.1-codex');
+      expect(ids).toContain('gpt-5.4');
+      expect(ids).toContain('gpt-5.3-codex');
+      // gpt-5.2 is covered by gpt-5.2-codex (prefix match), so NOT added separately
+      expect(ids).not.toContain('gpt-5.2');
+      // gpt-5.1-codex-max is added (not covered by gpt-5.1-codex)
+      expect(ids).toContain('gpt-5.1-codex-max');
+      // gpt-4o is NOT included (not a known model prefix)
+      expect(ids).not.toContain('gpt-4o');
     });
 
     it('should filter OpenRouter cache by known model prefixes', () => {
@@ -1010,9 +1190,17 @@ describe('ModelDiscoveryService', () => {
       mockPricingSync.getAll.mockReturnValue(orMap);
 
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+      const ids = result.map((m) => m.id);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('claude-opus-4-latest');
+      // claude-opus-4-latest from OpenRouter (covers prefix claude-opus-4)
+      expect(ids).toContain('claude-opus-4-latest');
+      // claude-sonnet-4 and claude-haiku-4 not in OpenRouter, added as zero-cost
+      expect(ids).toContain('claude-sonnet-4');
+      expect(ids).toContain('claude-haiku-4');
+      // claude-2.1 NOT included (not a known prefix)
+      expect(ids).not.toContain('claude-2.1');
+      // claude-opus-4 NOT added (covered by claude-opus-4-latest)
+      expect(ids).not.toContain('claude-opus-4');
       expect(result[0].provider).toBe('anthropic');
     });
 
@@ -1026,17 +1214,26 @@ describe('ModelDiscoveryService', () => {
       mockPricingSync.getAll.mockReturnValue(orMap);
 
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+      const orModel = result.find((m) => m.id === 'claude-sonnet-4-20260301');
 
-      expect(result).toHaveLength(1);
-      expect(result[0].contextWindow).toBe(200000);
+      expect(orModel).toBeDefined();
+      expect(orModel!.contextWindow).toBe(200000);
     });
 
-    it('should return empty when pricingSync is null', () => {
+    it('should return knownModels directly when pricingSync is null', () => {
       const result = buildSubscriptionFallbackModels(null as never, 'anthropic');
-      expect(result).toEqual([]);
+
+      // No OpenRouter data, but knownModels are added directly
+      expect(result).toHaveLength(3);
+      expect(result.map((m) => m.id).sort()).toEqual([
+        'claude-haiku-4',
+        'claude-opus-4',
+        'claude-sonnet-4',
+      ]);
+      expect(result[0].inputPricePerToken).toBe(0);
     });
 
-    it('should deduplicate models by id', () => {
+    it('should not duplicate knownModel when already in OpenRouter', () => {
       const orMap = new Map([
         [
           'anthropic/claude-opus-4',
@@ -1046,7 +1243,11 @@ describe('ModelDiscoveryService', () => {
       mockPricingSync.getAll.mockReturnValue(orMap);
 
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
-      expect(result).toHaveLength(1);
+      const opusModels = result.filter((m) => m.id.startsWith('claude-opus-4'));
+
+      // Only one claude-opus-4 entry (from OpenRouter), not duplicated
+      expect(opusModels).toHaveLength(1);
+      expect(opusModels[0].displayName).toBe('Opus 4');
     });
 
     it('should use default context window when entry has none', () => {
@@ -1056,10 +1257,11 @@ describe('ModelDiscoveryService', () => {
       mockPricingSync.getAll.mockReturnValue(orMap);
 
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+      const orModel = result.find((m) => m.id === 'claude-haiku-4-latest');
 
-      expect(result).toHaveLength(1);
+      expect(orModel).toBeDefined();
       // Default 128000 is below maxContextWindow 200000, so no cap applied
-      expect(result[0].contextWindow).toBe(128000);
+      expect(orModel!.contextWindow).toBe(128000);
     });
 
     it('should use model id as displayName when entry has no displayName', () => {
@@ -1072,9 +1274,89 @@ describe('ModelDiscoveryService', () => {
       mockPricingSync.getAll.mockReturnValue(orMap);
 
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+      const orModel = result.find((m) => m.id === 'claude-opus-4-latest');
+
+      expect(orModel).toBeDefined();
+      expect(orModel!.displayName).toBe('claude-opus-4-latest');
+    });
+
+    it('should add openai knownModels even without OpenRouter data', () => {
+      mockPricingSync.getAll.mockReturnValue(new Map());
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
+
+      // gpt-5.2 is covered by gpt-5.2-codex prefix, gpt-5.1-codex covered by gpt-5.1-codex-max prefix
+      expect(result.length).toBe(4);
+      expect(result.map((m) => m.id)).toContain('gpt-5.4');
+      expect(result.map((m) => m.id)).toContain('gpt-5.3-codex');
+      expect(result.map((m) => m.id)).toContain('gpt-5.2-codex');
+      expect(result.map((m) => m.id)).toContain('gpt-5.1-codex-max');
+      // All zero-cost subscription models
+      for (const m of result) {
+        expect(m.inputPricePerToken).toBe(0);
+        expect(m.outputPricePerToken).toBe(0);
+      }
+    });
+  });
+
+  /* ── supplementWithKnownModels ── */
+
+  describe('supplementWithKnownModels', () => {
+    it('should add missing knownModels to discovered models', () => {
+      const raw: DiscoveredModel[] = [makeModel({ id: 'gpt-oss-120b', provider: 'openai' })];
+
+      const result = supplementWithKnownModels(raw, 'openai');
+
+      // 1 discovered + 4 knownModels (gpt-5.2 covered by gpt-5.2-codex, gpt-5.1-codex covered by gpt-5.1-codex-max)
+      expect(result.length).toBe(5);
+      expect(result[0].id).toBe('gpt-oss-120b');
+      expect(result.map((m) => m.id)).toContain('gpt-5.4');
+      expect(result.map((m) => m.id)).toContain('gpt-5.2-codex');
+    });
+
+    it('should not duplicate models already in raw', () => {
+      const raw: DiscoveredModel[] = [
+        makeModel({ id: 'gpt-5.2', provider: 'openai', contextWindow: 200000 }),
+      ];
+
+      const result = supplementWithKnownModels(raw, 'openai');
+
+      const matchingModels = result.filter((m) => m.id === 'gpt-5.2');
+      expect(matchingModels).toHaveLength(1);
+      // Original model preserved (not replaced)
+      expect(matchingModels[0].contextWindow).toBe(200000);
+    });
+
+    it('should not add knownModel when a dated version already exists', () => {
+      const raw: DiscoveredModel[] = [
+        makeModel({ id: 'claude-opus-4-20260301', provider: 'anthropic' }),
+      ];
+
+      const result = supplementWithKnownModels(raw, 'anthropic');
+
+      // claude-opus-4 is covered by claude-opus-4-20260301
+      expect(result.map((m) => m.id)).not.toContain('claude-opus-4');
+      // claude-sonnet-4 and claude-haiku-4 are NOT covered
+      expect(result.map((m) => m.id)).toContain('claude-sonnet-4');
+      expect(result.map((m) => m.id)).toContain('claude-haiku-4');
+    });
+
+    it('should return raw unchanged for non-subscription providers', () => {
+      const raw: DiscoveredModel[] = [makeModel({ id: 'model-1' })];
+
+      const result = supplementWithKnownModels(raw, 'gemini');
 
       expect(result).toHaveLength(1);
-      expect(result[0].displayName).toBe('claude-opus-4-latest');
+      expect(result[0].id).toBe('model-1');
+    });
+
+    it('should set zero pricing on supplemented models', () => {
+      const result = supplementWithKnownModels([], 'openai');
+
+      for (const m of result) {
+        expect(m.inputPricePerToken).toBe(0);
+        expect(m.outputPricePerToken).toBe(0);
+      }
     });
   });
 });

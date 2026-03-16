@@ -7,6 +7,34 @@ import { DiscoveredModel } from './model-discovery/model-fetcher';
 import { randomUUID } from 'crypto';
 import { TIERS, Tier } from './scorer/types';
 
+/**
+ * OpenAI subscription tokens only work with Codex models (zero cost).
+ * Paid API models like gpt-4o need API keys. Per-provider: if zero-cost
+ * models exist from a provider, only those are subscription-compatible.
+ * Providers without zero-cost models (e.g. Anthropic) keep all models.
+ */
+function filterSubModels(models: DiscoveredModel[]): DiscoveredModel[] {
+  const byProvider = new Map<string, DiscoveredModel[]>();
+  for (const m of models) {
+    const key = m.provider.toLowerCase();
+    const arr = byProvider.get(key) ?? [];
+    arr.push(m);
+    byProvider.set(key, arr);
+  }
+
+  const result: DiscoveredModel[] = [];
+  for (const providerModels of byProvider.values()) {
+    const zeroCost = providerModels.filter(
+      (m) =>
+        (m.inputPricePerToken == null || m.inputPricePerToken === 0) &&
+        (m.outputPricePerToken == null || m.outputPricePerToken === 0),
+    );
+    // If zero-cost models exist (e.g. OpenAI Codex), use only those
+    result.push(...(zeroCost.length > 0 ? zeroCost : providerModels));
+  }
+  return result;
+}
+
 interface ScoredModel {
   model_name: string;
   score: number;
@@ -25,8 +53,10 @@ export class TierAutoAssignService {
   async recalculate(agentId: string): Promise<void> {
     const allModels = await this.discoveryService.getModelsForAgent(agentId);
 
-    // Separate subscription vs API key models using the authType field on each model
-    const subModels = allModels.filter((m) => m.authType === 'subscription');
+    // Separate subscription vs API key models using the authType field on each model.
+    // filterSubModels further narrows subscription models: if a provider has zero-cost
+    // models (e.g. OpenAI Codex), only those are used for subscription routing.
+    const subModels = filterSubModels(allModels.filter((m) => m.authType === 'subscription'));
     const keyModels = allModels.filter((m) => m.authType !== 'subscription');
 
     // Batch read all tiers in one query
