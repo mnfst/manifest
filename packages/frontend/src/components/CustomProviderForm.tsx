@@ -234,9 +234,9 @@ const CustomProviderForm: Component<Props> = (props) => {
           <Show when={!isEdit() || editingKey()}>
             <input
               id="cp-api-key"
-              class="provider-detail__input"
-              type="password"
-              autocomplete="new-password"
+              class="provider-detail__input provider-detail__input--masked"
+              type="text"
+              autocomplete="off"
               placeholder="sk-..."
               value={apiKey()}
               onInput={(e) => setApiKey(e.currentTarget.value)}

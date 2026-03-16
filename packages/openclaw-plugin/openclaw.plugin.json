@@ -2,7 +2,7 @@
   "id": "manifest",
   "kind": "observability",
   "name": "Manifest — Agent Observability",
-  "version": "5.9.7",
+  "version": "5.26.0",
   "description": "Traces, metrics, and cost tracking for your OpenClaw agent. Zero-config local dashboard included.",
   "author": "MNFST Inc.",
   "homepage": "https://manifest.build",

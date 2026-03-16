@@ -31,7 +31,7 @@ OpenClaw costs
 ## What do you get?
 
 - 🔀 **Route requests to the right model** — cut costs up to 70%
-- 📊 **Track spending** — see tokens and costs per model in real time
+- 🔄 **Automatic fallbacks** — if a model fails, retry with backup models instantly
 - 🔔 **Set limits** — get alerts when usage goes over a threshold
 
 ## Why Manifest

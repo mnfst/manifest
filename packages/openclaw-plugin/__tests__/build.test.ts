@@ -237,4 +237,11 @@ describe("build configuration", () => {
     expect(buildContent).toContain("./server");
     expect(buildContent).toMatch(/external.*\.\/server/);
   });
+
+  it("openclaw.plugin.json version matches package.json version", () => {
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+    const pluginJsonPath = resolve(__dirname, "../openclaw.plugin.json");
+    const pluginJson = JSON.parse(readFileSync(pluginJsonPath, "utf-8"));
+    expect(pluginJson.version).toBe(pkg.version);
+  });
 });

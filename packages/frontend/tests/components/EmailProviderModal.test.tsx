@@ -84,9 +84,9 @@ describe("EmailProviderModal", () => {
     expect(link.getAttribute("target")).toBe("_blank");
   });
 
-  it("shows password input for API key in create mode", () => {
+  it("shows masked input for API key in create mode", () => {
     render(() => <EmailProviderModal {...defaultProps} />);
-    expect(q('input[type="password"]')).not.toBeNull();
+    expect(q('input[autocomplete="off"]')).not.toBeNull();
   });
 
   it("shows Notification email field", () => {
@@ -117,7 +117,7 @@ describe("EmailProviderModal", () => {
 
   it("buttons become enabled when API key is entered", async () => {
     render(() => <EmailProviderModal {...defaultProps} />);
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "re_testkey12345" } });
     await vi.waitFor(() => {
       const primaryBtn = q(".btn--primary") as HTMLButtonElement;
@@ -148,7 +148,7 @@ describe("EmailProviderModal", () => {
 
   it("calls onClose on Escape key", () => {
     render(() => <EmailProviderModal {...defaultProps} />);
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.keyDown(input, { key: "Escape" });
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
@@ -170,20 +170,20 @@ describe("EmailProviderModal", () => {
     expect(screen.getByText("Change")).toBeDefined();
   });
 
-  it("does not show password input when masked key is displayed", () => {
+  it("does not show editable input when masked key is displayed", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} editMode={true} existingKeyPrefix="re_abc12" />
     ));
-    expect(q('input[type="password"]')).toBeNull();
+    expect(q('input[autocomplete="off"]')).toBeNull();
   });
 
-  it("shows password input after clicking Change", async () => {
+  it("shows editable input after clicking Change", async () => {
     render(() => (
       <EmailProviderModal {...defaultProps} editMode={true} existingKeyPrefix="re_abc12" />
     ));
     fireEvent.click(screen.getByText("Change"));
     await vi.waitFor(() => {
-      expect(q('input[type="password"]')).not.toBeNull();
+      expect(q('input[autocomplete="off"]')).not.toBeNull();
     });
   });
 
@@ -215,7 +215,7 @@ describe("EmailProviderModal", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} />
     ));
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "re_testkey12345" } });
     const testBtn = screen.getByText("Send test email");
     fireEvent.click(testBtn);
@@ -247,7 +247,7 @@ describe("EmailProviderModal", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} />
     ));
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "re_testkey12345" } });
     const saveBtn = screen.getByText("Test & Connect");
     fireEvent.click(saveBtn);
@@ -282,7 +282,7 @@ describe("EmailProviderModal", () => {
     });
   });
 
-  it("shows empty password input after switching to different provider", async () => {
+  it("shows empty input after switching to different provider", async () => {
     render(() => (
       <EmailProviderModal
         {...defaultProps}
@@ -296,7 +296,7 @@ describe("EmailProviderModal", () => {
     fireEvent.click(screen.getByText("SendGrid"));
 
     await vi.waitFor(() => {
-      const input = q('input[type="password"]') as HTMLInputElement;
+      const input = q('input[autocomplete="off"]') as HTMLInputElement;
       expect(input).not.toBeNull();
       expect(input.value).toBe("");
     });
@@ -363,9 +363,9 @@ describe("EmailProviderModal", () => {
     // Switch to SendGrid and enter a new key
     fireEvent.click(screen.getByText("SendGrid"));
     await vi.waitFor(() => {
-      expect(q('input[type="password"]')).not.toBeNull();
+      expect(q('input[autocomplete="off"]')).not.toBeNull();
     });
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "SG.newkeyhere12345" } });
 
     fireEvent.click(screen.getByText("Send test email"));
@@ -390,9 +390,9 @@ describe("EmailProviderModal", () => {
     // Switch to SendGrid and enter a new key
     fireEvent.click(screen.getByText("SendGrid"));
     await vi.waitFor(() => {
-      expect(q('input[type="password"]')).not.toBeNull();
+      expect(q('input[autocomplete="off"]')).not.toBeNull();
     });
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "SG.newkeyhere12345" } });
 
     fireEvent.click(screen.getByText("Test & Save"));
@@ -416,14 +416,14 @@ describe("EmailProviderModal", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} initialProvider="mailgun" existingDomain="mg.example.com" />
     ));
-    const domainInput = q('input[type="text"]') as HTMLInputElement;
+    const domainInput = q('input[placeholder*="notifications"]') as HTMLInputElement;
     expect(domainInput.value).toBe("mg.example.com");
   });
 
   it("shows validation error for empty API key on save attempt", async () => {
     render(() => <EmailProviderModal {...defaultProps} />);
     // Enter short key to trigger validation
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "short" } });
     const saveBtn = q(".btn--primary")!;
     fireEvent.click(saveBtn);
@@ -434,7 +434,7 @@ describe("EmailProviderModal", () => {
 
   it("shows validation error for invalid Resend key prefix", async () => {
     render(() => <EmailProviderModal {...defaultProps} />);
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "wrong_prefix_key" } });
     const saveBtn = q(".btn--primary")!;
     fireEvent.click(saveBtn);
@@ -447,7 +447,7 @@ describe("EmailProviderModal", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} initialProvider="sendgrid" />
     ));
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "wrong_prefix_key" } });
     const saveBtn = q(".btn--primary")!;
     fireEvent.click(saveBtn);
@@ -468,9 +468,9 @@ describe("EmailProviderModal", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} initialProvider="mailgun" />
     ));
-    const keyInput = q('input[type="password"]')!;
+    const keyInput = q('input[autocomplete="off"]')!;
     fireEvent.input(keyInput, { target: { value: "key-abcdefgh" } });
-    const domainInput = q('input[type="text"]')!;
+    const domainInput = q('input[placeholder*="notifications"]')!;
     fireEvent.input(domainInput, { target: { value: "invalid domain!" } });
     const saveBtn = q(".btn--primary")!;
     fireEvent.click(saveBtn);
@@ -483,11 +483,11 @@ describe("EmailProviderModal", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} initialProvider="mailgun" />
     ));
-    const keyInput = q('input[type="password"]')!;
+    const keyInput = q('input[autocomplete="off"]')!;
     fireEvent.input(keyInput, { target: { value: "key-abcdefgh" } });
     // Enter a domain then clear it to bypass the disabled state,
     // or trigger validation via Enter key which bypasses disabled check
-    const domainInput = q('input[type="text"]')!;
+    const domainInput = q('input[placeholder*="notifications"]')!;
     fireEvent.input(domainInput, { target: { value: "d" } });
     fireEvent.input(domainInput, { target: { value: "" } });
     // Use Enter key to trigger handleSave (which calls validateFields)
@@ -505,9 +505,9 @@ describe("EmailProviderModal", () => {
     // Switch to resend -- domain value persists internally but input is hidden
     fireEvent.click(screen.getByText("Resend"));
     await vi.waitFor(() => {
-      expect(q('input[type="password"]')).not.toBeNull();
+      expect(q('input[autocomplete="off"]')).not.toBeNull();
     });
-    const keyInput = q('input[type="password"]')!;
+    const keyInput = q('input[autocomplete="off"]')!;
     fireEvent.input(keyInput, { target: { value: "re_abcdefghij" } });
     // Trigger validation via Enter key -- should fail validation silently (domain error set but hidden)
     fireEvent.keyDown(keyInput, { key: "Enter" });
@@ -522,7 +522,7 @@ describe("EmailProviderModal", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} />
     ));
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "re_testkey12345" } });
     const testBtn = screen.getByText("Send test email");
     fireEvent.click(testBtn);
@@ -536,7 +536,7 @@ describe("EmailProviderModal", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} />
     ));
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "re_testkey12345" } });
     const testBtn = screen.getByText("Send test email");
     fireEvent.click(testBtn);
@@ -552,7 +552,7 @@ describe("EmailProviderModal", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} />
     ));
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "re_testkey12345" } });
     const saveBtn = q(".btn--primary")!;
     fireEvent.click(saveBtn);
@@ -564,7 +564,7 @@ describe("EmailProviderModal", () => {
 
   it("triggers Enter key to save", async () => {
     render(() => <EmailProviderModal {...defaultProps} />);
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "re_testkey12345" } });
     fireEvent.keyDown(input, { key: "Enter" });
     // handleSave is called, validation passes, then testEmailProvider runs async
@@ -577,14 +577,14 @@ describe("EmailProviderModal", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} initialProvider="mailgun" />
     ));
-    const input = q('input[type="password"]') as HTMLInputElement;
+    const input = q('input[autocomplete="off"]') as HTMLInputElement;
     expect(input.placeholder).toBe("key-xxxx...");
   });
 
   it("shows API key required error when submitting with empty key", async () => {
     render(() => <EmailProviderModal {...defaultProps} />);
     // Use Enter key to bypass disabled button
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.keyDown(input, { key: "Enter" });
     await vi.waitFor(() => {
       expect(document.body.textContent).toContain("API key is required");
@@ -595,9 +595,9 @@ describe("EmailProviderModal", () => {
     render(() => (
       <EmailProviderModal {...defaultProps} initialProvider="mailgun" />
     ));
-    const keyInput = q('input[type="password"]')!;
+    const keyInput = q('input[autocomplete="off"]')!;
     fireEvent.input(keyInput, { target: { value: "key-abcdefgh" } });
-    const domainInput = q('input[type="text"]')!;
+    const domainInput = q('input[placeholder*="notifications"]')!;
     fireEvent.input(domainInput, { target: { value: "mg.example.com" } });
     const saveBtn = q(".btn--primary")!;
     fireEvent.click(saveBtn);
@@ -666,7 +666,7 @@ describe("EmailProviderModal", () => {
     mockUserEmail = null;
     const { toast } = await import("../../src/services/toast-store.js");
     render(() => <EmailProviderModal {...defaultProps} />);
-    const input = q('input[type="password"]')!;
+    const input = q('input[autocomplete="off"]')!;
     fireEvent.input(input, { target: { value: "re_testkey12345" } });
     // Clear notification email (should be empty since session has no email)
     const emailInput = q('input[type="email"]') as HTMLInputElement;
