@@ -79,6 +79,38 @@ export class OpenaiOauthController {
   }
 
   /**
+   * OAuth callback endpoint for production deployments.
+   * OpenAI redirects here with ?code=...&state=... after user authorizes.
+   * Exchanges the code for tokens, then serves the done page.
+   */
+  @Get('callback')
+  @Public()
+  async callback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Query('error') error: string,
+    @Query('error_description') errorDesc: string,
+    @Res() res: Response,
+  ) {
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'unsafe-inline'");
+
+    if (error) {
+      this.logger.error(`OAuth callback error: ${errorDesc || error}`);
+      res.send(oauthDoneHtml(false));
+      return;
+    }
+
+    try {
+      await this.oauthService.exchangeCode(state, code);
+      res.send(oauthDoneHtml(true));
+    } catch (err) {
+      this.logger.error(`OAuth callback exchange failed: ${err}`);
+      res.send(oauthDoneHtml(false));
+    }
+  }
+
+  /**
    * Completion page served on the main backend's origin.
    * The port-1455 callback server redirects here after token exchange
    * so that postMessage reaches the opener (same origin).
