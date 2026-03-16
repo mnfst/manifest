@@ -24,13 +24,12 @@ interface Props {
 }
 
 const OAuthDetailView: Component<Props> = (props) => {
-  const [showPasteUrl, setShowPasteUrl] = createSignal(false);
+  const [popupOpened, setPopupOpened] = createSignal(false);
   const [pasteUrl, setPasteUrl] = createSignal('');
   const [pasteError, setPasteError] = createSignal<string | null>(null);
 
   const handleOAuthLogin = async () => {
     props.setBusy(true);
-    setShowPasteUrl(false);
     setPasteUrl('');
     setPasteError(null);
     try {
@@ -44,17 +43,17 @@ const OAuthDetailView: Component<Props> = (props) => {
         return;
       }
 
+      setPopupOpened(true);
+      props.setBusy(false);
+
       monitorOAuthPopup(popup, {
         onSuccess: () => {
           toast.success(`${props.provDef.name} subscription connected`);
           props.onUpdate();
           props.onClose();
-          props.setBusy(false);
         },
         onFailure: () => {
-          // Popup closed without result — show paste URL fallback
-          setShowPasteUrl(true);
-          props.setBusy(false);
+          // Popup closed without auto-redirect — user needs to paste the URL
         },
       });
     } catch {
@@ -113,26 +112,34 @@ const OAuthDetailView: Component<Props> = (props) => {
 
   return (
     <>
-      <p class="provider-detail__hint">
-        Log in with your {props.provDef.name} account to connect your subscription.
-      </p>
       <Show when={!props.connected()}>
-        <button
-          class="btn btn--primary provider-detail__action"
-          disabled={props.busy()}
-          onClick={handleOAuthLogin}
+        <Show
+          when={popupOpened()}
+          fallback={
+            <>
+              <p class="provider-detail__hint">
+                Log in with your {props.provDef.name} account to connect your subscription.
+              </p>
+              <button
+                class="btn btn--primary provider-detail__action"
+                disabled={props.busy()}
+                onClick={handleOAuthLogin}
+              >
+                <Show when={!props.busy()} fallback={<span class="spinner" />}>
+                  Log in with {props.provDef.name}
+                </Show>
+              </button>
+            </>
+          }
         >
-          <Show when={!props.busy()} fallback={<span class="spinner" />}>
-            Log in with {props.provDef.name}
-          </Show>
-        </button>
-
-        <Show when={showPasteUrl()}>
-          <div class="provider-detail__field" style="margin-top: 16px;">
-            <p class="provider-detail__hint" style="margin-bottom: 8px;">
-              If the popup didn't redirect back, copy the URL from the popup's address bar and paste
-              it here:
-            </p>
+          <p class="provider-detail__hint">
+            A login window has opened. After you sign in, the popup will show a "can't be reached"
+            page — this is expected.
+          </p>
+          <p class="provider-detail__hint" style="margin-top: 8px; font-weight: 500;">
+            Copy the full URL from the popup's address bar and paste it below:
+          </p>
+          <div class="provider-detail__field" style="margin-top: 12px;">
             <input
               class="provider-detail__input"
               classList={{ 'provider-detail__input--error': !!pasteError() }}
