@@ -153,6 +153,39 @@ describe('OpenaiOauthController', () => {
     });
   });
 
+  describe('callback (POST)', () => {
+    beforeEach(() => {
+      oauthService.exchangeCode = jest.fn().mockResolvedValue(undefined);
+    });
+
+    it('exchanges code and returns ok', async () => {
+      const result = await controller.callback('auth-code', 'state-123', { id: 'user-1' } as never);
+
+      expect(oauthService.exchangeCode).toHaveBeenCalledWith('state-123', 'auth-code');
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('throws 400 when code is missing', async () => {
+      await expect(controller.callback('', 'state-123', { id: 'user-1' } as never)).rejects.toThrow(
+        HttpException,
+      );
+    });
+
+    it('throws 400 when state is missing', async () => {
+      await expect(controller.callback('auth-code', '', { id: 'user-1' } as never)).rejects.toThrow(
+        HttpException,
+      );
+    });
+
+    it('throws 400 when exchange fails', async () => {
+      oauthService.exchangeCode = jest.fn().mockRejectedValue(new Error('Invalid state'));
+
+      await expect(
+        controller.callback('auth-code', 'bad-state', { id: 'user-1' } as never),
+      ).rejects.toThrow(HttpException);
+    });
+  });
+
   describe('done', () => {
     let res: jest.Mocked<Response>;
 
