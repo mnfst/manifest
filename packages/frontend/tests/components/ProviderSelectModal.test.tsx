@@ -445,7 +445,7 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByText("Change"));
 
-      // Edit mode shows a password input and Save button
+      // Edit mode shows a masked input and Save button
       expect(screen.getByLabelText("New OpenAI API key")).toBeDefined();
       expect(screen.getByText("Save")).toBeDefined();
     });
