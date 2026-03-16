@@ -58,7 +58,12 @@ export class OpenaiOauthService {
       expiresAt: Date.now() + STATE_TTL_MS,
     });
 
-    await this.ensureCallbackServer();
+    // Only start the ephemeral callback server in local mode.
+    // In cloud mode, the redirect goes to the user's localhost (not the server's),
+    // so the frontend handles it via the paste-URL fallback.
+    if (process.env['MANIFEST_MODE'] === 'local') {
+      await this.ensureCallbackServer();
+    }
 
     const params = new URLSearchParams({
       client_id: this.clientId,
