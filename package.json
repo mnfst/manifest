@@ -26,6 +26,9 @@
     "solidjs"
   ],
   "packageManager": "npm@10.9.2",
+  "overrides": {
+    "esbuild": "0.27.3"
+  },
   "workspaces": [
     "packages/frontend",
     "packages/backend",
