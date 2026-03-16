@@ -166,6 +166,28 @@ describe('ResolveService', () => {
   });
 
   describe('auth_type resolution', () => {
+    it('should prefer stored override_provider over model prefix inference', async () => {
+      mockRoutingService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_model: 'z-ai/glm-5',
+          override_provider: 'openrouter',
+          override_auth_type: 'api_key',
+          auto_assigned_model: 'gpt-4o-mini',
+        },
+        { tier: 'standard', override_model: null, auto_assigned_model: 'gpt-4o' },
+        { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
+        { tier: 'reasoning', override_model: null, auto_assigned_model: 'claude-opus-4-6' },
+      ]);
+      mockRoutingService.getEffectiveModel.mockResolvedValue('z-ai/glm-5');
+
+      const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
+
+      expect(result.provider).toBe('openrouter');
+      expect(mockDiscoveryService.getModelForAgent).not.toHaveBeenCalled();
+      expect(mockPricingCache.getByModel).not.toHaveBeenCalled();
+    });
+
     it('should propagate override_auth_type from tier assignment', async () => {
       mockRoutingService.getTiers.mockResolvedValue([
         {

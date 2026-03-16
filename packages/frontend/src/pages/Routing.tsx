@@ -71,11 +71,16 @@ const Routing: Component = () => {
   const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
   const getTier = (tierId: string): TierAssignment | undefined =>
     tiers()?.find((t) => t.tier === tierId);
-  const handleOverride = async (tierId: string, modelName: string, authType?: AuthType) => {
+  const handleOverride = async (
+    tierId: string,
+    modelName: string,
+    providerId: string,
+    authType?: AuthType,
+  ) => {
     setDropdownTier(null);
     setChangingTier(tierId);
     try {
-      const updated = await overrideTier(agentName(), tierId, modelName, authType);
+      const updated = await overrideTier(agentName(), tierId, modelName, providerId, authType);
       mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
       toast.success('Routing updated');
     } catch {
@@ -89,7 +94,9 @@ const Routing: Component = () => {
     setResettingAll(true);
     try {
       await resetAllTiers(agentName());
-      mutateTiers((prev) => prev?.map((t) => ({ ...t, override_model: null })));
+      mutateTiers((prev) =>
+        prev?.map((t) => ({ ...t, override_model: null, override_provider: null })),
+      );
       toast.success('All tiers reset to auto');
     } catch {
       // error toast from fetchMutate
@@ -105,7 +112,9 @@ const Routing: Component = () => {
       await resetTier(agentName(), tierId);
       mutateTiers((prev) =>
         prev?.map((t) =>
-          t.tier === tierId ? { ...t, override_model: null, fallback_models: [] } : t,
+          t.tier === tierId
+            ? { ...t, override_model: null, override_provider: null, fallback_models: [] }
+            : t,
         ),
       );
       toast.success('Tier reset to auto');
@@ -116,7 +125,12 @@ const Routing: Component = () => {
     }
   };
 
-  const handleAddFallback = async (tierId: string, modelName: string, _authType?: AuthType) => {
+  const handleAddFallback = async (
+    tierId: string,
+    modelName: string,
+    _providerId: string,
+    _authType?: AuthType,
+  ) => {
     setFallbackPickerTier(null);
     const tier = getTier(tierId);
     const current = tier?.fallback_models ?? [];

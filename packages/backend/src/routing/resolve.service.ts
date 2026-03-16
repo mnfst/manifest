@@ -66,7 +66,7 @@ export class ResolveService {
       };
     }
 
-    const provider = await this.resolveProvider(agentId, model);
+    const provider = await this.resolveProvider(agentId, assignment, model);
     const authType = provider
       ? (assignment.override_auth_type ??
         (await this.routingService.getAuthType(agentId, provider)))
@@ -92,7 +92,7 @@ export class ResolveService {
     }
 
     const model = await this.routingService.getEffectiveModel(agentId, assignment);
-    const provider = model ? await this.resolveProvider(agentId, model) : null;
+    const provider = model ? await this.resolveProvider(agentId, assignment, model) : null;
     const authType = provider
       ? (assignment.override_auth_type ??
         (await this.routingService.getAuthType(agentId, provider)))
@@ -115,7 +115,15 @@ export class ResolveService {
    * 2. Look up in discovered models (cached per-provider)
    * 3. Fall back to pricing cache
    */
-  private async resolveProvider(agentId: string, model: string): Promise<string | null> {
+  private async resolveProvider(
+    agentId: string,
+    assignment: { override_model: string | null; override_provider?: string | null },
+    model: string,
+  ): Promise<string | null> {
+    if (assignment.override_model === model && assignment.override_provider) {
+      return assignment.override_provider;
+    }
+
     // 1. Infer from slash prefix
     const prefix = inferProviderFromModelName(model);
     if (prefix) return prefix;

@@ -69,6 +69,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     const t = props.tier();
     return t ? effectiveModel(t) : null;
   };
+  const manualProviderId = () => {
+    const t = props.tier();
+    return t?.override_model ? (t.override_provider ?? undefined) : undefined;
+  };
   const isManual = () =>
     props.tier()?.override_model !== null && props.tier()?.override_model !== undefined;
   const hasFallbacks = () => (props.tier()?.fallback_models ?? []).length > 0;
@@ -140,7 +144,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             }
           >
             {(modelName) => {
-              const provId = () => providerIdForModel(modelName(), props.models());
+              const provId = () =>
+                manualProviderId() ?? providerIdForModel(modelName(), props.models());
               const effectiveAuth = (): AuthType | null => {
                 const t = props.tier();
                 if (t?.override_auth_type) return t.override_auth_type;

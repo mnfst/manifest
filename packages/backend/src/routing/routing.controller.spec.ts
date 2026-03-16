@@ -440,11 +440,16 @@ describe('RoutingController', () => {
 
   describe('setOverride', () => {
     it('should call service with tier and model', async () => {
-      const updated = { tier: 'complex', override_model: 'claude-opus-4-6' };
+      const updated = {
+        tier: 'complex',
+        override_model: 'claude-opus-4-6',
+        override_provider: 'openrouter',
+      };
       mockRoutingService.setOverride.mockResolvedValue(updated);
 
       const result = await controller.setOverride(mockUser, 'test-agent', 'complex', {
         model: 'claude-opus-4-6',
+        provider: 'openrouter',
       });
 
       expect(mockRoutingService.setOverride).toHaveBeenCalledWith(
@@ -452,6 +457,7 @@ describe('RoutingController', () => {
         'user-1',
         'complex',
         'claude-opus-4-6',
+        'openrouter',
         undefined,
       );
       expect(result).toBe(updated);

@@ -612,7 +612,7 @@ describe("overrideTier", () => {
     const payload = { id: "1", tier: "tier-1", override_model: "gpt-4o", auto_assigned_model: null, updated_at: "2026-01-01" };
     mockMutateOk(payload);
 
-    const result = await overrideTier("my-agent", "tier-1", "gpt-4o");
+    const result = await overrideTier("my-agent", "tier-1", "gpt-4o", "openai");
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/v1/routing/my-agent/tiers/tier-1",
@@ -620,7 +620,7 @@ describe("overrideTier", () => {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "gpt-4o" }),
+        body: JSON.stringify({ model: "gpt-4o", provider: "openai" }),
       }),
     );
   });
@@ -628,7 +628,7 @@ describe("overrideTier", () => {
   it("encodes tier name in URL", async () => {
     mockMutateOk({});
 
-    await overrideTier("my-agent", "tier 1", "gpt-4o");
+    await overrideTier("my-agent", "tier 1", "gpt-4o", "openai");
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain("/routing/my-agent/tiers/tier%201");
   });
@@ -636,12 +636,16 @@ describe("overrideTier", () => {
   it("includes authType in body when provided", async () => {
     mockMutateOk({});
 
-    await overrideTier("my-agent", "simple", "claude-sonnet-4", "subscription");
+    await overrideTier("my-agent", "simple", "claude-sonnet-4", "anthropic", "subscription");
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/v1/routing/my-agent/tiers/simple",
       expect.objectContaining({
         method: "PUT",
-        body: JSON.stringify({ model: "claude-sonnet-4", authType: "subscription" }),
+        body: JSON.stringify({
+          model: "claude-sonnet-4",
+          provider: "anthropic",
+          authType: "subscription",
+        }),
       }),
     );
   });
