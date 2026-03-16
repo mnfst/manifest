@@ -1298,11 +1298,13 @@ describe("ProviderSelectModal", () => {
       vi.restoreAllMocks();
     });
 
-    it("detects failed OAuth callback via polling and shows paste URL fallback", async () => {
+    it("shows paste URL input immediately after clicking login", async () => {
       const mockPopup = {
         closed: false,
         close: vi.fn(),
-        location: { href: "http://localhost:3000/oauth/openai/done?ok=0" },
+        get location(): { href: string } {
+          throw new DOMException("cross-origin");
+        },
       };
       vi.spyOn(window, "open").mockReturnValue(mockPopup as unknown as Window);
 
@@ -1312,11 +1314,10 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByText("Log in with OpenAI"));
 
-      // onFailure shows paste URL fallback instead of toast
+      // Paste URL field appears immediately (not after popup closes)
       await waitFor(() => {
         expect(screen.getByPlaceholderText("http://localhost:1455/auth/callback?code=...")).toBeDefined();
       });
-      expect(mockPopup.close).toHaveBeenCalled();
       expect(onUpdate).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
@@ -1447,7 +1448,7 @@ describe("ProviderSelectModal", () => {
       vi.restoreAllMocks();
     });
 
-    it("detects failed OAuth via postMessage and shows paste URL fallback", async () => {
+    it("keeps paste URL visible after failed OAuth via postMessage", async () => {
       const mockPopup = {
         closed: false,
         close: vi.fn(),
@@ -1463,16 +1464,17 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("OpenAI"));
       fireEvent.click(screen.getByText("Log in with OpenAI"));
 
-      await new Promise((r) => setTimeout(r, 50));
-      window.dispatchEvent(
-        new MessageEvent("message", { data: { type: "manifest-oauth-error" } }),
-      );
-
-      // onFailure shows paste URL fallback instead of toast
+      // Paste URL field is already visible before any message
       await waitFor(() => {
         expect(screen.getByPlaceholderText("http://localhost:1455/auth/callback?code=...")).toBeDefined();
       });
-      expect(mockPopup.close).toHaveBeenCalled();
+
+      // Error message arrives — paste field still visible, no crash
+      window.dispatchEvent(
+        new MessageEvent("message", { data: { type: "manifest-oauth-error" } }),
+      );
+      await new Promise((r) => setTimeout(r, 50));
+      expect(screen.getByPlaceholderText("http://localhost:1455/auth/callback?code=...")).toBeDefined();
       expect(onUpdate).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
