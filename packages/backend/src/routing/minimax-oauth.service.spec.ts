@@ -156,6 +156,22 @@ describe('MinimaxOauthService', () => {
   });
 
   describe('unwrapToken', () => {
+    it('returns null when the stored OAuth blob has invalid field types', async () => {
+      const result = await service.unwrapToken(
+        JSON.stringify({
+          t: 'old-access',
+          r: 'old-refresh',
+          e: now + 7200,
+          u: { host: 'https://api.minimax.io/anthropic' },
+        }),
+        'agent-1',
+        'user-1',
+      );
+
+      expect(result).toBeNull();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
     it('refreshes expired tokens and preserves resource URL', async () => {
       fetchMock.mockImplementationOnce(async (url: string) => {
         expect(url).toBe('https://api.minimax.io/oauth/token');

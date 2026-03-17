@@ -1578,6 +1578,48 @@ describe("ProviderSelectModal", () => {
       vi.restoreAllMocks();
     });
 
+    it("stops MiniMax polling after the modal unmounts", async () => {
+      vi.useFakeTimers();
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+
+      let resolveFirstPoll:
+        | ((value: { status: string; message?: string; pollIntervalMs?: number }) => void)
+        | undefined;
+      mockPollMinimaxOAuth.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstPoll = resolve;
+          }),
+      );
+
+      const view = render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+      });
+
+      await vi.advanceTimersByTimeAsync(2000);
+      await waitFor(() => {
+        expect(mockPollMinimaxOAuth).toHaveBeenCalledTimes(1);
+      });
+
+      view.unmount();
+      resolveFirstPoll?.({ status: "pending", pollIntervalMs: 2000 });
+      await Promise.resolve();
+      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(4000);
+
+      expect(mockPollMinimaxOAuth).toHaveBeenCalledTimes(1);
+
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
     it("does not show paste field for OAuth provider", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />

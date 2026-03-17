@@ -103,6 +103,18 @@ function toPollIntervalMs(interval?: number): number {
   return interval >= 1000 ? interval : interval * 1000;
 }
 
+function isOAuthTokenBlob(value: unknown): value is OAuthTokenBlob {
+  if (!value || typeof value !== 'object') return false;
+  const blob = value as Record<string, unknown>;
+  return (
+    typeof blob.t === 'string' &&
+    typeof blob.r === 'string' &&
+    typeof blob.e === 'number' &&
+    Number.isFinite(blob.e) &&
+    (blob.u === undefined || typeof blob.u === 'string')
+  );
+}
+
 @Injectable()
 export class MinimaxOauthService {
   private readonly logger = new Logger(MinimaxOauthService.name);
@@ -317,7 +329,9 @@ export class MinimaxOauthService {
   ): Promise<OAuthTokenBlob | null> {
     let blob: OAuthTokenBlob;
     try {
-      blob = JSON.parse(rawValue) as OAuthTokenBlob;
+      const parsed = JSON.parse(rawValue) as unknown;
+      if (!isOAuthTokenBlob(parsed)) return null;
+      blob = parsed;
     } catch {
       return null;
     }

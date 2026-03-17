@@ -46,6 +46,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [flowError, setFlowError] = createSignal<string | null>(null);
   const [selectedRegion, setSelectedRegion] = createSignal<MinimaxOAuthRegion>('global');
   let pollTimer: number | undefined;
+  let isDisposed = false;
 
   const clearPollTimer = () => {
     if (pollTimer !== undefined) {
@@ -56,7 +57,9 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
   const schedulePoll = (delayMs: number) => {
     clearPollTimer();
+    if (isDisposed) return;
     pollTimer = window.setTimeout(() => {
+      if (isDisposed) return;
       void runPoll();
     }, delayMs);
   };
@@ -90,6 +93,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   };
 
   const runPoll = async () => {
+    if (isDisposed) return;
     const current = flow();
     if (!current) return;
 
@@ -102,6 +106,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
     try {
       const result = await pollMinimaxOAuth(current.flowId);
+      if (isDisposed) return;
       const latest = flow();
       if (!latest || latest.flowId !== current.flowId) {
         return;
@@ -126,6 +131,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
       setStatusMessage(result.message ?? 'Waiting for approval…');
       schedulePoll(result.pollIntervalMs ?? latest.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
     } catch {
+      if (isDisposed) return;
       if (flow()?.flowId !== current.flowId) {
         return;
       }
@@ -142,17 +148,23 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     setStatusMessage(null);
     try {
       const nextFlow = await startMinimaxOAuth(props.agentName, selectedRegion());
+      if (isDisposed) return;
       setFlow(nextFlow);
       window.open(nextFlow.verificationUri, '_blank', 'noopener,noreferrer');
       schedulePoll(nextFlow.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
     } catch {
+      if (isDisposed) return;
       setFlow(null);
     } finally {
+      if (isDisposed) return;
       props.setBusy(false);
     }
   };
 
-  onCleanup(() => clearPollTimer());
+  onCleanup(() => {
+    isDisposed = true;
+    clearPollTimer();
+  });
 
   return (
     <>
