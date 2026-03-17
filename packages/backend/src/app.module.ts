@@ -31,10 +31,14 @@ const sessionGuardClass = isLocalMode ? LocalAuthGuard : SessionGuard;
 
 const frontendPath = resolveFrontendDir();
 const ONE_YEAR_S = 365 * 24 * 60 * 60;
+const DISABLED_SPA_RENDER_PATH = '/__manifest_internal_static_fallback__';
 const serveStaticImports = frontendPath
   ? [
       ServeStaticModule.forRoot({
         rootPath: frontendPath,
+        // Let Nest's SpaFallbackFilter handle deep-link refreshes instead of
+        // @nestjs/serve-static's Express-layer catch-all.
+        renderPath: DISABLED_SPA_RENDER_PATH,
         exclude: ['/api/{*path}', '/otlp/{*path}', '/v1/{*path}'],
         serveStaticOptions: {
           maxAge: ONE_YEAR_S * 1000,
