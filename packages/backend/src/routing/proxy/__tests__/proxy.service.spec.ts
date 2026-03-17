@@ -1169,6 +1169,73 @@ describe('ProxyService', () => {
       expect(result.meta.model).toBe('claude-sonnet-4');
     });
 
+    it('tries fallback model when primary returns 400', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'simple',
+        model: 'gpt-5.1-codex-mini',
+        provider: 'OpenAI',
+        confidence: 0.7,
+        score: 0.1,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('skst-openai')
+        .mockResolvedValueOnce('sk-deepseek');
+      routingService.getAuthType.mockResolvedValueOnce('api_key');
+      openaiOauth.unwrapToken.mockResolvedValueOnce('oauth-openai');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('{"detail":"Instructions are required"}', { status: 400 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: true,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'simple', fallback_models: ['deepseek-chat'] },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'DeepSeek' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(result.meta.fallbackFromModel).toBe('gpt-5.1-codex-mini');
+      expect(result.meta.fallbackIndex).toBe(0);
+      expect(result.meta.primaryErrorStatus).toBe(400);
+      expect(result.meta.primaryErrorBody).toBe('{"detail":"Instructions are required"}');
+      expect(result.meta.model).toBe('deepseek-chat');
+      expect(result.meta.provider).toBe('DeepSeek');
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        1,
+        'OpenAI',
+        'oauth-openai',
+        'gpt-5.1-codex-mini',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        'DeepSeek',
+        'sk-deepseek',
+        'deepseek-chat',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'api_key',
+      );
+    });
+
     it('returns original error when no fallback models configured', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',

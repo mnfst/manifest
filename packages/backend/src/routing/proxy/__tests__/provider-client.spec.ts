@@ -282,6 +282,25 @@ describe('ProviderClient', () => {
       expect(sentBody.store).toBe(false);
     });
 
+    it('sends default instructions when no system or developer prompt is present', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'openai',
+        'token',
+        'gpt-5.1-codex-mini',
+        { messages: [{ role: 'user', content: 'Hello' }] },
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.instructions).toBe('You are a helpful assistant.');
+    });
+
     it('sets isChatGpt=false for regular OpenAI api_key auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
