@@ -20,6 +20,9 @@ import { Tier, ScorerMessage } from '../scorer/types';
  */
 const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
+const PROVIDER_TRANSPORT_ERROR_STATUS = 503;
+const PROVIDER_TIMEOUT_STATUS = 504;
+const GENERIC_FETCH_ERROR_MESSAGE = 'fetch failed';
 
 export interface RoutingMeta {
   tier: Tier;
@@ -129,7 +132,7 @@ export class ProxyService {
     );
 
     const stream = body.stream === true;
-    const forward = await this.forwardToProvider(
+    const forward = await this.tryForwardToProvider(
       resolved.provider,
       apiKey,
       resolved.model,
@@ -280,7 +283,7 @@ export class ProxyService {
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
       );
 
-      const forward = await this.forwardToProvider(
+      const forward = await this.tryForwardToProvider(
         provider,
         apiKey,
         model,
@@ -320,6 +323,46 @@ export class ProxyService {
       if (unwrapped) return unwrapped;
     }
     return apiKey;
+  }
+
+  private async tryForwardToProvider(
+    provider: string,
+    apiKey: string,
+    model: string,
+    body: Record<string, unknown>,
+    stream: boolean,
+    sessionKey: string,
+    signal?: AbortSignal,
+    authType?: string,
+  ): Promise<ForwardResult> {
+    try {
+      return await this.forwardToProvider(
+        provider,
+        apiKey,
+        model,
+        body,
+        stream,
+        sessionKey,
+        signal,
+        authType,
+      );
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      if (!this.isTransportError(error)) throw error;
+
+      const failureResponse = this.buildTransportErrorResponse(error);
+      const message = this.describeTransportError(error);
+      this.logger.warn(
+        `Provider transport failure: provider=${provider} model=${model} status=${failureResponse.status} message=${message}`,
+      );
+
+      return {
+        response: failureResponse,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+    }
   }
 
   private async enforceLimits(tenantId?: string, agentName?: string): Promise<void> {
@@ -363,6 +406,92 @@ export class ProxyService {
       );
     }
     return false;
+  }
+
+  private isTransportError(error: unknown): boolean {
+    const name = this.getErrorName(error);
+    if (name === 'AbortError' || name === 'TimeoutError') return true;
+
+    const detail = [
+      this.getErrorMessage(error),
+      this.getErrorMessage(this.getErrorCause(error)),
+      this.getErrorCode(error),
+      this.getErrorCode(this.getErrorCause(error)),
+    ]
+      .filter((value): value is string => Boolean(value))
+      .join(' ');
+
+    return /(fetch failed|failed to parse url|network|timeout|econnrefused|econnreset|enotfound|ehostunreach|etimedout|und_err_)/i.test(
+      detail,
+    );
+  }
+
+  private buildTransportErrorResponse(error: unknown): Response {
+    const status = this.isTimeoutError(error)
+      ? PROVIDER_TIMEOUT_STATUS
+      : PROVIDER_TRANSPORT_ERROR_STATUS;
+    const message = this.describeTransportError(error);
+
+    return new Response(JSON.stringify({ error: { message } }), {
+      status,
+      statusText: status === PROVIDER_TIMEOUT_STATUS ? 'Gateway Timeout' : 'Service Unavailable',
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+
+  private describeTransportError(error: unknown): string {
+    if (this.isTimeoutError(error)) {
+      return 'Upstream provider request timed out';
+    }
+
+    const detail =
+      this.selectTransportErrorDetail(error) ??
+      this.selectTransportErrorDetail(this.getErrorCause(error));
+
+    if (!detail) return 'Failed to reach upstream provider';
+    return `Failed to reach upstream provider: ${detail}`;
+  }
+
+  private isTimeoutError(error: unknown): boolean {
+    return this.getErrorName(error) === 'TimeoutError';
+  }
+
+  private selectTransportErrorDetail(error: unknown): string | undefined {
+    const message = this.getErrorMessage(error);
+    const code = this.getErrorCode(error);
+
+    if (message && message.toLowerCase() !== GENERIC_FETCH_ERROR_MESSAGE) {
+      return this.sanitizeTransportErrorDetail(message);
+    }
+    if (code) return code;
+    return undefined;
+  }
+
+  private sanitizeTransportErrorDetail(detail: string): string {
+    return detail.replace(/key=[^&\s]+/gi, 'key=***').slice(0, 500);
+  }
+
+  private getErrorName(error: unknown): string | undefined {
+    if (!(error instanceof Error)) return undefined;
+    return error.name;
+  }
+
+  private getErrorMessage(error: unknown): string | undefined {
+    if (error instanceof Error) return error.message;
+    if (!error || typeof error !== 'object') return undefined;
+    const message = (error as { message?: unknown }).message;
+    return typeof message === 'string' ? message : undefined;
+  }
+
+  private getErrorCode(error: unknown): string | undefined {
+    if (!error || typeof error !== 'object') return undefined;
+    const code = (error as { code?: unknown }).code;
+    return typeof code === 'string' ? code : undefined;
+  }
+
+  private getErrorCause(error: unknown): unknown {
+    if (!(error instanceof Error)) return undefined;
+    return error.cause;
   }
 
   private async forwardToProvider(
