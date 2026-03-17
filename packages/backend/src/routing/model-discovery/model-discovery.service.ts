@@ -8,6 +8,7 @@ import { DiscoveredModel } from './model-fetcher';
 import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { computeQualityScore } from '../../database/quality-score.util';
 import { PricingSyncService } from '../../database/pricing-sync.service';
+import { parseOAuthTokenBlob } from '../openai-oauth.types';
 import {
   findOpenRouterPrefix,
   lookupWithVariants,
@@ -36,6 +37,7 @@ export class ModelDiscoveryService {
 
   async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
     let apiKey = '';
+    let endpointOverride: string | undefined;
     if (provider.api_key_encrypted) {
       try {
         apiKey = decrypt(provider.api_key_encrypted, getEncryptionSecret());
@@ -45,20 +47,18 @@ export class ModelDiscoveryService {
       }
     }
 
-    // For OpenAI subscription, the stored "key" is a JSON blob with access/refresh tokens.
-    // Unwrap it to get the actual Bearer token for the models API.
-    if (
-      provider.auth_type === 'subscription' &&
-      provider.provider.toLowerCase() === 'openai' &&
-      apiKey
-    ) {
-      try {
-        const blob = JSON.parse(apiKey) as { t?: string };
-        if (blob.t) {
+    // OAuth-backed subscription providers store an encrypted token blob.
+    // Unwrap it so model discovery can call the provider-native /models endpoint.
+    if (provider.auth_type === 'subscription' && apiKey) {
+      const lowerProvider = provider.provider.toLowerCase();
+      if (lowerProvider === 'openai' || lowerProvider === 'minimax') {
+        const blob = parseOAuthTokenBlob(apiKey);
+        if (blob?.t) {
           apiKey = blob.t;
+          if (lowerProvider === 'minimax' && blob.u) {
+            endpointOverride = blob.u;
+          }
         }
-      } catch {
-        // Not a JSON blob — use as-is
       }
     }
 
@@ -73,7 +73,12 @@ export class ModelDiscoveryService {
         );
       }
     } else {
-      raw = await this.fetcher.fetch(provider.provider, apiKey, provider.auth_type);
+      raw = await this.fetcher.fetch(
+        provider.provider,
+        apiKey,
+        provider.auth_type,
+        endpointOverride,
+      );
 
       // If native API returned no models, fall back to OpenRouter + manual pricing
       if (raw.length === 0) {

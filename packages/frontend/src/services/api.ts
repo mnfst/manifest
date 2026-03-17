@@ -393,6 +393,20 @@ export interface RoutingProvider {
   connected_at: string;
 }
 
+export interface MinimaxOAuthStartResponse {
+  flowId: string;
+  userCode: string;
+  verificationUri: string;
+  expiresAt: number;
+  pollIntervalMs: number;
+}
+
+export interface MinimaxOAuthPollResponse {
+  status: 'pending' | 'success' | 'error';
+  message?: string;
+  pollIntervalMs?: number;
+}
+
 export function getProviders(agentName: string) {
   return fetchJson<RoutingProvider[]>(`/routing/${encodeURIComponent(agentName)}/providers`);
 }
@@ -437,6 +451,19 @@ export function revokeOpenaiOAuth(agentName: string) {
     `${BASE_URL}/oauth/openai/revoke?agentName=${encodeURIComponent(agentName)}`,
     { method: 'POST' },
   );
+}
+
+export function startMinimaxOAuth(agentName: string) {
+  return fetchMutate<MinimaxOAuthStartResponse>(
+    `${BASE_URL}/oauth/minimax/start?agentName=${encodeURIComponent(agentName)}`,
+    { method: 'POST' },
+  );
+}
+
+export function pollMinimaxOAuth(flowId: string) {
+  return fetchJson<MinimaxOAuthPollResponse>(`/oauth/minimax/poll`, {
+    flowId,
+  });
 }
 
 export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {

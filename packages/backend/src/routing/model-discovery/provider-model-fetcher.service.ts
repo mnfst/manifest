@@ -6,6 +6,7 @@ const FETCH_TIMEOUT_MS = 5000;
 const DEFAULT_CONTEXT_WINDOW = 128000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
 const GEMINI_DEFAULT_CONTEXT = 1000000;
+const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
 
 /* ── Shared OpenAI-compatible parser ── */
 
@@ -41,6 +42,10 @@ function parseOpenAI(body: unknown, provider: string): DiscoveredModel[] {
 
 function bearerHeaders(key: string): Record<string, string> {
   return { Authorization: `Bearer ${key}` };
+}
+
+function normalizeProviderBaseUrl(baseUrl: string): string {
+  return baseUrl.replace(/\/+$/, '').replace(/\/v1$/, '');
 }
 
 /* ── Provider-specific parsers ── */
@@ -253,6 +258,14 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  'minimax-subscription': {
+    endpoint: MINIMAX_SUBSCRIPTION_MODELS_URL,
+    buildHeaders: (key: string) => ({
+      Authorization: `Bearer ${key}`,
+      'anthropic-version': '2023-06-01',
+    }),
+    parse: parseAnthropic,
+  },
   qwen: {
     endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/models',
     buildHeaders: bearerHeaders,
@@ -301,11 +314,18 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
 export class ProviderModelFetcherService {
   private readonly logger = new Logger(ProviderModelFetcherService.name);
 
-  async fetch(providerId: string, apiKey: string, authType?: string): Promise<DiscoveredModel[]> {
+  async fetch(
+    providerId: string,
+    apiKey: string,
+    authType?: string,
+    endpointOverride?: string,
+  ): Promise<DiscoveredModel[]> {
     let configKey = providerId.toLowerCase();
     // OpenAI subscription tokens use a different models endpoint
     if (configKey === 'openai' && authType === 'subscription') {
       configKey = 'openai-subscription';
+    } else if (configKey === 'minimax' && authType === 'subscription') {
+      configKey = 'minimax-subscription';
     }
     const config = PROVIDER_CONFIGS[configKey];
     if (!config) {
@@ -313,7 +333,10 @@ export class ProviderModelFetcherService {
       return [];
     }
 
-    const url = typeof config.endpoint === 'function' ? config.endpoint(apiKey) : config.endpoint;
+    let url = typeof config.endpoint === 'function' ? config.endpoint(apiKey) : config.endpoint;
+    if (endpointOverride && configKey === 'minimax-subscription') {
+      url = `${normalizeProviderBaseUrl(endpointOverride)}/v1/models?limit=100`;
+    }
 
     const headers = config.buildHeaders(apiKey, authType);
 

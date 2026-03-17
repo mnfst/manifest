@@ -42,6 +42,7 @@ const OPENCLAW_TO_MANIFEST: Record<string, string> = {
   moonshot: 'moonshot',
   kimi: 'moonshot',
   minimax: 'minimax',
+  'minimax-portal': 'minimax',
 };
 
 /**

@@ -13,6 +13,24 @@ export interface OAuthTokenBlob {
   r: string;
   /** expires at (epoch ms) */
   e: number;
+  /** provider-specific resource URL / base URL */
+  u?: string;
+}
+
+export function parseOAuthTokenBlob(rawValue: string): OAuthTokenBlob | null {
+  try {
+    const parsed = JSON.parse(rawValue) as Partial<OAuthTokenBlob>;
+    if (
+      typeof parsed?.t !== 'string' ||
+      typeof parsed?.r !== 'string' ||
+      typeof parsed?.e !== 'number'
+    ) {
+      return null;
+    }
+    return parsed as OAuthTokenBlob;
+  } catch {
+    return null;
+  }
 }
 
 export function oauthDoneHtml(success: boolean): string {

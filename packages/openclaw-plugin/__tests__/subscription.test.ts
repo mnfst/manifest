@@ -204,6 +204,7 @@ describe("discoverSubscriptionProviders", () => {
           c: { type: "oauth", provider: "qwen-portal" },
           d: { type: "oauth", provider: "kimi" },
           e: { type: "oauth", provider: "minimax" },
+          f: { type: "oauth", provider: "minimax-portal" },
         },
       }),
     );
@@ -212,6 +213,7 @@ describe("discoverSubscriptionProviders", () => {
     expect(result).toEqual([
       { openclawId: "anthropic", manifestId: "anthropic", authType: "oauth" },
       { openclawId: "github-copilot", manifestId: "openai", authType: "oauth" },
+      { openclawId: "minimax", manifestId: "minimax", authType: "oauth" },
     ]);
   });
 });

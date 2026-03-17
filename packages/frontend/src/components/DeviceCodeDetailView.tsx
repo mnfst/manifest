@@ -1,0 +1,242 @@
+import { createSignal, onCleanup, Show, type Accessor, type Component, type Setter } from 'solid-js';
+import type { ProviderDef } from '../services/providers.js';
+import {
+  disconnectProvider,
+  pollMinimaxOAuth,
+  startMinimaxOAuth,
+  type AuthType,
+} from '../services/api.js';
+import { toast } from '../services/toast-store.js';
+import { CopyButton } from './SetupStepInstall.js';
+
+interface Props {
+  provDef: ProviderDef;
+  provId: string;
+  agentName: string;
+  connected: Accessor<boolean>;
+  selectedAuthType: Accessor<AuthType>;
+  busy: Accessor<boolean>;
+  setBusy: Setter<boolean>;
+  onBack: () => void;
+  onUpdate: () => void;
+  onClose: () => void;
+}
+
+interface DeviceCodeFlow {
+  flowId: string;
+  userCode: string;
+  verificationUri: string;
+  expiresAt: number;
+  pollIntervalMs: number;
+}
+
+const DEFAULT_POLL_INTERVAL_MS = 2000;
+
+const DeviceCodeDetailView: Component<Props> = (props) => {
+  const [flow, setFlow] = createSignal<DeviceCodeFlow | null>(null);
+  const [statusMessage, setStatusMessage] = createSignal<string | null>(null);
+  const [flowError, setFlowError] = createSignal<string | null>(null);
+  let pollTimer: number | undefined;
+
+  const clearPollTimer = () => {
+    if (pollTimer !== undefined) {
+      window.clearTimeout(pollTimer);
+      pollTimer = undefined;
+    }
+  };
+
+  const schedulePoll = (delayMs: number) => {
+    clearPollTimer();
+    pollTimer = window.setTimeout(() => {
+      void runPoll();
+    }, delayMs);
+  };
+
+  const openVerificationPage = () => {
+    const current = flow();
+    if (!current) return;
+    window.open(current.verificationUri, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleDisconnect = async () => {
+    props.setBusy(true);
+    try {
+      const result = await disconnectProvider(
+        props.agentName,
+        props.provId,
+        props.selectedAuthType(),
+      );
+      if (result?.notifications?.length) {
+        for (const msg of result.notifications) {
+          toast.error(msg);
+        }
+      }
+      props.onBack();
+      props.onUpdate();
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      props.setBusy(false);
+    }
+  };
+
+  const runPoll = async () => {
+    const current = flow();
+    if (!current) return;
+
+    if (Date.now() >= current.expiresAt) {
+      setFlowError('This verification code expired. Start again to generate a new one.');
+      setStatusMessage(null);
+      clearPollTimer();
+      return;
+    }
+
+    try {
+      const result = await pollMinimaxOAuth(current.flowId);
+
+      if (result.status === 'success') {
+        clearPollTimer();
+        toast.success(`${props.provDef.name} subscription connected`);
+        props.onUpdate();
+        props.onClose();
+        return;
+      }
+
+      if (result.status === 'error') {
+        clearPollTimer();
+        setFlowError(result.message ?? 'MiniMax login failed. Start again to retry.');
+        setStatusMessage(null);
+        return;
+      }
+
+      setFlowError(null);
+      setStatusMessage(result.message ?? 'Waiting for approval…');
+      schedulePoll(result.pollIntervalMs ?? current.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
+    } catch {
+      clearPollTimer();
+      setFlowError('Failed to check approval status. Start again to retry.');
+      setStatusMessage(null);
+    }
+  };
+
+  const handleStart = async () => {
+    props.setBusy(true);
+    clearPollTimer();
+    setFlowError(null);
+    setStatusMessage(null);
+    try {
+      const nextFlow = await startMinimaxOAuth(props.agentName);
+      setFlow(nextFlow);
+      window.open(nextFlow.verificationUri, '_blank', 'noopener,noreferrer');
+      schedulePoll(0);
+    } catch {
+      setFlow(null);
+    } finally {
+      props.setBusy(false);
+    }
+  };
+
+  onCleanup(() => clearPollTimer());
+
+  return (
+    <>
+      <Show when={!props.connected()}>
+        <Show
+          when={flow()}
+          fallback={
+            <>
+              <p class="provider-detail__hint">
+                Open the verification page, enter a one-time code, and we will finish the
+                connection automatically.
+              </p>
+              <button
+                class="btn btn--primary provider-detail__action"
+                disabled={props.busy()}
+                onClick={handleStart}
+              >
+                <Show when={!props.busy()} fallback={<span class="spinner" />}>
+                  Connect with {props.provDef.name}
+                </Show>
+              </button>
+            </>
+          }
+        >
+          {(activeFlow) => (
+            <>
+              <p class="provider-detail__hint">
+                Enter this code at the MiniMax verification page to approve access.
+              </p>
+              <div class="provider-detail__field" style="margin-top: 12px;">
+                <label class="provider-detail__label">Verification Code</label>
+                <div class="provider-detail__key-row">
+                  <input
+                    class="provider-detail__input provider-detail__input--disabled"
+                    type="text"
+                    value={activeFlow().userCode}
+                    readonly
+                    aria-label={`${props.provDef.name} verification code`}
+                  />
+                  <CopyButton text={activeFlow().userCode} />
+                </div>
+              </div>
+              <div class="provider-detail__field" style="margin-top: 12px;">
+                <label class="provider-detail__label">Verification Link</label>
+                <div class="provider-detail__key-row">
+                  <input
+                    class="provider-detail__input provider-detail__input--disabled"
+                    type="text"
+                    value={activeFlow().verificationUri}
+                    readonly
+                    aria-label={`${props.provDef.name} verification link`}
+                  />
+                  <CopyButton text={activeFlow().verificationUri} />
+                </div>
+              </div>
+              <div class="provider-detail__field" style="margin-top: 12px;">
+                <button class="btn btn--outline btn--sm" onClick={openVerificationPage}>
+                  Open verification page
+                </button>
+                <button
+                  class="btn btn--ghost btn--sm"
+                  style="margin-left: 8px;"
+                  disabled={props.busy()}
+                  onClick={handleStart}
+                >
+                  Start over
+                </button>
+              </div>
+              <Show when={statusMessage()}>
+                <p class="provider-detail__hint" style="margin-top: 12px;">
+                  {statusMessage()}
+                </p>
+              </Show>
+              <Show when={flowError()}>
+                <div class="provider-detail__error" style="margin-top: 12px;">
+                  {flowError()}
+                </div>
+              </Show>
+            </>
+          )}
+        </Show>
+      </Show>
+      <Show when={props.connected()}>
+        <div class="provider-detail__field">
+          <span class="provider-detail__no-key">
+            Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
+          </span>
+        </div>
+        <button
+          class="btn btn--outline provider-detail__action provider-detail__disconnect"
+          disabled={props.busy()}
+          onClick={handleDisconnect}
+        >
+          <Show when={!props.busy()} fallback={<span class="spinner" />}>
+            Disconnect
+          </Show>
+        </button>
+      </Show>
+    </>
+  );
+};
+
+export default DeviceCodeDetailView;

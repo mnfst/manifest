@@ -1,10 +1,40 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 
+const broadcastChannelRegistry = new Map<string, Set<MockBroadcastChannel>>();
+
+class MockBroadcastChannel {
+  name: string;
+  onmessage: ((event: { data: unknown }) => void) | null = null;
+
+  constructor(name: string) {
+    this.name = name;
+    if (!broadcastChannelRegistry.has(name)) {
+      broadcastChannelRegistry.set(name, new Set());
+    }
+    broadcastChannelRegistry.get(name)!.add(this);
+  }
+
+  postMessage(data: unknown) {
+    const listeners = broadcastChannelRegistry.get(this.name);
+    if (!listeners) return;
+    for (const channel of listeners) {
+      if (channel === this) continue;
+      channel.onmessage?.({ data });
+    }
+  }
+
+  close() {
+    broadcastChannelRegistry.get(this.name)?.delete(this);
+  }
+}
+
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
 const mockGetOpenaiOAuthUrl = vi.fn();
+const mockPollMinimaxOAuth = vi.fn();
 const mockRevokeOpenaiOAuth = vi.fn();
+const mockStartMinimaxOAuth = vi.fn();
 const mockCreateCustomProvider = vi.fn();
 const mockUpdateCustomProvider = vi.fn();
 const mockDeleteCustomProvider = vi.fn();
@@ -13,7 +43,9 @@ vi.mock("../../src/services/api.js", () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+  pollMinimaxOAuth: (...args: unknown[]) => mockPollMinimaxOAuth(...args),
   revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+  startMinimaxOAuth: (...args: unknown[]) => mockStartMinimaxOAuth(...args),
   createCustomProvider: (...args: unknown[]) => mockCreateCustomProvider(...args),
   updateCustomProvider: (...args: unknown[]) => mockUpdateCustomProvider(...args),
   deleteCustomProvider: (...args: unknown[]) => mockDeleteCustomProvider(...args),
@@ -67,13 +99,27 @@ describe("ProviderSelectModal", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    broadcastChannelRegistry.clear();
+    vi.stubGlobal("BroadcastChannel", MockBroadcastChannel);
     mockLocalMode = false;
     onClose = vi.fn();
     onUpdate = vi.fn();
     mockConnectProvider.mockResolvedValue({});
     mockDisconnectProvider.mockResolvedValue({ notifications: [] });
     mockGetOpenaiOAuthUrl.mockResolvedValue({ url: "https://auth.openai.com/oauth/authorize?test=1" });
+    mockPollMinimaxOAuth.mockResolvedValue({
+      status: "pending",
+      message: "Waiting for MiniMax approval…",
+      pollIntervalMs: 2000,
+    });
     mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
+    mockStartMinimaxOAuth.mockResolvedValue({
+      flowId: "flow-1",
+      userCode: "ABCD-1234",
+      verificationUri: "https://www.minimax.io/verify",
+      expiresAt: Date.now() + 60_000,
+      pollIntervalMs: 2000,
+    });
   });
 
   it("renders modal with title", () => {
@@ -1153,6 +1199,68 @@ describe("ProviderSelectModal", () => {
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       expect(screen.getByText("ChatGPT Plus/Pro/Team")).toBeDefined();
+    });
+
+    it("shows MiniMax subscription label in list", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      expect(screen.getByText("MiniMax Coding Plan")).toBeDefined();
+    });
+
+    it("opens MiniMax device-code detail view", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("MiniMax"));
+      expect(screen.getByText("Verify your account to connect your subscription")).toBeDefined();
+      expect(screen.getByText("Connect with MiniMax")).toBeDefined();
+    });
+
+    it("starts MiniMax device-code flow and shows code details", async () => {
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith("test-agent");
+      });
+      expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+      expect(screen.getByDisplayValue("https://www.minimax.io/verify")).toBeDefined();
+      expect(window.open).toHaveBeenCalledWith(
+        "https://www.minimax.io/verify",
+        "_blank",
+        "noopener,noreferrer",
+      );
+
+      vi.restoreAllMocks();
+    });
+
+    it("shows Disconnect button for connected MiniMax subscription", () => {
+      const subProvider: RoutingProvider = {
+        id: "p-minimax-sub",
+        provider: "minimax",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: '{"t":"mm',
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("MiniMax"));
+      expect(screen.getByText("Disconnect")).toBeDefined();
+      expect(screen.getByText(/Connected via MiniMax Coding Plan/)).toBeDefined();
     });
 
     it("does not show paste field for OAuth provider", () => {

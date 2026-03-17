@@ -30,6 +30,16 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
       supportsBatching: false,
     }),
   }),
+  minimax: Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'MiniMax Coding Plan',
+    knownModels: Object.freeze(['minimax-m2.1', 'minimax-m2.5']),
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
 });
 
 const SUPPORTED_SUBSCRIPTION_PROVIDER_IDS = Object.freeze(

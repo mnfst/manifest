@@ -13,6 +13,11 @@ interface Props {
 }
 
 const ProviderSubscriptionTab: Component<Props> = (props) => {
+  const getSubscriptionAuthMode = (prov: ProviderDef) =>
+    prov.subscriptionAuthMode ??
+    (prov.subscriptionOAuth ? 'popup_oauth' : undefined) ??
+    (prov.subscriptionKeyPlaceholder ? 'token' : undefined);
+
   return (
     <>
       <div class="provider-modal__tab-hint">
@@ -25,9 +30,10 @@ const ProviderSubscriptionTab: Component<Props> = (props) => {
             const hasDetailView = () =>
               !!prov.subscriptionKeyPlaceholder ||
               !!prov.subscriptionCommand ||
-              !!prov.subscriptionOAuth;
+              !!getSubscriptionAuthMode(prov);
+            const requiresStoredToken = () => getSubscriptionAuthMode(prov) === 'token';
             const connected = () =>
-              prov.subscriptionKeyPlaceholder || prov.subscriptionOAuth
+              requiresStoredToken()
                 ? props.isSubscriptionWithToken(prov.id)
                 : props.isSubscriptionConnected(prov.id);
 

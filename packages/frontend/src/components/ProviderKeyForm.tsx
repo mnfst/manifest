@@ -31,6 +31,8 @@ export interface ProviderKeyFormProps {
 }
 
 const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
+  const isPopupOAuth = () =>
+    props.provDef.subscriptionAuthMode === 'popup_oauth' || !!props.provDef.subscriptionOAuth;
   const fieldLabel = () => (props.isSubMode() ? 'Setup Token' : 'API Key');
   const placeholder = () =>
     props.isSubMode()
@@ -100,7 +102,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      if (props.provDef.subscriptionOAuth && props.selectedAuthType() === 'subscription') {
+      if (isPopupOAuth() && props.selectedAuthType() === 'subscription') {
         await revokeOpenaiOAuth(props.agentName).catch(() => {});
       }
       const result = await disconnectProvider(

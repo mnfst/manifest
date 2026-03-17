@@ -18,7 +18,9 @@ import {
   deactivateAllProviders,
   disconnectProvider,
   getOpenaiOAuthUrl,
+  pollMinimaxOAuth,
   revokeOpenaiOAuth,
+  startMinimaxOAuth,
   getTierAssignments,
   overrideTier,
   resetTier,
@@ -560,6 +562,39 @@ describe("revokeOpenaiOAuth", () => {
       "/api/v1/oauth/openai/revoke?agentName=my-agent",
       expect.objectContaining({ method: "POST", credentials: "include" }),
     );
+  });
+});
+
+describe("startMinimaxOAuth", () => {
+  it("sends POST to /oauth/minimax/start with agentName param", async () => {
+    const payload = {
+      flowId: "flow-1",
+      userCode: "ABCD-1234",
+      verificationUri: "https://www.minimax.io/verify",
+      expiresAt: 1760000000000,
+      pollIntervalMs: 2000,
+    };
+    mockMutateOk(payload);
+
+    const result = await startMinimaxOAuth("my-agent");
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/oauth/minimax/start?agentName=my-agent",
+      expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
+  });
+});
+
+describe("pollMinimaxOAuth", () => {
+  it("fetches /oauth/minimax/poll with flowId param", async () => {
+    const payload = { status: "pending", message: "Waiting", pollIntervalMs: 2000 };
+    mockOk(payload);
+
+    const result = await pollMinimaxOAuth("flow-1");
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/oauth/minimax/poll");
+    expect(url).toContain("flowId=flow-1");
   });
 });
 
