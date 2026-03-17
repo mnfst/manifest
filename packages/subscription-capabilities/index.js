@@ -2,6 +2,7 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
   anthropic: Object.freeze({
     supportsSubscription: true,
     subscriptionLabel: 'Claude Max / Pro subscription',
+    subscriptionAuthMode: 'token',
     subscriptionKeyPlaceholder: 'Paste your setup-token',
     subscriptionCommand: 'claude setup-token',
     subscriptionTokenPrefix: 'sk-ant-oat',
@@ -15,6 +16,7 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
   openai: Object.freeze({
     supportsSubscription: true,
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
+    subscriptionAuthMode: 'popup_oauth',
     subscriptionOAuth: true,
     knownModels: Object.freeze([
       'gpt-5.4',
@@ -33,6 +35,7 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
   minimax: Object.freeze({
     supportsSubscription: true,
     subscriptionLabel: 'MiniMax Coding Plan',
+    subscriptionAuthMode: 'device_code',
     knownModels: Object.freeze([
       'MiniMax-M2.5',
       'MiniMax-M2.5-highspeed',

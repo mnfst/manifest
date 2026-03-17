@@ -102,6 +102,10 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
     try {
       const result = await pollMinimaxOAuth(current.flowId);
+      const latest = flow();
+      if (!latest || latest.flowId !== current.flowId) {
+        return;
+      }
 
       if (result.status === 'success') {
         clearPollTimer();
@@ -120,8 +124,11 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
       setFlowError(null);
       setStatusMessage(result.message ?? 'Waiting for approval…');
-      schedulePoll(result.pollIntervalMs ?? current.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
+      schedulePoll(result.pollIntervalMs ?? latest.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
     } catch {
+      if (flow()?.flowId !== current.flowId) {
+        return;
+      }
       clearPollTimer();
       setFlowError('Failed to check approval status. Start again to retry.');
       setStatusMessage(null);

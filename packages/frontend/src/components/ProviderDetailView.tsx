@@ -71,6 +71,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     (provDef.subscriptionKeyPlaceholder ? 'token' : undefined);
   const isPopupOAuthFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_oauth';
   const isDeviceCodeFlow = () => isSubMode() && subscriptionAuthMode() === 'device_code';
+  const shouldRevokeOpenaiOAuth = () => props.provId === 'openai' && isPopupOAuthFlow();
   const isCommandOnly = () =>
     isSubMode() &&
     !!provDef.subscriptionCommand &&
@@ -106,7 +107,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      if (isPopupOAuthFlow()) {
+      if (shouldRevokeOpenaiOAuth()) {
         await revokeOpenaiOAuth(props.agentName).catch(() => {});
       }
       const result = await disconnectProvider(

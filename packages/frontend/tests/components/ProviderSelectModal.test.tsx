@@ -1281,6 +1281,95 @@ describe("ProviderSelectModal", () => {
       expect(screen.getByText(/Connected via MiniMax Coding Plan/)).toBeDefined();
     });
 
+    it("disconnects MiniMax without revoking OpenAI OAuth", async () => {
+      const subProvider: RoutingProvider = {
+        id: "p-minimax-sub",
+        provider: "minimax",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: '{"t":"mm',
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Disconnect"));
+
+      await waitFor(() => {
+        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "minimax", "subscription");
+      });
+      expect(mockRevokeOpenaiOAuth).not.toHaveBeenCalled();
+    });
+
+    it("ignores stale MiniMax poll results after starting over", async () => {
+      vi.useFakeTimers();
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+
+      let resolveFirstPoll: ((value: { status: string; message?: string; pollIntervalMs?: number }) => void) | undefined;
+      mockStartMinimaxOAuth
+        .mockResolvedValueOnce({
+          flowId: "flow-1",
+          userCode: "ABCD-1234",
+          verificationUri: "https://www.minimax.io/verify",
+          expiresAt: Date.now() + 60_000,
+          pollIntervalMs: 2000,
+        })
+        .mockResolvedValueOnce({
+          flowId: "flow-2",
+          userCode: "WXYZ-9876",
+          verificationUri: "https://www.minimax.io/verify-2",
+          expiresAt: Date.now() + 60_000,
+          pollIntervalMs: 2000,
+        });
+      mockPollMinimaxOAuth.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstPoll = resolve;
+          }),
+      );
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+      });
+
+      await vi.advanceTimersByTimeAsync(2000);
+      await waitFor(() => {
+        expect(mockPollMinimaxOAuth).toHaveBeenCalledWith("flow-1");
+      });
+
+      fireEvent.click(screen.getByText("Start over"));
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("WXYZ-9876")).toBeDefined();
+      });
+
+      resolveFirstPoll?.({ status: "success" });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(onClose).not.toHaveBeenCalled();
+      expect(onUpdate).not.toHaveBeenCalled();
+      expect(screen.getByDisplayValue("WXYZ-9876")).toBeDefined();
+
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
     it("does not show paste field for OAuth provider", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />

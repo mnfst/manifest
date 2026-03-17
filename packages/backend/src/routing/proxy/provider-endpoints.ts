@@ -1,15 +1,12 @@
 import { OLLAMA_HOST } from '../../common/constants/ollama';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
+import { normalizeProviderBaseUrl } from '../provider-base-url';
 
 export interface ProviderEndpoint {
   baseUrl: string;
   buildHeaders: (apiKey: string, authType?: string) => Record<string, string>;
   buildPath: (model: string) => string;
   format: 'openai' | 'google' | 'anthropic' | 'chatgpt';
-}
-
-function normalizeProviderBaseUrl(baseUrl: string): string {
-  return baseUrl.replace(/\/+$/, '').replace(/\/v1$/, '');
 }
 
 const openaiHeaders = (apiKey: string) => ({

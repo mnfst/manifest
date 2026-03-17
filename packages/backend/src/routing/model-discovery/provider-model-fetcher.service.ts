@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DiscoveredModel, FetcherConfig } from './model-fetcher';
 import { OLLAMA_HOST } from '../../common/constants/ollama';
+import { normalizeProviderBaseUrl } from '../provider-base-url';
 
 const FETCH_TIMEOUT_MS = 5000;
 const DEFAULT_CONTEXT_WINDOW = 128000;
@@ -42,10 +43,6 @@ function parseOpenAI(body: unknown, provider: string): DiscoveredModel[] {
 
 function bearerHeaders(key: string): Record<string, string> {
   return { Authorization: `Bearer ${key}` };
-}
-
-function normalizeProviderBaseUrl(baseUrl: string): string {
-  return baseUrl.replace(/\/+$/, '').replace(/\/v1$/, '');
 }
 
 /* ── Provider-specific parsers ── */

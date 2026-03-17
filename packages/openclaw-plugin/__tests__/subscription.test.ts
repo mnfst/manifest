@@ -225,7 +225,8 @@ describe("registerSubscriptionProviders", () => {
 
   const mockFetch = jest.fn();
   beforeEach(() => {
-    global.fetch = mockFetch;
+    const globalWithFetch = globalThis as typeof globalThis & { fetch: typeof mockFetch };
+    globalWithFetch.fetch = mockFetch;
   });
 
   it("does nothing when providers array is empty", async () => {

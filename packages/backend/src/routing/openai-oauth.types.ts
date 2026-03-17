@@ -23,11 +23,17 @@ export function parseOAuthTokenBlob(rawValue: string): OAuthTokenBlob | null {
     if (
       typeof parsed?.t !== 'string' ||
       typeof parsed?.r !== 'string' ||
-      typeof parsed?.e !== 'number'
+      typeof parsed?.e !== 'number' ||
+      (parsed.u !== undefined && typeof parsed.u !== 'string')
     ) {
       return null;
     }
-    return parsed as OAuthTokenBlob;
+    return {
+      t: parsed.t,
+      r: parsed.r,
+      e: parsed.e,
+      ...(parsed.u !== undefined ? { u: parsed.u } : {}),
+    };
   } catch {
     return null;
   }

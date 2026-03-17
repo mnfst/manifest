@@ -29,7 +29,12 @@ export class MinimaxOauthController {
 
     const agent = await this.resolveAgent.resolve(user.id, agentName);
     const selectedRegion = region && isMinimaxRegion(region) ? region : 'global';
-    return this.oauthService.startAuthorization(agent.id, user.id, selectedRegion);
+    try {
+      return await this.oauthService.startAuthorization(agent.id, user.id, selectedRegion);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to start MiniMax OAuth';
+      throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);
+    }
   }
 
   @Get('poll')

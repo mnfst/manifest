@@ -1,4 +1,4 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { MinimaxOauthController } from './minimax-oauth.controller';
 import { MinimaxOauthService } from './minimax-oauth.service';
 import { ResolveAgentService } from './resolve-agent.service';
@@ -61,5 +61,15 @@ describe('MinimaxOauthController', () => {
 
   it('throws 400 when flowId is missing', async () => {
     await expect(controller.poll('', { id: 'user-1' } as never)).rejects.toThrow(HttpException);
+  });
+
+  it('maps startAuthorization failures to 503', async () => {
+    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+    oauthService.startAuthorization.mockRejectedValue(new Error('MiniMax unavailable'));
+
+    await expect(controller.start('my-agent', 'global', { id: 'user-1' } as never)).rejects.toMatchObject({
+      message: 'MiniMax unavailable',
+      status: HttpStatus.SERVICE_UNAVAILABLE,
+    });
   });
 });
