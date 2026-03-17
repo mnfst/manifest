@@ -12,6 +12,7 @@ import { LimitCheckService } from '../../notifications/services/limit-check.serv
 import { shouldTriggerFallback, FALLBACK_EXHAUSTED_STATUS } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../provider-aliases';
 import { Tier, ScorerMessage } from '../scorer/types';
+import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
 
 /**
  * Roles excluded from scoring. OpenClaw (and similar tools) inject a large,
@@ -414,7 +415,12 @@ export class ProxyService {
       provider.toLowerCase() === 'minimax' &&
       resourceUrl
     ) {
-      customEndpoint = buildEndpointOverride(resourceUrl, 'minimax-subscription');
+      const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
+      if (minimaxBaseUrl) {
+        customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
+      } else {
+        this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
+      }
     }
 
     return this.providerClient.forward(

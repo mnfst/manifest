@@ -202,6 +202,25 @@ describe('ProviderModelFetcherService', () => {
     );
   });
 
+  it('should ignore invalid endpoint overrides for MiniMax subscription discovery', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch('minimax', 'sk-test', 'subscription', 'http://127.0.0.1:8080/anthropic');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.minimax.io/anthropic/v1/models?limit=100',
+      expect.objectContaining({
+        headers: {
+          Authorization: 'Bearer sk-test',
+          'anthropic-version': '2023-06-01',
+        },
+      }),
+    );
+  });
+
   /* ── Anthropic provider ── */
 
   describe('parseAnthropic (via anthropic provider)', () => {

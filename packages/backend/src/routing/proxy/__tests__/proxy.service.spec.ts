@@ -2005,5 +2005,50 @@ describe('ProxyService', () => {
         'subscription',
       );
     });
+
+    it('ignores invalid MiniMax resource URLs when forwarding subscription requests', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'MiniMax-M2.5',
+        provider: 'minimax',
+        confidence: 1.0,
+        score: 0.5,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      const tokenBlob = JSON.stringify({
+        t: 'minimax-access',
+        r: 'minimax-refresh',
+        e: Date.now() + 60000,
+        u: 'https://evil.example/anthropic',
+      });
+      routingService.getProviderApiKey.mockResolvedValue(tokenBlob);
+      minimaxOauth.unwrapToken.mockResolvedValue({
+        t: 'minimax-access',
+        r: 'minimax-refresh',
+        e: Date.now() + 60000,
+        u: 'https://evil.example/anthropic',
+      });
+      providerClient.forward.mockResolvedValue({
+        response: new Response('ok', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'minimax',
+        'minimax-access',
+        'MiniMax-M2.5',
+        expect.any(Object),
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+    });
   });
 });

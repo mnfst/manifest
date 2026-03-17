@@ -4,6 +4,7 @@ import { createHash, randomBytes, randomUUID } from 'crypto';
 import { RoutingService } from './routing.service';
 import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { OAuthTokenBlob } from './openai-oauth.types';
+import { normalizeMinimaxSubscriptionBaseUrl } from './provider-base-url';
 
 const MINIMAX_BASE_URLS = {
   global: 'https://api.minimax.io',
@@ -84,13 +85,15 @@ function buildMinimaxResourceUrl(baseUrl: string): string {
   return `${baseUrl}/anthropic`;
 }
 
+function getMinimaxResourceUrl(resourceUrl?: string): string | null {
+  if (!resourceUrl) return null;
+  return normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
+}
+
 function getMinimaxOauthBaseUrl(resourceUrl?: string): string {
-  if (!resourceUrl) return DEFAULT_BASE_URL;
-  try {
-    return new URL(resourceUrl).origin;
-  } catch {
-    return DEFAULT_BASE_URL;
-  }
+  const normalized = getMinimaxResourceUrl(resourceUrl);
+  if (!normalized) return DEFAULT_BASE_URL;
+  return new URL(normalized).origin;
 }
 
 function toAbsoluteExpiryTimestamp(expiredIn: number): number {
@@ -261,11 +264,12 @@ export class MinimaxOauthService {
 
     this.pending.delete(flowId);
 
+    const resourceUrl = getMinimaxResourceUrl(payload.resource_url) ?? pending.resourceUrl;
     const blob: OAuthTokenBlob = {
       t: payload.access_token,
       r: payload.refresh_token,
       e: toAbsoluteExpiryTimestamp(payload.expired_in),
-      u: payload.resource_url ?? pending.resourceUrl,
+      u: resourceUrl,
     };
 
     const { provider: savedProvider } = await this.routingService.upsertProvider(
@@ -313,7 +317,10 @@ export class MinimaxOauthService {
       throw new Error('MiniMax token refresh returned an incomplete payload');
     }
 
-    const nextResourceUrl = payload.resource_url ?? resourceUrl ?? buildMinimaxResourceUrl(baseUrl);
+    const nextResourceUrl =
+      getMinimaxResourceUrl(payload.resource_url) ??
+      getMinimaxResourceUrl(resourceUrl) ??
+      buildMinimaxResourceUrl(baseUrl);
     return {
       t: payload.access_token,
       r: payload.refresh_token || refreshToken,

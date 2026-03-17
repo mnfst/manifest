@@ -247,5 +247,26 @@ describe('MinimaxOauthService', () => {
 
       expect(result.e).toBe(now + 7200);
     });
+
+    it('falls back to the default MiniMax OAuth host when the stored resource URL is invalid', async () => {
+      fetchMock.mockImplementationOnce(async (url: string) => {
+        expect(url).toBe('https://api.minimax.io/oauth/token');
+        return {
+          ok: true,
+          json: async () => ({
+            access_token: 'new-access',
+            refresh_token: 'new-refresh',
+            expired_in: 7200,
+          }),
+        };
+      });
+
+      const result = await service.refreshAccessToken(
+        'refresh-token',
+        'https://evil.example/anthropic',
+      );
+
+      expect(result.u).toBe('https://api.minimax.io/anthropic');
+    });
   });
 });

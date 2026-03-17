@@ -355,4 +355,39 @@ describe("registerSubscriptionProviders", () => {
       "[manifest] Error registering subscription providers: timeout",
     );
   });
+
+  it("tolerates runtimes without AbortSignal.timeout", async () => {
+    const abortSignalDescriptor = Object.getOwnPropertyDescriptor(globalThis, "AbortSignal");
+    Object.defineProperty(globalThis, "AbortSignal", {
+      configurable: true,
+      value: {},
+    });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ registered: 1 }),
+    });
+
+    try {
+      await registerSubscriptionProviders(
+        mockProviders,
+        "http://localhost/otlp",
+        "key",
+        mockLogger,
+      );
+    } finally {
+      if (abortSignalDescriptor) {
+        Object.defineProperty(globalThis, "AbortSignal", abortSignalDescriptor);
+      } else {
+        Reflect.deleteProperty(globalThis, "AbortSignal");
+      }
+    }
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost/api/v1/routing/subscription-providers",
+      expect.objectContaining({
+        signal: undefined,
+      }),
+    );
+  });
 });

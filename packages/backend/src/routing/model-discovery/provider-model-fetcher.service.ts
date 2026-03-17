@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DiscoveredModel, FetcherConfig } from './model-fetcher';
 import { OLLAMA_HOST } from '../../common/constants/ollama';
-import { normalizeProviderBaseUrl } from '../provider-base-url';
+import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
 
 const FETCH_TIMEOUT_MS = 5000;
 const DEFAULT_CONTEXT_WINDOW = 128000;
@@ -332,7 +332,12 @@ export class ProviderModelFetcherService {
 
     let url = typeof config.endpoint === 'function' ? config.endpoint(apiKey) : config.endpoint;
     if (endpointOverride && configKey === 'minimax-subscription') {
-      url = `${normalizeProviderBaseUrl(endpointOverride)}/v1/models?limit=100`;
+      const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(endpointOverride);
+      if (minimaxBaseUrl) {
+        url = `${minimaxBaseUrl}/v1/models?limit=100`;
+      } else {
+        this.logger.warn('Ignoring invalid MiniMax subscription endpoint override');
+      }
     }
 
     const headers = config.buildHeaders(apiKey, authType);

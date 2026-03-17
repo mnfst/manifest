@@ -47,6 +47,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [selectedRegion, setSelectedRegion] = createSignal<MinimaxOAuthRegion>('global');
   let pollTimer: number | undefined;
   let isDisposed = false;
+  let activeFlowGeneration = 0;
 
   const clearPollTimer = () => {
     if (pollTimer !== undefined) {
@@ -55,12 +56,12 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     }
   };
 
-  const schedulePoll = (delayMs: number) => {
+  const schedulePoll = (delayMs: number, flowGeneration = activeFlowGeneration) => {
     clearPollTimer();
-    if (isDisposed) return;
+    if (isDisposed || flowGeneration !== activeFlowGeneration) return;
     pollTimer = window.setTimeout(() => {
-      if (isDisposed) return;
-      void runPoll();
+      if (isDisposed || flowGeneration !== activeFlowGeneration) return;
+      void runPoll(flowGeneration);
     }, delayMs);
   };
 
@@ -92,8 +93,8 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     }
   };
 
-  const runPoll = async () => {
-    if (isDisposed) return;
+  const runPoll = async (flowGeneration = activeFlowGeneration) => {
+    if (isDisposed || flowGeneration !== activeFlowGeneration) return;
     const current = flow();
     if (!current) return;
 
@@ -106,7 +107,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
     try {
       const result = await pollMinimaxOAuth(current.flowId);
-      if (isDisposed) return;
+      if (isDisposed || flowGeneration !== activeFlowGeneration) return;
       const latest = flow();
       if (!latest || latest.flowId !== current.flowId) {
         return;
@@ -129,9 +130,12 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
       setFlowError(null);
       setStatusMessage(result.message ?? 'Waiting for approval…');
-      schedulePoll(result.pollIntervalMs ?? latest.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
+      schedulePoll(
+        result.pollIntervalMs ?? latest.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
+        flowGeneration,
+      );
     } catch {
-      if (isDisposed) return;
+      if (isDisposed || flowGeneration !== activeFlowGeneration) return;
       if (flow()?.flowId !== current.flowId) {
         return;
       }
@@ -143,26 +147,28 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
   const handleStart = async () => {
     props.setBusy(true);
+    const flowGeneration = ++activeFlowGeneration;
     clearPollTimer();
     setFlowError(null);
     setStatusMessage(null);
     try {
       const nextFlow = await startMinimaxOAuth(props.agentName, selectedRegion());
-      if (isDisposed) return;
+      if (isDisposed || flowGeneration !== activeFlowGeneration) return;
       setFlow(nextFlow);
       window.open(nextFlow.verificationUri, '_blank', 'noopener,noreferrer');
-      schedulePoll(nextFlow.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
+      schedulePoll(nextFlow.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS, flowGeneration);
     } catch {
-      if (isDisposed) return;
+      if (isDisposed || flowGeneration !== activeFlowGeneration) return;
       setFlow(null);
     } finally {
-      if (isDisposed) return;
+      if (isDisposed || flowGeneration !== activeFlowGeneration) return;
       props.setBusy(false);
     }
   };
 
   onCleanup(() => {
     isDisposed = true;
+    activeFlowGeneration += 1;
     clearPollTimer();
   });
 

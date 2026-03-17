@@ -48,7 +48,7 @@ function getAbortSignalTimeout(ms: number): unknown {
     globalThis as typeof globalThis & {
       AbortSignal?: { timeout: (timeoutMs: number) => unknown };
     }
-  ).AbortSignal?.timeout(ms);
+  ).AbortSignal?.timeout?.(ms);
 }
 
 /**

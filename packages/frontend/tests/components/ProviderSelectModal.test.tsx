@@ -1517,11 +1517,22 @@ describe("ProviderSelectModal", () => {
       expect(mockRevokeOpenaiOAuth).not.toHaveBeenCalled();
     });
 
-    it("ignores stale MiniMax poll results after starting over", async () => {
+    it("ignores stale MiniMax poll results while a replacement flow is still starting", async () => {
       vi.useFakeTimers();
-      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+      const openSpy = vi
+        .spyOn(window, "open")
+        .mockReturnValue({ closed: false } as unknown as Window);
 
       let resolveFirstPoll: ((value: { status: string; message?: string; pollIntervalMs?: number }) => void) | undefined;
+      let resolveSecondStart:
+        | ((value: {
+            flowId: string;
+            userCode: string;
+            verificationUri: string;
+            expiresAt: number;
+            pollIntervalMs: number;
+          }) => void)
+        | undefined;
       mockStartMinimaxOAuth
         .mockResolvedValueOnce({
           flowId: "flow-1",
@@ -1530,13 +1541,12 @@ describe("ProviderSelectModal", () => {
           expiresAt: Date.now() + 60_000,
           pollIntervalMs: 2000,
         })
-        .mockResolvedValueOnce({
-          flowId: "flow-2",
-          userCode: "WXYZ-9876",
-          verificationUri: "https://www.minimax.io/verify-2",
-          expiresAt: Date.now() + 60_000,
-          pollIntervalMs: 2000,
-        });
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveSecondStart = resolve;
+            }),
+        );
       mockPollMinimaxOAuth.mockImplementationOnce(
         () =>
           new Promise((resolve) => {
@@ -1563,7 +1573,7 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("Start over"));
 
       await waitFor(() => {
-        expect(screen.getByDisplayValue("WXYZ-9876")).toBeDefined();
+        expect(mockStartMinimaxOAuth).toHaveBeenCalledTimes(2);
       });
 
       resolveFirstPoll?.({ status: "success" });
@@ -1572,10 +1582,22 @@ describe("ProviderSelectModal", () => {
 
       expect(onClose).not.toHaveBeenCalled();
       expect(onUpdate).not.toHaveBeenCalled();
-      expect(screen.getByDisplayValue("WXYZ-9876")).toBeDefined();
+      expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+
+      resolveSecondStart?.({
+        flowId: "flow-2",
+        userCode: "WXYZ-9876",
+        verificationUri: "https://www.minimax.io/verify-2",
+        expiresAt: Date.now() + 60_000,
+        pollIntervalMs: 2000,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("WXYZ-9876")).toBeDefined();
+      });
 
       vi.useRealTimers();
-      vi.restoreAllMocks();
+      openSpy.mockRestore();
     });
 
     it("stops MiniMax polling after the modal unmounts", async () => {
