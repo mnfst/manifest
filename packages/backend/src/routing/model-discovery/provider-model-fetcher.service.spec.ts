@@ -15,7 +15,7 @@ describe('ProviderModelFetcherService', () => {
 
   /* ── PROVIDER_CONFIGS sanity ── */
 
-  it('should have configs for all providers including openai-subscription', () => {
+  it('should have configs for all providers including subscription variants', () => {
     const expected = [
       'openai',
       'openai-subscription',
@@ -24,6 +24,7 @@ describe('ProviderModelFetcherService', () => {
       'moonshot',
       'xai',
       'minimax',
+      'minimax-subscription',
       'qwen',
       'zai',
       'anthropic',
@@ -178,6 +179,25 @@ describe('ProviderModelFetcherService', () => {
       'https://api.openai.com/v1/models',
       expect.objectContaining({
         headers: { Authorization: 'Bearer sk-abc' },
+      }),
+    );
+  });
+
+  it('should use the endpoint override for MiniMax subscription discovery', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch('minimax', 'sk-test', 'subscription', 'https://api.minimaxi.com/anthropic');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.minimaxi.com/anthropic/v1/models?limit=100',
+      expect.objectContaining({
+        headers: {
+          Authorization: 'Bearer sk-test',
+          'anthropic-version': '2023-06-01',
+        },
       }),
     );
   });

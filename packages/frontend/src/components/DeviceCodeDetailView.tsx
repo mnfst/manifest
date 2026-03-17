@@ -1,10 +1,18 @@
-import { createSignal, onCleanup, Show, type Accessor, type Component, type Setter } from 'solid-js';
+import {
+  createSignal,
+  onCleanup,
+  Show,
+  type Accessor,
+  type Component,
+  type Setter,
+} from 'solid-js';
 import type { ProviderDef } from '../services/providers.js';
 import {
   disconnectProvider,
   pollMinimaxOAuth,
   startMinimaxOAuth,
   type AuthType,
+  type MinimaxOAuthRegion,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { CopyButton } from './SetupStepInstall.js';
@@ -36,6 +44,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [flow, setFlow] = createSignal<DeviceCodeFlow | null>(null);
   const [statusMessage, setStatusMessage] = createSignal<string | null>(null);
   const [flowError, setFlowError] = createSignal<string | null>(null);
+  const [selectedRegion, setSelectedRegion] = createSignal<MinimaxOAuthRegion>('global');
   let pollTimer: number | undefined;
 
   const clearPollTimer = () => {
@@ -125,10 +134,10 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     setFlowError(null);
     setStatusMessage(null);
     try {
-      const nextFlow = await startMinimaxOAuth(props.agentName);
+      const nextFlow = await startMinimaxOAuth(props.agentName, selectedRegion());
       setFlow(nextFlow);
       window.open(nextFlow.verificationUri, '_blank', 'noopener,noreferrer');
-      schedulePoll(0);
+      schedulePoll(nextFlow.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS);
     } catch {
       setFlow(null);
     } finally {
@@ -146,11 +155,27 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
           fallback={
             <>
               <p class="provider-detail__hint">
-                Open the verification page, enter a one-time code, and we will finish the
-                connection automatically.
+                Choose your MiniMax region, then open the authorization page in your browser to sign
+                in and approve access.
               </p>
+              <div class="provider-detail__field" style="margin-top: 12px;">
+                <label class="provider-detail__label" for="minimax-region">
+                  Region
+                </label>
+                <select
+                  id="minimax-region"
+                  class="provider-detail__input"
+                  value={selectedRegion()}
+                  disabled={props.busy()}
+                  onChange={(e) => setSelectedRegion(e.currentTarget.value as MinimaxOAuthRegion)}
+                >
+                  <option value="global">Global (api.minimax.io)</option>
+                  <option value="cn">China Mainland (api.minimaxi.com)</option>
+                </select>
+              </div>
               <button
                 class="btn btn--primary provider-detail__action"
+                style="margin-top: 12px;"
                 disabled={props.busy()}
                 onClick={handleStart}
               >
@@ -164,7 +189,8 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
           {(activeFlow) => (
             <>
               <p class="provider-detail__hint">
-                Enter this code at the MiniMax verification page to approve access.
+                Your browser should open to the MiniMax authorization page. If MiniMax asks for a
+                one-time code, enter the code shown below.
               </p>
               <div class="provider-detail__field" style="margin-top: 12px;">
                 <label class="provider-detail__label">Verification Code</label>

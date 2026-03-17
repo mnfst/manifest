@@ -1334,6 +1334,18 @@ describe('ModelDiscoveryService', () => {
         expect(m.outputPricePerToken).toBe(0);
       }
     });
+
+    it('should preserve MiniMax model casing in subscription fallback models', () => {
+      const result = buildSubscriptionFallbackModels(null as never, 'minimax');
+
+      expect(result.map((m) => m.id)).toEqual([
+        'MiniMax-M2.5',
+        'MiniMax-M2.5-highspeed',
+        'MiniMax-M2.1',
+        'MiniMax-M2.1-highspeed',
+        'MiniMax-M2',
+      ]);
+    });
   });
 
   /* ── supplementWithKnownModels ── */
@@ -1394,6 +1406,18 @@ describe('ModelDiscoveryService', () => {
         expect(m.inputPricePerToken).toBe(0);
         expect(m.outputPricePerToken).toBe(0);
       }
+    });
+
+    it('should supplement MiniMax known models with documented casing', () => {
+      const raw: DiscoveredModel[] = [
+        makeModel({ id: 'MiniMax-M2.5-highspeed', provider: 'minimax' }),
+      ];
+
+      const result = supplementWithKnownModels(raw, 'minimax');
+
+      expect(result.map((m) => m.id)).toContain('MiniMax-M2.1');
+      expect(result.map((m) => m.id)).toContain('MiniMax-M2');
+      expect(result.map((m) => m.id)).not.toContain('MiniMax-M2.5');
     });
   });
 });

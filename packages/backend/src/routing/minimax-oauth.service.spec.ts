@@ -11,8 +11,11 @@ describe('MinimaxOauthService', () => {
   let routingService: jest.Mocked<RoutingService>;
   let configService: jest.Mocked<ConfigService>;
   let discoveryService: { discoverModels: jest.Mock };
+  let dateNowSpy: jest.SpyInstance<number, []>;
+  const now = 1_760_000_000_000;
 
   beforeEach(() => {
+    dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
     routingService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
@@ -30,17 +33,22 @@ describe('MinimaxOauthService', () => {
     fetchMock.mockReset();
   });
 
+  afterEach(() => {
+    dateNowSpy.mockRestore();
+  });
+
   describe('startAuthorization', () => {
-    it('returns device-code payload and stores a pending flow', async () => {
-      fetchMock.mockImplementationOnce(async (_url: string, init?: RequestInit) => {
+    it('returns device-code payload, normalizes timing fields, and stores a pending flow', async () => {
+      fetchMock.mockImplementationOnce(async (url: string, init?: RequestInit) => {
         const params = new URLSearchParams(init?.body as string);
+        expect(url).toBe('https://api.minimax.io/oauth/code');
         return {
           ok: true,
           json: async () => ({
             user_code: 'ABCD-1234',
             verification_uri: 'https://www.minimax.io/verify',
-            expired_in: Date.now() + 60_000,
-            interval: 2000,
+            expired_in: 60,
+            interval: 2,
             state: params.get('state'),
           }),
         };
@@ -50,7 +58,28 @@ describe('MinimaxOauthService', () => {
 
       expect(result.userCode).toBe('ABCD-1234');
       expect(result.verificationUri).toBe('https://www.minimax.io/verify');
+      expect(result.expiresAt).toBe(now + 60_000);
+      expect(result.pollIntervalMs).toBe(2000);
       expect(service.getPendingCount()).toBe(1);
+    });
+
+    it('uses the CN OAuth host when the region is cn', async () => {
+      fetchMock.mockImplementationOnce(async (url: string, init?: RequestInit) => {
+        const params = new URLSearchParams(init?.body as string);
+        expect(url).toBe('https://api.minimaxi.com/oauth/code');
+        return {
+          ok: true,
+          json: async () => ({
+            user_code: 'ABCD-1234',
+            verification_uri: 'https://www.minimax.io/verify',
+            expired_in: 60,
+            interval: 2,
+            state: params.get('state'),
+          }),
+        };
+      });
+
+      await service.startAuthorization('agent-1', 'user-1', 'cn');
     });
   });
 
@@ -64,8 +93,8 @@ describe('MinimaxOauthService', () => {
             json: async () => ({
               user_code: 'ABCD-1234',
               verification_uri: 'https://www.minimax.io/verify',
-              expired_in: Date.now() + 60_000,
-              interval: 2000,
+              expired_in: 60,
+              interval: 2,
               state: params.get('state'),
             }),
           };
@@ -105,8 +134,8 @@ describe('MinimaxOauthService', () => {
             json: async () => ({
               user_code: 'ABCD-1234',
               verification_uri: 'https://www.minimax.io/verify',
-              expired_in: Date.now() + 60_000,
-              interval: 2000,
+              expired_in: 60,
+              interval: 2,
               state: params.get('state'),
             }),
           };
@@ -126,13 +155,16 @@ describe('MinimaxOauthService', () => {
 
   describe('unwrapToken', () => {
     it('refreshes expired tokens and preserves resource URL', async () => {
-      fetchMock.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          access_token: 'new-access',
-          refresh_token: 'new-refresh',
-          expired_in: 7200,
-        }),
+      fetchMock.mockImplementationOnce(async (url: string) => {
+        expect(url).toBe('https://api.minimax.io/oauth/token');
+        return {
+          ok: true,
+          json: async () => ({
+            access_token: 'new-access',
+            refresh_token: 'new-refresh',
+            expired_in: 7200,
+          }),
+        };
       });
 
       const result = await service.unwrapToken(
@@ -154,6 +186,31 @@ describe('MinimaxOauthService', () => {
         }),
       );
       expect(routingService.upsertProvider).toHaveBeenCalled();
+    });
+
+    it('refreshes against the CN OAuth host when the stored resource URL is regional', async () => {
+      fetchMock.mockImplementationOnce(async (url: string) => {
+        expect(url).toBe('https://api.minimaxi.com/oauth/token');
+        return {
+          ok: true,
+          json: async () => ({
+            access_token: 'new-access',
+            refresh_token: 'new-refresh',
+            expired_in: 7200,
+          }),
+        };
+      });
+
+      await service.unwrapToken(
+        JSON.stringify({
+          t: 'old-access',
+          r: 'old-refresh',
+          e: now - 1000,
+          u: 'https://api.minimaxi.com/anthropic',
+        }),
+        'agent-1',
+        'user-1',
+      );
     });
   });
 });

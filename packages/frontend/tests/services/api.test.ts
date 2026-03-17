@@ -566,7 +566,7 @@ describe("revokeOpenaiOAuth", () => {
 });
 
 describe("startMinimaxOAuth", () => {
-  it("sends POST to /oauth/minimax/start with agentName param", async () => {
+  it("sends POST to /oauth/minimax/start with agentName and default region params", async () => {
     const payload = {
       flowId: "flow-1",
       userCode: "ABCD-1234",
@@ -579,7 +579,25 @@ describe("startMinimaxOAuth", () => {
     const result = await startMinimaxOAuth("my-agent");
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/oauth/minimax/start?agentName=my-agent",
+      "/api/v1/oauth/minimax/start?agentName=my-agent&region=global",
+      expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
+  });
+
+  it("sends POST to /oauth/minimax/start with the selected region", async () => {
+    const payload = {
+      flowId: "flow-1",
+      userCode: "ABCD-1234",
+      verificationUri: "https://www.minimax.io/verify",
+      expiresAt: 1760000000000,
+      pollIntervalMs: 2000,
+    };
+    mockMutateOk(payload);
+
+    const result = await startMinimaxOAuth("my-agent", "cn");
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/oauth/minimax/start?agentName=my-agent&region=cn",
       expect.objectContaining({ method: "POST", credentials: "include" }),
     );
   });

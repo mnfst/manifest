@@ -1215,6 +1215,7 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("MiniMax"));
       expect(screen.getByText("Verify your account to connect your subscription")).toBeDefined();
       expect(screen.getByText("Connect with MiniMax")).toBeDefined();
+      expect(screen.getByLabelText("Region")).toBeDefined();
     });
 
     it("starts MiniMax device-code flow and shows code details", async () => {
@@ -1227,7 +1228,7 @@ describe("ProviderSelectModal", () => {
       fireEvent.click(screen.getByText("Connect with MiniMax"));
 
       await waitFor(() => {
-        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith("test-agent");
+        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith("test-agent", "global");
       });
       expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
       expect(screen.getByDisplayValue("https://www.minimax.io/verify")).toBeDefined();
@@ -1236,6 +1237,23 @@ describe("ProviderSelectModal", () => {
         "_blank",
         "noopener,noreferrer",
       );
+
+      vi.restoreAllMocks();
+    });
+
+    it("starts MiniMax device-code flow with the selected region", async () => {
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.change(screen.getByLabelText("Region"), { target: { value: "cn" } });
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith("test-agent", "cn");
+      });
 
       vi.restoreAllMocks();
     });

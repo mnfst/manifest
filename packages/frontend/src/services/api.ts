@@ -382,6 +382,7 @@ export function getRoutingStatus(agentName: string) {
 /* -- Routing: Providers -- */
 
 export type AuthType = 'api_key' | 'subscription';
+export type MinimaxOAuthRegion = 'global' | 'cn';
 
 export interface RoutingProvider {
   id: string;
@@ -453,9 +454,9 @@ export function revokeOpenaiOAuth(agentName: string) {
   );
 }
 
-export function startMinimaxOAuth(agentName: string) {
+export function startMinimaxOAuth(agentName: string, region: MinimaxOAuthRegion = 'global') {
   return fetchMutate<MinimaxOAuthStartResponse>(
-    `${BASE_URL}/oauth/minimax/start?agentName=${encodeURIComponent(agentName)}`,
+    `${BASE_URL}/oauth/minimax/start?agentName=${encodeURIComponent(agentName)}&region=${encodeURIComponent(region)}`,
     { method: 'POST' },
   );
 }

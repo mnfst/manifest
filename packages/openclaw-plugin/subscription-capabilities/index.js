@@ -33,7 +33,13 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
   minimax: Object.freeze({
     supportsSubscription: true,
     subscriptionLabel: 'MiniMax Coding Plan',
-    knownModels: Object.freeze(['minimax-m2.1', 'minimax-m2.5']),
+    knownModels: Object.freeze([
+      'MiniMax-M2.5',
+      'MiniMax-M2.5-highspeed',
+      'MiniMax-M2.1',
+      'MiniMax-M2.1-highspeed',
+      'MiniMax-M2',
+    ]),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
       supportsPromptCaching: false,

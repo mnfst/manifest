@@ -31,15 +31,23 @@ describe('MinimaxOauthController', () => {
       pollIntervalMs: 2000,
     });
 
-    const result = await controller.start('my-agent', { id: 'user-1' } as never);
+    const result = await controller.start('my-agent', 'cn', { id: 'user-1' } as never);
 
     expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
-    expect(oauthService.startAuthorization).toHaveBeenCalledWith('agent-id-1', 'user-1');
+    expect(oauthService.startAuthorization).toHaveBeenCalledWith('agent-id-1', 'user-1', 'cn');
     expect(result.flowId).toBe('flow-1');
   });
 
   it('throws 400 when agentName is missing', async () => {
-    await expect(controller.start('', { id: 'user-1' } as never)).rejects.toThrow(HttpException);
+    await expect(controller.start('', 'global', { id: 'user-1' } as never)).rejects.toThrow(
+      HttpException,
+    );
+  });
+
+  it('throws 400 when region is invalid', async () => {
+    await expect(controller.start('my-agent', 'mars', { id: 'user-1' } as never)).rejects.toThrow(
+      HttpException,
+    );
   });
 
   it('polls MiniMax OAuth state', async () => {
