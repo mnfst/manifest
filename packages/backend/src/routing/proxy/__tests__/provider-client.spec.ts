@@ -871,6 +871,64 @@ describe('ProviderClient', () => {
       expect(sentBody.messages[1].tool_call_id).toBe(validToolCallId);
     });
 
+    it('does not rewrite later valid Mistral tool call ids when generated ids would collide', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const invalidToolCallId = 'call005AKQn2j5TEr4S6i3zNN59moT';
+      const validToolCallId = 'tc0000001';
+      const bodyWithPotentialCollision = {
+        messages: [
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: invalidToolCallId,
+                type: 'function',
+                function: { name: 'search', arguments: '{}' },
+              },
+            ],
+          },
+          {
+            role: 'tool',
+            tool_call_id: invalidToolCallId,
+            content: '{"status":"invalid"}',
+          },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: validToolCallId,
+                type: 'function',
+                function: { name: 'lookup', arguments: '{}' },
+              },
+            ],
+          },
+          {
+            role: 'tool',
+            tool_call_id: validToolCallId,
+            content: '{"status":"valid"}',
+          },
+        ],
+      };
+
+      await client.forward(
+        'mistral',
+        'sk-mi',
+        'mistral-small',
+        bodyWithPotentialCollision as unknown as Record<string, unknown>,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const normalizedInvalidId = sentBody.messages[0].tool_calls[0].id;
+      expect(normalizedInvalidId).toMatch(/^[A-Za-z0-9]{9}$/);
+      expect(normalizedInvalidId).not.toBe(validToolCallId);
+      expect(sentBody.messages[1].tool_call_id).toBe(normalizedInvalidId);
+      expect(sentBody.messages[2].tool_calls[0].id).toBe(validToolCallId);
+      expect(sentBody.messages[3].tool_call_id).toBe(validToolCallId);
+    });
+
     it('preserves all fields for OpenAI', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward('openai', 'sk-test', 'gpt-4o', bodyWithOpenAiFields, false);

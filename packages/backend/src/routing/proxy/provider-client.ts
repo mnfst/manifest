@@ -48,14 +48,41 @@ function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: s
   const preserveReasoningContent = supportsReasoningContent(endpointKey, model);
   const isMistral = endpointKey === 'mistral';
   const mistralIdMap = new Map<string, string>();
-  const usedMistralIds = new Set<string>();
+  const reservedMistralIds = new Set<string>();
   let generatedMistralIdCounter = 0;
+
+  const reserveMistralToolCallId = (toolCallId: unknown): void => {
+    if (!isMistral || typeof toolCallId !== 'string') return;
+    if (MISTRAL_TOOL_CALL_ID_REGEX.test(toolCallId)) {
+      reservedMistralIds.add(toolCallId);
+    }
+  };
+
+  if (isMistral) {
+    for (const message of messages) {
+      if (!message || typeof message !== 'object' || Array.isArray(message)) {
+        continue;
+      }
+      const rawMessage = message as Record<string, unknown>;
+      if (Array.isArray(rawMessage.tool_calls)) {
+        for (const toolCall of rawMessage.tool_calls) {
+          if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) {
+            continue;
+          }
+          reserveMistralToolCallId((toolCall as Record<string, unknown>).id);
+        }
+      }
+      if ('tool_call_id' in rawMessage) {
+        reserveMistralToolCallId(rawMessage.tool_call_id);
+      }
+    }
+  }
 
   const nextGeneratedMistralId = (): string => {
     do {
       generatedMistralIdCounter += 1;
       const candidate = `tc${generatedMistralIdCounter.toString(36).padStart(7, '0')}`;
-      if (!usedMistralIds.has(candidate)) return candidate;
+      if (!reservedMistralIds.has(candidate)) return candidate;
     } while (true);
   };
 
@@ -64,15 +91,15 @@ function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: s
     const existing = mistralIdMap.get(toolCallId);
     if (existing) return existing;
 
-    if (MISTRAL_TOOL_CALL_ID_REGEX.test(toolCallId) && !usedMistralIds.has(toolCallId)) {
+    if (MISTRAL_TOOL_CALL_ID_REGEX.test(toolCallId)) {
       mistralIdMap.set(toolCallId, toolCallId);
-      usedMistralIds.add(toolCallId);
+      reservedMistralIds.add(toolCallId);
       return toolCallId;
     }
 
     const rewritten = nextGeneratedMistralId();
     mistralIdMap.set(toolCallId, rewritten);
-    usedMistralIds.add(rewritten);
+    reservedMistralIds.add(rewritten);
     return rewritten;
   };
 
