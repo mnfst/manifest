@@ -1,4 +1,5 @@
-"manifest-backend": patch
+---
+"manifest": patch
 ---
 
 Stop cross-auth credential fallback when an auth type is explicitly requested.
