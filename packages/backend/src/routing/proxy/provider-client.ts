@@ -34,6 +34,7 @@ const OPENAI_ONLY_FIELDS = new Set([
  * Nested message fields may still need target-aware cleanup.
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
 
 function supportsReasoningContent(endpointKey: string, model: string): boolean {
   if (endpointKey === 'deepseek') return true;
@@ -45,6 +46,36 @@ function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: s
   if (!Array.isArray(messages)) return messages;
 
   const preserveReasoningContent = supportsReasoningContent(endpointKey, model);
+  const isMistral = endpointKey === 'mistral';
+  const mistralIdMap = new Map<string, string>();
+  const usedMistralIds = new Set<string>();
+  let generatedMistralIdCounter = 0;
+
+  const nextGeneratedMistralId = (): string => {
+    do {
+      generatedMistralIdCounter += 1;
+      const candidate = `tc${generatedMistralIdCounter.toString(36).padStart(7, '0')}`;
+      if (!usedMistralIds.has(candidate)) return candidate;
+    } while (true);
+  };
+
+  const normalizeMistralToolCallId = (toolCallId: unknown): unknown => {
+    if (!isMistral || typeof toolCallId !== 'string') return toolCallId;
+    const existing = mistralIdMap.get(toolCallId);
+    if (existing) return existing;
+
+    if (MISTRAL_TOOL_CALL_ID_REGEX.test(toolCallId) && !usedMistralIds.has(toolCallId)) {
+      mistralIdMap.set(toolCallId, toolCallId);
+      usedMistralIds.add(toolCallId);
+      return toolCallId;
+    }
+
+    const rewritten = nextGeneratedMistralId();
+    mistralIdMap.set(toolCallId, rewritten);
+    usedMistralIds.add(rewritten);
+    return rewritten;
+  };
+
   return messages.map((message) => {
     if (!message || typeof message !== 'object' || Array.isArray(message)) {
       return message;
@@ -54,6 +85,22 @@ function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: s
     if (!preserveReasoningContent) {
       delete cleaned.reasoning_content;
     }
+
+    if (isMistral && Array.isArray(cleaned.tool_calls)) {
+      cleaned.tool_calls = cleaned.tool_calls.map((toolCall) => {
+        if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) {
+          return toolCall;
+        }
+        const cleanedToolCall = { ...(toolCall as Record<string, unknown>) };
+        cleanedToolCall.id = normalizeMistralToolCallId(cleanedToolCall.id);
+        return cleanedToolCall;
+      });
+    }
+
+    if (isMistral && 'tool_call_id' in cleaned) {
+      cleaned.tool_call_id = normalizeMistralToolCallId(cleaned.tool_call_id);
+    }
+
     return cleaned;
   });
 }
