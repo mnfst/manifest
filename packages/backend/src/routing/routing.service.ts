@@ -491,15 +491,17 @@ export class RoutingService {
     );
     if (matches.length === 0) return null;
 
-    // Sort preferred auth type first (default: api_key for backward compat)
-    const preferred = preferredAuthType ?? 'api_key';
-    const sorted = [...matches].sort((a, b) => {
-      const aPref = a.auth_type === preferred ? 0 : 1;
-      const bPref = b.auth_type === preferred ? 0 : 1;
-      return aPref - bPref;
-    });
+    // When a caller explicitly requests an auth type, do not fall through
+    // to a different auth type record.
+    const candidates = preferredAuthType
+      ? matches.filter((m) => m.auth_type === preferredAuthType)
+      : [...matches].sort((a, b) => {
+          const aPref = a.auth_type === 'api_key' ? 0 : 1;
+          const bPref = b.auth_type === 'api_key' ? 0 : 1;
+          return aPref - bPref;
+        });
 
-    for (const match of sorted) {
+    for (const match of candidates) {
       if (!match.api_key_encrypted) continue;
       try {
         return decrypt(match.api_key_encrypted, getEncryptionSecret());
