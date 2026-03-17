@@ -252,7 +252,7 @@ export class MinimaxOauthService {
     const blob: OAuthTokenBlob = {
       t: payload.access_token,
       r: payload.refresh_token,
-      e: Date.now() + payload.expired_in * 1000,
+      e: toAbsoluteExpiryTimestamp(payload.expired_in),
       u: payload.resource_url ?? pending.resourceUrl,
     };
 
@@ -305,7 +305,7 @@ export class MinimaxOauthService {
     return {
       t: payload.access_token,
       r: payload.refresh_token || refreshToken,
-      e: Date.now() + payload.expired_in * 1000,
+      e: toAbsoluteExpiryTimestamp(payload.expired_in),
       ...(nextResourceUrl ? { u: nextResourceUrl } : {}),
     };
   }

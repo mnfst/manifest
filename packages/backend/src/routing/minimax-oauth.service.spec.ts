@@ -80,6 +80,8 @@ describe('MinimaxOauthService', () => {
       });
 
       await service.startAuthorization('agent-1', 'user-1', 'cn');
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -211,6 +213,23 @@ describe('MinimaxOauthService', () => {
         'agent-1',
         'user-1',
       );
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('preserves absolute MiniMax refresh expiry timestamps', async () => {
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          access_token: 'new-access',
+          refresh_token: 'new-refresh',
+          expired_in: now + 7200,
+        }),
+      });
+
+      const result = await service.refreshAccessToken('refresh-token', 'https://api.minimax.io/anthropic');
+
+      expect(result.e).toBe(now + 7200);
     });
   });
 });

@@ -67,8 +67,19 @@ describe('MinimaxOauthController', () => {
     resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
     oauthService.startAuthorization.mockRejectedValue(new Error('MiniMax unavailable'));
 
-    await expect(controller.start('my-agent', 'global', { id: 'user-1' } as never)).rejects.toMatchObject({
+    await expect(
+      controller.start('my-agent', 'global', { id: 'user-1' } as never),
+    ).rejects.toMatchObject({
       message: 'MiniMax unavailable',
+      status: HttpStatus.SERVICE_UNAVAILABLE,
+    });
+  });
+
+  it('maps pollAuthorization failures to 503', async () => {
+    oauthService.pollAuthorization.mockRejectedValue(new Error('MiniMax poll unavailable'));
+
+    await expect(controller.poll('flow-1', { id: 'user-1' } as never)).rejects.toMatchObject({
+      message: 'MiniMax poll unavailable',
       status: HttpStatus.SERVICE_UNAVAILABLE,
     });
   });

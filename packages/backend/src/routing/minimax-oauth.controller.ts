@@ -42,6 +42,11 @@ export class MinimaxOauthController {
     if (!flowId) {
       throw new HttpException('flowId query parameter is required', HttpStatus.BAD_REQUEST);
     }
-    return this.oauthService.pollAuthorization(flowId, user.id);
+    try {
+      return await this.oauthService.pollAuthorization(flowId, user.id);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to poll MiniMax OAuth';
+      throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);
+    }
   }
 }
