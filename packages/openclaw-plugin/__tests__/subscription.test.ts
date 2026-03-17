@@ -234,6 +234,17 @@ describe("registerSubscriptionProviders", () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
+  it("logs debug when global fetch is unavailable", async () => {
+    const globalWithFetch = globalThis as typeof globalThis & { fetch?: typeof mockFetch };
+    Reflect.deleteProperty(globalWithFetch, "fetch");
+
+    await registerSubscriptionProviders(mockProviders, "http://localhost/otlp", "key", mockLogger);
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      "[manifest] Global fetch is not available",
+    );
+  });
+
   it("posts providers to the subscription endpoint", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
