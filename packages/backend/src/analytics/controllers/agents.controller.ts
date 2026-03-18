@@ -105,7 +105,13 @@ export class AgentsController {
       throw new BadRequestException('Agent name produces an empty slug');
     }
     const displayName = body.name.trim();
-    await this.aggregation.renameAgent(user.id, agentName, slug, displayName);
+    await this.aggregation.renameAgent(
+      user.id,
+      agentName,
+      slug,
+      displayName,
+      body.request_timeout_ms,
+    );
     return { renamed: true, name: slug, display_name: displayName };
   }
 

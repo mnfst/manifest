@@ -368,6 +368,7 @@ export class TimeseriesQueriesService {
         total_cost: Number(stats?.['total_cost'] ?? 0),
         total_tokens: Number(stats?.['total_tokens'] ?? 0),
         sparkline: sparkMap.get(name) ?? [],
+        request_timeout_ms: a.request_timeout_ms,
       };
     });
   }
