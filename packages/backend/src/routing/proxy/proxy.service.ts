@@ -13,6 +13,7 @@ import { shouldTriggerFallback, FALLBACK_EXHAUSTED_STATUS } from './fallback-sta
 import { inferProviderFromModelName } from '../provider-aliases';
 import { Tier, ScorerMessage } from '../scorer/types';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
+import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 
 /**
  * Roles excluded from scoring. OpenClaw (and similar tools) inject a large,
@@ -127,16 +128,17 @@ export class ProxyService {
       agentId,
       userId,
     );
+    const primaryModel = this.normalizeProviderModel(resolved.provider, resolved.model);
 
     this.logger.log(
-      `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
+      `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
     );
 
     const stream = body.stream === true;
     const forward = await this.forwardToProvider(
       resolved.provider,
       resolvedCredentials.apiKey,
-      resolved.model,
+      primaryModel,
       body,
       stream,
       sessionKey,
@@ -159,7 +161,7 @@ export class ProxyService {
           body,
           stream,
           sessionKey,
-          resolved.model,
+          primaryModel,
           signal,
         );
 
@@ -174,7 +176,7 @@ export class ProxyService {
               confidence: resolved.confidence,
               reason: resolved.reason,
               auth_type: resolved.auth_type,
-              fallbackFromModel: resolved.model,
+              fallbackFromModel: primaryModel,
               fallbackIndex: success.fallbackIndex,
               primaryErrorStatus: forward.response.status,
               primaryErrorBody: primaryErrorBody,
@@ -205,7 +207,7 @@ export class ProxyService {
           },
           meta: {
             tier: resolved.tier as Tier,
-            model: resolved.model,
+            model: primaryModel,
             provider: resolved.provider,
             confidence: resolved.confidence,
             reason: resolved.reason,
@@ -222,7 +224,7 @@ export class ProxyService {
       forward,
       meta: {
         tier: resolved.tier as Tier,
-        model: resolved.model,
+        model: primaryModel,
         provider: resolved.provider,
         confidence: resolved.confidence,
         reason: resolved.reason,
@@ -251,25 +253,26 @@ export class ProxyService {
   }> {
     const failures: FailedFallback[] = [];
     for (let i = 0; i < fallbackModels.length; i++) {
-      const model = fallbackModels[i];
-      const pricing = this.pricingCache.getByModel(model);
+      const requestedModel = fallbackModels[i];
+      const pricing = this.pricingCache.getByModel(requestedModel);
 
       // Determine provider: custom prefix → model name inference → pricing cache → user's connected providers
       let provider: string | undefined;
-      if (CustomProviderService.isCustom(model)) {
-        const slashIdx = model.indexOf('/');
-        provider = slashIdx > 0 ? model.substring(0, slashIdx) : model;
+      if (CustomProviderService.isCustom(requestedModel)) {
+        const slashIdx = requestedModel.indexOf('/');
+        provider = slashIdx > 0 ? requestedModel.substring(0, slashIdx) : requestedModel;
       } else {
         provider =
-          inferProviderFromModelName(model) ??
+          inferProviderFromModelName(requestedModel) ??
           pricing?.provider ??
-          (await this.routingService.findProviderForModel(agentId, model));
+          (await this.routingService.findProviderForModel(agentId, requestedModel));
       }
 
       if (!provider) {
-        this.logger.debug(`Fallback ${i}: skipping model=${model} (no provider data)`);
+        this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
         continue;
       }
+      const model = this.normalizeProviderModel(provider, requestedModel);
       const authType = await this.routingService.getAuthType(agentId, provider);
       let apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
       if (apiKey === null) {
@@ -435,5 +438,9 @@ export class ProxyService {
       customEndpoint,
       authType,
     );
+  }
+
+  private normalizeProviderModel(provider: string, model: string): string {
+    return provider.toLowerCase() === 'anthropic' ? normalizeAnthropicShortModelId(model) : model;
   }
 }

@@ -143,6 +143,19 @@ describe('ModelPricingCacheService', () => {
       expect(result!.provider).toBe('Anthropic');
     });
 
+    it('should resolve dash-variant when cached Anthropic model uses dots', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['anthropic/claude-opus-4.6', makeEntry(0.015, 0.075)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
+
+      const result = service.getByModel('claude-opus-4-6');
+      expect(result).toBeDefined();
+      expect(result!.provider).toBe('Anthropic');
+      expect(result!.model_name).toBe('anthropic/claude-opus-4.6');
+    });
+
     it('should resolve date-suffixed model names', async () => {
       const orMap = new Map<string, OpenRouterPricingEntry>([
         ['openai/gpt-4.1', makeEntry(0.01, 0.02)],

@@ -1,3 +1,5 @@
+import { buildAnthropicShortModelIdVariants } from '../common/utils/anthropic-model-id';
+
 /**
  * Resolves variant model names (from telemetry) to canonical pricing names.
  *
@@ -75,10 +77,21 @@ export function buildAliasMap(canonicalNames: ReadonlyArray<string>): Map<string
 
   for (const name of canonicalNames) {
     map.set(name, name);
+    for (const variant of buildAnthropicShortModelIdVariants(name)) {
+      if (!map.has(variant)) {
+        map.set(variant, name);
+      }
+    }
+
     // Also index by bare name (e.g. "claude-sonnet-4" → "anthropic/claude-sonnet-4")
     const bare = stripProviderPrefix(name);
     if (bare !== name && !map.has(bare)) {
       map.set(bare, name);
+    }
+    for (const variant of buildAnthropicShortModelIdVariants(bare)) {
+      if (!map.has(variant)) {
+        map.set(variant, name);
+      }
     }
   }
 

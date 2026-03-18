@@ -7,6 +7,7 @@ import {
   getSubscriptionKnownModels,
   getSubscriptionCapabilities,
 } from '../../../../subscription-capabilities';
+import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 
 interface PricingLookup {
   lookupPricing(key: string): {
@@ -19,6 +20,12 @@ interface PricingLookup {
     string,
     { input: number; output: number; contextWindow?: number; displayName?: string }
   >;
+}
+
+function normalizeProviderModelId(providerId: string, modelId: string): string {
+  return providerId.toLowerCase() === 'anthropic'
+    ? normalizeAnthropicShortModelId(modelId)
+    : modelId;
 }
 
 /**
@@ -99,7 +106,7 @@ export function buildFallbackModels(
 
   for (const [fullId, entry] of pricingSync.getAll()) {
     if (!fullId.startsWith(`${orPrefix}/`)) continue;
-    const modelId = fullId.substring(orPrefix.length + 1);
+    const modelId = normalizeProviderModelId(providerId, fullId.substring(orPrefix.length + 1));
     if (seen.has(modelId)) continue;
     seen.add(modelId);
     models.push({
@@ -141,7 +148,7 @@ export function buildSubscriptionFallbackModels(
   if (pricingSync && orPrefix) {
     for (const [fullId, entry] of pricingSync.getAll()) {
       if (!fullId.startsWith(`${orPrefix}/`)) continue;
-      const modelId = fullId.substring(orPrefix.length + 1);
+      const modelId = normalizeProviderModelId(providerId, fullId.substring(orPrefix.length + 1));
       if (!normalizedKnownPrefixes.some((p: string) => modelId.toLowerCase().startsWith(p))) {
         continue;
       }

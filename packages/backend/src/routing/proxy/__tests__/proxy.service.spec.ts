@@ -213,6 +213,40 @@ describe('ProxyService', () => {
     );
   });
 
+  it('normalizes Anthropic dotted model ids before forwarding', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'complex',
+      model: 'claude-sonnet-4.6',
+      provider: 'Anthropic',
+      confidence: 0.9,
+      score: 0.2,
+      reason: 'scored',
+      auth_type: 'subscription',
+    });
+    routingService.getProviderApiKey.mockResolvedValue('sk-ant-oat');
+    providerClient.forward.mockResolvedValue({
+      response: new Response('{}', { status: 200 }),
+      isGoogle: false,
+      isAnthropic: true,
+      isChatGpt: false,
+    });
+
+    const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+
+    expect(result.meta.model).toBe('claude-sonnet-4-6');
+    expect(providerClient.forward).toHaveBeenCalledWith(
+      'Anthropic',
+      'sk-ant-oat',
+      'claude-sonnet-4-6',
+      body,
+      false,
+      undefined,
+      undefined,
+      undefined,
+      'subscription',
+    );
+  });
+
   it('passes tools and tool_choice to the resolver', async () => {
     resolveService.resolve.mockResolvedValue({
       tier: 'standard',
@@ -1541,6 +1575,55 @@ describe('ProxyService', () => {
         2,
         'agent-1',
         'Anthropic',
+        'subscription',
+      );
+    });
+
+    it('normalizes Anthropic dotted fallback ids before forwarding', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+        auth_type: 'api_key',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-openai')
+        .mockResolvedValueOnce('skst-anthropic-token');
+      routingService.getAuthType.mockResolvedValueOnce('subscription');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('rate limited', { status: 429 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: true,
+          isChatGpt: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['claude-sonnet-4.6'] },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(result.meta.model).toBe('claude-sonnet-4-6');
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        'Anthropic',
+        'skst-anthropic-token',
+        'claude-sonnet-4-6',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
         'subscription',
       );
     });
