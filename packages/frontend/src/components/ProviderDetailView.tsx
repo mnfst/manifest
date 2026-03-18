@@ -12,6 +12,7 @@ import { toast } from '../services/toast-store.js';
 import { CopyButton } from './SetupStepInstall.js';
 import ProviderKeyForm from './ProviderKeyForm.js';
 import OAuthDetailView from './OAuthDetailView.js';
+import DeviceCodeDetailView from './DeviceCodeDetailView.js';
 
 export interface ProviderDetailViewProps {
   provId: string;
@@ -64,17 +65,25 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   };
 
   const isSubMode = () => props.selectedAuthType() === 'subscription';
-  const isOAuthFlow = () => isSubMode() && !!provDef.subscriptionOAuth;
+  const subscriptionAuthMode = () =>
+    provDef.subscriptionAuthMode ??
+    (provDef.subscriptionOAuth ? 'popup_oauth' : undefined) ??
+    (provDef.subscriptionKeyPlaceholder ? 'token' : undefined);
+  const isPopupOAuthFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_oauth';
+  const isDeviceCodeFlow = () => isSubMode() && subscriptionAuthMode() === 'device_code';
+  const shouldRevokeOpenaiOAuth = () => props.provId === 'openai' && isPopupOAuthFlow();
   const isCommandOnly = () =>
     isSubMode() &&
     !!provDef.subscriptionCommand &&
     !provDef.subscriptionKeyPlaceholder &&
-    !provDef.subscriptionOAuth;
+    !subscriptionAuthMode();
   const connected = () =>
     isSubMode()
       ? isCommandOnly()
         ? isSubscriptionConnected()
-        : isSubscriptionWithToken()
+        : subscriptionAuthMode() === 'token'
+          ? isSubscriptionWithToken()
+          : isSubscriptionConnected()
       : isConnectedApiKey() || isNoKeyConnected();
   const isOllama = provDef.noKeyRequired;
 
@@ -98,7 +107,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      if (provDef.subscriptionOAuth && props.selectedAuthType() === 'subscription') {
+      if (shouldRevokeOpenaiOAuth()) {
         await revokeOpenaiOAuth(props.agentName).catch(() => {});
       }
       const result = await disconnectProvider(
@@ -145,8 +154,10 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           <div class="routing-modal__title">Connect providers</div>
           <div class="routing-modal__subtitle">
             {isSubMode()
-              ? isOAuthFlow()
+              ? isPopupOAuthFlow()
                 ? 'Log in to connect your subscription'
+                : isDeviceCodeFlow()
+                  ? 'Verify your account to connect your subscription'
                 : isCommandOnly()
                   ? 'Log in via your browser to connect your subscription'
                   : 'Paste your setup-token to enable routing'
@@ -230,8 +241,24 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       </Show>
 
       {/* OAuth subscription */}
-      <Show when={isOAuthFlow()}>
+      <Show when={isPopupOAuthFlow()}>
         <OAuthDetailView
+          provDef={provDef}
+          provId={props.provId}
+          agentName={props.agentName}
+          connected={connected}
+          selectedAuthType={props.selectedAuthType}
+          busy={props.busy}
+          setBusy={props.setBusy}
+          onBack={props.onBack}
+          onUpdate={props.onUpdate}
+          onClose={props.onClose}
+        />
+      </Show>
+
+      {/* Device-code subscription */}
+      <Show when={isDeviceCodeFlow()}>
+        <DeviceCodeDetailView
           provDef={provDef}
           provId={props.provId}
           agentName={props.agentName}
@@ -275,7 +302,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       </Show>
 
       {/* API key / subscription token form (non-Ollama, non-command-only, non-OAuth) */}
-      <Show when={!isOllama && !isCommandOnly() && !isOAuthFlow()}>
+      <Show when={!isOllama && !isCommandOnly() && !isPopupOAuthFlow() && !isDeviceCodeFlow()}>
         <ProviderKeyForm
           provDef={provDef}
           provId={props.provId}

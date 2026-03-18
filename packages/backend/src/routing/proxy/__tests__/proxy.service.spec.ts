@@ -4,6 +4,7 @@ import { ResolveService } from '../../resolve.service';
 import { RoutingService } from '../../routing.service';
 import { CustomProviderService } from '../../custom-provider.service';
 import { OpenaiOauthService } from '../../openai-oauth.service';
+import { MinimaxOauthService } from '../../minimax-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { SessionMomentumService } from '../session-momentum.service';
 import { LimitCheckService } from '../../../notifications/services/limit-check.service';
@@ -16,6 +17,7 @@ describe('ProxyService', () => {
   let routingService: jest.Mocked<RoutingService>;
   let customProviderService: jest.Mocked<CustomProviderService>;
   let openaiOauth: jest.Mocked<OpenaiOauthService>;
+  let minimaxOauth: jest.Mocked<MinimaxOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let momentum: SessionMomentumService;
   let limitCheck: jest.Mocked<LimitCheckService>;
@@ -55,6 +57,13 @@ describe('ProxyService', () => {
       refreshAccessToken: jest.fn(),
     } as unknown as jest.Mocked<OpenaiOauthService>;
 
+    minimaxOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+      startAuthorization: jest.fn(),
+      pollAuthorization: jest.fn(),
+      refreshAccessToken: jest.fn(),
+    } as unknown as jest.Mocked<MinimaxOauthService>;
+
     pricingCache = {
       getByModel: jest.fn().mockReturnValue(null),
       getAll: jest.fn().mockReturnValue([]),
@@ -65,6 +74,7 @@ describe('ProxyService', () => {
       routingService,
       customProviderService,
       openaiOauth,
+      minimaxOauth,
       providerClient,
       momentum,
       limitCheck,
@@ -203,7 +213,7 @@ describe('ProxyService', () => {
     );
   });
 
-  it('does not pass tools or tool_choice to the resolver', async () => {
+  it('passes tools and tool_choice to the resolver', async () => {
     resolveService.resolve.mockResolvedValue({
       tier: 'standard',
       model: 'gpt-4o',
@@ -229,12 +239,12 @@ describe('ProxyService', () => {
 
     await service.proxyRequest('agent-1', 'user-1', bodyWithTools, 'default');
 
-    // Resolver should receive undefined for tools and tool_choice
+    // Resolver should receive tools and tool_choice for scoring
     expect(resolveService.resolve).toHaveBeenCalledWith(
       'agent-1',
       expect.any(Array),
-      undefined,
-      undefined,
+      bodyWithTools.tools,
+      bodyWithTools.tool_choice,
       undefined,
       undefined,
     );
@@ -1169,6 +1179,73 @@ describe('ProxyService', () => {
       expect(result.meta.model).toBe('claude-sonnet-4');
     });
 
+    it('tries fallback model when primary returns 400', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'simple',
+        model: 'gpt-5.1-codex-mini',
+        provider: 'OpenAI',
+        confidence: 0.7,
+        score: 0.1,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('skst-openai')
+        .mockResolvedValueOnce('sk-deepseek');
+      routingService.getAuthType.mockResolvedValueOnce('api_key');
+      openaiOauth.unwrapToken.mockResolvedValueOnce('oauth-openai');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('{"detail":"Instructions are required"}', { status: 400 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: true,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'simple', fallback_models: ['deepseek-chat'] },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'DeepSeek' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+
+      expect(result.meta.fallbackFromModel).toBe('gpt-5.1-codex-mini');
+      expect(result.meta.fallbackIndex).toBe(0);
+      expect(result.meta.primaryErrorStatus).toBe(400);
+      expect(result.meta.primaryErrorBody).toBe('{"detail":"Instructions are required"}');
+      expect(result.meta.model).toBe('deepseek-chat');
+      expect(result.meta.provider).toBe('DeepSeek');
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        1,
+        'OpenAI',
+        'oauth-openai',
+        'gpt-5.1-codex-mini',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        'DeepSeek',
+        'sk-deepseek',
+        'deepseek-chat',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'api_key',
+      );
+    });
+
     it('returns original error when no fallback models configured', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
@@ -1872,6 +1949,7 @@ describe('ProxyService', () => {
       await service.proxyRequest('agent-1', 'user-1', body, 'sess');
 
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
     });
 
     it('skips unwrap for OpenAI api_key auth', async () => {
@@ -1944,6 +2022,100 @@ describe('ProxyService', () => {
         'user-1',
       );
       expect(result.meta.model).toBe('gpt-4o');
+    });
+
+    it('unwraps JSON token blob for MiniMax subscription and forwards resource URL', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'MiniMax-M2.5',
+        provider: 'minimax',
+        confidence: 1.0,
+        score: 0.5,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      const tokenBlob = JSON.stringify({
+        t: 'minimax-access',
+        r: 'minimax-refresh',
+        e: Date.now() + 60000,
+        u: 'https://api.minimax.io/anthropic',
+      });
+      routingService.getProviderApiKey.mockResolvedValue(tokenBlob);
+      minimaxOauth.unwrapToken.mockResolvedValue({
+        t: 'minimax-access',
+        r: 'minimax-refresh',
+        e: Date.now() + 60000,
+        u: 'https://api.minimax.io/anthropic',
+      });
+      providerClient.forward.mockResolvedValue({
+        response: new Response('ok', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+
+      expect(minimaxOauth.unwrapToken).toHaveBeenCalledWith(tokenBlob, 'agent-1', 'user-1');
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'minimax',
+        'minimax-access',
+        'MiniMax-M2.5',
+        expect.any(Object),
+        false,
+        undefined,
+        undefined,
+        expect.objectContaining({
+          baseUrl: 'https://api.minimax.io/anthropic',
+          format: 'anthropic',
+        }),
+        'subscription',
+      );
+    });
+
+    it('ignores invalid MiniMax resource URLs when forwarding subscription requests', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'MiniMax-M2.5',
+        provider: 'minimax',
+        confidence: 1.0,
+        score: 0.5,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      const tokenBlob = JSON.stringify({
+        t: 'minimax-access',
+        r: 'minimax-refresh',
+        e: Date.now() + 60000,
+        u: 'https://evil.example/anthropic',
+      });
+      routingService.getProviderApiKey.mockResolvedValue(tokenBlob);
+      minimaxOauth.unwrapToken.mockResolvedValue({
+        t: 'minimax-access',
+        r: 'minimax-refresh',
+        e: Date.now() + 60000,
+        u: 'https://evil.example/anthropic',
+      });
+      providerClient.forward.mockResolvedValue({
+        response: new Response('ok', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'minimax',
+        'minimax-access',
+        'MiniMax-M2.5',
+        expect.any(Object),
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
     });
   });
 });

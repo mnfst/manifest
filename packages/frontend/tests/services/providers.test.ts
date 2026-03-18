@@ -279,13 +279,21 @@ describe("PROVIDERS", () => {
     expect(openai.subscriptionLabel).toBe("ChatGPT Plus/Pro/Team");
     expect(openai.subscriptionKeyPlaceholder).toBeUndefined();
     expect(openai.subscriptionCommand).toBeUndefined();
-    expect(openai.subscriptionOAuth).toBe(true);
+    expect(openai.subscriptionAuthMode).toBe("popup_oauth");
   });
 
   it("Anthropic supports subscription", () => {
     const anthropic = PROVIDERS.find((p) => p.id === "anthropic")!;
     expect(anthropic.supportsSubscription).toBe(true);
     expect(anthropic.subscriptionLabel).toBe("Claude Max / Pro subscription");
+    expect(anthropic.subscriptionAuthMode).toBe("token");
+  });
+
+  it("MiniMax supports subscription with device-code flow", () => {
+    const minimax = PROVIDERS.find((p) => p.id === "minimax")!;
+    expect(minimax.supportsSubscription).toBe(true);
+    expect(minimax.subscriptionLabel).toBe("MiniMax Coding Plan");
+    expect(minimax.subscriptionAuthMode).toBe("device_code");
   });
 
   it("requires an API key URL for every provider that needs one", () => {

@@ -30,6 +30,8 @@ import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { OpenaiOauthService } from './openai-oauth.service';
 import { OpenaiOauthController } from './openai-oauth.controller';
+import { MinimaxOauthService } from './minimax-oauth.service';
+import { MinimaxOauthController } from './minimax-oauth.controller';
 
 @Module({
   imports: [
@@ -52,6 +54,7 @@ import { OpenaiOauthController } from './openai-oauth.controller';
     ResolveController,
     ProxyController,
     OpenaiOauthController,
+    MinimaxOauthController,
   ],
   providers: [
     RoutingService,
@@ -69,6 +72,7 @@ import { OpenaiOauthController } from './openai-oauth.controller';
     SessionMomentumService,
     OllamaSyncService,
     OpenaiOauthService,
+    MinimaxOauthService,
   ],
   exports: [
     RoutingService,
@@ -77,6 +81,7 @@ import { OpenaiOauthController } from './openai-oauth.controller';
     TierAutoAssignService,
     ResolveAgentService,
     OpenaiOauthService,
+    MinimaxOauthService,
   ],
 })
 export class RoutingModule {}

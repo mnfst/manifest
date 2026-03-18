@@ -35,6 +35,7 @@ const OPENAI_ONLY_FIELDS = new Set([
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
 const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
+const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
 function supportsReasoningContent(endpointKey: string, model: string): boolean {
   if (endpointKey === 'deepseek') return true;
@@ -161,7 +162,28 @@ function sanitizeOpenAiBody(
     }
     cleaned[key] = value;
   }
+  if (endpointKey === 'deepseek') normalizeDeepSeekMaxTokens(cleaned);
   return cleaned;
+}
+
+function normalizeDeepSeekMaxTokens(body: Record<string, unknown>): void {
+  if (!('max_tokens' in body)) return;
+
+  const raw = body.max_tokens;
+  const parsed =
+    typeof raw === 'number'
+      ? raw
+      : typeof raw === 'string'
+        ? Number(raw)
+        : Number.NaN;
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    delete body.max_tokens;
+    return;
+  }
+
+  body.max_tokens = Math.min(Math.trunc(parsed), DEEPSEEK_MAX_TOKENS_LIMIT);
+  if ((body.max_tokens as number) < 1) delete body.max_tokens;
 }
 
 export interface ForwardResult {
@@ -216,6 +238,8 @@ export class ProviderClient {
       // ChatGPT subscription tokens use a different backend endpoint
       if (resolved === 'openai' && authType === 'subscription') {
         resolved = 'openai-subscription';
+      } else if (resolved === 'minimax' && authType === 'subscription') {
+        resolved = 'minimax-subscription';
       }
       endpointKey = resolved;
       endpoint = PROVIDER_ENDPOINTS[endpointKey];

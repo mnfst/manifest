@@ -23,6 +23,34 @@ export interface SubscriptionProvider {
   authType: string;
 }
 
+interface FetchResponseLike {
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+}
+
+type FetchLike = (
+  input: string,
+  init?: {
+    method?: string;
+    headers?: Record<string, string>;
+    body?: string;
+    signal?: unknown;
+  },
+) => Promise<FetchResponseLike>;
+
+function getFetch(): FetchLike | null {
+  return (globalThis as typeof globalThis & { fetch?: FetchLike }).fetch ?? null;
+}
+
+function getAbortSignalTimeout(ms: number): unknown {
+  return (
+    globalThis as typeof globalThis & {
+      AbortSignal?: { timeout: (timeoutMs: number) => unknown };
+    }
+  ).AbortSignal?.timeout?.(ms);
+}
+
 /**
  * Map OpenClaw provider names from auth-profiles to Manifest provider IDs.
  * OpenClaw uses names like "openai-codex", "google-gemini", "github-copilot"
@@ -42,6 +70,7 @@ const OPENCLAW_TO_MANIFEST: Record<string, string> = {
   moonshot: 'moonshot',
   kimi: 'moonshot',
   minimax: 'minimax',
+  'minimax-portal': 'minimax',
 };
 
 /**
@@ -130,6 +159,12 @@ export async function registerSubscriptionProviders(
   const url = `${baseUrl}/api/v1/routing/subscription-providers`;
 
   try {
+    const fetchImpl = getFetch();
+    if (!fetchImpl) {
+      logger.debug('[manifest] Global fetch is not available');
+      return;
+    }
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -137,13 +172,13 @@ export async function registerSubscriptionProviders(
       headers['Authorization'] = `Bearer ${apiKey}`;
     }
 
-    const res = await fetch(url, {
+    const res = await fetchImpl(url, {
       method: 'POST',
       headers,
       body: JSON.stringify({
         providers: providers.map((p) => ({ provider: p.manifestId })),
       }),
-      signal: AbortSignal.timeout(5000),
+      signal: getAbortSignalTimeout(5000),
     });
 
     if (res.ok) {

@@ -7,18 +7,23 @@
 
 import { randomUUID } from 'crypto';
 
+const DEFAULT_INSTRUCTIONS = 'You are a helpful assistant.';
+
+interface OpenAiMessage {
+  role: string;
+  content: unknown;
+}
+
 /* ── Request conversion ── */
 
 export function toResponsesRequest(
   body: Record<string, unknown>,
   model: string,
 ): Record<string, unknown> {
-  const messages = (body.messages ?? []) as { role: string; content: unknown }[];
+  const messages = (body.messages ?? []) as OpenAiMessage[];
 
-  // Extract system message as instructions
-  const systemMsg = messages.find((m) => m.role === 'system');
   const input = messages
-    .filter((m) => m.role !== 'system')
+    .filter((m) => m.role !== 'system' && m.role !== 'developer')
     .map((m) => ({ role: m.role, content: convertContent(m.content, m.role) }));
 
   const request: Record<string, unknown> = {
@@ -26,11 +31,8 @@ export function toResponsesRequest(
     input,
     stream: body.stream !== false,
     store: false,
+    instructions: extractInstructions(messages),
   };
-
-  if (systemMsg && typeof systemMsg.content === 'string') {
-    request.instructions = systemMsg.content;
-  }
 
   return request;
 }
@@ -161,6 +163,31 @@ function convertContent(content: unknown, role: string): unknown {
     if (part.type === 'text') return { ...part, type: partType };
     return part;
   });
+}
+
+function extractInstructions(messages: OpenAiMessage[]): string {
+  const parts: string[] = [];
+
+  for (const message of messages) {
+    if (message.role !== 'system' && message.role !== 'developer') continue;
+    parts.push(...extractTextParts(message.content));
+  }
+
+  const instructions = parts
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join('\n\n');
+
+  return instructions || DEFAULT_INSTRUCTIONS;
+}
+
+function extractTextParts(content: unknown): string[] {
+  if (typeof content === 'string') return [content];
+  if (!Array.isArray(content)) return [];
+
+  return (content as Array<Record<string, unknown>>)
+    .filter((part) => part.type === 'text' && typeof part.text === 'string')
+    .map((part) => part.text as string);
 }
 
 function safeParse(str: string): Record<string, unknown> | null {

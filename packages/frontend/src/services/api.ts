@@ -382,6 +382,7 @@ export function getRoutingStatus(agentName: string) {
 /* -- Routing: Providers -- */
 
 export type AuthType = 'api_key' | 'subscription';
+export type MinimaxOAuthRegion = 'global' | 'cn';
 
 export interface RoutingProvider {
   id: string;
@@ -391,6 +392,20 @@ export interface RoutingProvider {
   has_api_key: boolean;
   key_prefix?: string | null;
   connected_at: string;
+}
+
+export interface MinimaxOAuthStartResponse {
+  flowId: string;
+  userCode: string;
+  verificationUri: string;
+  expiresAt: number;
+  pollIntervalMs: number;
+}
+
+export interface MinimaxOAuthPollResponse {
+  status: 'pending' | 'success' | 'error';
+  message?: string;
+  pollIntervalMs?: number;
 }
 
 export function getProviders(agentName: string) {
@@ -437,6 +452,19 @@ export function revokeOpenaiOAuth(agentName: string) {
     `${BASE_URL}/oauth/openai/revoke?agentName=${encodeURIComponent(agentName)}`,
     { method: 'POST' },
   );
+}
+
+export function startMinimaxOAuth(agentName: string, region: MinimaxOAuthRegion = 'global') {
+  return fetchMutate<MinimaxOAuthStartResponse>(
+    `${BASE_URL}/oauth/minimax/start?agentName=${encodeURIComponent(agentName)}&region=${encodeURIComponent(region)}`,
+    { method: 'POST' },
+  );
+}
+
+export function pollMinimaxOAuth(flowId: string) {
+  return fetchJson<MinimaxOAuthPollResponse>(`/oauth/minimax/poll`, {
+    flowId,
+  });
 }
 
 export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {

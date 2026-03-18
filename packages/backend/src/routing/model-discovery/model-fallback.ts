@@ -130,6 +130,7 @@ export function buildSubscriptionFallbackModels(
 ): DiscoveredModel[] {
   const knownPrefixes = getSubscriptionKnownModels(providerId);
   if (!knownPrefixes) return [];
+  const normalizedKnownPrefixes = knownPrefixes.map((modelId) => modelId.toLowerCase());
 
   const capabilities = getSubscriptionCapabilities(providerId);
   const models: DiscoveredModel[] = [];
@@ -141,7 +142,9 @@ export function buildSubscriptionFallbackModels(
     for (const [fullId, entry] of pricingSync.getAll()) {
       if (!fullId.startsWith(`${orPrefix}/`)) continue;
       const modelId = fullId.substring(orPrefix.length + 1);
-      if (!knownPrefixes.some((p: string) => modelId.startsWith(p))) continue;
+      if (!normalizedKnownPrefixes.some((p: string) => modelId.toLowerCase().startsWith(p))) {
+        continue;
+      }
       if (seen.has(modelId)) continue;
       seen.add(modelId);
 
@@ -169,7 +172,11 @@ export function buildSubscriptionFallbackModels(
   // (e.g., "claude-opus-4" is covered by "claude-opus-4-20260301").
   const defaultCtx = capabilities?.maxContextWindow ?? 200000;
   for (const modelId of knownPrefixes) {
-    const covered = models.some((m) => m.id === modelId || m.id.startsWith(`${modelId}-`));
+    const lowerModelId = modelId.toLowerCase();
+    const covered = models.some((m) => {
+      const lowerDiscovered = m.id.toLowerCase();
+      return lowerDiscovered === lowerModelId || lowerDiscovered.startsWith(`${lowerModelId}-`);
+    });
     if (covered) continue;
     models.push({
       id: modelId,
@@ -203,8 +210,12 @@ export function supplementWithKnownModels(
   const defaultCtx = capabilities?.maxContextWindow ?? 200000;
 
   for (const modelId of knownModels) {
+    const lowerModelId = modelId.toLowerCase();
     // Skip if this model or a more specific version (e.g., with date suffix) already exists
-    const covered = raw.some((m) => m.id === modelId || m.id.startsWith(`${modelId}-`));
+    const covered = raw.some((m) => {
+      const lowerDiscovered = m.id.toLowerCase();
+      return lowerDiscovered === lowerModelId || lowerDiscovered.startsWith(`${lowerModelId}-`);
+    });
     if (covered) continue;
     raw.push({
       id: modelId,

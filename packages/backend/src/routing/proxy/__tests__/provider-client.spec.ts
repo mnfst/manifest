@@ -282,6 +282,25 @@ describe('ProviderClient', () => {
       expect(sentBody.store).toBe(false);
     });
 
+    it('sends default instructions when no system or developer prompt is present', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'openai',
+        'token',
+        'gpt-5.1-codex-mini',
+        { messages: [{ role: 'user', content: 'Hello' }] },
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.instructions).toBe('You are a helpful assistant.');
+    });
+
     it('sets isChatGpt=false for regular OpenAI api_key auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -681,6 +700,51 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.store).toBeUndefined();
       expect(sentBody.service_tier).toBeUndefined();
+    });
+
+    it('caps DeepSeek max_tokens at the provider limit', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'deepseek',
+        'sk-ds',
+        'deepseek-chat',
+        { ...bodyWithOpenAiFields, max_tokens: 12000 },
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.max_tokens).toBe(8192);
+    });
+
+    it('drops non-positive DeepSeek max_tokens values', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'deepseek',
+        'sk-ds',
+        'deepseek-chat',
+        { ...bodyWithOpenAiFields, max_tokens: 0 },
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.max_tokens).toBeUndefined();
+    });
+
+    it('normalizes string DeepSeek max_tokens values', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'deepseek',
+        'sk-ds',
+        'deepseek-chat',
+        { ...bodyWithOpenAiFields, max_tokens: '9000' as unknown as number },
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.max_tokens).toBe(8192);
     });
 
     it('strips reasoning_content for Mistral assistant messages without mutating the input', async () => {

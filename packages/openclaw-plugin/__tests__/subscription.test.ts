@@ -204,6 +204,7 @@ describe("discoverSubscriptionProviders", () => {
           c: { type: "oauth", provider: "qwen-portal" },
           d: { type: "oauth", provider: "kimi" },
           e: { type: "oauth", provider: "minimax" },
+          f: { type: "oauth", provider: "minimax-portal" },
         },
       }),
     );
@@ -212,6 +213,7 @@ describe("discoverSubscriptionProviders", () => {
     expect(result).toEqual([
       { openclawId: "anthropic", manifestId: "anthropic", authType: "oauth" },
       { openclawId: "github-copilot", manifestId: "openai", authType: "oauth" },
+      { openclawId: "minimax", manifestId: "minimax", authType: "oauth" },
     ]);
   });
 });
@@ -223,12 +225,24 @@ describe("registerSubscriptionProviders", () => {
 
   const mockFetch = jest.fn();
   beforeEach(() => {
-    global.fetch = mockFetch;
+    const globalWithFetch = globalThis as typeof globalThis & { fetch: typeof mockFetch };
+    globalWithFetch.fetch = mockFetch;
   });
 
   it("does nothing when providers array is empty", async () => {
     await registerSubscriptionProviders([], "http://localhost/otlp", "key", mockLogger);
     expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("logs debug when global fetch is unavailable", async () => {
+    const globalWithFetch = globalThis as typeof globalThis & { fetch?: typeof mockFetch };
+    Reflect.deleteProperty(globalWithFetch, "fetch");
+
+    await registerSubscriptionProviders(mockProviders, "http://localhost/otlp", "key", mockLogger);
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      "[manifest] Global fetch is not available",
+    );
   });
 
   it("posts providers to the subscription endpoint", async () => {
@@ -339,6 +353,41 @@ describe("registerSubscriptionProviders", () => {
 
     expect(mockLogger.debug).toHaveBeenCalledWith(
       "[manifest] Error registering subscription providers: timeout",
+    );
+  });
+
+  it("tolerates runtimes without AbortSignal.timeout", async () => {
+    const abortSignalDescriptor = Object.getOwnPropertyDescriptor(globalThis, "AbortSignal");
+    Object.defineProperty(globalThis, "AbortSignal", {
+      configurable: true,
+      value: {},
+    });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ registered: 1 }),
+    });
+
+    try {
+      await registerSubscriptionProviders(
+        mockProviders,
+        "http://localhost/otlp",
+        "key",
+        mockLogger,
+      );
+    } finally {
+      if (abortSignalDescriptor) {
+        Object.defineProperty(globalThis, "AbortSignal", abortSignalDescriptor);
+      } else {
+        Reflect.deleteProperty(globalThis, "AbortSignal");
+      }
+    }
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost/api/v1/routing/subscription-providers",
+      expect.objectContaining({
+        signal: undefined,
+      }),
     );
   });
 });
