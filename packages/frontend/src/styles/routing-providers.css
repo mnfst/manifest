@@ -33,18 +33,46 @@
   position: relative;
 }
 
-.provider-modal__request-link {
-  display: block;
-  text-align: center;
-  padding: 10px 24px 2px;
-  font-size: var(--font-size-sm);
-  color: hsl(var(--muted-foreground));
+/* ── Action row (last item in subscription list: "Request new…") ── */
+.provider-toggle--action {
   text-decoration: none;
+  color: hsl(var(--muted-foreground));
+  border-top: 1px solid hsl(var(--border) / 0.5);
 }
 
-.provider-modal__request-link:hover {
+.provider-toggle__name--action {
+  color: hsl(var(--muted-foreground));
+  font-weight: 400;
+}
+
+.provider-toggle--action:hover .provider-toggle__name--action {
   color: hsl(var(--foreground));
-  text-decoration: underline;
+}
+
+/* ── Disclaimer banner ───────────────────────────────── */
+.provider-modal__disclaimer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 24px 0;
+  padding: 10px 12px;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  background: #fbf9f3;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.provider-modal__disclaimer-label {
+  align-self: flex-start;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--foreground) / 0.35);
+  border-radius: 9999px;
+  padding: 2px 10px;
+  line-height: 1.4;
 }
 
 .provider-modal__footer {
@@ -567,13 +595,41 @@
 }
 
 .provider-modal__add-custom {
-  padding: 8px 24px 4px;
-  display: flex;
-  justify-content: flex-end;
+  padding: 4px 24px 8px;
 }
 
-.provider-modal__add-custom-btn {
+.provider-modal__add-custom-chip {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
+  padding: 6px 14px;
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  font-family: var(--font-family);
+  color: hsl(var(--foreground));
+  background: none;
+  border: 1px solid hsl(var(--border));
+  border-radius: 9999px;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.provider-modal__add-custom-chip:hover {
+  background: hsl(var(--muted) / 0.5);
+  border-color: hsl(var(--foreground) / 0.3);
+}
+
+.provider-modal__add-custom-chip:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.provider-modal__add-custom-chip svg {
+  flex-shrink: 0;
+  color: hsl(var(--muted-foreground));
 }
 
 .custom-provider-item {

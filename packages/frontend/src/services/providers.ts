@@ -20,7 +20,9 @@ export interface ProviderDef {
   subscriptionKeyPlaceholder?: string;
   /** Instructions text shown in the subscription detail view. */
   subscriptionCommand?: string;
-  /** Provider uses browser-based OAuth flow (popup window). */
+  /** UI auth mode for subscription flows. */
+  subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
+  /** Deprecated compatibility flag for popup OAuth providers. */
   subscriptionOAuth?: boolean;
 }
 
@@ -47,6 +49,7 @@ export const PROVIDERS: ProviderDef[] = [
     keyPlaceholder: 'sk-ant-...',
     supportsSubscription: true,
     subscriptionLabel: 'Claude Max / Pro subscription',
+    subscriptionAuthMode: 'token',
     subscriptionKeyPlaceholder: 'Paste your setup-token',
     subscriptionCommand: 'claude setup-token',
     models: [],
@@ -82,6 +85,9 @@ export const PROVIDERS: ProviderDef[] = [
     keyPrefix: 'sk-api-',
     minKeyLength: 30,
     keyPlaceholder: 'sk-api-...',
+    supportsSubscription: true,
+    subscriptionLabel: 'MiniMax Coding Plan',
+    subscriptionAuthMode: 'device_code',
     models: [],
   },
   {
@@ -130,7 +136,7 @@ export const PROVIDERS: ProviderDef[] = [
     keyPlaceholder: 'sk-...',
     supportsSubscription: true,
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
-    subscriptionOAuth: true,
+    subscriptionAuthMode: 'popup_oauth',
     models: [
       { label: 'GPT-4o', value: 'gpt-4o' },
       { label: 'GPT-4o Mini', value: 'gpt-4o-mini' },

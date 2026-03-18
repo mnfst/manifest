@@ -3,14 +3,16 @@ import { ResolveService } from '../resolve.service';
 import { RoutingService } from '../routing.service';
 import { CustomProviderService } from '../custom-provider.service';
 import { OpenaiOauthService } from '../openai-oauth.service';
+import { MinimaxOauthService } from '../minimax-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
-import { buildCustomEndpoint, ProviderEndpoint } from './provider-endpoints';
+import { buildCustomEndpoint, buildEndpointOverride, ProviderEndpoint } from './provider-endpoints';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback, FALLBACK_EXHAUSTED_STATUS } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../provider-aliases';
 import { Tier, ScorerMessage } from '../scorer/types';
+import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
 
 /**
  * Roles excluded from scoring. OpenClaw (and similar tools) inject a large,
@@ -60,6 +62,7 @@ export class ProxyService {
     private readonly routingService: RoutingService,
     private readonly customProviderService: CustomProviderService,
     private readonly openaiOauth: OpenaiOauthService,
+    private readonly minimaxOauth: MinimaxOauthService,
     private readonly providerClient: ProviderClient,
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
@@ -83,6 +86,7 @@ export class ProxyService {
     await this.enforceLimits(tenantId, agentName);
 
     const scoringMessages = this.filterScoringMessages(messages as ScorerMessage[]);
+    const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;
     const isHeartbeat = this.detectHeartbeat(scoringMessages);
     const recentTiers = this.momentum.getRecentTiers(sessionKey);
 
@@ -91,8 +95,8 @@ export class ProxyService {
       : await this.resolveService.resolve(
           agentId,
           scoringMessages,
-          undefined,
-          undefined,
+          scoringTools,
+          body.tool_choice,
           body.max_tokens as number | undefined,
           recentTiers,
         );
@@ -119,7 +123,7 @@ export class ProxyService {
       );
     }
 
-    apiKey = await this.resolveApiKey(
+    const resolvedCredentials = await this.resolveApiKey(
       resolved.provider,
       apiKey,
       resolved.auth_type,
@@ -134,13 +138,14 @@ export class ProxyService {
     const stream = body.stream === true;
     const forward = await this.tryForwardToProvider(
       resolved.provider,
-      apiKey,
+      resolvedCredentials.apiKey,
       resolved.model,
       body,
       stream,
       sessionKey,
       signal,
       resolved.auth_type,
+      resolvedCredentials.resourceUrl,
     );
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
@@ -277,7 +282,13 @@ export class ProxyService {
         continue;
       }
 
-      apiKey = await this.resolveApiKey(provider, apiKey, authType, agentId, userId);
+      const resolvedCredentials = await this.resolveApiKey(
+        provider,
+        apiKey,
+        authType,
+        agentId,
+        userId,
+      );
 
       this.logger.log(
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
@@ -285,13 +296,14 @@ export class ProxyService {
 
       const forward = await this.tryForwardToProvider(
         provider,
-        apiKey,
+        resolvedCredentials.apiKey,
         model,
         body,
         stream,
         sessionKey,
         signal,
         authType,
+        resolvedCredentials.resourceUrl,
       );
 
       if (forward.response.ok) {
@@ -317,12 +329,19 @@ export class ProxyService {
     authType: string | undefined,
     agentId: string,
     userId: string,
-  ): Promise<string> {
-    if (authType === 'subscription' && provider.toLowerCase() === 'openai') {
-      const unwrapped = await this.openaiOauth.unwrapToken(apiKey, agentId, userId);
-      if (unwrapped) return unwrapped;
+  ): Promise<{ apiKey: string; resourceUrl?: string }> {
+    if (authType === 'subscription') {
+      const lower = provider.toLowerCase();
+      if (lower === 'openai') {
+        const unwrapped = await this.openaiOauth.unwrapToken(apiKey, agentId, userId);
+        if (unwrapped) return { apiKey: unwrapped };
+      }
+      if (lower === 'minimax') {
+        const unwrapped = await this.minimaxOauth.unwrapToken(apiKey, agentId, userId);
+        if (unwrapped) return { apiKey: unwrapped.t, resourceUrl: unwrapped.u };
+      }
     }
-    return apiKey;
+    return { apiKey };
   }
 
   private async tryForwardToProvider(
@@ -334,6 +353,7 @@ export class ProxyService {
     sessionKey: string,
     signal?: AbortSignal,
     authType?: string,
+    resourceUrl?: string,
   ): Promise<ForwardResult> {
     try {
       return await this.forwardToProvider(
@@ -345,6 +365,7 @@ export class ProxyService {
         sessionKey,
         signal,
         authType,
+        resourceUrl,
       );
     } catch (error) {
       if (signal?.aborted) throw error;
@@ -503,6 +524,7 @@ export class ProxyService {
     sessionKey: string,
     signal?: AbortSignal,
     authType?: string,
+    resourceUrl?: string,
   ): Promise<ForwardResult> {
     const extraHeaders: Record<string, string> = {};
     if (provider === 'xai') {
@@ -519,6 +541,17 @@ export class ProxyService {
       if (cp) {
         customEndpoint = buildCustomEndpoint(cp.base_url);
         forwardModel = CustomProviderService.rawModelName(model);
+      }
+    } else if (
+      authType === 'subscription' &&
+      provider.toLowerCase() === 'minimax' &&
+      resourceUrl
+    ) {
+      const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
+      if (minimaxBaseUrl) {
+        customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
+      } else {
+        this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
       }
     }
 

@@ -1,5 +1,25 @@
 # manifest
 
+## 5.28.0
+
+### Minor Changes
+
+- 9dad875: Fix MiniMax OAuth subscription setup by handling region-specific endpoints, normalizing device-code timing values, and aligning fallback model metadata with the documented MiniMax model IDs.
+
+### Patch Changes
+
+- 1a94edb: Normalize DeepSeek `max_tokens` before forwarding requests so out-of-range values do not hard-fail upstream.
+- 3536bc8: Preserve Codex subscription instructions in proxied OpenAI requests so Codex backend calls do not fail with "Instructions are required".
+- 4b31e82: Pass request tools and tool_choice into routing resolution so tool-aware scoring uses the actual proxy request context.
+- 5e282bb: Stop cross-auth credential fallback when an auth type is explicitly requested.
+  Requests that resolve to `auth_type: api_key` now only use API key credentials (and likewise for `subscription`) instead of silently decrypting another auth record.
+
+## 5.27.1
+
+### Patch Changes
+
+- 4edcde8: Improve Add Provider modal: merge custom providers alphabetically with standard providers, add experimental disclaimer for subscription tab, use pill-style action chips for "Add custom provider" and "Request new subscription model"
+
 ## 5.27.0
 
 ### Minor Changes

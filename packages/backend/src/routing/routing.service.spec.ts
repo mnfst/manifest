@@ -1885,7 +1885,7 @@ describe('RoutingService', () => {
       expect(result).toBe('sk-api-key');
     });
 
-    it('should fall back to subscription when preferred api_key has no encrypted key', async () => {
+    it('should return null when preferred api_key has no encrypted key', async () => {
       const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
       const secret = getEncryptionSecret();
       const subTokenEncrypted = encrypt('skst-fallback', secret);
@@ -1908,7 +1908,33 @@ describe('RoutingService', () => {
       ]);
 
       const result = await service.getProviderApiKey('a1', 'anthropic', 'api_key');
-      expect(result).toBe('skst-fallback');
+      expect(result).toBeNull();
+    });
+
+    it('should return null when preferred subscription has no encrypted key', async () => {
+      const { encrypt, getEncryptionSecret } = await import('../common/utils/crypto.util');
+      const secret = getEncryptionSecret();
+      const apiKeyEncrypted = encrypt('sk-api-key', secret);
+
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'subscription',
+          api_key_encrypted: null,
+        },
+        {
+          agent_id: 'a1',
+          provider: 'anthropic',
+          is_active: true,
+          auth_type: 'api_key',
+          api_key_encrypted: apiKeyEncrypted,
+        },
+      ]);
+
+      const result = await service.getProviderApiKey('a1', 'anthropic', 'subscription');
+      expect(result).toBeNull();
     });
 
     it('should return null for custom: provider when decrypt fails', async () => {
