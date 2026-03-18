@@ -1,4 +1,4 @@
-import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
@@ -26,7 +26,6 @@ import { CommonModule } from './common/common.module';
 import { SseModule } from './sse/sse.module';
 import { GithubModule } from './github/github.module';
 import { AppController } from './app/app.controller';
-import { SpaFallbackMiddleware } from './app/spa-fallback.middleware';
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const sessionGuardClass = isLocalMode ? LocalAuthGuard : SessionGuard;
@@ -83,14 +82,6 @@ const serveStaticImports = frontendPath
     { provide: APP_GUARD, useClass: sessionGuardClass },
     { provide: APP_GUARD, useClass: ApiKeyGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
-    SpaFallbackMiddleware,
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(SpaFallbackMiddleware)
-      .exclude('/api/(.*)', '/otlp/(.*)', '/v1/(.*)')
-      .forRoutes('*');
-  }
-}
+export class AppModule {}

@@ -1,10 +1,18 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
+import { Public } from '../common/decorators/public.decorator';
 
 /**
  * App Controller
  *
- * Currently serves as a placeholder for future app-level routes.
- * SPA routing is handled by SpaFallbackMiddleware.
+ * Root controller for the application.
  */
 @Controller()
-export class AppController {}
+export class AppController {
+  @Public()
+  @Get()
+  root() {
+    // ServeStaticModule will handle serving index.html
+    // This route is just a placeholder
+    return { message: 'Manifest is running' };
+  }
+}
