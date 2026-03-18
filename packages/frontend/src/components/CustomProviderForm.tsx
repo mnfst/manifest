@@ -38,6 +38,7 @@ const CustomProviderForm: Component<Props> = (props) => {
 
   const [name, setName] = createSignal(props.initialData?.name ?? '');
   const [baseUrl, setBaseUrl] = createSignal(props.initialData?.base_url ?? '');
+  const [pathSuffix, setPathSuffix] = createSignal(props.initialData?.path_suffix ?? '');
   const [apiKey, setApiKey] = createSignal('');
   const [editingKey, setEditingKey] = createSignal(false);
   const [rows, setRows] = createSignal<ModelRow[]>(
@@ -81,6 +82,7 @@ const CustomProviderForm: Component<Props> = (props) => {
       await createCustomProvider(props.agentName, {
         name: name().trim(),
         base_url: baseUrl().trim(),
+        path_suffix: pathSuffix().trim() || null,
         apiKey: apiKey().trim() || undefined,
         models: buildModels(),
       });
@@ -98,6 +100,7 @@ const CustomProviderForm: Component<Props> = (props) => {
     const data: Record<string, unknown> = {
       name: name().trim(),
       base_url: baseUrl().trim(),
+      path_suffix: pathSuffix().trim() || null,
       models: buildModels(),
     };
     if (editingKey()) {
@@ -197,6 +200,26 @@ const CustomProviderForm: Component<Props> = (props) => {
             value={baseUrl()}
             onInput={(e) => {
               setBaseUrl(e.currentTarget.value);
+              setError(null);
+            }}
+          />
+        </div>
+
+        <div class="provider-detail__field">
+          <label class="provider-detail__label" for="cp-path-suffix">
+            Path Suffix{' '}
+            <span style="color: hsl(var(--muted-foreground)); font-weight: 400;">
+              (optional, defaults to /v1/chat/completions)
+            </span>
+          </label>
+          <input
+            id="cp-path-suffix"
+            class="provider-detail__input"
+            type="text"
+            placeholder="e.g. /chat/completions"
+            value={pathSuffix()}
+            onInput={(e) => {
+              setPathSuffix(e.currentTarget.value);
               setError(null);
             }}
           />

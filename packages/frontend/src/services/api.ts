@@ -582,6 +582,7 @@ export interface CustomProviderData {
   id: string;
   name: string;
   base_url: string;
+  path_suffix?: string | null;
   has_api_key: boolean;
   models: CustomProviderModel[];
   created_at: string;
@@ -598,6 +599,7 @@ export function createCustomProvider(
   data: {
     name: string;
     base_url: string;
+    path_suffix?: string | null;
     apiKey?: string;
     models: CustomProviderModel[];
   },
@@ -618,6 +620,7 @@ export function updateCustomProvider(
   data: {
     name?: string;
     base_url?: string;
+    path_suffix?: string | null;
     apiKey?: string;
     models?: CustomProviderModel[];
   },
