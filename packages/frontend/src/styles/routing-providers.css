@@ -51,28 +51,28 @@
 
 /* ── Disclaimer banner ───────────────────────────────── */
 .provider-modal__disclaimer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin: 4px 24px 0;
-  padding: 8px 12px;
+  padding: 10px 12px;
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
-  line-height: 1.45;
+  line-height: 1.5;
   background: #fbf9f3;
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
 }
 
 .provider-modal__disclaimer-label {
-  display: inline-block;
-  font-size: 10px;
+  align-self: flex-start;
+  font-size: var(--font-size-xs);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--foreground) / 0.4);
+  border: 1px solid hsl(var(--foreground) / 0.35);
   border-radius: 9999px;
-  padding: 1px 7px;
-  margin-right: 6px;
-  vertical-align: middle;
+  padding: 2px 10px;
+  line-height: 1.4;
 }
 
 .provider-modal__footer {

@@ -21,8 +21,10 @@ const ProviderSubscriptionTab: Component<Props> = (props) => {
       </div>
       <div class="provider-modal__disclaimer">
         <span class="provider-modal__disclaimer-label">Experimental</span>
-        Using OAuth from certain providers with AI agents may lead to account restrictions or bans.
-        Use at your own risk.
+        <span>
+          Using OAuth from certain providers with AI agents may lead to account restrictions or
+          bans. Use at your own risk.
+        </span>
       </div>
       <div class="provider-modal__list">
         <For each={props.subscriptionProviders}>
