@@ -249,6 +249,7 @@ export class AggregationService {
     currentName: string,
     newName: string,
     displayName?: string,
+    requestTimeoutMs?: number,
   ): Promise<void> {
     const agent = await this.agentRepo
       .createQueryBuilder('a')
@@ -261,13 +262,20 @@ export class AggregationService {
       throw new NotFoundException(`Agent "${currentName}" not found`);
     }
 
-    // If only display_name changes (same slug), short-circuit
+    // If only display_name or timeout changes (same slug), short-circuit
     if (newName === currentName) {
+      const updates: Record<string, unknown> = {};
       if (displayName !== undefined) {
+        updates.display_name = displayName;
+      }
+      if (requestTimeoutMs !== undefined) {
+        updates.request_timeout_ms = requestTimeoutMs;
+      }
+      if (Object.keys(updates).length > 0) {
         await this.agentRepo
           .createQueryBuilder()
           .update('agents')
-          .set({ display_name: displayName })
+          .set(updates)
           .where('id = :id', { id: agent.id })
           .execute();
       }
@@ -288,6 +296,7 @@ export class AggregationService {
     await this.dataSource.transaction(async (manager) => {
       const agentUpdate: Record<string, unknown> = { name: newName };
       if (displayName !== undefined) agentUpdate['display_name'] = displayName;
+      if (requestTimeoutMs !== undefined) agentUpdate['request_timeout_ms'] = requestTimeoutMs;
 
       await manager
         .createQueryBuilder()
