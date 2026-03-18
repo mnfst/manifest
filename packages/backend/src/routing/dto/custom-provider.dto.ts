@@ -56,6 +56,14 @@ export class CreateCustomProviderDto {
 
   @IsOptional()
   @IsString()
+  @Matches(/^\/[a-zA-Z0-9/_-]*$/, {
+    message:
+      'Path suffix must start with / and contain only letters, numbers, slashes, hyphens, and underscores',
+  })
+  path_suffix?: string;
+
+  @IsOptional()
+  @IsString()
   apiKey?: string;
 
   @IsArray()
@@ -82,6 +90,14 @@ export class UpdateCustomProviderDto {
   @IsNotEmpty()
   @IsUrl({ require_tld: false, require_protocol: true }, { message: 'Must be a valid URL' })
   base_url?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\/[a-zA-Z0-9/_-]*$/, {
+    message:
+      'Path suffix must start with / and contain only letters, numbers, slashes, hyphens, and underscores',
+  })
+  path_suffix?: string;
 
   @IsOptional()
   @IsString()
