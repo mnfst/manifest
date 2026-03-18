@@ -4,6 +4,7 @@ import { ResolveService } from '../../resolve.service';
 import { RoutingService } from '../../routing.service';
 import { CustomProviderService } from '../../custom-provider.service';
 import { OpenaiOauthService } from '../../openai-oauth.service';
+import { MinimaxOauthService } from '../../minimax-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { SessionMomentumService } from '../session-momentum.service';
 import { LimitCheckService } from '../../../notifications/services/limit-check.service';
@@ -16,6 +17,7 @@ describe('ProxyService', () => {
   let routingService: jest.Mocked<RoutingService>;
   let customProviderService: jest.Mocked<CustomProviderService>;
   let openaiOauth: jest.Mocked<OpenaiOauthService>;
+  let minimaxOauth: jest.Mocked<MinimaxOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let momentum: SessionMomentumService;
   let limitCheck: jest.Mocked<LimitCheckService>;
@@ -55,6 +57,13 @@ describe('ProxyService', () => {
       refreshAccessToken: jest.fn(),
     } as unknown as jest.Mocked<OpenaiOauthService>;
 
+    minimaxOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+      startAuthorization: jest.fn(),
+      pollAuthorization: jest.fn(),
+      refreshAccessToken: jest.fn(),
+    } as unknown as jest.Mocked<MinimaxOauthService>;
+
     pricingCache = {
       getByModel: jest.fn().mockReturnValue(null),
       getAll: jest.fn().mockReturnValue([]),
@@ -65,6 +74,7 @@ describe('ProxyService', () => {
       routingService,
       customProviderService,
       openaiOauth,
+      minimaxOauth,
       providerClient,
       momentum,
       limitCheck,
@@ -1939,6 +1949,7 @@ describe('ProxyService', () => {
       await service.proxyRequest('agent-1', 'user-1', body, 'sess');
 
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
     });
 
     it('skips unwrap for OpenAI api_key auth', async () => {
@@ -2011,6 +2022,100 @@ describe('ProxyService', () => {
         'user-1',
       );
       expect(result.meta.model).toBe('gpt-4o');
+    });
+
+    it('unwraps JSON token blob for MiniMax subscription and forwards resource URL', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'MiniMax-M2.5',
+        provider: 'minimax',
+        confidence: 1.0,
+        score: 0.5,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      const tokenBlob = JSON.stringify({
+        t: 'minimax-access',
+        r: 'minimax-refresh',
+        e: Date.now() + 60000,
+        u: 'https://api.minimax.io/anthropic',
+      });
+      routingService.getProviderApiKey.mockResolvedValue(tokenBlob);
+      minimaxOauth.unwrapToken.mockResolvedValue({
+        t: 'minimax-access',
+        r: 'minimax-refresh',
+        e: Date.now() + 60000,
+        u: 'https://api.minimax.io/anthropic',
+      });
+      providerClient.forward.mockResolvedValue({
+        response: new Response('ok', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+
+      expect(minimaxOauth.unwrapToken).toHaveBeenCalledWith(tokenBlob, 'agent-1', 'user-1');
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'minimax',
+        'minimax-access',
+        'MiniMax-M2.5',
+        expect.any(Object),
+        false,
+        undefined,
+        undefined,
+        expect.objectContaining({
+          baseUrl: 'https://api.minimax.io/anthropic',
+          format: 'anthropic',
+        }),
+        'subscription',
+      );
+    });
+
+    it('ignores invalid MiniMax resource URLs when forwarding subscription requests', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'MiniMax-M2.5',
+        provider: 'minimax',
+        confidence: 1.0,
+        score: 0.5,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      const tokenBlob = JSON.stringify({
+        t: 'minimax-access',
+        r: 'minimax-refresh',
+        e: Date.now() + 60000,
+        u: 'https://evil.example/anthropic',
+      });
+      routingService.getProviderApiKey.mockResolvedValue(tokenBlob);
+      minimaxOauth.unwrapToken.mockResolvedValue({
+        t: 'minimax-access',
+        r: 'minimax-refresh',
+        e: Date.now() + 60000,
+        u: 'https://evil.example/anthropic',
+      });
+      providerClient.forward.mockResolvedValue({
+        response: new Response('ok', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        'minimax',
+        'minimax-access',
+        'MiniMax-M2.5',
+        expect.any(Object),
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
     });
   });
 });

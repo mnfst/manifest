@@ -164,6 +164,8 @@ export class ProviderClient {
       // ChatGPT subscription tokens use a different backend endpoint
       if (resolved === 'openai' && authType === 'subscription') {
         resolved = 'openai-subscription';
+      } else if (resolved === 'minimax' && authType === 'subscription') {
+        resolved = 'minimax-subscription';
       }
       endpointKey = resolved;
       endpoint = PROVIDER_ENDPOINTS[endpointKey];
