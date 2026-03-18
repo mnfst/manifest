@@ -2,6 +2,7 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
+import { resolveFrontendDir } from '../common/utils/frontend-path';
 
 /**
  * SPA Fallback Middleware
@@ -13,15 +14,11 @@ import * as path from 'path';
  */
 @Injectable()
 export class SpaFallbackMiddleware implements NestMiddleware {
-  private readonly indexPath: string;
-  private readonly frontendDir: string;
+  private readonly indexPath: string | null;
 
   constructor() {
-    // In the plugin context, frontend is in public/
-    const moduleDir = path.dirname(__filename);
-    const distDir = path.join(moduleDir, '..', '..', '..', '..', 'dist');
-    this.frontendDir = path.join(distDir, 'public');
-    this.indexPath = path.join(this.frontendDir, 'index.html');
+    const frontendDir = resolveFrontendDir();
+    this.indexPath = frontendDir ? path.join(frontendDir, 'index.html') : null;
   }
 
   use(req: Request, res: Response, next: NextFunction) {
@@ -36,7 +33,7 @@ export class SpaFallbackMiddleware implements NestMiddleware {
     }
 
     // If index.html doesn't exist, let it 404 normally
-    if (!fs.existsSync(this.indexPath)) {
+    if (!this.indexPath || !fs.existsSync(this.indexPath)) {
       return next();
     }
 
