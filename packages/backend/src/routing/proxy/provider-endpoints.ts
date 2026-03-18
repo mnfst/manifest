@@ -137,11 +137,10 @@ export function buildCustomEndpoint(baseUrl: string, pathSuffix?: string | null)
   // Strip trailing /v1 (or /v1/) since openaiPath already includes /v1
   const normalized = normalizeProviderBaseUrl(baseUrl);
 
-  // Use custom path suffix if provided, otherwise default to /chat/completions (not /v1/chat/completions)
-  // This allows custom providers like GLM Coding Plan to work correctly
+  // Use custom path suffix if provided, otherwise default to /v1/chat/completions for backwards compatibility
   const buildPath = pathSuffix
     ? () => pathSuffix.startsWith('/') ? pathSuffix : `/${pathSuffix}`
-    : () => '/chat/completions';
+    : openaiPath;
 
   return {
     baseUrl: normalized,
