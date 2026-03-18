@@ -96,12 +96,7 @@ function normalizeDeepSeekMaxTokens(body: Record<string, unknown>): void {
   if (!('max_tokens' in body)) return;
 
   const raw = body.max_tokens;
-  const parsed =
-    typeof raw === 'number'
-      ? raw
-      : typeof raw === 'string'
-        ? Number(raw)
-        : Number.NaN;
+  const parsed = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : Number.NaN;
 
   if (!Number.isFinite(parsed) || parsed <= 0) {
     delete body.max_tokens;
@@ -149,6 +144,7 @@ export class ProviderClient {
     extraHeaders?: Record<string, string>,
     customEndpoint?: ProviderEndpoint,
     authType?: string,
+    timeoutMs?: number,
   ): Promise<ForwardResult> {
     let endpoint: ProviderEndpoint;
     let endpointKey: string;
@@ -213,7 +209,8 @@ export class ProviderClient {
     const safeUrl = url.replace(/key=[^&]+/, 'key=***');
     this.logger.debug(`Forwarding to ${endpointKey}: ${safeUrl}`);
 
-    const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
+    const effectiveTimeout = timeoutMs ?? PROVIDER_TIMEOUT_MS;
+    const timeoutSignal = AbortSignal.timeout(effectiveTimeout);
     const fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
 
     const response = await fetch(url, {

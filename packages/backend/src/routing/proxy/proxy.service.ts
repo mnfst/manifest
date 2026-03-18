@@ -1,4 +1,6 @@
 import { Injectable, Logger, BadRequestException, HttpException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { ResolveService } from '../resolve.service';
 import { RoutingService } from '../routing.service';
 import { CustomProviderService } from '../custom-provider.service';
@@ -13,6 +15,7 @@ import { shouldTriggerFallback, FALLBACK_EXHAUSTED_STATUS } from './fallback-sta
 import { inferProviderFromModelName } from '../provider-aliases';
 import { Tier, ScorerMessage } from '../scorer/types';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
+import { Agent } from '../../entities/agent.entity';
 
 /**
  * Roles excluded from scoring. OpenClaw (and similar tools) inject a large,
@@ -64,6 +67,7 @@ export class ProxyService {
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
     private readonly pricingCache: ModelPricingCacheService,
+    @InjectRepository(Agent) private readonly agentRepo: Repository<Agent>,
   ) {}
 
   async proxyRequest(
@@ -140,6 +144,7 @@ export class ProxyService {
       body,
       stream,
       sessionKey,
+      agentId,
       signal,
       resolved.auth_type,
       resolvedCredentials.resourceUrl,
@@ -298,6 +303,7 @@ export class ProxyService {
         body,
         stream,
         sessionKey,
+        agentId,
         signal,
         authType,
         resolvedCredentials.resourceUrl,
@@ -391,6 +397,7 @@ export class ProxyService {
     body: Record<string, unknown>,
     stream: boolean,
     sessionKey: string,
+    agentId: string,
     signal?: AbortSignal,
     authType?: string,
     resourceUrl?: string,
@@ -411,11 +418,7 @@ export class ProxyService {
         customEndpoint = buildCustomEndpoint(cp.base_url, cp.path_suffix);
         forwardModel = CustomProviderService.rawModelName(model);
       }
-    } else if (
-      authType === 'subscription' &&
-      provider.toLowerCase() === 'minimax' &&
-      resourceUrl
-    ) {
+    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax' && resourceUrl) {
       const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
       if (minimaxBaseUrl) {
         customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
@@ -423,6 +426,10 @@ export class ProxyService {
         this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
       }
     }
+
+    // Get agent-specific timeout or use default
+    const agent = await this.agentRepo.findOne({ where: { id: agentId } });
+    const timeoutMs = agent?.request_timeout_ms ?? undefined;
 
     return this.providerClient.forward(
       provider,
@@ -434,6 +441,7 @@ export class ProxyService {
       hasExtraHeaders ? extraHeaders : undefined,
       customEndpoint,
       authType,
+      timeoutMs,
     );
   }
 }
