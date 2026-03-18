@@ -1,5 +1,11 @@
 # manifest
 
+## 5.27.1
+
+### Patch Changes
+
+- 4edcde8: Improve Add Provider modal: merge custom providers alphabetically with standard providers, add experimental disclaimer for subscription tab, use pill-style action chips for "Add custom provider" and "Request new subscription model"
+
 ## 5.27.0
 
 ### Minor Changes
