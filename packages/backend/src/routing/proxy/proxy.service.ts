@@ -80,6 +80,7 @@ export class ProxyService {
     await this.enforceLimits(tenantId, agentName);
 
     const scoringMessages = this.filterScoringMessages(messages as ScorerMessage[]);
+    const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;
     const isHeartbeat = this.detectHeartbeat(scoringMessages);
     const recentTiers = this.momentum.getRecentTiers(sessionKey);
 
@@ -88,8 +89,8 @@ export class ProxyService {
       : await this.resolveService.resolve(
           agentId,
           scoringMessages,
-          undefined,
-          undefined,
+          scoringTools,
+          body.tool_choice,
           body.max_tokens as number | undefined,
           recentTiers,
         );

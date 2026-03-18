@@ -203,7 +203,7 @@ describe('ProxyService', () => {
     );
   });
 
-  it('does not pass tools or tool_choice to the resolver', async () => {
+  it('passes tools and tool_choice to the resolver', async () => {
     resolveService.resolve.mockResolvedValue({
       tier: 'standard',
       model: 'gpt-4o',
@@ -229,12 +229,12 @@ describe('ProxyService', () => {
 
     await service.proxyRequest('agent-1', 'user-1', bodyWithTools, 'default');
 
-    // Resolver should receive undefined for tools and tool_choice
+    // Resolver should receive tools and tool_choice for scoring
     expect(resolveService.resolve).toHaveBeenCalledWith(
       'agent-1',
       expect.any(Array),
-      undefined,
-      undefined,
+      bodyWithTools.tools,
+      bodyWithTools.tool_choice,
       undefined,
       undefined,
     );
