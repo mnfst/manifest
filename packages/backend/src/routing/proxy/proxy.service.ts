@@ -408,7 +408,7 @@ export class ProxyService {
       const cpId = CustomProviderService.extractId(provider);
       const cp = await this.customProviderService.getById(cpId);
       if (cp) {
-        customEndpoint = buildCustomEndpoint(cp.base_url);
+        customEndpoint = buildCustomEndpoint(cp.base_url, cp.path_suffix);
         forwardModel = CustomProviderService.rawModelName(model);
       }
     } else if (

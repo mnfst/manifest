@@ -27,6 +27,9 @@ export class CustomProvider {
   @Column('varchar')
   base_url!: string;
 
+  @Column('varchar', { nullable: true, default: null })
+  path_suffix!: string | null;
+
   @Column('simple-json')
   models!: CustomProviderModel[];
 

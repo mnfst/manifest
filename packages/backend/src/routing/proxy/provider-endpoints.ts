@@ -133,13 +133,20 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
 };
 
 /** Build a ProviderEndpoint for a custom provider with the given base URL. */
-export function buildCustomEndpoint(baseUrl: string): ProviderEndpoint {
+export function buildCustomEndpoint(baseUrl: string, pathSuffix?: string | null): ProviderEndpoint {
   // Strip trailing /v1 (or /v1/) since openaiPath already includes /v1
   const normalized = normalizeProviderBaseUrl(baseUrl);
+
+  // Use custom path suffix if provided, otherwise default to /chat/completions (not /v1/chat/completions)
+  // This allows custom providers like GLM Coding Plan to work correctly
+  const buildPath = pathSuffix
+    ? () => pathSuffix.startsWith('/') ? pathSuffix : `/${pathSuffix}`
+    : () => '/chat/completions';
+
   return {
     baseUrl: normalized,
     buildHeaders: openaiHeaders,
-    buildPath: openaiPath,
+    buildPath,
     format: 'openai',
   };
 }
