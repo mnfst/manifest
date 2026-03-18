@@ -1,3 +1,4 @@
+---
 "manifest": patch
 ---
 
