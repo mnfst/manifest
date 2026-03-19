@@ -1,12 +1,4 @@
-import {
-  Entity,
-  Column,
-  PrimaryColumn,
-  ManyToOne,
-  JoinColumn,
-  OneToOne,
-  Index,
-} from 'typeorm';
+import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, OneToOne, Index } from 'typeorm';
 import { Tenant } from './tenant.entity';
 import { AgentApiKey } from './agent-api-key.entity';
 import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
@@ -28,6 +20,9 @@ export class Agent {
 
   @Column('boolean', { default: true })
   is_active!: boolean;
+
+  @Column('int', { nullable: true, default: null })
+  request_timeout_ms!: number | null;
 
   @ManyToOne(() => Tenant, (t) => t.agents, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenant_id' })

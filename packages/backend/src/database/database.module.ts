@@ -56,6 +56,7 @@ import { AddModelsAgentIndex1773202787708 } from './migrations/1773202787708-Add
 import { AddEmailProviderKeyPrefix1773300000000 } from './migrations/1773300000000-AddEmailProviderKeyPrefix';
 import { AddProviderModelCache1773400000000 } from './migrations/1773400000000-AddProviderModelCache';
 import { DropModelPricingTables1773500000000 } from './migrations/1773500000000-DropModelPricingTables';
+import { AddAgentRequestTimeout1773600000000 } from './migrations/1773600000000-AddAgentRequestTimeout';
 
 const entities = [
   AgentMessage,
@@ -112,6 +113,7 @@ const migrations = [
   AddEmailProviderKeyPrefix1773300000000,
   AddProviderModelCache1773400000000,
   DropModelPricingTables1773500000000,
+  AddAgentRequestTimeout1773600000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';

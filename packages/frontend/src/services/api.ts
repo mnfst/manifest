@@ -170,13 +170,17 @@ export function rotateAgentKey(agentName: string) {
   );
 }
 
-export function renameAgent(currentName: string, newName: string) {
+export function renameAgent(currentName: string, newName: string, requestTimeoutMs?: number) {
+  const body: { name: string; request_timeout_ms?: number } = { name: newName };
+  if (requestTimeoutMs !== undefined) {
+    body.request_timeout_ms = requestTimeoutMs;
+  }
   return fetchMutate<{ renamed: boolean; name: string }>(
     `${BASE_URL}/agents/${encodeURIComponent(currentName)}`,
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newName }),
+      body: JSON.stringify(body),
     },
   );
 }
@@ -582,6 +586,7 @@ export interface CustomProviderData {
   id: string;
   name: string;
   base_url: string;
+  path_suffix?: string | null;
   has_api_key: boolean;
   models: CustomProviderModel[];
   created_at: string;
@@ -598,6 +603,7 @@ export function createCustomProvider(
   data: {
     name: string;
     base_url: string;
+    path_suffix?: string | null;
     apiKey?: string;
     models: CustomProviderModel[];
   },
@@ -618,6 +624,7 @@ export function updateCustomProvider(
   data: {
     name?: string;
     base_url?: string;
+    path_suffix?: string | null;
     apiKey?: string;
     models?: CustomProviderModel[];
   },
