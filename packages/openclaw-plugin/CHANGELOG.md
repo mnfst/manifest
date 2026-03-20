@@ -1,5 +1,11 @@
 # manifest
 
+## 5.28.1
+
+### Patch Changes
+
+- cb636c6: Fix subscription disclaimer card contrast in dark mode and rename label from "Experimental" to "Notice"
+
 ## 5.28.0
 
 ### Minor Changes
