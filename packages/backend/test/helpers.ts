@@ -48,6 +48,63 @@ export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
 const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig];
+const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
+const OPENROUTER_MODELS_FIXTURE = {
+  data: [
+    {
+      id: 'openai/gpt-4o',
+      name: 'OpenAI: GPT-4o',
+      context_length: 128000,
+      architecture: {
+        input_modalities: ['text'],
+        output_modalities: ['text'],
+      },
+      pricing: {
+        prompt: '0.0000025',
+        completion: '0.00001',
+      },
+    },
+    {
+      id: 'openai/gpt-4o-mini',
+      name: 'OpenAI: GPT-4o Mini',
+      context_length: 128000,
+      architecture: {
+        input_modalities: ['text'],
+        output_modalities: ['text'],
+      },
+      pricing: {
+        prompt: '0.00000015',
+        completion: '0.0000006',
+      },
+    },
+    {
+      id: 'anthropic/claude-opus-4-6',
+      name: 'Anthropic: Claude Opus 4.6',
+      context_length: 200000,
+      architecture: {
+        input_modalities: ['text'],
+        output_modalities: ['text'],
+      },
+      pricing: {
+        prompt: '0.000015',
+        completion: '0.000075',
+      },
+    },
+    {
+      id: 'z-ai/glm-5',
+      name: 'Z.ai: GLM-5',
+      context_length: 128000,
+      architecture: {
+        input_modalities: ['text'],
+        output_modalities: ['text'],
+      },
+      pricing: {
+        prompt: '0.000002',
+        completion: '0.000008',
+      },
+    },
+  ],
+} as const;
 
 function buildTypeOrmConfig(): TypeOrmModuleOptions {
   return {
@@ -86,67 +143,100 @@ export async function createTestApp(): Promise<INestApplication> {
   process.env['API_KEY'] = TEST_API_KEY;
   process.env['NODE_ENV'] = 'test';
   process.env['BETTER_AUTH_SECRET'] = process.env['BETTER_AUTH_SECRET'] ?? 'test-secret-for-e2e-at-least-32chars!!';
+  const restoreFetch = stubOpenRouterPricingFetch();
 
-  const moduleFixture: TestingModule = await Test.createTestingModule({
-    imports: [
-      ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
-      CacheModule.register({ isGlobal: true, ttl: 5000 }),
-      ThrottlerModule.forRoot([{ ttl: 60000, limit: 1000 }]),
-      TypeOrmModule.forRoot(buildTypeOrmConfig()),
-      TypeOrmModule.forFeature(entities),
-      CommonModule,
-      HealthModule,
-      TelemetryModule,
-      AnalyticsModule,
-      SecurityModule,
-      OtlpModule,
-      NotificationsModule,
-      ModelPricesModule,
-      RoutingModule,
-    ],
-    providers: [
-      { provide: APP_GUARD, useClass: MockSessionGuard },
-    ],
-  }).compile();
+  try {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
+        CacheModule.register({ isGlobal: true, ttl: 5000 }),
+        ThrottlerModule.forRoot([{ ttl: 60000, limit: 1000 }]),
+        TypeOrmModule.forRoot(buildTypeOrmConfig()),
+        TypeOrmModule.forFeature(entities),
+        CommonModule,
+        HealthModule,
+        TelemetryModule,
+        AnalyticsModule,
+        SecurityModule,
+        OtlpModule,
+        NotificationsModule,
+        ModelPricesModule,
+        RoutingModule,
+      ],
+      providers: [
+        { provide: APP_GUARD, useClass: MockSessionGuard },
+      ],
+    }).compile();
 
-  const app = moduleFixture.createNestApplication();
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
-  await app.init();
+    const app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    );
+    await app.init();
 
-  const ds = app.get(DataSource);
-  const dialect = detectDialect(ds.options.type as string);
-  const sql = (query: string) => portableSql(query, dialect);
-  const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+    const ds = app.get(DataSource);
+    const dialect = detectDialect(ds.options.type as string);
+    const sql = (query: string) => portableSql(query, dialect);
+    const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
-  // Seed test API key (hashed)
-  await ds.query(
-    sql(`INSERT INTO api_keys (id, key, key_hash, key_prefix, user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6)`),
-    ['test-key-id', hashKey(TEST_API_KEY), keyPrefix(TEST_API_KEY), TEST_USER_ID, 'Test Key', now],
-  );
+    // Seed test API key (hashed)
+    await ds.query(
+      sql(`INSERT INTO api_keys (id, key, key_hash, key_prefix, user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6)`),
+      ['test-key-id', hashKey(TEST_API_KEY), keyPrefix(TEST_API_KEY), TEST_USER_ID, 'Test Key', now],
+    );
 
-  // Seed test tenant, agent, and OTLP key (hashed)
-  await ds.query(
-    sql(`INSERT INTO tenants (id, name, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,true,$4,$5)`),
-    [TEST_TENANT_ID, TEST_USER_ID, 'Test Org', now, now],
-  );
-  await ds.query(
-    sql(`INSERT INTO agents (id, name, display_name, description, is_active, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6,$7)`),
-    [TEST_AGENT_ID, 'test-agent', 'Test Agent', 'Test agent', TEST_TENANT_ID, now, now],
-  );
-  await ds.query(
-    sql(`INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`),
-    ['test-otlp-key-id', hashKey(TEST_OTLP_KEY), keyPrefix(TEST_OTLP_KEY), 'Test OTLP Key', TEST_TENANT_ID, TEST_AGENT_ID, now],
-  );
+    // Seed test tenant, agent, and OTLP key (hashed)
+    await ds.query(
+      sql(`INSERT INTO tenants (id, name, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,true,$4,$5)`),
+      [TEST_TENANT_ID, TEST_USER_ID, 'Test Org', now, now],
+    );
+    await ds.query(
+      sql(`INSERT INTO agents (id, name, display_name, description, is_active, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6,$7)`),
+      [TEST_AGENT_ID, 'test-agent', 'Test Agent', 'Test agent', TEST_TENANT_ID, now, now],
+    );
+    await ds.query(
+      sql(`INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`),
+      ['test-otlp-key-id', hashKey(TEST_OTLP_KEY), keyPrefix(TEST_OTLP_KEY), 'Test OTLP Key', TEST_TENANT_ID, TEST_AGENT_ID, now],
+    );
 
-  // Reload pricing cache so cost calculations use OpenRouter data
-  const pricingCache = app.get(ModelPricingCacheService);
-  await pricingCache.reload();
+    // Reload pricing cache from deterministic fixture data to keep e2e startup fast.
+    const pricingCache = app.get(ModelPricingCacheService);
+    await pricingCache.reload();
 
-  return app;
+    return app;
+  } finally {
+    restoreFetch();
+  }
+}
+
+function stubOpenRouterPricingFetch(): () => void {
+  const originalFetch = global.fetch;
+
+  global.fetch = (async (
+    input: Parameters<typeof fetch>[0],
+    init?: Parameters<typeof fetch>[1],
+  ): Promise<Response> => {
+    const url = getFetchUrl(input);
+    if (url === OPENROUTER_MODELS_URL) {
+      return new Response(JSON.stringify(OPENROUTER_MODELS_FIXTURE), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    return originalFetch(input, init);
+  }) as typeof fetch;
+
+  return () => {
+    global.fetch = originalFetch;
+  };
+}
+
+function getFetchUrl(input: Parameters<typeof fetch>[0]): string {
+  if (typeof input === 'string') return input;
+  if (input instanceof URL) return input.toString();
+  return input.url;
 }
