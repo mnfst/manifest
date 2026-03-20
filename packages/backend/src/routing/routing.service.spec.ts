@@ -342,6 +342,80 @@ describe('RoutingService', () => {
       ]);
     });
 
+    it('should keep native-only models when an unsupported subscription provider still has an api key', async () => {
+      mockProviderRepo.find
+        .mockResolvedValueOnce([
+          {
+            id: 'p1',
+            agent_id: 'a1',
+            provider: 'deepseek',
+            auth_type: 'subscription',
+            is_active: true,
+            cached_models: [{ id: 'deepseek-native-only', provider: 'deepseek' }],
+          },
+          {
+            id: 'p2',
+            agent_id: 'a1',
+            provider: 'deepseek',
+            auth_type: 'api_key',
+            is_active: true,
+          },
+          {
+            id: 'p3',
+            agent_id: 'a1',
+            provider: 'groq',
+            auth_type: 'subscription',
+            is_active: true,
+            cached_models: [{ id: 'groq-native-only', provider: 'groq' }],
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            id: 'p1',
+            agent_id: 'a1',
+            provider: 'deepseek',
+            auth_type: 'subscription',
+            is_active: false,
+          },
+          {
+            id: 'p2',
+            agent_id: 'a1',
+            provider: 'deepseek',
+            auth_type: 'api_key',
+            is_active: true,
+          },
+          {
+            id: 'p3',
+            agent_id: 'a1',
+            provider: 'groq',
+            auth_type: 'subscription',
+            is_active: false,
+          },
+        ]);
+
+      const override = Object.assign(new TierAssignment(), {
+        id: 'tier-1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: 'deepseek-native-only',
+      });
+      mockTierRepo.find.mockResolvedValueOnce([override]).mockResolvedValueOnce([]);
+
+      const result = await service.getProviders('a1');
+
+      expect(override.override_model).toBe('deepseek-native-only');
+      expect(mockTierRepo.save).not.toHaveBeenCalled();
+      expect(result).toEqual([
+        {
+          id: 'p2',
+          agent_id: 'a1',
+          provider: 'deepseek',
+          auth_type: 'api_key',
+          is_active: true,
+        },
+      ]);
+    });
+
     it('should return cached providers without hitting DB', async () => {
       const providers = [{ id: 'p1', agent_id: 'a1', provider: 'openai' }] as UserProvider[];
       mockRoutingCache.setProviders('a1', providers);

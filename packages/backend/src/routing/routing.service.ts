@@ -179,9 +179,14 @@ export class RoutingService {
     );
 
     if (removedProviders.length > 0) {
-      const removedModels = unsupported.flatMap((record) =>
-        Array.isArray(record.cached_models) ? record.cached_models.map((model) => model.id) : [],
+      const removedProviderSet = new Set(
+        removedProviders.map((provider) => provider.toLowerCase()),
       );
+      const removedModels = unsupported
+        .filter((record) => removedProviderSet.has(record.provider.toLowerCase()))
+        .flatMap((record) =>
+          Array.isArray(record.cached_models) ? record.cached_models.map((model) => model.id) : [],
+        );
       const { hadTierAssignments } = await this.clearTierAssignmentsForProviders(
         agentId,
         removedProviders,

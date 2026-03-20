@@ -884,7 +884,9 @@ describe('ModelDiscoveryService', () => {
       // With a subscription provider, known subscription models are still supplemented
       // even when the live token-based fetch returns no rows.
       expect(fetcher.fetch).toHaveBeenCalled();
-      expect(result.length).toBeGreaterThanOrEqual(0);
+      expect(result.map((model) => model.id)).toEqual(
+        expect.arrayContaining(['gpt-5.4', 'gpt-5.2-codex']),
+      );
     });
 
     it('should stamp authType as api_key for regular providers', async () => {
