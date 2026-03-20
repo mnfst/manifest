@@ -25,7 +25,7 @@ const ProviderSubscriptionTab: Component<Props> = (props) => {
         setup-token.
       </div>
       <div class="provider-modal__disclaimer">
-        <span class="provider-modal__disclaimer-label">Experimental</span>
+        <span class="provider-modal__disclaimer-label">Notice</span>
         <span>
           Using OAuth from certain providers with AI agents may lead to account restrictions or
           bans. Use at your own risk.

@@ -59,7 +59,7 @@
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
   line-height: 1.5;
-  background: #fbf9f3;
+  background: hsl(var(--muted));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
 }
