@@ -1,3 +1,4 @@
+import { PROVIDER_REGISTRY } from '../../../common/constants/providers';
 import { buildCustomEndpoint, resolveEndpointKey, PROVIDER_ENDPOINTS } from '../provider-endpoints';
 
 describe('buildCustomEndpoint', () => {
@@ -55,6 +56,11 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('z.ai')).toBe('zai');
   });
 
+  it('resolves qwen and alibaba to qwen', () => {
+    expect(resolveEndpointKey('qwen')).toBe('qwen');
+    expect(resolveEndpointKey('alibaba')).toBe('qwen');
+  });
+
   it('returns custom: key as-is for custom providers', () => {
     expect(resolveEndpointKey('custom:abc-123')).toBe('custom:abc-123');
     expect(resolveEndpointKey('custom:uuid-456')).toBe('custom:uuid-456');
@@ -70,8 +76,18 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('openai');
     expect(known).toContain('anthropic');
     expect(known).toContain('google');
+    expect(known).toContain('qwen');
     expect(known).toContain('openrouter');
     expect(known).toContain('ollama');
+  });
+
+  it('resolves every built-in provider id and alias from the registry', () => {
+    for (const entry of PROVIDER_REGISTRY) {
+      expect(resolveEndpointKey(entry.id)).not.toBeNull();
+      for (const alias of entry.aliases) {
+        expect(resolveEndpointKey(alias)).not.toBeNull();
+      }
+    }
   });
 });
 
@@ -92,6 +108,13 @@ describe('PROVIDER_ENDPOINTS', () => {
 
   it('zai uses openai format', () => {
     expect(PROVIDER_ENDPOINTS['zai'].format).toBe('openai');
+  });
+
+  it('qwen uses DashScope compatible-mode endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['qwen'];
+    expect(ep.baseUrl).toBe('https://dashscope.aliyuncs.com/compatible-mode');
+    expect(ep.buildPath('qwen3-235b-a22b')).toBe('/v1/chat/completions');
+    expect(ep.format).toBe('openai');
   });
 
   it('anthropic uses x-api-key for api_key auth', () => {

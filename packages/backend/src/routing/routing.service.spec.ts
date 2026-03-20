@@ -267,6 +267,23 @@ describe('RoutingService', () => {
       expect(result).toBe('anthropic/claude-sonnet-4');
     });
 
+    it('should fall back to auto for qwen overrides missing from discovered models', async () => {
+      const assignment = {
+        override_model: 'qwen3.5-9b',
+        auto_assigned_model: 'qwen3.5-flash',
+      } as TierAssignment;
+
+      mockPricingCache.getByModel.mockReturnValue({
+        provider: 'Alibaba',
+        model_name: 'qwen/qwen3.5-9b',
+      });
+      mockProviderRepo.find.mockResolvedValue([{ provider: 'qwen', is_active: true }]);
+
+      const result = await service.getEffectiveModel('a1', assignment);
+
+      expect(result).toBe('qwen3.5-flash');
+    });
+
     it('should return override_model when discovered by ModelDiscoveryService', async () => {
       const assignment = {
         override_model: 'ollama/llama3',
@@ -421,6 +438,75 @@ describe('RoutingService', () => {
       expect(result.provider.provider).toBe('openai');
       expect(result.provider.is_active).toBe(true);
       expect(result.isNew).toBe(true);
+    });
+
+    it('should store a manual qwen region on create', async () => {
+      mockProviderRepo.findOne.mockResolvedValue(null);
+
+      const result = await service.upsertProvider(
+        'a1',
+        'u1',
+        'qwen',
+        'sk-qwen-test',
+        'api_key',
+        'singapore',
+      );
+
+      const inserted = mockProviderRepo.insert.mock.calls[0][0];
+      expect(inserted.region).toBe('singapore');
+      expect(result.provider.region).toBe('singapore');
+    });
+
+    it('should auto-detect qwen region when no region is provided', async () => {
+      mockProviderRepo.findOne.mockResolvedValue(null);
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce(new Response('{}', { status: 401 }))
+        .mockResolvedValueOnce(new Response('{}', { status: 200 })) as typeof fetch;
+
+      const result = await service.upsertProvider('a1', 'u1', 'qwen', 'sk-qwen-test', 'api_key');
+
+      expect(result.provider.region).toBe('us');
+    });
+
+    it('should update qwen region without replacing the existing key', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        user_id: 'u1',
+        agent_id: 'a1',
+        provider: 'qwen',
+        auth_type: 'api_key',
+        api_key_encrypted: 'old-encrypted',
+        key_prefix: 'old-pref',
+        region: 'beijing',
+        is_active: true,
+      });
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+
+      const result = await service.upsertProvider(
+        'a1',
+        'u1',
+        'qwen',
+        undefined,
+        'api_key',
+        'singapore',
+      );
+
+      expect(result.provider.api_key_encrypted).toBe('old-encrypted');
+      expect(result.provider.region).toBe('singapore');
+    });
+
+    it('should reject qwen auto region when no official endpoint succeeds', async () => {
+      mockProviderRepo.findOne.mockResolvedValue(null);
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue(new Response('{}', { status: 401 })) as typeof fetch;
+
+      await expect(
+        service.upsertProvider('a1', 'u1', 'qwen', 'sk-qwen-test', 'api_key', 'auto'),
+      ).rejects.toThrow(
+        'Could not auto-detect Alibaba region from this API key. Verify the key and try again.',
+      );
     });
 
     it('should create a new provider without apiKey (null encrypted)', async () => {
@@ -689,6 +775,34 @@ describe('RoutingService', () => {
       );
       // No save call means no api_key was deactivated
       expect(mockProviderRepo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getProviderRegion', () => {
+    it('returns the stored region for the matching provider record', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          provider: 'qwen',
+          auth_type: 'api_key',
+          is_active: true,
+          region: 'singapore',
+        },
+      ]);
+
+      await expect(service.getProviderRegion('a1', 'qwen', 'api_key')).resolves.toBe('singapore');
+    });
+
+    it('returns null when no region is stored', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          provider: 'openai',
+          auth_type: 'api_key',
+          is_active: true,
+          region: null,
+        },
+      ]);
+
+      await expect(service.getProviderRegion('a1', 'openai', 'api_key')).resolves.toBeNull();
     });
   });
 

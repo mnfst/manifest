@@ -867,6 +867,38 @@ describe('ModelDiscoveryService', () => {
       expect(result.length).toBeGreaterThanOrEqual(0);
     });
 
+    it('should not build pricing fallback models for qwen when native discovery returns empty', async () => {
+      fetcher.fetch.mockResolvedValue([]);
+      mockPricingSync.getAll.mockReturnValue(
+        new Map([
+          [
+            'qwen/qwen3.5-9b',
+            {
+              input: 0.0000001,
+              output: 0.0000002,
+              contextWindow: 128000,
+              displayName: 'qwen3.5-9b',
+            },
+          ],
+        ]),
+      );
+
+      const provider = makeProvider({
+        provider: 'qwen',
+        region: 'singapore',
+      });
+      const result = await service.discoverModels(provider);
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'qwen',
+        'decrypted-key',
+        'api_key',
+        'https://dashscope-intl.aliyuncs.com/compatible-mode',
+      );
+      expect(result).toEqual([]);
+      expect(provider.cached_models).toEqual([]);
+    });
+
     it('should stamp authType as api_key for regular providers', async () => {
       const models = [makeModel({ id: 'gpt-4o' })];
       fetcher.fetch.mockResolvedValue(models);

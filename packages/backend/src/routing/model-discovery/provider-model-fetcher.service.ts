@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DiscoveredModel, FetcherConfig } from './model-fetcher';
 import { OLLAMA_HOST } from '../../common/constants/ollama';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
+import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../qwen-region';
 
 const FETCH_TIMEOUT_MS = 5000;
 const DEFAULT_CONTEXT_WINDOW = 128000;
@@ -264,7 +265,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     parse: parseAnthropic,
   },
   qwen: {
-    endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/models',
+    endpoint: `${getQwenCompatibleBaseUrl('beijing')}/v1/models`,
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
@@ -337,6 +338,13 @@ export class ProviderModelFetcherService {
         url = `${minimaxBaseUrl}/v1/models?limit=100`;
       } else {
         this.logger.warn('Ignoring invalid MiniMax subscription endpoint override');
+      }
+    } else if (endpointOverride && configKey === 'qwen') {
+      const qwenBaseUrl = normalizeQwenCompatibleBaseUrl(endpointOverride);
+      if (qwenBaseUrl) {
+        url = `${qwenBaseUrl}/v1/models`;
+      } else {
+        this.logger.warn('Ignoring invalid Qwen endpoint override');
       }
     }
 

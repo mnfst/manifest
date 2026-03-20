@@ -9,6 +9,7 @@ import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { computeQualityScore } from '../../database/quality-score.util';
 import { PricingSyncService } from '../../database/pricing-sync.service';
 import { parseOAuthTokenBlob } from '../openai-oauth.types';
+import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
 import {
   findOpenRouterPrefix,
   lookupWithVariants,
@@ -19,6 +20,11 @@ import {
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
 const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
+
+function isQwenProvider(providerId: string): boolean {
+  const lower = providerId.toLowerCase();
+  return lower === 'qwen' || lower === 'alibaba';
+}
 
 @Injectable()
 export class ModelDiscoveryService {
@@ -38,6 +44,7 @@ export class ModelDiscoveryService {
   async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
     let apiKey = '';
     let endpointOverride: string | undefined;
+    const lowerProvider = provider.provider.toLowerCase();
     if (provider.api_key_encrypted) {
       try {
         apiKey = decrypt(provider.api_key_encrypted, getEncryptionSecret());
@@ -50,7 +57,6 @@ export class ModelDiscoveryService {
     // OAuth-backed subscription providers store an encrypted token blob.
     // Unwrap it so model discovery can call the provider-native /models endpoint.
     if (provider.auth_type === 'subscription' && apiKey) {
-      const lowerProvider = provider.provider.toLowerCase();
       if (lowerProvider === 'openai' || lowerProvider === 'minimax') {
         const blob = parseOAuthTokenBlob(apiKey);
         if (blob?.t) {
@@ -60,6 +66,9 @@ export class ModelDiscoveryService {
           }
         }
       }
+    }
+    if (isQwenProvider(provider.provider) && isQwenResolvedRegion(provider.region)) {
+      endpointOverride = getQwenCompatibleBaseUrl(provider.region);
     }
 
     let raw: DiscoveredModel[];
@@ -80,8 +89,9 @@ export class ModelDiscoveryService {
         endpointOverride,
       );
 
-      // If native API returned no models, fall back to OpenRouter + manual pricing
-      if (raw.length === 0) {
+      // If native API returned no models, fall back to OpenRouter + manual pricing.
+      // Qwen is excluded because OpenRouter/pricing ids can diverge from DashScope ids.
+      if (raw.length === 0 && !isQwenProvider(provider.provider)) {
         raw = buildFallbackModels(this.pricingSync, provider.provider);
         if (raw.length > 0) {
           this.logger.log(

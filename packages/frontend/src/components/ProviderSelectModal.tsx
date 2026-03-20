@@ -7,9 +7,7 @@ import {
   type CustomProviderData,
   type RoutingProvider,
 } from '../services/api.js';
-import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { isLocalMode } from '../services/local-mode.js';
-import { customProviderColor } from '../services/formatters.js';
 import { toast } from '../services/toast-store.js';
 import CustomProviderForm from './CustomProviderForm.js';
 import ProviderDetailView from './ProviderDetailView.js';

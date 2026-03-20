@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { RoutingService } from './routing.service';
@@ -15,6 +25,7 @@ import {
   SetOverrideDto,
   SetFallbacksDto,
 } from './dto/routing.dto';
+import { isQwenRegion } from './qwen-region';
 
 @Controller('api/v1/routing')
 export class RoutingController {
@@ -49,6 +60,7 @@ export class RoutingController {
       is_active: p.is_active,
       has_api_key: !!p.api_key_encrypted,
       key_prefix: p.key_prefix ?? null,
+      region: p.region ?? null,
       connected_at: p.connected_at,
     }));
   }
@@ -60,6 +72,17 @@ export class RoutingController {
     @Body() body: ConnectProviderDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const lowerProvider = body.provider.toLowerCase();
+    const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';
+
+    if (body.region !== undefined) {
+      if (!isQwenProvider) {
+        throw new BadRequestException('region is only supported for Alibaba/Qwen providers');
+      }
+      if (!isQwenRegion(body.region)) {
+        throw new BadRequestException('region must be one of: auto, singapore, us, beijing');
+      }
+    }
 
     // Sync Ollama models before connecting so tier assignment has data
     if (body.provider.toLowerCase() === 'ollama') {
@@ -72,6 +95,7 @@ export class RoutingController {
       body.provider,
       body.apiKey,
       body.authType,
+      body.region,
     );
 
     // Discover models and recalculate tiers before returning so the
@@ -96,6 +120,7 @@ export class RoutingController {
       provider: result.provider,
       auth_type: result.auth_type ?? 'api_key',
       is_active: result.is_active,
+      region: result.region ?? null,
     };
   }
 

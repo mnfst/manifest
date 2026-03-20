@@ -1,6 +1,7 @@
 import { OLLAMA_HOST } from '../../common/constants/ollama';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 import { normalizeProviderBaseUrl } from '../provider-base-url';
+import { getQwenCompatibleBaseUrl } from '../qwen-region';
 
 export interface ProviderEndpoint {
   baseUrl: string;
@@ -102,6 +103,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   moonshot: {
     baseUrl: 'https://api.moonshot.cn',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
+  qwen: {
+    baseUrl: getQwenCompatibleBaseUrl('beijing'),
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
