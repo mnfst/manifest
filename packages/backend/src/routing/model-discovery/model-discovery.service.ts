@@ -12,7 +12,6 @@ import { parseOAuthTokenBlob } from '../openai-oauth.types';
 import {
   findOpenRouterPrefix,
   lookupWithVariants,
-  buildFallbackModels,
   buildSubscriptionFallbackModels,
   supplementWithKnownModels,
 } from './model-fallback';
@@ -79,16 +78,6 @@ export class ModelDiscoveryService {
         provider.auth_type,
         endpointOverride,
       );
-
-      // If native API returned no models, fall back to OpenRouter + manual pricing
-      if (raw.length === 0) {
-        raw = buildFallbackModels(this.pricingSync, provider.provider);
-        if (raw.length > 0) {
-          this.logger.log(
-            `Native API returned 0 models for ${provider.provider} — using ${raw.length} models from pricing data`,
-          );
-        }
-      }
     }
 
     // For subscription providers, supplement with knownModels so users can
