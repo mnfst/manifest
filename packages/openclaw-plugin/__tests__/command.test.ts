@@ -51,7 +51,6 @@ describe("registerCommand", () => {
       endpointReachable: true,
       authValid: true,
       agentName: "test-agent",
-      telemetryId: null,
       error: null,
     });
 
@@ -73,7 +72,6 @@ describe("registerCommand", () => {
       endpointReachable: false,
       authValid: false,
       agentName: null,
-      telemetryId: null,
       error: "Cannot reach endpoint: ECONNREFUSED",
     });
 
@@ -116,7 +114,6 @@ describe("registerCommand", () => {
       endpointReachable: true,
       authValid: true,
       agentName: null,
-      telemetryId: null,
       error: null,
     });
 

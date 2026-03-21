@@ -6,7 +6,6 @@ import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
 import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
-import { trackCloudEvent } from '../common/utils/product-telemetry';
 import {
   AgentNameParamDto,
   AgentProviderParamDto,
@@ -81,14 +80,6 @@ export class RoutingController {
       await this.routingService.recalculateTiers(agent.id);
     } catch {
       // Discovery failure is non-fatal — user can retry via "Refresh models"
-    }
-
-    if (isNew) {
-      const providerLabel =
-        body.authType === 'subscription' ? `${body.provider} (Subscription)` : body.provider;
-      trackCloudEvent('routing_provider_connected', user.id, {
-        provider: providerLabel,
-      });
     }
 
     return {
