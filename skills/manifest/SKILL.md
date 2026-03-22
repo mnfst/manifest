@@ -16,7 +16,7 @@ Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT l
 
 ## Security & Privacy
 
-> **TL;DR** — No user prompts or assistant responses are stored or collected by Manifest's telemetry pipeline. No file contents are transmitted. The API key (`mnfst_*`) authenticates your telemetry — it is not exfiltration. When `manifest/auto` routing is active, the last 10 non-system messages (`{role, content}` only) are sent to the routing endpoint for scoring — disable this by setting a fixed model. In local mode, all Manifest data stays on your machine.
+> **TL;DR** — OTLP telemetry collects only metadata (model, tokens, latency, tool names) — never prompt or response text. When `manifest/auto` routing is active, the last 10 non-system messages are sent to the routing endpoint for tier scoring; set a fixed model to avoid this. The API key (`mnfst_*`) authenticates your telemetry — it is not exfiltration. In local mode, all data stays on your machine.
 
 ### External Endpoints
 
