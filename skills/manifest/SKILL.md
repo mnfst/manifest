@@ -1,7 +1,7 @@
 ---
 name: manifest
 description: Smart LLM Router for OpenClaw. Save up to 70% by routing every request to the right model. No coding required.
-metadata: {"openclaw":{"requires":{"bins":["openclaw"],"env":["MANIFEST_API_KEY"],"config":["plugins.entries.manifest.config.apiKey"]},"primaryEnv":"MANIFEST_API_KEY","homepage":"https://github.com/mnfst/manifest"}}
+metadata: {"openclaw":{"requires":{"bins":["openclaw"]},"primaryEnv":"MANIFEST_API_KEY","homepage":"https://github.com/mnfst/manifest"}}
 ---
 
 # Manifest — LLM Router & Observability for OpenClaw
@@ -45,7 +45,7 @@ Exhaustive list of attributes sent per span:
 - `manifest.routing.reason` — routing reason (if routed)
 - Error status: agent errors truncated to 500 chars; tool errors include `event.error.message` untruncated
 
-**Not collected**: user prompts, assistant responses, tool input/output arguments, file contents, or any message body.
+**Not collected by OTLP telemetry**: user prompts, assistant responses, tool input/output arguments, file contents, or any message body. Note: when `manifest/auto` routing is active, the last 10 non-system messages (`{role, content}` only) are sent to the routing endpoint for tier scoring — see Routing Data below. To avoid this, set a fixed model instead of `manifest/auto`.
 
 ### Routing Data
 
