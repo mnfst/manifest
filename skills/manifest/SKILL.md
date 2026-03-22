@@ -1,7 +1,7 @@
 ---
 name: manifest
-description: Smart LLM Router for OpenClaw. Save up to 70% by routing every request to the right model. No coding required.
-metadata: {"openclaw":{"requires":{"bins":["openclaw"]},"primaryEnv":"MANIFEST_API_KEY","homepage":"https://github.com/mnfst/manifest"}}
+description: Model Router for OpenClaw. Save up to 70% by routing requests to the right model. Choose LLM fallback to avoid API rate limits, set thresholds and reduce token consumption.
+metadata: {"openclaw":{"requires":{"bins":["openclaw"]},"homepage":"https://github.com/mnfst/manifest"}}
 ---
 
 # Manifest — LLM Router & Observability for OpenClaw
