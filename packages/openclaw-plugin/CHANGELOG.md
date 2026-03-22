@@ -1,5 +1,14 @@
 # manifest
 
+## 5.28.3
+
+### Patch Changes
+
+- 44c8bcd: Normalize OpenAI-style tool call IDs when forwarding chat completions to Mistral so fallback requests remain compatible with Mistral's 9-character alphanumeric tool-call ID requirement.
+- f72e8a3: Fix SKILL.md scanner contradictions: qualify "Not collected" statement to clarify OTLP vs routing data, remove MANIFEST_API_KEY from required env metadata since local mode doesn't need it.
+- c3fd8c2: Rewrite SKILL.md TL;DR to remove blanket "not collected" claim that contradicted routing behavior. Now precisely states what each data path does.
+- f4f6b1a: Slim down SKILL.md to essential setup and usage instructions. Detailed security, privacy, routing, and troubleshooting docs moved to GitHub README.
+
 ## 5.28.2
 
 ### Patch Changes
