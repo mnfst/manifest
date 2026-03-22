@@ -1,6 +1,6 @@
 ---
 name: manifest
-description: Smart LLM Router for OpenClaw. Save up to 70% by routing every request to the right model. No coding required.
+description: Model Router for OpenClaw. Save up to 70% by routing requests to the right model. Choose LLM fallback to avoid API rate limits, set thresholds and reduce token consumption.
 metadata: {"openclaw":{"requires":{"bins":["openclaw"]},"primaryEnv":"MANIFEST_API_KEY","homepage":"https://github.com/mnfst/manifest"}}
 ---
 
@@ -9,8 +9,8 @@ metadata: {"openclaw":{"requires":{"bins":["openclaw"]},"primaryEnv":"MANIFEST_A
 Manifest is an OpenClaw plugin that:
 
 - **Routes every request** to the most cost-effective model via a 23-dimension scoring algorithm (<2ms latency)
-- **Tracks costs and tokens** in a real-time dashboard
-- **Sets limits** with email alerts and hard spending caps
+- **Tracks costs and tokens** in a real-time dashboard with soft limits and hard spending caps
+- **Configures model fallback** to retry on a different provider on rate limits or errors
 
 Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT licensed. Homepage: [manifest.build](https://manifest.build)
 
@@ -36,27 +36,29 @@ openclaw gateway restart
 
 Get the API key at [app.manifest.build](https://app.manifest.build) → create an account → create an agent → copy the key.
 
-### Verify connection
+## Model Fallback
 
-```bash
-openclaw manifest
-```
+Configure fallback chains per tier so requests automatically retry on a different model if the primary provider hits rate limits or errors. Set up in the dashboard under **Routing → Fallbacks**.
 
-## Agent Tools
-
-Three tools are available to the agent in-conversation:
-
-| Tool              | Trigger phrases                                 | What it returns                                                             |
-| ----------------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
-| `manifest_usage`  | "how many tokens", "token usage", "consumption" | Total, input, output, cache-read tokens + action count for today/week/month |
-| `manifest_costs`  | "how much spent", "costs", "money burned"       | Cost breakdown by model in USD for today/week/month                         |
-| `manifest_health` | "is monitoring working", "connectivity test"    | Endpoint reachable, auth valid, agent name, status                          |
-
-Each accepts a `period` parameter: `"today"`, `"week"`, or `"month"`.
+- Avoid API rate limit failures with automatic provider failover
+- Define fallback order per tier (simple, standard, complex, reasoning)
+- Mix providers for resilience (e.g. Anthropic → OpenAI → DeepSeek)
 
 ## Supported Providers
 
-Anthropic, OpenAI, Google Gemini, DeepSeek, xAI, Mistral AI, Qwen, MiniMax, Kimi, Amazon Nova, Z.ai, OpenRouter, Ollama. 300+ models total.
+**Subscription (OAuth / token)** — use your existing plan, no API key needed:
+
+- Anthropic (Claude Max / Pro)
+- OpenAI (ChatGPT Plus / Pro / Team)
+- MiniMax (Coding Plan)
+
+**API Key** — bring your own key:
+
+- Anthropic, OpenAI, Google Gemini, DeepSeek, Mistral, xAI, Qwen (Alibaba), MiniMax, Moonshot (Kimi), Z.ai, OpenRouter, Ollama (local, no key needed)
+
+**Also compatible with** any OpenAI-compatible API endpoint and Ollama local models.
+
+300+ models total across all providers.
 
 ## Uninstall
 
