@@ -1179,6 +1179,71 @@ describe('ProxyService', () => {
       expect(result.meta.model).toBe('claude-sonnet-4');
     });
 
+    it('tries fallback model when primary throws a transport error', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-test')
+        .mockResolvedValueOnce('sk-ant');
+      providerClient.forward
+        .mockRejectedValueOnce(new Error('fetch failed'))
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: true,
+          isChatGpt: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['claude-sonnet-4'] },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const primaryError = JSON.parse(result.meta.primaryErrorBody ?? '{}') as {
+        error?: { message?: string };
+      };
+
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
+      expect(result.meta.fallbackIndex).toBe(0);
+      expect(result.meta.primaryErrorStatus).toBe(503);
+      expect(primaryError.error?.message).toBe('Failed to reach upstream provider');
+      expect(result.meta.model).toBe('claude-sonnet-4');
+    });
+
+    it('sanitizes transport error details when no fallback models are configured', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockRejectedValue(
+        new TypeError('Failed to parse URL from https://bad.example/v1?key=secret-token'),
+      );
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: null },
+      ] as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const errorBody = JSON.parse(await result.forward.response.text()) as {
+        error?: { message?: string };
+      };
+
+      expect(result.forward.response.status).toBe(503);
+      expect(errorBody.error?.message).toBe(
+        'Failed to reach upstream provider: Failed to parse URL from https://bad.example/v1?key=***',
+      );
+    });
+
     it('tries fallback model when primary returns 400', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'simple',
@@ -1406,6 +1471,53 @@ describe('ProxyService', () => {
       });
     });
 
+    it('continues fallback chain when a fallback throws a timeout error', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      const timeoutError = new Error('The operation was aborted due to timeout');
+      timeoutError.name = 'TimeoutError';
+
+      routingService.getProviderApiKey
+        .mockResolvedValueOnce('sk-test')
+        .mockResolvedValueOnce('sk-a')
+        .mockResolvedValueOnce('sk-b');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('overloaded', { status: 500 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        })
+        .mockRejectedValueOnce(timeoutError)
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        });
+      routingService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['model-a', 'model-b'] },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'ProvA' } as never);
+
+      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const fallbackError = JSON.parse(result.failedFallbacks?.[0].errorBody ?? '{}') as {
+        error?: { message?: string };
+      };
+
+      expect(result.meta.model).toBe('model-b');
+      expect(result.meta.fallbackIndex).toBe(1);
+      expect(result.failedFallbacks).toHaveLength(1);
+      expect(result.failedFallbacks?.[0].status).toBe(504);
+      expect(fallbackError.error?.message).toBe('Upstream provider request timed out');
+    });
+
     it('stops fallback chain on 424 (fallback exhausted)', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
@@ -1467,6 +1579,55 @@ describe('ProxyService', () => {
 
       expect(routingService.getTiers).not.toHaveBeenCalled();
       expect(result.forward.response.status).toBe(301);
+    });
+
+    it('rethrows aborted provider requests instead of treating them as fallback failures', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockRejectedValue(new Error('aborted'));
+
+      const abortController = new AbortController();
+      abortController.abort();
+
+      await expect(
+        service.proxyRequest(
+          'agent-1',
+          'user-1',
+          body,
+          'default',
+          undefined,
+          undefined,
+          abortController.signal,
+        ),
+      ).rejects.toThrow('aborted');
+
+      expect(routingService.getTiers).not.toHaveBeenCalled();
+    });
+
+    it('rethrows non-transport provider errors', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockRejectedValue(new Error('boom'));
+
+      await expect(service.proxyRequest('agent-1', 'user-1', body, 'default')).rejects.toThrow(
+        'boom',
+      );
+
+      expect(routingService.getTiers).not.toHaveBeenCalled();
     });
 
     it('falls back from api_key primary to subscription fallback model', async () => {
