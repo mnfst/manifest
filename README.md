@@ -108,7 +108,7 @@ tailscale serve --bg 2099
 
 **In cloud mode, the blind proxy physically cannot read your prompts.** This is fundamentally different from services saying "trust us."
 
-In local mode, no external network calls are made.
+In local mode, all Manifest data stays on your machine. No analytics or telemetry data is sent externally.
 
 
 ## Manifest vs OpenRouter

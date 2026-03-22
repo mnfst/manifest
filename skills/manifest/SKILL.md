@@ -16,7 +16,7 @@ Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT l
 
 ## Security & Privacy
 
-> **TL;DR** — No user prompts or assistant responses are collected. No file contents are transmitted. The API key (`mnfst_*`) authenticates your telemetry — it is not exfiltration. Routing sends message content only when `manifest/auto` is active (disable by setting a fixed model). Local mode makes zero external network calls.
+> **TL;DR** — No user prompts or assistant responses are stored or collected by Manifest's telemetry pipeline. No file contents are transmitted. The API key (`mnfst_*`) authenticates your telemetry — it is not exfiltration. When `manifest/auto` routing is active, the last 10 non-system messages (`{role, content}` only) are sent to the routing endpoint for scoring — disable this by setting a fixed model. In local mode, all Manifest data stays on your machine.
 
 ### External Endpoints
 
