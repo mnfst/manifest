@@ -1,18 +1,32 @@
 import { ModelPricingCacheService } from './model-pricing-cache.service';
 import { PricingSyncService, OpenRouterPricingEntry } from '../database/pricing-sync.service';
+import { ProviderModelRegistryService } from '../routing/model-discovery/provider-model-registry.service';
 
 function makeEntry(input: number, output: number): OpenRouterPricingEntry {
   return { input, output };
 }
 
+function makeMockRegistry() {
+  return {
+    isModelConfirmed: jest.fn().mockReturnValue(null),
+    getConfirmedModels: jest.fn().mockReturnValue(null),
+    registerModels: jest.fn(),
+  };
+}
+
 describe('ModelPricingCacheService', () => {
   let service: ModelPricingCacheService;
   let mockGetAll: jest.Mock;
+  let mockRegistry: ReturnType<typeof makeMockRegistry>;
 
   beforeEach(() => {
     mockGetAll = jest.fn().mockReturnValue(new Map<string, OpenRouterPricingEntry>());
     const mockSync = { getAll: mockGetAll } as unknown as PricingSyncService;
-    service = new ModelPricingCacheService(mockSync);
+    mockRegistry = makeMockRegistry();
+    service = new ModelPricingCacheService(
+      mockSync,
+      mockRegistry as unknown as ProviderModelRegistryService,
+    );
   });
 
   describe('onModuleInit', () => {
@@ -199,6 +213,65 @@ describe('ModelPricingCacheService', () => {
       const b = service.getAll();
       expect(a).not.toBe(b);
       expect(a).toEqual(b);
+    });
+  });
+
+  describe('validated flag', () => {
+    it('should set validated=true for confirmed models', async () => {
+      mockRegistry.isModelConfirmed.mockImplementation((providerId: string, modelId: string) => {
+        if (providerId === 'openai' && modelId === 'gpt-4o') return true;
+        return null;
+      });
+      mockGetAll.mockReturnValue(new Map([['openai/gpt-4o', makeEntry(0.01, 0.02)]]));
+      await service.reload();
+
+      const entry = service.getByModel('openai/gpt-4o');
+      expect(entry!.validated).toBe(true);
+    });
+
+    it('should set validated=false for unconfirmed models', async () => {
+      mockRegistry.isModelConfirmed.mockReturnValue(false);
+      mockGetAll.mockReturnValue(new Map([['qwen/phantom-model', makeEntry(0.01, 0.02)]]));
+      await service.reload();
+
+      const entry = service.getByModel('qwen/phantom-model');
+      expect(entry!.validated).toBe(false);
+    });
+
+    it('should set validated=undefined when registry has no data for provider', async () => {
+      mockRegistry.isModelConfirmed.mockReturnValue(null);
+      mockGetAll.mockReturnValue(new Map([['openai/gpt-4o', makeEntry(0.01, 0.02)]]));
+      await service.reload();
+
+      const entry = service.getByModel('openai/gpt-4o');
+      expect(entry!.validated).toBeUndefined();
+    });
+
+    it('should set validated=undefined for unsupported vendors (no providerId)', async () => {
+      mockGetAll.mockReturnValue(new Map([['nousresearch/hermes-3', makeEntry(0.01, 0.02)]]));
+      await service.reload();
+
+      const entry = service.getByModel('nousresearch/hermes-3');
+      expect(entry!.validated).toBeUndefined();
+    });
+
+    it('should work without registry (null)', async () => {
+      const mockSync = { getAll: mockGetAll } as unknown as PricingSyncService;
+      const serviceNoRegistry = new ModelPricingCacheService(mockSync, null);
+      mockGetAll.mockReturnValue(new Map([['openai/gpt-4o', makeEntry(0.01, 0.02)]]));
+      await serviceNoRegistry.reload();
+
+      const entry = serviceNoRegistry.getByModel('openai/gpt-4o');
+      expect(entry!.validated).toBeUndefined();
+    });
+
+    it('should propagate validated to canonical alias', async () => {
+      mockRegistry.isModelConfirmed.mockReturnValue(true);
+      mockGetAll.mockReturnValue(new Map([['openai/gpt-4o', makeEntry(0.01, 0.02)]]));
+      await service.reload();
+
+      const canonical = service.getByModel('gpt-4o');
+      expect(canonical!.validated).toBe(true);
     });
   });
 });

@@ -1,7 +1,8 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, Inject, Optional } from '@nestjs/common';
 import { buildAliasMap, resolveModelName } from './model-name-normalizer';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { OPENROUTER_PREFIX_TO_PROVIDER } from '../common/constants/providers';
+import { ProviderModelRegistryService } from '../routing/model-discovery/provider-model-registry.service';
 
 /**
  * Lightweight pricing entry used for cost calculation and provider detection.
@@ -13,6 +14,8 @@ export interface PricingEntry {
   input_price_per_token: number | null;
   output_price_per_token: number | null;
   display_name: string | null;
+  /** True if confirmed via provider-native API, false if unverified, undefined if no data. */
+  validated?: boolean;
 }
 
 @Injectable()
@@ -21,7 +24,12 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
   private readonly cache = new Map<string, PricingEntry>();
   private aliasMap = new Map<string, string>();
 
-  constructor(private readonly pricingSync: PricingSyncService) {}
+  constructor(
+    private readonly pricingSync: PricingSyncService,
+    @Optional()
+    @Inject(ProviderModelRegistryService)
+    private readonly modelRegistry: ProviderModelRegistryService | null,
+  ) {}
 
   async onApplicationBootstrap(): Promise<void> {
     await this.reload();
@@ -32,9 +40,10 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
 
     const orCache = this.pricingSync.getAll();
     for (const [fullId, entry] of orCache) {
-      const { provider, canonical } = this.resolveProviderAndName(fullId);
+      const { provider, canonical, providerId } = this.resolveProviderAndName(fullId);
 
       const displayName = entry.displayName ?? null;
+      const validated = this.resolveValidated(providerId, canonical);
 
       // Store under full OpenRouter ID (e.g. "anthropic/claude-opus-4-6")
       this.cache.set(fullId, {
@@ -43,6 +52,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
         input_price_per_token: entry.input,
         output_price_per_token: entry.output,
         display_name: displayName,
+        validated,
       });
 
       // For supported providers, also store under canonical name (e.g. "claude-opus-4-6")
@@ -54,6 +64,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
           input_price_per_token: entry.input,
           output_price_per_token: entry.output,
           display_name: displayName,
+          validated,
         });
       }
     }
@@ -90,18 +101,20 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
    * For supported routing providers (OpenAI, Anthropic, etc.), extract
    * the provider display name and canonical model name from the OpenRouter ID.
    * All other vendors stay under "OpenRouter" with the full ID as canonical.
+   * Also returns the raw prefix as `providerId` for registry lookups.
    */
   private resolveProviderAndName(openRouterId: string): {
     provider: string;
     canonical: string;
+    providerId: string | null;
   } {
     if (openRouterId.startsWith('openrouter/')) {
-      return { provider: 'OpenRouter', canonical: openRouterId };
+      return { provider: 'OpenRouter', canonical: openRouterId, providerId: null };
     }
 
     const slashIdx = openRouterId.indexOf('/');
     if (slashIdx <= 0) {
-      return { provider: 'OpenRouter', canonical: openRouterId };
+      return { provider: 'OpenRouter', canonical: openRouterId, providerId: null };
     }
 
     const prefix = openRouterId.substring(0, slashIdx);
@@ -110,9 +123,16 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
       return {
         provider: displayName,
         canonical: openRouterId.substring(slashIdx + 1),
+        providerId: prefix,
       };
     }
 
-    return { provider: 'OpenRouter', canonical: openRouterId };
+    return { provider: 'OpenRouter', canonical: openRouterId, providerId: null };
+  }
+
+  private resolveValidated(providerId: string | null, canonical: string): boolean | undefined {
+    if (!this.modelRegistry || !providerId) return undefined;
+    const result = this.modelRegistry.isModelConfirmed(providerId, canonical);
+    return result ?? undefined;
   }
 }
