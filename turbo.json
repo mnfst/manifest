@@ -9,6 +9,10 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "manifest#build": {
+      "dependsOn": ["manifest-frontend#build", "manifest-backend#build"],
+      "outputs": ["dist/**", "public/**", "subscription-capabilities/**", "skills/**"]
+    },
     "test": {
       "cache": false
     },
