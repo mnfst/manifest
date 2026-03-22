@@ -17,7 +17,7 @@ interface Props {
   tiers: TierAssignment[];
   customProviders?: CustomProviderData[];
   connectedProviders?: RoutingProvider[];
-  onSelect: (tierId: string, modelName: string, authType?: AuthType) => void;
+  onSelect: (tierId: string, modelName: string, providerId: string, authType?: AuthType) => void;
   onClose: () => void;
 }
 
@@ -371,7 +371,9 @@ const ModelPickerModal: Component<Props> = (props) => {
                   {(model) => (
                     <button
                       class="routing-modal__model"
-                      onClick={() => props.onSelect(props.tierId, model.value, activeTab())}
+                      onClick={() =>
+                        props.onSelect(props.tierId, model.value, group.provId, activeTab())
+                      }
                     >
                       <span class="routing-modal__model-label">
                         {model.label}

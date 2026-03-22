@@ -145,7 +145,14 @@ export class RoutingController {
     @Body() body: SetOverrideDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.routingService.setOverride(agent.id, user.id, tier, body.model, body.authType);
+    return this.routingService.setOverride(
+      agent.id,
+      user.id,
+      tier,
+      body.model,
+      body.provider,
+      body.authType,
+    );
   }
 
   @Delete(':agentName/tiers/:tier')

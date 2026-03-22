@@ -480,6 +480,7 @@ export interface TierAssignment {
   agent_id: string;
   tier: string;
   override_model: string | null;
+  override_provider: string | null;
   override_auth_type: AuthType | null;
   auto_assigned_model: string | null;
   fallback_models: string[] | null;
@@ -490,13 +491,19 @@ export function getTierAssignments(agentName: string) {
   return fetchJson<TierAssignment[]>(`/routing/${encodeURIComponent(agentName)}/tiers`);
 }
 
-export function overrideTier(agentName: string, tier: string, model: string, authType?: AuthType) {
+export function overrideTier(
+  agentName: string,
+  tier: string,
+  model: string,
+  provider: string,
+  authType?: AuthType,
+) {
   return fetchMutate<TierAssignment>(
     `${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, ...(authType && { authType }) }),
+      body: JSON.stringify({ model, provider, ...(authType && { authType }) }),
     },
   );
 }
