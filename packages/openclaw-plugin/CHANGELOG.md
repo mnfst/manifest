@@ -1,5 +1,11 @@
 # manifest
 
+## 5.28.2
+
+### Patch Changes
+
+- 0c245fc: Remove PostHog product analytics from plugin, backend, and frontend. No external analytics calls are made in any mode. OTLP telemetry (traces/metrics to user's own endpoint) is unaffected. Restructure SKILL.md with security-first layout and local mode as primary setup path.
+
 ## 5.28.1
 
 ### Patch Changes
