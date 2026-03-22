@@ -102,6 +102,12 @@ describe('model-name-normalizer', () => {
       expect(map.get('claude-opus-4-6')).toBe('anthropic/claude-opus-4-6');
     });
 
+    it('indexes Anthropic dash variant when canonical name uses dots', () => {
+      const map = buildAliasMap(['anthropic/claude-sonnet-4.6']);
+      expect(map.get('claude-sonnet-4-6')).toBe('anthropic/claude-sonnet-4.6');
+      expect(map.get('anthropic/claude-sonnet-4-6')).toBe('anthropic/claude-sonnet-4.6');
+    });
+
     it('includes MiniMax mixed-case aliases', () => {
       const map = buildAliasMap(['minimax-m2.5', 'minimax-m1']);
       expect(map.get('MiniMax-M2.5')).toBe('minimax-m2.5');
@@ -208,6 +214,11 @@ describe('model-name-normalizer', () => {
     it('resolves dot-variant through alias after normalization', () => {
       const map = buildAliasMap(['claude-sonnet-4-5-20250929']);
       expect(resolveModelName('claude-sonnet-4.5', map)).toBe('claude-sonnet-4-5-20250929');
+    });
+
+    it('resolves Anthropic dash variant when canonical name uses dots', () => {
+      const map = buildAliasMap(['anthropic/claude-opus-4.6']);
+      expect(resolveModelName('claude-opus-4-6', map)).toBe('anthropic/claude-opus-4.6');
     });
   });
 });

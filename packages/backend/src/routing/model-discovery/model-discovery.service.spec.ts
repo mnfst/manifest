@@ -715,11 +715,11 @@ describe('ModelDiscoveryService', () => {
       const result = await service.discoverModels(makeProvider({ provider: 'anthropic' }));
 
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('claude-opus-4.6');
+      expect(result[0].id).toBe('claude-opus-4-6');
       expect(result[0].displayName).toBe('Claude Opus 4.6');
       expect(result[0].inputPricePerToken).toBe(0.000015);
       expect(result[0].provider).toBe('anthropic');
-      expect(result[1].id).toBe('claude-sonnet-4.6');
+      expect(result[1].id).toBe('claude-sonnet-4-6');
     });
 
     it('should unwrap OAuth blob for OpenAI subscription before fetching', async () => {
@@ -1239,6 +1239,26 @@ describe('ModelDiscoveryService', () => {
       // claude-opus-4 NOT added (covered by claude-opus-4-latest)
       expect(ids).not.toContain('claude-opus-4');
       expect(result[0].provider).toBe('anthropic');
+    });
+
+    it('should normalize Anthropic short-form dot ids from OpenRouter to dash ids', () => {
+      const orMap = new Map([
+        [
+          'anthropic/claude-sonnet-4.6',
+          {
+            input: 0.000003,
+            output: 0.000015,
+            contextWindow: 200000,
+            displayName: 'Claude Sonnet 4.6',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+
+      expect(result.map((m) => m.id)).toContain('claude-sonnet-4-6');
+      expect(result.map((m) => m.id)).not.toContain('claude-sonnet-4.6');
     });
 
     it('should apply maxContextWindow cap from subscription capabilities', () => {
