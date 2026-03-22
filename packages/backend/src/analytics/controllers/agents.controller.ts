@@ -24,7 +24,6 @@ import { RenameAgentDto } from '../../common/dto/rename-agent.dto';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
 import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 import { readLocalApiKey } from '../../common/constants/local-mode.constants';
-import { trackCloudEvent } from '../../common/utils/product-telemetry';
 import { slugify } from '../../common/utils/slugify';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
@@ -68,7 +67,6 @@ export class AgentsController {
       }
       throw error;
     }
-    trackCloudEvent('agent_created', user.id, { agent_name: slug });
     return {
       agent: { id: result.agentId, name: slug, display_name: displayName },
       apiKey: result.apiKey,

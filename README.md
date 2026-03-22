@@ -108,15 +108,7 @@ tailscale serve --bg 2099
 
 **In cloud mode, the blind proxy physically cannot read your prompts.** This is fundamentally different from services saying "trust us."
 
-The only thing Manifest collects is anonymous product analytics (hashed machine ID, OS platform, package version, event names) to help improve the project. No personally identifiable information or agent data is included.
-
-**Opting out:**
-
-```bash
-MANIFEST_TELEMETRY_OPTOUT=1
-```
-
-Or add `"telemetryOptOut": true` to `~/.openclaw/manifest/config.json`.
+In local mode, all Manifest data stays on your machine. No analytics or telemetry data is sent externally.
 
 
 ## Manifest vs OpenRouter

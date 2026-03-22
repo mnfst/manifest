@@ -21,15 +21,9 @@ vi.mock("../../src/services/sse.js", () => ({
   connectSse: () => () => {},
 }));
 
-const mockTrackEvent = vi.fn();
-vi.mock("../../src/services/analytics.js", () => ({
-  trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
-}));
-
 vi.mock("../../src/services/local-mode.js", () => ({
   isLocalMode: () => false,
   checkLocalMode: () => Promise.resolve(false),
-  telemetryOptOut: () => false,
   updateInfo: () => null,
 }));
 
@@ -41,7 +35,6 @@ import App from "../../src/App";
 
 beforeEach(() => {
   sessionStorage.clear();
-  mockTrackEvent.mockClear();
 });
 
 describe("App", () => {
@@ -83,20 +76,6 @@ describe("App with agent path", () => {
     } finally {
       (routerMock as any).useLocation = original;
     }
-  });
-});
-
-describe("dashboard_loaded event", () => {
-  it("fires dashboard_loaded with mode cloud", () => {
-    render(() => <App />);
-    expect(mockTrackEvent).toHaveBeenCalledWith("dashboard_loaded", { mode: "cloud" });
-  });
-
-  it("fires dashboard_loaded only once per session", () => {
-    const { unmount } = render(() => <App />);
-    unmount();
-    render(() => <App />);
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 });
 

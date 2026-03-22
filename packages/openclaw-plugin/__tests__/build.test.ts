@@ -50,15 +50,6 @@ describeIfBuilt("built bundle (dist/index.js)", () => {
     expect(bundleContent).not.toContain("NodeTracerProvider");
   });
 
-  it("product-telemetry does not import fs (readFile + fetch = exfiltration flag)", () => {
-    // The scanner flags readFile + fetch in the same module as potential
-    // data exfiltration. product-telemetry.ts uses fetch, so it must not
-    // import fs. Other modules (e.g. local-mode) may use fs safely.
-    const telemetryPath = resolve(__dirname, "../src/product-telemetry.ts");
-    const telemetrySrc = readFileSync(telemetryPath, "utf-8");
-    expect(telemetrySrc).not.toMatch(/from ["']fs["']|require\(["']fs["']\)/);
-  });
-
   it("does not contain readFile references outside local-mode config", () => {
     // dist/index.js is scanned as a single file by OpenClaw, so it must not
     // contain file-read helpers at all. File I/O lives in sidecar modules.

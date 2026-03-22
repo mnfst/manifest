@@ -12,14 +12,11 @@ interface HealthResponse {
   version?: string;
   latestVersion?: string;
   updateAvailable?: boolean;
-  telemetryOptOut?: boolean;
 }
 
 const [isLocalMode, setIsLocalMode] = createSignal<boolean | null>(null);
 const [isDevMode, setIsDevMode] = createSignal<boolean>(false);
 const [updateInfo, setUpdateInfo] = createSignal<UpdateInfo | null>(null);
-const [telemetryOptOut, setTelemetryOptOut] = createSignal<boolean>(false);
-
 let fetchPromise: Promise<boolean> | null = null;
 
 export function checkLocalMode(): Promise<boolean> {
@@ -32,8 +29,6 @@ export function checkLocalMode(): Promise<boolean> {
         const local = data.mode === 'local';
         setIsLocalMode(local);
         setIsDevMode(data.devMode === true);
-        setTelemetryOptOut(data.telemetryOptOut === true);
-
         if (data.version) {
           setUpdateInfo({
             version: data.version,
@@ -53,4 +48,4 @@ export function checkLocalMode(): Promise<boolean> {
   return fetchPromise;
 }
 
-export { isLocalMode, isDevMode, updateInfo, telemetryOptOut };
+export { isLocalMode, isDevMode, updateInfo };

@@ -23,7 +23,7 @@
       "devMode": {
         "type": "boolean",
         "default": false,
-        "description": "Enable for development: skips API key, faster metrics, disables product telemetry. Auto-detected when endpoint is localhost without an API key."
+        "description": "Enable for development: skips API key validation, uses faster metrics interval. Auto-detected when endpoint is localhost without an API key."
       },
       "apiKey": {
         "type": "string",
@@ -53,7 +53,7 @@
     },
     "devMode": {
       "label": "Dev Mode",
-      "description": "Enable for development: skips API key, faster metrics, disables product telemetry"
+      "description": "Enable for development: skips API key validation, uses faster metrics interval"
     },
     "apiKey": {
       "label": "API Key",

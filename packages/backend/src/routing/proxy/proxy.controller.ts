@@ -10,7 +10,6 @@ import { ProviderClient } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { initSseHeaders, pipeStream, StreamUsage } from './stream-writer';
 import { sanitizeProviderError } from './proxy-error-sanitizer';
-import { trackCloudEvent } from '../../common/utils/product-telemetry';
 
 const MAX_SEEN_USERS = 10_000;
 
@@ -316,7 +315,7 @@ export class ProxyController {
 
   private trackFirstProxyRequest(
     userId: string,
-    meta: { provider: string; model: string; tier: string },
+    _meta: { provider: string; model: string; tier: string },
   ): void {
     if (this.seenUsers.has(userId)) return;
     if (this.seenUsers.size >= MAX_SEEN_USERS) {
@@ -324,10 +323,5 @@ export class ProxyController {
       this.seenUsers.delete(oldest);
     }
     this.seenUsers.add(userId);
-    trackCloudEvent('routing_first_proxy_request', userId, {
-      provider: meta.provider,
-      model: meta.model,
-      tier: meta.tier,
-    });
   }
 }

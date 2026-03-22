@@ -7,11 +7,6 @@ import { ModelDiscoveryService } from './model-discovery/model-discovery.service
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { DiscoveredModel } from './model-discovery/model-fetcher';
 import { Agent } from '../entities/agent.entity';
-import * as telemetry from '../common/utils/product-telemetry';
-
-jest.mock('../common/utils/product-telemetry', () => ({
-  trackCloudEvent: jest.fn(),
-}));
 
 const mockUser = { id: 'user-1' } as never;
 const mockAgentName = { agentName: 'test-agent' } as never;
@@ -281,56 +276,6 @@ describe('RoutingController', () => {
         auth_type: 'api_key',
         is_active: true,
       });
-    });
-
-    it('should fire routing_provider_connected when provider is new', async () => {
-      mockRoutingService.upsertProvider.mockResolvedValue({
-        provider: { id: 'p1', provider: 'openai', is_active: true },
-        isNew: true,
-      });
-
-      await controller.upsertProvider(mockUser, mockAgentName, {
-        provider: 'openai',
-        apiKey: 'sk-test',
-      });
-
-      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
-        'routing_provider_connected',
-        'user-1',
-        { provider: 'openai' },
-      );
-    });
-
-    it('should append (Subscription) to provider label for subscription auth type', async () => {
-      mockRoutingService.upsertProvider.mockResolvedValue({
-        provider: { id: 'p1', provider: 'anthropic', is_active: true, auth_type: 'subscription' },
-        isNew: true,
-      });
-
-      await controller.upsertProvider(mockUser, mockAgentName, {
-        provider: 'anthropic',
-        authType: 'subscription',
-      });
-
-      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith(
-        'routing_provider_connected',
-        'user-1',
-        { provider: 'anthropic (Subscription)' },
-      );
-    });
-
-    it('should not fire event when provider already exists', async () => {
-      mockRoutingService.upsertProvider.mockResolvedValue({
-        provider: { id: 'p1', provider: 'openai', is_active: true },
-        isNew: false,
-      });
-
-      await controller.upsertProvider(mockUser, mockAgentName, {
-        provider: 'openai',
-        apiKey: 'sk-test',
-      });
-
-      expect(telemetry.trackCloudEvent).not.toHaveBeenCalled();
     });
 
     it('should not expose api_key_encrypted in response', async () => {
