@@ -148,6 +148,14 @@ describe("ProviderSelectModal", () => {
     expect(screen.getByText("OpenRouter")).toBeDefined();
   });
 
+  it("does not show subscription-only providers in the API Keys tab", () => {
+    render(() => (
+      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+    ));
+    fireEvent.click(screen.getByText("API Keys"));
+    expect(screen.queryByText("GitHub Copilot")).toBeNull();
+  });
+
   it("shows toggle switch in 'on' state for connected providers", () => {
     const { container } = render(() => (
       <ProviderSelectModal

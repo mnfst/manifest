@@ -26,6 +26,8 @@ export interface ProviderDef {
   subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
   /** Deprecated compatibility flag for popup OAuth providers. */
   subscriptionOAuth?: boolean;
+  /** Provider is subscription-only and should not appear in the API Keys tab. */
+  subscriptionOnly?: boolean;
 }
 
 export const PROVIDERS: ProviderDef[] = [
@@ -80,6 +82,7 @@ export const PROVIDERS: ProviderDef[] = [
     subscriptionLabel: 'GitHub Copilot subscription',
     subscriptionAuthMode: 'device_code',
     deviceLogin: true,
+    subscriptionOnly: true,
     models: [
       { label: 'Claude Opus 4', value: 'copilot/claude-opus-4' },
       { label: 'Claude Sonnet 4.5', value: 'copilot/claude-sonnet-4.5' },
