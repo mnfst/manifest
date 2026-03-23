@@ -211,6 +211,10 @@ describe("inferProviderName", () => {
     expect(inferProviderName("zai/glm-5")).toBe("Z.ai");
   });
 
+  it("returns NanoGPT for qualified NanoGPT models", () => {
+    expect(inferProviderName("nano-gpt/moonshotai/kimi-k2.5")).toBe("NanoGPT");
+  });
+
   it("returns undefined for unrecognized models", () => {
     expect(inferProviderName("unknown-model")).toBeUndefined();
   });

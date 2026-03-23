@@ -146,6 +146,7 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
     subscriptionAuthMode: 'token',
     subscriptionKeyPlaceholder: 'Paste your API key',
     subscriptionTokenPrefix: 'sk-nano-',
+    alwaysQualifyModelIds: true,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
       supportsPromptCaching: false,

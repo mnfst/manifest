@@ -1681,6 +1681,12 @@ describe('ModelDiscoveryService', () => {
       expect(qualifyDiscoveredModelId('zai', 'glm-5')).toBe('zai/glm-5');
     });
 
+    it('should emit provider-qualified ids for NanoGPT models', () => {
+      expect(qualifyDiscoveredModelId('nano-gpt', 'moonshotai/kimi-k2.5')).toBe(
+        'nano-gpt/moonshotai/kimi-k2.5',
+      );
+    });
+
     it('should leave normal provider ids untouched', () => {
       expect(qualifyDiscoveredModelId('openai', 'gpt-5.4')).toBe('gpt-5.4');
     });

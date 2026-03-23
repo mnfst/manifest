@@ -325,7 +325,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     parse: parseOpenRouter,
   },
   'nano-gpt': {
-    endpoint: 'https://nano-gpt.com/api/v1/models',
+    endpoint: 'https://nano-gpt.com/api/subscription/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },

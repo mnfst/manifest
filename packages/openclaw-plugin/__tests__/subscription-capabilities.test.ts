@@ -115,6 +115,7 @@ describe("subscription capability manifests", () => {
       expect(capabilities.getSubscriptionCatalogMode("opencode-go")).toBe("known_only");
       expect(capabilities.getSubscriptionCatalogMode("zai")).toBe("full");
 
+      expect(capabilities.shouldQualifySubscriptionModelIds("nano-gpt")).toBe(true);
       expect(capabilities.shouldQualifySubscriptionModelIds("ollama-cloud")).toBe(true);
       expect(capabilities.shouldQualifySubscriptionModelIds("zai")).toBe(true);
       expect(capabilities.shouldQualifySubscriptionModelIds("anthropic")).toBe(false);

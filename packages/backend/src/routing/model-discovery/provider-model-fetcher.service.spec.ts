@@ -229,6 +229,32 @@ describe('ProviderModelFetcherService', () => {
     );
   });
 
+  it('should use the NanoGPT subscription-only models endpoint', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'moonshotai/kimi-k2.5', object: 'model', owned_by: 'moonshotai' }],
+      }),
+    });
+
+    const result = await service.fetch('nano-gpt', 'sk-nano-test');
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual(
+      expect.objectContaining({
+        id: 'moonshotai/kimi-k2.5',
+        provider: 'nano-gpt',
+      }),
+    );
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://nano-gpt.com/api/subscription/v1/models',
+      expect.objectContaining({
+        headers: {
+          Authorization: 'Bearer sk-nano-test',
+        },
+      }),
+    );
+  });
+
   /* ── Bearer auth header ── */
 
   it('should send bearer auth header for openai', async () => {
