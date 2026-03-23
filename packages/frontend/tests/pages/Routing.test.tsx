@@ -881,6 +881,33 @@ describe("Routing — handleProviderUpdate", () => {
     });
   });
 
+  it("clears provider state when instruction modal is closed", async () => {
+    mockGetProviders.mockResolvedValue([]);
+    mockDeactivateAllProviders.mockResolvedValue({ ok: true });
+
+    render(() => <Routing />);
+    const enableBtn = await screen.findByText("Enable Routing");
+    fireEvent.click(enableBtn);
+
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+
+    const updateBtn = screen.getByTestId("trigger-update");
+    fireEvent.click(updateBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("Activate routing")).toBeDefined();
+    });
+
+    const closeBtn = screen.getByLabelText("Close");
+    fireEvent.click(closeBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByText("Activate routing")).toBeNull();
+    });
+  });
+
   it("does not show instruction modal when routing was already enabled", async () => {
     mockGetProviders.mockResolvedValue([
       { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
