@@ -22,9 +22,13 @@ describe('ProductHuntUpvoteModal', () => {
     const { container } = render(() => <ProductHuntUpvoteModal />);
 
     expect(screen.getByText('Manifest on Product Hunt')).toBeDefined();
+    const badgeImage = screen.getByAltText(
+      'Manifest - Open Source LLM Router for OpenClaw | Product Hunt',
+    ) as HTMLImageElement;
     const link = container.querySelector(
       '.product-hunt-modal__featured-badge',
     ) as HTMLAnchorElement;
+    expect(badgeImage.getAttribute('src')).not.toContain('api.producthunt.com');
     expect(link).toBeDefined();
     expect(link.getAttribute('href')).toBe(PRODUCT_HUNT_FALLBACK_URL);
   });

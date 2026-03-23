@@ -1,4 +1,5 @@
 import { createEffect, createSignal, onCleanup, Show, type Component } from 'solid-js';
+import productHuntFeaturedBadge from '../assets/product-hunt-featured.svg';
 import { isLocalMode } from '../services/local-mode.js';
 
 export const PRODUCT_HUNT_UPVOTE_KEY = 'mnfst_product_hunt_upvote_2026_03_23';
@@ -8,8 +9,6 @@ export const PRODUCT_HUNT_FALLBACK_URL =
 const PRODUCT_HUNT_URL =
   (import.meta.env.VITE_PRODUCT_HUNT_URL as string | undefined) ?? PRODUCT_HUNT_FALLBACK_URL;
 const PRODUCT_HUNT_ALT = 'Manifest - Open Source LLM Router for OpenClaw | Product Hunt';
-const PRODUCT_HUNT_FEATURED_BADGE =
-  'https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1104032&theme=light';
 
 const hasAcknowledgedPrompt = (): boolean => {
   try {
@@ -111,7 +110,7 @@ const ProductHuntUpvoteModal: Component = () => {
           >
             <div class="product-hunt-modal__featured-frame">
               <img
-                src={PRODUCT_HUNT_FEATURED_BADGE}
+                src={productHuntFeaturedBadge}
                 alt={PRODUCT_HUNT_ALT}
                 width="250"
                 height="54"
