@@ -283,6 +283,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  'zai-subscription': {
+    endpoint: 'https://open.bigmodel.cn/api/coding/paas/v4/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   anthropic: {
     endpoint: 'https://api.anthropic.com/v1/models?limit=100',
     buildHeaders: (key: string, authType?: string) => {
@@ -333,6 +338,8 @@ export class ProviderModelFetcherService {
       configKey = 'openai-subscription';
     } else if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
+    } else if (configKey === 'zai' && authType === 'subscription') {
+      configKey = 'zai-subscription';
     }
     const config = PROVIDER_CONFIGS[configKey];
     if (!config) {

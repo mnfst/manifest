@@ -106,6 +106,12 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(PROVIDER_ENDPOINTS['zai'].format).toBe('openai');
   });
 
+  it('zai-subscription uses coding plan endpoint', () => {
+    const path = PROVIDER_ENDPOINTS['zai-subscription'].buildPath('glm-5');
+    expect(path).toBe('/api/coding/paas/v4/chat/completions');
+    expect(PROVIDER_ENDPOINTS['zai-subscription'].format).toBe('openai');
+  });
+
   it('anthropic uses x-api-key for api_key auth', () => {
     const headers = PROVIDER_ENDPOINTS['anthropic'].buildHeaders('sk-ant-test');
     expect(headers['x-api-key']).toBe('sk-ant-test');

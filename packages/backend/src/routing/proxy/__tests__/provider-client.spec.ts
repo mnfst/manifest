@@ -312,6 +312,36 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Z.ai subscription provider', () => {
+    it('routes to coding plan endpoint with subscription authType', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'zai',
+        'test-key',
+        'glm-5',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.z.ai/api/coding/paas/v4/chat/completions');
+    });
+
+    it('routes to regular endpoint for api_key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('zai', 'test-key', 'glm-5', body, false);
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.z.ai/api/paas/v4/chat/completions');
+    });
+  });
+
   describe('convertChatGptResponse', () => {
     it('delegates to fromResponsesResponse', () => {
       const data = {

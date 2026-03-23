@@ -124,6 +124,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: () => '/api/paas/v4/chat/completions',
     format: 'openai',
   },
+  'zai-subscription': {
+    baseUrl: 'https://api.z.ai',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/api/coding/paas/v4/chat/completions',
+    format: 'openai',
+  },
   google: {
     baseUrl: 'https://generativelanguage.googleapis.com',
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),

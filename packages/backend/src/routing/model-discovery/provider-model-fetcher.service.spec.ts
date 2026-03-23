@@ -29,6 +29,7 @@ describe('ProviderModelFetcherService', () => {
       'opencode',
       'opencode-go',
       'zai',
+      'zai-subscription',
       'anthropic',
       'gemini',
       'openrouter',
