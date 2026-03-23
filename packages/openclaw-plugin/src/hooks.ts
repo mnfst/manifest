@@ -204,8 +204,9 @@ export function registerHooks(
   const finalizeTrace = async (sessionKey: string, active: ActiveSpans): Promise<void> => {
     const pendingEnd = active.pendingEnd;
     if (!pendingEnd) return;
+    active.pendingEnd = undefined;
 
-    const usage = active.llmOutput || pendingEnd.fallbackUsage;
+    let usage = active.llmOutput || pendingEnd.fallbackUsage;
     let finalModel = usage.model;
     let finalProvider = usage.provider;
     let routingTier: string | null = null;
@@ -219,6 +220,12 @@ export function registerHooks(
         routingTier = resolved.tier;
         routingReason = resolved.reason || null;
       }
+    }
+
+    usage = active.llmOutput || pendingEnd.fallbackUsage;
+    if (usage.model !== 'auto') {
+      finalModel = usage.model;
+      finalProvider = usage.provider;
     }
 
     // Detect heartbeat only from the last user message in the turn.
