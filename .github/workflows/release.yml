@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   release:
+    if: github.repository_owner == 'mnfst'
     runs-on: ubuntu-latest
     steps:
       - name: Generate GitHub App token
