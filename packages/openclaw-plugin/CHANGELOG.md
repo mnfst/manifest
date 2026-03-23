@@ -1,5 +1,11 @@
 # manifest
 
+## 5.29.0
+
+### Minor Changes
+
+- e547327: Add GitHub Copilot as a subscription provider with device login flow
+
 ## 5.28.6
 
 ### Patch Changes
