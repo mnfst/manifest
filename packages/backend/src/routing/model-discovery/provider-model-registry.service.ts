@@ -71,7 +71,7 @@ export class ProviderModelRegistryService implements OnApplicationBootstrap {
       let totalModels = 0;
       for (const p of providers) {
         if (!Array.isArray(p.cached_models)) continue;
-        const ids = p.cached_models.map((m) => m.id);
+        const ids = p.cached_models.map((m) => m.id).filter(Boolean);
         if (ids.length > 0) {
           this.registerModels(p.provider, ids);
           totalModels += ids.length;

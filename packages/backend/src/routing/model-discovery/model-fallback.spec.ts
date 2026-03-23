@@ -103,13 +103,15 @@ describe('buildFallbackModels', () => {
   });
 
   it('should deduplicate models by normalized ID', () => {
+    // Anthropic normalization: dashes and dots in version numbers normalize to the same ID
     const cache = new Map([
-      ['openai/gpt-4o', { input: 0.01, output: 0.02 }],
-      ['openai/gpt-4o', { input: 0.01, output: 0.02 }],
+      ['anthropic/claude-sonnet-4-5-20250929', { input: 0.01, output: 0.02 }],
+      ['anthropic/claude-sonnet-4.5-20250929', { input: 0.03, output: 0.04 }],
     ]);
 
-    const result = buildFallbackModels(makePricingSync(cache), 'openai');
+    const result = buildFallbackModels(makePricingSync(cache), 'anthropic');
 
+    // Both normalize to "claude-sonnet-4-5-20250929" via normalizeAnthropicShortModelId
     expect(result).toHaveLength(1);
   });
 

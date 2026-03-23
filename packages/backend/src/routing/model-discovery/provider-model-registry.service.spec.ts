@@ -128,6 +128,28 @@ describe('ProviderModelRegistryService', () => {
       expect(service.getConfirmedModels('openai')).toBeNull();
     });
 
+    it('should filter out malformed entries with missing id', async () => {
+      const providers = [
+        {
+          provider: 'openai',
+          cached_models: [
+            { id: 'gpt-4o', displayName: 'GPT-4o' },
+            { displayName: 'Missing ID' },
+            { id: null },
+            { id: '' },
+          ],
+        },
+      ];
+      const service = new ProviderModelRegistryService(makeMockRepo(providers) as never);
+
+      await service.onApplicationBootstrap();
+
+      expect(service.isModelConfirmed('openai', 'gpt-4o')).toBe(true);
+      // null, undefined, and empty string should all be filtered out
+      const confirmed = service.getConfirmedModels('openai');
+      expect(confirmed!.size).toBe(1);
+    });
+
     it('should handle database errors gracefully', async () => {
       const mockRepo = {
         createQueryBuilder: jest.fn().mockReturnValue({

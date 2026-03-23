@@ -253,6 +253,7 @@ describe('ModelPricingCacheService', () => {
 
       const entry = service.getByModel('nousresearch/hermes-3');
       expect(entry!.validated).toBeUndefined();
+      expect(mockRegistry.isModelConfirmed).not.toHaveBeenCalled();
     });
 
     it('should work without registry (null)', async () => {
@@ -272,6 +273,20 @@ describe('ModelPricingCacheService', () => {
 
       const canonical = service.getByModel('gpt-4o');
       expect(canonical!.validated).toBe(true);
+    });
+
+    it('should resolve aliased provider prefix to canonical ID for validation', async () => {
+      // "google" is the OpenRouter prefix, but the registry stores under "gemini"
+      mockRegistry.isModelConfirmed.mockImplementation((providerId: string, modelId: string) => {
+        if (providerId === 'gemini' && modelId === 'gemini-2.5-pro') return true;
+        return null;
+      });
+      mockGetAll.mockReturnValue(new Map([['google/gemini-2.5-pro', makeEntry(0.003, 0.015)]]));
+      await service.reload();
+
+      const entry = service.getByModel('google/gemini-2.5-pro');
+      expect(entry!.validated).toBe(true);
+      expect(mockRegistry.isModelConfirmed).toHaveBeenCalledWith('gemini', 'gemini-2.5-pro');
     });
   });
 });

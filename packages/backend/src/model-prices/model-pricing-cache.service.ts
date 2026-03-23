@@ -1,7 +1,10 @@
 import { Injectable, Logger, OnApplicationBootstrap, Inject, Optional } from '@nestjs/common';
 import { buildAliasMap, resolveModelName } from './model-name-normalizer';
 import { PricingSyncService } from '../database/pricing-sync.service';
-import { OPENROUTER_PREFIX_TO_PROVIDER } from '../common/constants/providers';
+import {
+  OPENROUTER_PREFIX_TO_PROVIDER,
+  PROVIDER_BY_ID_OR_ALIAS,
+} from '../common/constants/providers';
 import { ProviderModelRegistryService } from '../routing/model-discovery/provider-model-registry.service';
 
 /**
@@ -132,7 +135,10 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
 
   private resolveValidated(providerId: string | null, canonical: string): boolean | undefined {
     if (!this.modelRegistry || !providerId) return undefined;
-    const result = this.modelRegistry.isModelConfirmed(providerId, canonical);
+    // Resolve OpenRouter prefix to canonical provider ID (e.g., "google" → "gemini")
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get(providerId);
+    const canonicalProviderId = entry?.id ?? providerId;
+    const result = this.modelRegistry.isModelConfirmed(canonicalProviderId, canonical);
     return result ?? undefined;
   }
 }
