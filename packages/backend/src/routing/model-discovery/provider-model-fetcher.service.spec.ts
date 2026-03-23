@@ -28,6 +28,7 @@ describe('ProviderModelFetcherService', () => {
       'qwen',
       'ollama-cloud',
       'opencode',
+      'opencode-go',
       'zai',
       'zai-subscription',
       'anthropic',
@@ -166,6 +167,28 @@ describe('ProviderModelFetcherService', () => {
     const result = await service.fetch('deepseek', 'key');
     expect(result).toHaveLength(1);
     expect(result[0].provider).toBe('deepseek');
+  });
+
+  it('should work for opencode-go provider', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [{ id: 'glm-5' }] }),
+    });
+
+    const result = await service.fetch('opencode-go', 'key');
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual(
+      expect.objectContaining({
+        id: 'glm-5',
+        provider: 'opencode-go',
+      }),
+    );
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://opencode.ai/zen/go/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer key' },
+      }),
+    );
   });
 
   /* ── Bearer auth header ── */
