@@ -142,6 +142,14 @@ export const PROVIDER_REGISTRY: readonly ProviderRegistryEntry[] = [
     localOnly: false,
   },
   {
+    id: 'ollama-cloud',
+    displayName: 'Ollama Cloud',
+    aliases: [],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+  },
+  {
     id: 'ollama',
     displayName: 'Ollama',
     aliases: [],

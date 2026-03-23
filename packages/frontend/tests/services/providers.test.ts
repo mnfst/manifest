@@ -243,8 +243,8 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 14 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(14);
+  it("has 15 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(15);
   });
 
   it("providers are sorted alphabetically by name", () => {
@@ -294,6 +294,14 @@ describe("PROVIDERS", () => {
     expect(minimax.supportsSubscription).toBe(true);
     expect(minimax.subscriptionLabel).toBe("MiniMax Coding Plan");
     expect(minimax.subscriptionAuthMode).toBe("device_code");
+  });
+
+  it("Ollama Cloud supports subscription and is subscription-only", () => {
+    const oc = PROVIDERS.find((p) => p.id === "ollama-cloud")!;
+    expect(oc.supportsSubscription).toBe(true);
+    expect(oc.subscriptionOnly).toBe(true);
+    expect(oc.subscriptionLabel).toBe("Ollama Cloud Plan");
+    expect(oc.subscriptionAuthMode).toBe("token");
   });
 
   it("OpenCode Go supports subscription with token flow and is subscription-only", () => {

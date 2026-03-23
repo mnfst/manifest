@@ -310,6 +310,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: () => ({}),
     parse: parseOpenRouter,
   },
+  'ollama-cloud': {
+    endpoint: 'https://ollama.com/api/tags',
+    buildHeaders: bearerHeaders,
+    parse: parseOllama,
+  },
   ollama: {
     endpoint: `${OLLAMA_HOST}/api/tags`,
     buildHeaders: () => ({}),

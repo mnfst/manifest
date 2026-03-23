@@ -26,6 +26,7 @@ describe('ProviderModelFetcherService', () => {
       'minimax',
       'minimax-subscription',
       'qwen',
+      'ollama-cloud',
       'opencode',
       'zai',
       'zai-subscription',

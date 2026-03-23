@@ -49,6 +49,25 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
       supportsBatching: false,
     }),
   }),
+  'ollama-cloud': Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'Ollama Cloud Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    knownModels: Object.freeze([
+      'qwen3-coder:480b',
+      'qwen3.5:397b',
+      'deepseek-v3.2',
+      'glm-5',
+      'kimi-k2.5',
+      'minimax-m2.7',
+    ]),
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   'opencode-go': Object.freeze({
     supportsSubscription: true,
     subscriptionLabel: 'OpenCode Go Plan',

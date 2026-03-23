@@ -19,6 +19,21 @@ describe("subscription capability manifests", () => {
     }
   });
 
+  it("publishes Ollama Cloud token metadata in both manifests", () => {
+    for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
+      expect(capabilities.supportsSubscriptionProvider("ollama-cloud")).toBe(true);
+      expect(capabilities.getSubscriptionProviderConfig("ollama-cloud")).toMatchObject({
+        supportsSubscription: true,
+        subscriptionLabel: "Ollama Cloud Plan",
+        subscriptionAuthMode: "token",
+      });
+      expect(capabilities.getSubscriptionKnownModels("ollama-cloud")).toContain("glm-5");
+      expect(capabilities.getSubscriptionCapabilities("ollama-cloud")).toMatchObject({
+        maxContextWindow: 128000,
+      });
+    }
+  });
+
   it("publishes OpenCode Go token metadata in both manifests", () => {
     for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
       expect(capabilities.supportsSubscriptionProvider("opencode-go")).toBe(true);

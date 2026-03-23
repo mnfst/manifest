@@ -41,6 +41,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('zai')).toBe('zai');
     expect(resolveEndpointKey('opencode')).toBe('opencode');
     expect(resolveEndpointKey('opencode-go')).toBe('opencode-go');
+    expect(resolveEndpointKey('ollama-cloud')).toBe('ollama-cloud');
   });
 
   it('is case-insensitive', () => {
@@ -104,6 +105,12 @@ describe('PROVIDER_ENDPOINTS', () => {
 
   it('zai uses openai format', () => {
     expect(PROVIDER_ENDPOINTS['zai'].format).toBe('openai');
+  });
+
+  it('ollama-cloud uses openai format with ollama.com base', () => {
+    expect(PROVIDER_ENDPOINTS['ollama-cloud'].format).toBe('openai');
+    expect(PROVIDER_ENDPOINTS['ollama-cloud'].baseUrl).toBe('https://ollama.com');
+    expect(PROVIDER_ENDPOINTS['ollama-cloud'].buildPath('test')).toBe('/v1/chat/completions');
   });
 
   it('zai-subscription uses coding plan endpoint', () => {
