@@ -14,6 +14,8 @@ const KNOWN_PROVIDERS = [
   "openrouter",
   "ollama",
   "minimax",
+  "opencode",
+  "opencode-go",
   "zai",
 ];
 

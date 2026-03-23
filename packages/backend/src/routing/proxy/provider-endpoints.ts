@@ -106,6 +106,18 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
   },
+  opencode: {
+    baseUrl: 'https://opencode.ai/zen',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
+  'opencode-go': {
+    baseUrl: 'https://opencode.ai/zen/go',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
   zai: {
     baseUrl: 'https://api.z.ai',
     buildHeaders: openaiHeaders,

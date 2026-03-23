@@ -71,6 +71,7 @@ const OPENCLAW_TO_MANIFEST: Record<string, string> = {
   kimi: 'moonshot',
   minimax: 'minimax',
   'minimax-portal': 'minimax',
+  'opencode-go': 'opencode-go',
   zai: 'zai',
   'z.ai': 'zai',
   zhipu: 'zai',

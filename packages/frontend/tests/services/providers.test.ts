@@ -243,8 +243,8 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 12 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(12);
+  it("has 14 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(14);
   });
 
   it("providers are sorted alphabetically by name", () => {
@@ -294,6 +294,14 @@ describe("PROVIDERS", () => {
     expect(minimax.supportsSubscription).toBe(true);
     expect(minimax.subscriptionLabel).toBe("MiniMax Coding Plan");
     expect(minimax.subscriptionAuthMode).toBe("device_code");
+  });
+
+  it("OpenCode Go supports subscription with token flow", () => {
+    const ocgo = PROVIDERS.find((p) => p.id === "opencode-go")!;
+    expect(ocgo.supportsSubscription).toBe(true);
+    expect(ocgo.subscriptionLabel).toBe("OpenCode Go Plan");
+    expect(ocgo.subscriptionAuthMode).toBe("token");
+    expect(ocgo.subscriptionKeyPlaceholder).toBe("Paste your API key");
   });
 
   it("Z.ai supports subscription with token flow", () => {

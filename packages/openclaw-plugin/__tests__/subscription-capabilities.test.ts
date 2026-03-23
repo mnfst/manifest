@@ -19,6 +19,23 @@ describe("subscription capability manifests", () => {
     }
   });
 
+  it("publishes OpenCode Go token metadata in both manifests", () => {
+    for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
+      expect(capabilities.supportsSubscriptionProvider("opencode-go")).toBe(true);
+      expect(capabilities.getSubscriptionProviderConfig("opencode-go")).toMatchObject({
+        supportsSubscription: true,
+        subscriptionLabel: "OpenCode Go Plan",
+        subscriptionAuthMode: "token",
+      });
+      expect(capabilities.getSubscriptionKnownModels("opencode-go")).toContain("glm-5");
+      expect(capabilities.getSubscriptionCapabilities("opencode-go")).toMatchObject({
+        maxContextWindow: 128000,
+        supportsPromptCaching: false,
+        supportsBatching: false,
+      });
+    }
+  });
+
   it("publishes Z.ai token metadata in both manifests", () => {
     for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
       expect(capabilities.supportsSubscriptionProvider("zai")).toBe(true);

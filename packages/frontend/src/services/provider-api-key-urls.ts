@@ -5,6 +5,8 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   minimax: 'https://platform.minimax.io/docs/api-reference/api-overview',
   mistral: 'https://console.mistral.ai/api-keys/',
   moonshot: 'https://platform.moonshot.ai/',
+  opencode: 'https://opencode.ai/zen',
+  'opencode-go': 'https://opencode.ai/go',
   openai: 'https://platform.openai.com/api-keys',
   openrouter: 'https://openrouter.ai/keys',
   qwen: 'https://www.alibabacloud.com/help/en/model-studio/developer-reference/get-api-key',

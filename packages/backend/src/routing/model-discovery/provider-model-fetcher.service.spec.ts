@@ -26,6 +26,8 @@ describe('ProviderModelFetcherService', () => {
       'minimax',
       'minimax-subscription',
       'qwen',
+      'opencode',
+      'opencode-go',
       'zai',
       'anthropic',
       'gemini',

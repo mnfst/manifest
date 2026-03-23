@@ -39,6 +39,8 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
     expect(resolveEndpointKey('zai')).toBe('zai');
+    expect(resolveEndpointKey('opencode')).toBe('opencode');
+    expect(resolveEndpointKey('opencode-go')).toBe('opencode-go');
   });
 
   it('is case-insensitive', () => {
@@ -88,6 +90,16 @@ describe('PROVIDER_ENDPOINTS', () => {
 
   it('ollama uses openai format', () => {
     expect(PROVIDER_ENDPOINTS['ollama'].format).toBe('openai');
+  });
+
+  it('opencode uses openai format and standard path', () => {
+    expect(PROVIDER_ENDPOINTS['opencode'].format).toBe('openai');
+    expect(PROVIDER_ENDPOINTS['opencode'].buildPath('test')).toBe('/v1/chat/completions');
+  });
+
+  it('opencode-go uses openai format and standard path', () => {
+    expect(PROVIDER_ENDPOINTS['opencode-go'].format).toBe('openai');
+    expect(PROVIDER_ENDPOINTS['opencode-go'].buildPath('test')).toBe('/v1/chat/completions');
   });
 
   it('zai uses openai format', () => {

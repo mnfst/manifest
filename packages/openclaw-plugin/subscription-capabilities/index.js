@@ -49,6 +49,18 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
       supportsBatching: false,
     }),
   }),
+  'opencode-go': Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'OpenCode Go Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    knownModels: Object.freeze(['glm-5', 'kimi-k2.5', 'minimax-m2.7', 'minimax-m2.5']),
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   zai: Object.freeze({
     supportsSubscription: true,
     subscriptionLabel: 'Z.ai Coding Plan',

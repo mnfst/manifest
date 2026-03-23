@@ -268,6 +268,16 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  opencode: {
+    endpoint: 'https://opencode.ai/zen/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  'opencode-go': {
+    endpoint: 'https://opencode.ai/zen/go/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   zai: {
     endpoint: 'https://open.bigmodel.cn/api/paas/v4/models',
     buildHeaders: bearerHeaders,
