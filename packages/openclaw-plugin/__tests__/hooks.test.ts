@@ -816,7 +816,7 @@ describe("registerHooks", () => {
       expect(rootSpan.end).toHaveBeenCalled();
     });
 
-    it("extracts cache tokens from *_input_tokens fields", () => {
+    it("extracts cache tokens from cache_*_input_tokens fields", () => {
       api.emit("message_received", { sessionKey: "sess-cache-input" });
       api.emit("before_agent_start", { sessionKey: "sess-cache-input" });
       api.emit("agent_end", {
@@ -830,7 +830,7 @@ describe("registerHooks", () => {
               input_tokens: 900,
               output_tokens: 100,
               cache_read_input_tokens: 80,
-              cache_write_input_tokens: 20,
+              cache_creation_input_tokens: 20,
             },
           },
         ],

@@ -704,6 +704,39 @@ describe('ProviderClient', () => {
       expect(sentBody.temperature).toBe(0.7);
     });
 
+    it('does not inject stream_options for non-Ollama streaming providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('mistral', 'sk-mi', 'mistral-small', bodyWithOpenAiFields, true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.stream_options).toBeUndefined();
+    });
+
+    it('injects include_usage for Ollama Cloud streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward(
+        'ollama-cloud',
+        'sk-oc',
+        'ollama-cloud/glm-4.7',
+        bodyWithOpenAiFields,
+        true,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects include_usage for local Ollama streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('ollama', 'ollama-local', 'ollama/llama3.2', bodyWithOpenAiFields, true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
     it('converts max_completion_tokens to max_tokens for non-OpenAI providers', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward('mistral', 'sk-mi', 'mistral-small', bodyWithOpenAiFields, false);

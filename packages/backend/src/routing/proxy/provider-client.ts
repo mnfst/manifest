@@ -34,6 +34,7 @@ const OPENAI_ONLY_FIELDS = new Set([
  * Nested message fields may still need target-aware cleanup.
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+const STREAM_USAGE_PROVIDERS = new Set(['ollama', 'ollama-cloud']);
 const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
 function supportsReasoningContent(endpointKey: string, model: string): boolean {
@@ -197,10 +198,9 @@ export class ProviderClient {
       const sanitized = sanitizeOpenAiBody(body, endpointKey, model);
       requestBody = { ...sanitized, model: bareModel, stream };
 
-      // Ensure streaming responses include usage data so token counts are recorded.
-      // Many OpenAI-compatible providers (Ollama, DeepSeek, etc.) support this option
-      // but only return usage when explicitly asked.
-      if (stream) {
+      // Ollama-compatible OpenAI endpoints only include usage in streaming mode
+      // when explicitly requested.
+      if (stream && STREAM_USAGE_PROVIDERS.has(endpointKey)) {
         requestBody.stream_options = { include_usage: true };
       }
 

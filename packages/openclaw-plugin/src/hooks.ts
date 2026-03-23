@@ -144,7 +144,7 @@ function extractUsage(
       usage?.cacheWrite ||
       usage?.cacheWriteTokens ||
       usage?.cache_creation_tokens ||
-      usage?.cache_write_input_tokens ||
+      usage?.cache_creation_input_tokens ||
       0,
   };
 }
