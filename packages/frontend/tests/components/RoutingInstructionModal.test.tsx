@@ -135,6 +135,28 @@ describe("RoutingInstructionModal", () => {
     expect(container.querySelector(".routing-modal__inline-picker")).toBeNull();
   });
 
+  it("shows connected provider name in enable mode when connectedProvider is set", () => {
+    render(() => (
+      <RoutingInstructionModal open={true} mode="enable" connectedProvider="openai" onClose={() => {}} />
+    ));
+    expect(screen.getByText("OpenAI")).toBeDefined();
+    expect(screen.getByText("is now connected.")).toBeDefined();
+  });
+
+  it("does not show provider name when connectedProvider is null", () => {
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="enable" connectedProvider={null} onClose={() => {}} />
+    ));
+    expect(container.textContent).not.toContain("is now connected.");
+  });
+
+  it("falls back to raw provider id when provider is not in PROVIDERS list", () => {
+    render(() => (
+      <RoutingInstructionModal open={true} mode="enable" connectedProvider="custom:my-provider" onClose={() => {}} />
+    ));
+    expect(screen.getByText("custom:my-provider")).toBeDefined();
+  });
+
   it("shows restart command in disable mode", () => {
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="disable" onClose={() => {}} />

@@ -53,6 +53,7 @@ const Routing: Component = () => {
   const [disabling, setDisabling] = createSignal(false);
   const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
+  const [instructionProvider, setInstructionProvider] = createSignal<string | null>(null);
   const [changingTier, setChangingTier] = createSignal<string | null>(null);
   const [resettingAll, setResettingAll] = createSignal(false);
   const [resettingTier, setResettingTier] = createSignal<string | null>(null);
@@ -190,8 +191,9 @@ const Routing: Component = () => {
       refetchModels(),
     ]);
     if (!wasEnabled && isEnabled()) {
-      const hasNonSub = activeProviders().some((p) => p.auth_type !== 'subscription');
-      if (hasNonSub) setInstructionModal('enable');
+      const firstProvider = activeProviders()[0];
+      setInstructionProvider(firstProvider?.provider ?? null);
+      setInstructionModal('enable');
     }
   };
 
@@ -372,7 +374,11 @@ const Routing: Component = () => {
       <RoutingInstructionModal
         open={instructionModal() !== null}
         mode={instructionModal() ?? 'enable'}
-        onClose={() => setInstructionModal(null)}
+        connectedProvider={instructionProvider()}
+        onClose={() => {
+          setInstructionModal(null);
+          setInstructionProvider(null);
+        }}
       />
 
       <DisableRoutingModal

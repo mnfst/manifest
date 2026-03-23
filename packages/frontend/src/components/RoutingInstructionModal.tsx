@@ -1,12 +1,14 @@
 import { Show, createSignal, type Component } from 'solid-js';
 import { CopyButton } from './SetupStepInstall.jsx';
 import ModelSelectDropdown from './ModelSelectDropdown.jsx';
+import { PROVIDERS } from '../services/providers.js';
 
 const ENABLE_CMD = `openclaw config set agents.defaults.model.primary manifest/auto\nopenclaw gateway restart`;
 
 interface Props {
   open: boolean;
   mode: 'enable' | 'disable';
+  connectedProvider?: string | null;
   onClose: () => void;
 }
 
@@ -14,6 +16,10 @@ const RoutingInstructionModal: Component<Props> = (props) => {
   const [selectedModel, setSelectedModel] = createSignal<string | null>(null);
   const [selectedLabel, setSelectedLabel] = createSignal<string | null>(null);
   const isEnable = () => props.mode === 'enable';
+  const providerName = () => {
+    if (!props.connectedProvider) return null;
+    return PROVIDERS.find((p) => p.id === props.connectedProvider)?.name ?? props.connectedProvider;
+  };
   const title = () => (isEnable() ? 'Activate routing' : 'Deactivate routing');
   const modelOrPlaceholder = () => selectedModel() ?? '<provider/model>';
   const disableCmd = () =>
@@ -69,6 +75,12 @@ const RoutingInstructionModal: Component<Props> = (props) => {
           </div>
 
           <Show when={isEnable()}>
+            <Show when={providerName()}>
+              <p style="margin: 0 0 12px; font-size: var(--font-size-sm); line-height: 1.5;">
+                <span style="color: hsl(var(--primary)); font-weight: 600;">{providerName()}</span>{' '}
+                <span style="color: hsl(var(--muted-foreground));">is now connected.</span>
+              </p>
+            </Show>
             <p style="margin: 0 0 16px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
               Run the following command in your agent's terminal to route all requests through
               Manifest:
