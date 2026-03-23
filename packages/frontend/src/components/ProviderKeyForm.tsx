@@ -34,20 +34,18 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
   const isPopupOAuth = () =>
     props.provDef.subscriptionAuthMode === 'popup_oauth' || !!props.provDef.subscriptionOAuth;
   const shouldRevokeOpenaiOAuth = () =>
-    props.provId === 'openai' &&
-    isPopupOAuth() &&
-    props.selectedAuthType() === 'subscription';
-  const fieldLabel = () => (props.isSubMode() ? 'Setup Token' : 'API Key');
+    props.provId === 'openai' && isPopupOAuth() && props.selectedAuthType() === 'subscription';
+  const isApiKeySubscription = () => props.isSubMode() && !props.provDef.subscriptionCommand;
+  const fieldLabel = () =>
+    props.isSubMode() ? (isApiKeySubscription() ? 'API Key' : 'Setup Token') : 'API Key';
   const placeholder = () =>
     props.isSubMode()
       ? (props.provDef.subscriptionKeyPlaceholder ?? 'Paste token')
       : props.provDef.keyPlaceholder;
-  const inputAriaLabel = () =>
-    props.isSubMode() ? `${props.provDef.name} setup token` : `${props.provDef.name} API key`;
-  const editAriaLabel = () =>
-    props.isSubMode()
-      ? `New ${props.provDef.name} setup token`
-      : `New ${props.provDef.name} API key`;
+  const credentialLabel = () =>
+    props.isSubMode() ? (isApiKeySubscription() ? 'API key' : 'setup token') : 'API key';
+  const inputAriaLabel = () => `${props.provDef.name} ${credentialLabel()}`;
+  const editAriaLabel = () => `New ${props.provDef.name} ${credentialLabel()}`;
   const whereToGetUrl = getRoutingProviderApiKeyUrl(props.provId);
 
   const handleConnect = async () => {
@@ -92,8 +90,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         apiKey: props.keyInput().replace(/\s/g, ''),
         authType: props.selectedAuthType(),
       });
-      const label = props.isSubMode() ? 'token' : 'key';
-      toast.success(`${props.provDef.name} ${label} updated`);
+      toast.success(`${props.provDef.name} ${credentialLabel()} updated`);
       props.onBack();
       props.onUpdate();
     } catch {
@@ -152,7 +149,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
           <Show when={props.validationError()}>
             <div class="provider-detail__error">{props.validationError()}</div>
           </Show>
-          <Show when={whereToGetUrl && !props.isSubMode()}>
+          <Show when={whereToGetUrl && (!props.isSubMode() || isApiKeySubscription())}>
             <p class="provider-detail__key-help">
               <a
                 class="provider-detail__key-help-link"
@@ -187,9 +184,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 type="text"
                 value={props.getKeyPrefixDisplay(props.selectedAuthType())}
                 disabled
-                aria-label={
-                  props.isSubMode() ? 'Current setup token (masked)' : 'Current API key (masked)'
-                }
+                aria-label={`Current ${credentialLabel()} (masked)`}
               />
               <button
                 class="btn btn--outline btn--sm"
@@ -247,7 +242,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
             <Show when={props.validationError()}>
               <div class="provider-detail__error">{props.validationError()}</div>
             </Show>
-            <Show when={whereToGetUrl && !props.isSubMode()}>
+            <Show when={whereToGetUrl && (!props.isSubMode() || isApiKeySubscription())}>
               <p class="provider-detail__key-help">
                 <a
                   class="provider-detail__key-help-link"
