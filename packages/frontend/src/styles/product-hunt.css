@@ -98,30 +98,22 @@
   z-index: 1;
   display: inline-flex;
   margin-top: 14px;
-  border: 1px solid rgb(39 20 7 / 0.08);
+  border: none;
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.72);
+  background: none;
   text-decoration: none;
   color: inherit;
   transition:
     transform var(--transition-fast),
-    border-color var(--transition-fast),
     box-shadow var(--transition-fast);
 }
 
 .product-hunt-modal__featured-badge:hover {
   transform: translateY(-1px);
-  border-color: rgb(255 97 0 / 0.22);
   box-shadow: 0 10px 20px rgb(39 20 7 / 0.08);
 }
 
-.dark .product-hunt-modal__featured-badge {
-  border-color: rgb(255 255 255 / 0.08);
-  background: rgb(255 255 255 / 0.03);
-}
-
 .dark .product-hunt-modal__featured-badge:hover {
-  border-color: rgb(255 97 0 / 0.28);
   box-shadow: 0 12px 24px rgb(0 0 0 / 0.18);
 }
 
@@ -131,7 +123,7 @@
   justify-content: center;
   min-height: 62px;
   min-width: 250px;
-  padding: 8px 10px;
+  padding: 0;
   border-radius: 12px;
   background: rgb(255 255 255 / 0.88);
 }
