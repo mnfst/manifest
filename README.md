@@ -19,6 +19,8 @@ OpenClaw costs
 <p align="center">
   <a href="https://github.com/mnfst/manifest/stargazers"><img src="https://img.shields.io/github/stars/mnfst/manifest?style=flat" alt="GitHub stars" /></a>
   &nbsp;
+  <a href="https://www.producthunt.com/products/manifest-361?utm_source=badge-follow&utm_medium=badge&utm_campaign=badge-manifest-361"><img src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=1186856&theme=light&size=small" alt="Product Hunt" width="86" height="32" /></a>
+  &nbsp;
   <a href="https://www.npmjs.com/package/manifest"><img src="https://img.shields.io/npm/v/manifest?color=cb3837&label=npm" alt="npm version" /></a>
   &nbsp;
   <a href="https://www.npmjs.com/package/manifest"><img src="https://img.shields.io/npm/dw/manifest?color=cb3837" alt="npm downloads" /></a>
