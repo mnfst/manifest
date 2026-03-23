@@ -204,8 +204,12 @@ export class RoutingService {
     const invalidated: { tier: string; modelName: string }[] = [];
     const tiersToSave: TierAssignment[] = [];
     for (const tier of overrides) {
+      const prefix = inferProviderFromModelName(tier.override_model!);
       const pricing = this.pricingCache.getByModel(tier.override_model!);
-      if (pricing && providerNames.has(pricing.provider.toLowerCase())) {
+      if (
+        (prefix && providerNames.has(prefix)) ||
+        (pricing && providerNames.has(pricing.provider.toLowerCase()))
+      ) {
         invalidated.push({ tier: tier.tier, modelName: tier.override_model! });
         tier.override_model = null;
         tier.override_auth_type = null;
@@ -220,8 +224,12 @@ export class RoutingService {
     for (const tier of allTiers) {
       if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
       const filtered = tier.fallback_models.filter((model) => {
+        const prefix = inferProviderFromModelName(model);
         const pricing = this.pricingCache.getByModel(model);
-        return !pricing || !providerNames.has(pricing.provider.toLowerCase());
+        return (
+          (!prefix || !providerNames.has(prefix)) &&
+          (!pricing || !providerNames.has(pricing.provider.toLowerCase()))
+        );
       });
       if (filtered.length !== tier.fallback_models.length) {
         tier.fallback_models = filtered.length > 0 ? filtered : null;
@@ -532,12 +540,8 @@ export class RoutingService {
   /* ── Provider lookup by cached models ── */
 
   async findProviderForModel(agentId: string, model: string): Promise<string | undefined> {
-    const providers = await this.getProviders(agentId);
-    for (const p of providers) {
-      if (!p.cached_models) continue;
-      if (p.cached_models.some((m) => m.id === model)) return p.provider;
-    }
-    return undefined;
+    const discovered = await this.discoveryService.getModelForAgent(agentId, model);
+    return discovered?.provider;
   }
 
   /* ── Runtime helper ── */

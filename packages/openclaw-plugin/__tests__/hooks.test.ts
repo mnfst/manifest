@@ -55,14 +55,14 @@ function createMockMeter() {
 
 // --- Mock API (event emitter) ---
 function createMockApi() {
-  const handlers = new Map<string, (event: unknown) => void>();
+  const handlers = new Map<string, (...args: unknown[]) => void>();
   return {
     handlers,
-    on: jest.fn((event: string, handler: (event: unknown) => void) => {
+    on: jest.fn((event: string, handler: (...args: unknown[]) => void) => {
       handlers.set(event, handler);
     }),
-    emit(event: string, data: unknown) {
-      handlers.get(event)?.(data);
+    emit(event: string, data: unknown, ctx?: unknown) {
+      handlers.get(event)?.(data, ctx);
     },
   };
 }
@@ -164,6 +164,7 @@ describe("registerHooks", () => {
     expect(api.on).toHaveBeenCalledWith("before_agent_start", expect.any(Function));
     expect(api.on).toHaveBeenCalledWith("tool_result_persist", expect.any(Function));
     expect(api.on).toHaveBeenCalledWith("agent_end", expect.any(Function));
+    expect(api.on).toHaveBeenCalledWith("llm_output", expect.any(Function));
   });
 
   it("falls back to registerHook when api.on is not available", () => {
@@ -686,6 +687,164 @@ describe("registerHooks", () => {
 
       const outputCounter = meter.counters.get(METRICS.LLM_TOKENS_OUTPUT);
       expect(outputCounter?.add).toHaveBeenCalledWith(150, expect.any(Object));
+    });
+
+    it("extracts tokens from snake_case usage (input_tokens/output_tokens)", () => {
+      api.emit("message_received", { sessionKey: "sess-snake" });
+      api.emit("before_agent_start", { sessionKey: "sess-snake" });
+      api.emit("agent_end", {
+        sessionKey: "sess-snake",
+        messages: [
+          {
+            role: "assistant",
+            model: "ollama-cloud/minimax-m2.7",
+            provider: "ollama-cloud",
+            usage: { input_tokens: 1200, output_tokens: 300 },
+          },
+        ],
+      });
+
+      const inputCounter = meter.counters.get(METRICS.LLM_TOKENS_INPUT);
+      expect(inputCounter?.add).toHaveBeenCalledWith(1200, expect.any(Object));
+
+      const outputCounter = meter.counters.get(METRICS.LLM_TOKENS_OUTPUT);
+      expect(outputCounter?.add).toHaveBeenCalledWith(300, expect.any(Object));
+    });
+
+    it("uses llm_output usage when agent_end arrives first without token data", () => {
+      api.emit("message_received", { sessionKey: "sess-live-order" });
+      api.emit("before_agent_start", { sessionKey: "sess-live-order" });
+
+      const rootSpan = tracer.spans[0];
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-live-order",
+        success: true,
+        durationMs: 15300,
+        messages: [
+          { role: "user", content: "hello" },
+          { role: "assistant", content: "hi there" },
+        ],
+      });
+
+      expect(turnSpan.end).not.toHaveBeenCalled();
+      expect(rootSpan.end).not.toHaveBeenCalled();
+
+      api.emit(
+        "llm_output",
+        {
+          sessionId: "session-1",
+          provider: "ollama-cloud",
+          model: "ollama-cloud/glm-4.7",
+          usage: { input: 1200, output: 300, cacheRead: 50, cacheWrite: 10 },
+        },
+        { sessionKey: "sess-live-order" },
+      );
+
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.MODEL]: "ollama-cloud/glm-4.7",
+          [ATTRS.PROVIDER]: "ollama-cloud",
+          [ATTRS.INPUT_TOKENS]: 1200,
+          [ATTRS.OUTPUT_TOKENS]: 300,
+          [ATTRS.CACHE_READ_TOKENS]: 50,
+          [ATTRS.CACHE_WRITE_TOKENS]: 10,
+        }),
+      );
+      expect(turnSpan.end).toHaveBeenCalled();
+      expect(rootSpan.end).toHaveBeenCalled();
+
+      const inputCounter = meter.counters.get(METRICS.LLM_TOKENS_INPUT);
+      expect(inputCounter?.add).toHaveBeenCalledWith(
+        1200,
+        expect.objectContaining({ [ATTRS.MODEL]: "ollama-cloud/glm-4.7" }),
+      );
+
+      const outputCounter = meter.counters.get(METRICS.LLM_TOKENS_OUTPUT);
+      expect(outputCounter?.add).toHaveBeenCalledWith(300, expect.any(Object));
+
+      const cacheCounter = meter.counters.get(METRICS.LLM_TOKENS_CACHE_READ);
+      expect(cacheCounter?.add).toHaveBeenCalledWith(50, expect.any(Object));
+    });
+
+    it("waits for llm_output when agent_end only has a placeholder usage object", () => {
+      api.emit("message_received", { sessionKey: "sess-placeholder-usage" });
+      api.emit("before_agent_start", { sessionKey: "sess-placeholder-usage" });
+
+      const rootSpan = tracer.spans[0];
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-placeholder-usage",
+        success: true,
+        durationMs: 28200,
+        messages: [
+          { role: "user", content: "hello" },
+          {
+            role: "assistant",
+            model: "ollama-cloud/glm-4.7",
+            provider: "ollama-cloud",
+            usage: { total: 1500, cost: { total: 0 } },
+          },
+        ],
+      });
+
+      expect(turnSpan.end).not.toHaveBeenCalled();
+      expect(rootSpan.end).not.toHaveBeenCalled();
+
+      api.emit(
+        "llm_output",
+        {
+          sessionId: "session-2",
+          provider: "ollama-cloud",
+          model: "ollama-cloud/glm-4.7",
+          usage: { input: 1200, output: 300, cacheRead: 50, cacheWrite: 10 },
+        },
+        { sessionKey: "sess-placeholder-usage" },
+      );
+
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.INPUT_TOKENS]: 1200,
+          [ATTRS.OUTPUT_TOKENS]: 300,
+          [ATTRS.CACHE_READ_TOKENS]: 50,
+          [ATTRS.CACHE_WRITE_TOKENS]: 10,
+        }),
+      );
+      expect(turnSpan.end).toHaveBeenCalled();
+      expect(rootSpan.end).toHaveBeenCalled();
+    });
+
+    it("extracts cache tokens from cache_*_input_tokens fields", () => {
+      api.emit("message_received", { sessionKey: "sess-cache-input" });
+      api.emit("before_agent_start", { sessionKey: "sess-cache-input" });
+      api.emit("agent_end", {
+        sessionKey: "sess-cache-input",
+        messages: [
+          {
+            role: "assistant",
+            model: "ollama-cloud/glm-4.7",
+            provider: "ollama-cloud",
+            usage: {
+              input_tokens: 900,
+              output_tokens: 100,
+              cache_read_input_tokens: 80,
+              cache_creation_input_tokens: 20,
+            },
+          },
+        ],
+      });
+
+      const turnSpan = tracer.spans[1];
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.INPUT_TOKENS]: 900,
+          [ATTRS.OUTPUT_TOKENS]: 100,
+          [ATTRS.CACHE_READ_TOKENS]: 80,
+          [ATTRS.CACHE_WRITE_TOKENS]: 20,
+        }),
+      );
     });
 
     it("defaults to 'unknown' model/provider when missing", () => {

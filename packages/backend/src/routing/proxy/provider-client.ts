@@ -34,6 +34,7 @@ const OPENAI_ONLY_FIELDS = new Set([
  * Nested message fields may still need target-aware cleanup.
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+const STREAM_USAGE_PROVIDERS = new Set(['deepseek', 'ollama', 'ollama-cloud']);
 const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
 function supportsReasoningContent(endpointKey: string, model: string): boolean {
@@ -96,12 +97,7 @@ function normalizeDeepSeekMaxTokens(body: Record<string, unknown>): void {
   if (!('max_tokens' in body)) return;
 
   const raw = body.max_tokens;
-  const parsed =
-    typeof raw === 'number'
-      ? raw
-      : typeof raw === 'string'
-        ? Number(raw)
-        : Number.NaN;
+  const parsed = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : Number.NaN;
 
   if (!Number.isFinite(parsed) || parsed <= 0) {
     delete body.max_tokens;
@@ -166,6 +162,8 @@ export class ProviderClient {
         resolved = 'openai-subscription';
       } else if (resolved === 'minimax' && authType === 'subscription') {
         resolved = 'minimax-subscription';
+      } else if (resolved === 'zai' && authType === 'subscription') {
+        resolved = 'zai-subscription';
       }
       endpointKey = resolved;
       endpoint = PROVIDER_ENDPOINTS[endpointKey];
@@ -199,6 +197,12 @@ export class ProviderClient {
       headers = endpoint.buildHeaders(apiKey, authType);
       const sanitized = sanitizeOpenAiBody(body, endpointKey, model);
       requestBody = { ...sanitized, model: bareModel, stream };
+
+      // Ollama-compatible OpenAI endpoints only include usage in streaming mode
+      // when explicitly requested.
+      if (stream && STREAM_USAGE_PROVIDERS.has(endpointKey)) {
+        requestBody.stream_options = { include_usage: true };
+      }
 
       // Inject cache_control for OpenRouter requests targeting Anthropic models
       if (endpointKey === 'openrouter' && model.startsWith('anthropic/')) {

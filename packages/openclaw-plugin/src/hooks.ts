@@ -17,6 +17,26 @@ import { resolveRouting } from './routing';
 interface ActiveSpans {
   root: Span;
   turn?: Span;
+  llmOutput?: LlmUsageSnapshot;
+  pendingEnd?: PendingAgentEnd;
+}
+
+interface LlmUsageSnapshot {
+  model: string;
+  provider: string;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+}
+
+interface PendingAgentEnd {
+  messages: any[];
+  success?: boolean;
+  error?: any;
+  errorMessage?: any;
+  durationMs?: number;
+  fallbackUsage: LlmUsageSnapshot;
 }
 
 // In-flight span tracking (keyed by session)
@@ -81,17 +101,197 @@ function hookOn(api: any, event: string, handler: (...args: any[]) => any): void
   }
 }
 
+function getSessionKey(event: any, ctx?: any): string {
+  return (
+    event?.sessionKey ||
+    event?.session?.key ||
+    ctx?.sessionKey ||
+    (ctx?.sessionId ? `session:${ctx.sessionId}` : undefined) ||
+    (event?.sessionId ? `session:${event.sessionId}` : undefined) ||
+    `agent:${event?.agent || 'main'}:main`
+  );
+}
+
+function extractUsage(
+  usage: any,
+): Pick<LlmUsageSnapshot, 'inputTokens' | 'outputTokens' | 'cacheReadTokens' | 'cacheWriteTokens'> {
+  const promptDetails = usage?.prompt_tokens_details || {};
+
+  return {
+    inputTokens:
+      usage?.input ||
+      usage?.inputTokens ||
+      usage?.input_tokens ||
+      usage?.prompt_tokens ||
+      usage?.promptTokens ||
+      0,
+    outputTokens:
+      usage?.output ||
+      usage?.outputTokens ||
+      usage?.output_tokens ||
+      usage?.completion_tokens ||
+      usage?.completionTokens ||
+      0,
+    cacheReadTokens:
+      usage?.cacheRead ||
+      usage?.cacheReadTokens ||
+      usage?.cache_read_tokens ||
+      usage?.cache_read_input_tokens ||
+      usage?.cached_input_tokens ||
+      promptDetails.cached_tokens ||
+      0,
+    cacheWriteTokens:
+      usage?.cacheWrite ||
+      usage?.cacheWriteTokens ||
+      usage?.cache_creation_tokens ||
+      usage?.cache_creation_input_tokens ||
+      0,
+  };
+}
+
+function hasUsageTokens(
+  usage: Pick<
+    LlmUsageSnapshot,
+    'inputTokens' | 'outputTokens' | 'cacheReadTokens' | 'cacheWriteTokens'
+  >,
+): boolean {
+  return (
+    usage.inputTokens > 0 ||
+    usage.outputTokens > 0 ||
+    usage.cacheReadTokens > 0 ||
+    usage.cacheWriteTokens > 0
+  );
+}
+
+function extractAgentEndUsage(event: any): {
+  snapshot: LlmUsageSnapshot;
+  hasUsableUsage: boolean;
+} {
+  const messages: any[] = event.messages || [];
+  const lastAssistant = [...messages]
+    .reverse()
+    .find((m: any) => m?.role === 'assistant' && m.usage);
+  const usage = extractUsage(lastAssistant?.usage || event.usage || {});
+  const snapshot = {
+    model: lastAssistant?.model || event.model || 'unknown',
+    provider: lastAssistant?.provider || event.provider || 'unknown',
+    ...usage,
+  };
+
+  return {
+    snapshot,
+    hasUsableUsage: hasUsageTokens(usage),
+  };
+}
+
+function extractLlmOutputUsage(event: any): LlmUsageSnapshot {
+  const lastAssistant = event.lastAssistant;
+  const usage = lastAssistant?.usage || event.usage || {};
+
+  return {
+    model: lastAssistant?.model || event.model || 'unknown',
+    provider: lastAssistant?.provider || event.provider || 'unknown',
+    ...extractUsage(usage),
+  };
+}
+
 export function registerHooks(
   api: any,
   tracer: Tracer,
   config: ManifestConfig,
   logger: PluginLogger,
 ): void {
+  const finalizeTrace = async (sessionKey: string, active: ActiveSpans): Promise<void> => {
+    const pendingEnd = active.pendingEnd;
+    if (!pendingEnd) return;
+
+    const usage = active.llmOutput || pendingEnd.fallbackUsage;
+    let finalModel = usage.model;
+    let finalProvider = usage.provider;
+    let routingTier: string | null = null;
+    let routingReason: string | null = null;
+
+    if (finalModel === 'auto') {
+      const resolved = await resolveRouting(config, pendingEnd.messages, sessionKey, logger);
+      if (resolved) {
+        finalModel = resolved.model;
+        finalProvider = resolved.provider;
+        routingTier = resolved.tier;
+        routingReason = resolved.reason || null;
+      }
+    }
+
+    // Detect heartbeat only from the last user message in the turn.
+    const lastUserMsg = [...pendingEnd.messages].reverse().find((m: any) => m?.role === 'user');
+    const hasHeartbeat = lastUserMsg
+      ? typeof lastUserMsg.content === 'string'
+        ? lastUserMsg.content.includes('HEARTBEAT_OK')
+        : Array.isArray(lastUserMsg.content)
+          ? lastUserMsg.content.some(
+              (p: any) =>
+                p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
+            )
+          : false
+      : false;
+    if (hasHeartbeat) {
+      routingReason = 'heartbeat';
+      routingTier = 'simple';
+    }
+
+    if (active.turn) {
+      active.turn.setAttributes({
+        [ATTRS.MODEL]: finalModel,
+        [ATTRS.PROVIDER]: finalProvider,
+        [ATTRS.INPUT_TOKENS]: usage.inputTokens,
+        [ATTRS.OUTPUT_TOKENS]: usage.outputTokens,
+        [ATTRS.CACHE_READ_TOKENS]: usage.cacheReadTokens,
+        [ATTRS.CACHE_WRITE_TOKENS]: usage.cacheWriteTokens,
+      });
+      if (routingTier) {
+        active.turn.setAttribute(ATTRS.ROUTING_TIER, routingTier);
+      }
+      if (routingReason) {
+        active.turn.setAttribute(ATTRS.ROUTING_REASON, routingReason);
+      }
+      if (pendingEnd.success === false || pendingEnd.error != null) {
+        const errMsg = pendingEnd.error?.message || pendingEnd.errorMessage || 'Agent turn failed';
+        active.turn.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: typeof errMsg === 'string' ? errMsg.slice(0, 500) : String(errMsg),
+        });
+      }
+      active.turn.end();
+    }
+
+    if (active.root && active.root !== active.turn) {
+      active.root.end();
+    }
+    activeSpans.delete(sessionKey);
+
+    const metricAttrs = {
+      [ATTRS.MODEL]: finalModel,
+      [ATTRS.PROVIDER]: finalProvider,
+    };
+    llmRequests.add(1, metricAttrs);
+    llmTokensInput.add(usage.inputTokens, metricAttrs);
+    llmTokensOutput.add(usage.outputTokens, metricAttrs);
+    if (usage.cacheReadTokens > 0) {
+      llmTokensCacheRead.add(usage.cacheReadTokens, metricAttrs);
+    }
+    if ((pendingEnd.durationMs || 0) > 0) {
+      llmDuration.record(pendingEnd.durationMs || 0, metricAttrs);
+    }
+
+    logger.debug(
+      `[manifest] agent_end tokens: in=${usage.inputTokens}, out=${usage.outputTokens}, cache=${usage.cacheReadTokens}`,
+    );
+    logger.debug(`[manifest] Trace completed for session=${sessionKey}`);
+  };
+
   // --- message_received ---
   // Creates the root span for the entire request lifecycle.
   hookOn(api, 'message_received', (event: any) => {
-    const sessionKey =
-      event.sessionKey || event.session?.key || `agent:${event.agent || 'main'}:main`;
+    const sessionKey = getSessionKey(event);
     const channel = event.channel || 'unknown';
 
     const rootSpan = tracer.startSpan(SPANS.REQUEST, {
@@ -110,8 +310,7 @@ export function registerHooks(
   // --- before_agent_start ---
   // Creates a child span under the root for the agent turn.
   hookOn(api, 'before_agent_start', (event: any) => {
-    const sessionKey =
-      event.sessionKey || event.session?.key || `agent:${event.agent || 'main'}:main`;
+    const sessionKey = getSessionKey(event);
     const agentName = event.agent || 'main';
 
     const active = activeSpans.get(sessionKey);
@@ -146,7 +345,7 @@ export function registerHooks(
     const toolName = event.toolName || event.tool || 'unknown';
     const durationMs = event.durationMs || 0;
     const success = event.error == null;
-    const sessionKey = event.sessionKey || 'unknown';
+    const sessionKey = getSessionKey(event, { sessionKey: 'unknown' });
 
     const active = activeSpans.get(sessionKey);
     const parentContext = active?.turn
@@ -179,120 +378,45 @@ export function registerHooks(
     toolDuration.record(durationMs, { [ATTRS.TOOL_NAME]: toolName });
   });
 
-  // --- agent_end ---
-  // Records LLM metrics and closes all spans.
-  // Event shape: { messages: Message[], success: boolean, durationMs: number }
-  // Usage data lives on each assistant message, not at the top level.
-  hookOn(api, 'agent_end', async (event: any) => {
-    const sessionKey =
-      event.sessionKey || event.session?.key || `agent:${event.agent || 'main'}:main`;
-
-    // Extract data from the last assistant message with usage info
-    const messages: any[] = event.messages || [];
-    const lastAssistant = [...messages]
-      .reverse()
-      .find((m: any) => m.role === 'assistant' && m.usage);
-
-    const model = lastAssistant?.model || event.model || 'unknown';
-    const provider = lastAssistant?.provider || event.provider || 'unknown';
-    const usage = lastAssistant?.usage || event.usage || {};
-    const inputTokens =
-      usage.input || usage.inputTokens || usage.prompt_tokens || usage.promptTokens || 0;
-    const outputTokens =
-      usage.output || usage.outputTokens || usage.completion_tokens || usage.completionTokens || 0;
-
-    // Cache tokens: try gateway-native fields first, then OpenAI format.
-    const promptDetails = usage.prompt_tokens_details || {};
-    const cacheReadTokens =
-      usage.cacheRead ||
-      usage.cacheReadTokens ||
-      usage.cache_read_tokens ||
-      promptDetails.cached_tokens ||
-      0;
-    const cacheWriteTokens =
-      usage.cacheWrite || usage.cacheWriteTokens || usage.cache_creation_tokens || 0;
-
-    // If model is "auto" (routed through manifest proxy), resolve the actual model
-    let finalModel = model;
-    let finalProvider = provider;
-    let routingTier: string | null = null;
-    let routingReason: string | null = null;
-
-    if (finalModel === 'auto') {
-      const resolved = await resolveRouting(config, messages, sessionKey, logger);
-      if (resolved) {
-        finalModel = resolved.model;
-        finalProvider = resolved.provider;
-        routingTier = resolved.tier;
-        routingReason = resolved.reason || null;
-      }
-    }
-
-    // Detect heartbeat — only if the LAST user message contains HEARTBEAT_OK.
-    // Content can be a string or array of content parts (multi-modal format).
-    const lastUserMsg = [...messages].reverse().find((m: any) => m?.role === 'user');
-    const hasHeartbeat = lastUserMsg
-      ? typeof lastUserMsg.content === 'string'
-        ? lastUserMsg.content.includes('HEARTBEAT_OK')
-        : Array.isArray(lastUserMsg.content)
-          ? lastUserMsg.content.some(
-              (p: any) =>
-                p.type === 'text' && typeof p.text === 'string' && p.text.includes('HEARTBEAT_OK'),
-            )
-          : false
-      : false;
-    if (hasHeartbeat) {
-      routingReason = 'heartbeat';
-      routingTier = 'simple';
-    }
-
+  // --- llm_output ---
+  // Current OpenClaw versions emit normalized token usage here, after agent_end.
+  hookOn(api, 'llm_output', async (event: any, ctx?: any) => {
+    const sessionKey = getSessionKey(event, ctx);
     const active = activeSpans.get(sessionKey);
+    if (!active) return;
 
-    if (active?.turn) {
-      active.turn.setAttributes({
-        [ATTRS.MODEL]: finalModel,
-        [ATTRS.PROVIDER]: finalProvider,
-        [ATTRS.INPUT_TOKENS]: inputTokens,
-        [ATTRS.OUTPUT_TOKENS]: outputTokens,
-        [ATTRS.CACHE_READ_TOKENS]: cacheReadTokens,
-        [ATTRS.CACHE_WRITE_TOKENS]: cacheWriteTokens,
-      });
-      if (routingTier) {
-        active.turn.setAttribute(ATTRS.ROUTING_TIER, routingTier);
-      }
-      if (routingReason) {
-        active.turn.setAttribute(ATTRS.ROUTING_REASON, routingReason);
-      }
-      if (event.success === false || event.error != null) {
-        const errMsg = event.error?.message || event.errorMessage || 'Agent turn failed';
-        active.turn.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: typeof errMsg === 'string' ? errMsg.slice(0, 500) : String(errMsg),
-        });
-      }
-      active.turn.end();
+    active.llmOutput = extractLlmOutputUsage(event);
+    if (active.pendingEnd) {
+      await finalizeTrace(sessionKey, active);
     }
+  });
 
-    if (active?.root && active.root !== active.turn) {
-      active.root.end();
-    }
-    activeSpans.delete(sessionKey);
+  // --- agent_end ---
+  // Records routing/status and closes spans once token usage is available.
+  hookOn(api, 'agent_end', async (event: any, ctx?: any) => {
+    const sessionKey = getSessionKey(event, ctx);
+    const active = activeSpans.get(sessionKey);
+    if (!active) return;
 
-    const metricAttrs = {
-      [ATTRS.MODEL]: finalModel,
-      [ATTRS.PROVIDER]: finalProvider,
+    const { snapshot, hasUsableUsage } = extractAgentEndUsage(event);
+    active.pendingEnd = {
+      messages: event.messages || [],
+      success: event.success,
+      error: event.error,
+      errorMessage: event.errorMessage,
+      durationMs: event.durationMs,
+      fallbackUsage: snapshot,
     };
-    llmRequests.add(1, metricAttrs);
-    llmTokensInput.add(inputTokens, metricAttrs);
-    llmTokensOutput.add(outputTokens, metricAttrs);
-    if (cacheReadTokens > 0) {
-      llmTokensCacheRead.add(cacheReadTokens, metricAttrs);
-    }
 
-    logger.debug(
-      `[manifest] agent_end tokens: in=${inputTokens}, out=${outputTokens}, cache=${cacheReadTokens}`,
-    );
-    logger.debug(`[manifest] Trace completed for session=${sessionKey}`);
+    const shouldFinalizeImmediately =
+      Boolean(active.llmOutput) ||
+      hasUsableUsage ||
+      event.success === false ||
+      (event.messages || []).length === 0;
+
+    if (shouldFinalizeImmediately) {
+      await finalizeTrace(sessionKey, active);
+    }
   });
 
   logger.debug('[manifest] All hooks registered');

@@ -2077,33 +2077,32 @@ describe('RoutingService', () => {
   });
 
   describe('findProviderForModel', () => {
-    it('should return the provider that has the model in cached_models', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, cached_models: [{ id: 'claude-opus-4-6' }] },
-        { provider: 'gemini', is_active: true, cached_models: [{ id: 'gemini-2.5-flash' }] },
-      ]);
+    it('should return the provider from discovered models', async () => {
+      mockDiscoveryService.getModelForAgent.mockResolvedValue({
+        id: 'claude-opus-4-6',
+        provider: 'anthropic',
+      });
 
       const result = await service.findProviderForModel('a1', 'claude-opus-4-6');
       expect(result).toBe('anthropic');
+      expect(mockDiscoveryService.getModelForAgent).toHaveBeenCalledWith('a1', 'claude-opus-4-6');
     });
 
     it('should return undefined when no provider has the model', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, cached_models: [{ id: 'claude-opus-4-6' }] },
-      ]);
+      mockDiscoveryService.getModelForAgent.mockResolvedValue(undefined);
 
       const result = await service.findProviderForModel('a1', 'unknown-model');
       expect(result).toBeUndefined();
     });
 
-    it('should skip providers with null cached_models', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, cached_models: null },
-        { provider: 'gemini', is_active: true, cached_models: [{ id: 'gemini-2.5-flash' }] },
-      ]);
+    it('should resolve provider-qualified duplicate models', async () => {
+      mockDiscoveryService.getModelForAgent.mockResolvedValue({
+        id: 'opencode-go/glm-5',
+        provider: 'opencode-go',
+      });
 
-      const result = await service.findProviderForModel('a1', 'gemini-2.5-flash');
-      expect(result).toBe('gemini');
+      const result = await service.findProviderForModel('a1', 'opencode-go/glm-5');
+      expect(result).toBe('opencode-go');
     });
   });
 });

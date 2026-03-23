@@ -5,6 +5,9 @@ import {
 } from '../../common/constants/providers';
 import {
   getSubscriptionKnownModels,
+  getSubscriptionKnownModelMatchMode,
+  getSubscriptionCatalogMode,
+  shouldQualifySubscriptionModelIds,
   getSubscriptionCapabilities,
 } from '../../../../subscription-capabilities';
 
@@ -19,6 +22,14 @@ interface PricingLookup {
     string,
     { input: number; output: number; contextWindow?: number; displayName?: string }
   >;
+}
+
+function matchesKnownModel(providerId: string, modelId: string, knownModelId: string): boolean {
+  const mode = getSubscriptionKnownModelMatchMode(providerId);
+  const lowerModelId = modelId.toLowerCase();
+  const lowerKnownModelId = knownModelId.toLowerCase();
+  if (mode === 'exact') return lowerModelId === lowerKnownModelId;
+  return lowerModelId === lowerKnownModelId || lowerModelId.startsWith(`${lowerKnownModelId}-`);
 }
 
 /**
@@ -142,7 +153,7 @@ export function buildSubscriptionFallbackModels(
     for (const [fullId, entry] of pricingSync.getAll()) {
       if (!fullId.startsWith(`${orPrefix}/`)) continue;
       const modelId = fullId.substring(orPrefix.length + 1);
-      if (!normalizedKnownPrefixes.some((p: string) => modelId.toLowerCase().startsWith(p))) {
+      if (!normalizedKnownPrefixes.some((p: string) => matchesKnownModel(providerId, modelId, p))) {
         continue;
       }
       if (seen.has(modelId)) continue;
@@ -174,8 +185,7 @@ export function buildSubscriptionFallbackModels(
   for (const modelId of knownPrefixes) {
     const lowerModelId = modelId.toLowerCase();
     const covered = models.some((m) => {
-      const lowerDiscovered = m.id.toLowerCase();
-      return lowerDiscovered === lowerModelId || lowerDiscovered.startsWith(`${lowerModelId}-`);
+      return matchesKnownModel(providerId, m.id, lowerModelId);
     });
     if (covered) continue;
     models.push({
@@ -213,8 +223,7 @@ export function supplementWithKnownModels(
     const lowerModelId = modelId.toLowerCase();
     // Skip if this model or a more specific version (e.g., with date suffix) already exists
     const covered = raw.some((m) => {
-      const lowerDiscovered = m.id.toLowerCase();
-      return lowerDiscovered === lowerModelId || lowerDiscovered.startsWith(`${lowerModelId}-`);
+      return matchesKnownModel(providerId, m.id, lowerModelId);
     });
     if (covered) continue;
     raw.push({
@@ -231,4 +240,23 @@ export function supplementWithKnownModels(
   }
 
   return raw;
+}
+
+export function filterSubscriptionCatalogModels(
+  raw: DiscoveredModel[],
+  providerId: string,
+): DiscoveredModel[] {
+  const knownModels = getSubscriptionKnownModels(providerId);
+  if (!knownModels || getSubscriptionCatalogMode(providerId) !== 'known_only') return raw;
+
+  return raw.filter((model) =>
+    knownModels.some((knownModelId) => matchesKnownModel(providerId, model.id, knownModelId)),
+  );
+}
+
+export function qualifyDiscoveredModelId(providerId: string, modelId: string): string {
+  const lowerProviderId = providerId.toLowerCase();
+  if (!shouldQualifySubscriptionModelIds(providerId)) return modelId;
+  if (modelId.toLowerCase().startsWith(`${lowerProviderId}/`)) return modelId;
+  return `${lowerProviderId}/${modelId}`;
 }

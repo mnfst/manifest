@@ -148,6 +148,21 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── OpenCode ─────────────────────────────────── */
+    case 'opencode':
+    case 'opencode-go':
+      return (
+        <svg
+          style={s}
+          viewBox="0 0 24 24"
+          fill={id === 'opencode-go' ? '#2d8c3c' : 'currentColor'}
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
+        </svg>
+      );
+
     /* ── Z.ai (Zhipu) ─────────────────────────────── */
     case 'zai':
       return (
@@ -176,7 +191,8 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
-    /* ── Ollama ───────────────────────────────────── */
+    /* ── Ollama / Ollama Cloud ────────────────────── */
+    case 'ollama-cloud':
     case 'ollama':
       return (
         <svg

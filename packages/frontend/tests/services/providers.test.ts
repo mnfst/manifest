@@ -243,8 +243,8 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 12 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(12);
+  it("has 15 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(15);
   });
 
   it("providers are sorted alphabetically by name", () => {
@@ -294,6 +294,31 @@ describe("PROVIDERS", () => {
     expect(minimax.supportsSubscription).toBe(true);
     expect(minimax.subscriptionLabel).toBe("MiniMax Coding Plan");
     expect(minimax.subscriptionAuthMode).toBe("device_code");
+  });
+
+  it("Ollama Cloud supports subscription and is subscription-only", () => {
+    const oc = PROVIDERS.find((p) => p.id === "ollama-cloud")!;
+    expect(oc.supportsSubscription).toBe(true);
+    expect(oc.subscriptionOnly).toBe(true);
+    expect(oc.subscriptionLabel).toBe("Ollama Cloud Plan");
+    expect(oc.subscriptionAuthMode).toBe("token");
+  });
+
+  it("OpenCode Go supports subscription with token flow and is subscription-only", () => {
+    const ocgo = PROVIDERS.find((p) => p.id === "opencode-go")!;
+    expect(ocgo.supportsSubscription).toBe(true);
+    expect(ocgo.subscriptionOnly).toBe(true);
+    expect(ocgo.subscriptionLabel).toBe("OpenCode Go Plan");
+    expect(ocgo.subscriptionAuthMode).toBe("token");
+    expect(ocgo.subscriptionKeyPlaceholder).toBe("Paste your API key");
+  });
+
+  it("Z.ai supports subscription with token flow", () => {
+    const zai = PROVIDERS.find((p) => p.id === "zai")!;
+    expect(zai.supportsSubscription).toBe(true);
+    expect(zai.subscriptionLabel).toBe("Z.ai Coding Plan");
+    expect(zai.subscriptionAuthMode).toBe("token");
+    expect(zai.subscriptionKeyPlaceholder).toBe("Paste your API key");
   });
 
   it("requires an API key URL for every provider that needs one", () => {

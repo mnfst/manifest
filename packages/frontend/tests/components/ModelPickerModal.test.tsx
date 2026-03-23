@@ -8,10 +8,25 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
 vi.mock("../../src/services/routing-utils.js", () => ({
   pricePerM: (v: number) => `$${(v * 1_000_000).toFixed(2)}`,
   resolveProviderId: (provider: string) => {
-    const map: Record<string, string> = { OpenAI: "openai", Anthropic: "anthropic", Google: "google" };
+    const map: Record<string, string> = {
+      OpenAI: "openai",
+      Anthropic: "anthropic",
+      Google: "google",
+      "OpenCode Go": "opencode-go",
+      "Ollama Cloud": "ollama-cloud",
+      OpenRouter: "openrouter",
+      "OpenCode Go Plan": "opencode-go",
+      "Ollama Cloud Plan": "ollama-cloud",
+      "opencode-go": "opencode-go",
+      "ollama-cloud": "ollama-cloud",
+    };
     return map[provider] ?? null;
   },
   inferProviderFromModel: (modelName: string) => {
+    if (modelName.startsWith("glm-")) return "zai";
+    if (modelName.startsWith("kimi-")) return "moonshot";
+    if (modelName.startsWith("minimax-")) return "minimax";
+    if (modelName.includes(":") && !modelName.endsWith(":free")) return "ollama";
     const slash = modelName.indexOf("/");
     if (slash !== -1) return modelName.substring(0, slash).toLowerCase();
     return null;
@@ -27,7 +42,7 @@ const baseTiers = [
 const baseModels = [
   { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
   { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
-  { model_name: "openrouter/free", provider: "OpenAI", display_name: "Free Models Router", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
+  { model_name: "openrouter/free", provider: "OpenRouter", display_name: "Free Models Router", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
 ];
 
 describe("ModelPickerModal", () => {
@@ -460,5 +475,113 @@ describe("ModelPickerModal", () => {
     fireEvent.click(screen.getByText("Subscription"));
     // No filter bar should show on subscription tab
     expect(container.querySelector('.routing-modal__filter-bar')).toBeNull();
+  });
+
+  it("keeps OpenCode Go models visible on the subscription tab even when slugs map to other vendors", () => {
+    const providers = [
+      { id: "p1", provider: "opencode-go", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "glm-5", provider: "opencode-go", display_name: "GLM 5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "kimi-k2.5", provider: "opencode-go", display_name: "Kimi K2.5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "minimax-m2.7", provider: "opencode-go", display_name: "MiniMax M2.7", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("OpenCode Go")).toBeDefined();
+    expect(screen.getByText("GLM 5")).toBeDefined();
+    expect(screen.getByText("Kimi K2.5")).toBeDefined();
+    expect(screen.getByText("MiniMax M2.7")).toBeDefined();
+  });
+
+  it("keeps provider-qualified OpenCode Go duplicates grouped correctly and forwards the qualified id", () => {
+    const providers = [
+      { id: "p1", provider: "zai", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+      { id: "p2", provider: "opencode-go", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "glm-5", provider: "zai", display_name: "GLM 5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "opencode-go/glm-5", provider: "opencode-go", display_name: "GLM 5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("OpenCode Go")).toBeDefined();
+    const glmButtons = screen.getAllByText("GLM 5");
+    fireEvent.click(glmButtons[glmButtons.length - 1]);
+    expect(onSelect).toHaveBeenCalledWith("simple", "opencode-go/glm-5", "subscription");
+  });
+
+  it("keeps Ollama Cloud models grouped under Ollama Cloud instead of reclassifying them from the slug", () => {
+    const providers = [
+      { id: "p1", provider: "ollama-cloud", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "qwen3-coder:480b", provider: "ollama-cloud", display_name: "Qwen3 Coder 480B", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "glm-5", provider: "ollama-cloud", display_name: "GLM 5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "deepseek-v3.2", provider: "ollama-cloud", display_name: "DeepSeek V3.2", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "nemotron-3-super", provider: "ollama-cloud", display_name: "Nemotron 3 Super", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("Ollama Cloud")).toBeDefined();
+    expect(screen.getByText("Qwen3 Coder 480B")).toBeDefined();
+    expect(screen.getByText("GLM 5")).toBeDefined();
+    expect(screen.getByText("DeepSeek V3.2")).toBeDefined();
+    expect(screen.getByText("Nemotron 3 Super")).toBeDefined();
+  });
+
+  it("keeps provider-qualified Ollama Cloud models grouped correctly and forwards the qualified id", () => {
+    const providers = [
+      { id: "p1", provider: "ollama-cloud", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "ollama-cloud/minimax-m2.7", provider: "ollama-cloud", display_name: "MiniMax M2.7", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("Ollama Cloud")).toBeDefined();
+    const modelButtons = screen.getAllByText("MiniMax M2.7");
+    fireEvent.click(modelButtons[modelButtons.length - 1]);
+    expect(onSelect).toHaveBeenCalledWith("simple", "ollama-cloud/minimax-m2.7", "subscription");
   });
 });

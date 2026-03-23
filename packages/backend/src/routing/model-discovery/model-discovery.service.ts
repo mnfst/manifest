@@ -9,16 +9,20 @@ import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { computeQualityScore } from '../../database/quality-score.util';
 import { PricingSyncService } from '../../database/pricing-sync.service';
 import { parseOAuthTokenBlob } from '../openai-oauth.types';
+import { inferProviderFromModel } from '../../common/utils/provider-inference';
 import {
   findOpenRouterPrefix,
   lookupWithVariants,
   buildFallbackModels,
   buildSubscriptionFallbackModels,
+  filterSubscriptionCatalogModels,
   supplementWithKnownModels,
+  qualifyDiscoveredModelId,
 } from './model-fallback';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
 const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
+const qualifiedModelKey = (providerId: string, modelId: string) => `${providerId}/${modelId}`;
 
 @Injectable()
 export class ModelDiscoveryService {
@@ -80,12 +84,15 @@ export class ModelDiscoveryService {
         endpointOverride,
       );
 
-      // If native API returned no models, fall back to OpenRouter + manual pricing
+      // If native API returned no models, fall back to pricing data
       if (raw.length === 0) {
-        raw = buildFallbackModels(this.pricingSync, provider.provider);
+        raw =
+          provider.auth_type === 'subscription'
+            ? buildSubscriptionFallbackModels(this.pricingSync, provider.provider)
+            : buildFallbackModels(this.pricingSync, provider.provider);
         if (raw.length > 0) {
           this.logger.log(
-            `Native API returned 0 models for ${provider.provider} — using ${raw.length} models from pricing data`,
+            `Native API returned 0 models for ${provider.provider} — using ${raw.length} ${provider.auth_type === 'subscription' ? 'subscription fallback' : 'pricing'} models`,
           );
         }
       }
@@ -94,6 +101,7 @@ export class ModelDiscoveryService {
     // For subscription providers, supplement with knownModels so users can
     // always select them, even if the live API or OpenRouter didn't return them.
     if (provider.auth_type === 'subscription') {
+      raw = filterSubscriptionCatalogModels(raw, provider.provider);
       raw = supplementWithKnownModels(raw, provider.provider);
     }
 
@@ -134,24 +142,79 @@ export class ModelDiscoveryService {
     });
 
     const models: DiscoveredModel[] = [];
-    const seen = new Map<string, number>();
+    const selectedByProviderAndModel = new Map<string, DiscoveredModel>();
+    const providersByModelId = new Map<string, Set<string>>();
 
     for (const p of providers) {
       if (p.provider.startsWith('custom:')) continue;
       const cached = p.cached_models;
       if (!Array.isArray(cached)) continue;
+      const providerId = p.provider.toLowerCase();
       const providerAuthType = p.auth_type === 'subscription' ? 'subscription' : 'api_key';
       for (const m of cached) {
+        const qualifiedId = qualifyDiscoveredModelId(providerId, m.id);
         const effectiveAuthType = m.authType ?? providerAuthType;
-        if (!seen.has(m.id)) {
-          seen.set(m.id, models.length);
-          models.push(m);
-        } else if (
-          effectiveAuthType === 'subscription' &&
-          models[seen.get(m.id)!]?.authType !== 'subscription'
-        ) {
-          models[seen.get(m.id)!] = m;
+        const providerModelKey = `${providerId}\u0000${qualifiedId}`;
+        const current = selectedByProviderAndModel.get(providerModelKey);
+        if (effectiveAuthType === 'subscription' && current?.authType !== 'subscription') {
+          selectedByProviderAndModel.set(providerModelKey, {
+            ...m,
+            id: qualifiedId,
+            authType: effectiveAuthType,
+          });
+        } else if (!current) {
+          selectedByProviderAndModel.set(providerModelKey, {
+            ...m,
+            id: qualifiedId,
+            authType: effectiveAuthType,
+          });
         }
+        const providerIds = providersByModelId.get(m.id) ?? new Set<string>();
+        providerIds.add(providerId);
+        providersByModelId.set(m.id, providerIds);
+      }
+    }
+
+    const canonicalProviderByModelId = new Map<string, string>();
+    for (const [modelId, providerIds] of providersByModelId) {
+      if (providerIds.size < 2) continue;
+      const inferredProvider = inferProviderFromModel(modelId)?.toLowerCase();
+      canonicalProviderByModelId.set(
+        modelId,
+        inferredProvider && providerIds.has(inferredProvider)
+          ? inferredProvider
+          : [...providerIds][0]!,
+      );
+    }
+
+    const seenProviderAndModel = new Set<string>();
+    for (const p of providers) {
+      if (p.provider.startsWith('custom:')) continue;
+      const cached = p.cached_models;
+      if (!Array.isArray(cached)) continue;
+      const providerId = p.provider.toLowerCase();
+      for (const m of cached) {
+        const qualifiedId = qualifyDiscoveredModelId(providerId, m.id);
+        const providerModelKey = `${providerId}\u0000${qualifiedId}`;
+        if (seenProviderAndModel.has(providerModelKey)) continue;
+        seenProviderAndModel.add(providerModelKey);
+
+        const selected = selectedByProviderAndModel.get(providerModelKey);
+        if (!selected) continue;
+
+        const providerIds = providersByModelId.get(m.id);
+        const canonicalProvider = canonicalProviderByModelId.get(m.id);
+        const modelId =
+          qualifiedId !== m.id
+            ? qualifiedId
+            : providerIds && providerIds.size > 1 && canonicalProvider !== providerId
+              ? qualifiedModelKey(providerId, m.id)
+              : m.id;
+
+        models.push({
+          ...selected,
+          id: modelId,
+        });
       }
     }
 
@@ -164,8 +227,7 @@ export class ModelDiscoveryService {
       const cpKey = customProviderKey(cp.id);
       for (const m of cp.models) {
         const modelKey = customModelKey(cp.id, m.model_name);
-        if (seen.has(modelKey)) continue;
-        seen.set(modelKey, models.length);
+        if (models.some((model) => model.id === modelKey)) continue;
         const inputPerToken =
           m.input_price_per_million_tokens != null
             ? m.input_price_per_million_tokens / 1_000_000

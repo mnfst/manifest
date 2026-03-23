@@ -22,6 +22,8 @@ export interface ProviderDef {
   subscriptionCommand?: string;
   /** UI auth mode for subscription flows. */
   subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
+  /** When true, provider only appears in the Subscriptions tab (not API Keys). */
+  subscriptionOnly?: boolean;
   /** Deprecated compatibility flag for popup OAuth providers. */
   subscriptionOAuth?: boolean;
 }
@@ -126,6 +128,22 @@ export const PROVIDERS: ProviderDef[] = [
     localOnly: true,
   },
   {
+    id: 'ollama-cloud',
+    name: 'Ollama Cloud',
+    color: '#1a1a1a',
+    initial: 'Ol',
+    subtitle: 'Qwen, DeepSeek, Gemma, GLM, and more',
+    keyPrefix: '',
+    minKeyLength: 30,
+    keyPlaceholder: 'API key',
+    supportsSubscription: true,
+    subscriptionOnly: true,
+    subscriptionLabel: 'Ollama Cloud Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    models: [],
+  },
+  {
     id: 'openai',
     name: 'OpenAI',
     color: '#10a37f',
@@ -154,6 +172,33 @@ export const PROVIDERS: ProviderDef[] = [
       { label: 'o1 Mini', value: 'o1-mini' },
       { label: 'o1 Preview', value: 'o1-preview' },
     ],
+  },
+  {
+    id: 'opencode',
+    name: 'OpenCode',
+    color: '#1a1a1a',
+    initial: 'Oc',
+    subtitle: 'Claude, GPT, Gemini, and more',
+    keyPrefix: 'sk-',
+    minKeyLength: 50,
+    keyPlaceholder: 'sk-...',
+    models: [],
+  },
+  {
+    id: 'opencode-go',
+    name: 'OpenCode Go',
+    color: '#2d8c3c',
+    initial: 'Go',
+    subtitle: 'GLM 5, Kimi K2.5, MiniMax',
+    keyPrefix: 'sk-',
+    minKeyLength: 50,
+    keyPlaceholder: 'sk-...',
+    supportsSubscription: true,
+    subscriptionOnly: true,
+    subscriptionLabel: 'OpenCode Go Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    models: [],
   },
   {
     id: 'openrouter',
@@ -186,6 +231,10 @@ export const PROVIDERS: ProviderDef[] = [
     keyPrefix: '',
     minKeyLength: 30,
     keyPlaceholder: 'API key',
+    supportsSubscription: true,
+    subscriptionLabel: 'Z.ai Coding Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
     models: [],
   },
 ];

@@ -71,6 +71,13 @@ const OPENCLAW_TO_MANIFEST: Record<string, string> = {
   kimi: 'moonshot',
   minimax: 'minimax',
   'minimax-portal': 'minimax',
+  'ollama-cloud': 'ollama-cloud',
+  ollama: 'ollama-cloud',
+  'opencode-go': 'opencode-go',
+  zai: 'zai',
+  'z.ai': 'zai',
+  zhipu: 'zai',
+  zhipuai: 'zai',
 };
 
 /**

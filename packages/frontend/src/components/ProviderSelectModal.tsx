@@ -38,10 +38,12 @@ const ProviderSelectModal: Component<Props> = (props) => {
   const [validationError, setValidationError] = createSignal<string | null>(null);
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
   const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
-  const apiKeyProviders = () =>
-    isLocalMode()
-      ? PROVIDERS
-      : [...PROVIDERS].sort((a, b) => (a.localOnly ? 1 : 0) - (b.localOnly ? 1 : 0));
+  const apiKeyProviders = () => {
+    const filtered = PROVIDERS.filter((p) => !p.subscriptionOnly);
+    return isLocalMode()
+      ? filtered
+      : [...filtered].sort((a, b) => (a.localOnly ? 1 : 0) - (b.localOnly ? 1 : 0));
+  };
 
   const getProviderByAuth = (provId: string, authType: AuthType) =>
     props.providers.find((p) => p.provider === provId && p.auth_type === authType);

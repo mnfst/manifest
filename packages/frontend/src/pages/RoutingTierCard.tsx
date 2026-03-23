@@ -19,9 +19,11 @@ function providerIdForModel(model: string, apiModels: AvailableModel[]): string 
     apiModels.find((x) => x.model_name === model) ??
     apiModels.find((x) => x.model_name.startsWith(model + '-'));
   if (m) {
+    const providerId = resolveProviderId(m.provider);
+    if (providerId) return providerId;
     const prefixId = inferProviderFromModel(m.model_name);
     if (prefixId && PROVIDERS.find((p) => p.id === prefixId)) return prefixId;
-    return resolveProviderId(m.provider) ?? prefixId;
+    return prefixId;
   }
   const prefix = inferProviderFromModel(model);
   if (prefix && PROVIDERS.find((p) => p.id === prefix)) return prefix;
@@ -90,11 +92,11 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
         const provName = info.provider_display_name;
         return provName ? `${provName} / ${info.display_name}` : info.display_name;
       }
+      const resolvedProviderId = resolveProviderId(info.provider);
       const prefixId = inferProviderFromModel(modelName);
       const provId =
-        prefixId && PROVIDERS.find((p) => p.id === prefixId)
-          ? prefixId
-          : resolveProviderId(info.provider);
+        resolvedProviderId ??
+        (prefixId && PROVIDERS.find((p) => p.id === prefixId) ? prefixId : undefined);
       if (provId) return getModelLabel(provId, modelName);
     }
     return modelName;
