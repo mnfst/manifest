@@ -1,5 +1,15 @@
 # manifest
 
+## 5.28.4
+
+### Patch Changes
+
+- c0cb273: Persist the selected provider for manual routing overrides so OpenRouter-sourced models resolve through the chosen provider instead of being re-inferred from the model name.
+- e37c315: Fix SPA deep-route refresh returning 404 in local/embedded mode by disabling @nestjs/serve-static's broken render handler and hardening the SPA fallback filter to use cached index.html content instead of res.sendFile()
+- ed066de: Trigger proxy fallbacks when the primary provider fails at the transport layer before returning an HTTP response.
+- c187927: Filter phantom models from OpenRouter fallback using provider-native API data
+- 7fb9ba9: Normalize Anthropic short model ids so pricing lookup resolves Claude 4.6 cost entries across dotted and dashed variants.
+
 ## 5.28.3
 
 ### Patch Changes
