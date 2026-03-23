@@ -55,14 +55,14 @@ function createMockMeter() {
 
 // --- Mock API (event emitter) ---
 function createMockApi() {
-  const handlers = new Map<string, (event: unknown) => void>();
+  const handlers = new Map<string, (...args: unknown[]) => void>();
   return {
     handlers,
-    on: jest.fn((event: string, handler: (event: unknown) => void) => {
+    on: jest.fn((event: string, handler: (...args: unknown[]) => void) => {
       handlers.set(event, handler);
     }),
-    emit(event: string, data: unknown) {
-      handlers.get(event)?.(data);
+    emit(event: string, data: unknown, ctx?: unknown) {
+      handlers.get(event)?.(data, ctx);
     },
   };
 }
@@ -164,6 +164,7 @@ describe("registerHooks", () => {
     expect(api.on).toHaveBeenCalledWith("before_agent_start", expect.any(Function));
     expect(api.on).toHaveBeenCalledWith("tool_result_persist", expect.any(Function));
     expect(api.on).toHaveBeenCalledWith("agent_end", expect.any(Function));
+    expect(api.on).toHaveBeenCalledWith("llm_output", expect.any(Function));
   });
 
   it("falls back to registerHook when api.on is not available", () => {
@@ -708,6 +709,63 @@ describe("registerHooks", () => {
 
       const outputCounter = meter.counters.get(METRICS.LLM_TOKENS_OUTPUT);
       expect(outputCounter?.add).toHaveBeenCalledWith(300, expect.any(Object));
+    });
+
+    it("uses llm_output usage when agent_end arrives first without token data", () => {
+      api.emit("message_received", { sessionKey: "sess-live-order" });
+      api.emit("before_agent_start", { sessionKey: "sess-live-order" });
+
+      const rootSpan = tracer.spans[0];
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-live-order",
+        success: true,
+        durationMs: 15300,
+        messages: [
+          { role: "user", content: "hello" },
+          { role: "assistant", content: "hi there" },
+        ],
+      });
+
+      expect(turnSpan.end).not.toHaveBeenCalled();
+      expect(rootSpan.end).not.toHaveBeenCalled();
+
+      api.emit(
+        "llm_output",
+        {
+          sessionId: "session-1",
+          provider: "ollama-cloud",
+          model: "ollama-cloud/glm-4.7",
+          usage: { input: 1200, output: 300, cacheRead: 50, cacheWrite: 10 },
+        },
+        { sessionKey: "sess-live-order" },
+      );
+
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.MODEL]: "ollama-cloud/glm-4.7",
+          [ATTRS.PROVIDER]: "ollama-cloud",
+          [ATTRS.INPUT_TOKENS]: 1200,
+          [ATTRS.OUTPUT_TOKENS]: 300,
+          [ATTRS.CACHE_READ_TOKENS]: 50,
+          [ATTRS.CACHE_WRITE_TOKENS]: 10,
+        }),
+      );
+      expect(turnSpan.end).toHaveBeenCalled();
+      expect(rootSpan.end).toHaveBeenCalled();
+
+      const inputCounter = meter.counters.get(METRICS.LLM_TOKENS_INPUT);
+      expect(inputCounter?.add).toHaveBeenCalledWith(
+        1200,
+        expect.objectContaining({ [ATTRS.MODEL]: "ollama-cloud/glm-4.7" }),
+      );
+
+      const outputCounter = meter.counters.get(METRICS.LLM_TOKENS_OUTPUT);
+      expect(outputCounter?.add).toHaveBeenCalledWith(300, expect.any(Object));
+
+      const cacheCounter = meter.counters.get(METRICS.LLM_TOKENS_CACHE_READ);
+      expect(cacheCounter?.add).toHaveBeenCalledWith(50, expect.any(Object));
     });
 
     it("defaults to 'unknown' model/provider when missing", () => {
