@@ -289,6 +289,14 @@ describe("PROVIDERS", () => {
     expect(anthropic.subscriptionAuthMode).toBe("token");
   });
 
+  it("GitHub Copilot is subscription-only", () => {
+    const copilot = PROVIDERS.find((p) => p.id === "copilot")!;
+    expect(copilot.supportsSubscription).toBe(true);
+    expect(copilot.subscriptionOnly).toBe(true);
+    expect(copilot.deviceLogin).toBe(true);
+    expect(copilot.subscriptionAuthMode).toBe("device_code");
+  });
+
   it("MiniMax supports subscription with device-code flow", () => {
     const minimax = PROVIDERS.find((p) => p.id === "minimax")!;
     expect(minimax.supportsSubscription).toBe(true);
