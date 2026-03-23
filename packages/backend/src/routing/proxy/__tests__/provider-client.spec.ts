@@ -66,7 +66,7 @@ describe('ProviderClient', () => {
       await client.forward('moonshot', 'sk-moon', 'kimi-k2', body, false);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.moonshot.cn/v1/chat/completions',
+        'https://api.moonshot.ai/v1/chat/completions',
         expect.any(Object),
       );
     });

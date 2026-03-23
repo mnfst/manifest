@@ -101,7 +101,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     format: 'anthropic',
   },
   moonshot: {
-    baseUrl: 'https://api.moonshot.cn',
+    baseUrl: 'https://api.moonshot.ai',
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
