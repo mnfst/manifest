@@ -2806,4 +2806,95 @@ describe('TraceIngestService', () => {
     // buildDedupContext always runs all 5 batch queries upfront, plus 1 for unfilled fallback
     expect(mockTurnFind).toHaveBeenCalledTimes(6);
   });
+
+  it('infers subscription auth_type from model prefix when provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'copilot', auth_type: 'subscription' }]);
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'copilot/gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ auth_type: 'subscription' }),
+    ]);
+  });
+
+  it('sets cost to zero for prefixed model when prefix provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'copilot', auth_type: 'subscription' }]);
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'copilot/gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ cost_usd: 0 })]);
+  });
+
+  it('sets cost to zero in rollup for prefixed model when prefix provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'copilot', auth_type: 'subscription' }]);
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-prefix',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-prefix',
+      parentSpanId: 'span-msg-prefix',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'copilot/gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 200 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 100 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 0);
+  });
 });

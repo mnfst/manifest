@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
-import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Request } from 'express';
 import { Public } from '../common/decorators/public.decorator';
@@ -14,6 +14,10 @@ export class SubscriptionProviderItem {
   @IsString()
   @IsNotEmpty()
   provider!: string;
+
+  @IsString()
+  @IsOptional()
+  token?: string;
 }
 
 export class RegisterSubscriptionsDto {
@@ -59,11 +63,24 @@ export class ResolveController {
     let registered = 0;
 
     for (const item of body.providers) {
-      const { isNew } = await this.routingService.registerSubscriptionProvider(
-        agentId,
-        userId,
-        item.provider,
-      );
+      let isNew: boolean;
+      if (item.token) {
+        const result = await this.routingService.upsertProvider(
+          agentId,
+          userId,
+          item.provider,
+          item.token,
+          'subscription',
+        );
+        isNew = result.isNew;
+      } else {
+        const result = await this.routingService.registerSubscriptionProvider(
+          agentId,
+          userId,
+          item.provider,
+        );
+        isNew = result.isNew;
+      }
       if (isNew) {
         registered++;
       }

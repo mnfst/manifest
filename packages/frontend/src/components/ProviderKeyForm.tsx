@@ -34,9 +34,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
   const isPopupOAuth = () =>
     props.provDef.subscriptionAuthMode === 'popup_oauth' || !!props.provDef.subscriptionOAuth;
   const shouldRevokeOpenaiOAuth = () =>
-    props.provId === 'openai' &&
-    isPopupOAuth() &&
-    props.selectedAuthType() === 'subscription';
+    props.provId === 'openai' && isPopupOAuth() && props.selectedAuthType() === 'subscription';
   const fieldLabel = () => (props.isSubMode() ? 'Setup Token' : 'API Key');
   const placeholder = () =>
     props.isSubMode()

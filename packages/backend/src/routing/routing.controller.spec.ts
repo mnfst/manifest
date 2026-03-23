@@ -5,6 +5,7 @@ import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
 import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
+import { CopilotDeviceAuthService } from './copilot-device-auth.service';
 import { DiscoveredModel } from './model-discovery/model-fetcher';
 import { Agent } from '../entities/agent.entity';
 
@@ -19,6 +20,7 @@ describe('RoutingController', () => {
   let mockDiscoveryService: Record<string, jest.Mock>;
   let mockOllamaSync: Record<string, jest.Mock>;
   let mockResolveAgent: Record<string, jest.Mock>;
+  let mockCopilotAuth: Record<string, jest.Mock>;
 
   function makeDiscovered(overrides: Partial<DiscoveredModel> = {}): DiscoveredModel {
     return {
@@ -65,6 +67,10 @@ describe('RoutingController', () => {
     mockCustomProviderService = {
       list: jest.fn().mockResolvedValue([]),
     };
+    mockCopilotAuth = {
+      requestDeviceCode: jest.fn(),
+      pollForToken: jest.fn(),
+    };
 
     controller = new RoutingController(
       mockRoutingService as unknown as RoutingService,
@@ -72,6 +78,7 @@ describe('RoutingController', () => {
       mockDiscoveryService as unknown as ModelDiscoveryService,
       mockOllamaSync as unknown as OllamaSyncService,
       mockResolveAgent as unknown as ResolveAgentService,
+      mockCopilotAuth as unknown as CopilotDeviceAuthService,
     );
   });
 
@@ -255,6 +262,21 @@ describe('RoutingController', () => {
       });
 
       expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerResult);
+    });
+
+    it('should call recalculateTiers after discovery in upsertProvider', async () => {
+      const providerResult = { id: 'p1', provider: 'openai', is_active: true };
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: providerResult,
+        isNew: true,
+      });
+
+      await controller.upsertProvider(mockUser, mockAgentName, {
+        provider: 'openai',
+        apiKey: 'sk-test',
+      });
+
+      expect(mockRoutingService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID);
     });
 
     it('should swallow discovery errors silently', async () => {
@@ -638,6 +660,108 @@ describe('RoutingController', () => {
       const result = await controller.clearFallbacks(mockUser, 'test-agent', 'standard');
       expect(mockRoutingService.clearFallbacks).toHaveBeenCalledWith(TEST_AGENT_ID, 'standard');
       expect(result).toEqual({ ok: true });
+    });
+  });
+
+  /* ── copilot device login ── */
+
+  describe('copilotDeviceCode', () => {
+    it('should request a device code from copilot auth service', async () => {
+      const deviceCodeResponse = {
+        device_code: 'dc_abc',
+        user_code: 'ABCD-1234',
+        verification_uri: 'https://github.com/login/device',
+        expires_in: 900,
+        interval: 5,
+      };
+      mockCopilotAuth.requestDeviceCode.mockResolvedValue(deviceCodeResponse);
+
+      const result = await controller.copilotDeviceCode(mockUser, mockAgentName);
+
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(result).toEqual(deviceCodeResponse);
+    });
+  });
+
+  describe('copilotPollToken', () => {
+    it('should store token and return complete when poll succeeds', async () => {
+      mockCopilotAuth.pollForToken.mockResolvedValue({
+        status: 'complete',
+        token: 'ghu_github_token',
+      });
+
+      const result = await controller.copilotPollToken(mockUser, mockAgentName, {
+        deviceCode: 'dc_abc',
+      } as never);
+
+      expect(result).toEqual({ status: 'complete' });
+      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+        'copilot',
+        'ghu_github_token',
+        'subscription',
+      );
+    });
+
+    it('should call discoverModels and recalculateTiers on successful token poll', async () => {
+      const providerRecord = { id: 'p1', provider: 'copilot', is_active: true };
+      mockCopilotAuth.pollForToken.mockResolvedValue({
+        status: 'complete',
+        token: 'ghu_token',
+      });
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: providerRecord,
+        isNew: true,
+      });
+
+      await controller.copilotPollToken(mockUser, mockAgentName, {
+        deviceCode: 'dc_abc',
+      } as never);
+
+      expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerRecord);
+      expect(mockRoutingService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID);
+    });
+
+    it('should swallow discovery errors in copilotPollToken', async () => {
+      const providerRecord = { id: 'p1', provider: 'copilot', is_active: true };
+      mockCopilotAuth.pollForToken.mockResolvedValue({
+        status: 'complete',
+        token: 'ghu_token',
+      });
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: providerRecord,
+        isNew: true,
+      });
+      mockDiscoveryService.discoverModels.mockRejectedValue(new Error('discovery failed'));
+
+      const result = await controller.copilotPollToken(mockUser, mockAgentName, {
+        deviceCode: 'dc_abc',
+      } as never);
+
+      expect(result).toEqual({ status: 'complete' });
+    });
+
+    it('should return pending without storing when still waiting', async () => {
+      mockCopilotAuth.pollForToken.mockResolvedValue({ status: 'pending' });
+
+      const result = await controller.copilotPollToken(mockUser, mockAgentName, {
+        deviceCode: 'dc_abc',
+      } as never);
+
+      expect(result).toEqual({ status: 'pending' });
+      expect(mockRoutingService.upsertProvider).not.toHaveBeenCalled();
+    });
+
+    it('should return expired without storing', async () => {
+      mockCopilotAuth.pollForToken.mockResolvedValue({ status: 'expired' });
+
+      const result = await controller.copilotPollToken(mockUser, mockAgentName, {
+        deviceCode: 'dc_abc',
+      } as never);
+
+      expect(result).toEqual({ status: 'expired' });
+      expect(mockRoutingService.upsertProvider).not.toHaveBeenCalled();
     });
   });
 

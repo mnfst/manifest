@@ -20,6 +20,8 @@ export interface ProviderDef {
   subscriptionKeyPlaceholder?: string;
   /** Instructions text shown in the subscription detail view. */
   subscriptionCommand?: string;
+  /** Provider uses GitHub device login instead of token paste. */
+  deviceLogin?: boolean;
   /** UI auth mode for subscription flows. */
   subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
   /** Deprecated compatibility flag for popup OAuth providers. */
@@ -64,6 +66,33 @@ export const PROVIDERS: ProviderDef[] = [
     minKeyLength: 30,
     keyPlaceholder: 'sk-...',
     models: [],
+  },
+  {
+    id: 'copilot',
+    name: 'GitHub Copilot',
+    color: '#000000',
+    initial: 'GH',
+    subtitle: 'Claude, GPT, Gemini via Copilot',
+    keyPrefix: '',
+    minKeyLength: 0,
+    keyPlaceholder: '',
+    supportsSubscription: true,
+    subscriptionLabel: 'GitHub Copilot subscription',
+    subscriptionAuthMode: 'device_code',
+    deviceLogin: true,
+    models: [
+      { label: 'Claude Opus 4', value: 'copilot/claude-opus-4' },
+      { label: 'Claude Sonnet 4.5', value: 'copilot/claude-sonnet-4.5' },
+      { label: 'Claude Sonnet 4', value: 'copilot/claude-sonnet-4' },
+      { label: 'Claude Haiku 4.5', value: 'copilot/claude-haiku-4.5' },
+      { label: 'GPT-4o', value: 'copilot/gpt-4o' },
+      { label: 'GPT-4.1', value: 'copilot/gpt-4.1' },
+      { label: 'GPT-5', value: 'copilot/gpt-5' },
+      { label: 'o3 Mini', value: 'copilot/o3-mini' },
+      { label: 'o4 Mini', value: 'copilot/o4-mini' },
+      { label: 'Gemini 2.5 Pro', value: 'copilot/gemini-2.5-pro' },
+      { label: 'Gemini 2.5 Flash', value: 'copilot/gemini-2.5-flash' },
+    ],
   },
   {
     id: 'gemini',

@@ -1966,6 +1966,53 @@ describe("ProviderSelectModal", () => {
 
       vi.restoreAllMocks();
     });
+
+    it("opens device login view for copilot instead of toggling directly", async () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      // Find the copilot row and click its toggle area
+      const copilotText = screen.getByText("GitHub Copilot");
+      expect(copilotText).toBeDefined();
+
+      // Click the Copilot row (toggle)
+      fireEvent.click(copilotText);
+
+      // Should open device login detail view instead of calling connectProvider
+      await waitFor(() => {
+        expect(screen.getByText("Sign in with GitHub to connect Copilot")).toBeDefined();
+      });
+      // connectProvider should NOT have been called (device login guard)
+      expect(mockConnectProvider).not.toHaveBeenCalled();
+    });
+
+    it("opens device login detail view for connected copilot (disconnect via detail)", async () => {
+      const copilotSubProvider: RoutingProvider = {
+        id: "p-copilot",
+        provider: "copilot",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: "ghu_",
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[copilotSubProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      // Click the copilot row — always navigates to detail view
+      const copilotText = screen.getByText("GitHub Copilot");
+      fireEvent.click(copilotText);
+
+      // Should open device login detail view (with disconnect button)
+      await waitFor(() => {
+        expect(screen.getByText("Connected via GitHub device login.")).toBeDefined();
+      });
+    });
   });
 
   describe("custom provider callbacks", () => {

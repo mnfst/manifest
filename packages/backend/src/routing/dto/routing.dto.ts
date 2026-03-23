@@ -75,6 +75,12 @@ export class SetOverrideDto {
   authType?: 'api_key' | 'subscription';
 }
 
+export class CopilotPollDto {
+  @IsString()
+  @IsNotEmpty()
+  deviceCode!: string;
+}
+
 export class SetFallbacksDto {
   @IsArray()
   @ArrayMaxSize(5)

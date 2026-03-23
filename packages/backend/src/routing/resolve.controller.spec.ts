@@ -12,7 +12,10 @@ import { ResolveResponse } from './dto/resolve-response';
 describe('ResolveController', () => {
   let controller: ResolveController;
   let mockResolveService: { resolve: jest.Mock };
-  let mockRoutingService: { registerSubscriptionProvider: jest.Mock };
+  let mockRoutingService: {
+    registerSubscriptionProvider: jest.Mock;
+    upsertProvider: jest.Mock;
+  };
 
   const mockResponse: ResolveResponse = {
     tier: 'simple',
@@ -30,6 +33,7 @@ describe('ResolveController', () => {
     };
     mockRoutingService = {
       registerSubscriptionProvider: jest.fn().mockResolvedValue({ isNew: true }),
+      upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
     };
     controller = new ResolveController(
       mockResolveService as unknown as ResolveService,
@@ -142,6 +146,39 @@ describe('ResolveController', () => {
       );
     });
 
+    it('should pass token to upsertProvider when present', async () => {
+      const req = {
+        ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
+      } as never;
+
+      await controller.registerSubscriptions(
+        { providers: [{ provider: 'copilot', token: 'ghu_token_123' }] },
+        req,
+      );
+
+      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+        'a1',
+        'u1',
+        'copilot',
+        'ghu_token_123',
+        'subscription',
+      );
+    });
+
+    it('should use registerSubscriptionProvider when no token', async () => {
+      const req = {
+        ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
+      } as never;
+
+      await controller.registerSubscriptions({ providers: [{ provider: 'anthropic' }] }, req);
+
+      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledWith(
+        'a1',
+        'u1',
+        'anthropic',
+      );
+    });
+
     it('should only count newly created providers', async () => {
       mockRoutingService.registerSubscriptionProvider
         .mockResolvedValueOnce({ isNew: true })
@@ -157,6 +194,26 @@ describe('ResolveController', () => {
       );
 
       expect(result).toEqual({ registered: 1 });
+    });
+  });
+
+  describe('SubscriptionProviderItem with token', () => {
+    it('should accept optional token field', async () => {
+      const plain = { providers: [{ provider: 'copilot', token: 'ghu_abc' }] };
+      const dto = plainToInstance(RegisterSubscriptionsDto, plain);
+      const errors = await validate(dto);
+
+      expect(errors).toHaveLength(0);
+      expect(dto.providers[0].token).toBe('ghu_abc');
+    });
+
+    it('should accept provider without token field', async () => {
+      const plain = { providers: [{ provider: 'anthropic' }] };
+      const dto = plainToInstance(RegisterSubscriptionsDto, plain);
+      const errors = await validate(dto);
+
+      expect(errors).toHaveLength(0);
+      expect(dto.providers[0].token).toBeUndefined();
     });
   });
 });

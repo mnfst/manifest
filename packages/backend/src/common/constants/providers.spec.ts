@@ -9,8 +9,8 @@ import {
 } from './providers';
 
 describe('PROVIDER_REGISTRY', () => {
-  it('should contain exactly 12 provider entries', () => {
-    expect(PROVIDER_REGISTRY).toHaveLength(12);
+  it('should contain exactly 13 provider entries', () => {
+    expect(PROVIDER_REGISTRY).toHaveLength(13);
   });
 
   it('every entry has all required fields', () => {
@@ -59,14 +59,24 @@ describe('PROVIDER_REGISTRY', () => {
     expect(anthropic).toBeDefined();
     expect(anthropic!.aliases).toEqual([]);
   });
+
+  it('copilot has requiresApiKey=false and localOnly=false', () => {
+    const copilot = PROVIDER_REGISTRY.find((p) => p.id === 'copilot');
+    expect(copilot).toBeDefined();
+    expect(copilot!.displayName).toBe('GitHub Copilot');
+    expect(copilot!.requiresApiKey).toBe(false);
+    expect(copilot!.localOnly).toBe(false);
+    expect(copilot!.aliases).toEqual([]);
+    expect(copilot!.openRouterPrefixes).toEqual([]);
+  });
 });
 
 describe('PROVIDER_BY_ID', () => {
-  it('resolves all 12 provider IDs', () => {
+  it('resolves all 13 provider IDs', () => {
     for (const entry of PROVIDER_REGISTRY) {
       expect(PROVIDER_BY_ID.get(entry.id)).toBe(entry);
     }
-    expect(PROVIDER_BY_ID.size).toBe(12);
+    expect(PROVIDER_BY_ID.size).toBe(13);
   });
 
   it('returns undefined for an unknown ID', () => {

@@ -52,6 +52,11 @@ describe("resolveProviderId", () => {
     expect(resolveProviderId("Ollama")).toBe("ollama");
   });
 
+  it("resolves Copilot provider", () => {
+    expect(resolveProviderId("copilot")).toBe("copilot");
+    expect(resolveProviderId("Copilot")).toBe("copilot");
+  });
+
   it("resolves by display name (case-insensitive)", () => {
     expect(resolveProviderId("Mistral")).toBe("mistral");
     expect(resolveProviderId("xAI")).toBe("xai");
@@ -149,6 +154,12 @@ describe("inferProviderFromModel", () => {
 
   it("detects openrouter/ prefixed models", () => {
     expect(inferProviderFromModel("openrouter/auto")).toBe("openrouter");
+  });
+
+  it("detects Copilot models", () => {
+    expect(inferProviderFromModel("copilot/claude-sonnet-4")).toBe("copilot");
+    expect(inferProviderFromModel("copilot/gpt-4o")).toBe("copilot");
+    expect(inferProviderFromModel("copilot/gemini-2.5-pro")).toBe("copilot");
   });
 
   it("detects vendor-prefixed models as openrouter (catch-all)", () => {

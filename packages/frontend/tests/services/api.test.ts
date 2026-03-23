@@ -17,6 +17,8 @@ import {
   connectProvider,
   deactivateAllProviders,
   disconnectProvider,
+  copilotDeviceCode,
+  copilotPollToken,
   getOpenaiOAuthUrl,
   pollMinimaxOAuth,
   revokeOpenaiOAuth,
@@ -1234,6 +1236,66 @@ describe("fallback API functions", () => {
       expect.stringContaining("/routing/agent%2Fspecial/tiers/simple/fallbacks"),
       expect.anything(),
     );
+  });
+});
+
+describe("copilotDeviceCode", () => {
+  it("POSTs to /routing/:agentName/copilot/device-code", async () => {
+    const payload = {
+      device_code: "dc_abc",
+      user_code: "ABCD-1234",
+      verification_uri: "https://github.com/login/device",
+      expires_in: 900,
+      interval: 5,
+    };
+    mockMutateOk(payload);
+
+    const result = await copilotDeviceCode("my-agent");
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/my-agent/copilot/device-code",
+      expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
+  });
+
+  it("encodes agent name in URL", async () => {
+    mockMutateOk({ device_code: "dc", user_code: "X", verification_uri: "", expires_in: 0, interval: 5 });
+
+    await copilotDeviceCode("agent/special name");
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/routing/agent%2Fspecial%20name/copilot/device-code");
+  });
+});
+
+describe("copilotPollToken", () => {
+  it("POSTs to /routing/:agentName/copilot/poll-token with deviceCode", async () => {
+    const payload = { status: "pending" };
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => payload });
+
+    const result = await copilotPollToken("my-agent", "dc_abc");
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/routing/my-agent/copilot/poll-token",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceCode: "dc_abc" }),
+      }),
+    );
+  });
+
+  it("encodes agent name in URL", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ status: "complete" }) });
+
+    await copilotPollToken("agent/special name", "dc_test");
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/routing/agent%2Fspecial%20name/copilot/poll-token");
+  });
+
+  it("throws on non-ok response without showing toast", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 503 });
+    await expect(copilotPollToken("agent", "dc_x")).rejects.toThrow("Poll failed: 503");
   });
 });
 

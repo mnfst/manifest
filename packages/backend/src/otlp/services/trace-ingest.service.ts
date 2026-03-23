@@ -11,6 +11,7 @@ import { OtlpExportTraceServiceRequest, OtlpSpan, OtlpResourceSpans } from '../i
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 import { In, Not, IsNull, MoreThanOrEqual } from 'typeorm';
 import { isManifestUsableProvider } from '../../routing/subscription-support';
+import { inferProviderFromModelName } from '../../routing/provider-aliases';
 import {
   extractAttributes,
   nanoToDatetime,
@@ -462,8 +463,12 @@ export class TraceIngestService {
       const costModel = fallbackModelOverrides?.get(messageId) ?? agg.model;
       let cost: number | null = null;
       if (costModel) {
+        // Check model prefix first (e.g. "copilot/gpt-4o" → "copilot")
+        const prefixProv = inferProviderFromModelName(costModel);
         const pricing = this.pricingCache.getByModel(costModel);
-        if (pricing && subOnlyProviders.has(pricing.provider?.toLowerCase())) {
+        if (prefixProv && subOnlyProviders.has(prefixProv)) {
+          cost = 0;
+        } else if (pricing && subOnlyProviders.has(pricing.provider?.toLowerCase())) {
           cost = 0;
         } else if (
           pricing &&
@@ -609,6 +614,11 @@ export class TraceIngestService {
     const model =
       attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model');
     if (!model) return null;
+
+    // Check model prefix first (e.g. "copilot/gpt-4o" → "copilot")
+    const prefixProvider = inferProviderFromModelName(model);
+    if (prefixProvider && subOnlyProviders.has(prefixProvider)) return 'subscription';
+
     const pricing = this.pricingCache.getByModel(model);
     if (!pricing) return null;
     return subOnlyProviders.has(pricing.provider?.toLowerCase()) ? 'subscription' : 'api_key';
@@ -719,6 +729,10 @@ export class TraceIngestService {
     const inputTok = attrNumber(attrs, 'gen_ai.usage.input_tokens') ?? 0;
     const outputTok = attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0;
     if (inputTok === 0 && outputTok === 0) return null;
+
+    // Check model prefix first (e.g. "copilot/gpt-4o" → "copilot")
+    const prefixProvider = inferProviderFromModelName(model);
+    if (prefixProvider && subOnlyProviders?.has(prefixProvider)) return 0;
 
     const pricing = this.pricingCache.getByModel(model);
     if (!pricing) return null;

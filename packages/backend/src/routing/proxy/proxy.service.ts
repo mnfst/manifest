@@ -8,6 +8,7 @@ import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache
 import { ProviderClient, ForwardResult } from './provider-client';
 import { buildCustomEndpoint, buildEndpointOverride, ProviderEndpoint } from './provider-endpoints';
 import { SessionMomentumService } from './session-momentum.service';
+import { CopilotTokenService } from './copilot-token.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback, FALLBACK_EXHAUSTED_STATUS } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../provider-aliases';
@@ -66,6 +67,7 @@ export class ProxyService {
     private readonly minimaxOauth: MinimaxOauthService,
     private readonly providerClient: ProviderClient,
     private readonly momentum: SessionMomentumService,
+    private readonly copilotToken: CopilotTokenService,
     private readonly limitCheck: LimitCheckService,
     private readonly pricingCache: ModelPricingCacheService,
   ) {}
@@ -535,8 +537,19 @@ export class ProxyService {
     }
     const hasExtraHeaders = Object.keys(extraHeaders).length > 0;
 
+    // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
+    let effectiveKey = apiKey;
+    if (provider.toLowerCase() === 'copilot') {
+      effectiveKey = await this.copilotToken.getCopilotToken(apiKey);
+    }
+
     let customEndpoint: ProviderEndpoint | undefined;
     let forwardModel = model;
+
+    // Strip the "copilot/" prefix — the Copilot API expects bare model names
+    if (provider.toLowerCase() === 'copilot' && forwardModel.startsWith('copilot/')) {
+      forwardModel = forwardModel.substring('copilot/'.length);
+    }
 
     if (CustomProviderService.isCustom(provider)) {
       const cpId = CustomProviderService.extractId(provider);
@@ -545,11 +558,7 @@ export class ProxyService {
         customEndpoint = buildCustomEndpoint(cp.base_url);
         forwardModel = CustomProviderService.rawModelName(model);
       }
-    } else if (
-      authType === 'subscription' &&
-      provider.toLowerCase() === 'minimax' &&
-      resourceUrl
-    ) {
+    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax' && resourceUrl) {
       const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
       if (minimaxBaseUrl) {
         customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
@@ -560,7 +569,7 @@ export class ProxyService {
 
     return this.providerClient.forward(
       provider,
-      apiKey,
+      effectiveKey,
       forwardModel,
       body,
       stream,

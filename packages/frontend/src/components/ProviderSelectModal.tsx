@@ -7,11 +7,10 @@ import {
   type CustomProviderData,
   type RoutingProvider,
 } from '../services/api.js';
-import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { isLocalMode } from '../services/local-mode.js';
-import { customProviderColor } from '../services/formatters.js';
 import { toast } from '../services/toast-store.js';
 import CustomProviderForm from './CustomProviderForm.js';
+import CopilotDeviceLogin from './CopilotDeviceLogin.js';
 import ProviderDetailView from './ProviderDetailView.js';
 import ProviderApiKeyTab from './ProviderApiKeyTab.js';
 import ProviderSubscriptionTab from './ProviderSubscriptionTab.js';
@@ -21,7 +20,7 @@ interface Props {
   providers: RoutingProvider[];
   customProviders?: CustomProviderData[];
   onClose: () => void;
-  onUpdate: () => void;
+  onUpdate: () => void | Promise<void>;
 }
 
 const ProviderSelectModal: Component<Props> = (props) => {
@@ -99,6 +98,13 @@ const ProviderSelectModal: Component<Props> = (props) => {
   const handleSubscriptionToggle = async (provId: string) => {
     const provDef = PROVIDERS.find((p) => p.id === provId);
     if (!provDef) return;
+
+    // Device-login providers (e.g. Copilot) open the detail view instead of toggling directly
+    if (provDef.deviceLogin && !isSubscriptionConnected(provId)) {
+      openDetail(provId, 'subscription');
+      return;
+    }
+
     const connected = isSubscriptionConnected(provId);
 
     setBusy(true);
@@ -281,8 +287,41 @@ const ProviderSelectModal: Component<Props> = (props) => {
           </div>
         </Show>
 
-        {/* -- Detail View -- */}
-        <Show when={selectedProvider() !== null && !showCustomForm() && !editingCustomProvider()}>
+        {/* -- Device Login Detail View (Copilot) -- */}
+        <Show
+          when={
+            selectedProvider() !== null &&
+            !showCustomForm() &&
+            !editingCustomProvider() &&
+            PROVIDERS.find((p) => p.id === selectedProvider())?.deviceLogin
+          }
+        >
+          <div class="provider-modal__view provider-modal__view--from-right">
+            <CopilotDeviceLogin
+              agentName={props.agentName}
+              connected={isSubscriptionWithToken(selectedProvider()!)}
+              onBack={goBack}
+              onConnected={async () => {
+                await props.onUpdate();
+                goBack();
+              }}
+              onDisconnected={() => {
+                goBack();
+                props.onUpdate();
+              }}
+            />
+          </div>
+        </Show>
+
+        {/* -- Detail View (API Key / Token) -- */}
+        <Show
+          when={
+            selectedProvider() !== null &&
+            !showCustomForm() &&
+            !editingCustomProvider() &&
+            !PROVIDERS.find((p) => p.id === selectedProvider())?.deviceLogin
+          }
+        >
           <div class="provider-modal__view provider-modal__view--from-right">
             <ProviderDetailView
               provId={selectedProvider()!}

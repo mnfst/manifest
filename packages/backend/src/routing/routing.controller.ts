@@ -6,10 +6,12 @@ import { ResolveAgentService } from './resolve-agent.service';
 import { CustomProviderService } from './custom-provider.service';
 import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
+import { CopilotDeviceAuthService } from './copilot-device-auth.service';
 import {
   AgentNameParamDto,
   AgentProviderParamDto,
   ConnectProviderDto,
+  CopilotPollDto,
   RemoveProviderQueryDto,
   SetOverrideDto,
   SetFallbacksDto,
@@ -23,6 +25,7 @@ export class RoutingController {
     private readonly discoveryService: ModelDiscoveryService,
     private readonly ollamaSync: OllamaSyncService,
     private readonly resolveAgentService: ResolveAgentService,
+    private readonly copilotAuth: CopilotDeviceAuthService,
   ) {}
 
   /* ── Status ── */
@@ -110,6 +113,40 @@ export class RoutingController {
       query.authType,
     );
     return { ok: true, notifications };
+  }
+
+  /* ── Copilot device login ── */
+
+  @Post(':agentName/copilot/device-code')
+  async copilotDeviceCode(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
+    await this.resolveAgentService.resolve(user.id, params.agentName);
+    return this.copilotAuth.requestDeviceCode();
+  }
+
+  @Post(':agentName/copilot/poll-token')
+  async copilotPollToken(
+    @CurrentUser() user: AuthUser,
+    @Param() params: AgentNameParamDto,
+    @Body() body: CopilotPollDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const result = await this.copilotAuth.pollForToken(body.deviceCode);
+    if (result.status === 'complete' && result.token) {
+      const { provider: record } = await this.routingService.upsertProvider(
+        agent.id,
+        user.id,
+        'copilot',
+        result.token,
+        'subscription',
+      );
+      try {
+        await this.discoveryService.discoverModels(record);
+        await this.routingService.recalculateTiers(agent.id);
+      } catch {
+        // Discovery failure is non-fatal
+      }
+    }
+    return { status: result.status };
   }
 
   /* ── Ollama sync ── */

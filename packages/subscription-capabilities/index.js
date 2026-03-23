@@ -49,6 +49,29 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
       supportsBatching: false,
     }),
   }),
+  copilot: Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'GitHub Copilot subscription',
+    subscriptionAuthMode: 'device_code',
+    knownModels: Object.freeze([
+      'copilot/claude-opus-4',
+      'copilot/claude-sonnet-4.5',
+      'copilot/claude-sonnet-4',
+      'copilot/claude-haiku-4.5',
+      'copilot/gpt-4o',
+      'copilot/gpt-4.1',
+      'copilot/gpt-5',
+      'copilot/o3-mini',
+      'copilot/o4-mini',
+      'copilot/gemini-2.5-pro',
+      'copilot/gemini-2.5-flash',
+    ]),
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
 });
 
 const SUPPORTED_SUBSCRIPTION_PROVIDER_IDS = Object.freeze(
