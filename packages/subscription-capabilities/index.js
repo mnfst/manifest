@@ -120,6 +120,7 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
       'glm-4.5',
       'glm-4.5-air',
     ]),
+    alwaysQualifyModelIds: true,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 128000,
       supportsPromptCaching: false,

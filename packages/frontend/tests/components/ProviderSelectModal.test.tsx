@@ -1071,6 +1071,14 @@ describe("ProviderSelectModal", () => {
       expect(screen.getByText("Paste your setup-token to enable routing")).toBeDefined();
     });
 
+    it("shows API key subtitle for subscription providers that do not use setup tokens", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("Z.ai"));
+      expect(screen.getByText("Add your API key to enable routing")).toBeDefined();
+    });
+
     it("shows CopyButton with subscription command in detail view", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />

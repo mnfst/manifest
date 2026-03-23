@@ -72,6 +72,20 @@ describe("subscription capability manifests", () => {
     }
   });
 
+  it("exposes catalog helpers for overlapping provider ids", () => {
+    for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
+      expect(capabilities.getSubscriptionKnownModelMatchMode("OPENCODE-GO")).toBe("exact");
+      expect(capabilities.getSubscriptionKnownModelMatchMode("zai")).toBe("prefix");
+
+      expect(capabilities.getSubscriptionCatalogMode("opencode-go")).toBe("known_only");
+      expect(capabilities.getSubscriptionCatalogMode("zai")).toBe("full");
+
+      expect(capabilities.shouldQualifySubscriptionModelIds("ollama-cloud")).toBe(true);
+      expect(capabilities.shouldQualifySubscriptionModelIds("zai")).toBe(true);
+      expect(capabilities.shouldQualifySubscriptionModelIds("anthropic")).toBe(false);
+    }
+  });
+
   it("keeps existing auth-mode metadata for Anthropic and OpenAI", () => {
     for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
       expect(capabilities.getSubscriptionProviderConfig("anthropic")).toMatchObject({

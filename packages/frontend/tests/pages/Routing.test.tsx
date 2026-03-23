@@ -1101,6 +1101,75 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
     expect(screen.getByText("Included in subscription")).toBeDefined();
   });
 
+  it("uses inferred provider labels when api models have an unrecognized provider id", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key", connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-5.4", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "gpt-5.4", provider: "MysteryVendor", input_price_per_token: 0.000001, output_price_per_token: 0.000002, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ]);
+
+    render(() => <Routing />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Gpt 5.4")).toBeDefined();
+    });
+  });
+
+  it("keeps custom provider ids from api models when rendering routing cards", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key", connected_at: "2025-01-01" },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([
+      { id: "cp-1", name: "Custom Lab", base_url: "https://example.com", has_api_key: true, models: [], created_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "custom:cp-1/custom-model", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "custom:cp-1/custom-model", provider: "custom:cp-1", input_price_per_token: 0.000001, output_price_per_token: 0.000002, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ]);
+
+    const { container } = render(() => <Routing />);
+
+    await waitFor(() => {
+      expect(container.querySelector(".provider-card__logo-letter")?.textContent).toBe("C");
+    });
+  });
+
+  it("returns undefined from providerIdForModel when an api model provider cannot be resolved", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key", connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "my-unknown-model", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "my-unknown-model", provider: "MysteryVendor", input_price_per_token: 0.000001, output_price_per_token: 0.000002, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ]);
+
+    render(() => <Routing />);
+
+    await waitFor(() => {
+      expect(screen.getByText("my-unknown-model")).toBeDefined();
+    });
+  });
+
   it("resolves providerIdForModel via PROVIDERS model list fallback (lines 52-53)", async () => {
     // "qwen-2.5-72b-instruct" is a model value in PROVIDERS' qwen models list.
     // inferProviderFromModel("qwen-2.5-72b-instruct") returns undefined because

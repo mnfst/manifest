@@ -928,6 +928,201 @@ describe("registerHooks", () => {
       );
     });
 
+    it("uses ctx.sessionId and top-level llm_output fields when lastAssistant is absent", () => {
+      api.emit("message_received", { sessionKey: "session:ctx-42" });
+      api.emit("before_agent_start", { sessionKey: "session:ctx-42" });
+
+      api.emit("agent_end", {
+        sessionKey: "session:ctx-42",
+        success: true,
+        messages: [{ role: "user", content: "hello" }],
+      });
+
+      api.emit(
+        "llm_output",
+        {
+          model: "ollama-cloud/glm-4.7",
+          provider: "ollama-cloud",
+          usage: {
+            input_tokens: 1400,
+            output_tokens: 200,
+            cache_read_input_tokens: 40,
+            cache_creation_input_tokens: 5,
+          },
+        },
+        { sessionId: "ctx-42" },
+      );
+
+      const turnSpan = tracer.spans[1];
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.MODEL]: "ollama-cloud/glm-4.7",
+          [ATTRS.PROVIDER]: "ollama-cloud",
+          [ATTRS.INPUT_TOKENS]: 1400,
+          [ATTRS.OUTPUT_TOKENS]: 200,
+          [ATTRS.CACHE_READ_TOKENS]: 40,
+          [ATTRS.CACHE_WRITE_TOKENS]: 5,
+        }),
+      );
+    });
+
+    it("falls back to unknown values when llm_output omits lastAssistant, model, provider, and usage", () => {
+      api.emit("message_received", { sessionKey: "sess-empty-llm-output" });
+      api.emit("before_agent_start", { sessionKey: "sess-empty-llm-output" });
+      api.emit("agent_end", {
+        sessionKey: "sess-empty-llm-output",
+        success: true,
+        messages: [{ role: "user", content: "hello" }],
+      });
+
+      api.emit("llm_output", {}, { sessionKey: "sess-empty-llm-output" });
+
+      const turnSpan = tracer.spans[1];
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.MODEL]: "unknown",
+          [ATTRS.PROVIDER]: "unknown",
+          [ATTRS.INPUT_TOKENS]: 0,
+          [ATTRS.OUTPUT_TOKENS]: 0,
+          [ATTRS.CACHE_READ_TOKENS]: 0,
+          [ATTRS.CACHE_WRITE_TOKENS]: 0,
+        }),
+      );
+    });
+
+    it("uses event.sessionId and top-level agent_end usage when messages are omitted", () => {
+      api.emit("message_received", { sessionKey: "session:99" });
+      api.emit("before_agent_start", { sessionKey: "session:99" });
+
+      api.emit("agent_end", {
+        sessionId: "99",
+        model: "ollama-cloud/glm-4.7",
+        provider: "ollama-cloud",
+        usage: {
+          input_tokens: 900,
+          output_tokens: 100,
+          cache_read_input_tokens: 20,
+          cache_creation_input_tokens: 10,
+        },
+      });
+
+      const turnSpan = tracer.spans[1];
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.MODEL]: "ollama-cloud/glm-4.7",
+          [ATTRS.PROVIDER]: "ollama-cloud",
+          [ATTRS.INPUT_TOKENS]: 900,
+          [ATTRS.OUTPUT_TOKENS]: 100,
+          [ATTRS.CACHE_READ_TOKENS]: 20,
+          [ATTRS.CACHE_WRITE_TOKENS]: 10,
+        }),
+      );
+      expect(turnSpan.end).toHaveBeenCalled();
+    });
+
+    it("stringifies non-string errors and skips duration metrics when duration is missing", () => {
+      api.emit("message_received", { sessionKey: "sess-error-object" });
+      api.emit("before_agent_start", { sessionKey: "sess-error-object" });
+
+      api.emit("agent_end", {
+        sessionKey: "sess-error-object",
+        success: false,
+        errorMessage: { code: 401, detail: "denied" },
+        messages: [],
+      });
+
+      const turnSpan = tracer.spans[1];
+      expect(turnSpan.setStatus).toHaveBeenCalledWith({
+        code: SpanStatusCode.ERROR,
+        message: "[object Object]",
+      });
+
+      const durationHistogram = meter.histograms.get(METRICS.LLM_DURATION);
+      expect(durationHistogram?.record).not.toHaveBeenCalled();
+    });
+
+    it("skips duration metrics when durationMs is explicitly zero", () => {
+      api.emit("message_received", { sessionKey: "sess-zero-duration" });
+      api.emit("before_agent_start", { sessionKey: "sess-zero-duration" });
+
+      api.emit("agent_end", {
+        sessionKey: "sess-zero-duration",
+        success: true,
+        durationMs: 0,
+        messages: [],
+      });
+
+      const durationHistogram = meter.histograms.get(METRICS.LLM_DURATION);
+      expect(durationHistogram?.record).not.toHaveBeenCalled();
+    });
+
+    it("resolves auto models even when routing returns no reason", async () => {
+      mockResolveRouting.mockResolvedValueOnce({
+        tier: "standard",
+        model: "ollama-cloud/glm-4.7",
+        provider: "ollama-cloud",
+        auth_type: "subscription",
+      } as any);
+
+      api.emit("message_received", { sessionKey: "sess-no-reason" });
+      api.emit("before_agent_start", { sessionKey: "sess-no-reason" });
+
+      api.emit("agent_end", {
+        sessionKey: "sess-no-reason",
+        success: true,
+        durationMs: 100,
+        messages: [
+          {
+            role: "assistant",
+            model: "auto",
+            provider: "manifest",
+            usage: { input: 10, output: 5 },
+          },
+        ],
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const turnSpan = tracer.spans[1];
+      expect(turnSpan.setAttribute).toHaveBeenCalledWith(ATTRS.ROUTING_TIER, "standard");
+      expect(turnSpan.setAttribute).not.toHaveBeenCalledWith(ATTRS.ROUTING_REASON, expect.anything());
+    });
+
+    it("finalizes immediately when agent_end has no messages and no usage payload", () => {
+      api.emit("message_received", { sessionKey: "sess-empty-end" });
+      api.emit("before_agent_start", { sessionKey: "sess-empty-end" });
+
+      api.emit("agent_end", {
+        sessionKey: "sess-empty-end",
+        success: true,
+      });
+
+      const turnSpan = tracer.spans[1];
+      expect(turnSpan.end).toHaveBeenCalled();
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.MODEL]: "unknown",
+          [ATTRS.PROVIDER]: "unknown",
+        }),
+      );
+    });
+
+    it("ignores llm_output and agent_end events when no active session exists", () => {
+      api.emit("llm_output", {
+        model: "ollama-cloud/glm-4.7",
+        provider: "ollama-cloud",
+        usage: { input_tokens: 100, output_tokens: 10 },
+      });
+      api.emit("agent_end", {
+        sessionKey: "missing-session",
+        messages: [],
+      });
+
+      expect(tracer.startSpan).not.toHaveBeenCalled();
+      const llmReqCounter = meter.counters.get(METRICS.LLM_REQUESTS);
+      expect(llmReqCounter?.add).not.toHaveBeenCalled();
+    });
+
     it("defaults to 'unknown' model/provider when missing", () => {
       api.emit("message_received", { sessionKey: "sess-7" });
       api.emit("before_agent_start", { sessionKey: "sess-7" });

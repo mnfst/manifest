@@ -12,6 +12,7 @@ vi.mock("../../src/services/routing-utils.js", async () => {
   return {
     ...actual,
     resolveProviderId: (provider: string) => {
+      if (provider.startsWith("custom:")) return provider;
       const map: Record<string, string> = {
         OpenAI: "openai",
         Anthropic: "anthropic",
@@ -188,6 +189,52 @@ describe("ModelPickerModal", () => {
     expect(firstModel?.textContent).toContain("Free Models Router");
   });
 
+  it("uses the inferred provider for OpenRouter-hosted display grouping", () => {
+    const providers = [
+      { id: "p1", provider: "openrouter", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "claude-sonnet-4", provider: "OpenRouter", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("Anthropic")).toBeDefined();
+    expect(screen.getByText("Claude Sonnet 4")).toBeDefined();
+  });
+
+  it("falls back to the OpenRouter group when an OpenRouter model has no inferred vendor", () => {
+    const providers = [
+      { id: "p1", provider: "openrouter", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "mystery-model", provider: "OpenRouter", display_name: "Mystery Model", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("OpenRouter")).toBeDefined();
+    expect(screen.getByText("Mystery Model")).toBeDefined();
+  });
+
   it("resolves label for vendor-prefixed model names", () => {
     const modelsWithSlash = [
       { model_name: "anthropic/claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
@@ -217,6 +264,68 @@ describe("ModelPickerModal", () => {
       <ModelPickerModal tierId="simple" models={modelsPlain} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
     expect(container.textContent).toContain("totally-custom-model");
+  });
+
+  it("skips models that do not resolve to a known or inferred provider", () => {
+    const modelsPlain = [
+      { model_name: "totally-custom-model", provider: "MysteryCloud", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
+    ];
+    render(() => (
+      <ModelPickerModal tierId="simple" models={modelsPlain} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+    ));
+    expect(screen.queryByText("totally-custom-model")).toBeNull();
+  });
+
+  it("uses custom provider names when grouping custom provider models", () => {
+    const models = [
+      { model_name: "custom:cp-1/openai/gpt-oss-120b", provider: "custom:cp-1", input_price_per_token: 0.000001, output_price_per_token: 0.000002, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+    const customProviders = [
+      { id: "cp-1", name: "My Custom Gateway", base_url: "https://example.com", has_api_key: true, models: [], created_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        customProviders={customProviders}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(screen.getByText("My Custom Gateway")).toBeDefined();
+  });
+
+  it("prefers provider_display_name when a custom provider exposes one", () => {
+    const models = [
+      { model_name: "custom:cp-2/another-model", provider: "custom:cp-2", provider_display_name: "Display Gateway", input_price_per_token: 0.000001, output_price_per_token: 0.000002, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(screen.getByText("Display Gateway")).toBeDefined();
+  });
+
+  it("falls back to the raw custom provider id when no custom display name is available", () => {
+    const models = [
+      { model_name: "custom:cp-3/raw-model", provider: "custom:cp-3", input_price_per_token: 0.000001, output_price_per_token: 0.000002, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(screen.getByText("custom:cp-3")).toBeDefined();
   });
 
   it("hides tabs when only api_key providers are connected", () => {
