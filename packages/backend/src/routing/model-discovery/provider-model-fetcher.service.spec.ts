@@ -27,6 +27,7 @@ describe('ProviderModelFetcherService', () => {
       'minimax-subscription',
       'qwen',
       'kimi',
+      'nano-gpt',
       'ollama-cloud',
       'opencode',
       'opencode-go',

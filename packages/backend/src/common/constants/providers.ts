@@ -166,6 +166,14 @@ export const PROVIDER_REGISTRY: readonly ProviderRegistryEntry[] = [
     localOnly: false,
   },
   {
+    id: 'nano-gpt',
+    displayName: 'NanoGPT',
+    aliases: ['nanogpt'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+  },
+  {
     id: 'ollama',
     displayName: 'Ollama',
     aliases: [],

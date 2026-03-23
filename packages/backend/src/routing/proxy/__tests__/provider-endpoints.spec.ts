@@ -48,6 +48,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('opencode')).toBe('opencode');
     expect(resolveEndpointKey('opencode-go')).toBe('opencode-go');
     expect(resolveEndpointKey('ollama-cloud')).toBe('ollama-cloud');
+    expect(resolveEndpointKey('nano-gpt')).toBe('nano-gpt');
   });
 
   it('is case-insensitive', () => {
@@ -216,6 +217,17 @@ describe('PROVIDER_ENDPOINTS', () => {
   it('minimax-subscription buildPath returns /v1/messages', () => {
     const path = PROVIDER_ENDPOINTS['minimax-subscription'].buildPath('abab7-chat-preview');
     expect(path).toBe('/v1/messages');
+  });
+
+  it('nano-gpt uses openai format with nano-gpt.com base', () => {
+    const ep = PROVIDER_ENDPOINTS['nano-gpt'];
+    expect(ep.format).toBe('openai');
+    expect(ep.baseUrl).toBe('https://nano-gpt.com');
+    expect(ep.buildPath('test')).toBe('/api/v1/chat/completions');
+    expect(ep.buildHeaders('sk-nano-test')).toEqual({
+      Authorization: 'Bearer sk-nano-test',
+      'Content-Type': 'application/json',
+    });
   });
 
   it('minimax-subscription uses Bearer auth with anthropic-version header', () => {

@@ -3,6 +3,7 @@
  * Mirrors the frontend logic in services/routing-utils.ts.
  */
 const INTERNAL_PROVIDER_PREFIX_MAP: [RegExp, string][] = [
+  [/^nano-gpt\//, 'nano-gpt'],
   [/^opencode-go\//, 'opencode-go'],
   [/^ollama-cloud\//, 'ollama-cloud'],
   [/^zai\//, 'zai'],

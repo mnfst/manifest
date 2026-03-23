@@ -243,8 +243,8 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 17 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(17);
+  it("has 18 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(18);
   });
 
   it("providers are sorted alphabetically by name", () => {
@@ -320,6 +320,15 @@ describe("PROVIDERS", () => {
     expect(kimi.subscriptionLabel).toBe("Kimi Code subscription");
     expect(kimi.subscriptionAuthMode).toBe("token");
     expect(kimi.subscriptionKeyPlaceholder).toBe("Paste your API key");
+  });
+
+  it("NanoGPT supports subscription with token flow and is subscription-only", () => {
+    const nanogpt = PROVIDERS.find((p) => p.id === "nano-gpt")!;
+    expect(nanogpt.supportsSubscription).toBe(true);
+    expect(nanogpt.subscriptionOnly).toBe(true);
+    expect(nanogpt.subscriptionLabel).toBe("NanoGPT subscription");
+    expect(nanogpt.subscriptionAuthMode).toBe("token");
+    expect(nanogpt.subscriptionKeyPlaceholder).toBe("Paste your API key");
   });
 
   it("Z.ai supports subscription with token flow", () => {

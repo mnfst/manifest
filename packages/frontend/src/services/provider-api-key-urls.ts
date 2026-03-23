@@ -8,6 +8,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   moonshot: 'https://platform.moonshot.ai/',
   opencode: 'https://opencode.ai/zen',
   'opencode-go': 'https://opencode.ai/go',
+  'nano-gpt': 'https://nano-gpt.com/api',
   'ollama-cloud': 'https://ollama.com/settings/keys',
   openai: 'https://platform.openai.com/api-keys',
   openrouter: 'https://openrouter.ai/keys',

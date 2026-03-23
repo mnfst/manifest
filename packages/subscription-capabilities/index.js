@@ -140,6 +140,18 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
       supportsBatching: false,
     }),
   }),
+  'nano-gpt': Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'NanoGPT subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    subscriptionTokenPrefix: 'sk-nano-',
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
 });
 
 const SUPPORTED_SUBSCRIPTION_PROVIDER_IDS = Object.freeze(

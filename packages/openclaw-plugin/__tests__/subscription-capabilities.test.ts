@@ -72,6 +72,23 @@ describe("subscription capability manifests", () => {
     }
   });
 
+  it("publishes NanoGPT token metadata in both manifests", () => {
+    for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
+      expect(capabilities.supportsSubscriptionProvider("nano-gpt")).toBe(true);
+      expect(capabilities.getSubscriptionProviderConfig("nano-gpt")).toMatchObject({
+        supportsSubscription: true,
+        subscriptionLabel: "NanoGPT subscription",
+        subscriptionAuthMode: "token",
+        subscriptionKeyPlaceholder: "Paste your API key",
+      });
+      expect(capabilities.getSubscriptionCapabilities("nano-gpt")).toMatchObject({
+        maxContextWindow: 200000,
+        supportsPromptCaching: false,
+        supportsBatching: false,
+      });
+    }
+  });
+
   it("publishes Kimi Code token metadata in both manifests", () => {
     for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
       expect(capabilities.supportsSubscriptionProvider("kimi")).toBe(true);

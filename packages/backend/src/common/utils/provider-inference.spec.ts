@@ -15,6 +15,7 @@ describe('inferProviderFromModel', () => {
   });
 
   it('returns internal provider ids for provider-qualified duplicate models', () => {
+    expect(inferProviderFromModel('nano-gpt/moonshotai/kimi-k2.5')).toBe('nano-gpt');
     expect(inferProviderFromModel('opencode-go/glm-5')).toBe('opencode-go');
     expect(inferProviderFromModel('ollama-cloud/glm-5')).toBe('ollama-cloud');
     expect(inferProviderFromModel('zai/glm-5')).toBe('zai');

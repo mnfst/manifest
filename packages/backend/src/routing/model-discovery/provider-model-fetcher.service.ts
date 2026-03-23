@@ -324,6 +324,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: () => ({}),
     parse: parseOpenRouter,
   },
+  'nano-gpt': {
+    endpoint: 'https://nano-gpt.com/api/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   'ollama-cloud': {
     endpoint: 'https://ollama.com/api/tags',
     buildHeaders: bearerHeaders,

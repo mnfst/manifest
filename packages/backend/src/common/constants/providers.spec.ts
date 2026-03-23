@@ -10,8 +10,8 @@ import {
 } from './providers';
 
 describe('PROVIDER_REGISTRY', () => {
-  it('should contain exactly 17 provider entries', () => {
-    expect(PROVIDER_REGISTRY).toHaveLength(17);
+  it('should contain exactly 18 provider entries', () => {
+    expect(PROVIDER_REGISTRY).toHaveLength(18);
   });
 
   it('every entry has all required fields', () => {
@@ -77,7 +77,7 @@ describe('PROVIDER_BY_ID', () => {
     for (const entry of PROVIDER_REGISTRY) {
       expect(PROVIDER_BY_ID.get(entry.id)).toBe(entry);
     }
-    expect(PROVIDER_BY_ID.size).toBe(17);
+    expect(PROVIDER_BY_ID.size).toBe(18);
   });
 
   it('returns undefined for an unknown ID', () => {

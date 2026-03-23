@@ -132,7 +132,11 @@ export async function pipeStream(
             if (transformed) {
               dest.write(transformed);
               const usage = extractUsageFromSse(transformed);
-              if (usage) capturedUsage = usage;
+              if (
+                usage &&
+                (usage.prompt_tokens > 0 || usage.completion_tokens > 0 || !capturedUsage)
+              )
+                capturedUsage = usage;
             }
           }
         } else {
@@ -147,7 +151,11 @@ export async function pipeStream(
             try {
               const obj = JSON.parse(ev);
               const usage = normalizeUsage(obj.usage);
-              if (usage) capturedUsage = usage;
+              if (
+                usage &&
+                (usage.prompt_tokens > 0 || usage.completion_tokens > 0 || !capturedUsage)
+              )
+                capturedUsage = usage;
             } catch {
               /* ignore non-JSON events */
             }
@@ -168,7 +176,8 @@ export async function pipeStream(
         if (transformed) {
           dest.write(transformed);
           const usage = extractUsageFromSse(transformed);
-          if (usage) capturedUsage = usage;
+          if (usage && (usage.prompt_tokens > 0 || usage.completion_tokens > 0 || !capturedUsage))
+            capturedUsage = usage;
         }
       }
     }

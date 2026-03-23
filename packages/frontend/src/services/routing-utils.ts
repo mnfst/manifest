@@ -37,6 +37,7 @@ export function resolveProviderId(dbProvider: string): string | undefined {
  * Cloud models have recognizable prefixes.
  */
 const INTERNAL_PROVIDER_PREFIX_MAP: [RegExp, string][] = [
+  [/^nano-gpt\//, 'nano-gpt'],
   [/^opencode-go\//, 'opencode-go'],
   [/^ollama-cloud\//, 'ollama-cloud'],
   [/^zai\//, 'zai'],

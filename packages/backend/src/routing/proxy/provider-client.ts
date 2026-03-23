@@ -35,7 +35,7 @@ const OPENAI_ONLY_FIELDS = new Set([
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
 const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
-const STREAM_USAGE_PROVIDERS = new Set(['deepseek', 'ollama', 'ollama-cloud']);
+const STREAM_USAGE_PROVIDERS = new Set(['deepseek', 'nano-gpt', 'ollama', 'ollama-cloud']);
 const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
 function supportsReasoningContent(endpointKey: string, model: string): boolean {

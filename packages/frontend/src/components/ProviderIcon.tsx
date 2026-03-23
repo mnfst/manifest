@@ -206,6 +206,29 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── NanoGPT ──────────────────────────────────── */
+    case 'nano-gpt':
+      return (
+        <svg
+          style={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="nanogpt-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#00d2a0" />
+              <stop offset="100%" stop-color="#0077b6" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M4.5 10L2 14.5l6.5 7.5 2-3.5-6-8.5zm3-2L10 4l5.5 1.5-1 4-7-1.5zm8.5 0L22 6l-1 6-4-1 -1-3zm-4.5 4.5L10 16l5 6 3-4.5-6-9zm1-3l5 1.5 2 5.5-3 3-5.5-7.5 1.5-2.5z"
+            fill="url(#nanogpt-grad)"
+          />
+        </svg>
+      );
+
     /* ── Ollama / Ollama Cloud ────────────────────── */
     case 'ollama-cloud':
     case 'ollama':

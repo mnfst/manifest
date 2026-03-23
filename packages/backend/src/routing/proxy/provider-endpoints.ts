@@ -166,6 +166,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: () => '/api/v1/chat/completions',
     format: 'openai',
   },
+  'nano-gpt': {
+    baseUrl: 'https://nano-gpt.com',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/api/v1/chat/completions',
+    format: 'openai',
+  },
   'ollama-cloud': {
     baseUrl: 'https://ollama.com',
     buildHeaders: openaiHeaders,
