@@ -816,6 +816,87 @@ describe("registerHooks", () => {
       expect(rootSpan.end).toHaveBeenCalled();
     });
 
+    it("finalizes only once when llm_output races with async finalizeTrace", async () => {
+      let resolveRoutingResult:
+        | ((value: {
+            tier: string;
+            model: string;
+            provider: string;
+            reason: string;
+            auth_type: "api_key" | "subscription";
+          }) => void)
+        | undefined;
+      const routingPromise = new Promise<{
+        tier: string;
+        model: string;
+        provider: string;
+        reason: string;
+        auth_type: "api_key" | "subscription";
+      }>((resolve) => {
+        resolveRoutingResult = resolve;
+      });
+      mockResolveRouting.mockReturnValueOnce(routingPromise);
+
+      api.emit("message_received", { sessionKey: "sess-finalize-race" });
+      api.emit("before_agent_start", { sessionKey: "sess-finalize-race" });
+
+      const rootSpan = tracer.spans[0];
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-finalize-race",
+        success: true,
+        durationMs: 800,
+        messages: [
+          { role: "user", content: "hello" },
+          {
+            role: "assistant",
+            model: "auto",
+            provider: "manifest",
+            usage: { input: 100, output: 50 },
+          },
+        ],
+      });
+
+      await Promise.resolve();
+
+      api.emit(
+        "llm_output",
+        {
+          provider: "ollama-cloud",
+          model: "ollama-cloud/glm-4.7",
+          usage: { input: 1200, output: 300, cacheRead: 50 },
+        },
+        { sessionKey: "sess-finalize-race" },
+      );
+
+      expect(turnSpan.end).not.toHaveBeenCalled();
+      expect(rootSpan.end).not.toHaveBeenCalled();
+
+      resolveRoutingResult?.({
+        tier: "standard",
+        model: "ollama-cloud/glm-4.7",
+        provider: "ollama-cloud",
+        reason: "scored",
+        auth_type: "subscription",
+      });
+      await routingPromise;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(turnSpan.end).toHaveBeenCalledTimes(1);
+      expect(rootSpan.end).toHaveBeenCalledTimes(1);
+
+      const llmReqCounter = meter.counters.get(METRICS.LLM_REQUESTS);
+      expect(llmReqCounter?.add).toHaveBeenCalledTimes(1);
+
+      const inputCounter = meter.counters.get(METRICS.LLM_TOKENS_INPUT);
+      expect(inputCounter?.add).toHaveBeenCalledTimes(1);
+      expect(inputCounter?.add).toHaveBeenCalledWith(
+        1200,
+        expect.objectContaining({ [ATTRS.MODEL]: "ollama-cloud/glm-4.7" }),
+      );
+    });
+
     it("extracts cache tokens from cache_*_input_tokens fields", () => {
       api.emit("message_received", { sessionKey: "sess-cache-input" });
       api.emit("before_agent_start", { sessionKey: "sess-cache-input" });
