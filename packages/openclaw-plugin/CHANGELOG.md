@@ -1,5 +1,12 @@
 # manifest
 
+## 5.28.5
+
+### Patch Changes
+
+- 0058bad: Skip prompt caching injection for Anthropic subscription (OAuth) requests. Fixes HTTP 400 errors when using Sonnet and Opus models with Claude Max/Pro subscription tokens.
+- 06c2301: Fix cost display for dual-auth providers: when both API key and subscription are connected for the same provider, costs are now correctly calculated instead of being zeroed out.
+
 ## 5.28.4
 
 ### Patch Changes
