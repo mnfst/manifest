@@ -19,6 +19,23 @@ describe("subscription capability manifests", () => {
     }
   });
 
+  it("publishes Z.ai token metadata in both manifests", () => {
+    for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
+      expect(capabilities.supportsSubscriptionProvider("zai")).toBe(true);
+      expect(capabilities.getSubscriptionProviderConfig("zai")).toMatchObject({
+        supportsSubscription: true,
+        subscriptionLabel: "Z.ai Coding Plan",
+        subscriptionAuthMode: "token",
+      });
+      expect(capabilities.getSubscriptionKnownModels("zai")).toContain("glm-5");
+      expect(capabilities.getSubscriptionCapabilities("zai")).toMatchObject({
+        maxContextWindow: 128000,
+        supportsPromptCaching: false,
+        supportsBatching: false,
+      });
+    }
+  });
+
   it("keeps existing auth-mode metadata for Anthropic and OpenAI", () => {
     for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
       expect(capabilities.getSubscriptionProviderConfig("anthropic")).toMatchObject({

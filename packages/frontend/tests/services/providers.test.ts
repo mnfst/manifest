@@ -296,6 +296,14 @@ describe("PROVIDERS", () => {
     expect(minimax.subscriptionAuthMode).toBe("device_code");
   });
 
+  it("Z.ai supports subscription with token flow", () => {
+    const zai = PROVIDERS.find((p) => p.id === "zai")!;
+    expect(zai.supportsSubscription).toBe(true);
+    expect(zai.subscriptionLabel).toBe("Z.ai Coding Plan");
+    expect(zai.subscriptionAuthMode).toBe("token");
+    expect(zai.subscriptionKeyPlaceholder).toBe("Paste your API key");
+  });
+
   it("requires an API key URL for every provider that needs one", () => {
     const missingProviderIds = PROVIDERS.filter(
       (provider) => !provider.noKeyRequired && !ROUTING_PROVIDER_API_KEY_URLS[provider.id],

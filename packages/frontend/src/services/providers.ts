@@ -186,6 +186,10 @@ export const PROVIDERS: ProviderDef[] = [
     keyPrefix: '',
     minKeyLength: 30,
     keyPlaceholder: 'API key',
+    supportsSubscription: true,
+    subscriptionLabel: 'Z.ai Coding Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
     models: [],
   },
 ];
