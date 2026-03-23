@@ -39,6 +39,7 @@ export function resolveProviderId(dbProvider: string): string | undefined {
 const INTERNAL_PROVIDER_PREFIX_MAP: [RegExp, string][] = [
   [/^opencode-go\//, 'opencode-go'],
   [/^ollama-cloud\//, 'ollama-cloud'],
+  [/^zai\//, 'zai'],
 ];
 
 const MODEL_PREFIX_MAP: [RegExp, string][] = [

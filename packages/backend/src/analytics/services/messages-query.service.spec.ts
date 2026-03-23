@@ -676,6 +676,34 @@ describe('MessagesQueryService', () => {
     expect(result.providers).toEqual(['anthropic', 'openai']);
   });
 
+  it('provider filter matches qualified Z.ai subscription model ids', async () => {
+    mockGetRawMany.mockResolvedValueOnce([
+      { model: 'zai/glm-5' },
+      { model: 'opencode-go/glm-5' },
+    ]);
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'zai/glm-5', cost: 0 },
+      ])
+      .mockResolvedValueOnce([
+        { model: 'zai/glm-5' },
+        { model: 'opencode-go/glm-5' },
+      ]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      provider: 'zai',
+    });
+
+    expect(result.total_count).toBe(1);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.model).toBe('zai/glm-5');
+    expect(result.providers).toEqual(['opencode-go', 'zai']);
+  });
+
   it('derives providers from multiple model types', async () => {
     mockGetRawOne.mockResolvedValueOnce({ total: 3 });
     mockGetRawMany

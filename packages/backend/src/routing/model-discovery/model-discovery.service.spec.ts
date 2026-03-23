@@ -461,7 +461,7 @@ describe('ModelDiscoveryService', () => {
       const result = await service.getModelsForAgent('agent-1');
 
       expect(result).toHaveLength(2);
-      expect(result.map((m) => m.id)).toEqual(['glm-5', 'opencode-go/glm-5']);
+      expect(result.map((m) => m.id)).toEqual(['zai/glm-5', 'opencode-go/glm-5']);
     });
 
     it('should choose a stable canonical provider when inference is unavailable', async () => {
@@ -1675,6 +1675,10 @@ describe('ModelDiscoveryService', () => {
       expect(qualifyDiscoveredModelId('ollama-cloud', 'minimax-m2.7')).toBe(
         'ollama-cloud/minimax-m2.7',
       );
+    });
+
+    it('should emit provider-qualified ids for Z.ai models', () => {
+      expect(qualifyDiscoveredModelId('zai', 'glm-5')).toBe('zai/glm-5');
     });
 
     it('should leave normal provider ids untouched', () => {

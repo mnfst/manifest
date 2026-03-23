@@ -170,6 +170,7 @@ describe("inferProviderFromModel", () => {
   it("detects internal provider-qualified duplicate models", () => {
     expect(inferProviderFromModel("opencode-go/glm-5")).toBe("opencode-go");
     expect(inferProviderFromModel("ollama-cloud/glm-5")).toBe("ollama-cloud");
+    expect(inferProviderFromModel("zai/glm-5")).toBe("zai");
   });
 
   it("detects vendor-prefixed models as openrouter (catch-all)", () => {
@@ -206,6 +207,7 @@ describe("inferProviderName", () => {
 
   it("returns Z.ai for GLM models", () => {
     expect(inferProviderName("glm-5")).toBe("Z.ai");
+    expect(inferProviderName("zai/glm-5")).toBe("Z.ai");
   });
 
   it("returns undefined for unrecognized models", () => {
