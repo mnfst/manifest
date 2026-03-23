@@ -71,4 +71,39 @@ describe('ProductHuntUpvoteModal', () => {
     expect(localStorage.getItem(PRODUCT_HUNT_UPVOTE_KEY)).toBe('1');
     expect(screen.queryByText('Manifest on Product Hunt')).toBeNull();
   });
+
+  it('dismisses when the overlay is clicked, but not when the card is clicked', async () => {
+    const { container } = render(() => <ProductHuntUpvoteModal />);
+
+    await fireEvent.click(container.querySelector('.product-hunt-modal__card')!);
+    expect(screen.getByText('Manifest on Product Hunt')).toBeDefined();
+
+    await fireEvent.click(container.querySelector('.product-hunt-modal__overlay')!);
+    expect(localStorage.getItem(PRODUCT_HUNT_UPVOTE_KEY)).toBe('1');
+    expect(screen.queryByText('Manifest on Product Hunt')).toBeNull();
+  });
+
+  it('renders when localStorage.getItem throws', () => {
+    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('storage unavailable');
+    });
+
+    render(() => <ProductHuntUpvoteModal />);
+
+    expect(screen.getByText('Manifest on Product Hunt')).toBeDefined();
+    getItemSpy.mockRestore();
+  });
+
+  it('still closes when localStorage.setItem throws', async () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('storage unavailable');
+    });
+
+    render(() => <ProductHuntUpvoteModal />);
+
+    await fireEvent.click(screen.getByLabelText('Dismiss Product Hunt popup'));
+
+    expect(screen.queryByText('Manifest on Product Hunt')).toBeNull();
+    setItemSpy.mockRestore();
+  });
 });
