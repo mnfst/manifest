@@ -3,7 +3,12 @@ import { ProviderModelFetcherService } from './provider-model-fetcher.service';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { DiscoveredModel } from './model-fetcher';
-import { buildSubscriptionFallbackModels, supplementWithKnownModels } from './model-fallback';
+import {
+  buildSubscriptionFallbackModels,
+  filterSubscriptionCatalogModels,
+  qualifyDiscoveredModelId,
+  supplementWithKnownModels,
+} from './model-fallback';
 
 jest.mock('../../common/utils/crypto.util', () => ({
   decrypt: jest.fn(),
@@ -131,6 +136,25 @@ describe('ModelDiscoveryService', () => {
       expect(provider.cached_models).toEqual(result);
       expect(provider.models_fetched_at).toBeDefined();
       expect(providerRepo.save).toHaveBeenCalledWith(provider);
+    });
+
+    it('should restrict OpenCode Go discovery to the curated Go catalog', async () => {
+      fetcher.fetch.mockResolvedValue([
+        makeModel({ id: 'claude-sonnet-4-6', provider: 'opencode-go' }),
+        makeModel({ id: 'gpt-5.4', provider: 'opencode-go' }),
+        makeModel({ id: 'glm-5', provider: 'opencode-go' }),
+        makeModel({ id: 'kimi-k2.5', provider: 'opencode-go' }),
+        makeModel({ id: 'minimax-m2.7', provider: 'opencode-go' }),
+      ]);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'opencode-go',
+          auth_type: 'subscription',
+        }),
+      );
+
+      expect(result.map((m) => m.id)).toEqual(['glm-5', 'kimi-k2.5', 'minimax-m2.5']);
     });
 
     it('should return [] when decrypt fails', async () => {
@@ -370,6 +394,30 @@ describe('ModelDiscoveryService', () => {
 
       expect(result).toHaveLength(2);
       expect(result.map((m) => m.id)).toEqual(['glm-5', 'opencode-go/glm-5']);
+    });
+
+    it('should qualify OpenCode Go model ids even without duplicate collisions', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          id: 'p1',
+          provider: 'opencode-go',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'kimi-k2.5',
+              provider: 'opencode-go',
+              authType: 'subscription',
+            }),
+          ],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('opencode-go/kimi-k2.5');
+      expect(result[0].provider).toBe('opencode-go');
     });
 
     it('should skip providers with no cached_models', async () => {
@@ -1458,6 +1506,37 @@ describe('ModelDiscoveryService', () => {
       expect(result.map((m) => m.id)).toContain('MiniMax-M2.1');
       expect(result.map((m) => m.id)).toContain('MiniMax-M2');
       expect(result.map((m) => m.id)).not.toContain('MiniMax-M2.5');
+    });
+  });
+
+  describe('filterSubscriptionCatalogModels', () => {
+    it('should keep only documented OpenCode Go models from a broader Zen catalog', () => {
+      const result = filterSubscriptionCatalogModels(
+        [
+          makeModel({ id: 'claude-sonnet-4-6', provider: 'opencode-go' }),
+          makeModel({ id: 'gpt-5.4', provider: 'opencode-go' }),
+          makeModel({ id: 'glm-5', provider: 'opencode-go' }),
+          makeModel({ id: 'kimi-k2.5', provider: 'opencode-go' }),
+          makeModel({ id: 'minimax-m2.7', provider: 'opencode-go' }),
+          makeModel({ id: 'minimax-m2.5', provider: 'opencode-go' }),
+        ],
+        'opencode-go',
+      );
+
+      expect(result.map((m) => m.id)).toEqual(['glm-5', 'kimi-k2.5', 'minimax-m2.5']);
+    });
+  });
+
+  describe('qualifyDiscoveredModelId', () => {
+    it('should emit documented provider-qualified ids for OpenCode Go models', () => {
+      expect(qualifyDiscoveredModelId('opencode-go', 'kimi-k2.5')).toBe('opencode-go/kimi-k2.5');
+      expect(qualifyDiscoveredModelId('opencode-go', 'opencode-go/kimi-k2.5')).toBe(
+        'opencode-go/kimi-k2.5',
+      );
+    });
+
+    it('should leave normal provider ids untouched', () => {
+      expect(qualifyDiscoveredModelId('openai', 'gpt-5.4')).toBe('gpt-5.4');
     });
   });
 });

@@ -42,7 +42,11 @@ describe("subscription capability manifests", () => {
         subscriptionLabel: "OpenCode Go Plan",
         subscriptionAuthMode: "token",
       });
-      expect(capabilities.getSubscriptionKnownModels("opencode-go")).toContain("glm-5");
+      expect(capabilities.getSubscriptionKnownModels("opencode-go")).toEqual([
+        "glm-5",
+        "kimi-k2.5",
+        "minimax-m2.5",
+      ]);
       expect(capabilities.getSubscriptionCapabilities("opencode-go")).toMatchObject({
         maxContextWindow: 128000,
         supportsPromptCaching: false,

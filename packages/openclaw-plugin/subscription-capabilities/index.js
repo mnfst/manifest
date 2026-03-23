@@ -73,7 +73,10 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
     subscriptionLabel: 'OpenCode Go Plan',
     subscriptionAuthMode: 'token',
     subscriptionKeyPlaceholder: 'Paste your API key',
-    knownModels: Object.freeze(['glm-5', 'kimi-k2.5', 'minimax-m2.7', 'minimax-m2.5']),
+    knownModels: Object.freeze(['glm-5', 'kimi-k2.5', 'minimax-m2.5']),
+    knownModelMatchMode: 'exact',
+    catalogMode: 'known_only',
+    alwaysQualifyModelIds: true,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 128000,
       supportsPromptCaching: false,
@@ -122,6 +125,21 @@ function getSubscriptionKnownModels(providerId) {
   return config?.knownModels ?? null;
 }
 
+function getSubscriptionKnownModelMatchMode(providerId) {
+  const config = getSubscriptionProviderConfig(providerId);
+  return config?.knownModelMatchMode ?? 'prefix';
+}
+
+function getSubscriptionCatalogMode(providerId) {
+  const config = getSubscriptionProviderConfig(providerId);
+  return config?.catalogMode ?? 'full';
+}
+
+function shouldQualifySubscriptionModelIds(providerId) {
+  const config = getSubscriptionProviderConfig(providerId);
+  return config?.alwaysQualifyModelIds === true;
+}
+
 function getSubscriptionCapabilities(providerId) {
   const config = getSubscriptionProviderConfig(providerId);
   return config?.subscriptionCapabilities ?? null;
@@ -133,5 +151,8 @@ module.exports = {
   getSubscriptionProviderConfig,
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
+  getSubscriptionKnownModelMatchMode,
+  getSubscriptionCatalogMode,
+  shouldQualifySubscriptionModelIds,
   getSubscriptionCapabilities,
 };

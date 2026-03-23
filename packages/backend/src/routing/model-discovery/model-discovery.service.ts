@@ -15,7 +15,9 @@ import {
   lookupWithVariants,
   buildFallbackModels,
   buildSubscriptionFallbackModels,
+  filterSubscriptionCatalogModels,
   supplementWithKnownModels,
+  qualifyDiscoveredModelId,
 } from './model-fallback';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
@@ -99,6 +101,7 @@ export class ModelDiscoveryService {
     // For subscription providers, supplement with knownModels so users can
     // always select them, even if the live API or OpenRouter didn't return them.
     if (provider.auth_type === 'subscription') {
+      raw = filterSubscriptionCatalogModels(raw, provider.provider);
       raw = supplementWithKnownModels(raw, provider.provider);
     }
 
@@ -149,17 +152,20 @@ export class ModelDiscoveryService {
       const providerId = p.provider.toLowerCase();
       const providerAuthType = p.auth_type === 'subscription' ? 'subscription' : 'api_key';
       for (const m of cached) {
+        const qualifiedId = qualifyDiscoveredModelId(providerId, m.id);
         const effectiveAuthType = m.authType ?? providerAuthType;
-        const providerModelKey = `${providerId}\u0000${m.id}`;
+        const providerModelKey = `${providerId}\u0000${qualifiedId}`;
         const current = selectedByProviderAndModel.get(providerModelKey);
         if (effectiveAuthType === 'subscription' && current?.authType !== 'subscription') {
           selectedByProviderAndModel.set(providerModelKey, {
             ...m,
+            id: qualifiedId,
             authType: effectiveAuthType,
           });
         } else if (!current) {
           selectedByProviderAndModel.set(providerModelKey, {
             ...m,
+            id: qualifiedId,
             authType: effectiveAuthType,
           });
         }
@@ -188,7 +194,8 @@ export class ModelDiscoveryService {
       if (!Array.isArray(cached)) continue;
       const providerId = p.provider.toLowerCase();
       for (const m of cached) {
-        const providerModelKey = `${providerId}\u0000${m.id}`;
+        const qualifiedId = qualifyDiscoveredModelId(providerId, m.id);
+        const providerModelKey = `${providerId}\u0000${qualifiedId}`;
         if (seenProviderAndModel.has(providerModelKey)) continue;
         seenProviderAndModel.add(providerModelKey);
 
@@ -198,9 +205,11 @@ export class ModelDiscoveryService {
         const providerIds = providersByModelId.get(m.id);
         const canonicalProvider = canonicalProviderByModelId.get(m.id);
         const modelId =
-          providerIds && providerIds.size > 1 && canonicalProvider !== providerId
-            ? qualifiedModelKey(providerId, m.id)
-            : m.id;
+          qualifiedId !== m.id
+            ? qualifiedId
+            : providerIds && providerIds.size > 1 && canonicalProvider !== providerId
+              ? qualifiedModelKey(providerId, m.id)
+              : m.id;
 
         models.push({
           ...selected,
