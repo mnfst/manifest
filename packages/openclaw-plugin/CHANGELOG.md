@@ -1,5 +1,11 @@
 # manifest
 
+## 5.28.6
+
+### Patch Changes
+
+- 8f27bd7: Switch Moonshot/Kimi API endpoint from .cn to .ai TLD for international users
+
 ## 5.28.5
 
 ### Patch Changes
