@@ -246,6 +246,7 @@ export class TimeseriesQueriesService {
       .addSelect('at.timestamp', 'timestamp')
       .addSelect('at.agent_name', 'agent_name')
       .addSelect('at.model', 'model')
+      .addSelect('at.model', 'display_name')
       .addSelect('at.input_tokens', 'input_tokens')
       .addSelect('at.output_tokens', 'output_tokens')
       .addSelect('at.status', 'status')
@@ -270,6 +271,7 @@ export class TimeseriesQueriesService {
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .select("COALESCE(at.model, 'unknown')", 'model')
+      .addSelect('at.model', 'display_name')
       .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
       .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'estimated_cost')
       .addSelect('at.auth_type', 'auth_type')
@@ -289,6 +291,7 @@ export class TimeseriesQueriesService {
     );
     return rows.map((r: Record<string, unknown>) => ({
       model: String(r['model']),
+      display_name: r['display_name'] ? String(r['display_name']) : String(r['model']),
       tokens: Number(r['tokens'] ?? 0),
       share_pct:
         totalTokens === 0 ? 0 : Math.round((Number(r['tokens'] ?? 0) / totalTokens) * 1000) / 10,

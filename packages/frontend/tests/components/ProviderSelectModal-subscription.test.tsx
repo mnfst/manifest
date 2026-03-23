@@ -3,10 +3,17 @@ import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
+const mockGetOpenaiOAuthUrl = vi.fn();
+const mockPollMinimaxOAuth = vi.fn();
+const mockStartMinimaxOAuth = vi.fn();
 
 vi.mock("../../src/services/api.js", () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
+  getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+  pollMinimaxOAuth: (...args: unknown[]) => mockPollMinimaxOAuth(...args),
+  revokeOpenaiOAuth: () => Promise.resolve({ ok: true }),
+  startMinimaxOAuth: (...args: unknown[]) => mockStartMinimaxOAuth(...args),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -59,6 +66,14 @@ describe("ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceho
     onUpdate = vi.fn();
     mockConnectProvider.mockResolvedValue({});
     mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+    mockPollMinimaxOAuth.mockResolvedValue({ status: "pending", pollIntervalMs: 2000 });
+    mockStartMinimaxOAuth.mockResolvedValue({
+      flowId: "flow-1",
+      userCode: "ABCD-1234",
+      verificationUri: "https://www.minimax.io/verify",
+      expiresAt: Date.now() + 60_000,
+      pollIntervalMs: 2000,
+    });
   });
 
   it("connects a subscription provider via toggle when not connected", async () => {

@@ -192,6 +192,7 @@ describe('seedAgentMessages', () => {
         'gpt-4o',
         'claude-haiku-4-5-20251001',
         'gemini-2.5-flash',
+        'gpt-4.1',
       ]);
 
       for (const msg of messages) {
@@ -201,7 +202,7 @@ describe('seedAgentMessages', () => {
 
     it('should span multiple models (not all the same)', () => {
       const models = new Set(messages.map((m) => m.model as string));
-      expect(models.size).toBe(4);
+      expect(models.size).toBe(5);
     });
 
     it('should have positive input_tokens and output_tokens', () => {

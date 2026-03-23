@@ -57,7 +57,7 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         <svg
           style={s}
           viewBox="0 0 24 24"
-          fill="#000000"
+          fill="currentColor"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
         >
@@ -139,7 +139,7 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         <svg
           style={s}
           viewBox="0 0 24 24"
-          fill="#1a1a2e"
+          fill="currentColor"
           fill-rule="evenodd"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
@@ -168,7 +168,7 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         <svg
           style={s}
           viewBox="0 0 24 24"
-          fill="#2d2d2d"
+          fill="currentColor"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
         >

@@ -1,3 +1,5 @@
+import { buildAnthropicShortModelIdVariants } from '../common/utils/anthropic-model-id';
+
 /**
  * Resolves variant model names (from telemetry) to canonical pricing names.
  *
@@ -7,13 +9,21 @@
  *  3. Strip provider prefix (e.g. "anthropic/claude-opus-4-6" → "claude-opus-4-6")
  *  4. Strip date suffix (e.g. "gpt-4.1-2025-04-14" → "gpt-4.1")
  *  5. Strip both prefix and date suffix
+ *  6. Dot-to-dash normalization (e.g. "claude-opus-4.6" → "claude-opus-4-6")
+ *  7. Dot-to-dash + strip date suffix
  */
 
 const KNOWN_ALIASES: ReadonlyArray<readonly [string, string]> = [
   ['claude-opus-4', 'claude-opus-4-6'],
   ['claude-sonnet-4.5', 'claude-sonnet-4-5-20250929'],
+  ['claude-sonnet-4-5', 'claude-sonnet-4-5-20250929'],
+  ['claude-opus-4-5', 'claude-opus-4-5-20251101'],
+  ['claude-opus-4-1', 'claude-opus-4-1-20250805'],
+  ['claude-sonnet-4-0', 'claude-sonnet-4-20250514'],
+  ['claude-opus-4-0', 'claude-opus-4-20250514'],
   ['claude-sonnet-4', 'claude-sonnet-4-20250514'],
   ['claude-haiku-4.5', 'claude-haiku-4-5-20251001'],
+  ['claude-haiku-4-5', 'claude-haiku-4-5-20251001'],
   ['deepseek-v3', 'deepseek-chat'],
   ['deepseek-chat-v3-0324', 'deepseek-chat'],
   ['deepseek-r1', 'deepseek-reasoner'],
@@ -67,10 +77,21 @@ export function buildAliasMap(canonicalNames: ReadonlyArray<string>): Map<string
 
   for (const name of canonicalNames) {
     map.set(name, name);
+    for (const variant of buildAnthropicShortModelIdVariants(name)) {
+      if (!map.has(variant)) {
+        map.set(variant, name);
+      }
+    }
+
     // Also index by bare name (e.g. "claude-sonnet-4" → "anthropic/claude-sonnet-4")
     const bare = stripProviderPrefix(name);
     if (bare !== name && !map.has(bare)) {
       map.set(bare, name);
+    }
+    for (const variant of buildAnthropicShortModelIdVariants(bare)) {
+      if (!map.has(variant)) {
+        map.set(variant, name);
+      }
     }
   }
 
@@ -85,6 +106,10 @@ export function buildAliasMap(canonicalNames: ReadonlyArray<string>): Map<string
   return map;
 }
 
+export function normalizeDots(name: string): string {
+  return name.replace(/\./g, '-');
+}
+
 export function resolveModelName(name: string, aliasMap: Map<string, string>): string | undefined {
   const exact = aliasMap.get(name);
   if (exact) return exact;
@@ -97,6 +122,18 @@ export function resolveModelName(name: string, aliasMap: Map<string, string>): s
   if (noDate !== stripped) {
     const fromNoDate = aliasMap.get(noDate);
     if (fromNoDate) return fromNoDate;
+  }
+
+  const dotNorm = normalizeDots(stripped);
+  if (dotNorm !== stripped) {
+    const fromDotNorm = aliasMap.get(dotNorm);
+    if (fromDotNorm) return fromDotNorm;
+
+    const dotNormNoDate = stripDateSuffix(dotNorm);
+    if (dotNormNoDate !== dotNorm) {
+      const fromDotNormNoDate = aliasMap.get(dotNormNoDate);
+      if (fromDotNormNoDate) return fromDotNormNoDate;
+    }
   }
 
   return undefined;

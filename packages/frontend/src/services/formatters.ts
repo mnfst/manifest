@@ -107,6 +107,30 @@ export function formatErrorMessage(raw: string): string {
 }
 
 /**
+ * Deterministic color for custom provider avatars based on name.
+ */
+const CUSTOM_PROVIDER_COLORS = [
+  '#2430F0', // indigo
+  '#FF006E', // pink
+  '#F0953A', // amber
+  '#00CECB', // emerald
+  '#3b82f6', // blue
+  '#942FFA', // violet
+  '#E44B4D', // red
+  '#14b8a6', // teal
+  '#ECBD23', // orange
+  '#24BAF0', // cyan
+];
+
+export function customProviderColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  }
+  return CUSTOM_PROVIDER_COLORS[Math.abs(hash) % CUSTOM_PROVIDER_COLORS.length]!;
+}
+
+/**
  * Format a timestamp to relative display (e.g., "Yesterday", "09:14").
  */
 export function formatRelativeTime(ts: string): string {

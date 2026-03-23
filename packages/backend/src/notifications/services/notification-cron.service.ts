@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
+import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
 import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
 import { computePeriodBoundaries } from '../../common/utils/period.util';
 import {
@@ -32,6 +33,7 @@ export class NotificationCronService implements OnModuleInit {
     private readonly rulesService: NotificationRulesService,
     private readonly emailService: NotificationEmailService,
     private readonly emailProviderConfigService: EmailProviderConfigService,
+    private readonly runtime: ManifestRuntimeService,
   ) {
     this.dialect = detectDialect(ds.options.type as string);
   }
@@ -127,8 +129,6 @@ export class NotificationCronService implements OnModuleInit {
     let emailSent = false;
     if (email) {
       const providerConfig = await this.emailProviderConfigService.getFullConfig(rule.user_id);
-      const baseUrl =
-        process.env['BETTER_AUTH_URL'] ?? `http://localhost:${process.env['PORT'] ?? '3001'}`;
       emailSent = await this.emailService.sendThresholdAlert(
         email,
         {
@@ -138,7 +138,7 @@ export class NotificationCronService implements OnModuleInit {
           actualValue: actual,
           period: rule.period,
           timestamp: now,
-          agentUrl: `${baseUrl}/agents/${encodeURIComponent(rule.agent_name)}`,
+          agentUrl: `${this.runtime.getAuthBaseUrl()}/agents/${encodeURIComponent(rule.agent_name)}`,
           alertType: 'soft',
         },
         providerConfig ?? undefined,
@@ -179,7 +179,7 @@ export class NotificationCronService implements OnModuleInit {
     const fullConfig = await this.emailProviderConfigService.getFullConfig(userId);
     if (fullConfig?.notificationEmail) return fullConfig.notificationEmail;
 
-    if (process.env['MANIFEST_MODE'] === 'local') {
+    if (this.runtime.isLocalMode()) {
       const configEmail = readLocalNotificationEmail();
       if (configEmail) return configEmail;
     }

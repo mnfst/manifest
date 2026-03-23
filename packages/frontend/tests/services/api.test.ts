@@ -19,6 +19,10 @@ import {
   disconnectProvider,
   copilotDeviceCode,
   copilotPollToken,
+  getOpenaiOAuthUrl,
+  pollMinimaxOAuth,
+  revokeOpenaiOAuth,
+  startMinimaxOAuth,
   getTierAssignments,
   overrideTier,
   resetTier,
@@ -113,7 +117,7 @@ describe("getAgents", () => {
 
     const result = await getAgents();
     expect(result).toEqual(payload);
-    expect(mockFetch).toHaveBeenCalledWith("http://localhost:3000/api/v1/agents", { credentials: "include" });
+    expect(mockFetch).toHaveBeenCalledWith("http://localhost:3000/api/v1/agents", { credentials: "include", cache: "no-store" });
   });
 });
 
@@ -268,7 +272,7 @@ describe("getAgentKey", () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/agents/bot/key"),
-      { credentials: "include" },
+      { credentials: "include", cache: "no-store" },
     );
   });
 });
@@ -430,7 +434,7 @@ describe("getModelPrices", () => {
     expect(result).toEqual(prices);
     expect(mockFetch).toHaveBeenCalledWith(
       "http://localhost:3000/api/v1/model-prices",
-      { credentials: "include" },
+      { credentials: "include", cache: "no-store" },
     );
   });
 });
@@ -478,7 +482,7 @@ describe("getProviders", () => {
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
       "http://localhost:3000/api/v1/routing/my-agent/providers",
-      { credentials: "include" },
+      { credentials: "include", cache: "no-store" },
     );
   });
 });
@@ -536,6 +540,84 @@ describe("deactivateAllProviders", () => {
   });
 });
 
+describe("getOpenaiOAuthUrl", () => {
+  it("fetches /oauth/openai/authorize with agentName param", async () => {
+    const payload = { url: "https://auth.openai.com/oauth/authorize?state=abc" };
+    mockOk(payload);
+
+    const result = await getOpenaiOAuthUrl("my-agent");
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/oauth/openai/authorize");
+    expect(url).toContain("agentName=my-agent");
+  });
+});
+
+describe("revokeOpenaiOAuth", () => {
+  it("sends POST to /oauth/openai/revoke with agentName param", async () => {
+    const payload = { ok: true };
+    mockMutateOk(payload);
+
+    const result = await revokeOpenaiOAuth("my-agent");
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/oauth/openai/revoke?agentName=my-agent",
+      expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
+  });
+});
+
+describe("startMinimaxOAuth", () => {
+  it("sends POST to /oauth/minimax/start with agentName and default region params", async () => {
+    const payload = {
+      flowId: "flow-1",
+      userCode: "ABCD-1234",
+      verificationUri: "https://www.minimax.io/verify",
+      expiresAt: 1760000000000,
+      pollIntervalMs: 2000,
+    };
+    mockMutateOk(payload);
+
+    const result = await startMinimaxOAuth("my-agent");
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/oauth/minimax/start?agentName=my-agent&region=global",
+      expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
+  });
+
+  it("sends POST to /oauth/minimax/start with the selected region", async () => {
+    const payload = {
+      flowId: "flow-1",
+      userCode: "ABCD-1234",
+      verificationUri: "https://www.minimax.io/verify",
+      expiresAt: 1760000000000,
+      pollIntervalMs: 2000,
+    };
+    mockMutateOk(payload);
+
+    const result = await startMinimaxOAuth("my-agent", "cn");
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/oauth/minimax/start?agentName=my-agent&region=cn",
+      expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
+  });
+});
+
+describe("pollMinimaxOAuth", () => {
+  it("fetches /oauth/minimax/poll with flowId param", async () => {
+    const payload = { status: "pending", message: "Waiting", pollIntervalMs: 2000 };
+    mockOk(payload);
+
+    const result = await pollMinimaxOAuth("flow-1");
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/api/v1/oauth/minimax/poll");
+    expect(url).toContain("flowId=flow-1");
+  });
+});
+
 describe("disconnectProvider", () => {
   it("sends DELETE to /routing/:agentName/providers/:provider", async () => {
     const payload = { ok: true, notifications: [] };
@@ -575,7 +657,7 @@ describe("getTierAssignments", () => {
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
       "http://localhost:3000/api/v1/routing/my-agent/tiers",
-      { credentials: "include" },
+      { credentials: "include", cache: "no-store" },
     );
   });
 });
@@ -585,7 +667,7 @@ describe("overrideTier", () => {
     const payload = { id: "1", tier: "tier-1", override_model: "gpt-4o", auto_assigned_model: null, updated_at: "2026-01-01" };
     mockMutateOk(payload);
 
-    const result = await overrideTier("my-agent", "tier-1", "gpt-4o");
+    const result = await overrideTier("my-agent", "tier-1", "gpt-4o", "openai");
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/v1/routing/my-agent/tiers/tier-1",
@@ -593,7 +675,7 @@ describe("overrideTier", () => {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "gpt-4o" }),
+        body: JSON.stringify({ model: "gpt-4o", provider: "openai" }),
       }),
     );
   });
@@ -601,7 +683,7 @@ describe("overrideTier", () => {
   it("encodes tier name in URL", async () => {
     mockMutateOk({});
 
-    await overrideTier("my-agent", "tier 1", "gpt-4o");
+    await overrideTier("my-agent", "tier 1", "gpt-4o", "openai");
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain("/routing/my-agent/tiers/tier%201");
   });
@@ -609,12 +691,16 @@ describe("overrideTier", () => {
   it("includes authType in body when provided", async () => {
     mockMutateOk({});
 
-    await overrideTier("my-agent", "simple", "claude-sonnet-4", "subscription");
+    await overrideTier("my-agent", "simple", "claude-sonnet-4", "anthropic", "subscription");
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/v1/routing/my-agent/tiers/simple",
       expect.objectContaining({
         method: "PUT",
-        body: JSON.stringify({ model: "claude-sonnet-4", authType: "subscription" }),
+        body: JSON.stringify({
+          model: "claude-sonnet-4",
+          provider: "anthropic",
+          authType: "subscription",
+        }),
       }),
     );
   });
@@ -661,7 +747,7 @@ describe("getAvailableModels", () => {
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
       "http://localhost:3000/api/v1/routing/my-agent/available-models",
-      { credentials: "include" },
+      { credentials: "include", cache: "no-store" },
     );
   });
 });

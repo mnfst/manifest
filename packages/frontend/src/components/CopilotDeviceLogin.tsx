@@ -197,7 +197,7 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
       <Show when={phase() === 'awaiting'}>
         <div class="copilot-device-login__code-box">
           <p class="provider-detail__hint" style="margin-bottom: 12px;">
-            Open GitHub and enter this code:
+            Copy the code, then open GitHub to enter it:
           </p>
           <div class="copilot-device-login__code-row">
             <div class="copilot-device-login__code" aria-label="Device code">
@@ -251,7 +251,6 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
             rel="noopener noreferrer"
           >
             Open GitHub
-            <span class="sr-only">(opens in new tab)</span>
           </a>
           <p class="copilot-device-login__waiting">
             <span class="spinner" style="width: 14px; height: 14px; margin-right: 8px;" />

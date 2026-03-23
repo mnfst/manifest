@@ -1,11 +1,11 @@
-import { readFileSync, existsSync, readdirSync } from 'fs';
+import { existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { PluginLogger } from './telemetry';
+import { supportsSubscriptionProvider } from '../../subscription-capabilities';
+import { loadJsonFile } from './json-file';
 
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface AuthProfileEntry {
   type: string;
@@ -23,6 +23,34 @@ export interface SubscriptionProvider {
   authType: string;
   /** Access token extracted from auth-profile (e.g. Copilot device-login token). */
   token?: string;
+}
+
+interface FetchResponseLike {
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+}
+
+type FetchLike = (
+  input: string,
+  init?: {
+    method?: string;
+    headers?: Record<string, string>;
+    body?: string;
+    signal?: unknown;
+  },
+) => Promise<FetchResponseLike>;
+
+function getFetch(): FetchLike | null {
+  return (globalThis as typeof globalThis & { fetch?: FetchLike }).fetch ?? null;
+}
+
+function getAbortSignalTimeout(ms: number): unknown {
+  return (
+    globalThis as typeof globalThis & {
+      AbortSignal?: { timeout: (timeoutMs: number) => unknown };
+    }
+  ).AbortSignal?.timeout?.(ms);
 }
 
 /**
@@ -44,16 +72,8 @@ const OPENCLAW_TO_MANIFEST: Record<string, string> = {
   moonshot: 'moonshot',
   kimi: 'moonshot',
   minimax: 'minimax',
+  'minimax-portal': 'minimax',
 };
-
-function readJsonSafe(path: string): Record<string, any> {
-  if (!existsSync(path)) return {};
-  try {
-    return JSON.parse(readFileSync(path, 'utf-8'));
-  } catch {
-    return {};
-  }
-}
 
 /**
  * Scans all OpenClaw agent auth-profiles.json files to discover
@@ -77,7 +97,7 @@ export function discoverSubscriptionProviders(logger: PluginLogger): Subscriptio
 
     for (const dir of agentDirs) {
       const profilePath = join(agentsDir, dir.name, 'agent', 'auth-profiles.json');
-      const data = readJsonSafe(profilePath);
+      const data = loadJsonFile(profilePath);
       if (!data.profiles || typeof data.profiles !== 'object') continue;
 
       for (const entry of Object.values(data.profiles)) {
@@ -90,6 +110,12 @@ export function discoverSubscriptionProviders(logger: PluginLogger): Subscriptio
         const manifestId = OPENCLAW_TO_MANIFEST[profile.provider?.toLowerCase() ?? ''];
         if (!manifestId) {
           logger.debug(`[manifest] Unknown subscription provider: ${profile.provider}`);
+          continue;
+        }
+        if (!supportsSubscriptionProvider(manifestId)) {
+          logger.debug(
+            `[manifest] Ignoring unsupported subscription provider: ${profile.provider} -> ${manifestId}`,
+          );
           continue;
         }
 
@@ -138,6 +164,12 @@ export async function registerSubscriptionProviders(
   const url = `${baseUrl}/api/v1/routing/subscription-providers`;
 
   try {
+    const fetchImpl = getFetch();
+    if (!fetchImpl) {
+      logger.debug('[manifest] Global fetch is not available');
+      return;
+    }
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -145,7 +177,7 @@ export async function registerSubscriptionProviders(
       headers['Authorization'] = `Bearer ${apiKey}`;
     }
 
-    const res = await fetch(url, {
+    const res = await fetchImpl(url, {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -154,7 +186,7 @@ export async function registerSubscriptionProviders(
           ...(p.token && { token: p.token }),
         })),
       }),
-      signal: AbortSignal.timeout(5000),
+      signal: getAbortSignalTimeout(5000),
     });
 
     if (res.ok) {

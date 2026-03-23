@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, IsNull, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
@@ -9,13 +9,9 @@ import { Tenant } from '../entities/tenant.entity';
 import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
-import { ModelPricing } from '../entities/model-pricing.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { hashKey, keyPrefix } from '../common/utils/hash.util';
-import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
-import { PricingSyncService } from './pricing-sync.service';
-import { SEED_MODELS } from './seed-models';
 import {
   LOCAL_USER_ID,
   LOCAL_EMAIL,
@@ -23,7 +19,6 @@ import {
   LOCAL_AGENT_ID,
   LOCAL_AGENT_NAME,
 } from '../common/constants/local-mode.constants';
-import { trackEvent } from '../common/utils/product-telemetry';
 import { seedAgentMessages } from './seed-messages';
 
 @Injectable()
@@ -35,16 +30,12 @@ export class LocalBootstrapService implements OnModuleInit {
     @InjectRepository(Agent) private readonly agentRepo: Repository<Agent>,
     @InjectRepository(AgentApiKey) private readonly agentKeyRepo: Repository<AgentApiKey>,
     @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
-    @InjectRepository(ModelPricing) private readonly pricingRepo: Repository<ModelPricing>,
     @InjectRepository(UserProvider) private readonly providerRepo: Repository<UserProvider>,
     @InjectRepository(TierAssignment) private readonly tierRepo: Repository<TierAssignment>,
-    private readonly pricingCache: ModelPricingCacheService,
-    private readonly pricingSync: PricingSyncService,
     private readonly moduleRef: ModuleRef,
   ) {}
 
   async onModuleInit() {
-    await this.seedModelPricing();
     await this.ensureTenantAndAgent();
     await this.fixupRoutingAgentIds();
     await this.recalculateTiersIfNeeded();
@@ -55,16 +46,22 @@ export class LocalBootstrapService implements OnModuleInit {
     });
     this.logger.log('Local mode bootstrap complete');
 
-    // Fetch fresh prices from OpenRouter in the background,
-    // purge non-curated models, then recalculate tiers.
-    this.pricingSync
-      .syncPricing()
-      .then(() => this.purgeNonCuratedModels())
-      .then(() => this.pricingCache.reload())
-      .then(() => this.recalculateTiersIfNeeded())
-      .catch((err) => {
-        this.logger.warn(`Background pricing sync failed: ${err}`);
-      });
+    // Discover models for all active providers in the background
+    this.discoverModelsInBackground().catch((err) => {
+      this.logger.warn(`Background model discovery failed: ${err}`);
+    });
+  }
+
+  private async discoverModelsInBackground(): Promise<void> {
+    try {
+      const { ModelDiscoveryService } =
+        await import('../routing/model-discovery/model-discovery.service');
+      const discovery = this.moduleRef.get(ModelDiscoveryService, { strict: false });
+      await discovery.discoverAllForAgent(LOCAL_AGENT_ID);
+      await this.recalculateTiersIfNeeded();
+    } catch (err) {
+      this.logger.warn(`Model discovery failed: ${err}`);
+    }
   }
 
   private async ensureTenantAndAgent() {
@@ -85,13 +82,9 @@ export class LocalBootstrapService implements OnModuleInit {
         is_active: true,
         tenant_id: LOCAL_TENANT_ID,
       });
-      trackEvent('agent_created', { agent_name: LOCAL_AGENT_NAME });
-
       this.logger.log(`Created tenant/agent for local mode`);
     }
 
-    // Always reconcile the API key — it may have been regenerated
-    // since the tenant was first created.
     const apiKey = this.readApiKeyFromConfig();
     if (apiKey) {
       await this.registerApiKey(apiKey);
@@ -130,9 +123,6 @@ export class LocalBootstrapService implements OnModuleInit {
   }
 
   private async fixupRoutingAgentIds() {
-    // Fix routing rows missing agent_id (from pre-migration SQLite DBs).
-    // SQLite uses synchronize:true so the column is added automatically but
-    // existing rows will have NULL agent_id.
     const orphanedProviders = await this.providerRepo.find({
       where: { agent_id: IsNull() as unknown as string },
     });
@@ -153,53 +143,6 @@ export class LocalBootstrapService implements OnModuleInit {
       this.logger.log(
         `Fixed ${orphanedProviders.length} provider(s) and ${orphanedTiers.length} tier(s) with missing agent_id`,
       );
-    }
-  }
-
-  private async seedModelPricing() {
-    for (const [
-      name,
-      provider,
-      inputPrice,
-      outputPrice,
-      ctxWindow,
-      reasoning,
-      code,
-      displayName,
-    ] of SEED_MODELS) {
-      await this.pricingRepo.upsert(
-        {
-          model_name: name,
-          provider,
-          input_price_per_token: inputPrice,
-          output_price_per_token: outputPrice,
-          context_window: ctxWindow,
-          capability_reasoning: reasoning,
-          capability_code: code,
-          display_name: displayName,
-        },
-        ['model_name'],
-      );
-    }
-    await this.pricingCache.reload();
-    this.logger.log('Seeded model pricing data');
-  }
-
-  private async purgeNonCuratedModels() {
-    const curatedNames = new Set(SEED_MODELS.map(([name]) => name));
-    const all = await this.pricingRepo.find({ select: ['model_name', 'provider'] });
-    const toDelete = all
-      .filter(
-        (row) =>
-          !curatedNames.has(row.model_name) &&
-          row.provider !== 'Ollama' &&
-          !row.model_name.startsWith('custom:'),
-      )
-      .map((row) => row.model_name);
-
-    if (toDelete.length > 0) {
-      await this.pricingRepo.delete({ model_name: In(toDelete) });
-      this.logger.log(`Purged ${toDelete.length} non-curated models`);
     }
   }
 

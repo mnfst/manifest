@@ -534,7 +534,7 @@ const Limits: Component = () => {
 
               <div class="confirm-modal__footer">
                 <button
-                  class="btn btn--ghost"
+                  class="btn btn--ghost btn--sm"
                   onClick={() => {
                     setDeleteTarget(null);
                     setDeleteConfirmed(false);
@@ -543,7 +543,7 @@ const Limits: Component = () => {
                   Cancel
                 </button>
                 <button
-                  class="btn btn--danger"
+                  class="btn btn--danger btn--sm"
                   disabled={!deleteConfirmed() || deleting()}
                   onClick={handleDelete}
                 >
@@ -576,11 +576,11 @@ const Limits: Component = () => {
               </p>
 
               <div class="confirm-modal__footer">
-                <button class="btn btn--ghost" onClick={() => setShowRemoveProvider(false)}>
+                <button class="btn btn--ghost btn--sm" onClick={() => setShowRemoveProvider(false)}>
                   Cancel
                 </button>
                 <button
-                  class="btn btn--danger"
+                  class="btn btn--danger btn--sm"
                   onClick={handleRemoveProvider}
                   disabled={removingProvider()}
                 >

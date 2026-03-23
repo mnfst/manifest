@@ -68,7 +68,7 @@ describe("CopilotDeviceLogin", () => {
     expect(document.querySelector(".spinner")).toBeDefined();
   });
 
-  it("shows device code and Open GitHub link in awaiting state", async () => {
+  it("shows device code and Open GitHub button in awaiting state", async () => {
     mockCopilotDeviceCode.mockResolvedValue({
       device_code: "dc_test",
       user_code: "ABCD-1234",
@@ -85,6 +85,7 @@ describe("CopilotDeviceLogin", () => {
     await waitFor(() => {
       expect(screen.getByText("ABCD-1234")).toBeDefined();
     });
+    expect(screen.getByText(/Copy the code, then open GitHub/)).toBeDefined();
     expect(screen.getByText("Open GitHub")).toBeDefined();
     expect(screen.getByText("Waiting for authorization...")).toBeDefined();
 

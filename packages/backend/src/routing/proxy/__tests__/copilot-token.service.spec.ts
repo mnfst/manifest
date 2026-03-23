@@ -88,6 +88,18 @@ describe('CopilotTokenService', () => {
     );
   });
 
+  it('handles res.text() failure gracefully on non-ok response', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      text: () => Promise.reject(new Error('body stream already read')),
+    });
+
+    await expect(service.getCopilotToken('ghu_broken')).rejects.toThrow(
+      'Copilot token exchange failed: 500',
+    );
+  });
+
   it('throws on invalid response body', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,

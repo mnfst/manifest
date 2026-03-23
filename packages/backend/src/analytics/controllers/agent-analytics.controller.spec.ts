@@ -3,7 +3,6 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { AgentAnalyticsController } from './agent-analytics.controller';
 import { AgentAnalyticsService } from '../services/agent-analytics.service';
 import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
-import { hashForTelemetry } from '../../common/utils/product-telemetry';
 
 describe('AgentAnalyticsController', () => {
   let controller: AgentAnalyticsController;
@@ -62,7 +61,6 @@ describe('AgentAnalyticsController', () => {
       expect(result.input_tokens).toBe(3000);
       expect(result.message_count).toBe(10);
       expect(result.agentName).toBe('test-agent');
-      expect(result.telemetryId).toBe(hashForTelemetry('user-1'));
     });
 
     it('passes custom range', async () => {

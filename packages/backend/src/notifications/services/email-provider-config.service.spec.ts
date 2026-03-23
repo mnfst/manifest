@@ -14,6 +14,13 @@ jest.mock('./email-providers/resolve-provider', () => ({
   })),
 }));
 
+jest.mock('../../common/utils/crypto.util', () => ({
+  encrypt: jest.fn((plaintext: string) => `ENC:${plaintext}`),
+  decrypt: jest.fn((ciphertext: string) => ciphertext.replace('ENC:', '')),
+  isEncrypted: jest.fn((value: string) => value.startsWith('ENC:')),
+  getEncryptionSecret: jest.fn(() => 'test-secret-32-chars-long-enough!!'),
+}));
+
 import { BadRequestException } from '@nestjs/common';
 import { EmailProviderConfigService } from './email-provider-config.service';
 import { createProvider } from './email-providers/resolve-provider';
@@ -50,7 +57,7 @@ describe('EmailProviderConfigService', () => {
           {
             provider: 'resend',
             domain: 'example.com',
-            api_key_encrypted: 're_abcdef123456',
+            key_prefix: 're_abcde',
             is_active: 1,
             notification_email: 'alerts@test.com',
           },
@@ -73,7 +80,7 @@ describe('EmailProviderConfigService', () => {
           {
             provider: 'resend',
             domain: undefined,
-            api_key_encrypted: 're_testkey1234',
+            key_prefix: 're_testk',
             is_active: 1,
             notification_email: undefined,
           },
@@ -83,6 +90,23 @@ describe('EmailProviderConfigService', () => {
       const result = await service.getConfig('user-1');
       expect(result!.domain).toBeNull();
       expect(result!.notificationEmail).toBeNull();
+    });
+
+    it('returns **** when key_prefix is null (legacy data)', async () => {
+      const ds = createMockDataSource([
+        [
+          {
+            provider: 'resend',
+            domain: null,
+            key_prefix: null,
+            is_active: 1,
+            notification_email: null,
+          },
+        ],
+      ]);
+      const service = new EmailProviderConfigService(ds);
+      const result = await service.getConfig('user-1');
+      expect(result!.keyPrefix).toBe('****');
     });
   });
 
@@ -122,7 +146,7 @@ describe('EmailProviderConfigService', () => {
 
     it('updates without API key — keeps existing key', async () => {
       const ds = createMockDataSource([
-        [{ id: 'existing-id', api_key_encrypted: 're_existingkey123' }], // SELECT existing
+        [{ id: 'existing-id', api_key_encrypted: 'ENC:re_existingkey123', key_prefix: 're_exist' }],
         [], // UPDATE
       ]);
       const service = new EmailProviderConfigService(ds);
@@ -137,7 +161,7 @@ describe('EmailProviderConfigService', () => {
 
     it('throws when existing config has invalid provider config on update without new API key', async () => {
       const ds = createMockDataSource([
-        [{ id: 'existing-id', api_key_encrypted: 'short' }], // existing with short key
+        [{ id: 'existing-id', api_key_encrypted: 'ENC:short' }], // existing with short key
       ]);
       const service = new EmailProviderConfigService(ds);
       await expect(service.upsert('user-1', { provider: 'mailgun' })).rejects.toThrow(
@@ -206,12 +230,12 @@ describe('EmailProviderConfigService', () => {
       expect(result).toBeNull();
     });
 
-    it('returns full config with API key', async () => {
+    it('returns full config with decrypted API key', async () => {
       const ds = createMockDataSource([
         [
           {
             provider: 'resend',
-            api_key_encrypted: 're_fullkey12345678',
+            api_key_encrypted: 'ENC:re_fullkey12345678',
             domain: 'example.com',
             notification_email: 'alerts@test.com',
           },
@@ -227,12 +251,28 @@ describe('EmailProviderConfigService', () => {
       });
     });
 
+    it('returns plaintext key for backwards compatibility', async () => {
+      const ds = createMockDataSource([
+        [
+          {
+            provider: 'resend',
+            api_key_encrypted: 're_plaintext_legacy_key',
+            domain: null,
+            notification_email: null,
+          },
+        ],
+      ]);
+      const service = new EmailProviderConfigService(ds);
+      const result = await service.getFullConfig('user-1');
+      expect(result!.apiKey).toBe('re_plaintext_legacy_key');
+    });
+
     it('returns null domain and email when not set', async () => {
       const ds = createMockDataSource([
         [
           {
             provider: 'resend',
-            api_key_encrypted: 're_fullkey12345678',
+            api_key_encrypted: 'ENC:re_fullkey12345678',
             domain: undefined,
             notification_email: undefined,
           },
@@ -291,12 +331,12 @@ describe('EmailProviderConfigService', () => {
       expect(result).toEqual({ success: false, error: 'No email provider configured' });
     });
 
-    it('calls testConfig with saved credentials', async () => {
+    it('calls testConfig with decrypted credentials', async () => {
       const ds = createMockDataSource([
         [
           {
             provider: 'resend',
-            api_key_encrypted: 're_savedkey12345678',
+            api_key_encrypted: 'ENC:re_savedkey12345678',
             domain: null,
             notification_email: null,
           },

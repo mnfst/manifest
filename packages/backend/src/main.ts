@@ -7,8 +7,7 @@ import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
 import { LOCAL_USER_ID, LOCAL_EMAIL } from './common/constants/local-mode.constants';
 import { SpaFallbackFilter } from './common/filters/spa-fallback.filter';
-
-const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+import { isAllowedLocalIp } from './common/utils/local-ip';
 
 export async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -27,7 +26,7 @@ export async function bootstrap() {
           scriptSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           imgSrc: ["'self'", 'data:'],
-          connectSrc: ["'self'", 'https://eu.i.posthog.com'],
+          connectSrc: ["'self'"],
           fontSrc: ["'self'"],
           objectSrc: ["'none'"],
           frameAncestors: ["'none'"],
@@ -67,7 +66,7 @@ export async function bootstrap() {
     // Local mode: simple session endpoints (no Better Auth needed)
     const localSessionHandler = (req: express.Request, res: express.Response) => {
       const ip = req.ip ?? '';
-      if (!LOOPBACK_IPS.has(ip)) {
+      if (!isAllowedLocalIp(ip)) {
         res.status(403).json({ error: 'Forbidden' });
         return;
       }
@@ -79,6 +78,18 @@ export async function bootstrap() {
       res.status(404).json({ error: 'Not available in local mode' });
     });
   } else {
+    // Rate limit login attempts (Better Auth runs outside NestJS, so ThrottlerGuard doesn't apply)
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const rateLimit = require('express-rate-limit');
+    const loginLimiter = rateLimit.default({
+      windowMs: 15 * 60 * 1000,
+      max: 20,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: { error: 'Too many login attempts. Try again later.' },
+    });
+    expressApp.use('/api/auth/sign-in', loginLimiter);
+
     // Cloud mode: mount Better Auth handler (needs raw body, before express.json)
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { toNodeHandler } = require('better-auth/node');

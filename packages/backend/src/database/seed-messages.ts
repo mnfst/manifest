@@ -32,6 +32,7 @@ export async function seedAgentMessages(
     { name: 'gpt-4o', auth_type: 'api_key' },
     { name: 'claude-haiku-4-5-20251001', auth_type: 'subscription' },
     { name: 'gemini-2.5-flash', auth_type: 'api_key' },
+    { name: 'gpt-4.1', auth_type: 'subscription' },
   ];
   const now = Date.now();
   const messages: Array<Partial<AgentMessage>> = [];

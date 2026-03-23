@@ -1,5 +1,144 @@
 # manifest
 
+## 5.28.3
+
+### Patch Changes
+
+- 44c8bcd: Normalize OpenAI-style tool call IDs when forwarding chat completions to Mistral so fallback requests remain compatible with Mistral's 9-character alphanumeric tool-call ID requirement.
+- f72e8a3: Fix SKILL.md scanner contradictions: qualify "Not collected" statement to clarify OTLP vs routing data, remove MANIFEST_API_KEY from required env metadata since local mode doesn't need it.
+- c3fd8c2: Rewrite SKILL.md TL;DR to remove blanket "not collected" claim that contradicted routing behavior. Now precisely states what each data path does.
+- f4f6b1a: Slim down SKILL.md to essential setup and usage instructions. Detailed security, privacy, routing, and troubleshooting docs moved to GitHub README.
+
+## 5.28.2
+
+### Patch Changes
+
+- 0c245fc: Remove PostHog product analytics from plugin, backend, and frontend. No external analytics calls are made in any mode. OTLP telemetry (traces/metrics to user's own endpoint) is unaffected. Restructure SKILL.md with security-first layout and local mode as primary setup path.
+
+## 5.28.1
+
+### Patch Changes
+
+- cb636c6: Fix subscription disclaimer card contrast in dark mode and rename label from "Experimental" to "Notice"
+
+## 5.28.0
+
+### Minor Changes
+
+- 9dad875: Fix MiniMax OAuth subscription setup by handling region-specific endpoints, normalizing device-code timing values, and aligning fallback model metadata with the documented MiniMax model IDs.
+
+### Patch Changes
+
+- 1a94edb: Normalize DeepSeek `max_tokens` before forwarding requests so out-of-range values do not hard-fail upstream.
+- 3536bc8: Preserve Codex subscription instructions in proxied OpenAI requests so Codex backend calls do not fail with "Instructions are required".
+- 4b31e82: Pass request tools and tool_choice into routing resolution so tool-aware scoring uses the actual proxy request context.
+- 5e282bb: Stop cross-auth credential fallback when an auth type is explicitly requested.
+  Requests that resolve to `auth_type: api_key` now only use API key credentials (and likewise for `subscription`) instead of silently decrypting another auth record.
+
+## 5.27.1
+
+### Patch Changes
+
+- 4edcde8: Improve Add Provider modal: merge custom providers alphabetically with standard providers, add experimental disclaimer for subscription tab, use pill-style action chips for "Add custom provider" and "Request new subscription model"
+
+## 5.27.0
+
+### Minor Changes
+
+- 5835963: Add OpenAI subscription routing support with zero-cost billing
+- cdd1d14: Add subscription model discovery with fallback models and auth-type-aware deduplication
+
+### Patch Changes
+
+- 0ec6da5: Skip ephemeral callback server in cloud mode and show paste-URL input immediately after OAuth popup opens
+- 04e8868: Revert dynamic OAuth redirect_uri and add paste-URL fallback for cloud deployments
+- 389c2ff: Fix OpenAI OAuth callback to use backend URL in production instead of hardcoded localhost:1455
+- 94a8e9f: Prevent browser password save prompt on API key and token inputs by using CSS text-security masking instead of type="password"
+- d9e34c2: Sync openclaw.plugin.json version with package.json automatically during changeset version bumps
+
+## 5.26.0
+
+### Minor Changes
+
+- b27b960: Add expandable message detail logs to the Messages page with chevron button to view related LLM calls, tool executions, agent logs, error details, and fallback chain info
+- 76c3fda: Replace static model seeding with provider-native model discovery via live API calls
+  - Add `ProviderModelFetcherService` with config-driven fetchers for all 12 providers
+  - Add `ModelDiscoveryService` orchestrator that discovers, enriches, and caches models per provider
+  - Refactor `PricingSyncService` into OpenRouter pricing lookup cache (no DB writes)
+  - Refactor `ModelPricingCacheService` to read from OpenRouter cache + manual pricing reference
+  - Add `cached_models` and `models_fetched_at` columns to `user_providers`
+  - Drop `model_pricing`, `model_pricing_history`, and `unresolved_models` tables
+  - Remove static model seed data and hardcoded frontend model lists
+  - Add "Refresh models" button to routing UI
+  - Add `POST /api/v1/routing/:agent/refresh-models` endpoint
+
+### Patch Changes
+
+- f8f93f0: Allow LAN access in local mode by accepting RFC1918 private network IPs alongside loopback
+- 3a79e19: Fix routing fallback chain: trigger fallback on all 4xx/5xx errors, resolve providers via connected provider cache, record real usage data on fallback success, and show fallback icon on all handled messages
+- cf4d6c7: fix: record every provider error so rate-limited calls display as errors instead of success
+- e338ab8: Fix stale agent list after deletion by disabling browser HTTP cache on API requests
+- 9a13cc6: Fix streaming tool calls dropped by Anthropic and Google adapters in the LLM proxy
+- 103260e: Show display names and provider icons in model prices table
+
+## 5.25.4
+
+### Patch Changes
+
+- dac8d01: fix: preserve custom provider models and x-ai prefix during pricing sync cleanup
+
+## 5.25.3
+
+### Patch Changes
+
+- aed1eb5: Strip DeepSeek-specific `reasoning_content` from forwarded chat history unless the target endpoint/model supports it, preventing cross-provider chat completion failures when a conversation switches models.
+- 4293eab: Add the missing `compression` runtime dependency to the published OpenClaw plugin package and test that plugin runtime dependencies stay in sync with backend runtime dependencies.
+- 9ad6e97: Resolve model display names on the backend via LEFT JOIN with model_pricing, ensuring consistent display names between Overview and Messages pages regardless of frontend cache state.
+- 2773025: Return HTTP 424 when fallback chain is exhausted to prevent infinite retry loops
+- f28b952: Fix 404 on page reload for SPA routes in local mode by centralizing frontend directory resolution with proper fallback chain for both monorepo and embedded npm package layouts.
+- 2232b79: Remove process.env string obfuscation, reduce minification level, add source maps, and externalize child_process to avoid VirusTotal false positives
+- 51e362f: Ignore unsupported subscription providers in Manifest routing, clean up stale unsupported subscription connections from existing installs, and include shared subscription capability files in the published plugin package.
+- d89b44d: Security hardening: SSRF validation for custom provider URLs, encrypted email provider API keys, OTLP auth guard improvements (min token length, hashed cache keys, cache invalidation on rotation), telemetry DTO string length limits, SessionGuard exception handling, login rate limiting, provider error sanitization, DATABASE_URL validation, API key guard audit logging, domain length validation, test email recipient validation
+- 7d3e3a0: Add smoke test suite covering auth, agent creation, OTLP ingestion, routing, proxy, limits, and fallback chains
+- a23f676: Fix the OpenClaw plugin installation warnings and package the embedded backend dependencies correctly.
+- f288e0c: Add "Where to get API key" links below provider API key inputs in routing and email provider modals.
+- 8cee3f6: Preserve compatible OpenRouter text models during pricing sync while filtering out non-chat OpenRouter models from the local model list.
+
+## 5.25.2
+
+### Patch Changes
+
+- 00e5978: Update routing page button styles: responsive icon-only change button, fallback card background colors, and streamlined add-fallback button text
+
+## 5.25.1
+
+### Patch Changes
+
+- 6376414: Fix local mode server not starting (ERR_CONNECTION_REFUSED on port 2099)
+
+## 5.25.0
+
+### Minor Changes
+
+- 9797337: Redesign routing page: 4-column tier layout with drag-and-drop fallback reordering, auto-remove fallback when promoted to primary, model role tags in picker, and consistent btn--outline styling
+
+### Patch Changes
+
+- 9ccb05c: Standardize all buttons to use btn--sm (32px height) for consistent UI across the dashboard
+- 0db1194: Fix Moonshot and Z.ai provider logos visibility in dark mode by using currentColor instead of hardcoded dark fills
+- 6e977e0: Fix custom model pricing fields ignoring comma decimal separators (e.g. "0,59" now correctly parsed as 0.59)
+- 8dda8c9: Replace unusable status and model filters on the Messages page with a provider filter that only shows providers present in the user's data. Add horizontal scroll for the message table on small screens.
+- 39aebd3: Hide Agent setup tab on Settings page in local mode
+
+## 5.24.2
+
+### Patch Changes
+
+- 894ea4f: Fix cloud mode product telemetry funnel by linking plugin and backend identities via PostHog $identify
+- f6e336d: Accept dev-mode loopback connections in cloud mode and improve error status reporting in OTLP traces
+- e1c3778: Prevent subscription providers from overriding explicit API key connections in routing
+- ba6a7cf: Return 409 Conflict instead of 500 when creating an agent with a duplicate name
+
 ## 5.24.1
 
 ### Patch Changes

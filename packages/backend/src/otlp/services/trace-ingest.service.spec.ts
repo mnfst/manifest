@@ -25,6 +25,12 @@ describe('TraceIngestService', () => {
   let mockPricingGetByModel: jest.Mock;
   let mockProviderFind: jest.Mock;
   let mockExecute: jest.Mock;
+  let mockTurnManager: {
+    transaction: jest.Mock;
+    getRepository: jest.Mock;
+    query: jest.Mock;
+    connection: { options: { type: string } };
+  };
 
   beforeEach(async () => {
     mockTurnInsert = jest.fn().mockResolvedValue({});
@@ -43,21 +49,39 @@ describe('TraceIngestService', () => {
       where: jest.fn().mockReturnThis(),
       execute: mockExecute,
     };
+    const mockTurnRepo = {
+      insert: mockTurnInsert,
+      findOne: mockTurnFindOne,
+      find: mockTurnFind,
+      createQueryBuilder: jest.fn().mockReturnValue(mockQb),
+      manager: undefined as unknown as { transaction: jest.Mock },
+    };
+    const mockLlmRepo = { insert: mockLlmInsert };
+    const mockToolRepo = { insert: mockToolInsert };
+    mockTurnManager = {
+      transaction: jest.fn(async (cb: (manager: unknown) => Promise<unknown>) =>
+        cb(mockTurnManager),
+      ),
+      getRepository: jest.fn((repoClass: unknown) => {
+        if (repoClass === AgentMessage) return mockTurnRepo;
+        if (repoClass === LlmCall) return mockLlmRepo;
+        if (repoClass === ToolExecution) return mockToolRepo;
+        throw new Error(`Unexpected repository request: ${String(repoClass)}`);
+      }),
+      query: jest.fn().mockResolvedValue([]),
+      connection: { options: { type: 'sqlite' } },
+    };
+    mockTurnRepo.manager = { transaction: mockTurnManager.transaction };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TraceIngestService,
         {
           provide: getRepositoryToken(AgentMessage),
-          useValue: {
-            insert: mockTurnInsert,
-            findOne: mockTurnFindOne,
-            find: mockTurnFind,
-            createQueryBuilder: jest.fn().mockReturnValue(mockQb),
-          },
+          useValue: mockTurnRepo,
         },
-        { provide: getRepositoryToken(LlmCall), useValue: { insert: mockLlmInsert } },
-        { provide: getRepositoryToken(ToolExecution), useValue: { insert: mockToolInsert } },
+        { provide: getRepositoryToken(LlmCall), useValue: mockLlmRepo },
+        { provide: getRepositoryToken(ToolExecution), useValue: mockToolRepo },
         { provide: getRepositoryToken(UserProvider), useValue: { find: mockProviderFind } },
         { provide: ModelPricingCacheService, useValue: { getByModel: mockPricingGetByModel } },
       ],
@@ -112,9 +136,39 @@ describe('TraceIngestService', () => {
       expect.objectContaining({
         tenant_id: 'test-tenant',
         agent_id: 'test-agent',
+        user_id: 'test-user',
         agent_name: 'bot-1',
       }),
     ]);
+  });
+
+  it('acquires a postgres row lock before OTLP success dedup reads', async () => {
+    mockTurnManager.connection.options.type = 'postgres';
+    const request = {
+      resourceSpans: [
+        {
+          resource: {
+            attributes: [
+              { key: 'service.name', value: { stringValue: 'agent' } },
+              { key: 'agent.name', value: { stringValue: 'bot-1' } },
+            ],
+          },
+          scopeSpans: [
+            {
+              scope: { name: 'test' },
+              spans: [makeSpan({ name: 'openclaw.agent.turn' })],
+            },
+          ],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    expect(mockTurnManager.query).toHaveBeenCalledWith(
+      'SELECT id FROM agents WHERE id = $1 FOR UPDATE',
+      ['test-agent'],
+    );
   });
 
   it('ingests an llm_call span (has gen_ai.system attribute)', async () => {
@@ -395,6 +449,48 @@ describe('TraceIngestService', () => {
 
     // Verify the rollup set cost_usd to 0 (subscription-only provider)
     expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 0);
+  });
+
+  it('does not treat unsupported subscription providers as zero-cost', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'deepseek', auth_type: 'subscription' }]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'deepseek',
+      input_price_per_token: 0.003,
+      output_price_per_token: 0.015,
+    });
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-openai-sub',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-openai-sub',
+      parentSpanId: 'span-msg-openai-sub',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'deepseek' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'deepseek-chat' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 200 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 100 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 2.1);
   });
 
   it('handles missing resourceSpans', async () => {
@@ -1407,8 +1503,9 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    // trace_id-based dedup is skipped; remapFallbackSpans calls find() for unfilled
-    // fallback, then buildAgentMessage calls find() for recent errors + proxy dedup + ghost dedup
+    // trace_id-based dedup is skipped (empty traceId); remapFallbackSpans calls find() for
+    // unfilled fallback, then buildDedupContext runs 3 non-trace queries (recentErrors,
+    // recentOkMessages, recentMessages) — trace-based queries resolve to [] without find()
     expect(mockTurnFindOne).not.toHaveBeenCalled();
     expect(mockTurnFind).toHaveBeenCalledTimes(4);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
@@ -1421,6 +1518,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
       .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: successByTrace
       .mockResolvedValueOnce([{ id: 'proxy-error-id', timestamp: nearbyTs }]) // buildDedupContext: recentErrors
       .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
       .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
@@ -1441,7 +1539,7 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
     expect(mockTurnFindOne).toHaveBeenCalledTimes(1); // pre-pass fallback check only
-    expect(mockTurnFind).toHaveBeenCalledTimes(5); // unfilled fallback + 4 buildDedupContext
+    expect(mockTurnFind).toHaveBeenCalledTimes(6); // unfilled fallback + 5 buildDedupContext
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -1838,6 +1936,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
       .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: successByTrace
       .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
       .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
       .mockResolvedValueOnce([
@@ -1911,6 +2010,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
       .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: successByTrace
       .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
       .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
       .mockResolvedValueOnce([
@@ -1940,7 +2040,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnFind).toHaveBeenCalledTimes(5);
+    expect(mockTurnFind).toHaveBeenCalledTimes(6);
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -1951,6 +2051,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
       .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: successByTrace
       .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
       .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
       .mockResolvedValueOnce([
@@ -1982,7 +2083,7 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
     // session_key filtering now happens in-memory (buildAgentMessage filters recentMessages by session_key)
-    expect(mockTurnFind).toHaveBeenCalledTimes(5);
+    expect(mockTurnFind).toHaveBeenCalledTimes(6);
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -2034,6 +2135,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
       .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: successByTrace
       .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
       .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
       .mockResolvedValueOnce([]); // buildDedupContext: recentMessages (no nearby data)
@@ -2055,7 +2157,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    expect(mockTurnFind).toHaveBeenCalledTimes(5);
+    expect(mockTurnFind).toHaveBeenCalledTimes(6);
     expect(mockTurnInsert).toHaveBeenCalledTimes(1);
   });
 
@@ -2067,6 +2169,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
       .mockResolvedValueOnce([{ id: 'existing-error-turn', trace_id: 'trace-error-dedup' }]) // buildDedupContext: errorByTrace — match!
+      .mockResolvedValueOnce([]) // buildDedupContext: successByTrace
       .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
       .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
       .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
@@ -2089,7 +2192,7 @@ describe('TraceIngestService', () => {
 
     // findOne only called once (remap pre-pass). errorByTrace now uses batch find.
     expect(mockTurnFindOne).toHaveBeenCalledTimes(1);
-    expect(mockTurnFind).toHaveBeenCalledTimes(5);
+    expect(mockTurnFind).toHaveBeenCalledTimes(6);
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -2140,6 +2243,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
       .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: successByTrace
       .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
       .mockResolvedValueOnce([{ id: 'proxy-msg', timestamp: nearbyTs, input_tokens: 500 }]) // buildDedupContext: recentOkMessages — proxy recorded a message with real tokens
       .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
@@ -2164,17 +2268,18 @@ describe('TraceIngestService', () => {
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
-  it('skips OTLP span with tokens when proxy already recorded same request (proxy dedup)', async () => {
-    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
-    const nearbyTs = new Date(spanTime.getTime() + 2000).toISOString();
-
+  it('skips OTLP span with tokens when proxy already recorded same request (trace_id dedup)', async () => {
     mockTurnFind
-      .mockResolvedValueOnce([]) // findUnfilledFallback (pre-pass)
-      .mockResolvedValueOnce([]) // recentErrors
-      .mockResolvedValueOnce([{ id: 'proxy-msg', timestamp: nearbyTs, input_tokens: 500 }]); // proxyDedup — proxy message with real tokens
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([{ id: 'proxy-ok', trace_id: 'trace-abc' }]) // buildDedupContext: successByTrace — proxy already recorded this trace
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
 
     const span = makeSpan({
       spanId: 'span-with-tokens-proxy-dedup',
+      traceId: 'trace-abc',
       name: 'openclaw.agent.turn',
       attributes: [
         { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
@@ -2193,7 +2298,7 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    // Even though the OTLP span has tokens, proxy dedup should still suppress it
+    // Proxy already recorded a success message for this trace_id — skip duplicate
     expect(mockTurnInsert).not.toHaveBeenCalled();
   });
 
@@ -2204,6 +2309,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
       .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: successByTrace
       .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
       .mockResolvedValueOnce([{ id: 'null-tokens-msg', timestamp: nearbyTs, input_tokens: null }]) // buildDedupContext: recentOkMessages — null tokens treated as 0
       .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
@@ -2233,6 +2339,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
       .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: successByTrace
       .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
       .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages — no proxy data
       .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
@@ -2265,6 +2372,7 @@ describe('TraceIngestService', () => {
     mockTurnFind
       .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
       .mockResolvedValueOnce([]) // buildDedupContext: errorByTrace
+      .mockResolvedValueOnce([]) // buildDedupContext: successByTrace
       .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
       .mockResolvedValueOnce([{ id: 'proxy-msg-id', timestamp: nearbyTs, input_tokens: 500 }]) // buildDedupContext: recentOkMessages — proxy message with real tokens
       .mockResolvedValueOnce([]); // buildDedupContext: recentMessages
@@ -2306,6 +2414,143 @@ describe('TraceIngestService', () => {
     expect(mockLlmInsert).toHaveBeenCalledTimes(1);
   });
 
+  it('skips OTLP span when proxy recorded same model+tokens without trace_id (model dedup)', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 3000).toISOString();
+
+    // Empty traceId → trace-based queries (errorByTrace, successByTrace) resolve
+    // to Promise.resolve([]) without calling find(), so only 4 find() calls total
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([
+        {
+          id: 'proxy-msg',
+          timestamp: nearbyTs,
+          input_tokens: 7300,
+          output_tokens: 114,
+          model: 'gpt-5.1-codex-mini',
+          session_key: null,
+        },
+      ]); // buildDedupContext: recentMessages — proxy recorded same model+tokens
+
+    const span = makeSpan({
+      spanId: 'span-model-dedup',
+      traceId: '', // no trace_id (gateway doesn't send traceparent)
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-5.1-codex-mini' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 7300 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 114 } },
+      ],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // Proxy already recorded a message with same model and input tokens within 30s
+    expect(mockTurnInsert).not.toHaveBeenCalled();
+  });
+
+  it('allows OTLP span when model matches but tokens differ (not a duplicate)', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const nearbyTs = new Date(spanTime.getTime() + 3000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([
+        {
+          id: 'different-msg',
+          timestamp: nearbyTs,
+          input_tokens: 500,
+          output_tokens: 20,
+          model: 'gpt-5.1-codex-mini',
+          session_key: null,
+        },
+      ]); // recentMessages — different token count
+
+    const span = makeSpan({
+      spanId: 'span-different-tokens',
+      traceId: '',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-5.1-codex-mini' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 7300 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 114 } },
+      ],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // Different token counts — not a duplicate, should be inserted
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows OTLP span when model matches but time window exceeds 30s', async () => {
+    const spanTime = new Date(Number(BigInt('1708000000000000000') / 1_000_000n));
+    const farTs = new Date(spanTime.getTime() + 60000).toISOString();
+
+    mockTurnFind
+      .mockResolvedValueOnce([]) // remapFallbackSpans: unfilled fallback
+      .mockResolvedValueOnce([]) // buildDedupContext: recentErrors
+      .mockResolvedValueOnce([]) // buildDedupContext: recentOkMessages
+      .mockResolvedValueOnce([
+        {
+          id: 'old-msg',
+          timestamp: farTs,
+          input_tokens: 7300,
+          output_tokens: 114,
+          model: 'gpt-5.1-codex-mini',
+          session_key: null,
+        },
+      ]); // recentMessages — same model+tokens but >30s apart
+
+    const span = makeSpan({
+      spanId: 'span-far-time',
+      traceId: '',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-5.1-codex-mini' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 7300 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 114 } },
+      ],
+      status: { code: 1 },
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    // Time window >30s — not considered a duplicate
+    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
+  });
+
   it('does not skip OTLP message when no proxy message exists for trace_id', async () => {
     // No proxy message exists
     mockTurnFindOne.mockResolvedValue(null);
@@ -2329,7 +2574,98 @@ describe('TraceIngestService', () => {
 
     // Agent message should be inserted normally
     expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ status: 'ok' })]);
-    // buildDedupContext always runs all 4 batch queries upfront, plus 1 for unfilled fallback
-    expect(mockTurnFind).toHaveBeenCalledTimes(5);
+    // buildDedupContext always runs all 5 batch queries upfront, plus 1 for unfilled fallback
+    expect(mockTurnFind).toHaveBeenCalledTimes(6);
+  });
+
+  it('infers subscription auth_type from model prefix when provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'copilot', auth_type: 'subscription' }]);
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'copilot/gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ auth_type: 'subscription' }),
+    ]);
+  });
+
+  it('sets cost to zero for prefixed model when prefix provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'copilot', auth_type: 'subscription' }]);
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'copilot/gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ cost_usd: 0 })]);
+  });
+
+  it('sets cost to zero in rollup for prefixed model when prefix provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'copilot', auth_type: 'subscription' }]);
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-prefix',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-prefix',
+      parentSpanId: 'span-msg-prefix',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'copilot/gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 200 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 100 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 0);
   });
 });

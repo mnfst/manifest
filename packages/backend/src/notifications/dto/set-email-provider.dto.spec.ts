@@ -148,9 +148,7 @@ describe('SetEmailProviderDto', () => {
         notificationEmail: 'not-an-email',
       });
       const errors = await validate(dto);
-      const emailError = errors.find(
-        (e) => e.property === 'notificationEmail',
-      );
+      const emailError = errors.find((e) => e.property === 'notificationEmail');
       expect(emailError).toBeDefined();
     });
 
@@ -376,7 +374,7 @@ describe('TestEmailProviderDto', () => {
       expect(toError).toBeDefined();
     });
 
-    it('should accept a valid to string', async () => {
+    it('should accept a valid email address', async () => {
       const dto = create({
         provider: 'resend',
         apiKey: 'valid-api-key-123',
@@ -384,6 +382,17 @@ describe('TestEmailProviderDto', () => {
       });
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
+    });
+
+    it('should reject an invalid email address', async () => {
+      const dto = create({
+        provider: 'resend',
+        apiKey: 'valid-api-key-123',
+        to: 'not-an-email',
+      });
+      const errors = await validate(dto);
+      const toError = errors.find((e) => e.property === 'to');
+      expect(toError).toBeDefined();
     });
   });
 

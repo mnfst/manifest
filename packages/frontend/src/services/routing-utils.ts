@@ -5,7 +5,8 @@ export function pricePerM(perToken: number | null | undefined): string {
   if (perToken == null) return '\u2014';
   const perM = Number(perToken) * 1_000_000;
   if (perM === 0) return 'Free';
-  if (perM < 0.01) return '$0.00';
+  if (perM < 0.01) return '< $0.01';
+  if (perM < 1) return `$${perM.toFixed(3)}`;
   return `$${perM.toFixed(2)}`;
 }
 
@@ -40,7 +41,7 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^openrouter\//, 'openrouter'],
   [/^claude-/, 'anthropic'],
   [/^gpt-|^o[134]-|^o[134] |^chatgpt-/, 'openai'],
-  [/^gemini-/, 'gemini'],
+  [/^gemini-|^gemma-/, 'gemini'],
   [/^deepseek-/, 'deepseek'],
   [/^grok-/, 'xai'],
   [/^mistral-|^codestral|^pixtral|^open-mistral/, 'mistral'],

@@ -2,10 +2,6 @@ jest.mock('../../common/constants/local-mode.constants', () => ({
   readLocalApiKey: jest.fn().mockReturnValue(null),
 }));
 
-jest.mock('../../common/utils/product-telemetry', () => ({
-  trackCloudEvent: jest.fn(),
-}));
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
@@ -16,7 +12,6 @@ import { TimeseriesQueriesService } from '../services/timeseries-queries.service
 import { AggregationService } from '../services/aggregation.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { readLocalApiKey } from '../../common/constants/local-mode.constants';
-import { trackCloudEvent } from '../../common/utils/product-telemetry';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 const mockReadLocalApiKey = readLocalApiKey as jest.MockedFunction<typeof readLocalApiKey>;
@@ -183,43 +178,6 @@ describe('AgentsController', () => {
       ForbiddenException,
     );
     expect(mockDeleteAgent).not.toHaveBeenCalled();
-  });
-
-  it('calls trackCloudEvent after successful createAgent with slug', async () => {
-    const mockOnboard = jest.fn().mockResolvedValue({ agentId: 'a1', apiKey: 'mnfst_xyz' });
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [CacheModule.register()],
-      controllers: [AgentsController],
-      providers: [
-        { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
-        {
-          provide: AggregationService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
-        },
-        {
-          provide: ApiKeyGeneratorService,
-          useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
-        },
-        { provide: ConfigService, useValue: { get: jest.fn() } },
-        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
-      ],
-    }).compile();
-
-    const ctrl = module.get<AgentsController>(AgentsController);
-    const user = { id: 'user-123', email: 'test@example.com' };
-    const result = await ctrl.createAgent(user as never, { name: 'My Agent' } as never);
-
-    expect(result.agent.name).toBe('my-agent');
-    expect(result.agent.display_name).toBe('My Agent');
-    expect(mockOnboard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agentName: 'my-agent',
-        displayName: 'My Agent',
-      }),
-    );
-    expect(trackCloudEvent).toHaveBeenCalledWith('agent_created', 'user-123', {
-      agent_name: 'my-agent',
-    });
   });
 
   it('rejects createAgent with empty slug', async () => {

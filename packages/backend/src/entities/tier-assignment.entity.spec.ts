@@ -7,6 +7,7 @@ describe('TierAssignment entity', () => {
     entity.user_id = 'u1';
     entity.tier = 'complex';
     entity.override_model = 'gpt-4o';
+    entity.override_provider = 'openai';
     entity.auto_assigned_model = 'claude-opus-4-6';
     entity.updated_at = '2025-06-01T00:00:00Z';
 
@@ -14,6 +15,7 @@ describe('TierAssignment entity', () => {
     expect(entity.user_id).toBe('u1');
     expect(entity.tier).toBe('complex');
     expect(entity.override_model).toBe('gpt-4o');
+    expect(entity.override_provider).toBe('openai');
     expect(entity.auto_assigned_model).toBe('claude-opus-4-6');
     expect(entity.updated_at).toBe('2025-06-01T00:00:00Z');
   });
@@ -21,9 +23,11 @@ describe('TierAssignment entity', () => {
   it('should allow nullable fields to be null', () => {
     const entity = new TierAssignment();
     entity.override_model = null;
+    entity.override_provider = null;
     entity.auto_assigned_model = null;
 
     expect(entity.override_model).toBeNull();
+    expect(entity.override_provider).toBeNull();
     expect(entity.auto_assigned_model).toBeNull();
   });
 });

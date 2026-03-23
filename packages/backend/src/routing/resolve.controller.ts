@@ -9,7 +9,6 @@ import { ResolveService } from './resolve.service';
 import { RoutingService } from './routing.service';
 import { ResolveRequestDto } from './dto/resolve-request.dto';
 import { ResolveResponse } from './dto/resolve-response';
-import { trackCloudEvent } from '../common/utils/product-telemetry';
 
 export class SubscriptionProviderItem {
   @IsString()
@@ -83,9 +82,6 @@ export class ResolveController {
         isNew = result.isNew;
       }
       if (isNew) {
-        trackCloudEvent('routing_provider_connected', userId, {
-          provider: `${item.provider} (Subscription)`,
-        });
         registered++;
       }
     }

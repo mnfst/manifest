@@ -11,7 +11,7 @@ import { MetricIngestService } from './services/metric-ingest.service';
 import { LogIngestService } from './services/log-ingest.service';
 import { IngestionContext } from './interfaces/ingestion-context.interface';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
-import { trackEvent, trackCloudEvent } from '../common/utils/product-telemetry';
+import { ManifestRuntimeService } from '../common/services/manifest-runtime.service';
 
 interface RawBodyRequest extends Request {
   rawBody?: Buffer;
@@ -31,6 +31,7 @@ export class OtlpController {
     private readonly metricIngest: MetricIngestService,
     private readonly logIngest: LogIngestService,
     private readonly eventBus: IngestEventBusService,
+    private readonly runtime: ManifestRuntimeService,
   ) {}
 
   @Post('traces')
@@ -76,22 +77,16 @@ export class OtlpController {
   }
 
   private trackFirstTelemetry(ctx: IngestionContext): void {
-    const isLocal = process.env['MANIFEST_MODE'] === 'local';
+    const isLocal = this.runtime.isLocalMode();
     if (isLocal) {
       const markerDir = join(homedir(), '.openclaw', 'manifest');
       const markerPath = join(markerDir, '.first_telemetry_sent');
       if (existsSync(markerPath)) return;
-      trackEvent('first_telemetry_received', {
-        agent_id_hash: ctx.agentId.slice(0, 8),
-      });
       mkdirSync(markerDir, { recursive: true });
       writeFileSync(markerPath, new Date().toISOString(), { mode: 0o600 });
     } else {
       if (this.seenAgents.has(ctx.agentId)) return;
       this.seenAgents.add(ctx.agentId);
-      trackCloudEvent('first_telemetry_received', ctx.userId, {
-        agent_id_hash: ctx.agentId.slice(0, 8),
-      });
     }
   }
 }

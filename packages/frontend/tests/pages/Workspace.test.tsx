@@ -37,6 +37,10 @@ vi.mock("../../src/services/local-mode.js", () => ({
   checkLocalMode: (...args: unknown[]) => mockCheckLocalMode(...args),
 }));
 
+vi.mock("../../src/services/sse.js", () => ({
+  pingCount: () => 0,
+}));
+
 import Workspace from "../../src/pages/Workspace";
 
 describe("Workspace", () => {

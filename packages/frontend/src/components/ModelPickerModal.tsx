@@ -1,14 +1,15 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
-import { STAGES, PROVIDERS } from '../services/providers.js';
-import { providerIcon } from './ProviderIcon.js';
-import { pricePerM, resolveProviderId, inferProviderFromModel } from '../services/routing-utils.js';
 import type {
+  AuthType,
   AvailableModel,
-  TierAssignment,
   CustomProviderData,
   RoutingProvider,
-  AuthType,
+  TierAssignment,
 } from '../services/api.js';
+import { PROVIDERS, STAGES } from '../services/providers.js';
+import { customProviderColor } from '../services/formatters.js';
+import { inferProviderFromModel, pricePerM, resolveProviderId } from '../services/routing-utils.js';
+import { providerIcon } from './ProviderIcon.js';
 
 interface Props {
   tierId: string;
@@ -16,7 +17,7 @@ interface Props {
   tiers: TierAssignment[];
   customProviders?: CustomProviderData[];
   connectedProviders?: RoutingProvider[];
-  onSelect: (tierId: string, modelName: string, authType?: AuthType) => void;
+  onSelect: (tierId: string, modelName: string, providerId: string, authType?: AuthType) => void;
   onClose: () => void;
 }
 
@@ -43,6 +44,9 @@ const isFreeModel = (m: AvailableModel): boolean =>
 const ModelPickerModal: Component<Props> = (props) => {
   const hasSubscription = () =>
     (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'subscription');
+  const hasApiKey = () =>
+    (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'api_key');
+  const showTabs = () => hasSubscription() && hasApiKey();
 
   const [activeTab, setActiveTab] = createSignal<AuthType>(
     hasSubscription() ? 'subscription' : 'api_key',
@@ -141,6 +145,28 @@ const ModelPickerModal: Component<Props> = (props) => {
     return t?.auto_assigned_model === modelName;
   };
 
+  /** Returns the role of a model in the current tier: "Primary", "Fallback 1", etc. or null */
+  const modelRole = (modelName: string): string | null => {
+    const t = props.tiers.find((r) => r.tier === props.tierId);
+    if (!t) return null;
+    const primary = t.override_model ?? t.auto_assigned_model;
+    if (primary === modelName) return 'Primary';
+    const fb = t.fallback_models ?? [];
+    const fbIndex = fb.indexOf(modelName);
+    if (fbIndex !== -1) return `Fallback ${fbIndex + 1}`;
+    return null;
+  };
+
+  const totalVisibleModels = () => groupedModels().reduce((sum, g) => sum + g.models.length, 0);
+
+  /** Total models available (ignoring search) — used to decide whether to show search bar */
+  const totalAvailableModels = () => {
+    const saved = search();
+    if (!saved) return totalVisibleModels();
+    // Count all models without applying search filter
+    return props.models.length;
+  };
+
   const isSub = () => activeTab() === 'subscription';
 
   return (
@@ -187,98 +213,132 @@ const ModelPickerModal: Component<Props> = (props) => {
           </button>
         </div>
 
-        <div class="provider-modal__tabs" role="tablist">
-          <button
-            role="tab"
-            aria-selected={activeTab() === 'subscription'}
-            class="provider-modal__tab"
-            classList={{ 'provider-modal__tab--active': activeTab() === 'subscription' }}
-            onClick={() => {
-              setActiveTab('subscription');
-              setShowFreeOnly(false);
-            }}
-          >
-            <svg
-              class="provider-modal__tab-icon"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              style="color: #22c55e"
-            >
-              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            Subscription
-          </button>
-          <button
-            role="tab"
-            aria-selected={activeTab() === 'api_key'}
-            class="provider-modal__tab"
-            classList={{ 'provider-modal__tab--active': activeTab() === 'api_key' }}
-            onClick={() => setActiveTab('api_key')}
-          >
-            <svg
-              class="provider-modal__tab-icon"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              style="color: #f59e0b"
-            >
-              <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
-            </svg>
-            API Keys
-          </button>
-        </div>
+        <Show when={showTabs()}>
+          <div class="provider-modal__tabs-wrapper">
+            <div class="panel__tabs" role="tablist">
+              <button
+                role="tab"
+                aria-selected={activeTab() === 'subscription'}
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeTab() === 'subscription' }}
+                onClick={() => {
+                  setActiveTab('subscription');
+                  setShowFreeOnly(false);
+                }}
+              >
+                <svg
+                  class="provider-modal__tab-icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  style="color: #1cc4bf"
+                >
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Subscription
+              </button>
+              <button
+                role="tab"
+                aria-selected={activeTab() === 'api_key'}
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeTab() === 'api_key' }}
+                onClick={() => setActiveTab('api_key')}
+              >
+                <svg
+                  class="provider-modal__tab-icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  style="color: #e59d55"
+                >
+                  <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                </svg>
+                API Keys
+              </button>
+            </div>
+          </div>
+        </Show>
 
-        <div class="routing-modal__search-wrap">
-          <svg
-            class="routing-modal__search-icon"
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
-          <input
-            class="routing-modal__search"
-            type="text"
-            placeholder="Search models or providers..."
-            aria-label="Search models or providers"
-            value={search()}
-            onInput={(e) => setSearch(e.currentTarget.value)}
-            autofocus
-          />
-        </div>
+        <Show when={totalAvailableModels() > 5}>
+          <div class="routing-modal__search-wrap">
+            <svg
+              class="routing-modal__search-icon"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              class="routing-modal__search"
+              type="text"
+              placeholder="Search models or providers..."
+              aria-label="Search models or providers"
+              value={search()}
+              onInput={(e) => setSearch(e.currentTarget.value)}
+              autofocus
+            />
+          </div>
+        </Show>
 
         <Show when={!isSub()}>
           <div class="routing-modal__filter-bar">
-            <label class="routing-modal__filter-toggle">
-              <input
-                type="checkbox"
-                checked={showFreeOnly()}
-                onChange={(e) => setShowFreeOnly(e.currentTarget.checked)}
-              />
-              <span>Free models only</span>
-            </label>
+            <button
+              type="button"
+              class="routing-modal__filter-pill"
+              classList={{ 'routing-modal__filter-pill--active': showFreeOnly() }}
+              onClick={() => setShowFreeOnly(!showFreeOnly())}
+            >
+              <svg
+                class="routing-modal__filter-check"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <Show
+                  when={showFreeOnly()}
+                  fallback={<rect x="3" y="3" width="18" height="18" rx="3" stroke-width="2" />}
+                >
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="3"
+                    stroke-width="2"
+                    fill="currentColor"
+                  />
+                  <path d="m9 12 2 2 4-4" stroke="hsl(var(--card))" />
+                </Show>
+              </svg>
+              Free models only
+            </button>
           </div>
         </Show>
 
@@ -292,7 +352,7 @@ const ModelPickerModal: Component<Props> = (props) => {
                       <span
                         class="provider-card__logo-letter"
                         style={{
-                          background: 'var(--custom-provider-color)',
+                          background: customProviderColor(group.name),
                           width: '16px',
                           height: '16px',
                           'font-size': '9px',
@@ -311,12 +371,17 @@ const ModelPickerModal: Component<Props> = (props) => {
                   {(model) => (
                     <button
                       class="routing-modal__model"
-                      onClick={() => props.onSelect(props.tierId, model.value, activeTab())}
+                      onClick={() =>
+                        props.onSelect(props.tierId, model.value, group.provId, activeTab())
+                      }
                     >
                       <span class="routing-modal__model-label">
                         {model.label}
                         <Show when={isRecommended(model.value)}>
                           <span class="routing-modal__recommended"> (recommended)</span>
+                        </Show>
+                        <Show when={modelRole(model.value)}>
+                          {(role) => <span class="routing-modal__role-tag">{role()}</span>}
                         </Show>
                       </span>
                       <Show

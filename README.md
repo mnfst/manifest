@@ -1,3 +1,7 @@
+
+<a href="https://luma.com/clawcondfw">
+<img width="1543" height="256" alt="Capture d’écran 2026-03-18 à 16 13 34" src="https://github.com/user-attachments/assets/11294f94-76c4-47bb-9c75-5ccc6b28fbdb" />
+</a>
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mnfst/manifest/HEAD/.github/assets/logo-white.svg" />
@@ -28,10 +32,14 @@ OpenClaw costs
   <a href="https://discord.gg/FepAked3W7"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
 </p>
 
+<p align="center">
+<a href="https://trendshift.io/repositories/12890" target="_blank"><img src="https://trendshift.io/api/badge/repositories/12890" alt="mnfst%2Fmanifest | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+</p>
+
 ## What do you get?
 
 - 🔀 **Route requests to the right model** — cut costs up to 70%
-- 📊 **Track spending** — see tokens and costs per model in real time
+- 🔄 **Automatic fallbacks** — if a model fails, retry with backup models instantly
 - 🔔 **Set limits** — get alerts when usage goes over a threshold
 
 ## Why Manifest
@@ -100,15 +108,7 @@ tailscale serve --bg 2099
 
 **In cloud mode, the blind proxy physically cannot read your prompts.** This is fundamentally different from services saying "trust us."
 
-The only thing Manifest collects is anonymous product analytics (hashed machine ID, OS platform, package version, event names) to help improve the project. No personally identifiable information or agent data is included.
-
-**Opting out:**
-
-```bash
-MANIFEST_TELEMETRY_OPTOUT=1
-```
-
-Or add `"telemetryOptOut": true` to `~/.openclaw/manifest/config.json`.
+In local mode, all Manifest data stays on your machine. No analytics or telemetry data is sent externally.
 
 
 ## Manifest vs OpenRouter

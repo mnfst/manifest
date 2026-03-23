@@ -17,7 +17,6 @@ import { AgentMessage } from '../src/entities/agent-message.entity';
 import { LlmCall } from '../src/entities/llm-call.entity';
 import { ToolExecution } from '../src/entities/tool-execution.entity';
 import { SecurityEvent } from '../src/entities/security-event.entity';
-import { ModelPricing } from '../src/entities/model-pricing.entity';
 import { TokenUsageSnapshot } from '../src/entities/token-usage-snapshot.entity';
 import { CostSnapshot } from '../src/entities/cost-snapshot.entity';
 import { AgentLog } from '../src/entities/agent-log.entity';
@@ -25,13 +24,12 @@ import { ApiKey } from '../src/entities/api-key.entity';
 import { Tenant } from '../src/entities/tenant.entity';
 import { Agent } from '../src/entities/agent.entity';
 import { AgentApiKey } from '../src/entities/agent-api-key.entity';
-import { ModelPricingHistory } from '../src/entities/model-pricing-history.entity';
-import { UnresolvedModel } from '../src/entities/unresolved-model.entity';
 import { NotificationRule } from '../src/entities/notification-rule.entity';
 import { NotificationLog } from '../src/entities/notification-log.entity';
 import { UserProvider } from '../src/entities/user-provider.entity';
 import { TierAssignment } from '../src/entities/tier-assignment.entity';
 import { CustomProvider } from '../src/entities/custom-provider.entity';
+import { EmailProviderConfig } from '../src/entities/email-provider-config.entity';
 import { HealthModule } from '../src/health/health.module';
 import { TelemetryModule } from '../src/telemetry/telemetry.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
@@ -49,7 +47,7 @@ export const TEST_TENANT_ID = 'test-tenant-001';
 export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
-const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, ModelPricing, ModelPricingHistory, UnresolvedModel, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider];
+const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig];
 
 function buildTypeOrmConfig(): TypeOrmModuleOptions {
   return {
@@ -146,17 +144,7 @@ export async function createTestApp(): Promise<INestApplication> {
     ['test-otlp-key-id', hashKey(TEST_OTLP_KEY), keyPrefix(TEST_OTLP_KEY), 'Test OTLP Key', TEST_TENANT_ID, TEST_AGENT_ID, now],
   );
 
-  // Seed model pricing so cost calculations work in e2e tests
-  await ds.query(
-    sql(`INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token) VALUES ($1,$2,$3,$4)`),
-    ['claude-opus-4-6', 'Anthropic', 0.000015, 0.000075],
-  );
-  await ds.query(
-    sql(`INSERT INTO model_pricing (model_name, provider, input_price_per_token, output_price_per_token) VALUES ($1,$2,$3,$4)`),
-    ['gpt-4o', 'OpenAI', 0.0000025, 0.00001],
-  );
-
-  // Reload pricing cache so cost calculations use the seeded data
+  // Reload pricing cache so cost calculations use OpenRouter data
   const pricingCache = app.get(ModelPricingCacheService);
   await pricingCache.reload();
 

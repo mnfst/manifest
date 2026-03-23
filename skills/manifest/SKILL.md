@@ -1,7 +1,7 @@
 ---
 name: manifest
-description: Smart LLM Router for OpenClaw. Save up to 70% by routing every request to the right model. No coding required.
-metadata: {"openclaw":{"requires":{"bins":["openclaw"],"env":["MANIFEST_API_KEY"],"config":["plugins.entries.manifest.config.apiKey"]},"primaryEnv":"MANIFEST_API_KEY","homepage":"https://github.com/mnfst/manifest"}}
+description: Model Router for OpenClaw. Save up to 70% by routing requests to the right model. Choose LLM fallback to avoid API rate limits, set thresholds and reduce token consumption.
+metadata: {"openclaw":{"requires":{"bins":["openclaw"]},"homepage":"https://github.com/mnfst/manifest"}}
 ---
 
 # Manifest — LLM Router & Observability for OpenClaw
@@ -14,7 +14,91 @@ Manifest is an OpenClaw plugin that:
 
 Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT licensed. Homepage: [manifest.build](https://manifest.build)
 
-## Setup (Cloud — default)
+## Security & Privacy
+
+> **TL;DR** — OTLP telemetry collects only metadata (model, tokens, latency, tool names) — never prompt or response text. When `manifest/auto` routing is active, the last 10 non-system messages are sent to the routing endpoint for tier scoring; set a fixed model to avoid this. The API key (`mnfst_*`) authenticates your telemetry — it is not exfiltration. In local mode, all data stays on your machine.
+
+### External Endpoints
+
+| Endpoint                            | When                               | Data Sent                                                                                                 |
+| ----------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `{endpoint}/v1/traces`              | Every LLM call (batched 10-30s)    | OTLP spans (see fields below)                                                                             |
+| `{endpoint}/v1/metrics`             | Every 10-30s                       | Counters: request count, token totals, tool call counts — grouped by model/provider                       |
+| `{endpoint}/api/v1/routing/resolve` | Only when model is `manifest/auto` | Last 10 non-system/non-developer messages (`{role, content}` only)                                        |
+
+### OTLP Span Fields
+
+Exhaustive list of attributes sent per span:
+
+- `openclaw.session.key` — opaque session identifier
+- `openclaw.message.channel` — message channel name
+- `gen_ai.request.model` — model name (e.g. "claude-sonnet-4-20250514")
+- `gen_ai.system` — provider name (e.g. "anthropic")
+- `gen_ai.usage.input_tokens` — integer
+- `gen_ai.usage.output_tokens` — integer
+- `gen_ai.usage.cache_read_input_tokens` — integer
+- `gen_ai.usage.cache_creation_input_tokens` — integer
+- `openclaw.agent.name` — agent identifier
+- `tool.name` — tool name string
+- `tool.success` — boolean
+- `manifest.routing.tier` — routing tier (if routed)
+- `manifest.routing.reason` — routing reason (if routed)
+- Error status: agent errors truncated to 500 chars; tool errors include `event.error.message` untruncated
+
+**Not collected by OTLP telemetry**: user prompts, assistant responses, tool input/output arguments, file contents, or any message body. Note: when `manifest/auto` routing is active, the last 10 non-system messages (`{role, content}` only) are sent to the routing endpoint for tier scoring — see Routing Data below. To avoid this, set a fixed model instead of `manifest/auto`.
+
+### Routing Data
+
+- Only active when model is `manifest/auto`
+- Excludes messages with `role: "system"` or `role: "developer"`
+- Sends only `{role, content}` — all other message properties are stripped (`routing.ts:77`)
+- 3-second timeout, non-blocking
+- To avoid sending content: disable routing in the dashboard or set a fixed model
+
+### Credential Storage
+
+- **Cloud mode**: API key stored in `~/.openclaw/openclaw.json` under `plugins.entries.manifest.config.apiKey` (managed by OpenClaw's standard plugin config)
+- **Local mode**: auto-generated key stored in `~/.openclaw/manifest/config.json` with file mode `0600`
+
+### Local Mode
+
+All data stays on your machine. No external calls are made in local mode.
+
+## Install Provenance
+
+`openclaw plugins install manifest` installs the [`manifest`](https://www.npmjs.com/package/manifest) npm package.
+
+- **Source**: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) (`packages/openclaw-plugin/`)
+- **License**: MIT
+- **Author**: MNFST Inc.
+
+Verify before installing:
+
+```bash
+npm view manifest repository.url
+npm view manifest dist.integrity
+```
+
+The package is published with [npm provenance attestations](https://docs.npmjs.com/generating-provenance-statements). Verify with:
+```bash
+npm audit signatures
+```
+
+## Setup (Local — recommended for evaluation)
+
+No account, no API key, no external calls.
+
+```bash
+openclaw plugins install manifest
+openclaw config set plugins.entries.manifest.config.mode local
+openclaw gateway restart
+```
+
+Dashboard opens at **http://127.0.0.1:2099**. Data stored locally in `~/.openclaw/manifest/manifest.db`. No account or API key needed.
+
+To expose over Tailscale (requires Tailscale on both devices, only accessible within your Tailnet): `tailscale serve --bg 2099`
+
+## Setup (Cloud)
 
 Three commands, no coding:
 
@@ -55,35 +139,6 @@ On plugin registration, Manifest writes to these files:
 | `~/.openclaw/manifest/manifest.db`              | SQLite database (local mode only)                                                                           | Yes — delete the file                       |
 
 No other files are modified. The plugin does not change your current default model.
-
-## Install Provenance
-
-`openclaw plugins install manifest` installs the [`manifest`](https://www.npmjs.com/package/manifest) npm package.
-
-- **Source**: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) (`packages/openclaw-plugin/`)
-- **License**: MIT
-- **Author**: MNFST Inc.
-
-Verify before installing:
-
-```bash
-npm view manifest repository.url
-npm view manifest dist.integrity
-```
-
-## Setup (Local — offline alternative)
-
-Use local mode only when data must never leave the machine.
-
-```bash
-openclaw plugins install manifest
-openclaw config set plugins.entries.manifest.config.mode local
-openclaw gateway restart
-```
-
-Dashboard opens at **http://127.0.0.1:2099**. Data stored locally in `~/.openclaw/manifest/manifest.db`. No account or API key needed.
-
-To expose over Tailscale (requires Tailscale on both devices, only accessible within your Tailnet): `tailscale serve --bg 2099`
 
 ## What Manifest Answers
 
@@ -190,52 +245,3 @@ This removes the plugin, provider config, and auth profiles. After uninstalling,
 **Plugin conflicts**: Manifest conflicts with the built-in `diagnostics-otel` plugin. Disable it before enabling Manifest.
 
 **After backend restart**: Always restart the gateway too (`openclaw gateway restart`) — the OTLP pipeline doesn't auto-reconnect.
-
-## Privacy
-
-### External Endpoints
-
-| Endpoint                            | When                               | Data Sent                                                                                                 |
-| ----------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `{endpoint}/v1/traces`              | Every LLM call (batched 10-30s)    | OTLP spans (see fields below)                                                                             |
-| `{endpoint}/v1/metrics`             | Every 10-30s                       | Counters: request count, token totals, tool call counts — grouped by model/provider                       |
-| `{endpoint}/api/v1/routing/resolve` | Only when model is `manifest/auto` | Last 10 non-system/non-developer messages (`{role, content}` only)                                        |
-| `https://eu.i.posthog.com`          | On plugin register                 | Hashed machine ID, OS, Node version, plugin version, mode. No PII. Opt out: `MANIFEST_TELEMETRY_OPTOUT=1` |
-
-### OTLP Span Fields
-
-Exhaustive list of attributes sent per span:
-
-- `openclaw.session.key` — opaque session identifier
-- `openclaw.message.channel` — message channel name
-- `gen_ai.request.model` — model name (e.g. "claude-sonnet-4-20250514")
-- `gen_ai.system` — provider name (e.g. "anthropic")
-- `gen_ai.usage.input_tokens` — integer
-- `gen_ai.usage.output_tokens` — integer
-- `gen_ai.usage.cache_read_input_tokens` — integer
-- `gen_ai.usage.cache_creation_input_tokens` — integer
-- `openclaw.agent.name` — agent identifier
-- `tool.name` — tool name string
-- `tool.success` — boolean
-- `manifest.routing.tier` — routing tier (if routed)
-- `manifest.routing.reason` — routing reason (if routed)
-- Error status: agent errors truncated to 500 chars; tool errors include `event.error.message` untruncated
-
-**Not collected**: user prompts, assistant responses, tool input/output arguments, file contents, or any message body.
-
-### Routing Data
-
-- Only active when model is `manifest/auto`
-- Excludes messages with `role: "system"` or `role: "developer"`
-- Sends only `{role, content}` — all other message properties are stripped (`routing.ts:77`)
-- 3-second timeout, non-blocking
-- To avoid sending content: disable routing in the dashboard or set a fixed model
-
-### Credential Storage
-
-- **Cloud mode**: API key stored in `~/.openclaw/openclaw.json` under `plugins.entries.manifest.config.apiKey` (managed by OpenClaw's standard plugin config)
-- **Local mode**: auto-generated key stored in `~/.openclaw/manifest/config.json` with file mode `0600`
-
-### Local Mode
-
-All data stays on your machine. No external calls except optional PostHog analytics (opt out with `MANIFEST_TELEMETRY_OPTOUT=1`).

@@ -7,6 +7,11 @@ import {
   transformAnthropicStreamChunk,
   createAnthropicStreamTransformer,
 } from './anthropic-adapter';
+import {
+  toResponsesRequest,
+  fromResponsesResponse,
+  transformResponsesStreamChunk,
+} from './chatgpt-adapter';
 import { injectOpenRouterCacheControl } from './cache-injection';
 
 /**
@@ -25,9 +30,108 @@ const OPENAI_ONLY_FIELDS = new Set([
 ]);
 
 /**
- * Providers that accept the full OpenAI request schema without modification.
+ * Providers that accept the full OpenAI top-level request schema without modification.
+ * Nested message fields may still need target-aware cleanup.
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
+const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
+
+function supportsReasoningContent(endpointKey: string, model: string): boolean {
+  if (endpointKey === 'deepseek') return true;
+  if (endpointKey === 'openrouter') return model.toLowerCase().startsWith('deepseek/');
+  return false;
+}
+
+function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: string): unknown {
+  if (!Array.isArray(messages)) return messages;
+
+  const preserveReasoningContent = supportsReasoningContent(endpointKey, model);
+  const isMistral = endpointKey === 'mistral';
+  const mistralIdMap = new Map<string, string>();
+  const reservedMistralIds = new Set<string>();
+  let generatedMistralIdCounter = 0;
+
+  const reserveMistralToolCallId = (toolCallId: unknown): void => {
+    if (!isMistral || typeof toolCallId !== 'string') return;
+    if (MISTRAL_TOOL_CALL_ID_REGEX.test(toolCallId)) {
+      reservedMistralIds.add(toolCallId);
+    }
+  };
+
+  if (isMistral) {
+    for (const message of messages) {
+      if (!message || typeof message !== 'object' || Array.isArray(message)) {
+        continue;
+      }
+      const rawMessage = message as Record<string, unknown>;
+      if (Array.isArray(rawMessage.tool_calls)) {
+        for (const toolCall of rawMessage.tool_calls) {
+          if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) {
+            continue;
+          }
+          reserveMistralToolCallId((toolCall as Record<string, unknown>).id);
+        }
+      }
+      if ('tool_call_id' in rawMessage) {
+        reserveMistralToolCallId(rawMessage.tool_call_id);
+      }
+    }
+  }
+
+  const nextGeneratedMistralId = (): string => {
+    do {
+      generatedMistralIdCounter += 1;
+      const candidate = `tc${generatedMistralIdCounter.toString(36).padStart(7, '0')}`;
+      if (!reservedMistralIds.has(candidate)) return candidate;
+    } while (true);
+  };
+
+  const normalizeMistralToolCallId = (toolCallId: unknown): unknown => {
+    if (!isMistral || typeof toolCallId !== 'string') return toolCallId;
+    const existing = mistralIdMap.get(toolCallId);
+    if (existing) return existing;
+
+    if (MISTRAL_TOOL_CALL_ID_REGEX.test(toolCallId)) {
+      mistralIdMap.set(toolCallId, toolCallId);
+      reservedMistralIds.add(toolCallId);
+      return toolCallId;
+    }
+
+    const rewritten = nextGeneratedMistralId();
+    mistralIdMap.set(toolCallId, rewritten);
+    reservedMistralIds.add(rewritten);
+    return rewritten;
+  };
+
+  return messages.map((message) => {
+    if (!message || typeof message !== 'object' || Array.isArray(message)) {
+      return message;
+    }
+
+    const cleaned = { ...(message as Record<string, unknown>) };
+    if (!preserveReasoningContent) {
+      delete cleaned.reasoning_content;
+    }
+
+    if (isMistral && Array.isArray(cleaned.tool_calls)) {
+      cleaned.tool_calls = cleaned.tool_calls.map((toolCall) => {
+        if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) {
+          return toolCall;
+        }
+        const cleanedToolCall = { ...(toolCall as Record<string, unknown>) };
+        cleanedToolCall.id = normalizeMistralToolCallId(cleanedToolCall.id);
+        return cleanedToolCall;
+      });
+    }
+
+    if (isMistral && 'tool_call_id' in cleaned) {
+      cleaned.tool_call_id = normalizeMistralToolCallId(cleaned.tool_call_id);
+    }
+
+    return cleaned;
+  });
+}
 
 /**
  * Strip OpenAI-specific fields and normalise `max_completion_tokens` → `max_tokens`
@@ -36,11 +140,20 @@ const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
 function sanitizeOpenAiBody(
   body: Record<string, unknown>,
   endpointKey: string,
+  model: string,
 ): Record<string, unknown> {
-  if (PASSTHROUGH_PROVIDERS.has(endpointKey)) return body;
+  const passthroughTopLevel = PASSTHROUGH_PROVIDERS.has(endpointKey);
 
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(body)) {
+    if (key === 'messages') {
+      cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model);
+      continue;
+    }
+    if (passthroughTopLevel) {
+      cleaned[key] = value;
+      continue;
+    }
     if (OPENAI_ONLY_FIELDS.has(key)) continue;
     if (key === 'max_completion_tokens') {
       // Convert to max_tokens unless already set
@@ -49,7 +162,23 @@ function sanitizeOpenAiBody(
     }
     cleaned[key] = value;
   }
+  if (endpointKey === 'deepseek') normalizeDeepSeekMaxTokens(cleaned);
   return cleaned;
+}
+
+function normalizeDeepSeekMaxTokens(body: Record<string, unknown>): void {
+  if (!('max_tokens' in body)) return;
+
+  const raw = body.max_tokens;
+  const parsed = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : Number.NaN;
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    delete body.max_tokens;
+    return;
+  }
+
+  body.max_tokens = Math.min(Math.trunc(parsed), DEEPSEEK_MAX_TOKENS_LIMIT);
+  if ((body.max_tokens as number) < 1) delete body.max_tokens;
 }
 
 export interface ForwardResult {
@@ -58,6 +187,8 @@ export interface ForwardResult {
   isGoogle: boolean;
   /** True when we converted from Anthropic format (needs SSE transform). */
   isAnthropic: boolean;
+  /** True when we converted from ChatGPT Responses API format (needs SSE transform). */
+  isChatGpt: boolean;
 }
 
 const PROVIDER_TIMEOUT_MS = 180_000;
@@ -95,15 +226,22 @@ export class ProviderClient {
       endpoint = customEndpoint;
       endpointKey = 'custom';
     } else {
-      const resolved = resolveEndpointKey(provider);
+      let resolved = resolveEndpointKey(provider);
       if (!resolved) {
         throw new Error(`No endpoint configured for provider: ${provider}`);
+      }
+      // ChatGPT subscription tokens use a different backend endpoint
+      if (resolved === 'openai' && authType === 'subscription') {
+        resolved = 'openai-subscription';
+      } else if (resolved === 'minimax' && authType === 'subscription') {
+        resolved = 'minimax-subscription';
       }
       endpointKey = resolved;
       endpoint = PROVIDER_ENDPOINTS[endpointKey];
     }
     const isGoogle = endpoint.format === 'google';
     const isAnthropic = endpoint.format === 'anthropic';
+    const isChatGpt = endpoint.format === 'chatgpt';
 
     const bareModel = stripModelPrefix(model, endpointKey);
     let url: string;
@@ -121,10 +259,14 @@ export class ProviderClient {
       requestBody = toAnthropicRequest(body, bareModel);
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
+    } else if (isChatGpt) {
+      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+      headers = endpoint.buildHeaders(apiKey, authType);
+      requestBody = toResponsesRequest(body, bareModel);
     } else {
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
-      const sanitized = sanitizeOpenAiBody(body, endpointKey!);
+      const sanitized = sanitizeOpenAiBody(body, endpointKey, model);
       requestBody = { ...sanitized, model: bareModel, stream };
 
       // Inject cache_control for OpenRouter requests targeting Anthropic models
@@ -150,7 +292,17 @@ export class ProviderClient {
       signal: fetchSignal,
     });
 
-    return { response, isGoogle, isAnthropic };
+    return { response, isGoogle, isAnthropic, isChatGpt };
+  }
+
+  /** Convert a ChatGPT Responses API response to OpenAI format. */
+  convertChatGptResponse(body: Record<string, unknown>, model: string): Record<string, unknown> {
+    return fromResponsesResponse(body, model);
+  }
+
+  /** Convert a ChatGPT Responses API SSE chunk to OpenAI format. */
+  convertChatGptStreamChunk(chunk: string, model: string): string | null {
+    return transformResponsesStreamChunk(chunk, model);
   }
 
   /** Convert a Google non-streaming response to OpenAI format. */

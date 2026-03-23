@@ -34,6 +34,11 @@ const SUBSCRIPTION_PREFIXES: Record<string, string> = {
   anthropic: 'sk-ant-oat',
 };
 
+/** Prefixes that identify API keys — reject these in subscription mode. */
+const API_KEY_PREFIXES: Record<string, string> = {
+  openai: 'sk-',
+};
+
 export function validateSubscriptionKey(
   provider: ProviderDef,
   key: string,
@@ -53,13 +58,25 @@ export function validateSubscriptionKey(
       error: `${provider.name} subscription tokens start with "${prefix}"`,
     };
   }
+  const apiPrefix = API_KEY_PREFIXES[provider.id];
+  if (apiPrefix && trimmed.startsWith(apiPrefix)) {
+    return {
+      valid: false,
+      error: 'This looks like an API key. Use the API Key tab instead.',
+    };
+  }
   return { valid: true };
+}
+
+/** Format a model slug into a human-readable label. */
+function formatModelSlug(slug: string): string {
+  return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export function getModelLabel(providerId: string, modelValue: string): string {
   const prov = getProvider(providerId);
   if (!prov) return modelValue;
-  // Exact match
+  // Exact match in provider's static models (if any remain)
   const exact = prov.models.find((m) => m.value === modelValue);
   if (exact) return exact.label;
   // Strip date suffix (e.g. "-20250929") and try again
@@ -71,7 +88,7 @@ export function getModelLabel(providerId: string, modelValue: string): string {
   // Prefix match: modelValue starts with a known value
   const prefix = prov.models.find((m) => modelValue.startsWith(m.value + '-'));
   if (prefix) return prefix.label;
-  // Vendor-prefixed name (e.g. "anthropic/claude-opus-4-6"): strip prefix and search all providers
+  // Vendor-prefixed name (e.g. "anthropic/claude-opus-4-6"): strip prefix
   const slashIdx = modelValue.indexOf('/');
   if (slashIdx !== -1) {
     const bare = modelValue.substring(slashIdx + 1);
@@ -79,15 +96,8 @@ export function getModelLabel(providerId: string, modelValue: string): string {
       const found = p.models.find((m) => m.value === bare);
       if (found) return found.label;
     }
-    // Normalize dots to dashes (OpenRouter uses "4.6", PROVIDERS uses "4-6")
-    const normalized = bare.replace(/\./g, '-');
-    if (normalized !== bare) {
-      for (const p of PROVIDERS) {
-        const found = p.models.find((m) => m.value === normalized);
-        if (found) return found.label;
-      }
-    }
-    return bare;
+    return formatModelSlug(bare);
   }
-  return modelValue;
+  // Fallback: format the model slug as a readable label
+  return formatModelSlug(modelValue);
 }

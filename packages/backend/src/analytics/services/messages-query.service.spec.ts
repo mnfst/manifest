@@ -19,6 +19,7 @@ describe('MessagesQueryService', () => {
     const mockQb: Record<string, jest.Mock> = {
       select: jest.fn(),
       addSelect: jest.fn(),
+      leftJoin: jest.fn(),
       where: jest.fn(),
       andWhere: jest.fn(),
       orWhere: jest.fn(),
@@ -34,6 +35,7 @@ describe('MessagesQueryService', () => {
     const chainableMethods = [
       'select',
       'addSelect',
+      'leftJoin',
       'where',
       'andWhere',
       'orWhere',
@@ -104,7 +106,7 @@ describe('MessagesQueryService', () => {
     expect(result.items[0]).toHaveProperty('duration_ms', 1200);
   });
 
-  it('returns paginated messages with total count and models list', async () => {
+  it('returns paginated messages with total count and providers list', async () => {
     mockGetRawOne.mockResolvedValueOnce({ total: 42 });
     mockGetRawMany.mockResolvedValueOnce([
       { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o', cost: 0.01 },
@@ -121,7 +123,7 @@ describe('MessagesQueryService', () => {
     expect(result.total_count).toBe(42);
     expect(result.items).toHaveLength(2);
     expect(result.next_cursor).toBeNull();
-    expect(result.models).toEqual(['claude-opus-4-6', 'gpt-4o']);
+    expect(result.providers).toEqual(['anthropic', 'openai']);
   });
 
   it('returns next_cursor when more items exist', async () => {
@@ -195,7 +197,7 @@ describe('MessagesQueryService', () => {
     expect(result.total_count).toBe(0);
     expect(result.items).toEqual([]);
     expect(result.next_cursor).toBeNull();
-    expect(result.models).toEqual([]);
+    expect(result.providers).toEqual([]);
   });
 
   it('should apply cursor-based pagination when cursor has pipe separator', async () => {
@@ -248,24 +250,25 @@ describe('MessagesQueryService', () => {
 
     expect(result.total_count).toBe(5);
     expect(result.items).toHaveLength(1);
-    expect(result.models).toEqual(['gpt-4o']);
+    expect(result.providers).toEqual(['openai']);
   });
 
   it('should apply all optional filter parameters', async () => {
+    // Provider filter needs models list to resolve matching models
+    mockGetRawMany.mockResolvedValueOnce([{ model: 'gpt-4o' }]); // getDistinctModels for provider filter
     mockGetRawOne.mockResolvedValueOnce({ total: 3 });
     mockGetRawMany
       .mockResolvedValueOnce([
         { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o', cost: 0.05 },
       ])
-      .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+      .mockResolvedValueOnce([{ model: 'gpt-4o' }]); // getDistinctModels for providers response
 
     const result = await service.getMessages({
       range: '24h',
       userId: 'test-user',
       limit: 20,
-      status: 'success',
+      provider: 'openai',
       service_type: 'chat',
-      model: 'gpt-4o',
       cost_min: 0.01,
       cost_max: 1.0,
       agent_name: 'my-agent',
@@ -333,7 +336,7 @@ describe('MessagesQueryService', () => {
       userId: 'test-user',
       limit: 20,
     });
-    expect(result1.models).toEqual(['gpt-4o', 'claude-opus-4-6']);
+    expect(result1.providers).toEqual(['anthropic', 'openai']);
 
     // Second call — models query should NOT be called again
     mockGetRawOne.mockResolvedValueOnce({ total: 1 });
@@ -348,8 +351,8 @@ describe('MessagesQueryService', () => {
       limit: 20,
     });
 
-    // Should still return cached models from first call
-    expect(result2.models).toEqual(['gpt-4o', 'claude-opus-4-6']);
+    // Should still return cached providers from first call
+    expect(result2.providers).toEqual(['anthropic', 'openai']);
     // getRawMany should have been called 3 times total:
     // call 1: data rows + models = 2, call 2: data rows only = 1
     expect(mockGetRawMany).toHaveBeenCalledTimes(3);
@@ -420,8 +423,6 @@ describe('MessagesQueryService', () => {
     await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
 
     // Expired entry was deleted first, then re-added — no eviction of other entries
-    // Size might be 4999 (expired entry deleted, then re-added = 5000, but if the
-    // has(key) check fires after delete, it won't evict)
     expect(cache.has('test-user::24h')).toBe(true);
   });
 
@@ -457,7 +458,7 @@ describe('MessagesQueryService', () => {
       limit: 20,
     });
 
-    expect(result.models).toEqual(['gpt-4o', 'claude-opus-4-6']);
+    expect(result.providers).toEqual(['anthropic', 'openai']);
     // 2 from first call + 2 from second call = 4
     expect(mockGetRawMany).toHaveBeenCalledTimes(4);
   });
@@ -627,6 +628,76 @@ describe('MessagesQueryService', () => {
 
     expect(result.total_count).toBe(0);
   });
+
+  it('provider filter returns empty result when no models match', async () => {
+    // getDistinctModels returns models that don't match the requested provider
+    mockGetRawMany.mockResolvedValueOnce([{ model: 'gpt-4o' }]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      provider: 'anthropic',
+    });
+
+    expect(result.total_count).toBe(0);
+    expect(result.items).toEqual([]);
+    expect(result.providers).toEqual(['openai']);
+  });
+
+  it('provider filter applies IN clause for matching models', async () => {
+    // getDistinctModels for provider filter resolution
+    mockGetRawMany.mockResolvedValueOnce([
+      { model: 'gpt-4o' },
+      { model: 'gpt-4.1' },
+      { model: 'claude-opus-4-6' },
+    ]);
+    mockGetRawOne.mockResolvedValueOnce({ total: 2 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o', cost: 0.01 },
+        { id: 'msg-2', timestamp: '2026-02-16 09:00:00', model: 'gpt-4.1', cost: 0.02 },
+      ])
+      .mockResolvedValueOnce([
+        { model: 'gpt-4o' },
+        { model: 'gpt-4.1' },
+        { model: 'claude-opus-4-6' },
+      ]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      provider: 'openai',
+    });
+
+    expect(result.total_count).toBe(2);
+    expect(result.items).toHaveLength(2);
+    expect(result.providers).toEqual(['anthropic', 'openai']);
+  });
+
+  it('derives providers from multiple model types', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 3 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' },
+        { id: 'msg-2', timestamp: '2026-02-16 09:00:00', model: 'claude-opus-4-6' },
+        { id: 'msg-3', timestamp: '2026-02-16 08:00:00', model: 'gemini-2.0-flash' },
+      ])
+      .mockResolvedValueOnce([
+        { model: 'claude-opus-4-6' },
+        { model: 'gemini-2.0-flash' },
+        { model: 'gpt-4o' },
+      ]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+    });
+
+    expect(result.providers).toEqual(['anthropic', 'gemini', 'openai']);
+  });
 });
 
 describe('MessagesQueryService (sql.js / local mode)', () => {
@@ -643,6 +714,7 @@ describe('MessagesQueryService (sql.js / local mode)', () => {
     const mockQb = {
       select: jest.fn().mockReturnThis(),
       addSelect: mockAddSelect,
+      leftJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       orWhere: jest.fn().mockReturnThis(),

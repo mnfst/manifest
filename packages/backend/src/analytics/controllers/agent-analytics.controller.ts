@@ -8,7 +8,6 @@ import { AgentAnalyticsService } from '../services/agent-analytics.service';
 import { RangeQueryDto } from '../../common/dto/range-query.dto';
 import { AgentCacheInterceptor } from '../../common/interceptors/agent-cache.interceptor';
 import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
-import { hashForTelemetry } from '../../common/utils/product-telemetry';
 
 interface AuthenticatedRequest extends Request {
   ingestionContext: IngestionContext;
@@ -30,7 +29,6 @@ export class AgentAnalyticsController {
     return {
       ...usage,
       agentName: ctx.agentName,
-      telemetryId: hashForTelemetry(ctx.userId),
     };
   }
 
