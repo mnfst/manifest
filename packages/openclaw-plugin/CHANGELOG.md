@@ -1,5 +1,23 @@
 # manifest
 
+## 5.29.1
+
+### Patch Changes
+
+- 32422f4: fix: remove static title from DOM so @solidjs/meta can manage document.title
+
+  The static `<title>` in index.html (added for SEO/Lighthouse) conflicted with
+  @solidjs/meta's dynamic title management. Browsers use the first `<title>`
+  element in the document, so the static tag always won and page-specific titles
+  never appeared in the browser tab. The static tag is now removed on app mount,
+  preserving the SEO fallback for pre-JS crawlers while letting @solidjs/meta
+  control the title during navigation.
+
+- 8fe30e6: Fix Product Hunt badge image blocked by CSP and remove extra border/padding from badge container
+- 25a5b13: fix(frontend): show instruction modal for all provider types when activating routing and display connected provider name
+- e778210: Add a one-time Product Hunt launch popup in the dashboard with a persistent dismiss state
+- 74341ff: Hide GitHub Copilot from API Keys tab since it only supports subscription auth
+
 ## 5.29.0
 
 ### Minor Changes
