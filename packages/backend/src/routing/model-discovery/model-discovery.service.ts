@@ -183,7 +183,7 @@ export class ModelDiscoveryService {
         modelId,
         inferredProvider && providerIds.has(inferredProvider)
           ? inferredProvider
-          : [...providerIds][0]!,
+          : [...providerIds].sort()[0]!,
       );
     }
 

@@ -1086,7 +1086,7 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
     ]);
     const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValue([
-      { id: "1", user_id: "u1", tier: "simple", override_model: "claude-haiku-4-5", override_auth_type: "subscription", auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "1", user_id: "u1", tier: "simple", override_model: "claude-haiku-4-5", override_auth_type: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
       { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
       { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
       { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },

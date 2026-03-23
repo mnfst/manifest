@@ -1129,6 +1129,41 @@ describe('TraceIngestService', () => {
     ]);
   });
 
+  it('does not let bare model-prefix inference override explicit pricing provider', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'anthropic', auth_type: 'subscription' }]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'OpenAI',
+      input_price_per_token: 0.001,
+      output_price_per_token: 0.002,
+    });
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-opus-4-6' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 120 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 30 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({
+        model: 'claude-opus-4-6',
+        auth_type: 'api_key',
+      }),
+    ]);
+  });
+
   it('returns zero cost when provider has both subscription and api_key (dual-auth)', async () => {
     mockProviderFind.mockResolvedValue([
       { provider: 'anthropic', auth_type: 'subscription' },
