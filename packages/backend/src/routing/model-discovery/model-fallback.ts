@@ -92,14 +92,22 @@ export function lookupWithVariants(
 /**
  * Build a fallback model list from OpenRouter cache
  * for providers whose native /models API is unavailable.
+ *
+ * When `confirmedModels` is provided and non-empty, only models that exist
+ * in the confirmed set are included. This filters out phantom models that
+ * OpenRouter lists but the provider's native API doesn't actually serve.
+ * When null or empty, all OpenRouter models for the provider are returned
+ * (graceful degradation for fresh installs with no native data yet).
  */
 export function buildFallbackModels(
   pricingSync: PricingLookup | null,
   providerId: string,
+  confirmedModels?: ReadonlySet<string> | null,
 ): DiscoveredModel[] {
   if (!pricingSync) return [];
   const models: DiscoveredModel[] = [];
   const seen = new Set<string>();
+  const hasConfirmed = confirmedModels != null && confirmedModels.size > 0;
 
   const orPrefix = findOpenRouterPrefix(providerId);
   if (!orPrefix) return [];
@@ -108,6 +116,9 @@ export function buildFallbackModels(
     if (!fullId.startsWith(`${orPrefix}/`)) continue;
     const modelId = normalizeProviderModelId(providerId, fullId.substring(orPrefix.length + 1));
     if (seen.has(modelId)) continue;
+
+    if (hasConfirmed && !confirmedModels!.has(modelId.toLowerCase())) continue;
+
     seen.add(modelId);
     models.push({
       id: modelId,
