@@ -1080,6 +1080,27 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
     expect(await screen.findByText("Included in subscription")).toBeDefined();
   });
 
+  it("prefers the available-model provider over slug inference for OpenCode Go subscription models", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "opencode-go", is_active: true, has_api_key: true, auth_type: "subscription", connected_at: "2025-01-01" },
+    ]);
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: "claude-haiku-4-5", override_auth_type: "subscription", auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "claude-haiku-4-5", provider: "opencode-go", display_name: "Claude Haiku 4.5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true, auth_type: "subscription" },
+    ]);
+
+    render(() => <Routing />);
+
+    expect(await screen.findByText("Claude Haiku 4.5")).toBeDefined();
+    expect(screen.getByText("Included in subscription")).toBeDefined();
+  });
+
   it("resolves providerIdForModel via PROVIDERS model list fallback (lines 52-53)", async () => {
     // "qwen-2.5-72b-instruct" is a model value in PROVIDERS' qwen models list.
     // inferProviderFromModel("qwen-2.5-72b-instruct") returns undefined because
