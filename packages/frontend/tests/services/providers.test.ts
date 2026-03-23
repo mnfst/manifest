@@ -296,9 +296,10 @@ describe("PROVIDERS", () => {
     expect(minimax.subscriptionAuthMode).toBe("device_code");
   });
 
-  it("OpenCode Go supports subscription with token flow", () => {
+  it("OpenCode Go supports subscription with token flow and is subscription-only", () => {
     const ocgo = PROVIDERS.find((p) => p.id === "opencode-go")!;
     expect(ocgo.supportsSubscription).toBe(true);
+    expect(ocgo.subscriptionOnly).toBe(true);
     expect(ocgo.subscriptionLabel).toBe("OpenCode Go Plan");
     expect(ocgo.subscriptionAuthMode).toBe("token");
     expect(ocgo.subscriptionKeyPlaceholder).toBe("Paste your API key");

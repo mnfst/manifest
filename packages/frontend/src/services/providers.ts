@@ -22,6 +22,8 @@ export interface ProviderDef {
   subscriptionCommand?: string;
   /** UI auth mode for subscription flows. */
   subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
+  /** When true, provider only appears in the Subscriptions tab (not API Keys). */
+  subscriptionOnly?: boolean;
   /** Deprecated compatibility flag for popup OAuth providers. */
   subscriptionOAuth?: boolean;
 }
@@ -176,6 +178,7 @@ export const PROVIDERS: ProviderDef[] = [
     minKeyLength: 50,
     keyPlaceholder: 'sk-...',
     supportsSubscription: true,
+    subscriptionOnly: true,
     subscriptionLabel: 'OpenCode Go Plan',
     subscriptionAuthMode: 'token',
     subscriptionKeyPlaceholder: 'Paste your API key',
