@@ -262,9 +262,22 @@ export class ProxyController {
             streamUsage ?? undefined,
           )
           .catch((e) => this.logger.warn(`Failed to record fallback success: ${e}`));
+      } else if (streamUsage) {
+        const durationMs = Date.now() - startTime;
+        this.recorder
+          .recordSuccessMessage(
+            req.ingestionContext,
+            meta.model,
+            meta.tier,
+            meta.reason,
+            streamUsage,
+            traceId,
+            meta.auth_type,
+            sessionKey,
+            durationMs,
+          )
+          .catch((e) => this.logger.warn(`Failed to record success message: ${e}`));
       }
-      // Success messages are recorded by the OTLP pipeline (richer telemetry).
-      // Recording here would create duplicates.
     } catch (err: unknown) {
       if (clientAbort.signal.aborted) {
         if (!res.writableEnded) res.end();

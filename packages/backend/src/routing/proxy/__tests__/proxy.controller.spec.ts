@@ -311,8 +311,8 @@ describe('ProxyController', () => {
     await controller.chatCompletions(req as never, res as never);
     await new Promise((r) => setTimeout(r, 10));
 
-    // Success messages are recorded by the OTLP pipeline, not the proxy controller
-    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+    // Success message is recorded by the proxy recorder (dedup handles OTLP overlap)
+    expect(mockMessageRepo.find).toHaveBeenCalled();
   });
 
   it('should serialize concurrent success dedup checks for the same trace', async () => {
