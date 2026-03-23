@@ -2,10 +2,14 @@ import { createEffect, createSignal, onCleanup, Show, type Component } from 'sol
 import { isLocalMode } from '../services/local-mode.js';
 
 export const PRODUCT_HUNT_UPVOTE_KEY = 'mnfst_product_hunt_upvote_2026_03_23';
-export const PRODUCT_HUNT_FALLBACK_URL = 'https://www.producthunt.com/search/posts?q=Manifest';
+export const PRODUCT_HUNT_FALLBACK_URL =
+  'https://www.producthunt.com/products/manifest-361?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-manifest-361';
 
 const PRODUCT_HUNT_URL =
   (import.meta.env.VITE_PRODUCT_HUNT_URL as string | undefined) ?? PRODUCT_HUNT_FALLBACK_URL;
+const PRODUCT_HUNT_ALT = 'Manifest - Open Source LLM Router for OpenClaw | Product Hunt';
+const PRODUCT_HUNT_FEATURED_BADGE =
+  'https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1104032&theme=light';
 
 const hasAcknowledgedPrompt = (): boolean => {
   try {
@@ -51,7 +55,7 @@ const ProductHuntUpvoteModal: Component = () => {
   });
 
   return (
-    <Show when={!isLocalMode() && open()}>
+    <Show when={open()}>
       <div
         class="modal-overlay product-hunt-modal__overlay"
         onClick={(event) => {
@@ -63,7 +67,6 @@ const ProductHuntUpvoteModal: Component = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="product-hunt-upvote-title"
-          aria-describedby="product-hunt-upvote-description"
           onClick={(event) => event.stopPropagation()}
         >
           <button
@@ -88,76 +91,33 @@ const ProductHuntUpvoteModal: Component = () => {
             </svg>
           </button>
 
-          <div class="product-hunt-modal__eyebrow">
-            <span class="product-hunt-modal__eyebrow-dot" aria-hidden="true" />
-            Live on Product Hunt
-          </div>
-
-          <div class="product-hunt-modal__hero">
-            <div class="product-hunt-modal__badge" aria-hidden="true">
-              <span class="product-hunt-modal__badge-mark">P</span>
-              <div class="product-hunt-modal__badge-copy">
-                <span>Launch day</span>
-                <strong>Support Manifest</strong>
-              </div>
-            </div>
-
-            <div class="product-hunt-modal__copy">
-              <h2 class="product-hunt-modal__title" id="product-hunt-upvote-title">
-                Manifest is live on Product Hunt
-              </h2>
-              <p class="product-hunt-modal__description" id="product-hunt-upvote-description">
-                If Manifest has helped you monitor agents, costs, or routing, a quick upvote would
-                help more builders discover it while we launch.
-              </p>
-            </div>
-          </div>
-
-          <div class="product-hunt-modal__meta" aria-hidden="true">
-            <span>10-second favor</span>
-            <span>Builders supporting builders</span>
-            <span>Shown once</span>
-          </div>
-
-          <div class="product-hunt-modal__actions">
-            <a
-              href={PRODUCT_HUNT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="btn product-hunt-modal__primary"
-              onClick={() => {
-                acknowledgePrompt();
-                setOpen(false);
-              }}
-            >
-              Upvote on Product Hunt
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M7 17 17 7" />
-                <path d="M7 7h10v10" />
-              </svg>
-            </a>
-            <button
-              class="btn btn--ghost product-hunt-modal__secondary"
-              type="button"
-              onClick={dismiss}
-            >
-              Dismiss
-            </button>
-          </div>
-
-          <p class="product-hunt-modal__footnote">
-            Already upvoted? Close this and enjoy the dashboard.
+          <h2 class="product-hunt-modal__title" id="product-hunt-upvote-title">
+            Manifest on Product Hunt
+          </h2>
+          <p class="product-hunt-modal__description">
+            Leave an upvote for Manifest so we can keep improving the product and growing our
+            community. Thank you 🙌
           </p>
+
+          <a
+            href={PRODUCT_HUNT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="product-hunt-modal__featured-badge"
+            onClick={() => {
+              acknowledgePrompt();
+              setOpen(false);
+            }}
+          >
+            <div class="product-hunt-modal__featured-frame">
+              <img
+                src={PRODUCT_HUNT_FEATURED_BADGE}
+                alt={PRODUCT_HUNT_ALT}
+                width="250"
+                height="54"
+              />
+            </div>
+          </a>
         </div>
       </div>
     </Show>

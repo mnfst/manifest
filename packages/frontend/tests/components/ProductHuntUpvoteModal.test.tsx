@@ -14,14 +14,17 @@ import ProductHuntUpvoteModal, {
 beforeEach(() => {
   localStorage.clear();
   mockIsLocalMode = false;
+  window.history.replaceState({}, '', '/');
 });
 
 describe('ProductHuntUpvoteModal', () => {
   it('renders the popup when it has not been dismissed', () => {
     const { container } = render(() => <ProductHuntUpvoteModal />);
 
-    expect(screen.getByText('Manifest is live on Product Hunt')).toBeDefined();
-    const link = container.querySelector('.product-hunt-modal__primary') as HTMLAnchorElement;
+    expect(screen.getByText('Manifest on Product Hunt')).toBeDefined();
+    const link = container.querySelector(
+      '.product-hunt-modal__featured-badge',
+    ) as HTMLAnchorElement;
     expect(link).toBeDefined();
     expect(link.getAttribute('href')).toBe(PRODUCT_HUNT_FALLBACK_URL);
   });
@@ -29,26 +32,26 @@ describe('ProductHuntUpvoteModal', () => {
   it('stores the one-time flag when dismissed', async () => {
     render(() => <ProductHuntUpvoteModal />);
 
-    await fireEvent.click(screen.getByText('Dismiss'));
+    await fireEvent.click(screen.getByLabelText('Dismiss Product Hunt popup'));
 
     expect(localStorage.getItem(PRODUCT_HUNT_UPVOTE_KEY)).toBe('1');
-    expect(screen.queryByText('Manifest is live on Product Hunt')).toBeNull();
+    expect(screen.queryByText('Manifest on Product Hunt')).toBeNull();
   });
 
   it('stores the one-time flag when the CTA is clicked', async () => {
     const { container } = render(() => <ProductHuntUpvoteModal />);
 
-    await fireEvent.click(container.querySelector('.product-hunt-modal__primary')!);
+    await fireEvent.click(container.querySelector('.product-hunt-modal__featured-badge')!);
 
     expect(localStorage.getItem(PRODUCT_HUNT_UPVOTE_KEY)).toBe('1');
-    expect(screen.queryByText('Manifest is live on Product Hunt')).toBeNull();
+    expect(screen.queryByText('Manifest on Product Hunt')).toBeNull();
   });
 
   it('does not render after it has already been acknowledged', () => {
     localStorage.setItem(PRODUCT_HUNT_UPVOTE_KEY, '1');
     const { container } = render(() => <ProductHuntUpvoteModal />);
 
-    expect(screen.queryByText('Manifest is live on Product Hunt')).toBeNull();
+    expect(screen.queryByText('Manifest on Product Hunt')).toBeNull();
     expect(container.querySelector('[role="dialog"]')).toBeNull();
   });
 
@@ -56,7 +59,7 @@ describe('ProductHuntUpvoteModal', () => {
     mockIsLocalMode = true;
     const { container } = render(() => <ProductHuntUpvoteModal />);
 
-    expect(screen.queryByText('Manifest is live on Product Hunt')).toBeNull();
+    expect(screen.queryByText('Manifest on Product Hunt')).toBeNull();
     expect(container.querySelector('[role="dialog"]')).toBeNull();
   });
 
@@ -66,6 +69,6 @@ describe('ProductHuntUpvoteModal', () => {
     await fireEvent.keyDown(window, { key: 'Escape' });
 
     expect(localStorage.getItem(PRODUCT_HUNT_UPVOTE_KEY)).toBe('1');
-    expect(screen.queryByText('Manifest is live on Product Hunt')).toBeNull();
+    expect(screen.queryByText('Manifest on Product Hunt')).toBeNull();
   });
 });

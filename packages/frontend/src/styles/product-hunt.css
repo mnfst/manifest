@@ -1,34 +1,31 @@
 .product-hunt-modal__overlay {
   background:
-    radial-gradient(circle at top left, rgb(255 97 0 / 0.12), transparent 34%),
-    radial-gradient(circle at bottom right, rgb(255 141 76 / 0.14), transparent 42%),
-    rgb(247 243 235 / 0.9);
-  backdrop-filter: blur(5px);
+    radial-gradient(circle at top left, rgb(255 97 0 / 0.08), transparent 28%),
+    rgb(247 243 235 / 0.84);
+  backdrop-filter: blur(4px);
 }
 
 .dark .product-hunt-modal__overlay {
   background:
-    radial-gradient(circle at top left, rgb(255 97 0 / 0.18), transparent 30%),
-    radial-gradient(circle at bottom right, rgb(255 141 76 / 0.16), transparent 38%),
-    rgb(0 0 0 / 0.78);
+    radial-gradient(circle at top left, rgb(255 97 0 / 0.12), transparent 24%), rgb(0 0 0 / 0.74);
 }
 
 .product-hunt-modal__card {
   position: relative;
-  max-width: 640px;
+  max-width: 340px;
   overflow: hidden;
-  border: 1px solid rgb(255 97 0 / 0.18);
+  border: 1px solid rgb(39 20 7 / 0.08);
   box-shadow:
-    0 22px 80px rgb(39 20 7 / 0.16),
+    0 16px 38px rgb(39 20 7 / 0.12),
     0 0 0 1px rgb(255 255 255 / 0.35) inset;
   background:
-    linear-gradient(145deg, rgb(255 255 255 / 0.95), rgb(251 246 238 / 0.95)), hsl(var(--card));
+    linear-gradient(145deg, rgb(255 255 255 / 0.96), rgb(250 246 240 / 0.96)), hsl(var(--card));
 }
 
 .dark .product-hunt-modal__card {
-  border-color: rgb(255 97 0 / 0.28);
+  border-color: rgb(255 255 255 / 0.08);
   box-shadow:
-    0 24px 80px rgb(0 0 0 / 0.45),
+    0 18px 42px rgb(0 0 0 / 0.38),
     0 0 0 1px rgb(255 255 255 / 0.04) inset;
   background: linear-gradient(145deg, rgb(28 23 20 / 0.98), rgb(20 17 15 / 0.98)), hsl(var(--card));
 }
@@ -37,25 +34,21 @@
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(115deg, rgb(255 97 0 / 0.12), transparent 28%),
-    linear-gradient(0deg, rgb(255 255 255 / 0.5), transparent 32%);
+  background: linear-gradient(115deg, rgb(255 97 0 / 0.08), transparent 24%);
   pointer-events: none;
 }
 
 .dark .product-hunt-modal__card::before {
-  background:
-    linear-gradient(115deg, rgb(255 97 0 / 0.18), transparent 25%),
-    linear-gradient(0deg, rgb(255 255 255 / 0.04), transparent 32%);
+  background: linear-gradient(115deg, rgb(255 97 0 / 0.12), transparent 24%);
 }
 
 .product-hunt-modal__close {
   position: absolute;
-  top: 18px;
-  right: 18px;
+  top: 10px;
+  right: 10px;
   z-index: 1;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -63,11 +56,6 @@
   border-radius: 999px;
   background: rgb(255 255 255 / 0.72);
   color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  transition:
-    transform var(--transition-fast),
-    background var(--transition-fast),
-    color var(--transition-fast);
 }
 
 .product-hunt-modal__close:hover {
@@ -85,207 +73,96 @@
   background: rgb(255 255 255 / 0.1);
 }
 
-.product-hunt-modal__eyebrow {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgb(255 97 0 / 0.1);
-  color: rgb(167 72 17);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.dark .product-hunt-modal__eyebrow {
-  background: rgb(255 97 0 / 0.18);
-  color: rgb(255 179 141);
-}
-
-.product-hunt-modal__eyebrow-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: rgb(255 97 0);
-  box-shadow: 0 0 0 6px rgb(255 97 0 / 0.12);
-}
-
-.product-hunt-modal__hero {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 170px) minmax(0, 1fr);
-  gap: 22px;
-  align-items: center;
-  margin-top: 18px;
-}
-
-.product-hunt-modal__badge {
-  display: grid;
-  gap: 14px;
-  align-content: start;
-  padding: 22px;
-  border-radius: 22px;
-  background: linear-gradient(160deg, rgb(255 97 0), rgb(255 135 67)), rgb(255 97 0);
-  color: white;
-  min-height: 172px;
-  transform: rotate(-4deg);
-  box-shadow: 0 18px 40px rgb(255 97 0 / 0.25);
-}
-
-.product-hunt-modal__badge-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  background: rgb(255 255 255 / 0.18);
-  font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.product-hunt-modal__badge-copy {
-  display: grid;
-  gap: 6px;
-  line-height: 1.1;
-}
-
-.product-hunt-modal__badge-copy span {
-  font-size: var(--font-size-xs);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 0.82;
-}
-
-.product-hunt-modal__badge-copy strong {
-  font-size: var(--font-size-lg);
-  font-family: var(--font-heading);
-}
-
-.product-hunt-modal__copy {
-  min-width: 0;
-}
-
 .product-hunt-modal__title {
   position: relative;
   z-index: 1;
   margin: 0;
-  font-size: clamp(2rem, 5vw, 2.85rem);
-  line-height: 0.95;
-  letter-spacing: -0.04em;
-  max-width: 10ch;
+  font-size: 1.28rem;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  max-width: 18ch;
 }
 
 .product-hunt-modal__description {
   position: relative;
   z-index: 1;
-  margin-top: 14px;
+  margin: 8px 0 0;
   color: hsl(var(--muted-foreground));
-  font-size: 1rem;
-  line-height: 1.7;
-  max-width: 46ch;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  max-width: 34ch;
 }
 
-.product-hunt-modal__meta {
+.product-hunt-modal__featured-badge {
   position: relative;
   z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.product-hunt-modal__meta span {
   display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgb(39 20 7 / 0.05);
-  color: hsl(var(--muted-foreground));
-  font-size: var(--font-size-xs);
-  font-weight: 600;
+  margin-top: 14px;
+  border: 1px solid rgb(39 20 7 / 0.08);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.72);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
-.dark .product-hunt-modal__meta span {
-  background: rgb(255 255 255 / 0.06);
-}
-
-.product-hunt-modal__actions {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  margin-top: 24px;
-}
-
-.product-hunt-modal__primary {
-  height: 2.9rem;
-  padding: 0 1.2rem;
-  gap: 10px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, rgb(255 97 0), rgb(255 135 67));
-  color: white;
-  font-weight: 700;
-  box-shadow: 0 14px 30px rgb(255 97 0 / 0.22);
-}
-
-.product-hunt-modal__primary:hover {
+.product-hunt-modal__featured-badge:hover {
   transform: translateY(-1px);
-  box-shadow: 0 18px 34px rgb(255 97 0 / 0.26);
+  border-color: rgb(255 97 0 / 0.22);
+  box-shadow: 0 10px 20px rgb(39 20 7 / 0.08);
 }
 
-.product-hunt-modal__secondary {
-  height: 2.9rem;
-  padding: 0 1rem;
-  border-radius: 999px;
-  font-weight: 600;
+.dark .product-hunt-modal__featured-badge {
+  border-color: rgb(255 255 255 / 0.08);
+  background: rgb(255 255 255 / 0.03);
 }
 
-.product-hunt-modal__footnote {
-  position: relative;
-  z-index: 1;
-  margin-top: 18px;
-  font-size: var(--font-size-xs);
-  color: hsl(var(--muted-foreground));
+.dark .product-hunt-modal__featured-badge:hover {
+  border-color: rgb(255 97 0 / 0.28);
+  box-shadow: 0 12px 24px rgb(0 0 0 / 0.18);
+}
+
+.product-hunt-modal__featured-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 62px;
+  min-width: 250px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.88);
+}
+
+.dark .product-hunt-modal__featured-frame {
+  background: rgb(255 255 255 / 0.04);
+}
+
+.product-hunt-modal__featured-frame img {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 @media (max-width: 720px) {
   .product-hunt-modal__card {
-    padding: 22px;
-  }
-
-  .product-hunt-modal__hero {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .product-hunt-modal__badge {
-    min-height: auto;
-    transform: none;
+    padding: 16px 16px 14px;
   }
 
   .product-hunt-modal__title {
-    max-width: none;
-    font-size: clamp(1.75rem, 8vw, 2.35rem);
+    max-width: 14ch;
+    font-size: 1.15rem;
   }
 
-  .product-hunt-modal__actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .product-hunt-modal__primary,
-  .product-hunt-modal__secondary {
+  .product-hunt-modal__featured-badge {
     width: 100%;
     justify-content: center;
+  }
+
+  .product-hunt-modal__featured-frame {
+    min-width: 0;
+    width: 100%;
   }
 }
