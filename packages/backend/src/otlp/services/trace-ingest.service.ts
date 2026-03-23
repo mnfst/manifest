@@ -11,6 +11,7 @@ import { OtlpExportTraceServiceRequest, OtlpSpan, OtlpResourceSpans } from '../i
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 import { In, Not, IsNull, MoreThanOrEqual } from 'typeorm';
 import { isManifestUsableProvider } from '../../routing/subscription-support';
+import { PROVIDER_DISPLAY_NAME_TO_ID } from '../../common/constants/providers';
 import {
   extractAttributes,
   nanoToDatetime,
@@ -463,7 +464,7 @@ export class TraceIngestService {
       let cost: number | null = null;
       if (costModel) {
         const pricing = this.pricingCache.getByModel(costModel);
-        if (pricing && subOnlyProviders.has(pricing.provider?.toLowerCase())) {
+        if (pricing && this.isSubscriptionProvider(pricing.provider, subOnlyProviders)) {
           cost = 0;
         } else if (
           pricing &&
@@ -611,7 +612,23 @@ export class TraceIngestService {
     if (!model) return null;
     const pricing = this.pricingCache.getByModel(model);
     if (!pricing) return null;
-    return subOnlyProviders.has(pricing.provider?.toLowerCase()) ? 'subscription' : 'api_key';
+    return this.isSubscriptionProvider(pricing.provider, subOnlyProviders)
+      ? 'subscription'
+      : 'api_key';
+  }
+
+  /**
+   * Checks if a provider name (which may be a display name from the pricing
+   * cache, e.g. "Z.ai") matches a subscription-only provider ID (e.g. "zai").
+   */
+  private isSubscriptionProvider(
+    pricingProvider: string | undefined | null,
+    subOnlyProviders?: Set<string>,
+  ): boolean {
+    if (!subOnlyProviders?.size || !pricingProvider) return false;
+    const lower = pricingProvider.toLowerCase();
+    const providerId = PROVIDER_DISPLAY_NAME_TO_ID.get(lower) ?? lower;
+    return subOnlyProviders.has(providerId);
   }
 
   private buildLlmCall(
@@ -720,7 +737,7 @@ export class TraceIngestService {
     const pricing = this.pricingCache.getByModel(model);
     if (!pricing) return null;
 
-    if (subOnlyProviders?.has(pricing.provider?.toLowerCase())) return 0;
+    if (this.isSubscriptionProvider(pricing.provider, subOnlyProviders)) return 0;
 
     return (
       inputTok * Number(pricing.input_price_per_token) +

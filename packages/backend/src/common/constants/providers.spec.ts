@@ -2,6 +2,7 @@ import {
   PROVIDER_REGISTRY,
   PROVIDER_BY_ID,
   PROVIDER_BY_ID_OR_ALIAS,
+  PROVIDER_DISPLAY_NAME_TO_ID,
   OPENROUTER_PREFIX_TO_PROVIDER,
   ALL_PROVIDER_IDS,
   expandProviderNames,
@@ -110,6 +111,27 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
 
   it('returns undefined for an unknown alias', () => {
     expect(PROVIDER_BY_ID_OR_ALIAS.get('nonexistent')).toBeUndefined();
+  });
+});
+
+describe('PROVIDER_DISPLAY_NAME_TO_ID', () => {
+  it('maps every display name (lowercased) to its provider ID', () => {
+    for (const entry of PROVIDER_REGISTRY) {
+      expect(PROVIDER_DISPLAY_NAME_TO_ID.get(entry.displayName.toLowerCase())).toBe(entry.id);
+    }
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.size).toBe(PROVIDER_REGISTRY.length);
+  });
+
+  it('resolves Z.ai display name to zai ID', () => {
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.get('z.ai')).toBe('zai');
+  });
+
+  it('resolves Google display name to gemini ID', () => {
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.get('google')).toBe('gemini');
+  });
+
+  it('resolves Alibaba display name to qwen ID', () => {
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.get('alibaba')).toBe('qwen');
   });
 });
 

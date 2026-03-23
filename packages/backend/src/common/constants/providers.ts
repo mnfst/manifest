@@ -150,6 +150,11 @@ export const PROVIDER_BY_ID_OR_ALIAS: ReadonlyMap<string, ProviderRegistryEntry>
   ]),
 );
 
+/** Map from lowercased display name → provider ID (for reverse lookups). */
+export const PROVIDER_DISPLAY_NAME_TO_ID: ReadonlyMap<string, string> = new Map(
+  PROVIDER_REGISTRY.map((p) => [p.displayName.toLowerCase(), p.id]),
+);
+
 /** Map from OpenRouter vendor prefix → provider display name. */
 export const OPENROUTER_PREFIX_TO_PROVIDER: ReadonlyMap<string, string> = new Map(
   PROVIDER_REGISTRY.flatMap((p) =>

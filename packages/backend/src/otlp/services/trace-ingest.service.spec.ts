@@ -1060,6 +1060,39 @@ describe('TraceIngestService', () => {
     ]);
   });
 
+  it('returns zero cost when pricing display name differs from provider ID (Z.ai)', async () => {
+    // UserProvider stores provider ID 'zai', but pricing cache returns display name 'Z.ai'
+    mockProviderFind.mockResolvedValue([{ provider: 'zai', auth_type: 'subscription' }]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'Z.ai',
+      input_price_per_token: 0.001,
+      output_price_per_token: 0.002,
+    });
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'glm-5' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ cost_usd: 0, auth_type: 'subscription' }),
+    ]);
+  });
+
   it('returns zero cost when provider has both subscription and api_key (dual-auth)', async () => {
     mockProviderFind.mockResolvedValue([
       { provider: 'anthropic', auth_type: 'subscription' },
