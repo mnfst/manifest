@@ -170,12 +170,7 @@ function normalizeDeepSeekMaxTokens(body: Record<string, unknown>): void {
   if (!('max_tokens' in body)) return;
 
   const raw = body.max_tokens;
-  const parsed =
-    typeof raw === 'number'
-      ? raw
-      : typeof raw === 'string'
-        ? Number(raw)
-        : Number.NaN;
+  const parsed = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : Number.NaN;
 
   if (!Number.isFinite(parsed) || parsed <= 0) {
     delete body.max_tokens;
@@ -261,7 +256,9 @@ export class ProviderClient {
     } else if (isAnthropic) {
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
-      requestBody = toAnthropicRequest(body, bareModel);
+      requestBody = toAnthropicRequest(body, bareModel, {
+        injectCacheControl: authType !== 'subscription',
+      });
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
     } else if (isChatGpt) {
