@@ -31,6 +31,13 @@ const GuestLayout: ParentComponent = (props) => (
   </GuestGuard>
 );
 
+// Remove the static <title> from index.html so @solidjs/meta can manage
+// document.title via its own <title> elements. The static tag is kept in
+// index.html for SEO (pre-JS crawlers / Lighthouse) but must be removed
+// before MetaProvider renders, otherwise the browser always picks the first
+// <title> in the DOM and ignores the dynamic ones.
+document.head.querySelector('title')?.remove();
+
 const root = document.getElementById('root');
 
 if (!root) {
