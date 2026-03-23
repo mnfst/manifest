@@ -10,6 +10,8 @@ import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
 import { encrypt, decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
+import { inferProviderFromModel } from '../common/utils/provider-inference';
+import { qualifyDiscoveredModelId } from './model-discovery/model-fallback';
 import { TIERS } from './scorer/types';
 import { isManifestUsableProvider, isSupportedSubscriptionProvider } from './subscription-support';
 
@@ -540,6 +542,28 @@ export class RoutingService {
   /* ── Provider lookup by cached models ── */
 
   async findProviderForModel(agentId: string, model: string): Promise<string | undefined> {
+    const providers = await this.getProviders(agentId);
+    const matchingProviders = new Set<string>();
+
+    for (const provider of providers) {
+      const providerId = provider.provider.toLowerCase();
+      const cachedModels = provider.cached_models;
+      if (!Array.isArray(cachedModels)) continue;
+
+      for (const cachedModel of cachedModels) {
+        if (cachedModel.id === model || qualifyDiscoveredModelId(providerId, cachedModel.id) === model) {
+          matchingProviders.add(providerId);
+        }
+      }
+    }
+
+    if (matchingProviders.size === 1) return [...matchingProviders][0];
+    if (matchingProviders.size > 1) {
+      const inferredProvider = inferProviderFromModel(model)?.toLowerCase();
+      if (inferredProvider && matchingProviders.has(inferredProvider)) return inferredProvider;
+      return [...matchingProviders].sort()[0];
+    }
+
     const discovered = await this.discoveryService.getModelForAgent(agentId, model);
     return discovered?.provider;
   }
