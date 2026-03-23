@@ -5,6 +5,7 @@ import compression from 'compression';
 import * as express from 'express';
 import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
+import { MANIFEST_CSP_DIRECTIVES } from './common/constants/csp.constants';
 import { LOCAL_USER_ID, LOCAL_EMAIL } from './common/constants/local-mode.constants';
 import { SpaFallbackFilter } from './common/filters/spa-fallback.filter';
 import { isAllowedLocalIp } from './common/utils/local-ip';
@@ -21,16 +22,7 @@ export async function bootstrap() {
   app.use(
     helmet({
       contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          imgSrc: ["'self'", 'data:'],
-          connectSrc: ["'self'"],
-          fontSrc: ["'self'"],
-          objectSrc: ["'none'"],
-          frameAncestors: ["'none'"],
-        },
+        directives: MANIFEST_CSP_DIRECTIVES,
       },
     }),
   );
