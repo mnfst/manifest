@@ -5,33 +5,29 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null,
 }));
 
-vi.mock("../../src/services/routing-utils.js", () => ({
-  pricePerM: (v: number) => `$${(v * 1_000_000).toFixed(2)}`,
-  resolveProviderId: (provider: string) => {
-    const map: Record<string, string> = {
-      OpenAI: "openai",
-      Anthropic: "anthropic",
-      Google: "google",
-      "OpenCode Go": "opencode-go",
-      "Ollama Cloud": "ollama-cloud",
-      OpenRouter: "openrouter",
-      "OpenCode Go Plan": "opencode-go",
-      "Ollama Cloud Plan": "ollama-cloud",
-      "opencode-go": "opencode-go",
-      "ollama-cloud": "ollama-cloud",
-    };
-    return map[provider] ?? null;
-  },
-  inferProviderFromModel: (modelName: string) => {
-    if (modelName.startsWith("glm-")) return "zai";
-    if (modelName.startsWith("kimi-")) return "moonshot";
-    if (modelName.startsWith("minimax-")) return "minimax";
-    if (modelName.includes(":") && !modelName.endsWith(":free")) return "ollama";
-    const slash = modelName.indexOf("/");
-    if (slash !== -1) return modelName.substring(0, slash).toLowerCase();
-    return null;
-  },
-}));
+vi.mock("../../src/services/routing-utils.js", async () => {
+  const actual = await vi.importActual<typeof import("../../src/services/routing-utils.js")>(
+    "../../src/services/routing-utils.js",
+  );
+  return {
+    ...actual,
+    resolveProviderId: (provider: string) => {
+      const map: Record<string, string> = {
+        OpenAI: "openai",
+        Anthropic: "anthropic",
+        Google: "google",
+        "OpenCode Go": "opencode-go",
+        "Ollama Cloud": "ollama-cloud",
+        OpenRouter: "openrouter",
+        "OpenCode Go Plan": "opencode-go",
+        "Ollama Cloud Plan": "ollama-cloud",
+        "opencode-go": "opencode-go",
+        "ollama-cloud": "ollama-cloud",
+      };
+      return map[provider] ?? null;
+    },
+  };
+});
 
 import ModelPickerModal from "../../src/components/ModelPickerModal";
 

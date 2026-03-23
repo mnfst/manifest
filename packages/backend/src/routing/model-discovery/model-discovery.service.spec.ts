@@ -464,6 +464,29 @@ describe('ModelDiscoveryService', () => {
       expect(result.map((m) => m.id)).toEqual(['glm-5', 'opencode-go/glm-5']);
     });
 
+    it('should choose a stable canonical provider when inference is unavailable', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          id: 'p1',
+          provider: 'zeta',
+          cached_models: [makeModel({ id: 'shared-model', provider: 'zeta' })],
+        }),
+        makeProvider({
+          id: 'p2',
+          provider: 'alpha',
+          cached_models: [makeModel({ id: 'shared-model', provider: 'alpha' })],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+      const canonical = result.find((m) => m.id === 'shared-model');
+
+      expect(canonical).toBeDefined();
+      expect(canonical!.provider).toBe('alpha');
+      expect(result.map((m) => m.id)).toContain('zeta/shared-model');
+    });
+
     it('should qualify OpenCode Go model ids even without duplicate collisions', async () => {
       providerRepo.find.mockResolvedValue([
         makeProvider({

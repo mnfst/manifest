@@ -637,9 +637,15 @@ export class TraceIngestService {
     subOnlyProviders?: Set<string>,
   ): boolean {
     if (!subOnlyProviders?.size) return false;
+    const lowerModel = model.toLowerCase();
+    for (const providerId of subOnlyProviders) {
+      if (lowerModel.startsWith(`${providerId.toLowerCase()}/`)) return true;
+    }
+    if (this.isSubscriptionProvider(pricingProvider, subOnlyProviders)) return true;
+    if (pricingProvider) return false;
+
     const inferredProvider = inferProviderFromModel(model);
-    if (inferredProvider && subOnlyProviders.has(inferredProvider)) return true;
-    return this.isSubscriptionProvider(pricingProvider, subOnlyProviders);
+    return !!(inferredProvider && subOnlyProviders.has(inferredProvider));
   }
 
   private buildLlmCall(
