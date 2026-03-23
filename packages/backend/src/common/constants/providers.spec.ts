@@ -10,8 +10,8 @@ import {
 } from './providers';
 
 describe('PROVIDER_REGISTRY', () => {
-  it('should contain exactly 16 provider entries', () => {
-    expect(PROVIDER_REGISTRY).toHaveLength(16);
+  it('should contain exactly 17 provider entries', () => {
+    expect(PROVIDER_REGISTRY).toHaveLength(17);
   });
 
   it('every entry has all required fields', () => {
@@ -73,11 +73,11 @@ describe('PROVIDER_REGISTRY', () => {
 });
 
 describe('PROVIDER_BY_ID', () => {
-  it('resolves all 16 provider IDs', () => {
+  it('resolves all 17 provider IDs', () => {
     for (const entry of PROVIDER_REGISTRY) {
       expect(PROVIDER_BY_ID.get(entry.id)).toBe(entry);
     }
-    expect(PROVIDER_BY_ID.size).toBe(16);
+    expect(PROVIDER_BY_ID.size).toBe(17);
   });
 
   it('returns undefined for an unknown ID', () => {
@@ -106,10 +106,11 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     expect(entry.displayName).toBe('Alibaba');
   });
 
-  it('resolves kimi alias to moonshot entry', () => {
+  it('resolves kimi id to Kimi Code entry', () => {
     const entry = PROVIDER_BY_ID_OR_ALIAS.get('kimi') as ProviderRegistryEntry;
     expect(entry).toBeDefined();
-    expect(entry.id).toBe('moonshot');
+    expect(entry.id).toBe('kimi');
+    expect(entry.displayName).toBe('Kimi Code');
   });
 
   it('resolves z.ai alias to zai entry', () => {
@@ -206,14 +207,14 @@ describe('expandProviderNames', () => {
     expect(result.has('gemini')).toBe(true);
   });
 
-  it('should expand moonshot and kimi alias bidirectionally', () => {
+  it('should keep moonshot and kimi separate provider names', () => {
     const fromId = expandProviderNames(['moonshot']);
     expect(fromId.has('moonshot')).toBe(true);
-    expect(fromId.has('kimi')).toBe(true);
+    expect(fromId.has('kimi')).toBe(false);
 
-    const fromAlias = expandProviderNames(['kimi']);
-    expect(fromAlias.has('moonshot')).toBe(true);
-    expect(fromAlias.has('kimi')).toBe(true);
+    const fromKimi = expandProviderNames(['kimi']);
+    expect(fromKimi.has('moonshot')).toBe(false);
+    expect(fromKimi.has('kimi')).toBe(true);
   });
 
   it('should not expand custom: prefixed names', () => {

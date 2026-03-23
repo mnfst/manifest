@@ -243,8 +243,8 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 16 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(16);
+  it("has 17 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(17);
   });
 
   it("providers are sorted alphabetically by name", () => {
@@ -311,6 +311,15 @@ describe("PROVIDERS", () => {
     expect(ocgo.subscriptionLabel).toBe("OpenCode Go Plan");
     expect(ocgo.subscriptionAuthMode).toBe("token");
     expect(ocgo.subscriptionKeyPlaceholder).toBe("Paste your API key");
+  });
+
+  it("Kimi Code supports subscription with token flow and is subscription-only", () => {
+    const kimi = PROVIDERS.find((p) => p.id === "kimi")!;
+    expect(kimi.supportsSubscription).toBe(true);
+    expect(kimi.subscriptionOnly).toBe(true);
+    expect(kimi.subscriptionLabel).toBe("Kimi Code subscription");
+    expect(kimi.subscriptionAuthMode).toBe("token");
+    expect(kimi.subscriptionKeyPlaceholder).toBe("Paste your API key");
   });
 
   it("Z.ai supports subscription with token flow", () => {

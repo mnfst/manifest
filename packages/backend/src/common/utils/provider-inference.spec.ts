@@ -53,7 +53,11 @@ describe('inferProviderFromModel', () => {
     expect(inferProviderFromModel('open-mistral-nemo')).toBe('mistral');
   });
 
-  it('returns "moonshot" for kimi-/moonshot- prefix', () => {
+  it('returns "kimi" for the Kimi Code model id', () => {
+    expect(inferProviderFromModel('kimi-for-coding')).toBe('kimi');
+  });
+
+  it('returns "moonshot" for Moonshot model prefixes', () => {
     expect(inferProviderFromModel('kimi-k2')).toBe('moonshot');
     expect(inferProviderFromModel('moonshot-v1-128k')).toBe('moonshot');
   });

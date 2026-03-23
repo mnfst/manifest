@@ -15,6 +15,7 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^deepseek-/, 'deepseek'],
   [/^grok-/, 'xai'],
   [/^mistral-|^codestral|^pixtral|^open-mistral/, 'mistral'],
+  [/^kimi-for-coding$/, 'kimi'],
   [/^kimi-|^moonshot-/, 'moonshot'],
   [/^minimax-/i, 'minimax'],
   [/^glm-/, 'zai'],

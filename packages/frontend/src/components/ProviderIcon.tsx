@@ -133,7 +133,8 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
-    /* ── Moonshot AI ───────────────────────────────── */
+    /* ── Moonshot AI / Kimi Code ───────────────────── */
+    case 'kimi':
     case 'moonshot':
       return (
         <svg

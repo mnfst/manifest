@@ -72,6 +72,24 @@ describe("subscription capability manifests", () => {
     }
   });
 
+  it("publishes Kimi Code token metadata in both manifests", () => {
+    for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
+      expect(capabilities.supportsSubscriptionProvider("kimi")).toBe(true);
+      expect(capabilities.getSubscriptionProviderConfig("kimi")).toMatchObject({
+        supportsSubscription: true,
+        subscriptionLabel: "Kimi Code subscription",
+        subscriptionAuthMode: "token",
+        subscriptionKeyPlaceholder: "Paste your API key",
+      });
+      expect(capabilities.getSubscriptionKnownModels("kimi")).toEqual(["kimi-for-coding"]);
+      expect(capabilities.getSubscriptionCapabilities("kimi")).toMatchObject({
+        maxContextWindow: 262144,
+        supportsPromptCaching: false,
+        supportsBatching: false,
+      });
+    }
+  });
+
   it("exposes catalog helpers for overlapping provider ids", () => {
     for (const capabilities of [pluginCapabilities, sharedCapabilities]) {
       expect(capabilities.getSubscriptionKnownModelMatchMode("OPENCODE-GO")).toBe("exact");

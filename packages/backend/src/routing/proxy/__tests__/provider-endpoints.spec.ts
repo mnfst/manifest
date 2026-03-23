@@ -44,6 +44,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
     expect(resolveEndpointKey('zai')).toBe('zai');
+    expect(resolveEndpointKey('kimi')).toBe('kimi');
     expect(resolveEndpointKey('opencode')).toBe('opencode');
     expect(resolveEndpointKey('opencode-go')).toBe('opencode-go');
     expect(resolveEndpointKey('ollama-cloud')).toBe('ollama-cloud');
@@ -77,6 +78,7 @@ describe('resolveEndpointKey', () => {
     const known = Object.keys(PROVIDER_ENDPOINTS);
     expect(known).toContain('openai');
     expect(known).toContain('anthropic');
+    expect(known).toContain('kimi');
     expect(known).toContain('google');
     expect(known).toContain('copilot');
     expect(known).toContain('openrouter');
@@ -160,6 +162,18 @@ describe('PROVIDER_ENDPOINTS', () => {
   it('anthropic buildPath returns /v1/messages', () => {
     const path = PROVIDER_ENDPOINTS['anthropic'].buildPath('claude-sonnet-4');
     expect(path).toBe('/v1/messages');
+  });
+
+  it('kimi uses Anthropic format with the coding base URL', () => {
+    const ep = PROVIDER_ENDPOINTS['kimi'];
+    expect(ep.baseUrl).toBe('https://api.kimi.com/coding');
+    expect(ep.format).toBe('anthropic');
+    expect(ep.buildPath('kimi-for-coding')).toBe('/v1/messages');
+    expect(ep.buildHeaders('sk-kimi-test')).toEqual({
+      'x-api-key': 'sk-kimi-test',
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
+    });
   });
 
   it('google buildHeaders returns Content-Type only', () => {

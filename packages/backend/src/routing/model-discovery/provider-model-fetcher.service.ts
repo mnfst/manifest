@@ -51,6 +51,7 @@ interface AnthropicModelEntry {
   id: string;
   display_name?: string;
   type?: string;
+  context_length?: number;
 }
 
 function parseAnthropic(body: unknown, provider: string): DiscoveredModel[] {
@@ -67,7 +68,7 @@ function parseAnthropic(body: unknown, provider: string): DiscoveredModel[] {
         id: entry.id,
         displayName: entry.display_name || entry.id,
         provider,
-        contextWindow: ANTHROPIC_DEFAULT_CONTEXT,
+        contextWindow: entry.context_length ?? ANTHROPIC_DEFAULT_CONTEXT,
         inputPricePerToken: null,
         outputPricePerToken: null,
         capabilityReasoning: false,
@@ -302,6 +303,14 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
       }
       return headers;
     },
+    parse: parseAnthropic,
+  },
+  kimi: {
+    endpoint: 'https://api.kimi.com/coding/v1/models',
+    buildHeaders: (key: string) => ({
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+    }),
     parse: parseAnthropic,
   },
   gemini: {

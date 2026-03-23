@@ -72,6 +72,19 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
       supportsBatching: false,
     }),
   }),
+  kimi: Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'Kimi Code subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    subscriptionTokenPrefix: 'sk-kimi-',
+    knownModels: Object.freeze(['kimi-for-coding']),
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 262144,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   'ollama-cloud': Object.freeze({
     supportsSubscription: true,
     subscriptionLabel: 'Ollama Cloud Plan',

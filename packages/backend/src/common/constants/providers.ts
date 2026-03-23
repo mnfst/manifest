@@ -80,7 +80,7 @@ export const PROVIDER_REGISTRY: readonly ProviderRegistryEntry[] = [
   {
     id: 'moonshot',
     displayName: 'Moonshot',
-    aliases: ['kimi'],
+    aliases: [],
     openRouterPrefixes: ['moonshotai'],
     requiresApiKey: true,
     localOnly: false,
@@ -123,6 +123,14 @@ export const PROVIDER_REGISTRY: readonly ProviderRegistryEntry[] = [
     aliases: [],
     openRouterPrefixes: [],
     requiresApiKey: false,
+    localOnly: false,
+  },
+  {
+    id: 'kimi',
+    displayName: 'Kimi Code',
+    aliases: [],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
     localOnly: false,
   },
   {

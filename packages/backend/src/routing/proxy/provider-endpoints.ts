@@ -36,6 +36,12 @@ const anthropicBearerHeaders = (apiKey: string): Record<string, string> => ({
   'anthropic-version': '2023-06-01',
 });
 
+const kimiHeaders = (apiKey: string): Record<string, string> => ({
+  'x-api-key': apiKey,
+  'Content-Type': 'application/json',
+  'anthropic-version': '2023-06-01',
+});
+
 /**
  * ChatGPT subscription OAuth tokens use the Codex backend,
  * which requires specific headers to avoid 403 responses.
@@ -147,6 +153,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     }),
     buildPath: () => '/chat/completions',
     format: 'openai',
+  },
+  kimi: {
+    baseUrl: 'https://api.kimi.com/coding',
+    buildHeaders: kimiHeaders,
+    buildPath: () => '/v1/messages',
+    format: 'anthropic',
   },
   openrouter: {
     baseUrl: 'https://openrouter.ai',

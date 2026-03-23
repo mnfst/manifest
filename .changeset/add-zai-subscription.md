@@ -2,4 +2,4 @@
 "manifest": patch
 ---
 
-Add Z.ai as a subscription provider for coding plan usage (token-based auth, GLM model family)
+Add Z.ai and Kimi Code as subscription providers for coding plan usage

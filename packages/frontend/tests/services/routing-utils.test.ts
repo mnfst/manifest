@@ -60,6 +60,7 @@ describe("resolveProviderId", () => {
   it("resolves by display name (case-insensitive)", () => {
     expect(resolveProviderId("Mistral")).toBe("mistral");
     expect(resolveProviderId("xAI")).toBe("xai");
+    expect(resolveProviderId("Kimi Code")).toBe("kimi");
     expect(resolveProviderId("Moonshot")).toBe("moonshot");
     expect(resolveProviderId("MiniMax")).toBe("minimax");
   });
@@ -131,7 +132,11 @@ describe("inferProviderFromModel", () => {
     expect(inferProviderFromModel("open-mistral-nemo")).toBe("mistral");
   });
 
-  it("detects Moonshot/Kimi models", () => {
+  it("detects the Kimi Code model", () => {
+    expect(inferProviderFromModel("kimi-for-coding")).toBe("kimi");
+  });
+
+  it("detects Moonshot models", () => {
     expect(inferProviderFromModel("kimi-k2")).toBe("moonshot");
     expect(inferProviderFromModel("moonshot-v1-128k")).toBe("moonshot");
   });

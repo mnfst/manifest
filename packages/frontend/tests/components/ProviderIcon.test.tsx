@@ -11,6 +11,7 @@ const KNOWN_PROVIDERS = [
   "mistral",
   "xai",
   "qwen",
+  "kimi",
   "moonshot",
   "openrouter",
   "ollama",

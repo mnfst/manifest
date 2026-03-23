@@ -26,6 +26,7 @@ describe('ProviderModelFetcherService', () => {
       'minimax',
       'minimax-subscription',
       'qwen',
+      'kimi',
       'ollama-cloud',
       'opencode',
       'opencode-go',
@@ -187,6 +188,42 @@ describe('ProviderModelFetcherService', () => {
       'https://opencode.ai/zen/v1/models',
       expect.objectContaining({
         headers: { Authorization: 'Bearer key' },
+      }),
+    );
+  });
+
+  it('should work for kimi provider and preserve context length from the Anthropic-style catalog', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'kimi-for-coding',
+            display_name: 'Kimi For Coding',
+            type: 'model',
+            context_length: 262144,
+          },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('kimi', 'sk-kimi-test');
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual(
+      expect.objectContaining({
+        id: 'kimi-for-coding',
+        displayName: 'Kimi For Coding',
+        provider: 'kimi',
+        contextWindow: 262144,
+      }),
+    );
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.kimi.com/coding/v1/models',
+      expect.objectContaining({
+        headers: {
+          'x-api-key': 'sk-kimi-test',
+          'anthropic-version': '2023-06-01',
+        },
       }),
     );
   });

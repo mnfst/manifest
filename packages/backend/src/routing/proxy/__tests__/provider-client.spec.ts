@@ -245,6 +245,41 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Kimi Code provider', () => {
+    it('routes to the Anthropic-compatible Kimi coding endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward(
+        'kimi',
+        'sk-kimi-test',
+        'kimi-for-coding',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.kimi.com/coding/v1/messages',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'x-api-key': 'sk-kimi-test',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          },
+        }),
+      );
+      expect(result.isAnthropic).toBe(true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('kimi-for-coding');
+      expect(sentBody.messages).toBeDefined();
+    });
+  });
+
   describe('Google provider', () => {
     it('uses query param auth and Gemini path', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
