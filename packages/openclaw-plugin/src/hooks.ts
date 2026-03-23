@@ -197,9 +197,19 @@ export function registerHooks(
     const provider = lastAssistant?.provider || event.provider || 'unknown';
     const usage = lastAssistant?.usage || event.usage || {};
     const inputTokens =
-      usage.input || usage.inputTokens || usage.prompt_tokens || usage.promptTokens || 0;
+      usage.input ||
+      usage.inputTokens ||
+      usage.input_tokens ||
+      usage.prompt_tokens ||
+      usage.promptTokens ||
+      0;
     const outputTokens =
-      usage.output || usage.outputTokens || usage.completion_tokens || usage.completionTokens || 0;
+      usage.output ||
+      usage.outputTokens ||
+      usage.output_tokens ||
+      usage.completion_tokens ||
+      usage.completionTokens ||
+      0;
 
     // Cache tokens: try gateway-native fields first, then OpenAI format.
     const promptDetails = usage.prompt_tokens_details || {};

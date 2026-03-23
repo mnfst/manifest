@@ -420,6 +420,30 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].provider).toBe('opencode-go');
     });
 
+    it('should qualify Ollama Cloud model ids even without duplicate collisions', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          id: 'p1',
+          provider: 'ollama-cloud',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'minimax-m2.7',
+              provider: 'ollama-cloud',
+              authType: 'subscription',
+            }),
+          ],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('ollama-cloud/minimax-m2.7');
+      expect(result[0].provider).toBe('ollama-cloud');
+    });
+
     it('should skip providers with no cached_models', async () => {
       const providers = [makeProvider({ cached_models: null })];
       providerRepo.find.mockResolvedValue(providers);
@@ -1532,6 +1556,12 @@ describe('ModelDiscoveryService', () => {
       expect(qualifyDiscoveredModelId('opencode-go', 'kimi-k2.5')).toBe('opencode-go/kimi-k2.5');
       expect(qualifyDiscoveredModelId('opencode-go', 'opencode-go/kimi-k2.5')).toBe(
         'opencode-go/kimi-k2.5',
+      );
+    });
+
+    it('should emit provider-qualified ids for Ollama Cloud models', () => {
+      expect(qualifyDiscoveredModelId('ollama-cloud', 'minimax-m2.7')).toBe(
+        'ollama-cloud/minimax-m2.7',
       );
     });
 

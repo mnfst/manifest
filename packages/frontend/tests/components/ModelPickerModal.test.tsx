@@ -559,4 +559,29 @@ describe("ModelPickerModal", () => {
     expect(screen.getByText("DeepSeek V3.2")).toBeDefined();
     expect(screen.getByText("Nemotron 3 Super")).toBeDefined();
   });
+
+  it("keeps provider-qualified Ollama Cloud models grouped correctly and forwards the qualified id", () => {
+    const providers = [
+      { id: "p1", provider: "ollama-cloud", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "ollama-cloud/minimax-m2.7", provider: "ollama-cloud", display_name: "MiniMax M2.7", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("Ollama Cloud")).toBeDefined();
+    const modelButtons = screen.getAllByText("MiniMax M2.7");
+    fireEvent.click(modelButtons[modelButtons.length - 1]);
+    expect(onSelect).toHaveBeenCalledWith("simple", "ollama-cloud/minimax-m2.7", "subscription");
+  });
 });

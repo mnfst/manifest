@@ -688,6 +688,28 @@ describe("registerHooks", () => {
       expect(outputCounter?.add).toHaveBeenCalledWith(150, expect.any(Object));
     });
 
+    it("extracts tokens from snake_case usage (input_tokens/output_tokens)", () => {
+      api.emit("message_received", { sessionKey: "sess-snake" });
+      api.emit("before_agent_start", { sessionKey: "sess-snake" });
+      api.emit("agent_end", {
+        sessionKey: "sess-snake",
+        messages: [
+          {
+            role: "assistant",
+            model: "ollama-cloud/minimax-m2.7",
+            provider: "ollama-cloud",
+            usage: { input_tokens: 1200, output_tokens: 300 },
+          },
+        ],
+      });
+
+      const inputCounter = meter.counters.get(METRICS.LLM_TOKENS_INPUT);
+      expect(inputCounter?.add).toHaveBeenCalledWith(1200, expect.any(Object));
+
+      const outputCounter = meter.counters.get(METRICS.LLM_TOKENS_OUTPUT);
+      expect(outputCounter?.add).toHaveBeenCalledWith(300, expect.any(Object));
+    });
+
     it("defaults to 'unknown' model/provider when missing", () => {
       api.emit("message_received", { sessionKey: "sess-7" });
       api.emit("before_agent_start", { sessionKey: "sess-7" });

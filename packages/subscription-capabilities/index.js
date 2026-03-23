@@ -62,6 +62,7 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
       'kimi-k2.5',
       'minimax-m2.7',
     ]),
+    alwaysQualifyModelIds: true,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 128000,
       supportsPromptCaching: false,
