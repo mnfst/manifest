@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Query } from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { RoutingService } from './routing.service';
@@ -79,8 +79,10 @@ export class RoutingController {
     try {
       await this.discoveryService.discoverModels(result);
       await this.routingService.recalculateTiers(agent.id);
-    } catch {
+    } catch (err) {
       // Discovery failure is non-fatal — user can retry via "Refresh models"
+      const msg = err instanceof Error ? err.message : String(err);
+      Logger.warn(`Model discovery failed for ${body.provider}: ${msg}`, 'RoutingController');
     }
 
     if (isNew) {
