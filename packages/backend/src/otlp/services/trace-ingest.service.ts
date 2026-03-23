@@ -676,12 +676,15 @@ export class TraceIngestService {
       select: ['provider', 'auth_type'],
     });
     const sub = new Set<string>();
+    const apiKey = new Set<string>();
     for (const r of records) {
       if (!isManifestUsableProvider(r)) continue;
       if (r.auth_type === 'subscription') sub.add(r.provider);
+      else if (r.auth_type === 'api_key') apiKey.add(r.provider);
     }
-    // Keep dual-auth providers in the set: the routing layer prefers subscription
-    // when both exist, so the OTLP heuristic should match (zero cost).
+    // When both subscription and API key exist for the same provider,
+    // remove from the subscription set: API key costs should always be shown.
+    for (const p of apiKey) sub.delete(p);
     return sub;
   }
 
