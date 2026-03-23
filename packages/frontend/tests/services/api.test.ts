@@ -1270,7 +1270,7 @@ describe("copilotDeviceCode", () => {
 describe("copilotPollToken", () => {
   it("POSTs to /routing/:agentName/copilot/poll-token with deviceCode", async () => {
     const payload = { status: "pending" };
-    mockMutateOk(payload);
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => payload });
 
     const result = await copilotPollToken("my-agent", "dc_abc");
     expect(result).toEqual(payload);
@@ -1286,11 +1286,16 @@ describe("copilotPollToken", () => {
   });
 
   it("encodes agent name in URL", async () => {
-    mockMutateOk({ status: "complete" });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ status: "complete" }) });
 
     await copilotPollToken("agent/special name", "dc_test");
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain("/routing/agent%2Fspecial%20name/copilot/poll-token");
+  });
+
+  it("throws on non-ok response without showing toast", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 503 });
+    await expect(copilotPollToken("agent", "dc_x")).rejects.toThrow("Poll failed: 503");
   });
 });
 

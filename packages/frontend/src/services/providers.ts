@@ -78,6 +78,7 @@ export const PROVIDERS: ProviderDef[] = [
     keyPlaceholder: '',
     supportsSubscription: true,
     subscriptionLabel: 'GitHub Copilot subscription',
+    subscriptionAuthMode: 'device_code',
     deviceLogin: true,
     models: [
       { label: 'Claude Opus 4', value: 'copilot/claude-opus-4' },

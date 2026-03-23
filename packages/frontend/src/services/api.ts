@@ -492,15 +492,18 @@ export function copilotDeviceCode(agentName: string) {
   );
 }
 
-export function copilotPollToken(agentName: string, deviceCode: string) {
-  return fetchMutate<{ status: CopilotPollStatus }>(
+export async function copilotPollToken(agentName: string, deviceCode: string) {
+  const res = await fetch(
     `${BASE_URL}/routing/${encodeURIComponent(agentName)}/copilot/poll-token`,
     {
+      credentials: 'include',
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ deviceCode }),
     },
   );
+  if (!res.ok) throw new Error(`Poll failed: ${res.status}`);
+  return res.json() as Promise<{ status: CopilotPollStatus }>;
 }
 
 /* -- Routing: Tier Assignments -- */

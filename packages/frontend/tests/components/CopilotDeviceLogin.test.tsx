@@ -65,7 +65,7 @@ describe("CopilotDeviceLogin", () => {
     await fireEvent.click(screen.getByText("Sign in with GitHub"));
     // Sign in button should be gone, loading spinner appears
     expect(screen.queryByText("Sign in with GitHub")).toBeNull();
-    expect(document.querySelector(".spinner")).toBeDefined();
+    expect(document.querySelector(".spinner")).toBeTruthy();
   });
 
   it("shows device code and Open GitHub button in awaiting state", async () => {
