@@ -1986,7 +1986,7 @@ describe("ProviderSelectModal", () => {
       expect(mockConnectProvider).not.toHaveBeenCalled();
     });
 
-    it("does not open device login view for connected copilot toggle (disconnects)", async () => {
+    it("opens device login detail view for connected copilot (disconnect via detail)", async () => {
       const copilotSubProvider: RoutingProvider = {
         id: "p-copilot",
         provider: "copilot",
@@ -2004,13 +2004,13 @@ describe("ProviderSelectModal", () => {
           agentName="test-agent"
         />
       ));
-      // Find and click the copilot toggle (which is ON since it's connected)
+      // Click the copilot row — always navigates to detail view
       const copilotText = screen.getByText("GitHub Copilot");
       fireEvent.click(copilotText);
 
-      // Since it's connected, handleSubscriptionToggle should call disconnectProvider
+      // Should open device login detail view (with disconnect button)
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "copilot", "subscription");
+        expect(screen.getByText("Connected via GitHub device login.")).toBeDefined();
       });
     });
   });
