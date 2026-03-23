@@ -95,8 +95,8 @@ const ProductHuntUpvoteModal: Component = () => {
             Manifest on Product Hunt
           </h2>
           <p class="product-hunt-modal__description">
-            Leave an upvote for Manifest so we can keep improving the product and growing our
-            community. Thank you 🙌
+            Manifest is open source and free to use. Support us with an upvote to help us
+            improve the product and grow the community. Thank you 🙌
           </p>
 
           <a
