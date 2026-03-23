@@ -752,9 +752,8 @@ export class TraceIngestService {
     if (inputTok === 0 && outputTok === 0) return null;
 
     const pricing = this.pricingCache.getByModel(model);
+    if (this.isSubscriptionModel(model, pricing?.provider, subOnlyProviders)) return 0;
     if (!pricing) return null;
-
-    if (this.isSubscriptionModel(model, pricing.provider, subOnlyProviders)) return 0;
 
     return (
       inputTok * Number(pricing.input_price_per_token) +

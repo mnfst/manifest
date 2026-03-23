@@ -524,7 +524,12 @@ describe("ModelPickerModal", () => {
     expect(screen.getByText("OpenCode Go")).toBeDefined();
     const glmButtons = screen.getAllByText("GLM 5");
     fireEvent.click(glmButtons[glmButtons.length - 1]);
-    expect(onSelect).toHaveBeenCalledWith("simple", "opencode-go/glm-5", "subscription");
+    expect(onSelect).toHaveBeenCalledWith(
+      "simple",
+      "opencode-go/glm-5",
+      "opencode-go",
+      "subscription"
+    );
   });
 
   it("keeps Ollama Cloud models grouped under Ollama Cloud instead of reclassifying them from the slug", () => {
@@ -578,6 +583,11 @@ describe("ModelPickerModal", () => {
     expect(screen.getByText("Ollama Cloud")).toBeDefined();
     const modelButtons = screen.getAllByText("MiniMax M2.7");
     fireEvent.click(modelButtons[modelButtons.length - 1]);
-    expect(onSelect).toHaveBeenCalledWith("simple", "ollama-cloud/minimax-m2.7", "subscription");
+    expect(onSelect).toHaveBeenCalledWith(
+      "simple",
+      "ollama-cloud/minimax-m2.7",
+      "ollama-cloud",
+      "subscription"
+    );
   });
 });

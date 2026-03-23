@@ -493,8 +493,8 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
 
-    // Dual-auth: API key takes precedence → cost is calculated (200*0.003 + 100*0.015 = 2.1)
-    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 2.1);
+    // Dual-auth providers treated as subscription during rollup too.
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 0);
   });
 
   it('calculates cost in rollup for dual-auth regardless of record order (api_key first)', async () => {
@@ -539,7 +539,7 @@ describe('TraceIngestService', () => {
 
     await service.ingest(request, testCtx);
 
-    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 2.1);
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 0);
   });
 
   it('does not treat unsupported subscription providers as zero-cost', async () => {
