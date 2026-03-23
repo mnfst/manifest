@@ -2,6 +2,11 @@
  * Infer a provider ID from a model name string.
  * Mirrors the frontend logic in services/routing-utils.ts.
  */
+const INTERNAL_PROVIDER_PREFIX_MAP: [RegExp, string][] = [
+  [/^opencode-go\//, 'opencode-go'],
+  [/^ollama-cloud\//, 'ollama-cloud'],
+];
+
 const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^openrouter\//, 'openrouter'],
   [/^claude-/, 'anthropic'],
@@ -19,8 +24,11 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
 
 export function inferProviderFromModel(model: string): string | undefined {
   if (model.startsWith('custom:')) return 'custom';
-  if (/:/.test(model) && !model.endsWith(':free')) return 'ollama';
   const lower = model.toLowerCase();
+  for (const [re, id] of INTERNAL_PROVIDER_PREFIX_MAP) {
+    if (re.test(lower)) return id;
+  }
+  if (/:/.test(model) && !model.endsWith(':free')) return 'ollama';
   for (const [re, id] of MODEL_PREFIX_MAP) {
     if (re.test(lower)) return id;
   }

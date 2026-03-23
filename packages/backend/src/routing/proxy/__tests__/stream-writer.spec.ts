@@ -484,6 +484,29 @@ describe('pipeStream', () => {
     });
   });
 
+  it('should capture usage from passthrough stream with input_tokens/output_tokens', async () => {
+    const { res } = mockResponse();
+    const usageChunk = `data: ${JSON.stringify({
+      choices: [],
+      usage: {
+        input_tokens: 420,
+        output_tokens: 84,
+        cache_read_input_tokens: 21,
+        cache_creation_input_tokens: 7,
+      },
+    })}\n\n`;
+    const stream = createReadableStream([usageChunk, 'data: [DONE]\n\n']);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(usage).toEqual({
+      prompt_tokens: 420,
+      completion_tokens: 84,
+      cache_read_tokens: 21,
+      cache_creation_tokens: 7,
+    });
+  });
+
   it('should capture usage from leftover buffer in flush section with transform', async () => {
     const { res } = mockResponse();
     const usagePayload = JSON.stringify({
@@ -544,6 +567,25 @@ describe('extractUsageFromSse', () => {
       completion_tokens: 0,
       cache_read_tokens: undefined,
       cache_creation_tokens: undefined,
+    });
+  });
+
+  it('should extract snake_case usage fields', () => {
+    const sseText = `data: ${JSON.stringify({
+      choices: [],
+      usage: {
+        input_tokens: 250,
+        output_tokens: 75,
+        cache_read_input_tokens: 20,
+        cache_creation_input_tokens: 5,
+      },
+    })}\n\n`;
+
+    expect(extractUsageFromSse(sseText)).toEqual({
+      prompt_tokens: 250,
+      completion_tokens: 75,
+      cache_read_tokens: 20,
+      cache_creation_tokens: 5,
     });
   });
 });

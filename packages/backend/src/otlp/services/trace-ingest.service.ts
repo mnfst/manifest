@@ -11,7 +11,8 @@ import { OtlpExportTraceServiceRequest, OtlpSpan, OtlpResourceSpans } from '../i
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 import { In, Not, IsNull, MoreThanOrEqual } from 'typeorm';
 import { isManifestUsableProvider } from '../../routing/subscription-support';
-import { inferProviderFromModelName } from '../../routing/provider-aliases';
+import { PROVIDER_DISPLAY_NAME_TO_ID } from '../../common/constants/providers';
+import { inferProviderFromModel } from '../../common/utils/provider-inference';
 import {
   extractAttributes,
   nanoToDatetime,
@@ -463,12 +464,8 @@ export class TraceIngestService {
       const costModel = fallbackModelOverrides?.get(messageId) ?? agg.model;
       let cost: number | null = null;
       if (costModel) {
-        // Check model prefix first (e.g. "copilot/gpt-4o" → "copilot")
-        const prefixProv = inferProviderFromModelName(costModel);
         const pricing = this.pricingCache.getByModel(costModel);
-        if (prefixProv && subOnlyProviders.has(prefixProv)) {
-          cost = 0;
-        } else if (pricing && subOnlyProviders.has(pricing.provider?.toLowerCase())) {
+        if (this.isSubscriptionModel(costModel, pricing?.provider, subOnlyProviders)) {
           cost = 0;
         } else if (
           pricing &&
@@ -615,13 +612,34 @@ export class TraceIngestService {
       attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model');
     if (!model) return null;
 
-    // Check model prefix first (e.g. "copilot/gpt-4o" → "copilot")
-    const prefixProvider = inferProviderFromModelName(model);
-    if (prefixProvider && subOnlyProviders.has(prefixProvider)) return 'subscription';
-
     const pricing = this.pricingCache.getByModel(model);
-    if (!pricing) return null;
-    return subOnlyProviders.has(pricing.provider?.toLowerCase()) ? 'subscription' : 'api_key';
+    if (this.isSubscriptionModel(model, pricing?.provider, subOnlyProviders)) return 'subscription';
+    return pricing ? 'api_key' : null;
+  }
+
+  /**
+   * Checks if a provider name (which may be a display name from the pricing
+   * cache, e.g. "Z.ai") matches a subscription-only provider ID (e.g. "zai").
+   */
+  private isSubscriptionProvider(
+    pricingProvider: string | undefined | null,
+    subOnlyProviders?: Set<string>,
+  ): boolean {
+    if (!subOnlyProviders?.size || !pricingProvider) return false;
+    const lower = pricingProvider.toLowerCase();
+    const providerId = PROVIDER_DISPLAY_NAME_TO_ID.get(lower) ?? lower;
+    return subOnlyProviders.has(providerId);
+  }
+
+  private isSubscriptionModel(
+    model: string,
+    pricingProvider: string | undefined | null,
+    subOnlyProviders?: Set<string>,
+  ): boolean {
+    if (!subOnlyProviders?.size) return false;
+    const inferredProvider = inferProviderFromModel(model);
+    if (inferredProvider && subOnlyProviders.has(inferredProvider)) return true;
+    return this.isSubscriptionProvider(pricingProvider, subOnlyProviders);
   }
 
   private buildLlmCall(
@@ -679,22 +697,19 @@ export class TraceIngestService {
     };
   }
 
-  /** Returns provider IDs that are subscription-only (no api_key counterpart) for an agent. */
+  /** Returns provider IDs that have an active subscription connection for an agent. */
   private async getSubscriptionProviders(agentId: string): Promise<Set<string>> {
     const records = await this.providerRepo.find({
       where: { agent_id: agentId, is_active: true },
       select: ['provider', 'auth_type'],
     });
     const sub = new Set<string>();
-    const apiKey = new Set<string>();
     for (const r of records) {
       if (!isManifestUsableProvider(r)) continue;
       if (r.auth_type === 'subscription') sub.add(r.provider);
-      else if (r.auth_type === 'api_key') apiKey.add(r.provider);
     }
-    // When both subscription and API key exist for the same provider,
-    // remove from the subscription set: API key costs should always be shown.
-    for (const p of apiKey) sub.delete(p);
+    // Keep dual-auth providers in the set: the routing layer prefers subscription
+    // when both exist, so the OTLP heuristic should match (zero cost).
     return sub;
   }
 
@@ -730,14 +745,10 @@ export class TraceIngestService {
     const outputTok = attrNumber(attrs, 'gen_ai.usage.output_tokens') ?? 0;
     if (inputTok === 0 && outputTok === 0) return null;
 
-    // Check model prefix first (e.g. "copilot/gpt-4o" → "copilot")
-    const prefixProvider = inferProviderFromModelName(model);
-    if (prefixProvider && subOnlyProviders?.has(prefixProvider)) return 0;
-
     const pricing = this.pricingCache.getByModel(model);
     if (!pricing) return null;
 
-    if (subOnlyProviders?.has(pricing.provider?.toLowerCase())) return 0;
+    if (this.isSubscriptionModel(model, pricing.provider, subOnlyProviders)) return 0;
 
     return (
       inputTok * Number(pricing.input_price_per_token) +

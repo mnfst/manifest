@@ -417,6 +417,127 @@ describe('ProxyController', () => {
     expect(mockMessageRepo.insert).not.toHaveBeenCalled();
   });
 
+  it('should acquire a postgres row lock before success dedup queries', async () => {
+    mockMessageManager.connection.options.type = 'postgres';
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 500, completion_tokens: 200 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: { response: mockProviderResp, isGoogle: false, isAnthropic: false },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageManager.query).toHaveBeenCalledWith(
+      'SELECT id FROM agents WHERE id = $1 FOR UPDATE',
+      ['agent-1'],
+    );
+  });
+
+  it('should default completion_tokens to 0 when missing from response', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 500 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ input_tokens: 500, output_tokens: 0 }),
+    );
+  });
+
+  it('should record success message when response uses input_tokens/output_tokens', async () => {
+    const responseBody = {
+      choices: [{ message: { content: 'hello' } }],
+      usage: {
+        input_tokens: 420,
+        output_tokens: 84,
+        cache_read_input_tokens: 21,
+        cache_creation_input_tokens: 7,
+      },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'standard',
+        model: 'ollama-cloud/glm-4.7',
+        provider: 'Ollama Cloud',
+        confidence: 0.9,
+        reason: 'scored',
+        auth_type: 'subscription',
+      },
+    });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'ollama-cloud/glm-4.7',
+        input_tokens: 420,
+        output_tokens: 84,
+        cache_read_tokens: 21,
+        cache_creation_tokens: 7,
+        auth_type: 'subscription',
+        cost_usd: 0,
+      }),
+    );
+  });
   it('should not record success message when response has no usage', async () => {
     const responseBody = { choices: [{ message: { content: 'hello' } }] };
     const mockProviderResp = new Response(JSON.stringify(responseBody), {

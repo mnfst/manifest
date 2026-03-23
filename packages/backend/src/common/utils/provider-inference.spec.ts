@@ -14,6 +14,11 @@ describe('inferProviderFromModel', () => {
     expect(inferProviderFromModel('openrouter/auto')).toBe('openrouter');
   });
 
+  it('returns internal provider ids for provider-qualified duplicate models', () => {
+    expect(inferProviderFromModel('opencode-go/glm-5')).toBe('opencode-go');
+    expect(inferProviderFromModel('ollama-cloud/glm-5')).toBe('ollama-cloud');
+  });
+
   it('returns "anthropic" for claude- prefix', () => {
     expect(inferProviderFromModel('claude-opus-4-6')).toBe('anthropic');
     expect(inferProviderFromModel('claude-3-5-sonnet-20241022')).toBe('anthropic');

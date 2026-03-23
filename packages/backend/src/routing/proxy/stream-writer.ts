@@ -7,6 +7,30 @@ export interface StreamUsage {
   cache_creation_tokens?: number;
 }
 
+function getNumber(value: unknown): number | undefined {
+  return typeof value === 'number' ? value : undefined;
+}
+
+export function normalizeUsage(
+  usage: Record<string, unknown> | null | undefined,
+): StreamUsage | null {
+  if (!usage) return null;
+
+  const promptTokens = getNumber(usage.prompt_tokens) ?? getNumber(usage.input_tokens);
+  const completionTokens = getNumber(usage.completion_tokens) ?? getNumber(usage.output_tokens);
+
+  if (promptTokens == null && completionTokens == null) return null;
+
+  return {
+    prompt_tokens: promptTokens ?? 0,
+    completion_tokens: completionTokens ?? 0,
+    cache_read_tokens:
+      getNumber(usage.cache_read_tokens) ?? getNumber(usage.cache_read_input_tokens),
+    cache_creation_tokens:
+      getNumber(usage.cache_creation_tokens) ?? getNumber(usage.cache_creation_input_tokens),
+  };
+}
+
 /** Extract usage data from an SSE-formatted text chunk (e.g. `data: {...}\n\n`). */
 export function extractUsageFromSse(sseText: string): StreamUsage | null {
   for (const line of sseText.split('\n')) {
@@ -16,14 +40,8 @@ export function extractUsageFromSse(sseText: string): StreamUsage | null {
     if (json === '[DONE]') continue;
     try {
       const obj = JSON.parse(json);
-      if (obj.usage && typeof obj.usage.prompt_tokens === 'number') {
-        return {
-          prompt_tokens: obj.usage.prompt_tokens,
-          completion_tokens: obj.usage.completion_tokens ?? 0,
-          cache_read_tokens: obj.usage.cache_read_tokens,
-          cache_creation_tokens: obj.usage.cache_creation_tokens,
-        };
-      }
+      const usage = normalizeUsage(obj.usage);
+      if (usage) return usage;
     } catch {
       /* ignore parse errors */
     }
@@ -128,14 +146,8 @@ export async function pipeStream(
           for (const ev of ptEvents) {
             try {
               const obj = JSON.parse(ev);
-              if (obj.usage && typeof obj.usage.prompt_tokens === 'number') {
-                capturedUsage = {
-                  prompt_tokens: obj.usage.prompt_tokens,
-                  completion_tokens: obj.usage.completion_tokens ?? 0,
-                  cache_read_tokens: obj.usage.cache_read_tokens,
-                  cache_creation_tokens: obj.usage.cache_creation_tokens,
-                };
-              }
+              const usage = normalizeUsage(obj.usage);
+              if (usage) capturedUsage = usage;
             } catch {
               /* ignore non-JSON events */
             }

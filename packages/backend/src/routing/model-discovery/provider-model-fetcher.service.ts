@@ -268,8 +268,23 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  opencode: {
+    endpoint: 'https://opencode.ai/zen/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  'opencode-go': {
+    endpoint: 'https://opencode.ai/zen/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   zai: {
     endpoint: 'https://open.bigmodel.cn/api/paas/v4/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  'zai-subscription': {
+    endpoint: 'https://open.bigmodel.cn/api/coding/paas/v4/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
@@ -300,6 +315,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: () => ({}),
     parse: parseOpenRouter,
   },
+  'ollama-cloud': {
+    endpoint: 'https://ollama.com/api/tags',
+    buildHeaders: bearerHeaders,
+    parse: parseOllama,
+  },
   ollama: {
     endpoint: `${OLLAMA_HOST}/api/tags`,
     buildHeaders: () => ({}),
@@ -323,6 +343,8 @@ export class ProviderModelFetcherService {
       configKey = 'openai-subscription';
     } else if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
+    } else if (configKey === 'zai' && authType === 'subscription') {
+      configKey = 'zai-subscription';
     }
     const config = PROVIDER_CONFIGS[configKey];
     if (!config) {

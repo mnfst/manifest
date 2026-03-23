@@ -162,6 +162,11 @@ describe("inferProviderFromModel", () => {
     expect(inferProviderFromModel("copilot/gemini-2.5-pro")).toBe("copilot");
   });
 
+  it("detects internal provider-qualified duplicate models", () => {
+    expect(inferProviderFromModel("opencode-go/glm-5")).toBe("opencode-go");
+    expect(inferProviderFromModel("ollama-cloud/glm-5")).toBe("ollama-cloud");
+  });
+
   it("detects vendor-prefixed models as openrouter (catch-all)", () => {
     expect(inferProviderFromModel("anthropic/claude-opus-4")).toBe("openrouter");
     expect(inferProviderFromModel("meta-llama/llama-4-maverick")).toBe("openrouter");

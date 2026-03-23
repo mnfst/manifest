@@ -2,6 +2,7 @@ import {
   PROVIDER_REGISTRY,
   PROVIDER_BY_ID,
   PROVIDER_BY_ID_OR_ALIAS,
+  PROVIDER_DISPLAY_NAME_TO_ID,
   OPENROUTER_PREFIX_TO_PROVIDER,
   ALL_PROVIDER_IDS,
   expandProviderNames,
@@ -9,8 +10,8 @@ import {
 } from './providers';
 
 describe('PROVIDER_REGISTRY', () => {
-  it('should contain exactly 13 provider entries', () => {
-    expect(PROVIDER_REGISTRY).toHaveLength(13);
+  it('should contain exactly 16 provider entries', () => {
+    expect(PROVIDER_REGISTRY).toHaveLength(16);
   });
 
   it('every entry has all required fields', () => {
@@ -72,11 +73,11 @@ describe('PROVIDER_REGISTRY', () => {
 });
 
 describe('PROVIDER_BY_ID', () => {
-  it('resolves all 13 provider IDs', () => {
+  it('resolves all 16 provider IDs', () => {
     for (const entry of PROVIDER_REGISTRY) {
       expect(PROVIDER_BY_ID.get(entry.id)).toBe(entry);
     }
-    expect(PROVIDER_BY_ID.size).toBe(13);
+    expect(PROVIDER_BY_ID.size).toBe(16);
   });
 
   it('returns undefined for an unknown ID', () => {
@@ -120,6 +121,27 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
 
   it('returns undefined for an unknown alias', () => {
     expect(PROVIDER_BY_ID_OR_ALIAS.get('nonexistent')).toBeUndefined();
+  });
+});
+
+describe('PROVIDER_DISPLAY_NAME_TO_ID', () => {
+  it('maps every display name (lowercased) to its provider ID', () => {
+    for (const entry of PROVIDER_REGISTRY) {
+      expect(PROVIDER_DISPLAY_NAME_TO_ID.get(entry.displayName.toLowerCase())).toBe(entry.id);
+    }
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.size).toBe(PROVIDER_REGISTRY.length);
+  });
+
+  it('resolves Z.ai display name to zai ID', () => {
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.get('z.ai')).toBe('zai');
+  });
+
+  it('resolves Google display name to gemini ID', () => {
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.get('google')).toBe('gemini');
+  });
+
+  it('resolves Alibaba display name to qwen ID', () => {
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.get('alibaba')).toBe('qwen');
   });
 });
 

@@ -532,7 +532,7 @@ describe("ProviderSelectModal", () => {
           authType: "api_key",
         });
       });
-      expect(toast.success).toHaveBeenCalledWith("OpenAI key updated");
+      expect(toast.success).toHaveBeenCalledWith("OpenAI API key updated");
     });
 
     it("shows validation error for invalid key in edit mode", () => {
@@ -979,7 +979,7 @@ describe("ProviderSelectModal", () => {
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       expect(
-        screen.getByText(/Use your existing subscription instead of an API key/),
+        screen.getByText(/Use your existing subscription instead of a pay-per-use API key/),
       ).toBeDefined();
     });
 
@@ -1122,7 +1122,7 @@ describe("ProviderSelectModal", () => {
           authType: "subscription",
         });
       });
-      expect(toast.success).toHaveBeenCalledWith("Anthropic token updated");
+      expect(toast.success).toHaveBeenCalledWith("Anthropic setup token updated");
     });
 
     it("opens detail view for OAuth subscription provider (OpenAI)", () => {

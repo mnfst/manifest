@@ -21,8 +21,8 @@ const ProviderSubscriptionTab: Component<Props> = (props) => {
   return (
     <>
       <div class="provider-modal__tab-hint">
-        Use your existing subscription instead of an API key. Connect via OpenClaw or paste a
-        setup-token.
+        Use your existing subscription instead of a pay-per-use API key. Connect via OpenClaw or add
+        your credentials.
       </div>
       <div class="provider-modal__disclaimer">
         <span class="provider-modal__disclaimer-label">Notice</span>

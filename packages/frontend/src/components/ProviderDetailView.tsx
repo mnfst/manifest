@@ -160,7 +160,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
                   ? 'Verify your account to connect your subscription'
                   : isCommandOnly()
                     ? 'Log in via your browser to connect your subscription'
-                    : 'Paste your setup-token to enable routing'
+                    : provDef.subscriptionCommand
+                      ? 'Paste your setup-token to enable routing'
+                      : 'Add your API key to enable routing'
               : 'Add your API keys to enable routing through each provider'}
           </div>
         </div>

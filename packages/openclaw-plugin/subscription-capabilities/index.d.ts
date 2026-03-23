@@ -13,6 +13,9 @@ export interface SubscriptionProviderConfig {
   subscriptionTokenPrefix?: string;
   subscriptionOAuth?: boolean;
   knownModels?: readonly string[];
+  knownModelMatchMode?: 'prefix' | 'exact';
+  catalogMode?: 'full' | 'known_only';
+  alwaysQualifyModelIds?: boolean;
   subscriptionCapabilities?: Readonly<SubscriptionCapabilities>;
 }
 
@@ -31,6 +34,16 @@ export declare function supportsSubscriptionProvider(providerId: string): boolea
 export declare function getSubscriptionKnownModels(
   providerId: string,
 ): readonly string[] | null;
+
+export declare function getSubscriptionKnownModelMatchMode(
+  providerId: string,
+): 'prefix' | 'exact';
+
+export declare function getSubscriptionCatalogMode(
+  providerId: string,
+): 'full' | 'known_only';
+
+export declare function shouldQualifySubscriptionModelIds(providerId: string): boolean;
 
 export declare function getSubscriptionCapabilities(
   providerId: string,
