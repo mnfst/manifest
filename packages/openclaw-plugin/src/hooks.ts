@@ -136,30 +136,51 @@ function extractUsage(
       usage?.cacheRead ||
       usage?.cacheReadTokens ||
       usage?.cache_read_tokens ||
+      usage?.cache_read_input_tokens ||
+      usage?.cached_input_tokens ||
       promptDetails.cached_tokens ||
       0,
     cacheWriteTokens:
-      usage?.cacheWrite || usage?.cacheWriteTokens || usage?.cache_creation_tokens || 0,
+      usage?.cacheWrite ||
+      usage?.cacheWriteTokens ||
+      usage?.cache_creation_tokens ||
+      usage?.cache_write_input_tokens ||
+      0,
   };
+}
+
+function hasUsageTokens(
+  usage: Pick<
+    LlmUsageSnapshot,
+    'inputTokens' | 'outputTokens' | 'cacheReadTokens' | 'cacheWriteTokens'
+  >,
+): boolean {
+  return (
+    usage.inputTokens > 0 ||
+    usage.outputTokens > 0 ||
+    usage.cacheReadTokens > 0 ||
+    usage.cacheWriteTokens > 0
+  );
 }
 
 function extractAgentEndUsage(event: any): {
   snapshot: LlmUsageSnapshot;
-  hasUsagePayload: boolean;
+  hasUsableUsage: boolean;
 } {
   const messages: any[] = event.messages || [];
   const lastAssistant = [...messages]
     .reverse()
     .find((m: any) => m?.role === 'assistant' && m.usage);
-  const usage = lastAssistant?.usage || event.usage || {};
+  const usage = extractUsage(lastAssistant?.usage || event.usage || {});
+  const snapshot = {
+    model: lastAssistant?.model || event.model || 'unknown',
+    provider: lastAssistant?.provider || event.provider || 'unknown',
+    ...usage,
+  };
 
   return {
-    snapshot: {
-      model: lastAssistant?.model || event.model || 'unknown',
-      provider: lastAssistant?.provider || event.provider || 'unknown',
-      ...extractUsage(usage),
-    },
-    hasUsagePayload: Boolean(lastAssistant?.usage || event.usage),
+    snapshot,
+    hasUsableUsage: hasUsageTokens(usage),
   };
 }
 
@@ -377,7 +398,7 @@ export function registerHooks(
     const active = activeSpans.get(sessionKey);
     if (!active) return;
 
-    const { snapshot, hasUsagePayload } = extractAgentEndUsage(event);
+    const { snapshot, hasUsableUsage } = extractAgentEndUsage(event);
     active.pendingEnd = {
       messages: event.messages || [],
       success: event.success,
@@ -389,7 +410,7 @@ export function registerHooks(
 
     const shouldFinalizeImmediately =
       Boolean(active.llmOutput) ||
-      hasUsagePayload ||
+      hasUsableUsage ||
       event.success === false ||
       (event.messages || []).length === 0;
 

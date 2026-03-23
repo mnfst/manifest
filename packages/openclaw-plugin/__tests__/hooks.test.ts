@@ -768,6 +768,85 @@ describe("registerHooks", () => {
       expect(cacheCounter?.add).toHaveBeenCalledWith(50, expect.any(Object));
     });
 
+    it("waits for llm_output when agent_end only has a placeholder usage object", () => {
+      api.emit("message_received", { sessionKey: "sess-placeholder-usage" });
+      api.emit("before_agent_start", { sessionKey: "sess-placeholder-usage" });
+
+      const rootSpan = tracer.spans[0];
+      const turnSpan = tracer.spans[1];
+
+      api.emit("agent_end", {
+        sessionKey: "sess-placeholder-usage",
+        success: true,
+        durationMs: 28200,
+        messages: [
+          { role: "user", content: "hello" },
+          {
+            role: "assistant",
+            model: "ollama-cloud/glm-4.7",
+            provider: "ollama-cloud",
+            usage: { total: 1500, cost: { total: 0 } },
+          },
+        ],
+      });
+
+      expect(turnSpan.end).not.toHaveBeenCalled();
+      expect(rootSpan.end).not.toHaveBeenCalled();
+
+      api.emit(
+        "llm_output",
+        {
+          sessionId: "session-2",
+          provider: "ollama-cloud",
+          model: "ollama-cloud/glm-4.7",
+          usage: { input: 1200, output: 300, cacheRead: 50, cacheWrite: 10 },
+        },
+        { sessionKey: "sess-placeholder-usage" },
+      );
+
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.INPUT_TOKENS]: 1200,
+          [ATTRS.OUTPUT_TOKENS]: 300,
+          [ATTRS.CACHE_READ_TOKENS]: 50,
+          [ATTRS.CACHE_WRITE_TOKENS]: 10,
+        }),
+      );
+      expect(turnSpan.end).toHaveBeenCalled();
+      expect(rootSpan.end).toHaveBeenCalled();
+    });
+
+    it("extracts cache tokens from *_input_tokens fields", () => {
+      api.emit("message_received", { sessionKey: "sess-cache-input" });
+      api.emit("before_agent_start", { sessionKey: "sess-cache-input" });
+      api.emit("agent_end", {
+        sessionKey: "sess-cache-input",
+        messages: [
+          {
+            role: "assistant",
+            model: "ollama-cloud/glm-4.7",
+            provider: "ollama-cloud",
+            usage: {
+              input_tokens: 900,
+              output_tokens: 100,
+              cache_read_input_tokens: 80,
+              cache_write_input_tokens: 20,
+            },
+          },
+        ],
+      });
+
+      const turnSpan = tracer.spans[1];
+      expect(turnSpan.setAttributes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [ATTRS.INPUT_TOKENS]: 900,
+          [ATTRS.OUTPUT_TOKENS]: 100,
+          [ATTRS.CACHE_READ_TOKENS]: 80,
+          [ATTRS.CACHE_WRITE_TOKENS]: 20,
+        }),
+      );
+    });
+
     it("defaults to 'unknown' model/provider when missing", () => {
       api.emit("message_received", { sessionKey: "sess-7" });
       api.emit("before_agent_start", { sessionKey: "sess-7" });
