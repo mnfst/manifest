@@ -47,11 +47,13 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
   const inputAriaLabel = () => `${props.provDef.name} ${credentialLabel()}`;
   const editAriaLabel = () => `New ${props.provDef.name} ${credentialLabel()}`;
   const whereToGetUrl = getRoutingProviderApiKeyUrl(props.provId);
-
-  const handleConnect = async () => {
-    const result = props.isSubMode()
+  const validateCredential = () =>
+    props.isSubMode() && !isApiKeySubscription()
       ? validateSubscriptionKey(props.provDef, props.keyInput())
       : validateApiKey(props.provDef, props.keyInput());
+
+  const handleConnect = async () => {
+    const result = validateCredential();
     if (!result.valid) {
       props.setValidationError(result.error!);
       return;
@@ -75,9 +77,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
   };
 
   const handleUpdateKey = async () => {
-    const result = props.isSubMode()
-      ? validateSubscriptionKey(props.provDef, props.keyInput())
-      : validateApiKey(props.provDef, props.keyInput());
+    const result = validateCredential();
     if (!result.valid) {
       props.setValidationError(result.error!);
       return;
