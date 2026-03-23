@@ -342,24 +342,34 @@ describe('ModelDiscoveryService', () => {
       expect(result[1].displayName).toBe('custom-llm');
     });
 
-    it('should deduplicate models by id', async () => {
+    it('should preserve overlapping variants by qualifying non-canonical provider ids', async () => {
       const providers = [
         makeProvider({
           id: 'p1',
-          provider: 'openai',
-          cached_models: [makeModel({ id: 'gpt-4' })],
+          provider: 'zai',
+          auth_type: 'subscription',
+          cached_models: [makeModel({ id: 'glm-5', provider: 'zai', authType: 'subscription' })],
         }),
         makeProvider({
           id: 'p2',
-          provider: 'deepseek',
-          cached_models: [makeModel({ id: 'gpt-4' })],
+          provider: 'opencode-go',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'glm-5',
+              provider: 'opencode-go',
+              authType: 'subscription',
+            }),
+          ],
         }),
       ];
       providerRepo.find.mockResolvedValue(providers);
       customProviderRepo.find.mockResolvedValue([]);
 
       const result = await service.getModelsForAgent('agent-1');
-      expect(result).toHaveLength(1);
+
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.id)).toEqual(['glm-5', 'opencode-go/glm-5']);
     });
 
     it('should skip providers with no cached_models', async () => {
@@ -463,6 +473,36 @@ describe('ModelDiscoveryService', () => {
       const result = await service.getModelForAgent('agent-1', 'gpt-4');
       expect(result).toBeDefined();
       expect(result!.id).toBe('gpt-4');
+    });
+
+    it('should return a provider-qualified duplicate model', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          id: 'p1',
+          provider: 'zai',
+          auth_type: 'subscription',
+          cached_models: [makeModel({ id: 'glm-5', provider: 'zai', authType: 'subscription' })],
+        }),
+        makeProvider({
+          id: 'p2',
+          provider: 'opencode-go',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'glm-5',
+              provider: 'opencode-go',
+              authType: 'subscription',
+            }),
+          ],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelForAgent('agent-1', 'opencode-go/glm-5');
+
+      expect(result).toBeDefined();
+      expect(result!.provider).toBe('opencode-go');
+      expect(result!.id).toBe('opencode-go/glm-5');
     });
 
     it('should return undefined for missing model', async () => {

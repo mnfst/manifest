@@ -504,6 +504,33 @@ describe("ModelPickerModal", () => {
     expect(screen.getByText("MiniMax M2.7")).toBeDefined();
   });
 
+  it("keeps provider-qualified OpenCode Go duplicates grouped correctly and forwards the qualified id", () => {
+    const providers = [
+      { id: "p1", provider: "zai", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+      { id: "p2", provider: "opencode-go", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "glm-5", provider: "zai", display_name: "GLM 5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "opencode-go/glm-5", provider: "opencode-go", display_name: "GLM 5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("OpenCode Go")).toBeDefined();
+    const glmButtons = screen.getAllByText("GLM 5");
+    fireEvent.click(glmButtons[glmButtons.length - 1]);
+    expect(onSelect).toHaveBeenCalledWith("simple", "opencode-go/glm-5", "subscription");
+  });
+
   it("keeps Ollama Cloud models grouped under Ollama Cloud instead of reclassifying them from the slug", () => {
     const providers = [
       { id: "p1", provider: "ollama-cloud", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },

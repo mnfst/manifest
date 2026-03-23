@@ -274,7 +274,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     parse: parseOpenAI,
   },
   'opencode-go': {
-    endpoint: 'https://opencode.ai/zen/go/v1/models',
+    endpoint: 'https://opencode.ai/zen/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },

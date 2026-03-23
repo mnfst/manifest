@@ -184,7 +184,7 @@ describe('ProviderModelFetcherService', () => {
       }),
     );
     expect(fetchSpy).toHaveBeenCalledWith(
-      'https://opencode.ai/zen/go/v1/models',
+      'https://opencode.ai/zen/v1/models',
       expect.objectContaining({
         headers: { Authorization: 'Bearer key' },
       }),
