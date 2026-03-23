@@ -197,6 +197,13 @@ export class ProviderClient {
       const sanitized = sanitizeOpenAiBody(body, endpointKey, model);
       requestBody = { ...sanitized, model: bareModel, stream };
 
+      // Ensure streaming responses include usage data so token counts are recorded.
+      // Many OpenAI-compatible providers (Ollama, DeepSeek, etc.) support this option
+      // but only return usage when explicitly asked.
+      if (stream) {
+        requestBody.stream_options = { include_usage: true };
+      }
+
       // Inject cache_control for OpenRouter requests targeting Anthropic models
       if (endpointKey === 'openrouter' && model.startsWith('anthropic/')) {
         injectOpenRouterCacheControl(requestBody);
