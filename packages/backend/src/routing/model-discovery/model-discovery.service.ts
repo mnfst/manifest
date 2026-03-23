@@ -80,12 +80,15 @@ export class ModelDiscoveryService {
         endpointOverride,
       );
 
-      // If native API returned no models, fall back to OpenRouter + manual pricing
+      // If native API returned no models, fall back to pricing data
       if (raw.length === 0) {
-        raw = buildFallbackModels(this.pricingSync, provider.provider);
+        raw =
+          provider.auth_type === 'subscription'
+            ? buildSubscriptionFallbackModels(this.pricingSync, provider.provider)
+            : buildFallbackModels(this.pricingSync, provider.provider);
         if (raw.length > 0) {
           this.logger.log(
-            `Native API returned 0 models for ${provider.provider} — using ${raw.length} models from pricing data`,
+            `Native API returned 0 models for ${provider.provider} — using ${raw.length} ${provider.auth_type === 'subscription' ? 'subscription fallback' : 'pricing'} models`,
           );
         }
       }

@@ -862,7 +862,7 @@ describe('ModelDiscoveryService', () => {
         }),
       );
 
-      // Should fall back to buildFallbackModels (not subscription fallback, since token exists)
+      // Should fall back to subscription fallback when fetcher returns empty
       expect(fetcher.fetch).toHaveBeenCalled();
       expect(result.length).toBeGreaterThanOrEqual(0);
     });
