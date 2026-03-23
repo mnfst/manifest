@@ -12,6 +12,7 @@ import { IngestionContext } from '../interfaces/ingestion-context.interface';
 import { In, Not, IsNull, MoreThanOrEqual } from 'typeorm';
 import { isManifestUsableProvider } from '../../routing/subscription-support';
 import { PROVIDER_DISPLAY_NAME_TO_ID } from '../../common/constants/providers';
+import { inferProviderFromModel } from '../../common/utils/provider-inference';
 import {
   extractAttributes,
   nanoToDatetime,
@@ -464,7 +465,7 @@ export class TraceIngestService {
       let cost: number | null = null;
       if (costModel) {
         const pricing = this.pricingCache.getByModel(costModel);
-        if (pricing && this.isSubscriptionProvider(pricing.provider, subOnlyProviders)) {
+        if (this.isSubscriptionModel(costModel, pricing?.provider, subOnlyProviders)) {
           cost = 0;
         } else if (
           pricing &&
@@ -611,10 +612,8 @@ export class TraceIngestService {
       attrString(attrs, 'gen_ai.request.model') ?? attrString(attrs, 'gen_ai.response.model');
     if (!model) return null;
     const pricing = this.pricingCache.getByModel(model);
-    if (!pricing) return null;
-    return this.isSubscriptionProvider(pricing.provider, subOnlyProviders)
-      ? 'subscription'
-      : 'api_key';
+    if (this.isSubscriptionModel(model, pricing?.provider, subOnlyProviders)) return 'subscription';
+    return pricing ? 'api_key' : null;
   }
 
   /**
@@ -629,6 +628,17 @@ export class TraceIngestService {
     const lower = pricingProvider.toLowerCase();
     const providerId = PROVIDER_DISPLAY_NAME_TO_ID.get(lower) ?? lower;
     return subOnlyProviders.has(providerId);
+  }
+
+  private isSubscriptionModel(
+    model: string,
+    pricingProvider: string | undefined | null,
+    subOnlyProviders?: Set<string>,
+  ): boolean {
+    if (!subOnlyProviders?.size) return false;
+    const inferredProvider = inferProviderFromModel(model);
+    if (inferredProvider && subOnlyProviders.has(inferredProvider)) return true;
+    return this.isSubscriptionProvider(pricingProvider, subOnlyProviders);
   }
 
   private buildLlmCall(
@@ -737,7 +747,7 @@ export class TraceIngestService {
     const pricing = this.pricingCache.getByModel(model);
     if (!pricing) return null;
 
-    if (this.isSubscriptionProvider(pricing.provider, subOnlyProviders)) return 0;
+    if (this.isSubscriptionModel(model, pricing.provider, subOnlyProviders)) return 0;
 
     return (
       inputTok * Number(pricing.input_price_per_token) +
