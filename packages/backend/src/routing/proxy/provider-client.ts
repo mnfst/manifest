@@ -34,7 +34,7 @@ const OPENAI_ONLY_FIELDS = new Set([
  * Nested message fields may still need target-aware cleanup.
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
-const STREAM_USAGE_PROVIDERS = new Set(['ollama', 'ollama-cloud']);
+const STREAM_USAGE_PROVIDERS = new Set(['deepseek', 'ollama', 'ollama-cloud']);
 const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
 function supportsReasoningContent(endpointKey: string, model: string): boolean {

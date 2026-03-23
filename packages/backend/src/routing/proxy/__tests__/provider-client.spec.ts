@@ -704,13 +704,22 @@ describe('ProviderClient', () => {
       expect(sentBody.temperature).toBe(0.7);
     });
 
-    it('does not inject stream_options for non-Ollama streaming providers', async () => {
+    it('does not inject stream_options for providers without explicit streaming usage opt-in', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward('mistral', 'sk-mi', 'mistral-small', bodyWithOpenAiFields, true);
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.stream).toBe(true);
       expect(sentBody.stream_options).toBeUndefined();
+    });
+
+    it('injects include_usage for DeepSeek streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('deepseek', 'sk-ds', 'deepseek-chat', bodyWithOpenAiFields, true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
     });
 
     it('injects include_usage for Ollama Cloud streaming requests', async () => {
