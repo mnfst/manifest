@@ -349,6 +349,64 @@ describe('Anthropic Adapter', () => {
       const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
       expect(result.tools).toBeUndefined();
     });
+
+    it('omits cache_control from system blocks when injectCacheControl is false', () => {
+      const body = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Hi' },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
+        injectCacheControl: false,
+      });
+      const system = result.system as Array<{ cache_control?: unknown }>;
+      expect(system).toHaveLength(1);
+      expect(system[0].cache_control).toBeUndefined();
+    });
+
+    it('omits top-level cache_control when injectCacheControl is false', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
+        injectCacheControl: false,
+      });
+      expect(result.cache_control).toBeUndefined();
+    });
+
+    it('omits cache_control from tools when injectCacheControl is false', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        tools: [
+          { type: 'function', function: { name: 'a', description: 'tool a' } },
+          { type: 'function', function: { name: 'b', description: 'tool b' } },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
+        injectCacheControl: false,
+      });
+      const tools = result.tools as Array<{ cache_control?: unknown }>;
+      expect(tools).toHaveLength(2);
+      expect(tools[0].cache_control).toBeUndefined();
+      expect(tools[1].cache_control).toBeUndefined();
+    });
+
+    it('injects cache_control by default when options is undefined', () => {
+      const body = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Hi' },
+        ],
+        tools: [{ type: 'function', function: { name: 'a', description: 'tool a' } }],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+      expect(result.cache_control).toEqual({ type: 'ephemeral' });
+      const system = result.system as Array<{ cache_control?: unknown }>;
+      expect(system[system.length - 1].cache_control).toEqual({ type: 'ephemeral' });
+      const tools = result.tools as Array<{ cache_control?: unknown }>;
+      expect(tools[tools.length - 1].cache_control).toEqual({ type: 'ephemeral' });
+    });
   });
 
   describe('fromAnthropicResponse', () => {

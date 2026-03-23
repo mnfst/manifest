@@ -185,6 +185,64 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.stream).toBeUndefined();
     });
+
+    it('omits cache_control from request body for subscription auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Hello' },
+        ],
+        tools: [{ type: 'function', function: { name: 'search', description: 'Search' } }],
+      };
+
+      await client.forward(
+        'anthropic',
+        'sk-ant-oat-token',
+        'claude-sonnet-4-20250514',
+        bodyWithSystem,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.cache_control).toBeUndefined();
+      const system = sentBody.system as Array<{ cache_control?: unknown }>;
+      expect(system[0].cache_control).toBeUndefined();
+      const tools = sentBody.tools as Array<{ cache_control?: unknown }>;
+      expect(tools[0].cache_control).toBeUndefined();
+    });
+
+    it('includes cache_control for regular Anthropic API key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Hello' },
+        ],
+        tools: [{ type: 'function', function: { name: 'search', description: 'Search' } }],
+      };
+
+      await client.forward(
+        'anthropic',
+        'sk-ant-key',
+        'claude-sonnet-4-20250514',
+        bodyWithSystem,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.cache_control).toEqual({ type: 'ephemeral' });
+      const system = sentBody.system as Array<{ cache_control?: unknown }>;
+      expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
+      const tools = sentBody.tools as Array<{ cache_control?: unknown }>;
+      expect(tools[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
   });
 
   describe('Google provider', () => {
