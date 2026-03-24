@@ -729,6 +729,22 @@ describe('Anthropic Adapter', () => {
       expect(result).toBeNull();
     });
 
+    it('emits tool_calls chunk for content_block_start with tool_use', () => {
+      const chunk =
+        'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_xyz","name":"get_weather","input":{}}}';
+      const result = transformAnthropicStreamChunk(chunk, 'claude-sonnet-4-20250514');
+      expect(result).not.toBeNull();
+      const data = JSON.parse(result!.replace('data: ', '').trim());
+      expect(data.choices[0].delta.tool_calls).toHaveLength(1);
+      expect(data.choices[0].delta.tool_calls[0]).toEqual({
+        index: 0,
+        id: 'toolu_xyz',
+        type: 'function',
+        function: { name: 'get_weather', arguments: '' },
+      });
+      expect(data.choices[0].finish_reason).toBeNull();
+    });
+
     it('returns null for content_block_stop event', () => {
       const chunk = 'event: content_block_stop\n{"type":"content_block_stop"}';
       const result = transformAnthropicStreamChunk(chunk, 'claude-sonnet-4-20250514');
@@ -1042,6 +1058,132 @@ describe('Anthropic Adapter', () => {
       expect(usage.usage.cache_read_tokens).toBe(10);
       expect(usage.usage.cache_creation_tokens).toBe(5);
       expect(usage.usage.prompt_tokens_details.cached_tokens).toBe(10);
+    });
+
+    it('emits tool_calls arguments chunk for input_json_delta after content_block_start', () => {
+      const transform = createAnthropicStreamTransformer('claude-sonnet-4-20250514');
+      const startChunk =
+        'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_abc","name":"search","input":{}}}';
+      transform(startChunk);
+      const deltaChunk =
+        'event: content_block_delta\n{"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\\"q\\":"}}';
+      const result = transform(deltaChunk);
+      expect(result).not.toBeNull();
+      const data = JSON.parse(result!.replace('data: ', '').trim());
+      expect(data.choices[0].delta.tool_calls).toHaveLength(1);
+      expect(data.choices[0].delta.tool_calls[0]).toEqual({
+        index: 0,
+        function: { arguments: '{"q":' },
+      });
+    });
+
+    it('emits empty arguments for input_json_delta with empty partial_json', () => {
+      const transform = createAnthropicStreamTransformer('claude-sonnet-4-20250514');
+      const startChunk =
+        'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_1","name":"run","input":{}}}';
+      transform(startChunk);
+      const deltaChunk =
+        'event: content_block_delta\n{"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}}';
+      const result = transform(deltaChunk);
+      expect(result).not.toBeNull();
+      const data = JSON.parse(result!.replace('data: ', '').trim());
+      expect(data.choices[0].delta.tool_calls[0].function.arguments).toBe('');
+    });
+
+    it('full tool stream sequence emits all chunks and finish_reason tool_calls', () => {
+      const transform = createAnthropicStreamTransformer('claude-sonnet-4-20250514');
+      const messageStart =
+        'event: message_start\n{"type":"message_start","message":{"id":"msg_1","content":[]}}';
+      const roleChunk = transform(messageStart);
+      expect(roleChunk).toContain('"role":"assistant"');
+
+      const textBlockStart =
+        'event: content_block_start\n{"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}';
+      expect(transform(textBlockStart)).toBeNull();
+
+      const textDelta =
+        'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Checking weather."}}';
+      const textResult = transform(textDelta);
+      expect(textResult).toContain('"content":"Checking weather."');
+
+      const textStop = 'event: content_block_stop\n{"type":"content_block_stop","index":0}';
+      expect(transform(textStop)).toBeNull();
+
+      const toolStart =
+        'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_01","name":"get_weather","input":{}}}';
+      const toolChunk = transform(toolStart);
+      expect(toolChunk).toContain('"tool_calls"');
+      const toolData = JSON.parse(toolChunk!.replace('data: ', '').trim());
+      expect(toolData.choices[0].delta.tool_calls[0].function.name).toBe('get_weather');
+
+      const argDelta1 =
+        'event: content_block_delta\n{"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\\"location\\":"}}';
+      transform(argDelta1);
+      const argDelta2 =
+        'event: content_block_delta\n{"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":" \\"SF\\""}}';
+      transform(argDelta2);
+
+      const toolStop = 'event: content_block_stop\n{"type":"content_block_stop","index":1}';
+      expect(transform(toolStop)).toBeNull();
+
+      const messageDelta =
+        'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":50}}';
+      const endResult = transform(messageDelta);
+      const parts = endResult!.split('\n\n').filter(Boolean);
+      const finish = JSON.parse(parts[0].replace('data: ', ''));
+      expect(finish.choices[0].finish_reason).toBe('tool_calls');
+    });
+
+    it('multiple tool calls get correct openai indices and arguments', () => {
+      const transform = createAnthropicStreamTransformer('claude-sonnet-4-20250514');
+      const start1 =
+        'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_a","name":"tool_a","input":{}}}';
+      const chunk1 = transform(start1);
+      expect(
+        JSON.parse(chunk1!.replace('data: ', '').trim()).choices[0].delta.tool_calls[0],
+      ).toMatchObject({
+        index: 0,
+        id: 'toolu_a',
+        function: { name: 'tool_a', arguments: '' },
+      });
+
+      const start2 =
+        'event: content_block_start\n{"type":"content_block_start","index":2,"content_block":{"type":"tool_use","id":"toolu_b","name":"tool_b","input":{}}}';
+      const chunk2 = transform(start2);
+      expect(
+        JSON.parse(chunk2!.replace('data: ', '').trim()).choices[0].delta.tool_calls[0],
+      ).toMatchObject({
+        index: 1,
+        id: 'toolu_b',
+        function: { name: 'tool_b', arguments: '' },
+      });
+
+      const delta1 =
+        'event: content_block_delta\n{"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\\"a\\":1}"}}';
+      const argChunk1 = transform(delta1);
+      expect(
+        JSON.parse(argChunk1!.replace('data: ', '').trim()).choices[0].delta.tool_calls[0],
+      ).toEqual({
+        index: 0,
+        function: { arguments: '{"a":1}' },
+      });
+
+      const delta2 =
+        'event: content_block_delta\n{"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"{\\"b\\":2}"}}';
+      const argChunk2 = transform(delta2);
+      expect(
+        JSON.parse(argChunk2!.replace('data: ', '').trim()).choices[0].delta.tool_calls[0],
+      ).toEqual({
+        index: 1,
+        function: { arguments: '{"b":2}' },
+      });
+    });
+
+    it('returns null for input_json_delta with unknown content block index', () => {
+      const transform = createAnthropicStreamTransformer('claude-sonnet-4-20250514');
+      const chunk =
+        'event: content_block_delta\n{"type":"content_block_delta","index":99,"delta":{"type":"input_json_delta","partial_json":"x"}}';
+      expect(transform(chunk)).toBeNull();
     });
   });
 

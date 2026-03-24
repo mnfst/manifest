@@ -275,8 +275,10 @@ export function createAnthropicStreamTransformer(model: string): (chunk: string)
   let inputTokens = 0;
   let cacheReadTokens = 0;
   let cacheCreationTokens = 0;
-  let toolCallIndex = 0;
-  const blockToToolIndex = new Map<number, number>();
+  const toolCallByContentIndex = new Map<
+    number,
+    { id: string; name: string; openaiIndex: number }
+  >();
 
   return (chunk: string): string | null => {
     const parsed = parseStreamEvent(chunk);
@@ -284,6 +286,7 @@ export function createAnthropicStreamTransformer(model: string): (chunk: string)
     const { eventType, data } = parsed;
 
     if (eventType === 'message_start' || data.type === 'message_start') {
+      toolCallByContentIndex.clear();
       const msg = data.message as Record<string, unknown> | undefined;
       const usage = msg?.usage as Record<string, number> | undefined;
       inputTokens = usage?.input_tokens ?? 0;
@@ -294,18 +297,28 @@ export function createAnthropicStreamTransformer(model: string): (chunk: string)
 
     if (eventType === 'content_block_start' || data.type === 'content_block_start') {
       const block = data.content_block as Record<string, unknown> | undefined;
-      if (block?.type === 'tool_use') {
-        const idx = toolCallIndex++;
-        blockToToolIndex.set(data.index as number, idx);
+      const contentIndex = data.index as number | undefined;
+      if (
+        block?.type === 'tool_use' &&
+        typeof block.id === 'string' &&
+        typeof block.name === 'string' &&
+        typeof contentIndex === 'number'
+      ) {
+        const openaiIndex = toolCallByContentIndex.size;
+        toolCallByContentIndex.set(contentIndex, {
+          id: block.id,
+          name: block.name,
+          openaiIndex,
+        });
         return makeChunkSse(
           model,
           {
             tool_calls: [
               {
-                index: idx,
-                id: block.id as string,
+                index: openaiIndex,
+                id: block.id,
                 type: 'function',
-                function: { name: block.name as string, arguments: '' },
+                function: { name: block.name, arguments: '' },
               },
             ],
           },
@@ -321,17 +334,19 @@ export function createAnthropicStreamTransformer(model: string): (chunk: string)
       if (delta.type === 'text_delta' && typeof delta.text === 'string') {
         return makeChunkSse(model, { content: delta.text }, null);
       }
-      if (delta.type === 'input_json_delta' && typeof delta.partial_json === 'string') {
-        const idx = blockToToolIndex.get(data.index as number);
-        if (idx !== undefined) {
-          return makeChunkSse(
-            model,
-            {
-              tool_calls: [{ index: idx, function: { arguments: delta.partial_json as string } }],
-            },
-            null,
-          );
-        }
+      if (delta.type === 'input_json_delta') {
+        const contentIndex = data.index as number | undefined;
+        const meta =
+          typeof contentIndex === 'number' ? toolCallByContentIndex.get(contentIndex) : undefined;
+        if (!meta) return null;
+        const partialJson = typeof delta.partial_json === 'string' ? delta.partial_json : '';
+        return makeChunkSse(
+          model,
+          {
+            tool_calls: [{ index: meta.openaiIndex, function: { arguments: partialJson } }],
+          },
+          null,
+        );
       }
       return null;
     }
