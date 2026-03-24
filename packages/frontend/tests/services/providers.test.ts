@@ -243,8 +243,8 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 12 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(12);
+  it("has 13 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(13);
   });
 
   it("providers are sorted alphabetically by name", () => {
@@ -289,6 +289,14 @@ describe("PROVIDERS", () => {
     expect(anthropic.subscriptionAuthMode).toBe("token");
   });
 
+  it("GitHub Copilot is subscription-only", () => {
+    const copilot = PROVIDERS.find((p) => p.id === "copilot")!;
+    expect(copilot.supportsSubscription).toBe(true);
+    expect(copilot.subscriptionOnly).toBe(true);
+    expect(copilot.deviceLogin).toBe(true);
+    expect(copilot.subscriptionAuthMode).toBe("device_code");
+  });
+
   it("MiniMax supports subscription with device-code flow", () => {
     const minimax = PROVIDERS.find((p) => p.id === "minimax")!;
     expect(minimax.supportsSubscription).toBe(true);
@@ -298,7 +306,10 @@ describe("PROVIDERS", () => {
 
   it("requires an API key URL for every provider that needs one", () => {
     const missingProviderIds = PROVIDERS.filter(
-      (provider) => !provider.noKeyRequired && !ROUTING_PROVIDER_API_KEY_URLS[provider.id],
+      (provider) =>
+        !provider.noKeyRequired &&
+        !provider.deviceLogin &&
+        !ROUTING_PROVIDER_API_KEY_URLS[provider.id],
     ).map((provider) => provider.id);
     expect(missingProviderIds).toEqual([]);
   });

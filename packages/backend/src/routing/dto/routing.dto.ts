@@ -70,8 +70,19 @@ export class SetOverrideDto {
   model!: string;
 
   @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  provider?: string;
+
+  @IsOptional()
   @IsIn(VALID_AUTH_TYPES)
   authType?: 'api_key' | 'subscription';
+}
+
+export class CopilotPollDto {
+  @IsString()
+  @IsNotEmpty()
+  deviceCode!: string;
 }
 
 export class SetFallbacksDto {

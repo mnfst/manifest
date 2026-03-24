@@ -4,7 +4,6 @@ export interface VerifyResult {
   endpointReachable: boolean;
   authValid: boolean;
   agentName: string | null;
-  telemetryId: string | null;
   error: string | null;
 }
 
@@ -14,7 +13,6 @@ export async function verifyConnection(config: ManifestConfig): Promise<VerifyRe
     endpointReachable: false,
     authValid: false,
     agentName: null,
-    telemetryId: null,
     error: null,
   };
 
@@ -56,9 +54,6 @@ export async function verifyConnection(config: ManifestConfig): Promise<VerifyRe
     const body = (await usageRes.json()) as Record<string, unknown>;
     if (body && typeof body.agentName === 'string') {
       result.agentName = body.agentName;
-    }
-    if (body && typeof body.telemetryId === 'string') {
-      result.telemetryId = body.telemetryId;
     }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

@@ -59,7 +59,7 @@
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
   line-height: 1.5;
-  background: #fbf9f3;
+  background: hsl(var(--muted));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
 }
@@ -728,4 +728,77 @@
   color: #fff;
   letter-spacing: -0.02em;
   line-height: 0;
+}
+
+/* ── Copilot Device Login ── */
+
+.copilot-device-login__code-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.copilot-device-login__code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copilot-device-login__code {
+  font-family: var(--font-mono, monospace);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: hsl(var(--foreground));
+  padding: 12px 24px;
+  background: hsl(var(--muted) / 0.5);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  user-select: all;
+}
+
+.copilot-device-login__copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px;
+  margin: -4px;
+  background: none;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.copilot-device-login__copy-btn:hover {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
+}
+
+.copilot-device-login__copy-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.copilot-device-login__open-btn {
+  margin-top: 16px;
+  text-decoration: none;
+}
+
+.copilot-device-login__waiting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  margin-top: 16px;
 }

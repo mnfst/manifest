@@ -82,6 +82,7 @@ export class TierAutoAssignService {
           agent_id: agentId,
           tier,
           override_model: null,
+          override_provider: null,
           auto_assigned_model: best?.model_name ?? null,
         });
       }

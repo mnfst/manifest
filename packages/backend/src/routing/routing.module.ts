@@ -26,6 +26,8 @@ import { ProviderClient } from './proxy/provider-client';
 import { ProxyRateLimiter } from './proxy/proxy-rate-limiter';
 import { ProxyMessageRecorder } from './proxy/proxy-message-recorder';
 import { SessionMomentumService } from './proxy/session-momentum.service';
+import { CopilotTokenService } from './proxy/copilot-token.service';
+import { CopilotDeviceAuthService } from './copilot-device-auth.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { OpenaiOauthService } from './openai-oauth.service';
@@ -70,6 +72,8 @@ import { MinimaxOauthController } from './minimax-oauth.controller';
     ProxyRateLimiter,
     ProxyMessageRecorder,
     SessionMomentumService,
+    CopilotTokenService,
+    CopilotDeviceAuthService,
     OllamaSyncService,
     OpenaiOauthService,
     MinimaxOauthService,

@@ -477,6 +477,39 @@ export function disconnectProvider(agentName: string, provider: string, authType
   return fetchMutate<{ ok: boolean; notifications: string[] }>(url, { method: 'DELETE' });
 }
 
+/* -- Routing: Copilot Device Login -- */
+
+export interface DeviceCodeResponse {
+  device_code: string;
+  user_code: string;
+  verification_uri: string;
+  expires_in: number;
+  interval: number;
+}
+
+export type CopilotPollStatus = 'pending' | 'complete' | 'expired' | 'denied' | 'slow_down';
+
+export function copilotDeviceCode(agentName: string) {
+  return fetchMutate<DeviceCodeResponse>(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/copilot/device-code`,
+    { method: 'POST' },
+  );
+}
+
+export async function copilotPollToken(agentName: string, deviceCode: string) {
+  const res = await fetch(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/copilot/poll-token`,
+    {
+      credentials: 'include',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceCode }),
+    },
+  );
+  if (!res.ok) throw new Error(`Poll failed: ${res.status}`);
+  return res.json() as Promise<{ status: CopilotPollStatus }>;
+}
+
 /* -- Routing: Tier Assignments -- */
 
 export interface TierAssignment {
@@ -484,6 +517,7 @@ export interface TierAssignment {
   agent_id: string;
   tier: string;
   override_model: string | null;
+  override_provider: string | null;
   override_auth_type: AuthType | null;
   auto_assigned_model: string | null;
   fallback_models: string[] | null;
@@ -494,13 +528,19 @@ export function getTierAssignments(agentName: string) {
   return fetchJson<TierAssignment[]>(`/routing/${encodeURIComponent(agentName)}/tiers`);
 }
 
-export function overrideTier(agentName: string, tier: string, model: string, authType?: AuthType) {
+export function overrideTier(
+  agentName: string,
+  tier: string,
+  model: string,
+  provider: string,
+  authType?: AuthType,
+) {
   return fetchMutate<TierAssignment>(
     `${BASE_URL}/routing/${encodeURIComponent(agentName)}/tiers/${encodeURIComponent(tier)}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, ...(authType && { authType }) }),
+      body: JSON.stringify({ model, provider, ...(authType && { authType }) }),
     },
   );
 }

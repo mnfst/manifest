@@ -21,7 +21,7 @@ vi.mock("../../src/services/routing-utils.js", () => ({
 import ModelPickerModal from "../../src/components/ModelPickerModal";
 
 const baseTiers = [
-  { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
+  { id: "1", user_id: "u1", tier: "simple", override_model: null, override_provider: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
 ];
 
 const baseModels = [
@@ -67,7 +67,7 @@ describe("ModelPickerModal", () => {
     const claudeButtons = screen.getAllByText("Claude Opus 4.6");
     fireEvent.click(claudeButtons[claudeButtons.length - 1]);
     // Default tab is 'api_key' when no subscription providers are connected
-    expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6", "api_key");
+    expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6", "anthropic", "api_key");
   });
 
   it("closes on overlay click", () => {
@@ -262,7 +262,7 @@ describe("ModelPickerModal", () => {
     // Default tab is 'subscription' when subscription providers exist
     const claudeButtons = screen.getAllByText("Claude Opus 4.6");
     fireEvent.click(claudeButtons[claudeButtons.length - 1]);
-    expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6", "subscription");
+    expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6", "anthropic", "subscription");
   });
 
   it("filters subscription tab to only subscription providers' models", () => {

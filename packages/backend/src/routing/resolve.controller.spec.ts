@@ -8,16 +8,14 @@ import {
 import { ResolveService } from './resolve.service';
 import { RoutingService } from './routing.service';
 import { ResolveResponse } from './dto/resolve-response';
-import * as telemetry from '../common/utils/product-telemetry';
-
-jest.mock('../common/utils/product-telemetry', () => ({
-  trackCloudEvent: jest.fn(),
-}));
 
 describe('ResolveController', () => {
   let controller: ResolveController;
   let mockResolveService: { resolve: jest.Mock };
-  let mockRoutingService: { registerSubscriptionProvider: jest.Mock };
+  let mockRoutingService: {
+    registerSubscriptionProvider: jest.Mock;
+    upsertProvider: jest.Mock;
+  };
 
   const mockResponse: ResolveResponse = {
     tier: 'simple',
@@ -35,6 +33,7 @@ describe('ResolveController', () => {
     };
     mockRoutingService = {
       registerSubscriptionProvider: jest.fn().mockResolvedValue({ isNew: true }),
+      upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
     };
     controller = new ResolveController(
       mockResolveService as unknown as ResolveService,
@@ -147,27 +146,37 @@ describe('ResolveController', () => {
       );
     });
 
-    it('should fire routing_provider_connected with (Subscription) suffix for new providers', async () => {
+    it('should pass token to upsertProvider when present', async () => {
       const req = {
         ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
       } as never;
 
-      await controller.registerSubscriptions({ providers: [{ provider: 'anthropic' }] }, req);
+      await controller.registerSubscriptions(
+        { providers: [{ provider: 'copilot', token: 'ghu_token_123' }] },
+        req,
+      );
 
-      expect(telemetry.trackCloudEvent).toHaveBeenCalledWith('routing_provider_connected', 'u1', {
-        provider: 'anthropic (Subscription)',
-      });
+      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+        'a1',
+        'u1',
+        'copilot',
+        'ghu_token_123',
+        'subscription',
+      );
     });
 
-    it('should not fire event when subscription provider already exists', async () => {
-      mockRoutingService.registerSubscriptionProvider.mockResolvedValue({ isNew: false });
+    it('should use registerSubscriptionProvider when no token', async () => {
       const req = {
         ingestionContext: { userId: 'u1', tenantId: 't1', agentId: 'a1', agentName: 'n1' },
       } as never;
 
       await controller.registerSubscriptions({ providers: [{ provider: 'anthropic' }] }, req);
 
-      expect(telemetry.trackCloudEvent).not.toHaveBeenCalled();
+      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledWith(
+        'a1',
+        'u1',
+        'anthropic',
+      );
     });
 
     it('should only count newly created providers', async () => {
@@ -185,6 +194,26 @@ describe('ResolveController', () => {
       );
 
       expect(result).toEqual({ registered: 1 });
+    });
+  });
+
+  describe('SubscriptionProviderItem with token', () => {
+    it('should accept optional token field', async () => {
+      const plain = { providers: [{ provider: 'copilot', token: 'ghu_abc' }] };
+      const dto = plainToInstance(RegisterSubscriptionsDto, plain);
+      const errors = await validate(dto);
+
+      expect(errors).toHaveLength(0);
+      expect(dto.providers[0].token).toBe('ghu_abc');
+    });
+
+    it('should accept provider without token field', async () => {
+      const plain = { providers: [{ provider: 'anthropic' }] };
+      const dto = plainToInstance(RegisterSubscriptionsDto, plain);
+      const errors = await validate(dto);
+
+      expect(errors).toHaveLength(0);
+      expect(dto.providers[0].token).toBeUndefined();
     });
   });
 });

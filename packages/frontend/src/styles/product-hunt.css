@@ -1,0 +1,160 @@
+.product-hunt-modal__overlay {
+  background:
+    radial-gradient(circle at top left, rgb(255 97 0 / 0.08), transparent 28%),
+    rgb(247 243 235 / 0.84);
+  backdrop-filter: blur(4px);
+}
+
+.dark .product-hunt-modal__overlay {
+  background:
+    radial-gradient(circle at top left, rgb(255 97 0 / 0.12), transparent 24%), rgb(0 0 0 / 0.74);
+}
+
+.product-hunt-modal__card {
+  position: relative;
+  max-width: 340px;
+  overflow: hidden;
+  border: 1px solid rgb(39 20 7 / 0.08);
+  box-shadow:
+    0 16px 38px rgb(39 20 7 / 0.12),
+    0 0 0 1px rgb(255 255 255 / 0.35) inset;
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 0.96), rgb(250 246 240 / 0.96)), hsl(var(--card));
+}
+
+.dark .product-hunt-modal__card {
+  border-color: rgb(255 255 255 / 0.08);
+  box-shadow:
+    0 18px 42px rgb(0 0 0 / 0.38),
+    0 0 0 1px rgb(255 255 255 / 0.04) inset;
+  background: linear-gradient(145deg, rgb(28 23 20 / 0.98), rgb(20 17 15 / 0.98)), hsl(var(--card));
+}
+
+.product-hunt-modal__card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgb(255 97 0 / 0.08), transparent 24%);
+  pointer-events: none;
+}
+
+.dark .product-hunt-modal__card::before {
+  background: linear-gradient(115deg, rgb(255 97 0 / 0.12), transparent 24%);
+}
+
+.product-hunt-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(39 20 7 / 0.08);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.72);
+  color: hsl(var(--muted-foreground));
+}
+
+.product-hunt-modal__close:hover {
+  transform: translateY(-1px);
+  background: rgb(255 255 255 / 0.95);
+  color: hsl(var(--foreground));
+}
+
+.dark .product-hunt-modal__close {
+  border-color: rgb(255 255 255 / 0.08);
+  background: rgb(255 255 255 / 0.05);
+}
+
+.dark .product-hunt-modal__close:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+
+.product-hunt-modal__title {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 1.28rem;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  max-width: 18ch;
+}
+
+.product-hunt-modal__description {
+  position: relative;
+  z-index: 1;
+  margin: 8px 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.88rem;
+  line-height: 1.45;
+  max-width: 34ch;
+}
+
+.product-hunt-modal__featured-badge {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  margin-top: 14px;
+  border: none;
+  border-radius: 14px;
+  background: none;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.product-hunt-modal__featured-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgb(39 20 7 / 0.08);
+}
+
+.dark .product-hunt-modal__featured-badge:hover {
+  box-shadow: 0 12px 24px rgb(0 0 0 / 0.18);
+}
+
+.product-hunt-modal__featured-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 62px;
+  min-width: 250px;
+  padding: 0;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.88);
+}
+
+.dark .product-hunt-modal__featured-frame {
+  background: rgb(255 255 255 / 0.04);
+}
+
+.product-hunt-modal__featured-frame img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+@media (max-width: 720px) {
+  .product-hunt-modal__card {
+    padding: 16px 16px 14px;
+  }
+
+  .product-hunt-modal__title {
+    max-width: 14ch;
+    font-size: 1.15rem;
+  }
+
+  .product-hunt-modal__featured-badge {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .product-hunt-modal__featured-frame {
+    min-width: 0;
+    width: 100%;
+  }
+}

@@ -242,7 +242,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     parse: parseOpenAI,
   },
   moonshot: {
-    endpoint: 'https://api.moonshot.cn/v1/models',
+    endpoint: 'https://api.moonshot.ai/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },

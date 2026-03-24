@@ -38,6 +38,7 @@ export class RoutingInvalidationService {
         `Clearing override ${tier.override_model} for agent ${tier.agent_id} tier ${tier.tier} (model removed)`,
       );
       tier.override_model = null;
+      tier.override_provider = null;
       tier.override_auth_type = null;
       tier.updated_at = new Date().toISOString();
       tiersToSave.push(tier);

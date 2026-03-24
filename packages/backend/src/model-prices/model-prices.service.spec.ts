@@ -140,6 +140,37 @@ describe('ModelPricesService', () => {
       expect(result.models[0].model_name).toBe('claude-opus-4-6');
       expect(result.models[1].model_name).toBe('gpt-4o');
     });
+
+    it('should pass through validated flag', async () => {
+      mockPricingCache.getAll.mockReturnValue([
+        {
+          model_name: 'gpt-4o',
+          provider: 'OpenAI',
+          input_price_per_token: 0.0000025,
+          output_price_per_token: 0.00001,
+          validated: true,
+        },
+        {
+          model_name: 'phantom-model',
+          provider: 'Qwen',
+          input_price_per_token: 0.001,
+          output_price_per_token: 0.002,
+          validated: false,
+        },
+        {
+          model_name: 'unknown',
+          provider: 'OpenRouter',
+          input_price_per_token: 0.001,
+          output_price_per_token: 0.002,
+        },
+      ]);
+
+      const result = await service.getAll();
+
+      expect(result.models[0].validated).toBe(true);
+      expect(result.models[1].validated).toBe(false);
+      expect(result.models[2].validated).toBeUndefined();
+    });
   });
 
   describe('triggerSync', () => {

@@ -102,7 +102,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     format: 'anthropic',
   },
   moonshot: {
-    baseUrl: 'https://api.moonshot.cn',
+    baseUrl: 'https://api.moonshot.ai',
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
@@ -124,6 +124,18 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),
     buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
+  },
+  copilot: {
+    baseUrl: 'https://api.githubcopilot.com',
+    buildHeaders: (apiKey: string) => ({
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'Editor-Version': 'vscode/1.100.0',
+      'Editor-Plugin-Version': 'copilot/1.300.0',
+      'Copilot-Integration-Id': 'vscode-chat',
+    }),
+    buildPath: () => '/chat/completions',
+    format: 'openai',
   },
   openrouter: {
     baseUrl: 'https://openrouter.ai',

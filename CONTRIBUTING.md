@@ -192,7 +192,7 @@ The plugin exposes 6 user-facing settings via `openclaw.plugin.json`. Cloud mode
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `mode` | `string` | `cloud` | Deployment model: `cloud` exports telemetry to `app.manifest.build` (default). `local` starts an embedded NestJS server backed by sql.js. (`dev` is accepted for backward compatibility but deprecated — use `devMode` instead.) |
-| `devMode` | `boolean` | auto | Development environment flag. Skips API key validation, uses faster metrics interval (10s), disables product telemetry. Auto-detected when endpoint is a loopback address and no `mnfst_*` API key is provided. |
+| `devMode` | `boolean` | auto | Development environment flag. Skips API key validation, uses faster metrics interval (10s). Auto-detected when endpoint is a loopback address and no `mnfst_*` API key is provided. |
 | `apiKey` | `string` | env `MANIFEST_API_KEY` | OTLP ingest key (must start with `mnfst_`). Required in cloud mode when `devMode` is false. Auto-generated in local mode. Ignored when `devMode` is true. |
 | `endpoint` | `string` | `https://app.manifest.build/api/v1/otlp` | Base URL for the OTLP exporters. The SDK appends `/v1/traces`, `/v1/metrics`, `/v1/logs` automatically. Only used in cloud mode — local mode overrides this to `http://{host}:{port}/otlp`. |
 | `port` | `number` | `2099` | Bind port for the embedded server (local mode only). Also used for the dashboard URL and the injected OpenAI-compatible provider config. |

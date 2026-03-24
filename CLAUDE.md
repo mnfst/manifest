@@ -6,6 +6,10 @@ Last updated: 2026-03-15
 
 When starting the app for development or testing (e.g. `/serve`), **always use `MANIFEST_MODE=local`** unless explicitly asked for cloud mode. Local mode is the primary development target — cloud mode comes second.
 
+## IMPORTANT: Plugin Must Use Cloud+Dev Mode
+
+When configuring the OpenClaw plugin to point at a local dev server (e.g. after `/serve` or `/setup-manifest-plugin`), **always use `mode: cloud` with `devMode: true`** — never `mode: local`. The plugin's `local` mode starts its own embedded server on port 2099 and ignores the external backend, which means proxy requests and telemetry bypass your dev server entirely. Cloud+dev mode connects the plugin directly to the external backend without starting an embedded server.
+
 ## Plugin Dev Mode
 
 When testing the OpenClaw plugin integration (routing, telemetry, OTLP), use **dev mode** to connect the plugin to a local backend without API key management:
@@ -97,8 +101,7 @@ packages/
 │   │   │   ├── utils/slugify.ts             # Name slugification
 │   │   │   ├── utils/url-validation.ts      # URL validation
 │   │   │   ├── utils/provider-inference.ts  # Provider detection from model names
-│   │   │   ├── utils/period.util.ts         # Time period utilities
-│   │   │   └── utils/product-telemetry.ts   # Anonymous product analytics
+│   │   │   └── utils/period.util.ts         # Time period utilities
 │   │   ├── health/                          # @Public() health check
 │   │   ├── telemetry/                       # POST /api/v1/telemetry (JSON ingestion)
 │   │   ├── analytics/                       # Dashboard analytics
@@ -145,7 +148,6 @@ packages/
 │   │   │   ├── auth-client.ts               # Better Auth SolidJS client
 │   │   │   ├── api.ts                       # API functions (credentials: include)
 │   │   │   ├── formatters.ts               # Number/cost formatting
-│   │   │   ├── analytics.ts                 # PostHog product analytics
 │   │   │   ├── provider-utils.ts            # LLM provider helpers
 │   │   │   ├── routing.ts, routing-utils.ts # Routing config helpers
 │   │   │   ├── theme.ts                     # Theme management
@@ -372,7 +374,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `SEED_DATA` — Set `true` to seed demo data on startup.
 - `MANIFEST_MODE` — `local` or `cloud` (default: `cloud`). Switches between SQLite/loopback auth and PostgreSQL/Better Auth.
 - `MANIFEST_DB_PATH` — SQLite file path for local mode (default: in-memory).
-- `MANIFEST_TELEMETRY_OPTOUT` — Set `1` to disable anonymous product analytics.
+- `MANIFEST_TELEMETRY_OPTOUT` — Set `1` to disable local-mode npm version checks.
 
 ## Domain Terminology
 
@@ -395,8 +397,6 @@ To add a new font or icon library:
 3. Reference the local CSS in `index.html` (e.g. `<link href="/fonts/..." />`)
 4. Do **not** add external domains to the CSP directives
 
-**Exception**: `connectSrc` includes `https://eu.i.posthog.com` for anonymous product analytics. This is the only external domain allowed. Opt-out via `MANIFEST_TELEMETRY_OPTOUT=1`.
-
 ## Architecture Notes
 
 - **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/otlp/*`) are excluded.
@@ -410,7 +410,6 @@ To add a new font or icon library:
 - **Validation**: Global `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`. Explicit `@Type()` decorators on numeric DTO fields.
 - **OTLP auth caching**: `OtlpAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.
 - **Database migrations**: TypeORM migrations are version-controlled in `src/database/migrations/`. `synchronize` is permanently `false`. Migrations auto-run on boot (`migrationsRun: true`) wrapped in a single transaction. The CLI DataSource is at `src/database/datasource.ts`. Better Auth manages its own tables separately via `ctx.runMigrations()`.
-- **Product analytics**: Anonymous usage tracking via PostHog (`eu.i.posthog.com`). Opt-out via `MANIFEST_TELEMETRY_OPTOUT=1`. Frontend: `services/analytics.ts`. Backend: `common/utils/product-telemetry.ts`.
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
 - **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SMTP email providers.
 - **LLM Routing**: Tier-based model routing with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`.

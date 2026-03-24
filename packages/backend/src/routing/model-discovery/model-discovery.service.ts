@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ProviderModelFetcherService } from './provider-model-fetcher.service';
+import { ProviderModelRegistryService } from './provider-model-registry.service';
 import { DiscoveredModel } from './model-fetcher';
 import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { computeQualityScore } from '../../database/quality-score.util';
@@ -39,6 +40,9 @@ export class ModelDiscoveryService {
     @Optional()
     @Inject(PricingSyncService)
     private readonly pricingSync: PricingSyncService | null,
+    @Optional()
+    @Inject(ProviderModelRegistryService)
+    private readonly modelRegistry: ProviderModelRegistryService | null,
   ) {}
 
   async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
@@ -89,10 +93,19 @@ export class ModelDiscoveryService {
         endpointOverride,
       );
 
-      // If native API returned no models, fall back to OpenRouter + manual pricing.
+      // Register confirmed model IDs from native API for future fallback filtering
+      if (raw.length > 0 && this.modelRegistry) {
+        this.modelRegistry.registerModels(
+          provider.provider,
+          raw.map((m) => m.id),
+        );
+      }
+
+      // If native API returned no models, fall back to OpenRouter filtered by confirmed models
       // Qwen is excluded because OpenRouter/pricing ids can diverge from DashScope ids.
       if (raw.length === 0 && !isQwenProvider(provider.provider)) {
-        raw = buildFallbackModels(this.pricingSync, provider.provider);
+        const confirmed = this.modelRegistry?.getConfirmedModels(provider.provider) ?? null;
+        raw = buildFallbackModels(this.pricingSync, provider.provider, confirmed);
         if (raw.length > 0) {
           this.logger.log(
             `Native API returned 0 models for ${provider.provider} — using ${raw.length} models from pricing data`,

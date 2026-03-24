@@ -14,6 +14,7 @@ export function pricePerM(perToken: number | null | undefined): string {
 const PROVIDER_ALIASES: Record<string, string> = {
   google: 'gemini',
   alibaba: 'qwen',
+  copilot: 'copilot',
   moonshot: 'moonshot',
   kimi: 'moonshot',
   meta: 'meta',
@@ -48,6 +49,7 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^minimax-/i, 'minimax'],
   [/^glm-/, 'zai'],
   [/^qwen[23]|^qwq-/, 'qwen'],
+  [/^copilot\//, 'copilot'],
   [/^[a-z][\w-]*\//, 'openrouter'],
 ];
 
