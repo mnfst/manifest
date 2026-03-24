@@ -61,28 +61,6 @@ describe("local-mode", () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  it("exposes telemetryOptOut from health response", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      json: () => Promise.resolve({ mode: "local", telemetryOptOut: true }),
-    });
-
-    const { checkLocalMode, telemetryOptOut } = await import("../../src/services/local-mode.js");
-    await checkLocalMode();
-
-    expect(telemetryOptOut()).toBe(true);
-  });
-
-  it("defaults telemetryOptOut to false", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      json: () => Promise.resolve({ mode: "cloud" }),
-    });
-
-    const { checkLocalMode, telemetryOptOut } = await import("../../src/services/local-mode.js");
-    await checkLocalMode();
-
-    expect(telemetryOptOut()).toBe(false);
-  });
-
   it("sets updateInfo when version data is present in health response", async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       json: () => Promise.resolve({

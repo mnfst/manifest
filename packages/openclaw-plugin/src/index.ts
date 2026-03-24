@@ -6,7 +6,6 @@ import { registerTools } from './tools';
 import { registerCommand } from './command';
 import { verifyConnection } from './verify';
 import { registerLocalMode, injectProviderConfig, injectAuthProfile } from './local-mode';
-import { trackPluginEvent, identifyUser } from './product-telemetry';
 import { discoverSubscriptionProviders, registerSubscriptionProviders } from './subscription';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -30,11 +29,6 @@ module.exports = {
           '  openclaw config set plugins.entries.manifest.config.mode cloud\n' +
           '  openclaw config set plugins.entries.manifest.config.devMode true',
       );
-    }
-
-    if (!config.devMode) {
-      trackPluginEvent('plugin_registered', undefined, config.mode);
-      trackPluginEvent('plugin_mode_selected', { mode: config.mode }, config.mode);
     }
 
     if (config.mode === 'local') {
@@ -122,9 +116,6 @@ module.exports = {
             if (check.error) {
               logger.warn?.(`[manifest] Connection check failed: ${check.error}`);
               return;
-            }
-            if (check.telemetryId) {
-              identifyUser(check.telemetryId);
             }
             const agent = check.agentName ? ` (agent: ${check.agentName})` : '';
             logger.info(`[manifest] Connection verified${agent}`);

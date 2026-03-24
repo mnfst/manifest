@@ -3,7 +3,6 @@ import { render } from '@react-email/render';
 import { VerifyEmailEmail } from '../notifications/emails/verify-email';
 import { ResetPasswordEmail } from '../notifications/emails/reset-password';
 import { sendEmail } from '../notifications/services/email-providers/send-email';
-import { trackCloudEvent } from '../common/utils/product-telemetry';
 import { getLocalAuthSecret } from '../common/constants/local-mode.constants';
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -125,15 +124,6 @@ const authInstance = isLocalMode
         },
       },
       trustedOrigins: buildTrustedOrigins(),
-      databaseHooks: {
-        user: {
-          create: {
-            after: async (user) => {
-              trackCloudEvent('user_registered', user.id);
-            },
-          },
-        },
-      },
     });
 export const auth = authInstance as ReturnType<typeof betterAuth> | null;
 

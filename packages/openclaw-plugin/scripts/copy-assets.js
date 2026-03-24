@@ -11,7 +11,9 @@ if (existsSync(frontendDist)) {
   });
   console.log('Copied frontend assets to public/');
 } else {
-  console.warn('Frontend dist not found — skipping asset copy. Build frontend first.');
+  console.error('ERROR: Frontend dist not found at', frontendDist);
+  console.error('Run "npm run build" from the monorepo root first.');
+  process.exit(1);
 }
 
 const backendDist = join(__dirname, '..', '..', 'backend', 'dist');
@@ -32,7 +34,9 @@ if (existsSync(backendDist)) {
   }
   console.log('Copied backend dist to dist/backend/');
 } else {
-  console.warn('Backend dist not found — skipping backend copy. Build backend first.');
+  console.error('ERROR: Backend dist not found at', backendDist);
+  console.error('Run "npm run build" from the monorepo root first.');
+  process.exit(1);
 }
 
 const subCaps = join(__dirname, '..', '..', 'subscription-capabilities');

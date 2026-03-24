@@ -46,11 +46,5 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
   const backendMain = await import(join(__dirname, BACKEND_DIR, 'main'));
   const app = await backendMain.bootstrap();
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { trackEvent } = require(
-    join(__dirname, BACKEND_DIR, 'common', 'utils', 'product-telemetry'),
-  );
-  trackEvent('server_started', { package_version: version });
-
   return app;
 }

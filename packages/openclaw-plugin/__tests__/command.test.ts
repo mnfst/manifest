@@ -32,6 +32,7 @@ describe("registerCommand", () => {
       expect.objectContaining({
         name: "manifest",
         description: expect.any(String),
+        handler: expect.any(Function),
         execute: expect.any(Function),
       }),
     );
@@ -46,12 +47,11 @@ describe("registerCommand", () => {
     );
   });
 
-  it("returns status text on successful verify", async () => {
+  it("handler returns status text on successful verify", async () => {
     mockVerify.mockResolvedValueOnce({
       endpointReachable: true,
       authValid: true,
       agentName: "test-agent",
-      telemetryId: null,
       error: null,
     });
 
@@ -59,7 +59,7 @@ describe("registerCommand", () => {
     registerCommand(api, config, mockLogger);
 
     const cmd = api.registerCommand.mock.calls[0][0];
-    const result = await cmd.execute();
+    const result = await cmd.handler();
 
     expect(result).toContain("Mode: cloud");
     expect(result).toContain("Endpoint reachable: yes");
@@ -73,7 +73,45 @@ describe("registerCommand", () => {
       endpointReachable: false,
       authValid: false,
       agentName: null,
-      telemetryId: null,
+      error: "Cannot reach endpoint: ECONNREFUSED",
+    });
+
+    const api = { registerCommand: jest.fn() };
+    registerCommand(api, config, mockLogger);
+
+    const cmd = api.registerCommand.mock.calls[0][0];
+    const result = await cmd.handler();
+
+    expect(result).toContain("Endpoint reachable: no");
+    expect(result).toContain("Error: Cannot reach endpoint: ECONNREFUSED");
+  });
+
+  it("execute returns { text, content } on successful verify", async () => {
+    mockVerify.mockResolvedValueOnce({
+      endpointReachable: true,
+      authValid: true,
+      agentName: "test-agent",
+      error: null,
+    });
+
+    const api = { registerCommand: jest.fn() };
+    registerCommand(api, config, mockLogger);
+
+    const cmd = api.registerCommand.mock.calls[0][0];
+    const result = await cmd.execute();
+
+    expect(result.text).toContain("Mode: cloud");
+    expect(result.text).toContain("Agent: test-agent");
+    expect(result.content).toEqual([
+      { type: "text", text: expect.stringContaining("Mode: cloud") },
+    ]);
+  });
+
+  it("execute wraps error status in both text and content", async () => {
+    mockVerify.mockResolvedValueOnce({
+      endpointReachable: false,
+      authValid: false,
+      agentName: null,
       error: "Cannot reach endpoint: ECONNREFUSED",
     });
 
@@ -83,11 +121,23 @@ describe("registerCommand", () => {
     const cmd = api.registerCommand.mock.calls[0][0];
     const result = await cmd.execute();
 
-    expect(result).toContain("Endpoint reachable: no");
-    expect(result).toContain("Error: Cannot reach endpoint: ECONNREFUSED");
+    expect(result.text).toContain("Endpoint reachable: no");
+    expect(result.content[0].text).toContain("Error: Cannot reach endpoint: ECONNREFUSED");
   });
 
-  it("returns error message when verify throws", async () => {
+  it("handler returns error message when verify throws", async () => {
+    mockVerify.mockRejectedValueOnce(new Error("network down"));
+
+    const api = { registerCommand: jest.fn() };
+    registerCommand(api, config, mockLogger);
+
+    const cmd = api.registerCommand.mock.calls[0][0];
+    const result = await cmd.handler();
+
+    expect(result).toContain("Manifest status check failed: network down");
+  });
+
+  it("execute wraps thrown error in text and content", async () => {
     mockVerify.mockRejectedValueOnce(new Error("network down"));
 
     const api = { registerCommand: jest.fn() };
@@ -96,17 +146,20 @@ describe("registerCommand", () => {
     const cmd = api.registerCommand.mock.calls[0][0];
     const result = await cmd.execute();
 
-    expect(result).toContain("Manifest status check failed: network down");
+    expect(result.text).toBe("Manifest status check failed: network down");
+    expect(result.content).toEqual([
+      { type: "text", text: "Manifest status check failed: network down" },
+    ]);
   });
 
-  it("returns stringified error when verify throws a non-Error value", async () => {
+  it("handler returns stringified error when verify throws a non-Error value", async () => {
     mockVerify.mockRejectedValueOnce("string-error");
 
     const api = { registerCommand: jest.fn() };
     registerCommand(api, config, mockLogger);
 
     const cmd = api.registerCommand.mock.calls[0][0];
-    const result = await cmd.execute();
+    const result = await cmd.handler();
 
     expect(result).toContain("Manifest status check failed: string-error");
   });
@@ -116,7 +169,6 @@ describe("registerCommand", () => {
       endpointReachable: true,
       authValid: true,
       agentName: null,
-      telemetryId: null,
       error: null,
     });
 
@@ -124,7 +176,7 @@ describe("registerCommand", () => {
     registerCommand(api, config, mockLogger);
 
     const cmd = api.registerCommand.mock.calls[0][0];
-    const result = await cmd.execute();
+    const result = await cmd.handler();
 
     expect(result).toContain("Mode: cloud");
     expect(result).toContain("Endpoint reachable: yes");

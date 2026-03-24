@@ -451,6 +451,97 @@ describe('TraceIngestService', () => {
     expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 0);
   });
 
+  it('calculates cost in rollup when provider has both subscription and api_key (dual-auth)', async () => {
+    mockProviderFind.mockResolvedValue([
+      { provider: 'anthropic', auth_type: 'subscription' },
+      { provider: 'anthropic', auth_type: 'api_key' },
+    ]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'anthropic',
+      input_price_per_token: 0.003,
+      output_price_per_token: 0.015,
+    });
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-dual',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-dual',
+      parentSpanId: 'span-msg-dual',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'anthropic' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-sonnet-4-20250514' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 200 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 100 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    // Dual-auth: API key takes precedence → cost is calculated (200*0.003 + 100*0.015 = 2.1)
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 2.1);
+  });
+
+  it('calculates cost in rollup for dual-auth regardless of record order (api_key first)', async () => {
+    mockProviderFind.mockResolvedValue([
+      { provider: 'anthropic', auth_type: 'api_key' },
+      { provider: 'anthropic', auth_type: 'subscription' },
+    ]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'anthropic',
+      input_price_per_token: 0.003,
+      output_price_per_token: 0.015,
+    });
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-order',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-order',
+      parentSpanId: 'span-msg-order',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'anthropic' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-sonnet-4-20250514' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 200 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 100 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 2.1);
+  });
+
   it('does not treat unsupported subscription providers as zero-cost', async () => {
     mockProviderFind.mockResolvedValue([{ provider: 'deepseek', auth_type: 'subscription' }]);
     mockPricingGetByModel.mockReturnValue({
@@ -1060,7 +1151,7 @@ describe('TraceIngestService', () => {
     ]);
   });
 
-  it('returns zero cost when provider has both subscription and api_key (dual-auth)', async () => {
+  it('returns calculated cost when provider has both subscription and api_key (dual-auth)', async () => {
     mockProviderFind.mockResolvedValue([
       { provider: 'anthropic', auth_type: 'subscription' },
       { provider: 'anthropic', auth_type: 'api_key' },
@@ -1090,9 +1181,147 @@ describe('TraceIngestService', () => {
     };
 
     await service.ingest(request, testCtx);
-    // Dual-auth providers treated as subscription (routing prefers subscription) → zero cost
+    // Dual-auth: API key takes precedence → cost is calculated, not zero
     expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ cost_usd: 0.2, auth_type: 'api_key' }),
+    ]);
+  });
+
+  it('removes dual-auth provider from subscription set regardless of record order', async () => {
+    // api_key record listed BEFORE subscription record — order should not matter
+    mockProviderFind.mockResolvedValue([
+      { provider: 'anthropic', auth_type: 'api_key' },
+      { provider: 'anthropic', auth_type: 'subscription' },
+    ]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'anthropic',
+      input_price_per_token: 0.001,
+      output_price_per_token: 0.002,
+    });
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-haiku-4.5' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ cost_usd: 0.2, auth_type: 'api_key' }),
+    ]);
+  });
+
+  it('handles mixed providers: dual-auth for one and subscription-only for another', async () => {
+    mockProviderFind.mockResolvedValue([
+      { provider: 'anthropic', auth_type: 'subscription' },
+      { provider: 'anthropic', auth_type: 'api_key' },
+      { provider: 'openai', auth_type: 'subscription' },
+    ]);
+
+    // First call for the Anthropic model span, second for the OpenAI model span
+    mockPricingGetByModel
+      .mockReturnValueOnce({
+        provider: 'anthropic',
+        input_price_per_token: 0.001,
+        output_price_per_token: 0.002,
+      })
+      .mockReturnValueOnce({
+        provider: 'anthropic',
+        input_price_per_token: 0.001,
+        output_price_per_token: 0.002,
+      })
+      .mockReturnValueOnce({
+        provider: 'openai',
+        input_price_per_token: 0.005,
+        output_price_per_token: 0.01,
+      })
+      .mockReturnValueOnce({
+        provider: 'openai',
+        input_price_per_token: 0.005,
+        output_price_per_token: 0.01,
+      });
+
+    const anthropicSpan = makeSpan({
+      spanId: 'span-anthro',
+      traceId: 'trace-anthro',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-haiku-4.5' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const openaiSpan = makeSpan({
+      spanId: 'span-oai',
+      traceId: 'trace-oai',
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [anthropicSpan, openaiSpan] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    // Anthropic is dual-auth → cost calculated; OpenAI is subscription-only → cost = 0
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ cost_usd: 0.2, auth_type: 'api_key' }),
       expect.objectContaining({ cost_usd: 0, auth_type: 'subscription' }),
+    ]);
+  });
+
+  it('calculates cost for api_key-only provider (no subscription record)', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'anthropic', auth_type: 'api_key' }]);
+    mockPricingGetByModel.mockReturnValue({
+      provider: 'anthropic',
+      input_price_per_token: 0.001,
+      output_price_per_token: 0.002,
+    });
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'claude-haiku-4.5' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ cost_usd: 0.2, auth_type: 'api_key' }),
     ]);
   });
 
@@ -2576,5 +2805,96 @@ describe('TraceIngestService', () => {
     expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ status: 'ok' })]);
     // buildDedupContext always runs all 5 batch queries upfront, plus 1 for unfilled fallback
     expect(mockTurnFind).toHaveBeenCalledTimes(6);
+  });
+
+  it('infers subscription auth_type from model prefix when provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'copilot', auth_type: 'subscription' }]);
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'copilot/gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    expect(mockTurnInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ auth_type: 'subscription' }),
+    ]);
+  });
+
+  it('sets cost to zero for prefixed model when prefix provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'copilot', auth_type: 'subscription' }]);
+
+    const span = makeSpan({
+      name: 'openclaw.agent.turn',
+      attributes: [
+        { key: 'gen_ai.request.model', value: { stringValue: 'copilot/gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 100 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 50 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [span] }],
+        },
+      ],
+    };
+
+    await service.ingest(request, testCtx);
+
+    expect(mockTurnInsert).toHaveBeenCalledWith([expect.objectContaining({ cost_usd: 0 })]);
+  });
+
+  it('sets cost to zero in rollup for prefixed model when prefix provider is subscription-only', async () => {
+    mockProviderFind.mockResolvedValue([{ provider: 'copilot', auth_type: 'subscription' }]);
+
+    const parentSpan = makeSpan({
+      spanId: 'span-msg-prefix',
+      name: 'openclaw.agent.turn',
+      attributes: [],
+    });
+
+    const llmSpan = makeSpan({
+      spanId: 'span-llm-prefix',
+      parentSpanId: 'span-msg-prefix',
+      attributes: [
+        { key: 'gen_ai.system', value: { stringValue: 'openai' } },
+        { key: 'gen_ai.request.model', value: { stringValue: 'copilot/gpt-4o' } },
+        { key: 'gen_ai.usage.input_tokens', value: { intValue: 200 } },
+        { key: 'gen_ai.usage.output_tokens', value: { intValue: 100 } },
+      ],
+    });
+
+    const request = {
+      resourceSpans: [
+        {
+          resource: { attributes: [] },
+          scopeSpans: [{ scope: { name: 'test' }, spans: [parentSpan, llmSpan] }],
+        },
+      ],
+    };
+
+    const repoInstance = (service as any).turnRepo;
+    const mockQb = repoInstance.createQueryBuilder();
+
+    await service.ingest(request, testCtx);
+
+    expect(mockQb.setParameter).toHaveBeenCalledWith('cost', 0);
   });
 });

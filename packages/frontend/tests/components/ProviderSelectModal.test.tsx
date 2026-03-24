@@ -1,10 +1,40 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 
+const broadcastChannelRegistry = new Map<string, Set<MockBroadcastChannel>>();
+
+class MockBroadcastChannel {
+  name: string;
+  onmessage: ((event: { data: unknown }) => void) | null = null;
+
+  constructor(name: string) {
+    this.name = name;
+    if (!broadcastChannelRegistry.has(name)) {
+      broadcastChannelRegistry.set(name, new Set());
+    }
+    broadcastChannelRegistry.get(name)!.add(this);
+  }
+
+  postMessage(data: unknown) {
+    const listeners = broadcastChannelRegistry.get(this.name);
+    if (!listeners) return;
+    for (const channel of listeners) {
+      if (channel === this) continue;
+      channel.onmessage?.({ data });
+    }
+  }
+
+  close() {
+    broadcastChannelRegistry.get(this.name)?.delete(this);
+  }
+}
+
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
 const mockGetOpenaiOAuthUrl = vi.fn();
+const mockPollMinimaxOAuth = vi.fn();
 const mockRevokeOpenaiOAuth = vi.fn();
+const mockStartMinimaxOAuth = vi.fn();
 const mockCreateCustomProvider = vi.fn();
 const mockUpdateCustomProvider = vi.fn();
 const mockDeleteCustomProvider = vi.fn();
@@ -13,7 +43,9 @@ vi.mock("../../src/services/api.js", () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+  pollMinimaxOAuth: (...args: unknown[]) => mockPollMinimaxOAuth(...args),
   revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+  startMinimaxOAuth: (...args: unknown[]) => mockStartMinimaxOAuth(...args),
   createCustomProvider: (...args: unknown[]) => mockCreateCustomProvider(...args),
   updateCustomProvider: (...args: unknown[]) => mockUpdateCustomProvider(...args),
   deleteCustomProvider: (...args: unknown[]) => mockDeleteCustomProvider(...args),
@@ -67,13 +99,27 @@ describe("ProviderSelectModal", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    broadcastChannelRegistry.clear();
+    vi.stubGlobal("BroadcastChannel", MockBroadcastChannel);
     mockLocalMode = false;
     onClose = vi.fn();
     onUpdate = vi.fn();
     mockConnectProvider.mockResolvedValue({});
     mockDisconnectProvider.mockResolvedValue({ notifications: [] });
     mockGetOpenaiOAuthUrl.mockResolvedValue({ url: "https://auth.openai.com/oauth/authorize?test=1" });
+    mockPollMinimaxOAuth.mockResolvedValue({
+      status: "pending",
+      message: "Waiting for MiniMax approval…",
+      pollIntervalMs: 2000,
+    });
     mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
+    mockStartMinimaxOAuth.mockResolvedValue({
+      flowId: "flow-1",
+      userCode: "ABCD-1234",
+      verificationUri: "https://www.minimax.io/verify",
+      expiresAt: Date.now() + 60_000,
+      pollIntervalMs: 2000,
+    });
   });
 
   it("renders modal with title", () => {
@@ -100,6 +146,14 @@ describe("ProviderSelectModal", () => {
     expect(screen.getByText("Google")).toBeDefined();
     expect(screen.getByText("DeepSeek")).toBeDefined();
     expect(screen.getByText("OpenRouter")).toBeDefined();
+  });
+
+  it("does not show subscription-only providers in the API Keys tab", () => {
+    render(() => (
+      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+    ));
+    fireEvent.click(screen.getByText("API Keys"));
+    expect(screen.queryByText("GitHub Copilot")).toBeNull();
   });
 
   it("shows toggle switch in 'on' state for connected providers", () => {
@@ -1155,6 +1209,447 @@ describe("ProviderSelectModal", () => {
       expect(screen.getByText("ChatGPT Plus/Pro/Team")).toBeDefined();
     });
 
+    it("shows MiniMax subscription label in list", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      expect(screen.getByText("MiniMax Coding Plan")).toBeDefined();
+    });
+
+    it("opens MiniMax device-code detail view", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("MiniMax"));
+      expect(screen.getByText("Verify your account to connect your subscription")).toBeDefined();
+      expect(screen.getByText("Connect with MiniMax")).toBeDefined();
+      expect(screen.getByLabelText("Region")).toBeDefined();
+    });
+
+    it("starts MiniMax device-code flow and shows code details", async () => {
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith("test-agent", "global");
+      });
+      expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+      expect(screen.getByDisplayValue("https://www.minimax.io/verify")).toBeDefined();
+      expect(window.open).toHaveBeenCalledWith(
+        "https://www.minimax.io/verify",
+        "_blank",
+        "noopener,noreferrer",
+      );
+
+      vi.restoreAllMocks();
+    });
+
+    it("starts MiniMax device-code flow with the selected region", async () => {
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.change(screen.getByLabelText("Region"), { target: { value: "cn" } });
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith("test-agent", "cn");
+      });
+
+      vi.restoreAllMocks();
+    });
+
+    it("shows MiniMax pending status and can reopen the verification page", async () => {
+      vi.useFakeTimers();
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+      mockPollMinimaxOAuth.mockResolvedValueOnce({
+        status: "pending",
+        message: "Waiting for MiniMax approval…",
+        pollIntervalMs: 2500,
+      });
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+      });
+
+      await vi.advanceTimersByTimeAsync(2000);
+
+      await waitFor(() => {
+        expect(mockPollMinimaxOAuth).toHaveBeenCalledWith("flow-1");
+        expect(screen.getByText("Waiting for MiniMax approval…")).toBeDefined();
+      });
+
+      fireEvent.click(screen.getByText("Open verification page"));
+
+      expect(window.open).toHaveBeenLastCalledWith(
+        "https://www.minimax.io/verify",
+        "_blank",
+        "noopener,noreferrer",
+      );
+
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    it("closes the modal when MiniMax approval succeeds", async () => {
+      vi.useFakeTimers();
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+      mockPollMinimaxOAuth.mockResolvedValueOnce({ status: "success" });
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+      });
+
+      await vi.advanceTimersByTimeAsync(2000);
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith("MiniMax subscription connected");
+        expect(onUpdate).toHaveBeenCalled();
+        expect(onClose).toHaveBeenCalled();
+      });
+
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    it("shows MiniMax poll errors inline", async () => {
+      vi.useFakeTimers();
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+      mockPollMinimaxOAuth.mockResolvedValueOnce({
+        status: "error",
+        message: "MiniMax rejected the login",
+      });
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+      });
+
+      await vi.advanceTimersByTimeAsync(2000);
+
+      await waitFor(() => {
+        expect(screen.getByText("MiniMax rejected the login")).toBeDefined();
+      });
+      expect(onClose).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    it("shows a retry message when MiniMax polling throws", async () => {
+      vi.useFakeTimers();
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+      mockPollMinimaxOAuth.mockRejectedValueOnce(new Error("network error"));
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+      });
+
+      await vi.advanceTimersByTimeAsync(2000);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Failed to check approval status. Start again to retry."),
+        ).toBeDefined();
+      });
+
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    it("shows an expiry message instead of polling expired MiniMax codes", async () => {
+      vi.useFakeTimers();
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+      mockStartMinimaxOAuth.mockResolvedValueOnce({
+        flowId: "expired-flow",
+        userCode: "EXPIRED-1234",
+        verificationUri: "https://www.minimax.io/verify",
+        expiresAt: Date.now() - 1,
+        pollIntervalMs: 1,
+      });
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("EXPIRED-1234")).toBeDefined();
+      });
+
+      await vi.advanceTimersByTimeAsync(1);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("This verification code expired. Start again to generate a new one."),
+        ).toBeDefined();
+      });
+      expect(mockPollMinimaxOAuth).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    it("keeps MiniMax in setup mode when starting the device-code flow fails", async () => {
+      mockStartMinimaxOAuth.mockRejectedValueOnce(new Error("MiniMax unavailable"));
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith("test-agent", "global");
+      });
+      expect(screen.queryByDisplayValue("ABCD-1234")).toBeNull();
+      expect(screen.getByText("Connect with MiniMax")).toBeDefined();
+    });
+
+    it("shows Disconnect button for connected MiniMax subscription", () => {
+      const subProvider: RoutingProvider = {
+        id: "p-minimax-sub",
+        provider: "minimax",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: '{"t":"mm',
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText("MiniMax"));
+      expect(screen.getByText("Disconnect")).toBeDefined();
+      expect(screen.getByText(/Connected via MiniMax Coding Plan/)).toBeDefined();
+    });
+
+    it("disconnects MiniMax without revoking OpenAI OAuth", async () => {
+      const subProvider: RoutingProvider = {
+        id: "p-minimax-sub",
+        provider: "minimax",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: '{"t":"mm',
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Disconnect"));
+
+      await waitFor(() => {
+        expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "minimax", "subscription");
+      });
+      expect(mockRevokeOpenaiOAuth).not.toHaveBeenCalled();
+    });
+
+    it("shows MiniMax disconnect notifications as error toasts", async () => {
+      mockDisconnectProvider.mockResolvedValueOnce({
+        notifications: ["MiniMax tiers were recalculated."],
+      });
+      const subProvider: RoutingProvider = {
+        id: "p-minimax-sub",
+        provider: "minimax",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: '{"t":"mm',
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[subProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Disconnect"));
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith("MiniMax tiers were recalculated.");
+      });
+      expect(mockRevokeOpenaiOAuth).not.toHaveBeenCalled();
+    });
+
+    it("ignores stale MiniMax poll results while a replacement flow is still starting", async () => {
+      vi.useFakeTimers();
+      const openSpy = vi
+        .spyOn(window, "open")
+        .mockReturnValue({ closed: false } as unknown as Window);
+
+      let resolveFirstPoll: ((value: { status: string; message?: string; pollIntervalMs?: number }) => void) | undefined;
+      let resolveSecondStart:
+        | ((value: {
+            flowId: string;
+            userCode: string;
+            verificationUri: string;
+            expiresAt: number;
+            pollIntervalMs: number;
+          }) => void)
+        | undefined;
+      mockStartMinimaxOAuth
+        .mockResolvedValueOnce({
+          flowId: "flow-1",
+          userCode: "ABCD-1234",
+          verificationUri: "https://www.minimax.io/verify",
+          expiresAt: Date.now() + 60_000,
+          pollIntervalMs: 2000,
+        })
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveSecondStart = resolve;
+            }),
+        );
+      mockPollMinimaxOAuth.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstPoll = resolve;
+          }),
+      );
+
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+      });
+
+      await vi.advanceTimersByTimeAsync(2000);
+      await waitFor(() => {
+        expect(mockPollMinimaxOAuth).toHaveBeenCalledWith("flow-1");
+      });
+
+      fireEvent.click(screen.getByText("Start over"));
+
+      await waitFor(() => {
+        expect(mockStartMinimaxOAuth).toHaveBeenCalledTimes(2);
+      });
+
+      resolveFirstPoll?.({ status: "success" });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(onClose).not.toHaveBeenCalled();
+      expect(onUpdate).not.toHaveBeenCalled();
+      expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+
+      resolveSecondStart?.({
+        flowId: "flow-2",
+        userCode: "WXYZ-9876",
+        verificationUri: "https://www.minimax.io/verify-2",
+        expiresAt: Date.now() + 60_000,
+        pollIntervalMs: 2000,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("WXYZ-9876")).toBeDefined();
+      });
+
+      vi.useRealTimers();
+      openSpy.mockRestore();
+    });
+
+    it("stops MiniMax polling after the modal unmounts", async () => {
+      vi.useFakeTimers();
+      vi.spyOn(window, "open").mockReturnValue({ closed: false } as unknown as Window);
+
+      let resolveFirstPoll:
+        | ((value: { status: string; message?: string; pollIntervalMs?: number }) => void)
+        | undefined;
+      mockPollMinimaxOAuth.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstPoll = resolve;
+          }),
+      );
+
+      const view = render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+
+      fireEvent.click(screen.getByText("MiniMax"));
+      fireEvent.click(screen.getByText("Connect with MiniMax"));
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("ABCD-1234")).toBeDefined();
+      });
+
+      await vi.advanceTimersByTimeAsync(2000);
+      await waitFor(() => {
+        expect(mockPollMinimaxOAuth).toHaveBeenCalledTimes(1);
+      });
+
+      view.unmount();
+      resolveFirstPoll?.({ status: "pending", pollIntervalMs: 2000 });
+      await Promise.resolve();
+      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(4000);
+
+      expect(mockPollMinimaxOAuth).toHaveBeenCalledTimes(1);
+
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
     it("does not show paste field for OAuth provider", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
@@ -1478,6 +1973,53 @@ describe("ProviderSelectModal", () => {
       expect(onUpdate).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
+    });
+
+    it("opens device login view for copilot instead of toggling directly", async () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      // Find the copilot row and click its toggle area
+      const copilotText = screen.getByText("GitHub Copilot");
+      expect(copilotText).toBeDefined();
+
+      // Click the Copilot row (toggle)
+      fireEvent.click(copilotText);
+
+      // Should open device login detail view instead of calling connectProvider
+      await waitFor(() => {
+        expect(screen.getByText("Sign in with GitHub to connect Copilot")).toBeDefined();
+      });
+      // connectProvider should NOT have been called (device login guard)
+      expect(mockConnectProvider).not.toHaveBeenCalled();
+    });
+
+    it("opens device login detail view for connected copilot (disconnect via detail)", async () => {
+      const copilotSubProvider: RoutingProvider = {
+        id: "p-copilot",
+        provider: "copilot",
+        is_active: true,
+        has_api_key: true,
+        key_prefix: "ghu_",
+        connected_at: "2025-01-01",
+        auth_type: "subscription",
+      };
+      render(() => (
+        <ProviderSelectModal
+          providers={[copilotSubProvider]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      // Click the copilot row — always navigates to detail view
+      const copilotText = screen.getByText("GitHub Copilot");
+      fireEvent.click(copilotText);
+
+      // Should open device login detail view (with disconnect button)
+      await waitFor(() => {
+        expect(screen.getByText("Connected via GitHub device login.")).toBeDefined();
+      });
     });
   });
 

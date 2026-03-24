@@ -1,5 +1,6 @@
 import { ModelDiscoveryService } from './model-discovery.service';
 import { ProviderModelFetcherService } from './provider-model-fetcher.service';
+import { ProviderModelRegistryService } from './provider-model-registry.service';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { DiscoveredModel } from './model-fetcher';
@@ -88,6 +89,10 @@ describe('ModelDiscoveryService', () => {
   let customProviderRepo: ReturnType<typeof makeMockRepo>;
   let fetcher: { fetch: jest.Mock };
   let mockPricingSync: { lookupPricing: jest.Mock; getAll: jest.Mock };
+  let mockModelRegistry: {
+    registerModels: jest.Mock;
+    getConfirmedModels: jest.Mock;
+  };
 
   beforeEach(() => {
     providerRepo = makeMockRepo();
@@ -96,6 +101,10 @@ describe('ModelDiscoveryService', () => {
     mockPricingSync = {
       lookupPricing: jest.fn().mockReturnValue(null),
       getAll: jest.fn().mockReturnValue(new Map()),
+    };
+    mockModelRegistry = {
+      registerModels: jest.fn(),
+      getConfirmedModels: jest.fn().mockReturnValue(null),
     };
 
     mockDecrypt.mockReturnValue('decrypted-key');
@@ -107,6 +116,7 @@ describe('ModelDiscoveryService', () => {
       customProviderRepo as never,
       fetcher as unknown as ProviderModelFetcherService,
       mockPricingSync as never,
+      mockModelRegistry as unknown as ProviderModelRegistryService,
     );
   });
 
@@ -126,7 +136,7 @@ describe('ModelDiscoveryService', () => {
 
       expect(mockGetSecret).toHaveBeenCalled();
       expect(mockDecrypt).toHaveBeenCalledWith('encrypted-key', expect.any(String));
-      expect(fetcher.fetch).toHaveBeenCalledWith('openai', 'decrypted-key', 'api_key');
+      expect(fetcher.fetch).toHaveBeenCalledWith('openai', 'decrypted-key', 'api_key', undefined);
       expect(result).toHaveLength(1);
       expect(provider.cached_models).toEqual(result);
       expect(provider.models_fetched_at).toBeDefined();
@@ -150,7 +160,7 @@ describe('ModelDiscoveryService', () => {
       await service.discoverModels(provider);
 
       expect(mockDecrypt).not.toHaveBeenCalled();
-      expect(fetcher.fetch).toHaveBeenCalledWith('openai', '', 'api_key');
+      expect(fetcher.fetch).toHaveBeenCalledWith('openai', '', 'api_key', undefined);
     });
 
     it('should enrich models with openRouter pricing when available', async () => {
@@ -224,6 +234,7 @@ describe('ModelDiscoveryService', () => {
         customProviderRepo as never,
         fetcher as unknown as ProviderModelFetcherService,
         null,
+        null,
       );
 
       const models = [makeModel({ id: 'some-model' })];
@@ -270,6 +281,63 @@ describe('ModelDiscoveryService', () => {
         expect.objectContaining({ model_name: 'gpt-4' }),
       );
       expect(result[0].qualityScore).toBe(5);
+    });
+
+    it('should register models in registry after successful native fetch', async () => {
+      const models = [makeModel({ id: 'gpt-4o' }), makeModel({ id: 'gpt-4-turbo' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      await service.discoverModels(makeProvider());
+
+      expect(mockModelRegistry.registerModels).toHaveBeenCalledWith('openai', [
+        'gpt-4o',
+        'gpt-4-turbo',
+      ]);
+    });
+
+    it('should not register models when native fetch returns empty', async () => {
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(makeProvider());
+
+      expect(mockModelRegistry.registerModels).not.toHaveBeenCalled();
+    });
+
+    it('should pass confirmed models to buildFallbackModels when native fetch fails', async () => {
+      fetcher.fetch.mockResolvedValue([]);
+      const confirmed = new Set(['gpt-4o']);
+      mockModelRegistry.getConfirmedModels.mockReturnValue(confirmed);
+
+      // Set up OpenRouter cache with matching models
+      const orMap = new Map([
+        ['openai/gpt-4o', { input: 0.01, output: 0.02, displayName: 'GPT-4o' }],
+        ['openai/phantom', { input: 0.01, output: 0.02, displayName: 'Phantom' }],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(mockModelRegistry.getConfirmedModels).toHaveBeenCalledWith('openai');
+      // Only confirmed model should be in fallback
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('gpt-4o');
+    });
+
+    it('should not call registry when modelRegistry is null', async () => {
+      const serviceNoRegistry = new ModelDiscoveryService(
+        providerRepo as never,
+        customProviderRepo as never,
+        fetcher as unknown as ProviderModelFetcherService,
+        mockPricingSync as never,
+        null,
+      );
+
+      const models = [makeModel({ id: 'gpt-4o' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      await serviceNoRegistry.discoverModels(makeProvider());
+
+      expect(mockModelRegistry.registerModels).not.toHaveBeenCalled();
     });
   });
 
@@ -715,11 +783,11 @@ describe('ModelDiscoveryService', () => {
       const result = await service.discoverModels(makeProvider({ provider: 'anthropic' }));
 
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('claude-opus-4.6');
+      expect(result[0].id).toBe('claude-opus-4-6');
       expect(result[0].displayName).toBe('Claude Opus 4.6');
       expect(result[0].inputPricePerToken).toBe(0.000015);
       expect(result[0].provider).toBe('anthropic');
-      expect(result[1].id).toBe('claude-sonnet-4.6');
+      expect(result[1].id).toBe('claude-sonnet-4-6');
     });
 
     it('should unwrap OAuth blob for OpenAI subscription before fetching', async () => {
@@ -742,7 +810,12 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Should pass the unwrapped access token, not the JSON blob
-      expect(fetcher.fetch).toHaveBeenCalledWith('openai', 'access-token-123', 'subscription');
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'openai',
+        'access-token-123',
+        'subscription',
+        undefined,
+      );
     });
 
     it('should use raw key when OpenAI subscription blob has no t field', async () => {
@@ -760,7 +833,7 @@ describe('ModelDiscoveryService', () => {
       );
 
       // No `t` field — should use the raw JSON string
-      expect(fetcher.fetch).toHaveBeenCalledWith('openai', blob, 'subscription');
+      expect(fetcher.fetch).toHaveBeenCalledWith('openai', blob, 'subscription', undefined);
     });
 
     it('should use raw key when OpenAI subscription value is not JSON', async () => {
@@ -776,7 +849,12 @@ describe('ModelDiscoveryService', () => {
         }),
       );
 
-      expect(fetcher.fetch).toHaveBeenCalledWith('openai', 'plain-token-value', 'subscription');
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'openai',
+        'plain-token-value',
+        'subscription',
+        undefined,
+      );
     });
 
     it('should not unwrap blob for non-OpenAI subscription providers', async () => {
@@ -794,7 +872,34 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Should pass the raw JSON string for Anthropic (no unwrapping)
-      expect(fetcher.fetch).toHaveBeenCalledWith('anthropic', blob, 'subscription');
+      expect(fetcher.fetch).toHaveBeenCalledWith('anthropic', blob, 'subscription', undefined);
+    });
+
+    it('should unwrap MiniMax OAuth blob and forward resource URL for subscription discovery', async () => {
+      const blob = JSON.stringify({
+        t: 'minimax-access',
+        r: 'minimax-refresh',
+        e: Date.now() + 60000,
+        u: 'https://api.minimax.io/anthropic',
+      });
+      mockDecrypt.mockReturnValue(blob);
+
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'minimax',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-blob',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'minimax',
+        'minimax-access',
+        'subscription',
+        'https://api.minimax.io/anthropic',
+      );
     });
 
     it('should fall back to subscription fallback when OpenAI token fetch returns empty', async () => {
@@ -1002,6 +1107,7 @@ describe('ModelDiscoveryService', () => {
         customProviderRepo as never,
         fetcher as unknown as ProviderModelFetcherService,
         null,
+        null,
       );
 
       const result = await serviceNoPricing.discoverModels(
@@ -1204,6 +1310,26 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].provider).toBe('anthropic');
     });
 
+    it('should normalize Anthropic short-form dot ids from OpenRouter to dash ids', () => {
+      const orMap = new Map([
+        [
+          'anthropic/claude-sonnet-4.6',
+          {
+            input: 0.000003,
+            output: 0.000015,
+            contextWindow: 200000,
+            displayName: 'Claude Sonnet 4.6',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+
+      expect(result.map((m) => m.id)).toContain('claude-sonnet-4-6');
+      expect(result.map((m) => m.id)).not.toContain('claude-sonnet-4.6');
+    });
+
     it('should apply maxContextWindow cap from subscription capabilities', () => {
       const orMap = new Map([
         [
@@ -1297,6 +1423,18 @@ describe('ModelDiscoveryService', () => {
         expect(m.outputPricePerToken).toBe(0);
       }
     });
+
+    it('should preserve MiniMax model casing in subscription fallback models', () => {
+      const result = buildSubscriptionFallbackModels(null as never, 'minimax');
+
+      expect(result.map((m) => m.id)).toEqual([
+        'MiniMax-M2.5',
+        'MiniMax-M2.5-highspeed',
+        'MiniMax-M2.1',
+        'MiniMax-M2.1-highspeed',
+        'MiniMax-M2',
+      ]);
+    });
   });
 
   /* ── supplementWithKnownModels ── */
@@ -1357,6 +1495,18 @@ describe('ModelDiscoveryService', () => {
         expect(m.inputPricePerToken).toBe(0);
         expect(m.outputPricePerToken).toBe(0);
       }
+    });
+
+    it('should supplement MiniMax known models with documented casing', () => {
+      const raw: DiscoveredModel[] = [
+        makeModel({ id: 'MiniMax-M2.5-highspeed', provider: 'minimax' }),
+      ];
+
+      const result = supplementWithKnownModels(raw, 'minimax');
+
+      expect(result.map((m) => m.id)).toContain('MiniMax-M2.1');
+      expect(result.map((m) => m.id)).toContain('MiniMax-M2');
+      expect(result.map((m) => m.id)).not.toContain('MiniMax-M2.5');
     });
   });
 });

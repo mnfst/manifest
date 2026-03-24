@@ -21,6 +21,36 @@ export interface SubscriptionProvider {
   manifestId: string;
   /** Auth type in OpenClaw (e.g. "oauth", "setup_token", "device_login") */
   authType: string;
+  /** Access token extracted from auth-profile (e.g. Copilot device-login token). */
+  token?: string;
+}
+
+interface FetchResponseLike {
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+}
+
+type FetchLike = (
+  input: string,
+  init?: {
+    method?: string;
+    headers?: Record<string, string>;
+    body?: string;
+    signal?: unknown;
+  },
+) => Promise<FetchResponseLike>;
+
+function getFetch(): FetchLike | null {
+  return (globalThis as typeof globalThis & { fetch?: FetchLike }).fetch ?? null;
+}
+
+function getAbortSignalTimeout(ms: number): unknown {
+  return (
+    globalThis as typeof globalThis & {
+      AbortSignal?: { timeout: (timeoutMs: number) => unknown };
+    }
+  ).AbortSignal?.timeout?.(ms);
 }
 
 /**
@@ -36,12 +66,13 @@ const OPENCLAW_TO_MANIFEST: Record<string, string> = {
   'google-antigravity': 'gemini',
   google: 'gemini',
   gemini: 'gemini',
-  'github-copilot': 'openai', // Copilot uses GPT models
+  'github-copilot': 'copilot',
   qwen: 'qwen',
   'qwen-portal': 'qwen',
   moonshot: 'moonshot',
   kimi: 'moonshot',
   minimax: 'minimax',
+  'minimax-portal': 'minimax',
 };
 
 /**
@@ -89,10 +120,13 @@ export function discoverSubscriptionProviders(logger: PluginLogger): Subscriptio
         }
 
         if (!seen.has(manifestId)) {
+          const token =
+            manifestId === 'copilot' ? (profile.access_token ?? profile.key) : undefined;
           seen.set(manifestId, {
             openclawId: profile.provider,
             manifestId,
             authType: profile.type,
+            ...(token && { token }),
           });
         }
       }
@@ -130,6 +164,12 @@ export async function registerSubscriptionProviders(
   const url = `${baseUrl}/api/v1/routing/subscription-providers`;
 
   try {
+    const fetchImpl = getFetch();
+    if (!fetchImpl) {
+      logger.debug('[manifest] Global fetch is not available');
+      return;
+    }
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -137,13 +177,16 @@ export async function registerSubscriptionProviders(
       headers['Authorization'] = `Bearer ${apiKey}`;
     }
 
-    const res = await fetch(url, {
+    const res = await fetchImpl(url, {
       method: 'POST',
       headers,
       body: JSON.stringify({
-        providers: providers.map((p) => ({ provider: p.manifestId })),
+        providers: providers.map((p) => ({
+          provider: p.manifestId,
+          ...(p.token && { token: p.token }),
+        })),
       }),
-      signal: AbortSignal.timeout(5000),
+      signal: getAbortSignalTimeout(5000),
     });
 
     if (res.ok) {

@@ -118,26 +118,35 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
 
 /* ── Request conversion ── */
 
+export interface AnthropicRequestOptions {
+  /** When false, cache_control fields are omitted from the request. Defaults to true. */
+  injectCacheControl?: boolean;
+}
+
 export function toAnthropicRequest(
   body: Record<string, unknown>,
   _model: string,
+  options?: AnthropicRequestOptions,
 ): Record<string, unknown> {
+  const shouldCache = options?.injectCacheControl !== false;
   const messages = (body.messages as OpenAIMessage[]) || [];
   const systemBlocks = extractSystemBlocks(messages);
-  if (systemBlocks.length > 0) systemBlocks[systemBlocks.length - 1].cache_control = CACHE;
+  if (systemBlocks.length > 0 && shouldCache) {
+    systemBlocks[systemBlocks.length - 1].cache_control = CACHE;
+  }
 
   const converted = messages.map(convertMessage).filter(Boolean);
   const result: Record<string, unknown> = {
     messages: converted,
     max_tokens: (body.max_tokens as number) || 4096,
-    cache_control: { type: 'ephemeral' },
   };
+  if (shouldCache) result.cache_control = { type: 'ephemeral' };
 
   if (systemBlocks.length > 0) result.system = systemBlocks;
 
   const tools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
   if (tools) {
-    tools[tools.length - 1].cache_control = CACHE;
+    if (shouldCache) tools[tools.length - 1].cache_control = CACHE;
     result.tools = tools;
   }
 

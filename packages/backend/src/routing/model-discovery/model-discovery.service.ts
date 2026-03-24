@@ -4,10 +4,12 @@ import { Repository } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ProviderModelFetcherService } from './provider-model-fetcher.service';
+import { ProviderModelRegistryService } from './provider-model-registry.service';
 import { DiscoveredModel } from './model-fetcher';
 import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { computeQualityScore } from '../../database/quality-score.util';
 import { PricingSyncService } from '../../database/pricing-sync.service';
+import { parseOAuthTokenBlob } from '../openai-oauth.types';
 import {
   findOpenRouterPrefix,
   lookupWithVariants,
@@ -32,10 +34,14 @@ export class ModelDiscoveryService {
     @Optional()
     @Inject(PricingSyncService)
     private readonly pricingSync: PricingSyncService | null,
+    @Optional()
+    @Inject(ProviderModelRegistryService)
+    private readonly modelRegistry: ProviderModelRegistryService | null,
   ) {}
 
   async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
     let apiKey = '';
+    let endpointOverride: string | undefined;
     if (provider.api_key_encrypted) {
       try {
         apiKey = decrypt(provider.api_key_encrypted, getEncryptionSecret());
@@ -45,20 +51,18 @@ export class ModelDiscoveryService {
       }
     }
 
-    // For OpenAI subscription, the stored "key" is a JSON blob with access/refresh tokens.
-    // Unwrap it to get the actual Bearer token for the models API.
-    if (
-      provider.auth_type === 'subscription' &&
-      provider.provider.toLowerCase() === 'openai' &&
-      apiKey
-    ) {
-      try {
-        const blob = JSON.parse(apiKey) as { t?: string };
-        if (blob.t) {
+    // OAuth-backed subscription providers store an encrypted token blob.
+    // Unwrap it so model discovery can call the provider-native /models endpoint.
+    if (provider.auth_type === 'subscription' && apiKey) {
+      const lowerProvider = provider.provider.toLowerCase();
+      if (lowerProvider === 'openai' || lowerProvider === 'minimax') {
+        const blob = parseOAuthTokenBlob(apiKey);
+        if (blob?.t) {
           apiKey = blob.t;
+          if (lowerProvider === 'minimax' && blob.u) {
+            endpointOverride = blob.u;
+          }
         }
-      } catch {
-        // Not a JSON blob — use as-is
       }
     }
 
@@ -73,11 +77,25 @@ export class ModelDiscoveryService {
         );
       }
     } else {
-      raw = await this.fetcher.fetch(provider.provider, apiKey, provider.auth_type);
+      raw = await this.fetcher.fetch(
+        provider.provider,
+        apiKey,
+        provider.auth_type,
+        endpointOverride,
+      );
 
-      // If native API returned no models, fall back to OpenRouter + manual pricing
+      // Register confirmed model IDs from native API for future fallback filtering
+      if (raw.length > 0 && this.modelRegistry) {
+        this.modelRegistry.registerModels(
+          provider.provider,
+          raw.map((m) => m.id),
+        );
+      }
+
+      // If native API returned no models, fall back to OpenRouter filtered by confirmed models
       if (raw.length === 0) {
-        raw = buildFallbackModels(this.pricingSync, provider.provider);
+        const confirmed = this.modelRegistry?.getConfirmedModels(provider.provider) ?? null;
+        raw = buildFallbackModels(this.pricingSync, provider.provider, confirmed);
         if (raw.length > 0) {
           this.logger.log(
             `Native API returned 0 models for ${provider.provider} — using ${raw.length} models from pricing data`,

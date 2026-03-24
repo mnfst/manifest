@@ -53,7 +53,7 @@ export interface RoutingTierCardProps {
   addingFallback: () => string | null;
   agentName: () => string;
   onDropdownOpen: (tierId: string) => void;
-  onOverride: (tierId: string, model: string, authType?: AuthType) => void;
+  onOverride: (tierId: string, model: string, providerId: string, authType?: AuthType) => void;
   onReset: (tierId: string) => void;
   onFallbackUpdate: (tierId: string, fallbacks: string[]) => void;
   onAddFallback: (tierId: string) => void;
@@ -68,6 +68,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const eff = () => {
     const t = props.tier();
     return t ? effectiveModel(t) : null;
+  };
+  const manualProviderId = () => {
+    const t = props.tier();
+    return t?.override_model ? (t.override_provider ?? undefined) : undefined;
   };
   const isManual = () =>
     props.tier()?.override_model !== null && props.tier()?.override_model !== undefined;
@@ -140,7 +144,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             }
           >
             {(modelName) => {
-              const provId = () => providerIdForModel(modelName(), props.models());
+              const provId = () =>
+                manualProviderId() ?? providerIdForModel(modelName(), props.models());
               const effectiveAuth = (): AuthType | null => {
                 const t = props.tier();
                 if (t?.override_auth_type) return t.override_auth_type;

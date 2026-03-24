@@ -1,5 +1,6 @@
 import { OLLAMA_HOST } from '../../common/constants/ollama';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
+import { normalizeProviderBaseUrl } from '../provider-base-url';
 
 export interface ProviderEndpoint {
   baseUrl: string;
@@ -29,6 +30,12 @@ const anthropicHeaders = (apiKey: string, authType?: string): Record<string, str
   return headers;
 };
 
+const anthropicBearerHeaders = (apiKey: string): Record<string, string> => ({
+  Authorization: `Bearer ${apiKey}`,
+  'Content-Type': 'application/json',
+  'anthropic-version': '2023-06-01',
+});
+
 /**
  * ChatGPT subscription OAuth tokens use the Codex backend,
  * which requires specific headers to avoid 403 responses.
@@ -36,6 +43,7 @@ const anthropicHeaders = (apiKey: string, authType?: string): Record<string, str
  * endpoint to accept requests, but may break if OpenAI changes validation.
  */
 const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
+const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
@@ -86,8 +94,14 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
   },
+  'minimax-subscription': {
+    baseUrl: MINIMAX_SUBSCRIPTION_BASE,
+    buildHeaders: anthropicBearerHeaders,
+    buildPath: () => '/v1/messages',
+    format: 'anthropic',
+  },
   moonshot: {
-    baseUrl: 'https://api.moonshot.cn',
+    baseUrl: 'https://api.moonshot.ai',
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
@@ -103,6 +117,18 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),
     buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
+  },
+  copilot: {
+    baseUrl: 'https://api.githubcopilot.com',
+    buildHeaders: (apiKey: string) => ({
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'Editor-Version': 'vscode/1.100.0',
+      'Editor-Plugin-Version': 'copilot/1.300.0',
+      'Copilot-Integration-Id': 'vscode-chat',
+    }),
+    buildPath: () => '/chat/completions',
+    format: 'openai',
   },
   openrouter: {
     baseUrl: 'https://openrouter.ai',
@@ -121,12 +147,23 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
 /** Build a ProviderEndpoint for a custom provider with the given base URL. */
 export function buildCustomEndpoint(baseUrl: string): ProviderEndpoint {
   // Strip trailing /v1 (or /v1/) since openaiPath already includes /v1
-  const normalized = baseUrl.replace(/\/v1\/?$/, '');
+  const normalized = normalizeProviderBaseUrl(baseUrl);
   return {
     baseUrl: normalized,
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+  };
+}
+
+export function buildEndpointOverride(baseUrl: string, templateKey: string): ProviderEndpoint {
+  const template = PROVIDER_ENDPOINTS[templateKey];
+  if (!template) {
+    throw new Error(`No provider endpoint template configured for: ${templateKey}`);
+  }
+  return {
+    ...template,
+    baseUrl: normalizeProviderBaseUrl(baseUrl),
   };
 }
 

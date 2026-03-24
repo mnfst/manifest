@@ -7,6 +7,7 @@ import {
   getSubscriptionKnownModels,
   getSubscriptionCapabilities,
 } from '../../../../subscription-capabilities';
+import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 
 interface PricingLookup {
   lookupPricing(key: string): {
@@ -19,6 +20,12 @@ interface PricingLookup {
     string,
     { input: number; output: number; contextWindow?: number; displayName?: string }
   >;
+}
+
+function normalizeProviderModelId(providerId: string, modelId: string): string {
+  return providerId.toLowerCase() === 'anthropic'
+    ? normalizeAnthropicShortModelId(modelId)
+    : modelId;
 }
 
 /**
@@ -85,22 +92,33 @@ export function lookupWithVariants(
 /**
  * Build a fallback model list from OpenRouter cache
  * for providers whose native /models API is unavailable.
+ *
+ * When `confirmedModels` is provided and non-empty, only models that exist
+ * in the confirmed set are included. This filters out phantom models that
+ * OpenRouter lists but the provider's native API doesn't actually serve.
+ * When null or empty, all OpenRouter models for the provider are returned
+ * (graceful degradation for fresh installs with no native data yet).
  */
 export function buildFallbackModels(
   pricingSync: PricingLookup | null,
   providerId: string,
+  confirmedModels?: ReadonlySet<string> | null,
 ): DiscoveredModel[] {
   if (!pricingSync) return [];
   const models: DiscoveredModel[] = [];
   const seen = new Set<string>();
+  const hasConfirmed = confirmedModels != null && confirmedModels.size > 0;
 
   const orPrefix = findOpenRouterPrefix(providerId);
   if (!orPrefix) return [];
 
   for (const [fullId, entry] of pricingSync.getAll()) {
     if (!fullId.startsWith(`${orPrefix}/`)) continue;
-    const modelId = fullId.substring(orPrefix.length + 1);
+    const modelId = normalizeProviderModelId(providerId, fullId.substring(orPrefix.length + 1));
     if (seen.has(modelId)) continue;
+
+    if (hasConfirmed && !confirmedModels!.has(modelId.toLowerCase())) continue;
+
     seen.add(modelId);
     models.push({
       id: modelId,
@@ -130,6 +148,7 @@ export function buildSubscriptionFallbackModels(
 ): DiscoveredModel[] {
   const knownPrefixes = getSubscriptionKnownModels(providerId);
   if (!knownPrefixes) return [];
+  const normalizedKnownPrefixes = knownPrefixes.map((modelId) => modelId.toLowerCase());
 
   const capabilities = getSubscriptionCapabilities(providerId);
   const models: DiscoveredModel[] = [];
@@ -140,8 +159,10 @@ export function buildSubscriptionFallbackModels(
   if (pricingSync && orPrefix) {
     for (const [fullId, entry] of pricingSync.getAll()) {
       if (!fullId.startsWith(`${orPrefix}/`)) continue;
-      const modelId = fullId.substring(orPrefix.length + 1);
-      if (!knownPrefixes.some((p: string) => modelId.startsWith(p))) continue;
+      const modelId = normalizeProviderModelId(providerId, fullId.substring(orPrefix.length + 1));
+      if (!normalizedKnownPrefixes.some((p: string) => modelId.toLowerCase().startsWith(p))) {
+        continue;
+      }
       if (seen.has(modelId)) continue;
       seen.add(modelId);
 
@@ -169,7 +190,11 @@ export function buildSubscriptionFallbackModels(
   // (e.g., "claude-opus-4" is covered by "claude-opus-4-20260301").
   const defaultCtx = capabilities?.maxContextWindow ?? 200000;
   for (const modelId of knownPrefixes) {
-    const covered = models.some((m) => m.id === modelId || m.id.startsWith(`${modelId}-`));
+    const lowerModelId = modelId.toLowerCase();
+    const covered = models.some((m) => {
+      const lowerDiscovered = m.id.toLowerCase();
+      return lowerDiscovered === lowerModelId || lowerDiscovered.startsWith(`${lowerModelId}-`);
+    });
     if (covered) continue;
     models.push({
       id: modelId,
@@ -203,8 +228,12 @@ export function supplementWithKnownModels(
   const defaultCtx = capabilities?.maxContextWindow ?? 200000;
 
   for (const modelId of knownModels) {
+    const lowerModelId = modelId.toLowerCase();
     // Skip if this model or a more specific version (e.g., with date suffix) already exists
-    const covered = raw.some((m) => m.id === modelId || m.id.startsWith(`${modelId}-`));
+    const covered = raw.some((m) => {
+      const lowerDiscovered = m.id.toLowerCase();
+      return lowerDiscovered === lowerModelId || lowerDiscovered.startsWith(`${lowerModelId}-`);
+    });
     if (covered) continue;
     raw.push({
       id: modelId,

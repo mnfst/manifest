@@ -20,8 +20,14 @@ export interface ProviderDef {
   subscriptionKeyPlaceholder?: string;
   /** Instructions text shown in the subscription detail view. */
   subscriptionCommand?: string;
-  /** Provider uses browser-based OAuth flow (popup window). */
+  /** Provider uses GitHub device login instead of token paste. */
+  deviceLogin?: boolean;
+  /** UI auth mode for subscription flows. */
+  subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
+  /** Deprecated compatibility flag for popup OAuth providers. */
   subscriptionOAuth?: boolean;
+  /** Provider is subscription-only and should not appear in the API Keys tab. */
+  subscriptionOnly?: boolean;
 }
 
 export const PROVIDERS: ProviderDef[] = [
@@ -47,6 +53,7 @@ export const PROVIDERS: ProviderDef[] = [
     keyPlaceholder: 'sk-ant-...',
     supportsSubscription: true,
     subscriptionLabel: 'Claude Max / Pro subscription',
+    subscriptionAuthMode: 'token',
     subscriptionKeyPlaceholder: 'Paste your setup-token',
     subscriptionCommand: 'claude setup-token',
     models: [],
@@ -61,6 +68,34 @@ export const PROVIDERS: ProviderDef[] = [
     minKeyLength: 30,
     keyPlaceholder: 'sk-...',
     models: [],
+  },
+  {
+    id: 'copilot',
+    name: 'GitHub Copilot',
+    color: '#000000',
+    initial: 'GH',
+    subtitle: 'Claude, GPT, Gemini via Copilot',
+    keyPrefix: '',
+    minKeyLength: 0,
+    keyPlaceholder: '',
+    supportsSubscription: true,
+    subscriptionLabel: 'GitHub Copilot subscription',
+    subscriptionAuthMode: 'device_code',
+    deviceLogin: true,
+    subscriptionOnly: true,
+    models: [
+      { label: 'Claude Opus 4', value: 'copilot/claude-opus-4' },
+      { label: 'Claude Sonnet 4.5', value: 'copilot/claude-sonnet-4.5' },
+      { label: 'Claude Sonnet 4', value: 'copilot/claude-sonnet-4' },
+      { label: 'Claude Haiku 4.5', value: 'copilot/claude-haiku-4.5' },
+      { label: 'GPT-4o', value: 'copilot/gpt-4o' },
+      { label: 'GPT-4.1', value: 'copilot/gpt-4.1' },
+      { label: 'GPT-5', value: 'copilot/gpt-5' },
+      { label: 'o3 Mini', value: 'copilot/o3-mini' },
+      { label: 'o4 Mini', value: 'copilot/o4-mini' },
+      { label: 'Gemini 2.5 Pro', value: 'copilot/gemini-2.5-pro' },
+      { label: 'Gemini 2.5 Flash', value: 'copilot/gemini-2.5-flash' },
+    ],
   },
   {
     id: 'gemini',
@@ -82,6 +117,9 @@ export const PROVIDERS: ProviderDef[] = [
     keyPrefix: 'sk-api-',
     minKeyLength: 30,
     keyPlaceholder: 'sk-api-...',
+    supportsSubscription: true,
+    subscriptionLabel: 'MiniMax Coding Plan',
+    subscriptionAuthMode: 'device_code',
     models: [],
   },
   {
@@ -130,7 +168,7 @@ export const PROVIDERS: ProviderDef[] = [
     keyPlaceholder: 'sk-...',
     supportsSubscription: true,
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
-    subscriptionOAuth: true,
+    subscriptionAuthMode: 'popup_oauth',
     models: [
       { label: 'GPT-4o', value: 'gpt-4o' },
       { label: 'GPT-4o Mini', value: 'gpt-4o-mini' },

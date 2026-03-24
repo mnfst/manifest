@@ -118,6 +118,14 @@ export const PROVIDER_REGISTRY: readonly ProviderRegistryEntry[] = [
     localOnly: false,
   },
   {
+    id: 'copilot',
+    displayName: 'GitHub Copilot',
+    aliases: [],
+    openRouterPrefixes: [],
+    requiresApiKey: false,
+    localOnly: false,
+  },
+  {
     id: 'openrouter',
     displayName: 'OpenRouter',
     aliases: [],
