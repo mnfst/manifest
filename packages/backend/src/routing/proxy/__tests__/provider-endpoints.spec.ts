@@ -1,4 +1,9 @@
-import { buildCustomEndpoint, resolveEndpointKey, PROVIDER_ENDPOINTS } from '../provider-endpoints';
+import {
+  buildCustomEndpoint,
+  buildEndpointOverride,
+  resolveEndpointKey,
+  PROVIDER_ENDPOINTS,
+} from '../provider-endpoints';
 
 describe('buildCustomEndpoint', () => {
   it('strips trailing /v1 from base URL to avoid double /v1', () => {
@@ -70,6 +75,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('openai');
     expect(known).toContain('anthropic');
     expect(known).toContain('google');
+    expect(known).toContain('copilot');
     expect(known).toContain('openrouter');
     expect(known).toContain('ollama');
   });
@@ -112,6 +118,20 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers['anthropic-beta']).toBeUndefined();
   });
 
+  it('copilot uses Bearer auth and OpenAI-compatible format', () => {
+    const ep = PROVIDER_ENDPOINTS['copilot'];
+    expect(ep.baseUrl).toBe('https://api.githubcopilot.com');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('copilot/claude-sonnet-4')).toBe('/chat/completions');
+    expect(ep.buildHeaders('ghu_token')).toEqual({
+      Authorization: 'Bearer ghu_token',
+      'Content-Type': 'application/json',
+      'Editor-Version': 'vscode/1.100.0',
+      'Editor-Plugin-Version': 'copilot/1.300.0',
+      'Copilot-Integration-Id': 'vscode-chat',
+    });
+  });
+
   it('anthropic buildPath returns /v1/messages', () => {
     const path = PROVIDER_ENDPOINTS['anthropic'].buildPath('claude-sonnet-4');
     expect(path).toBe('/v1/messages');
@@ -152,5 +172,35 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers['Content-Type']).toBe('application/json');
     expect(headers['originator']).toBe('codex_cli_rs');
     expect(headers['user-agent']).toBe('codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown');
+  });
+
+  it('minimax-subscription buildPath returns /v1/messages', () => {
+    const path = PROVIDER_ENDPOINTS['minimax-subscription'].buildPath('abab7-chat-preview');
+    expect(path).toBe('/v1/messages');
+  });
+
+  it('minimax-subscription uses Bearer auth with anthropic-version header', () => {
+    const headers = PROVIDER_ENDPOINTS['minimax-subscription'].buildHeaders('oauth-token');
+    expect(headers).toEqual({
+      Authorization: 'Bearer oauth-token',
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
+    });
+  });
+});
+
+describe('buildEndpointOverride', () => {
+  it('creates endpoint using the template for a known key', () => {
+    const ep = buildEndpointOverride('https://custom.minimax.io/anthropic', 'minimax-subscription');
+
+    expect(ep.baseUrl).toBe('https://custom.minimax.io/anthropic');
+    expect(ep.format).toBe('anthropic');
+    expect(ep.buildPath('model-x')).toBe('/v1/messages');
+  });
+
+  it('throws when template key does not exist', () => {
+    expect(() => buildEndpointOverride('https://example.com', 'nonexistent-template')).toThrow(
+      'No provider endpoint template configured for: nonexistent-template',
+    );
   });
 });

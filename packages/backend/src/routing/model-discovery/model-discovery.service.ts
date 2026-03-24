@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ProviderModelFetcherService } from './provider-model-fetcher.service';
+import { ProviderModelRegistryService } from './provider-model-registry.service';
 import { DiscoveredModel } from './model-fetcher';
 import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { computeQualityScore } from '../../database/quality-score.util';
@@ -32,6 +33,9 @@ export class ModelDiscoveryService {
     @Optional()
     @Inject(PricingSyncService)
     private readonly pricingSync: PricingSyncService | null,
+    @Optional()
+    @Inject(ProviderModelRegistryService)
+    private readonly modelRegistry: ProviderModelRegistryService | null,
   ) {}
 
   async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
@@ -78,6 +82,14 @@ export class ModelDiscoveryService {
         provider.auth_type,
         endpointOverride,
       );
+
+      // Preserve confirmed model IDs from native discovery for later validation.
+      if (raw.length > 0 && this.modelRegistry) {
+        this.modelRegistry.registerModels(
+          provider.provider,
+          raw.map((m) => m.id),
+        );
+      }
     }
 
     // For subscription providers, supplement with knownModels so users can

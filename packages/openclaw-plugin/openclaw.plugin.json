@@ -2,7 +2,7 @@
   "id": "manifest",
   "kind": "observability",
   "name": "Manifest — Agent Observability",
-  "version": "5.28.0",
+  "version": "5.29.2",
   "description": "Traces, metrics, and cost tracking for your OpenClaw agent. Zero-config local dashboard included.",
   "author": "MNFST Inc.",
   "homepage": "https://manifest.build",
@@ -23,7 +23,7 @@
       "devMode": {
         "type": "boolean",
         "default": false,
-        "description": "Enable for development: skips API key, faster metrics, disables product telemetry. Auto-detected when endpoint is localhost without an API key."
+        "description": "Enable for development: skips API key validation, uses faster metrics interval. Auto-detected when endpoint is localhost without an API key."
       },
       "apiKey": {
         "type": "string",
@@ -53,7 +53,7 @@
     },
     "devMode": {
       "label": "Dev Mode",
-      "description": "Enable for development: skips API key, faster metrics, disables product telemetry"
+      "description": "Enable for development: skips API key validation, uses faster metrics interval"
     },
     "apiKey": {
       "label": "API Key",

@@ -243,7 +243,10 @@ describe('MinimaxOauthService', () => {
         }),
       });
 
-      const result = await service.refreshAccessToken('refresh-token', 'https://api.minimax.io/anthropic');
+      const result = await service.refreshAccessToken(
+        'refresh-token',
+        'https://api.minimax.io/anthropic',
+      );
 
       expect(result.e).toBe(now + 7200);
     });

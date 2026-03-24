@@ -19,7 +19,6 @@ import {
   LOCAL_AGENT_ID,
   LOCAL_AGENT_NAME,
 } from '../common/constants/local-mode.constants';
-import { trackEvent } from '../common/utils/product-telemetry';
 import { seedAgentMessages } from './seed-messages';
 
 @Injectable()
@@ -83,8 +82,6 @@ export class LocalBootstrapService implements OnModuleInit {
         is_active: true,
         tenant_id: LOCAL_TENANT_ID,
       });
-      trackEvent('agent_created', { agent_name: LOCAL_AGENT_NAME });
-
       this.logger.log(`Created tenant/agent for local mode`);
     }
 

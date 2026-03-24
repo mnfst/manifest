@@ -34,6 +34,7 @@ const OPENAI_ONLY_FIELDS = new Set([
  * Nested message fields may still need target-aware cleanup.
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
 const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
 function supportsReasoningContent(endpointKey: string, model: string): boolean {
@@ -46,6 +47,63 @@ function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: s
   if (!Array.isArray(messages)) return messages;
 
   const preserveReasoningContent = supportsReasoningContent(endpointKey, model);
+  const isMistral = endpointKey === 'mistral';
+  const mistralIdMap = new Map<string, string>();
+  const reservedMistralIds = new Set<string>();
+  let generatedMistralIdCounter = 0;
+
+  const reserveMistralToolCallId = (toolCallId: unknown): void => {
+    if (!isMistral || typeof toolCallId !== 'string') return;
+    if (MISTRAL_TOOL_CALL_ID_REGEX.test(toolCallId)) {
+      reservedMistralIds.add(toolCallId);
+    }
+  };
+
+  if (isMistral) {
+    for (const message of messages) {
+      if (!message || typeof message !== 'object' || Array.isArray(message)) {
+        continue;
+      }
+      const rawMessage = message as Record<string, unknown>;
+      if (Array.isArray(rawMessage.tool_calls)) {
+        for (const toolCall of rawMessage.tool_calls) {
+          if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) {
+            continue;
+          }
+          reserveMistralToolCallId((toolCall as Record<string, unknown>).id);
+        }
+      }
+      if ('tool_call_id' in rawMessage) {
+        reserveMistralToolCallId(rawMessage.tool_call_id);
+      }
+    }
+  }
+
+  const nextGeneratedMistralId = (): string => {
+    do {
+      generatedMistralIdCounter += 1;
+      const candidate = `tc${generatedMistralIdCounter.toString(36).padStart(7, '0')}`;
+      if (!reservedMistralIds.has(candidate)) return candidate;
+    } while (true);
+  };
+
+  const normalizeMistralToolCallId = (toolCallId: unknown): unknown => {
+    if (!isMistral || typeof toolCallId !== 'string') return toolCallId;
+    const existing = mistralIdMap.get(toolCallId);
+    if (existing) return existing;
+
+    if (MISTRAL_TOOL_CALL_ID_REGEX.test(toolCallId)) {
+      mistralIdMap.set(toolCallId, toolCallId);
+      reservedMistralIds.add(toolCallId);
+      return toolCallId;
+    }
+
+    const rewritten = nextGeneratedMistralId();
+    mistralIdMap.set(toolCallId, rewritten);
+    reservedMistralIds.add(rewritten);
+    return rewritten;
+  };
+
   return messages.map((message) => {
     if (!message || typeof message !== 'object' || Array.isArray(message)) {
       return message;
@@ -55,6 +113,22 @@ function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: s
     if (!preserveReasoningContent) {
       delete cleaned.reasoning_content;
     }
+
+    if (isMistral && Array.isArray(cleaned.tool_calls)) {
+      cleaned.tool_calls = cleaned.tool_calls.map((toolCall) => {
+        if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) {
+          return toolCall;
+        }
+        const cleanedToolCall = { ...(toolCall as Record<string, unknown>) };
+        cleanedToolCall.id = normalizeMistralToolCallId(cleanedToolCall.id);
+        return cleanedToolCall;
+      });
+    }
+
+    if (isMistral && 'tool_call_id' in cleaned) {
+      cleaned.tool_call_id = normalizeMistralToolCallId(cleaned.tool_call_id);
+    }
+
     return cleaned;
   });
 }
@@ -96,12 +170,7 @@ function normalizeDeepSeekMaxTokens(body: Record<string, unknown>): void {
   if (!('max_tokens' in body)) return;
 
   const raw = body.max_tokens;
-  const parsed =
-    typeof raw === 'number'
-      ? raw
-      : typeof raw === 'string'
-        ? Number(raw)
-        : Number.NaN;
+  const parsed = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : Number.NaN;
 
   if (!Number.isFinite(parsed) || parsed <= 0) {
     delete body.max_tokens;
@@ -187,7 +256,9 @@ export class ProviderClient {
     } else if (isAnthropic) {
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
-      requestBody = toAnthropicRequest(body, bareModel);
+      requestBody = toAnthropicRequest(body, bareModel, {
+        injectCacheControl: authType !== 'subscription',
+      });
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
     } else if (isChatGpt) {

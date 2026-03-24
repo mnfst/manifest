@@ -215,9 +215,14 @@ export class RoutingService {
     const invalidated: { tier: string; modelName: string }[] = [];
     const tiersToSave: TierAssignment[] = [];
     for (const tier of overrides) {
-      if (this.modelBelongsToProviders(tier.override_model!, providerNames, removedModelSet)) {
+      const overrideProvider = tier.override_provider?.toLowerCase();
+      if (
+        (overrideProvider && providerNames.has(overrideProvider)) ||
+        this.modelBelongsToProviders(tier.override_model!, providerNames, removedModelSet)
+      ) {
         invalidated.push({ tier: tier.tier, modelName: tier.override_model! });
         tier.override_model = null;
+        tier.override_provider = null;
         tier.override_auth_type = null;
         tier.updated_at = new Date().toISOString();
         tiersToSave.push(tier);
@@ -315,6 +320,7 @@ export class RoutingService {
       { agent_id: agentId },
       {
         override_model: null,
+        override_provider: null,
         override_auth_type: null,
         fallback_models: null,
         updated_at: new Date().toISOString(),
@@ -342,6 +348,7 @@ export class RoutingService {
           agent_id: agentId,
           tier,
           override_model: null,
+          override_provider: null,
           override_auth_type: null,
           auto_assigned_model: null,
         }),
@@ -373,6 +380,7 @@ export class RoutingService {
     userId: string,
     tier: string,
     model: string,
+    provider?: string,
     authType?: 'api_key' | 'subscription',
   ): Promise<TierAssignment> {
     await this.assertModelAvailable(agentId, model);
@@ -383,6 +391,7 @@ export class RoutingService {
 
     if (existing) {
       existing.override_model = model;
+      existing.override_provider = provider ?? null;
       existing.override_auth_type = authType ?? null;
       if (existing.fallback_models?.includes(model)) {
         const filtered = existing.fallback_models.filter((m) => m !== model);
@@ -400,6 +409,7 @@ export class RoutingService {
       agent_id: agentId,
       tier,
       override_model: model,
+      override_provider: provider ?? null,
       override_auth_type: authType ?? null,
       auto_assigned_model: null,
     });
@@ -416,6 +426,7 @@ export class RoutingService {
     if (!existing) return;
 
     existing.override_model = null;
+    existing.override_provider = null;
     existing.override_auth_type = null;
     existing.updated_at = new Date().toISOString();
     await this.tierRepo.save(existing);
@@ -427,6 +438,7 @@ export class RoutingService {
       { agent_id: agentId },
       {
         override_model: null,
+        override_provider: null,
         override_auth_type: null,
         fallback_models: null,
         updated_at: new Date().toISOString(),

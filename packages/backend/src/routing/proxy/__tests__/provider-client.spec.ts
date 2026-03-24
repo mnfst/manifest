@@ -66,7 +66,7 @@ describe('ProviderClient', () => {
       await client.forward('moonshot', 'sk-moon', 'kimi-k2', body, false);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.moonshot.cn/v1/chat/completions',
+        'https://api.moonshot.ai/v1/chat/completions',
         expect.any(Object),
       );
     });
@@ -184,6 +184,64 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.stream).toBeUndefined();
+    });
+
+    it('omits cache_control from request body for subscription auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Hello' },
+        ],
+        tools: [{ type: 'function', function: { name: 'search', description: 'Search' } }],
+      };
+
+      await client.forward(
+        'anthropic',
+        'sk-ant-oat-token',
+        'claude-sonnet-4-20250514',
+        bodyWithSystem,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.cache_control).toBeUndefined();
+      const system = sentBody.system as Array<{ cache_control?: unknown }>;
+      expect(system[0].cache_control).toBeUndefined();
+      const tools = sentBody.tools as Array<{ cache_control?: unknown }>;
+      expect(tools[0].cache_control).toBeUndefined();
+    });
+
+    it('includes cache_control for regular Anthropic API key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Hello' },
+        ],
+        tools: [{ type: 'function', function: { name: 'search', description: 'Search' } }],
+      };
+
+      await client.forward(
+        'anthropic',
+        'sk-ant-key',
+        'claude-sonnet-4-20250514',
+        bodyWithSystem,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.cache_control).toEqual({ type: 'ephemeral' });
+      const system = sentBody.system as Array<{ cache_control?: unknown }>;
+      expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
+      const tools = sentBody.tools as Array<{ cache_control?: unknown }>;
+      expect(tools[0].cache_control).toEqual({ type: 'ephemeral' });
     });
   });
 
@@ -852,6 +910,145 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.messages[0]).toBe('unexpected-entry');
       expect(sentBody.messages[1].reasoning_content).toBeUndefined();
+    });
+
+    it('normalizes non-compliant tool call ids for Mistral while preserving references', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const originalToolCallId = 'call005AKQn2j5TEr4S6i3zNN59moT';
+      const bodyWithToolCalls = {
+        messages: [
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: originalToolCallId,
+                type: 'function',
+                function: { name: 'search', arguments: '{}' },
+              },
+            ],
+          },
+          {
+            role: 'tool',
+            tool_call_id: originalToolCallId,
+            content: '{"status":"ok"}',
+          },
+        ],
+      };
+
+      await client.forward(
+        'mistral',
+        'sk-mi',
+        'mistral-small',
+        bodyWithToolCalls as unknown as Record<string, unknown>,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const normalizedToolCallId = sentBody.messages[0].tool_calls[0].id;
+      expect(normalizedToolCallId).toMatch(/^[A-Za-z0-9]{9}$/);
+      expect(normalizedToolCallId).not.toBe(originalToolCallId);
+      expect(sentBody.messages[1].tool_call_id).toBe(normalizedToolCallId);
+      const originalAssistantMessage = bodyWithToolCalls.messages[0] as {
+        tool_calls: Array<{ id: string }>;
+      };
+      expect(originalAssistantMessage.tool_calls[0].id).toBe(originalToolCallId);
+      expect(bodyWithToolCalls.messages[1].tool_call_id).toBe(originalToolCallId);
+    });
+
+    it('preserves valid 9-character alphanumeric tool call ids for Mistral', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const validToolCallId = 'Ab12Cd34E';
+      const bodyWithValidToolCallId = {
+        messages: [
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: validToolCallId,
+                type: 'function',
+                function: { name: 'search', arguments: '{}' },
+              },
+            ],
+          },
+          {
+            role: 'tool',
+            tool_call_id: validToolCallId,
+            content: '{"status":"ok"}',
+          },
+        ],
+      };
+
+      await client.forward(
+        'mistral',
+        'sk-mi',
+        'mistral-small',
+        bodyWithValidToolCallId as unknown as Record<string, unknown>,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[0].tool_calls[0].id).toBe(validToolCallId);
+      expect(sentBody.messages[1].tool_call_id).toBe(validToolCallId);
+    });
+
+    it('does not rewrite later valid Mistral tool call ids when generated ids would collide', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const invalidToolCallId = 'call005AKQn2j5TEr4S6i3zNN59moT';
+      const validToolCallId = 'tc0000001';
+      const bodyWithPotentialCollision = {
+        messages: [
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: invalidToolCallId,
+                type: 'function',
+                function: { name: 'search', arguments: '{}' },
+              },
+            ],
+          },
+          {
+            role: 'tool',
+            tool_call_id: invalidToolCallId,
+            content: '{"status":"invalid"}',
+          },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: validToolCallId,
+                type: 'function',
+                function: { name: 'lookup', arguments: '{}' },
+              },
+            ],
+          },
+          {
+            role: 'tool',
+            tool_call_id: validToolCallId,
+            content: '{"status":"valid"}',
+          },
+        ],
+      };
+
+      await client.forward(
+        'mistral',
+        'sk-mi',
+        'mistral-small',
+        bodyWithPotentialCollision as unknown as Record<string, unknown>,
+        false,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const normalizedInvalidId = sentBody.messages[0].tool_calls[0].id;
+      expect(normalizedInvalidId).toMatch(/^[A-Za-z0-9]{9}$/);
+      expect(normalizedInvalidId).not.toBe(validToolCallId);
+      expect(sentBody.messages[1].tool_call_id).toBe(normalizedInvalidId);
+      expect(sentBody.messages[2].tool_calls[0].id).toBe(validToolCallId);
+      expect(sentBody.messages[3].tool_call_id).toBe(validToolCallId);
     });
 
     it('preserves all fields for OpenAI', async () => {

@@ -1,5 +1,6 @@
 import { ModelDiscoveryService } from './model-discovery.service';
 import { ProviderModelFetcherService } from './provider-model-fetcher.service';
+import { ProviderModelRegistryService } from './provider-model-registry.service';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { DiscoveredModel } from './model-fetcher';
@@ -88,6 +89,10 @@ describe('ModelDiscoveryService', () => {
   let customProviderRepo: ReturnType<typeof makeMockRepo>;
   let fetcher: { fetch: jest.Mock };
   let mockPricingSync: { lookupPricing: jest.Mock; getAll: jest.Mock };
+  let mockModelRegistry: {
+    registerModels: jest.Mock;
+    getConfirmedModels: jest.Mock;
+  };
 
   beforeEach(() => {
     providerRepo = makeMockRepo();
@@ -96,6 +101,10 @@ describe('ModelDiscoveryService', () => {
     mockPricingSync = {
       lookupPricing: jest.fn().mockReturnValue(null),
       getAll: jest.fn().mockReturnValue(new Map()),
+    };
+    mockModelRegistry = {
+      registerModels: jest.fn(),
+      getConfirmedModels: jest.fn().mockReturnValue(null),
     };
 
     mockDecrypt.mockReturnValue('decrypted-key');
@@ -107,6 +116,7 @@ describe('ModelDiscoveryService', () => {
       customProviderRepo as never,
       fetcher as unknown as ProviderModelFetcherService,
       mockPricingSync as never,
+      mockModelRegistry as unknown as ProviderModelRegistryService,
     );
   });
 
@@ -248,6 +258,7 @@ describe('ModelDiscoveryService', () => {
         customProviderRepo as never,
         fetcher as unknown as ProviderModelFetcherService,
         null,
+        null,
       );
 
       const models = [makeModel({ id: 'some-model' })];
@@ -294,6 +305,60 @@ describe('ModelDiscoveryService', () => {
         expect.objectContaining({ model_name: 'gpt-4' }),
       );
       expect(result[0].qualityScore).toBe(5);
+    });
+
+    it('should register models in registry after successful native fetch', async () => {
+      const models = [makeModel({ id: 'gpt-4o' }), makeModel({ id: 'gpt-4-turbo' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      await service.discoverModels(makeProvider());
+
+      expect(mockModelRegistry.registerModels).toHaveBeenCalledWith('openai', [
+        'gpt-4o',
+        'gpt-4-turbo',
+      ]);
+    });
+
+    it('should not register models when native fetch returns empty', async () => {
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(makeProvider());
+
+      expect(mockModelRegistry.registerModels).not.toHaveBeenCalled();
+    });
+
+    it('should ignore pricing fallback when native fetch returns empty', async () => {
+      fetcher.fetch.mockResolvedValue([]);
+      mockModelRegistry.getConfirmedModels.mockReturnValue(new Set(['gpt-4o']));
+
+      // Set up OpenRouter cache with matching models
+      const orMap = new Map([
+        ['openai/gpt-4o', { input: 0.01, output: 0.02, displayName: 'GPT-4o' }],
+        ['openai/phantom', { input: 0.01, output: 0.02, displayName: 'Phantom' }],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(mockModelRegistry.getConfirmedModels).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+
+    it('should not call registry when modelRegistry is null', async () => {
+      const serviceNoRegistry = new ModelDiscoveryService(
+        providerRepo as never,
+        customProviderRepo as never,
+        fetcher as unknown as ProviderModelFetcherService,
+        mockPricingSync as never,
+        null,
+      );
+
+      const models = [makeModel({ id: 'gpt-4o' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      await serviceNoRegistry.discoverModels(makeProvider());
+
+      expect(mockModelRegistry.registerModels).not.toHaveBeenCalled();
     });
   });
 
@@ -1061,6 +1126,7 @@ describe('ModelDiscoveryService', () => {
         customProviderRepo as never,
         fetcher as unknown as ProviderModelFetcherService,
         null,
+        null,
       );
 
       const result = await serviceNoPricing.discoverModels(
@@ -1261,6 +1327,26 @@ describe('ModelDiscoveryService', () => {
       // claude-opus-4 NOT added (covered by claude-opus-4-latest)
       expect(ids).not.toContain('claude-opus-4');
       expect(result[0].provider).toBe('anthropic');
+    });
+
+    it('should normalize Anthropic short-form dot ids from OpenRouter to dash ids', () => {
+      const orMap = new Map([
+        [
+          'anthropic/claude-sonnet-4.6',
+          {
+            input: 0.000003,
+            output: 0.000015,
+            contextWindow: 200000,
+            displayName: 'Claude Sonnet 4.6',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
+
+      expect(result.map((m) => m.id)).toContain('claude-sonnet-4-6');
+      expect(result.map((m) => m.id)).not.toContain('claude-sonnet-4.6');
     });
 
     it('should apply maxContextWindow cap from subscription capabilities', () => {

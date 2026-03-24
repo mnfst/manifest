@@ -1,8 +1,8 @@
-import { createSignal, createResource, For, Show, type Component } from "solid-js";
-import { getModelPrices } from "../services/api.js";
-import { resolveProviderId } from "../services/routing-utils.js";
-import { PROVIDERS } from "../services/providers.js";
-import { providerIcon } from "./ProviderIcon.js";
+import { createSignal, createResource, For, Show, type Component } from 'solid-js';
+import { getModelPrices } from '../services/api.js';
+import { resolveProviderId } from '../services/routing-utils.js';
+import { PROVIDERS } from '../services/providers.js';
+import { providerIcon } from './ProviderIcon.js';
 
 interface ModelPricesData {
   models: { model_name: string; provider: string }[];
@@ -15,8 +15,8 @@ interface ModelSelectDropdownProps {
 }
 
 function computeCliValue(modelName: string, provider: string): string {
-  if (modelName.includes("/")) return modelName;
-  return `${provider.toLowerCase()}/${modelName}`;
+  const providerId = provider.toLowerCase();
+  return modelName.startsWith(`${providerId}/`) ? modelName : `${providerId}/${modelName}`;
 }
 
 /** Resolve a display label for a model name from the PROVIDERS definitions. */
@@ -26,7 +26,7 @@ function labelForModel(name: string): string {
       if (m.value === name) return m.label;
     }
   }
-  const slash = name.indexOf("/");
+  const slash = name.indexOf('/');
   if (slash !== -1) {
     const bare = name.substring(slash + 1);
     for (const prov of PROVIDERS) {
@@ -41,7 +41,7 @@ function labelForModel(name: string): string {
 
 const ModelSelectDropdown: Component<ModelSelectDropdownProps> = (props) => {
   const [data] = createResource(() => getModelPrices() as Promise<ModelPricesData>);
-  const [search, setSearch] = createSignal("");
+  const [search, setSearch] = createSignal('');
   const [open, setOpen] = createSignal(true);
 
   const groupedModels = () => {
@@ -87,12 +87,12 @@ const ModelSelectDropdown: Component<ModelSelectDropdownProps> = (props) => {
   const handleSelect = (cliValue: string, label: string) => {
     props.onSelect(cliValue, label);
     setOpen(false);
-    setSearch("");
+    setSearch('');
   };
 
   const handleReopen = () => {
     setOpen(true);
-    setSearch("");
+    setSearch('');
   };
 
   return (
@@ -104,15 +104,30 @@ const ModelSelectDropdown: Component<ModelSelectDropdownProps> = (props) => {
           type="button"
           aria-label="Change model selection"
         >
-          <span class="routing-modal__selected-label">{labelForModel(props.selectedValue!.split("/").pop()!)}</span>
+          <span class="routing-modal__selected-label">
+            {labelForModel(props.selectedValue!.split('/').pop()!)}
+          </span>
           <span class="routing-modal__selected-hint">Click to change</span>
         </button>
       </Show>
 
       <Show when={open()}>
         <div class="routing-modal__search-wrap" style="padding: 0;">
-          <svg class="routing-modal__search-icon" style="left: 14px;" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+          <svg
+            class="routing-modal__search-icon"
+            style="left: 14px;"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
           </svg>
           <input
             class="routing-modal__search"
@@ -135,9 +150,7 @@ const ModelSelectDropdown: Component<ModelSelectDropdownProps> = (props) => {
               {(group) => (
                 <div class="routing-modal__group">
                   <div class="routing-modal__group-header">
-                    <span class="routing-modal__group-icon">
-                      {providerIcon(group.provId, 16)}
-                    </span>
+                    <span class="routing-modal__group-icon">{providerIcon(group.provId, 16)}</span>
                     <span class="routing-modal__group-name">{group.name}</span>
                   </div>
                   <For each={group.models}>

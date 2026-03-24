@@ -28,10 +28,6 @@ jest.mock("../src/routing", () => ({
 jest.mock("../src/command", () => ({
   registerCommand: jest.fn(),
 }));
-jest.mock("../src/product-telemetry", () => ({
-  trackPluginEvent: jest.fn(),
-  identifyUser: jest.fn(),
-}));
 
 import { parseConfigWithDeprecation, validateConfig } from "../src/config";
 import { registerLocalMode, injectProviderConfig, injectAuthProfile } from "../src/local-mode";
@@ -41,7 +37,6 @@ import { registerRouting } from "../src/routing";
 import { registerTools } from "../src/tools";
 import { registerCommand } from "../src/command";
 import { verifyConnection } from "../src/verify";
-import { trackPluginEvent, identifyUser } from "../src/product-telemetry";
 
 const plugin = require("../src/index");
 
@@ -104,70 +99,6 @@ describe("register — mode routing", () => {
     expect(registerLocalMode).not.toHaveBeenCalled();
   });
 
-  it("tracks plugin_mode_selected event with correct mode", () => {
-    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
-      config: {
-        mode: "local",
-        devMode: false,
-        apiKey: "",
-        endpoint: "",
-        port: 2099,
-        host: "127.0.0.1",
-      },
-      _deprecatedDevMode: false,
-    });
-
-    const api = makeApi();
-    plugin.register(api);
-
-    expect(trackPluginEvent).toHaveBeenCalledWith("plugin_registered", undefined, "local");
-    expect(trackPluginEvent).toHaveBeenCalledWith("plugin_mode_selected", {
-      mode: "local",
-    }, "local");
-  });
-
-  it("passes config.mode as third argument to trackPluginEvent in cloud mode", () => {
-    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
-      config: {
-        mode: "cloud",
-        devMode: false,
-        apiKey: "mnfst_abc",
-        endpoint: "https://app.manifest.build/otlp",
-        port: 2099,
-        host: "127.0.0.1",
-      },
-      _deprecatedDevMode: false,
-    });
-    (validateConfig as jest.Mock).mockReturnValue(null);
-
-    const api = makeApi();
-    plugin.register(api);
-
-    expect(trackPluginEvent).toHaveBeenCalledWith("plugin_registered", undefined, "cloud");
-    expect(trackPluginEvent).toHaveBeenCalledWith("plugin_mode_selected", {
-      mode: "cloud",
-    }, "cloud");
-  });
-
-  it("calls trackPluginEvent exactly twice for non-devMode modes", () => {
-    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
-      config: {
-        mode: "cloud",
-        devMode: false,
-        apiKey: "mnfst_abc",
-        endpoint: "https://app.manifest.build/otlp",
-        port: 2099,
-        host: "127.0.0.1",
-      },
-      _deprecatedDevMode: false,
-    });
-    (validateConfig as jest.Mock).mockReturnValue(null);
-
-    const api = makeApi();
-    plugin.register(api);
-
-    expect(trackPluginEvent).toHaveBeenCalledTimes(2);
-  });
 });
 
 describe("register — cloud mode with devMode", () => {
@@ -179,19 +110,6 @@ describe("register — cloud mode with devMode", () => {
     port: 2099,
     host: "127.0.0.1",
   };
-
-  it("does NOT call trackPluginEvent when devMode is true", () => {
-    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
-      config: devConfig,
-      _deprecatedDevMode: false,
-    });
-    (validateConfig as jest.Mock).mockReturnValue(null);
-
-    const api = makeApi();
-    plugin.register(api);
-
-    expect(trackPluginEvent).not.toHaveBeenCalled();
-  });
 
   it("does NOT delegate to registerLocalMode", () => {
     (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
@@ -303,7 +221,7 @@ describe("register — cloud mode with devMode", () => {
       _deprecatedDevMode: false,
     });
     (validateConfig as jest.Mock).mockReturnValue(null);
-    (verifyConnection as jest.Mock).mockResolvedValue({ error: null, agentName: "test-agent", telemetryId: null });
+    (verifyConnection as jest.Mock).mockResolvedValue({ error: null, agentName: "test-agent" });
 
     const api = makeApi();
     plugin.register(api);
@@ -316,50 +234,6 @@ describe("register — cloud mode with devMode", () => {
     expect(api.logger.info).toHaveBeenCalledWith(
       expect.stringContaining("Connection verified"),
     );
-  });
-
-  it("calls identifyUser when telemetryId is present in verify result", async () => {
-    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
-      config: devConfig,
-      _deprecatedDevMode: false,
-    });
-    (validateConfig as jest.Mock).mockReturnValue(null);
-    (verifyConnection as jest.Mock).mockResolvedValue({
-      error: null,
-      agentName: "test-agent",
-      telemetryId: "hash1234abcd5678",
-    });
-
-    const api = makeApi();
-    plugin.register(api);
-
-    const serviceCall = api.registerService.mock.calls[0][0];
-    serviceCall.start();
-    await new Promise((r) => setTimeout(r, 0));
-
-    expect(identifyUser).toHaveBeenCalledWith("hash1234abcd5678");
-  });
-
-  it("does not call identifyUser when telemetryId is null", async () => {
-    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
-      config: devConfig,
-      _deprecatedDevMode: false,
-    });
-    (validateConfig as jest.Mock).mockReturnValue(null);
-    (verifyConnection as jest.Mock).mockResolvedValue({
-      error: null,
-      agentName: "test-agent",
-      telemetryId: null,
-    });
-
-    const api = makeApi();
-    plugin.register(api);
-
-    const serviceCall = api.registerService.mock.calls[0][0];
-    serviceCall.start();
-    await new Promise((r) => setTimeout(r, 0));
-
-    expect(identifyUser).not.toHaveBeenCalled();
   });
 
   it("service start logs warning on verify error", async () => {
@@ -555,7 +429,6 @@ describe("register — cloud mode full path", () => {
     (verifyConnection as jest.Mock).mockResolvedValue({
       error: null,
       agentName: "cloud-agent",
-      telemetryId: "cloudhash12345678",
     });
 
     const api = makeApi();
@@ -566,32 +439,9 @@ describe("register — cloud mode full path", () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(verifyConnection).toHaveBeenCalledWith(cloudConfig);
-    expect(identifyUser).toHaveBeenCalledWith("cloudhash12345678");
     expect(api.logger.info).toHaveBeenCalledWith(
       expect.stringContaining("Connection verified"),
     );
-  });
-
-  it("cloud service start does not call identifyUser on verify error", async () => {
-    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
-      config: cloudConfig,
-      _deprecatedDevMode: false,
-    });
-    (validateConfig as jest.Mock).mockReturnValue(null);
-    (verifyConnection as jest.Mock).mockResolvedValue({
-      error: "Cannot reach endpoint",
-      agentName: null,
-      telemetryId: null,
-    });
-
-    const api = makeApi();
-    plugin.register(api);
-
-    const serviceCall = api.registerService.mock.calls[0][0];
-    serviceCall.start();
-    await new Promise((r) => setTimeout(r, 0));
-
-    expect(identifyUser).not.toHaveBeenCalled();
   });
 
   it("cloud service start logs warning on verify error", async () => {

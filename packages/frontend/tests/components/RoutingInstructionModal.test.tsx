@@ -17,6 +17,7 @@ const testModels = {
     { model_name: "gpt-4o", provider: "OpenAI" },
     { model_name: "claude-sonnet-4", provider: "Anthropic" },
     { model_name: "gemini-2.5-flash", provider: "Google" },
+    { model_name: "z-ai/glm-5", provider: "OpenRouter" },
   ],
   lastSyncedAt: "2026-02-28T10:00:00Z",
 };
@@ -99,11 +100,61 @@ describe("RoutingInstructionModal", () => {
     expect(container.textContent).not.toContain("<provider/model>");
   });
 
+  it("uses the provider heading for OpenRouter vendor-prefixed models", async () => {
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="disable" onClose={() => {}} />
+    ));
+
+    await vi.waitFor(() => {
+      expect(container.querySelector(".routing-modal__list")).not.toBeNull();
+    });
+
+    const groups = Array.from(container.querySelectorAll(".routing-modal__group"));
+    const openRouterGroup = groups.find((group) =>
+      group.querySelector(".routing-modal__group-name")?.textContent?.includes("OpenRouter"),
+    );
+
+    expect(openRouterGroup).toBeDefined();
+
+    const glmButton = Array.from(openRouterGroup!.querySelectorAll(".routing-modal__model")).find(
+      (button) => button.textContent?.includes("z-ai/glm-5"),
+    );
+
+    expect(glmButton).toBeDefined();
+    fireEvent.click(glmButton!);
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("openrouter/z-ai/glm-5");
+    });
+  });
+
   it("does not show model picker in enable mode", () => {
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" onClose={() => {}} />
     ));
     expect(container.querySelector(".routing-modal__inline-picker")).toBeNull();
+  });
+
+  it("shows connected provider name in enable mode when connectedProvider is set", () => {
+    render(() => (
+      <RoutingInstructionModal open={true} mode="enable" connectedProvider="openai" onClose={() => {}} />
+    ));
+    expect(screen.getByText("OpenAI")).toBeDefined();
+    expect(screen.getByText("is now connected.")).toBeDefined();
+  });
+
+  it("does not show provider name when connectedProvider is null", () => {
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="enable" connectedProvider={null} onClose={() => {}} />
+    ));
+    expect(container.textContent).not.toContain("is now connected.");
+  });
+
+  it("falls back to raw provider id when provider is not in PROVIDERS list", () => {
+    render(() => (
+      <RoutingInstructionModal open={true} mode="enable" connectedProvider="custom:my-provider" onClose={() => {}} />
+    ));
+    expect(screen.getByText("custom:my-provider")).toBeDefined();
   });
 
   it("shows restart command in disable mode", () => {

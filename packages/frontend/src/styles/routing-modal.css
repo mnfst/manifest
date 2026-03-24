@@ -186,6 +186,11 @@
   font-family: var(--font-mono, monospace);
 }
 
+.routing-modal__inline-picker .routing-modal__model-id {
+  text-align: left;
+  width: 50%;
+}
+
 .routing-modal__model-id--subscription {
   color: #64748b;
   font-family: var(--font-family);

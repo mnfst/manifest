@@ -174,6 +174,77 @@ describe("discoverSubscriptionProviders", () => {
     );
   });
 
+  it("extracts access_token from Copilot auth-profile", () => {
+    mockExistsSync.mockReturnValue(true);
+    mockReaddirSync.mockReturnValue([
+      { name: "agent-1", isDirectory: () => true } as any,
+    ]);
+    mockReadFileSync.mockReturnValue(
+      JSON.stringify({
+        profiles: {
+          "copilot-device": {
+            type: "device_login",
+            provider: "github-copilot",
+            access_token: "ghu_copilot_token_123",
+          },
+        },
+      }),
+    );
+
+    const result = discoverSubscriptionProviders(mockLogger);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      openclawId: "github-copilot",
+      manifestId: "copilot",
+      authType: "device_login",
+      token: "ghu_copilot_token_123",
+    });
+  });
+
+  it("falls back to key field when access_token is absent for Copilot", () => {
+    mockExistsSync.mockReturnValue(true);
+    mockReaddirSync.mockReturnValue([
+      { name: "agent-1", isDirectory: () => true } as any,
+    ]);
+    mockReadFileSync.mockReturnValue(
+      JSON.stringify({
+        profiles: {
+          "copilot-key": {
+            type: "device_login",
+            provider: "github-copilot",
+            key: "ghu_fallback_key_456",
+          },
+        },
+      }),
+    );
+
+    const result = discoverSubscriptionProviders(mockLogger);
+    expect(result).toHaveLength(1);
+    expect(result[0].token).toBe("ghu_fallback_key_456");
+  });
+
+  it("omits token for non-Copilot providers", () => {
+    mockExistsSync.mockReturnValue(true);
+    mockReaddirSync.mockReturnValue([
+      { name: "agent-1", isDirectory: () => true } as any,
+    ]);
+    mockReadFileSync.mockReturnValue(
+      JSON.stringify({
+        profiles: {
+          "anthropic-oauth": {
+            type: "oauth",
+            provider: "anthropic",
+            access_token: "should-not-be-extracted",
+          },
+        },
+      }),
+    );
+
+    const result = discoverSubscriptionProviders(mockLogger);
+    expect(result).toHaveLength(1);
+    expect(result[0].token).toBeUndefined();
+  });
+
   it("handles malformed JSON in auth-profiles.json", () => {
     const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     mockExistsSync.mockReturnValue(true);
@@ -212,7 +283,7 @@ describe("discoverSubscriptionProviders", () => {
     const result = discoverSubscriptionProviders(mockLogger);
     expect(result).toEqual([
       { openclawId: "anthropic", manifestId: "anthropic", authType: "oauth" },
-      { openclawId: "github-copilot", manifestId: "openai", authType: "oauth" },
+      { openclawId: "github-copilot", manifestId: "copilot", authType: "oauth" },
       { openclawId: "minimax", manifestId: "minimax", authType: "oauth" },
     ]);
   });
@@ -273,6 +344,34 @@ describe("registerSubscriptionProviders", () => {
     expect(mockLogger.info).toHaveBeenCalledWith(
       "[manifest] Registered 1 subscription provider(s)",
     );
+  });
+
+  it("includes token in registration payload when present", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ registered: 1 }),
+    });
+
+    const providersWithToken: SubscriptionProvider[] = [
+      {
+        openclawId: "github-copilot",
+        manifestId: "copilot",
+        authType: "device_login",
+        token: "ghu_copilot_token",
+      },
+    ];
+
+    await registerSubscriptionProviders(
+      providersWithToken,
+      "http://localhost:38238/otlp",
+      "mnfst_test",
+      mockLogger,
+    );
+
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(body.providers).toEqual([
+      { provider: "copilot", token: "ghu_copilot_token" },
+    ]);
   });
 
   it("strips /otlp/v1 suffix from endpoint", async () => {

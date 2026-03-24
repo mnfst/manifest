@@ -1,5 +1,79 @@
 # manifest
 
+## 5.29.2
+
+### Patch Changes
+
+- 11ff0fc: fix(frontend): update GitHub Copilot and OpenAI provider icons, widen routing instruction modal, and scope model-id layout to disable picker
+
+## 5.29.1
+
+### Patch Changes
+
+- 32422f4: fix: remove static title from DOM so @solidjs/meta can manage document.title
+
+  The static `<title>` in index.html (added for SEO/Lighthouse) conflicted with
+  @solidjs/meta's dynamic title management. Browsers use the first `<title>`
+  element in the document, so the static tag always won and page-specific titles
+  never appeared in the browser tab. The static tag is now removed on app mount,
+  preserving the SEO fallback for pre-JS crawlers while letting @solidjs/meta
+  control the title during navigation.
+
+- 8fe30e6: Fix Product Hunt badge image blocked by CSP and remove extra border/padding from badge container
+- 25a5b13: fix(frontend): show instruction modal for all provider types when activating routing and display connected provider name
+- e778210: Add a one-time Product Hunt launch popup in the dashboard with a persistent dismiss state
+- 74341ff: Hide GitHub Copilot from API Keys tab since it only supports subscription auth
+
+## 5.29.0
+
+### Minor Changes
+
+- e547327: Add GitHub Copilot as a subscription provider with device login flow
+
+## 5.28.6
+
+### Patch Changes
+
+- 8f27bd7: Switch Moonshot/Kimi API endpoint from .cn to .ai TLD for international users
+
+## 5.28.5
+
+### Patch Changes
+
+- 0058bad: Skip prompt caching injection for Anthropic subscription (OAuth) requests. Fixes HTTP 400 errors when using Sonnet and Opus models with Claude Max/Pro subscription tokens.
+- 06c2301: Fix cost display for dual-auth providers: when both API key and subscription are connected for the same provider, costs are now correctly calculated instead of being zeroed out.
+
+## 5.28.4
+
+### Patch Changes
+
+- c0cb273: Persist the selected provider for manual routing overrides so OpenRouter-sourced models resolve through the chosen provider instead of being re-inferred from the model name.
+- e37c315: Fix SPA deep-route refresh returning 404 in local/embedded mode by disabling @nestjs/serve-static's broken render handler and hardening the SPA fallback filter to use cached index.html content instead of res.sendFile()
+- ed066de: Trigger proxy fallbacks when the primary provider fails at the transport layer before returning an HTTP response.
+- c187927: Filter phantom models from OpenRouter fallback using provider-native API data
+- 7fb9ba9: Normalize Anthropic short model ids so pricing lookup resolves Claude 4.6 cost entries across dotted and dashed variants.
+
+## 5.28.3
+
+### Patch Changes
+
+- 44c8bcd: Normalize OpenAI-style tool call IDs when forwarding chat completions to Mistral so fallback requests remain compatible with Mistral's 9-character alphanumeric tool-call ID requirement.
+- f72e8a3: Fix SKILL.md scanner contradictions: qualify "Not collected" statement to clarify OTLP vs routing data, remove MANIFEST_API_KEY from required env metadata since local mode doesn't need it.
+- c3fd8c2: Rewrite SKILL.md TL;DR to remove blanket "not collected" claim that contradicted routing behavior. Now precisely states what each data path does.
+- f4f6b1a: Slim down SKILL.md to essential setup and usage instructions. Detailed security, privacy, routing, and troubleshooting docs moved to GitHub README.
+
+## 5.28.2
+
+### Patch Changes
+
+- 0c245fc: Remove PostHog product analytics from plugin, backend, and frontend. No external analytics calls are made in any mode. OTLP telemetry (traces/metrics to user's own endpoint) is unaffected. Restructure SKILL.md with security-first layout and local mode as primary setup path.
+
+## 5.28.1
+
+### Patch Changes
+
+- cb636c6: Fix subscription disclaimer card contrast in dark mode and rename label from "Experimental" to "Notice"
+
 ## 5.28.0
 
 ### Minor Changes

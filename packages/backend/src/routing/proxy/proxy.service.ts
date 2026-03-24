@@ -8,11 +8,13 @@ import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache
 import { ProviderClient, ForwardResult } from './provider-client';
 import { buildCustomEndpoint, buildEndpointOverride, ProviderEndpoint } from './provider-endpoints';
 import { SessionMomentumService } from './session-momentum.service';
+import { CopilotTokenService } from './copilot-token.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback, FALLBACK_EXHAUSTED_STATUS } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../provider-aliases';
 import { Tier, ScorerMessage } from '../scorer/types';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
+import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 
 /**
  * Roles excluded from scoring. OpenClaw (and similar tools) inject a large,
@@ -22,6 +24,9 @@ import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
  */
 const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
+const PROVIDER_TRANSPORT_ERROR_STATUS = 503;
+const PROVIDER_TIMEOUT_STATUS = 504;
+const GENERIC_FETCH_ERROR_MESSAGE = 'fetch failed';
 
 export interface RoutingMeta {
   tier: Tier;
@@ -62,6 +67,7 @@ export class ProxyService {
     private readonly minimaxOauth: MinimaxOauthService,
     private readonly providerClient: ProviderClient,
     private readonly momentum: SessionMomentumService,
+    private readonly copilotToken: CopilotTokenService,
     private readonly limitCheck: LimitCheckService,
     private readonly pricingCache: ModelPricingCacheService,
   ) {}
@@ -127,16 +133,17 @@ export class ProxyService {
       agentId,
       userId,
     );
+    const primaryModel = this.normalizeProviderModel(resolved.provider, resolved.model);
 
     this.logger.log(
-      `Proxy: tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
+      `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
     );
 
     const stream = body.stream === true;
-    const forward = await this.forwardToProvider(
+    const forward = await this.tryForwardToProvider(
       resolved.provider,
       resolvedCredentials.apiKey,
-      resolved.model,
+      primaryModel,
       body,
       stream,
       sessionKey,
@@ -159,7 +166,7 @@ export class ProxyService {
           body,
           stream,
           sessionKey,
-          resolved.model,
+          primaryModel,
           signal,
         );
 
@@ -174,7 +181,7 @@ export class ProxyService {
               confidence: resolved.confidence,
               reason: resolved.reason,
               auth_type: resolved.auth_type,
-              fallbackFromModel: resolved.model,
+              fallbackFromModel: primaryModel,
               fallbackIndex: success.fallbackIndex,
               primaryErrorStatus: forward.response.status,
               primaryErrorBody: primaryErrorBody,
@@ -205,7 +212,7 @@ export class ProxyService {
           },
           meta: {
             tier: resolved.tier as Tier,
-            model: resolved.model,
+            model: primaryModel,
             provider: resolved.provider,
             confidence: resolved.confidence,
             reason: resolved.reason,
@@ -222,7 +229,7 @@ export class ProxyService {
       forward,
       meta: {
         tier: resolved.tier as Tier,
-        model: resolved.model,
+        model: primaryModel,
         provider: resolved.provider,
         confidence: resolved.confidence,
         reason: resolved.reason,
@@ -251,25 +258,26 @@ export class ProxyService {
   }> {
     const failures: FailedFallback[] = [];
     for (let i = 0; i < fallbackModels.length; i++) {
-      const model = fallbackModels[i];
-      const pricing = this.pricingCache.getByModel(model);
+      const requestedModel = fallbackModels[i];
+      const pricing = this.pricingCache.getByModel(requestedModel);
 
       // Determine provider: custom prefix → model name inference → pricing cache → user's connected providers
       let provider: string | undefined;
-      if (CustomProviderService.isCustom(model)) {
-        const slashIdx = model.indexOf('/');
-        provider = slashIdx > 0 ? model.substring(0, slashIdx) : model;
+      if (CustomProviderService.isCustom(requestedModel)) {
+        const slashIdx = requestedModel.indexOf('/');
+        provider = slashIdx > 0 ? requestedModel.substring(0, slashIdx) : requestedModel;
       } else {
         provider =
-          inferProviderFromModelName(model) ??
+          inferProviderFromModelName(requestedModel) ??
           pricing?.provider ??
-          (await this.routingService.findProviderForModel(agentId, model));
+          (await this.routingService.findProviderForModel(agentId, requestedModel));
       }
 
       if (!provider) {
-        this.logger.debug(`Fallback ${i}: skipping model=${model} (no provider data)`);
+        this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
         continue;
       }
+      const model = this.normalizeProviderModel(provider, requestedModel);
       const authType = await this.routingService.getAuthType(agentId, provider);
       let apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
       if (apiKey === null) {
@@ -291,7 +299,7 @@ export class ProxyService {
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
       );
 
-      const forward = await this.forwardToProvider(
+      const forward = await this.tryForwardToProvider(
         provider,
         resolvedCredentials.apiKey,
         model,
@@ -341,6 +349,48 @@ export class ProxyService {
     return { apiKey };
   }
 
+  private async tryForwardToProvider(
+    provider: string,
+    apiKey: string,
+    model: string,
+    body: Record<string, unknown>,
+    stream: boolean,
+    sessionKey: string,
+    signal?: AbortSignal,
+    authType?: string,
+    resourceUrl?: string,
+  ): Promise<ForwardResult> {
+    try {
+      return await this.forwardToProvider(
+        provider,
+        apiKey,
+        model,
+        body,
+        stream,
+        sessionKey,
+        signal,
+        authType,
+        resourceUrl,
+      );
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      if (!this.isTransportError(error)) throw error;
+
+      const failureResponse = this.buildTransportErrorResponse(error);
+      const message = this.describeTransportError(error);
+      this.logger.warn(
+        `Provider transport failure: provider=${provider} model=${model} status=${failureResponse.status} message=${message}`,
+      );
+
+      return {
+        response: failureResponse,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+    }
+  }
+
   private async enforceLimits(tenantId?: string, agentName?: string): Promise<void> {
     if (!tenantId || !agentName) return;
     const exceeded = await this.limitCheck.checkLimits(tenantId, agentName);
@@ -384,6 +434,92 @@ export class ProxyService {
     return false;
   }
 
+  private isTransportError(error: unknown): boolean {
+    const name = this.getErrorName(error);
+    if (name === 'AbortError' || name === 'TimeoutError') return true;
+
+    const detail = [
+      this.getErrorMessage(error),
+      this.getErrorMessage(this.getErrorCause(error)),
+      this.getErrorCode(error),
+      this.getErrorCode(this.getErrorCause(error)),
+    ]
+      .filter((value): value is string => Boolean(value))
+      .join(' ');
+
+    return /(fetch failed|failed to parse url|network|timeout|econnrefused|econnreset|enotfound|ehostunreach|etimedout|und_err_)/i.test(
+      detail,
+    );
+  }
+
+  private buildTransportErrorResponse(error: unknown): Response {
+    const status = this.isTimeoutError(error)
+      ? PROVIDER_TIMEOUT_STATUS
+      : PROVIDER_TRANSPORT_ERROR_STATUS;
+    const message = this.describeTransportError(error);
+
+    return new Response(JSON.stringify({ error: { message } }), {
+      status,
+      statusText: status === PROVIDER_TIMEOUT_STATUS ? 'Gateway Timeout' : 'Service Unavailable',
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+
+  private describeTransportError(error: unknown): string {
+    if (this.isTimeoutError(error)) {
+      return 'Upstream provider request timed out';
+    }
+
+    const detail =
+      this.selectTransportErrorDetail(error) ??
+      this.selectTransportErrorDetail(this.getErrorCause(error));
+
+    if (!detail) return 'Failed to reach upstream provider';
+    return `Failed to reach upstream provider: ${detail}`;
+  }
+
+  private isTimeoutError(error: unknown): boolean {
+    return this.getErrorName(error) === 'TimeoutError';
+  }
+
+  private selectTransportErrorDetail(error: unknown): string | undefined {
+    const message = this.getErrorMessage(error);
+    const code = this.getErrorCode(error);
+
+    if (message && message.toLowerCase() !== GENERIC_FETCH_ERROR_MESSAGE) {
+      return this.sanitizeTransportErrorDetail(message);
+    }
+    if (code) return code;
+    return undefined;
+  }
+
+  private sanitizeTransportErrorDetail(detail: string): string {
+    return detail.replace(/key=[^&\s]+/gi, 'key=***').slice(0, 500);
+  }
+
+  private getErrorName(error: unknown): string | undefined {
+    if (!(error instanceof Error)) return undefined;
+    return error.name;
+  }
+
+  private getErrorMessage(error: unknown): string | undefined {
+    if (error instanceof Error) return error.message;
+    if (!error || typeof error !== 'object') return undefined;
+    const message = (error as { message?: unknown }).message;
+    return typeof message === 'string' ? message : undefined;
+  }
+
+  private getErrorCode(error: unknown): string | undefined {
+    if (!error || typeof error !== 'object') return undefined;
+    const code = (error as { code?: unknown }).code;
+    return typeof code === 'string' ? code : undefined;
+  }
+
+  private getErrorCause(error: unknown): unknown {
+    if (!(error instanceof Error)) return undefined;
+    return error.cause;
+  }
+
   private async forwardToProvider(
     provider: string,
     apiKey: string,
@@ -401,8 +537,19 @@ export class ProxyService {
     }
     const hasExtraHeaders = Object.keys(extraHeaders).length > 0;
 
+    // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
+    let effectiveKey = apiKey;
+    if (provider.toLowerCase() === 'copilot') {
+      effectiveKey = await this.copilotToken.getCopilotToken(apiKey);
+    }
+
     let customEndpoint: ProviderEndpoint | undefined;
     let forwardModel = model;
+
+    // Strip the "copilot/" prefix — the Copilot API expects bare model names
+    if (provider.toLowerCase() === 'copilot' && forwardModel.startsWith('copilot/')) {
+      forwardModel = forwardModel.substring('copilot/'.length);
+    }
 
     if (CustomProviderService.isCustom(provider)) {
       const cpId = CustomProviderService.extractId(provider);
@@ -411,11 +558,7 @@ export class ProxyService {
         customEndpoint = buildCustomEndpoint(cp.base_url);
         forwardModel = CustomProviderService.rawModelName(model);
       }
-    } else if (
-      authType === 'subscription' &&
-      provider.toLowerCase() === 'minimax' &&
-      resourceUrl
-    ) {
+    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax' && resourceUrl) {
       const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
       if (minimaxBaseUrl) {
         customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
@@ -426,7 +569,7 @@ export class ProxyService {
 
     return this.providerClient.forward(
       provider,
-      apiKey,
+      effectiveKey,
       forwardModel,
       body,
       stream,
@@ -435,5 +578,9 @@ export class ProxyService {
       customEndpoint,
       authType,
     );
+  }
+
+  private normalizeProviderModel(provider: string, model: string): string {
+    return provider.toLowerCase() === 'anthropic' ? normalizeAnthropicShortModelId(model) : model;
   }
 }

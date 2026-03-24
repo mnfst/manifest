@@ -16,6 +16,7 @@ const testModels = {
     { model_name: "claude-sonnet-4", provider: "Anthropic" },
     { model_name: "gemini-2.5-flash", provider: "Google" },
     { model_name: "deepseek-chat", provider: "DeepSeek" },
+    { model_name: "z-ai/glm-5", provider: "OpenRouter" },
   ],
   lastSyncedAt: "2026-02-28T10:00:00Z",
 };
@@ -90,6 +91,27 @@ describe("ModelSelectDropdown", () => {
     expect(onSelect).toHaveBeenCalledWith("openai/gpt-4o", "GPT-4o");
   });
 
+  it("uses the selected group provider for OpenRouter vendor-prefixed models", async () => {
+    const onSelect = vi.fn();
+    const { container } = await renderAndWait({ onSelect });
+
+    const groups = Array.from(container.querySelectorAll(".routing-modal__group"));
+    const openRouterGroup = groups.find((group) =>
+      group.querySelector(".routing-modal__group-name")?.textContent?.includes("OpenRouter"),
+    );
+
+    expect(openRouterGroup).toBeDefined();
+
+    const glmButton = Array.from(openRouterGroup!.querySelectorAll(".routing-modal__model")).find(
+      (button) => button.textContent?.includes("z-ai/glm-5"),
+    );
+
+    expect(glmButton).toBeDefined();
+    fireEvent.click(glmButton!);
+
+    expect(onSelect).toHaveBeenCalledWith("openrouter/z-ai/glm-5", "glm-5");
+  });
+
   it("shows empty state when no models match search", async () => {
     const { container } = await renderAndWait();
     const input = container.querySelector(".routing-modal__search") as HTMLInputElement;
@@ -152,7 +174,11 @@ describe("computeCliValue", () => {
     expect(computeCliValue("gpt-4o", "OpenAI")).toBe("openai/gpt-4o");
   });
 
-  it("keeps model as-is when it already contains a slash", () => {
+  it("prefixes slash-prefixed models when they belong to a different selected provider", () => {
+    expect(computeCliValue("z-ai/glm-5", "OpenRouter")).toBe("openrouter/z-ai/glm-5");
+  });
+
+  it("keeps model as-is when it already includes the selected provider prefix", () => {
     expect(computeCliValue("openrouter/auto", "OpenRouter")).toBe("openrouter/auto");
   });
 });

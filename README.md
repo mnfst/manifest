@@ -14,6 +14,7 @@
 OpenClaw costs
 </p>
 
+
 ![manifest-gh](https://github.com/user-attachments/assets/7dd74fc2-f7d6-4558-a95a-014ed754a125)
 
 <p align="center">
@@ -30,6 +31,10 @@ OpenClaw costs
   <a href="LICENSE"><img src="https://img.shields.io/github/license/mnfst/manifest?color=blue" alt="license" /></a>
   &nbsp;
   <a href="https://discord.gg/FepAked3W7"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
+</p>
+
+<p align="center">
+<a href="https://trendshift.io/repositories/12890" target="_blank"><img src="https://trendshift.io/api/badge/repositories/12890" alt="mnfst%2Fmanifest | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>&nbsp;&nbsp;<a href="https://www.producthunt.com/products/manifest-361?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-manifest-361" target="_blank" rel="noopener noreferrer"><img alt="Manifest - Open Source LLM Router for OpenClaw | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1104032&amp;theme=light&amp;t=1774281267919"></a>
 </p>
 
 ## What do you get?
@@ -104,15 +109,7 @@ tailscale serve --bg 2099
 
 **In cloud mode, the blind proxy physically cannot read your prompts.** This is fundamentally different from services saying "trust us."
 
-The only thing Manifest collects is anonymous product analytics (hashed machine ID, OS platform, package version, event names) to help improve the project. No personally identifiable information or agent data is included.
-
-**Opting out:**
-
-```bash
-MANIFEST_TELEMETRY_OPTOUT=1
-```
-
-Or add `"telemetryOptOut": true` to `~/.openclaw/manifest/config.json`.
+In local mode, all Manifest data stays on your machine. No analytics or telemetry data is sent externally.
 
 
 ## Manifest vs OpenRouter
