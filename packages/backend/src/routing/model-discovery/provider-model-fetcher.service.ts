@@ -212,6 +212,34 @@ function parseOpenaiSubscription(body: unknown, provider: string): DiscoveredMod
     });
 }
 
+/* ── GitHub Copilot (subscription-only, OpenAI-compatible /models) ── */
+
+function parseCopilot(body: unknown, provider: string): DiscoveredModel[] {
+  const data = (body as { data?: unknown[] })?.data;
+  if (!Array.isArray(data)) return [];
+  return data
+    .filter((m: unknown) => {
+      const entry = m as OpenAIModelEntry;
+      return typeof entry.id === 'string' && entry.id.length > 0;
+    })
+    .map((m: unknown) => {
+      const entry = m as OpenAIModelEntry;
+      // Copilot API returns bare names (e.g. "claude-opus-4.6");
+      // internal convention uses "copilot/" prefix
+      return {
+        id: `copilot/${entry.id}`,
+        displayName: entry.id,
+        provider,
+        contextWindow: DEFAULT_CONTEXT_WINDOW,
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+        capabilityReasoning: false,
+        capabilityCode: false,
+        qualityScore: 3,
+      };
+    });
+}
+
 /* ── Provider configs ── */
 
 export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
@@ -304,6 +332,17 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: `${OLLAMA_HOST}/api/tags`,
     buildHeaders: () => ({}),
     parse: parseOllama,
+  },
+  copilot: {
+    endpoint: 'https://api.githubcopilot.com/models',
+    buildHeaders: (key: string) => ({
+      Authorization: `Bearer ${key}`,
+      Accept: 'application/json',
+      'Editor-Version': 'vscode/1.100.0',
+      'Editor-Plugin-Version': 'copilot/1.300.0',
+      'Copilot-Integration-Id': 'vscode-chat',
+    }),
+    parse: parseCopilot,
   },
 };
 
