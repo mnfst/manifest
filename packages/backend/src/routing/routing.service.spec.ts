@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { RoutingService } from './routing.service';
 import { RoutingInvalidationService } from './routing-invalidation.service';
 import { RoutingCacheService } from './routing-cache.service';
@@ -22,7 +22,7 @@ describe('RoutingService', () => {
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
   let mockAutoAssign: { recalculate: jest.Mock };
   let mockPricingCache: { getByModel: jest.Mock; getAll: jest.Mock };
-  let mockDiscoveryService: { getModelForAgent: jest.Mock };
+  let mockDiscoveryService: { getModelForAgent: jest.Mock; getModelsForAgent: jest.Mock };
   let mockRoutingCache: RoutingCacheService;
 
   beforeEach(() => {
@@ -36,6 +36,7 @@ describe('RoutingService', () => {
     };
     mockDiscoveryService = {
       getModelForAgent: jest.fn().mockResolvedValue(undefined),
+      getModelsForAgent: jest.fn().mockResolvedValue([]),
     };
     mockRoutingCache = new RoutingCacheService();
 
@@ -178,22 +179,22 @@ describe('RoutingService', () => {
   });
 
   describe('getEffectiveModel', () => {
-    it('should return override_model when provider is still connected', async () => {
+    it('should return override_model when it is still discovered', async () => {
       const assignment = {
         override_model: 'claude-opus-4-6',
         auto_assigned_model: 'gpt-4o',
       } as TierAssignment;
 
-      mockPricingCache.getByModel.mockReturnValue({
-        provider: 'Anthropic',
+      mockDiscoveryService.getModelForAgent.mockResolvedValue({
+        id: 'claude-opus-4-6',
+        provider: 'anthropic',
       });
-      mockProviderRepo.find.mockResolvedValue([{ provider: 'anthropic', is_active: true }]);
 
       const result = await service.getEffectiveModel('a1', assignment);
       expect(result).toBe('claude-opus-4-6');
     });
 
-    it('should match provider case-insensitively', async () => {
+    it('should fall back to auto when override only exists in pricing data', async () => {
       const assignment = {
         override_model: 'gpt-4o-mini',
         auto_assigned_model: 'gpt-oss-20b',
@@ -202,23 +203,16 @@ describe('RoutingService', () => {
       mockPricingCache.getByModel.mockReturnValue({
         provider: 'OpenAI',
       });
-      // DB stores "OpenAI" with different case than pricing lowercase
-      mockProviderRepo.find.mockResolvedValue([{ provider: 'OpenAI', is_active: true }]);
 
       const result = await service.getEffectiveModel('a1', assignment);
-      expect(result).toBe('gpt-4o-mini');
+      expect(result).toBe('gpt-oss-20b');
     });
 
-    it('should fall back to auto when provider is disconnected', async () => {
+    it('should fall back to auto when override only matches provider prefix', async () => {
       const assignment = {
-        override_model: 'claude-opus-4-6',
+        override_model: 'anthropic/claude-sonnet-4',
         auto_assigned_model: 'gpt-4o',
       } as TierAssignment;
-
-      mockPricingCache.getByModel.mockReturnValue({
-        provider: 'Anthropic',
-      });
-      mockProviderRepo.find.mockResolvedValue([]); // no active providers
 
       const result = await service.getEffectiveModel('a1', assignment);
       expect(result).toBe('gpt-4o');
@@ -234,37 +228,6 @@ describe('RoutingService', () => {
 
       const result = await service.getEffectiveModel('a1', assignment);
       expect(result).toBe('gpt-4o');
-    });
-
-    it('should match override via pricing model_name prefix (OpenRouter scenario)', async () => {
-      const assignment = {
-        override_model: 'anthropic/claude-sonnet-4',
-        auto_assigned_model: 'gpt-4o',
-      } as TierAssignment;
-
-      // pricing.provider is "OpenRouter" (doesn't match), but model_name has "anthropic/" prefix
-      mockPricingCache.getByModel.mockReturnValue({
-        provider: 'OpenRouter',
-        model_name: 'anthropic/claude-sonnet-4',
-      });
-      mockProviderRepo.find.mockResolvedValue([{ provider: 'anthropic', is_active: true }]);
-
-      const result = await service.getEffectiveModel('a1', assignment);
-      expect(result).toBe('anthropic/claude-sonnet-4');
-    });
-
-    it('should match override by model name prefix when no pricing entry', async () => {
-      const assignment = {
-        override_model: 'anthropic/claude-sonnet-4',
-        auto_assigned_model: 'gpt-4o',
-      } as TierAssignment;
-
-      // No pricing entry — falls through to model name prefix extraction
-      mockPricingCache.getByModel.mockReturnValue(undefined);
-      mockProviderRepo.find.mockResolvedValue([{ provider: 'anthropic', is_active: true }]);
-
-      const result = await service.getEffectiveModel('a1', assignment);
-      expect(result).toBe('anthropic/claude-sonnet-4');
     });
 
     it('should return override_model when discovered by ModelDiscoveryService', async () => {
@@ -374,6 +337,80 @@ describe('RoutingService', () => {
           agent_id: 'a1',
           provider: 'anthropic',
           auth_type: 'subscription',
+          is_active: true,
+        },
+      ]);
+    });
+
+    it('should keep native-only models when an unsupported subscription provider still has an api key', async () => {
+      mockProviderRepo.find
+        .mockResolvedValueOnce([
+          {
+            id: 'p1',
+            agent_id: 'a1',
+            provider: 'deepseek',
+            auth_type: 'subscription',
+            is_active: true,
+            cached_models: [{ id: 'deepseek-native-only', provider: 'deepseek' }],
+          },
+          {
+            id: 'p2',
+            agent_id: 'a1',
+            provider: 'deepseek',
+            auth_type: 'api_key',
+            is_active: true,
+          },
+          {
+            id: 'p3',
+            agent_id: 'a1',
+            provider: 'groq',
+            auth_type: 'subscription',
+            is_active: true,
+            cached_models: [{ id: 'groq-native-only', provider: 'groq' }],
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            id: 'p1',
+            agent_id: 'a1',
+            provider: 'deepseek',
+            auth_type: 'subscription',
+            is_active: false,
+          },
+          {
+            id: 'p2',
+            agent_id: 'a1',
+            provider: 'deepseek',
+            auth_type: 'api_key',
+            is_active: true,
+          },
+          {
+            id: 'p3',
+            agent_id: 'a1',
+            provider: 'groq',
+            auth_type: 'subscription',
+            is_active: false,
+          },
+        ]);
+
+      const override = Object.assign(new TierAssignment(), {
+        id: 'tier-1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: 'deepseek-native-only',
+      });
+      mockTierRepo.find.mockResolvedValueOnce([override]).mockResolvedValueOnce([]);
+
+      const result = await service.getProviders('a1');
+
+      expect(override.override_model).toBe('deepseek-native-only');
+      expect(mockTierRepo.save).not.toHaveBeenCalled();
+      expect(result).toEqual([
+        {
+          id: 'p2',
+          agent_id: 'a1',
+          provider: 'deepseek',
+          auth_type: 'api_key',
           is_active: true,
         },
       ]);
@@ -959,6 +996,51 @@ describe('RoutingService', () => {
       );
     });
 
+    it('should clear native-only overrides and fallbacks using removed provider cached models', async () => {
+      const existing = Object.assign(new UserProvider(), {
+        id: 'p1',
+        agent_id: 'a1',
+        provider: 'openai',
+        is_active: true,
+        cached_models: [{ id: 'vendor-native-only', provider: 'openai' }],
+      });
+      mockProviderRepo.findOne.mockResolvedValueOnce(existing);
+      mockProviderRepo.find.mockResolvedValue([]);
+
+      const override = Object.assign(new TierAssignment(), {
+        id: 'tier-override-1',
+        agent_id: 'a1',
+        tier: 'complex',
+        override_model: 'vendor-native-only',
+      });
+      mockTierRepo.find
+        .mockResolvedValueOnce([override])
+        .mockResolvedValueOnce([
+          Object.assign(new TierAssignment(), {
+            id: 'tier-fallback-1',
+            agent_id: 'a1',
+            tier: 'standard',
+            fallback_models: ['vendor-native-only', 'claude-sonnet-4'],
+          }),
+        ])
+        .mockResolvedValueOnce([{ tier: 'complex', auto_assigned_model: 'claude-sonnet-4' }]);
+
+      mockPricingCache.getByModel.mockReturnValue(undefined);
+
+      const result = await service.removeProvider('a1', 'openai');
+
+      expect(override.override_model).toBeNull();
+      const batchSaveCall = mockTierRepo.save.mock.calls.find((call: unknown[]) =>
+        Array.isArray(call[0]),
+      );
+      expect(batchSaveCall).toBeDefined();
+      expect(batchSaveCall![0]).toEqual(
+        expect.arrayContaining([expect.objectContaining({ fallback_models: ['claude-sonnet-4'] })]),
+      );
+      expect(result.notifications).toHaveLength(1);
+      expect(result.notifications[0]).toContain('vendor-native-only');
+    });
+
     it('should skip tiers with null or empty fallback_models during cleanup', async () => {
       const existing = Object.assign(new UserProvider(), {
         id: 'p1',
@@ -1134,6 +1216,10 @@ describe('RoutingService', () => {
   /* ── setOverride ── */
 
   describe('setOverride', () => {
+    beforeEach(() => {
+      mockDiscoveryService.getModelForAgent.mockResolvedValue({ id: 'available-model' });
+    });
+
     it('should update existing tier row', async () => {
       const existing = Object.assign(new TierAssignment(), {
         id: 't1',
@@ -1333,6 +1419,16 @@ describe('RoutingService', () => {
 
       expect(result.override_model).toBe('new-model');
       expect(result.fallback_models).toBeNull();
+    });
+
+    it('should reject overrides for models that are not discovered for the agent', async () => {
+      mockDiscoveryService.getModelForAgent.mockResolvedValue(undefined);
+
+      await expect(service.setOverride('a1', 'u1', 'complex', 'missing-model')).rejects.toThrow(
+        new BadRequestException('Model "missing-model" is not available for this agent'),
+      );
+      expect(mockTierRepo.save).not.toHaveBeenCalled();
+      expect(mockTierRepo.insert).not.toHaveBeenCalled();
     });
   });
 
@@ -1536,6 +1632,14 @@ describe('RoutingService', () => {
   /* ── setFallbacks ── */
 
   describe('setFallbacks', () => {
+    beforeEach(() => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        { id: 'model-a', provider: 'openai' },
+        { id: 'model-b', provider: 'openai' },
+        { id: 'override-model', provider: 'openai' },
+      ]);
+    });
+
     it('should set fallback_models on existing tier', async () => {
       const existing = { agent_id: 'a1', tier: 'standard', fallback_models: null };
       mockTierRepo.findOne.mockResolvedValue(existing);
@@ -1559,6 +1663,38 @@ describe('RoutingService', () => {
       mockTierRepo.findOne.mockResolvedValue(existing);
       await service.setFallbacks('a1', 'standard', []);
       expect(existing.fallback_models).toBeNull();
+    });
+
+    it('should de-duplicate fallbacks and exclude the current override model', async () => {
+      const existing = {
+        agent_id: 'a1',
+        tier: 'standard',
+        override_model: 'override-model',
+        fallback_models: null,
+      };
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setFallbacks('a1', 'standard', [
+        'model-a',
+        'model-a',
+        'override-model',
+        'model-b',
+      ]);
+
+      expect(existing.fallback_models).toEqual(['model-a', 'model-b']);
+      expect(result).toEqual(['model-a', 'model-b']);
+    });
+
+    it('should reject fallbacks that are not discovered for the agent', async () => {
+      const existing = { agent_id: 'a1', tier: 'standard', fallback_models: null };
+      mockTierRepo.findOne.mockResolvedValue(existing);
+
+      await expect(
+        service.setFallbacks('a1', 'standard', ['model-a', 'missing-model']),
+      ).rejects.toThrow(
+        new BadRequestException('Models are not available for this agent: missing-model'),
+      );
+      expect(mockTierRepo.save).not.toHaveBeenCalled();
     });
   });
 

@@ -13,7 +13,6 @@ import { parseOAuthTokenBlob } from '../openai-oauth.types';
 import {
   findOpenRouterPrefix,
   lookupWithVariants,
-  buildFallbackModels,
   buildSubscriptionFallbackModels,
   supplementWithKnownModels,
 } from './model-fallback';
@@ -84,23 +83,12 @@ export class ModelDiscoveryService {
         endpointOverride,
       );
 
-      // Register confirmed model IDs from native API for future fallback filtering
+      // Preserve confirmed model IDs from native discovery for later validation.
       if (raw.length > 0 && this.modelRegistry) {
         this.modelRegistry.registerModels(
           provider.provider,
           raw.map((m) => m.id),
         );
-      }
-
-      // If native API returned no models, fall back to OpenRouter filtered by confirmed models
-      if (raw.length === 0) {
-        const confirmed = this.modelRegistry?.getConfirmedModels(provider.provider) ?? null;
-        raw = buildFallbackModels(this.pricingSync, provider.provider, confirmed);
-        if (raw.length > 0) {
-          this.logger.log(
-            `Native API returned 0 models for ${provider.provider} — using ${raw.length} models from pricing data`,
-          );
-        }
       }
     }
 

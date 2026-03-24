@@ -143,6 +143,30 @@ describe('ModelDiscoveryService', () => {
       expect(providerRepo.save).toHaveBeenCalledWith(provider);
     });
 
+    it('should not synthesize api-key models from pricing data when native discovery returns empty', async () => {
+      fetcher.fetch.mockResolvedValue([]);
+      mockPricingSync.getAll.mockReturnValue(
+        new Map([
+          [
+            'openai/gpt-4o',
+            {
+              input: 0.0000025,
+              output: 0.00001,
+              contextWindow: 128000,
+              displayName: 'GPT-4o',
+            },
+          ],
+        ]),
+      );
+
+      const provider = makeProvider();
+      const result = await service.discoverModels(provider);
+
+      expect(result).toEqual([]);
+      expect(provider.cached_models).toEqual([]);
+      expect(providerRepo.save).toHaveBeenCalledWith(provider);
+    });
+
     it('should return [] when decrypt fails', async () => {
       mockDecrypt.mockImplementation(() => {
         throw new Error('bad key');
@@ -303,10 +327,9 @@ describe('ModelDiscoveryService', () => {
       expect(mockModelRegistry.registerModels).not.toHaveBeenCalled();
     });
 
-    it('should pass confirmed models to buildFallbackModels when native fetch fails', async () => {
+    it('should ignore pricing fallback when native fetch returns empty', async () => {
       fetcher.fetch.mockResolvedValue([]);
-      const confirmed = new Set(['gpt-4o']);
-      mockModelRegistry.getConfirmedModels.mockReturnValue(confirmed);
+      mockModelRegistry.getConfirmedModels.mockReturnValue(new Set(['gpt-4o']));
 
       // Set up OpenRouter cache with matching models
       const orMap = new Map([
@@ -317,10 +340,8 @@ describe('ModelDiscoveryService', () => {
 
       const result = await service.discoverModels(makeProvider());
 
-      expect(mockModelRegistry.getConfirmedModels).toHaveBeenCalledWith('openai');
-      // Only confirmed model should be in fallback
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('gpt-4o');
+      expect(mockModelRegistry.getConfirmedModels).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
     });
 
     it('should not call registry when modelRegistry is null', async () => {
@@ -746,7 +767,7 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].inputPricePerToken).toBe(0.00003);
     });
 
-    it('should build fallback models from OpenRouter cache when native API returns empty', async () => {
+    it('should ignore OpenRouter pricing cache when native api-key discovery returns empty', async () => {
       fetcher.fetch.mockResolvedValue([]);
 
       const orMap = new Map([
@@ -782,12 +803,7 @@ describe('ModelDiscoveryService', () => {
 
       const result = await service.discoverModels(makeProvider({ provider: 'anthropic' }));
 
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('claude-opus-4-6');
-      expect(result[0].displayName).toBe('Claude Opus 4.6');
-      expect(result[0].inputPricePerToken).toBe(0.000015);
-      expect(result[0].provider).toBe('anthropic');
-      expect(result[1].id).toBe('claude-sonnet-4-6');
+      expect(result).toEqual([]);
     });
 
     it('should unwrap OAuth blob for OpenAI subscription before fetching', async () => {
@@ -930,9 +946,12 @@ describe('ModelDiscoveryService', () => {
         }),
       );
 
-      // Should fall back to buildFallbackModels (not subscription fallback, since token exists)
+      // With a subscription provider, known subscription models are still supplemented
+      // even when the live token-based fetch returns no rows.
       expect(fetcher.fetch).toHaveBeenCalled();
-      expect(result.length).toBeGreaterThanOrEqual(0);
+      expect(result.map((model) => model.id)).toEqual(
+        expect.arrayContaining(['gpt-5.4', 'gpt-5.2-codex']),
+      );
     });
 
     it('should stamp authType as api_key for regular providers', async () => {

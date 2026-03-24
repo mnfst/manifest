@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, IsNull, Repository, In } from 'typeorm';
 import { UserProvider } from '../entities/user-provider.entity';
@@ -9,7 +9,7 @@ import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
 import { encrypt, decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
-import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
+import { expandProviderNames } from './provider-aliases';
 import { TIERS } from './scorer/types';
 import { isManifestUsableProvider, isSupportedSubscriptionProvider } from './subscription-support';
 
@@ -179,9 +179,18 @@ export class RoutingService {
     );
 
     if (removedProviders.length > 0) {
+      const removedProviderSet = new Set(
+        removedProviders.map((provider) => provider.toLowerCase()),
+      );
+      const removedModels = unsupported
+        .filter((record) => removedProviderSet.has(record.provider.toLowerCase()))
+        .flatMap((record) =>
+          Array.isArray(record.cached_models) ? record.cached_models.map((model) => model.id) : [],
+        );
       const { hadTierAssignments } = await this.clearTierAssignmentsForProviders(
         agentId,
         removedProviders,
+        removedModels,
       );
       if (hadTierAssignments) {
         await this.autoAssign.recalculate(agentId);
@@ -193,10 +202,12 @@ export class RoutingService {
   private async clearTierAssignmentsForProviders(
     agentId: string,
     providers: string[],
+    removedModels: string[] = [],
   ): Promise<{ invalidated: { tier: string; modelName: string }[]; hadTierAssignments: boolean }> {
     if (providers.length === 0) return { invalidated: [], hadTierAssignments: false };
 
     const providerNames = new Set(providers.map((provider) => provider.toLowerCase()));
+    const removedModelSet = new Set(removedModels);
     const overrides = await this.tierRepo.find({
       where: { agent_id: agentId, override_model: Not(IsNull()) },
     });
@@ -205,12 +216,9 @@ export class RoutingService {
     const tiersToSave: TierAssignment[] = [];
     for (const tier of overrides) {
       const overrideProvider = tier.override_provider?.toLowerCase();
-      const pricingProvider = this.pricingCache
-        .getByModel(tier.override_model!)
-        ?.provider.toLowerCase();
       if (
         (overrideProvider && providerNames.has(overrideProvider)) ||
-        (pricingProvider && providerNames.has(pricingProvider))
+        this.modelBelongsToProviders(tier.override_model!, providerNames, removedModelSet)
       ) {
         invalidated.push({ tier: tier.tier, modelName: tier.override_model! });
         tier.override_model = null;
@@ -226,10 +234,9 @@ export class RoutingService {
     const savedIds = new Set(tiersToSave.map((tier) => tier.id));
     for (const tier of allTiers) {
       if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
-      const filtered = tier.fallback_models.filter((model) => {
-        const pricing = this.pricingCache.getByModel(model);
-        return !pricing || !providerNames.has(pricing.provider.toLowerCase());
-      });
+      const filtered = tier.fallback_models.filter(
+        (model) => !this.modelBelongsToProviders(model, providerNames, removedModelSet),
+      );
       if (filtered.length !== tier.fallback_models.length) {
         tier.fallback_models = filtered.length > 0 ? filtered : null;
         tier.updated_at = new Date().toISOString();
@@ -269,7 +276,14 @@ export class RoutingService {
       return { notifications: [] };
     }
 
-    const { invalidated } = await this.clearTierAssignmentsForProviders(agentId, [provider]);
+    const removedModels = Array.isArray(existing.cached_models)
+      ? existing.cached_models.map((model) => model.id)
+      : [];
+    const { invalidated } = await this.clearTierAssignmentsForProviders(
+      agentId,
+      [provider],
+      removedModels,
+    );
 
     // Deactivate provider and recalculate
     await this.autoAssign.recalculate(agentId);
@@ -369,6 +383,8 @@ export class RoutingService {
     provider?: string,
     authType?: 'api_key' | 'subscription',
   ): Promise<TierAssignment> {
+    await this.assertModelAvailable(agentId, model);
+
     const existing = await this.tierRepo.findOne({
       where: { agent_id: agentId, tier },
     });
@@ -441,11 +457,17 @@ export class RoutingService {
   async setFallbacks(agentId: string, tier: string, models: string[]): Promise<string[]> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (!existing) return [];
-    existing.fallback_models = models.length > 0 ? models : null;
+
+    const deduped = Array.from(new Set(models)).filter(
+      (model) => model !== existing.override_model,
+    );
+    await this.assertModelsAvailable(agentId, deduped);
+
+    existing.fallback_models = deduped.length > 0 ? deduped : null;
     existing.updated_at = new Date().toISOString();
     await this.tierRepo.save(existing);
     this.routingCache.invalidateAgent(agentId);
-    return models;
+    return deduped;
   }
 
   async clearFallbacks(agentId: string, tier: string): Promise<void> {
@@ -576,30 +598,36 @@ export class RoutingService {
   }
 
   private async isModelAvailable(agentId: string, model: string): Promise<boolean> {
-    // Check discovered models first
-    const discovered = await this.discoveryService.getModelForAgent(agentId, model);
-    if (discovered) return true;
+    return (await this.discoveryService.getModelForAgent(agentId, model)) !== undefined;
+  }
 
-    const records = (
-      await this.providerRepo.find({
-        where: { agent_id: agentId, is_active: true },
-      })
-    ).filter(isManifestUsableProvider);
+  private modelBelongsToProviders(
+    model: string,
+    providerNames: Set<string>,
+    removedModelSet: Set<string>,
+  ): boolean {
+    if (removedModelSet.has(model)) return true;
+
     const pricing = this.pricingCache.getByModel(model);
-    if (pricing) {
-      const names = expandProviderNames([pricing.provider]);
-      if (records.find((r) => names.has(r.provider.toLowerCase()))) return true;
-      const canonicalPrefix = inferProviderFromModelName(pricing.model_name);
-      if (canonicalPrefix) {
-        const cpNames = expandProviderNames([canonicalPrefix]);
-        if (records.find((r) => cpNames.has(r.provider.toLowerCase()))) return true;
-      }
-    }
-    const prefix = inferProviderFromModelName(model);
-    if (prefix) {
-      const prefixNames = expandProviderNames([prefix]);
-      if (records.find((r) => prefixNames.has(r.provider.toLowerCase()))) return true;
-    }
-    return false;
+    return pricing ? providerNames.has(pricing.provider.toLowerCase()) : false;
+  }
+
+  private async assertModelAvailable(agentId: string, model: string): Promise<void> {
+    if (await this.isModelAvailable(agentId, model)) return;
+    throw new BadRequestException(`Model "${model}" is not available for this agent`);
+  }
+
+  private async assertModelsAvailable(agentId: string, models: string[]): Promise<void> {
+    if (models.length === 0) return;
+
+    const available = new Set(
+      (await this.discoveryService.getModelsForAgent(agentId)).map((discovered) => discovered.id),
+    );
+    const unavailable = models.filter((model) => !available.has(model));
+    if (unavailable.length === 0) return;
+
+    throw new BadRequestException(
+      `Models are not available for this agent: ${unavailable.join(', ')}`,
+    );
   }
 }
