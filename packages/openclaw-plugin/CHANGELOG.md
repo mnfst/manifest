@@ -1,5 +1,11 @@
 # manifest
 
+## 5.29.2
+
+### Patch Changes
+
+- 11ff0fc: fix(frontend): update GitHub Copilot and OpenAI provider icons, widen routing instruction modal, and scope model-id layout to disable picker
+
 ## 5.29.1
 
 ### Patch Changes
