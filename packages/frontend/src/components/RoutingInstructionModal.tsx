@@ -38,7 +38,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
       >
         <div
           class="modal-card"
-          style="max-width: 540px;"
+          style="max-width: 640px;"
           role="dialog"
           aria-modal="true"
           aria-labelledby="routing-instruction-title"
