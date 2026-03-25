@@ -511,7 +511,7 @@ describe("MessageLog", () => {
   });
 
   describe("local mode", () => {
-    it("should treat setup as completed for local-agent in local mode", async () => {
+    it("should treat setup as completed for any agent in local mode", async () => {
       mockAgentName = "local-agent";
       mockIsLocalMode = true;
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
@@ -521,8 +521,8 @@ describe("MessageLog", () => {
       });
     });
 
-    it("should not show Set up agent button for local-agent in local mode", async () => {
-      mockAgentName = "local-agent";
+    it("should not show Set up agent button for any agent in local mode", async () => {
+      mockAgentName = "other-agent";
       mockIsLocalMode = true;
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
@@ -532,13 +532,13 @@ describe("MessageLog", () => {
       });
     });
 
-    it("should show Set up agent button for non-local-agent even in local mode", async () => {
+    it("should show waiting banner for non-default agent in local mode", async () => {
       mockAgentName = "other-agent";
       mockIsLocalMode = true;
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain("No messages recorded");
+        expect(container.textContent).toContain("Messages will show up");
       });
     });
 

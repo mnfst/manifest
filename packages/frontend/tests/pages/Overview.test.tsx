@@ -464,8 +464,18 @@ describe("Overview", () => {
       });
     });
 
-    it("should not open setup modal for local-agent in local mode", async () => {
-      mockAgentName = "local-agent";
+    it("should auto-complete setup for any agent in local mode", async () => {
+      mockAgentName = "other-agent";
+      mockIsLocalMode = true;
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(localStorage.getItem("setup_completed_other-agent")).toBe("1");
+      });
+    });
+
+    it("should not open setup modal for any agent in local mode", async () => {
+      mockAgentName = "other-agent";
       mockIsLocalMode = true;
       mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
       const { container } = render(() => <Overview />);
@@ -475,24 +485,13 @@ describe("Overview", () => {
       });
     });
 
-    it("should show waiting banner instead of empty state for local-agent in local mode", async () => {
-      mockAgentName = "local-agent";
-      mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain("dashboard will update");
-      });
-    });
-
-    it("should still open setup modal for non-local-agent even in local mode", async () => {
+    it("should show waiting banner instead of empty state for any agent in local mode", async () => {
       mockAgentName = "other-agent";
       mockIsLocalMode = true;
       mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        const modal = container.querySelector('[data-testid="setup-modal"]');
-        expect(modal?.getAttribute("data-open")).toBe("true");
+        expect(container.textContent).toContain("dashboard will update");
       });
     });
 

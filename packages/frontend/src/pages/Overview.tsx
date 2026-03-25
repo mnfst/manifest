@@ -120,7 +120,7 @@ const Overview: Component = () => {
   };
 
   createEffect(() => {
-    if (isLocalMode() === true && params.agentName === 'local-agent') {
+    if (isLocalMode() === true) {
       localStorage.setItem(`setup_completed_${params.agentName}`, '1');
       setSetupCompleted(true);
       return;
@@ -205,13 +205,7 @@ const Overview: Component = () => {
               ]}
             />
           </Show>
-          <Show
-            when={
-              isNewAgent() &&
-              !(isLocalMode() && params.agentName === 'local-agent') &&
-              !setupCompleted()
-            }
-          >
+          <Show when={isNewAgent() && !isLocalMode() && !setupCompleted()}>
             <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
@@ -339,7 +333,7 @@ const Overview: Component = () => {
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
           <Show when={isNewAgent()}>
             <Show
-              when={(isLocalMode() && params.agentName === 'local-agent') || setupCompleted()}
+              when={isLocalMode() || setupCompleted()}
               fallback={
                 <div class="empty-state">
                   <div class="empty-state__title">No activity yet</div>

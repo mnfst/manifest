@@ -257,11 +257,11 @@ describe("Header - GitHub star button", () => {
 });
 
 describe("Header - local mode", () => {
-  it("logo links to /agents/local-agent in local mode", () => {
+  it("logo links to / in local mode", () => {
     mockIsLocalMode = true;
     const { container } = render(() => <Header />);
     const logoLink = container.querySelector(".header__logo") as HTMLAnchorElement;
-    expect(logoLink.getAttribute("href")).toBe("/agents/local-agent");
+    expect(logoLink.getAttribute("href")).toBe("/");
   });
 
   it("logo links to / in cloud mode", () => {
@@ -304,11 +304,11 @@ describe("Header - local mode", () => {
     expect(screen.getByText("Dev")).toBeDefined();
   });
 
-  it("hides Workspace breadcrumb in local mode", () => {
+  it("shows Workspace breadcrumb in local mode", () => {
     mockIsLocalMode = true;
     mockAgentName = "my-agent";
     render(() => <Header />);
-    expect(screen.queryByText("Workspace")).toBeNull();
+    expect(screen.getByText("Workspace")).toBeDefined();
   });
 
   it("shows Workspace breadcrumb in cloud mode", () => {

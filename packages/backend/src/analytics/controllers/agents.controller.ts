@@ -25,7 +25,7 @@ import { CreateAgentDto } from '../../common/dto/create-agent.dto';
 import { RenameAgentDto } from '../../common/dto/rename-agent.dto';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
 import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants';
-import { readLocalApiKey } from '../../common/constants/local-mode.constants';
+import { readLocalApiKey, LOCAL_AGENT_NAME } from '../../common/constants/local-mode.constants';
 import { slugify } from '../../common/utils/slugify';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
@@ -86,7 +86,7 @@ export class AgentsController {
     const keyData = await this.apiKeyGenerator.getKeyForAgent(user.id, agentName);
     const customEndpoint = this.config.get<string>('app.pluginOtlpEndpoint', '');
     const isLocal = this.config.get<string>('MANIFEST_MODE') === 'local';
-    const fullKey = isLocal ? readLocalApiKey() : undefined;
+    const fullKey = isLocal && agentName === LOCAL_AGENT_NAME ? readLocalApiKey() : undefined;
     return {
       ...keyData,
       ...(fullKey ? { apiKey: fullKey } : {}),
@@ -118,8 +118,8 @@ export class AgentsController {
 
   @Delete('agents/:agentName')
   async deleteAgent(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
-    if (this.config.get<string>('MANIFEST_MODE') === 'local') {
-      throw new ForbiddenException('Cannot delete agents in local mode');
+    if (this.config.get<string>('MANIFEST_MODE') === 'local' && agentName === LOCAL_AGENT_NAME) {
+      throw new ForbiddenException('Cannot delete the default local agent');
     }
     await this.aggregation.deleteAgent(user.id, agentName);
     await this.cacheManager.del(this.agentListCacheKey(user.id));

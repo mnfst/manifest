@@ -3,8 +3,6 @@ import { render, screen } from "@solidjs/testing-library";
 
 let mockAgentName: string | null = "test-agent";
 let mockPathname = "/agents/test-agent";
-let mockIsLocalMode: boolean | null = true;
-
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => {
     // Access classList to trigger coverage of classList expressions
@@ -26,7 +24,7 @@ vi.mock("../../src/services/routing.js", () => ({
 }));
 
 vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => mockIsLocalMode,
+  isLocalMode: () => false,
 }));
 
 import Sidebar from "../../src/components/Sidebar";
@@ -63,11 +61,8 @@ describe("Sidebar with agent", () => {
   });
 
   it("renders Settings link in cloud mode", () => {
-    const prev = mockIsLocalMode;
-    mockIsLocalMode = false;
     render(() => <Sidebar />);
     expect(screen.getByText("Settings")).toBeDefined();
-    mockIsLocalMode = prev;
   });
 
   it("renders Limits link", () => {
@@ -101,8 +96,6 @@ describe("Sidebar with agent", () => {
   });
 
   it("has correct link hrefs for agent routes", () => {
-    const prev = mockIsLocalMode;
-    mockIsLocalMode = false;
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('a[href="/agents/test-agent"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/messages"]')).not.toBeNull();
@@ -110,7 +103,6 @@ describe("Sidebar with agent", () => {
     expect(container.querySelector('a[href="/agents/test-agent/limits"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/model-prices"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/help"]')).not.toBeNull();
-    mockIsLocalMode = prev;
   });
 
   it("marks current page link as active", () => {
@@ -144,7 +136,6 @@ describe("Sidebar without agent", () => {
   beforeAll(() => {
     mockAgentName = null;
     mockPathname = "/";
-    mockIsLocalMode = false;
   });
 
   it("renders Agents link when no agent selected", () => {
@@ -167,7 +158,6 @@ describe("Sidebar without agent", () => {
 describe("Sidebar active states for sub-paths", () => {
   beforeAll(() => {
     mockAgentName = "test-agent";
-    mockIsLocalMode = false;
   });
 
   it("marks routing link as active on routing path", () => {
@@ -217,11 +207,10 @@ describe("Sidebar in local mode", () => {
   beforeAll(() => {
     mockAgentName = null;
     mockPathname = "/";
-    mockIsLocalMode = true;
   });
 
-  it("hides Agents link in local mode", () => {
-    const { container } = render(() => <Sidebar />);
-    expect(container.textContent).not.toContain("Agents");
+  it("shows Agents link in local mode when no agent selected", () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText("Agents")).toBeDefined();
   });
 });
