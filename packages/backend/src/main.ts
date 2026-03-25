@@ -98,19 +98,6 @@ export async function bootstrap() {
 
   // Re-add body parsing for NestJS routes
   expressApp.use(express.json({ limit: '1mb' }));
-  expressApp.use(
-    express.raw({
-      type: 'application/x-protobuf',
-      limit: '5mb',
-      verify: (
-        req: express.Request & { rawBody?: Buffer },
-        _res: express.Response,
-        buf: Buffer,
-      ) => {
-        req.rawBody = buf;
-      },
-    }),
-  );
   expressApp.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
   const port = Number(process.env['PORT'] ?? 3001);

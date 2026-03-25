@@ -9,7 +9,7 @@ import { AgentMessage } from '../entities/agent-message.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { ModelDiscoveryModule } from './model-discovery/model-discovery.module';
-import { OtlpAuthGuard } from '../otlp/guards/otlp-auth.guard';
+import { AgentKeyAuthGuard } from '../otlp/guards/agent-key-auth.guard';
 import { RoutingController } from './routing.controller';
 import { CustomProviderController } from './custom-provider.controller';
 import { ResolveController } from './resolve.controller';
@@ -66,7 +66,7 @@ import { MinimaxOauthController } from './minimax-oauth.controller';
     CustomProviderService,
     ResolveService,
     TierAutoAssignService,
-    OtlpAuthGuard,
+    AgentKeyAuthGuard,
     ProxyService,
     ProviderClient,
     ProxyRateLimiter,

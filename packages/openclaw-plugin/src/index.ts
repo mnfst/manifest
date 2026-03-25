@@ -1,17 +1,17 @@
 import { parseConfigWithDeprecation, validateConfig, ManifestConfig } from './config';
-import { initTelemetry, shutdownTelemetry, PluginLogger } from './telemetry';
-import { registerHooks, initMetrics } from './hooks';
+import { PluginLogger } from './types';
 import { registerRouting } from './routing';
 import { registerTools } from './tools';
 import { registerCommand } from './command';
 import { verifyConnection } from './verify';
 import { registerLocalMode, injectProviderConfig, injectAuthProfile } from './local-mode';
 import { discoverSubscriptionProviders, registerSubscriptionProviders } from './subscription';
+import { stripOtlpSuffix } from './compat';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 module.exports = {
   id: 'manifest',
-  name: 'Manifest — Agent Observability',
+  name: 'Manifest — Smart LLM Router',
 
   register(api: any) {
     const logger: PluginLogger = api.logger || {
@@ -53,38 +53,21 @@ module.exports = {
       return;
     }
 
-    // Detect built-in diagnostics-otel conflict
-    const entries = api.config?.plugins?.entries || {};
-    if (entries['diagnostics-otel']?.enabled) {
-      logger.error(
-        "[manifest] ERROR: Built-in 'diagnostics-otel' is also enabled. " +
-          'This causes duplicate OTel registration errors. ' +
-          'Disable it now:\n' +
-          '  openclaw plugins disable diagnostics-otel\n' +
-          'Then restart the gateway.',
-      );
-      return;
-    }
-
-    // Derive the base origin from the OTLP endpoint (strip /otlp suffix).
-    const baseOrigin = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, '');
+    // Derive the base origin (strip legacy /otlp suffix for backward compat).
+    const baseOrigin = stripOtlpSuffix(config.endpoint, logger);
 
     // Unified cloud/dev path
     const effectiveKey = config.devMode ? 'dev-no-auth' : config.apiKey;
-    const serviceId = config.devMode ? 'manifest-dev' : 'manifest-telemetry';
 
     logger.info(
       config.devMode
         ? '[manifest] Dev mode — connecting to external server...'
-        : '[manifest] Initializing observability pipeline...',
+        : '[manifest] Initializing routing...',
     );
 
     injectProviderConfig(api, `${baseOrigin}/v1`, effectiveKey, logger);
     injectAuthProfile(effectiveKey, logger);
 
-    const { tracer, meter } = initTelemetry(config, logger);
-    initMetrics(meter);
-    registerHooks(api, tracer, config, logger);
     registerRouting(api, config, logger);
 
     if (typeof api.registerTool === 'function') {
@@ -102,12 +85,10 @@ module.exports = {
     const subscriptions = discoverSubscriptionProviders(logger);
 
     api.registerService({
-      id: serviceId,
+      id: 'manifest-routing',
       start: () => {
         logger.info(
-          config.devMode
-            ? '[manifest] Dev mode pipeline active'
-            : '[manifest] Observability pipeline active',
+          config.devMode ? '[manifest] Dev mode routing active' : '[manifest] Routing active',
         );
         logger.info(`[manifest]   Endpoint=${config.endpoint}`);
 
@@ -126,9 +107,6 @@ module.exports = {
         registerSubscriptionProviders(subscriptions, config.endpoint, effectiveKey, logger).catch(
           () => {},
         );
-      },
-      stop: async () => {
-        await shutdownTelemetry(logger);
       },
     });
   },

@@ -39,7 +39,7 @@ const Settings: Component = () => {
     if (custom) return custom;
     const host = window.location.hostname;
     if (host === 'app.manifest.build') return null;
-    return `${window.location.origin}/otlp`;
+    return window.location.origin;
   };
 
   const handleSave = async () => {
@@ -191,10 +191,10 @@ const Settings: Component = () => {
         <div class="settings-card">
           <div class="settings-card__row">
             <div class="settings-card__label">
-              <span class="settings-card__label-title">OTLP ingest key</span>
+              <span class="settings-card__label-title">Agent API key</span>
               <span class="settings-card__label-desc">
-                This key authenticates your agent's OTLP telemetry to Manifest. Rotating it
-                generates a new key and immediately invalidates the current one.
+                This key authenticates your agent's requests to Manifest. Rotating it generates a
+                new key and immediately invalidates the current one.
               </span>
             </div>
             <div
@@ -299,7 +299,7 @@ const Settings: Component = () => {
             <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-md);">
               This will permanently delete the{' '}
               <strong style="color: hsl(var(--foreground));">{agentName()}</strong> agent and all
-              its telemetry data. This action cannot be undone.
+              its data. This action cannot be undone.
             </p>
             <label style="display: block; font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: var(--gap-sm);">
               To confirm, type <strong>"{agentName()}"</strong> in the box below

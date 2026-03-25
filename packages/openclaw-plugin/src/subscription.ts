@@ -1,7 +1,7 @@
 import { existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { PluginLogger } from './telemetry';
+import { PluginLogger } from './types';
 import { supportsSubscriptionProvider } from '../../subscription-capabilities';
 import { loadJsonFile } from './json-file';
 

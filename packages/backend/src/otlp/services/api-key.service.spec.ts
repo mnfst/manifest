@@ -5,7 +5,7 @@ import { ApiKeyGeneratorService } from './api-key.service';
 import { Tenant } from '../../entities/tenant.entity';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
-import { OtlpAuthGuard } from '../guards/otlp-auth.guard';
+import { AgentKeyAuthGuard } from '../guards/agent-key-auth.guard';
 import { hashKey, keyPrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 
@@ -97,7 +97,7 @@ describe('ApiKeyGeneratorService', () => {
           },
         },
         {
-          provide: OtlpAuthGuard,
+          provide: AgentKeyAuthGuard,
           useValue: { clearCache: mockClearCache },
         },
       ],

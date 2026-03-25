@@ -275,7 +275,7 @@ describe('AggregationService', () => {
       await service.renameAgent('test-user', 'old-agent', 'new-agent', 'New Agent');
 
       expect(mockTransaction).toHaveBeenCalledTimes(1);
-      expect(mockExecute).toHaveBeenCalledTimes(6);
+      expect(mockExecute).toHaveBeenCalledTimes(4);
       expect(mockManagerQb.update).toHaveBeenCalledWith('agents');
       expect(mockManagerQb.set).toHaveBeenCalledWith({
         name: 'new-agent',
@@ -287,8 +287,6 @@ describe('AggregationService', () => {
       expect(updateCalls).toContain('agent_messages');
       expect(updateCalls).toContain('notification_rules');
       expect(updateCalls).toContain('notification_logs');
-      expect(updateCalls).toContain('token_usage_snapshots');
-      expect(updateCalls).toContain('cost_snapshots');
     });
 
     it('should short-circuit when slug is unchanged and only update display_name', async () => {

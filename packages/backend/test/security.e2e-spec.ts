@@ -1,4 +1,6 @@
 import { INestApplication } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { v4 as uuid } from 'uuid';
 import request from 'supertest';
 import { createTestApp, TEST_API_KEY } from './helpers';
 
@@ -7,36 +9,21 @@ let app: INestApplication;
 beforeAll(async () => {
   app = await createTestApp();
 
-  // Seed security events via telemetry
-  await request(app.getHttpServer())
-    .post('/api/v1/telemetry')
-    .set('x-api-key', TEST_API_KEY)
-    .send({
-      events: [
-        {
-          timestamp: new Date().toISOString(),
-          description: 'Agent turn with security issue',
-          service_type: 'agent',
-          status: 'ok',
-          security_event: {
-            severity: 'critical',
-            category: 'prompt_injection',
-            description: 'Detected prompt injection attempt',
-          },
-        },
-        {
-          timestamp: new Date().toISOString(),
-          description: 'Normal agent turn',
-          service_type: 'agent',
-          status: 'ok',
-          security_event: {
-            severity: 'info',
-            category: 'audit',
-            description: 'API key rotated',
-          },
-        },
-      ],
-    });
+  // Seed security events via direct DB inserts
+  const ds = app.get(DataSource);
+  const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+
+  await ds.query(
+    `INSERT INTO security_event (id, timestamp, severity, category, description, user_id)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [uuid(), now, 'critical', 'prompt_injection', 'Detected prompt injection attempt', 'test-user-001'],
+  );
+
+  await ds.query(
+    `INSERT INTO security_event (id, timestamp, severity, category, description, user_id)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [uuid(), now, 'info', 'audit', 'API key rotated', 'test-user-001'],
+  );
 });
 
 afterAll(async () => {

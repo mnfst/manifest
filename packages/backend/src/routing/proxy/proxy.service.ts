@@ -110,9 +110,7 @@ export class ProxyService {
           `tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} ` +
           `confidence=${resolved.confidence} reason=${resolved.reason}`,
       );
-      throw new BadRequestException(
-        'No model available. Connect a provider in the Manifest dashboard.',
-      );
+      throw new BadRequestException(this.buildNoModelError(agentName));
     }
 
     let apiKey = await this.routingService.getProviderApiKey(
@@ -582,5 +580,24 @@ export class ProxyService {
 
   private normalizeProviderModel(provider: string, model: string): string {
     return provider.toLowerCase() === 'anthropic' ? normalizeAnthropicShortModelId(model) : model;
+  }
+
+  private buildNoModelError(agentName?: string): string {
+    const isLocal = process.env['MANIFEST_MODE'] === 'local';
+    const agent = agentName ? ` for agent "${agentName}"` : '';
+
+    if (isLocal) {
+      return (
+        `No model available${agent}. ` +
+        'Connect at least one provider in the Manifest dashboard ' +
+        '(Routing tab) to start using manifest/auto.'
+      );
+    }
+
+    return (
+      `No model available${agent}. ` +
+      'Connect at least one provider in your Manifest dashboard ' +
+      '(app.manifest.build → Routing) to start using manifest/auto.'
+    );
   }
 }

@@ -2,7 +2,7 @@ import { Controller, Get, Query, Req, UseGuards, UseInterceptors } from '@nestjs
 import { CacheTTL } from '@nestjs/cache-manager';
 import { Request } from 'express';
 import { Public } from '../../common/decorators/public.decorator';
-import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
+import { AgentKeyAuthGuard } from '../../otlp/guards/agent-key-auth.guard';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { AgentAnalyticsService } from '../services/agent-analytics.service';
 import { RangeQueryDto } from '../../common/dto/range-query.dto';
@@ -15,7 +15,7 @@ interface AuthenticatedRequest extends Request {
 
 @Controller('api/v1/agent')
 @Public()
-@UseGuards(OtlpAuthGuard)
+@UseGuards(AgentKeyAuthGuard)
 @UseInterceptors(AgentCacheInterceptor)
 @CacheTTL(DASHBOARD_CACHE_TTL_MS)
 export class AgentAnalyticsController {

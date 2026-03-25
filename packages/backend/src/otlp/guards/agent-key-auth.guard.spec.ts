@@ -1,6 +1,6 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { createHash } from 'crypto';
-import { OtlpAuthGuard } from './otlp-auth.guard';
+import { AgentKeyAuthGuard } from './agent-key-auth.guard';
 
 function testCacheKey(token: string): string {
   return createHash('sha256').update(token).digest('hex');
@@ -18,8 +18,8 @@ function makeContext(headers: Record<string, string | undefined>, ip = '203.0.11
   };
 }
 
-describe('OtlpAuthGuard', () => {
-  let guard: OtlpAuthGuard;
+describe('AgentKeyAuthGuard', () => {
+  let guard: AgentKeyAuthGuard;
   let mockGetOne: jest.Mock;
   let mockCreateQueryBuilder: jest.Mock;
   let mockUpdate: jest.Mock;
@@ -49,7 +49,7 @@ describe('OtlpAuthGuard', () => {
       update: mockUpdate,
       findOne: mockFindOne,
     } as never;
-    guard = new OtlpAuthGuard(mockRepo);
+    guard = new AgentKeyAuthGuard(mockRepo);
     guard.clearCache();
   });
 
@@ -524,7 +524,7 @@ describe('OtlpAuthGuard', () => {
       update: mockUpdate,
       findOne: mockFindOne,
     } as never;
-    const timedGuard = new OtlpAuthGuard(mockRepo);
+    const timedGuard = new AgentKeyAuthGuard(mockRepo);
 
     const internalCache = (timedGuard as any).cache as Map<string, unknown>;
     internalCache.set(testCacheKey('mnfst_stale'), {
@@ -551,7 +551,7 @@ describe('OtlpAuthGuard', () => {
       update: mockUpdate,
       findOne: mockFindOne,
     } as never;
-    const timedGuard = new OtlpAuthGuard(mockRepo);
+    const timedGuard = new AgentKeyAuthGuard(mockRepo);
 
     const internalCache = (timedGuard as any).cache as Map<string, unknown>;
     timedGuard.onModuleDestroy();

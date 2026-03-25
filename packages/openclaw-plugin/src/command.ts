@@ -1,5 +1,5 @@
 import { ManifestConfig } from './config';
-import { PluginLogger } from './telemetry';
+import { PluginLogger } from './types';
 import { verifyConnection } from './verify';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

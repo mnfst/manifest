@@ -1,7 +1,5 @@
 import { createResource, createSignal, For, Show, type Component } from 'solid-js';
-import SetupStepInstall from './SetupStepInstall.jsx';
-import SetupStepConfigure from './SetupStepConfigure.jsx';
-import SetupStepVerify from './SetupStepVerify.jsx';
+import SetupStepAddProvider from './SetupStepAddProvider.jsx';
 import SetupStepLocalConfigure from './SetupStepLocalConfigure.jsx';
 import SetupStepProviders from './SetupStepProviders.jsx';
 import { getAgentKey, getHealth } from '../services/api.js';
@@ -12,16 +10,13 @@ interface StepDef {
 }
 
 const CLOUD_STEPS: StepDef[] = [
-  { n: 1, label: 'Install' },
-  { n: 2, label: 'Configure' },
-  { n: 3, label: 'Activate' },
-  { n: 4, label: 'Routing' },
+  { n: 1, label: 'Add Provider' },
+  { n: 2, label: 'Connect Models' },
 ];
 
 const LOCAL_STEPS: StepDef[] = [
   { n: 1, label: 'Configure' },
-  { n: 2, label: 'Verify' },
-  { n: 3, label: 'Routing' },
+  { n: 2, label: 'Connect Models' },
 ];
 
 const SetupModal: Component<{
@@ -45,12 +40,12 @@ const SetupModal: Component<{
     (n) => (n ? getAgentKey(n) : null),
   );
 
-  const endpoint = () => {
+  const baseUrl = () => {
     const custom = apiKeyData()?.pluginEndpoint;
     if (custom) return custom;
     const host = window.location.hostname;
-    if (host === 'app.manifest.build') return null;
-    return `${window.location.origin}/otlp`;
+    if (host === 'app.manifest.build') return 'https://app.manifest.build/v1';
+    return `${window.location.origin}/v1`;
   };
 
   const steps = () => (isLocal() ? LOCAL_STEPS : CLOUD_STEPS);
@@ -115,14 +110,14 @@ const SetupModal: Component<{
               when={isLocal()}
               fallback={
                 <>
-                  Follow these steps to send telemetry from your agent to Manifest. Once your first
-                  messages arrive, <strong>your dashboard updates on its own</strong>.
+                  Add Manifest as a provider in your client, then connect at least one LLM provider
+                  so routing can work.
                 </>
               }
             >
               <>
-                Your local server is running. Configure the OpenClaw plugin and verify that
-                telemetry data is flowing.
+                Your local server is running. Connect at least one LLM provider to start routing
+                requests.
               </>
             </Show>
           </p>
@@ -173,39 +168,29 @@ const SetupModal: Component<{
             </For>
           </div>
 
-          {/* Cloud flow: Install → Configure → Activate */}
+          {/* Cloud flow: Add Provider → Connect Models */}
           <Show when={!isLocal()}>
             <Show when={step() === 1}>
-              <SetupStepInstall />
-            </Show>
-            <Show when={step() === 2}>
-              <SetupStepConfigure
+              <SetupStepAddProvider
                 apiKey={props.apiKey ?? null}
                 keyPrefix={apiKeyData()?.keyPrefix ?? null}
-                agentName={props.agentName}
-                endpoint={endpoint()}
+                baseUrl={baseUrl()}
               />
-            </Show>
-            <Show when={step() === 3}>
-              <SetupStepVerify />
             </Show>
           </Show>
 
-          {/* Local flow: Configure → Verify */}
+          {/* Local flow: Configure → Connect Models */}
           <Show when={isLocal()}>
             <Show when={step() === 1}>
               <SetupStepLocalConfigure
                 apiKey={props.apiKey ?? null}
                 keyPrefix={apiKeyData()?.keyPrefix ?? null}
-                endpoint={endpoint()}
+                baseUrl={baseUrl()}
               />
-            </Show>
-            <Show when={step() === 2}>
-              <SetupStepVerify isLocal={isLocal()} />
             </Show>
           </Show>
 
-          {/* Routing step (last step for both flows) */}
+          {/* Connect Models step (last step for both flows) */}
           <Show when={isLastStep()}>
             <SetupStepProviders agentName={props.agentName} onGoToRouting={handleGoToRouting} />
           </Show>

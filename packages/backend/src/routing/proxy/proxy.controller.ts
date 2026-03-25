@@ -2,7 +2,7 @@ import { Controller, Post, Req, Res, UseGuards, Logger, HttpException } from '@n
 import { Request, Response as ExpressResponse } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../../common/decorators/public.decorator';
-import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
+import { AgentKeyAuthGuard } from '../../otlp/guards/agent-key-auth.guard';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { ProxyService } from './proxy.service';
 import { ProxyRateLimiter } from './proxy-rate-limiter';
@@ -15,7 +15,7 @@ const MAX_SEEN_USERS = 10_000;
 
 @Controller('v1')
 @Public()
-@UseGuards(OtlpAuthGuard)
+@UseGuards(AgentKeyAuthGuard)
 @SkipThrottle()
 export class ProxyController {
   private readonly logger = new Logger(ProxyController.name);

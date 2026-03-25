@@ -85,6 +85,7 @@ describe('ProxyController', () => {
     manager: { transaction: jest.Mock };
   };
   let mockPricingCache: { getByModel: jest.Mock };
+  let mockEventBus: { emit: jest.Mock };
   let recorder: ProxyMessageRecorder;
 
   beforeEach(() => {
@@ -119,7 +120,12 @@ describe('ProxyController', () => {
     };
     mockMessageManager.getRepository.mockReturnValue(mockMessageRepo);
     mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
-    recorder = new ProxyMessageRecorder(mockMessageRepo as never, mockPricingCache as never);
+    mockEventBus = { emit: jest.fn() };
+    recorder = new ProxyMessageRecorder(
+      mockMessageRepo as never,
+      mockPricingCache as never,
+      mockEventBus as never,
+    );
     controller = new ProxyController(
       proxyService as never,
       rateLimiter as never,
@@ -1616,6 +1622,7 @@ describe('ProxyController', () => {
       const timedRecorder = new ProxyMessageRecorder(
         mockMessageRepo as never,
         mockPricingCache as never,
+        mockEventBus as never,
       );
 
       const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
@@ -1635,6 +1642,7 @@ describe('ProxyController', () => {
       const timedRecorder = new ProxyMessageRecorder(
         mockMessageRepo as never,
         mockPricingCache as never,
+        mockEventBus as never,
       );
 
       timedRecorder.onModuleDestroy();

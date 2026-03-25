@@ -265,10 +265,10 @@ describe("Settings", () => {
     expect(container.querySelector(".modal-overlay")).toBeNull();
   });
 
-  it("shows OTLP ingest key label", () => {
+  it("shows agent API key label", () => {
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Agent setup"));
-    expect(container.textContent).toContain("OTLP ingest key");
+    expect(container.textContent).toContain("Agent API key");
   });
 
   it("shows setup steps after loading", async () => {
@@ -370,7 +370,7 @@ describe("Settings", () => {
     it("shows Agent setup tab content in local mode", () => {
       const { container } = render(() => <Settings />);
       fireEvent.click(screen.getByText("Agent setup"));
-      expect(container.textContent).toContain("OTLP ingest key");
+      expect(container.textContent).toContain("Agent API key");
     });
 
     it("hides Danger zone for default local-agent", () => {

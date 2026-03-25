@@ -455,55 +455,24 @@ describe("Overview", () => {
   });
 
   describe("local mode", () => {
-    it("should auto-complete setup for local-agent in local mode", async () => {
+    it("should open setup modal for new agent in local mode", async () => {
       mockAgentName = "local-agent";
       mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
-      render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(localStorage.getItem("setup_completed_local-agent")).toBe("1");
-      });
-    });
-
-    it("should auto-complete setup for any agent in local mode", async () => {
-      mockAgentName = "other-agent";
-      mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
-      render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(localStorage.getItem("setup_completed_other-agent")).toBe("1");
-      });
-    });
-
-    it("should not open setup modal for any agent in local mode", async () => {
-      mockAgentName = "other-agent";
-      mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        const modal = container.querySelector('[data-testid="setup-modal"]');
-        expect(modal?.getAttribute("data-open")).toBe("false");
-      });
-    });
-
-    it("should show waiting banner instead of empty state for any agent in local mode", async () => {
-      mockAgentName = "other-agent";
-      mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain("dashboard will update");
-      });
-    });
-
-    it("should still open setup modal for local-agent when not in local mode", async () => {
-      mockAgentName = "local-agent";
-      mockIsLocalMode = false;
       mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         const modal = container.querySelector('[data-testid="setup-modal"]');
         expect(modal?.getAttribute("data-open")).toBe("true");
+      });
+    });
+
+    it("should show empty state with setup button in local mode", async () => {
+      mockAgentName = "other-agent";
+      mockIsLocalMode = true;
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No activity yet");
       });
     });
   });

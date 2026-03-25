@@ -3,14 +3,6 @@ jest.mock("../src/config", () => ({
   parseConfigWithDeprecation: jest.fn(),
   validateConfig: jest.fn(),
 }));
-jest.mock("../src/telemetry", () => ({
-  initTelemetry: jest.fn(() => ({ tracer: {}, meter: {} })),
-  shutdownTelemetry: jest.fn(),
-}));
-jest.mock("../src/hooks", () => ({
-  registerHooks: jest.fn(),
-  initMetrics: jest.fn(),
-}));
 jest.mock("../src/tools", () => ({
   registerTools: jest.fn(),
 }));
@@ -28,11 +20,13 @@ jest.mock("../src/routing", () => ({
 jest.mock("../src/command", () => ({
   registerCommand: jest.fn(),
 }));
+jest.mock("../src/subscription", () => ({
+  discoverSubscriptionProviders: jest.fn().mockReturnValue([]),
+  registerSubscriptionProviders: jest.fn().mockResolvedValue(undefined),
+}));
 
 import { parseConfigWithDeprecation, validateConfig } from "../src/config";
 import { registerLocalMode, injectProviderConfig, injectAuthProfile } from "../src/local-mode";
-import { initTelemetry, shutdownTelemetry } from "../src/telemetry";
-import { registerHooks, initMetrics } from "../src/hooks";
 import { registerRouting } from "../src/routing";
 import { registerTools } from "../src/tools";
 import { registerCommand } from "../src/command";
@@ -85,7 +79,7 @@ describe("register — mode routing", () => {
         mode: "cloud",
         devMode: false,
         apiKey: "mnfst_abc",
-        endpoint: "https://app.manifest.build/otlp",
+        endpoint: "https://app.manifest.build",
         port: 2099,
         host: "127.0.0.1",
       },
@@ -106,7 +100,7 @@ describe("register — cloud mode with devMode", () => {
     mode: "cloud" as const,
     devMode: true,
     apiKey: "",
-    endpoint: "http://localhost:38238/otlp",
+    endpoint: "http://localhost:38238",
     port: 2099,
     host: "127.0.0.1",
   };
@@ -140,7 +134,7 @@ describe("register — cloud mode with devMode", () => {
     expect(injectAuthProfile).toHaveBeenCalledWith("dev-no-auth", api.logger);
   });
 
-  it("initializes telemetry, hooks, and routing", () => {
+  it("initializes routing", () => {
     (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
       config: devConfig,
       _deprecatedDevMode: false,
@@ -150,9 +144,6 @@ describe("register — cloud mode with devMode", () => {
     const api = makeApi();
     plugin.register(api);
 
-    expect(initTelemetry).toHaveBeenCalledWith(devConfig, api.logger);
-    expect(initMetrics).toHaveBeenCalled();
-    expect(registerHooks).toHaveBeenCalledWith(api, expect.anything(), devConfig, api.logger);
     expect(registerRouting).toHaveBeenCalledWith(api, devConfig, api.logger);
   });
 
@@ -169,7 +160,7 @@ describe("register — cloud mode with devMode", () => {
     expect(registerTools).toHaveBeenCalledWith(api, devConfig, api.logger);
   });
 
-  it("registers a manifest-dev service", () => {
+  it("registers a manifest-routing service", () => {
     (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
       config: devConfig,
       _deprecatedDevMode: false,
@@ -180,7 +171,7 @@ describe("register — cloud mode with devMode", () => {
     plugin.register(api);
 
     expect(api.registerService).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "manifest-dev" }),
+      expect.objectContaining({ id: "manifest-routing" }),
     );
   });
 
@@ -200,7 +191,7 @@ describe("register — cloud mode with devMode", () => {
   });
 
   it("derives port 443 for https endpoints without explicit port", () => {
-    const httpsConfig = { ...devConfig, endpoint: "https://dev.example.com/otlp" };
+    const httpsConfig = { ...devConfig, endpoint: "https://dev.example.com" };
     (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
       config: httpsConfig,
       _deprecatedDevMode: false,
@@ -276,24 +267,8 @@ describe("register — cloud mode with devMode", () => {
 
     // Should not throw — .catch(() => {}) swallows the error
     expect(api.logger.info).toHaveBeenCalledWith(
-      expect.stringContaining("Dev mode pipeline active"),
+      expect.stringContaining("Dev mode routing active"),
     );
-  });
-
-  it("service stop shuts down telemetry", async () => {
-    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
-      config: devConfig,
-      _deprecatedDevMode: false,
-    });
-    (validateConfig as jest.Mock).mockReturnValue(null);
-
-    const api = makeApi();
-    plugin.register(api);
-
-    const serviceCall = api.registerService.mock.calls[0][0];
-    await serviceCall.stop();
-
-    expect(shutdownTelemetry).toHaveBeenCalledWith(api.logger);
   });
 
   it("logs error message for validation errors in devMode", () => {
@@ -320,7 +295,7 @@ describe("register — deprecation warning", () => {
         mode: "cloud",
         devMode: true,
         apiKey: "",
-        endpoint: "http://localhost:38238/otlp",
+        endpoint: "http://localhost:38238",
         port: 2099,
         host: "127.0.0.1",
       },
@@ -342,7 +317,7 @@ describe("register — deprecation warning", () => {
         mode: "cloud",
         devMode: true,
         apiKey: "",
-        endpoint: "http://localhost:38238/otlp",
+        endpoint: "http://localhost:38238",
         port: 2099,
         host: "127.0.0.1",
       },
@@ -366,12 +341,12 @@ describe("register — cloud mode full path", () => {
     mode: "cloud" as const,
     devMode: false,
     apiKey: "mnfst_abc",
-    endpoint: "https://app.manifest.build/otlp",
+    endpoint: "https://app.manifest.build",
     port: 2099,
     host: "127.0.0.1",
   };
 
-  it("initializes telemetry, hooks, routing, tools, and command in cloud mode", () => {
+  it("initializes routing, tools, and command in cloud mode", () => {
     (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
       config: cloudConfig,
       _deprecatedDevMode: false,
@@ -381,9 +356,6 @@ describe("register — cloud mode full path", () => {
     const api = makeApi();
     plugin.register(api);
 
-    expect(initTelemetry).toHaveBeenCalledWith(cloudConfig, api.logger);
-    expect(initMetrics).toHaveBeenCalled();
-    expect(registerHooks).toHaveBeenCalledWith(api, expect.anything(), cloudConfig, api.logger);
     expect(registerRouting).toHaveBeenCalledWith(api, cloudConfig, api.logger);
     expect(registerTools).toHaveBeenCalledWith(api, cloudConfig, api.logger);
     expect(registerCommand).toHaveBeenCalledWith(api, cloudConfig, api.logger);
@@ -405,7 +377,7 @@ describe("register — cloud mode full path", () => {
     expect(injectAuthProfile).toHaveBeenCalledWith("mnfst_abc", api.logger);
   });
 
-  it("registers manifest-telemetry service in cloud mode", () => {
+  it("registers manifest-routing service in cloud mode", () => {
     (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
       config: cloudConfig,
       _deprecatedDevMode: false,
@@ -416,7 +388,7 @@ describe("register — cloud mode full path", () => {
     plugin.register(api);
 
     expect(api.registerService).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "manifest-telemetry" }),
+      expect.objectContaining({ id: "manifest-routing" }),
     );
   });
 
@@ -484,24 +456,8 @@ describe("register — cloud mode full path", () => {
 
     // Should not throw
     expect(api.logger.info).toHaveBeenCalledWith(
-      expect.stringContaining("Observability pipeline active"),
+      expect.stringContaining("Routing active"),
     );
-  });
-
-  it("cloud service stop shuts down telemetry", async () => {
-    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
-      config: cloudConfig,
-      _deprecatedDevMode: false,
-    });
-    (validateConfig as jest.Mock).mockReturnValue(null);
-
-    const api = makeApi();
-    plugin.register(api);
-
-    const serviceCall = api.registerService.mock.calls[0][0];
-    await serviceCall.stop();
-
-    expect(shutdownTelemetry).toHaveBeenCalledWith(api.logger);
   });
 
   it("skips registerTools when registerTool is not a function", () => {
@@ -681,56 +637,13 @@ describe("register — fallback logger", () => {
   });
 });
 
-describe("register — diagnostics-otel conflict", () => {
-  it("aborts registration when diagnostics-otel is enabled", () => {
-    (parseConfigWithDeprecation as jest.Mock).mockReturnValue({
-      config: {
-        mode: "cloud",
-        devMode: false,
-        apiKey: "mnfst_abc",
-        endpoint: "https://app.manifest.build/otlp",
-        port: 2099,
-        host: "127.0.0.1",
-      },
-      _deprecatedDevMode: false,
-    });
-    (validateConfig as jest.Mock).mockReturnValue(null);
-
-    const api = {
-      pluginConfig: {},
-      config: {
-        plugins: {
-          entries: {
-            "diagnostics-otel": { enabled: true },
-          },
-        },
-      },
-      logger: {
-        info: jest.fn(),
-        debug: jest.fn(),
-        error: jest.fn(),
-        warn: jest.fn(),
-      },
-      registerService: jest.fn(),
-      registerTool: jest.fn(),
-    };
-
-    plugin.register(api);
-
-    expect(api.logger.error).toHaveBeenCalledWith(
-      expect.stringContaining("diagnostics-otel"),
-    );
-    expect(initTelemetry).not.toHaveBeenCalled();
-  });
-});
-
 describe("register — registerCommand wiring", () => {
   it("calls registerCommand in devMode", () => {
     const devConfig = {
       mode: "cloud" as const,
       devMode: true,
       apiKey: "",
-      endpoint: "http://localhost:38238/otlp",
+      endpoint: "http://localhost:38238",
       port: 2099,
       host: "127.0.0.1",
     };
@@ -751,7 +664,7 @@ describe("register — registerCommand wiring", () => {
       mode: "cloud" as const,
       devMode: false,
       apiKey: "mnfst_abc",
-      endpoint: "https://app.manifest.build/otlp",
+      endpoint: "https://app.manifest.build",
       port: 2099,
       host: "127.0.0.1",
     };
@@ -775,7 +688,7 @@ describe("register — cloud mode missing API key", () => {
         mode: "cloud",
         devMode: false,
         apiKey: "",
-        endpoint: "https://app.manifest.build/otlp",
+        endpoint: "https://app.manifest.build",
         port: 2099,
         host: "127.0.0.1",
       },
@@ -797,7 +710,7 @@ describe("register — cloud mode missing API key", () => {
         mode: "cloud",
         devMode: false,
         apiKey: "",
-        endpoint: "https://app.manifest.build/otlp",
+        endpoint: "https://app.manifest.build",
         port: 2099,
         host: "127.0.0.1",
       },

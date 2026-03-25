@@ -4,6 +4,7 @@ import { EntityManager, Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
+import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { FailedFallback } from './proxy.service';
 import { StreamUsage } from './stream-writer';
@@ -23,6 +24,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly eventBus: IngestEventBusService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -80,6 +82,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallback_index: fallbackIndex ?? null,
       auth_type: authType ?? null,
     });
+    this.eventBus.emit(ctx.userId);
   }
 
   async recordFailedFallbacks(
@@ -128,6 +131,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         auth_type: authType ?? null,
       });
     }
+    this.eventBus.emit(ctx.userId);
   }
 
   async recordPrimaryFailure(
@@ -157,6 +161,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallback_index: null,
       auth_type: authType ?? null,
     });
+    this.eventBus.emit(ctx.userId);
   }
 
   async recordFallbackSuccess(
@@ -204,6 +209,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallback_from_model: fallbackFromModel ?? null,
       fallback_index: fallbackIndex ?? null,
     });
+    this.eventBus.emit(ctx.userId);
   }
 
   async recordSuccessMessage(
@@ -267,6 +273,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
             await messageRepo.update({ id: existing.id }, updatePayload);
+            this.eventBus.emit(ctx.userId);
             return;
           }
 
@@ -293,6 +300,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             user_id: ctx.userId,
             duration_ms: durationMs ?? null,
           });
+          this.eventBus.emit(ctx.userId);
         });
       },
     );

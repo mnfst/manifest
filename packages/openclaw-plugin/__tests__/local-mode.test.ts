@@ -10,16 +10,10 @@ jest.mock("crypto", () => ({
   })),
 }));
 
-// Mock telemetry, hooks, tools to isolate local-mode logic
-jest.mock("../src/telemetry", () => ({
-  initTelemetry: jest.fn(() => ({ tracer: {}, meter: {} })),
-  shutdownTelemetry: jest.fn(),
-}));
-jest.mock("../src/hooks", () => ({
-  registerHooks: jest.fn(),
-  initMetrics: jest.fn(),
-}));
+// Mock tools, routing, command to isolate local-mode logic
 jest.mock("../src/tools", () => ({ registerTools: jest.fn() }));
+jest.mock("../src/routing", () => ({ registerRouting: jest.fn() }));
+jest.mock("../src/command", () => ({ registerCommand: jest.fn() }));
 
 // Mock the embedded server module (require("./server") in local-mode.ts)
 const mockServerStart = jest.fn();
@@ -351,19 +345,16 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
   function createMockApi() {
     let startFn: (() => void) | null = null;
-    let stopFn: (() => Promise<void>) | null = null;
     return {
       config: {},
       registerProvider: jest.fn(),
       registerService: jest.fn(
-        (svc: { start: () => void; stop: () => Promise<void> }) => {
+        (svc: { start: () => void }) => {
           startFn = svc.start;
-          stopFn = svc.stop;
         },
       ),
       registerTool: jest.fn(),
       getStartFn: () => startFn,
-      getStopFn: () => stopFn,
     };
   }
 
@@ -437,15 +428,6 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     );
   });
 
-  it("sets endpoint to local server URL in localConfig", () => {
-    const { initTelemetry } = require("../src/telemetry");
-    const api = createMockApi();
-    registerLocalMode(api, { ...testConfig, port: 2099, host: "127.0.0.1" }, mockLogger);
-
-    const telemetryCall = (initTelemetry as jest.Mock).mock.calls[0];
-    expect(telemetryCall[0].endpoint).toBe("http://127.0.0.1:2099/otlp");
-  });
-
   it("logs generic server start error when error is not EADDRINUSE", async () => {
     globalThis.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
     mockServerStart.mockRejectedValue(new Error("Unexpected crash"));
@@ -460,19 +442,6 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.stringContaining("Unexpected crash"),
     );
-  });
-
-  it("shuts down telemetry on service stop", async () => {
-    const { shutdownTelemetry } = require("../src/telemetry");
-
-    const api = createMockApi();
-    registerLocalMode(api, testConfig, mockLogger);
-
-    const stopFn = api.getStopFn();
-    expect(stopFn).not.toBeNull();
-
-    await stopFn!();
-    expect(shutdownTelemetry).toHaveBeenCalledWith(mockLogger);
   });
 
   it("starts server immediately during registerLocalMode without service lifecycle", async () => {
@@ -554,15 +523,12 @@ describe("registerLocalMode — EADDRINUSE handling", () => {
 
   it("calls registerCommand with localConfig", () => {
     const { registerCommand } = require("../src/command") as { registerCommand: jest.Mock };
-    jest.mock("../src/command", () => ({ registerCommand: jest.fn() }));
 
     const api = createMockApi();
     registerLocalMode(api, testConfig, mockLogger);
 
     // registerCommand should have been called (it is imported at module level)
-    // Since we mocked it in the test setup jest.mock block, we just verify the call chain
-    const { registerHooks } = require("../src/hooks");
-    expect(registerHooks).toHaveBeenCalled();
+    expect(registerCommand).toHaveBeenCalled();
   });
 
   it("skips registerTools when registerTool is not available", () => {
@@ -862,10 +828,13 @@ describe("loadOrGenerateApiKey — edge cases", () => {
     };
     registerLocalMode(api, testConfig, mockLogger);
 
-    // The telemetry init should be called with a key starting with mnfst_
-    const { initTelemetry } = require("../src/telemetry");
-    const localConfig = (initTelemetry as jest.Mock).mock.calls[0][0];
-    expect(localConfig.apiKey).toMatch(/^mnfst_/);
+    // injectProviderConfig should be called with a key starting with mnfst_
+    const providerCall = (writeFileSync as jest.Mock).mock.calls.find(
+      (c: any[]) => String(c[1]).includes("manifest"),
+    );
+    expect(providerCall).toBeDefined();
+    const written = JSON.parse(providerCall![1]);
+    expect(written.apiKey || written.models?.providers?.manifest?.apiKey).toMatch(/^mnfst_/);
   });
 
   it("generates new key when config file contains corrupt JSON", () => {
@@ -885,9 +854,13 @@ describe("loadOrGenerateApiKey — edge cases", () => {
     };
     registerLocalMode(api, testConfig, mockLogger);
 
-    const { initTelemetry } = require("../src/telemetry");
-    const localConfig = (initTelemetry as jest.Mock).mock.calls[0][0];
-    expect(localConfig.apiKey).toMatch(/^mnfst_/);
+    // injectProviderConfig should be called with a key starting with mnfst_
+    const providerCall = (writeFileSync as jest.Mock).mock.calls.find(
+      (c: any[]) => String(c[1]).includes("manifest"),
+    );
+    expect(providerCall).toBeDefined();
+    const written = JSON.parse(providerCall![1]);
+    expect(written.apiKey || written.models?.providers?.manifest?.apiKey).toMatch(/^mnfst_/);
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining("[manifest] Failed to read JSON file"),
     );
@@ -907,14 +880,6 @@ describe("registerLocalMode — server module load failure", () => {
       randomBytes: jest.fn(() => ({
         toString: () => "abcdef1234567890abcdef1234567890abcdef1234567890",
       })),
-    }));
-    jest.doMock("../src/telemetry", () => ({
-      initTelemetry: jest.fn(() => ({ tracer: {}, meter: {} })),
-      shutdownTelemetry: jest.fn(),
-    }));
-    jest.doMock("../src/hooks", () => ({
-      registerHooks: jest.fn(),
-      initMetrics: jest.fn(),
     }));
     jest.doMock("../src/tools", () => ({ registerTools: jest.fn() }));
     jest.doMock("../src/routing", () => ({ registerRouting: jest.fn() }));

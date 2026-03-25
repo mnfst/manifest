@@ -15,7 +15,6 @@ import { LocalAuthGuard } from './auth/local-auth.guard';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
-import { TelemetryModule } from './telemetry/telemetry.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SecurityModule } from './security/security.module';
 import { OtlpModule } from './otlp/otlp.module';
@@ -36,7 +35,7 @@ const serveStaticImports = frontendPath
       ServeStaticModule.forRoot({
         rootPath: frontendPath,
         renderPath: '/__serve_static_never_match',
-        exclude: ['/api/{*path}', '/otlp/{*path}', '/v1/{*path}'],
+        exclude: ['/api/{*path}', '/v1/{*path}'],
         serveStaticOptions: {
           maxAge: ONE_YEAR_S * 1000,
           immutable: true,
@@ -67,7 +66,6 @@ const serveStaticImports = frontendPath
     TypeOrmModule.forFeature([ApiKey]),
     AuthModule,
     HealthModule,
-    TelemetryModule,
     AnalyticsModule,
     SecurityModule,
     OtlpModule,

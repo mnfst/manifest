@@ -1,6 +1,6 @@
 /**
  * Smoke tests — 9 sequential end-to-end tests covering auth, agent creation,
- * OTLP ingestion, routing, proxy, limits, and fallback chains.
+ * data seeding, routing, proxy, limits, and fallback chains.
  *
  * All tests share state: each builds on the previous.
  * A local mock HTTP server stands in for real LLM providers.
@@ -64,10 +64,6 @@ const api = () => request(app.getHttpServer());
 const auth = (r: request.Test) => r.set('x-api-key', TEST_API_KEY);
 const smokeBearer = (r: request.Test) =>
   r.set('Authorization', `Bearer ${smokeOtlpKey}`);
-
-function nanoNow(): string {
-  return (BigInt(Date.now()) * 1_000_000n).toString();
-}
 
 async function waitForMessages(
   agentName: string,
@@ -136,62 +132,37 @@ describe('ST-02: Create agent', () => {
 });
 
 /* ------------------------------------------------------------------ */
-/*  ST-03 · OTLP ingestion creates messages in the list                */
+/*  ST-03 · Seed agent message data for downstream tests               */
 /* ------------------------------------------------------------------ */
-describe('ST-03: OTLP ingestion → messages', () => {
-  it('ingests a trace span and appears in the message list', async () => {
+describe('ST-03: Seed agent data', () => {
+  it('inserts a message row for the smoke agent', async () => {
+    const { DataSource } = await import('typeorm');
+    const { v4: uuidv4 } = await import('uuid');
+    const ds = app.get(DataSource);
+
+    // Look up tenant and agent IDs created by ST-02
+    const agents = await ds.query(
+      `SELECT id, tenant_id FROM agents WHERE name = ?`,
+      [smokeAgentName],
+    );
+    expect(agents.length).toBe(1);
+
+    const tenantId = agents[0].tenant_id;
+    const agentId = agents[0].id;
     // Use a timestamp 60s in the past so period boundary comparisons are safe
-    // (SQLite string comparison can exclude same-second timestamps with ms)
-    const pastMs = BigInt(Date.now() - 60_000) * 1_000_000n;
-    const start = pastMs.toString();
-    const end = (pastMs + 1_000_000_000n).toString();
+    const past = new Date(Date.now() - 60_000).toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
-    await smokeBearer(api().post('/otlp/v1/traces'))
-      .send({
-        resourceSpans: [
-          {
-            resource: {
-              attributes: [
-                { key: 'service.name', value: { stringValue: 'agent' } },
-                { key: 'agent.name', value: { stringValue: smokeAgentName } },
-              ],
-            },
-            scopeSpans: [
-              {
-                scope: { name: 'smoke-test' },
-                spans: [
-                  {
-                    traceId: 'aabbccdd11223344aabbccdd11223344',
-                    spanId: '1122334455667788',
-                    name: 'openclaw.agent.turn',
-                    kind: 1,
-                    startTimeUnixNano: start,
-                    endTimeUnixNano: end,
-                    attributes: [
-                      { key: 'gen_ai.usage.input_tokens', value: { intValue: 500 } },
-                      { key: 'gen_ai.usage.output_tokens', value: { intValue: 200 } },
-                      { key: 'gen_ai.request.model', value: { stringValue: 'test-model' } },
-                    ],
-                    status: { code: 1 },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      })
-      .expect(200);
+    await ds.query(
+      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, agent_name, user_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [uuidv4(), tenantId, agentId, past, 'ok', 'test-model', 500, 200, 0, 0, smokeAgentName, 'test-user-001'],
+    );
 
+    // Verify message is visible in the API
     const res = await auth(
       api().get(`/api/v1/messages?range=24h&agent_name=${smokeAgentName}`),
     ).expect(200);
-
     expect(res.body.total_count).toBeGreaterThanOrEqual(1);
-    const msg = res.body.items.find(
-      (m: Record<string, unknown>) => Number(m.input_tokens) === 500,
-    );
-    expect(msg).toBeDefined();
-    expect(Number(msg.output_tokens)).toBe(200);
   });
 });
 

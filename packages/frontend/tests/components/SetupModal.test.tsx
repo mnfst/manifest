@@ -7,29 +7,17 @@ vi.mock("../../src/services/api.js", () => ({
   getHealth: (...args: unknown[]) => mockGetHealth(...args),
 }));
 
-vi.mock("../../src/components/SetupStepInstall.jsx", () => ({
-  default: () => <div data-testid="step-install">Install Step</div>,
-}));
-
-vi.mock("../../src/components/SetupStepConfigure.jsx", () => ({
+vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
   default: (props: any) => (
-    <div data-testid="step-configure" data-endpoint={props.endpoint ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""} data-agent={props.agentName ?? ""}>
-      Configure Step
-    </div>
-  ),
-}));
-
-vi.mock("../../src/components/SetupStepVerify.jsx", () => ({
-  default: (props: any) => (
-    <div data-testid="step-verify" data-is-local={props.isLocal ? "true" : "false"}>
-      Verify Step
+    <div data-testid="step-add-provider" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""}>
+      Add Provider Step
     </div>
   ),
 }));
 
 vi.mock("../../src/components/SetupStepLocalConfigure.jsx", () => ({
   default: (props: any) => (
-    <div data-testid="step-local-configure" data-endpoint={props.endpoint ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""}>
+    <div data-testid="step-local-configure" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""}>
       Local Configure Step
     </div>
   ),
@@ -38,7 +26,7 @@ vi.mock("../../src/components/SetupStepLocalConfigure.jsx", () => ({
 vi.mock("../../src/components/SetupStepProviders.jsx", () => ({
   default: (props: any) => (
     <div data-testid="step-providers" data-agent={props.agentName ?? ""}>
-      <button data-testid="go-to-routing" onClick={() => props.onGoToRouting?.()}>Set up routing</button>
+      <button data-testid="go-to-routing" onClick={() => props.onGoToRouting?.()}>Go to routing</button>
     </div>
   ),
 }));
@@ -51,6 +39,7 @@ describe("SetupModal", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetHealth.mockResolvedValue({ mode: "cloud" });
   });
 
   it("renders nothing when closed", () => {
@@ -84,51 +73,34 @@ describe("SetupModal", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("shows stepper with 4 steps for cloud mode", () => {
+  it("shows stepper with 2 steps for cloud mode", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
-    expect(container.textContent).toContain("Install");
-    expect(container.textContent).toContain("Configure");
-    expect(container.textContent).toContain("Activate");
-    expect(container.textContent).toContain("Routing");
+    expect(container.textContent).toContain("Add Provider");
+    expect(container.textContent).toContain("Connect Models");
   });
 
-  it("shows Install step content first", () => {
+  it("shows Add Provider step content first", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
-    expect(container.querySelector('[data-testid="step-install"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="step-add-provider"]')).not.toBeNull();
   });
 
-  it("navigates to next step on Next click", () => {
+  it("navigates to Connect Models step on Next click", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
     const nextBtn = container.querySelector(".setup-modal__next")!;
     fireEvent.click(nextBtn);
-    expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="step-providers"]')).not.toBeNull();
   });
 
-  it("navigates to step 3 (Activate) and shows Next button", () => {
+  it("shows Done button on last step", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} onDone={onDone} />
     ));
-    // Click Next twice to get to step 3
-    const nextBtn = container.querySelector(".setup-modal__next")!;
-    fireEvent.click(nextBtn);
-    fireEvent.click(container.querySelector(".setup-modal__next")!);
-    expect(container.querySelector('[data-testid="step-verify"]')).not.toBeNull();
-    expect(container.textContent).toContain("Next");
-  });
-
-  it("navigates to step 4 (Routing) and shows Done button", () => {
-    const { container } = render(() => (
-      <SetupModal open={true} agentName="test-agent" onClose={onClose} onDone={onDone} />
-    ));
-    // Click Next three times to get to step 4
-    fireEvent.click(container.querySelector(".setup-modal__next")!);
-    fireEvent.click(container.querySelector(".setup-modal__next")!);
     fireEvent.click(container.querySelector(".setup-modal__next")!);
     expect(container.querySelector('[data-testid="step-providers"]')).not.toBeNull();
     expect(container.textContent).toContain("Done");
@@ -154,20 +126,18 @@ describe("SetupModal", () => {
     ));
     // Go to step 2
     fireEvent.click(container.querySelector(".setup-modal__next")!);
-    expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="step-providers"]')).not.toBeNull();
 
     // Go back
     fireEvent.click(container.querySelector(".modal-card__back-link")!);
-    expect(container.querySelector('[data-testid="step-install"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="step-add-provider"]')).not.toBeNull();
   });
 
   it("calls onDone when Done clicked on last step", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} onDone={onDone} />
     ));
-    // Navigate to last step (step 4)
-    fireEvent.click(container.querySelector(".setup-modal__next")!);
-    fireEvent.click(container.querySelector(".setup-modal__next")!);
+    // Navigate to last step (step 2)
     fireEvent.click(container.querySelector(".setup-modal__next")!);
 
     // Click Done
@@ -181,7 +151,7 @@ describe("SetupModal", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
-    expect(container.textContent).toContain("Follow these steps to send telemetry from your agent");
+    expect(container.textContent).toContain("Add Manifest as a provider");
   });
 
   it("closes on overlay click", () => {
@@ -206,17 +176,9 @@ describe("SetupModal", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
-    // First go to step 2 via Next
-    fireEvent.click(container.querySelector(".setup-modal__next")!);
-    expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
-
-    // Click on step 3 (Activate) directly via stepper
+    // Click on step 2 (Connect Models) directly via stepper
     const stepLabels = container.querySelectorAll(".modal-stepper__step");
-    fireEvent.click(stepLabels[2]); // Activate step
-    expect(container.querySelector('[data-testid="step-verify"]')).not.toBeNull();
-
-    // Click on step 4 (Providers) directly via stepper
-    fireEvent.click(stepLabels[3]); // Providers step
+    fireEvent.click(stepLabels[1]); // Connect Models step
     expect(container.querySelector('[data-testid="step-providers"]')).not.toBeNull();
   });
 
@@ -225,15 +187,14 @@ describe("SetupModal", () => {
       mockGetHealth.mockResolvedValue({ mode: "local" });
     });
 
-    it("should show 3 steps for local mode", async () => {
+    it("should show 2 steps for local mode", async () => {
       const { container } = render(() => (
         <SetupModal open={true} agentName="local-agent" onClose={onClose} />
       ));
       await vi.waitFor(() => {
         expect(container.textContent).toContain("Configure");
-        expect(container.textContent).toContain("Verify");
-        expect(container.textContent).toContain("Routing");
-        expect(container.textContent).not.toContain("Install");
+        expect(container.textContent).toContain("Connect Models");
+        expect(container.textContent).not.toContain("Add Provider");
       });
     });
 
@@ -255,36 +216,15 @@ describe("SetupModal", () => {
       });
     });
 
-    it("should pass isLocal to SetupStepVerify on step 2", async () => {
+    it("should show Next on step 1 and Done on step 2 in local flow", async () => {
       const { container } = render(() => (
         <SetupModal open={true} agentName="local-agent" onClose={onClose} />
       ));
       await vi.waitFor(() => {
         expect(container.querySelector('[data-testid="step-local-configure"]')).not.toBeNull();
-      });
-      // Navigate to step 2
-      fireEvent.click(container.querySelector(".setup-modal__next")!);
-      await vi.waitFor(() => {
-        const verify = container.querySelector('[data-testid="step-verify"]');
-        expect(verify).not.toBeNull();
-        expect(verify?.getAttribute("data-is-local")).toBe("true");
-      });
-    });
-
-    it("should show Next on step 2 and Done on step 3 in local flow", async () => {
-      const { container } = render(() => (
-        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
-      ));
-      await vi.waitFor(() => {
-        expect(container.querySelector('[data-testid="step-local-configure"]')).not.toBeNull();
-      });
-      // Step 2 (Verify) shows Next, not Done
-      fireEvent.click(container.querySelector(".setup-modal__next")!);
-      await vi.waitFor(() => {
-        expect(container.querySelector('[data-testid="step-verify"]')).not.toBeNull();
         expect(container.textContent).toContain("Next");
       });
-      // Step 3 (Routing) shows Done
+      // Step 2 (Connect Models) shows Done
       fireEvent.click(container.querySelector(".setup-modal__next")!);
       await vi.waitFor(() => {
         expect(container.querySelector('[data-testid="step-providers"]')).not.toBeNull();
@@ -293,7 +233,7 @@ describe("SetupModal", () => {
     });
   });
 
-  it("calls onDone, onClose, and onGoToRouting when Set up routing is clicked", () => {
+  it("calls onDone, onClose, and onGoToRouting when Go to routing is clicked", () => {
     const onGoToRouting = vi.fn();
     const { container } = render(() => (
       <SetupModal
@@ -304,12 +244,10 @@ describe("SetupModal", () => {
         onGoToRouting={onGoToRouting}
       />
     ));
-    // Navigate to last step (step 4)
-    fireEvent.click(container.querySelector(".setup-modal__next")!);
-    fireEvent.click(container.querySelector(".setup-modal__next")!);
+    // Navigate to last step (step 2)
     fireEvent.click(container.querySelector(".setup-modal__next")!);
 
-    // Click the "Set up routing" button inside the mocked SetupStepProviders
+    // Click the "Go to routing" button inside the mocked SetupStepProviders
     fireEvent.click(screen.getByTestId("go-to-routing"));
     expect(onDone).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
@@ -320,30 +258,23 @@ describe("SetupModal", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
-    // Navigate to last step (step 4)
-    fireEvent.click(container.querySelector(".setup-modal__next")!);
-    fireEvent.click(container.querySelector(".setup-modal__next")!);
+    // Navigate to last step (step 2)
     fireEvent.click(container.querySelector(".setup-modal__next")!);
 
-    // Click the "Set up routing" button - should not throw even without optional callbacks
+    // Click the "Go to routing" button - should not throw even without optional callbacks
     expect(() => fireEvent.click(screen.getByTestId("go-to-routing"))).not.toThrow();
     expect(onClose).toHaveBeenCalled();
   });
 
   describe("cloud mode", () => {
-    it("should not pass isLocal to SetupStepVerify on step 3", () => {
+    it("renders Add Provider step with computed baseUrl on non-production host", () => {
       const { container } = render(() => (
         <SetupModal open={true} agentName="test-agent" onClose={onClose} />
       ));
-      // Navigate to step 3
-      fireEvent.click(container.querySelector(".setup-modal__next")!);
-      fireEvent.click(container.querySelector(".setup-modal__next")!);
-      const verify = container.querySelector('[data-testid="step-verify"]');
-      expect(verify).not.toBeNull();
-      expect(verify?.getAttribute("data-is-local")).toBe("false");
+      expect(container.querySelector('[data-testid="step-add-provider"]')).not.toBeNull();
     });
 
-    it("renders Configure step with endpoint from custom pluginEndpoint", async () => {
+    it("renders Add Provider step with baseUrl from custom pluginEndpoint", async () => {
       const { getAgentKey } = await import("../../src/services/api.js");
       (getAgentKey as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         keyPrefix: "mnfst_abc",
@@ -352,25 +283,13 @@ describe("SetupModal", () => {
       const { container } = render(() => (
         <SetupModal open={true} agentName="test-agent" onClose={onClose} />
       ));
-      // Navigate to Configure step
-      fireEvent.click(container.querySelector(".setup-modal__next")!);
       await vi.waitFor(() => {
-        expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+        expect(container.querySelector('[data-testid="step-add-provider"]')).not.toBeNull();
       });
     });
 
-    it("renders Configure step with computed endpoint on non-production host", () => {
-      // Default mock: pluginEndpoint is null, hostname is localhost
-      const { container } = render(() => (
-        <SetupModal open={true} agentName="test-agent" onClose={onClose} />
-      ));
-      fireEvent.click(container.querySelector(".setup-modal__next")!);
-      expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
-    });
-
-    it("passes null endpoint on app.manifest.build hostname", () => {
+    it("computes production baseUrl on app.manifest.build hostname", () => {
       const origLocation = window.location;
-      // Replace window.location entirely so hostname can be overridden
       Object.defineProperty(window, "location", {
         value: { ...origLocation, hostname: "app.manifest.build", origin: "https://app.manifest.build" },
         writable: true,
@@ -379,8 +298,9 @@ describe("SetupModal", () => {
       const { container } = render(() => (
         <SetupModal open={true} agentName="test-agent" onClose={onClose} />
       ));
-      fireEvent.click(container.querySelector(".setup-modal__next")!);
-      expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+      const step = container.querySelector('[data-testid="step-add-provider"]');
+      expect(step).not.toBeNull();
+      expect(step?.getAttribute("data-base-url")).toBe("https://app.manifest.build/v1");
       Object.defineProperty(window, "location", {
         value: origLocation,
         writable: true,
@@ -388,21 +308,20 @@ describe("SetupModal", () => {
       });
     });
 
-    it("passes apiKey prop to Configure step", () => {
+    it("passes apiKey prop to Add Provider step", () => {
       const { container } = render(() => (
         <SetupModal open={true} agentName="test-agent" apiKey="mnfst_full_key" onClose={onClose} />
       ));
-      fireEvent.click(container.querySelector(".setup-modal__next")!);
-      expect(container.querySelector('[data-testid="step-configure"]')).not.toBeNull();
+      expect(container.querySelector('[data-testid="step-add-provider"]')).not.toBeNull();
     });
   });
 
-  describe("local mode - endpoint and steps", () => {
+  describe("local mode - baseUrl and steps", () => {
     beforeEach(() => {
       mockGetHealth.mockResolvedValue({ mode: "local" });
     });
 
-    it("passes endpoint to SetupStepLocalConfigure", async () => {
+    it("passes baseUrl to SetupStepLocalConfigure", async () => {
       const { container } = render(() => (
         <SetupModal open={true} agentName="local-agent" onClose={onClose} />
       ));
@@ -411,7 +330,7 @@ describe("SetupModal", () => {
       });
     });
 
-    it("passes null endpoint in local mode on app.manifest.build", async () => {
+    it("computes production baseUrl in local mode on app.manifest.build", async () => {
       const origLocation = window.location;
       Object.defineProperty(window, "location", {
         value: { ...origLocation, hostname: "app.manifest.build", origin: "https://app.manifest.build" },
@@ -422,7 +341,9 @@ describe("SetupModal", () => {
         <SetupModal open={true} agentName="local-agent" onClose={onClose} />
       ));
       await vi.waitFor(() => {
-        expect(container.querySelector('[data-testid="step-local-configure"]')).not.toBeNull();
+        const step = container.querySelector('[data-testid="step-local-configure"]');
+        expect(step).not.toBeNull();
+        expect(step?.getAttribute("data-base-url")).toBe("https://app.manifest.build/v1");
       });
       Object.defineProperty(window, "location", {
         value: origLocation,
