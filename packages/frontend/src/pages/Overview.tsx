@@ -1,5 +1,5 @@
 import { Meta, Title } from '@solidjs/meta';
-import { A, useLocation, useParams } from '@solidjs/router';
+import { A, useLocation, useNavigate, useParams } from '@solidjs/router';
 import { isRecentlyCreated } from '../services/recent-agents.js';
 import { createEffect, createResource, createSignal, For, Show, type Component } from 'solid-js';
 import CostChart from '../components/CostChart.jsx';
@@ -76,6 +76,7 @@ type ActiveView = 'cost' | 'tokens' | 'messages';
 const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
   const location = useLocation<{ newApiKey?: string }>();
+  const navigate = useNavigate();
   preloadModelDisplayNames();
   const RANGE_STORAGE_KEY = 'manifest_chart_range';
   const VALID_RANGES = new Set(['24h', '7d', '30d']);
@@ -699,6 +700,11 @@ const Overview: Component = () => {
         onDone={() => {
           localStorage.setItem(`setup_completed_${params.agentName}`, '1');
           setSetupCompleted(true);
+        }}
+        onGoToRouting={() => {
+          navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+            state: { openProviders: true },
+          });
         }}
       />
     </div>

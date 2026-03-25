@@ -3,6 +3,7 @@ import SetupStepInstall from './SetupStepInstall.jsx';
 import SetupStepConfigure from './SetupStepConfigure.jsx';
 import SetupStepVerify from './SetupStepVerify.jsx';
 import SetupStepLocalConfigure from './SetupStepLocalConfigure.jsx';
+import SetupStepProviders from './SetupStepProviders.jsx';
 import { getAgentKey, getHealth } from '../services/api.js';
 
 interface StepDef {
@@ -14,11 +15,13 @@ const CLOUD_STEPS: StepDef[] = [
   { n: 1, label: 'Install' },
   { n: 2, label: 'Configure' },
   { n: 3, label: 'Activate' },
+  { n: 4, label: 'Routing' },
 ];
 
 const LOCAL_STEPS: StepDef[] = [
   { n: 1, label: 'Configure' },
   { n: 2, label: 'Verify' },
+  { n: 3, label: 'Routing' },
 ];
 
 const SetupModal: Component<{
@@ -27,6 +30,7 @@ const SetupModal: Component<{
   apiKey?: string | null;
   onClose: () => void;
   onDone?: () => void;
+  onGoToRouting?: () => void;
 }> = (props) => {
   const [step, setStep] = createSignal(1);
 
@@ -51,6 +55,18 @@ const SetupModal: Component<{
 
   const steps = () => (isLocal() ? LOCAL_STEPS : CLOUD_STEPS);
   const totalSteps = () => steps().length;
+  const isLastStep = () => step() === totalSteps();
+
+  const handleFinish = () => {
+    props.onDone?.();
+    props.onClose();
+  };
+
+  const handleGoToRouting = () => {
+    props.onDone?.();
+    props.onClose();
+    props.onGoToRouting?.();
+  };
 
   return (
     <Show when={props.open}>
@@ -59,12 +75,23 @@ const SetupModal: Component<{
         onClick={(e) => {
           if (e.target === e.currentTarget) props.onClose();
         }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') props.onClose();
+        }}
       >
-        <div class="modal-card" style="max-width: 600px;">
+        <div
+          class="modal-card"
+          style="max-width: 600px;"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="setup-modal-title"
+        >
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-sm);">
-            <div class="modal-card__title">Set up your agent</div>
+            <div class="modal-card__title" id="setup-modal-title">
+              Set up your agent
+            </div>
             <button
-              style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px;"
+              style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;"
               onClick={() => props.onClose()}
               aria-label="Close"
             >
@@ -114,6 +141,15 @@ const SetupModal: Component<{
                       'modal-stepper__step--done': step() > s.n,
                     }}
                     onClick={() => setStep(s.n)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setStep(s.n);
+                      }
+                    }}
+                    role="button"
+                    tabindex="0"
+                    aria-label={`Step ${s.n}: ${s.label}${step() > s.n ? ' (completed)' : step() === s.n ? ' (current)' : ''}`}
                     style="cursor: pointer;"
                   >
                     <div class="modal-stepper__circle">
@@ -169,24 +205,24 @@ const SetupModal: Component<{
             </Show>
           </Show>
 
+          {/* Routing step (last step for both flows) */}
+          <Show when={isLastStep()}>
+            <SetupStepProviders agentName={props.agentName} onGoToRouting={handleGoToRouting} />
+          </Show>
+
           <div class="setup-modal__nav">
             <button
               class="modal-card__back-link"
               onClick={() => setStep((s) => s - 1)}
               style={step() === 1 ? 'visibility: hidden;' : ''}
+              tabindex={step() === 1 ? -1 : 0}
             >
               Back
             </button>
             <Show
               when={step() < totalSteps()}
               fallback={
-                <button
-                  class="setup-modal__next"
-                  onClick={() => {
-                    props.onDone?.();
-                    props.onClose();
-                  }}
-                >
+                <button class="setup-modal__next" onClick={handleFinish}>
                   Done
                 </button>
               }
