@@ -1,5 +1,11 @@
 # manifest
 
+## 5.30.0
+
+### Minor Changes
+
+- 9fd49cc: Support multiple agents in local mode, matching cloud mode behavior
+
 ## 5.29.3
 
 ### Patch Changes
