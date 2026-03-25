@@ -361,22 +361,30 @@ describe("Settings", () => {
       expect(screen.getByLabelText("Agent name")).toBeDefined();
     });
 
-    it("hides tabs in local mode", () => {
-      const { container } = render(() => <Settings />);
-      expect(container.querySelector(".panel__tabs")).toBeNull();
-      expect(screen.queryByText("Agent setup")).toBeNull();
-    });
-
-    it("still shows General content without tab switcher", () => {
+    it("shows tabs in local mode", () => {
       render(() => <Settings />);
-      expect(screen.getByLabelText("Agent name")).toBeDefined();
-      expect(screen.getByText("Save")).toBeDefined();
+      expect(screen.getByText("General")).toBeDefined();
+      expect(screen.getByText("Agent setup")).toBeDefined();
     });
 
-    it("hides Danger zone in local mode", () => {
+    it("shows Agent setup tab content in local mode", () => {
+      const { container } = render(() => <Settings />);
+      fireEvent.click(screen.getByText("Agent setup"));
+      expect(container.textContent).toContain("OTLP ingest key");
+    });
+
+    it("hides Danger zone for default local-agent", () => {
+      mockAgentName = "local-agent";
       const { container } = render(() => <Settings />);
       expect(container.textContent).not.toContain("Danger zone");
       expect(container.textContent).not.toContain("Delete agent");
+    });
+
+    it("shows Danger zone for non-default agent in local mode", () => {
+      mockAgentName = "custom-agent";
+      render(() => <Settings />);
+      expect(screen.getByText("Danger zone")).toBeDefined();
+      expect(screen.getByText("Delete agent")).toBeDefined();
     });
   });
 });

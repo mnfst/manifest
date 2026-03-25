@@ -41,8 +41,7 @@ const MessageLog: Component = () => {
   const [costMax, setCostMax] = createSignal('');
   const [setupOpen, setSetupOpen] = createSignal(false);
   const [setupCompleted] = createSignal(
-    !!localStorage.getItem(`setup_completed_${params.agentName}`) ||
-      (isLocalMode() === true && params.agentName === 'local-agent'),
+    !!localStorage.getItem(`setup_completed_${params.agentName}`) || isLocalMode() === true,
   );
 
   const [customProviders] = createResource(
@@ -191,13 +190,7 @@ const MessageLog: Component = () => {
               />
             </div>
           </Show>
-          <Show
-            when={
-              isAgentEmpty() &&
-              !(isLocalMode() && params.agentName === 'local-agent') &&
-              !setupCompleted()
-            }
-          >
+          <Show when={isAgentEmpty() && !isLocalMode() && !setupCompleted()}>
             <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
@@ -275,7 +268,7 @@ const MessageLog: Component = () => {
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
           <Show when={isAgentEmpty()}>
             <Show
-              when={(isLocalMode() && params.agentName === 'local-agent') || setupCompleted()}
+              when={isLocalMode() || setupCompleted()}
               fallback={
                 <div class="empty-state">
                   <div class="empty-state__title">No messages recorded</div>

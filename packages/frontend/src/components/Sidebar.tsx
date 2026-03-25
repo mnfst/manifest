@@ -1,7 +1,6 @@
 import { A, useLocation } from '@solidjs/router';
 import { Show, type Component } from 'solid-js';
 import { useAgentName, agentPath } from '../services/routing.js';
-import { isLocalMode } from '../services/local-mode.js';
 
 const Sidebar: Component = () => {
   const location = useLocation();
@@ -17,7 +16,7 @@ const Sidebar: Component = () => {
 
   return (
     <nav class="sidebar" aria-label="Agent navigation">
-      <Show when={!getAgentName() && !isLocalMode()}>
+      <Show when={!getAgentName()}>
         <A
           href="/"
           class="sidebar__link"
