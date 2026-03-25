@@ -1,7 +1,4 @@
 
-<a href="https://luma.com/clawcondfw">
-<img width="1543" height="256" alt="Capture d’écran 2026-03-18 à 16 13 34" src="https://github.com/user-attachments/assets/11294f94-76c4-47bb-9c75-5ccc6b28fbdb" />
-</a>
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mnfst/manifest/HEAD/.github/assets/logo-white.svg" />
