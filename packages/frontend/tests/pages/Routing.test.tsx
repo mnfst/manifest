@@ -3,6 +3,7 @@ import { render, screen, waitFor, fireEvent } from "@solidjs/testing-library";
 
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: "test-agent" }),
+  useLocation: () => ({ pathname: "/agents/test-agent/routing", state: null }),
   useNavigate: () => vi.fn(),
   A: (props: any) => <a href={props.href}>{props.children}</a>,
 }));

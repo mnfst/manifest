@@ -4,6 +4,10 @@
   backdrop-filter: blur(8px);
 }
 
+.dark .setup-modal__overlay {
+  background: rgb(0 0 0 / 0.7);
+}
+
 /* ── Setup Modal nav ─────────────────────────────── */
 .setup-modal__nav {
   display: flex;
@@ -32,6 +36,17 @@
 
 .setup-modal__next:hover {
   opacity: 0.85;
+}
+
+/* ── Embedded providers step ─────────────────────── */
+.setup-step-providers {
+  margin: 0 -32px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.setup-step-providers .provider-modal__view {
+  max-height: 380px;
+  overflow-y: auto;
 }
 
 /* ── Waiting for data state ──────────────────────── */

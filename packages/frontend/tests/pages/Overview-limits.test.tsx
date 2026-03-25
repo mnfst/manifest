@@ -5,6 +5,7 @@ let mockAgentName = "test-agent";
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
   useLocation: () => ({ pathname: `/agents/${mockAgentName}`, state: null }),
+  useNavigate: () => vi.fn(),
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
 }));
 
