@@ -1,5 +1,6 @@
 import { Meta, Title } from '@solidjs/meta';
 import { A, useLocation, useParams } from '@solidjs/router';
+import { isRecentlyCreated } from '../services/recent-agents.js';
 import { createEffect, createResource, createSignal, For, Show, type Component } from 'solid-js';
 import CostChart from '../components/CostChart.jsx';
 import ErrorState from '../components/ErrorState.jsx';
@@ -74,7 +75,7 @@ type ActiveView = 'cost' | 'tokens' | 'messages';
 
 const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
-  const location = useLocation<{ newAgent?: boolean; newApiKey?: string }>();
+  const location = useLocation<{ newApiKey?: string }>();
   preloadModelDisplayNames();
   const RANGE_STORAGE_KEY = 'manifest_chart_range';
   const VALID_RANGES = new Set(['24h', '7d', '30d']);
@@ -91,7 +92,7 @@ const Overview: Component = () => {
   };
   const [activeView, setActiveView] = createSignal<ActiveView>('cost');
   const [setupOpen, setSetupOpen] = createSignal(
-    !!(location.state as { newAgent?: boolean } | undefined)?.newAgent,
+    isRecentlyCreated(decodeURIComponent(params.agentName)),
   );
   const [setupCompleted, setSetupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),

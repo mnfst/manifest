@@ -6,13 +6,15 @@ import {
   Delete,
   ForbiddenException,
   Get,
+  Inject,
   Param,
   Patch,
   Post,
   UseInterceptors,
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
-import { CacheTTL } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, CacheTTL } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
 import { AggregationService } from '../services/aggregation.service';
@@ -35,7 +37,12 @@ export class AgentsController {
     private readonly apiKeyGenerator: ApiKeyGeneratorService,
     private readonly config: ConfigService,
     private readonly tenantCache: TenantCacheService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
+
+  private agentListCacheKey(userId: string): string {
+    return `${userId}:/api/v1/agents`;
+  }
 
   @Get('agents')
   @UseInterceptors(UserCacheInterceptor)
@@ -67,6 +74,7 @@ export class AgentsController {
       }
       throw error;
     }
+    await this.cacheManager.del(this.agentListCacheKey(user.id));
     return {
       agent: { id: result.agentId, name: slug, display_name: displayName },
       apiKey: result.apiKey,
@@ -104,6 +112,7 @@ export class AgentsController {
     }
     const displayName = body.name.trim();
     await this.aggregation.renameAgent(user.id, agentName, slug, displayName);
+    await this.cacheManager.del(this.agentListCacheKey(user.id));
     return { renamed: true, name: slug, display_name: displayName };
   }
 
@@ -113,6 +122,7 @@ export class AgentsController {
       throw new ForbiddenException('Cannot delete agents in local mode');
     }
     await this.aggregation.deleteAgent(user.id, agentName);
+    await this.cacheManager.del(this.agentListCacheKey(user.id));
     return { deleted: true };
   }
 }

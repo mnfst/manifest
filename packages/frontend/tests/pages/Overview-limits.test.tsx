@@ -59,6 +59,10 @@ vi.mock("../../src/components/Select.jsx", () => ({
   ),
 }));
 
+vi.mock("../../src/services/recent-agents.js", () => ({
+  isRecentlyCreated: () => false,
+}));
+
 import Overview from "../../src/pages/Overview";
 
 const overviewData = {

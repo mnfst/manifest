@@ -8,6 +8,7 @@ import SetupStepVerify from '../components/SetupStepVerify.jsx';
 import { CopyButton } from '../components/SetupStepInstall.jsx';
 import { getAgentKey, deleteAgent, renameAgent, rotateAgentKey } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import { markAgentCreated } from '../services/recent-agents.js';
 import { isLocalMode } from '../services/local-mode.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 
@@ -49,9 +50,9 @@ const Settings: Component = () => {
     try {
       const result = await renameAgent(agentName(), newName);
       const slug = result?.name ?? newName;
+      markAgentCreated(slug);
       navigate(`/agents/${encodeURIComponent(slug)}/settings`, {
         replace: true,
-        state: { newAgent: true },
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);

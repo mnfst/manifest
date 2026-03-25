@@ -41,6 +41,11 @@ vi.mock("../../src/services/sse.js", () => ({
   pingCount: () => 0,
 }));
 
+const mockMarkAgentCreated = vi.fn();
+vi.mock("../../src/services/recent-agents.js", () => ({
+  markAgentCreated: (...args: unknown[]) => mockMarkAgentCreated(...args),
+}));
+
 import Workspace from "../../src/pages/Workspace";
 
 describe("Workspace", () => {
@@ -127,7 +132,7 @@ describe("Workspace", () => {
   });
 
   it("creates agent when form submitted", async () => {
-    mockCreateAgent.mockResolvedValue({ apiKey: "test-key" });
+    mockCreateAgent.mockResolvedValue({ agent: { name: "new-agent" }, apiKey: "test-key" });
     const { container } = render(() => <Workspace />);
     const btn = screen.getAllByText("Connect Agent")[0];
     fireEvent.click(btn);
@@ -137,6 +142,9 @@ describe("Workspace", () => {
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
       expect(mockCreateAgent).toHaveBeenCalledWith("new-agent");
+    });
+    await vi.waitFor(() => {
+      expect(mockMarkAgentCreated).toHaveBeenCalledWith("new-agent");
     });
   });
 

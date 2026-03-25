@@ -1,10 +1,11 @@
-import { useParams, useLocation } from '@solidjs/router';
+import { useParams } from '@solidjs/router';
 import { createResource, createMemo, Show, onCleanup, type ParentComponent } from 'solid-js';
 import ErrorState from './ErrorState.jsx';
 import NotFound from '../pages/NotFound.jsx';
 import { getAgents } from '../services/api.js';
 import { isLocalMode, checkLocalMode } from '../services/local-mode.js';
 import { setAgentDisplayName } from '../services/agent-display-name.js';
+import { isRecentlyCreated, clearRecentAgent } from '../services/recent-agents.js';
 
 interface Agent {
   agent_name: string;
@@ -17,7 +18,6 @@ interface AgentsData {
 
 const AgentGuard: ParentComponent = (props) => {
   const params = useParams<{ agentName: string }>();
-  const location = useLocation<{ newAgent?: boolean }>();
 
   // Wait for the mode check to resolve before deciding what to do.
   // checkLocalMode() is already called by AuthGuard, so this just awaits
@@ -36,11 +36,13 @@ const AgentGuard: ParentComponent = (props) => {
       setAgentDisplayName(null);
       return true;
     }
-    if (location.state?.newAgent) return true;
+    const decoded = decodeURIComponent(params.agentName);
+    if (isRecentlyCreated(decoded)) return true;
     const list = data()?.agents;
     if (!list) return true; // still loading or no data yet — don't block
-    const agent = list.find((a) => a.agent_name === decodeURIComponent(params.agentName));
+    const agent = list.find((a) => a.agent_name === decoded);
     if (agent) {
+      clearRecentAgent(agent.agent_name);
       setAgentDisplayName(agent.display_name ?? agent.agent_name);
     }
     return !!agent;

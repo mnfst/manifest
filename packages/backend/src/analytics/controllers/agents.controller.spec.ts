@@ -3,8 +3,9 @@ jest.mock('../../common/constants/local-mode.constants', () => ({
 }));
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { CacheModule } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
+import type { Cache } from 'cache-manager';
 import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 import { AgentsController } from './agents.controller';
@@ -18,6 +19,7 @@ const mockReadLocalApiKey = readLocalApiKey as jest.MockedFunction<typeof readLo
 
 describe('AgentsController', () => {
   let controller: AgentsController;
+  let cacheManager: Cache;
   let mockGetAgentList: jest.Mock;
   let mockGetKeyForAgent: jest.Mock;
   let mockRotateKey: jest.Mock;
@@ -77,6 +79,8 @@ describe('AgentsController', () => {
     }).compile();
 
     controller = module.get<AgentsController>(AgentsController);
+    cacheManager = module.get<Cache>(CACHE_MANAGER);
+    jest.spyOn(cacheManager, 'del').mockResolvedValue(true);
   });
 
   it('returns agent list wrapped in agents property', async () => {
@@ -152,6 +156,7 @@ describe('AgentsController', () => {
 
     expect(result).toEqual({ renamed: true, name: 'bot-renamed', display_name: 'Bot Renamed' });
     expect(mockRenameAgent).toHaveBeenCalledWith('u1', 'bot-1', 'bot-renamed', 'Bot Renamed');
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
   });
 
   it('rejects rename with empty slug', async () => {
@@ -167,6 +172,7 @@ describe('AgentsController', () => {
 
     expect(result).toEqual({ deleted: true });
     expect(mockDeleteAgent).toHaveBeenCalledWith('u1', 'bot-1');
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
   });
 
   it('throws ForbiddenException when deleting in local mode', async () => {
@@ -178,6 +184,40 @@ describe('AgentsController', () => {
       ForbiddenException,
     );
     expect(mockDeleteAgent).not.toHaveBeenCalled();
+  });
+
+  it('invalidates agent list cache after successful createAgent', async () => {
+    const mockOnboard = jest.fn().mockResolvedValue({
+      tenantId: 't1',
+      agentId: 'a1',
+      apiKey: 'mnfst_key',
+    });
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register()],
+      controllers: [AgentsController],
+      providers: [
+        { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
+        {
+          provide: AggregationService,
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+        },
+        {
+          provide: ApiKeyGeneratorService,
+          useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+      ],
+    }).compile();
+
+    const ctrl = module.get<AgentsController>(AgentsController);
+    const cm = module.get<Cache>(CACHE_MANAGER);
+    const delSpy = jest.spyOn(cm, 'del').mockResolvedValue(true);
+    const user = { id: 'user-123', email: 'test@example.com' };
+    const result = await ctrl.createAgent(user as never, { name: 'My Agent' } as never);
+
+    expect(result.agent.name).toBe('my-agent');
+    expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents');
   });
 
   it('rejects createAgent with empty slug', async () => {

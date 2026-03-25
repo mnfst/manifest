@@ -49,6 +49,11 @@ vi.mock("../../src/services/local-mode.js", () => ({
   isLocalMode: () => mockIsLocalMode,
 }));
 
+const mockMarkAgentCreated = vi.fn();
+vi.mock("../../src/services/recent-agents.js", () => ({
+  markAgentCreated: (...args: unknown[]) => mockMarkAgentCreated(...args),
+}));
+
 import Settings from "../../src/pages/Settings";
 
 describe("Settings", () => {
@@ -157,6 +162,9 @@ describe("Settings", () => {
     fireEvent.click(saveBtn);
     await vi.waitFor(() => {
       expect(mockRenameAgent).toHaveBeenCalledWith("test-agent", "new-name");
+    });
+    await vi.waitFor(() => {
+      expect(mockMarkAgentCreated).toHaveBeenCalledWith("new-name");
     });
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Saved");
