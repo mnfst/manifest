@@ -157,9 +157,9 @@ describe("inferProviderFromModel", () => {
   });
 
   it("detects Copilot models", () => {
-    expect(inferProviderFromModel("copilot/claude-sonnet-4")).toBe("copilot");
+    expect(inferProviderFromModel("copilot/claude-sonnet-4.6")).toBe("copilot");
     expect(inferProviderFromModel("copilot/gpt-4o")).toBe("copilot");
-    expect(inferProviderFromModel("copilot/gemini-2.5-pro")).toBe("copilot");
+    expect(inferProviderFromModel("copilot/gemini-3.1-pro-preview")).toBe("copilot");
   });
 
   it("detects vendor-prefixed models as openrouter (catch-all)", () => {

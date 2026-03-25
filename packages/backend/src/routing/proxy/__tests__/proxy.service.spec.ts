@@ -1072,7 +1072,7 @@ describe('ProxyService', () => {
     it('exchanges GitHub token for Copilot API token before forwarding', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
-        model: 'copilot/claude-sonnet-4',
+        model: 'copilot/claude-sonnet-4.6',
         provider: 'copilot',
         confidence: 0.9,
         score: 0.5,
@@ -1092,7 +1092,7 @@ describe('ProxyService', () => {
       expect(providerClient.forward).toHaveBeenCalledWith(
         'copilot',
         'tid=copilot-session-token',
-        'claude-sonnet-4',
+        'claude-sonnet-4.6',
         body,
         false,
         undefined,

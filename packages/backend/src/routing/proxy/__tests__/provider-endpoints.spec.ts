@@ -122,7 +122,7 @@ describe('PROVIDER_ENDPOINTS', () => {
     const ep = PROVIDER_ENDPOINTS['copilot'];
     expect(ep.baseUrl).toBe('https://api.githubcopilot.com');
     expect(ep.format).toBe('openai');
-    expect(ep.buildPath('copilot/claude-sonnet-4')).toBe('/chat/completions');
+    expect(ep.buildPath('copilot/claude-sonnet-4.6')).toBe('/chat/completions');
     expect(ep.buildHeaders('ghu_token')).toEqual({
       Authorization: 'Bearer ghu_token',
       'Content-Type': 'application/json',
