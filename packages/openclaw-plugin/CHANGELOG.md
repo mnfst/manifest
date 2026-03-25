@@ -1,5 +1,12 @@
 # manifest
 
+## 5.29.3
+
+### Patch Changes
+
+- b9efc95: Fix 404 pages after creating a new agent in cloud mode
+- 46b47f1: fix: update GitHub Copilot model names to match current API catalog
+
 ## 5.29.2
 
 ### Patch Changes
