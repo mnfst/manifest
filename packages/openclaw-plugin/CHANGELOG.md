@@ -1,5 +1,15 @@
 # manifest
 
+## 5.31.0
+
+### Minor Changes
+
+- 506c25a: Add routing setup step to agent onboarding wizard
+
+### Patch Changes
+
+- f3abb28: Remove Product Hunt launch modal and badge
+
 ## 5.30.0
 
 ### Minor Changes
