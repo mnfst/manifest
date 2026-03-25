@@ -77,6 +77,11 @@ vi.mock("../../src/components/Select.jsx", () => ({
   ),
 }));
 
+const mockIsRecentlyCreated = vi.fn(() => false);
+vi.mock("../../src/services/recent-agents.js", () => ({
+  isRecentlyCreated: (...args: unknown[]) => mockIsRecentlyCreated(...args),
+}));
+
 import Overview from "../../src/pages/Overview";
 
 const overviewData = {

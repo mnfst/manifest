@@ -4,6 +4,7 @@ import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
 import { getAgents, createAgent } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import { markAgentCreated } from '../services/recent-agents.js';
 import { formatNumber, formatCost } from '../services/formatters.js';
 import Sparkline from '../components/Sparkline.jsx';
 import { checkLocalMode } from '../services/local-mode.js';
@@ -38,8 +39,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       props.onClose();
       setName('');
       const slug = result?.agent?.name ?? agentName;
+      markAgentCreated(slug);
       const url = `/agents/${encodeURIComponent(slug)}`;
-      navigate(url, { state: { newAgent: true, newApiKey: result?.apiKey } });
+      navigate(url, { state: { newApiKey: result?.apiKey } });
     } catch {
       // error toast already shown by fetchMutate
     } finally {
