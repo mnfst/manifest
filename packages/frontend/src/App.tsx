@@ -5,7 +5,6 @@ import Sidebar from './components/Sidebar.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
 import { connectSse } from './services/sse.js';
 import VersionIndicator from './components/VersionIndicator.jsx';
-import ProductHuntUpvoteModal from './components/ProductHuntUpvoteModal.jsx';
 
 const SseConnector: ParentComponent = (props) => {
   onMount(() => {
@@ -28,7 +27,6 @@ const App: ParentComponent = (props) => {
             Skip to main content
           </a>
           <Header />
-          <ProductHuntUpvoteModal />
           <div class="app-body">
             <Show when={showSidebar()}>
               <Sidebar />
