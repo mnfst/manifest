@@ -1,11 +1,27 @@
 {
   "id": "manifest",
-  "kind": "observability",
   "name": "Manifest — Agent Observability",
   "version": "5.28.2",
   "description": "Traces, metrics, and cost tracking for your OpenClaw agent. Zero-config local dashboard included.",
   "author": "MNFST Inc.",
   "homepage": "https://manifest.build",
+  "providers": ["manifest"],
+  "providerAuthEnvVars": {
+    "manifest": ["MANIFEST_API_KEY"]
+  },
+  "providerAuthChoices": [
+    {
+      "provider": "manifest",
+      "method": "api-key",
+      "choiceId": "manifest-api-key",
+      "choiceLabel": "Manifest API Key",
+      "groupId": "manifest",
+      "groupLabel": "Manifest",
+      "cliFlag": "--manifest-key",
+      "cliOption": "--manifest-key <key>",
+      "cliDescription": "Manifest API key (starts with mnfst_)"
+    }
+  ],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

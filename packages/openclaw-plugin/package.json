@@ -34,6 +34,9 @@
   "openclaw": {
     "extensions": [
       "./dist/index.js"
+    ],
+    "providers": [
+      "manifest"
     ]
   },
   "engines": {
