@@ -37,7 +37,7 @@ const AgentGuard: ParentComponent = (props) => {
       return true;
     }
     const decoded = decodeURIComponent(params.agentName);
-    if (isRecentlyCreated(decoded)) return true;
+    const recent = isRecentlyCreated(decoded);
     const list = data()?.agents;
     if (!list) return true; // still loading or no data yet — don't block
     const agent = list.find((a) => a.agent_name === decoded);
@@ -45,7 +45,7 @@ const AgentGuard: ParentComponent = (props) => {
       clearRecentAgent(agent.agent_name);
       setAgentDisplayName(agent.display_name ?? agent.agent_name);
     }
-    return !!agent;
+    return recent || !!agent;
   });
 
   onCleanup(() => setAgentDisplayName(null));
