@@ -2,6 +2,7 @@ import {
   PROVIDER_REGISTRY,
   PROVIDER_BY_ID,
   PROVIDER_BY_ID_OR_ALIAS,
+  PROVIDER_DISPLAY_NAME_TO_ID,
   OPENROUTER_PREFIX_TO_PROVIDER,
   ALL_PROVIDER_IDS,
   expandProviderNames,
@@ -9,8 +10,8 @@ import {
 } from './providers';
 
 describe('PROVIDER_REGISTRY', () => {
-  it('should contain exactly 13 provider entries', () => {
-    expect(PROVIDER_REGISTRY).toHaveLength(13);
+  it('should contain exactly 18 provider entries', () => {
+    expect(PROVIDER_REGISTRY).toHaveLength(18);
   });
 
   it('every entry has all required fields', () => {
@@ -72,11 +73,11 @@ describe('PROVIDER_REGISTRY', () => {
 });
 
 describe('PROVIDER_BY_ID', () => {
-  it('resolves all 13 provider IDs', () => {
+  it('resolves all 17 provider IDs', () => {
     for (const entry of PROVIDER_REGISTRY) {
       expect(PROVIDER_BY_ID.get(entry.id)).toBe(entry);
     }
-    expect(PROVIDER_BY_ID.size).toBe(13);
+    expect(PROVIDER_BY_ID.size).toBe(18);
   });
 
   it('returns undefined for an unknown ID', () => {
@@ -105,10 +106,11 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     expect(entry.displayName).toBe('Alibaba');
   });
 
-  it('resolves kimi alias to moonshot entry', () => {
+  it('resolves kimi id to Kimi Code entry', () => {
     const entry = PROVIDER_BY_ID_OR_ALIAS.get('kimi') as ProviderRegistryEntry;
     expect(entry).toBeDefined();
-    expect(entry.id).toBe('moonshot');
+    expect(entry.id).toBe('kimi');
+    expect(entry.displayName).toBe('Kimi Code');
   });
 
   it('resolves z.ai alias to zai entry', () => {
@@ -120,6 +122,27 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
 
   it('returns undefined for an unknown alias', () => {
     expect(PROVIDER_BY_ID_OR_ALIAS.get('nonexistent')).toBeUndefined();
+  });
+});
+
+describe('PROVIDER_DISPLAY_NAME_TO_ID', () => {
+  it('maps every display name (lowercased) to its provider ID', () => {
+    for (const entry of PROVIDER_REGISTRY) {
+      expect(PROVIDER_DISPLAY_NAME_TO_ID.get(entry.displayName.toLowerCase())).toBe(entry.id);
+    }
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.size).toBe(PROVIDER_REGISTRY.length);
+  });
+
+  it('resolves Z.ai display name to zai ID', () => {
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.get('z.ai')).toBe('zai');
+  });
+
+  it('resolves Google display name to gemini ID', () => {
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.get('google')).toBe('gemini');
+  });
+
+  it('resolves Alibaba display name to qwen ID', () => {
+    expect(PROVIDER_DISPLAY_NAME_TO_ID.get('alibaba')).toBe('qwen');
   });
 });
 
@@ -184,14 +207,14 @@ describe('expandProviderNames', () => {
     expect(result.has('gemini')).toBe(true);
   });
 
-  it('should expand moonshot and kimi alias bidirectionally', () => {
+  it('should keep moonshot and kimi separate provider names', () => {
     const fromId = expandProviderNames(['moonshot']);
     expect(fromId.has('moonshot')).toBe(true);
-    expect(fromId.has('kimi')).toBe(true);
+    expect(fromId.has('kimi')).toBe(false);
 
-    const fromAlias = expandProviderNames(['kimi']);
-    expect(fromAlias.has('moonshot')).toBe(true);
-    expect(fromAlias.has('kimi')).toBe(true);
+    const fromKimi = expandProviderNames(['kimi']);
+    expect(fromKimi.has('moonshot')).toBe(false);
+    expect(fromKimi.has('kimi')).toBe(true);
   });
 
   it('should not expand custom: prefixed names', () => {

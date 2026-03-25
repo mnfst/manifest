@@ -5,18 +5,30 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null,
 }));
 
-vi.mock("../../src/services/routing-utils.js", () => ({
-  pricePerM: (v: number) => `$${(v * 1_000_000).toFixed(2)}`,
-  resolveProviderId: (provider: string) => {
-    const map: Record<string, string> = { OpenAI: "openai", Anthropic: "anthropic", Google: "google" };
-    return map[provider] ?? null;
-  },
-  inferProviderFromModel: (modelName: string) => {
-    const slash = modelName.indexOf("/");
-    if (slash !== -1) return modelName.substring(0, slash).toLowerCase();
-    return null;
-  },
-}));
+vi.mock("../../src/services/routing-utils.js", async () => {
+  const actual = await vi.importActual<typeof import("../../src/services/routing-utils.js")>(
+    "../../src/services/routing-utils.js",
+  );
+  return {
+    ...actual,
+    resolveProviderId: (provider: string) => {
+      if (provider.startsWith("custom:")) return provider;
+      const map: Record<string, string> = {
+        OpenAI: "openai",
+        Anthropic: "anthropic",
+        Google: "google",
+        "OpenCode Go": "opencode-go",
+        "Ollama Cloud": "ollama-cloud",
+        OpenRouter: "openrouter",
+        "OpenCode Go Plan": "opencode-go",
+        "Ollama Cloud Plan": "ollama-cloud",
+        "opencode-go": "opencode-go",
+        "ollama-cloud": "ollama-cloud",
+      };
+      return map[provider] ?? null;
+    },
+  };
+});
 
 import ModelPickerModal from "../../src/components/ModelPickerModal";
 
@@ -27,7 +39,7 @@ const baseTiers = [
 const baseModels = [
   { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
   { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
-  { model_name: "openrouter/free", provider: "OpenAI", display_name: "Free Models Router", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
+  { model_name: "openrouter/free", provider: "OpenRouter", display_name: "Free Models Router", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
 ];
 
 describe("ModelPickerModal", () => {
@@ -177,6 +189,52 @@ describe("ModelPickerModal", () => {
     expect(firstModel?.textContent).toContain("Free Models Router");
   });
 
+  it("uses the inferred provider for OpenRouter-hosted display grouping", () => {
+    const providers = [
+      { id: "p1", provider: "openrouter", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "claude-sonnet-4", provider: "OpenRouter", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("Anthropic")).toBeDefined();
+    expect(screen.getByText("Claude Sonnet 4")).toBeDefined();
+  });
+
+  it("falls back to the OpenRouter group when an OpenRouter model has no inferred vendor", () => {
+    const providers = [
+      { id: "p1", provider: "openrouter", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "mystery-model", provider: "OpenRouter", display_name: "Mystery Model", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("OpenRouter")).toBeDefined();
+    expect(screen.getByText("Mystery Model")).toBeDefined();
+  });
+
   it("resolves label for vendor-prefixed model names", () => {
     const modelsWithSlash = [
       { model_name: "anthropic/claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
@@ -206,6 +264,68 @@ describe("ModelPickerModal", () => {
       <ModelPickerModal tierId="simple" models={modelsPlain} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
     ));
     expect(container.textContent).toContain("totally-custom-model");
+  });
+
+  it("skips models that do not resolve to a known or inferred provider", () => {
+    const modelsPlain = [
+      { model_name: "totally-custom-model", provider: "MysteryCloud", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
+    ];
+    render(() => (
+      <ModelPickerModal tierId="simple" models={modelsPlain} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+    ));
+    expect(screen.queryByText("totally-custom-model")).toBeNull();
+  });
+
+  it("uses custom provider names when grouping custom provider models", () => {
+    const models = [
+      { model_name: "custom:cp-1/openai/gpt-oss-120b", provider: "custom:cp-1", input_price_per_token: 0.000001, output_price_per_token: 0.000002, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+    const customProviders = [
+      { id: "cp-1", name: "My Custom Gateway", base_url: "https://example.com", has_api_key: true, models: [], created_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        customProviders={customProviders}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(screen.getByText("My Custom Gateway")).toBeDefined();
+  });
+
+  it("prefers provider_display_name when a custom provider exposes one", () => {
+    const models = [
+      { model_name: "custom:cp-2/another-model", provider: "custom:cp-2", provider_display_name: "Display Gateway", input_price_per_token: 0.000001, output_price_per_token: 0.000002, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(screen.getByText("Display Gateway")).toBeDefined();
+  });
+
+  it("falls back to the raw custom provider id when no custom display name is available", () => {
+    const models = [
+      { model_name: "custom:cp-3/raw-model", provider: "custom:cp-3", input_price_per_token: 0.000001, output_price_per_token: 0.000002, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(screen.getByText("custom:cp-3")).toBeDefined();
   });
 
   it("hides tabs when only api_key providers are connected", () => {
@@ -460,5 +580,123 @@ describe("ModelPickerModal", () => {
     fireEvent.click(screen.getByText("Subscription"));
     // No filter bar should show on subscription tab
     expect(container.querySelector('.routing-modal__filter-bar')).toBeNull();
+  });
+
+  it("keeps OpenCode Go models visible on the subscription tab even when slugs map to other vendors", () => {
+    const providers = [
+      { id: "p1", provider: "opencode-go", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "glm-5", provider: "opencode-go", display_name: "GLM 5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "kimi-k2.5", provider: "opencode-go", display_name: "Kimi K2.5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "minimax-m2.7", provider: "opencode-go", display_name: "MiniMax M2.7", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("OpenCode Go")).toBeDefined();
+    expect(screen.getByText("GLM 5")).toBeDefined();
+    expect(screen.getByText("Kimi K2.5")).toBeDefined();
+    expect(screen.getByText("MiniMax M2.7")).toBeDefined();
+  });
+
+  it("keeps provider-qualified OpenCode Go duplicates grouped correctly and forwards the qualified id", () => {
+    const providers = [
+      { id: "p1", provider: "zai", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+      { id: "p2", provider: "opencode-go", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "glm-5", provider: "zai", display_name: "GLM 5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "opencode-go/glm-5", provider: "opencode-go", display_name: "GLM 5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("OpenCode Go")).toBeDefined();
+    const glmButtons = screen.getAllByText("GLM 5");
+    fireEvent.click(glmButtons[glmButtons.length - 1]);
+    expect(onSelect).toHaveBeenCalledWith(
+      "simple",
+      "opencode-go/glm-5",
+      "opencode-go",
+      "subscription"
+    );
+  });
+
+  it("keeps Ollama Cloud models grouped under Ollama Cloud instead of reclassifying them from the slug", () => {
+    const providers = [
+      { id: "p1", provider: "ollama-cloud", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "qwen3-coder:480b", provider: "ollama-cloud", display_name: "Qwen3 Coder 480B", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "glm-5", provider: "ollama-cloud", display_name: "GLM 5", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "deepseek-v3.2", provider: "ollama-cloud", display_name: "DeepSeek V3.2", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "nemotron-3-super", provider: "ollama-cloud", display_name: "Nemotron 3 Super", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("Ollama Cloud")).toBeDefined();
+    expect(screen.getByText("Qwen3 Coder 480B")).toBeDefined();
+    expect(screen.getByText("GLM 5")).toBeDefined();
+    expect(screen.getByText("DeepSeek V3.2")).toBeDefined();
+    expect(screen.getByText("Nemotron 3 Super")).toBeDefined();
+  });
+
+  it("keeps provider-qualified Ollama Cloud models grouped correctly and forwards the qualified id", () => {
+    const providers = [
+      { id: "p1", provider: "ollama-cloud", is_active: true, has_api_key: true, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    const models = [
+      { model_name: "ollama-cloud/minimax-m2.7", provider: "ollama-cloud", display_name: "MiniMax M2.7", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    expect(screen.getByText("Ollama Cloud")).toBeDefined();
+    const modelButtons = screen.getAllByText("MiniMax M2.7");
+    fireEvent.click(modelButtons[modelButtons.length - 1]);
+    expect(onSelect).toHaveBeenCalledWith(
+      "simple",
+      "ollama-cloud/minimax-m2.7",
+      "ollama-cloud",
+      "subscription"
+    );
   });
 });

@@ -134,7 +134,8 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
-    /* ── Moonshot AI ───────────────────────────────── */
+    /* ── Moonshot AI / Kimi Code ───────────────────── */
+    case 'kimi':
     case 'moonshot':
       return (
         <svg
@@ -160,6 +161,21 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
           aria-hidden="true"
         >
           <path d="M11.43 3.92a.86.86 0 1 0-1.718 0v14.236a1.999 1.999 0 0 1-3.997 0V9.022a.86.86 0 1 0-1.718 0v3.87a1.999 1.999 0 0 1-3.997 0V11.49a.57.57 0 0 1 1.139 0v1.404a.86.86 0 0 0 1.719 0V9.022a1.999 1.999 0 0 1 3.997 0v9.134a.86.86 0 0 0 1.719 0V3.92a1.998 1.998 0 1 1 3.996 0v11.788a.57.57 0 1 1-1.139 0zm10.572 3.105a2 2 0 0 0-1.999 1.997v7.63a.86.86 0 0 1-1.718 0V3.923a1.999 1.999 0 0 0-3.997 0v16.16a.86.86 0 0 1-1.719 0V18.08a.57.57 0 1 0-1.138 0v2a1.998 1.998 0 0 0 3.996 0V3.92a.86.86 0 0 1 1.719 0v12.73a1.999 1.999 0 0 0 3.996 0V9.023a.86.86 0 1 1 1.72 0v6.686a.57.57 0 0 0 1.138 0V9.022a2 2 0 0 0-1.998-1.997" />
+        </svg>
+      );
+
+    /* ── OpenCode ─────────────────────────────────── */
+    case 'opencode':
+    case 'opencode-go':
+      return (
+        <svg
+          style={s}
+          viewBox="0 0 24 24"
+          fill={id === 'opencode-go' ? '#2d8c3c' : 'currentColor'}
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
         </svg>
       );
 
@@ -191,7 +207,31 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
-    /* ── Ollama ───────────────────────────────────── */
+    /* ── NanoGPT ──────────────────────────────────── */
+    case 'nano-gpt':
+      return (
+        <svg
+          style={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="nanogpt-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#00d2a0" />
+              <stop offset="100%" stop-color="#0077b6" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M4.5 10L2 14.5l6.5 7.5 2-3.5-6-8.5zm3-2L10 4l5.5 1.5-1 4-7-1.5zm8.5 0L22 6l-1 6-4-1 -1-3zm-4.5 4.5L10 16l5 6 3-4.5-6-9zm1-3l5 1.5 2 5.5-3 3-5.5-7.5 1.5-2.5z"
+            fill="url(#nanogpt-grad)"
+          />
+        </svg>
+      );
+
+    /* ── Ollama / Ollama Cloud ────────────────────── */
+    case 'ollama-cloud':
     case 'ollama':
       return (
         <svg

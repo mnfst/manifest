@@ -26,7 +26,13 @@ describe('ProviderModelFetcherService', () => {
       'minimax',
       'minimax-subscription',
       'qwen',
+      'kimi',
+      'nano-gpt',
+      'ollama-cloud',
+      'opencode',
+      'opencode-go',
       'zai',
+      'zai-subscription',
       'anthropic',
       'gemini',
       'openrouter',
@@ -163,6 +169,90 @@ describe('ProviderModelFetcherService', () => {
     const result = await service.fetch('deepseek', 'key');
     expect(result).toHaveLength(1);
     expect(result[0].provider).toBe('deepseek');
+  });
+
+  it('should work for opencode-go provider', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [{ id: 'glm-5' }] }),
+    });
+
+    const result = await service.fetch('opencode-go', 'key');
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual(
+      expect.objectContaining({
+        id: 'glm-5',
+        provider: 'opencode-go',
+      }),
+    );
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://opencode.ai/zen/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer key' },
+      }),
+    );
+  });
+
+  it('should work for kimi provider and preserve context length from the Anthropic-style catalog', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'kimi-for-coding',
+            display_name: 'Kimi For Coding',
+            type: 'model',
+            context_length: 262144,
+          },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('kimi', 'sk-kimi-test');
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual(
+      expect.objectContaining({
+        id: 'kimi-for-coding',
+        displayName: 'Kimi For Coding',
+        provider: 'kimi',
+        contextWindow: 262144,
+      }),
+    );
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.kimi.com/coding/v1/models',
+      expect.objectContaining({
+        headers: {
+          'x-api-key': 'sk-kimi-test',
+          'anthropic-version': '2023-06-01',
+        },
+      }),
+    );
+  });
+
+  it('should use the NanoGPT subscription-only models endpoint', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'moonshotai/kimi-k2.5', object: 'model', owned_by: 'moonshotai' }],
+      }),
+    });
+
+    const result = await service.fetch('nano-gpt', 'sk-nano-test');
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual(
+      expect.objectContaining({
+        id: 'moonshotai/kimi-k2.5',
+        provider: 'nano-gpt',
+      }),
+    );
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://nano-gpt.com/api/subscription/v1/models',
+      expect.objectContaining({
+        headers: {
+          Authorization: 'Bearer sk-nano-test',
+        },
+      }),
+    );
   });
 
   /* ── Bearer auth header ── */

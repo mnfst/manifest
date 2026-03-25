@@ -10,6 +10,8 @@ import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
 import { encrypt, decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
+import { inferProviderFromModel } from '../common/utils/provider-inference';
+import { qualifyDiscoveredModelId } from './model-discovery/model-fallback';
 import { TIERS } from './scorer/types';
 import { isManifestUsableProvider, isSupportedSubscriptionProvider } from './subscription-support';
 
@@ -204,13 +206,12 @@ export class RoutingService {
     const invalidated: { tier: string; modelName: string }[] = [];
     const tiersToSave: TierAssignment[] = [];
     for (const tier of overrides) {
-      const overrideProvider = tier.override_provider?.toLowerCase();
-      const pricingProvider = this.pricingCache
-        .getByModel(tier.override_model!)
-        ?.provider.toLowerCase();
+      const prefix = inferProviderFromModelName(tier.override_model!);
+      const pricing = this.pricingCache.getByModel(tier.override_model!);
       if (
-        (overrideProvider && providerNames.has(overrideProvider)) ||
-        (pricingProvider && providerNames.has(pricingProvider))
+        (tier.override_provider && providerNames.has(tier.override_provider.toLowerCase())) ||
+        (prefix && providerNames.has(prefix)) ||
+        (pricing && providerNames.has(pricing.provider.toLowerCase()))
       ) {
         invalidated.push({ tier: tier.tier, modelName: tier.override_model! });
         tier.override_model = null;
@@ -227,8 +228,12 @@ export class RoutingService {
     for (const tier of allTiers) {
       if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
       const filtered = tier.fallback_models.filter((model) => {
+        const prefix = inferProviderFromModelName(model);
         const pricing = this.pricingCache.getByModel(model);
-        return !pricing || !providerNames.has(pricing.provider.toLowerCase());
+        return (
+          (!prefix || !providerNames.has(prefix)) &&
+          (!pricing || !providerNames.has(pricing.provider.toLowerCase()))
+        );
       });
       if (filtered.length !== tier.fallback_models.length) {
         tier.fallback_models = filtered.length > 0 ? filtered : null;
@@ -547,11 +552,29 @@ export class RoutingService {
 
   async findProviderForModel(agentId: string, model: string): Promise<string | undefined> {
     const providers = await this.getProviders(agentId);
-    for (const p of providers) {
-      if (!p.cached_models) continue;
-      if (p.cached_models.some((m) => m.id === model)) return p.provider;
+    const matchingProviders = new Set<string>();
+
+    for (const provider of providers) {
+      const providerId = provider.provider.toLowerCase();
+      const cachedModels = provider.cached_models;
+      if (!Array.isArray(cachedModels)) continue;
+
+      for (const cachedModel of cachedModels) {
+        if (cachedModel.id === model || qualifyDiscoveredModelId(providerId, cachedModel.id) === model) {
+          matchingProviders.add(providerId);
+        }
+      }
     }
-    return undefined;
+
+    if (matchingProviders.size === 1) return [...matchingProviders][0];
+    if (matchingProviders.size > 1) {
+      const inferredProvider = inferProviderFromModel(model)?.toLowerCase();
+      if (inferredProvider && matchingProviders.has(inferredProvider)) return inferredProvider;
+      return [...matchingProviders].sort()[0];
+    }
+
+    const discovered = await this.discoveryService.getModelForAgent(agentId, model);
+    return discovered?.provider;
   }
 
   /* ── Runtime helper ── */

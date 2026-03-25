@@ -540,7 +540,7 @@ describe("ProviderSelectModal", () => {
           authType: "api_key",
         });
       });
-      expect(toast.success).toHaveBeenCalledWith("OpenAI key updated");
+      expect(toast.success).toHaveBeenCalledWith("OpenAI API key updated");
     });
 
     it("shows validation error for invalid key in edit mode", () => {
@@ -987,7 +987,7 @@ describe("ProviderSelectModal", () => {
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
       ));
       expect(
-        screen.getByText(/Use your existing subscription instead of an API key/),
+        screen.getByText(/Use your existing subscription instead of a pay-per-use API key/),
       ).toBeDefined();
     });
 
@@ -1079,6 +1079,14 @@ describe("ProviderSelectModal", () => {
       expect(screen.getByText("Paste your setup-token to enable routing")).toBeDefined();
     });
 
+    it("shows API key subtitle for subscription providers that do not use setup tokens", () => {
+      render(() => (
+        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      ));
+      fireEvent.click(screen.getByText("Z.ai"));
+      expect(screen.getByText("Add your API key to enable routing")).toBeDefined();
+    });
+
     it("shows CopyButton with subscription command in detail view", () => {
       render(() => (
         <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
@@ -1130,7 +1138,7 @@ describe("ProviderSelectModal", () => {
           authType: "subscription",
         });
       });
-      expect(toast.success).toHaveBeenCalledWith("Anthropic token updated");
+      expect(toast.success).toHaveBeenCalledWith("Anthropic setup token updated");
     });
 
     it("opens detail view for OAuth subscription provider (OpenAI)", () => {

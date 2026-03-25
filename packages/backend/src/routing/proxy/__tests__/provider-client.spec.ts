@@ -245,6 +245,41 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Kimi Code provider', () => {
+    it('routes to the Anthropic-compatible Kimi coding endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward(
+        'kimi',
+        'sk-kimi-test',
+        'kimi-for-coding',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.kimi.com/coding/v1/messages',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'x-api-key': 'sk-kimi-test',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          },
+        }),
+      );
+      expect(result.isAnthropic).toBe(true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('kimi-for-coding');
+      expect(sentBody.messages).toBeDefined();
+    });
+  });
+
   describe('Google provider', () => {
     it('uses query param auth and Gemini path', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
@@ -367,6 +402,36 @@ describe('ProviderClient', () => {
       expect(result.isChatGpt).toBe(false);
       const url = mockFetch.mock.calls[0][0] as string;
       expect(url).toContain('api.openai.com');
+    });
+  });
+
+  describe('Z.ai subscription provider', () => {
+    it('routes to coding plan endpoint with subscription authType', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward(
+        'zai',
+        'test-key',
+        'glm-5',
+        body,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        'subscription',
+      );
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.z.ai/api/coding/paas/v4/chat/completions');
+    });
+
+    it('routes to regular endpoint for api_key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward('zai', 'test-key', 'glm-5', body, false);
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.z.ai/api/paas/v4/chat/completions');
     });
   });
 
@@ -730,6 +795,48 @@ describe('ProviderClient', () => {
       expect(sentBody.stream_options).toBeUndefined();
       expect(sentBody.messages).toEqual(bodyWithOpenAiFields.messages);
       expect(sentBody.temperature).toBe(0.7);
+    });
+
+    it('does not inject stream_options for providers without explicit streaming usage opt-in', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('mistral', 'sk-mi', 'mistral-small', bodyWithOpenAiFields, true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.stream_options).toBeUndefined();
+    });
+
+    it('injects include_usage for DeepSeek streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('deepseek', 'sk-ds', 'deepseek-chat', bodyWithOpenAiFields, true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects include_usage for Ollama Cloud streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward(
+        'ollama-cloud',
+        'sk-oc',
+        'ollama-cloud/glm-4.7',
+        bodyWithOpenAiFields,
+        true,
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects include_usage for local Ollama streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('ollama', 'ollama-local', 'ollama/llama3.2', bodyWithOpenAiFields, true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
     });
 
     it('converts max_completion_tokens to max_tokens for non-OpenAI providers', async () => {

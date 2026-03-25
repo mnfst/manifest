@@ -24,6 +24,8 @@ export interface ProviderDef {
   deviceLogin?: boolean;
   /** UI auth mode for subscription flows. */
   subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
+  /** When true, provider only appears in the Subscriptions tab (not API Keys). */
+  subscriptionOnly?: boolean;
   /** Deprecated compatibility flag for popup OAuth providers. */
   subscriptionOAuth?: boolean;
   /** Provider is subscription-only and should not appear in the API Keys tab. */
@@ -110,6 +112,22 @@ export const PROVIDERS: ProviderDef[] = [
     models: [],
   },
   {
+    id: 'kimi',
+    name: 'Kimi Code',
+    color: '#111827',
+    initial: 'Ki',
+    subtitle: 'Kimi For Coding',
+    keyPrefix: 'sk-kimi-',
+    minKeyLength: 30,
+    keyPlaceholder: 'sk-kimi-...',
+    supportsSubscription: true,
+    subscriptionOnly: true,
+    subscriptionLabel: 'Kimi Code subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    models: [],
+  },
+  {
     id: 'minimax',
     name: 'MiniMax',
     color: '#E73562',
@@ -146,6 +164,22 @@ export const PROVIDERS: ProviderDef[] = [
     models: [],
   },
   {
+    id: 'nano-gpt',
+    name: 'NanoGPT',
+    color: '#6c5ce7',
+    initial: 'Ng',
+    subtitle: 'Claude, GPT, Gemini, and 800+ models',
+    keyPrefix: 'sk-nano-',
+    minKeyLength: 30,
+    keyPlaceholder: 'sk-nano-...',
+    supportsSubscription: true,
+    subscriptionOnly: true,
+    subscriptionLabel: 'NanoGPT subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    models: [],
+  },
+  {
     id: 'ollama',
     name: 'Ollama',
     color: '#1a1a1a',
@@ -157,6 +191,22 @@ export const PROVIDERS: ProviderDef[] = [
     noKeyRequired: true,
     models: [],
     localOnly: true,
+  },
+  {
+    id: 'ollama-cloud',
+    name: 'Ollama Cloud',
+    color: '#1a1a1a',
+    initial: 'Ol',
+    subtitle: 'Qwen, DeepSeek, Gemma, GLM, and more',
+    keyPrefix: '',
+    minKeyLength: 30,
+    keyPlaceholder: 'API key',
+    supportsSubscription: true,
+    subscriptionOnly: true,
+    subscriptionLabel: 'Ollama Cloud Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    models: [],
   },
   {
     id: 'openai',
@@ -189,6 +239,33 @@ export const PROVIDERS: ProviderDef[] = [
     ],
   },
   {
+    id: 'opencode',
+    name: 'OpenCode',
+    color: '#1a1a1a',
+    initial: 'Oc',
+    subtitle: 'Claude, GPT, Gemini, and more',
+    keyPrefix: 'sk-',
+    minKeyLength: 50,
+    keyPlaceholder: 'sk-...',
+    models: [],
+  },
+  {
+    id: 'opencode-go',
+    name: 'OpenCode Go',
+    color: '#2d8c3c',
+    initial: 'Go',
+    subtitle: 'GLM 5, Kimi K2.5, MiniMax',
+    keyPrefix: 'sk-',
+    minKeyLength: 50,
+    keyPlaceholder: 'sk-...',
+    supportsSubscription: true,
+    subscriptionOnly: true,
+    subscriptionLabel: 'OpenCode Go Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    models: [],
+  },
+  {
     id: 'openrouter',
     name: 'OpenRouter',
     color: '#6366f1',
@@ -219,6 +296,10 @@ export const PROVIDERS: ProviderDef[] = [
     keyPrefix: '',
     minKeyLength: 30,
     keyPlaceholder: 'API key',
+    supportsSubscription: true,
+    subscriptionLabel: 'Z.ai Coding Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
     models: [],
   },
 ];

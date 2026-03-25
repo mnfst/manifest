@@ -8,7 +8,7 @@ import { ProxyService } from './proxy.service';
 import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
-import { initSseHeaders, pipeStream, StreamUsage } from './stream-writer';
+import { initSseHeaders, normalizeUsage, pipeStream, StreamUsage } from './stream-writer';
 import { sanitizeProviderError } from './proxy-error-sanitizer';
 
 const MAX_SEEN_USERS = 10_000;
@@ -232,15 +232,7 @@ export class ProxyController {
 
         // Extract usage from the OpenAI-format response body
         const body = responseBody as Record<string, unknown> | undefined;
-        const usage = body?.usage as Record<string, number> | undefined;
-        if (usage && typeof usage.prompt_tokens === 'number') {
-          streamUsage = {
-            prompt_tokens: usage.prompt_tokens,
-            completion_tokens: usage.completion_tokens ?? 0,
-            cache_read_tokens: usage.cache_read_tokens,
-            cache_creation_tokens: usage.cache_creation_tokens,
-          };
-        }
+        streamUsage = normalizeUsage(body?.usage as Record<string, unknown> | undefined);
 
         res.status(200);
         for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);

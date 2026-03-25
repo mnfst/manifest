@@ -16,7 +16,6 @@ const PROVIDER_ALIASES: Record<string, string> = {
   alibaba: 'qwen',
   copilot: 'copilot',
   moonshot: 'moonshot',
-  kimi: 'moonshot',
   meta: 'meta',
   cohere: 'cohere',
   ollama: 'ollama',
@@ -37,6 +36,13 @@ export function resolveProviderId(dbProvider: string): string | undefined {
  * Ollama models use the `name:tag` convention (e.g. `qwen2.5:0.5b`).
  * Cloud models have recognizable prefixes.
  */
+const INTERNAL_PROVIDER_PREFIX_MAP: [RegExp, string][] = [
+  [/^nano-gpt\//, 'nano-gpt'],
+  [/^opencode-go\//, 'opencode-go'],
+  [/^ollama-cloud\//, 'ollama-cloud'],
+  [/^zai\//, 'zai'],
+];
+
 const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^openrouter\//, 'openrouter'],
   [/^claude-/, 'anthropic'],
@@ -45,6 +51,7 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^deepseek-/, 'deepseek'],
   [/^grok-/, 'xai'],
   [/^mistral-|^codestral|^pixtral|^open-mistral/, 'mistral'],
+  [/^kimi-for-coding$/, 'kimi'],
   [/^kimi-|^moonshot-/, 'moonshot'],
   [/^minimax-/i, 'minimax'],
   [/^glm-/, 'zai'],
@@ -56,10 +63,13 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
 export function inferProviderFromModel(model: string): string | undefined {
   // Custom provider models use the custom:<uuid>/model format
   if (model.startsWith('custom:')) return 'custom';
+  const lower = model.toLowerCase();
+  for (const [re, id] of INTERNAL_PROVIDER_PREFIX_MAP) {
+    if (re.test(lower)) return id;
+  }
   // Ollama convention: models contain a colon tag like `:0.5b`, `:latest`
   // Exception: OpenRouter `:free` suffix is not Ollama
   if (/:/.test(model) && !model.endsWith(':free')) return 'ollama';
-  const lower = model.toLowerCase();
   for (const [re, id] of MODEL_PREFIX_MAP) {
     if (re.test(lower)) return id;
   }

@@ -4,7 +4,12 @@ import { ProviderModelRegistryService } from './provider-model-registry.service'
 import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { DiscoveredModel } from './model-fetcher';
-import { buildSubscriptionFallbackModels, supplementWithKnownModels } from './model-fallback';
+import {
+  buildSubscriptionFallbackModels,
+  filterSubscriptionCatalogModels,
+  qualifyDiscoveredModelId,
+  supplementWithKnownModels,
+} from './model-fallback';
 
 jest.mock('../../common/utils/crypto.util', () => ({
   decrypt: jest.fn(),
@@ -141,6 +146,25 @@ describe('ModelDiscoveryService', () => {
       expect(provider.cached_models).toEqual(result);
       expect(provider.models_fetched_at).toBeDefined();
       expect(providerRepo.save).toHaveBeenCalledWith(provider);
+    });
+
+    it('should restrict OpenCode Go discovery to the curated Go catalog', async () => {
+      fetcher.fetch.mockResolvedValue([
+        makeModel({ id: 'claude-sonnet-4-6', provider: 'opencode-go' }),
+        makeModel({ id: 'gpt-5.4', provider: 'opencode-go' }),
+        makeModel({ id: 'glm-5', provider: 'opencode-go' }),
+        makeModel({ id: 'kimi-k2.5', provider: 'opencode-go' }),
+        makeModel({ id: 'minimax-m2.7', provider: 'opencode-go' }),
+      ]);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'opencode-go',
+          auth_type: 'subscription',
+        }),
+      );
+
+      expect(result.map((m) => m.id)).toEqual(['glm-5', 'kimi-k2.5', 'minimax-m2.5']);
     });
 
     it('should return [] when decrypt fails', async () => {
@@ -410,24 +434,105 @@ describe('ModelDiscoveryService', () => {
       expect(result[1].displayName).toBe('custom-llm');
     });
 
-    it('should deduplicate models by id', async () => {
+    it('should preserve overlapping variants by qualifying non-canonical provider ids', async () => {
       const providers = [
         makeProvider({
           id: 'p1',
-          provider: 'openai',
-          cached_models: [makeModel({ id: 'gpt-4' })],
+          provider: 'zai',
+          auth_type: 'subscription',
+          cached_models: [makeModel({ id: 'glm-5', provider: 'zai', authType: 'subscription' })],
         }),
         makeProvider({
           id: 'p2',
-          provider: 'deepseek',
-          cached_models: [makeModel({ id: 'gpt-4' })],
+          provider: 'opencode-go',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'glm-5',
+              provider: 'opencode-go',
+              authType: 'subscription',
+            }),
+          ],
         }),
       ];
       providerRepo.find.mockResolvedValue(providers);
       customProviderRepo.find.mockResolvedValue([]);
 
       const result = await service.getModelsForAgent('agent-1');
+
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.id)).toEqual(['zai/glm-5', 'opencode-go/glm-5']);
+    });
+
+    it('should choose a stable canonical provider when inference is unavailable', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          id: 'p1',
+          provider: 'zeta',
+          cached_models: [makeModel({ id: 'shared-model', provider: 'zeta' })],
+        }),
+        makeProvider({
+          id: 'p2',
+          provider: 'alpha',
+          cached_models: [makeModel({ id: 'shared-model', provider: 'alpha' })],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+      const canonical = result.find((m) => m.id === 'shared-model');
+
+      expect(canonical).toBeDefined();
+      expect(canonical!.provider).toBe('alpha');
+      expect(result.map((m) => m.id)).toContain('zeta/shared-model');
+    });
+
+    it('should qualify OpenCode Go model ids even without duplicate collisions', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          id: 'p1',
+          provider: 'opencode-go',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'kimi-k2.5',
+              provider: 'opencode-go',
+              authType: 'subscription',
+            }),
+          ],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
       expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('opencode-go/kimi-k2.5');
+      expect(result[0].provider).toBe('opencode-go');
+    });
+
+    it('should qualify Ollama Cloud model ids even without duplicate collisions', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          id: 'p1',
+          provider: 'ollama-cloud',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'minimax-m2.7',
+              provider: 'ollama-cloud',
+              authType: 'subscription',
+            }),
+          ],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('ollama-cloud/minimax-m2.7');
+      expect(result[0].provider).toBe('ollama-cloud');
     });
 
     it('should skip providers with no cached_models', async () => {
@@ -531,6 +636,36 @@ describe('ModelDiscoveryService', () => {
       const result = await service.getModelForAgent('agent-1', 'gpt-4');
       expect(result).toBeDefined();
       expect(result!.id).toBe('gpt-4');
+    });
+
+    it('should return a provider-qualified duplicate model', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          id: 'p1',
+          provider: 'zai',
+          auth_type: 'subscription',
+          cached_models: [makeModel({ id: 'glm-5', provider: 'zai', authType: 'subscription' })],
+        }),
+        makeProvider({
+          id: 'p2',
+          provider: 'opencode-go',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'glm-5',
+              provider: 'opencode-go',
+              authType: 'subscription',
+            }),
+          ],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelForAgent('agent-1', 'opencode-go/glm-5');
+
+      expect(result).toBeDefined();
+      expect(result!.provider).toBe('opencode-go');
+      expect(result!.id).toBe('opencode-go/glm-5');
     });
 
     it('should return undefined for missing model', async () => {
@@ -930,7 +1065,7 @@ describe('ModelDiscoveryService', () => {
         }),
       );
 
-      // Should fall back to buildFallbackModels (not subscription fallback, since token exists)
+      // Should fall back to subscription fallback when fetcher returns empty
       expect(fetcher.fetch).toHaveBeenCalled();
       expect(result.length).toBeGreaterThanOrEqual(0);
     });
@@ -1507,6 +1642,53 @@ describe('ModelDiscoveryService', () => {
       expect(result.map((m) => m.id)).toContain('MiniMax-M2.1');
       expect(result.map((m) => m.id)).toContain('MiniMax-M2');
       expect(result.map((m) => m.id)).not.toContain('MiniMax-M2.5');
+    });
+  });
+
+  describe('filterSubscriptionCatalogModels', () => {
+    it('should keep only documented OpenCode Go models from a broader Zen catalog', () => {
+      const result = filterSubscriptionCatalogModels(
+        [
+          makeModel({ id: 'claude-sonnet-4-6', provider: 'opencode-go' }),
+          makeModel({ id: 'gpt-5.4', provider: 'opencode-go' }),
+          makeModel({ id: 'glm-5', provider: 'opencode-go' }),
+          makeModel({ id: 'kimi-k2.5', provider: 'opencode-go' }),
+          makeModel({ id: 'minimax-m2.7', provider: 'opencode-go' }),
+          makeModel({ id: 'minimax-m2.5', provider: 'opencode-go' }),
+        ],
+        'opencode-go',
+      );
+
+      expect(result.map((m) => m.id)).toEqual(['glm-5', 'kimi-k2.5', 'minimax-m2.5']);
+    });
+  });
+
+  describe('qualifyDiscoveredModelId', () => {
+    it('should emit documented provider-qualified ids for OpenCode Go models', () => {
+      expect(qualifyDiscoveredModelId('opencode-go', 'kimi-k2.5')).toBe('opencode-go/kimi-k2.5');
+      expect(qualifyDiscoveredModelId('opencode-go', 'opencode-go/kimi-k2.5')).toBe(
+        'opencode-go/kimi-k2.5',
+      );
+    });
+
+    it('should emit provider-qualified ids for Ollama Cloud models', () => {
+      expect(qualifyDiscoveredModelId('ollama-cloud', 'minimax-m2.7')).toBe(
+        'ollama-cloud/minimax-m2.7',
+      );
+    });
+
+    it('should emit provider-qualified ids for Z.ai models', () => {
+      expect(qualifyDiscoveredModelId('zai', 'glm-5')).toBe('zai/glm-5');
+    });
+
+    it('should emit provider-qualified ids for NanoGPT models', () => {
+      expect(qualifyDiscoveredModelId('nano-gpt', 'moonshotai/kimi-k2.5')).toBe(
+        'nano-gpt/moonshotai/kimi-k2.5',
+      );
+    });
+
+    it('should leave normal provider ids untouched', () => {
+      expect(qualifyDiscoveredModelId('openai', 'gpt-5.4')).toBe('gpt-5.4');
     });
   });
 });

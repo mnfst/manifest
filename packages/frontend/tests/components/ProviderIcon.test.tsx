@@ -11,10 +11,14 @@ const KNOWN_PROVIDERS = [
   "mistral",
   "xai",
   "qwen",
+  "kimi",
   "moonshot",
   "openrouter",
   "ollama",
   "minimax",
+  "ollama-cloud",
+  "opencode",
+  "opencode-go",
   "zai",
 ];
 

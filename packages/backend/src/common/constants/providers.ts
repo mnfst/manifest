@@ -80,7 +80,7 @@ export const PROVIDER_REGISTRY: readonly ProviderRegistryEntry[] = [
   {
     id: 'moonshot',
     displayName: 'Moonshot',
-    aliases: ['kimi'],
+    aliases: [],
     openRouterPrefixes: ['moonshotai'],
     requiresApiKey: true,
     localOnly: false,
@@ -126,10 +126,50 @@ export const PROVIDER_REGISTRY: readonly ProviderRegistryEntry[] = [
     localOnly: false,
   },
   {
+    id: 'kimi',
+    displayName: 'Kimi Code',
+    aliases: [],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+  },
+  {
+    id: 'opencode',
+    displayName: 'OpenCode',
+    aliases: [],
+    openRouterPrefixes: ['opencode'],
+    requiresApiKey: true,
+    localOnly: false,
+  },
+  {
+    id: 'opencode-go',
+    displayName: 'OpenCode Go',
+    aliases: [],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+  },
+  {
     id: 'openrouter',
     displayName: 'OpenRouter',
     aliases: [],
     openRouterPrefixes: ['openrouter'],
+    requiresApiKey: true,
+    localOnly: false,
+  },
+  {
+    id: 'ollama-cloud',
+    displayName: 'Ollama Cloud',
+    aliases: [],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+  },
+  {
+    id: 'nano-gpt',
+    displayName: 'NanoGPT',
+    aliases: ['nanogpt'],
+    openRouterPrefixes: [],
     requiresApiKey: true,
     localOnly: false,
   },
@@ -156,6 +196,11 @@ export const PROVIDER_BY_ID_OR_ALIAS: ReadonlyMap<string, ProviderRegistryEntry>
     [p.id, p],
     ...p.aliases.map((a): [string, ProviderRegistryEntry] => [a, p]),
   ]),
+);
+
+/** Map from lowercased display name → provider ID (for reverse lookups). */
+export const PROVIDER_DISPLAY_NAME_TO_ID: ReadonlyMap<string, string> = new Map(
+  PROVIDER_REGISTRY.map((p) => [p.displayName.toLowerCase(), p.id]),
 );
 
 /** Map from OpenRouter vendor prefix → provider display name. */

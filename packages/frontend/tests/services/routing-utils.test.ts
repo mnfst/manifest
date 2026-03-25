@@ -60,6 +60,7 @@ describe("resolveProviderId", () => {
   it("resolves by display name (case-insensitive)", () => {
     expect(resolveProviderId("Mistral")).toBe("mistral");
     expect(resolveProviderId("xAI")).toBe("xai");
+    expect(resolveProviderId("Kimi Code")).toBe("kimi");
     expect(resolveProviderId("Moonshot")).toBe("moonshot");
     expect(resolveProviderId("MiniMax")).toBe("minimax");
   });
@@ -131,7 +132,11 @@ describe("inferProviderFromModel", () => {
     expect(inferProviderFromModel("open-mistral-nemo")).toBe("mistral");
   });
 
-  it("detects Moonshot/Kimi models", () => {
+  it("detects the Kimi Code model", () => {
+    expect(inferProviderFromModel("kimi-for-coding")).toBe("kimi");
+  });
+
+  it("detects Moonshot models", () => {
     expect(inferProviderFromModel("kimi-k2")).toBe("moonshot");
     expect(inferProviderFromModel("moonshot-v1-128k")).toBe("moonshot");
   });
@@ -160,6 +165,13 @@ describe("inferProviderFromModel", () => {
     expect(inferProviderFromModel("copilot/claude-sonnet-4.6")).toBe("copilot");
     expect(inferProviderFromModel("copilot/gpt-4o")).toBe("copilot");
     expect(inferProviderFromModel("copilot/gemini-3.1-pro-preview")).toBe("copilot");
+  });
+
+  it("detects internal provider-qualified duplicate models", () => {
+    expect(inferProviderFromModel("nano-gpt/moonshotai/kimi-k2.5")).toBe("nano-gpt");
+    expect(inferProviderFromModel("opencode-go/glm-5")).toBe("opencode-go");
+    expect(inferProviderFromModel("ollama-cloud/glm-5")).toBe("ollama-cloud");
+    expect(inferProviderFromModel("zai/glm-5")).toBe("zai");
   });
 
   it("detects vendor-prefixed models as openrouter (catch-all)", () => {
@@ -196,6 +208,11 @@ describe("inferProviderName", () => {
 
   it("returns Z.ai for GLM models", () => {
     expect(inferProviderName("glm-5")).toBe("Z.ai");
+    expect(inferProviderName("zai/glm-5")).toBe("Z.ai");
+  });
+
+  it("returns NanoGPT for qualified NanoGPT models", () => {
+    expect(inferProviderName("nano-gpt/moonshotai/kimi-k2.5")).toBe("NanoGPT");
   });
 
   it("returns undefined for unrecognized models", () => {

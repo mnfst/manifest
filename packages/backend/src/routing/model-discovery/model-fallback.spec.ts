@@ -242,6 +242,18 @@ describe('buildSubscriptionFallbackModels', () => {
 
     expect(result.length).toBeGreaterThanOrEqual(1);
   });
+
+  it('should still expose known models for providers without OpenRouter pricing coverage', () => {
+    const result = buildSubscriptionFallbackModels(null, 'kimi');
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 'kimi-for-coding',
+        provider: 'kimi',
+        contextWindow: 262144,
+      }),
+    ]);
+  });
 });
 
 describe('supplementWithKnownModels', () => {

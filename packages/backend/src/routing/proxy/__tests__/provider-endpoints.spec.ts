@@ -44,6 +44,11 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
     expect(resolveEndpointKey('zai')).toBe('zai');
+    expect(resolveEndpointKey('kimi')).toBe('kimi');
+    expect(resolveEndpointKey('opencode')).toBe('opencode');
+    expect(resolveEndpointKey('opencode-go')).toBe('opencode-go');
+    expect(resolveEndpointKey('ollama-cloud')).toBe('ollama-cloud');
+    expect(resolveEndpointKey('nano-gpt')).toBe('nano-gpt');
   });
 
   it('is case-insensitive', () => {
@@ -74,6 +79,7 @@ describe('resolveEndpointKey', () => {
     const known = Object.keys(PROVIDER_ENDPOINTS);
     expect(known).toContain('openai');
     expect(known).toContain('anthropic');
+    expect(known).toContain('kimi');
     expect(known).toContain('google');
     expect(known).toContain('copilot');
     expect(known).toContain('openrouter');
@@ -96,8 +102,30 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(PROVIDER_ENDPOINTS['ollama'].format).toBe('openai');
   });
 
+  it('opencode uses openai format and standard path', () => {
+    expect(PROVIDER_ENDPOINTS['opencode'].format).toBe('openai');
+    expect(PROVIDER_ENDPOINTS['opencode'].buildPath('test')).toBe('/v1/chat/completions');
+  });
+
+  it('opencode-go uses openai format and standard path', () => {
+    expect(PROVIDER_ENDPOINTS['opencode-go'].format).toBe('openai');
+    expect(PROVIDER_ENDPOINTS['opencode-go'].buildPath('test')).toBe('/v1/chat/completions');
+  });
+
   it('zai uses openai format', () => {
     expect(PROVIDER_ENDPOINTS['zai'].format).toBe('openai');
+  });
+
+  it('ollama-cloud uses openai format with ollama.com base', () => {
+    expect(PROVIDER_ENDPOINTS['ollama-cloud'].format).toBe('openai');
+    expect(PROVIDER_ENDPOINTS['ollama-cloud'].baseUrl).toBe('https://ollama.com');
+    expect(PROVIDER_ENDPOINTS['ollama-cloud'].buildPath('test')).toBe('/v1/chat/completions');
+  });
+
+  it('zai-subscription uses coding plan endpoint', () => {
+    const path = PROVIDER_ENDPOINTS['zai-subscription'].buildPath('glm-5');
+    expect(path).toBe('/api/coding/paas/v4/chat/completions');
+    expect(PROVIDER_ENDPOINTS['zai-subscription'].format).toBe('openai');
   });
 
   it('anthropic uses x-api-key for api_key auth', () => {
@@ -135,6 +163,18 @@ describe('PROVIDER_ENDPOINTS', () => {
   it('anthropic buildPath returns /v1/messages', () => {
     const path = PROVIDER_ENDPOINTS['anthropic'].buildPath('claude-sonnet-4');
     expect(path).toBe('/v1/messages');
+  });
+
+  it('kimi uses Anthropic format with the coding base URL', () => {
+    const ep = PROVIDER_ENDPOINTS['kimi'];
+    expect(ep.baseUrl).toBe('https://api.kimi.com/coding');
+    expect(ep.format).toBe('anthropic');
+    expect(ep.buildPath('kimi-for-coding')).toBe('/v1/messages');
+    expect(ep.buildHeaders('sk-kimi-test')).toEqual({
+      'x-api-key': 'sk-kimi-test',
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
+    });
   });
 
   it('google buildHeaders returns Content-Type only', () => {
@@ -177,6 +217,17 @@ describe('PROVIDER_ENDPOINTS', () => {
   it('minimax-subscription buildPath returns /v1/messages', () => {
     const path = PROVIDER_ENDPOINTS['minimax-subscription'].buildPath('abab7-chat-preview');
     expect(path).toBe('/v1/messages');
+  });
+
+  it('nano-gpt uses openai format with nano-gpt.com base', () => {
+    const ep = PROVIDER_ENDPOINTS['nano-gpt'];
+    expect(ep.format).toBe('openai');
+    expect(ep.baseUrl).toBe('https://nano-gpt.com');
+    expect(ep.buildPath('test')).toBe('/api/v1/chat/completions');
+    expect(ep.buildHeaders('sk-nano-test')).toEqual({
+      Authorization: 'Bearer sk-nano-test',
+      'Content-Type': 'application/json',
+    });
   });
 
   it('minimax-subscription uses Bearer auth with anthropic-version header', () => {

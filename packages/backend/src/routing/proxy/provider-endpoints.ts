@@ -36,6 +36,12 @@ const anthropicBearerHeaders = (apiKey: string): Record<string, string> => ({
   'anthropic-version': '2023-06-01',
 });
 
+const kimiHeaders = (apiKey: string): Record<string, string> => ({
+  'x-api-key': apiKey,
+  'Content-Type': 'application/json',
+  'anthropic-version': '2023-06-01',
+});
+
 /**
  * ChatGPT subscription OAuth tokens use the Codex backend,
  * which requires specific headers to avoid 403 responses.
@@ -106,10 +112,28 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
   },
+  opencode: {
+    baseUrl: 'https://opencode.ai/zen',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
+  'opencode-go': {
+    baseUrl: 'https://opencode.ai/zen/go',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
   zai: {
     baseUrl: 'https://api.z.ai',
     buildHeaders: openaiHeaders,
     buildPath: () => '/api/paas/v4/chat/completions',
+    format: 'openai',
+  },
+  'zai-subscription': {
+    baseUrl: 'https://api.z.ai',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/api/coding/paas/v4/chat/completions',
     format: 'openai',
   },
   google: {
@@ -130,10 +154,28 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: () => '/chat/completions',
     format: 'openai',
   },
+  kimi: {
+    baseUrl: 'https://api.kimi.com/coding',
+    buildHeaders: kimiHeaders,
+    buildPath: () => '/v1/messages',
+    format: 'anthropic',
+  },
   openrouter: {
     baseUrl: 'https://openrouter.ai',
     buildHeaders: openaiHeaders,
     buildPath: () => '/api/v1/chat/completions',
+    format: 'openai',
+  },
+  'nano-gpt': {
+    baseUrl: 'https://nano-gpt.com',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/api/v1/chat/completions',
+    format: 'openai',
+  },
+  'ollama-cloud': {
+    baseUrl: 'https://ollama.com',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
     format: 'openai',
   },
   ollama: {

@@ -2103,33 +2103,61 @@ describe('RoutingService', () => {
   });
 
   describe('findProviderForModel', () => {
-    it('should return the provider that has the model in cached_models', async () => {
+    it('should return the provider from cached models without discovery lookup', async () => {
       mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, cached_models: [{ id: 'claude-opus-4-6' }] },
-        { provider: 'gemini', is_active: true, cached_models: [{ id: 'gemini-2.5-flash' }] },
+        {
+          provider: 'anthropic',
+          is_active: true,
+          cached_models: [{ id: 'claude-opus-4-6' }],
+        },
       ]);
 
       const result = await service.findProviderForModel('a1', 'claude-opus-4-6');
       expect(result).toBe('anthropic');
+      expect(mockDiscoveryService.getModelForAgent).not.toHaveBeenCalled();
     });
 
-    it('should return undefined when no provider has the model', async () => {
-      mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, cached_models: [{ id: 'claude-opus-4-6' }] },
-      ]);
+    it('should fall back to discovery when cached providers do not include the model', async () => {
+      mockProviderRepo.find.mockResolvedValue([{ provider: 'anthropic', is_active: true }]);
+      mockDiscoveryService.getModelForAgent.mockResolvedValue(undefined);
 
       const result = await service.findProviderForModel('a1', 'unknown-model');
       expect(result).toBeUndefined();
+      expect(mockDiscoveryService.getModelForAgent).toHaveBeenCalledWith('a1', 'unknown-model');
     });
 
-    it('should skip providers with null cached_models', async () => {
+    it('should resolve provider-qualified duplicate models from cached models', async () => {
       mockProviderRepo.find.mockResolvedValue([
-        { provider: 'anthropic', is_active: true, cached_models: null },
-        { provider: 'gemini', is_active: true, cached_models: [{ id: 'gemini-2.5-flash' }] },
+        {
+          provider: 'opencode-go',
+          auth_type: 'subscription',
+          is_active: true,
+          cached_models: [{ id: 'glm-5' }],
+        },
       ]);
 
-      const result = await service.findProviderForModel('a1', 'gemini-2.5-flash');
-      expect(result).toBe('gemini');
+      const result = await service.findProviderForModel('a1', 'opencode-go/glm-5');
+      expect(result).toBe('opencode-go');
+      expect(mockDiscoveryService.getModelForAgent).not.toHaveBeenCalled();
+    });
+
+    it('should choose a deterministic provider for ambiguous cached duplicates', async () => {
+      mockProviderRepo.find.mockResolvedValue([
+        {
+          provider: 'zeta',
+          is_active: true,
+          cached_models: [{ id: 'shared-model' }],
+        },
+        {
+          provider: 'alpha',
+          is_active: true,
+          cached_models: [{ id: 'shared-model' }],
+        },
+      ]);
+
+      const result = await service.findProviderForModel('a1', 'shared-model');
+      expect(result).toBe('alpha');
+      expect(mockDiscoveryService.getModelForAgent).not.toHaveBeenCalled();
     });
   });
 });

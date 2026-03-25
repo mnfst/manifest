@@ -70,6 +70,21 @@ const ModelPickerModal: Component<Props> = (props) => {
     return map;
   };
 
+  const isKnownProviderId = (providerId: string | undefined): providerId is string =>
+    !!providerId && PROVIDERS.some((p) => p.id === providerId);
+
+  const getProviderIdsForModel = (model: AvailableModel) => {
+    const dbProvId = resolveProviderId(model.provider);
+    const prefixProvId = inferProviderFromModel(model.model_name);
+    const inferredProvId = isKnownProviderId(prefixProvId) ? prefixProvId : undefined;
+
+    return {
+      actualProvId: dbProvId ?? inferredProvId,
+      displayProvId:
+        dbProvId === 'openrouter' ? (inferredProvId ?? dbProvId) : (dbProvId ?? inferredProvId),
+    };
+  };
+
   /** Provider IDs that have an active connection of the given auth type. */
   const providerIdsForTab = (authType: AuthType): Set<string> => {
     const ids = new Set<string>();
@@ -98,26 +113,19 @@ const ModelPickerModal: Component<Props> = (props) => {
 
     for (const m of props.models) {
       if (freeOnly && !isFreeModel(m)) continue;
-      const dbProvId = resolveProviderId(m.provider);
-      const prefixProvId = inferProviderFromModel(m.model_name);
-      // Prefer prefix-inferred provider (e.g. "anthropic" from "anthropic/claude-sonnet-4")
-      // over the DB provider (e.g. "openrouter" when all models come from OpenRouter)
-      const provId =
-        prefixProvId && PROVIDERS.find((p) => p.id === prefixProvId)
-          ? prefixProvId
-          : (dbProvId ?? prefixProvId);
-      if (!provId) continue;
-      if (allowedProviders && !allowedProviders.has(provId)) continue;
-      if (!groupMap.has(provId)) {
-        const isCustom = provId.startsWith('custom:');
-        const provDef = PROVIDERS.find((p) => p.id === provId);
+      const { actualProvId, displayProvId } = getProviderIdsForModel(m);
+      if (!actualProvId || !displayProvId) continue;
+      if (allowedProviders && !allowedProviders.has(actualProvId)) continue;
+      if (!groupMap.has(displayProvId)) {
+        const isCustom = displayProvId.startsWith('custom:');
+        const provDef = PROVIDERS.find((p) => p.id === displayProvId);
         const name = isCustom
-          ? (m.provider_display_name ?? cpNames.get(provId) ?? m.provider)
+          ? (m.provider_display_name ?? cpNames.get(displayProvId) ?? m.provider)
           : (provDef?.name ?? m.provider);
-        groupMap.set(provId, { provId, name, models: [] });
+        groupMap.set(displayProvId, { provId: displayProvId, name, models: [] });
       }
       const label = m.display_name || labelForModel(m.model_name, labels);
-      groupMap.get(provId)!.models.push({ value: m.model_name, label, pricing: m });
+      groupMap.get(displayProvId)!.models.push({ value: m.model_name, label, pricing: m });
     }
 
     const groups: { provId: string; name: string; models: ModalModel[] }[] = [];

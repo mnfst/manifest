@@ -73,6 +73,87 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
       supportsBatching: false,
     }),
   }),
+  kimi: Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'Kimi Code subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    subscriptionTokenPrefix: 'sk-kimi-',
+    knownModels: Object.freeze(['kimi-for-coding']),
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 262144,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
+  'ollama-cloud': Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'Ollama Cloud Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    knownModels: Object.freeze([
+      'qwen3-coder:480b',
+      'qwen3.5:397b',
+      'deepseek-v3.2',
+      'glm-5',
+      'kimi-k2.5',
+      'minimax-m2.7',
+    ]),
+    alwaysQualifyModelIds: true,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
+  'opencode-go': Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'OpenCode Go Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    knownModels: Object.freeze(['glm-5', 'kimi-k2.5', 'minimax-m2.5']),
+    knownModelMatchMode: 'exact',
+    catalogMode: 'known_only',
+    alwaysQualifyModelIds: true,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
+  zai: Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'Z.ai Coding Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    knownModels: Object.freeze([
+      'glm-5',
+      'glm-5-turbo',
+      'glm-4.7',
+      'glm-4.6',
+      'glm-4.5',
+      'glm-4.5-air',
+    ]),
+    alwaysQualifyModelIds: true,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
+  'nano-gpt': Object.freeze({
+    supportsSubscription: true,
+    subscriptionLabel: 'NanoGPT subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your API key',
+    subscriptionTokenPrefix: 'sk-nano-',
+    alwaysQualifyModelIds: true,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
 });
 
 const SUPPORTED_SUBSCRIPTION_PROVIDER_IDS = Object.freeze(
@@ -96,6 +177,21 @@ function getSubscriptionKnownModels(providerId) {
   return config?.knownModels ?? null;
 }
 
+function getSubscriptionKnownModelMatchMode(providerId) {
+  const config = getSubscriptionProviderConfig(providerId);
+  return config?.knownModelMatchMode ?? 'prefix';
+}
+
+function getSubscriptionCatalogMode(providerId) {
+  const config = getSubscriptionProviderConfig(providerId);
+  return config?.catalogMode ?? 'full';
+}
+
+function shouldQualifySubscriptionModelIds(providerId) {
+  const config = getSubscriptionProviderConfig(providerId);
+  return config?.alwaysQualifyModelIds === true;
+}
+
 function getSubscriptionCapabilities(providerId) {
   const config = getSubscriptionProviderConfig(providerId);
   return config?.subscriptionCapabilities ?? null;
@@ -107,5 +203,8 @@ module.exports = {
   getSubscriptionProviderConfig,
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
+  getSubscriptionKnownModelMatchMode,
+  getSubscriptionCatalogMode,
+  shouldQualifySubscriptionModelIds,
   getSubscriptionCapabilities,
 };

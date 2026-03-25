@@ -35,6 +35,7 @@ const OPENAI_ONLY_FIELDS = new Set([
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
 const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
+const STREAM_USAGE_PROVIDERS = new Set(['deepseek', 'nano-gpt', 'ollama', 'ollama-cloud']);
 const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
 function supportsReasoningContent(endpointKey: string, model: string): boolean {
@@ -235,6 +236,8 @@ export class ProviderClient {
         resolved = 'openai-subscription';
       } else if (resolved === 'minimax' && authType === 'subscription') {
         resolved = 'minimax-subscription';
+      } else if (resolved === 'zai' && authType === 'subscription') {
+        resolved = 'zai-subscription';
       }
       endpointKey = resolved;
       endpoint = PROVIDER_ENDPOINTS[endpointKey];
@@ -270,6 +273,12 @@ export class ProviderClient {
       headers = endpoint.buildHeaders(apiKey, authType);
       const sanitized = sanitizeOpenAiBody(body, endpointKey, model);
       requestBody = { ...sanitized, model: bareModel, stream };
+
+      // Ollama-compatible OpenAI endpoints only include usage in streaming mode
+      // when explicitly requested.
+      if (stream && STREAM_USAGE_PROVIDERS.has(endpointKey)) {
+        requestBody.stream_options = { include_usage: true };
+      }
 
       // Inject cache_control for OpenRouter requests targeting Anthropic models
       if (endpointKey === 'openrouter' && model.startsWith('anthropic/')) {

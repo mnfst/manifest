@@ -14,6 +14,13 @@ describe('inferProviderFromModel', () => {
     expect(inferProviderFromModel('openrouter/auto')).toBe('openrouter');
   });
 
+  it('returns internal provider ids for provider-qualified duplicate models', () => {
+    expect(inferProviderFromModel('nano-gpt/moonshotai/kimi-k2.5')).toBe('nano-gpt');
+    expect(inferProviderFromModel('opencode-go/glm-5')).toBe('opencode-go');
+    expect(inferProviderFromModel('ollama-cloud/glm-5')).toBe('ollama-cloud');
+    expect(inferProviderFromModel('zai/glm-5')).toBe('zai');
+  });
+
   it('returns "anthropic" for claude- prefix', () => {
     expect(inferProviderFromModel('claude-opus-4-6')).toBe('anthropic');
     expect(inferProviderFromModel('claude-3-5-sonnet-20241022')).toBe('anthropic');
@@ -48,7 +55,11 @@ describe('inferProviderFromModel', () => {
     expect(inferProviderFromModel('open-mistral-nemo')).toBe('mistral');
   });
 
-  it('returns "moonshot" for kimi-/moonshot- prefix', () => {
+  it('returns "kimi" for the Kimi Code model id', () => {
+    expect(inferProviderFromModel('kimi-for-coding')).toBe('kimi');
+  });
+
+  it('returns "moonshot" for Moonshot model prefixes', () => {
     expect(inferProviderFromModel('kimi-k2')).toBe('moonshot');
     expect(inferProviderFromModel('moonshot-v1-128k')).toBe('moonshot');
   });
