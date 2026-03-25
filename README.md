@@ -34,7 +34,7 @@ OpenClaw costs
 </p>
 
 <p align="center">
-<a href="https://trendshift.io/repositories/12890" target="_blank"><img src="https://trendshift.io/api/badge/repositories/12890" alt="mnfst%2Fmanifest | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>&nbsp;&nbsp;<a href="https://www.producthunt.com/products/manifest-361?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-manifest-361" target="_blank" rel="noopener noreferrer"><img alt="Manifest - Open Source LLM Router for OpenClaw | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1104032&amp;theme=light&amp;t=1774281267919"></a>
+<a href="https://trendshift.io/repositories/12890" target="_blank"><img src="https://trendshift.io/api/badge/repositories/12890" alt="mnfst%2Fmanifest | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 </p>
 
 ## What do you get?
