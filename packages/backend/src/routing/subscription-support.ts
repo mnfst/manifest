@@ -1,4 +1,4 @@
-import { supportsSubscriptionProvider } from '../../../subscription-capabilities';
+import { supportsSubscriptionProvider } from '@mnfst/shared';
 
 type ProviderAuthRecord = {
   provider: string;

@@ -27,6 +27,7 @@
   ],
   "packageManager": "npm@10.9.2",
   "workspaces": [
+    "packages/shared",
     "packages/frontend",
     "packages/backend",
     "packages/openclaw-plugin"

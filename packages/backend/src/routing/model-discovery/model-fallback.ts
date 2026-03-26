@@ -3,10 +3,7 @@ import {
   OPENROUTER_PREFIX_TO_PROVIDER,
   PROVIDER_BY_ID_OR_ALIAS,
 } from '../../common/constants/providers';
-import {
-  getSubscriptionKnownModels,
-  getSubscriptionCapabilities,
-} from '../../../../subscription-capabilities';
+import { getSubscriptionKnownModels, getSubscriptionCapabilities } from '@mnfst/shared';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 
 interface PricingLookup {

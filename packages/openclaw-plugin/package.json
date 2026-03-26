@@ -24,7 +24,6 @@
     "dist/server.d.ts",
     "dist/backend",
     "dist/package.json",
-    "subscription-capabilities",
     "public",
     "openclaw.plugin.json",
     "skills",

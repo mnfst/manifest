@@ -1,8 +1,28 @@
-const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
+export interface SubscriptionCapabilities {
+  maxContextWindow: number;
+  supportsPromptCaching: boolean;
+  supportsBatching: boolean;
+}
+
+export interface SubscriptionProviderConfig {
+  supportsSubscription: true;
+  subscriptionLabel: string;
+  subscriptionKeyPlaceholder?: string;
+  subscriptionCommand?: string;
+  subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
+  subscriptionTokenPrefix?: string;
+  subscriptionOAuth?: boolean;
+  knownModels?: readonly string[];
+  subscriptionCapabilities?: Readonly<SubscriptionCapabilities>;
+}
+
+export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
+  Record<string, Readonly<SubscriptionProviderConfig>>
+> = Object.freeze({
   anthropic: Object.freeze({
-    supportsSubscription: true,
+    supportsSubscription: true as const,
     subscriptionLabel: 'Claude Max / Pro subscription',
-    subscriptionAuthMode: 'token',
+    subscriptionAuthMode: 'token' as const,
     subscriptionKeyPlaceholder: 'Paste your setup-token',
     subscriptionCommand: 'claude setup-token',
     subscriptionTokenPrefix: 'sk-ant-oat',
@@ -14,9 +34,9 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
     }),
   }),
   openai: Object.freeze({
-    supportsSubscription: true,
+    supportsSubscription: true as const,
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
-    subscriptionAuthMode: 'popup_oauth',
+    subscriptionAuthMode: 'popup_oauth' as const,
     subscriptionOAuth: true,
     knownModels: Object.freeze([
       'gpt-5.4',
@@ -33,9 +53,9 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
     }),
   }),
   minimax: Object.freeze({
-    supportsSubscription: true,
+    supportsSubscription: true as const,
     subscriptionLabel: 'MiniMax Coding Plan',
-    subscriptionAuthMode: 'device_code',
+    subscriptionAuthMode: 'device_code' as const,
     knownModels: Object.freeze([
       'MiniMax-M2.5',
       'MiniMax-M2.5-highspeed',
@@ -50,9 +70,9 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
     }),
   }),
   copilot: Object.freeze({
-    supportsSubscription: true,
+    supportsSubscription: true as const,
     subscriptionLabel: 'GitHub Copilot subscription',
-    subscriptionAuthMode: 'device_code',
+    subscriptionAuthMode: 'device_code' as const,
     knownModels: Object.freeze([
       'copilot/claude-opus-4.6',
       'copilot/claude-opus-4.6-fast',
@@ -75,37 +95,32 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
   }),
 });
 
-const SUPPORTED_SUBSCRIPTION_PROVIDER_IDS = Object.freeze(
+export const SUPPORTED_SUBSCRIPTION_PROVIDER_IDS: readonly string[] = Object.freeze(
   Object.keys(SUBSCRIPTION_PROVIDER_CONFIGS),
 );
 
-function normalizeProviderId(providerId) {
+function normalizeProviderId(providerId: string): string {
   return String(providerId || '').toLowerCase();
 }
 
-function getSubscriptionProviderConfig(providerId) {
+export function getSubscriptionProviderConfig(
+  providerId: string,
+): Readonly<SubscriptionProviderConfig> | null {
   return SUBSCRIPTION_PROVIDER_CONFIGS[normalizeProviderId(providerId)] ?? null;
 }
 
-function supportsSubscriptionProvider(providerId) {
+export function supportsSubscriptionProvider(providerId: string): boolean {
   return getSubscriptionProviderConfig(providerId) !== null;
 }
 
-function getSubscriptionKnownModels(providerId) {
+export function getSubscriptionKnownModels(providerId: string): readonly string[] | null {
   const config = getSubscriptionProviderConfig(providerId);
   return config?.knownModels ?? null;
 }
 
-function getSubscriptionCapabilities(providerId) {
+export function getSubscriptionCapabilities(
+  providerId: string,
+): Readonly<SubscriptionCapabilities> | null {
   const config = getSubscriptionProviderConfig(providerId);
   return config?.subscriptionCapabilities ?? null;
 }
-
-module.exports = {
-  SUBSCRIPTION_PROVIDER_CONFIGS,
-  SUPPORTED_SUBSCRIPTION_PROVIDER_IDS,
-  getSubscriptionProviderConfig,
-  supportsSubscriptionProvider,
-  getSubscriptionKnownModels,
-  getSubscriptionCapabilities,
-};

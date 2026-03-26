@@ -38,13 +38,3 @@ if (existsSync(backendDist)) {
   console.error('Run "npm run build" from the monorepo root first.');
   process.exit(1);
 }
-
-const subCaps = join(__dirname, '..', '..', 'subscription-capabilities');
-const subCapsTarget = join(__dirname, '..', 'subscription-capabilities');
-
-if (existsSync(subCaps)) {
-  cpSync(subCaps, subCapsTarget, { recursive: true });
-  console.log('Copied subscription-capabilities/');
-} else {
-  console.warn('subscription-capabilities not found — skipping.');
-}
