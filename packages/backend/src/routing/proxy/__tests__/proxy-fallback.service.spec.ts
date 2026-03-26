@@ -75,14 +75,14 @@ describe('ProxyFallbackService', () => {
         isChatGpt: false,
       });
 
-      const result = await service.tryForwardToProvider(
-        'OpenAI',
-        'sk-test',
-        'gpt-4o',
+      const result = await service.tryForwardToProvider({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
         body,
-        false,
-        'sess-1',
-      );
+        stream: false,
+        sessionKey: 'sess-1',
+      });
 
       expect(result.response.ok).toBe(true);
     });
@@ -90,14 +90,14 @@ describe('ProxyFallbackService', () => {
     it('catches transport errors and returns synthetic response', async () => {
       providerClient.forward.mockRejectedValue(new Error('fetch failed'));
 
-      const result = await service.tryForwardToProvider(
-        'OpenAI',
-        'sk-test',
-        'gpt-4o',
+      const result = await service.tryForwardToProvider({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
         body,
-        false,
-        'sess-1',
-      );
+        stream: false,
+        sessionKey: 'sess-1',
+      });
 
       expect(result.response.ok).toBe(false);
       expect(result.response.status).toBe(503);
@@ -107,7 +107,14 @@ describe('ProxyFallbackService', () => {
       providerClient.forward.mockRejectedValue(new Error('boom'));
 
       await expect(
-        service.tryForwardToProvider('OpenAI', 'sk-test', 'gpt-4o', body, false, 'sess-1'),
+        service.tryForwardToProvider({
+          provider: 'OpenAI',
+          apiKey: 'sk-test',
+          model: 'gpt-4o',
+          body,
+          stream: false,
+          sessionKey: 'sess-1',
+        }),
       ).rejects.toThrow('boom');
     });
 
@@ -117,15 +124,15 @@ describe('ProxyFallbackService', () => {
       providerClient.forward.mockRejectedValue(new Error('aborted'));
 
       await expect(
-        service.tryForwardToProvider(
-          'OpenAI',
-          'sk-test',
-          'gpt-4o',
+        service.tryForwardToProvider({
+          provider: 'OpenAI',
+          apiKey: 'sk-test',
+          model: 'gpt-4o',
           body,
-          false,
-          'sess-1',
-          ac.signal,
-        ),
+          stream: false,
+          sessionKey: 'sess-1',
+          signal: ac.signal,
+        }),
       ).rejects.toThrow('aborted');
     });
 
@@ -134,14 +141,14 @@ describe('ProxyFallbackService', () => {
       err.name = 'TimeoutError';
       providerClient.forward.mockRejectedValue(err);
 
-      const result = await service.tryForwardToProvider(
-        'OpenAI',
-        'sk-test',
-        'gpt-4o',
+      const result = await service.tryForwardToProvider({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
         body,
-        false,
-        'sess-1',
-      );
+        stream: false,
+        sessionKey: 'sess-1',
+      });
 
       expect(result.response.status).toBe(504);
     });
@@ -154,19 +161,23 @@ describe('ProxyFallbackService', () => {
         isChatGpt: false,
       });
 
-      await service.tryForwardToProvider('xai', 'sk-xai', 'grok-2', body, false, 'my-session');
-
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'xai',
-        'sk-xai',
-        'grok-2',
+      await service.tryForwardToProvider({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-2',
         body,
-        false,
-        undefined,
-        { 'x-grok-conv-id': 'my-session' },
-        undefined,
-        undefined,
-      );
+        stream: false,
+        sessionKey: 'my-session',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-2',
+        body,
+        stream: false,
+        extraHeaders: { 'x-grok-conv-id': 'my-session' },
+      });
     });
 
     it('exchanges copilot token before forwarding', async () => {
@@ -177,27 +188,23 @@ describe('ProxyFallbackService', () => {
         isChatGpt: false,
       });
 
-      await service.tryForwardToProvider(
-        'copilot',
-        'ghu_token',
-        'copilot/claude-sonnet-4.6',
+      await service.tryForwardToProvider({
+        provider: 'copilot',
+        apiKey: 'ghu_token',
+        model: 'copilot/claude-sonnet-4.6',
         body,
-        false,
-        'sess-1',
-      );
+        stream: false,
+        sessionKey: 'sess-1',
+      });
 
       expect(copilotToken.getCopilotToken).toHaveBeenCalledWith('ghu_token');
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'copilot',
-        'tid=copilot-session-token',
-        'claude-sonnet-4.6',
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'copilot',
+        apiKey: 'tid=copilot-session-token',
+        model: 'claude-sonnet-4.6',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      );
+        stream: false,
+      });
     });
 
     it('builds custom endpoint for custom providers', async () => {
@@ -212,26 +219,23 @@ describe('ProxyFallbackService', () => {
         isChatGpt: false,
       });
 
-      await service.tryForwardToProvider(
-        'custom:cp-1',
-        'key',
-        'custom:cp-1/llama',
+      await service.tryForwardToProvider({
+        provider: 'custom:cp-1',
+        apiKey: 'key',
+        model: 'custom:cp-1/llama',
         body,
-        false,
-        'sess-1',
-      );
+        stream: false,
+        sessionKey: 'sess-1',
+      });
 
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'custom:cp-1',
-        'key',
-        'llama',
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'custom:cp-1',
+        apiKey: 'key',
+        model: 'llama',
         body,
-        false,
-        undefined,
-        undefined,
-        expect.objectContaining({ baseUrl: 'https://api.groq.com/openai' }),
-        undefined,
-      );
+        stream: false,
+        customEndpoint: expect.objectContaining({ baseUrl: 'https://api.groq.com/openai' }),
+      });
     });
 
     it('uses minimax subscription base URL override', async () => {
@@ -242,32 +246,29 @@ describe('ProxyFallbackService', () => {
         isChatGpt: false,
       });
 
-      await service.tryForwardToProvider(
-        'minimax',
-        'token',
-        'MiniMax-M2.5',
+      await service.tryForwardToProvider({
+        provider: 'minimax',
+        apiKey: 'token',
+        model: 'MiniMax-M2.5',
         body,
-        false,
-        'sess-1',
-        undefined,
-        'subscription',
-        'https://api.minimax.io/anthropic',
-      );
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        resourceUrl: 'https://api.minimax.io/anthropic',
+      });
 
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'minimax',
-        'token',
-        'MiniMax-M2.5',
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'minimax',
+        apiKey: 'token',
+        model: 'MiniMax-M2.5',
         body,
-        false,
-        undefined,
-        undefined,
-        expect.objectContaining({
+        stream: false,
+        customEndpoint: expect.objectContaining({
           baseUrl: 'https://api.minimax.io/anthropic',
           format: 'anthropic',
         }),
-        'subscription',
-      );
+        authType: 'subscription',
+      });
     });
 
     it('ignores invalid minimax resource URL', async () => {
@@ -278,30 +279,26 @@ describe('ProxyFallbackService', () => {
         isChatGpt: false,
       });
 
-      await service.tryForwardToProvider(
-        'minimax',
-        'token',
-        'MiniMax-M2.5',
+      await service.tryForwardToProvider({
+        provider: 'minimax',
+        apiKey: 'token',
+        model: 'MiniMax-M2.5',
         body,
-        false,
-        'sess-1',
-        undefined,
-        'subscription',
-        'not-a-valid-url',
-      );
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        resourceUrl: 'not-a-valid-url',
+      });
 
       // Should forward without custom endpoint
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'minimax',
-        'token',
-        'MiniMax-M2.5',
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'minimax',
+        apiKey: 'token',
+        model: 'MiniMax-M2.5',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'subscription',
-      );
+        stream: false,
+        authType: 'subscription',
+      });
     });
   });
 

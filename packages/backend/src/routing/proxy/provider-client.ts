@@ -14,6 +14,7 @@ import {
   convertAnthropicStreamChunk as anthropicStreamChunkConverter,
   createAnthropicTransformer,
 } from './provider-client-converters';
+import { ForwardOptions } from './proxy-types';
 
 export interface ForwardResult {
   response: Response;
@@ -42,17 +43,19 @@ function stripModelPrefix(model: string, endpointKey: string): string {
 export class ProviderClient {
   private readonly logger = new Logger(ProviderClient.name);
 
-  async forward(
-    provider: string,
-    apiKey: string,
-    model: string,
-    body: Record<string, unknown>,
-    stream: boolean,
-    signal?: AbortSignal,
-    extraHeaders?: Record<string, string>,
-    customEndpoint?: ProviderEndpoint,
-    authType?: string,
-  ): Promise<ForwardResult> {
+  async forward(opts: ForwardOptions): Promise<ForwardResult> {
+    const {
+      provider,
+      apiKey,
+      model,
+      body,
+      stream,
+      signal,
+      extraHeaders,
+      customEndpoint,
+      authType,
+    } = opts;
+
     let endpoint: ProviderEndpoint;
     let endpointKey: string;
 

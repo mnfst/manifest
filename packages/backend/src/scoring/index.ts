@@ -91,29 +91,23 @@ interface StructuralDimContext {
   conversationCount: number;
 }
 
+type StructuralScorer = (ctx: StructuralDimContext) => number;
+
+const STRUCTURAL_SCORERS = new Map<string, StructuralScorer>([
+  ['tokenCount', (ctx) => scoreTokenCount(ctx.combined)],
+  ['nestedListDepth', (ctx) => scoreNestedListDepth(ctx.combined)],
+  ['conditionalLogic', (ctx) => scoreConditionalLogic(ctx.combined)],
+  ['codeToProse', (ctx) => scoreCodeToProse(ctx.combined)],
+  ['constraintDensity', (ctx) => scoreConstraintDensity(ctx.combined)],
+  ['expectedOutputLength', (ctx) => scoreExpectedOutputLength(ctx.combined, ctx.maxTokens)],
+  ['repetitionRequests', (ctx) => scoreRepetitionRequests(ctx.combined)],
+  ['toolCount', (ctx) => scoreToolCount(ctx.tools, ctx.toolChoice)],
+  ['conversationDepth', (ctx) => scoreConversationDepth(ctx.conversationCount)],
+]);
+
 function scoreStructuralDimension(dim: DimensionConfig, ctx: StructuralDimContext): number {
-  switch (dim.name) {
-    case 'tokenCount':
-      return scoreTokenCount(ctx.combined);
-    case 'nestedListDepth':
-      return scoreNestedListDepth(ctx.combined);
-    case 'conditionalLogic':
-      return scoreConditionalLogic(ctx.combined);
-    case 'codeToProse':
-      return scoreCodeToProse(ctx.combined);
-    case 'constraintDensity':
-      return scoreConstraintDensity(ctx.combined);
-    case 'expectedOutputLength':
-      return scoreExpectedOutputLength(ctx.combined, ctx.maxTokens);
-    case 'repetitionRequests':
-      return scoreRepetitionRequests(ctx.combined);
-    case 'toolCount':
-      return scoreToolCount(ctx.tools, ctx.toolChoice);
-    case 'conversationDepth':
-      return scoreConversationDepth(ctx.conversationCount);
-    default:
-      return 0;
-  }
+  const scorer = STRUCTURAL_SCORERS.get(dim.name);
+  return scorer ? scorer(ctx) : 0;
 }
 
 function scoreDimensions(

@@ -759,15 +759,15 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
-      'agent-1',
-      'user-1',
-      req.body,
-      'my-session',
-      'tenant-1',
-      'test-agent',
-      expect.any(AbortSignal),
-    );
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body: req.body,
+      sessionKey: 'my-session',
+      tenantId: 'tenant-1',
+      agentName: 'test-agent',
+      signal: expect.any(AbortSignal),
+    });
   });
 
   it('should default session key to "default" when header is absent', async () => {
@@ -792,15 +792,15 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
-      'agent-1',
-      'user-1',
-      req.body,
-      'default',
-      'tenant-1',
-      'test-agent',
-      expect.any(AbortSignal),
-    );
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body: req.body,
+      sessionKey: 'default',
+      tenantId: 'tenant-1',
+      agentName: 'test-agent',
+      signal: expect.any(AbortSignal),
+    });
   });
 
   describe('rate limiting', () => {
@@ -1276,9 +1276,9 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      const signal = proxyService.proxyRequest.mock.calls[0][6];
-      expect(signal).toBeInstanceOf(AbortSignal);
-      expect(signal.aborted).toBe(false);
+      const opts = proxyService.proxyRequest.mock.calls[0][0] as { signal?: AbortSignal };
+      expect(opts.signal).toBeInstanceOf(AbortSignal);
+      expect(opts.signal!.aborted).toBe(false);
     });
 
     it('should silently end response when client disconnects', async () => {

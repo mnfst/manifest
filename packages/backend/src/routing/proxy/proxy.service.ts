@@ -15,6 +15,7 @@ import {
   normalizeProviderModel,
   resolveApiKey,
 } from './proxy-fallback.service';
+import { ProxyRequestOptions } from './proxy-types';
 
 export { FailedFallback } from './proxy-fallback.service';
 
@@ -61,15 +62,8 @@ export class ProxyService {
     private readonly fallbackService: ProxyFallbackService,
   ) {}
 
-  async proxyRequest(
-    agentId: string,
-    userId: string,
-    body: Record<string, unknown>,
-    sessionKey: string,
-    tenantId?: string,
-    agentName?: string,
-    signal?: AbortSignal,
-  ): Promise<ProxyResult> {
+  async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
+    const { agentId, userId, body, sessionKey, tenantId, agentName, signal } = opts;
     const messages = body.messages;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw new BadRequestException('messages array is required');
@@ -131,17 +125,17 @@ export class ProxyService {
     );
 
     const stream = body.stream === true;
-    const forward = await this.fallbackService.tryForwardToProvider(
-      resolved.provider,
-      resolvedCredentials.apiKey,
-      primaryModel,
+    const forward = await this.fallbackService.tryForwardToProvider({
+      provider: resolved.provider,
+      apiKey: resolvedCredentials.apiKey,
+      model: primaryModel,
       body,
       stream,
       sessionKey,
       signal,
-      resolved.auth_type,
-      resolvedCredentials.resourceUrl,
-    );
+      authType: resolved.auth_type,
+      resourceUrl: resolvedCredentials.resourceUrl,
+    });
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
       const tiers = await this.tierService.getTiers(agentId);

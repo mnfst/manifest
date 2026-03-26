@@ -91,10 +91,10 @@ export class TraceDedupService {
 
     return {
       errorTraceIds: new Set(
-        errorByTrace.map((e) => (e as unknown as { trace_id: string }).trace_id),
+        errorByTrace.map((e) => e.trace_id).filter((id): id is string => id != null),
       ),
       successTraceIds: new Set(
-        successByTrace.map((e) => (e as unknown as { trace_id: string }).trace_id),
+        successByTrace.map((e) => e.trace_id).filter((id): id is string => id != null),
       ),
       recentErrors: recentErrors.map((e) => ({ id: e.id, timestamp: e.timestamp })),
       recentOkMessages: recentOkMessages.map((m) => ({
@@ -108,7 +108,7 @@ export class TraceDedupService {
         input_tokens: m.input_tokens ?? 0,
         output_tokens: m.output_tokens ?? 0,
         model: m.model ?? null,
-        session_key: (m as unknown as { session_key: string | null }).session_key ?? null,
+        session_key: m.session_key ?? null,
       })),
     };
   }

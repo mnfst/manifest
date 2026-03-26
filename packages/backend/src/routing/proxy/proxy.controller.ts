@@ -55,15 +55,15 @@ export class ProxyController {
       this.rateLimiter.checkLimit(userId);
       this.rateLimiter.acquireSlot(userId);
       slotAcquired = true;
-      const { forward, meta, failedFallbacks } = await this.proxyService.proxyRequest(
-        req.ingestionContext.agentId,
+      const { forward, meta, failedFallbacks } = await this.proxyService.proxyRequest({
+        agentId: req.ingestionContext.agentId,
         userId,
         body,
         sessionKey,
-        req.ingestionContext.tenantId,
-        req.ingestionContext.agentName,
-        clientAbort.signal,
-      );
+        tenantId: req.ingestionContext.tenantId,
+        agentName: req.ingestionContext.agentName,
+        signal: clientAbort.signal,
+      });
 
       this.trackFirstProxyRequest(userId, meta);
 

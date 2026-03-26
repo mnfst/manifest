@@ -17,7 +17,7 @@ import { CACHE_MANAGER, CacheTTL } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
-import { AggregationService } from '../services/aggregation.service';
+import { AgentLifecycleService } from '../services/agent-lifecycle.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
@@ -33,7 +33,7 @@ import { TenantCacheService } from '../../common/services/tenant-cache.service';
 export class AgentsController {
   constructor(
     private readonly timeseries: TimeseriesQueriesService,
-    private readonly aggregation: AggregationService,
+    private readonly lifecycle: AgentLifecycleService,
     private readonly apiKeyGenerator: ApiKeyGeneratorService,
     private readonly config: ConfigService,
     private readonly tenantCache: TenantCacheService,
@@ -111,7 +111,7 @@ export class AgentsController {
       throw new BadRequestException('Agent name produces an empty slug');
     }
     const displayName = body.name.trim();
-    await this.aggregation.renameAgent(user.id, agentName, slug, displayName);
+    await this.lifecycle.renameAgent(user.id, agentName, slug, displayName);
     await this.cacheManager.del(this.agentListCacheKey(user.id));
     return { renamed: true, name: slug, display_name: displayName };
   }
@@ -121,7 +121,7 @@ export class AgentsController {
     if (this.config.get<string>('MANIFEST_MODE') === 'local' && agentName === LOCAL_AGENT_NAME) {
       throw new ForbiddenException('Cannot delete the default local agent');
     }
-    await this.aggregation.deleteAgent(user.id, agentName);
+    await this.lifecycle.deleteAgent(user.id, agentName);
     await this.cacheManager.del(this.agentListCacheKey(user.id));
     return { deleted: true };
   }

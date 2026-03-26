@@ -106,17 +106,17 @@ export class ProxyFallbackService {
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
       );
 
-      const forward = await this.tryForwardToProvider(
+      const forward = await this.tryForwardToProvider({
         provider,
-        resolvedCredentials.apiKey,
+        apiKey: resolvedCredentials.apiKey,
         model,
         body,
         stream,
         sessionKey,
         signal,
         authType,
-        resolvedCredentials.resourceUrl,
-      );
+        resourceUrl: resolvedCredentials.resourceUrl,
+      });
 
       if (forward.response.ok) {
         return { success: { forward, model, provider, fallbackIndex: i }, failures };
@@ -135,37 +135,27 @@ export class ProxyFallbackService {
     return { success: null, failures };
   }
 
-  async tryForwardToProvider(
-    provider: string,
-    apiKey: string,
-    model: string,
-    body: Record<string, unknown>,
-    stream: boolean,
-    sessionKey: string,
-    signal?: AbortSignal,
-    authType?: string,
-    resourceUrl?: string,
-  ): Promise<ForwardResult> {
+  async tryForwardToProvider(opts: {
+    provider: string;
+    apiKey: string;
+    model: string;
+    body: Record<string, unknown>;
+    stream: boolean;
+    sessionKey: string;
+    signal?: AbortSignal;
+    authType?: string;
+    resourceUrl?: string;
+  }): Promise<ForwardResult> {
     try {
-      return await this.forwardToProvider(
-        provider,
-        apiKey,
-        model,
-        body,
-        stream,
-        sessionKey,
-        signal,
-        authType,
-        resourceUrl,
-      );
+      return await this.forwardToProvider(opts);
     } catch (error) {
-      if (signal?.aborted) throw error;
+      if (opts.signal?.aborted) throw error;
       if (!isTransportError(error)) throw error;
 
       const failureResponse = buildTransportErrorResponse(error);
       const message = describeTransportError(error);
       this.logger.warn(
-        `Provider transport failure: provider=${provider} model=${model} status=${failureResponse.status} message=${message}`,
+        `Provider transport failure: provider=${opts.provider} model=${opts.model} status=${failureResponse.status} message=${message}`,
       );
 
       return {
@@ -177,31 +167,33 @@ export class ProxyFallbackService {
     }
   }
 
-  private async forwardToProvider(
-    provider: string,
-    apiKey: string,
-    model: string,
-    body: Record<string, unknown>,
-    stream: boolean,
-    sessionKey: string,
-    signal?: AbortSignal,
-    authType?: string,
-    resourceUrl?: string,
-  ): Promise<ForwardResult> {
+  private async forwardToProvider(opts: {
+    provider: string;
+    apiKey: string;
+    model: string;
+    body: Record<string, unknown>;
+    stream: boolean;
+    sessionKey: string;
+    signal?: AbortSignal;
+    authType?: string;
+    resourceUrl?: string;
+  }): Promise<ForwardResult> {
+    const { provider, body, stream, signal, authType, resourceUrl } = opts;
+
     const extraHeaders: Record<string, string> = {};
     if (provider === 'xai') {
-      extraHeaders['x-grok-conv-id'] = sessionKey;
+      extraHeaders['x-grok-conv-id'] = opts.sessionKey;
     }
     const hasExtraHeaders = Object.keys(extraHeaders).length > 0;
 
     // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
-    let effectiveKey = apiKey;
+    let effectiveKey = opts.apiKey;
     if (provider.toLowerCase() === 'copilot') {
-      effectiveKey = await this.copilotToken.getCopilotToken(apiKey);
+      effectiveKey = await this.copilotToken.getCopilotToken(opts.apiKey);
     }
 
     let customEndpoint: ProviderEndpoint | undefined;
-    let forwardModel = model;
+    let forwardModel = opts.model;
 
     // Strip the "copilot/" prefix -- the Copilot API expects bare model names
     if (provider.toLowerCase() === 'copilot' && forwardModel.startsWith('copilot/')) {
@@ -213,7 +205,7 @@ export class ProxyFallbackService {
       const cp = await this.customProviderRepo.findOne({ where: { id: cpId } });
       if (cp) {
         customEndpoint = buildCustomEndpoint(cp.base_url);
-        forwardModel = CustomProviderService.rawModelName(model);
+        forwardModel = CustomProviderService.rawModelName(opts.model);
       }
     } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax' && resourceUrl) {
       const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
@@ -224,17 +216,17 @@ export class ProxyFallbackService {
       }
     }
 
-    return this.providerClient.forward(
+    return this.providerClient.forward({
       provider,
-      effectiveKey,
-      forwardModel,
+      apiKey: effectiveKey,
+      model: forwardModel,
       body,
       stream,
       signal,
-      hasExtraHeaders ? extraHeaders : undefined,
+      extraHeaders: hasExtraHeaders ? extraHeaders : undefined,
       customEndpoint,
       authType,
-    );
+    });
   }
 }
 

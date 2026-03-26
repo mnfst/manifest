@@ -115,14 +115,24 @@ describe('ProxyService', () => {
   };
 
   it('throws BadRequestException when messages are missing', async () => {
-    await expect(service.proxyRequest('agent-1', 'user-1', {}, 'default')).rejects.toThrow(
-      BadRequestException,
-    );
+    await expect(
+      service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: {},
+        sessionKey: 'default',
+      }),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it('throws BadRequestException when messages array is empty', async () => {
     await expect(
-      service.proxyRequest('agent-1', 'user-1', { messages: [] }, 'default'),
+      service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: { messages: [] },
+        sessionKey: 'default',
+      }),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -136,9 +146,9 @@ describe('ProxyService', () => {
       reason: 'ambiguous',
     });
 
-    await expect(service.proxyRequest('agent-1', 'user-1', body, 'default')).rejects.toThrow(
-      'No model available',
-    );
+    await expect(
+      service.proxyRequest({ agentId: 'agent-1', userId: 'user-1', body, sessionKey: 'default' }),
+    ).rejects.toThrow('No model available');
   });
 
   it('throws when no API key found for provider', async () => {
@@ -152,9 +162,9 @@ describe('ProxyService', () => {
     });
     providerKeyService.getProviderApiKey.mockResolvedValue(null);
 
-    await expect(service.proxyRequest('agent-1', 'user-1', body, 'default')).rejects.toThrow(
-      'No API key found',
-    );
+    await expect(
+      service.proxyRequest({ agentId: 'agent-1', userId: 'user-1', body, sessionKey: 'default' }),
+    ).rejects.toThrow('No API key found');
   });
 
   it('resolves, forwards, and records momentum on success', async () => {
@@ -176,7 +186,12 @@ describe('ProxyService', () => {
       isChatGpt: false,
     });
 
-    const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+    const result = await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'sess-1',
+    });
 
     expect(result.meta).toEqual({
       tier: 'standard',
@@ -190,17 +205,13 @@ describe('ProxyService', () => {
     expect(momentum.getRecentTiers('sess-1')).toEqual(['standard']);
 
     // Verify forward was called correctly (signal is undefined when not provided)
-    expect(providerClient.forward).toHaveBeenCalledWith(
-      'OpenAI',
-      'sk-test',
-      'gpt-4o',
+    expect(providerClient.forward).toHaveBeenCalledWith({
+      provider: 'OpenAI',
+      apiKey: 'sk-test',
+      model: 'gpt-4o',
       body,
-      false,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    );
+      stream: false,
+    });
   });
 
   it('passes recentTiers from momentum to resolver', async () => {
@@ -224,7 +235,12 @@ describe('ProxyService', () => {
       isChatGpt: false,
     });
 
-    await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+    await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'sess-1',
+    });
 
     expect(resolveService.resolve).toHaveBeenCalledWith(
       'agent-1',
@@ -254,20 +270,22 @@ describe('ProxyService', () => {
       isChatGpt: false,
     });
 
-    const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+    const result = await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'sess-1',
+    });
 
     expect(result.meta.model).toBe('claude-sonnet-4-6');
-    expect(providerClient.forward).toHaveBeenCalledWith(
-      'Anthropic',
-      'sk-ant-oat',
-      'claude-sonnet-4-6',
+    expect(providerClient.forward).toHaveBeenCalledWith({
+      provider: 'Anthropic',
+      apiKey: 'sk-ant-oat',
+      model: 'claude-sonnet-4-6',
       body,
-      false,
-      undefined,
-      undefined,
-      undefined,
-      'subscription',
-    );
+      stream: false,
+      authType: 'subscription',
+    });
   });
 
   it('passes tools and tool_choice to the resolver', async () => {
@@ -294,7 +312,12 @@ describe('ProxyService', () => {
       stream: false,
     };
 
-    await service.proxyRequest('agent-1', 'user-1', bodyWithTools, 'default');
+    await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body: bodyWithTools,
+      sessionKey: 'default',
+    });
 
     // Resolver should receive tools and tool_choice for scoring
     expect(resolveService.resolve).toHaveBeenCalledWith(
@@ -307,17 +330,13 @@ describe('ProxyService', () => {
     );
 
     // But the full body (with tools) should be forwarded to the provider
-    expect(providerClient.forward).toHaveBeenCalledWith(
-      'OpenAI',
-      'sk-test',
-      'gpt-4o',
-      bodyWithTools,
-      false,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    );
+    expect(providerClient.forward).toHaveBeenCalledWith({
+      provider: 'OpenAI',
+      apiKey: 'sk-test',
+      model: 'gpt-4o',
+      body: bodyWithTools,
+      stream: false,
+    });
   });
 
   it('passes AbortSignal through to providerClient.forward', async () => {
@@ -338,27 +357,24 @@ describe('ProxyService', () => {
     });
 
     const abortController = new AbortController();
-    await service.proxyRequest(
-      'agent-1',
-      'user-1',
+    await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
       body,
-      'default',
-      undefined,
-      undefined,
-      abortController.signal,
-    );
+      sessionKey: 'default',
+      tenantId: undefined,
+      agentName: undefined,
+      signal: abortController.signal,
+    });
 
-    expect(providerClient.forward).toHaveBeenCalledWith(
-      'OpenAI',
-      'sk-test',
-      'gpt-4o',
+    expect(providerClient.forward).toHaveBeenCalledWith({
+      provider: 'OpenAI',
+      apiKey: 'sk-test',
+      model: 'gpt-4o',
       body,
-      false,
-      abortController.signal,
-      undefined,
-      undefined,
-      undefined,
-    );
+      stream: false,
+      signal: abortController.signal,
+    });
   });
 
   describe('heartbeat detection', () => {
@@ -390,7 +406,12 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      const result = await service.proxyRequest('agent-1', 'user-1', heartbeatBody, 'sess-1');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: heartbeatBody,
+        sessionKey: 'sess-1',
+      });
 
       expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
       expect(resolveService.resolve).not.toHaveBeenCalled();
@@ -415,19 +436,20 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', heartbeatBody, 'sess-1');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: heartbeatBody,
+        sessionKey: 'sess-1',
+      });
 
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'OpenAI',
-        'sk-test',
-        'gpt-4o-mini',
-        heartbeatBody,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      );
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o-mini',
+        body: heartbeatBody,
+        stream: false,
+      });
     });
 
     it('does NOT detect heartbeat when HEARTBEAT_OK is only in an earlier user message', async () => {
@@ -460,7 +482,12 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      const result = await service.proxyRequest('agent-1', 'user-1', buriedHeartbeatBody, 'sess-1');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: buriedHeartbeatBody,
+        sessionKey: 'sess-1',
+      });
 
       expect(resolveService.resolve).toHaveBeenCalled();
       expect(result.meta.tier).toBe('standard');
@@ -497,12 +524,12 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      const result = await service.proxyRequest(
-        'agent-1',
-        'user-1',
-        lastMsgHeartbeatBody,
-        'sess-1',
-      );
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: lastMsgHeartbeatBody,
+        sessionKey: 'sess-1',
+      });
 
       expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
       expect(resolveService.resolve).not.toHaveBeenCalled();
@@ -543,7 +570,12 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      const result = await service.proxyRequest('agent-1', 'user-1', arrayContentBody, 'sess-1');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: arrayContentBody,
+        sessionKey: 'sess-1',
+      });
 
       expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
       expect(result.meta.tier).toBe('simple');
@@ -577,7 +609,12 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      const result = await service.proxyRequest('agent-1', 'user-1', objectContentBody, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: objectContentBody,
+        sessionKey: 'default',
+      });
 
       // Should NOT be routed as heartbeat
       expect(resolveService.resolve).toHaveBeenCalled();
@@ -606,7 +643,12 @@ describe('ProxyService', () => {
         stream: false,
       };
 
-      await service.proxyRequest('agent-1', 'user-1', bodyWithNullContent, 'default');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: bodyWithNullContent,
+        sessionKey: 'default',
+      });
 
       // Should use resolve (not resolveForTier) since heartbeat is not detected
       expect(resolveService.resolve).toHaveBeenCalled();
@@ -629,7 +671,12 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(resolveService.resolve).toHaveBeenCalled();
     });
@@ -666,7 +713,12 @@ describe('ProxyService', () => {
         stream: false,
       };
 
-      await service.proxyRequest('agent-1', 'user-1', bodyWithSystem, 'default');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: bodyWithSystem,
+        sessionKey: 'default',
+      });
 
       // Scorer should only receive the user message (system/developer stripped)
       const scoredMessages = resolveService.resolve.mock.calls[0][1];
@@ -684,20 +736,21 @@ describe('ProxyService', () => {
         stream: false,
       };
 
-      await service.proxyRequest('agent-1', 'user-1', bodyWithSystem, 'default');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: bodyWithSystem,
+        sessionKey: 'default',
+      });
 
       // Provider should get the FULL body including system messages
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'OpenAI',
-        'sk-test',
-        'gpt-4o-mini',
-        bodyWithSystem,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      );
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o-mini',
+        body: bodyWithSystem,
+        stream: false,
+      });
     });
 
     it('limits scoring to last 10 non-system messages', async () => {
@@ -712,7 +765,12 @@ describe('ProxyService', () => {
         })),
       ];
 
-      await service.proxyRequest('agent-1', 'user-1', { messages, stream: false }, 'default');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: { messages, stream: false },
+        sessionKey: 'default',
+      });
 
       const scoredMessages = resolveService.resolve.mock.calls[0][1];
       expect(scoredMessages).toHaveLength(10);
@@ -751,11 +809,25 @@ describe('ProxyService', () => {
       });
 
       await expect(
-        service.proxyRequest('agent-1', 'user-1', body, 'default', 'tenant-1', 'my-agent'),
+        service.proxyRequest({
+          agentId: 'agent-1',
+          userId: 'user-1',
+          body,
+          sessionKey: 'default',
+          tenantId: 'tenant-1',
+          agentName: 'my-agent',
+        }),
       ).rejects.toThrow(HttpException);
 
       try {
-        await service.proxyRequest('agent-1', 'user-1', body, 'default', 'tenant-1', 'my-agent');
+        await service.proxyRequest({
+          agentId: 'agent-1',
+          userId: 'user-1',
+          body,
+          sessionKey: 'default',
+          tenantId: 'tenant-1',
+          agentName: 'my-agent',
+        });
       } catch (err) {
         expect((err as HttpException).getStatus()).toBe(429);
         const response = (err as HttpException).getResponse() as Record<string, unknown>;
@@ -768,7 +840,12 @@ describe('ProxyService', () => {
     it('does not check limits when tenantId/agentName are not provided', async () => {
       setupSuccessMocks();
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(limitCheck.checkLimits).not.toHaveBeenCalled();
     });
@@ -776,7 +853,13 @@ describe('ProxyService', () => {
     it('does not check limits when only tenantId is provided without agentName', async () => {
       setupSuccessMocks();
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'default', 'tenant-1');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+        tenantId: 'tenant-1',
+      });
 
       expect(limitCheck.checkLimits).not.toHaveBeenCalled();
     });
@@ -784,7 +867,14 @@ describe('ProxyService', () => {
     it('does not check limits when only agentName is provided without tenantId', async () => {
       setupSuccessMocks();
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'default', undefined, 'my-agent');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+        tenantId: undefined,
+        agentName: 'my-agent',
+      });
 
       expect(limitCheck.checkLimits).not.toHaveBeenCalled();
     });
@@ -793,14 +883,14 @@ describe('ProxyService', () => {
       setupSuccessMocks();
       limitCheck.checkLimits.mockResolvedValue(null);
 
-      const result = await service.proxyRequest(
-        'agent-1',
-        'user-1',
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
         body,
-        'default',
-        'tenant-1',
-        'my-agent',
-      );
+        sessionKey: 'default',
+        tenantId: 'tenant-1',
+        agentName: 'my-agent',
+      });
 
       expect(limitCheck.checkLimits).toHaveBeenCalledWith('tenant-1', 'my-agent');
       expect(result.meta.model).toBe('gpt-4o');
@@ -816,7 +906,14 @@ describe('ProxyService', () => {
       });
 
       try {
-        await service.proxyRequest('agent-1', 'user-1', body, 'default', 'tenant-1', 'my-agent');
+        await service.proxyRequest({
+          agentId: 'agent-1',
+          userId: 'user-1',
+          body,
+          sessionKey: 'default',
+          tenantId: 'tenant-1',
+          agentName: 'my-agent',
+        });
         fail('Expected HttpException');
       } catch (err) {
         const response = (err as HttpException).getResponse() as Record<string, unknown>;
@@ -837,7 +934,14 @@ describe('ProxyService', () => {
       });
 
       try {
-        await service.proxyRequest('agent-1', 'user-1', body, 'default', 'tenant-1', 'my-agent');
+        await service.proxyRequest({
+          agentId: 'agent-1',
+          userId: 'user-1',
+          body,
+          sessionKey: 'default',
+          tenantId: 'tenant-1',
+          agentName: 'my-agent',
+        });
         fail('Expected HttpException');
       } catch (err) {
         const response = (err as HttpException).getResponse() as Record<string, unknown>;
@@ -874,7 +978,12 @@ describe('ProxyService', () => {
         stream: false,
       };
 
-      await service.proxyRequest('agent-1', 'user-1', bodyWithMaxTokens, 'default');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: bodyWithMaxTokens,
+        sessionKey: 'default',
+      });
 
       expect(resolveService.resolve).toHaveBeenCalledWith(
         'agent-1',
@@ -905,19 +1014,21 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'my-session');
-
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'xai',
-        'sk-xai-test',
-        'grok-2',
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
         body,
-        false,
-        undefined,
-        { 'x-grok-conv-id': 'my-session' },
-        undefined,
-        undefined,
-      );
+        sessionKey: 'my-session',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'xai',
+        apiKey: 'sk-xai-test',
+        model: 'grok-2',
+        body,
+        stream: false,
+        extraHeaders: { 'x-grok-conv-id': 'my-session' },
+      });
     });
   });
 
@@ -948,7 +1059,12 @@ describe('ProxyService', () => {
         stream: false,
       };
 
-      await service.proxyRequest('agent-1', 'user-1', bodyWithAssistant, 'default');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: bodyWithAssistant,
+        sessionKey: 'default',
+      });
 
       // Heartbeat check skips non-user messages, so HEARTBEAT_OK in assistant is ignored.
       // resolve (not resolveForTier) should be called.
@@ -980,24 +1096,25 @@ describe('ProxyService', () => {
         stream: false,
       };
 
-      await service.proxyRequest('agent-1', 'user-1', bodyWithOnlySystem, 'default');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: bodyWithOnlySystem,
+        sessionKey: 'default',
+      });
 
       // Scorer receives empty array after filtering
       const scoredMessages = resolveService.resolve.mock.calls[0][1];
       expect(scoredMessages).toEqual([]);
 
       // But the full body is forwarded to the provider
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'OpenAI',
-        'sk-test',
-        'gpt-4o-mini',
-        bodyWithOnlySystem,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      );
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o-mini',
+        body: bodyWithOnlySystem,
+        stream: false,
+      });
     });
   });
 
@@ -1028,24 +1145,26 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess-1',
+      });
 
       expect(customProviderRepo.findOne).toHaveBeenCalledWith({ where: { id: 'cp-uuid' } });
       // Forward should use the raw model name (without custom prefix)
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'custom:cp-uuid',
-        'gsk_test',
-        'llama-3.1-70b',
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'custom:cp-uuid',
+        apiKey: 'gsk_test',
+        model: 'llama-3.1-70b',
         body,
-        false,
-        undefined,
-        undefined,
-        expect.objectContaining({
+        stream: false,
+        customEndpoint: expect.objectContaining({
           baseUrl: 'https://api.groq.com/openai',
           format: 'openai',
         }),
-        undefined,
-      );
+      });
       expect(result.meta.provider).toBe('custom:cp-uuid');
     });
 
@@ -1067,20 +1186,21 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess-1',
+      });
 
       // No custom endpoint — forward without it
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'custom:cp-missing',
-        'key',
-        'custom:cp-missing/model',
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'custom:cp-missing',
+        apiKey: 'key',
+        model: 'custom:cp-missing/model',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      );
+        stream: false,
+      });
     });
   });
 
@@ -1102,20 +1222,21 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess-1',
+      });
 
       expect(copilotToken.getCopilotToken).toHaveBeenCalledWith('ghu_github_oauth_token');
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'copilot',
-        'tid=copilot-session-token',
-        'claude-sonnet-4.6',
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'copilot',
+        apiKey: 'tid=copilot-session-token',
+        model: 'claude-sonnet-4.6',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      );
+        stream: false,
+      });
     });
 
     it('does not strip prefix for copilot models without copilot/ prefix', async () => {
@@ -1135,19 +1256,20 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
-
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'copilot',
-        'tid=copilot-session-token',
-        'gpt-4o',
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      );
+        sessionKey: 'sess-1',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'copilot',
+        apiKey: 'tid=copilot-session-token',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+      });
     });
 
     it('does not exchange token for non-copilot providers', async () => {
@@ -1167,20 +1289,21 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess-1',
+      });
 
       expect(copilotToken.getCopilotToken).not.toHaveBeenCalled();
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'openai',
-        'sk-openai-key',
-        'gpt-4o',
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'openai',
+        apiKey: 'sk-openai-key',
+        model: 'gpt-4o',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      );
+        stream: false,
+      });
     });
   });
 
@@ -1203,20 +1326,21 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.meta.provider).toBe('Ollama');
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'Ollama',
-        '',
-        'llama3',
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'Ollama',
+        apiKey: '',
+        model: 'llama3',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      );
+        stream: false,
+      });
     });
   });
 
@@ -1239,20 +1363,22 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess-1',
+      });
 
       expect(result.meta.provider).toBe('Anthropic');
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'Anthropic',
-        'skst-token-123',
-        'claude-sonnet-4',
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'Anthropic',
+        apiKey: 'skst-token-123',
+        model: 'claude-sonnet-4',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'subscription',
-      );
+        stream: false,
+        authType: 'subscription',
+      });
     });
 
     it('rejects subscription provider without stored token', async () => {
@@ -1266,9 +1392,9 @@ describe('ProxyService', () => {
       });
       providerKeyService.getProviderApiKey.mockResolvedValue(null);
 
-      await expect(service.proxyRequest('agent-1', 'user-1', body, 'sess-1')).rejects.toThrow(
-        'No API key found',
-      );
+      await expect(
+        service.proxyRequest({ agentId: 'agent-1', userId: 'user-1', body, sessionKey: 'sess-1' }),
+      ).rejects.toThrow('No API key found');
     });
   });
 
@@ -1290,7 +1416,12 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(tierService.getTiers).not.toHaveBeenCalled();
       expect(result.meta.fallbackFromModel).toBeUndefined();
@@ -1327,7 +1458,12 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
       expect(result.meta.fallbackIndex).toBe(0);
@@ -1361,7 +1497,12 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
       const primaryError = JSON.parse(result.meta.primaryErrorBody ?? '{}') as {
         error?: { message?: string };
       };
@@ -1390,7 +1531,12 @@ describe('ProxyService', () => {
         { tier: 'standard', fallback_models: null },
       ] as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
       const errorBody = JSON.parse(await result.forward.response.text()) as {
         error?: { message?: string };
       };
@@ -1434,7 +1580,12 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'DeepSeek' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.meta.fallbackFromModel).toBe('gpt-5.1-codex-mini');
       expect(result.meta.fallbackIndex).toBe(0);
@@ -1442,30 +1593,22 @@ describe('ProxyService', () => {
       expect(result.meta.primaryErrorBody).toBe('{"detail":"Instructions are required"}');
       expect(result.meta.model).toBe('deepseek-chat');
       expect(result.meta.provider).toBe('DeepSeek');
-      expect(providerClient.forward).toHaveBeenNthCalledWith(
-        1,
-        'OpenAI',
-        'oauth-openai',
-        'gpt-5.1-codex-mini',
+      expect(providerClient.forward).toHaveBeenNthCalledWith(1, {
+        provider: 'OpenAI',
+        apiKey: 'oauth-openai',
+        model: 'gpt-5.1-codex-mini',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'subscription',
-      );
-      expect(providerClient.forward).toHaveBeenNthCalledWith(
-        2,
-        'DeepSeek',
-        'sk-deepseek',
-        'deepseek-chat',
+        stream: false,
+        authType: 'subscription',
+      });
+      expect(providerClient.forward).toHaveBeenNthCalledWith(2, {
+        provider: 'DeepSeek',
+        apiKey: 'sk-deepseek',
+        model: 'deepseek-chat',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'api_key',
-      );
+        stream: false,
+        authType: 'api_key',
+      });
     });
 
     it('returns original error when no fallback models configured', async () => {
@@ -1488,7 +1631,12 @@ describe('ProxyService', () => {
         { tier: 'standard', fallback_models: null },
       ] as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.forward.response.ok).toBe(false);
     });
@@ -1525,7 +1673,12 @@ describe('ProxyService', () => {
         .mockReturnValueOnce(null as never)
         .mockReturnValueOnce({ provider: 'Anthropic' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.meta.model).toBe('claude-sonnet-4');
       expect(result.meta.fallbackIndex).toBe(1);
@@ -1565,7 +1718,12 @@ describe('ProxyService', () => {
         .mockReturnValueOnce({ provider: 'Anthropic' } as never) // first fallback has pricing
         .mockReturnValueOnce({ provider: 'DeepSeek' } as never); // second fallback has pricing
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       // First fallback (claude-sonnet-4) skipped because getProviderApiKey returned null
       // Second fallback (deepseek-chat) succeeded
@@ -1613,7 +1771,12 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'ProvA' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.meta.model).toBe('model-b');
       expect(result.meta.fallbackIndex).toBe(1);
@@ -1663,7 +1826,12 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'ProvA' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
       const fallbackError = JSON.parse(result.failedFallbacks?.[0].errorBody ?? '{}') as {
         error?: { message?: string };
       };
@@ -1706,7 +1874,12 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'ProvA' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       // Chain stopped at model-a's 424, model-b never tried
       expect(result.forward.response.ok).toBe(false);
@@ -1732,7 +1905,12 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(tierService.getTiers).not.toHaveBeenCalled();
       expect(result.forward.response.status).toBe(301);
@@ -1754,15 +1932,15 @@ describe('ProxyService', () => {
       abortController.abort();
 
       await expect(
-        service.proxyRequest(
-          'agent-1',
-          'user-1',
+        service.proxyRequest({
+          agentId: 'agent-1',
+          userId: 'user-1',
           body,
-          'default',
-          undefined,
-          undefined,
-          abortController.signal,
-        ),
+          sessionKey: 'default',
+          tenantId: undefined,
+          agentName: undefined,
+          signal: abortController.signal,
+        }),
       ).rejects.toThrow('aborted');
 
       expect(tierService.getTiers).not.toHaveBeenCalled();
@@ -1780,9 +1958,9 @@ describe('ProxyService', () => {
       providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockRejectedValue(new Error('boom'));
 
-      await expect(service.proxyRequest('agent-1', 'user-1', body, 'default')).rejects.toThrow(
-        'boom',
-      );
+      await expect(
+        service.proxyRequest({ agentId: 'agent-1', userId: 'user-1', body, sessionKey: 'default' }),
+      ).rejects.toThrow('boom');
 
       expect(tierService.getTiers).not.toHaveBeenCalled();
     });
@@ -1820,38 +1998,35 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
       expect(result.meta.model).toBe('claude-sonnet-4');
       expect(result.meta.provider).toBe('Anthropic');
       expect(result.meta.primaryErrorStatus).toBe(429);
       // Primary was called with api_key auth_type
-      expect(providerClient.forward).toHaveBeenNthCalledWith(
-        1,
-        'OpenAI',
-        'sk-openai',
-        'gpt-4o',
+      expect(providerClient.forward).toHaveBeenNthCalledWith(1, {
+        provider: 'OpenAI',
+        apiKey: 'sk-openai',
+        model: 'gpt-4o',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'api_key',
-      );
+        stream: false,
+        authType: 'api_key',
+      });
       // Fallback resolves auth_type via getAuthType and passes subscription
-      expect(providerClient.forward).toHaveBeenNthCalledWith(
-        2,
-        'Anthropic',
-        'skst-anthropic-token',
-        'claude-sonnet-4',
+      expect(providerClient.forward).toHaveBeenNthCalledWith(2, {
+        provider: 'Anthropic',
+        apiKey: 'skst-anthropic-token',
+        model: 'claude-sonnet-4',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'subscription',
-      );
+        stream: false,
+        authType: 'subscription',
+      });
       // getAuthType was called for the fallback provider
       expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic');
       // getProviderApiKey was called with subscription for the fallback
@@ -1895,21 +2070,22 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.meta.model).toBe('claude-sonnet-4-6');
-      expect(providerClient.forward).toHaveBeenNthCalledWith(
-        2,
-        'Anthropic',
-        'skst-anthropic-token',
-        'claude-sonnet-4-6',
+      expect(providerClient.forward).toHaveBeenNthCalledWith(2, {
+        provider: 'Anthropic',
+        apiKey: 'skst-anthropic-token',
+        model: 'claude-sonnet-4-6',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'subscription',
-      );
+        stream: false,
+        authType: 'subscription',
+      });
     });
 
     it('falls back from subscription primary to api_key fallback model', async () => {
@@ -1945,37 +2121,34 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.meta.fallbackFromModel).toBe('claude-sonnet-4');
       expect(result.meta.model).toBe('gpt-4o');
       expect(result.meta.provider).toBe('OpenAI');
       // Primary forwarded with subscription auth_type
-      expect(providerClient.forward).toHaveBeenNthCalledWith(
-        1,
-        'Anthropic',
-        'skst-token',
-        'claude-sonnet-4',
+      expect(providerClient.forward).toHaveBeenNthCalledWith(1, {
+        provider: 'Anthropic',
+        apiKey: 'skst-token',
+        model: 'claude-sonnet-4',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'subscription',
-      );
+        stream: false,
+        authType: 'subscription',
+      });
       // Fallback forwarded with api_key auth_type
-      expect(providerClient.forward).toHaveBeenNthCalledWith(
-        2,
-        'OpenAI',
-        'sk-openai',
-        'gpt-4o',
+      expect(providerClient.forward).toHaveBeenNthCalledWith(2, {
+        provider: 'OpenAI',
+        apiKey: 'sk-openai',
+        model: 'gpt-4o',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'api_key',
-      );
+        stream: false,
+        authType: 'api_key',
+      });
     });
 
     it('falls back between two subscription providers', async () => {
@@ -2011,25 +2184,26 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Google' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.meta.fallbackFromModel).toBe('claude-sonnet-4');
       expect(result.meta.model).toBe('gemini-2.5-flash');
       expect(result.meta.provider).toBe('Google');
       expect(result.meta.fallbackIndex).toBe(0);
       // Fallback forwarded with subscription auth_type
-      expect(providerClient.forward).toHaveBeenNthCalledWith(
-        2,
-        'Google',
-        'skst-google',
-        'gemini-2.5-flash',
+      expect(providerClient.forward).toHaveBeenNthCalledWith(2, {
+        provider: 'Google',
+        apiKey: 'skst-google',
+        model: 'gemini-2.5-flash',
         body,
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'subscription',
-      );
+        stream: false,
+        authType: 'subscription',
+      });
     });
 
     it('skips fallback model with subscription auth but no stored token', async () => {
@@ -2070,7 +2244,12 @@ describe('ProxyService', () => {
         .mockReturnValueOnce({ provider: 'Anthropic' } as never)
         .mockReturnValueOnce({ provider: 'DeepSeek' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       // Anthropic fallback skipped (subscription with no token), DeepSeek succeeded
       expect(result.meta.model).toBe('deepseek-chat');
@@ -2118,7 +2297,12 @@ describe('ProxyService', () => {
       // findProviderForModel finds it in the user's connected providers
       providerKeyService.findProviderForModel.mockResolvedValue('niche-provider');
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(providerKeyService.findProviderForModel).toHaveBeenCalledWith(
         'agent-1',
@@ -2163,7 +2347,12 @@ describe('ProxyService', () => {
         base_url: 'https://my-endpoint.com/v1',
       } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.meta.model).toBe('custom:cp-abc/my-model');
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
@@ -2199,7 +2388,12 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'DeepSeek' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.forward.response.ok).toBe(false);
       expect(result.forward.response.status).toBe(424);
@@ -2249,7 +2443,12 @@ describe('ProxyService', () => {
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
 
       expect(result.forward.response.status).toBe(424);
       expect(shouldTriggerFallback(result.forward.response.status)).toBe(false);
@@ -2282,20 +2481,22 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess',
+      });
 
       expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(tokenBlob, 'agent-1', 'user-1');
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'openai',
-        'access-tok',
-        'gpt-4o',
-        expect.any(Object),
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'subscription',
-      );
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'openai',
+        apiKey: 'access-tok',
+        model: 'gpt-4o',
+        body: expect.any(Object),
+        stream: false,
+        authType: 'subscription',
+      });
     });
 
     it('skips unwrap for non-OpenAI subscription providers', async () => {
@@ -2316,7 +2517,12 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess',
+      });
 
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
@@ -2340,7 +2546,12 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess',
+      });
 
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
     });
@@ -2384,7 +2595,12 @@ describe('ProxyService', () => {
 
       openaiOauth.unwrapToken.mockResolvedValue('fb-tok');
 
-      const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess',
+      });
 
       expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(
         '{"t":"fb-tok","r":"fb-ref","e":9999999999999}',
@@ -2424,23 +2640,26 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess',
+      });
 
       expect(minimaxOauth.unwrapToken).toHaveBeenCalledWith(tokenBlob, 'agent-1', 'user-1');
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'minimax',
-        'minimax-access',
-        'MiniMax-M2.5',
-        expect.any(Object),
-        false,
-        undefined,
-        undefined,
-        expect.objectContaining({
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'minimax',
+        apiKey: 'minimax-access',
+        model: 'MiniMax-M2.5',
+        body: expect.any(Object),
+        stream: false,
+        customEndpoint: expect.objectContaining({
           baseUrl: 'https://api.minimax.io/anthropic',
           format: 'anthropic',
         }),
-        'subscription',
-      );
+        authType: 'subscription',
+      });
     });
 
     it('ignores invalid MiniMax resource URLs when forwarding subscription requests', async () => {
@@ -2473,19 +2692,21 @@ describe('ProxyService', () => {
         isChatGpt: false,
       });
 
-      await service.proxyRequest('agent-1', 'user-1', body, 'sess');
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess',
+      });
 
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        'minimax',
-        'minimax-access',
-        'MiniMax-M2.5',
-        expect.any(Object),
-        false,
-        undefined,
-        undefined,
-        undefined,
-        'subscription',
-      );
+      expect(providerClient.forward).toHaveBeenCalledWith({
+        provider: 'minimax',
+        apiKey: 'minimax-access',
+        model: 'MiniMax-M2.5',
+        body: expect.any(Object),
+        stream: false,
+        authType: 'subscription',
+      });
     });
   });
 });
