@@ -1,49 +1,7 @@
 import 'reflect-metadata';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { CreateTelemetryDto, TelemetryEventDto, SecurityEventDto } from './create-telemetry.dto';
-
-describe('SecurityEventDto', () => {
-  it('validates correct security event', async () => {
-    const dto = plainToInstance(SecurityEventDto, {
-      severity: 'critical',
-      category: 'injection',
-      description: 'SQL injection attempt',
-    });
-    const errors = await validate(dto);
-    expect(errors).toHaveLength(0);
-  });
-
-  it('rejects category exceeding max length', async () => {
-    const dto = plainToInstance(SecurityEventDto, {
-      severity: 'critical',
-      category: 'x'.repeat(257),
-      description: 'test',
-    });
-    const errors = await validate(dto);
-    expect(errors.length).toBeGreaterThan(0);
-  });
-
-  it('rejects description exceeding max length', async () => {
-    const dto = plainToInstance(SecurityEventDto, {
-      severity: 'critical',
-      category: 'test',
-      description: 'x'.repeat(4097),
-    });
-    const errors = await validate(dto);
-    expect(errors.length).toBeGreaterThan(0);
-  });
-
-  it('rejects invalid severity', async () => {
-    const dto = plainToInstance(SecurityEventDto, {
-      severity: 'high',
-      category: 'test',
-      description: 'test',
-    });
-    const errors = await validate(dto);
-    expect(errors.length).toBeGreaterThan(0);
-  });
-});
+import { CreateTelemetryDto, TelemetryEventDto } from './create-telemetry.dto';
 
 describe('TelemetryEventDto', () => {
   it('validates a minimal event', async () => {
@@ -138,39 +96,6 @@ describe('TelemetryEventDto', () => {
       service_type: 'agent',
       status: 'ok',
       input_tokens: -1,
-    });
-    const errors = await validate(dto);
-    expect(errors.length).toBeGreaterThan(0);
-  });
-
-  it('validates with a nested security_event', async () => {
-    const dto = plainToInstance(TelemetryEventDto, {
-      timestamp: '2024-01-01T00:00:00Z',
-      description: 'test event',
-      service_type: 'agent',
-      status: 'ok',
-      security_event: {
-        severity: 'warning',
-        category: 'prompt_injection',
-        description: 'Suspicious input detected',
-      },
-    });
-    const errors = await validate(dto);
-    expect(errors).toHaveLength(0);
-    expect(dto.security_event).toBeInstanceOf(SecurityEventDto);
-  });
-
-  it('rejects invalid nested security_event', async () => {
-    const dto = plainToInstance(TelemetryEventDto, {
-      timestamp: '2024-01-01T00:00:00Z',
-      description: 'test event',
-      service_type: 'agent',
-      status: 'ok',
-      security_event: {
-        severity: 'high',
-        category: 'test',
-        description: 'test',
-      },
     });
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);

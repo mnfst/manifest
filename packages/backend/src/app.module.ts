@@ -17,7 +17,6 @@ import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { TelemetryModule } from './telemetry/telemetry.module';
 import { AnalyticsModule } from './analytics/analytics.module';
-import { SecurityModule } from './security/security.module';
 import { OtlpModule } from './otlp/otlp.module';
 import { ModelPricesModule } from './model-prices/model-prices.module';
 import { NotificationsModule } from './notifications/notifications.module';
@@ -69,7 +68,6 @@ const serveStaticImports = frontendPath
     HealthModule,
     TelemetryModule,
     AnalyticsModule,
-    SecurityModule,
     OtlpModule,
     ModelPricesModule,
     NotificationsModule,
