@@ -1,4 +1,4 @@
-const { cpSync, copyFileSync, existsSync } = require('fs');
+const { cpSync, copyFileSync, existsSync, mkdirSync } = require('fs');
 const { join } = require('path');
 
 const frontendDist = join(__dirname, '..', '..', 'frontend', 'dist');
@@ -39,12 +39,18 @@ if (existsSync(backendDist)) {
   process.exit(1);
 }
 
-const subCaps = join(__dirname, '..', '..', 'subscription-capabilities');
-const subCapsTarget = join(__dirname, '..', 'subscription-capabilities');
+// Copy manifest-shared so the embedded backend can resolve require('manifest-shared')
+const sharedDist = join(__dirname, '..', '..', 'shared', 'dist');
+const sharedPkg = join(__dirname, '..', '..', 'shared', 'package.json');
+const sharedTarget = join(__dirname, '..', 'dist', 'node_modules', 'manifest-shared');
 
-if (existsSync(subCaps)) {
-  cpSync(subCaps, subCapsTarget, { recursive: true });
-  console.log('Copied subscription-capabilities/');
+if (existsSync(sharedDist)) {
+  mkdirSync(sharedTarget, { recursive: true });
+  cpSync(sharedDist, join(sharedTarget, 'dist'), { recursive: true });
+  copyFileSync(sharedPkg, join(sharedTarget, 'package.json'));
+  console.log('Copied manifest-shared to dist/node_modules/manifest-shared/');
 } else {
-  console.warn('subscription-capabilities not found — skipping.');
+  console.error('ERROR: shared dist not found at', sharedDist);
+  console.error('Run "npm run build" from the monorepo root first.');
+  process.exit(1);
 }

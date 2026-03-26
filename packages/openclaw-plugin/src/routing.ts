@@ -1,15 +1,6 @@
 import { ManifestConfig } from './config';
 import { PluginLogger } from './telemetry';
-
-interface ResolveResponse {
-  tier: string;
-  model: string | null;
-  provider: string | null;
-  confidence: number;
-  score: number;
-  reason: string;
-  auth_type?: 'api_key' | 'subscription';
-}
+import type { ResolveResponse } from 'manifest-shared';
 
 interface MomentumEntry {
   tiers: string[];

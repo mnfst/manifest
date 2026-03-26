@@ -1,14 +1,7 @@
-import {
-  IsArray,
-  IsIn,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  ValidateNested,
-} from 'class-validator';
+import { IsArray, IsIn, IsNotEmpty, IsNumber, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
-const VALID_TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
+import { TIERS } from 'manifest-shared';
 
 class MessageDto {
   @IsNotEmpty()
@@ -38,6 +31,6 @@ export class ResolveRequestDto {
 
   @IsOptional()
   @IsArray()
-  @IsIn(VALID_TIERS, { each: true })
-  recentTiers?: Array<(typeof VALID_TIERS)[number]>;
+  @IsIn(TIERS, { each: true })
+  recentTiers?: Array<(typeof TIERS)[number]>;
 }

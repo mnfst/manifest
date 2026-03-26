@@ -19,8 +19,10 @@ export interface ScorerInput {
 
 // ── Output types ──
 
-export const TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
-export type Tier = (typeof TIERS)[number];
+import type { Tier as _Tier } from 'manifest-shared';
+export { TIERS } from 'manifest-shared';
+export type { Tier } from 'manifest-shared';
+type Tier = _Tier;
 
 export type ScoringReason =
   | 'scored'

@@ -1,4 +1,5 @@
 import { PROVIDERS } from './providers.js';
+import { inferProviderFromModel } from 'manifest-shared';
 
 /** Format per-million token price: $0.15 */
 export function pricePerM(perToken: number | null | undefined): string {
@@ -32,39 +33,7 @@ export function resolveProviderId(dbProvider: string): string | undefined {
   return PROVIDERS.find((p) => p.id === key || p.id === alias || p.name.toLowerCase() === key)?.id;
 }
 
-/**
- * Infer a provider ID from a model name string.
- * Ollama models use the `name:tag` convention (e.g. `qwen2.5:0.5b`).
- * Cloud models have recognizable prefixes.
- */
-const MODEL_PREFIX_MAP: [RegExp, string][] = [
-  [/^openrouter\//, 'openrouter'],
-  [/^claude-/, 'anthropic'],
-  [/^gpt-|^o[134]-|^o[134] |^chatgpt-/, 'openai'],
-  [/^gemini-|^gemma-/, 'gemini'],
-  [/^deepseek-/, 'deepseek'],
-  [/^grok-/, 'xai'],
-  [/^mistral-|^codestral|^pixtral|^open-mistral/, 'mistral'],
-  [/^kimi-|^moonshot-/, 'moonshot'],
-  [/^minimax-/i, 'minimax'],
-  [/^glm-/, 'zai'],
-  [/^qwen[23]|^qwq-/, 'qwen'],
-  [/^copilot\//, 'copilot'],
-  [/^[a-z][\w-]*\//, 'openrouter'],
-];
-
-export function inferProviderFromModel(model: string): string | undefined {
-  // Custom provider models use the custom:<uuid>/model format
-  if (model.startsWith('custom:')) return 'custom';
-  // Ollama convention: models contain a colon tag like `:0.5b`, `:latest`
-  // Exception: OpenRouter `:free` suffix is not Ollama
-  if (/:/.test(model) && !model.endsWith(':free')) return 'ollama';
-  const lower = model.toLowerCase();
-  for (const [re, id] of MODEL_PREFIX_MAP) {
-    if (re.test(lower)) return id;
-  }
-  return undefined;
-}
+export { inferProviderFromModel };
 
 /** Resolve a display name for the inferred provider. */
 export function inferProviderName(model: string): string | undefined {
