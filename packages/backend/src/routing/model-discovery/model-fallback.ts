@@ -16,7 +16,7 @@ interface PricingLookup {
     contextWindow?: number;
     displayName?: string;
   } | null;
-  getAll(): Map<
+  getAll(): ReadonlyMap<
     string,
     { input: number; output: number; contextWindow?: number; displayName?: string }
   >;
