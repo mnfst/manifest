@@ -194,11 +194,7 @@ const Routing: Component = () => {
       refetchTiers(),
       refetchModels(),
     ]);
-    if (!wasEnabled && isEnabled()) {
-      const firstProvider = activeProviders()[0];
-      setInstructionProvider(firstProvider?.provider ?? null);
-      setInstructionModal('enable');
-    }
+    // No "activate routing" modal — users already configured manifest/auto during setup
   };
 
   const handleFallbackUpdate = (tierId: string, updatedFallbacks: string[]) => {

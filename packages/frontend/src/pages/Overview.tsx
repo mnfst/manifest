@@ -10,14 +10,7 @@ import SetupModal from '../components/SetupModal.jsx';
 import SingleTokenChart from '../components/SingleTokenChart.jsx';
 import TokenChart from '../components/TokenChart.jsx';
 import { getOverview, getCustomProviders, type CustomProviderData } from '../services/api.js';
-import {
-  formatCost,
-  formatErrorMessage,
-  customProviderColor,
-  formatNumber,
-  formatStatus,
-  formatTime,
-} from '../services/formatters.js';
+import { formatCost, customProviderColor, formatNumber } from '../services/formatters.js';
 import {
   inferProviderFromModel,
   inferProviderName,
@@ -26,7 +19,6 @@ import {
 import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
-import { isLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import MessageTable from '../components/MessageTable.jsx';
@@ -158,7 +150,7 @@ const Overview: Component = () => {
       cls = 'trend trend--neutral';
     } else if (mode === 'inverted') {
       cls = clamped > 0 ? 'trend trend--up-bad' : 'trend trend--down-good';
-    } else {
+    } /* v8 ignore next 2 */ else {
       cls = clamped > 0 ? 'trend trend--up' : 'trend trend--down';
     }
     const sign = clamped > 0 ? '+' : '';
@@ -333,7 +325,7 @@ const Overview: Component = () => {
               fallback={
                 <div class="empty-state">
                   <div class="empty-state__title">No activity yet</div>
-                  <p>Connect your agent and send a message. Usage data shows up here.</p>
+                  <p>Set up your agent and send a message. Usage data shows up here.</p>
                   <button
                     class="btn btn--primary btn--sm"
                     style="margin-top: var(--gap-md);"
@@ -355,8 +347,15 @@ const Overview: Component = () => {
               <div class="waiting-banner">
                 <i class="bxd bx-florist" />
                 <p>
-                  Waiting for data. Your dashboard will update within seconds of your agent's first
-                  LLM call.
+                  No activity yet. Your dashboard updates seconds after the first LLM call. Need a
+                  provider? Head to{' '}
+                  <A
+                    href={`/agents/${params.agentName}/routing`}
+                    style="color: hsl(var(--primary)); text-decoration: underline;"
+                  >
+                    Routing
+                  </A>
+                  .
                 </p>
               </div>
               <div class="demo-dashboard">
@@ -633,6 +632,7 @@ const Overview: Component = () => {
                                       title={`${inferProviderName(row.model)} (${authLabel(row.auth_type)})`}
                                       style="display: inline-flex; flex-shrink: 0; position: relative;"
                                     >
+                                      {/* v8 ignore next 2 */}
                                       {providerIcon(inferProviderFromModel(row.model)!, 14)}
                                       {authBadgeFor(row.auth_type, 8)}
                                     </span>

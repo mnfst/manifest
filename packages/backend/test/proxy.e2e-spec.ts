@@ -19,7 +19,7 @@ beforeAll(async () => {
   // Populate PricingSyncService cache with gpt-4o-mini pricing (use prefixed key
   // so ModelPricingCacheService.inferProvider() resolves the correct provider name)
   const pricingSync = app.get(PricingSyncService);
-  pricingSync.getAll().set('openai/gpt-4o-mini', {
+  (pricingSync.getAll() as Map<string, { input: number; output: number; contextWindow?: number }>).set('openai/gpt-4o-mini', {
     input: 0.00000015,
     output: 0.0000006,
     contextWindow: 128000,
@@ -112,7 +112,7 @@ describe('Proxy E2E — /v1/chat/completions', () => {
         stream: false,
       });
 
-    // The response should NOT be our OtlpAuthGuard 401 (which has a specific format).
+    // The response should NOT be our AgentKeyAuthGuard 401 (which has a specific format).
     // It will be either a provider error (401/403 from OpenAI) or a network error (500).
     // Either way, we passed auth and resolved a model successfully.
     if (res.status === 401) {

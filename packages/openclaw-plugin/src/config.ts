@@ -95,7 +95,7 @@ export function validateConfig(config: ManifestConfig): string | null {
       return (
         `Invalid endpoint URL '${config.endpoint}'. ` +
         'Must start with http:// or https://. Fix it via:\n' +
-        '  openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp'
+        '  openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238'
       );
     }
     return null;
@@ -119,7 +119,7 @@ export function validateConfig(config: ManifestConfig): string | null {
     return (
       `Invalid endpoint URL '${config.endpoint}'. ` +
       'Must start with http:// or https://. Fix it via:\n' +
-      '  openclaw config set plugins.entries.manifest.config.endpoint https://app.manifest.build/otlp'
+      '  openclaw config set plugins.entries.manifest.config.endpoint https://app.manifest.build'
     );
   }
   return null;

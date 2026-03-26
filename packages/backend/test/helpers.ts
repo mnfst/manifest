@@ -16,7 +16,6 @@ import { portableSql, detectDialect } from '../src/common/utils/sql-dialect';
 import { AgentMessage } from '../src/entities/agent-message.entity';
 import { LlmCall } from '../src/entities/llm-call.entity';
 import { ToolExecution } from '../src/entities/tool-execution.entity';
-import { SecurityEvent } from '../src/entities/security-event.entity';
 import { TokenUsageSnapshot } from '../src/entities/token-usage-snapshot.entity';
 import { CostSnapshot } from '../src/entities/cost-snapshot.entity';
 import { AgentLog } from '../src/entities/agent-log.entity';
@@ -32,7 +31,6 @@ import { CustomProvider } from '../src/entities/custom-provider.entity';
 import { EmailProviderConfig } from '../src/entities/email-provider-config.entity';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
-import { SecurityModule } from '../src/security/security.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
 import { NotificationsModule } from '../src/notifications/notifications.module';
 import { ModelPricesModule } from '../src/model-prices/model-prices.module';
@@ -46,7 +44,7 @@ export const TEST_TENANT_ID = 'test-tenant-001';
 export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
-const entities = [AgentMessage, LlmCall, ToolExecution, SecurityEvent, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig];
+const entities = [AgentMessage, LlmCall, ToolExecution, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig];
 
 function buildTypeOrmConfig(): TypeOrmModuleOptions {
   return {
@@ -96,7 +94,6 @@ export async function createTestApp(): Promise<INestApplication> {
       CommonModule,
       HealthModule,
       AnalyticsModule,
-      SecurityModule,
       OtlpModule,
       NotificationsModule,
       ModelPricesModule,

@@ -2594,6 +2594,68 @@ describe('ProxyController', () => {
     );
   });
 
+  describe('ProxyMessageRecorder user_id inclusion', () => {
+    const ctx = {
+      userId: 'user-42',
+      tenantId: 'tenant-1',
+      agentId: 'agent-1',
+      agentName: 'test-agent',
+    };
+
+    it('recordProviderError includes user_id in inserted record', async () => {
+      await recorder.recordProviderError(
+        ctx as never,
+        500,
+        'Server error',
+        'gpt-4o',
+        'simple',
+        'trace-1',
+      );
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ user_id: 'user-42' }),
+      );
+    });
+
+    it('recordFailedFallbacks includes user_id in every inserted record', async () => {
+      await recorder.recordFailedFallbacks(ctx as never, 'simple', 'gpt-4o', [
+        {
+          model: 'deepseek-chat',
+          provider: 'DeepSeek',
+          fallbackIndex: 0,
+          status: 500,
+          errorBody: 'fail',
+        },
+        {
+          model: 'claude-sonnet-4',
+          provider: 'Anthropic',
+          fallbackIndex: 1,
+          status: 502,
+          errorBody: 'bad gw',
+        },
+      ]);
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
+      for (const call of mockMessageRepo.insert.mock.calls) {
+        expect(call[0]).toEqual(expect.objectContaining({ user_id: 'user-42' }));
+      }
+    });
+
+    it('recordPrimaryFailure includes user_id in inserted record', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx as never,
+        'standard',
+        'gemini-flash',
+        'Provider error',
+        new Date().toISOString(),
+      );
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ user_id: 'user-42' }),
+      );
+    });
+  });
+
   it('should NOT set X-Manifest-Fallback-Exhausted when a fallback succeeded', async () => {
     const responseBody = { choices: [{ message: { content: 'hello' } }] };
     const mockProviderResp = new Response(JSON.stringify(responseBody), {

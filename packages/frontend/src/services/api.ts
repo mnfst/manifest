@@ -56,14 +56,6 @@ export function getOverview(range = '24h', agentName?: string) {
   return fetchJson('/overview', { range, ...(agentName ? { agent_name: agentName } : {}) });
 }
 
-export function getTokens(range = '24h', agentName?: string) {
-  return fetchJson('/tokens', { range, ...(agentName ? { agent_name: agentName } : {}) });
-}
-
-export function getCosts(range = '24h', agentName?: string) {
-  return fetchJson('/costs', { range, ...(agentName ? { agent_name: agentName } : {}) });
-}
-
 export function getMessages(
   params: {
     range?: string;
@@ -145,10 +137,6 @@ export interface MessageDetailResponse {
 
 export function getMessageDetails(id: string) {
   return fetchJson<MessageDetailResponse>(`/messages/${encodeURIComponent(id)}/details`);
-}
-
-export function getSecurity(range = '24h') {
-  return fetchJson('/security', { range });
 }
 
 export function getHealth() {
@@ -306,71 +294,6 @@ export function testSavedEmailProvider(to: string) {
       body: JSON.stringify({ to }),
     },
   );
-}
-
-export function getNotificationEmailForProvider() {
-  return fetchJson<{ email: string | null }>('/notifications/notification-email');
-}
-
-export function saveNotificationEmailForProvider(email: string) {
-  return fetchMutate<{ saved: boolean }>(`${BASE_URL}/notifications/notification-email`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
-  });
-}
-
-/* -- Email Config -- */
-
-export interface EmailConfig {
-  configured: boolean;
-  provider?: string;
-  domain?: string;
-  fromEmail?: string;
-}
-
-export function getEmailConfig() {
-  return fetchJson<EmailConfig>('/email-config');
-}
-
-export function saveEmailConfig(data: {
-  provider: string;
-  apiKey: string;
-  domain?: string;
-  fromEmail?: string;
-}) {
-  return fetchMutate(`${BASE_URL}/email-config`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-}
-
-export function testEmailConfig(
-  data: { provider: string; apiKey: string; domain?: string; fromEmail?: string },
-  toEmail: string,
-) {
-  return fetchMutate<{ success: boolean; error?: string }>(`${BASE_URL}/email-config/test`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...data, toEmail }),
-  });
-}
-
-export function clearEmailConfig() {
-  return fetchMutate(`${BASE_URL}/email-config`, { method: 'DELETE' });
-}
-
-export function getNotificationEmail() {
-  return fetchJson<{ email: string | null; isDefault: boolean }>('/notification-email');
-}
-
-export function saveNotificationEmail(email: string) {
-  return fetchMutate(`${BASE_URL}/notification-email`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
-  });
 }
 
 /* -- Routing: Status -- */

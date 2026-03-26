@@ -11,7 +11,7 @@
     },
     "manifest#build": {
       "dependsOn": ["manifest-frontend#build", "manifest-backend#build"],
-      "outputs": ["dist/**", "public/**", "subscription-capabilities/**", "skills/**"]
+      "outputs": ["dist/**", "public/**", "skills/**"]
     },
     "test": {
       "cache": false

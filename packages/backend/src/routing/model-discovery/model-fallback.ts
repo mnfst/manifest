@@ -3,10 +3,7 @@ import {
   OPENROUTER_PREFIX_TO_PROVIDER,
   PROVIDER_BY_ID_OR_ALIAS,
 } from '../../common/constants/providers';
-import {
-  getSubscriptionKnownModels,
-  getSubscriptionCapabilities,
-} from '../../../../subscription-capabilities';
+import { getSubscriptionKnownModels, getSubscriptionCapabilities } from 'manifest-shared';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 
 interface PricingLookup {
@@ -16,7 +13,7 @@ interface PricingLookup {
     contextWindow?: number;
     displayName?: string;
   } | null;
-  getAll(): Map<
+  getAll(): ReadonlyMap<
     string,
     { input: number; output: number; contextWindow?: number; displayName?: string }
   >;

@@ -81,6 +81,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallback_from_model: fallbackFromModel ?? null,
       fallback_index: fallbackIndex ?? null,
       auth_type: authType ?? null,
+      user_id: ctx.userId,
     });
     this.eventBus.emit(ctx.userId);
   }
@@ -129,6 +130,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         fallback_from_model: primaryModel,
         fallback_index: f.fallbackIndex,
         auth_type: authType ?? null,
+        user_id: ctx.userId,
       });
     }
     this.eventBus.emit(ctx.userId);
@@ -160,6 +162,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallback_from_model: null,
       fallback_index: null,
       auth_type: authType ?? null,
+      user_id: ctx.userId,
     });
     this.eventBus.emit(ctx.userId);
   }

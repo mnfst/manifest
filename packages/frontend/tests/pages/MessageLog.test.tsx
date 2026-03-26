@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from "@solidjs/testing-library";
 let mockAgentName = "test-agent";
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
+  A: (props: any) => <a href={props.href} style={props.style}>{props.children}</a>,
 }));
 
 let mockIsLocalMode: boolean | null = false;
@@ -166,7 +167,7 @@ describe("MessageLog", () => {
     mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("No messages recorded");
+      expect(container.textContent).toContain("No messages yet");
     });
   });
 
@@ -197,7 +198,7 @@ describe("MessageLog", () => {
     await fireEvent.change(selects[0], { target: { value: "openai" } });
     await vi.waitFor(() => {
       expect(container.textContent).not.toContain("Waiting for data");
-      expect(container.textContent).not.toContain("No messages recorded");
+      expect(container.textContent).not.toContain("No messages yet");
     });
   });
 
@@ -510,6 +511,19 @@ describe("MessageLog", () => {
     expect(container.querySelector('[data-testid="setup-modal"]')).not.toBeNull();
   });
 
+  it("shows routing link in waiting banner after setup completed in cloud mode", async () => {
+    localStorage.setItem("setup_completed_test-agent", "1");
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("No messages yet");
+      const link = container.querySelector('.waiting-banner a');
+      expect(link).not.toBeNull();
+      expect(link!.getAttribute("href")).toBe("/agents/test-agent/routing");
+      expect(link!.textContent).toBe("Routing");
+    });
+  });
+
   describe("local mode", () => {
     it("should treat setup as completed for any agent in local mode", async () => {
       mockAgentName = "local-agent";
@@ -517,7 +531,7 @@ describe("MessageLog", () => {
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain("Messages will show up");
+        expect(container.textContent).toContain("No messages yet");
       });
     });
 
@@ -532,13 +546,17 @@ describe("MessageLog", () => {
       });
     });
 
-    it("should show waiting banner for non-default agent in local mode", async () => {
+    it("should show waiting banner with routing link for non-default agent in local mode", async () => {
       mockAgentName = "other-agent";
       mockIsLocalMode = true;
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain("Messages will show up");
+        expect(container.textContent).toContain("No messages yet");
+        const link = container.querySelector('.waiting-banner a');
+        expect(link).not.toBeNull();
+        expect(link!.getAttribute("href")).toBe("/agents/other-agent/routing");
+        expect(link!.textContent).toBe("Routing");
       });
     });
 
@@ -548,7 +566,7 @@ describe("MessageLog", () => {
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain("No messages recorded");
+        expect(container.textContent).toContain("No messages yet");
       });
     });
   });

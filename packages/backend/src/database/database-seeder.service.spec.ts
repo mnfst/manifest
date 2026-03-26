@@ -27,7 +27,6 @@ describe('DatabaseSeederService', () => {
   let mockAgentRepo: ReturnType<typeof makeMockRepo>;
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockApiKeyRepo: ReturnType<typeof makeMockRepo>;
-  let mockSecurityRepo: ReturnType<typeof makeMockRepo>;
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
   const originalSeedData = process.env['SEED_DATA'];
   const originalManifestMode = process.env['MANIFEST_MODE'];
@@ -41,7 +40,6 @@ describe('DatabaseSeederService', () => {
     mockAgentRepo = makeMockRepo();
     mockAgentKeyRepo = makeMockRepo();
     mockApiKeyRepo = makeMockRepo();
-    mockSecurityRepo = makeMockRepo();
     mockMessageRepo = makeMockRepo();
 
     service = new DatabaseSeederService(
@@ -51,7 +49,6 @@ describe('DatabaseSeederService', () => {
       mockAgentRepo as never,
       mockAgentKeyRepo as never,
       mockApiKeyRepo as never,
-      mockSecurityRepo as never,
       mockMessageRepo as never,
     );
 
@@ -342,48 +339,6 @@ describe('DatabaseSeederService', () => {
         `UPDATE "user" SET "emailVerified" = true WHERE email = $1`,
         ['admin@manifest.build'],
       );
-    });
-  });
-
-  describe('seedSecurityEvents', () => {
-    it('should skip seeding when events already exist', async () => {
-      mockSecurityRepo.count.mockResolvedValue(5);
-
-      await service.onModuleInit();
-
-      expect(mockSecurityRepo.insert).not.toHaveBeenCalled();
-    });
-
-    it('should insert 12 security events when table is empty', async () => {
-      mockSecurityRepo.count.mockResolvedValue(0);
-
-      await service.onModuleInit();
-
-      expect(mockSecurityRepo.insert).toHaveBeenCalledTimes(12);
-    });
-
-    it('should include events of all severity levels', async () => {
-      mockSecurityRepo.count.mockResolvedValue(0);
-
-      await service.onModuleInit();
-
-      const insertedSeverities = mockSecurityRepo.insert.mock.calls.map(
-        (call: unknown[]) => (call[0] as { severity: string }).severity,
-      );
-      expect(insertedSeverities).toContain('critical');
-      expect(insertedSeverities).toContain('warning');
-      expect(insertedSeverities).toContain('info');
-    });
-
-    it('should attach admin user_id to security events', async () => {
-      mockSecurityRepo.count.mockResolvedValue(0);
-      mockDataSource.query.mockResolvedValue([{ id: 'admin-user-id' }]);
-
-      await service.onModuleInit();
-
-      for (const call of mockSecurityRepo.insert.mock.calls) {
-        expect((call[0] as { user_id: string }).user_id).toBe('admin-user-id');
-      }
     });
   });
 

@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-03-25
+Last updated: 2026-03-26
 
 ## IMPORTANT: Local Mode First
 
@@ -74,13 +74,14 @@ packages/
 │   │   │   └── current-user.decorator.ts    # @CurrentUser() param decorator
 │   │   ├── database/
 │   │   │   ├── database.module.ts           # TypeORM PostgreSQL config
-│   │   │   ├── database-seeder.service.ts   # Seeds model_pricing + demo data
+│   │   │   ├── database-seeder.service.ts   # Seeds demo data (users, agents, security events)
 │   │   │   ├── local-bootstrap.service.ts   # Seeds local mode (SQLite)
 │   │   │   ├── datasource.ts               # CLI DataSource for migration commands
-│   │   │   ├── pricing-sync.service.ts      # External pricing data sync
+│   │   │   ├── pricing-sync.service.ts      # OpenRouter pricing data sync
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
-│   │   │   └── seed-models.ts              # Model pricing seed data
-│   │   ├── entities/                        # TypeORM entities (20 files)
+│   │   │   ├── quality-score.util.ts        # Model quality scoring
+│   │   │   └── seed-messages.ts             # Demo agent message seed data
+│   │   ├── entities/                        # TypeORM entities (17 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
@@ -199,7 +200,7 @@ Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test onl
 - **Agent**: `demo-agent` with OTLP key `dev-otlp-key-001`
 - **API key**: `dev-api-key-manifest-001`
 - **Security events**: 12 sample events for the security dashboard
-- **Model pricing**: 48 models seeded (Anthropic, OpenAI, Google, Meta, Mistral, DeepSeek, xAI, Alibaba/Qwen, etc.)
+- **Agent messages**: Sample telemetry messages for the demo agent
 
 Seeding is idempotent — it checks for existing records before inserting.
 
@@ -419,22 +420,7 @@ The registry exports derived maps used throughout the codebase:
 - `OPENROUTER_PREFIX_TO_PROVIDER` — OpenRouter vendor prefix → display name (e.g. `openai` → `OpenAI`)
 - `expandProviderNames()` — expands a set of names to include aliases
 
-**Supported providers (12):**
-
-| ID | Display Name | Aliases | OpenRouter Prefixes | Notes |
-|----|-------------|---------|-------------------|-------|
-| `anthropic` | Anthropic | — | `anthropic` | Supports subscription auth |
-| `openai` | OpenAI | — | `openai` | |
-| `gemini` | Google | `google` | `google` | Key-in-URL auth for model list |
-| `deepseek` | DeepSeek | — | `deepseek` | |
-| `mistral` | Mistral | — | `mistralai` | |
-| `moonshot` | Moonshot | `kimi` | `moonshotai` | |
-| `xai` | xAI | — | `xai`, `x-ai` | |
-| `minimax` | MiniMax | — | `minimax` | |
-| `qwen` | Alibaba | `alibaba` | `qwen`, `alibaba` | |
-| `zai` | Z.ai | `z.ai` | `z-ai`, `zhipuai` | |
-| `openrouter` | OpenRouter | — | `openrouter` | Public API, no key needed for model list |
-| `ollama` | Ollama | — | — | Local only, no key needed |
+**Do NOT duplicate the provider list here.** Read `PROVIDER_REGISTRY` in `common/constants/providers.ts` for the current list of supported providers, their IDs, aliases, and OpenRouter prefix mappings.
 
 ### Adding a New Provider
 
@@ -445,42 +431,41 @@ The registry exports derived maps used throughout the codebase:
 
 ### Model Discovery
 
-Each provider's model list is fetched from **that provider's own API first**. If the native API fails or returns no models (some providers like MiniMax don't have a `/models` endpoint), the system falls back to building a model list from the OpenRouter pricing cache + OpenRouter pricing cache for that provider.
+Each provider's model list is fetched from **that provider's own API first**. If the native API fails or returns no models (some providers like MiniMax don't have a `/models` endpoint), the system falls back to building a model list from the OpenRouter pricing cache for that provider.
 
 ```
 User connects provider (POST /routing/:agent/providers)
   → ProviderModelFetcherService.fetch(providerId, apiKey)
     → calls provider's /models endpoint (e.g. api.anthropic.com/v1/models)
-    → if 0 models returned: buildFallbackModels() from OpenRouter cache + manual pricing
+    → if 0 models returned: buildFallbackModels() from OpenRouter cache
   → ModelDiscoveryService.enrichModel()
     → looks up pricing from OpenRouter cache (PricingSyncService)
-    → falls back to OpenRouter pricing cache for niche providers
     → computes quality score
   → saves to user_providers.cached_models (JSONB column)
   → recalculates tier assignments
 ```
 
 - `ProviderModelFetcherService` — config-driven fetcher with parsers for each provider API format (OpenAI-compatible, Anthropic, Gemini, OpenRouter, Ollama)
-- `ModelDiscoveryService` — orchestrator that decrypts keys, fetches, enriches with pricing, caches results. Falls back to OpenRouter + manual pricing when native API is unavailable.
+- `ModelDiscoveryService` — orchestrator that decrypts keys, fetches, enriches with pricing, caches results. Falls back to OpenRouter cache when native API is unavailable.
 - `cached_models` — per-provider, per-agent JSONB column on `user_providers` table
 - Discovery runs synchronously on provider connect (user sees models immediately)
 - "Refresh models" button triggers `POST /routing/:agent/refresh-models`
 
 ### Model Pricing
 
-The `model_pricing` database table has been **dropped**. All pricing comes from a single source:
+All pricing comes from a single source:
 
 - **OpenRouter API** (public, no key needed, fetched daily via cron + on startup) — provides pricing for all providers. Stored in-memory by `PricingSyncService`. No hardcoded pricing data anywhere.
 
-`ModelPricingCacheService` merges both sources and attributes models to their real provider using OpenRouter vendor prefixes (via `OPENROUTER_PREFIX_TO_PROVIDER`). Unsupported community vendors stay under "OpenRouter".
+`ModelPricingCacheService` reads from the OpenRouter cache and attributes models to their real provider using OpenRouter vendor prefixes (via `OPENROUTER_PREFIX_TO_PROVIDER`). Unsupported community vendors stay under "OpenRouter".
 
-**Priority order for model lists**: (1) Provider's native `/models` API, (2) OpenRouter cache filtered by vendor prefix, (3) Manual pricing reference. OpenRouter is the fallback, not the primary source. When a provider's native API works, its model list takes precedence.
+**Priority order for model lists**: (1) Provider's native `/models` API, (2) OpenRouter cache filtered by vendor prefix. OpenRouter is the fallback, not the primary source. When a provider's native API works, its model list takes precedence.
 
 ### Where Models Appear
 
 | Page | Source | What's shown |
 |------|--------|-------------|
-| **Model Prices** | `ModelPricingCacheService.getAll()` | All models from OpenRouter + manual pricing, attributed to real providers |
+| **Model Prices** | `ModelPricingCacheService.getAll()` | All models from OpenRouter cache, attributed to real providers |
 | **Routing (available models)** | `ModelDiscoveryService.getModelsForAgent()` | Only models from user's connected providers (discovered via native API) |
 | **Routing (tier assignments)** | `TierAutoAssignService.recalculate()` | Auto-assigned from discovered models based on quality/price scoring |
 | **Messages / Overview** | Stored in `agent_messages.model` column | Raw model name from telemetry, display name resolved via `model-display.ts` cache |

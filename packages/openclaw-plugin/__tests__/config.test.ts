@@ -334,7 +334,7 @@ describe("validateConfig", () => {
     };
     const err = validateConfig(config)!;
     expect(err).toContain("Invalid endpoint URL");
-    expect(err).toContain("http://localhost:38238/otlp");
+    expect(err).toContain("http://localhost:38238");
   });
 
   it("rejects missing apiKey with actionable fix command", () => {
@@ -380,11 +380,9 @@ describe("validateConfig", () => {
   });
 
   // Regression: the error message must show the correct endpoint example.
-  // Previously it showed /api/v1/otlp which would produce a 404.
   it("shows correct example endpoint in validation error message", () => {
     const config = { ...validConfig, endpoint: "not-a-url" };
     const err = validateConfig(config)!;
-    expect(err).toContain("https://app.manifest.build/otlp");
-    expect(err).not.toContain("/api/v1/otlp");
+    expect(err).toContain("https://app.manifest.build");
   });
 });

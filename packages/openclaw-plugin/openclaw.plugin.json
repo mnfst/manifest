@@ -2,7 +2,7 @@
   "id": "manifest",
   "kind": "routing",
   "name": "Manifest — Smart LLM Router",
-  "version": "5.30.0",
+  "version": "5.31.1",
   "description": "Smart model routing, cost tracking, and usage analytics for your OpenClaw agent. Zero-config local dashboard included.",
   "author": "MNFST Inc.",
   "homepage": "https://manifest.build",

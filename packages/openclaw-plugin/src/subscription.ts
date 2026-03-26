@@ -2,7 +2,7 @@ import { existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { PluginLogger } from './types';
-import { supportsSubscriptionProvider } from '../../subscription-capabilities';
+import { supportsSubscriptionProvider } from 'manifest-shared';
 import { loadJsonFile } from './json-file';
 
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
@@ -147,8 +147,7 @@ export function discoverSubscriptionProviders(logger: PluginLogger): Subscriptio
 }
 
 /**
- * Registers discovered subscription providers with the Manifest backend
- * using the OTLP-authenticated batch endpoint.
+ * Registers discovered subscription providers with the Manifest backend.
  * This allows the routing/tier logic to consider subscription providers
  * alongside API key providers.
  */

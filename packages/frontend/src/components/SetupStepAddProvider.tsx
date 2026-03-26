@@ -1,7 +1,7 @@
 import { createSignal, Show, type Component } from 'solid-js';
 import { CopyButton } from './SetupStepInstall.jsx';
 
-type ConfigTab = 'sdk' | 'curl';
+type ConfigTab = 'openclaw' | 'sdk' | 'curl';
 
 interface Props {
   apiKey: string | null;
@@ -10,11 +10,23 @@ interface Props {
 }
 
 const SetupStepAddProvider: Component<Props> = (props) => {
-  const [tab, setTab] = createSignal<ConfigTab>('sdk');
+  const [tab, setTab] = createSignal<ConfigTab>('openclaw');
 
   const hasFullKey = () => !!props.apiKey;
   const displayKey = () =>
     props.apiKey ?? (props.keyPrefix ? `${props.keyPrefix}...` : 'mnfst_YOUR_KEY');
+
+  const openclawSnippet = () => {
+    const providerJson = JSON.stringify({
+      baseUrl: props.baseUrl,
+      api: 'openai-completions',
+      apiKey: displayKey(),
+      models: [{ id: 'auto', name: 'Manifest Auto' }],
+    });
+    return `openclaw config set models.providers.manifest '${providerJson}'
+openclaw config set agents.defaults.model.primary manifest/auto
+openclaw gateway restart`;
+  };
 
   const sdkSnippet = () =>
     `from openai import OpenAI
@@ -38,22 +50,28 @@ response = client.chat.completions.create(
     "messages": [{"role": "user", "content": "Hello"}]
   }'`;
 
+  const snippetFor = (t: ConfigTab) => {
+    if (t === 'openclaw') return openclawSnippet();
+    if (t === 'sdk') return sdkSnippet();
+    return curlSnippet();
+  };
+
   return (
     <div>
       <h3 style="margin: 0 0 4px; font-size: var(--font-size-base); font-weight: 600;">
         Add Manifest as a provider
       </h3>
       <p style="margin: 0 0 16px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-        Use any OpenAI-compatible client. Set the base URL and API key below, then use{' '}
+        Run these commands to register Manifest in your OpenClaw config. Use{' '}
         <code style="font-family: var(--font-mono); font-size: var(--font-size-sm); background: hsl(var(--muted)); padding: 2px 6px; border-radius: 4px;">
           manifest/auto
         </code>{' '}
-        as your model.
+        as the model -- it routes each request to the best provider for the job.
       </p>
 
       <Show when={hasFullKey()}>
         <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-          Copy your API key now -- it will not be shown again.
+          Save this API key somewhere safe. You won't see it again.
         </div>
         <div style="display: flex; align-items: center; gap: 8px; background: hsl(var(--muted)); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; font-family: var(--font-mono); font-size: var(--font-size-sm); word-break: break-all;">
           {props.apiKey}
@@ -98,6 +116,18 @@ response = client.chat.completions.create(
           <div class="modal-terminal__tabs" role="tablist" aria-label="Code example">
             <button
               class="modal-terminal__tab"
+              classList={{ 'modal-terminal__tab--active': tab() === 'openclaw' }}
+              onClick={() => setTab('openclaw')}
+              role="tab"
+              aria-selected={tab() === 'openclaw'}
+            >
+              OpenClaw
+            </button>
+            <span class="modal-terminal__tab-sep" aria-hidden="true">
+              |
+            </span>
+            <button
+              class="modal-terminal__tab"
               classList={{ 'modal-terminal__tab--active': tab() === 'sdk' }}
               onClick={() => setTab('sdk')}
               role="tab"
@@ -120,11 +150,9 @@ response = client.chat.completions.create(
           </div>
         </div>
         <div class="modal-terminal__body">
-          <CopyButton text={tab() === 'sdk' ? sdkSnippet() : curlSnippet()} />
+          <CopyButton text={snippetFor(tab())} />
           <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">
-            <code class="modal-terminal__code">
-              {tab() === 'sdk' ? sdkSnippet() : curlSnippet()}
-            </code>
+            <code class="modal-terminal__code">{snippetFor(tab())}</code>
           </pre>
         </div>
       </div>

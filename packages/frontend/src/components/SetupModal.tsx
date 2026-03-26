@@ -1,23 +1,6 @@
-import { createResource, createSignal, For, Show, type Component } from 'solid-js';
+import { createResource, Show, type Component } from 'solid-js';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
-import SetupStepLocalConfigure from './SetupStepLocalConfigure.jsx';
-import SetupStepProviders from './SetupStepProviders.jsx';
 import { getAgentKey, getHealth } from '../services/api.js';
-
-interface StepDef {
-  n: number;
-  label: string;
-}
-
-const CLOUD_STEPS: StepDef[] = [
-  { n: 1, label: 'Add Provider' },
-  { n: 2, label: 'Connect Models' },
-];
-
-const LOCAL_STEPS: StepDef[] = [
-  { n: 1, label: 'Configure' },
-  { n: 2, label: 'Connect Models' },
-];
 
 const SetupModal: Component<{
   open: boolean;
@@ -27,8 +10,6 @@ const SetupModal: Component<{
   onDone?: () => void;
   onGoToRouting?: () => void;
 }> = (props) => {
-  const [step, setStep] = createSignal(1);
-
   const [healthData] = createResource(
     () => props.open,
     (open) => (open ? getHealth() : null),
@@ -41,20 +22,12 @@ const SetupModal: Component<{
   );
 
   const baseUrl = () => {
+    if (isLocal()) return `${window.location.origin}/v1`;
     const custom = apiKeyData()?.pluginEndpoint;
     if (custom) return custom;
     const host = window.location.hostname;
     if (host === 'app.manifest.build') return 'https://app.manifest.build/v1';
     return `${window.location.origin}/v1`;
-  };
-
-  const steps = () => (isLocal() ? LOCAL_STEPS : CLOUD_STEPS);
-  const totalSteps = () => steps().length;
-  const isLastStep = () => step() === totalSteps();
-
-  const handleFinish = () => {
-    props.onDone?.();
-    props.onClose();
   };
 
   const handleGoToRouting = () => {
@@ -106,116 +79,20 @@ const SetupModal: Component<{
             </button>
           </div>
           <p class="modal-card__desc">
-            <Show
-              when={isLocal()}
-              fallback={
-                <>
-                  Add Manifest as a provider in your client, then connect at least one LLM provider
-                  so routing can work.
-                </>
-              }
-            >
-              <>
-                Your local server is running. Connect at least one LLM provider to start routing
-                requests.
-              </>
-            </Show>
+            Add Manifest as a model provider, then connect at least one LLM so routing works.
           </p>
 
-          <div class="modal-stepper">
-            <For each={steps()}>
-              {(s, i) => (
-                <>
-                  <Show when={i() > 0}>
-                    <div class="modal-stepper__line" />
-                  </Show>
-                  <div
-                    class="modal-stepper__step"
-                    classList={{
-                      'modal-stepper__step--active': step() === s.n,
-                      'modal-stepper__step--done': step() > s.n,
-                    }}
-                    onClick={() => setStep(s.n)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setStep(s.n);
-                      }
-                    }}
-                    role="button"
-                    tabindex="0"
-                    aria-label={`Step ${s.n}: ${s.label}${step() > s.n ? ' (completed)' : step() === s.n ? ' (current)' : ''}`}
-                    style="cursor: pointer;"
-                  >
-                    <div class="modal-stepper__circle">
-                      <Show when={step() > s.n} fallback={s.n}>
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="3"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      </Show>
-                    </div>
-                    <span class="modal-stepper__label">{s.label}</span>
-                  </div>
-                </>
-              )}
-            </For>
-          </div>
-
-          {/* Cloud flow: Add Provider → Connect Models */}
-          <Show when={!isLocal()}>
-            <Show when={step() === 1}>
-              <SetupStepAddProvider
-                apiKey={props.apiKey ?? null}
-                keyPrefix={apiKeyData()?.keyPrefix ?? null}
-                baseUrl={baseUrl()}
-              />
-            </Show>
-          </Show>
-
-          {/* Local flow: Configure → Connect Models */}
-          <Show when={isLocal()}>
-            <Show when={step() === 1}>
-              <SetupStepLocalConfigure
-                apiKey={props.apiKey ?? null}
-                keyPrefix={apiKeyData()?.keyPrefix ?? null}
-                baseUrl={baseUrl()}
-              />
-            </Show>
-          </Show>
-
-          {/* Connect Models step (last step for both flows) */}
-          <Show when={isLastStep()}>
-            <SetupStepProviders agentName={props.agentName} onGoToRouting={handleGoToRouting} />
-          </Show>
+          <SetupStepAddProvider
+            apiKey={props.apiKey ?? null}
+            keyPrefix={apiKeyData()?.keyPrefix ?? null}
+            baseUrl={baseUrl()}
+          />
 
           <div class="setup-modal__nav">
-            <button
-              class="modal-card__back-link"
-              onClick={() => setStep((s) => s - 1)}
-              style={step() === 1 ? 'visibility: hidden;' : ''}
-              tabindex={step() === 1 ? -1 : 0}
-            >
-              Back
+            <span />
+            <button class="setup-modal__next" onClick={handleGoToRouting}>
+              Connect providers
             </button>
-            <Show
-              when={step() < totalSteps()}
-              fallback={
-                <button class="setup-modal__next" onClick={handleFinish}>
-                  Done
-                </button>
-              }
-            >
-              <button class="setup-modal__next" onClick={() => setStep((s) => s + 1)}>
-                Next
-              </button>
-            </Show>
           </div>
         </div>
       </div>

@@ -2,9 +2,7 @@ import { createSignal, createResource, Show, For, type Component } from 'solid-j
 import { useParams, useNavigate, useLocation } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
-import SetupStepInstall from '../components/SetupStepInstall.jsx';
-import SetupStepConfigure from '../components/SetupStepConfigure.jsx';
-import SetupStepVerify from '../components/SetupStepVerify.jsx';
+import SetupStepAddProvider from '../components/SetupStepAddProvider.jsx';
 import { CopyButton } from '../components/SetupStepInstall.jsx';
 import { getAgentKey, deleteAgent, renameAgent, rotateAgentKey } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
@@ -34,12 +32,12 @@ const Settings: Component = () => {
     (n) => getAgentKey(n),
   );
 
-  const endpoint = () => {
+  const baseUrl = () => {
     const custom = apiKeyData()?.pluginEndpoint;
     if (custom) return custom;
     const host = window.location.hostname;
-    if (host === 'app.manifest.build') return null;
-    return window.location.origin;
+    if (host === 'app.manifest.build') return 'https://app.manifest.build/v1';
+    return `${window.location.origin}/v1`;
   };
 
   const handleSave = async () => {
@@ -219,7 +217,7 @@ const Settings: Component = () => {
           <Show when={rotatedKey()}>
             <div style="padding: 0 var(--gap-md) var(--gap-md);">
               <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                Copy your new API key now — it won't be shown again.
+                Save this key somewhere safe. You won't see it again.
               </div>
               <div style="display: flex; align-items: center; gap: 8px; background: hsl(var(--muted)); border-radius: var(--radius); padding: 10px 14px; font-family: var(--font-mono); font-size: var(--font-size-sm); word-break: break-all;">
                 {rotatedKey()}
@@ -251,15 +249,26 @@ const Settings: Component = () => {
             }
           >
             <div class="settings-card" style="padding: var(--gap-lg);">
-              <SetupStepInstall stepNumber={1} />
-              <SetupStepConfigure
-                stepNumber={2}
-                apiKey={rotatedKey() ?? apiKeyData()?.apiKey ?? null}
+              <SetupStepAddProvider
+                apiKey={rotatedKey() ?? null}
                 keyPrefix={apiKeyData()?.keyPrefix ?? null}
-                agentName={agentName()}
-                endpoint={endpoint()}
+                baseUrl={baseUrl()}
               />
-              <SetupStepVerify stepNumber={3} />
+              <div style="margin-top: var(--gap-lg); padding-top: var(--gap-lg); border-top: 1px solid hsl(var(--border));">
+                <p style="margin: 0 0 12px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+                  Add at least one LLM provider so Manifest knows where to route requests.
+                </p>
+                <button
+                  class="btn btn--primary btn--sm"
+                  onClick={() =>
+                    navigate(`/agents/${encodeURIComponent(agentName())}/routing`, {
+                      state: { openProviders: true },
+                    })
+                  }
+                >
+                  Go to routing
+                </button>
+              </div>
             </div>
           </Show>
         </Show>
