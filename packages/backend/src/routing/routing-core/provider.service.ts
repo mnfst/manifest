@@ -8,7 +8,6 @@ import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
 import { encrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
-import { expandProviderNames } from '../../common/utils/provider-aliases';
 import {
   isManifestUsableProvider,
   isSupportedSubscriptionProvider,

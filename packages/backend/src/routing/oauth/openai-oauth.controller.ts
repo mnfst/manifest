@@ -94,7 +94,7 @@ export class OpenaiOauthController {
   async callback(
     @Body('code') code: string,
     @Body('state') state: string,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() _user: AuthUser,
   ) {
     if (!code || !state) {
       throw new HttpException('code and state are required', HttpStatus.BAD_REQUEST);
