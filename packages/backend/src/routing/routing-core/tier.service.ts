@@ -44,7 +44,16 @@ export class TierService {
           auto_assigned_model: null,
         }),
       );
-      await this.tierRepo.insert(created);
+      try {
+        await this.tierRepo.insert(created);
+      } catch {
+        // Concurrent request already created the rows — re-read
+        const existing = await this.tierRepo.find({ where: { agent_id: agentId } });
+        if (existing.length > 0) {
+          this.routingCache.setTiers(agentId, existing);
+          return existing;
+        }
+      }
 
       // If agent has active providers, recalculate immediately
       const providers = await this.providerRepo.find({
@@ -103,7 +112,13 @@ export class TierService {
       auto_assigned_model: null,
     });
 
-    await this.tierRepo.insert(record);
+    try {
+      await this.tierRepo.insert(record);
+    } catch {
+      // Concurrent insert — retry as update
+      const retry = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
+      if (retry) return this.setOverride(agentId, userId, tier, model, provider, authType);
+    }
     this.routingCache.invalidateAgent(agentId);
     return record;
   }

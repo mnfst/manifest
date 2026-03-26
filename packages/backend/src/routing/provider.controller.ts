@@ -69,9 +69,13 @@ export class ProviderController {
     // frontend sees updated data immediately (typically ~1-3s).
     try {
       await this.discoveryService.discoverModels(result);
-      await this.providerService.recalculateTiers(agent.id);
     } catch {
       // Discovery failure is non-fatal — user can retry via "Refresh models"
+    }
+    try {
+      await this.providerService.recalculateTiers(agent.id);
+    } catch {
+      // Tier recalculation failure is non-fatal
     }
 
     return {
