@@ -1,5 +1,5 @@
-import { TierAutoAssignService } from './tier-auto-assign.service';
-import { DiscoveredModel } from './model-discovery/model-fetcher';
+import { TierAutoAssignService } from './routing-core/tier-auto-assign.service';
+import { DiscoveredModel } from '../model-discovery/model-fetcher';
 
 function makeModel(overrides: Partial<DiscoveredModel>): DiscoveredModel {
   return {

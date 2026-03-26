@@ -1,4 +1,4 @@
-import { Tier, ScoringReason } from '../scorer';
+import { Tier, ScoringReason } from '../../scoring';
 
 export type AuthType = 'api_key' | 'subscription';
 

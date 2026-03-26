@@ -1,6 +1,7 @@
 import { HttpException } from '@nestjs/common';
 import { ProxyController } from '../proxy.controller';
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
+import { ProxyMessageDedup } from '../proxy-message-dedup';
 
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
@@ -119,7 +120,11 @@ describe('ProxyController', () => {
     };
     mockMessageManager.getRepository.mockReturnValue(mockMessageRepo);
     mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
-    recorder = new ProxyMessageRecorder(mockMessageRepo as never, mockPricingCache as never);
+    recorder = new ProxyMessageRecorder(
+      mockMessageRepo as never,
+      mockPricingCache as never,
+      new ProxyMessageDedup(),
+    );
     controller = new ProxyController(
       proxyService as never,
       rateLimiter as never,
@@ -1616,6 +1621,7 @@ describe('ProxyController', () => {
       const timedRecorder = new ProxyMessageRecorder(
         mockMessageRepo as never,
         mockPricingCache as never,
+        new ProxyMessageDedup(),
       );
 
       const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
@@ -1635,6 +1641,7 @@ describe('ProxyController', () => {
       const timedRecorder = new ProxyMessageRecorder(
         mockMessageRepo as never,
         mockPricingCache as never,
+        new ProxyMessageDedup(),
       );
 
       timedRecorder.onModuleDestroy();

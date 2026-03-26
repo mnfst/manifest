@@ -1,28 +1,26 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
-import { FailedFallback } from './proxy.service';
+import { FailedFallback } from './proxy-fallback.service';
 import { StreamUsage } from './stream-writer';
+import { ProxyMessageDedup } from './proxy-message-dedup';
 
 @Injectable()
 export class ProxyMessageRecorder implements OnModuleDestroy {
-  private readonly logger = new Logger(ProxyMessageRecorder.name);
   private readonly rateLimitCooldown = new Map<string, number>();
   private readonly RATE_LIMIT_COOLDOWN_MS = 60_000;
   private readonly MAX_COOLDOWN_ENTRIES = 1_000;
   private readonly cooldownCleanupTimer: ReturnType<typeof setInterval>;
-  private readonly successWriteLocks = new Map<string, Promise<void>>();
-  private readonly SUCCESS_SESSION_DEDUP_WINDOW_MS = 30_000;
-  private readonly SUCCESS_END_TIME_GRACE_MS = 5_000;
 
   constructor(
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly dedup: ProxyMessageDedup,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -231,13 +229,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       }
     }
 
-    const normalizedSessionKey = this.normalizeSessionKey(sessionKey);
+    const normalizedSessionKey = this.dedup.normalizeSessionKey(sessionKey);
 
-    await this.withSuccessWriteLock(
-      this.getSuccessWriteLockKey(ctx, model, traceId, normalizedSessionKey),
+    await this.dedup.withSuccessWriteLock(
+      this.dedup.getSuccessWriteLockKey(ctx, model, traceId, normalizedSessionKey),
       async () => {
-        await this.withAgentMessageTransaction(ctx, async (messageRepo) => {
-          const existing = await this.findExistingSuccessMessage(
+        await this.dedup.withAgentMessageTransaction(this.messageRepo, ctx, async (messageRepo) => {
+          const existing = await this.dedup.findExistingSuccessMessage(
             messageRepo,
             ctx,
             model,
@@ -296,141 +294,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         });
       },
     );
-  }
-
-  private async findExistingSuccessMessage(
-    messageRepo: Repository<AgentMessage>,
-    ctx: IngestionContext,
-    model: string,
-    usage: StreamUsage,
-    traceId?: string,
-    sessionKey?: string | null,
-  ): Promise<Pick<
-    AgentMessage,
-    | 'id'
-    | 'timestamp'
-    | 'input_tokens'
-    | 'output_tokens'
-    | 'cache_read_tokens'
-    | 'cache_creation_tokens'
-    | 'duration_ms'
-  > | null> {
-    if (traceId) {
-      const existing = await messageRepo.findOne({
-        where: {
-          tenant_id: ctx.tenantId,
-          agent_id: ctx.agentId,
-          trace_id: traceId,
-          status: 'ok',
-        },
-        select: [
-          'id',
-          'timestamp',
-          'input_tokens',
-          'output_tokens',
-          'cache_read_tokens',
-          'cache_creation_tokens',
-          'duration_ms',
-        ],
-        order: { timestamp: 'DESC' },
-      });
-      if (existing) return existing;
-    }
-
-    const now = Date.now();
-    const recentByModel = await messageRepo.find({
-      where: {
-        tenant_id: ctx.tenantId,
-        agent_id: ctx.agentId,
-        user_id: ctx.userId,
-        model,
-        status: 'ok',
-        ...(sessionKey ? { session_key: sessionKey } : {}),
-      },
-      select: [
-        'id',
-        'timestamp',
-        'input_tokens',
-        'output_tokens',
-        'cache_read_tokens',
-        'cache_creation_tokens',
-        'duration_ms',
-      ],
-      order: { timestamp: 'DESC' },
-      take: 10,
-    });
-
-    return (
-      recentByModel.find((row) => {
-        const rowTime = new Date(row.timestamp).getTime();
-        const durationMs = row.duration_ms ?? null;
-        if (
-          Number.isNaN(rowTime) ||
-          durationMs == null ||
-          now - rowTime > this.SUCCESS_SESSION_DEDUP_WINDOW_MS
-        ) {
-          return false;
-        }
-        const totalPromptTokens =
-          (row.input_tokens ?? 0) + (row.cache_read_tokens ?? 0) + (row.cache_creation_tokens ?? 0);
-        const endTimeDelta = Math.abs(now - rowTime - durationMs);
-        return (
-          totalPromptTokens === usage.prompt_tokens &&
-          (row.output_tokens ?? 0) === usage.completion_tokens &&
-          endTimeDelta <= this.SUCCESS_END_TIME_GRACE_MS
-        );
-      }) ?? null
-    );
-  }
-
-  private normalizeSessionKey(sessionKey?: string | null): string | null {
-    if (!sessionKey || sessionKey === 'default') return null;
-    return sessionKey;
-  }
-
-  private async withAgentMessageTransaction<T>(
-    ctx: IngestionContext,
-    fn: (messageRepo: Repository<AgentMessage>) => Promise<T>,
-  ): Promise<T> {
-    return this.messageRepo.manager.transaction(async (manager) => {
-      await this.lockAgentMessageWrites(manager, ctx.agentId);
-      return fn(manager.getRepository(AgentMessage));
-    });
-  }
-
-  private async lockAgentMessageWrites(manager: EntityManager, agentId: string): Promise<void> {
-    if (manager.connection.options.type !== 'postgres') return;
-    await manager.query('SELECT id FROM agents WHERE id = $1 FOR UPDATE', [agentId]);
-  }
-
-  private getSuccessWriteLockKey(
-    ctx: IngestionContext,
-    model: string,
-    traceId?: string,
-    sessionKey?: string | null,
-  ): string {
-    if (traceId) return `trace:${ctx.tenantId}:${ctx.agentId}:${traceId}`;
-    return `success:${ctx.tenantId}:${ctx.agentId}:${ctx.userId}:${sessionKey ?? 'no-session'}:${model}`;
-  }
-
-  private async withSuccessWriteLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
-    const previous = this.successWriteLocks.get(key) ?? Promise.resolve();
-    let release!: () => void;
-    const current = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-    const queued = previous.catch(() => undefined).then(() => current);
-    this.successWriteLocks.set(key, queued);
-    await previous.catch(() => undefined);
-
-    try {
-      return await fn();
-    } finally {
-      release();
-      if (this.successWriteLocks.get(key) === queued) {
-        this.successWriteLocks.delete(key);
-      }
-    }
   }
 
   private evictExpiredCooldowns(): void {

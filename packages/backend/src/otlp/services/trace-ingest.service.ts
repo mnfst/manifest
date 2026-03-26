@@ -10,8 +10,8 @@ import { UserProvider } from '../../entities/user-provider.entity';
 import { OtlpExportTraceServiceRequest, OtlpSpan, OtlpResourceSpans } from '../interfaces';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 import { In, Not, IsNull, MoreThanOrEqual } from 'typeorm';
-import { isManifestUsableProvider } from '../../routing/subscription-support';
-import { inferProviderFromModelName } from '../../routing/provider-aliases';
+import { isManifestUsableProvider } from '../../common/utils/subscription-support';
+import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import {
   extractAttributes,
   nanoToDatetime,

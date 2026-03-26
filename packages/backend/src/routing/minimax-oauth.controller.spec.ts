@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { MinimaxOauthController } from './minimax-oauth.controller';
-import { MinimaxOauthService } from './minimax-oauth.service';
-import { ResolveAgentService } from './resolve-agent.service';
+import { MinimaxOauthController } from './oauth/minimax-oauth.controller';
+import { MinimaxOauthService } from './oauth/minimax-oauth.service';
+import { ResolveAgentService } from './routing-core/resolve-agent.service';
 
 describe('MinimaxOauthController', () => {
   let controller: MinimaxOauthController;

@@ -1,6 +1,6 @@
 import { ModelPricingCacheService } from './model-pricing-cache.service';
 import { PricingSyncService, OpenRouterPricingEntry } from '../database/pricing-sync.service';
-import { ProviderModelRegistryService } from '../routing/model-discovery/provider-model-registry.service';
+import { ProviderModelRegistryService } from '../model-discovery/provider-model-registry.service';
 
 function makeEntry(input: number, output: number): OpenRouterPricingEntry {
   return { input, output };

@@ -1,10 +1,13 @@
 import { BadRequestException, HttpException } from '@nestjs/common';
+import { Repository } from 'typeorm';
 import { ProxyService } from '../proxy.service';
-import { ResolveService } from '../../resolve.service';
-import { RoutingService } from '../../routing.service';
-import { CustomProviderService } from '../../custom-provider.service';
-import { OpenaiOauthService } from '../../openai-oauth.service';
-import { MinimaxOauthService } from '../../minimax-oauth.service';
+import { ProxyFallbackService } from '../proxy-fallback.service';
+import { ResolveService } from '../../resolve/resolve.service';
+import { ProviderKeyService } from '../../routing-core/provider-key.service';
+import { TierService } from '../../routing-core/tier.service';
+import { CustomProvider } from '../../../entities/custom-provider.entity';
+import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
+import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { SessionMomentumService } from '../session-momentum.service';
 import { CopilotTokenService } from '../copilot-token.service';
@@ -15,8 +18,9 @@ import { shouldTriggerFallback } from '../fallback-status-codes';
 describe('ProxyService', () => {
   let service: ProxyService;
   let resolveService: jest.Mocked<ResolveService>;
-  let routingService: jest.Mocked<RoutingService>;
-  let customProviderService: jest.Mocked<CustomProviderService>;
+  let providerKeyService: jest.Mocked<ProviderKeyService>;
+  let tierService: jest.Mocked<TierService>;
+  let customProviderRepo: jest.Mocked<Repository<CustomProvider>>;
   let openaiOauth: jest.Mocked<OpenaiOauthService>;
   let minimaxOauth: jest.Mocked<MinimaxOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
@@ -24,18 +28,22 @@ describe('ProxyService', () => {
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let limitCheck: jest.Mocked<LimitCheckService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
+  let fallbackService: ProxyFallbackService;
 
   beforeEach(() => {
     resolveService = {
       resolve: jest.fn(),
     } as unknown as jest.Mocked<ResolveService>;
 
-    routingService = {
+    providerKeyService = {
       getProviderApiKey: jest.fn(),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
-      getTiers: jest.fn().mockResolvedValue([]),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<RoutingService>;
+    } as unknown as jest.Mocked<ProviderKeyService>;
+
+    tierService = {
+      getTiers: jest.fn().mockResolvedValue([]),
+    } as unknown as jest.Mocked<TierService>;
 
     providerClient = {
       forward: jest.fn(),
@@ -52,9 +60,9 @@ describe('ProxyService', () => {
       invalidateCache: jest.fn(),
     } as unknown as jest.Mocked<LimitCheckService>;
 
-    customProviderService = {
-      getById: jest.fn().mockResolvedValue(null),
-    } as unknown as jest.Mocked<CustomProviderService>;
+    customProviderRepo = {
+      findOne: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<Repository<CustomProvider>>;
 
     openaiOauth = {
       unwrapToken: jest.fn().mockResolvedValue(null),
@@ -75,17 +83,25 @@ describe('ProxyService', () => {
       getAll: jest.fn().mockReturnValue([]),
     } as unknown as jest.Mocked<ModelPricingCacheService>;
 
-    service = new ProxyService(
-      resolveService,
-      routingService,
-      customProviderService,
+    fallbackService = new ProxyFallbackService(
+      providerKeyService,
+      customProviderRepo,
       openaiOauth,
       minimaxOauth,
       providerClient,
-      momentum,
       copilotToken,
-      limitCheck,
       pricingCache,
+    );
+
+    service = new ProxyService(
+      resolveService,
+      providerKeyService,
+      tierService,
+      openaiOauth,
+      minimaxOauth,
+      momentum,
+      limitCheck,
+      fallbackService,
     );
   });
 
@@ -134,7 +150,7 @@ describe('ProxyService', () => {
       score: 0.1,
       reason: 'scored',
     });
-    routingService.getProviderApiKey.mockResolvedValue(null);
+    providerKeyService.getProviderApiKey.mockResolvedValue(null);
 
     await expect(service.proxyRequest('agent-1', 'user-1', body, 'default')).rejects.toThrow(
       'No API key found',
@@ -150,7 +166,7 @@ describe('ProxyService', () => {
       score: 0.1,
       reason: 'scored',
     });
-    routingService.getProviderApiKey.mockResolvedValue('sk-test');
+    providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
 
     const mockResponse = new Response('{}', { status: 200 });
     providerClient.forward.mockResolvedValue({
@@ -200,7 +216,7 @@ describe('ProxyService', () => {
       score: 0.2,
       reason: 'momentum',
     });
-    routingService.getProviderApiKey.mockResolvedValue('sk-ant');
+    providerKeyService.getProviderApiKey.mockResolvedValue('sk-ant');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
       isGoogle: false,
@@ -230,7 +246,7 @@ describe('ProxyService', () => {
       reason: 'scored',
       auth_type: 'subscription',
     });
-    routingService.getProviderApiKey.mockResolvedValue('sk-ant-oat');
+    providerKeyService.getProviderApiKey.mockResolvedValue('sk-ant-oat');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
       isGoogle: false,
@@ -263,7 +279,7 @@ describe('ProxyService', () => {
       score: 0.1,
       reason: 'scored',
     });
-    routingService.getProviderApiKey.mockResolvedValue('sk-test');
+    providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
       isGoogle: false,
@@ -313,7 +329,7 @@ describe('ProxyService', () => {
       score: 0.1,
       reason: 'scored',
     });
-    routingService.getProviderApiKey.mockResolvedValue('sk-test');
+    providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
     providerClient.forward.mockResolvedValue({
       response: new Response('{}', { status: 200 }),
       isGoogle: false,
@@ -366,7 +382,7 @@ describe('ProxyService', () => {
         score: 0,
         reason: 'heartbeat',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -391,7 +407,7 @@ describe('ProxyService', () => {
         score: 0,
         reason: 'heartbeat',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -436,7 +452,7 @@ describe('ProxyService', () => {
         score: 5,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -473,7 +489,7 @@ describe('ProxyService', () => {
         score: 0,
         reason: 'heartbeat',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -519,7 +535,7 @@ describe('ProxyService', () => {
         score: 0,
         reason: 'heartbeat',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -553,7 +569,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -577,7 +593,7 @@ describe('ProxyService', () => {
         score: -0.3,
         reason: 'short_message',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -605,7 +621,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -629,7 +645,7 @@ describe('ProxyService', () => {
         score: -0.3,
         reason: 'short_message',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -716,7 +732,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -844,7 +860,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -881,7 +897,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-xai-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-xai-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -915,7 +931,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -948,7 +964,7 @@ describe('ProxyService', () => {
         score: -0.3,
         reason: 'short_message',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -995,8 +1011,8 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('gsk_test');
-      customProviderService.getById.mockResolvedValue({
+      providerKeyService.getProviderApiKey.mockResolvedValue('gsk_test');
+      customProviderRepo.findOne.mockResolvedValue({
         id: 'cp-uuid',
         agent_id: 'agent-1',
         user_id: 'user-1',
@@ -1014,7 +1030,7 @@ describe('ProxyService', () => {
 
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'sess-1');
 
-      expect(customProviderService.getById).toHaveBeenCalledWith('cp-uuid');
+      expect(customProviderRepo.findOne).toHaveBeenCalledWith({ where: { id: 'cp-uuid' } });
       // Forward should use the raw model name (without custom prefix)
       expect(providerClient.forward).toHaveBeenCalledWith(
         'custom:cp-uuid',
@@ -1042,8 +1058,8 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('key');
-      customProviderService.getById.mockResolvedValue(null);
+      providerKeyService.getProviderApiKey.mockResolvedValue('key');
+      customProviderRepo.findOne.mockResolvedValue(null);
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -1078,7 +1094,7 @@ describe('ProxyService', () => {
         score: 0.5,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('ghu_github_oauth_token');
+      providerKeyService.getProviderApiKey.mockResolvedValue('ghu_github_oauth_token');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -1111,7 +1127,7 @@ describe('ProxyService', () => {
         score: 0.5,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('ghu_token');
+      providerKeyService.getProviderApiKey.mockResolvedValue('ghu_token');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -1143,7 +1159,7 @@ describe('ProxyService', () => {
         score: 0.5,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-openai-key');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-openai-key');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -1179,7 +1195,7 @@ describe('ProxyService', () => {
         reason: 'scored',
       });
       // Ollama returns '' (empty string, not null)
-      routingService.getProviderApiKey.mockResolvedValue('');
+      providerKeyService.getProviderApiKey.mockResolvedValue('');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -1215,7 +1231,7 @@ describe('ProxyService', () => {
         reason: 'scored',
         auth_type: 'subscription',
       });
-      routingService.getProviderApiKey.mockResolvedValue('skst-token-123');
+      providerKeyService.getProviderApiKey.mockResolvedValue('skst-token-123');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -1248,7 +1264,7 @@ describe('ProxyService', () => {
         score: 0.2,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue(null);
+      providerKeyService.getProviderApiKey.mockResolvedValue(null);
 
       await expect(service.proxyRequest('agent-1', 'user-1', body, 'sess-1')).rejects.toThrow(
         'No API key found',
@@ -1266,7 +1282,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -1276,7 +1292,7 @@ describe('ProxyService', () => {
 
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
 
-      expect(routingService.getTiers).not.toHaveBeenCalled();
+      expect(tierService.getTiers).not.toHaveBeenCalled();
       expect(result.meta.fallbackFromModel).toBeUndefined();
       expect(result.meta.fallbackIndex).toBeUndefined();
     });
@@ -1290,7 +1306,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-test')
         .mockResolvedValueOnce('sk-ant');
       providerClient.forward
@@ -1306,7 +1322,7 @@ describe('ProxyService', () => {
           isAnthropic: true,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['claude-sonnet-4'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
@@ -1329,7 +1345,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-test')
         .mockResolvedValueOnce('sk-ant');
       providerClient.forward
@@ -1340,7 +1356,7 @@ describe('ProxyService', () => {
           isAnthropic: true,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['claude-sonnet-4'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
@@ -1366,11 +1382,11 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockRejectedValue(
         new TypeError('Failed to parse URL from https://bad.example/v1?key=secret-token'),
       );
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: null },
       ] as never);
 
@@ -1395,10 +1411,10 @@ describe('ProxyService', () => {
         reason: 'scored',
         auth_type: 'subscription',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('skst-openai')
         .mockResolvedValueOnce('sk-deepseek');
-      routingService.getAuthType.mockResolvedValueOnce('api_key');
+      providerKeyService.getAuthType.mockResolvedValueOnce('api_key');
       openaiOauth.unwrapToken.mockResolvedValueOnce('oauth-openai');
       providerClient.forward
         .mockResolvedValueOnce({
@@ -1413,7 +1429,7 @@ describe('ProxyService', () => {
           isAnthropic: false,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'simple', fallback_models: ['deepseek-chat'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'DeepSeek' } as never);
@@ -1461,14 +1477,14 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('error', { status: 500 }),
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
       });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: null },
       ] as never);
 
@@ -1486,7 +1502,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-test')
         .mockResolvedValueOnce('sk-ant');
       providerClient.forward
@@ -1502,7 +1518,7 @@ describe('ProxyService', () => {
           isAnthropic: true,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['unknown-model', 'claude-sonnet-4'] },
       ] as never);
       pricingCache.getByModel
@@ -1525,7 +1541,7 @@ describe('ProxyService', () => {
         reason: 'scored',
       });
       // Primary key, then null for first fallback provider, then valid for second
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-test') // primary
         .mockResolvedValueOnce(null) // first fallback: no API key
         .mockResolvedValueOnce('sk-deepseek'); // second fallback
@@ -1542,7 +1558,7 @@ describe('ProxyService', () => {
           isAnthropic: false,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['claude-sonnet-4', 'deepseek-chat'] },
       ] as never);
       pricingCache.getByModel
@@ -1569,7 +1585,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-test')
         .mockResolvedValueOnce('sk-a')
         .mockResolvedValueOnce('sk-b');
@@ -1592,7 +1608,7 @@ describe('ProxyService', () => {
           isAnthropic: false,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['model-a', 'model-b'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'ProvA' } as never);
@@ -1624,7 +1640,7 @@ describe('ProxyService', () => {
       const timeoutError = new Error('The operation was aborted due to timeout');
       timeoutError.name = 'TimeoutError';
 
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-test')
         .mockResolvedValueOnce('sk-a')
         .mockResolvedValueOnce('sk-b');
@@ -1642,7 +1658,7 @@ describe('ProxyService', () => {
           isAnthropic: false,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['model-a', 'model-b'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'ProvA' } as never);
@@ -1668,7 +1684,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-test')
         .mockResolvedValueOnce('sk-a')
         .mockResolvedValueOnce('sk-b');
@@ -1685,7 +1701,7 @@ describe('ProxyService', () => {
           isAnthropic: false,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['model-a', 'model-b'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'ProvA' } as never);
@@ -1708,7 +1724,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockResolvedValue({
         response: new Response('redirect', { status: 301 }),
         isGoogle: false,
@@ -1718,7 +1734,7 @@ describe('ProxyService', () => {
 
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
 
-      expect(routingService.getTiers).not.toHaveBeenCalled();
+      expect(tierService.getTiers).not.toHaveBeenCalled();
       expect(result.forward.response.status).toBe(301);
     });
 
@@ -1731,7 +1747,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockRejectedValue(new Error('aborted'));
 
       const abortController = new AbortController();
@@ -1749,7 +1765,7 @@ describe('ProxyService', () => {
         ),
       ).rejects.toThrow('aborted');
 
-      expect(routingService.getTiers).not.toHaveBeenCalled();
+      expect(tierService.getTiers).not.toHaveBeenCalled();
     });
 
     it('rethrows non-transport provider errors', async () => {
@@ -1761,14 +1777,14 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward.mockRejectedValue(new Error('boom'));
 
       await expect(service.proxyRequest('agent-1', 'user-1', body, 'default')).rejects.toThrow(
         'boom',
       );
 
-      expect(routingService.getTiers).not.toHaveBeenCalled();
+      expect(tierService.getTiers).not.toHaveBeenCalled();
     });
 
     it('falls back from api_key primary to subscription fallback model', async () => {
@@ -1781,11 +1797,11 @@ describe('ProxyService', () => {
         reason: 'scored',
         auth_type: 'api_key',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-openai') // primary
         .mockResolvedValueOnce('skst-anthropic-token'); // fallback (subscription)
       // getAuthType returns subscription for the fallback provider
-      routingService.getAuthType.mockResolvedValueOnce('subscription');
+      providerKeyService.getAuthType.mockResolvedValueOnce('subscription');
       providerClient.forward
         .mockResolvedValueOnce({
           response: new Response('rate limited', { status: 429 }),
@@ -1799,7 +1815,7 @@ describe('ProxyService', () => {
           isAnthropic: true,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['claude-sonnet-4'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
@@ -1837,9 +1853,9 @@ describe('ProxyService', () => {
         'subscription',
       );
       // getAuthType was called for the fallback provider
-      expect(routingService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic');
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic');
       // getProviderApiKey was called with subscription for the fallback
-      expect(routingService.getProviderApiKey).toHaveBeenNthCalledWith(
+      expect(providerKeyService.getProviderApiKey).toHaveBeenNthCalledWith(
         2,
         'agent-1',
         'Anthropic',
@@ -1857,10 +1873,10 @@ describe('ProxyService', () => {
         reason: 'scored',
         auth_type: 'api_key',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-openai')
         .mockResolvedValueOnce('skst-anthropic-token');
-      routingService.getAuthType.mockResolvedValueOnce('subscription');
+      providerKeyService.getAuthType.mockResolvedValueOnce('subscription');
       providerClient.forward
         .mockResolvedValueOnce({
           response: new Response('rate limited', { status: 429 }),
@@ -1874,7 +1890,7 @@ describe('ProxyService', () => {
           isAnthropic: true,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['claude-sonnet-4.6'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
@@ -1906,11 +1922,11 @@ describe('ProxyService', () => {
         reason: 'scored',
         auth_type: 'subscription',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('skst-token') // primary (subscription)
         .mockResolvedValueOnce('sk-openai'); // fallback (api_key)
       // getAuthType returns api_key for the fallback provider (OpenAI)
-      routingService.getAuthType.mockResolvedValueOnce('api_key');
+      providerKeyService.getAuthType.mockResolvedValueOnce('api_key');
       providerClient.forward
         .mockResolvedValueOnce({
           response: new Response('overloaded', { status: 503 }),
@@ -1924,7 +1940,7 @@ describe('ProxyService', () => {
           isAnthropic: false,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'complex', fallback_models: ['gpt-4o'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as never);
@@ -1972,11 +1988,11 @@ describe('ProxyService', () => {
         reason: 'scored',
         auth_type: 'subscription',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('skst-anthropic') // primary (subscription)
         .mockResolvedValueOnce('skst-google'); // fallback (subscription)
       // getAuthType returns subscription for the fallback provider too
-      routingService.getAuthType.mockResolvedValueOnce('subscription');
+      providerKeyService.getAuthType.mockResolvedValueOnce('subscription');
       providerClient.forward
         .mockResolvedValueOnce({
           response: new Response('server error', { status: 500 }),
@@ -1990,7 +2006,7 @@ describe('ProxyService', () => {
           isAnthropic: false,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['gemini-2.5-flash'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Google' } as never);
@@ -2027,10 +2043,10 @@ describe('ProxyService', () => {
         auth_type: 'api_key',
       });
       // getAuthType returns subscription for Anthropic, api_key for DeepSeek
-      routingService.getAuthType
+      providerKeyService.getAuthType
         .mockResolvedValueOnce('subscription')
         .mockResolvedValueOnce('api_key');
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-openai') // primary
         .mockResolvedValueOnce(null) // first fallback: subscription with no token
         .mockResolvedValueOnce('sk-deepseek'); // second fallback: has key
@@ -2047,7 +2063,7 @@ describe('ProxyService', () => {
           isAnthropic: false,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['claude-sonnet-4', 'deepseek-chat'] },
       ] as never);
       pricingCache.getByModel
@@ -2064,8 +2080,8 @@ describe('ProxyService', () => {
       expect(providerClient.forward).toHaveBeenCalledTimes(2);
       expect(result.failedFallbacks).toHaveLength(0);
       // Verify getAuthType was called for both fallback providers
-      expect(routingService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic');
-      expect(routingService.getAuthType).toHaveBeenCalledWith('agent-1', 'DeepSeek');
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic');
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'DeepSeek');
     });
 
     it('resolves fallback provider via findProviderForModel when pricing and name inference fail', async () => {
@@ -2077,7 +2093,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-test') // primary
         .mockResolvedValueOnce('sk-niche'); // fallback
       providerClient.forward
@@ -2093,18 +2109,21 @@ describe('ProxyService', () => {
           isAnthropic: false,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['niche-model-v1'] },
       ] as never);
       // No pricing data for this model
       pricingCache.getByModel.mockReturnValue(null as never);
       // inferProviderFromModelName returns undefined (no slash prefix)
       // findProviderForModel finds it in the user's connected providers
-      routingService.findProviderForModel.mockResolvedValue('niche-provider');
+      providerKeyService.findProviderForModel.mockResolvedValue('niche-provider');
 
       const result = await service.proxyRequest('agent-1', 'user-1', body, 'default');
 
-      expect(routingService.findProviderForModel).toHaveBeenCalledWith('agent-1', 'niche-model-v1');
+      expect(providerKeyService.findProviderForModel).toHaveBeenCalledWith(
+        'agent-1',
+        'niche-model-v1',
+      );
       expect(result.meta.model).toBe('niche-model-v1');
       expect(result.meta.provider).toBe('niche-provider');
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
@@ -2121,7 +2140,7 @@ describe('ProxyService', () => {
         score: 0.1,
         reason: 'scored',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-test')
         .mockResolvedValueOnce('sk-custom');
       providerClient.forward
@@ -2137,10 +2156,10 @@ describe('ProxyService', () => {
           isAnthropic: false,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['custom:cp-abc/my-model'] },
       ] as never);
-      customProviderService.getById.mockResolvedValue({
+      customProviderRepo.findOne.mockResolvedValue({
         base_url: 'https://my-endpoint.com/v1',
       } as never);
 
@@ -2159,7 +2178,7 @@ describe('ProxyService', () => {
         score: -0.3,
         reason: 'scored',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('bad-google-key')
         .mockResolvedValueOnce('bad-ds-key');
       providerClient.forward
@@ -2175,7 +2194,7 @@ describe('ProxyService', () => {
           isAnthropic: false,
           isChatGpt: false,
         });
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'simple', fallback_models: ['deepseek-chat'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'DeepSeek' } as never);
@@ -2203,7 +2222,7 @@ describe('ProxyService', () => {
         score: 0.5,
         reason: 'scored',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
 
       providerClient.forward
         .mockResolvedValueOnce({
@@ -2225,7 +2244,7 @@ describe('ProxyService', () => {
           isChatGpt: false,
         });
 
-      routingService.getTiers.mockResolvedValue([
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['claude-sonnet-4', 'deepseek-chat'] },
       ] as never);
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
@@ -2254,7 +2273,7 @@ describe('ProxyService', () => {
         r: 'refresh-tok',
         e: Date.now() + 60000,
       });
-      routingService.getProviderApiKey.mockResolvedValue(tokenBlob);
+      providerKeyService.getProviderApiKey.mockResolvedValue(tokenBlob);
       openaiOauth.unwrapToken.mockResolvedValue('access-tok');
       providerClient.forward.mockResolvedValue({
         response: new Response('ok', { status: 200 }),
@@ -2289,7 +2308,7 @@ describe('ProxyService', () => {
         reason: 'scored',
         auth_type: 'subscription',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-ant-oat-token');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-ant-oat-token');
       providerClient.forward.mockResolvedValue({
         response: new Response('ok', { status: 200 }),
         isGoogle: false,
@@ -2313,7 +2332,7 @@ describe('ProxyService', () => {
         reason: 'scored',
         auth_type: 'api_key',
       });
-      routingService.getProviderApiKey.mockResolvedValue('sk-key-1234');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-key-1234');
       providerClient.forward.mockResolvedValue({
         response: new Response('ok', { status: 200 }),
         isGoogle: false,
@@ -2336,11 +2355,11 @@ describe('ProxyService', () => {
         reason: 'scored',
         auth_type: 'api_key',
       });
-      routingService.getProviderApiKey
+      providerKeyService.getProviderApiKey
         .mockResolvedValueOnce('sk-ant-key') // primary
         .mockResolvedValueOnce('{"t":"fb-tok","r":"fb-ref","e":9999999999999}'); // fallback
-      routingService.getAuthType.mockResolvedValueOnce('subscription');
-      routingService.getTiers.mockResolvedValue([
+      providerKeyService.getAuthType.mockResolvedValueOnce('subscription');
+      tierService.getTiers.mockResolvedValue([
         { tier: 'standard', fallback_models: ['gpt-4o'] } as never,
       ]);
 
@@ -2391,7 +2410,7 @@ describe('ProxyService', () => {
         e: Date.now() + 60000,
         u: 'https://api.minimax.io/anthropic',
       });
-      routingService.getProviderApiKey.mockResolvedValue(tokenBlob);
+      providerKeyService.getProviderApiKey.mockResolvedValue(tokenBlob);
       minimaxOauth.unwrapToken.mockResolvedValue({
         t: 'minimax-access',
         r: 'minimax-refresh',
@@ -2440,7 +2459,7 @@ describe('ProxyService', () => {
         e: Date.now() + 60000,
         u: 'https://evil.example/anthropic',
       });
-      routingService.getProviderApiKey.mockResolvedValue(tokenBlob);
+      providerKeyService.getProviderApiKey.mockResolvedValue(tokenBlob);
       minimaxOauth.unwrapToken.mockResolvedValue({
         t: 'minimax-access',
         r: 'minimax-refresh',

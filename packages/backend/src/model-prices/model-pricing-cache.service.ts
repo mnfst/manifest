@@ -5,7 +5,7 @@ import {
   OPENROUTER_PREFIX_TO_PROVIDER,
   PROVIDER_BY_ID_OR_ALIAS,
 } from '../common/constants/providers';
-import { ProviderModelRegistryService } from '../routing/model-discovery/provider-model-registry.service';
+import { ProviderModelRegistryService } from '../model-discovery/provider-model-registry.service';
 
 /**
  * Lightweight pricing entry used for cost calculation and provider detection.

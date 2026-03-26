@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { Tier } from '../scorer/types';
+import { Tier } from '../../scoring/types';
 
 interface MomentumEntry {
   tiers: Tier[];

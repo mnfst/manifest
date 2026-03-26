@@ -4,15 +4,15 @@ import {
   ResolveController,
   RegisterSubscriptionsDto,
   SubscriptionProviderItem,
-} from './resolve.controller';
-import { ResolveService } from './resolve.service';
-import { RoutingService } from './routing.service';
+} from './resolve/resolve.controller';
+import { ResolveService } from './resolve/resolve.service';
+import { ProviderService } from './routing-core/provider.service';
 import { ResolveResponse } from './dto/resolve-response';
 
 describe('ResolveController', () => {
   let controller: ResolveController;
   let mockResolveService: { resolve: jest.Mock };
-  let mockRoutingService: {
+  let mockProviderService: {
     registerSubscriptionProvider: jest.Mock;
     upsertProvider: jest.Mock;
   };
@@ -31,13 +31,13 @@ describe('ResolveController', () => {
     mockResolveService = {
       resolve: jest.fn().mockResolvedValue(mockResponse),
     };
-    mockRoutingService = {
+    mockProviderService = {
       registerSubscriptionProvider: jest.fn().mockResolvedValue({ isNew: true }),
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
     };
     controller = new ResolveController(
       mockResolveService as unknown as ResolveService,
-      mockRoutingService as unknown as RoutingService,
+      mockProviderService as unknown as ProviderService,
     );
   });
 
@@ -133,13 +133,13 @@ describe('ResolveController', () => {
       );
 
       expect(result).toEqual({ registered: 2 });
-      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledTimes(2);
-      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledWith(
+      expect(mockProviderService.registerSubscriptionProvider).toHaveBeenCalledTimes(2);
+      expect(mockProviderService.registerSubscriptionProvider).toHaveBeenCalledWith(
         'a1',
         'u1',
         'anthropic',
       );
-      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledWith(
+      expect(mockProviderService.registerSubscriptionProvider).toHaveBeenCalledWith(
         'a1',
         'u1',
         'openai',
@@ -156,7 +156,7 @@ describe('ResolveController', () => {
         req,
       );
 
-      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
         'a1',
         'u1',
         'copilot',
@@ -172,7 +172,7 @@ describe('ResolveController', () => {
 
       await controller.registerSubscriptions({ providers: [{ provider: 'anthropic' }] }, req);
 
-      expect(mockRoutingService.registerSubscriptionProvider).toHaveBeenCalledWith(
+      expect(mockProviderService.registerSubscriptionProvider).toHaveBeenCalledWith(
         'a1',
         'u1',
         'anthropic',
@@ -180,7 +180,7 @@ describe('ResolveController', () => {
     });
 
     it('should only count newly created providers', async () => {
-      mockRoutingService.registerSubscriptionProvider
+      mockProviderService.registerSubscriptionProvider
         .mockResolvedValueOnce({ isNew: true })
         .mockResolvedValueOnce({ isNew: false });
 
