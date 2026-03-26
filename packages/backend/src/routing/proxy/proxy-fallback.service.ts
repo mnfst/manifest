@@ -8,11 +8,17 @@ import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
-import { buildCustomEndpoint, buildEndpointOverride, ProviderEndpoint } from './provider-endpoints';
+import {
+  buildCustomEndpoint,
+  buildEndpointOverride,
+  ProviderEndpoint,
+  resolveEndpointKey,
+} from './provider-endpoints';
 import { CopilotTokenService } from './copilot-token.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
+import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 import {
   isTransportError,
@@ -101,6 +107,11 @@ export class ProxyFallbackService {
         this.openaiOauth,
         this.minimaxOauth,
       );
+      const providerRegion = await this.providerKeyService.getProviderRegion(
+        agentId,
+        provider,
+        authType,
+      );
 
       this.logger.log(
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
@@ -116,6 +127,7 @@ export class ProxyFallbackService {
         signal,
         authType,
         resourceUrl: resolvedCredentials.resourceUrl,
+        providerRegion,
       });
 
       if (forward.response.ok) {
@@ -145,6 +157,7 @@ export class ProxyFallbackService {
     signal?: AbortSignal;
     authType?: string;
     resourceUrl?: string;
+    providerRegion?: string | null;
   }): Promise<ForwardResult> {
     try {
       return await this.forwardToProvider(opts);
@@ -177,8 +190,9 @@ export class ProxyFallbackService {
     signal?: AbortSignal;
     authType?: string;
     resourceUrl?: string;
+    providerRegion?: string | null;
   }): Promise<ForwardResult> {
-    const { provider, body, stream, signal, authType, resourceUrl } = opts;
+    const { provider, body, stream, signal, authType, resourceUrl, providerRegion } = opts;
 
     const extraHeaders: Record<string, string> = {};
     if (provider === 'xai') {
@@ -207,6 +221,8 @@ export class ProxyFallbackService {
         customEndpoint = buildCustomEndpoint(cp.base_url);
         forwardModel = CustomProviderService.rawModelName(opts.model);
       }
+    } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
+      customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
     } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax' && resourceUrl) {
       const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
       if (minimaxBaseUrl) {

@@ -118,6 +118,11 @@ export class ProxyService {
       this.openaiOauth,
       this.minimaxOauth,
     );
+    const providerRegion = await this.providerKeyService.getProviderRegion(
+      agentId,
+      resolved.provider,
+      resolved.auth_type,
+    );
     const primaryModel = normalizeProviderModel(resolved.provider, resolved.model);
 
     this.logger.log(
@@ -135,6 +140,7 @@ export class ProxyService {
       signal,
       authType: resolved.auth_type,
       resourceUrl: resolvedCredentials.resourceUrl,
+      providerRegion,
     });
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {

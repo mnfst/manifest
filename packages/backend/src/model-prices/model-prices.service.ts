@@ -9,7 +9,7 @@ export class ModelPricesService {
     private readonly pricingSync: PricingSyncService,
   ) {}
 
-  async getAll() {
+  getAll() {
     const entries = this.pricingCache.getAll();
     const lastSyncedAt = this.pricingSync.getLastFetchedAt()?.toISOString() ?? null;
 
@@ -26,11 +26,5 @@ export class ModelPricesService {
       })),
       lastSyncedAt,
     };
-  }
-
-  async triggerSync() {
-    const updated = await this.pricingSync.refreshCache();
-    await this.pricingCache.reload();
-    return { updated };
   }
 }

@@ -29,7 +29,7 @@ describe('ModelPricingCacheService', () => {
     );
   });
 
-  describe('onModuleInit', () => {
+  describe('onApplicationBootstrap', () => {
     it('should call reload()', async () => {
       const spy = jest.spyOn(service, 'reload').mockResolvedValue();
       await service.onApplicationBootstrap();
@@ -196,7 +196,7 @@ describe('ModelPricingCacheService', () => {
       await service.reload();
 
       const result = service.getAll();
-      expect(result.length).toBeGreaterThanOrEqual(2);
+      expect(result.length).toBe(2);
       const names = result.map((e) => e.model_name);
       expect(names).toContain('openai/gpt-4o');
       expect(names).toContain('anthropic/claude-opus-4-6');

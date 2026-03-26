@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, IsNull, Repository, In } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
@@ -7,18 +7,13 @@ import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
-import { encrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
+import { encrypt, decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import {
   isManifestUsableProvider,
   isSupportedSubscriptionProvider,
 } from '../../common/utils/subscription-support';
-
-const TIER_LABELS: Record<string, string> = {
-  simple: 'Simple',
-  standard: 'Standard',
-  complex: 'Complex',
-  reasoning: 'Reasoning',
-};
+import { TIER_LABELS } from 'manifest-shared';
+import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
 
 @Injectable()
 export class ProviderService {
@@ -58,20 +53,28 @@ export class ProviderService {
     provider: string,
     apiKey?: string,
     authType?: 'api_key' | 'subscription',
+    region?: string,
   ): Promise<{ provider: UserProvider; isNew: boolean }> {
     const effectiveAuthType = authType ?? 'api_key';
-    const apiKeyEncrypted = apiKey ? encrypt(apiKey, getEncryptionSecret()) : null;
-    const keyPrefix = apiKey ? apiKey.substring(0, 8) : null;
-
     const existing = await this.providerRepo.findOne({
       where: { agent_id: agentId, provider, auth_type: effectiveAuthType },
     });
+    const resolvedRegion = await this.resolveProviderRegion(
+      provider,
+      effectiveAuthType,
+      region,
+      apiKey,
+      existing,
+    );
+    const apiKeyEncrypted = apiKey ? encrypt(apiKey, getEncryptionSecret()) : null;
+    const keyPrefix = apiKey ? apiKey.substring(0, 8) : null;
 
     if (existing) {
       if (apiKeyEncrypted !== null) {
         existing.api_key_encrypted = apiKeyEncrypted;
         existing.key_prefix = keyPrefix;
       }
+      existing.region = resolvedRegion;
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await this.providerRepo.save(existing);
@@ -88,6 +91,7 @@ export class ProviderService {
       auth_type: effectiveAuthType,
       api_key_encrypted: apiKeyEncrypted,
       key_prefix: keyPrefix,
+      region: resolvedRegion,
       is_active: true,
       connected_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -97,6 +101,62 @@ export class ProviderService {
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
     return { provider: record, isNew: true };
+  }
+
+  private async resolveProviderRegion(
+    provider: string,
+    authType: 'api_key' | 'subscription',
+    requestedRegion: string | undefined,
+    apiKey: string | undefined,
+    existing: UserProvider | null,
+  ): Promise<string | null> {
+    const lower = provider.toLowerCase();
+    const isQwenProvider = lower === 'qwen' || lower === 'alibaba';
+    if (!isQwenProvider || authType !== 'api_key') return null;
+
+    if (requestedRegion === undefined) {
+      if (apiKey) {
+        return this.detectQwenRegionOrThrow(apiKey);
+      }
+      return isQwenResolvedRegion(existing?.region) ? existing.region : null;
+    }
+
+    if (!isQwenRegion(requestedRegion)) {
+      throw new BadRequestException('Qwen region must be one of: auto, singapore, us, beijing');
+    }
+
+    if (requestedRegion !== 'auto') return requestedRegion;
+
+    const keyToProbe = await this.getQwenDetectionKey(apiKey, existing);
+    if (!keyToProbe) {
+      return isQwenResolvedRegion(existing?.region) ? existing.region : null;
+    }
+
+    return this.detectQwenRegionOrThrow(keyToProbe);
+  }
+
+  private async getQwenDetectionKey(
+    apiKey: string | undefined,
+    existing: UserProvider | null,
+  ): Promise<string | null> {
+    if (apiKey) return apiKey;
+    if (!existing?.api_key_encrypted) return null;
+
+    try {
+      return decrypt(existing.api_key_encrypted, getEncryptionSecret());
+    } catch {
+      this.logger.warn('Failed to decrypt API key while auto-detecting Alibaba region');
+      return null;
+    }
+  }
+
+  private async detectQwenRegionOrThrow(apiKey: string): Promise<string> {
+    const detected = await detectQwenRegion(apiKey);
+    if (detected) return detected;
+
+    throw new BadRequestException(
+      'Could not auto-detect Alibaba region from this API key. Verify the key and try again.',
+    );
   }
 
   async registerSubscriptionProvider(
@@ -176,7 +236,7 @@ export class ProviderService {
       for (const { tier, modelName } of invalidated) {
         const updated = tierMap.get(tier);
         const newModel = updated?.auto_assigned_model ?? null;
-        const tierLabel = TIER_LABELS[tier] ?? tier;
+        const tierLabel = TIER_LABELS[tier as keyof typeof TIER_LABELS] ?? tier;
         const suffix = newModel
           ? `${tierLabel} is back to automatic mode (${newModel}).`
           : `${tierLabel} is back to automatic mode.`;

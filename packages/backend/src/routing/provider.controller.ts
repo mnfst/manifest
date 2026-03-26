@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { ProviderService } from './routing-core/provider.service';
@@ -11,6 +20,7 @@ import {
   ConnectProviderDto,
   RemoveProviderQueryDto,
 } from './dto/routing.dto';
+import { isQwenRegion } from './qwen-region';
 
 @Controller('api/v1/routing')
 export class ProviderController {
@@ -40,6 +50,7 @@ export class ProviderController {
       is_active: p.is_active,
       has_api_key: !!p.api_key_encrypted,
       key_prefix: p.key_prefix ?? null,
+      region: p.region ?? null,
       connected_at: p.connected_at,
     }));
   }
@@ -51,6 +62,17 @@ export class ProviderController {
     @Body() body: ConnectProviderDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const lowerProvider = body.provider.toLowerCase();
+    const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';
+
+    if (body.region !== undefined) {
+      if (!isQwenProvider) {
+        throw new BadRequestException('region is only supported for Alibaba/Qwen providers');
+      }
+      if (!isQwenRegion(body.region)) {
+        throw new BadRequestException('region must be one of: auto, singapore, us, beijing');
+      }
+    }
 
     // Sync Ollama models before connecting so tier assignment has data
     if (body.provider.toLowerCase() === 'ollama') {
@@ -63,6 +85,7 @@ export class ProviderController {
       body.provider,
       body.apiKey,
       body.authType,
+      body.region,
     );
 
     // Discover models and recalculate tiers before returning so the
@@ -83,6 +106,7 @@ export class ProviderController {
       provider: result.provider,
       auth_type: result.auth_type ?? 'api_key',
       is_active: result.is_active,
+      region: result.region ?? null,
     };
   }
 

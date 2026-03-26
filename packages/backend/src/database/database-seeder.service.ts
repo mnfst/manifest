@@ -7,7 +7,6 @@ import { Tenant } from '../entities/tenant.entity';
 import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { ApiKey } from '../entities/api-key.entity';
-import { SecurityEvent } from '../entities/security-event.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { hashKey, keyPrefix } from '../common/utils/hash.util';
 import { seedAgentMessages } from './seed-messages';
@@ -28,7 +27,6 @@ export class DatabaseSeederService implements OnModuleInit {
     @InjectRepository(Agent) private readonly agentRepo: Repository<Agent>,
     @InjectRepository(AgentApiKey) private readonly agentKeyRepo: Repository<AgentApiKey>,
     @InjectRepository(ApiKey) private readonly apiKeyRepo: Repository<ApiKey>,
-    @InjectRepository(SecurityEvent) private readonly securityRepo: Repository<SecurityEvent>,
     @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
   ) {}
 
@@ -45,7 +43,6 @@ export class DatabaseSeederService implements OnModuleInit {
       await this.seedAdminUser();
       await this.seedApiKey();
       await this.seedTenantAndAgent();
-      await this.seedSecurityEvents();
       await this.seedAgentMessages();
       this.logger.log('Seeded demo data (dev/test only, SEED_DATA=true)');
     }
@@ -149,112 +146,6 @@ export class DatabaseSeederService implements OnModuleInit {
     });
 
     this.logger.log(`Seeded tenant/agent with OTLP key: ${SEED_OTLP_KEY.substring(0, 8)}***`);
-  }
-
-  private async seedSecurityEvents() {
-    const count = await this.securityRepo.count();
-    if (count > 0) return;
-
-    const userId = await this.getAdminUserId();
-
-    const now = Date.now();
-    const events = [
-      [
-        'sec-001',
-        'sess-001',
-        -2,
-        'critical',
-        'unauthorized_access',
-        'Unauthorized API key attempt from unknown IP',
-      ],
-      [
-        'sec-002',
-        'sess-002',
-        -3,
-        'warning',
-        'rate_limit',
-        'Rate limit exceeded for agent — 150 req/min threshold',
-      ],
-      [
-        'sec-003',
-        'sess-003',
-        -5,
-        'info',
-        'config_change',
-        'Alert rule "High cost threshold" updated by admin',
-      ],
-      [
-        'sec-004',
-        'sess-004',
-        -6,
-        'warning',
-        'sandbox_escape',
-        'Sandbox escape attempt detected in agent session',
-      ],
-      [
-        'sec-005',
-        'sess-005',
-        -8,
-        'critical',
-        'data_exfiltration',
-        'Suspicious outbound data transfer detected',
-      ],
-      ['sec-006', 'sess-006', -10, 'info', 'login', 'New login from device'],
-      [
-        'sec-007',
-        'sess-007',
-        -12,
-        'warning',
-        'permission_escalation',
-        'Agent requested elevated permissions outside scope',
-      ],
-      [
-        'sec-008',
-        'sess-008',
-        -14,
-        'info',
-        'api_key_rotation',
-        'API key rotated for production environment',
-      ],
-      [
-        'sec-009',
-        'sess-009',
-        -18,
-        'critical',
-        'injection_attempt',
-        'Prompt injection attempt detected in agent input',
-      ],
-      [
-        'sec-010',
-        'sess-010',
-        -22,
-        'warning',
-        'token_anomaly',
-        'Unusual token consumption spike: 340% above baseline',
-      ],
-      [
-        'sec-011',
-        'sess-011',
-        -24,
-        'info',
-        'audit',
-        'Weekly security audit completed — 3 findings resolved',
-      ],
-      ['sec-012', 'sess-012', -48, 'warning', 'certificate', 'TLS certificate expiring in 14 days'],
-    ] as const;
-
-    for (const [id, sessionKey, hoursAgo, severity, category, description] of events) {
-      const ts = new Date(now + hoursAgo * 3600000).toISOString();
-      await this.securityRepo.insert({
-        id,
-        session_key: sessionKey,
-        timestamp: ts,
-        severity,
-        category,
-        description,
-        user_id: userId,
-      });
-    }
   }
 
   private async seedAgentMessages() {

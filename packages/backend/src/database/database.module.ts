@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
-import { SecurityEvent } from '../entities/security-event.entity';
 import { TokenUsageSnapshot } from '../entities/token-usage-snapshot.entity';
 import { CostSnapshot } from '../entities/cost-snapshot.entity';
 import { AgentLog } from '../entities/agent-log.entity';
@@ -57,12 +56,12 @@ import { AddEmailProviderKeyPrefix1773300000000 } from './migrations/17733000000
 import { AddProviderModelCache1773400000000 } from './migrations/1773400000000-AddProviderModelCache';
 import { DropModelPricingTables1773500000000 } from './migrations/1773500000000-DropModelPricingTables';
 import { AddOverrideProvider1773600000000 } from './migrations/1773600000000-AddOverrideProvider';
+import { DropSecurityEventTable1773700000000 } from './migrations/1773700000000-DropSecurityEventTable';
 
 const entities = [
   AgentMessage,
   LlmCall,
   ToolExecution,
-  SecurityEvent,
   TokenUsageSnapshot,
   CostSnapshot,
   AgentLog,
@@ -114,6 +113,7 @@ const migrations = [
   AddProviderModelCache1773400000000,
   DropModelPricingTables1773500000000,
   AddOverrideProvider1773600000000,
+  DropSecurityEventTable1773700000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -163,7 +163,6 @@ function buildModeServices() {
       AgentApiKey,
       AgentMessage,
       ApiKey,
-      SecurityEvent,
       UserProvider,
       TierAssignment,
       CustomProvider,

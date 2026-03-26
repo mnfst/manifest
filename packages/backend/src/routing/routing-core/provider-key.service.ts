@@ -56,6 +56,18 @@ export class ProviderKeyService {
     return withKey?.auth_type ?? matches[0]?.auth_type ?? 'api_key';
   }
 
+  async getProviderRegion(
+    agentId: string,
+    provider: string,
+    authType?: 'api_key' | 'subscription',
+  ): Promise<string | null> {
+    const names = expandProviderNames([provider]);
+    const records = await this.providerService.getProviders(agentId);
+    const matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
+    const match = authType ? matches.find((r) => r.auth_type === authType) : matches[0];
+    return match?.region ?? null;
+  }
+
   async findProviderForModel(agentId: string, model: string): Promise<string | undefined> {
     const providers = await this.providerService.getProviders(agentId);
     for (const p of providers) {
@@ -142,12 +154,22 @@ export class ProviderKeyService {
     const discovered = await this.discoveryService.getModelForAgent(agentId, model);
     if (discovered) return true;
 
+    const pricing = this.pricingCache.getByModel(model);
+    const inferredPrefix = inferProviderFromModelName(model);
+    const pricingNames = pricing ? expandProviderNames([pricing.provider]) : null;
+    const inferredNames = inferredPrefix ? expandProviderNames([inferredPrefix]) : null;
+
+    // Qwen model ids must come from the provider's native discovery list.
+    // Pricing/OpenRouter aliases are not reliable enough to treat as runnable DashScope ids.
+    if (pricingNames?.has('qwen') || inferredNames?.has('qwen')) {
+      return false;
+    }
+
     const records = (
       await this.providerRepo.find({
         where: { agent_id: agentId, is_active: true },
       })
     ).filter(isManifestUsableProvider);
-    const pricing = this.pricingCache.getByModel(model);
     if (pricing) {
       const names = expandProviderNames([pricing.provider]);
       if (records.find((r) => names.has(r.provider.toLowerCase()))) return true;
@@ -157,9 +179,8 @@ export class ProviderKeyService {
         if (records.find((r) => cpNames.has(r.provider.toLowerCase()))) return true;
       }
     }
-    const prefix = inferProviderFromModelName(model);
-    if (prefix) {
-      const prefixNames = expandProviderNames([prefix]);
+    if (inferredPrefix) {
+      const prefixNames = expandProviderNames([inferredPrefix]);
       if (records.find((r) => prefixNames.has(r.provider.toLowerCase()))) return true;
     }
     return false;

@@ -93,6 +93,7 @@ describe('ModelDiscoveryService', () => {
     registerModels: jest.Mock;
     getConfirmedModels: jest.Mock;
   };
+  let mockCopilotTokenService: { getCopilotToken: jest.Mock };
 
   beforeEach(() => {
     providerRepo = makeMockRepo();
@@ -106,6 +107,9 @@ describe('ModelDiscoveryService', () => {
       registerModels: jest.fn(),
       getConfirmedModels: jest.fn().mockReturnValue(null),
     };
+    mockCopilotTokenService = {
+      getCopilotToken: jest.fn().mockResolvedValue('tid=exchanged-copilot-token'),
+    };
 
     mockDecrypt.mockReturnValue('decrypted-key');
     mockGetSecret.mockReturnValue('secret-32-chars-long-xxxxxxxxxx');
@@ -117,6 +121,7 @@ describe('ModelDiscoveryService', () => {
       fetcher as unknown as ProviderModelFetcherService,
       mockPricingSync as never,
       mockModelRegistry as unknown as ProviderModelRegistryService,
+      mockCopilotTokenService as never,
     );
   });
 
@@ -235,6 +240,7 @@ describe('ModelDiscoveryService', () => {
         fetcher as unknown as ProviderModelFetcherService,
         null,
         null,
+        null,
       );
 
       const models = [makeModel({ id: 'some-model' })];
@@ -329,6 +335,7 @@ describe('ModelDiscoveryService', () => {
         customProviderRepo as never,
         fetcher as unknown as ProviderModelFetcherService,
         mockPricingSync as never,
+        null,
         null,
       );
 
@@ -935,6 +942,38 @@ describe('ModelDiscoveryService', () => {
       expect(result.length).toBeGreaterThanOrEqual(0);
     });
 
+    it('should not build pricing fallback models for qwen when native discovery returns empty', async () => {
+      fetcher.fetch.mockResolvedValue([]);
+      mockPricingSync.getAll.mockReturnValue(
+        new Map([
+          [
+            'qwen/qwen3.5-9b',
+            {
+              input: 0.0000001,
+              output: 0.0000002,
+              contextWindow: 128000,
+              displayName: 'qwen3.5-9b',
+            },
+          ],
+        ]),
+      );
+
+      const provider = makeProvider({
+        provider: 'qwen',
+        region: 'singapore',
+      });
+      const result = await service.discoverModels(provider);
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'qwen',
+        'decrypted-key',
+        'api_key',
+        'https://dashscope-intl.aliyuncs.com/compatible-mode',
+      );
+      expect(result).toEqual([]);
+      expect(provider.cached_models).toEqual([]);
+    });
+
     it('should stamp authType as api_key for regular providers', async () => {
       const models = [makeModel({ id: 'gpt-4o' })];
       fetcher.fetch.mockResolvedValue(models);
@@ -1101,11 +1140,85 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).not.toHaveBeenCalled();
     });
 
+    it('should exchange Copilot GitHub token before fetching models', async () => {
+      mockDecrypt.mockReturnValue('ghu_github_oauth_token');
+      mockCopilotTokenService.getCopilotToken.mockResolvedValue('tid=copilot-api-token');
+
+      const models = [makeModel({ id: 'copilot/claude-opus-4.6', provider: 'copilot' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'copilot',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-github-token',
+        }),
+      );
+
+      expect(mockCopilotTokenService.getCopilotToken).toHaveBeenCalledWith(
+        'ghu_github_oauth_token',
+      );
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'copilot',
+        'tid=copilot-api-token',
+        'subscription',
+        undefined,
+      );
+    });
+
+    it('should fall back to known models when Copilot token exchange fails', async () => {
+      mockDecrypt.mockReturnValue('ghu_expired_token');
+      mockCopilotTokenService.getCopilotToken.mockRejectedValue(
+        new Error('Copilot token exchange failed: 401'),
+      );
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'copilot',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-expired-token',
+        }),
+      );
+
+      expect(fetcher.fetch).not.toHaveBeenCalled();
+    });
+
+    it('should skip Copilot token exchange when copilotTokenService is null', async () => {
+      const serviceNoCopilot = new ModelDiscoveryService(
+        providerRepo as never,
+        customProviderRepo as never,
+        fetcher as unknown as ProviderModelFetcherService,
+        mockPricingSync as never,
+        mockModelRegistry as unknown as ProviderModelRegistryService,
+        null,
+      );
+
+      mockDecrypt.mockReturnValue('ghu_github_token');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await serviceNoCopilot.discoverModels(
+        makeProvider({
+          provider: 'copilot',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-token',
+        }),
+      );
+
+      // Without copilotTokenService, raw GitHub token is passed to fetcher
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'copilot',
+        'ghu_github_token',
+        'subscription',
+        undefined,
+      );
+    });
+
     it('should return knownModels fallback when pricingSync is null', async () => {
       const serviceNoPricing = new ModelDiscoveryService(
         providerRepo as never,
         customProviderRepo as never,
         fetcher as unknown as ProviderModelFetcherService,
+        null,
         null,
         null,
       );

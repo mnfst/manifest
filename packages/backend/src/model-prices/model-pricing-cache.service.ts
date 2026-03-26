@@ -45,30 +45,22 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
     for (const [fullId, entry] of orCache) {
       const { provider, canonical, providerId } = this.resolveProviderAndName(fullId);
 
-      const displayName = entry.displayName ?? null;
-      const validated = this.resolveValidated(providerId, canonical);
-
-      // Store under full OpenRouter ID (e.g. "anthropic/claude-opus-4-6")
-      this.cache.set(fullId, {
+      const pricingEntry: PricingEntry = {
         model_name: fullId,
         provider,
         input_price_per_token: entry.input,
         output_price_per_token: entry.output,
-        display_name: displayName,
-        validated,
-      });
+        display_name: entry.displayName ?? null,
+        validated: this.resolveValidated(providerId, canonical),
+      };
+
+      // Store under full OpenRouter ID (e.g. "anthropic/claude-opus-4-6")
+      this.cache.set(fullId, pricingEntry);
 
       // For supported providers, also store under canonical name (e.g. "claude-opus-4-6")
       // so cost lookups work when telemetry sends bare model names
       if (canonical !== fullId && !this.cache.has(canonical)) {
-        this.cache.set(canonical, {
-          model_name: fullId,
-          provider,
-          input_price_per_token: entry.input,
-          output_price_per_token: entry.output,
-          display_name: displayName,
-          validated,
-        });
+        this.cache.set(canonical, pricingEntry);
       }
     }
 
@@ -121,10 +113,10 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
     }
 
     const prefix = openRouterId.substring(0, slashIdx);
-    const displayName = OPENROUTER_PREFIX_TO_PROVIDER.get(prefix);
-    if (displayName) {
+    const providerDisplayName = OPENROUTER_PREFIX_TO_PROVIDER.get(prefix);
+    if (providerDisplayName) {
       return {
-        provider: displayName,
+        provider: providerDisplayName,
         canonical: openRouterId.substring(slashIdx + 1),
         providerId: prefix,
       };

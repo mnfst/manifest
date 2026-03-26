@@ -27,6 +27,7 @@ describe('ProxyFallbackService', () => {
       getProviderApiKey: jest.fn(),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
+      getProviderRegion: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<ProviderKeyService>;
 
     customProviderRepo = {

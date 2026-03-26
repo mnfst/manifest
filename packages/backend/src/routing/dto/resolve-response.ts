@@ -1,6 +1,7 @@
 import { Tier, ScoringReason } from '../../scoring';
+import type { AuthType } from 'manifest-shared';
 
-export type AuthType = 'api_key' | 'subscription';
+export type { AuthType } from 'manifest-shared';
 
 export interface ResolveResponse {
   tier: Tier;

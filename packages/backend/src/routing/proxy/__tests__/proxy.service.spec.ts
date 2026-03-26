@@ -37,6 +37,7 @@ describe('ProxyService', () => {
 
     providerKeyService = {
       getProviderApiKey: jest.fn(),
+      getProviderRegion: jest.fn().mockResolvedValue(null),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<ProviderKeyService>;
@@ -211,6 +212,32 @@ describe('ProxyService', () => {
       model: 'gpt-4o',
       body,
       stream: false,
+    });
+  });
+
+  it('applies the stored Qwen region when resolver returns the Alibaba alias', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'standard',
+      model: 'qwen3.5-flash',
+      provider: 'Alibaba',
+      confidence: 0.8,
+      score: 0.1,
+      reason: 'scored',
+    });
+    providerKeyService.getProviderApiKey.mockResolvedValue('sk-qwen');
+    providerKeyService.getProviderRegion.mockResolvedValue('singapore');
+    providerClient.forward.mockResolvedValue({
+      response: new Response('{}', { status: 200 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+
+    await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'sess-qwen',
     });
   });
 

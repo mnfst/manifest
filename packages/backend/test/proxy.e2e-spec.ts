@@ -19,7 +19,7 @@ beforeAll(async () => {
   // Populate PricingSyncService cache with gpt-4o-mini pricing (use prefixed key
   // so ModelPricingCacheService.inferProvider() resolves the correct provider name)
   const pricingSync = app.get(PricingSyncService);
-  pricingSync.getAll().set('openai/gpt-4o-mini', {
+  (pricingSync.getAll() as Map<string, { input: number; output: number; contextWindow?: number }>).set('openai/gpt-4o-mini', {
     input: 0.00000015,
     output: 0.0000006,
     contextWindow: 128000,

@@ -31,6 +31,7 @@ describe('ProviderModelFetcherService', () => {
       'gemini',
       'openrouter',
       'ollama',
+      'copilot',
     ];
     for (const id of expected) {
       expect(PROVIDER_CONFIGS[id]).toBeDefined();
@@ -217,6 +218,27 @@ describe('ProviderModelFetcherService', () => {
           Authorization: 'Bearer sk-test',
           'anthropic-version': '2023-06-01',
         },
+      }),
+    );
+  });
+
+  it('should use the endpoint override for Qwen discovery', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch(
+      'qwen',
+      'sk-qwen',
+      'api_key',
+      'https://dashscope-intl.aliyuncs.com/compatible-mode',
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer sk-qwen' },
       }),
     );
   });
@@ -817,6 +839,90 @@ describe('ProviderModelFetcherService', () => {
           }),
         }),
       );
+    });
+  });
+
+  /* ── Copilot parser ── */
+
+  describe('parseCopilot (via copilot provider)', () => {
+    it('should parse Copilot models and add copilot/ prefix', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'claude-opus-4.6', object: 'model' },
+            { id: 'gpt-4o', object: 'model' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=copilot-token');
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'copilot/claude-opus-4.6',
+          displayName: 'claude-opus-4.6',
+          provider: 'copilot',
+          contextWindow: 128000,
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          qualityScore: 3,
+        }),
+      );
+      expect(result[1].id).toBe('copilot/gpt-4o');
+    });
+
+    it('should send correct Copilot headers', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+
+      await service.fetch('copilot', 'tid=test-token');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.githubcopilot.com/models',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer tid=test-token',
+            'Editor-Version': 'vscode/1.100.0',
+            'Copilot-Integration-Id': 'vscode-chat',
+          }),
+        }),
+      );
+    });
+
+    it('should return [] for empty data array', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+      expect(result).toEqual([]);
+    });
+
+    it('should filter out entries with missing or empty id', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'valid-model' }, { name: 'no-id-field' }, { id: '' }],
+        }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('copilot/valid-model');
+    });
+
+    it('should return [] when data is not an array', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: 'not-array' }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+      expect(result).toEqual([]);
     });
   });
 

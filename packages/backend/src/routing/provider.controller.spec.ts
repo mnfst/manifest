@@ -109,6 +109,7 @@ describe('ProviderController', () => {
           is_active: true,
           has_api_key: true,
           key_prefix: 'sk-proj-',
+          region: null,
           connected_at: '2025-01-01',
         },
       ]);
@@ -177,12 +178,14 @@ describe('ProviderController', () => {
         'anthropic',
         'sk-ant-test',
         undefined,
+        undefined,
       );
       expect(result).toEqual({
         id: 'p1',
         provider: 'anthropic',
         auth_type: 'api_key',
         is_active: true,
+        region: null,
       });
     });
 
@@ -202,12 +205,14 @@ describe('ProviderController', () => {
         'openai',
         undefined,
         undefined,
+        undefined,
       );
       expect(result).toEqual({
         id: 'p1',
         provider: 'openai',
         auth_type: 'api_key',
         is_active: true,
+        region: null,
       });
     });
 
@@ -259,6 +264,7 @@ describe('ProviderController', () => {
         provider: 'openai',
         auth_type: 'api_key',
         is_active: true,
+        region: null,
       });
     });
 
@@ -286,6 +292,7 @@ describe('ProviderController', () => {
         provider: 'openai',
         auth_type: 'api_key',
         is_active: true,
+        region: null,
       });
       expect(result).not.toHaveProperty('api_key_encrypted');
       expect(result).not.toHaveProperty('agent_id');
