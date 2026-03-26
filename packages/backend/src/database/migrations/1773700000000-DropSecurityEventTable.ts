@@ -18,7 +18,7 @@ export class DropSecurityEventTable1773700000000 implements MigrationInterface {
       )
     `);
     await queryRunner.query(
-      `CREATE INDEX "IDX_security_event_user_timestamp" ON "security_event" ("user_id", "timestamp")`,
+      `CREATE INDEX "IDX_security_event_user_id_timestamp" ON "security_event" ("user_id", "timestamp")`,
     );
   }
 }
