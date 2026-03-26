@@ -314,6 +314,7 @@ export interface RoutingProvider {
   is_active: boolean;
   has_api_key: boolean;
   key_prefix?: string | null;
+  region?: string | null;
   connected_at: string;
 }
 
@@ -339,14 +340,17 @@ export function connectProvider(
   agentName: string,
   data: { provider: string; apiKey?: string; authType?: AuthType },
 ) {
-  return fetchMutate<{ id: string; provider: string; auth_type: AuthType; is_active: boolean }>(
-    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    },
-  );
+  return fetchMutate<{
+    id: string;
+    provider: string;
+    auth_type: AuthType;
+    is_active: boolean;
+    region?: string | null;
+  }>(`${BASE_URL}/routing/${encodeURIComponent(agentName)}/providers`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
 }
 
 export function deactivateAllProviders(agentName: string) {

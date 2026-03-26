@@ -32,6 +32,7 @@ describe('ProxyService', () => {
 
     routingService = {
       getProviderApiKey: jest.fn(),
+      getProviderRegion: jest.fn().mockResolvedValue(null),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       getTiers: jest.fn().mockResolvedValue([]),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
@@ -183,6 +184,42 @@ describe('ProxyService', () => {
       undefined,
       undefined,
       undefined,
+      undefined,
+    );
+  });
+
+  it('applies the stored Qwen region when resolver returns the Alibaba alias', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'standard',
+      model: 'qwen3.5-flash',
+      provider: 'Alibaba',
+      confidence: 0.8,
+      score: 0.1,
+      reason: 'scored',
+    });
+    routingService.getProviderApiKey.mockResolvedValue('sk-qwen');
+    routingService.getProviderRegion.mockResolvedValue('singapore');
+    providerClient.forward.mockResolvedValue({
+      response: new Response('{}', { status: 200 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+
+    await service.proxyRequest('agent-1', 'user-1', body, 'sess-qwen');
+
+    expect(providerClient.forward).toHaveBeenCalledWith(
+      'Alibaba',
+      'sk-qwen',
+      'qwen3.5-flash',
+      body,
+      false,
+      undefined,
+      undefined,
+      expect.objectContaining({
+        baseUrl: 'https://dashscope-intl.aliyuncs.com/compatible-mode',
+        format: 'openai',
+      }),
       undefined,
     );
   });

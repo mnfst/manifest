@@ -222,6 +222,27 @@ describe('ProviderModelFetcherService', () => {
     );
   });
 
+  it('should use the endpoint override for Qwen discovery', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch(
+      'qwen',
+      'sk-qwen',
+      'api_key',
+      'https://dashscope-intl.aliyuncs.com/compatible-mode',
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer sk-qwen' },
+      }),
+    );
+  });
+
   /* ── Anthropic provider ── */
 
   describe('parseAnthropic (via anthropic provider)', () => {

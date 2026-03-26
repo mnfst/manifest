@@ -6,7 +6,12 @@ import { OpenaiOauthService } from '../openai-oauth.service';
 import { MinimaxOauthService } from '../minimax-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
-import { buildCustomEndpoint, buildEndpointOverride, ProviderEndpoint } from './provider-endpoints';
+import {
+  buildCustomEndpoint,
+  buildEndpointOverride,
+  ProviderEndpoint,
+  resolveEndpointKey,
+} from './provider-endpoints';
 import { SessionMomentumService } from './session-momentum.service';
 import { CopilotTokenService } from './copilot-token.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
@@ -14,6 +19,7 @@ import { shouldTriggerFallback, FALLBACK_EXHAUSTED_STATUS } from './fallback-sta
 import { inferProviderFromModelName } from '../provider-aliases';
 import { Tier, ScorerMessage } from '../scorer/types';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
+import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 
 /**
@@ -133,6 +139,11 @@ export class ProxyService {
       agentId,
       userId,
     );
+    const providerRegion = await this.routingService.getProviderRegion(
+      agentId,
+      resolved.provider,
+      resolved.auth_type,
+    );
     const primaryModel = this.normalizeProviderModel(resolved.provider, resolved.model);
 
     this.logger.log(
@@ -150,6 +161,7 @@ export class ProxyService {
       signal,
       resolved.auth_type,
       resolvedCredentials.resourceUrl,
+      providerRegion,
     );
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
@@ -294,6 +306,11 @@ export class ProxyService {
         agentId,
         userId,
       );
+      const providerRegion = await this.routingService.getProviderRegion(
+        agentId,
+        provider,
+        authType,
+      );
 
       this.logger.log(
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
@@ -309,6 +326,7 @@ export class ProxyService {
         signal,
         authType,
         resolvedCredentials.resourceUrl,
+        providerRegion,
       );
 
       if (forward.response.ok) {
@@ -359,6 +377,7 @@ export class ProxyService {
     signal?: AbortSignal,
     authType?: string,
     resourceUrl?: string,
+    providerRegion?: string | null,
   ): Promise<ForwardResult> {
     try {
       return await this.forwardToProvider(
@@ -371,6 +390,7 @@ export class ProxyService {
         signal,
         authType,
         resourceUrl,
+        providerRegion,
       );
     } catch (error) {
       if (signal?.aborted) throw error;
@@ -530,6 +550,7 @@ export class ProxyService {
     signal?: AbortSignal,
     authType?: string,
     resourceUrl?: string,
+    providerRegion?: string | null,
   ): Promise<ForwardResult> {
     const extraHeaders: Record<string, string> = {};
     if (provider === 'xai') {
@@ -558,6 +579,8 @@ export class ProxyService {
         customEndpoint = buildCustomEndpoint(cp.base_url);
         forwardModel = CustomProviderService.rawModelName(model);
       }
+    } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
+      customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
     } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax' && resourceUrl) {
       const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
       if (minimaxBaseUrl) {

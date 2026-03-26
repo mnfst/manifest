@@ -71,6 +71,26 @@ describe('ProviderClient', () => {
       );
     });
 
+    it('builds correct URL for qwen', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward('qwen', 'sk-qwen', 'qwen3-235b-a22b', body, false);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer sk-qwen',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('qwen3-235b-a22b');
+      expect(sentBody.stream).toBe(false);
+    });
+
     it('builds correct URL for xai', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward('xai', 'sk-xai', 'grok-3', body, false);

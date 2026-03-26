@@ -128,11 +128,12 @@ describe('RoutingController', () => {
       mockRoutingService.getProviders.mockResolvedValue([
         {
           id: 'p1',
-          provider: 'openai',
+          provider: 'qwen',
           is_active: true,
           connected_at: '2025-01-01',
           api_key_encrypted: 'enc',
           key_prefix: 'sk-proj-',
+          region: 'singapore',
         },
       ]);
 
@@ -142,11 +143,12 @@ describe('RoutingController', () => {
       expect(result).toEqual([
         {
           id: 'p1',
-          provider: 'openai',
+          provider: 'qwen',
           auth_type: 'api_key',
           is_active: true,
           has_api_key: true,
           key_prefix: 'sk-proj-',
+          region: 'singapore',
           connected_at: '2025-01-01',
         },
       ]);
@@ -171,6 +173,23 @@ describe('RoutingController', () => {
       expect(result[0]).not.toHaveProperty('agent_id');
       expect(result[0]).toHaveProperty('has_api_key', true);
       expect(result[0]).toHaveProperty('key_prefix', 'sk-proj-');
+    });
+
+    it('should return null region when provider has no stored region', async () => {
+      mockRoutingService.getProviders.mockResolvedValue([
+        {
+          id: 'p1',
+          provider: 'openai',
+          is_active: true,
+          connected_at: '2025-01-01',
+          api_key_encrypted: 'secret',
+          key_prefix: 'sk-proj-',
+          region: null,
+        },
+      ]);
+
+      const result = await controller.getProviders(mockUser, mockAgentName);
+      expect(result[0].region).toBeNull();
     });
 
     it('should return null key_prefix when provider has no key_prefix', async () => {
@@ -215,12 +234,14 @@ describe('RoutingController', () => {
         'anthropic',
         'sk-ant-test',
         undefined,
+        undefined,
       );
       expect(result).toEqual({
         id: 'p1',
         provider: 'anthropic',
         auth_type: 'api_key',
         is_active: true,
+        region: null,
       });
     });
 
@@ -240,12 +261,14 @@ describe('RoutingController', () => {
         'openai',
         undefined,
         undefined,
+        undefined,
       );
       expect(result).toEqual({
         id: 'p1',
         provider: 'openai',
         auth_type: 'api_key',
         is_active: true,
+        region: null,
       });
     });
 
@@ -297,6 +320,7 @@ describe('RoutingController', () => {
         provider: 'openai',
         auth_type: 'api_key',
         is_active: true,
+        region: null,
       });
     });
 
@@ -324,9 +348,65 @@ describe('RoutingController', () => {
         provider: 'openai',
         auth_type: 'api_key',
         is_active: true,
+        region: null,
       });
       expect(result).not.toHaveProperty('api_key_encrypted');
       expect(result).not.toHaveProperty('agent_id');
+    });
+
+    it('should pass qwen region through to the service and return it', async () => {
+      mockRoutingService.upsertProvider.mockResolvedValue({
+        provider: {
+          id: 'p1',
+          provider: 'qwen',
+          is_active: true,
+          auth_type: 'api_key',
+          region: 'singapore',
+        },
+        isNew: true,
+      });
+
+      const result = await controller.upsertProvider(mockUser, mockAgentName, {
+        provider: 'qwen',
+        apiKey: 'sk-qwen',
+        region: 'auto',
+      });
+
+      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+        'qwen',
+        'sk-qwen',
+        undefined,
+        'auto',
+      );
+      expect(result).toEqual({
+        id: 'p1',
+        provider: 'qwen',
+        auth_type: 'api_key',
+        is_active: true,
+        region: 'singapore',
+      });
+    });
+
+    it('should reject region for non-qwen providers', async () => {
+      await expect(
+        controller.upsertProvider(mockUser, mockAgentName, {
+          provider: 'openai',
+          apiKey: 'sk-test',
+          region: 'singapore',
+        }),
+      ).rejects.toThrow('region is only supported for Alibaba/Qwen providers');
+    });
+
+    it('should reject invalid qwen region values', async () => {
+      await expect(
+        controller.upsertProvider(mockUser, mockAgentName, {
+          provider: 'qwen',
+          apiKey: 'sk-test',
+          region: 'mars',
+        }),
+      ).rejects.toThrow('region must be one of: auto, singapore, us, beijing');
     });
   });
 

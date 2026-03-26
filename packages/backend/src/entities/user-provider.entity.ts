@@ -26,6 +26,9 @@ export class UserProvider {
   @Column('varchar', { default: 'api_key' })
   auth_type!: 'api_key' | 'subscription';
 
+  @Column('varchar', { nullable: true, default: null })
+  region!: string | null;
+
   @Column('boolean', { default: true })
   is_active!: boolean;
 
