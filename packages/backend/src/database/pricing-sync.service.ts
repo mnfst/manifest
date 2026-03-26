@@ -1,6 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { OPENROUTER_PREFIX_TO_PROVIDER } from '../common/constants/providers';
 
 interface OpenRouterModel {
   id: string;
@@ -87,7 +86,7 @@ export class PricingSyncService implements OnModuleInit {
     return this.cache.get(modelId) ?? null;
   }
 
-  getAll(): Map<string, OpenRouterPricingEntry> {
+  getAll(): ReadonlyMap<string, OpenRouterPricingEntry> {
     return this.cache;
   }
 
@@ -115,30 +114,6 @@ export class PricingSyncService implements OnModuleInit {
     const colonIdx = model.name.indexOf(': ');
     if (colonIdx !== -1) return model.name.substring(colonIdx + 2);
     return model.name;
-  }
-
-  deriveNames(openRouterId: string): {
-    canonical: string;
-    provider: string;
-  } {
-    if (openRouterId.startsWith('openrouter/')) {
-      return { canonical: openRouterId, provider: 'OpenRouter' };
-    }
-
-    const slashIndex = openRouterId.indexOf('/');
-    if (slashIndex === -1) {
-      return { canonical: openRouterId, provider: 'Unknown' };
-    }
-
-    const prefix = openRouterId.substring(0, slashIndex);
-    const canonical = openRouterId.substring(slashIndex + 1);
-    const provider = OPENROUTER_PREFIX_TO_PROVIDER.get(prefix) ?? this.titleCase(prefix);
-
-    return { canonical, provider };
-  }
-
-  private titleCase(str: string): string {
-    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
   isChatCompatible(model: OpenRouterModel): boolean {

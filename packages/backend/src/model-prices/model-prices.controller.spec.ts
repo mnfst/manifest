@@ -14,7 +14,7 @@ describe('ModelPricesController', () => {
 
   it('delegates to service.getAll()', async () => {
     const expected = { models: [], lastSyncedAt: null };
-    mockService.getAll.mockResolvedValue(expected);
+    mockService.getAll.mockReturnValue(expected);
 
     const result = await controller.getModelPrices();
 

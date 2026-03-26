@@ -9,7 +9,7 @@ export class ModelPricesService {
     private readonly pricingSync: PricingSyncService,
   ) {}
 
-  async getAll() {
+  getAll() {
     const entries = this.pricingCache.getAll();
     const lastSyncedAt = this.pricingSync.getLastFetchedAt()?.toISOString() ?? null;
 

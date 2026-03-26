@@ -20,17 +20,18 @@ beforeAll(async () => {
   // Populate PricingSyncService cache with test models (use prefixed keys
   // so ModelPricingCacheService.inferProvider() resolves the correct provider name)
   const pricingSync = app.get(PricingSyncService);
-  pricingSync.getAll().set('openai/gpt-4o-mini', {
+  const orCache = pricingSync.getAll() as Map<string, { input: number; output: number; contextWindow?: number }>;
+  orCache.set('openai/gpt-4o-mini', {
     input: 0.00000015,
     output: 0.0000006,
     contextWindow: 128000,
   });
-  pricingSync.getAll().set('anthropic/claude-opus-4-6', {
+  orCache.set('anthropic/claude-opus-4-6', {
     input: 0.000015,
     output: 0.000075,
     contextWindow: 200000,
   });
-  pricingSync.getAll().set('anthropic/claude-sonnet-4', {
+  orCache.set('anthropic/claude-sonnet-4', {
     input: 0.000003,
     output: 0.000015,
     contextWindow: 200000,

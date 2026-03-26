@@ -1,4 +1,5 @@
 import { buildAnthropicShortModelIdVariants } from '../common/utils/anthropic-model-id';
+import { OPENROUTER_PREFIX_TO_PROVIDER } from '../common/constants/providers';
 
 /**
  * Resolves variant model names (from telemetry) to canonical pricing names.
@@ -39,22 +40,19 @@ const KNOWN_ALIASES: ReadonlyArray<readonly [string, string]> = [
   ['codestral', 'codestral-latest'],
 ];
 
-const PROVIDER_PREFIXES = [
-  'anthropic/',
-  'openai/',
-  'google/',
-  'deepseek/',
-  'mistralai/',
-  'moonshotai/',
-  'qwen/',
-  'zhipuai/',
-  'amazon/',
-  'xai/',
-  'minimax/',
-  'z-ai/',
+// Extra prefixes from non-routing providers that telemetry may send.
+// Multi-segment prefixes must come first so they match before shorter ones.
+const EXTRA_TELEMETRY_PREFIXES = [
   'accounts/fireworks/models/',
+  'amazon/',
   'fireworks/',
   'together/',
+];
+
+/** Derived from the provider registry + extra telemetry prefixes. */
+const PROVIDER_PREFIXES: readonly string[] = [
+  ...EXTRA_TELEMETRY_PREFIXES,
+  ...[...OPENROUTER_PREFIX_TO_PROVIDER.keys()].map((p) => `${p}/`),
 ];
 
 const DATE_SUFFIX_RE = /-\d{4}-?\d{2}-?\d{2}$/;
