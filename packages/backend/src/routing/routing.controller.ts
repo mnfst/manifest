@@ -149,13 +149,6 @@ export class RoutingController {
     return { status: result.status };
   }
 
-  /* ── Ollama sync ── */
-
-  @Post('ollama/sync')
-  async syncOllama() {
-    return this.ollamaSync.sync();
-  }
-
   /* ── Model refresh ── */
 
   @Post(':agentName/refresh-models')

@@ -453,16 +453,6 @@ describe('RoutingController', () => {
     });
   });
 
-  /* ── syncOllama ── */
-
-  describe('syncOllama', () => {
-    it('should delegate to ollamaSync service', async () => {
-      const result = await controller.syncOllama();
-      expect(mockOllamaSync.sync).toHaveBeenCalled();
-      expect(result).toEqual({ count: 0 });
-    });
-  });
-
   /* ── refreshModels ── */
 
   describe('refreshModels', () => {
