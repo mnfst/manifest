@@ -11,7 +11,7 @@ import { BadRequestException, ConflictException, ForbiddenException } from '@nes
 import { QueryFailedError } from 'typeorm';
 import { AgentsController } from './agents.controller';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
-import { AggregationService } from '../services/aggregation.service';
+import { AgentLifecycleService } from '../services/agent-lifecycle.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { readLocalApiKey } from '../../common/constants/local-mode.constants';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
@@ -57,7 +57,7 @@ describe('AgentsController', () => {
           useValue: { getAgentList: mockGetAgentList },
         },
         {
-          provide: AggregationService,
+          provide: AgentLifecycleService,
           useValue: { deleteAgent: mockDeleteAgent, renameAgent: mockRenameAgent },
         },
         {
@@ -221,7 +221,7 @@ describe('AgentsController', () => {
       providers: [
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
-          provide: AggregationService,
+          provide: AgentLifecycleService,
           useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
         },
         {
@@ -251,7 +251,7 @@ describe('AgentsController', () => {
       providers: [
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
-          provide: AggregationService,
+          provide: AgentLifecycleService,
           useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
         },
         {
@@ -280,7 +280,7 @@ describe('AgentsController', () => {
       providers: [
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
-          provide: AggregationService,
+          provide: AgentLifecycleService,
           useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
         },
         {
@@ -308,7 +308,7 @@ describe('AgentsController', () => {
       providers: [
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
-          provide: AggregationService,
+          provide: AgentLifecycleService,
           useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
         },
         {

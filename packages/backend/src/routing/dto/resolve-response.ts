@@ -1,6 +1,5 @@
-import { ScoringReason } from '../scorer';
+import { Tier, ScoringReason } from '../../scoring';
 import type { AuthType } from 'manifest-shared';
-import type { Tier } from 'manifest-shared';
 
 export type { AuthType } from 'manifest-shared';
 

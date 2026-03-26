@@ -1,4 +1,4 @@
-import { expandProviderNames } from './provider-aliases';
+import { expandProviderNames } from '../common/utils/provider-aliases';
 
 describe('expandProviderNames', () => {
   it('should return the input name lowercased', () => {

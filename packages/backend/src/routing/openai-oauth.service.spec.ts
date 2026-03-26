@@ -1,7 +1,7 @@
 import { createServer } from 'http';
 import { ConfigService } from '@nestjs/config';
-import { OpenaiOauthService, OAuthTokenBlob } from './openai-oauth.service';
-import { RoutingService } from './routing.service';
+import { OpenaiOauthService, OAuthTokenBlob } from './oauth/openai-oauth.service';
+import { ProviderService } from './routing-core/provider.service';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetchMock = jest.fn() as jest.Mock<Promise<any>>;
@@ -26,15 +26,15 @@ const createServerMock = createServer as unknown as jest.Mock<any>;
 
 describe('OpenaiOauthService', () => {
   let service: OpenaiOauthService;
-  let routingService: jest.Mocked<RoutingService>;
+  let providerService: jest.Mocked<ProviderService>;
   let configService: jest.Mocked<ConfigService>;
   let discoveryService: { discoverModels: jest.Mock };
 
   beforeEach(() => {
-    routingService = {
+    providerService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<RoutingService>;
+    } as unknown as jest.Mocked<ProviderService>;
 
     configService = {
       get: jest.fn().mockReturnValue(undefined),
@@ -44,7 +44,7 @@ describe('OpenaiOauthService', () => {
       discoverModels: jest.fn().mockResolvedValue([]),
     };
 
-    service = new OpenaiOauthService(routingService, configService, discoveryService as never);
+    service = new OpenaiOauthService(providerService, configService, discoveryService as never);
     fetchMock.mockReset();
   });
 
@@ -111,7 +111,7 @@ describe('OpenaiOauthService', () => {
         expect.objectContaining({ method: 'POST' }),
       );
 
-      expect(routingService.upsertProvider).toHaveBeenCalledWith(
+      expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
         'openai',
@@ -120,7 +120,7 @@ describe('OpenaiOauthService', () => {
       );
 
       const storedBlob: OAuthTokenBlob = JSON.parse(
-        routingService.upsertProvider.mock.calls[0][3] as string,
+        providerService.upsertProvider.mock.calls[0][3] as string,
       );
       expect(storedBlob.t).toBe('access-123');
       expect(storedBlob.r).toBe('refresh-456');
@@ -175,7 +175,7 @@ describe('OpenaiOauthService', () => {
       // Should not throw despite discovery failure
       await service.exchangeCode(state, 'code');
 
-      expect(routingService.upsertProvider).toHaveBeenCalled();
+      expect(providerService.upsertProvider).toHaveBeenCalled();
       expect(discoveryService.discoverModels).toHaveBeenCalled();
     });
 
@@ -280,7 +280,7 @@ describe('OpenaiOauthService', () => {
       const result = await service.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
 
       expect(result).toBe('new-access');
-      expect(routingService.upsertProvider).toHaveBeenCalledWith(
+      expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
         'openai',

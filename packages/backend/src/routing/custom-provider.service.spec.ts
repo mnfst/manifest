@@ -3,7 +3,7 @@ jest.mock('../common/utils/url-validation', () => ({
 }));
 
 import { BadRequestException } from '@nestjs/common';
-import { CustomProviderService } from './custom-provider.service';
+import { CustomProviderService } from './custom-provider/custom-provider.service';
 import { validatePublicUrl } from '../common/utils/url-validation';
 
 const mockValidatePublicUrl = validatePublicUrl as jest.MockedFunction<typeof validatePublicUrl>;
@@ -56,7 +56,7 @@ describe('CustomProviderService (static helpers)', () => {
 describe('CustomProviderService (with mocks)', () => {
   let service: CustomProviderService;
   let mockRepo: Record<string, jest.Mock>;
-  let mockRoutingService: Record<string, jest.Mock>;
+  let mockProviderService: Record<string, jest.Mock>;
   let mockRoutingCache: Record<string, jest.Mock>;
   let mockAutoAssign: Record<string, jest.Mock>;
 
@@ -68,7 +68,7 @@ describe('CustomProviderService (with mocks)', () => {
       remove: jest.fn().mockResolvedValue(undefined),
       save: jest.fn().mockResolvedValue(undefined),
     };
-    mockRoutingService = {
+    mockProviderService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
       removeProvider: jest.fn().mockResolvedValue({ notifications: [] }),
     };
@@ -83,7 +83,7 @@ describe('CustomProviderService (with mocks)', () => {
 
     service = new CustomProviderService(
       mockRepo as never,
-      mockRoutingService as never,
+      mockProviderService as never,
       mockRoutingCache as never,
       mockAutoAssign as never,
     );
@@ -128,7 +128,7 @@ describe('CustomProviderService (with mocks)', () => {
       expect(result.base_url).toBe('https://api.groq.com/openai/v1');
       expect(result.models).toHaveLength(1);
       expect(mockRepo.insert).toHaveBeenCalledTimes(1);
-      expect(mockRoutingService.upsertProvider).toHaveBeenCalledTimes(1);
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledTimes(1);
     });
 
     it('rejects private/internal URLs via SSRF validation', async () => {
@@ -216,7 +216,7 @@ describe('CustomProviderService (with mocks)', () => {
 
       await service.remove('agent-1', 'cp-1');
 
-      expect(mockRoutingService.removeProvider).toHaveBeenCalledTimes(1);
+      expect(mockProviderService.removeProvider).toHaveBeenCalledTimes(1);
       expect(mockRepo.remove).toHaveBeenCalledTimes(1);
     });
 
@@ -232,7 +232,7 @@ describe('CustomProviderService (with mocks)', () => {
         agent_id: 'agent-1',
         name: 'Groq',
       });
-      mockRoutingService.removeProvider.mockRejectedValue(new Error('Provider not found'));
+      mockProviderService.removeProvider.mockRejectedValue(new Error('Provider not found'));
 
       await service.remove('agent-1', 'cp-1');
 
@@ -347,7 +347,7 @@ describe('CustomProviderService (with mocks)', () => {
         apiKey: 'new-key',
       } as never);
 
-      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
         'custom:cp-1',
@@ -360,7 +360,7 @@ describe('CustomProviderService (with mocks)', () => {
         apiKey: '',
       } as never);
 
-      expect(mockRoutingService.upsertProvider).toHaveBeenCalledWith(
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
         'custom:cp-1',
@@ -375,7 +375,7 @@ describe('CustomProviderService (with mocks)', () => {
         name: 'New Name',
       } as never);
 
-      expect(mockRoutingService.upsertProvider).not.toHaveBeenCalled();
+      expect(mockProviderService.upsertProvider).not.toHaveBeenCalled();
     });
 
     it('recalculates tiers when models change without apiKey', async () => {
@@ -384,7 +384,7 @@ describe('CustomProviderService (with mocks)', () => {
       } as never);
 
       expect(mockAutoAssign.recalculate).toHaveBeenCalledWith('agent-1');
-      expect(mockRoutingService.upsertProvider).not.toHaveBeenCalled();
+      expect(mockProviderService.upsertProvider).not.toHaveBeenCalled();
     });
 
     it('invalidates routing cache after save', async () => {
@@ -402,7 +402,7 @@ describe('CustomProviderService (with mocks)', () => {
       } as never);
 
       // upsertProvider internally recalculates, so autoAssign should NOT be called
-      expect(mockRoutingService.upsertProvider).toHaveBeenCalledTimes(1);
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledTimes(1);
       expect(mockAutoAssign.recalculate).not.toHaveBeenCalled();
     });
   });

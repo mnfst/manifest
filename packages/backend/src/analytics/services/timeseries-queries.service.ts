@@ -16,6 +16,15 @@ import {
   sqlSanitizeCost,
 } from '../../common/utils/sql-dialect';
 
+interface TimeseriesBucketRow {
+  hour?: string;
+  date?: string;
+  input_tokens: number;
+  output_tokens: number;
+  cost: number;
+  count: number;
+}
+
 @Injectable()
 export class TimeseriesQueriesService {
   private readonly dialect: DbDialect;
@@ -29,130 +38,6 @@ export class TimeseriesQueriesService {
     private readonly tenantCache: TenantCacheService,
   ) {
     this.dialect = detectDialect(this.dataSource.options.type as string);
-  }
-
-  async getHourlyTokens(range: string, userId: string, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-
-    const hourExpr = sqlHourBucket('at.timestamp', this.dialect);
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(hourExpr, 'hour')
-      .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
-      .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
-      .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(qb, userId, agentName, tenantId);
-    const rows = await qb.groupBy('hour').orderBy('hour', 'ASC').getRawMany();
-    return rows.map((r: Record<string, unknown>) => ({
-      hour: String(r['hour']),
-      input_tokens: Number(r['input_tokens'] ?? 0),
-      output_tokens: Number(r['output_tokens'] ?? 0),
-    }));
-  }
-
-  async getDailyTokens(range: string, userId: string, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-
-    const dateExpr = sqlDateBucket('at.timestamp', this.dialect);
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(dateExpr, 'date')
-      .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
-      .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
-      .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(qb, userId, agentName, tenantId);
-    const rows = await qb.groupBy('date').orderBy('date', 'ASC').getRawMany();
-    return rows.map((r: Record<string, unknown>) => ({
-      date: String(r['date']),
-      input_tokens: Number(r['input_tokens'] ?? 0),
-      output_tokens: Number(r['output_tokens'] ?? 0),
-    }));
-  }
-
-  async getHourlyCosts(range: string, userId: string, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-
-    const hourExpr = sqlHourBucket('at.timestamp', this.dialect);
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(hourExpr, 'hour')
-      .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'cost')
-      .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(qb, userId, agentName, tenantId);
-    const rows = await qb.groupBy('hour').orderBy('hour', 'ASC').getRawMany();
-    return rows.map((r: Record<string, unknown>) => ({
-      hour: String(r['hour']),
-      cost: Number(r['cost'] ?? 0),
-    }));
-  }
-
-  async getDailyCosts(range: string, userId: string, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-
-    const dateExpr = sqlDateBucket('at.timestamp', this.dialect);
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(dateExpr, 'date')
-      .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'cost')
-      .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(qb, userId, agentName, tenantId);
-    const rows = await qb.groupBy('date').orderBy('date', 'ASC').getRawMany();
-    return rows.map((r: Record<string, unknown>) => ({
-      date: String(r['date']),
-      cost: Number(r['cost'] ?? 0),
-    }));
-  }
-
-  async getHourlyMessages(range: string, userId: string, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-
-    const hourExpr = sqlHourBucket('at.timestamp', this.dialect);
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(hourExpr, 'hour')
-      .addSelect('COUNT(*)', 'count')
-      .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(qb, userId, agentName, tenantId);
-    const rows = await qb.groupBy('hour').orderBy('hour', 'ASC').getRawMany();
-    return rows.map((r: Record<string, unknown>) => ({
-      hour: String(r['hour']),
-      count: Number(r['count'] ?? 0),
-    }));
-  }
-
-  async getDailyMessages(range: string, userId: string, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-
-    const dateExpr = sqlDateBucket('at.timestamp', this.dialect);
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(dateExpr, 'date')
-      .addSelect('COUNT(*)', 'count')
-      .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(qb, userId, agentName, tenantId);
-    const rows = await qb.groupBy('date').orderBy('date', 'ASC').getRawMany();
-    return rows.map((r: Record<string, unknown>) => ({
-      date: String(r['date']),
-      count: Number(r['count'] ?? 0),
-    }));
   }
 
   async getTimeseries(
@@ -190,14 +75,15 @@ export class TimeseriesQueriesService {
     const messageUsage: { hour?: string; date?: string; count: number }[] = [];
 
     for (const r of rows) {
-      const bucket = String(r[bucketAlias]);
+      const parsed = this.parseBucketRow(r, bucketAlias);
+      const bucketKey = { hour: parsed.hour, date: parsed.date };
       tokenUsage.push({
-        [bucketAlias]: bucket,
-        input_tokens: Number(r['input_tokens'] ?? 0),
-        output_tokens: Number(r['output_tokens'] ?? 0),
-      } as never);
-      costUsage.push({ [bucketAlias]: bucket, cost: Number(r['cost'] ?? 0) } as never);
-      messageUsage.push({ [bucketAlias]: bucket, count: Number(r['count'] ?? 0) } as never);
+        ...bucketKey,
+        input_tokens: parsed.input_tokens,
+        output_tokens: parsed.output_tokens,
+      });
+      costUsage.push({ ...bucketKey, cost: parsed.cost });
+      messageUsage.push({ ...bucketKey, count: parsed.count });
     }
 
     return { tokenUsage, costUsage, messageUsage };
@@ -370,5 +256,19 @@ export class TimeseriesQueriesService {
         sparkline: sparkMap.get(name) ?? [],
       };
     });
+  }
+
+  private parseBucketRow(
+    r: Record<string, unknown>,
+    bucketAlias: 'hour' | 'date',
+  ): TimeseriesBucketRow {
+    const row: TimeseriesBucketRow = {
+      input_tokens: Number(r['input_tokens'] ?? 0),
+      output_tokens: Number(r['output_tokens'] ?? 0),
+      cost: Number(r['cost'] ?? 0),
+      count: Number(r['count'] ?? 0),
+    };
+    row[bucketAlias] = String(r[bucketAlias]);
+    return row;
   }
 }

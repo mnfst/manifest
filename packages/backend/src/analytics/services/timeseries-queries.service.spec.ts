@@ -67,31 +67,6 @@ describe('TimeseriesQueriesService', () => {
     service = module.get<TimeseriesQueriesService>(TimeseriesQueriesService);
   });
 
-  describe('getHourlyTokens', () => {
-    it('maps DB rows to typed objects', async () => {
-      mockGetRawMany.mockResolvedValue([
-        { hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 },
-        { hour: '2026-02-16T11:00:00', input_tokens: 200, output_tokens: 80 },
-      ]);
-
-      const result = await service.getHourlyTokens('24h', 'u1');
-      expect(result).toEqual([
-        { hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 },
-        { hour: '2026-02-16T11:00:00', input_tokens: 200, output_tokens: 80 },
-      ]);
-    });
-
-    it('defaults null token values to 0', async () => {
-      mockGetRawMany.mockResolvedValue([
-        { hour: '2026-02-16T10:00:00', input_tokens: null, output_tokens: null },
-      ]);
-
-      const result = await service.getHourlyTokens('24h', 'u1');
-      expect(result[0].input_tokens).toBe(0);
-      expect(result[0].output_tokens).toBe(0);
-    });
-  });
-
   describe('getActiveSkills', () => {
     it('maps DB rows with status field', async () => {
       mockGetRawMany.mockResolvedValue([
@@ -168,71 +143,6 @@ describe('TimeseriesQueriesService', () => {
       const result = await service.getCostByModel('7d', 'u1');
       expect(result[0].share_pct).toBe(0);
       expect(result[0].auth_type).toBeNull();
-    });
-  });
-
-  describe('getDailyTokens', () => {
-    it('maps DB rows with date field and defaults nulls to 0', async () => {
-      mockGetRawMany.mockResolvedValue([
-        { date: '2026-02-15', input_tokens: 500, output_tokens: 200 },
-        { date: '2026-02-16', input_tokens: null, output_tokens: null },
-      ]);
-      const result = await service.getDailyTokens('7d', 'u1');
-      expect(result[0]).toEqual({ date: '2026-02-15', input_tokens: 500, output_tokens: 200 });
-      expect(result[1].input_tokens).toBe(0);
-      expect(result[1].output_tokens).toBe(0);
-    });
-
-    it('returns empty array when no data', async () => {
-      mockGetRawMany.mockResolvedValue([]);
-      expect(await service.getDailyTokens('30d', 'u1')).toEqual([]);
-    });
-  });
-
-  describe('getHourlyCosts', () => {
-    it('maps DB rows and defaults null cost to 0', async () => {
-      mockGetRawMany.mockResolvedValue([
-        { hour: '2026-02-16T10:00:00', cost: 1.25 },
-        { hour: '2026-02-16T11:00:00', cost: null },
-      ]);
-      const result = await service.getHourlyCosts('24h', 'u1');
-      expect(result[0].cost).toBe(1.25);
-      expect(result[1].cost).toBe(0);
-    });
-  });
-
-  describe('getDailyCosts', () => {
-    it('maps DB rows and defaults null cost to 0', async () => {
-      mockGetRawMany.mockResolvedValue([
-        { date: '2026-02-15', cost: 3.5 },
-        { date: '2026-02-16', cost: null },
-      ]);
-      const result = await service.getDailyCosts('7d', 'u1');
-      expect(result[0]).toEqual({ date: '2026-02-15', cost: 3.5 });
-      expect(result[1].cost).toBe(0);
-    });
-  });
-
-  describe('getHourlyMessages', () => {
-    it('maps DB rows and defaults null count to 0', async () => {
-      mockGetRawMany.mockResolvedValue([
-        { hour: '2026-02-16T10:00:00', count: 15 },
-        { hour: '2026-02-16T11:00:00', count: null },
-      ]);
-      const result = await service.getHourlyMessages('24h', 'u1');
-      expect(result[0].count).toBe(15);
-      expect(result[1].count).toBe(0);
-    });
-  });
-
-  describe('getDailyMessages', () => {
-    it('maps DB rows and returns empty for no data', async () => {
-      mockGetRawMany.mockResolvedValue([{ date: '2026-02-15', count: 100 }]);
-      const result = await service.getDailyMessages('7d', 'u1');
-      expect(result).toEqual([{ date: '2026-02-15', count: 100 }]);
-
-      mockGetRawMany.mockResolvedValue([]);
-      expect(await service.getDailyMessages('30d', 'u1')).toEqual([]);
     });
   });
 
@@ -472,9 +382,9 @@ describe('TimeseriesQueriesService (sql.js / local mode)', () => {
     expect(service).toBeDefined();
   });
 
-  it('uses strftime for hour bucketing in getHourlyTokens', async () => {
+  it('uses strftime for hour bucketing in getTimeseries (hourly)', async () => {
     mockGetRawMany.mockResolvedValue([]);
-    await service.getHourlyTokens('24h', 'u1');
+    await service.getTimeseries('24h', 'u1', true);
 
     const selectCalls = mockSelect.mock.calls.map((c: unknown[]) => c[0]);
     const hasStrftime = selectCalls.some(
@@ -484,9 +394,9 @@ describe('TimeseriesQueriesService (sql.js / local mode)', () => {
     expect(hasStrftime).toBe(true);
   });
 
-  it('uses strftime for date bucketing in getDailyTokens', async () => {
+  it('uses strftime for date bucketing in getTimeseries (daily)', async () => {
     mockGetRawMany.mockResolvedValue([]);
-    await service.getDailyTokens('7d', 'u1');
+    await service.getTimeseries('7d', 'u1', false);
 
     const selectCalls = mockSelect.mock.calls.map((c: unknown[]) => c[0]);
     const hasStrftime = selectCalls.some(
@@ -509,11 +419,13 @@ describe('TimeseriesQueriesService (sql.js / local mode)', () => {
 
   it('business logic works identically on sqlite dialect', async () => {
     mockGetRawMany.mockResolvedValue([
-      { hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 },
+      { hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50, cost: 1.0, count: 3 },
     ]);
 
-    const result = await service.getHourlyTokens('24h', 'u1');
-    expect(result).toEqual([{ hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 }]);
+    const result = await service.getTimeseries('24h', 'u1', true);
+    expect(result.tokenUsage).toEqual([
+      { hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 },
+    ]);
   });
 
   it('getAgentList uses leftJoin fallback when tenantId is null', async () => {

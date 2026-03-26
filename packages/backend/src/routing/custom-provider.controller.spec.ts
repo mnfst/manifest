@@ -1,8 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
-import { CustomProviderController } from './custom-provider.controller';
-import { CustomProviderService } from './custom-provider.service';
-import { RoutingService } from './routing.service';
-import { ResolveAgentService } from './resolve-agent.service';
+import { CustomProviderController } from './custom-provider/custom-provider.controller';
+import { CustomProviderService } from './custom-provider/custom-provider.service';
+import { ProviderService } from './routing-core/provider.service';
+import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { Agent } from '../entities/agent.entity';
 
 const mockUser = { id: 'user-1' } as never;
@@ -10,7 +10,7 @@ const mockUser = { id: 'user-1' } as never;
 describe('CustomProviderController', () => {
   let controller: CustomProviderController;
   let mockCustomProviderService: Record<string, jest.Mock>;
-  let mockRoutingService: Record<string, jest.Mock>;
+  let mockProviderService: Record<string, jest.Mock>;
   let mockResolveAgent: Record<string, jest.Mock>;
 
   beforeEach(() => {
@@ -32,7 +32,7 @@ describe('CustomProviderController', () => {
       }),
       remove: jest.fn().mockResolvedValue(undefined),
     };
-    mockRoutingService = {
+    mockProviderService = {
       getProviders: jest.fn().mockResolvedValue([]),
     };
     mockResolveAgent = {
@@ -41,7 +41,7 @@ describe('CustomProviderController', () => {
 
     controller = new CustomProviderController(
       mockCustomProviderService as unknown as CustomProviderService,
-      mockRoutingService as unknown as RoutingService,
+      mockProviderService as unknown as ProviderService,
       mockResolveAgent as unknown as ResolveAgentService,
     );
   });
@@ -79,7 +79,7 @@ describe('CustomProviderController', () => {
           created_at: '2026-03-04',
         },
       ]);
-      mockRoutingService.getProviders.mockResolvedValue([
+      mockProviderService.getProviders.mockResolvedValue([
         { provider: 'custom:cp-1', api_key_encrypted: 'enc-value' },
       ]);
 
@@ -106,7 +106,7 @@ describe('CustomProviderController', () => {
           created_at: '2026-03-04',
         },
       ]);
-      mockRoutingService.getProviders.mockResolvedValue([]);
+      mockProviderService.getProviders.mockResolvedValue([]);
 
       const result = await controller.list(mockUser, { agentName: 'test-agent' } as never);
 
@@ -123,7 +123,7 @@ describe('CustomProviderController', () => {
           created_at: '2026-03-04',
         },
       ]);
-      mockRoutingService.getProviders.mockResolvedValue([
+      mockProviderService.getProviders.mockResolvedValue([
         { provider: 'custom:cp-1', api_key_encrypted: null },
       ]);
 
@@ -135,7 +135,7 @@ describe('CustomProviderController', () => {
     it('returns empty array when no custom providers and skips user_providers query', async () => {
       const result = await controller.list(mockUser, { agentName: 'test-agent' } as never);
       expect(result).toEqual([]);
-      expect(mockRoutingService.getProviders).toHaveBeenCalled();
+      expect(mockProviderService.getProviders).toHaveBeenCalled();
     });
   });
 
@@ -143,7 +143,7 @@ describe('CustomProviderController', () => {
 
   describe('create', () => {
     it('creates custom provider and returns mapped response', async () => {
-      mockRoutingService.getProviders.mockResolvedValue([
+      mockProviderService.getProviders.mockResolvedValue([
         { provider: 'custom:cp-1', api_key_encrypted: 'encrypted' },
       ]);
 
@@ -167,7 +167,7 @@ describe('CustomProviderController', () => {
     });
 
     it('returns has_api_key false when no user provider found', async () => {
-      mockRoutingService.getProviders.mockResolvedValue([]);
+      mockProviderService.getProviders.mockResolvedValue([]);
 
       const body = {
         name: 'Local',
@@ -189,7 +189,7 @@ describe('CustomProviderController', () => {
 
   describe('update', () => {
     it('updates custom provider and returns mapped response', async () => {
-      mockRoutingService.getProviders.mockResolvedValue([
+      mockProviderService.getProviders.mockResolvedValue([
         { provider: 'custom:cp-1', api_key_encrypted: 'encrypted' },
       ]);
 
@@ -209,7 +209,7 @@ describe('CustomProviderController', () => {
     });
 
     it('returns has_api_key false when no user provider found', async () => {
-      mockRoutingService.getProviders.mockResolvedValue([]);
+      mockProviderService.getProviders.mockResolvedValue([]);
 
       const result = await controller.update(mockUser, 'test-agent', 'cp-1', {
         name: 'Updated',

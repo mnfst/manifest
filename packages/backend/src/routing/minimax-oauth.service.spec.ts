@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
-import { MinimaxOauthService } from './minimax-oauth.service';
-import { RoutingService } from './routing.service';
+import { MinimaxOauthService } from './oauth/minimax-oauth.service';
+import { ProviderService } from './routing-core/provider.service';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetchMock = jest.fn() as jest.Mock<Promise<any>>;
@@ -8,7 +8,7 @@ global.fetch = fetchMock;
 
 describe('MinimaxOauthService', () => {
   let service: MinimaxOauthService;
-  let routingService: jest.Mocked<RoutingService>;
+  let providerService: jest.Mocked<ProviderService>;
   let configService: jest.Mocked<ConfigService>;
   let discoveryService: { discoverModels: jest.Mock };
   let dateNowSpy: jest.SpyInstance<number, []>;
@@ -16,10 +16,10 @@ describe('MinimaxOauthService', () => {
 
   beforeEach(() => {
     dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
-    routingService = {
+    providerService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<RoutingService>;
+    } as unknown as jest.Mocked<ProviderService>;
 
     configService = {
       get: jest.fn().mockReturnValue(undefined),
@@ -29,7 +29,7 @@ describe('MinimaxOauthService', () => {
       discoverModels: jest.fn().mockResolvedValue([]),
     };
 
-    service = new MinimaxOauthService(routingService, configService, discoveryService as never);
+    service = new MinimaxOauthService(providerService, configService, discoveryService as never);
     fetchMock.mockReset();
   });
 
@@ -117,7 +117,7 @@ describe('MinimaxOauthService', () => {
       const result = await service.pollAuthorization(start.flowId, 'user-1');
 
       expect(result).toEqual({ status: 'success' });
-      expect(routingService.upsertProvider).toHaveBeenCalledWith(
+      expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
         'minimax',
@@ -151,7 +151,7 @@ describe('MinimaxOauthService', () => {
       const result = await service.pollAuthorization(start.flowId, 'user-1');
 
       expect(result.status).toBe('pending');
-      expect(routingService.upsertProvider).not.toHaveBeenCalled();
+      expect(providerService.upsertProvider).not.toHaveBeenCalled();
     });
   });
 
@@ -203,7 +203,7 @@ describe('MinimaxOauthService', () => {
           u: 'https://api.minimax.io/anthropic',
         }),
       );
-      expect(routingService.upsertProvider).toHaveBeenCalled();
+      expect(providerService.upsertProvider).toHaveBeenCalled();
     });
 
     it('refreshes against the CN OAuth host when the stored resource URL is regional', async () => {

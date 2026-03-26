@@ -26,12 +26,12 @@ jest.mock('../entities/user-provider.entity', () => ({ UserProvider: jest.fn() }
 jest.mock('../entities/tier-assignment.entity', () => ({ TierAssignment: jest.fn() }));
 
 // Mock tier-auto-assign to avoid deep import chain
-jest.mock('../routing/tier-auto-assign.service', () => ({
+jest.mock('../routing/routing-core/tier-auto-assign.service', () => ({
   TierAutoAssignService: class TierAutoAssignService {},
 }));
 
 // Mock model-discovery to avoid deep import chain
-jest.mock('../routing/model-discovery/model-discovery.service', () => ({
+jest.mock('../model-discovery/model-discovery.service', () => ({
   ModelDiscoveryService: class ModelDiscoveryService {},
 }));
 

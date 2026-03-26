@@ -14,6 +14,9 @@ import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { OtlpController } from './otlp.controller';
 import { OtlpDecoderService } from './services/otlp-decoder.service';
 import { TraceIngestService } from './services/trace-ingest.service';
+import { TraceDedupService } from './services/trace-dedup.service';
+import { TraceCostCalculator } from './services/trace-cost-calculator';
+import { TraceEntityBuilder } from './services/trace-entity-builder';
 import { MetricIngestService } from './services/metric-ingest.service';
 import { LogIngestService } from './services/log-ingest.service';
 import { ApiKeyGeneratorService } from './services/api-key.service';
@@ -39,11 +42,14 @@ import { OtlpAuthGuard } from './guards/otlp-auth.guard';
   providers: [
     OtlpDecoderService,
     TraceIngestService,
+    TraceDedupService,
+    TraceCostCalculator,
+    TraceEntityBuilder,
     MetricIngestService,
     LogIngestService,
     ApiKeyGeneratorService,
     OtlpAuthGuard,
   ],
-  exports: [ApiKeyGeneratorService, TypeOrmModule],
+  exports: [ApiKeyGeneratorService, OtlpAuthGuard, TypeOrmModule],
 })
 export class OtlpModule {}

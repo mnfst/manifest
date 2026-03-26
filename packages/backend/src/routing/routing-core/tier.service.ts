@@ -1,0 +1,179 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserProvider } from '../../entities/user-provider.entity';
+import { TierAssignment } from '../../entities/tier-assignment.entity';
+import { TierAutoAssignService } from './tier-auto-assign.service';
+import { RoutingCacheService } from './routing-cache.service';
+import { ProviderService } from './provider.service';
+import { randomUUID } from 'crypto';
+import { TIERS } from '../../scoring/types';
+import { isManifestUsableProvider } from '../../common/utils/subscription-support';
+
+@Injectable()
+export class TierService {
+  constructor(
+    @InjectRepository(UserProvider)
+    private readonly providerRepo: Repository<UserProvider>,
+    @InjectRepository(TierAssignment)
+    private readonly tierRepo: Repository<TierAssignment>,
+    private readonly autoAssign: TierAutoAssignService,
+    private readonly routingCache: RoutingCacheService,
+    private readonly providerService: ProviderService,
+  ) {}
+
+  async getTiers(agentId: string, userId?: string): Promise<TierAssignment[]> {
+    const cached = this.routingCache.getTiers(agentId);
+    if (cached) return cached;
+
+    // Trigger provider cleanup to deactivate unsupported subscription providers
+    await this.providerService.getProviders(agentId);
+    const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
+
+    if (rows.length === 0) {
+      // Batch tier inserts — create all 4 tier rows in one query
+      const created: TierAssignment[] = TIERS.map((tier) =>
+        Object.assign(new TierAssignment(), {
+          id: randomUUID(),
+          user_id: userId ?? '',
+          agent_id: agentId,
+          tier,
+          override_model: null,
+          override_provider: null,
+          override_auth_type: null,
+          auto_assigned_model: null,
+        }),
+      );
+      try {
+        await this.tierRepo.insert(created);
+      } catch {
+        // Concurrent request already created the rows — re-read
+        const existing = await this.tierRepo.find({ where: { agent_id: agentId } });
+        if (existing.length > 0) {
+          this.routingCache.setTiers(agentId, existing);
+          return existing;
+        }
+      }
+
+      // If agent has active providers, recalculate immediately
+      const providers = await this.providerRepo.find({
+        where: { agent_id: agentId, is_active: true },
+      });
+      const usableProviders = providers.filter(isManifestUsableProvider);
+      if (usableProviders.length > 0) {
+        await this.autoAssign.recalculate(agentId);
+        const result = await this.tierRepo.find({ where: { agent_id: agentId } });
+        this.routingCache.setTiers(agentId, result);
+        return result;
+      }
+
+      this.routingCache.setTiers(agentId, created);
+      return created;
+    }
+
+    this.routingCache.setTiers(agentId, rows);
+    return rows;
+  }
+
+  async setOverride(
+    agentId: string,
+    userId: string,
+    tier: string,
+    model: string,
+    provider?: string,
+    authType?: 'api_key' | 'subscription',
+  ): Promise<TierAssignment> {
+    const existing = await this.tierRepo.findOne({
+      where: { agent_id: agentId, tier },
+    });
+
+    if (existing) {
+      existing.override_model = model;
+      existing.override_provider = provider ?? null;
+      existing.override_auth_type = authType ?? null;
+      if (existing.fallback_models?.includes(model)) {
+        const filtered = existing.fallback_models.filter((m) => m !== model);
+        existing.fallback_models = filtered.length > 0 ? filtered : null;
+      }
+      existing.updated_at = new Date().toISOString();
+      await this.tierRepo.save(existing);
+      this.routingCache.invalidateAgent(agentId);
+      return existing;
+    }
+
+    const record: TierAssignment = Object.assign(new TierAssignment(), {
+      id: randomUUID(),
+      user_id: userId,
+      agent_id: agentId,
+      tier,
+      override_model: model,
+      override_provider: provider ?? null,
+      override_auth_type: authType ?? null,
+      auto_assigned_model: null,
+    });
+
+    try {
+      await this.tierRepo.insert(record);
+    } catch {
+      // Concurrent insert — retry as update
+      const retry = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
+      if (retry) return this.setOverride(agentId, userId, tier, model, provider, authType);
+    }
+    this.routingCache.invalidateAgent(agentId);
+    return record;
+  }
+
+  async clearOverride(agentId: string, tier: string): Promise<void> {
+    const existing = await this.tierRepo.findOne({
+      where: { agent_id: agentId, tier },
+    });
+    if (!existing) return;
+
+    existing.override_model = null;
+    existing.override_provider = null;
+    existing.override_auth_type = null;
+    existing.updated_at = new Date().toISOString();
+    await this.tierRepo.save(existing);
+    this.routingCache.invalidateAgent(agentId);
+  }
+
+  async resetAllOverrides(agentId: string): Promise<void> {
+    await this.tierRepo.update(
+      { agent_id: agentId },
+      {
+        override_model: null,
+        override_provider: null,
+        override_auth_type: null,
+        fallback_models: null,
+        updated_at: new Date().toISOString(),
+      },
+    );
+    this.routingCache.invalidateAgent(agentId);
+  }
+
+  /* ── Fallbacks ── */
+
+  async getFallbacks(agentId: string, tier: string): Promise<string[]> {
+    const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
+    return existing?.fallback_models ?? [];
+  }
+
+  async setFallbacks(agentId: string, tier: string, models: string[]): Promise<string[]> {
+    const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
+    if (!existing) return [];
+    existing.fallback_models = models.length > 0 ? models : null;
+    existing.updated_at = new Date().toISOString();
+    await this.tierRepo.save(existing);
+    this.routingCache.invalidateAgent(agentId);
+    return models;
+  }
+
+  async clearFallbacks(agentId: string, tier: string): Promise<void> {
+    const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
+    if (!existing) return;
+    existing.fallback_models = null;
+    existing.updated_at = new Date().toISOString();
+    await this.tierRepo.save(existing);
+    this.routingCache.invalidateAgent(agentId);
+  }
+}

@@ -5,7 +5,7 @@ import { createTestApp, TEST_OTLP_KEY, TEST_API_KEY, TEST_AGENT_ID } from './hel
 import { detectDialect, portableSql } from '../src/common/utils/sql-dialect';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
-import { TierAutoAssignService } from '../src/routing/tier-auto-assign.service';
+import { TierAutoAssignService } from '../src/routing/routing-core/tier-auto-assign.service';
 
 let app: INestApplication;
 

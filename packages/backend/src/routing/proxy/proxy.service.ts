@@ -1,26 +1,23 @@
 import { Injectable, Logger, BadRequestException, HttpException } from '@nestjs/common';
-import { ResolveService } from '../resolve.service';
-import { RoutingService } from '../routing.service';
-import { CustomProviderService } from '../custom-provider.service';
-import { OpenaiOauthService } from '../openai-oauth.service';
-import { MinimaxOauthService } from '../minimax-oauth.service';
-import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
-import { ProviderClient, ForwardResult } from './provider-client';
-import {
-  buildCustomEndpoint,
-  buildEndpointOverride,
-  ProviderEndpoint,
-  resolveEndpointKey,
-} from './provider-endpoints';
+import { ResolveService } from '../resolve/resolve.service';
+import { ProviderKeyService } from '../routing-core/provider-key.service';
+import { TierService } from '../routing-core/tier.service';
+import { OpenaiOauthService } from '../oauth/openai-oauth.service';
+import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
+import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
-import { CopilotTokenService } from './copilot-token.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
-import { shouldTriggerFallback, FALLBACK_EXHAUSTED_STATUS } from './fallback-status-codes';
-import { inferProviderFromModelName } from '../provider-aliases';
-import { Tier, ScorerMessage } from '../scorer/types';
-import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
-import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
-import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
+import { FALLBACK_EXHAUSTED_STATUS, shouldTriggerFallback } from './fallback-status-codes';
+import { Tier, ScorerMessage } from '../../scoring/types';
+import {
+  ProxyFallbackService,
+  FailedFallback,
+  normalizeProviderModel,
+  resolveApiKey,
+} from './proxy-fallback.service';
+import { ProxyRequestOptions } from './proxy-types';
+
+export { FailedFallback } from './proxy-fallback.service';
 
 /**
  * Roles excluded from scoring. OpenClaw (and similar tools) inject a large,
@@ -30,9 +27,6 @@ import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-mod
  */
 const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
-const PROVIDER_TRANSPORT_ERROR_STATUS = 503;
-const PROVIDER_TIMEOUT_STATUS = 504;
-const GENERIC_FETCH_ERROR_MESSAGE = 'fetch failed';
 
 export interface RoutingMeta {
   tier: Tier;
@@ -47,14 +41,6 @@ export interface RoutingMeta {
   primaryErrorBody?: string;
 }
 
-export interface FailedFallback {
-  model: string;
-  provider: string;
-  fallbackIndex: number;
-  status: number;
-  errorBody: string;
-}
-
 export interface ProxyResult {
   forward: ForwardResult;
   meta: RoutingMeta;
@@ -67,26 +53,17 @@ export class ProxyService {
 
   constructor(
     private readonly resolveService: ResolveService,
-    private readonly routingService: RoutingService,
-    private readonly customProviderService: CustomProviderService,
+    private readonly providerKeyService: ProviderKeyService,
+    private readonly tierService: TierService,
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
-    private readonly providerClient: ProviderClient,
     private readonly momentum: SessionMomentumService,
-    private readonly copilotToken: CopilotTokenService,
     private readonly limitCheck: LimitCheckService,
-    private readonly pricingCache: ModelPricingCacheService,
+    private readonly fallbackService: ProxyFallbackService,
   ) {}
 
-  async proxyRequest(
-    agentId: string,
-    userId: string,
-    body: Record<string, unknown>,
-    sessionKey: string,
-    tenantId?: string,
-    agentName?: string,
-    signal?: AbortSignal,
-  ): Promise<ProxyResult> {
+  async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
+    const { agentId, userId, body, sessionKey, tenantId, agentName, signal } = opts;
     const messages = body.messages;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw new BadRequestException('messages array is required');
@@ -121,7 +98,7 @@ export class ProxyService {
       );
     }
 
-    let apiKey = await this.routingService.getProviderApiKey(
+    let apiKey = await this.providerKeyService.getProviderApiKey(
       agentId,
       resolved.provider,
       resolved.auth_type,
@@ -132,46 +109,48 @@ export class ProxyService {
       );
     }
 
-    const resolvedCredentials = await this.resolveApiKey(
+    const resolvedCredentials = await resolveApiKey(
       resolved.provider,
       apiKey,
       resolved.auth_type,
       agentId,
       userId,
+      this.openaiOauth,
+      this.minimaxOauth,
     );
-    const providerRegion = await this.routingService.getProviderRegion(
+    const providerRegion = await this.providerKeyService.getProviderRegion(
       agentId,
       resolved.provider,
       resolved.auth_type,
     );
-    const primaryModel = this.normalizeProviderModel(resolved.provider, resolved.model);
+    const primaryModel = normalizeProviderModel(resolved.provider, resolved.model);
 
     this.logger.log(
       `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
     );
 
     const stream = body.stream === true;
-    const forward = await this.tryForwardToProvider(
-      resolved.provider,
-      resolvedCredentials.apiKey,
-      primaryModel,
+    const forward = await this.fallbackService.tryForwardToProvider({
+      provider: resolved.provider,
+      apiKey: resolvedCredentials.apiKey,
+      model: primaryModel,
       body,
       stream,
       sessionKey,
       signal,
-      resolved.auth_type,
-      resolvedCredentials.resourceUrl,
+      authType: resolved.auth_type,
+      resourceUrl: resolvedCredentials.resourceUrl,
       providerRegion,
-    );
+    });
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
-      const tiers = await this.routingService.getTiers(agentId);
+      const tiers = await this.tierService.getTiers(agentId);
       const assignment = tiers.find((t) => t.tier === resolved.tier);
       const fallbackModels = assignment?.fallback_models;
 
       if (fallbackModels && fallbackModels.length > 0) {
         const primaryErrorBody = await forward.response.text();
-        const { success, failures } = await this.tryFallbacks(
+        const { success, failures } = await this.fallbackService.tryFallbacks(
           agentId,
           userId,
           fallbackModels,
@@ -202,7 +181,7 @@ export class ProxyService {
           };
         }
 
-        // All fallbacks exhausted — return non-retriable 424 so the gateway
+        // All fallbacks exhausted -- return non-retriable 424 so the gateway
         // does not retry the entire chain in an infinite loop.
         const safeHeaders = new Headers(forward.response.headers);
         safeHeaders.delete('content-encoding');
@@ -250,167 +229,6 @@ export class ProxyService {
     };
   }
 
-  private async tryFallbacks(
-    agentId: string,
-    userId: string,
-    fallbackModels: string[],
-    body: Record<string, unknown>,
-    stream: boolean,
-    sessionKey: string,
-    primaryModel: string,
-    signal?: AbortSignal,
-  ): Promise<{
-    success: {
-      forward: ForwardResult;
-      model: string;
-      provider: string;
-      fallbackIndex: number;
-    } | null;
-    failures: FailedFallback[];
-  }> {
-    const failures: FailedFallback[] = [];
-    for (let i = 0; i < fallbackModels.length; i++) {
-      const requestedModel = fallbackModels[i];
-      const pricing = this.pricingCache.getByModel(requestedModel);
-
-      // Determine provider: custom prefix → model name inference → pricing cache → user's connected providers
-      let provider: string | undefined;
-      if (CustomProviderService.isCustom(requestedModel)) {
-        const slashIdx = requestedModel.indexOf('/');
-        provider = slashIdx > 0 ? requestedModel.substring(0, slashIdx) : requestedModel;
-      } else {
-        provider =
-          inferProviderFromModelName(requestedModel) ??
-          pricing?.provider ??
-          (await this.routingService.findProviderForModel(agentId, requestedModel));
-      }
-
-      if (!provider) {
-        this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
-        continue;
-      }
-      const model = this.normalizeProviderModel(provider, requestedModel);
-      const authType = await this.routingService.getAuthType(agentId, provider);
-      let apiKey = await this.routingService.getProviderApiKey(agentId, provider, authType);
-      if (apiKey === null) {
-        this.logger.debug(
-          `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
-        );
-        continue;
-      }
-
-      const resolvedCredentials = await this.resolveApiKey(
-        provider,
-        apiKey,
-        authType,
-        agentId,
-        userId,
-      );
-      const providerRegion = await this.routingService.getProviderRegion(
-        agentId,
-        provider,
-        authType,
-      );
-
-      this.logger.log(
-        `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
-      );
-
-      const forward = await this.tryForwardToProvider(
-        provider,
-        resolvedCredentials.apiKey,
-        model,
-        body,
-        stream,
-        sessionKey,
-        signal,
-        authType,
-        resolvedCredentials.resourceUrl,
-        providerRegion,
-      );
-
-      if (forward.response.ok) {
-        return { success: { forward, model, provider, fallbackIndex: i }, failures };
-      }
-
-      const errorBody = await forward.response.text();
-      failures.push({
-        model,
-        provider,
-        fallbackIndex: i,
-        status: forward.response.status,
-        errorBody,
-      });
-      if (!shouldTriggerFallback(forward.response.status)) break;
-    }
-    return { success: null, failures };
-  }
-
-  private async resolveApiKey(
-    provider: string,
-    apiKey: string,
-    authType: string | undefined,
-    agentId: string,
-    userId: string,
-  ): Promise<{ apiKey: string; resourceUrl?: string }> {
-    if (authType === 'subscription') {
-      const lower = provider.toLowerCase();
-      if (lower === 'openai') {
-        const unwrapped = await this.openaiOauth.unwrapToken(apiKey, agentId, userId);
-        if (unwrapped) return { apiKey: unwrapped };
-      }
-      if (lower === 'minimax') {
-        const unwrapped = await this.minimaxOauth.unwrapToken(apiKey, agentId, userId);
-        if (unwrapped) return { apiKey: unwrapped.t, resourceUrl: unwrapped.u };
-      }
-    }
-    return { apiKey };
-  }
-
-  private async tryForwardToProvider(
-    provider: string,
-    apiKey: string,
-    model: string,
-    body: Record<string, unknown>,
-    stream: boolean,
-    sessionKey: string,
-    signal?: AbortSignal,
-    authType?: string,
-    resourceUrl?: string,
-    providerRegion?: string | null,
-  ): Promise<ForwardResult> {
-    try {
-      return await this.forwardToProvider(
-        provider,
-        apiKey,
-        model,
-        body,
-        stream,
-        sessionKey,
-        signal,
-        authType,
-        resourceUrl,
-        providerRegion,
-      );
-    } catch (error) {
-      if (signal?.aborted) throw error;
-      if (!this.isTransportError(error)) throw error;
-
-      const failureResponse = this.buildTransportErrorResponse(error);
-      const message = this.describeTransportError(error);
-      this.logger.warn(
-        `Provider transport failure: provider=${provider} model=${model} status=${failureResponse.status} message=${message}`,
-      );
-
-      return {
-        response: failureResponse,
-        isGoogle: false,
-        isAnthropic: false,
-        isChatGpt: false,
-      };
-    }
-  }
-
   private async enforceLimits(tenantId?: string, agentName?: string): Promise<void> {
     if (!tenantId || !agentName) return;
     const exceeded = await this.limitCheck.checkLimits(tenantId, agentName);
@@ -452,158 +270,5 @@ export class ProxyService {
       );
     }
     return false;
-  }
-
-  private isTransportError(error: unknown): boolean {
-    const name = this.getErrorName(error);
-    if (name === 'AbortError' || name === 'TimeoutError') return true;
-
-    const detail = [
-      this.getErrorMessage(error),
-      this.getErrorMessage(this.getErrorCause(error)),
-      this.getErrorCode(error),
-      this.getErrorCode(this.getErrorCause(error)),
-    ]
-      .filter((value): value is string => Boolean(value))
-      .join(' ');
-
-    return /(fetch failed|failed to parse url|network|timeout|econnrefused|econnreset|enotfound|ehostunreach|etimedout|und_err_)/i.test(
-      detail,
-    );
-  }
-
-  private buildTransportErrorResponse(error: unknown): Response {
-    const status = this.isTimeoutError(error)
-      ? PROVIDER_TIMEOUT_STATUS
-      : PROVIDER_TRANSPORT_ERROR_STATUS;
-    const message = this.describeTransportError(error);
-
-    return new Response(JSON.stringify({ error: { message } }), {
-      status,
-      statusText: status === PROVIDER_TIMEOUT_STATUS ? 'Gateway Timeout' : 'Service Unavailable',
-      headers: { 'content-type': 'application/json' },
-    });
-  }
-
-  private describeTransportError(error: unknown): string {
-    if (this.isTimeoutError(error)) {
-      return 'Upstream provider request timed out';
-    }
-
-    const detail =
-      this.selectTransportErrorDetail(error) ??
-      this.selectTransportErrorDetail(this.getErrorCause(error));
-
-    if (!detail) return 'Failed to reach upstream provider';
-    return `Failed to reach upstream provider: ${detail}`;
-  }
-
-  private isTimeoutError(error: unknown): boolean {
-    return this.getErrorName(error) === 'TimeoutError';
-  }
-
-  private selectTransportErrorDetail(error: unknown): string | undefined {
-    const message = this.getErrorMessage(error);
-    const code = this.getErrorCode(error);
-
-    if (message && message.toLowerCase() !== GENERIC_FETCH_ERROR_MESSAGE) {
-      return this.sanitizeTransportErrorDetail(message);
-    }
-    if (code) return code;
-    return undefined;
-  }
-
-  private sanitizeTransportErrorDetail(detail: string): string {
-    return detail.replace(/key=[^&\s]+/gi, 'key=***').slice(0, 500);
-  }
-
-  private getErrorName(error: unknown): string | undefined {
-    if (!(error instanceof Error)) return undefined;
-    return error.name;
-  }
-
-  private getErrorMessage(error: unknown): string | undefined {
-    if (error instanceof Error) return error.message;
-    if (!error || typeof error !== 'object') return undefined;
-    const message = (error as { message?: unknown }).message;
-    return typeof message === 'string' ? message : undefined;
-  }
-
-  private getErrorCode(error: unknown): string | undefined {
-    if (!error || typeof error !== 'object') return undefined;
-    const code = (error as { code?: unknown }).code;
-    return typeof code === 'string' ? code : undefined;
-  }
-
-  private getErrorCause(error: unknown): unknown {
-    if (!(error instanceof Error)) return undefined;
-    return error.cause;
-  }
-
-  private async forwardToProvider(
-    provider: string,
-    apiKey: string,
-    model: string,
-    body: Record<string, unknown>,
-    stream: boolean,
-    sessionKey: string,
-    signal?: AbortSignal,
-    authType?: string,
-    resourceUrl?: string,
-    providerRegion?: string | null,
-  ): Promise<ForwardResult> {
-    const extraHeaders: Record<string, string> = {};
-    if (provider === 'xai') {
-      extraHeaders['x-grok-conv-id'] = sessionKey;
-    }
-    const hasExtraHeaders = Object.keys(extraHeaders).length > 0;
-
-    // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
-    let effectiveKey = apiKey;
-    if (provider.toLowerCase() === 'copilot') {
-      effectiveKey = await this.copilotToken.getCopilotToken(apiKey);
-    }
-
-    let customEndpoint: ProviderEndpoint | undefined;
-    let forwardModel = model;
-
-    // Strip the "copilot/" prefix — the Copilot API expects bare model names
-    if (provider.toLowerCase() === 'copilot' && forwardModel.startsWith('copilot/')) {
-      forwardModel = forwardModel.substring('copilot/'.length);
-    }
-
-    if (CustomProviderService.isCustom(provider)) {
-      const cpId = CustomProviderService.extractId(provider);
-      const cp = await this.customProviderService.getById(cpId);
-      if (cp) {
-        customEndpoint = buildCustomEndpoint(cp.base_url);
-        forwardModel = CustomProviderService.rawModelName(model);
-      }
-    } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
-      customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
-    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax' && resourceUrl) {
-      const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
-      if (minimaxBaseUrl) {
-        customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
-      } else {
-        this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
-      }
-    }
-
-    return this.providerClient.forward(
-      provider,
-      effectiveKey,
-      forwardModel,
-      body,
-      stream,
-      signal,
-      hasExtraHeaders ? extraHeaders : undefined,
-      customEndpoint,
-      authType,
-    );
-  }
-
-  private normalizeProviderModel(provider: string, model: string): string {
-    return provider.toLowerCase() === 'anthropic' ? normalizeAnthropicShortModelId(model) : model;
   }
 }
