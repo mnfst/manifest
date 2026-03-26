@@ -1,15 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { RoutingCoreModule } from '../routing-core/routing-core.module';
 import { ModelPricesModule } from '../../model-prices/model-prices.module';
 import { ModelDiscoveryModule } from '../../model-discovery/model-discovery.module';
 import { NotificationsModule } from '../../notifications/notifications.module';
+import { OtlpModule } from '../../otlp/otlp.module';
 import { OAuthModule } from '../oauth/oauth.module';
-import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
-import { ResolveService } from '../resolve/resolve.service';
+import { ResolveModule } from '../resolve/resolve.module';
 import { ProxyController } from './proxy.controller';
 import { ProxyService } from './proxy.service';
 import { ProxyFallbackService } from './proxy-fallback.service';
@@ -22,12 +21,14 @@ import { CopilotTokenService } from './copilot-token.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AgentMessage, AgentApiKey, CustomProvider]),
+    TypeOrmModule.forFeature([AgentMessage, CustomProvider]),
     RoutingCoreModule,
     ModelPricesModule,
     ModelDiscoveryModule,
     NotificationsModule,
+    OtlpModule,
     OAuthModule,
+    ResolveModule,
   ],
   controllers: [ProxyController],
   providers: [
@@ -39,8 +40,6 @@ import { CopilotTokenService } from './copilot-token.service';
     ProxyMessageDedup,
     SessionMomentumService,
     CopilotTokenService,
-    ResolveService,
-    OtlpAuthGuard,
   ],
 })
 export class ProxyModule {}

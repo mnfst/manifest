@@ -6,6 +6,9 @@ import { LlmCall } from '../../entities/llm-call.entity';
 import { ToolExecution } from '../../entities/tool-execution.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { UserProvider } from '../../entities/user-provider.entity';
+import { TraceDedupService } from './trace-dedup.service';
+import { TraceCostCalculator } from './trace-cost-calculator';
+import { TraceEntityBuilder } from './trace-entity-builder';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 
 const testCtx: IngestionContext = {
@@ -76,6 +79,9 @@ describe('TraceIngestService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TraceIngestService,
+        TraceDedupService,
+        TraceCostCalculator,
+        TraceEntityBuilder,
         {
           provide: getRepositoryToken(AgentMessage),
           useValue: mockTurnRepo,

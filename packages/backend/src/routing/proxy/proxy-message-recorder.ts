@@ -8,6 +8,7 @@ import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interf
 import { FailedFallback } from './proxy-fallback.service';
 import { StreamUsage } from './stream-writer';
 import { ProxyMessageDedup } from './proxy-message-dedup';
+import { computeTokenCost } from '../../common/utils/cost-calculator';
 
 @Injectable()
 export class ProxyMessageRecorder implements OnModuleDestroy {
@@ -171,17 +172,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const inputTokens = usage?.prompt_tokens ?? 0;
     const outputTokens = usage?.completion_tokens ?? 0;
 
-    let costUsd: number | null = null;
-    if (authType === 'subscription') {
-      costUsd = 0;
-    } else if (usage) {
-      const pricing = this.pricingCache.getByModel(model);
-      if (pricing?.input_price_per_token != null && pricing?.output_price_per_token != null) {
-        costUsd =
-          inputTokens * Number(pricing.input_price_per_token) +
-          outputTokens * Number(pricing.output_price_per_token);
-      }
-    }
+    const costUsd = computeTokenCost({
+      inputTokens,
+      outputTokens,
+      model,
+      pricing: usage ? this.pricingCache.getByModel(model) : undefined,
+      isSubscription: authType === 'subscription',
+    });
 
     await this.messageRepo.insert({
       id: uuid(),
@@ -217,17 +214,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
   ): Promise<void> {
     if (usage.prompt_tokens === 0 && usage.completion_tokens === 0) return;
 
-    let costUsd: number | null = null;
-    if (authType === 'subscription') {
-      costUsd = 0;
-    } else {
-      const pricing = this.pricingCache.getByModel(model);
-      if (pricing?.input_price_per_token != null && pricing?.output_price_per_token != null) {
-        costUsd =
-          usage.prompt_tokens * Number(pricing.input_price_per_token) +
-          usage.completion_tokens * Number(pricing.output_price_per_token);
-      }
-    }
+    const costUsd = computeTokenCost({
+      inputTokens: usage.prompt_tokens,
+      outputTokens: usage.completion_tokens,
+      model,
+      pricing: this.pricingCache.getByModel(model),
+      isSubscription: authType === 'subscription',
+    });
 
     const normalizedSessionKey = this.dedup.normalizeSessionKey(sessionKey);
 
