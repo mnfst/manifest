@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   getAgents,
   getOverview,
-  getTokens,
-  getCosts,
   getMessages,
   getSecurity,
   getHealth,
@@ -37,14 +35,6 @@ import {
   removeEmailProvider,
   testEmailProvider,
   testSavedEmailProvider,
-  getNotificationEmailForProvider,
-  saveNotificationEmailForProvider,
-  getEmailConfig,
-  saveEmailConfig,
-  testEmailConfig,
-  clearEmailConfig,
-  getNotificationEmail,
-  saveNotificationEmail,
   getCustomProviders,
   createCustomProvider,
   updateCustomProvider,
@@ -145,28 +135,6 @@ describe("getOverview", () => {
     await getOverview("24h");
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).not.toContain("agent_name");
-  });
-});
-
-describe("getTokens", () => {
-  it("sends range and agent_name", async () => {
-    mockOk([]);
-
-    await getTokens("6h", "agent-x");
-    const url = mockFetch.mock.calls[0]?.[0] as string;
-    expect(url).toContain("range=6h");
-    expect(url).toContain("agent_name=agent-x");
-  });
-});
-
-describe("getCosts", () => {
-  it("sends range and agent_name", async () => {
-    mockOk([]);
-
-    await getCosts("30d", "agent-y");
-    const url = mockFetch.mock.calls[0]?.[0] as string;
-    expect(url).toContain("range=30d");
-    expect(url).toContain("agent_name=agent-y");
   });
 });
 
@@ -928,128 +896,6 @@ describe("testSavedEmailProvider", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ to: "user@example.com" }),
-      }),
-    );
-  });
-});
-
-describe("getNotificationEmailForProvider", () => {
-  it("fetches /notifications/notification-email", async () => {
-    mockOk({ email: "user@example.com" });
-
-    const result = await getNotificationEmailForProvider();
-    expect(result).toEqual({ email: "user@example.com" });
-    const url = mockFetch.mock.calls[0]?.[0] as string;
-    expect(url).toContain("/api/v1/notifications/notification-email");
-  });
-
-  it("returns null email when not set", async () => {
-    mockOk({ email: null });
-
-    const result = await getNotificationEmailForProvider();
-    expect(result).toEqual({ email: null });
-  });
-});
-
-describe("saveNotificationEmailForProvider", () => {
-  it("POSTs email to /notifications/notification-email", async () => {
-    mockMutateOk({ saved: true });
-
-    const result = await saveNotificationEmailForProvider("new@example.com");
-    expect(result).toEqual({ saved: true });
-    expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/notifications/notification-email",
-      expect.objectContaining({
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "new@example.com" }),
-      }),
-    );
-  });
-});
-
-describe("getEmailConfig", () => {
-  it("fetches /email-config", async () => {
-    const payload = { configured: true, provider: "mailgun", domain: "mg.example.com", fromEmail: "noreply@example.com" };
-    mockOk(payload);
-
-    const result = await getEmailConfig();
-    expect(result).toEqual(payload);
-    const url = mockFetch.mock.calls[0]?.[0] as string;
-    expect(url).toContain("/api/v1/email-config");
-  });
-});
-
-describe("saveEmailConfig", () => {
-  it("POSTs to /email-config with JSON body", async () => {
-    mockMutateOk();
-
-    await saveEmailConfig({ provider: "mailgun", apiKey: "key-123", domain: "mg.example.com", fromEmail: "noreply@example.com" });
-    expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/email-config",
-      expect.objectContaining({
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: "mailgun", apiKey: "key-123", domain: "mg.example.com", fromEmail: "noreply@example.com" }),
-      }),
-    );
-  });
-});
-
-describe("testEmailConfig", () => {
-  it("POSTs to /email-config/test with config + toEmail", async () => {
-    mockMutateOk({ success: true });
-
-    const config = { provider: "mailgun", apiKey: "key-123", domain: "mg.example.com" };
-    const result = await testEmailConfig(config, "test@example.com");
-    expect(result).toEqual({ success: true });
-    expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/email-config/test",
-      expect.objectContaining({
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...config, toEmail: "test@example.com" }),
-      }),
-    );
-  });
-});
-
-describe("clearEmailConfig", () => {
-  it("sends DELETE to /email-config", async () => {
-    mockMutateOk();
-
-    await clearEmailConfig();
-    expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/email-config",
-      expect.objectContaining({ method: "DELETE", credentials: "include" }),
-    );
-  });
-});
-
-describe("getNotificationEmail", () => {
-  it("fetches /notification-email", async () => {
-    mockOk({ email: "user@example.com", isDefault: false });
-
-    const result = await getNotificationEmail();
-    expect(result).toEqual({ email: "user@example.com", isDefault: false });
-    const url = mockFetch.mock.calls[0]?.[0] as string;
-    expect(url).toContain("/api/v1/notification-email");
-  });
-});
-
-describe("saveNotificationEmail", () => {
-  it("POSTs to /notification-email", async () => {
-    mockMutateOk();
-
-    await saveNotificationEmail("new@example.com");
-    expect(mockFetch).toHaveBeenCalledWith(
-      "/api/v1/notification-email",
-      expect.objectContaining({
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "new@example.com" }),
       }),
     );
   });

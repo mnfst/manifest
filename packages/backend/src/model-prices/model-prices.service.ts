@@ -27,10 +27,4 @@ export class ModelPricesService {
       lastSyncedAt,
     };
   }
-
-  async triggerSync() {
-    const updated = await this.pricingSync.refreshCache();
-    await this.pricingCache.reload();
-    return { updated };
-  }
 }
