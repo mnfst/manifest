@@ -1,5 +1,15 @@
 # manifest
 
+## 5.32.0
+
+### Minor Changes
+
+- a6fea21: feat: add dynamic model discovery for GitHub Copilot subscription provider
+
+### Patch Changes
+
+- 77fdcb6: Fix Alibaba/Qwen provider routing to honor the correct regional DashScope endpoint and improve CI stability for backend startup tests.
+
 ## 5.31.1
 
 ### Patch Changes
