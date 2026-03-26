@@ -139,10 +139,6 @@ export function getMessageDetails(id: string) {
   return fetchJson<MessageDetailResponse>(`/messages/${encodeURIComponent(id)}/details`);
 }
 
-export function getSecurity(range = '24h') {
-  return fetchJson('/security', { range });
-}
-
 export function getHealth() {
   return fetchJson('/health');
 }

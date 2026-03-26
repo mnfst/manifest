@@ -3,7 +3,6 @@ import {
   getAgents,
   getOverview,
   getMessages,
-  getSecurity,
   getHealth,
   getAgentKey,
   rotateAgentKey,
@@ -159,15 +158,6 @@ describe("getMessages", () => {
   });
 });
 
-describe("getSecurity", () => {
-  it("sends range param", async () => {
-    mockOk({ score: {} });
-
-    await getSecurity("7d");
-    const url = mockFetch.mock.calls[0]?.[0] as string;
-    expect(url).toContain("range=7d");
-  });
-});
 
 describe("getHealth", () => {
   it("fetches /api/v1/health", async () => {

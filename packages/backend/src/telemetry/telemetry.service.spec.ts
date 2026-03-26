@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { TelemetryService } from './telemetry.service';
 import { AgentMessage } from '../entities/agent-message.entity';
-import { SecurityEvent } from '../entities/security-event.entity';
 import { TelemetryEventDto } from './dto/create-telemetry.dto';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
 import { TenantCacheService } from '../common/services/tenant-cache.service';
@@ -22,20 +21,17 @@ describe('TelemetryService', () => {
   let service: TelemetryService;
   let mockTurnInsert: jest.Mock;
   let mockPricingGetByModel: jest.Mock;
-  let mockSecurityInsert: jest.Mock;
   let mockTenantResolve: jest.Mock;
 
   beforeEach(async () => {
     mockTurnInsert = jest.fn().mockResolvedValue({});
     mockPricingGetByModel = jest.fn().mockReturnValue(undefined);
-    mockSecurityInsert = jest.fn().mockResolvedValue({});
     mockTenantResolve = jest.fn().mockResolvedValue('resolved-tenant-id');
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TelemetryService,
         { provide: getRepositoryToken(AgentMessage), useValue: { insert: mockTurnInsert } },
-        { provide: getRepositoryToken(SecurityEvent), useValue: { insert: mockSecurityInsert } },
         { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: mockTenantResolve } },
         { provide: ModelPricingCacheService, useValue: { getByModel: mockPricingGetByModel } },
@@ -110,37 +106,6 @@ describe('TelemetryService', () => {
     const result = await service.ingest('not-an-array' as never, 'test-user');
     expect(result).toEqual({ accepted: 0, rejected: 0, errors: [] });
     expect(mockTurnInsert).not.toHaveBeenCalled();
-  });
-
-  it('inserts a security event when event includes security_event', async () => {
-    const event = makeEvent({
-      security_event: {
-        severity: 'critical',
-        category: 'injection',
-        description: 'Prompt injection detected',
-      },
-    });
-
-    const result = await service.ingest([event], 'test-user');
-
-    expect(result.accepted).toBe(1);
-    expect(mockTurnInsert).toHaveBeenCalledTimes(1);
-    expect(mockSecurityInsert).toHaveBeenCalledTimes(1);
-    expect(mockSecurityInsert).toHaveBeenCalledWith([
-      expect.objectContaining({
-        severity: 'critical',
-        category: 'injection',
-        description: 'Prompt injection detected',
-        user_id: 'test-user',
-      }),
-    ]);
-  });
-
-  it('does not insert security event when event has no security_event', async () => {
-    const result = await service.ingest([makeEvent()], 'test-user');
-
-    expect(result.accepted).toBe(1);
-    expect(mockSecurityInsert).not.toHaveBeenCalled();
   });
 
   it('looks up model pricing for cost calculation', async () => {

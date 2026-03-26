@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { AgentMessage } from '../entities/agent-message.entity';
-import { SecurityEvent } from '../entities/security-event.entity';
 import { TelemetryEventDto } from './dto/create-telemetry.dto';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
 import { TenantCacheService } from '../common/services/tenant-cache.service';
@@ -22,8 +21,6 @@ export class TelemetryService {
   constructor(
     @InjectRepository(AgentMessage)
     private readonly turnRepo: Repository<AgentMessage>,
-    @InjectRepository(SecurityEvent)
-    private readonly securityRepo: Repository<SecurityEvent>,
     private readonly eventBus: IngestEventBusService,
     private readonly tenantCache: TenantCacheService,
     private readonly pricingCache: ModelPricingCacheService,
@@ -38,14 +35,12 @@ export class TelemetryService {
     const tenantId = await this.tenantCache.resolve(userId);
     const maxLen = Math.min(events.length, TelemetryService.MAX_EVENTS_PER_BATCH);
     const messageRows: Record<string, unknown>[] = [];
-    const securityRows: Record<string, unknown>[] = [];
     const errors: Array<{ index: number; reason: string }> = [];
 
     for (let i = 0; i < maxLen; i++) {
       try {
-        const { message, security } = this.buildEventRows(events[i], userId, tenantId);
+        const message = this.buildMessageRow(events[i], userId, tenantId);
         messageRows.push(message);
-        if (security) securityRows.push(security);
       } catch (err) {
         const reason = err instanceof Error ? err.message : 'Insert failed';
         errors.push({ index: i, reason });
@@ -57,10 +52,7 @@ export class TelemetryService {
     let rejected = errors.length;
 
     try {
-      const inserts: Promise<unknown>[] = [];
-      if (messageRows.length > 0) inserts.push(this.turnRepo.insert(messageRows));
-      if (securityRows.length > 0) inserts.push(this.securityRepo.insert(securityRows));
-      await Promise.all(inserts);
+      if (messageRows.length > 0) await this.turnRepo.insert(messageRows);
     } catch (err) {
       const reason = err instanceof Error ? err.message : 'Insert failed';
       this.logger.warn(`Batch insert failed: ${reason}`);
@@ -80,11 +72,11 @@ export class TelemetryService {
     return new Date(ts).toISOString();
   }
 
-  private buildEventRows(
+  private buildMessageRow(
     event: TelemetryEventDto,
     userId: string,
     tenantId: string | null,
-  ): { message: Record<string, unknown>; security: Record<string, unknown> | null } {
+  ): Record<string, unknown> {
     const inputTok = event.input_tokens ?? 0;
     const outputTok = event.output_tokens ?? 0;
     const timestamp = this.normalizeTimestamp(event.timestamp);
@@ -103,7 +95,7 @@ export class TelemetryService {
       }
     }
 
-    const message = {
+    return {
       id: uuidv4(),
       timestamp,
       description: event.description,
@@ -118,19 +110,5 @@ export class TelemetryService {
       tenant_id: tenantId,
       user_id: userId,
     };
-
-    let security: Record<string, unknown> | null = null;
-    if (event.security_event) {
-      security = {
-        id: uuidv4(),
-        timestamp,
-        severity: event.security_event.severity,
-        category: event.security_event.category,
-        description: event.security_event.description,
-        user_id: userId,
-      };
-    }
-
-    return { message, security };
   }
 }
