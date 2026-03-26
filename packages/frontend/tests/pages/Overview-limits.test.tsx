@@ -5,6 +5,7 @@ let mockAgentName = "test-agent";
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
   useLocation: () => ({ pathname: `/agents/${mockAgentName}`, state: null }),
+  useNavigate: () => vi.fn(),
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
 }));
 
@@ -57,6 +58,10 @@ vi.mock("../../src/components/Select.jsx", () => ({
       {props.options?.map((o: any) => <option value={o.value}>{o.label}</option>)}
     </select>
   ),
+}));
+
+vi.mock("../../src/services/recent-agents.js", () => ({
+  isRecentlyCreated: () => false,
 }));
 
 import Overview from "../../src/pages/Overview";

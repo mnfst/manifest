@@ -2,7 +2,7 @@ import { existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { PluginLogger } from './telemetry';
-import { supportsSubscriptionProvider } from '../../subscription-capabilities';
+import { supportsSubscriptionProvider } from 'manifest-shared';
 import { loadJsonFile } from './json-file';
 
 const OPENCLAW_DIR = join(homedir(), '.openclaw');

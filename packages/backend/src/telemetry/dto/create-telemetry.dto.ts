@@ -5,26 +5,12 @@ import {
   IsArray,
   IsIn,
   IsNumber,
-  IsObject,
   IsOptional,
   IsString,
   MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
-
-export class SecurityEventDto {
-  @IsIn(['critical', 'warning', 'info'])
-  severity!: string;
-
-  @IsString()
-  @MaxLength(256)
-  category!: string;
-
-  @IsString()
-  @MaxLength(4096)
-  description!: string;
-}
 
 export class TelemetryEventDto {
   @IsString()
@@ -67,12 +53,6 @@ export class TelemetryEventDto {
   @Min(0)
   @Type(() => Number)
   output_tokens?: number;
-
-  @IsOptional()
-  @IsObject()
-  @ValidateNested()
-  @Type(() => SecurityEventDto)
-  security_event?: SecurityEventDto;
 }
 
 export class CreateTelemetryDto {

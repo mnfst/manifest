@@ -1,5 +1,5 @@
 import { createSignal, createResource, For, Show, type Component } from 'solid-js';
-import { useParams } from '@solidjs/router';
+import { useLocation, useParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import { STAGES } from '../services/providers.js';
 import ProviderSelectModal from '../components/ProviderSelectModal.js';
@@ -32,6 +32,7 @@ import {
 
 const Routing: Component = () => {
   const params = useParams<{ agentName: string }>();
+  const location = useLocation<{ openProviders?: boolean }>();
   const agentName = () => decodeURIComponent(params.agentName);
 
   const [tiers, { refetch: refetchTiers, mutate: mutateTiers }] = createResource(
@@ -49,7 +50,9 @@ const Routing: Component = () => {
     getCustomProviders,
   );
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
-  const [showProviderModal, setShowProviderModal] = createSignal(false);
+  const [showProviderModal, setShowProviderModal] = createSignal(
+    !!(location.state as { openProviders?: boolean } | undefined)?.openProviders,
+  );
   const [disabling, setDisabling] = createSignal(false);
   const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
@@ -70,6 +73,7 @@ const Routing: Component = () => {
   };
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
   const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
+
   const getTier = (tierId: string): TierAssignment | undefined =>
     tiers()?.find((t) => t.tier === tierId);
   const handleOverride = async (

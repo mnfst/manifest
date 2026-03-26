@@ -98,7 +98,7 @@ const Header: Component = () => {
   return (
     <header class="header">
       <div class="header__left">
-        <A href={isLocalMode() ? '/agents/local-agent' : '/'} class="header__logo">
+        <A href="/" class="header__logo">
           <img src="/logo.svg" alt="Manifest" class="header__logo-img header__logo-img--light" />
           <img
             src="/logo-white.svg"
@@ -113,12 +113,10 @@ const Header: Component = () => {
           <span class="header__mode-badge header__mode-badge--dev">Dev</span>
         </Show>
         <Show when={getAgentName()}>
-          <Show when={!isLocalMode()}>
-            <span class="header__separator">/</span>
-            <A href="/" class="header__breadcrumb-link">
-              Workspace
-            </A>
-          </Show>
+          <span class="header__separator">/</span>
+          <A href="/" class="header__breadcrumb-link">
+            Workspace
+          </A>
           <span class="header__separator">/</span>
           <span class="header__breadcrumb-current">{agentDisplayName() ?? getAgentName()}</span>
         </Show>

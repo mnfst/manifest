@@ -1,5 +1,37 @@
 # manifest
 
+## 5.31.1
+
+### Patch Changes
+
+- 264271c: Create packages/shared to centralize duplicated constants, types, and utilities across backend, frontend, and plugin. Moves TIERS, TIER_LABELS, AUTH_TYPES, API_KEY_PREFIX, MODEL_PREFIX_MAP, inferProviderFromModel, ResolveResponse, and subscription-capabilities into a single source of truth.
+- 66412b2: Clean up model pricing cache: return ReadonlyMap from PricingSyncService, remove dead code, derive provider prefixes from registry, fix naming inconsistencies
+- ec6c984: Remove dead EmailConfigController, unused API endpoints, and orphaned frontend functions
+- 1a728fe: Remove unused security module, endpoint, entity, and seeder
+
+## 5.31.0
+
+### Minor Changes
+
+- 506c25a: Add routing setup step to agent onboarding wizard
+
+### Patch Changes
+
+- f3abb28: Remove Product Hunt launch modal and badge
+
+## 5.30.0
+
+### Minor Changes
+
+- 9fd49cc: Support multiple agents in local mode, matching cloud mode behavior
+
+## 5.29.3
+
+### Patch Changes
+
+- b9efc95: Fix 404 pages after creating a new agent in cloud mode
+- 46b47f1: fix: update GitHub Copilot model names to match current API catalog
+
 ## 5.29.2
 
 ### Patch Changes

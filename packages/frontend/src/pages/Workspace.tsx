@@ -1,12 +1,12 @@
-import { createResource, createSignal, onMount, Show, For, type Component } from 'solid-js';
+import { createResource, createSignal, Show, For, type Component } from 'solid-js';
 import { A, useNavigate } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
 import { getAgents, createAgent } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import { markAgentCreated } from '../services/recent-agents.js';
 import { formatNumber, formatCost } from '../services/formatters.js';
 import Sparkline from '../components/Sparkline.jsx';
-import { checkLocalMode } from '../services/local-mode.js';
 import { pingCount } from '../services/sse.js';
 
 interface Agent {
@@ -38,8 +38,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       props.onClose();
       setName('');
       const slug = result?.agent?.name ?? agentName;
+      markAgentCreated(slug);
       const url = `/agents/${encodeURIComponent(slug)}`;
-      navigate(url, { state: { newAgent: true, newApiKey: result?.apiKey } });
+      navigate(url, { state: { newApiKey: result?.apiKey } });
     } catch {
       // error toast already shown by fetchMutate
     } finally {
@@ -106,19 +107,11 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 };
 
 const Workspace: Component = () => {
-  const navigate = useNavigate();
   const [data, { refetch }] = createResource(
     () => ({ _ping: pingCount() }),
     () => getAgents() as Promise<AgentsData>,
   );
   const [modalOpen, setModalOpen] = createSignal(false);
-
-  onMount(async () => {
-    const local = await checkLocalMode();
-    if (local) {
-      navigate('/agents/local-agent', { replace: true });
-    }
-  });
 
   return (
     <div class="container--md">

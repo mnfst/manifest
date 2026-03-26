@@ -1,8 +1,12 @@
-const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
+import type { SubscriptionProviderConfig } from './types';
+
+export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
+  Record<string, Readonly<SubscriptionProviderConfig>>
+> = Object.freeze({
   anthropic: Object.freeze({
-    supportsSubscription: true,
+    supportsSubscription: true as const,
     subscriptionLabel: 'Claude Max / Pro subscription',
-    subscriptionAuthMode: 'token',
+    subscriptionAuthMode: 'token' as const,
     subscriptionKeyPlaceholder: 'Paste your setup-token',
     subscriptionCommand: 'claude setup-token',
     subscriptionTokenPrefix: 'sk-ant-oat',
@@ -14,9 +18,9 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
     }),
   }),
   openai: Object.freeze({
-    supportsSubscription: true,
+    supportsSubscription: true as const,
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
-    subscriptionAuthMode: 'popup_oauth',
+    subscriptionAuthMode: 'popup_oauth' as const,
     subscriptionOAuth: true,
     knownModels: Object.freeze([
       'gpt-5.4',
@@ -33,9 +37,9 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
     }),
   }),
   minimax: Object.freeze({
-    supportsSubscription: true,
+    supportsSubscription: true as const,
     subscriptionLabel: 'MiniMax Coding Plan',
-    subscriptionAuthMode: 'device_code',
+    subscriptionAuthMode: 'device_code' as const,
     knownModels: Object.freeze([
       'MiniMax-M2.5',
       'MiniMax-M2.5-highspeed',
@@ -50,21 +54,22 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
     }),
   }),
   copilot: Object.freeze({
-    supportsSubscription: true,
+    supportsSubscription: true as const,
     subscriptionLabel: 'GitHub Copilot subscription',
-    subscriptionAuthMode: 'device_code',
+    subscriptionAuthMode: 'device_code' as const,
     knownModels: Object.freeze([
-      'copilot/claude-opus-4',
-      'copilot/claude-sonnet-4.5',
-      'copilot/claude-sonnet-4',
+      'copilot/claude-opus-4.6',
+      'copilot/claude-opus-4.6-fast',
+      'copilot/claude-sonnet-4.6',
       'copilot/claude-haiku-4.5',
-      'copilot/gpt-4o',
+      'copilot/gpt-5.4',
+      'copilot/gpt-5.2-codex',
+      'copilot/gpt-5-mini',
       'copilot/gpt-4.1',
-      'copilot/gpt-5',
-      'copilot/o3-mini',
-      'copilot/o4-mini',
-      'copilot/gemini-2.5-pro',
-      'copilot/gemini-2.5-flash',
+      'copilot/gpt-4o',
+      'copilot/gpt-4o-mini',
+      'copilot/gemini-3.1-pro-preview',
+      'copilot/grok-code-fast-1',
     ]),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
@@ -74,37 +79,6 @@ const SUBSCRIPTION_PROVIDER_CONFIGS = Object.freeze({
   }),
 });
 
-const SUPPORTED_SUBSCRIPTION_PROVIDER_IDS = Object.freeze(
+export const SUPPORTED_SUBSCRIPTION_PROVIDER_IDS: readonly string[] = Object.freeze(
   Object.keys(SUBSCRIPTION_PROVIDER_CONFIGS),
 );
-
-function normalizeProviderId(providerId) {
-  return String(providerId || '').toLowerCase();
-}
-
-function getSubscriptionProviderConfig(providerId) {
-  return SUBSCRIPTION_PROVIDER_CONFIGS[normalizeProviderId(providerId)] ?? null;
-}
-
-function supportsSubscriptionProvider(providerId) {
-  return getSubscriptionProviderConfig(providerId) !== null;
-}
-
-function getSubscriptionKnownModels(providerId) {
-  const config = getSubscriptionProviderConfig(providerId);
-  return config?.knownModels ?? null;
-}
-
-function getSubscriptionCapabilities(providerId) {
-  const config = getSubscriptionProviderConfig(providerId);
-  return config?.subscriptionCapabilities ?? null;
-}
-
-module.exports = {
-  SUBSCRIPTION_PROVIDER_CONFIGS,
-  SUPPORTED_SUBSCRIPTION_PROVIDER_IDS,
-  getSubscriptionProviderConfig,
-  supportsSubscriptionProvider,
-  getSubscriptionKnownModels,
-  getSubscriptionCapabilities,
-};

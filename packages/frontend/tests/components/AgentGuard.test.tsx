@@ -3,7 +3,6 @@ import { render, screen } from "@solidjs/testing-library";
 
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: "test-agent" }),
-  useLocation: () => ({ pathname: "/agents/test-agent", state: null }),
   A: (props: any) => <a href={props.href}>{props.children}</a>,
 }));
 
@@ -22,6 +21,13 @@ vi.mock("../../src/services/local-mode.js", () => ({
 const mockSetAgentDisplayName = vi.fn();
 vi.mock("../../src/services/agent-display-name.js", () => ({
   setAgentDisplayName: (...args: unknown[]) => mockSetAgentDisplayName(...args),
+}));
+
+const mockIsRecentlyCreated = vi.fn(() => false);
+const mockClearRecentAgent = vi.fn();
+vi.mock("../../src/services/recent-agents.js", () => ({
+  isRecentlyCreated: (...args: unknown[]) => mockIsRecentlyCreated(...args),
+  clearRecentAgent: (...args: unknown[]) => mockClearRecentAgent(...args),
 }));
 
 vi.mock("../../src/components/ErrorState.jsx", () => ({
@@ -45,6 +51,8 @@ describe("AgentGuard", () => {
     mockIsLocalMode.mockReturnValue(false);
     mockCheckLocalMode.mockResolvedValue(false);
     mockSetAgentDisplayName.mockClear();
+    mockIsRecentlyCreated.mockReturnValue(false);
+    mockClearRecentAgent.mockClear();
   });
 
   it("renders children when agent exists", async () => {
@@ -90,9 +98,10 @@ describe("AgentGuard", () => {
     });
   });
 
-  it("renders children immediately in local mode without calling getAgents", async () => {
+  it("calls getAgents and renders children when agent exists in local mode", async () => {
     mockIsLocalMode.mockReturnValue(true);
     mockCheckLocalMode.mockResolvedValue(true);
+    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "test-agent" }] });
     render(() => (
       <AgentGuard>
         <div data-testid="child">Child content</div>
@@ -101,7 +110,22 @@ describe("AgentGuard", () => {
     await vi.waitFor(() => {
       expect(screen.getByTestId("child")).toBeDefined();
     });
-    expect(mockGetAgents).not.toHaveBeenCalled();
+    expect(mockGetAgents).toHaveBeenCalled();
+  });
+
+  it("shows NotFound when agent does not exist in local mode", async () => {
+    mockIsLocalMode.mockReturnValue(true);
+    mockCheckLocalMode.mockResolvedValue(true);
+    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "other-agent" }] });
+    const { container } = render(() => (
+      <AgentGuard>
+        <div data-testid="child">Child</div>
+      </AgentGuard>
+    ));
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Page not found");
+    });
+    expect(container.querySelector('[data-testid="child"]')).toBeNull();
   });
 
   it("calls getAgents (covers the fetcher path)", async () => {
@@ -113,6 +137,32 @@ describe("AgentGuard", () => {
     ));
     await vi.waitFor(() => {
       expect(mockGetAgents).toHaveBeenCalled();
+    });
+  });
+
+  it("renders children when isRecentlyCreated returns true even if agent not in list", async () => {
+    mockIsRecentlyCreated.mockReturnValue(true);
+    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "other-agent" }] });
+    render(() => (
+      <AgentGuard>
+        <div data-testid="child">Child content</div>
+      </AgentGuard>
+    ));
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("child")).toBeDefined();
+    });
+    expect(mockIsRecentlyCreated).toHaveBeenCalledWith("test-agent");
+  });
+
+  it("calls clearRecentAgent when agent is found in the fetched list", async () => {
+    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "test-agent", display_name: "Test Agent" }] });
+    render(() => (
+      <AgentGuard>
+        <div data-testid="child">Child</div>
+      </AgentGuard>
+    ));
+    await vi.waitFor(() => {
+      expect(mockClearRecentAgent).toHaveBeenCalledWith("test-agent");
     });
   });
 });

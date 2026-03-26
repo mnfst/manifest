@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "5.29.2",
+  "version": "5.31.1",
   "description": "LLM router and observability plugin for OpenClaw — smart model routing, real-time cost tracking, and telemetry for your AI agents",
   "main": "dist/index.js",
   "license": "MIT",
@@ -24,7 +24,7 @@
     "dist/server.d.ts",
     "dist/backend",
     "dist/package.json",
-    "subscription-capabilities",
+    "dist/node_modules",
     "public",
     "openclaw.plugin.json",
     "skills",
@@ -86,6 +86,7 @@
     "local-first"
   ],
   "dependencies": {
+    "manifest-shared": "*",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",

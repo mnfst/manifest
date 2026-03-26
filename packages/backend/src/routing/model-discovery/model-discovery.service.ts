@@ -11,6 +11,7 @@ import { computeQualityScore } from '../../database/quality-score.util';
 import { PricingSyncService } from '../../database/pricing-sync.service';
 import { parseOAuthTokenBlob } from '../openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
+import { CopilotTokenService } from '../proxy/copilot-token.service';
 import {
   findOpenRouterPrefix,
   lookupWithVariants,
@@ -43,6 +44,9 @@ export class ModelDiscoveryService {
     @Optional()
     @Inject(ProviderModelRegistryService)
     private readonly modelRegistry: ProviderModelRegistryService | null,
+    @Optional()
+    @Inject(CopilotTokenService)
+    private readonly copilotTokenService: CopilotTokenService | null,
   ) {}
 
   async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
@@ -68,6 +72,15 @@ export class ModelDiscoveryService {
           if (lowerProvider === 'minimax' && blob.u) {
             endpointOverride = blob.u;
           }
+        }
+      } else if (lowerProvider === 'copilot' && this.copilotTokenService) {
+        try {
+          apiKey = await this.copilotTokenService.getCopilotToken(apiKey);
+        } catch {
+          this.logger.warn(
+            'Copilot token exchange failed for model discovery — falling back to known models',
+          );
+          apiKey = '';
         }
       }
     }

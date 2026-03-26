@@ -1,5 +1,6 @@
 import { Meta, Title } from '@solidjs/meta';
-import { A, useLocation, useParams } from '@solidjs/router';
+import { A, useLocation, useNavigate, useParams } from '@solidjs/router';
+import { isRecentlyCreated } from '../services/recent-agents.js';
 import { createEffect, createResource, createSignal, For, Show, type Component } from 'solid-js';
 import CostChart from '../components/CostChart.jsx';
 import ErrorState from '../components/ErrorState.jsx';
@@ -74,7 +75,8 @@ type ActiveView = 'cost' | 'tokens' | 'messages';
 
 const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
-  const location = useLocation<{ newAgent?: boolean; newApiKey?: string }>();
+  const location = useLocation<{ newApiKey?: string }>();
+  const navigate = useNavigate();
   preloadModelDisplayNames();
   const RANGE_STORAGE_KEY = 'manifest_chart_range';
   const VALID_RANGES = new Set(['24h', '7d', '30d']);
@@ -91,7 +93,7 @@ const Overview: Component = () => {
   };
   const [activeView, setActiveView] = createSignal<ActiveView>('cost');
   const [setupOpen, setSetupOpen] = createSignal(
-    !!(location.state as { newAgent?: boolean } | undefined)?.newAgent,
+    isRecentlyCreated(decodeURIComponent(params.agentName)),
   );
   const [setupCompleted, setSetupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
@@ -119,7 +121,7 @@ const Overview: Component = () => {
   };
 
   createEffect(() => {
-    if (isLocalMode() === true && params.agentName === 'local-agent') {
+    if (isLocalMode() === true) {
       localStorage.setItem(`setup_completed_${params.agentName}`, '1');
       setSetupCompleted(true);
       return;
@@ -204,13 +206,7 @@ const Overview: Component = () => {
               ]}
             />
           </Show>
-          <Show
-            when={
-              isNewAgent() &&
-              !(isLocalMode() && params.agentName === 'local-agent') &&
-              !setupCompleted()
-            }
-          >
+          <Show when={isNewAgent() && !isLocalMode() && !setupCompleted()}>
             <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
@@ -338,7 +334,7 @@ const Overview: Component = () => {
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
           <Show when={isNewAgent()}>
             <Show
-              when={(isLocalMode() && params.agentName === 'local-agent') || setupCompleted()}
+              when={isLocalMode() || setupCompleted()}
               fallback={
                 <div class="empty-state">
                   <div class="empty-state__title">No activity yet</div>
@@ -698,6 +694,11 @@ const Overview: Component = () => {
         onDone={() => {
           localStorage.setItem(`setup_completed_${params.agentName}`, '1');
           setSetupCompleted(true);
+        }}
+        onGoToRouting={() => {
+          navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+            state: { openProviders: true },
+          });
         }}
       />
     </div>

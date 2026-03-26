@@ -19,7 +19,7 @@ beforeAll(async () => {
 
   // Populate PricingSyncService cache with gpt-4o pricing
   const pricingSync = app.get(PricingSyncService);
-  pricingSync.getAll().set('openai/gpt-4o', {
+  (pricingSync.getAll() as Map<string, { input: number; output: number; contextWindow?: number }>).set('openai/gpt-4o', {
     input: 0.0000025,
     output: 0.00001,
     contextWindow: 128000,

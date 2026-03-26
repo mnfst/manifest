@@ -2,17 +2,15 @@ import { ModelPricesService } from './model-prices.service';
 
 describe('ModelPricesService', () => {
   let service: ModelPricesService;
-  let mockPricingCache: { getAll: jest.Mock; reload: jest.Mock };
-  let mockPricingSync: { getLastFetchedAt: jest.Mock; refreshCache: jest.Mock };
+  let mockPricingCache: { getAll: jest.Mock };
+  let mockPricingSync: { getLastFetchedAt: jest.Mock };
 
   beforeEach(() => {
     mockPricingCache = {
       getAll: jest.fn().mockReturnValue([]),
-      reload: jest.fn().mockResolvedValue(undefined),
     };
     mockPricingSync = {
       getLastFetchedAt: jest.fn().mockReturnValue(null),
-      refreshCache: jest.fn().mockResolvedValue(0),
     };
     service = new ModelPricesService(mockPricingCache as never, mockPricingSync as never);
   });
@@ -170,41 +168,6 @@ describe('ModelPricesService', () => {
       expect(result.models[0].validated).toBe(true);
       expect(result.models[1].validated).toBe(false);
       expect(result.models[2].validated).toBeUndefined();
-    });
-  });
-
-  describe('triggerSync', () => {
-    it('should call refreshCache and reload, then return update count', async () => {
-      mockPricingSync.refreshCache.mockResolvedValue(15);
-
-      const result = await service.triggerSync();
-
-      expect(mockPricingSync.refreshCache).toHaveBeenCalledTimes(1);
-      expect(mockPricingCache.reload).toHaveBeenCalledTimes(1);
-      expect(result).toEqual({ updated: 15 });
-    });
-
-    it('should return 0 when no models were updated', async () => {
-      mockPricingSync.refreshCache.mockResolvedValue(0);
-
-      const result = await service.triggerSync();
-
-      expect(result).toEqual({ updated: 0 });
-    });
-
-    it('should reload cache after refreshCache completes', async () => {
-      const callOrder: string[] = [];
-      mockPricingSync.refreshCache.mockImplementation(async () => {
-        callOrder.push('refreshCache');
-        return 5;
-      });
-      mockPricingCache.reload.mockImplementation(async () => {
-        callOrder.push('reload');
-      });
-
-      await service.triggerSync();
-
-      expect(callOrder).toEqual(['refreshCache', 'reload']);
     });
   });
 });

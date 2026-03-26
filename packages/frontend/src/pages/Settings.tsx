@@ -8,6 +8,7 @@ import SetupStepVerify from '../components/SetupStepVerify.jsx';
 import { CopyButton } from '../components/SetupStepInstall.jsx';
 import { getAgentKey, deleteAgent, renameAgent, rotateAgentKey } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import { markAgentCreated } from '../services/recent-agents.js';
 import { isLocalMode } from '../services/local-mode.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 
@@ -49,9 +50,9 @@ const Settings: Component = () => {
     try {
       const result = await renameAgent(agentName(), newName);
       const slug = result?.name ?? newName;
+      markAgentCreated(slug);
       navigate(`/agents/${encodeURIComponent(slug)}/settings`, {
         replace: true,
-        state: { newAgent: true },
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -76,7 +77,7 @@ const Settings: Component = () => {
     }
   };
 
-  const TABS = () => (isLocalMode() ? [] : (['General', 'Agent setup'] as const));
+  const TABS = () => ['General', 'Agent setup'] as const;
   type Tab = 'General' | 'Agent setup';
   const [tab, setTab] = createSignal<Tab>('General');
 
@@ -155,7 +156,7 @@ const Settings: Component = () => {
           </div>
         </div>
 
-        <Show when={!isLocalMode()}>
+        <Show when={!isLocalMode() || agentName() !== 'local-agent'}>
           <h3 class="settings-section__title settings-section__title--danger">Danger zone</h3>
 
           <div class="settings-card settings-card--danger">
@@ -184,7 +185,7 @@ const Settings: Component = () => {
       </Show>
 
       {/* -- Tab: Agent setup ------------------------- */}
-      <Show when={tab() === 'Agent setup' && !isLocalMode()}>
+      <Show when={tab() === 'Agent setup'}>
         <h3 class="settings-section__title">API Key</h3>
 
         <div class="settings-card">
