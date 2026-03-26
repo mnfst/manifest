@@ -787,7 +787,7 @@ describe("ModelPickerModal — custom providers and filtering", () => {
     const pill = container.querySelector('.routing-modal__filter-pill') as HTMLButtonElement;
     fireEvent.click(pill);
 
-    // free-model (price=0) should show, null-price-model (price=null) should NOT show
+    // Only explicit zero-priced models should survive the filter.
     expect(screen.getByText("free-model")).toBeDefined();
     expect(screen.queryByText("null-price-model")).toBeNull();
   });

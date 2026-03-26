@@ -41,6 +41,9 @@ const isFreeModel = (m: AvailableModel): boolean =>
   Number(m.input_price_per_token) === 0 &&
   Number(m.output_price_per_token) === 0;
 
+const priceLabel = (m: AvailableModel): string =>
+  `${pricePerM(m.input_price_per_token)} in · ${pricePerM(m.output_price_per_token)} out per 1M`;
+
 const ModelPickerModal: Component<Props> = (props) => {
   const hasSubscription = () =>
     (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'subscription');
@@ -100,12 +103,16 @@ const ModelPickerModal: Component<Props> = (props) => {
       if (freeOnly && !isFreeModel(m)) continue;
       const dbProvId = resolveProviderId(m.provider);
       const prefixProvId = inferProviderFromModel(m.model_name);
-      // Prefer prefix-inferred provider (e.g. "anthropic" from "anthropic/claude-sonnet-4")
-      // over the DB provider (e.g. "openrouter" when all models come from OpenRouter)
-      const provId =
-        prefixProvId && PROVIDERS.find((p) => p.id === prefixProvId)
-          ? prefixProvId
-          : (dbProvId ?? prefixProvId);
+      const shouldPreferDbProvider =
+        !!dbProvId &&
+        prefixProvId === 'openrouter' &&
+        dbProvId !== 'openrouter' &&
+        !m.model_name.toLowerCase().startsWith('openrouter/');
+      const knownPrefixProvider =
+        prefixProvId && PROVIDERS.find((p) => p.id === prefixProvId) ? prefixProvId : undefined;
+      const provId = shouldPreferDbProvider
+        ? dbProvId
+        : (knownPrefixProvider ?? dbProvId ?? prefixProvId);
       if (!provId) continue;
       if (allowedProviders && !allowedProviders.has(provId)) continue;
       if (!groupMap.has(provId)) {
@@ -377,6 +384,11 @@ const ModelPickerModal: Component<Props> = (props) => {
                     >
                       <span class="routing-modal__model-label">
                         {model.label}
+                        <Show when={!isSub() && isFreeModel(model.pricing)}>
+                          <span class="routing-modal__role-tag routing-modal__role-tag--free">
+                            Free
+                          </span>
+                        </Show>
                         <Show when={isRecommended(model.value)}>
                           <span class="routing-modal__recommended"> (recommended)</span>
                         </Show>
@@ -393,12 +405,7 @@ const ModelPickerModal: Component<Props> = (props) => {
                         }
                       >
                         <Show when={model.pricing}>
-                          {(p) => (
-                            <span class="routing-modal__model-id">
-                              {pricePerM(p().input_price_per_token)} in ·{' '}
-                              {pricePerM(p().output_price_per_token)} out per 1M
-                            </span>
-                          )}
+                          {(p) => <span class="routing-modal__model-id">{priceLabel(p())}</span>}
                         </Show>
                       </Show>
                     </button>

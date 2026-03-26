@@ -740,7 +740,7 @@ describe('ProviderSelectModal', () => {
     const customProviderData = [
       {
         id: 'cp-1',
-        name: 'Groq',
+        name: 'Acme Gateway',
         base_url: 'https://api.groq.com',
         has_api_key: true,
         models: [{ model_name: 'llama-3.1-70b' }, { model_name: 'llama-3.1-8b' }],
@@ -759,7 +759,7 @@ describe('ProviderSelectModal', () => {
         />
       ));
       fireEvent.click(screen.getByText('API Keys'));
-      expect(screen.getByText('Groq')).toBeDefined();
+      expect(screen.getByText('Acme Gateway')).toBeDefined();
       expect(screen.getByText('Custom')).toBeDefined();
     });
 
@@ -774,11 +774,12 @@ describe('ProviderSelectModal', () => {
         />
       ));
       fireEvent.click(screen.getByText('API Keys'));
-      // Find the Groq provider toggle and check its logo letter
-      const groqToggle = screen.getByText('Groq').closest('.provider-toggle');
-      const letter = groqToggle?.querySelector('.provider-card__logo-letter');
+      const customProviderToggle = screen
+        .getByText('Acme Gateway')
+        .closest('.provider-toggle');
+      const letter = customProviderToggle?.querySelector('.provider-card__logo-letter');
       expect(letter).not.toBeNull();
-      expect(letter!.textContent).toBe('G');
+      expect(letter!.textContent).toBe('A');
     });
 
     it('shows Add custom provider button', () => {
@@ -821,9 +822,9 @@ describe('ProviderSelectModal', () => {
         />
       ));
       fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Groq'));
+      fireEvent.click(screen.getByText('Acme Gateway'));
       await waitFor(() => {
-        const nameInput = screen.getByDisplayValue('Groq');
+        const nameInput = screen.getByDisplayValue('Acme Gateway');
         expect(nameInput).toBeDefined();
       });
     });

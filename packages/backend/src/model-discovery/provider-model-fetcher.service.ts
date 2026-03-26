@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DiscoveredModel, FetcherConfig } from './model-fetcher';
 import { OLLAMA_HOST } from '../common/constants/ollama';
-import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
+import {
+  buildCloudflareAiBaseUrl,
+  normalizeMinimaxSubscriptionBaseUrl,
+  parseCloudflareCredentials,
+} from '../routing/provider-base-url';
 import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../routing/qwen-region';
 
 const FETCH_TIMEOUT_MS = 5000;
@@ -9,299 +13,381 @@ const DEFAULT_CONTEXT_WINDOW = 128000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
+const GITHUB_API_VERSION = '2026-03-10';
 
-/* ── Shared OpenAI-compatible parser ── */
+type UnknownRecord = Record<string, unknown>;
 
-interface OpenAIModelEntry {
-  id: string;
-  object?: string;
-  owned_by?: string;
+function asRecord(value: unknown): UnknownRecord | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as UnknownRecord)
+    : null;
 }
 
-function parseOpenAI(body: unknown, provider: string): DiscoveredModel[] {
-  const data = (body as { data?: unknown[] })?.data;
-  if (!Array.isArray(data)) return [];
-  return data
-    .filter((m: unknown) => {
-      const entry = m as OpenAIModelEntry;
-      return typeof entry.id === 'string' && entry.id.length > 0;
-    })
-    .map((m: unknown) => {
-      const entry = m as OpenAIModelEntry;
-      return {
-        id: entry.id,
-        displayName: entry.id,
-        provider,
-        contextWindow: DEFAULT_CONTEXT_WINDOW,
-        inputPricePerToken: null,
-        outputPricePerToken: null,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 3,
-      };
-    });
+function getArray(body: unknown, ...keys: string[]): unknown[] {
+  if (Array.isArray(body)) return body;
+  const record = asRecord(body);
+  if (!record) return [];
+  for (const key of keys) {
+    const value = record[key];
+    if (Array.isArray(value)) return value;
+  }
+  return [];
+}
+
+function readString(record: UnknownRecord | null, ...keys: string[]): string | null {
+  if (!record) return null;
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string' && value.length > 0) return value;
+  }
+  return null;
+}
+
+function readNumber(record: UnknownRecord | null, ...keys: string[]): number | null {
+  if (!record) return null;
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.length > 0) {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+  return null;
+}
+
+function readStringList(record: UnknownRecord | null, ...keys: string[]): string[] {
+  if (!record) return [];
+  for (const key of keys) {
+    const value = record[key];
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === 'string' && item.length > 0);
+    }
+  }
+  return [];
+}
+
+function createModel(
+  provider: string,
+  id: string,
+  displayName: string,
+  overrides: Partial<DiscoveredModel> = {},
+): DiscoveredModel {
+  return {
+    id,
+    displayName,
+    provider,
+    contextWindow: DEFAULT_CONTEXT_WINDOW,
+    inputPricePerToken: null,
+    outputPricePerToken: null,
+    capabilityReasoning: false,
+    capabilityCode: false,
+    qualityScore: 3,
+    ...overrides,
+  };
+}
+
+function readContextWindow(record: UnknownRecord | null): number {
+  if (!record) return DEFAULT_CONTEXT_WINDOW;
+  const limits = asRecord(record['limits']);
+  const contextWindow = asRecord(record['context_window']);
+  return (
+    readNumber(
+      record,
+      'context_length',
+      'context_window',
+      'inputTokenLimit',
+      'max_context_length',
+    ) ??
+    readNumber(limits, 'max_input_tokens') ??
+    readNumber(contextWindow, 'tokens') ??
+    DEFAULT_CONTEXT_WINDOW
+  );
+}
+
+function readCommonPrice(record: UnknownRecord | null): {
+  inputPricePerToken: number | null;
+  outputPricePerToken: number | null;
+} {
+  if (!record) {
+    return { inputPricePerToken: null, outputPricePerToken: null };
+  }
+
+  const pricing = asRecord(record['pricing']);
+  const input = readNumber(pricing, 'prompt', 'input');
+  const output = readNumber(pricing, 'completion', 'output');
+  return {
+    inputPricePerToken: input,
+    outputPricePerToken: output,
+  };
 }
 
 function bearerHeaders(key: string): Record<string, string> {
   return { Authorization: `Bearer ${key}` };
 }
 
-/* ── Provider-specific parsers ── */
+function githubCatalogHeaders(key: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': GITHUB_API_VERSION,
+  };
+  if (key) headers['Authorization'] = `Bearer ${key}`;
+  return headers;
+}
 
-interface AnthropicModelEntry {
-  id: string;
-  display_name?: string;
-  type?: string;
+function cloudflareHeaders(key: string): Record<string, string> {
+  const parsed = parseCloudflareCredentials(key);
+  if (!parsed) return {};
+  return { Authorization: `Bearer ${parsed.apiToken}` };
+}
+
+function cloudflareModelsEndpoint(key: string): string {
+  const baseUrl = buildCloudflareAiBaseUrl(key);
+  if (!baseUrl) return 'https://api.cloudflare.com/client/v4/accounts/invalid/ai/models/search';
+  return `${baseUrl}/models/search?per_page=100`;
+}
+
+/**
+ * Minimum context window for a model to be considered a chat/text model.
+ * Non-chat models (speech-to-text, TTS) typically have tiny context windows
+ * (e.g. Whisper = 448, Orpheus = 4000) that no chat model would have.
+ */
+const MIN_CHAT_CONTEXT_WINDOW = 8192;
+
+function parseOpenAI(body: unknown, provider: string): DiscoveredModel[] {
+  return getArray(body, 'data')
+    .map((entry) => {
+      const record = asRecord(entry);
+      const id = readString(record, 'id');
+      if (!id) return null;
+      if (record?.['active'] === false) return null;
+      const contextWindow = readContextWindow(record);
+      if (contextWindow < MIN_CHAT_CONTEXT_WINDOW) return null;
+      const displayName = readString(record, 'display_name', 'name', 'friendly_name') ?? id;
+      const { inputPricePerToken, outputPricePerToken } = readCommonPrice(record);
+      return createModel(provider, id, displayName, {
+        contextWindow,
+        inputPricePerToken,
+        outputPricePerToken,
+      });
+    })
+    .filter((model): model is DiscoveredModel => model !== null);
 }
 
 function parseAnthropic(body: unknown, provider: string): DiscoveredModel[] {
-  const data = (body as { data?: unknown[] })?.data;
-  if (!Array.isArray(data)) return [];
-  return data
-    .filter((m: unknown) => {
-      const entry = m as AnthropicModelEntry;
-      return typeof entry.id === 'string' && entry.type === 'model';
-    })
-    .map((m: unknown) => {
-      const entry = m as AnthropicModelEntry;
-      return {
-        id: entry.id,
-        displayName: entry.display_name || entry.id,
-        provider,
+  return getArray(body, 'data')
+    .map((entry) => {
+      const record = asRecord(entry);
+      const id = readString(record, 'id');
+      if (!id || readString(record, 'type') !== 'model') return null;
+      return createModel(provider, id, readString(record, 'display_name') ?? id, {
         contextWindow: ANTHROPIC_DEFAULT_CONTEXT,
-        inputPricePerToken: null,
-        outputPricePerToken: null,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 3,
-      };
-    });
-}
-
-interface GeminiModelEntry {
-  name: string;
-  displayName?: string;
-  supportedGenerationMethods?: string[];
-  inputTokenLimit?: number;
+      });
+    })
+    .filter((model): model is DiscoveredModel => model !== null);
 }
 
 function parseGemini(body: unknown, provider: string): DiscoveredModel[] {
-  const models = (body as { models?: unknown[] })?.models;
-  if (!Array.isArray(models)) return [];
-  return models
-    .filter((m: unknown) => {
-      const entry = m as GeminiModelEntry;
-      if (typeof entry.name !== 'string') return false;
-      const methods = entry.supportedGenerationMethods;
-      return Array.isArray(methods) && methods.includes('generateContent');
+  return getArray(body, 'models')
+    .map((entry) => {
+      const record = asRecord(entry);
+      const name = readString(record, 'name');
+      const methods = readStringList(record, 'supportedGenerationMethods');
+      if (!name || !methods.includes('generateContent')) return null;
+      const id = name.replace(/^models\//, '');
+      return createModel(provider, id, readString(record, 'displayName') ?? id, {
+        contextWindow: readNumber(record, 'inputTokenLimit') ?? GEMINI_DEFAULT_CONTEXT,
+      });
     })
-    .map((m: unknown) => {
-      const entry = m as GeminiModelEntry;
-      // name is like "models/gemini-2.5-pro" — strip prefix
-      const id = entry.name.replace(/^models\//, '');
-      return {
-        id,
-        displayName: entry.displayName || id,
-        provider,
-        contextWindow: entry.inputTokenLimit ?? GEMINI_DEFAULT_CONTEXT,
-        inputPricePerToken: null,
-        outputPricePerToken: null,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 3,
-      };
-    });
-}
-
-interface OpenRouterModelEntry {
-  id: string;
-  name?: string;
-  context_length?: number;
-  architecture?: { output_modalities?: string[] };
-  pricing?: { prompt?: string; completion?: string };
+    .filter((model): model is DiscoveredModel => model !== null);
 }
 
 function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
-  const data = (body as { data?: unknown[] })?.data;
-  if (!Array.isArray(data)) return [];
-  return data
-    .filter((m: unknown) => {
-      const entry = m as OpenRouterModelEntry;
-      if (typeof entry.id !== 'string') return false;
-      const output = entry.architecture?.output_modalities?.map((o) => o.toLowerCase());
-      if (output && output.length > 0 && !output.every((o) => o === 'text')) {
-        return false;
+  return getArray(body, 'data')
+    .map((entry) => {
+      const record = asRecord(entry);
+      const id = readString(record, 'id');
+      if (!id) return null;
+      const architecture = asRecord(record?.['architecture']);
+      const outputModalities = readStringList(architecture, 'output_modalities').map((item) =>
+        item.toLowerCase(),
+      );
+      if (outputModalities.length > 0 && !outputModalities.every((item) => item === 'text')) {
+        return null;
       }
-      return true;
+      const { inputPricePerToken, outputPricePerToken } = readCommonPrice(record);
+      return createModel(provider, id, readString(record, 'name') ?? id, {
+        contextWindow: readNumber(record, 'context_length') ?? DEFAULT_CONTEXT_WINDOW,
+        inputPricePerToken,
+        outputPricePerToken,
+      });
     })
-    .map((m: unknown) => {
-      const entry = m as OpenRouterModelEntry;
-      const prompt = entry.pricing?.prompt ? Number(entry.pricing.prompt) : null;
-      const completion = entry.pricing?.completion ? Number(entry.pricing.completion) : null;
-      return {
-        id: entry.id,
-        displayName: entry.name || entry.id,
-        provider,
-        contextWindow: entry.context_length ?? 128000,
-        inputPricePerToken: prompt !== null && Number.isFinite(prompt) ? prompt : null,
-        outputPricePerToken: completion !== null && Number.isFinite(completion) ? completion : null,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 3,
-      };
-    });
+    .filter((model): model is DiscoveredModel => model !== null);
 }
 
-interface OllamaModelEntry {
-  name: string;
-  details?: { family?: string; parameter_size?: string };
+function parseCohere(body: unknown, provider: string): DiscoveredModel[] {
+  return getArray(body, 'models')
+    .map((entry) => {
+      const record = asRecord(entry);
+      const id = readString(record, 'name');
+      if (!id) return null;
+      return createModel(provider, id, readString(record, 'display_name') ?? id, {
+        contextWindow: readNumber(record, 'context_length') ?? DEFAULT_CONTEXT_WINDOW,
+      });
+    })
+    .filter((model): model is DiscoveredModel => model !== null);
+}
+
+function parseGitHubCatalog(body: unknown, provider: string): DiscoveredModel[] {
+  return getArray(body)
+    .map((entry) => {
+      const record = asRecord(entry);
+      const id = readString(record, 'id');
+      if (!id) return null;
+      const outputModalities = readStringList(record, 'supported_output_modalities').map((item) =>
+        item.toLowerCase(),
+      );
+      if (outputModalities.length > 0 && !outputModalities.includes('text')) {
+        return null;
+      }
+      const limits = asRecord(record?.['limits']);
+      return createModel(provider, id, readString(record, 'name') ?? id, {
+        contextWindow: readNumber(limits, 'max_input_tokens') ?? DEFAULT_CONTEXT_WINDOW,
+        capabilityCode: readStringList(record, 'tags').some(
+          (item) => item.toLowerCase() === 'code',
+        ),
+      });
+    })
+    .filter((model): model is DiscoveredModel => model !== null);
+}
+
+function parseHuggingFace(body: unknown, provider: string): DiscoveredModel[] {
+  return getArray(body, 'data')
+    .map((entry) => {
+      const record = asRecord(entry);
+      const id = readString(record, 'id');
+      if (!id) return null;
+      const architecture = asRecord(record?.['architecture']);
+      const outputModalities = readStringList(architecture, 'output_modalities').map((item) =>
+        item.toLowerCase(),
+      );
+      if (outputModalities.length > 0 && !outputModalities.includes('text')) {
+        return null;
+      }
+
+      const liveProviders = getArray(record, 'providers')
+        .map((item) => asRecord(item))
+        .filter((item): item is UnknownRecord => item !== null)
+        .filter((item) => readString(item, 'status')?.toLowerCase() === 'live');
+      if (liveProviders.length === 0) return null;
+
+      const contextWindow = liveProviders.reduce((max, item) => {
+        const contextLength = readNumber(item, 'context_length');
+        return contextLength ? Math.max(max, contextLength) : max;
+      }, 0);
+
+      return createModel(provider, id, id, {
+        contextWindow: contextWindow > 0 ? contextWindow : DEFAULT_CONTEXT_WINDOW,
+        // Hugging Face router exposes provider-specific pricing in USD per million tokens.
+        // The router selects providers server-side, so we avoid surfacing misleading
+        // per-token prices for the aggregate model entry.
+        inputPricePerToken: null,
+        outputPricePerToken: null,
+        capabilityCode: /\b(code|coder)\b/i.test(id),
+      });
+    })
+    .filter((model): model is DiscoveredModel => model !== null);
+}
+
+function extractCloudflareTaskNames(record: UnknownRecord | null): string[] {
+  if (!record) return [];
+  const taskRecord = asRecord(record['task']);
+  const tasks = [...readStringList(record, 'tasks'), ...readStringList(taskRecord, 'labels')];
+  const directTask = readString(record, 'task', 'task_name', 'source_task');
+  if (directTask) tasks.push(directTask);
+  const taskName = readString(taskRecord, 'name');
+  if (taskName) tasks.push(taskName);
+  return tasks.map((task) => task.toLowerCase());
+}
+
+function isCloudflareTextTask(task: string): boolean {
+  return (
+    task.includes('text generation') ||
+    task.includes('text-generation') ||
+    task.includes('conversational') ||
+    task.includes('chat')
+  );
+}
+
+function parseCloudflare(body: unknown, provider: string): DiscoveredModel[] {
+  return getArray(body, 'result')
+    .map((entry) => {
+      const record = asRecord(entry);
+      const modelName = readString(record, 'name');
+      const id = modelName ?? readString(record, 'id');
+      if (!id) return null;
+      const tasks = extractCloudflareTaskNames(record);
+      if (!tasks.some(isCloudflareTextTask)) return null;
+      return createModel(provider, id, modelName ?? id, {
+        contextWindow: readContextWindow(record),
+      });
+    })
+    .filter((model): model is DiscoveredModel => model !== null);
 }
 
 function parseOllama(body: unknown, provider: string): DiscoveredModel[] {
-  const models = (body as { models?: unknown[] })?.models;
-  if (!Array.isArray(models)) return [];
-  return models
-    .filter((m: unknown) => typeof (m as OllamaModelEntry).name === 'string')
-    .map((m: unknown) => {
-      const entry = m as OllamaModelEntry;
-      const id = entry.name.replace(/:latest$/, '');
-      return {
-        id,
-        displayName: id,
-        provider,
-        contextWindow: DEFAULT_CONTEXT_WINDOW,
+  return getArray(body, 'models')
+    .map((entry) => {
+      const record = asRecord(entry);
+      const name = readString(record, 'name');
+      if (!name) return null;
+      const id = name.replace(/:latest$/, '');
+      return createModel(provider, id, id, {
         inputPricePerToken: 0,
         outputPricePerToken: 0,
-        capabilityReasoning: false,
-        capabilityCode: false,
         qualityScore: 2,
-      };
-    });
-}
-
-/* ── OpenAI subscription (Codex CLI models API) ── */
-
-interface OpenAISubscriptionModelEntry {
-  slug: string;
-  display_name?: string;
-  context_window?: number;
-  visibility?: string;
-  supported_in_api?: boolean;
+      });
+    })
+    .filter((model): model is DiscoveredModel => model !== null);
 }
 
 function parseOpenaiSubscription(body: unknown, provider: string): DiscoveredModel[] {
-  const data = (body as { models?: unknown[] })?.models;
-  if (!Array.isArray(data)) return [];
-  return data
-    .filter((m: unknown) => {
-      const entry = m as OpenAISubscriptionModelEntry;
-      return typeof entry.slug === 'string' && entry.visibility === 'list';
-    })
-    .map((m: unknown) => {
-      const entry = m as OpenAISubscriptionModelEntry;
-      return {
-        id: entry.slug,
-        displayName: entry.display_name || entry.slug,
-        provider,
-        contextWindow: entry.context_window ?? 200000,
+  return getArray(body, 'models')
+    .map((entry) => {
+      const record = asRecord(entry);
+      const id = readString(record, 'slug');
+      if (!id || readString(record, 'visibility') !== 'list') return null;
+      return createModel(provider, id, readString(record, 'display_name') ?? id, {
+        contextWindow: readNumber(record, 'context_window') ?? 200000,
         inputPricePerToken: 0,
         outputPricePerToken: 0,
-        capabilityReasoning: false,
         capabilityCode: true,
-        qualityScore: 3,
-      };
-    });
+      });
+    })
+    .filter((model): model is DiscoveredModel => model !== null);
 }
 
 /* ── GitHub Copilot (subscription-only, OpenAI-compatible /models) ── */
 
 function parseCopilot(body: unknown, provider: string): DiscoveredModel[] {
-  const data = (body as { data?: unknown[] })?.data;
-  if (!Array.isArray(data)) return [];
-  return data
-    .filter((m: unknown) => {
-      const entry = m as OpenAIModelEntry;
-      return typeof entry.id === 'string' && entry.id.length > 0;
-    })
-    .map((m: unknown) => {
-      const entry = m as OpenAIModelEntry;
+  return getArray(body, 'data')
+    .map((entry) => {
+      const record = asRecord(entry);
+      const id = readString(record, 'id');
+      if (!id) return null;
       // Copilot API returns bare names (e.g. "claude-opus-4.6");
-      // internal convention uses "copilot/" prefix
-      return {
-        id: `copilot/${entry.id}`,
-        displayName: entry.id,
-        provider,
-        contextWindow: DEFAULT_CONTEXT_WINDOW,
+      // internal convention uses "copilot/" prefix.
+      return createModel(provider, `copilot/${id}`, id, {
         inputPricePerToken: 0,
         outputPricePerToken: 0,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 3,
-      };
-    });
+      });
+    })
+    .filter((model): model is DiscoveredModel => model !== null);
 }
 
 /* ── Provider configs ── */
 
 export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
-  openai: {
-    endpoint: 'https://api.openai.com/v1/models',
-    buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
-  },
-  'openai-subscription': {
-    endpoint: 'https://chatgpt.com/backend-api/codex/models?client_version=0.99.0',
-    buildHeaders: (key: string) => ({
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      originator: 'codex_cli_rs',
-      'user-agent': 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown',
-    }),
-    parse: parseOpenaiSubscription,
-  },
-  deepseek: {
-    endpoint: 'https://api.deepseek.com/models',
-    buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
-  },
-  mistral: {
-    endpoint: 'https://api.mistral.ai/v1/models',
-    buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
-  },
-  moonshot: {
-    endpoint: 'https://api.moonshot.ai/v1/models',
-    buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
-  },
-  xai: {
-    endpoint: 'https://api.x.ai/v1/models',
-    buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
-  },
-  minimax: {
-    endpoint: 'https://api.minimaxi.chat/v1/models',
-    buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
-  },
-  'minimax-subscription': {
-    endpoint: MINIMAX_SUBSCRIPTION_MODELS_URL,
-    buildHeaders: (key: string) => ({
-      Authorization: `Bearer ${key}`,
-      'anthropic-version': '2023-06-01',
-    }),
-    parse: parseAnthropic,
-  },
-  qwen: {
-    endpoint: `${getQwenCompatibleBaseUrl('beijing')}/v1/models`,
-    buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
-  },
-  zai: {
-    endpoint: 'https://open.bigmodel.cn/api/paas/v4/models',
-    buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
-  },
   anthropic: {
     endpoint: 'https://api.anthropic.com/v1/models?limit=100',
     buildHeaders: (key: string, authType?: string) => {
@@ -318,21 +404,119 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     },
     parse: parseAnthropic,
   },
+  cerebras: {
+    endpoint: 'https://api.cerebras.ai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  cloudflare: {
+    endpoint: cloudflareModelsEndpoint,
+    buildHeaders: cloudflareHeaders,
+    parse: parseCloudflare,
+  },
+  cohere: {
+    endpoint: 'https://api.cohere.com/v1/models?endpoint=chat&page_size=1000',
+    buildHeaders: bearerHeaders,
+    parse: parseCohere,
+  },
+  deepseek: {
+    endpoint: 'https://api.deepseek.com/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   gemini: {
     endpoint: (key: string) =>
       `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`,
     buildHeaders: () => ({}),
     parse: parseGemini,
   },
-  openrouter: {
-    endpoint: 'https://openrouter.ai/api/v1/models',
-    buildHeaders: () => ({}),
-    parse: parseOpenRouter,
+  'github-models': {
+    endpoint: 'https://models.github.ai/catalog/models',
+    buildHeaders: githubCatalogHeaders,
+    parse: parseGitHubCatalog,
+  },
+  groq: {
+    endpoint: 'https://api.groq.com/openai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  huggingface: {
+    endpoint: 'https://router.huggingface.co/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseHuggingFace,
+  },
+  llm7: {
+    endpoint: 'https://api.llm7.io/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  minimax: {
+    endpoint: 'https://api.minimaxi.chat/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  'minimax-subscription': {
+    endpoint: MINIMAX_SUBSCRIPTION_MODELS_URL,
+    buildHeaders: (key: string) => ({
+      Authorization: `Bearer ${key}`,
+      'anthropic-version': '2023-06-01',
+    }),
+    parse: parseAnthropic,
+  },
+  mistral: {
+    endpoint: 'https://api.mistral.ai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  moonshot: {
+    endpoint: 'https://api.moonshot.ai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
   },
   ollama: {
     endpoint: `${OLLAMA_HOST}/api/tags`,
     buildHeaders: () => ({}),
     parse: parseOllama,
+  },
+  'ollama-cloud': {
+    endpoint: 'https://ollama.com/api/tags',
+    buildHeaders: bearerHeaders,
+    parse: parseOllama,
+  },
+  openai: {
+    endpoint: 'https://api.openai.com/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  'openai-subscription': {
+    endpoint: 'https://chatgpt.com/backend-api/codex/models?client_version=0.99.0',
+    buildHeaders: (key: string) => ({
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      originator: 'codex_cli_rs',
+      'user-agent': 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown',
+    }),
+    parse: parseOpenaiSubscription,
+  },
+  openrouter: {
+    endpoint: 'https://openrouter.ai/api/v1/models',
+    buildHeaders: () => ({}),
+    parse: parseOpenRouter,
+  },
+  qwen: {
+    endpoint: `${getQwenCompatibleBaseUrl('beijing')}/v1/models`,
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  xai: {
+    endpoint: 'https://api.x.ai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  zai: {
+    endpoint: 'https://open.bigmodel.cn/api/paas/v4/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
   },
   copilot: {
     endpoint: 'https://api.githubcopilot.com/models',
@@ -358,12 +542,12 @@ export class ProviderModelFetcherService {
     endpointOverride?: string,
   ): Promise<DiscoveredModel[]> {
     let configKey = providerId.toLowerCase();
-    // OpenAI subscription tokens use a different models endpoint
     if (configKey === 'openai' && authType === 'subscription') {
       configKey = 'openai-subscription';
     } else if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
     }
+
     const config = PROVIDER_CONFIGS[configKey];
     if (!config) {
       this.logger.warn(`No fetcher config for provider: ${providerId}`);

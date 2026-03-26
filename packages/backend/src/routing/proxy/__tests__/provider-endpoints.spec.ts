@@ -41,8 +41,10 @@ describe('resolveEndpointKey', () => {
   it('resolves known providers directly', () => {
     expect(resolveEndpointKey('openai')).toBe('openai');
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
+    expect(resolveEndpointKey('cloudflare')).toBe('cloudflare');
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
+    expect(resolveEndpointKey('github-models')).toBe('github-models');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
     expect(resolveEndpointKey('zai')).toBe('zai');
   });
@@ -66,6 +68,10 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('alibaba')).toBe('qwen');
   });
 
+  it('resolves GitHub Models alias to github-models', () => {
+    expect(resolveEndpointKey('GitHub Models')).toBe('github-models');
+  });
+
   it('returns custom: key as-is for custom providers', () => {
     expect(resolveEndpointKey('custom:abc-123')).toBe('custom:abc-123');
     expect(resolveEndpointKey('custom:uuid-456')).toBe('custom:uuid-456');
@@ -80,9 +86,11 @@ describe('resolveEndpointKey', () => {
     const known = Object.keys(PROVIDER_ENDPOINTS);
     expect(known).toContain('openai');
     expect(known).toContain('anthropic');
+    expect(known).toContain('cloudflare');
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
+    expect(known).toContain('github-models');
     expect(known).toContain('openrouter');
     expect(known).toContain('ollama');
   });
@@ -153,6 +161,30 @@ describe('PROVIDER_ENDPOINTS', () => {
       'Editor-Plugin-Version': 'copilot/1.300.0',
       'Copilot-Integration-Id': 'vscode-chat',
     });
+  });
+
+  it('cloudflare derives the account-scoped base URL and strips the token from headers', () => {
+    const ep = PROVIDER_ENDPOINTS['cloudflare'];
+    const baseUrl =
+      typeof ep.baseUrl === 'function'
+        ? ep.baseUrl('0123456789abcdef0123456789abcdef:cf-token')
+        : ep.baseUrl;
+
+    expect(baseUrl).toBe(
+      'https://api.cloudflare.com/client/v4/accounts/0123456789abcdef0123456789abcdef/ai',
+    );
+    expect(ep.buildHeaders('0123456789abcdef0123456789abcdef:cf-token')).toEqual({
+      Authorization: 'Bearer cf-token',
+      'Content-Type': 'application/json',
+    });
+    expect(ep.preserveModelId).toBe(true);
+  });
+
+  it('github models keeps vendor-prefixed model IDs intact', () => {
+    const ep = PROVIDER_ENDPOINTS['github-models'];
+    expect(ep.baseUrl).toBe('https://models.github.ai/inference');
+    expect(ep.buildPath('openai/gpt-4.1')).toBe('/chat/completions');
+    expect(ep.preserveModelId).toBe(true);
   });
 
   it('anthropic buildPath returns /v1/messages', () => {

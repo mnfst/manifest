@@ -88,7 +88,18 @@ export class ProxyFallbackService {
         this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
         continue;
       }
-      const model = normalizeProviderModel(provider, requestedModel);
+      // Preserve native model IDs for providers whose catalog entries already
+      // include a vendor prefix, while still routing custom providers by their
+      // prefixed synthetic ID.
+      let strippedModel = requestedModel;
+      if (
+        !CustomProviderService.isCustom(requestedModel) &&
+        provider === inferProviderFromModelName(requestedModel)
+      ) {
+        const slashIdx = requestedModel.indexOf('/');
+        if (slashIdx > 0) strippedModel = requestedModel.substring(slashIdx + 1);
+      }
+      const model = normalizeProviderModel(provider, strippedModel);
       const authType = await this.providerKeyService.getAuthType(agentId, provider);
       let apiKey = await this.providerKeyService.getProviderApiKey(agentId, provider, authType);
       if (apiKey === null) {
