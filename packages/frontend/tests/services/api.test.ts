@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   getAgents,
   getOverview,
-  getTokens,
-  getCosts,
   getMessages,
   getSecurity,
   getHealth,
@@ -137,28 +135,6 @@ describe("getOverview", () => {
     await getOverview("24h");
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).not.toContain("agent_name");
-  });
-});
-
-describe("getTokens", () => {
-  it("sends range and agent_name", async () => {
-    mockOk([]);
-
-    await getTokens("6h", "agent-x");
-    const url = mockFetch.mock.calls[0]?.[0] as string;
-    expect(url).toContain("range=6h");
-    expect(url).toContain("agent_name=agent-x");
-  });
-});
-
-describe("getCosts", () => {
-  it("sends range and agent_name", async () => {
-    mockOk([]);
-
-    await getCosts("30d", "agent-y");
-    const url = mockFetch.mock.calls[0]?.[0] as string;
-    expect(url).toContain("range=30d");
-    expect(url).toContain("agent_name=agent-y");
   });
 });
 
