@@ -10,15 +10,8 @@ import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
 import { encrypt, decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { expandProviderNames, inferProviderFromModelName } from './provider-aliases';
-import { TIERS } from './scorer/types';
+import { TIERS, TIER_LABELS } from 'manifest-shared';
 import { isManifestUsableProvider, isSupportedSubscriptionProvider } from './subscription-support';
-
-const TIER_LABELS: Record<string, string> = {
-  simple: 'Simple',
-  standard: 'Standard',
-  complex: 'Complex',
-  reasoning: 'Reasoning',
-};
 
 @Injectable()
 export class RoutingService {
@@ -286,7 +279,7 @@ export class RoutingService {
       for (const { tier, modelName } of invalidated) {
         const updated = tierMap.get(tier);
         const newModel = updated?.auto_assigned_model ?? null;
-        const tierLabel = TIER_LABELS[tier] ?? tier;
+        const tierLabel = TIER_LABELS[tier as keyof typeof TIER_LABELS] ?? tier;
         const suffix = newModel
           ? `${tierLabel} is back to automatic mode (${newModel}).`
           : `${tierLabel} is back to automatic mode.`;

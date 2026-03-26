@@ -118,6 +118,26 @@ jobs:
           directory: packages/frontend/coverage
           fail_ci_if_error: false
 
+  shared:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace=packages/shared
+      - run: npm test --workspace=packages/shared -- --coverage --coverageReporters=lcov
+      - name: Upload shared coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: shared
+          directory: packages/shared/coverage
+          fail_ci_if_error: false
+
   plugin:
     runs-on: ubuntu-latest
     steps:

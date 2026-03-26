@@ -8,8 +8,7 @@ import {
   Matches,
 } from 'class-validator';
 
-const VALID_TIERS = ['simple', 'standard', 'complex', 'reasoning'] as const;
-const VALID_AUTH_TYPES = ['api_key', 'subscription'] as const;
+import { TIERS, AUTH_TYPES } from 'manifest-shared';
 
 export class AgentNameParamDto {
   @IsString()
@@ -19,7 +18,7 @@ export class AgentNameParamDto {
 }
 
 export class TierParamDto {
-  @IsIn(VALID_TIERS)
+  @IsIn(TIERS)
   tier!: string;
 }
 
@@ -39,7 +38,7 @@ export class ConnectProviderDto {
   apiKey?: string;
 
   @IsOptional()
-  @IsIn(VALID_AUTH_TYPES)
+  @IsIn(AUTH_TYPES)
   authType?: 'api_key' | 'subscription';
 }
 
@@ -56,7 +55,7 @@ export class AgentProviderParamDto {
 
 export class RemoveProviderQueryDto {
   @IsOptional()
-  @IsIn(VALID_AUTH_TYPES)
+  @IsIn(AUTH_TYPES)
   authType?: 'api_key' | 'subscription';
 }
 
@@ -71,7 +70,7 @@ export class SetOverrideDto {
   provider?: string;
 
   @IsOptional()
-  @IsIn(VALID_AUTH_TYPES)
+  @IsIn(AUTH_TYPES)
   authType?: 'api_key' | 'subscription';
 }
 

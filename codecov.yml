@@ -20,6 +20,9 @@ flags:
   plugin:
     paths:
       - packages/openclaw-plugin/src/
+  shared:
+    paths:
+      - packages/shared/src/
 bundle_analysis:
   warning_threshold: "5%"
   status: "informational"

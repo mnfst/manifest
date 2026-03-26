@@ -1,1 +1,1 @@
-export const API_KEY_PREFIX = 'mnfst_';
+export { API_KEY_PREFIX } from 'manifest-shared';
