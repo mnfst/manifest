@@ -383,9 +383,7 @@ const Overview: Component = () => {
                   <Show when={d().has_data === false}>
                     <div class="waiting-banner">
                       <i class="bxd bx-florist" />
-                      <p>
-                        No activity yet. Your dashboard updates seconds after the first LLM call.
-                      </p>
+                      <p>No activity yet. Data will appear on reload once LLM calls come in.</p>
                     </div>
                   </Show>
                   {/* Chart card with clickable stats */}

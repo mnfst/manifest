@@ -354,7 +354,7 @@ const MessageLog: Component = () => {
             <Show when={hasNoData() && hasProviders()}>
               <div class="waiting-banner">
                 <i class="bxd bx-florist" />
-                <p>No messages yet. They appear seconds after your first LLM call.</p>
+                <p>No messages yet. Data will appear on reload once LLM calls come in.</p>
               </div>
             </Show>
             <div class="panel">
