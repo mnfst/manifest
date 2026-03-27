@@ -26,9 +26,15 @@
   border-radius: 50%;
 }
 
-.modal-terminal__dot--red { background: #ff5f57; }
-.modal-terminal__dot--yellow { background: #febc2e; }
-.modal-terminal__dot--green { background: #28c840; }
+.modal-terminal__dot--red {
+  background: #ff5f57;
+}
+.modal-terminal__dot--yellow {
+  background: #febc2e;
+}
+.modal-terminal__dot--green {
+  background: #28c840;
+}
 
 .modal-terminal__tabs {
   display: flex;
@@ -205,22 +211,263 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ── Animations ────────────────────────────────────── */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .cards-grid > * {
   animation: fadeInUp 300ms ease-out both;
 }
-.cards-grid > *:nth-child(1) { animation-delay: 0ms; }
-.cards-grid > *:nth-child(2) { animation-delay: 50ms; }
-.cards-grid > *:nth-child(3) { animation-delay: 100ms; }
-.cards-grid > *:nth-child(4) { animation-delay: 150ms; }
+.cards-grid > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.cards-grid > *:nth-child(2) {
+  animation-delay: 50ms;
+}
+.cards-grid > *:nth-child(3) {
+  animation-delay: 100ms;
+}
+.cards-grid > *:nth-child(4) {
+  animation-delay: 150ms;
+}
 
-.panel { animation: fadeInUp 300ms ease-out both; }
+.panel {
+  animation: fadeInUp 300ms ease-out both;
+}
+
+/* ── Setup step shared ─────────────────────────────── */
+.setup-step__heading {
+  margin: 0 0 4px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.setup-step__desc {
+  margin: 0 0 16px;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+}
+
+/* ── API key display ───────────────────────────────── */
+.api-key-display__warning {
+  background: hsl(var(--chart-5) / 0.1);
+  border: 1px solid hsl(var(--chart-5) / 0.3);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+}
+
+.api-key-display__value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  word-break: break-all;
+}
+
+.api-key-display__prefix {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  padding: 10px 14px;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+
+.api-key-display__code {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Setup method accordion ────────────────────────── */
+.setup-method {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.setup-method--recommended {
+  border-color: hsl(var(--chart-1) / 0.4);
+}
+
+.setup-method__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: hsl(var(--muted));
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.setup-method__header:hover {
+  background: hsl(var(--accent));
+}
+
+.setup-method__header:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: -2px;
+}
+
+.setup-method__badge {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: hsl(var(--chart-1) / 0.15);
+  color: hsl(var(--chart-1));
+}
+
+.setup-method__chevron {
+  margin-left: auto;
+  transition: transform var(--transition-fast);
+  color: hsl(var(--muted-foreground));
+}
+
+.setup-method__chevron--open {
+  transform: rotate(180deg);
+}
+
+.setup-method__body {
+  padding: 12px 14px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.setup-method__hint {
+  margin: 0 0 10px;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+}
+
+.setup-method__code {
+  position: relative;
+  background: hsl(var(--background));
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  line-height: 1.7;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.dark .setup-method__code {
+  background: hsl(222 47% 6%);
+  color: hsl(178 75% 50%);
+}
+
+/* ── Info grid (base URL + model) ──────────────────── */
+.setup-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: var(--font-size-sm);
+}
+
+.setup-info-grid__card {
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+
+.setup-info-grid__label {
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 4px;
+}
+
+.setup-info-grid__value {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  word-break: break-all;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Local ready checklist ─────────────────────────── */
+.setup-checklist {
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.setup-checklist__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.setup-checklist__item + .setup-checklist__item {
+  margin-top: 8px;
+}
+
+/* ── Onboard wizard fields ─────────────────────────── */
+.setup-onboard-fields {
+  font-size: var(--font-size-sm);
+}
+
+.setup-onboard-fields__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.setup-onboard-fields__row:last-child {
+  border-bottom: none;
+}
+
+.setup-onboard-fields__label {
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+}
+
+.setup-onboard-fields__value {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  word-break: break-all;
+}
+
+.setup-onboard-fields__value .modal-terminal__copy {
+  position: static;
+  flex-shrink: 0;
+}
