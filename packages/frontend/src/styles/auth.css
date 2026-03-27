@@ -21,7 +21,6 @@
 
 .auth-logo {
   text-align: center;
-  margin-bottom: var(--gap-lg);
 }
 
 .auth-logo__link {
@@ -41,9 +40,15 @@
   object-fit: contain;
 }
 
-.auth-logo__img--dark { display: none; }
-.dark .auth-logo__img--light { display: none; }
-.dark .auth-logo__img--dark { display: inline-block; }
+.auth-logo__img--dark {
+  display: none;
+}
+.dark .auth-logo__img--light {
+  display: none;
+}
+.dark .auth-logo__img--dark {
+  display: inline-block;
+}
 
 /* ── Auth Header ─────────────────────────────────── */
 .auth-header {
@@ -196,7 +201,7 @@
 
 .auth-divider::before,
 .auth-divider::after {
-  content: "";
+  content: '';
   flex: 1;
   height: 1px;
   background: hsl(var(--border));
@@ -251,9 +256,15 @@
 }
 
 /* Provider-specific hover colors */
-.auth-social-btn--google:hover { border-color: #4285F4; }
-.auth-social-btn--github:hover { border-color: #6e40c9; }
-.auth-social-btn--discord:hover { border-color: #5865F2; }
+.auth-social-btn--google:hover {
+  border-color: #4285f4;
+}
+.auth-social-btn--github:hover {
+  border-color: #6e40c9;
+}
+.auth-social-btn--discord:hover {
+  border-color: #5865f2;
+}
 
 /* ── Auth Footer / Terms ─────────────────────────── */
 .auth-footer {
