@@ -57,7 +57,9 @@ describe("manifest plugin registration", () => {
   });
 
   it("uses fallback logger when api.logger is not provided", () => {
-    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     const api = {
       pluginConfig: {},
       config: {},
@@ -66,7 +68,25 @@ describe("manifest plugin registration", () => {
     plugin.register(api);
 
     expect(registerLocalMode).toHaveBeenCalled();
-    consoleSpy.mockRestore();
+
+    // Exercise each fallback logger method to cover lines 11-14
+    const fallbackLogger = (registerLocalMode as jest.Mock).mock.calls[0][3];
+
+    fallbackLogger.info("test info");
+    expect(logSpy).toHaveBeenCalledWith("test info");
+
+    fallbackLogger.debug("test debug");
+    // debug is a no-op, just verify it doesn't throw
+
+    fallbackLogger.error("test error");
+    expect(errorSpy).toHaveBeenCalledWith("test error");
+
+    fallbackLogger.warn("test warn");
+    expect(warnSpy).toHaveBeenCalledWith("test warn");
+
+    logSpy.mockRestore();
+    errorSpy.mockRestore();
+    warnSpy.mockRestore();
   });
 
   it("ignores invalid port values", () => {
