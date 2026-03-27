@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.5
+
+### Patch Changes
+
+- 4e71b0d: Fix openclaw onboard verification by returning a synthetic 200 response when no providers are configured, remove non-existent copilot model, add Endpoint ID to interactive wizard instructions, and fix settings page margin.
+
 ## 5.33.4
 
 ### Patch Changes
