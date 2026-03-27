@@ -107,6 +107,22 @@ const overviewData = {
   has_data: true,
 };
 
+const emptyOverviewData = {
+  summary: {
+    tokens_today: { value: 0, trend_pct: 0 },
+    cost_today: { value: 0, trend_pct: 0 },
+    messages: { value: 0, trend_pct: 0 },
+    services_hit: { total: 0, healthy: 0, issues: 0 },
+  },
+  token_usage: [],
+  cost_usage: [],
+  message_usage: [],
+  cost_by_model: [],
+  recent_activity: [],
+  has_data: false,
+  has_providers: false,
+};
+
 describe("Overview", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -267,7 +283,7 @@ describe("Overview", () => {
   });
 
   it("shows empty state for new agent with no data", async () => {
-    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+    mockGetOverview.mockResolvedValue(emptyOverviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("No activity yet");
@@ -422,7 +438,7 @@ describe("Overview", () => {
 
   describe("setup modal callbacks", () => {
     it("closes setup modal and sets dismissed flag", async () => {
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      mockGetOverview.mockResolvedValue(emptyOverviewData);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         const modal = container.querySelector('[data-testid="setup-modal"]');
@@ -440,7 +456,7 @@ describe("Overview", () => {
     });
 
     it("marks setup as completed when onDone is called", async () => {
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      mockGetOverview.mockResolvedValue(emptyOverviewData);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         const modal = container.querySelector('[data-testid="setup-modal"]');
@@ -457,7 +473,7 @@ describe("Overview", () => {
   });
 
   it("shows waiting banner when has_providers is true but has_data is false", async () => {
-    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: true, summary: { tokens_today: { value: 0, trend_pct: 0 }, cost_today: { value: 0, trend_pct: 0 }, messages: { value: 0, trend_pct: 0 }, services_hit: { total: 0, healthy: 0, issues: 0 } } });
+    mockGetOverview.mockResolvedValue({ ...emptyOverviewData, has_providers: true });
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("No activity yet");
@@ -467,7 +483,7 @@ describe("Overview", () => {
   });
 
   it("shows dashboard with zeros when has_providers is true but has_data is false", async () => {
-    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: true, summary: { tokens_today: { value: 0, trend_pct: 0 }, cost_today: { value: 0, trend_pct: 0 }, messages: { value: 0, trend_pct: 0 }, services_hit: { total: 0, healthy: 0, issues: 0 } } });
+    mockGetOverview.mockResolvedValue({ ...emptyOverviewData, has_providers: true });
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       expect(container.querySelector('.chart-card__stat--clickable')).not.toBeNull();
@@ -494,7 +510,7 @@ describe("Overview", () => {
 
   it("shows Enable routing button when setupCompleted but no providers and no data", async () => {
     localStorage.setItem("setup_completed_test-agent", "1");
-    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: false, summary: null });
+    mockGetOverview.mockResolvedValue(emptyOverviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Enable routing");
@@ -506,7 +522,7 @@ describe("Overview", () => {
 
   it("navigates to routing with openProviders state when Enable routing clicked", async () => {
     localStorage.setItem("setup_completed_test-agent", "1");
-    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: false, summary: null });
+    mockGetOverview.mockResolvedValue(emptyOverviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Enable routing");
@@ -520,7 +536,7 @@ describe("Overview", () => {
   });
 
   it("shows Set up agent button when not setupCompleted and no providers", async () => {
-    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: false, summary: null });
+    mockGetOverview.mockResolvedValue(emptyOverviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Set up agent");
@@ -532,7 +548,7 @@ describe("Overview", () => {
     it("should open setup modal for new agent in local mode", async () => {
       mockAgentName = "local-agent";
       mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      mockGetOverview.mockResolvedValue(emptyOverviewData);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         const modal = container.querySelector('[data-testid="setup-modal"]');
@@ -543,7 +559,7 @@ describe("Overview", () => {
     it("should show empty state with setup button in local mode", async () => {
       mockAgentName = "other-agent";
       mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      mockGetOverview.mockResolvedValue(emptyOverviewData);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         expect(container.textContent).toContain("No activity yet");
@@ -553,7 +569,7 @@ describe("Overview", () => {
     it("shows waiting banner in local mode when has_providers is true", async () => {
       mockAgentName = "local-agent";
       mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: true, summary: { tokens_today: { value: 0, trend_pct: 0 }, cost_today: { value: 0, trend_pct: 0 }, messages: { value: 0, trend_pct: 0 }, services_hit: { total: 0, healthy: 0, issues: 0 } } });
+      mockGetOverview.mockResolvedValue({ ...emptyOverviewData, has_providers: true });
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         expect(container.textContent).toContain("No activity yet");
@@ -564,7 +580,7 @@ describe("Overview", () => {
 
   describe("SetupModal callbacks", () => {
     it("sets localStorage and closes modal on onClose", async () => {
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      mockGetOverview.mockResolvedValue(emptyOverviewData);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         const modal = container.querySelector('[data-testid="setup-modal"]');
@@ -575,7 +591,7 @@ describe("Overview", () => {
     });
 
     it("sets localStorage on onDone", async () => {
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      mockGetOverview.mockResolvedValue(emptyOverviewData);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         const modal = container.querySelector('[data-testid="setup-modal"]');
@@ -586,7 +602,7 @@ describe("Overview", () => {
     });
 
     it("navigates to routing page on onGoToRouting", async () => {
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      mockGetOverview.mockResolvedValue(emptyOverviewData);
       render(() => <Overview />);
       await vi.waitFor(() => {
         expect(screen.getByTestId("setup-go-routing")).toBeDefined();

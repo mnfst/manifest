@@ -126,9 +126,9 @@ const MessageLog: Component = () => {
     return d && d.total_count === 0;
   };
 
-  const isFilteredEmpty = () => hasNoData() && hasActiveFilters() && !showEmptyState();
   const showEmptyState = () => hasNoData() && !hasActiveFilters() && !hasProviders();
-  const showMessages = () => !hasNoData() || hasProviders();
+  const isFilteredEmpty = () => hasNoData() && hasActiveFilters();
+  const showMessages = () => !hasNoData() || (hasProviders() && !hasActiveFilters());
 
   const clearFilters = () => {
     setProviderFilter('');
