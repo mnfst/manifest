@@ -1,15 +1,15 @@
 ---
 name: manifest-status
-description: Show current Manifest plugin configuration as a diagnostic table. Use when the user says "/manifest-status", "manifest status", "show manifest config", "manifest settings", "is manifest installed", "check manifest plugin", or wants to see the current state of the Manifest OpenClaw plugin configuration. Outputs a table and nothing else.
+description: Show current Manifest configuration as a diagnostic table. Use when the user says "/manifest-status", "manifest status", "show manifest config", "manifest settings", "is manifest installed", "check manifest", or wants to see the current Manifest routing setup. Outputs a table and nothing else.
 ---
 
 # Manifest Status
 
-Print the current Manifest plugin configuration. No commentary — just the table.
+Print the current Manifest configuration. Shows both the direct model provider config (`models.providers.manifest`) and the plugin config if installed. No commentary -- just the table.
 
 ## Workflow
 
-Run the diagnostic script (path relative to repository root):
+Run the diagnostic script:
 
 ```bash
 bash skills/manifest-status/scripts/manifest_status.sh
