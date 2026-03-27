@@ -4,6 +4,8 @@ import { OverviewController } from './overview.controller';
 import { AggregationService } from '../services/aggregation.service';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { ProviderService } from '../../routing/routing-core/provider.service';
+import { ResolveAgentService } from '../../routing/routing-core/resolve-agent.service';
 
 function mockAggregation(): Record<string, jest.Mock> {
   return {
@@ -38,11 +40,15 @@ describe('OverviewController', () => {
   let agg: Record<string, jest.Mock>;
   let ts: Record<string, jest.Mock>;
   let mockTenantResolve: jest.Mock;
+  let mockResolveAgent: jest.Mock;
+  let mockGetProviders: jest.Mock;
 
   beforeEach(async () => {
     agg = mockAggregation();
     ts = mockTimeseries();
     mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
+    mockResolveAgent = jest.fn().mockResolvedValue({ id: 'agent-uuid-1' });
+    mockGetProviders = jest.fn().mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -51,6 +57,8 @@ describe('OverviewController', () => {
         { provide: AggregationService, useValue: agg },
         { provide: TimeseriesQueriesService, useValue: ts },
         { provide: TenantCacheService, useValue: { resolve: mockTenantResolve } },
+        { provide: ProviderService, useValue: { getProviders: mockGetProviders } },
+        { provide: ResolveAgentService, useValue: { resolve: mockResolveAgent } },
       ],
     }).compile();
 
@@ -130,5 +138,58 @@ describe('OverviewController', () => {
     await controller.getOverview({ range: '24h' }, user as never);
 
     expect(agg.getSummaryMetrics).toHaveBeenCalledWith('24h', 'u1', undefined, undefined);
+  });
+
+  it('returns has_providers true when agent has active providers', async () => {
+    mockGetProviders.mockResolvedValueOnce([{ is_active: true }]);
+    const user = { id: 'u1' };
+    const result = await controller.getOverview(
+      { range: '24h', agent_name: 'bot-1' },
+      user as never,
+    );
+
+    expect(result.has_providers).toBe(true);
+    expect(mockResolveAgent).toHaveBeenCalledWith('u1', 'bot-1');
+    expect(mockGetProviders).toHaveBeenCalledWith('agent-uuid-1');
+  });
+
+  it('returns has_providers false when no providers exist', async () => {
+    const user = { id: 'u1' };
+    const result = await controller.getOverview(
+      { range: '24h', agent_name: 'bot-1' },
+      user as never,
+    );
+
+    expect(result.has_providers).toBe(false);
+  });
+
+  it('returns has_providers false when agent_name is not provided', async () => {
+    const user = { id: 'u1' };
+    const result = await controller.getOverview({ range: '24h' }, user as never);
+
+    expect(result.has_providers).toBe(false);
+    expect(mockResolveAgent).not.toHaveBeenCalled();
+  });
+
+  it('returns has_providers false when agent resolution fails', async () => {
+    mockResolveAgent.mockRejectedValueOnce(new Error('Not found'));
+    const user = { id: 'u1' };
+    const result = await controller.getOverview(
+      { range: '24h', agent_name: 'missing-agent' },
+      user as never,
+    );
+
+    expect(result.has_providers).toBe(false);
+  });
+
+  it('returns has_providers false when all providers are inactive', async () => {
+    mockGetProviders.mockResolvedValueOnce([{ is_active: false }, { is_active: false }]);
+    const user = { id: 'u1' };
+    const result = await controller.getOverview(
+      { range: '24h', agent_name: 'bot-1' },
+      user as never,
+    );
+
+    expect(result.has_providers).toBe(false);
   });
 });

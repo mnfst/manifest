@@ -456,16 +456,75 @@ describe("Overview", () => {
     });
   });
 
-  it("shows routing link in waiting banner after setup completed in cloud mode", async () => {
-    localStorage.setItem("setup_completed_test-agent", "1");
-    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+  it("shows waiting banner when has_providers is true but has_data is false", async () => {
+    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: true, summary: { tokens_today: { value: 0, trend_pct: 0 }, cost_today: { value: 0, trend_pct: 0 }, messages: { value: 0, trend_pct: 0 }, services_hit: { total: 0, healthy: 0, issues: 0 } } });
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("No activity yet");
-      const link = container.querySelector('.waiting-banner a');
-      expect(link).not.toBeNull();
-      expect(link!.getAttribute("href")).toBe("/agents/test-agent/routing");
-      expect(link!.textContent).toBe("Routing");
+      expect(container.querySelector('.waiting-banner')).not.toBeNull();
+      expect(container.querySelector('.empty-state')).toBeNull();
+    });
+  });
+
+  it("shows dashboard with zeros when has_providers is true but has_data is false", async () => {
+    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: true, summary: { tokens_today: { value: 0, trend_pct: 0 }, cost_today: { value: 0, trend_pct: 0 }, messages: { value: 0, trend_pct: 0 }, services_hit: { total: 0, healthy: 0, issues: 0 } } });
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.querySelector('.chart-card__stat--clickable')).not.toBeNull();
+      expect(container.textContent).toContain("$0.00");
+    });
+  });
+
+  it("shows full dashboard when has_data is true regardless of has_providers", async () => {
+    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: true, has_providers: false });
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.querySelector('.chart-card__stat--clickable')).not.toBeNull();
+      expect(container.querySelector('.empty-state')).toBeNull();
+    });
+  });
+
+  it("does not show waiting banner when has_data is true", async () => {
+    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: true, has_providers: true });
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.querySelector('.waiting-banner')).toBeNull();
+    });
+  });
+
+  it("shows Enable routing button when setupCompleted but no providers and no data", async () => {
+    localStorage.setItem("setup_completed_test-agent", "1");
+    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: false, summary: null });
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Enable routing");
+      expect(container.textContent).toContain("Connect a provider to start routing LLM calls");
+      const btn = container.querySelector('.empty-state button.btn--primary');
+      expect(btn).not.toBeNull();
+    });
+  });
+
+  it("navigates to routing with openProviders state when Enable routing clicked", async () => {
+    localStorage.setItem("setup_completed_test-agent", "1");
+    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: false, summary: null });
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Enable routing");
+    });
+    const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
+    fireEvent.click(btn);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/agents/test-agent/routing",
+      { state: { openProviders: true } },
+    );
+  });
+
+  it("shows Set up agent button when not setupCompleted and no providers", async () => {
+    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: false, summary: null });
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Set up agent");
+      expect(container.textContent).not.toContain("Enable routing");
     });
   });
 
@@ -491,18 +550,14 @@ describe("Overview", () => {
       });
     });
 
-    it("shows routing link in waiting banner after setup completed", async () => {
+    it("shows waiting banner in local mode when has_providers is true", async () => {
       mockAgentName = "local-agent";
       mockIsLocalMode = true;
-      localStorage.setItem("setup_completed_local-agent", "1");
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, has_providers: true, summary: { tokens_today: { value: 0, trend_pct: 0 }, cost_today: { value: 0, trend_pct: 0 }, messages: { value: 0, trend_pct: 0 }, services_hit: { total: 0, healthy: 0, issues: 0 } } });
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         expect(container.textContent).toContain("No activity yet");
-        const link = container.querySelector('.waiting-banner a');
-        expect(link).not.toBeNull();
-        expect(link!.getAttribute("href")).toBe("/agents/local-agent/routing");
-        expect(link!.textContent).toBe("Routing");
+        expect(container.querySelector('.waiting-banner')).not.toBeNull();
       });
     });
   });
