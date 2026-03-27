@@ -1,11 +1,13 @@
 {
   "id": "manifest-provider",
   "name": "Manifest Provider — Smart LLM Router",
-  "version": "5.32.0",
+  "version": "5.33.0",
   "description": "Picks the best model for each request — balancing quality, speed, and cost. Supports 10+ providers with automatic tier-based routing and fallbacks.",
   "author": "MNFST Inc.",
   "homepage": "https://manifest.build",
-  "providers": ["manifest"],
+  "providers": [
+    "manifest"
+  ],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
