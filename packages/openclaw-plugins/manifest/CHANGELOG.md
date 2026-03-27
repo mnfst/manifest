@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.4
+
+### Patch Changes
+
+- d4111d4: Remove environment variable setup option from agent setup UI, keeping only CLI and interactive wizard methods
+
 ## 5.33.3
 
 ### Patch Changes
