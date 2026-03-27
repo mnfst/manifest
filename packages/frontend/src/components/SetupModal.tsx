@@ -87,7 +87,7 @@ const SetupModal: Component<{
           </p>
 
           <Show
-            when={!apiKeyData.error}
+            when={!apiKeyData.error || !!props.apiKey}
             fallback={
               <ErrorState
                 error={apiKeyData.error}

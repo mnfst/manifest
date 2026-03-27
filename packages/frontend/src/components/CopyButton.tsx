@@ -2,6 +2,7 @@ import { createSignal, type Component } from 'solid-js';
 
 const CopyButton: Component<{ text: string }> = (props) => {
   const [copied, setCopied] = createSignal(false);
+  const [failed, setFailed] = createSignal(false);
 
   const handleCopy = async () => {
     try {
@@ -9,7 +10,8 @@ const CopyButton: Component<{ text: string }> = (props) => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback: select text for manual copy (e.g. non-HTTPS contexts)
+      setFailed(true);
+      setTimeout(() => setFailed(false), 2000);
     }
   };
 
@@ -18,7 +20,7 @@ const CopyButton: Component<{ text: string }> = (props) => {
       class="modal-terminal__copy"
       onClick={handleCopy}
       title="Copy"
-      aria-label={copied() ? 'Copied' : 'Copy to clipboard'}
+      aria-label={copied() ? 'Copied' : failed() ? 'Copy failed' : 'Copy to clipboard'}
     >
       {copied() ? (
         <svg

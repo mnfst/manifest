@@ -196,6 +196,19 @@ describe("SetupModal", () => {
     });
   });
 
+  it("still shows setup content when apiKey prop is provided even if fetch fails", async () => {
+    const { getAgentKey } = await import("../../src/services/api.js");
+    (getAgentKey as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("Fetch failed"));
+    const { container } = render(() => (
+      <SetupModal open={true} agentName="fail-agent" apiKey="mnfst_provided" onClose={onClose} />
+    ));
+    await vi.waitFor(() => {
+      const step = container.querySelector('[data-testid="step-add-provider"]');
+      expect(step).not.toBeNull();
+      expect(step!.getAttribute("data-key")).toBe("mnfst_provided");
+    });
+  });
+
   describe("local mode", () => {
     beforeEach(() => {
       mockGetHealth.mockResolvedValue({ mode: "local" });

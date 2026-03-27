@@ -77,11 +77,21 @@ describe("CopyButton", () => {
     expect(container.querySelector("svg polyline")).toBeNull();
   });
 
-  it("handles clipboard failure gracefully without changing state", async () => {
+  it("shows 'Copy failed' aria-label on clipboard failure", async () => {
     writeTextMock.mockRejectedValueOnce(new Error("clipboard denied"));
     render(() => <CopyButton text="hello" />);
     const btn = screen.getByRole("button");
     await fireEvent.click(btn);
+    expect(btn.getAttribute("aria-label")).toBe("Copy failed");
+  });
+
+  it("reverts 'Copy failed' back to 'Copy to clipboard' after 2000ms", async () => {
+    writeTextMock.mockRejectedValueOnce(new Error("clipboard denied"));
+    render(() => <CopyButton text="hello" />);
+    const btn = screen.getByRole("button");
+    await fireEvent.click(btn);
+    expect(btn.getAttribute("aria-label")).toBe("Copy failed");
+    vi.advanceTimersByTime(2000);
     expect(btn.getAttribute("aria-label")).toBe("Copy to clipboard");
   });
 
