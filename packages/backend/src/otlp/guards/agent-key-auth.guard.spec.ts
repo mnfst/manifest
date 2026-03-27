@@ -22,31 +22,38 @@ describe('AgentKeyAuthGuard', () => {
   let guard: AgentKeyAuthGuard;
   let mockGetOne: jest.Mock;
   let mockCreateQueryBuilder: jest.Mock;
-  let mockUpdate: jest.Mock;
+  let mockExecute: jest.Mock;
   let mockFindOne: jest.Mock;
 
   beforeEach(() => {
     mockGetOne = jest.fn().mockResolvedValue(null);
-    const mockQb = {
+    const mockSelectQb = {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       getOne: mockGetOne,
     };
-    mockCreateQueryBuilder = jest.fn().mockReturnValue(mockQb);
-    mockUpdate = jest.fn().mockImplementation((_criteria, updateObj) => {
-      // Invoke raw expression functions for coverage (e.g. () => 'CURRENT_TIMESTAMP')
-      if (updateObj) {
-        for (const val of Object.values(updateObj)) {
-          if (typeof val === 'function') (val as () => unknown)();
+    mockExecute = jest.fn().mockResolvedValue({});
+    const mockUpdateQb = {
+      update: jest.fn().mockReturnThis(),
+      set: jest.fn().mockImplementation((setObj) => {
+        // Invoke raw expression functions for coverage (e.g. () => 'CURRENT_TIMESTAMP')
+        if (setObj) {
+          for (const val of Object.values(setObj)) {
+            if (typeof val === 'function') (val as () => unknown)();
+          }
         }
-      }
-      return Promise.resolve({});
+        return mockUpdateQb;
+      }),
+      where: jest.fn().mockReturnThis(),
+      execute: mockExecute,
+    };
+    mockCreateQueryBuilder = jest.fn().mockImplementation((alias?: string) => {
+      return alias ? mockSelectQb : mockUpdateQb;
     });
     mockFindOne = jest.fn().mockResolvedValue(null);
     const mockRepo = {
       createQueryBuilder: mockCreateQueryBuilder,
-      update: mockUpdate,
       findOne: mockFindOne,
     } as never;
     guard = new AgentKeyAuthGuard(mockRepo);
@@ -166,7 +173,8 @@ describe('AgentKeyAuthGuard', () => {
     const { ctx: ctx1 } = makeContext({ authorization: 'Bearer mnfst_cached-key' });
     await guard.canActivate(ctx1);
 
-    expect(mockCreateQueryBuilder).toHaveBeenCalledTimes(1);
+    // First call: one createQueryBuilder('k') for select + one createQueryBuilder() for update
+    expect(mockGetOne).toHaveBeenCalledTimes(1);
 
     mockCreateQueryBuilder.mockClear();
     mockGetOne.mockClear();
@@ -416,14 +424,7 @@ describe('AgentKeyAuthGuard', () => {
       agent: { name: 'test-agent' },
       tenant: { name: 'user-1' },
     });
-    mockUpdate.mockImplementation((_criteria, updateObj) => {
-      if (updateObj) {
-        for (const val of Object.values(updateObj)) {
-          if (typeof val === 'function') (val as () => unknown)();
-        }
-      }
-      return Promise.reject(new Error('DB write error'));
-    });
+    mockExecute.mockRejectedValueOnce(new Error('DB write error'));
 
     const { ctx, req } = makeContext({ authorization: 'Bearer mnfst_update-fail-key' });
     const result = await guard.canActivate(ctx);
@@ -431,7 +432,7 @@ describe('AgentKeyAuthGuard', () => {
     expect(result).toBe(true);
     expect(req.ingestionContext).toBeDefined();
     // The guard swallows update errors via .catch()
-    expect(mockUpdate).toHaveBeenCalled();
+    expect(mockExecute).toHaveBeenCalled();
   });
 
   it('evicts the first cache entry when cache reaches MAX_CACHE_SIZE', async () => {
@@ -521,7 +522,6 @@ describe('AgentKeyAuthGuard', () => {
 
     const mockRepo = {
       createQueryBuilder: mockCreateQueryBuilder,
-      update: mockUpdate,
       findOne: mockFindOne,
     } as never;
     const timedGuard = new AgentKeyAuthGuard(mockRepo);
@@ -548,7 +548,6 @@ describe('AgentKeyAuthGuard', () => {
 
     const mockRepo = {
       createQueryBuilder: mockCreateQueryBuilder,
-      update: mockUpdate,
       findOne: mockFindOne,
     } as never;
     const timedGuard = new AgentKeyAuthGuard(mockRepo);
@@ -615,17 +614,26 @@ describe('AgentKeyAuthGuard', () => {
       tenant: { name: 'user-1' },
     });
 
-    const mockQb2 = {
+    const mockSelectQb2 = {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       getOne: mockGetOne,
     };
-    mockCreateQueryBuilder.mockReturnValue(mockQb2);
+    const mockUpdateQb2 = {
+      update: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue({}),
+    };
+    mockCreateQueryBuilder.mockImplementation((alias?: string) => {
+      return alias ? mockSelectQb2 : mockUpdateQb2;
+    });
 
     const { ctx: ctx2 } = makeContext({ authorization: 'Bearer mnfst_inv-key' });
     await guard.canActivate(ctx2);
 
-    expect(mockCreateQueryBuilder).toHaveBeenCalledTimes(1);
+    // Called twice: once for select (with alias 'k'), once for update (no alias)
+    expect(mockGetOne).toHaveBeenCalledTimes(1);
   });
 });

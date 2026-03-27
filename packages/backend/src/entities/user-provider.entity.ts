@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
-import type { DiscoveredModel } from '../routing/model-discovery/model-fetcher';
+import type { DiscoveredModel } from '../model-discovery/model-fetcher';
 
 @Entity('user_providers')
 @Index(['agent_id', 'provider', 'auth_type'], { unique: true })
@@ -25,6 +25,9 @@ export class UserProvider {
 
   @Column('varchar', { default: 'api_key' })
   auth_type!: 'api_key' | 'subscription';
+
+  @Column('varchar', { nullable: true, default: null })
+  region!: string | null;
 
   @Column('boolean', { default: true })
   is_active!: boolean;

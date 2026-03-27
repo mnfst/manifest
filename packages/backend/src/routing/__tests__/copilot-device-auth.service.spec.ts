@@ -1,4 +1,4 @@
-import { CopilotDeviceAuthService } from '../copilot-device-auth.service';
+import { CopilotDeviceAuthService } from '../oauth/copilot-device-auth.service';
 
 describe('CopilotDeviceAuthService', () => {
   let service: CopilotDeviceAuthService;

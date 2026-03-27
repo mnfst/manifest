@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserProvider } from '../entities/user-provider.entity';
-import { ModelDiscoveryService } from '../routing/model-discovery/model-discovery.service';
+import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { OLLAMA_HOST } from '../common/constants/ollama';
 
 @Injectable()

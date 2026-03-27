@@ -2,7 +2,7 @@
   "id": "manifest",
   "kind": "routing",
   "name": "Manifest — Smart LLM Router",
-  "version": "5.31.1",
+  "version": "5.32.0",
   "description": "Smart model routing, cost tracking, and usage analytics for your OpenClaw agent. Zero-config local dashboard included.",
   "author": "MNFST Inc.",
   "homepage": "https://manifest.build",
@@ -23,7 +23,7 @@
       "devMode": {
         "type": "boolean",
         "default": false,
-        "description": "Enable for development: skips API key validation. Auto-detected when endpoint is localhost without an API key."
+        "description": "Enable for development: skips API key validation, uses faster metrics interval. Auto-detected when endpoint is localhost without an API key."
       },
       "apiKey": {
         "type": "string",
@@ -31,8 +31,8 @@
       },
       "endpoint": {
         "type": "string",
-        "default": "https://app.manifest.build",
-        "description": "Manifest server URL"
+        "default": "https://app.manifest.build/api/v1/otlp",
+        "description": "Manifest OTLP endpoint URL"
       },
       "port": {
         "type": "number",
@@ -49,11 +49,11 @@
   "uiHints": {
     "mode": {
       "label": "Mode",
-      "description": "Choose 'cloud' to route through app.manifest.build (default), or 'local' for a self-contained server with sql.js"
+      "description": "Choose 'cloud' to send data to app.manifest.build (default), or 'local' for a self-contained server with sql.js"
     },
     "devMode": {
       "label": "Dev Mode",
-      "description": "Enable for development: skips API key validation"
+      "description": "Enable for development: skips API key validation, uses faster metrics interval"
     },
     "apiKey": {
       "label": "API Key",
@@ -62,7 +62,7 @@
     },
     "endpoint": {
       "label": "Endpoint URL",
-      "placeholder": "https://app.manifest.build"
+      "placeholder": "https://app.manifest.build/api/v1/otlp"
     },
     "port": {
       "label": "Local Server Port"

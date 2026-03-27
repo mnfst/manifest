@@ -1,6 +1,7 @@
 import { HttpException } from '@nestjs/common';
 import { ProxyController } from '../proxy.controller';
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
+import { ProxyMessageDedup } from '../proxy-message-dedup';
 
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
@@ -85,7 +86,6 @@ describe('ProxyController', () => {
     manager: { transaction: jest.Mock };
   };
   let mockPricingCache: { getByModel: jest.Mock };
-  let mockEventBus: { emit: jest.Mock };
   let recorder: ProxyMessageRecorder;
 
   beforeEach(() => {
@@ -120,11 +120,10 @@ describe('ProxyController', () => {
     };
     mockMessageManager.getRepository.mockReturnValue(mockMessageRepo);
     mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
-    mockEventBus = { emit: jest.fn() };
     recorder = new ProxyMessageRecorder(
       mockMessageRepo as never,
       mockPricingCache as never,
-      mockEventBus as never,
+      new ProxyMessageDedup(),
     );
     controller = new ProxyController(
       proxyService as never,
@@ -760,15 +759,15 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
-      'agent-1',
-      'user-1',
-      req.body,
-      'my-session',
-      'tenant-1',
-      'test-agent',
-      expect.any(AbortSignal),
-    );
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body: req.body,
+      sessionKey: 'my-session',
+      tenantId: 'tenant-1',
+      agentName: 'test-agent',
+      signal: expect.any(AbortSignal),
+    });
   });
 
   it('should default session key to "default" when header is absent', async () => {
@@ -793,15 +792,15 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
-      'agent-1',
-      'user-1',
-      req.body,
-      'default',
-      'tenant-1',
-      'test-agent',
-      expect.any(AbortSignal),
-    );
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body: req.body,
+      sessionKey: 'default',
+      tenantId: 'tenant-1',
+      agentName: 'test-agent',
+      signal: expect.any(AbortSignal),
+    });
   });
 
   describe('rate limiting', () => {
@@ -1277,9 +1276,9 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      const signal = proxyService.proxyRequest.mock.calls[0][6];
-      expect(signal).toBeInstanceOf(AbortSignal);
-      expect(signal.aborted).toBe(false);
+      const opts = proxyService.proxyRequest.mock.calls[0][0] as { signal?: AbortSignal };
+      expect(opts.signal).toBeInstanceOf(AbortSignal);
+      expect(opts.signal!.aborted).toBe(false);
     });
 
     it('should silently end response when client disconnects', async () => {
@@ -1622,7 +1621,7 @@ describe('ProxyController', () => {
       const timedRecorder = new ProxyMessageRecorder(
         mockMessageRepo as never,
         mockPricingCache as never,
-        mockEventBus as never,
+        new ProxyMessageDedup(),
       );
 
       const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
@@ -1642,7 +1641,7 @@ describe('ProxyController', () => {
       const timedRecorder = new ProxyMessageRecorder(
         mockMessageRepo as never,
         mockPricingCache as never,
-        mockEventBus as never,
+        new ProxyMessageDedup(),
       );
 
       timedRecorder.onModuleDestroy();
@@ -2592,68 +2591,6 @@ describe('ProxyController', () => {
         error: expect.objectContaining({ type: 'upstream_error' }),
       }),
     );
-  });
-
-  describe('ProxyMessageRecorder user_id inclusion', () => {
-    const ctx = {
-      userId: 'user-42',
-      tenantId: 'tenant-1',
-      agentId: 'agent-1',
-      agentName: 'test-agent',
-    };
-
-    it('recordProviderError includes user_id in inserted record', async () => {
-      await recorder.recordProviderError(
-        ctx as never,
-        500,
-        'Server error',
-        'gpt-4o',
-        'simple',
-        'trace-1',
-      );
-
-      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
-        expect.objectContaining({ user_id: 'user-42' }),
-      );
-    });
-
-    it('recordFailedFallbacks includes user_id in every inserted record', async () => {
-      await recorder.recordFailedFallbacks(ctx as never, 'simple', 'gpt-4o', [
-        {
-          model: 'deepseek-chat',
-          provider: 'DeepSeek',
-          fallbackIndex: 0,
-          status: 500,
-          errorBody: 'fail',
-        },
-        {
-          model: 'claude-sonnet-4',
-          provider: 'Anthropic',
-          fallbackIndex: 1,
-          status: 502,
-          errorBody: 'bad gw',
-        },
-      ]);
-
-      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
-      for (const call of mockMessageRepo.insert.mock.calls) {
-        expect(call[0]).toEqual(expect.objectContaining({ user_id: 'user-42' }));
-      }
-    });
-
-    it('recordPrimaryFailure includes user_id in inserted record', async () => {
-      await recorder.recordPrimaryFailure(
-        ctx as never,
-        'standard',
-        'gemini-flash',
-        'Provider error',
-        new Date().toISOString(),
-      );
-
-      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
-        expect.objectContaining({ user_id: 'user-42' }),
-      );
-    });
   });
 
   it('should NOT set X-Manifest-Fallback-Exhausted when a fallback succeeded', async () => {

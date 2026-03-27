@@ -155,7 +155,11 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
     }
 
     this.keyRepo
-      .update({ key_hash: tokenHash }, { last_used_at: () => 'CURRENT_TIMESTAMP' } as never)
+      .createQueryBuilder()
+      .update(AgentApiKey)
+      .set({ last_used_at: () => 'CURRENT_TIMESTAMP' })
+      .where('key_hash = :tokenHash', { tokenHash })
+      .execute()
       .catch((err: Error) => this.logger.warn(`Failed to update last_used_at: ${err.message}`));
 
     this.evictExpired();

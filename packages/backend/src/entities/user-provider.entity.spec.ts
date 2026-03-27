@@ -8,6 +8,7 @@ describe('UserProvider entity', () => {
     entity.provider = 'openai';
     entity.api_key_encrypted = 'enc-key';
     entity.key_prefix = 'enc-key-';
+    entity.region = 'singapore';
     entity.is_active = true;
     entity.connected_at = '2025-01-01T00:00:00Z';
     entity.updated_at = '2025-01-01T00:00:00Z';
@@ -17,6 +18,7 @@ describe('UserProvider entity', () => {
     expect(entity.provider).toBe('openai');
     expect(entity.api_key_encrypted).toBe('enc-key');
     expect(entity.key_prefix).toBe('enc-key-');
+    expect(entity.region).toBe('singapore');
     expect(entity.is_active).toBe(true);
     expect(entity.connected_at).toBe('2025-01-01T00:00:00Z');
     expect(entity.updated_at).toBe('2025-01-01T00:00:00Z');
@@ -38,5 +40,11 @@ describe('UserProvider entity', () => {
     const entity = new UserProvider();
     entity.key_prefix = null;
     expect(entity.key_prefix).toBeNull();
+  });
+
+  it('should allow region to be null', () => {
+    const entity = new UserProvider();
+    entity.region = null;
+    expect(entity.region).toBeNull();
   });
 });

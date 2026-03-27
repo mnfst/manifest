@@ -8,8 +8,14 @@ import { ProxyService } from './proxy.service';
 import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
-import { initSseHeaders, pipeStream, StreamUsage } from './stream-writer';
-import { sanitizeProviderError } from './proxy-error-sanitizer';
+import {
+  buildMetaHeaders,
+  handleProviderError,
+  recordFallbackFailures,
+  handleStreamResponse,
+  handleNonStreamResponse,
+  recordSuccess,
+} from './proxy-response-handler';
 
 const MAX_SEEN_USERS = 10_000;
 
@@ -33,7 +39,7 @@ export class ProxyController {
     @Req() req: Request & { ingestionContext: IngestionContext },
     @Res() res: ExpressResponse,
   ): Promise<void> {
-    const { userId, agentId, tenantId, agentName } = req.ingestionContext;
+    const { userId } = req.ingestionContext;
     const body = req.body as Record<string, unknown>;
     const sessionKey = (req.headers['x-session-key'] as string) || 'default';
     const traceId = this.extractTraceId(req);
@@ -49,235 +55,77 @@ export class ProxyController {
       this.rateLimiter.checkLimit(userId);
       this.rateLimiter.acquireSlot(userId);
       slotAcquired = true;
-      const { forward, meta, failedFallbacks } = await this.proxyService.proxyRequest(
-        agentId,
+      const { forward, meta, failedFallbacks } = await this.proxyService.proxyRequest({
+        agentId: req.ingestionContext.agentId,
         userId,
         body,
         sessionKey,
-        tenantId,
-        agentName,
-        clientAbort.signal,
-      );
+        tenantId: req.ingestionContext.tenantId,
+        agentName: req.ingestionContext.agentName,
+        signal: clientAbort.signal,
+      });
 
       this.trackFirstProxyRequest(userId, meta);
 
-      const metaHeaders: Record<string, string> = {
-        'X-Manifest-Tier': meta.tier,
-        'X-Manifest-Model': meta.model,
-        'X-Manifest-Provider': meta.provider,
-        'X-Manifest-Confidence': String(meta.confidence),
-        'X-Manifest-Reason': meta.reason,
-      };
-      if (meta.fallbackFromModel) {
-        metaHeaders['X-Manifest-Fallback-From'] = meta.fallbackFromModel;
-        metaHeaders['X-Manifest-Fallback-Index'] = String(meta.fallbackIndex ?? 0);
-      }
-
+      const metaHeaders = buildMetaHeaders(meta);
       const providerResponse = forward.response;
 
       if (!providerResponse.ok) {
         const errorBody = await providerResponse.text();
-        const errorStatus = providerResponse.status;
-
-        if (failedFallbacks && failedFallbacks.length > 0 && !meta.fallbackFromModel) {
-          // All fallbacks failed: primary is "handled" (orange), last fallback is "failed" (red).
-          const baseTime = Date.now();
-          this.recorder
-            .recordFailedFallbacks(req.ingestionContext, meta.tier, meta.model, failedFallbacks, {
-              traceId,
-              baseTimeMs: baseTime,
-              markHandled: true,
-              lastAsError: true,
-              authType: meta.auth_type,
-            })
-            .catch((e) => this.logger.warn(`Failed to record fallback errors: ${e}`));
-
-          const primaryTs = new Date(baseTime + (failedFallbacks.length + 1) * 100).toISOString();
-          this.recorder
-            .recordPrimaryFailure(
-              req.ingestionContext,
-              meta.tier,
-              meta.model,
-              errorBody,
-              primaryTs,
-              meta.auth_type,
-            )
-            .catch((e) => this.logger.warn(`Failed to record primary failure: ${e}`));
-
-          this.logger.warn(`Fallback chain exhausted: ${errorBody.slice(0, 200)}`);
-          res.status(errorStatus);
-          for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
-          res.setHeader('X-Manifest-Fallback-Exhausted', 'true');
-          res.json({
-            error: {
-              message: sanitizeProviderError(errorStatus, errorBody),
-              type: 'fallback_exhausted',
-              status: errorStatus,
-              primary_model: meta.model,
-              primary_provider: meta.provider,
-              attempted_fallbacks: failedFallbacks.map((f) => ({
-                model: f.model,
-                provider: f.provider,
-                status: f.status,
-              })),
-            },
-          });
-          return;
-        }
-
-        this.recorder
-          .recordProviderError(
-            req.ingestionContext,
-            errorStatus,
-            errorBody,
-            meta.model,
-            meta.tier,
-            traceId,
-            meta.fallbackFromModel,
-            meta.fallbackIndex,
-            meta.auth_type,
-          )
-          .catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
-
-        this.logger.warn(`Upstream error ${errorStatus}: ${errorBody.slice(0, 200)}`);
-        res.status(errorStatus);
-        for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
-        res.json({
-          error: {
-            message: sanitizeProviderError(errorStatus, errorBody),
-            type: 'upstream_error',
-            status: errorStatus,
-          },
-        });
+        await handleProviderError(
+          res,
+          req.ingestionContext,
+          meta,
+          metaHeaders,
+          providerResponse.status,
+          errorBody,
+          failedFallbacks,
+          this.recorder,
+          traceId,
+        );
         return;
       }
 
-      // Only count successful provider responses against the rate limit.
-      // Failed upstream responses (retries by the gateway) are free.
       this.rateLimiter.recordSuccess(userId);
 
-      // When a fallback was used, record failures now (they don't need token data).
-      // The fallback success record is deferred until after the response is processed
-      // so we can include real usage/cost data.
-      let fallbackBaseTime: number | undefined;
-      let fallbackSuccessTs: string | undefined;
-      if (meta.fallbackFromModel) {
-        fallbackBaseTime = Date.now();
-        const failures = failedFallbacks ?? [];
+      const fallbackSuccessTs = recordFallbackFailures(
+        req.ingestionContext,
+        meta,
+        failedFallbacks,
+        this.recorder,
+      );
 
-        this.recorder
-          .recordPrimaryFailure(
-            req.ingestionContext,
-            meta.tier,
-            meta.fallbackFromModel,
-            meta.primaryErrorBody ?? `Provider returned HTTP ${meta.primaryErrorStatus ?? 500}`,
-            new Date(fallbackBaseTime).toISOString(),
-            meta.auth_type,
-          )
-          .catch((e) => this.logger.warn(`Failed to record primary failure: ${e}`));
-
-        if (failures.length > 0) {
-          this.recorder
-            .recordFailedFallbacks(
-              req.ingestionContext,
-              meta.tier,
-              meta.fallbackFromModel,
-              failures,
-              { baseTimeMs: fallbackBaseTime, markHandled: true, authType: meta.auth_type },
-            )
-            .catch((e) => this.logger.warn(`Failed to record fallback errors: ${e}`));
-        }
-
-        fallbackSuccessTs = new Date(fallbackBaseTime + (failures.length + 1) * 100).toISOString();
-      }
-
-      let streamUsage: StreamUsage | null = null;
+      let streamUsage = null;
 
       if (isStream && providerResponse.body) {
-        initSseHeaders(res, metaHeaders);
         headersSent = true;
-
-        if (forward.isGoogle) {
-          streamUsage = await pipeStream(providerResponse.body, res, (chunk) =>
-            this.providerClient.convertGoogleStreamChunk(chunk, meta.model),
-          );
-        } else if (forward.isAnthropic) {
-          streamUsage = await pipeStream(
-            providerResponse.body,
-            res,
-            this.providerClient.createAnthropicStreamTransformer(meta.model),
-          );
-        } else if (forward.isChatGpt) {
-          streamUsage = await pipeStream(providerResponse.body, res, (chunk) =>
-            this.providerClient.convertChatGptStreamChunk(chunk, meta.model),
-          );
-        } else {
-          streamUsage = await pipeStream(providerResponse.body, res);
-        }
+        streamUsage = await handleStreamResponse(
+          res,
+          forward,
+          meta,
+          metaHeaders,
+          this.providerClient,
+        );
       } else {
-        let responseBody: unknown;
-
-        if (forward.isGoogle) {
-          const googleData = (await providerResponse.json()) as Record<string, unknown>;
-          responseBody = this.providerClient.convertGoogleResponse(googleData, meta.model);
-        } else if (forward.isAnthropic) {
-          const anthropicData = (await providerResponse.json()) as Record<string, unknown>;
-          responseBody = this.providerClient.convertAnthropicResponse(anthropicData, meta.model);
-        } else if (forward.isChatGpt) {
-          const chatgptData = (await providerResponse.json()) as Record<string, unknown>;
-          responseBody = this.providerClient.convertChatGptResponse(chatgptData, meta.model);
-        } else {
-          responseBody = await providerResponse.json();
-        }
-
-        // Extract usage from the OpenAI-format response body
-        const body = responseBody as Record<string, unknown> | undefined;
-        const usage = body?.usage as Record<string, number> | undefined;
-        if (usage && typeof usage.prompt_tokens === 'number') {
-          streamUsage = {
-            prompt_tokens: usage.prompt_tokens,
-            completion_tokens: usage.completion_tokens ?? 0,
-            cache_read_tokens: usage.cache_read_tokens,
-            cache_creation_tokens: usage.cache_creation_tokens,
-          };
-        }
-
-        res.status(200);
-        for (const [k, v] of Object.entries(metaHeaders)) res.setHeader(k, v);
-        res.json(responseBody);
+        streamUsage = await handleNonStreamResponse(
+          res,
+          forward,
+          meta,
+          metaHeaders,
+          this.providerClient,
+        );
       }
 
-      // Record successful message with real token data.
-      if (meta.fallbackFromModel && fallbackSuccessTs) {
-        this.recorder
-          .recordFallbackSuccess(
-            req.ingestionContext,
-            meta.model,
-            meta.tier,
-            traceId,
-            meta.fallbackFromModel,
-            meta.fallbackIndex ?? 0,
-            fallbackSuccessTs,
-            meta.auth_type,
-            streamUsage ?? undefined,
-          )
-          .catch((e) => this.logger.warn(`Failed to record fallback success: ${e}`));
-      } else if (streamUsage) {
-        const durationMs = Date.now() - startTime;
-        this.recorder
-          .recordSuccessMessage(
-            req.ingestionContext,
-            meta.model,
-            meta.tier,
-            meta.reason,
-            streamUsage,
-            traceId,
-            meta.auth_type,
-            sessionKey,
-            durationMs,
-          )
-          .catch((e) => this.logger.warn(`Failed to record success message: ${e}`));
-      }
+      recordSuccess(
+        req.ingestionContext,
+        meta,
+        streamUsage,
+        fallbackSuccessTs,
+        this.recorder,
+        traceId,
+        sessionKey,
+        startTime,
+      );
     } catch (err: unknown) {
       if (clientAbort.signal.aborted) {
         if (!res.writableEnded) res.end();

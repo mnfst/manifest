@@ -1,22 +1,26 @@
-import { ResolveService } from './resolve.service';
-import { RoutingService } from './routing.service';
+import { ResolveService } from './resolve/resolve.service';
+import { TierService } from './routing-core/tier.service';
+import { ProviderKeyService } from './routing-core/provider-key.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
-import { ModelDiscoveryService } from './model-discovery/model-discovery.service';
+import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 
 describe('ResolveService', () => {
   let service: ResolveService;
-  let mockRoutingService: Record<string, jest.Mock>;
+  let mockTierService: Record<string, jest.Mock>;
+  let mockProviderKeyService: Record<string, jest.Mock>;
   let mockPricingCache: Record<string, jest.Mock>;
   let mockDiscoveryService: Record<string, jest.Mock>;
 
   beforeEach(() => {
-    mockRoutingService = {
+    mockTierService = {
       getTiers: jest.fn().mockResolvedValue([
         { tier: 'simple', override_model: null, auto_assigned_model: 'gpt-4o-mini' },
         { tier: 'standard', override_model: null, auto_assigned_model: 'gpt-4o' },
         { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
         { tier: 'reasoning', override_model: null, auto_assigned_model: 'claude-opus-4-6' },
       ]),
+    };
+    mockProviderKeyService = {
       getEffectiveModel: jest.fn(),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
     };
@@ -28,14 +32,15 @@ describe('ResolveService', () => {
     };
 
     service = new ResolveService(
-      mockRoutingService as unknown as RoutingService,
+      mockTierService as unknown as TierService,
+      mockProviderKeyService as unknown as ProviderKeyService,
       mockPricingCache as unknown as ModelPricingCacheService,
       mockDiscoveryService as unknown as ModelDiscoveryService,
     );
   });
 
   it('should return simple tier for short message', async () => {
-    mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
+    mockProviderKeyService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
     mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
     const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
@@ -48,7 +53,7 @@ describe('ResolveService', () => {
   });
 
   it('should return null model when no effective model available', async () => {
-    mockRoutingService.getEffectiveModel.mockResolvedValue(null);
+    mockProviderKeyService.getEffectiveModel.mockResolvedValue(null);
 
     const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
@@ -58,7 +63,7 @@ describe('ResolveService', () => {
   });
 
   it('should return null model when no tier assignment found', async () => {
-    mockRoutingService.getTiers.mockResolvedValue([]);
+    mockTierService.getTiers.mockResolvedValue([]);
 
     const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
@@ -67,7 +72,7 @@ describe('ResolveService', () => {
   });
 
   it('should resolve complex tier for elaborate messages', async () => {
-    mockRoutingService.getEffectiveModel.mockResolvedValue('claude-sonnet-4');
+    mockProviderKeyService.getEffectiveModel.mockResolvedValue('claude-sonnet-4');
     mockPricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' });
 
     const messages = [
@@ -88,7 +93,7 @@ describe('ResolveService', () => {
   });
 
   it('should pass momentum (recentTiers) to scorer', async () => {
-    mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o');
+    mockProviderKeyService.getEffectiveModel.mockResolvedValue('gpt-4o');
     mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
     const result = await service.resolve(
@@ -105,7 +110,7 @@ describe('ResolveService', () => {
   });
 
   it('should return null provider when pricing not found', async () => {
-    mockRoutingService.getEffectiveModel.mockResolvedValue('unknown-model');
+    mockProviderKeyService.getEffectiveModel.mockResolvedValue('unknown-model');
     mockPricingCache.getByModel.mockReturnValue(undefined);
 
     const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
@@ -116,7 +121,7 @@ describe('ResolveService', () => {
 
   describe('resolveForTier', () => {
     it('should return model for an assigned tier', async () => {
-      mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
       mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
       const result = await service.resolveForTier('agent-1', 'simple');
@@ -130,7 +135,7 @@ describe('ResolveService', () => {
     });
 
     it('should return null model when tier has no assignment', async () => {
-      mockRoutingService.getTiers.mockResolvedValue([]);
+      mockTierService.getTiers.mockResolvedValue([]);
 
       const result = await service.resolveForTier('agent-1', 'simple');
 
@@ -141,7 +146,7 @@ describe('ResolveService', () => {
     });
 
     it('should return null model when effective model is null', async () => {
-      mockRoutingService.getEffectiveModel.mockResolvedValue(null);
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue(null);
 
       const result = await service.resolveForTier('agent-1', 'simple');
 
@@ -154,7 +159,7 @@ describe('ResolveService', () => {
   it('should log available tiers when no assignment matches scored tier', async () => {
     // Set up tiers that do NOT include the scored tier (simple).
     // scoreRequest returns 'simple' for short messages but we only provide 'complex'.
-    mockRoutingService.getTiers.mockResolvedValue([
+    mockTierService.getTiers.mockResolvedValue([
       { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
     ]);
 
@@ -167,7 +172,7 @@ describe('ResolveService', () => {
 
   describe('auth_type resolution', () => {
     it('should prefer stored override_provider over model prefix inference', async () => {
-      mockRoutingService.getTiers.mockResolvedValue([
+      mockTierService.getTiers.mockResolvedValue([
         {
           tier: 'simple',
           override_model: 'z-ai/glm-5',
@@ -179,7 +184,7 @@ describe('ResolveService', () => {
         { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
         { tier: 'reasoning', override_model: null, auto_assigned_model: 'claude-opus-4-6' },
       ]);
-      mockRoutingService.getEffectiveModel.mockResolvedValue('z-ai/glm-5');
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue('z-ai/glm-5');
 
       const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
@@ -189,7 +194,7 @@ describe('ResolveService', () => {
     });
 
     it('should propagate override_auth_type from tier assignment', async () => {
-      mockRoutingService.getTiers.mockResolvedValue([
+      mockTierService.getTiers.mockResolvedValue([
         {
           tier: 'simple',
           override_model: 'claude-sonnet-4',
@@ -200,18 +205,18 @@ describe('ResolveService', () => {
         { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
         { tier: 'reasoning', override_model: null, auto_assigned_model: 'claude-opus-4-6' },
       ]);
-      mockRoutingService.getEffectiveModel.mockResolvedValue('claude-sonnet-4');
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue('claude-sonnet-4');
       mockPricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' });
 
       const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
       expect(result.auth_type).toBe('subscription');
       // getAuthType should NOT be called when override_auth_type is set
-      expect(mockRoutingService.getAuthType).not.toHaveBeenCalled();
+      expect(mockProviderKeyService.getAuthType).not.toHaveBeenCalled();
     });
 
     it('should fall back to getAuthType when no override_auth_type', async () => {
-      mockRoutingService.getTiers.mockResolvedValue([
+      mockTierService.getTiers.mockResolvedValue([
         {
           tier: 'simple',
           override_model: null,
@@ -222,20 +227,20 @@ describe('ResolveService', () => {
         { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
         { tier: 'reasoning', override_model: null, auto_assigned_model: 'claude-opus-4-6' },
       ]);
-      mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
       mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
-      mockRoutingService.getAuthType.mockResolvedValue('api_key');
+      mockProviderKeyService.getAuthType.mockResolvedValue('api_key');
 
       const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
       expect(result.auth_type).toBe('api_key');
-      expect(mockRoutingService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI');
+      expect(mockProviderKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI');
     });
 
     it('should return subscription from getAuthType when provider has subscription', async () => {
-      mockRoutingService.getEffectiveModel.mockResolvedValue('claude-sonnet-4');
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue('claude-sonnet-4');
       mockPricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' });
-      mockRoutingService.getAuthType.mockResolvedValue('subscription');
+      mockProviderKeyService.getAuthType.mockResolvedValue('subscription');
 
       const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
@@ -243,21 +248,21 @@ describe('ResolveService', () => {
     });
 
     it('should not include auth_type when provider is null', async () => {
-      mockRoutingService.getEffectiveModel.mockResolvedValue(null);
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue(null);
 
       const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
       expect(result.auth_type).toBeUndefined();
-      expect(mockRoutingService.getAuthType).not.toHaveBeenCalled();
+      expect(mockProviderKeyService.getAuthType).not.toHaveBeenCalled();
     });
   });
 
   describe('resolveForTier provider inference fallback', () => {
     it('should use pricing.provider when model has no prefix', async () => {
-      mockRoutingService.getTiers.mockResolvedValue([
+      mockTierService.getTiers.mockResolvedValue([
         { tier: 'simple', override_model: null, auto_assigned_model: 'gpt-4o-mini' },
       ]);
-      mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
       // model 'gpt-4o-mini' has no slash → inferProviderFromModelName returns undefined
       // pricing.provider has the display name from the cache
       mockPricingCache.getByModel.mockReturnValue({
@@ -271,10 +276,10 @@ describe('ResolveService', () => {
     });
 
     it('should fall back to pricing.provider when no model name has a prefix', async () => {
-      mockRoutingService.getTiers.mockResolvedValue([
+      mockTierService.getTiers.mockResolvedValue([
         { tier: 'simple', override_model: null, auto_assigned_model: 'custom-model' },
       ]);
-      mockRoutingService.getEffectiveModel.mockResolvedValue('custom-model');
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue('custom-model');
       // Neither model nor pricing.model_name have a slash
       mockPricingCache.getByModel.mockReturnValue({
         model_name: 'custom-model',
@@ -289,7 +294,7 @@ describe('ResolveService', () => {
 
   describe('resolveForTier auth_type', () => {
     it('should propagate override_auth_type in resolveForTier', async () => {
-      mockRoutingService.getTiers.mockResolvedValue([
+      mockTierService.getTiers.mockResolvedValue([
         {
           tier: 'simple',
           override_model: 'claude-sonnet-4',
@@ -297,17 +302,17 @@ describe('ResolveService', () => {
           auto_assigned_model: 'gpt-4o-mini',
         },
       ]);
-      mockRoutingService.getEffectiveModel.mockResolvedValue('claude-sonnet-4');
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue('claude-sonnet-4');
       mockPricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' });
 
       const result = await service.resolveForTier('agent-1', 'simple');
 
       expect(result.auth_type).toBe('subscription');
-      expect(mockRoutingService.getAuthType).not.toHaveBeenCalled();
+      expect(mockProviderKeyService.getAuthType).not.toHaveBeenCalled();
     });
 
     it('should fall back to getAuthType in resolveForTier when no override', async () => {
-      mockRoutingService.getTiers.mockResolvedValue([
+      mockTierService.getTiers.mockResolvedValue([
         {
           tier: 'simple',
           override_model: null,
@@ -315,18 +320,18 @@ describe('ResolveService', () => {
           auto_assigned_model: 'gpt-4o-mini',
         },
       ]);
-      mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
       mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
-      mockRoutingService.getAuthType.mockResolvedValue('api_key');
+      mockProviderKeyService.getAuthType.mockResolvedValue('api_key');
 
       const result = await service.resolveForTier('agent-1', 'simple');
 
       expect(result.auth_type).toBe('api_key');
-      expect(mockRoutingService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI');
+      expect(mockProviderKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI');
     });
 
     it('should not include auth_type in resolveForTier when model is null', async () => {
-      mockRoutingService.getTiers.mockResolvedValue([
+      mockTierService.getTiers.mockResolvedValue([
         {
           tier: 'simple',
           override_model: null,
@@ -334,17 +339,17 @@ describe('ResolveService', () => {
           auto_assigned_model: null,
         },
       ]);
-      mockRoutingService.getEffectiveModel.mockResolvedValue(null);
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue(null);
 
       const result = await service.resolveForTier('agent-1', 'simple');
 
       expect(result.auth_type).toBeUndefined();
-      expect(mockRoutingService.getAuthType).not.toHaveBeenCalled();
+      expect(mockProviderKeyService.getAuthType).not.toHaveBeenCalled();
     });
   });
 
   it('should pass tools to scorer for tier floor', async () => {
-    mockRoutingService.getEffectiveModel.mockResolvedValue('gpt-4o');
+    mockProviderKeyService.getEffectiveModel.mockResolvedValue('gpt-4o');
     mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
     const result = await service.resolve(

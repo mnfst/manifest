@@ -54,8 +54,7 @@ export class LocalBootstrapService implements OnModuleInit {
 
   private async discoverModelsInBackground(): Promise<void> {
     try {
-      const { ModelDiscoveryService } =
-        await import('../routing/model-discovery/model-discovery.service');
+      const { ModelDiscoveryService } = await import('../model-discovery/model-discovery.service');
       const discovery = this.moduleRef.get(ModelDiscoveryService, { strict: false });
       await discovery.discoverAllForAgent(LOCAL_AGENT_ID);
       await this.recalculateTiersIfNeeded();
@@ -153,7 +152,8 @@ export class LocalBootstrapService implements OnModuleInit {
     if (activeProviders === 0) return;
 
     try {
-      const { TierAutoAssignService } = await import('../routing/tier-auto-assign.service');
+      const { TierAutoAssignService } =
+        await import('../routing/routing-core/tier-auto-assign.service');
       const autoAssign = this.moduleRef.get(TierAutoAssignService, { strict: false });
       await autoAssign.recalculate(LOCAL_AGENT_ID);
       this.logger.log('Recalculated tier assignments on startup');

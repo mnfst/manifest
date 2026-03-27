@@ -40,6 +40,10 @@ export class ConnectProviderDto {
   @IsOptional()
   @IsIn(AUTH_TYPES)
   authType?: 'api_key' | 'subscription';
+
+  @IsOptional()
+  @IsString()
+  region?: string;
 }
 
 export class AgentProviderParamDto {

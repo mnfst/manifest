@@ -10,6 +10,6 @@ import { AgentKeyAuthGuard } from './guards/agent-key-auth.guard';
 @Module({
   imports: [TypeOrmModule.forFeature([AgentApiKey, Agent, Tenant, UserProvider])],
   providers: [ApiKeyGeneratorService, AgentKeyAuthGuard],
-  exports: [ApiKeyGeneratorService, TypeOrmModule],
+  exports: [ApiKeyGeneratorService, AgentKeyAuthGuard, TypeOrmModule],
 })
 export class OtlpModule {}

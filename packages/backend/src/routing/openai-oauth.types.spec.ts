@@ -1,4 +1,4 @@
-import { parseOAuthTokenBlob } from './openai-oauth.types';
+import { parseOAuthTokenBlob } from './oauth/openai-oauth.types';
 
 describe('parseOAuthTokenBlob', () => {
   it('returns null when the optional resource URL is not a string', () => {

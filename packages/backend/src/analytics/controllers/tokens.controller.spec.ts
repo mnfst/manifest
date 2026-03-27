@@ -7,19 +7,24 @@ import { TimeseriesQueriesService } from '../services/timeseries-queries.service
 describe('TokensController', () => {
   let controller: TokensController;
   let mockGetPreviousTokenTotal: jest.Mock;
-  let mockGetHourlyTokens: jest.Mock;
-  let mockGetDailyTokens: jest.Mock;
+  let mockGetTimeseries: jest.Mock;
 
   beforeEach(async () => {
     mockGetPreviousTokenTotal = jest.fn().mockResolvedValue(4000);
-    mockGetHourlyTokens = jest
-      .fn()
-      .mockResolvedValue([
-        { hour: '2026-02-16T10:00:00', input_tokens: 3000, output_tokens: 2000 },
-      ]);
-    mockGetDailyTokens = jest
-      .fn()
-      .mockResolvedValue([{ date: '2026-02-16', input_tokens: 1000, output_tokens: 500 }]);
+    mockGetTimeseries = jest.fn().mockImplementation((_range, _userId, hourly) => {
+      if (hourly) {
+        return Promise.resolve({
+          tokenUsage: [{ hour: '2026-02-16T10:00:00', input_tokens: 3000, output_tokens: 2000 }],
+          costUsage: [{ hour: '2026-02-16T10:00:00', cost: 1.5 }],
+          messageUsage: [{ hour: '2026-02-16T10:00:00', count: 5 }],
+        });
+      }
+      return Promise.resolve({
+        tokenUsage: [{ date: '2026-02-16', input_tokens: 1000, output_tokens: 500 }],
+        costUsage: [{ date: '2026-02-16', cost: 0.5 }],
+        messageUsage: [{ date: '2026-02-16', count: 2 }],
+      });
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -31,10 +36,7 @@ describe('TokensController', () => {
         },
         {
           provide: TimeseriesQueriesService,
-          useValue: {
-            getHourlyTokens: mockGetHourlyTokens,
-            getDailyTokens: mockGetDailyTokens,
-          },
+          useValue: { getTimeseries: mockGetTimeseries },
         },
       ],
     }).compile();
@@ -67,8 +69,8 @@ describe('TokensController', () => {
     await controller.getTokens({ range: '7d', agent_name: 'bot' }, user as never);
 
     expect(mockGetPreviousTokenTotal).toHaveBeenCalledWith('7d', 'u1', 'bot');
-    expect(mockGetHourlyTokens).toHaveBeenCalledWith('7d', 'u1', 'bot');
-    expect(mockGetDailyTokens).toHaveBeenCalledWith('7d', 'u1', 'bot');
+    expect(mockGetTimeseries).toHaveBeenCalledWith('7d', 'u1', true, undefined, 'bot');
+    expect(mockGetTimeseries).toHaveBeenCalledWith('7d', 'u1', false, undefined, 'bot');
   });
 
   it('returns zero trend when previous tokens is zero', async () => {
@@ -80,10 +82,19 @@ describe('TokensController', () => {
   });
 
   it('computes summary from multiple hourly buckets', async () => {
-    mockGetHourlyTokens.mockResolvedValue([
-      { hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 },
-      { hour: '2026-02-16T11:00:00', input_tokens: 200, output_tokens: 100 },
-    ]);
+    mockGetTimeseries.mockImplementation((_range: string, _userId: string, hourly: boolean) => {
+      if (hourly) {
+        return Promise.resolve({
+          tokenUsage: [
+            { hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 },
+            { hour: '2026-02-16T11:00:00', input_tokens: 200, output_tokens: 100 },
+          ],
+          costUsage: [],
+          messageUsage: [],
+        });
+      }
+      return Promise.resolve({ tokenUsage: [], costUsage: [], messageUsage: [] });
+    });
     const user = { id: 'u1' };
     const result = await controller.getTokens({ range: '24h' }, user as never);
 
