@@ -7,6 +7,7 @@ import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
 import { AgentLog } from '../entities/agent-log.entity';
 import { OtlpModule } from '../otlp/otlp.module';
+import { RoutingCoreModule } from '../routing/routing-core/routing-core.module';
 import { AggregationService } from './services/aggregation.service';
 import { AgentLifecycleService } from './services/agent-lifecycle.service';
 import { TimeseriesQueriesService } from './services/timeseries-queries.service';
@@ -24,6 +25,7 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
   imports: [
     TypeOrmModule.forFeature([AgentMessage, Agent, Tenant, LlmCall, ToolExecution, AgentLog]),
     OtlpModule,
+    RoutingCoreModule,
   ],
   controllers: [
     OverviewController,

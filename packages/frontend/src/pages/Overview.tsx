@@ -1,28 +1,28 @@
 import { Meta, Title } from '@solidjs/meta';
 import { A, useLocation, useNavigate, useParams } from '@solidjs/router';
-import { isRecentlyCreated } from '../services/recent-agents.js';
 import { createEffect, createResource, createSignal, For, Show, type Component } from 'solid-js';
+import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import CostChart from '../components/CostChart.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import InfoTooltip from '../components/InfoTooltip.jsx';
+import MessageTable from '../components/MessageTable.jsx';
+import { providerIcon } from '../components/ProviderIcon.jsx';
 import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import SingleTokenChart from '../components/SingleTokenChart.jsx';
 import TokenChart from '../components/TokenChart.jsx';
-import { getOverview, getCustomProviders, type CustomProviderData } from '../services/api.js';
-import { formatCost, customProviderColor, formatNumber } from '../services/formatters.js';
+import { COMPACT_COLUMNS, type MessageRow } from '../components/message-table-types.js';
+import { agentDisplayName } from '../services/agent-display-name.js';
+import { getCustomProviders, getOverview, type CustomProviderData } from '../services/api.js';
+import { customProviderColor, formatCost, formatNumber } from '../services/formatters.js';
+import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
+import { isRecentlyCreated } from '../services/recent-agents.js';
 import {
   inferProviderFromModel,
   inferProviderName,
   stripCustomPrefix,
 } from '../services/routing-utils.js';
-import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
-import { providerIcon } from '../components/ProviderIcon.jsx';
-import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import { pingCount } from '../services/sse.js';
-import { agentDisplayName } from '../services/agent-display-name.js';
-import MessageTable from '../components/MessageTable.jsx';
-import { COMPACT_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import '../styles/overview.css';
 
 interface OverviewData {
@@ -61,6 +61,7 @@ interface OverviewData {
     status: string;
   }>;
   has_data?: boolean;
+  has_providers?: boolean;
 }
 
 type ActiveView = 'cost' | 'tokens' | 'messages';
@@ -107,14 +108,19 @@ const Overview: Component = () => {
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
   );
 
-  const isNewAgent = () => {
+  const showDashboard = () => {
     const d = data();
-    return d && d.has_data === false;
+    return !!d && (d.has_data !== false || d.has_providers === true);
+  };
+
+  const showEmptyState = () => {
+    const d = data();
+    return !!d && d.has_data === false && !d.has_providers;
   };
 
   createEffect(() => {
     if (
-      isNewAgent() &&
+      showEmptyState() &&
       !setupCompleted() &&
       !localStorage.getItem(`setup_dismissed_${params.agentName}`)
     ) {
@@ -127,7 +133,7 @@ const Overview: Component = () => {
   createEffect(() => {
     if (userSelectedRange()) return;
     const d = data();
-    if (!d || d.has_data === false) return;
+    if (!d || (d.has_data === false && !d.has_providers)) return;
     const hasData =
       (d.token_usage?.length ?? 0) > 0 ||
       (d.cost_usage?.length ?? 0) > 0 ||
@@ -182,7 +188,7 @@ const Overview: Component = () => {
           <span class="breadcrumb">Real-time summary of spending, tokens, and messages</span>
         </div>
         <div class="header-controls">
-          <Show when={!isNewAgent()}>
+          <Show when={showDashboard()}>
             <Select
               value={range()}
               onChange={handleRangeChange}
@@ -193,7 +199,7 @@ const Overview: Component = () => {
               ]}
             />
           </Show>
-          <Show when={isNewAgent() && !setupCompleted()}>
+          <Show when={showEmptyState() && !setupCompleted()}>
             <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
@@ -319,7 +325,7 @@ const Overview: Component = () => {
         }
       >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
-          <Show when={isNewAgent()}>
+          <Show when={showEmptyState()}>
             <Show
               when={setupCompleted()}
               fallback={
@@ -344,115 +350,44 @@ const Overview: Component = () => {
                 </div>
               }
             >
-              <div class="waiting-banner">
-                <i class="bxd bx-florist" />
-                <p>
-                  No activity yet. Your dashboard updates seconds after the first LLM call. Need a
-                  provider? Head to{' '}
-                  <A
-                    href={`/agents/${params.agentName}/routing`}
-                    style="color: hsl(var(--primary)); text-decoration: underline;"
-                  >
-                    Routing
-                  </A>
-                  .
-                </p>
-              </div>
-              <div class="demo-dashboard">
-                <div class="chart-card">
-                  <div class="chart-card__header">
-                    <div class="chart-card__stat chart-card__stat--active">
-                      <span class="chart-card__label">Cost</span>
-                      <div class="chart-card__value-row">
-                        <span class="chart-card__value">$0.00</span>
-                      </div>
-                    </div>
-                    <div class="chart-card__stat">
-                      <span class="chart-card__label">Token usage</span>
-                      <div class="chart-card__value-row">
-                        <span class="chart-card__value">0</span>
-                      </div>
-                    </div>
-                    <div class="chart-card__stat">
-                      <span class="chart-card__label">Messages</span>
-                      <div class="chart-card__value-row">
-                        <span class="chart-card__value">0</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="chart-card__body">
-                    <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                      No data yet. Activity will appear once your agent starts sending messages.
-                    </div>
-                  </div>
-                </div>
-                <div class="panel">
-                  <div
-                    class="panel__title"
-                    style="display: flex; justify-content: space-between; align-items: center;"
-                  >
-                    Recent Messages
-                    <span class="view-more-link" style="pointer-events: none;">
-                      View more
-                    </span>
-                  </div>
-                  <table class="data-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Message</th>
-                        <th>Cost</th>
-                        <th>Model</th>
-                        <th>Tokens</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td
-                          colspan="6"
-                          style="text-align: center; color: hsl(var(--muted-foreground)); padding: var(--gap-lg);"
-                        >
-                          Messages will appear here
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="panel" style="margin-top: var(--gap-lg);">
-                  <div class="panel__title">Cost by Model</div>
-                  <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: -8px 0 12px;">
-                    How much each AI model is costing you
-                  </p>
-                  <table class="data-table">
-                    <thead>
-                      <tr>
-                        <th>Model</th>
-                        <th>Tokens</th>
-                        <th>% of total</th>
-                        <th>Cost</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td
-                          colspan="4"
-                          style="text-align: center; color: hsl(var(--muted-foreground)); padding: var(--gap-lg);"
-                        >
-                          Model costs will appear here
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+              <div class="empty-state">
+                <div class="empty-state__title">No activity yet</div>
+                <p>Connect a provider to start routing LLM calls.</p>
+                <button
+                  class="btn btn--primary btn--sm"
+                  style="margin-top: var(--gap-md);"
+                  onClick={() =>
+                    navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+                      state: { openProviders: true },
+                    })
+                  }
+                >
+                  Enable routing
+                </button>
+                <div class="empty-state__img-wrapper">
+                  <img
+                    src="/example-overview.svg"
+                    alt="Example dashboard overview showing cost and token charts"
+                    class="empty-state__img"
+                    loading="lazy"
+                  />
                 </div>
               </div>
             </Show>
           </Show>
-          <Show when={data()?.summary && !isNewAgent()}>
+          <Show when={showDashboard()}>
             {(_summary) => {
               const d = () => data() as OverviewData;
               return (
                 <>
+                  <Show when={d().has_data === false}>
+                    <div class="waiting-banner">
+                      <i class="bxd bx-florist" />
+                      <p>
+                        No activity yet. Your dashboard updates seconds after the first LLM call.
+                      </p>
+                    </div>
+                  </Show>
                   {/* Chart card with clickable stats */}
                   <div class="chart-card">
                     <div class="chart-card__header">

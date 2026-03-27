@@ -9,6 +9,8 @@ import { AuthUser } from '../../auth/auth.instance';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
 import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { ProviderService } from '../../routing/routing-core/provider.service';
+import { ResolveAgentService } from '../../routing/routing-core/resolve-agent.service';
 
 @Controller('api/v1')
 @UseInterceptors(UserCacheInterceptor)
@@ -18,6 +20,8 @@ export class OverviewController {
     private readonly aggregation: AggregationService,
     private readonly timeseries: TimeseriesQueriesService,
     private readonly tenantCache: TenantCacheService,
+    private readonly providerService: ProviderService,
+    private readonly resolveAgent: ResolveAgentService,
   ) {}
 
   @Get('overview')
@@ -27,16 +31,16 @@ export class OverviewController {
     const hourly = isHourlyRange(range);
     const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
 
-    const [summary, tsData, costByModel, recentActivity, activeSkills, hasData] = await Promise.all(
-      [
+    const [summary, tsData, costByModel, recentActivity, activeSkills, hasData, hasProviders] =
+      await Promise.all([
         this.aggregation.getSummaryMetrics(range, user.id, tenantId, agentName),
         this.timeseries.getTimeseries(range, user.id, hourly, tenantId, agentName),
         this.timeseries.getCostByModel(range, user.id, agentName, tenantId),
         this.timeseries.getRecentActivity(range, user.id, 5, agentName, tenantId),
         this.timeseries.getActiveSkills(range, user.id, agentName, tenantId),
         this.aggregation.hasAnyData(user.id, agentName, tenantId),
-      ],
-    );
+        this.hasActiveProviders(user.id, agentName),
+      ]);
 
     return {
       summary: {
@@ -52,6 +56,18 @@ export class OverviewController {
       recent_activity: recentActivity,
       active_skills: activeSkills,
       has_data: hasData,
+      has_providers: hasProviders,
     };
+  }
+
+  private async hasActiveProviders(userId: string, agentName?: string): Promise<boolean> {
+    if (!agentName) return false;
+    try {
+      const agent = await this.resolveAgent.resolve(userId, agentName);
+      const providers = await this.providerService.getProviders(agent.id);
+      return providers.some((p) => p.is_active);
+    } catch {
+      return false;
+    }
   }
 }

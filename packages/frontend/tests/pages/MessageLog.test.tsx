@@ -2,9 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 let mockAgentName = "test-agent";
+const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
-  A: (props: any) => <a href={props.href} style={props.style}>{props.children}</a>,
+  useNavigate: () => mockNavigate,
+  A: (props: any) => <a href={props.href} style={props.style} class={props.class}>{props.children}</a>,
 }));
 
 let mockIsLocalMode: boolean | null = false;
@@ -20,10 +22,12 @@ vi.mock("@solidjs/meta", () => ({
 const mockGetMessages = vi.fn();
 const mockGetCustomProviders = vi.fn();
 const mockGetMessageDetails = vi.fn();
+const mockGetRoutingStatus = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
   getMessageDetails: (...args: unknown[]) => mockGetMessageDetails(...args),
+  getRoutingStatus: (...args: unknown[]) => mockGetRoutingStatus(...args),
 }));
 
 vi.mock("../../src/services/sse.js", () => ({
@@ -100,6 +104,7 @@ describe("MessageLog", () => {
     mockAgentName = "test-agent";
     mockIsLocalMode = false;
     mockGetCustomProviders.mockResolvedValue([]);
+    mockGetRoutingStatus.mockResolvedValue({ enabled: false });
   });
 
   it("renders Messages heading", () => {
@@ -511,27 +516,61 @@ describe("MessageLog", () => {
     expect(container.querySelector('[data-testid="setup-modal"]')).not.toBeNull();
   });
 
-  it("shows routing link in waiting banner after setup completed in cloud mode", async () => {
+  it("shows Enable routing button when setupCompleted but no providers", async () => {
     localStorage.setItem("setup_completed_test-agent", "1");
     mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("No messages yet");
-      const link = container.querySelector('.waiting-banner a');
-      expect(link).not.toBeNull();
-      expect(link!.getAttribute("href")).toBe("/agents/test-agent/routing");
-      expect(link!.textContent).toBe("Routing");
+      expect(container.textContent).toContain("Enable routing");
+      expect(container.textContent).toContain("Connect a provider to start routing LLM calls");
+      const btn = container.querySelector('.empty-state button.btn--primary');
+      expect(btn).not.toBeNull();
+    });
+  });
+
+  it("navigates to routing with openProviders state when Enable routing clicked", async () => {
+    localStorage.setItem("setup_completed_test-agent", "1");
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Enable routing");
+    });
+    const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
+    fireEvent.click(btn);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/agents/test-agent/routing",
+      { state: { openProviders: true } },
+    );
+  });
+
+  it("shows message table when providers are enabled but no data", async () => {
+    mockGetRoutingStatus.mockResolvedValue({ enabled: true });
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.querySelector('.waiting-banner')).not.toBeNull();
+      expect(container.querySelector('.empty-state')).toBeNull();
+      expect(container.textContent).toContain("0 total");
+    });
+  });
+
+  it("shows Set up agent when no setupCompleted and no providers", async () => {
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Set up agent");
+      expect(container.textContent).not.toContain("Enable routing");
     });
   });
 
   describe("local mode", () => {
-    it("should treat setup as completed for any agent in local mode", async () => {
+    it("should show Enable routing in local mode when no providers", async () => {
       mockAgentName = "local-agent";
       mockIsLocalMode = true;
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain("No messages yet");
+        expect(container.textContent).toContain("Enable routing");
       });
     });
 
@@ -541,22 +580,19 @@ describe("MessageLog", () => {
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        const setupBtn = container.querySelector(".btn--primary");
-        expect(setupBtn).toBeNull();
+        expect(container.textContent).not.toContain("Set up agent");
       });
     });
 
-    it("should show waiting banner with routing link for non-default agent in local mode", async () => {
+    it("should show message table in local mode when providers are enabled", async () => {
       mockAgentName = "other-agent";
       mockIsLocalMode = true;
+      mockGetRoutingStatus.mockResolvedValue({ enabled: true });
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain("No messages yet");
-        const link = container.querySelector('.waiting-banner a');
-        expect(link).not.toBeNull();
-        expect(link!.getAttribute("href")).toBe("/agents/other-agent/routing");
-        expect(link!.textContent).toBe("Routing");
+        expect(container.querySelector('.waiting-banner')).not.toBeNull();
+        expect(container.textContent).toContain("0 total");
       });
     });
 

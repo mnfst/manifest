@@ -1,28 +1,33 @@
+import { Meta, Title } from '@solidjs/meta';
+import { useNavigate, useParams } from '@solidjs/router';
 import {
-  createSignal,
-  createResource,
   createEffect,
+  createResource,
+  createSignal,
+  For,
   on,
   onCleanup,
   Show,
-  For,
   type Component,
 } from 'solid-js';
-import { A, useParams } from '@solidjs/router';
-import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
-import Pagination from '../components/Pagination.jsx';
 import MessageTable from '../components/MessageTable.jsx';
-import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
-import { getMessages, getCustomProviders, type CustomProviderData } from '../services/api.js';
-import { preloadModelDisplayNames } from '../services/model-display.js';
+import Pagination from '../components/Pagination.jsx';
 import Select from '../components/Select.jsx';
-import { isLocalMode } from '../services/local-mode.js';
-import { pingCount } from '../services/sse.js';
-import { agentDisplayName } from '../services/agent-display-name.js';
 import SetupModal from '../components/SetupModal.jsx';
+import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
+import { agentDisplayName } from '../services/agent-display-name.js';
+import {
+  getCustomProviders,
+  getMessages,
+  getRoutingStatus,
+  type CustomProviderData,
+} from '../services/api.js';
 import { createCursorPagination } from '../services/cursor-pagination.js';
+import { isLocalMode } from '../services/local-mode.js';
+import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
+import { pingCount } from '../services/sse.js';
 import '../styles/overview.css';
 
 interface MessagesData {
@@ -34,6 +39,7 @@ interface MessagesData {
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
+  const navigate = useNavigate();
   preloadModelDisplayNames();
   const [providerFilter, setProviderFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
@@ -47,6 +53,13 @@ const MessageLog: Component = () => {
     () => params.agentName,
     (name) => getCustomProviders(decodeURIComponent(name)),
   );
+
+  const [routingStatus] = createResource(
+    () => params.agentName,
+    (name) => getRoutingStatus(decodeURIComponent(name)),
+  );
+
+  const hasProviders = () => routingStatus()?.enabled === true;
 
   /** Map custom:<uuid> → provider display name */
   const customProviderName = (model: string): string | undefined => {
@@ -113,8 +126,9 @@ const MessageLog: Component = () => {
     return d && d.total_count === 0;
   };
 
+  const showEmptyState = () => hasNoData() && !hasActiveFilters() && !hasProviders();
   const isFilteredEmpty = () => hasNoData() && hasActiveFilters();
-  const isAgentEmpty = () => hasNoData() && !hasActiveFilters();
+  const showMessages = () => !hasNoData() || (hasProviders() && !hasActiveFilters());
 
   const clearFilters = () => {
     setProviderFilter('');
@@ -155,7 +169,7 @@ const MessageLog: Component = () => {
           <span class="breadcrumb">Full log of every LLM call. Filter by provider or cost.</span>
         </div>
         <div class="header-controls">
-          <Show when={!isAgentEmpty()}>
+          <Show when={!showEmptyState()}>
             <Select
               value={providerFilter()}
               onChange={setProviderFilter}
@@ -189,7 +203,7 @@ const MessageLog: Component = () => {
               />
             </div>
           </Show>
-          <Show when={isAgentEmpty() && !isLocalMode() && !setupCompleted()}>
+          <Show when={showEmptyState() && !setupCompleted()}>
             <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
@@ -265,9 +279,9 @@ const MessageLog: Component = () => {
         }
       >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
-          <Show when={isAgentEmpty()}>
+          <Show when={showEmptyState()}>
             <Show
-              when={isLocalMode() || setupCompleted()}
+              when={setupCompleted()}
               fallback={
                 <div class="empty-state">
                   <div class="empty-state__title">No messages yet</div>
@@ -290,58 +304,27 @@ const MessageLog: Component = () => {
                 </div>
               }
             >
-              <div class="waiting-banner">
-                <i class="bxd bx-florist" />
-                <p>
-                  No messages yet. They appear seconds after your first LLM call. Need a provider?
-                  Head to{' '}
-                  <A
-                    href={`/agents/${params.agentName}/routing`}
-                    style="color: hsl(var(--primary)); text-decoration: underline;"
-                  >
-                    Routing
-                  </A>
-                  .
-                </p>
-              </div>
-              <div class="demo-dashboard">
-                <div class="panel">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
-                    <div class="panel__title" style="margin-bottom: 0;">
-                      Messages
-                    </div>
-                    <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                      0 total
-                    </span>
-                  </div>
-                  <div class="data-table-scroll">
-                    <table class="data-table">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Message</th>
-                          <th>Cost</th>
-                          <th>Total Tokens</th>
-                          <th>Input</th>
-                          <th>Output</th>
-                          <th>Model</th>
-                          <th>Cache</th>
-                          <th>Duration</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td
-                            colspan="10"
-                            style="text-align: center; color: hsl(var(--muted-foreground)); padding: var(--gap-lg);"
-                          >
-                            Messages will appear here
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+              <div class="empty-state">
+                <div class="empty-state__title">No messages yet</div>
+                <p>Connect a provider to start routing LLM calls.</p>
+                <button
+                  class="btn btn--primary btn--sm"
+                  style="margin-top: var(--gap-md);"
+                  onClick={() =>
+                    navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+                      state: { openProviders: true },
+                    })
+                  }
+                >
+                  Enable routing
+                </button>
+                <div class="empty-state__img-wrapper">
+                  <img
+                    src="/example-messages.svg"
+                    alt="Example message log showing LLM call history"
+                    class="empty-state__img"
+                    loading="lazy"
+                  />
                 </div>
               </div>
             </Show>
@@ -367,14 +350,20 @@ const MessageLog: Component = () => {
               </div>
             </div>
           </Show>
-          <Show when={!hasNoData()}>
+          <Show when={showMessages()}>
+            <Show when={hasNoData() && hasProviders()}>
+              <div class="waiting-banner">
+                <i class="bxd bx-florist" />
+                <p>No messages yet. They appear seconds after your first LLM call.</p>
+              </div>
+            </Show>
             <div class="panel">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
                 <div class="panel__title" style="margin-bottom: 0;">
                   Messages
                 </div>
                 <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                  {data()!.total_count} total
+                  {data()?.total_count ?? 0} total
                 </span>
               </div>
               <div class="data-table-scroll">
