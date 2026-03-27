@@ -16,7 +16,7 @@ Configure OpenClaw to route through Manifest -- either the cloud service or a lo
 - **Port** (required for dev/local, optional for cloud): The port where the Manifest backend is running. In cloud mode without a port, defaults to `https://app.manifest.build`.
 - **Mode** (optional, default `dev`): `dev`, `local`, or `cloud`
   - `dev` -- Local development, connects to a backend you started manually
-  - `local` -- Installs the plugin with embedded server and SQLite
+  - `local` -- Configures the plugin for embedded server with SQLite (plugin must be installed separately via `openclaw plugins install manifest`)
   - `cloud` -- Connects to `app.manifest.build` (or localhost if port is provided)
 - **Key** (optional): A `mnfst_*` API key. Required for cloud mode.
 

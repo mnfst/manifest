@@ -46,7 +46,7 @@ To expose over Tailscale: `tailscale serve --bg 2099`
 
 ## Security & Privacy
 
-**Cloud mode**: Manifest proxies your request to the LLM provider. It records metadata (model name, token counts, latency, cost) but never stores prompt or response content. When `manifest/auto` routing is active, the last 10 non-system messages are scored for tier assignment; set a fixed model to skip this.
+**Cloud mode**: Manifest proxies your request to the LLM provider. It records metadata (model name, token counts, latency, cost) but never stores prompt or response content. When `manifest/auto` routing is active, the last 10 non-system messages (`{role, content}` only -- no tool args or file contents) are sent to the scoring endpoint for tier assignment; set a fixed model to skip this.
 
 **Local mode**: All data stays on your machine. No external calls.
 
@@ -57,7 +57,8 @@ To expose over Tailscale: `tailscale serve --bg 2099`
 
 ## Agent Tools
 
-Three read-only tools available in-conversation:
+Three read-only tools available when the plugin is installed (local mode). Cloud-only users without the plugin do not get these tools.
+
 
 | Tool | Trigger phrases | Returns |
 |------|----------------|---------|
