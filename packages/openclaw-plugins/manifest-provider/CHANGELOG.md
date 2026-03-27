@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.1
+
+### Patch Changes
+
+- 4de0276: Add openclaw.compat.pluginApi field for ClawHub listing
+
 ## 5.33.0
 
 ### Minor Changes
