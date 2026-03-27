@@ -99,10 +99,16 @@ const Header: Component = () => {
     <header class="header">
       <div class="header__left">
         <A href="/" class="header__logo">
-          <img src="/logo.svg" alt="Manifest" class="header__logo-img header__logo-img--light" />
+          <img
+            src="/logo.svg"
+            alt="Manifest"
+            width="152"
+            class="header__logo-img header__logo-img--light"
+          />
           <img
             src="/logo-white.svg"
             alt="Manifest"
+            width="152"
             class="header__logo-img header__logo-img--dark"
           />
         </A>
