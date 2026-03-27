@@ -1,0 +1,40 @@
+{
+  "id": "manifest-provider",
+  "name": "Manifest Provider — Smart LLM Router",
+  "version": "5.32.0",
+  "description": "Picks the best model for each request — balancing quality, speed, and cost. Supports 10+ providers with automatic tier-based routing and fallbacks.",
+  "author": "MNFST Inc.",
+  "homepage": "https://manifest.build",
+  "providers": ["manifest"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "devMode": {
+        "type": "boolean",
+        "default": false,
+        "description": "Connect to a local dev server without API key validation. Auto-detected when endpoint is localhost."
+      },
+      "endpoint": {
+        "type": "string",
+        "default": "https://app.manifest.build",
+        "description": "Manifest server URL (cloud users should not change this)."
+      }
+    }
+  },
+  "uiHints": {
+    "devMode": {
+      "label": "Dev Mode",
+      "help": "For plugin developers: connect to a local backend without API key validation.",
+      "advanced": true
+    },
+    "endpoint": {
+      "label": "Server URL",
+      "placeholder": "https://app.manifest.build",
+      "advanced": true
+    }
+  },
+  "skills": [
+    "skills/manifest"
+  ]
+}

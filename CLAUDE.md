@@ -8,11 +8,11 @@ When starting the app for development or testing (e.g. `/serve`), **always use `
 
 ## IMPORTANT: Plugin Must Use Cloud+Dev Mode
 
-When configuring the OpenClaw plugin to point at a local dev server (e.g. after `/serve` or `/setup-manifest-plugin`), **always use `mode: cloud` with `devMode: true`** — never `mode: local`. The plugin's `local` mode starts its own embedded server on port 2099 and ignores the external backend, which means proxy requests bypass your dev server entirely. Cloud+dev mode connects the plugin directly to the external backend without starting an embedded server.
+When configuring the OpenClaw **manifest-provider** plugin to point at a local dev server (e.g. after `/serve` or `/setup-manifest-plugin`), **always use `devMode: true`** — never install the `manifest` plugin for this purpose. The `manifest` plugin starts its own embedded server on port 2099 and ignores the external backend. The `manifest-provider` plugin with `devMode` connects directly to your dev server without starting an embedded server.
 
 ## Plugin Dev Mode
 
-When testing the OpenClaw plugin integration (routing), use **dev mode** to connect the plugin to a local backend without API key management:
+When testing the OpenClaw plugin integration (routing), use the **manifest-provider** plugin in **dev mode** to connect to a local backend without API key management:
 
 ```bash
 # 1. Build and start the backend in local mode
@@ -20,10 +20,9 @@ npm run build
 MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
   node -r dotenv/config packages/backend/dist/main.js
 
-# 2. Configure the plugin
-openclaw config set plugins.entries.manifest.config.mode cloud
-openclaw config set plugins.entries.manifest.config.devMode true
-openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238
+# 2. Configure the manifest-provider plugin
+openclaw config set plugins.entries.manifest-provider.config.devMode true
+openclaw config set plugins.entries.manifest-provider.config.endpoint http://localhost:38238
 
 # 3. Restart the gateway
 openclaw gateway restart
@@ -36,10 +35,9 @@ No API key needed. The dashboard shows an orange **Dev** badge in the header whe
 If the plugin gets into a bad state (stale config, wrong endpoint, cached errors), reset it fully:
 
 ```bash
-# Reset plugin config to defaults
-openclaw config set plugins.entries.manifest.config.mode cloud
-openclaw config set plugins.entries.manifest.config.devMode true
-openclaw config set plugins.entries.manifest.config.endpoint http://localhost:<PORT>
+# Reset manifest-provider config to defaults
+openclaw config set plugins.entries.manifest-provider.config.devMode true
+openclaw config set plugins.entries.manifest-provider.config.endpoint http://localhost:<PORT>
 
 # Force restart the gateway (kills existing process and starts fresh)
 openclaw gateway restart
@@ -154,7 +152,9 @@ packages/
 │   │   ├── layouts/                         # Layout components
 │   │   └── styles/
 │   └── tests/
-├── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin (includes embedded server)
+├── openclaw-plugins/
+│   ├── manifest/               # npm: `manifest` — full self-hosted plugin (embedded server + dashboard)
+│   └── manifest-provider/      # npm: `manifest-provider` — cloud-only provider plugin
 └── subscription-capabilities/     # Subscription provider config (not in npm workspaces)
 ```
 
@@ -186,7 +186,7 @@ cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
 cd packages/frontend && npx vite
 
 # Plugin (watch mode, optional)
-cd packages/openclaw-plugin && npx tsx watch build.ts
+cd packages/openclaw-plugins/manifest && npx tsx watch build.ts
 ```
 
 **Note:** `npm run dev` (turbo) starts frontend + plugin but NOT the backend, because the backend's script is `start:dev` not `dev`. Start the backend separately as shown above.
@@ -230,7 +230,7 @@ Then set `DATABASE_URL=postgresql://myuser:mypassword@localhost:5432/manifest_<n
 
 ```bash
 npm run build:plugin
-# or: cd packages/openclaw-plugin && npx tsx build.ts
+# or: cd packages/openclaw-plugins/manifest && npx tsx build.ts
 ```
 
 ```bash
@@ -478,24 +478,25 @@ Version management and npm publishing use [Changesets](https://github.com/change
 
 | Package | npm name | Published |
 |---------|----------|-----------|
-| `packages/openclaw-plugin` | `manifest` | Yes (includes embedded server) |
+| `packages/openclaw-plugins/manifest` | `manifest` | Yes (full self-hosted plugin with embedded server + dashboard) |
+| `packages/openclaw-plugins/manifest-provider` | `manifest-provider` | Yes (lightweight cloud-only provider plugin, ~22KB) |
 | `packages/backend` | `manifest-backend` | No (`private: true`) |
 | `packages/frontend` | `manifest-frontend` | No (`private: true`) |
 
-Only `manifest` is actively published.
+Both `manifest` and `manifest-provider` are actively published.
 
 ### CRITICAL: Every PR Needs a Changeset
 
 **Before creating any PR, you MUST add a changeset.** The `changeset-check` CI job will fail without one.
 
 - **Backend or frontend changes always need a `manifest` changeset.** These packages compile into `manifest`, so any change to `packages/backend/` or `packages/frontend/` must include a changeset bumping `manifest` (patch for fixes, minor for features). CI enforces this.
-- If the PR changes a **publishable package** directly (`openclaw-plugin`): run `npx changeset` and select the appropriate bump level.
+- If the PR changes a **publishable package** directly (`openclaw-plugins/manifest` or `openclaw-plugins/manifest-provider`): run `npx changeset` and select the appropriate bump level. Changes to `manifest-provider` only need a `manifest-provider` changeset (not `manifest`) unless the full plugin is also affected.
 - **Empty changesets** (`npx changeset add --empty`) should only be used for changes that don't affect any publishable package: CI config, docs, tooling, or dev-only scripts.
 - Commit the generated `.changeset/*.md` file as part of the PR.
 
 ### Workflow
 
-1. When changing backend, frontend, or a publishable package, run `npx changeset` and select `manifest` with the appropriate bump level
+1. When changing backend, frontend, or `openclaw-plugins/manifest`, run `npx changeset` and select `manifest`. When changing `openclaw-plugins/manifest-provider`, select `manifest-provider`. Both can be included in a single changeset if both are affected.
 2. On merge to `main`, the release workflow (`.github/workflows/release.yml`) opens a "Version Packages" PR
 3. When that PR merges, the workflow publishes to npm using `NPM_TOKEN` secret
 
@@ -523,7 +524,7 @@ Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. C
 
 ### CRITICAL: 100% Line Coverage Required
 
-**Every PR must maintain 100% line coverage across all three packages.** The codebase currently has full line coverage and every PR must preserve it. This means:
+**Every PR must maintain 100% line coverage across all four packages.** The codebase currently has full line coverage and every PR must preserve it. This means:
 
 - All new source files must have corresponding tests with 100% line coverage
 - All modified functions must have tests covering every line, including error paths
@@ -531,13 +532,15 @@ Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. C
 - Run coverage locally before creating a PR:
   - `cd packages/backend && npx jest --coverage`
   - `cd packages/frontend && npx vitest run --coverage`
-  - `cd packages/openclaw-plugin && npx jest --coverage`
+  - `cd packages/openclaw-plugins/manifest && npx jest --coverage`
+  - `cd packages/openclaw-plugins/manifest-provider && npx jest --coverage`
 
 This applies to:
 
 - New services, guards, controllers, or utilities in `packages/backend/src/`
 - New components or functions in `packages/frontend/src/`
-- New modules in `packages/openclaw-plugin/src/`
+- New modules in `packages/openclaw-plugins/manifest/src/`
+- New modules in `packages/openclaw-plugins/manifest-provider/src/`
 
 ### Coverage Flags
 
@@ -545,7 +548,8 @@ This applies to:
 |------|-------|--------|
 | `backend` | `packages/backend/src/` | Backend (PostgreSQL) |
 | `frontend` | `packages/frontend/src/` | frontend |
-| `plugin` | `packages/openclaw-plugin/src/` | plugin |
+| `plugin` | `packages/openclaw-plugins/manifest/src/` | plugin |
+| `provider-plugin` | `packages/openclaw-plugins/manifest-provider/src/` | provider-plugin |
 
 ### E2E Test Entities
 

@@ -27,9 +27,11 @@ Manifest is a monorepo managed with [Turborepo](https://turbo.build/) and npm wo
 
 ```
 packages/
-├── backend/           # NestJS API server (TypeORM, PostgreSQL, Better Auth)
-├── frontend/          # SolidJS single-page app (Vite, uPlot)
-└── openclaw-plugin/   # OpenClaw plugin for local mode (npm: manifest)
+├── backend/              # NestJS API server (TypeORM, PostgreSQL, Better Auth)
+├── frontend/             # SolidJS single-page app (Vite, uPlot)
+└── openclaw-plugins/
+    ├── manifest/          # npm: `manifest` — full self-hosted plugin (embedded server + dashboard)
+    └── manifest-provider/ # npm: `manifest-provider` — cloud-only provider plugin
 ```
 
 ## Getting Started
@@ -153,8 +155,10 @@ Requires `jq` and the `openclaw` CLI.
 | `npm test --workspace=packages/backend` | Run backend unit tests (Jest) |
 | `npm run test:e2e --workspace=packages/backend` | Run backend e2e tests (Jest + Supertest) |
 | `npm test --workspace=packages/frontend` | Run frontend tests (Vitest) |
-| `npm test --workspace=packages/openclaw-plugin` | Run plugin tests (Jest) |
-| `npm run build:plugin` | Build the OpenClaw plugin |
+| `npm test --workspace=packages/openclaw-plugins/manifest` | Run manifest plugin tests (Jest) |
+| `npm test --workspace=packages/openclaw-plugins/manifest-provider` | Run provider plugin tests (Jest) |
+| `npm run build:plugin` | Build the manifest (local) plugin |
+| `npm run build:provider` | Build the manifest-provider (cloud) plugin |
 
 ## Working with Individual Packages
 
@@ -172,24 +176,31 @@ Requires `jq` and the `openclaw` CLI.
 - **Tests**: Vitest
 - **Key directories**: `pages/` (route components), `components/` (shared UI), `services/` (API client, auth client)
 
-### Plugin (`packages/openclaw-plugin`)
+### Full Plugin (`packages/openclaw-plugins/manifest`)
 
 - **Bundler**: esbuild (zero runtime dependencies)
 - **Build**: `npx tsx build.ts` or `npm run build:plugin` from the root
-- **Watch mode**: `cd packages/openclaw-plugin && npx tsx watch build.ts`
+- **Watch mode**: `cd packages/openclaw-plugins/manifest && npx tsx watch build.ts`
 
-#### Plugin settings
-
-The plugin is for **local mode only**. It starts an embedded server with a dashboard and registers Manifest as a model provider automatically.
+The full plugin includes an embedded NestJS server, SQLite database, and dashboard. It starts the server automatically on gateway boot.
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `mode` | `string` | `cloud` | Set to `local` to start the embedded server. Cloud mode registers Manifest as a provider without starting a server. |
+| `port` | `number` | `2099` | Embedded server port |
+| `host` | `string` | `127.0.0.1` | Bind address |
+
+Settings are defined in `openclaw.plugin.json`. The API key is auto-generated and stored in `~/.openclaw/manifest/config.json`.
+
+### Provider Plugin (`packages/openclaw-plugins/manifest-provider`)
+
+- **npm**: `manifest-provider` — lightweight cloud-only provider plugin (~22KB)
+- **Bundler**: esbuild (zero runtime dependencies)
+- Registers Manifest as a model provider with interactive auth onboarding. No embedded server or dashboard.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
 | `devMode` | `boolean` | auto | Skips API key validation. Auto-detected when endpoint is a loopback address. |
-| `apiKey` | `string` | — | Agent API key (`mnfst_*`). Auto-generated in local mode. |
-| `endpoint` | `string` | `https://app.manifest.build` | Manifest server URL. Local mode overrides this to `http://{host}:{port}`. |
-| `port` | `number` | `2099` | Embedded server port (local mode only). |
-| `host` | `string` | `127.0.0.1` | Embedded server bind address (local mode only). |
+| `endpoint` | `string` | `https://app.manifest.build` | Manifest server URL. |
 
 Settings are parsed in `src/config.ts` and validated in `validateConfig`. The JSON schema in `openclaw.plugin.json` is the source of truth.
 
@@ -214,7 +225,8 @@ Follow the prompts to select the affected packages and bump type (patch / minor 
 npm test --workspace=packages/backend
 npm run test:e2e --workspace=packages/backend
 npm test --workspace=packages/frontend
-npm test --workspace=packages/openclaw-plugin
+npm test --workspace=packages/openclaw-plugins/manifest
+npm test --workspace=packages/openclaw-plugins/manifest-provider
 ```
 
 6. Verify the production build works:
@@ -233,9 +245,10 @@ This project uses [Changesets](https://github.com/changesets/changesets) for ver
 
 | Package | npm name | Needs changeset? |
 | --- | --- | --- |
-| `packages/openclaw-plugin` | `manifest` | Yes |
-| `packages/backend` | — | Yes — bump `manifest` (backend compiles into the plugin) |
-| `packages/frontend` | — | Yes — bump `manifest` (frontend compiles into the plugin) |
+| `packages/openclaw-plugins/manifest` | `manifest` | Yes |
+| `packages/openclaw-plugins/manifest-provider` | `manifest-provider` | Yes — only when its own code changes |
+| `packages/backend` | — | Yes — bump `manifest` (backend compiles into the full plugin) |
+| `packages/frontend` | — | Yes — bump `manifest` (frontend compiles into the full plugin) |
 
 **Adding a changeset:**
 

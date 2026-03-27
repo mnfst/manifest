@@ -1,0 +1,31 @@
+{
+  "id": "manifest",
+  "name": "Manifest — Self-Hosted LLM Router",
+  "version": "5.32.0",
+  "description": "Run the Manifest LLM router locally with SQLite. Zero-config dashboard included.",
+  "author": "MNFST Inc.",
+  "homepage": "https://manifest.build",
+  "providers": ["manifest"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "port": {
+        "type": "integer",
+        "default": 2099,
+        "minimum": 1,
+        "maximum": 65535,
+        "description": "Port for the local embedded server."
+      },
+      "host": {
+        "type": "string",
+        "default": "127.0.0.1",
+        "description": "Bind address for the local embedded server."
+      }
+    }
+  },
+  "uiHints": {
+    "port": { "label": "Server Port" },
+    "host": { "label": "Bind Address" }
+  }
+}
