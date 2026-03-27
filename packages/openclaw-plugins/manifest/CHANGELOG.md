@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.2
+
+### Patch Changes
+
+- ecb76f8: Show dashboard when agent has connected providers, even before first LLM call. Add three-state empty display: "Set up agent" → "Enable routing" → dashboard. Applies to both Overview and Messages pages.
+
 ## 5.33.1
 
 ### Patch Changes
