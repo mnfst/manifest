@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddProviderRegion1773600000000 implements MigrationInterface {
+export class AddProviderRegion1773650000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `ALTER TABLE "user_providers" ADD COLUMN IF NOT EXISTS "region" varchar DEFAULT NULL`,

@@ -13,7 +13,7 @@ const ApiKeyDisplay: Component<Props> = (props) => {
     <>
       <Show when={hasFullKey()}>
         <div class="api-key-display__warning">
-          Save your API key -- you won't see it again after closing this dialog.
+          Save your API key. You won't see it again after closing this dialog.
         </div>
         <div class="api-key-display__value">
           {props.apiKey}

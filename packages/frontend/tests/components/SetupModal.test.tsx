@@ -58,10 +58,11 @@ describe("SetupModal", () => {
   });
 
   it("renders modal title with agent name when open", () => {
-    render(() => (
+    const { container } = render(() => (
       <SetupModal open={true} agentName="my-agent" onClose={onClose} />
     ));
-    expect(screen.getByText("Set up my-agent")).toBeDefined();
+    expect(container.textContent).toContain("Set up agent:");
+    expect(container.textContent).toContain("my-agent");
   });
 
   it("shows close button with aria-label", () => {
@@ -86,14 +87,14 @@ describe("SetupModal", () => {
     expect(container.querySelector('[data-testid="step-add-provider"]')).not.toBeNull();
   });
 
-  it("shows Connect providers button", () => {
+  it("shows Done button", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
-    expect(container.textContent).toContain("Connect providers");
+    expect(container.textContent).toContain("Done");
   });
 
-  it("navigates to routing when Connect providers is clicked", () => {
+  it("navigates to routing when Done is clicked", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} onDone={onDone} onGoToRouting={onGoToRouting} />
     ));
@@ -103,7 +104,7 @@ describe("SetupModal", () => {
     expect(onGoToRouting).toHaveBeenCalled();
   });
 
-  it("handles Connect providers when callbacks are omitted", () => {
+  it("handles Done when callbacks are omitted", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
@@ -238,12 +239,12 @@ describe("SetupModal", () => {
       });
     });
 
-    it("shows Connect providers button in local mode", async () => {
+    it("shows Done button in local mode", async () => {
       const { container } = render(() => (
         <SetupModal open={true} agentName="local-agent" onClose={onClose} />
       ));
       await vi.waitFor(() => {
-        expect(container.textContent).toContain("Connect providers");
+        expect(container.textContent).toContain("Done");
       });
     });
 

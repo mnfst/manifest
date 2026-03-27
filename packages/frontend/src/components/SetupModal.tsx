@@ -1,8 +1,8 @@
 import { createResource, Show, type Component } from 'solid-js';
+import { getAgentKey, getHealth } from '../services/api.js';
+import ErrorState from './ErrorState.jsx';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
 import SetupStepLocalReady from './SetupStepLocalReady.jsx';
-import ErrorState from './ErrorState.jsx';
-import { getAgentKey, getHealth } from '../services/api.js';
 
 const SetupModal: Component<{
   open: boolean;
@@ -59,7 +59,7 @@ const SetupModal: Component<{
         >
           <div class="setup-modal__header">
             <div class="modal-card__title" id="setup-modal-title">
-              Set up {props.agentName}
+              Set up agent: <em>{props.agentName}</em>
             </div>
             <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
               <svg
@@ -116,9 +116,8 @@ const SetupModal: Component<{
           </Show>
 
           <div class="setup-modal__nav">
-            <span />
             <button class="setup-modal__next" onClick={handleGoToRouting}>
-              Connect providers
+              Done
             </button>
           </div>
         </div>

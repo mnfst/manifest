@@ -20,7 +20,7 @@ describe("ApiKeyDisplay", () => {
       <ApiKeyDisplay apiKey="mnfst_full_key_123" keyPrefix={null} />
     ));
     expect(container.textContent).toContain(
-      "Save your API key -- you won't see it again after closing this dialog."
+      "Save your API key. You won't see it again after closing this dialog."
     );
   });
 

@@ -103,9 +103,14 @@
 
 .modal-terminal__copy {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 6px;
+  top: 7px;
+  right: 7px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: var(--radius);
   background: hsl(0 0% 0% / 0.06);
@@ -289,6 +294,12 @@
   word-break: break-all;
 }
 
+.api-key-display__value .modal-terminal__copy {
+  position: static;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .api-key-display__prefix {
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));
@@ -359,6 +370,19 @@
   transform: rotate(180deg);
 }
 
+.setup-method-tabs {
+  margin-top: 8px;
+}
+
+.setup-method-tabs .panel__tabs {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.setup-method-tabs .panel__tab {
+  flex: 1;
+}
+
 .setup-method__body {
   padding: 12px 14px;
   border-top: 1px solid hsl(var(--border));
@@ -366,7 +390,7 @@
 
 .setup-method__hint {
   margin: 0 0 10px;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));
   line-height: 1.5;
 }
@@ -374,13 +398,19 @@
 .setup-method__code {
   position: relative;
   background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  padding: 12px 14px;
+  padding: 12px 52px 12px 14px;
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   line-height: 1.7;
   word-break: break-all;
   white-space: pre-wrap;
+}
+
+.setup-method__code .modal-terminal__copy {
+  top: 7px;
+  transform: none;
 }
 
 .dark .setup-method__code {
@@ -392,13 +422,14 @@
 .setup-info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 16px;
   margin-bottom: 16px;
   font-size: var(--font-size-sm);
 }
 
 .setup-info-grid__card {
   background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   padding: 10px 14px;
 }
@@ -415,6 +446,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.setup-info-grid__value .modal-terminal__copy {
+  position: static;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 /* ── Local ready checklist ─────────────────────────── */

@@ -18,11 +18,13 @@ const mockGetAgentKey = vi.fn();
 const mockDeleteAgent = vi.fn();
 const mockRenameAgent = vi.fn();
 const mockRotateAgentKey = vi.fn();
+const mockGetRoutingStatus = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getAgentKey: (...args: unknown[]) => mockGetAgentKey(...args),
   deleteAgent: (...args: unknown[]) => mockDeleteAgent(...args),
   renameAgent: (...args: unknown[]) => mockRenameAgent(...args),
   rotateAgentKey: (...args: unknown[]) => mockRotateAgentKey(...args),
+  getRoutingStatus: (...args: unknown[]) => mockGetRoutingStatus(...args),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -75,6 +77,7 @@ describe("Settings", () => {
     mockDeleteAgent.mockResolvedValue(undefined);
     mockRenameAgent.mockResolvedValue({ renamed: true, name: "new-name" });
     mockRotateAgentKey.mockResolvedValue({ apiKey: "new-key" });
+    mockGetRoutingStatus.mockResolvedValue({ enabled: false });
   });
 
   it("renders Settings heading", () => {
