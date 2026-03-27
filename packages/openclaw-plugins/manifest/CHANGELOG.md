@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.1
+
+### Patch Changes
+
+- e4e2012: fix: register AddProviderRegion migration, fix setup modal UI (tabs, copy button, borders, Done button alignment)
+
 ## 5.33.0
 
 ### Minor Changes
