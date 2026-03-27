@@ -128,6 +128,13 @@ openclaw gateway restart`;
                   <CopyButton text="auto" />
                 </span>
               </div>
+              <div class="setup-onboard-fields__row">
+                <span class="setup-onboard-fields__label">Endpoint ID</span>
+                <span class="setup-onboard-fields__value">
+                  manifest
+                  <CopyButton text="manifest" />
+                </span>
+              </div>
             </div>
           </Show>
         </div>

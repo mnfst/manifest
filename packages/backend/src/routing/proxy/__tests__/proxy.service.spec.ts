@@ -137,7 +137,7 @@ describe('ProxyService', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
-  it('throws when no model is resolved', async () => {
+  it('returns synthetic response when no model is resolved', async () => {
     resolveService.resolve.mockResolvedValue({
       tier: 'simple',
       model: null,
@@ -147,9 +147,53 @@ describe('ProxyService', () => {
       reason: 'ambiguous',
     });
 
-    await expect(
-      service.proxyRequest({ agentId: 'agent-1', userId: 'user-1', body, sessionKey: 'default' }),
-    ).rejects.toThrow('No model available');
+    const result = await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'default',
+    });
+
+    expect(result.forward.response.ok).toBe(true);
+    const json = (await result.forward.response.json()) as Record<string, unknown>;
+    expect((json.id as string).startsWith('chatcmpl-manifest-')).toBe(true);
+    expect(json.object).toBe('chat.completion');
+    expect(json.model).toBe('manifest');
+    const choices = json.choices as { message: { content: string } }[];
+    expect(choices[0].message.content).toContain('Manifest is connected successfully');
+    expect(result.meta).toEqual({
+      tier: 'simple',
+      model: 'manifest',
+      provider: 'manifest',
+      confidence: 1,
+      reason: 'no_provider',
+    });
+  });
+
+  it('returns synthetic streaming response when no model is resolved', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'simple',
+      model: null,
+      provider: null,
+      confidence: 0.5,
+      score: -0.1,
+      reason: 'ambiguous',
+    });
+
+    const result = await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body: { ...body, stream: true },
+      sessionKey: 'default',
+    });
+
+    expect(result.forward.response.ok).toBe(true);
+    const text = await result.forward.response.text();
+    expect(text).toContain('data: {');
+    expect(text).toContain('chat.completion.chunk');
+    expect(text).toContain('Manifest is connected successfully');
+    expect(text).toContain('data: [DONE]');
+    expect(result.meta.reason).toBe('no_provider');
   });
 
   it('throws when no API key found for provider', async () => {
