@@ -264,7 +264,7 @@ const Settings: Component = () => {
                 baseUrl={baseUrl()}
               />
               <Show when={!routingEnabled()}>
-                <div style="margin-top: var(--gap-lg); padding-top: var(--gap-lg); border-top: 1px solid hsl(var(--border)); display: flex; align-items: center; justify-content: space-between;">
+                <div style="margin-top: 0; padding-top: var(--gap-lg); border-top: 1px solid hsl(var(--border)); display: flex; align-items: center; justify-content: space-between;">
                   <p style="margin: 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
                     Add at least one LLM provider so Manifest knows where to route requests.
                   </p>
