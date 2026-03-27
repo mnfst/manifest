@@ -19,9 +19,18 @@ function providerIdForModel(model: string, apiModels: AvailableModel[]): string 
     apiModels.find((x) => x.model_name === model) ??
     apiModels.find((x) => x.model_name.startsWith(model + '-'));
   if (m) {
+    const dbProviderId = resolveProviderId(m.provider);
     const prefixId = inferProviderFromModel(m.model_name);
+    if (
+      dbProviderId &&
+      prefixId === 'openrouter' &&
+      dbProviderId !== 'openrouter' &&
+      !m.model_name.toLowerCase().startsWith('openrouter/')
+    ) {
+      return dbProviderId;
+    }
     if (prefixId && PROVIDERS.find((p) => p.id === prefixId)) return prefixId;
-    return resolveProviderId(m.provider) ?? prefixId;
+    return dbProviderId ?? prefixId;
   }
   const prefix = inferProviderFromModel(model);
   if (prefix && PROVIDERS.find((p) => p.id === prefix)) return prefix;
@@ -95,10 +104,16 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
         return provName ? `${provName} / ${info.display_name}` : info.display_name;
       }
       const prefixId = inferProviderFromModel(modelName);
+      const dbProviderId = resolveProviderId(info.provider);
       const provId =
-        prefixId && PROVIDERS.find((p) => p.id === prefixId)
-          ? prefixId
-          : resolveProviderId(info.provider);
+        dbProviderId &&
+        prefixId === 'openrouter' &&
+        dbProviderId !== 'openrouter' &&
+        !modelName.toLowerCase().startsWith('openrouter/')
+          ? dbProviderId
+          : prefixId && PROVIDERS.find((p) => p.id === prefixId)
+            ? prefixId
+            : dbProviderId;
       if (provId) return getModelLabel(provId, modelName);
     }
     return modelName;

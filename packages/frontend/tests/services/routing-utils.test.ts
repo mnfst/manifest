@@ -62,6 +62,9 @@ describe("resolveProviderId", () => {
     expect(resolveProviderId("xAI")).toBe("xai");
     expect(resolveProviderId("Moonshot")).toBe("moonshot");
     expect(resolveProviderId("MiniMax")).toBe("minimax");
+    expect(resolveProviderId("GitHub Models")).toBe("github-models");
+    expect(resolveProviderId("Cloudflare Workers AI")).toBe("cloudflare");
+    expect(resolveProviderId("Hugging Face")).toBe("huggingface");
   });
 
   it("returns undefined for unknown provider", () => {

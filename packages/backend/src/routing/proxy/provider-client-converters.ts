@@ -158,6 +158,7 @@ function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: s
     const cleaned = { ...(message as Record<string, unknown>) };
     if (!preserveReasoningContent) {
       delete cleaned.reasoning_content;
+      delete cleaned.reasoning;
     }
 
     if (isMistral && Array.isArray(cleaned.tool_calls)) {

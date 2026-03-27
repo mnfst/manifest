@@ -80,18 +80,23 @@ export class ProviderClient {
     const isAnthropic = endpoint.format === 'anthropic';
     const isChatGpt = endpoint.format === 'chatgpt';
 
-    const bareModel = stripModelPrefix(model, endpointKey);
+    const baseUrl =
+      typeof endpoint.baseUrl === 'function'
+        ? endpoint.baseUrl(apiKey, authType)
+        : endpoint.baseUrl;
+    const bareModel =
+      endpoint.preserveModelId === true ? model : stripModelPrefix(model, endpointKey);
     let url: string;
     let headers: Record<string, string>;
     let requestBody: Record<string, unknown>;
 
     if (isGoogle) {
-      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}?key=${apiKey}`;
+      url = `${baseUrl}${endpoint.buildPath(bareModel, apiKey, authType)}?key=${apiKey}`;
       if (stream) url += '&alt=sse';
       headers = endpoint.buildHeaders(apiKey, authType);
       requestBody = toGoogleRequest(body, bareModel);
     } else if (isAnthropic) {
-      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+      url = `${baseUrl}${endpoint.buildPath(bareModel, apiKey, authType)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
       requestBody = toAnthropicRequest(body, bareModel, {
         injectCacheControl: authType !== 'subscription',
@@ -99,11 +104,11 @@ export class ProviderClient {
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
     } else if (isChatGpt) {
-      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+      url = `${baseUrl}${endpoint.buildPath(bareModel, apiKey, authType)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
       requestBody = toResponsesRequest(body, bareModel);
     } else {
-      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+      url = `${baseUrl}${endpoint.buildPath(bareModel, apiKey, authType)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
       const sanitized = sanitizeOpenAiBody(body, endpointKey, model);
       requestBody = { ...sanitized, model: bareModel, stream };

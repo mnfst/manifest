@@ -1,5 +1,5 @@
-import type { SubscriptionCapabilities, SubscriptionProviderConfig } from './types';
-import { SUBSCRIPTION_PROVIDER_CONFIGS } from './configs';
+import type { SubscriptionCapabilities, SubscriptionProviderConfig } from './types.js';
+import { SUBSCRIPTION_PROVIDER_CONFIGS } from './configs.js';
 
 function normalizeProviderId(providerId: string): string {
   return String(providerId || '').toLowerCase();

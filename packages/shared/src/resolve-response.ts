@@ -1,5 +1,5 @@
-import type { Tier } from './tiers';
-import type { AuthType } from './auth-types';
+import type { Tier } from './tiers.js';
+import type { AuthType } from './auth-types.js';
 
 export interface ResolveResponse {
   tier: Tier;

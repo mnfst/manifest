@@ -17,21 +17,29 @@ describe('ProviderModelFetcherService', () => {
 
   it('should have configs for all providers including subscription variants', () => {
     const expected = [
-      'openai',
-      'openai-subscription',
+      'anthropic',
+      'cerebras',
+      'cloudflare',
+      'cohere',
       'deepseek',
-      'mistral',
-      'moonshot',
-      'xai',
+      'gemini',
+      'github-models',
+      'groq',
+      'huggingface',
+      'llm7',
       'minimax',
       'minimax-subscription',
-      'qwen',
-      'zai',
-      'anthropic',
-      'gemini',
-      'openrouter',
+      'mistral',
+      'moonshot',
       'ollama',
       'copilot',
+      'ollama-cloud',
+      'openai',
+      'openai-subscription',
+      'openrouter',
+      'qwen',
+      'xai',
+      'zai',
     ];
     for (const id of expected) {
       expect(PROVIDER_CONFIGS[id]).toBeDefined();
@@ -153,6 +161,42 @@ describe('ProviderModelFetcherService', () => {
     });
   });
 
+  describe('parseOpenAI non-chat model filtering', () => {
+    it('should exclude models with context_window below 8192', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'whisper-large-v3', context_window: 448 },
+            { id: 'orpheus-v1', context_window: 4000 },
+            { id: 'llama-3.3-70b', context_window: 131072 },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('groq', 'gsk-test');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('llama-3.3-70b');
+    });
+
+    it('should exclude inactive models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'active-model', active: true },
+            { id: 'inactive-model', active: false },
+            { id: 'no-active-field' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('groq', 'gsk-test');
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.id)).toEqual(['active-model', 'no-active-field']);
+    });
+  });
+
   /* ── OpenAI-compatible providers use same parser ── */
 
   it('should work for deepseek provider', async () => {
@@ -164,6 +208,179 @@ describe('ProviderModelFetcherService', () => {
     const result = await service.fetch('deepseek', 'key');
     expect(result).toHaveLength(1);
     expect(result[0].provider).toBe('deepseek');
+  });
+
+  it('should parse GitHub Models catalog entries', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          id: 'openai/gpt-4.1',
+          name: 'OpenAI GPT-4.1',
+          limits: { max_input_tokens: 1048576 },
+          supported_output_modalities: ['text'],
+        },
+      ],
+    });
+
+    const result = await service.fetch('github-models', 'github_pat_test');
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 'openai/gpt-4.1',
+        displayName: 'OpenAI GPT-4.1',
+        provider: 'github-models',
+        contextWindow: 1048576,
+      }),
+    ]);
+  });
+
+  it('should parse Hugging Face router catalog entries', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'Qwen/Qwen3.5-Coder-32B',
+            architecture: {
+              output_modalities: ['text'],
+            },
+            providers: [
+              {
+                provider: 'together',
+                status: 'live',
+                context_length: 262144,
+                pricing: {
+                  input: 0.2,
+                  output: 0.4,
+                },
+              },
+            ],
+          },
+          {
+            id: 'black-forest-labs/flux-dev',
+            architecture: {
+              output_modalities: ['image'],
+            },
+            providers: [
+              {
+                provider: 'fal-ai',
+                status: 'live',
+                context_length: 8192,
+              },
+            ],
+          },
+          {
+            id: 'meta-llama/Llama-3.3-70B-Instruct',
+            architecture: {
+              output_modalities: ['text'],
+            },
+            providers: [
+              {
+                provider: 'together',
+                status: 'staging',
+                context_length: 131072,
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('huggingface', 'hf_test');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://router.huggingface.co/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer hf_test' },
+      }),
+    );
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 'Qwen/Qwen3.5-Coder-32B',
+        displayName: 'Qwen/Qwen3.5-Coder-32B',
+        provider: 'huggingface',
+        contextWindow: 262144,
+        inputPricePerToken: null,
+        outputPricePerToken: null,
+        capabilityCode: true,
+      }),
+    ]);
+  });
+
+  it('should build Cloudflare discovery endpoint from account credentials', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        result: [
+          {
+            id: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+            task: { name: 'Text Generation' },
+          },
+        ],
+      }),
+    });
+
+    await service.fetch('cloudflare', '0123456789abcdef0123456789abcdef:token-value');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.cloudflare.com/client/v4/accounts/0123456789abcdef0123456789abcdef/ai/models/search?per_page=100',
+      expect.objectContaining({
+        headers: {
+          Authorization: 'Bearer token-value',
+        },
+      }),
+    );
+  });
+
+  it('should exclude Cloudflare models without a text-generation task', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        result: [
+          { name: '@cf/meta/llama-3.3-70b-instruct-fp8-fast', task: { name: 'Text Generation' } },
+          { name: '@cf/openai/whisper', task: { name: 'Automatic Speech Recognition' } },
+          { name: '@cf/baai/bge-m3', task: { name: 'Text Embeddings' } },
+          { name: '@cf/black-forest-labs/flux-1', task: { name: 'Text-to-Image' } },
+          { name: '@cf/no-task-model' },
+        ],
+      }),
+    });
+
+    const result = await service.fetch(
+      'cloudflare',
+      '0123456789abcdef0123456789abcdef:token-value',
+    );
+
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('@cf/meta/llama-3.3-70b-instruct-fp8-fast');
+  });
+
+  it('should prefer Cloudflare model name over internal id', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        result: [
+          {
+            id: 'f9f2250b-1048-4a52-9910-d0bf976616a1',
+            name: '@cf/openai/gpt-oss-120b',
+            task: { name: 'Text Generation' },
+          },
+        ],
+      }),
+    });
+
+    const result = await service.fetch(
+      'cloudflare',
+      '0123456789abcdef0123456789abcdef:token-value',
+    );
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: '@cf/openai/gpt-oss-120b',
+        displayName: '@cf/openai/gpt-oss-120b',
+        provider: 'cloudflare',
+      }),
+    ]);
   });
 
   /* ── Bearer auth header ── */

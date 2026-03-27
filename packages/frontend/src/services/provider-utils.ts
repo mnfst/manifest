@@ -1,5 +1,41 @@
 import { PROVIDERS, type ProviderDef } from './providers.js';
 
+const CLOUDFLARE_ACCOUNT_ID_REGEX = /^[a-f0-9]{32}$/i;
+
+function validateCloudflareCredentials(key: string): { valid: boolean; error?: string } {
+  const separatorIndex = key.indexOf(':');
+  if (separatorIndex <= 0) {
+    return {
+      valid: false,
+      error: 'Use ACCOUNT_ID:API_TOKEN for Cloudflare Workers AI',
+    };
+  }
+
+  const accountId = key.slice(0, separatorIndex);
+  const apiToken = key.slice(separatorIndex + 1);
+  if (!CLOUDFLARE_ACCOUNT_ID_REGEX.test(accountId)) {
+    return {
+      valid: false,
+      error: 'Cloudflare account IDs are 32 hexadecimal characters',
+    };
+  }
+  if (apiToken.length < 20) {
+    return {
+      valid: false,
+      error: 'Cloudflare API token is too short (minimum 20 characters)',
+    };
+  }
+
+  return { valid: true };
+}
+
+const CUSTOM_API_KEY_VALIDATORS: Record<
+  string,
+  (key: string) => { valid: boolean; error?: string }
+> = {
+  cloudflare: validateCloudflareCredentials,
+};
+
 export function getProvider(id: string): ProviderDef | undefined {
   return PROVIDERS.find((p) => p.id === id);
 }
@@ -12,6 +48,11 @@ export function validateApiKey(
 
   const trimmed = key.replace(/\s/g, '');
   if (!trimmed) return { valid: false, error: 'API key is required' };
+
+  const customValidator = CUSTOM_API_KEY_VALIDATORS[provider.id];
+  if (customValidator) {
+    return customValidator(trimmed);
+  }
 
   if (provider.keyPrefix && !trimmed.startsWith(provider.keyPrefix)) {
     return {

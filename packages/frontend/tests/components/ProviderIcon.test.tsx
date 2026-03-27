@@ -5,8 +5,14 @@ import { providerIcon } from "../../src/components/ProviderIcon";
 const KNOWN_PROVIDERS = [
   "openai",
   "anthropic",
+  "cerebras",
+  "cloudflare",
+  "cohere",
   "copilot",
   "gemini",
+  "github-models",
+  "groq",
+  "huggingface",
   "deepseek",
   "mistral",
   "xai",
@@ -14,6 +20,7 @@ const KNOWN_PROVIDERS = [
   "moonshot",
   "openrouter",
   "ollama",
+  "ollama-cloud",
   "minimax",
   "zai",
 ];

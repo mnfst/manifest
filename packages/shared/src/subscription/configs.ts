@@ -1,4 +1,4 @@
-import type { SubscriptionProviderConfig } from './types';
+import type { SubscriptionProviderConfig } from './types.js';
 
 export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
   Record<string, Readonly<SubscriptionProviderConfig>>

@@ -92,6 +92,24 @@ describe("validateApiKey", () => {
     });
     expect(validateApiKey(zai, "a".repeat(30))).toEqual({ valid: true });
   });
+
+  it("validates Cloudflare ACCOUNT_ID:API_TOKEN format", () => {
+    const cloudflare = getProvider("cloudflare")!;
+    expect(validateApiKey(cloudflare, "missing-separator")).toEqual({
+      valid: false,
+      error: "Use ACCOUNT_ID:API_TOKEN for Cloudflare Workers AI",
+    });
+    expect(validateApiKey(cloudflare, "nothex:token-value-here")).toEqual({
+      valid: false,
+      error: "Cloudflare account IDs are 32 hexadecimal characters",
+    });
+    expect(
+      validateApiKey(
+        cloudflare,
+        "0123456789abcdef0123456789abcdef:token-value-long-enough",
+      ),
+    ).toEqual({ valid: true });
+  });
 });
 
 /* ── validateSubscriptionKey ────────────────────── */
@@ -243,8 +261,8 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 13 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(13);
+  it("has 21 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(21);
   });
 
   it("providers are sorted alphabetically by name", () => {

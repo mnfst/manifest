@@ -217,6 +217,11 @@
   letter-spacing: 0.01em;
 }
 
+.routing-modal__role-tag--free {
+  background: hsl(var(--success) / 0.12);
+  color: hsl(var(--success));
+}
+
 .routing-modal__empty {
   padding: 24px;
   text-align: center;
