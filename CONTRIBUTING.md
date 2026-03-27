@@ -181,24 +181,27 @@ Requires `jq` and the `openclaw` CLI.
 - **Build**: `npx tsx build.ts` or `npm run build:plugin` from the root
 - **Watch mode**: `cd packages/openclaw-plugins/manifest && npx tsx watch build.ts`
 
-The full plugin includes an embedded NestJS server, SQLite database, and dashboard. It supports both local and cloud modes.
+The full plugin includes an embedded NestJS server, SQLite database, and dashboard. It starts the server automatically on gateway boot.
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `mode` | `string` | `cloud` | Set to `local` to start the embedded server. Cloud mode registers Manifest as a provider without starting a server. |
-| `devMode` | `boolean` | auto | Skips API key validation. Auto-detected when endpoint is a loopback address. |
-| `apiKey` | `string` | — | Agent API key (`mnfst_*`). Auto-generated in local mode. |
-| `endpoint` | `string` | `https://app.manifest.build` | Manifest server URL. Local mode overrides this to `http://{host}:{port}`. |
-| `port` | `number` | `2099` | Embedded server port (local mode only). |
-| `host` | `string` | `127.0.0.1` | Embedded server bind address (local mode only). |
+| `port` | `number` | `2099` | Embedded server port |
+| `host` | `string` | `127.0.0.1` | Bind address |
 
-Settings are parsed in `src/config.ts` and validated in `validateConfig`. The JSON schema in `openclaw.plugin.json` is the source of truth.
+Settings are defined in `openclaw.plugin.json`. The API key is auto-generated and stored in `~/.openclaw/manifest/config.json`.
 
 ### Provider Plugin (`packages/openclaw-plugins/manifest-provider`)
 
 - **npm**: `manifest-provider` — lightweight cloud-only provider plugin (~22KB)
 - **Bundler**: esbuild (zero runtime dependencies)
-- Registers Manifest as a model provider and exports OTLP telemetry. No embedded server or dashboard.
+- Registers Manifest as a model provider with interactive auth onboarding. No embedded server or dashboard.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `devMode` | `boolean` | auto | Skips API key validation. Auto-detected when endpoint is a loopback address. |
+| `endpoint` | `string` | `https://app.manifest.build` | Manifest server URL. |
+
+Settings are parsed in `src/config.ts` and validated in `validateConfig`. The JSON schema in `openclaw.plugin.json` is the source of truth.
 
 ## Making Changes
 

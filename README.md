@@ -45,15 +45,13 @@ Manifest is a model provider for OpenClaw. It sits between your agent and your L
 
 ### Cloud
 
-Sign up at [app.manifest.build](https://app.manifest.build) to create an agent and get your API key. Then add Manifest as a model provider in your OpenClaw config:
-
 ```bash
-openclaw config set models.providers.manifest '{"baseUrl":"https://app.manifest.build/v1","api":"openai-completions","apiKey":"mnfst_YOUR_KEY","models":[{"id":"auto","name":"Manifest Auto"}]}'
-openclaw config set agents.defaults.model.primary manifest/auto
+openclaw plugins install manifest-provider
+openclaw providers setup manifest-provider
 openclaw gateway restart
 ```
 
-No plugin needed. Manifest works as a standard OpenAI-compatible provider.
+The setup wizard prompts for your API key from [app.manifest.build](https://app.manifest.build). After setup, `manifest/auto` is available as a model.
 
 ### Local
 
@@ -61,15 +59,14 @@ For a self-contained setup where everything stays on your machine:
 
 ```bash
 openclaw plugins install manifest
-openclaw config set plugins.entries.manifest.config.mode local
 openclaw gateway restart
 ```
 
-Dashboard opens at **http://127.0.0.1:2099**. The plugin starts an embedded server, runs the dashboard locally, and registers itself as a provider automatically.
+Dashboard opens at **http://127.0.0.1:2099**. The plugin starts an embedded server, runs the dashboard locally, and registers itself as a provider automatically. No account or API key needed.
 
 ### Cloud vs local
 
-Pick **cloud** if you want quick setup, multi-device access, or multiple agents. Pick **local** if you want all data on your machine, don't need remote access, or use local models like Ollama.
+Pick **cloud** (`manifest-provider`) if you want quick setup, multi-device access, or multiple agents. Pick **local** (`manifest`) if you want all data on your machine, don't need remote access, or use local models like Ollama.
 
 Not sure? Start with cloud. You can switch anytime.
 

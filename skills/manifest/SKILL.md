@@ -57,8 +57,8 @@ Exhaustive list of attributes sent per span:
 
 ### Credential Storage
 
-- **Cloud mode**: API key stored in `~/.openclaw/openclaw.json` under `plugins.entries.manifest.config.apiKey` (managed by OpenClaw's standard plugin config)
-- **Local mode**: auto-generated key stored in `~/.openclaw/manifest/config.json` with file mode `0600`
+- **Cloud mode** (`manifest-provider` plugin): API key provided via `openclaw providers setup manifest-provider` or `MANIFEST_API_KEY` env var
+- **Local mode** (`manifest` plugin): auto-generated key stored in `~/.openclaw/manifest/config.json` with file mode `0600`
 
 ### Local Mode
 
@@ -90,7 +90,6 @@ No account, no API key, no external calls.
 
 ```bash
 openclaw plugins install manifest
-openclaw config set plugins.entries.manifest.config.mode local
 openclaw gateway restart
 ```
 
@@ -100,15 +99,14 @@ To expose over Tailscale (requires Tailscale on both devices, only accessible wi
 
 ## Setup (Cloud)
 
-Three commands, no coding:
+Two commands:
 
 ```bash
-openclaw plugins install manifest
-openclaw config set plugins.entries.manifest.config.apiKey "mnfst_YOUR_KEY"
-openclaw gateway restart
+openclaw plugins install manifest-provider
+openclaw providers setup manifest-provider
 ```
 
-Get the API key at [app.manifest.build](https://app.manifest.build) → create an account → create an agent → copy the `mnfst_*` key.
+The setup wizard prompts for your API key from [app.manifest.build](https://app.manifest.build) → create an account → create an agent → copy the `mnfst_*` key. You can also set `MANIFEST_API_KEY` env var for CI/CD.
 
 After restart, the plugin auto-configures:
 

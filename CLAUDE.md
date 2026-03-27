@@ -8,11 +8,11 @@ When starting the app for development or testing (e.g. `/serve`), **always use `
 
 ## IMPORTANT: Plugin Must Use Cloud+Dev Mode
 
-When configuring the OpenClaw plugin to point at a local dev server (e.g. after `/serve` or `/setup-manifest-plugin`), **always use `mode: cloud` with `devMode: true`** — never `mode: local`. The plugin's `local` mode starts its own embedded server on port 2099 and ignores the external backend, which means proxy requests bypass your dev server entirely. Cloud+dev mode connects the plugin directly to the external backend without starting an embedded server.
+When configuring the OpenClaw **manifest-provider** plugin to point at a local dev server (e.g. after `/serve` or `/setup-manifest-plugin`), **always use `devMode: true`** — never install the `manifest` plugin for this purpose. The `manifest` plugin starts its own embedded server on port 2099 and ignores the external backend. The `manifest-provider` plugin with `devMode` connects directly to your dev server without starting an embedded server.
 
 ## Plugin Dev Mode
 
-When testing the OpenClaw plugin integration (routing), use **dev mode** to connect the plugin to a local backend without API key management:
+When testing the OpenClaw plugin integration (routing), use the **manifest-provider** plugin in **dev mode** to connect to a local backend without API key management:
 
 ```bash
 # 1. Build and start the backend in local mode
@@ -20,10 +20,9 @@ npm run build
 MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
   node -r dotenv/config packages/backend/dist/main.js
 
-# 2. Configure the plugin
-openclaw config set plugins.entries.manifest.config.mode cloud
-openclaw config set plugins.entries.manifest.config.devMode true
-openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238
+# 2. Configure the manifest-provider plugin
+openclaw config set plugins.entries.manifest-provider.config.devMode true
+openclaw config set plugins.entries.manifest-provider.config.endpoint http://localhost:38238
 
 # 3. Restart the gateway
 openclaw gateway restart
@@ -36,10 +35,9 @@ No API key needed. The dashboard shows an orange **Dev** badge in the header whe
 If the plugin gets into a bad state (stale config, wrong endpoint, cached errors), reset it fully:
 
 ```bash
-# Reset plugin config to defaults
-openclaw config set plugins.entries.manifest.config.mode cloud
-openclaw config set plugins.entries.manifest.config.devMode true
-openclaw config set plugins.entries.manifest.config.endpoint http://localhost:<PORT>
+# Reset manifest-provider config to defaults
+openclaw config set plugins.entries.manifest-provider.config.devMode true
+openclaw config set plugins.entries.manifest-provider.config.endpoint http://localhost:<PORT>
 
 # Force restart the gateway (kills existing process and starts fresh)
 openclaw gateway restart
