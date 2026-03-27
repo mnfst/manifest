@@ -8,6 +8,14 @@
   background: rgb(0 0 0 / 0.7);
 }
 
+/* ── Setup Modal header ──────────────────────────── */
+.setup-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--gap-sm);
+}
+
 /* ── Setup Modal nav ─────────────────────────────── */
 .setup-modal__nav {
   display: flex;

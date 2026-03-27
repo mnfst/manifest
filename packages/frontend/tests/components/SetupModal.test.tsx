@@ -15,10 +15,19 @@ vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
   ),
 }));
 
-vi.mock("../../src/components/SetupStepLocalConfigure.jsx", () => ({
+vi.mock("../../src/components/SetupStepLocalReady.jsx", () => ({
   default: (props: any) => (
-    <div data-testid="step-local-configure" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""}>
-      Local Configure Step
+    <div data-testid="step-local-ready" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""}>
+      Local Ready Step
+    </div>
+  ),
+}));
+
+vi.mock("../../src/components/ErrorState.jsx", () => ({
+  default: (props: any) => (
+    <div data-testid="error-state">
+      {props.title}
+      <button data-testid="retry-btn" onClick={() => props.onRetry?.()}>Retry</button>
     </div>
   ),
 }));
@@ -42,14 +51,14 @@ describe("SetupModal", () => {
     expect(container.querySelector(".modal-overlay")).toBeNull();
   });
 
-  it("renders modal title when open", () => {
+  it("renders modal title with agent name when open", () => {
     render(() => (
-      <SetupModal open={true} agentName="test-agent" onClose={onClose} />
+      <SetupModal open={true} agentName="my-agent" onClose={onClose} />
     ));
-    expect(screen.getByText("Set up your agent")).toBeDefined();
+    expect(screen.getByText("Set up my-agent")).toBeDefined();
   });
 
-  it("shows close button", () => {
+  it("shows close button with aria-label", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
@@ -96,7 +105,7 @@ describe("SetupModal", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("shows description text", () => {
+  it("shows cloud description text", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
@@ -158,17 +167,55 @@ describe("SetupModal", () => {
     });
   });
 
+  it("has role dialog and aria-modal", () => {
+    const { container } = render(() => (
+      <SetupModal open={true} agentName="test-agent" onClose={onClose} />
+    ));
+    const dialog = container.querySelector('[role="dialog"]');
+    expect(dialog).not.toBeNull();
+    expect(dialog!.getAttribute("aria-modal")).toBe("true");
+  });
+
+  it("has aria-labelledby pointing to title", () => {
+    const { container } = render(() => (
+      <SetupModal open={true} agentName="test-agent" onClose={onClose} />
+    ));
+    const dialog = container.querySelector('[role="dialog"]');
+    expect(dialog!.getAttribute("aria-labelledby")).toBe("setup-modal-title");
+    expect(container.querySelector("#setup-modal-title")).not.toBeNull();
+  });
+
+  it("shows error state when API key fetch fails", async () => {
+    const { getAgentKey } = await import("../../src/services/api.js");
+    (getAgentKey as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("Fetch failed"));
+    const { container } = render(() => (
+      <SetupModal open={true} agentName="fail-agent" onClose={onClose} />
+    ));
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="error-state"]')).not.toBeNull();
+    });
+  });
+
   describe("local mode", () => {
     beforeEach(() => {
       mockGetHealth.mockResolvedValue({ mode: "local" });
     });
 
-    it("shows same AddProvider step as cloud mode", async () => {
+    it("shows Local Ready step", async () => {
       const { container } = render(() => (
         <SetupModal open={true} agentName="local-agent" onClose={onClose} />
       ));
       await vi.waitFor(() => {
-        expect(container.querySelector('[data-testid="step-add-provider"]')).not.toBeNull();
+        expect(container.querySelector('[data-testid="step-local-ready"]')).not.toBeNull();
+      });
+    });
+
+    it("shows local description text", async () => {
+      const { container } = render(() => (
+        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
+      ));
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("pre-configured");
       });
     });
 
@@ -186,9 +233,8 @@ describe("SetupModal", () => {
         <SetupModal open={true} agentName="local-agent" onClose={onClose} />
       ));
       await vi.waitFor(() => {
-        const step = container.querySelector('[data-testid="step-add-provider"]');
+        const step = container.querySelector('[data-testid="step-local-ready"]');
         expect(step).not.toBeNull();
-        // Local mode uses window.location.origin + /v1
         expect(step?.getAttribute("data-base-url")).toContain("/v1");
       });
     });

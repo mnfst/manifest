@@ -1,5 +1,7 @@
 import { createResource, Show, type Component } from 'solid-js';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
+import SetupStepLocalReady from './SetupStepLocalReady.jsx';
+import ErrorState from './ErrorState.jsx';
 import { getAgentKey, getHealth } from '../services/api.js';
 
 const SetupModal: Component<{
@@ -14,9 +16,10 @@ const SetupModal: Component<{
     () => props.open,
     (open) => (open ? getHealth() : null),
   );
+  // Health check failure defaults to cloud mode
   const isLocal = () => (healthData() as { mode?: string })?.mode === 'local';
 
-  const [apiKeyData] = createResource(
+  const [apiKeyData, { refetch: refetchKey }] = createResource(
     () => (props.open ? props.agentName : null),
     (n) => (n ? getAgentKey(n) : null),
   );
@@ -54,15 +57,11 @@ const SetupModal: Component<{
           aria-modal="true"
           aria-labelledby="setup-modal-title"
         >
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-sm);">
+          <div class="setup-modal__header">
             <div class="modal-card__title" id="setup-modal-title">
-              Set up your agent
+              Set up {props.agentName}
             </div>
-            <button
-              style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;"
-              onClick={() => props.onClose()}
-              aria-label="Close"
-            >
+            <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
               <svg
                 width="16"
                 height="16"
@@ -79,14 +78,42 @@ const SetupModal: Component<{
             </button>
           </div>
           <p class="modal-card__desc">
-            Add Manifest as a model provider, then connect at least one LLM so routing works.
+            <Show
+              when={isLocal()}
+              fallback="Add Manifest as a model provider, then connect at least one LLM so routing works."
+            >
+              Your local agent is pre-configured. Connect an LLM provider to enable routing.
+            </Show>
           </p>
 
-          <SetupStepAddProvider
-            apiKey={props.apiKey ?? null}
-            keyPrefix={apiKeyData()?.keyPrefix ?? null}
-            baseUrl={baseUrl()}
-          />
+          <Show
+            when={!apiKeyData.error}
+            fallback={
+              <ErrorState
+                error={apiKeyData.error}
+                title="Could not load API key"
+                message="Failed to fetch your agent's API key. Please try again."
+                onRetry={refetchKey}
+              />
+            }
+          >
+            <Show
+              when={!isLocal()}
+              fallback={
+                <SetupStepLocalReady
+                  apiKey={props.apiKey ?? null}
+                  keyPrefix={apiKeyData()?.keyPrefix ?? null}
+                  baseUrl={baseUrl()}
+                />
+              }
+            >
+              <SetupStepAddProvider
+                apiKey={props.apiKey ?? null}
+                keyPrefix={apiKeyData()?.keyPrefix ?? null}
+                baseUrl={baseUrl()}
+              />
+            </Show>
+          </Show>
 
           <div class="setup-modal__nav">
             <span />

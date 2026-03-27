@@ -3,31 +3,37 @@ import { type Component } from 'solid-js';
 interface Props {
   agentName: string;
   onGoToRouting: () => void;
+  onSkip?: () => void;
 }
 
 const SetupStepProviders: Component<Props> = (props) => {
   return (
     <div>
-      <h3 style="margin: 0 0 4px; font-size: var(--font-size-base); font-weight: 600;">
-        Connect your models
-      </h3>
-      <p style="margin: 0 0 12px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-        Manifest needs at least one LLM provider to route requests. Add your API keys so it can pick
-        the right model for each request -- cheaper models handle simple tasks, expensive ones kick
-        in when needed.
+      <h3 class="setup-step__heading">Connect your LLM providers</h3>
+      <p class="setup-step__desc">
+        Manifest routes each request to the best model for the job. Connect at least one provider so{' '}
+        <code class="api-key-display__code">manifest/auto</code> can resolve requests.
       </p>
 
-      <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; font-size: var(--font-size-sm); color: hsl(var(--foreground)); line-height: 1.5;">
+      <div class="api-key-display__warning" style="margin-bottom: 16px;">
         Without a connected provider, requests to{' '}
-        <code style="font-family: var(--font-mono); font-size: var(--font-size-sm); background: hsl(var(--muted)); padding: 2px 6px; border-radius: 4px;">
-          manifest/auto
-        </code>{' '}
-        will fail.
+        <code class="api-key-display__code">manifest/auto</code> will return an error.
       </div>
 
-      <button class="btn btn--primary btn--sm" onClick={() => props.onGoToRouting()}>
-        Go to routing
-      </button>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="btn btn--primary btn--sm" onClick={() => props.onGoToRouting()}>
+          Connect a provider
+        </button>
+        {props.onSkip && (
+          <button
+            class="btn btn--ghost btn--sm"
+            onClick={() => props.onSkip!()}
+            style="color: hsl(var(--muted-foreground));"
+          >
+            I'll do this later
+          </button>
+        )}
+      </div>
     </div>
   );
 };
