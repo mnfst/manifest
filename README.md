@@ -37,9 +37,9 @@
 
 Manifest is a model provider for OpenClaw. It sits between your agent and your LLM providers, scores each request, and routes it to the cheapest model that can handle it. Simple questions go to fast, cheap models. Hard problems go to expensive ones. You save money without thinking about it.
 
-- Route requests to the right model -- cut costs up to 70%
-- Automatic fallbacks -- if a model fails, the next one picks up
-- Set limits -- get alerts when usage crosses a threshold
+- Route requests to the right model: Cut costs up to 70%
+- Automatic fallbacks: If a model fails, the next one picks up
+- Set limits: Get alerts when usage crosses a threshold
 
 ## Quick start
 
