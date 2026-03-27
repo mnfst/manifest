@@ -8,11 +8,11 @@ When starting the app for development or testing (e.g. `/serve`), **always use `
 
 ## IMPORTANT: Plugin Must Use Cloud+Dev Mode
 
-When configuring the OpenClaw plugin to point at a local dev server (e.g. after `/serve` or `/setup-manifest-plugin`), **always use `mode: cloud` with `devMode: true`** — never `mode: local`. The plugin's `local` mode starts its own embedded server on port 2099 and ignores the external backend, which means proxy requests and telemetry bypass your dev server entirely. Cloud+dev mode connects the plugin directly to the external backend without starting an embedded server.
+When configuring the OpenClaw plugin to point at a local dev server (e.g. after `/serve` or `/setup-manifest-plugin`), **always use `mode: cloud` with `devMode: true`** — never `mode: local`. The plugin's `local` mode starts its own embedded server on port 2099 and ignores the external backend, which means proxy requests bypass your dev server entirely. Cloud+dev mode connects the plugin directly to the external backend without starting an embedded server.
 
 ## Plugin Dev Mode
 
-When testing the OpenClaw plugin integration (routing, telemetry, OTLP), use **dev mode** to connect the plugin to a local backend without API key management:
+When testing the OpenClaw plugin integration (routing), use **dev mode** to connect the plugin to a local backend without API key management:
 
 ```bash
 # 1. Build and start the backend in local mode
@@ -23,13 +23,13 @@ MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
 # 2. Configure the plugin
 openclaw config set plugins.entries.manifest.config.mode cloud
 openclaw config set plugins.entries.manifest.config.devMode true
-openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp
+openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238
 
 # 3. Restart the gateway
 openclaw gateway restart
 ```
 
-No API key needed. The dashboard shows an orange **Dev** badge in the header when running in development environment (`NODE_ENV !== 'production'`). Dev mode uses the OTLP loopback bypass — the `OtlpAuthGuard` trusts same-machine connections without Bearer token auth. Note: `devMode` is auto-detected when the endpoint is a loopback address and no `mnfst_*` API key is provided.
+No API key needed. The dashboard shows an orange **Dev** badge in the header when running in development environment (`NODE_ENV !== 'production'`). Dev mode uses loopback bypass — the `AgentKeyAuthGuard` trusts same-machine connections without Bearer token auth. Note: `devMode` is auto-detected when the endpoint is a loopback address and no `mnfst_*` API key is provided.
 
 ### Resetting OpenClaw Plugin Settings
 
@@ -39,7 +39,7 @@ If the plugin gets into a bad state (stale config, wrong endpoint, cached errors
 # Reset plugin config to defaults
 openclaw config set plugins.entries.manifest.config.mode cloud
 openclaw config set plugins.entries.manifest.config.devMode true
-openclaw config set plugins.entries.manifest.config.endpoint http://localhost:<PORT>/otlp
+openclaw config set plugins.entries.manifest.config.endpoint http://localhost:<PORT>
 
 # Force restart the gateway (kills existing process and starts fresh)
 openclaw gateway restart
@@ -47,9 +47,8 @@ openclaw gateway restart
 
 **Important notes:**
 - The OpenClaw config lives at `~/.openclaw/openclaw.json`. The gateway may restore certain fields (like `apiKey`) on restart — editing the file directly doesn't always stick.
-- When `devMode` is true, the gateway sends `Authorization: Bearer dev-no-auth` to the proxy. The `OtlpAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in local mode, so this works without real API keys.
-- After restarting the backend server, **always restart the gateway too** (`openclaw gateway restart`) — the OTLP pipeline doesn't automatically reconnect.
-- The gateway batches OTLP telemetry and sends it every ~10-30 seconds. New messages may take a moment to appear in the dashboard.
+- When `devMode` is true, the gateway sends `Authorization: Bearer dev-no-auth` to the proxy. The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in local mode, so this works without real API keys.
+- After restarting the backend server, **always restart the gateway too** (`openclaw gateway restart`) — the routing proxy doesn't automatically reconnect.
 
 ## Active Technologies
 
@@ -104,14 +103,12 @@ packages/
 │   │   │   ├── utils/provider-inference.ts  # Provider detection from model names
 │   │   │   └── utils/period.util.ts         # Time period utilities
 │   │   ├── health/                          # @Public() health check
-│   │   ├── telemetry/                       # POST /api/v1/telemetry (JSON ingestion)
 │   │   ├── analytics/                       # Dashboard analytics
 │   │   │   ├── controllers/                 # overview, tokens, costs, messages, agents
 │   │   │   └── services/                    # aggregation + timeseries-queries + query-helpers
-│   │   ├── otlp/                            # OTLP ingestion (traces, metrics, logs)
-│   │   │   ├── guards/otlp-auth.guard.ts    # Bearer token auth (agent API keys)
-│   │   │   ├── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
-│   │   │   └── services/                    # trace-ingest, metric-ingest, log-ingest, otlp-decoder
+│   │   ├── otlp/                            # Agent key auth + onboarding
+│   │   │   ├── guards/agent-key-auth.guard.ts # Bearer token auth (agent API keys)
+│   │   │   └── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
 │   │   ├── routing/                         # LLM routing (providers, tiers, proxy, scorer)
 │   │   │   ├── proxy/                       # OpenAI-compatible proxy (anthropic/google adapters)
 │   │   │   └── scorer/                      # Scoring engine with dimensions
@@ -322,16 +319,15 @@ All analytics queries filter by user via `addTenantFilter(qb, userId)` from `que
 |--------|-------|------|---------|
 | GET | `/api/v1/health` | Public | Health check |
 | ALL | `/api/auth/*` | Public | Better Auth (login, register, OAuth, sessions) |
-| POST | `/api/v1/telemetry` | API Key | Ingest events (returns 202) |
 | GET | `/api/v1/overview` | Session/API Key | Dashboard summary |
 | GET | `/api/v1/tokens` | Session/API Key | Token usage analytics |
 | GET | `/api/v1/costs` | Session/API Key | Cost analytics |
 | GET | `/api/v1/messages` | Session/API Key | Paginated message log |
 | GET | `/api/v1/agents` | Session/API Key | Agent list with sparklines |
-| POST | `/api/v1/agents` | Session/API Key | Create agent + OTLP key |
+| POST | `/api/v1/agents` | Session/API Key | Create agent + API key |
 | DELETE | `/api/v1/agents/:name` | Session/API Key | Delete agent |
-| GET | `/api/v1/agents/:name/key` | Session/API Key | Get agent OTLP key |
-| POST | `/api/v1/agents/:name/rotate-key` | Session/API Key | Rotate OTLP key |
+| GET | `/api/v1/agents/:name/key` | Session/API Key | Get agent API key |
+| POST | `/api/v1/agents/:name/rotate-key` | Session/API Key | Rotate API key |
 | PATCH | `/api/v1/agents/:name` | Session/API Key | Rename agent |
 | GET | `/api/v1/security` | Session/API Key | Security score + events |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
@@ -346,9 +342,6 @@ All analytics queries filter by user via `addTenantFilter(qb, userId)` from `que
 | POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
 | GET | `/api/v1/events` | Session | SSE real-time events |
 | GET | `/api/v1/github/stars` | Public | GitHub star count |
-| POST | `/otlp/v1/traces` | Bearer (mnfst_*) | OTLP trace ingestion |
-| POST | `/otlp/v1/metrics` | Bearer (mnfst_*) | OTLP metric ingestion |
-| POST | `/otlp/v1/logs` | Bearer (mnfst_*) | OTLP log ingestion |
 
 ## Environment Variables
 
@@ -371,7 +364,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth (optional)
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` — GitHub OAuth (optional)
 - `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` — Discord OAuth (optional)
-- `PLUGIN_OTLP_ENDPOINT` — Custom OTLP endpoint for plugin setup UI.
+- `PLUGIN_OTLP_ENDPOINT` — Custom endpoint for plugin setup UI.
 - `SEED_DATA` — Set `true` to seed demo data on startup.
 - `MANIFEST_MODE` — `local` or `cloud` (default: `cloud`). Switches between SQLite/loopback auth and PostgreSQL/Better Auth.
 - `MANIFEST_DB_PATH` — SQLite file path for local mode (default: in-memory).
@@ -402,14 +395,14 @@ To add a new font or icon library:
 
 - **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/otlp/*`) are excluded.
 - **Dev mode**: Vite dev server on `:3000` proxies `/api` and `/otlp` to backend on `:3001`. CORS enabled only in dev.
-- **Body parsing**: Disabled at NestJS level (`bodyParser: false`). Better Auth mounted first (needs raw body), then `express.json()` and `express.raw()` for OTLP protobuf.
+- **Body parsing**: Disabled at NestJS level (`bodyParser: false`). Better Auth mounted first (needs raw body), then `express.json()` and `express.urlencoded()`.
 - **QueryBuilder API**: Analytics and ingestion services use TypeORM `Repository.createQueryBuilder()` instead of raw SQL. The `addTenantFilter()` helper in `query-helpers.ts` applies multi-tenant WHERE clauses. Only the database seeder and notification cron still use `DataSource.query()` with numbered `$1, $2, ...` placeholders.
 - **PostgreSQL time functions**: `NOW() - CAST(:interval AS interval)`, `to_char(date_trunc('hour', timestamp), ...)`, `timestamp::date`.
 - **Better Auth database**: In cloud mode, uses a `pg.Pool` instance passed directly to `betterAuth({ database: pool })`. In local mode, Better Auth is skipped entirely (`auth = null`) — `LocalAuthGuard` handles auth via loopback IP check, and simple Express handlers serve session data.
 - **Local mode database**: Uses `sql.js` (WASM-based SQLite, zero native deps). TypeORM driver type is `'sqljs'` with `autoSave: true` for file persistence.
 - **PostgreSQL container**: `docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432 postgres:16`
 - **Validation**: Global `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`. Explicit `@Type()` decorators on numeric DTO fields.
-- **OTLP auth caching**: `OtlpAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.
+- **Agent key auth caching**: `AgentKeyAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.
 - **Database migrations**: TypeORM migrations are version-controlled in `src/database/migrations/`. `synchronize` is permanently `false`. Migrations auto-run on boot (`migrationsRun: true`) wrapped in a single transaction. The CLI DataSource is at `src/database/datasource.ts`. Better Auth manages its own tables separately via `ctx.runMigrations()`.
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
 - **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SMTP email providers.

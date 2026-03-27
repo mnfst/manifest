@@ -3,7 +3,7 @@ import { IsArray, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class
 import { Type } from 'class-transformer';
 import { Request } from 'express';
 import { Public } from '../../common/decorators/public.decorator';
-import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
+import { AgentKeyAuthGuard } from '../../otlp/guards/agent-key-auth.guard';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { ResolveService } from './resolve.service';
 import { ProviderService } from '../routing-core/provider.service';
@@ -29,7 +29,7 @@ export class RegisterSubscriptionsDto {
 
 @Controller('api/v1/routing')
 @Public()
-@UseGuards(OtlpAuthGuard)
+@UseGuards(AgentKeyAuthGuard)
 export class ResolveController {
   constructor(
     private readonly resolveService: ResolveService,

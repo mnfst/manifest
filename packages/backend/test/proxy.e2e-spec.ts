@@ -112,7 +112,7 @@ describe('Proxy E2E — /v1/chat/completions', () => {
         stream: false,
       });
 
-    // The response should NOT be our OtlpAuthGuard 401 (which has a specific format).
+    // The response should NOT be our AgentKeyAuthGuard 401 (which has a specific format).
     // It will be either a provider error (401/403 from OpenAI) or a network error (500).
     // Either way, we passed auth and resolved a model successfully.
     if (res.status === 401) {

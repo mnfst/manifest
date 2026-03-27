@@ -8,7 +8,7 @@ export interface VerifyResult {
 }
 
 export async function verifyConnection(config: ManifestConfig): Promise<VerifyResult> {
-  const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, '');
+  const baseUrl = config.endpoint.replace(/\/otlp(\/v1)?\/?$/, ''); // backward compat
   const result: VerifyResult = {
     endpointReachable: false,
     authValid: false,

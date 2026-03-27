@@ -11,12 +11,10 @@ const sharedBuildOptions = {
   sourcemap: false,
   minify: true,
   alias: {
-    "@protobufjs/inquire": "./stubs/inquire.js",
     "child_process": "./stubs/child_process.js",
-    "@opentelemetry/resources": "./stubs/resources.js",
   },
   banner: {
-    js: '/* manifest — OpenClaw Observability Plugin */\nvar __fromEnv=globalThis["proc"+"ess"]?.env||{};',
+    js: '/* manifest — OpenClaw LLM Router Plugin */\nvar __fromEnv=globalThis["proc"+"ess"]?.env||{};',
   },
   define: {
     "process.env.PLUGIN_VERSION": JSON.stringify(pkg.version),
@@ -35,12 +33,9 @@ async function main() {
     minifyWhitespace: true,
     minifySyntax: true,
     external: ["./server", "./local-mode", "./subscription", "child_process"],
-    alias: {
-      "@protobufjs/inquire": "./stubs/inquire.js",
-      "@opentelemetry/resources": "./stubs/resources.js",
-    },
+    alias: {},
     banner: {
-      js: "/* manifest — OpenClaw Observability Plugin */",
+      js: "/* manifest — OpenClaw LLM Router Plugin */",
     },
     define: {
       "process.env.PLUGIN_VERSION": JSON.stringify(pkg.version),

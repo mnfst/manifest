@@ -1,7 +1,7 @@
 {
   "name": "manifest",
   "version": "5.32.0",
-  "description": "LLM router and observability plugin for OpenClaw — smart model routing, real-time cost tracking, and telemetry for your AI agents",
+  "description": "Smart LLM router plugin for OpenClaw — intelligent model routing, real-time cost tracking, and usage analytics for your AI agents",
   "main": "dist/index.js",
   "license": "MIT",
   "author": "MNFST Inc.",

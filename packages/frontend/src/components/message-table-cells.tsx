@@ -179,7 +179,7 @@ export function ModelCell(
             {authBadgeFor(item.auth_type, 8)}
           </span>
         ) : null}
-        {item.model ? item.display_name || getModelDisplayName(item.model) : '\u2014'}
+        {item.model ? getModelDisplayName(item.model) : '\u2014'}
         {item.routing_tier && (
           <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>
         )}

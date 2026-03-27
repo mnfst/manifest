@@ -113,6 +113,17 @@ describe('model-name-normalizer', () => {
       expect(map.get('MiniMax-M2.5')).toBe('minimax-m2.5');
       expect(map.get('MiniMax-M1')).toBe('minimax-m1');
     });
+
+    it('indexes by bare name without version suffix', () => {
+      const map = buildAliasMap(['google/gemini-2.0-flash-001']);
+      expect(map.get('gemini-2.0-flash')).toBe('google/gemini-2.0-flash-001');
+    });
+
+    it('does not strip version suffix when it would empty the name', () => {
+      const map = buildAliasMap(['google/gemini-001']);
+      // gemini-001 bare → gemini (suffix stripped), but gemini-001 should also exist
+      expect(map.get('gemini-001')).toBe('google/gemini-001');
+    });
   });
 
   describe('resolveModelName', () => {

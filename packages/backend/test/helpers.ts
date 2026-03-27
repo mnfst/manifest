@@ -30,7 +30,6 @@ import { TierAssignment } from '../src/entities/tier-assignment.entity';
 import { CustomProvider } from '../src/entities/custom-provider.entity';
 import { EmailProviderConfig } from '../src/entities/email-provider-config.entity';
 import { HealthModule } from '../src/health/health.module';
-import { TelemetryModule } from '../src/telemetry/telemetry.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
 import { NotificationsModule } from '../src/notifications/notifications.module';
@@ -153,7 +152,6 @@ export async function createTestApp(): Promise<INestApplication> {
         TypeOrmModule.forFeature(entities),
         CommonModule,
         HealthModule,
-        TelemetryModule,
         AnalyticsModule,
         OtlpModule,
         NotificationsModule,

@@ -1,5 +1,5 @@
 import { parseConfig, parseConfigWithDeprecation, validateConfig } from "../src/config";
-import { API_KEY_PREFIX, DEFAULTS, ENV, LOCAL_DEFAULTS } from "../src/constants";
+import { API_KEY_PREFIX, DEFAULTS, ENV } from "../src/constants";
 
 describe("API_KEY_PREFIX constant", () => {
   it("equals mnfst_ (catches accidental revert)", () => {
@@ -11,27 +11,14 @@ describe("API_KEY_PREFIX constant", () => {
   });
 });
 
-// Regression: Verify the DEFAULTS constant never reverts to the old wrong path.
-// OTel exporters append /v1/traces etc., so the base must be /otlp, not /api/v1/otlp.
+// Regression: Verify the DEFAULTS constant is the base origin, not an OTLP path.
 describe("DEFAULTS.ENDPOINT constant", () => {
-  it("is the OTLP base path, not an API route", () => {
-    expect(DEFAULTS.ENDPOINT).toBe("https://app.manifest.build/otlp");
+  it("is the base origin without path suffix", () => {
+    expect(DEFAULTS.ENDPOINT).toBe("https://app.manifest.build");
   });
 
-  it("does not contain /api/v1/otlp (would cause double-pathing with OTel)", () => {
-    expect(DEFAULTS.ENDPOINT).not.toContain("/api/v1/otlp");
-  });
-});
-
-describe("LOCAL_DEFAULTS constant", () => {
-  it("has METRICS_INTERVAL_MS set to 10 seconds", () => {
-    expect(LOCAL_DEFAULTS.METRICS_INTERVAL_MS).toBe(10_000);
-  });
-
-  it("uses a shorter interval than the cloud DEFAULTS", () => {
-    expect(LOCAL_DEFAULTS.METRICS_INTERVAL_MS).toBeLessThan(
-      DEFAULTS.METRICS_INTERVAL_MS,
-    );
+  it("does not contain /otlp", () => {
+    expect(DEFAULTS.ENDPOINT).not.toContain("/otlp");
   });
 });
 
@@ -156,14 +143,11 @@ describe("parseConfig", () => {
     expect(result.endpoint).toBe(DEFAULTS.ENDPOINT);
   });
 
-  // Regression: DEFAULTS.ENDPOINT must be the OTLP base path, not an API route.
-  // OTel exporters append /v1/traces, /v1/metrics, /v1/logs to the endpoint.
-  // The backend controller is @Controller('otlp/v1'), so the correct base is /otlp.
-  // Using /api/v1/otlp would produce /api/v1/otlp/v1/traces — a 404.
-  it("returns correct default endpoint (otlp base, not api route)", () => {
+  // Regression: DEFAULTS.ENDPOINT must be the base origin, not a sub-path.
+  it("returns correct default endpoint (base origin, not otlp path)", () => {
     const result = parseConfig({});
-    expect(result.endpoint).toBe("https://app.manifest.build/otlp");
-    expect(result.endpoint).not.toContain("/api/v1/otlp");
+    expect(result.endpoint).toBe("https://app.manifest.build");
+    expect(result.endpoint).not.toContain("/otlp");
   });
 
   // Env var fallback tests
@@ -350,7 +334,7 @@ describe("validateConfig", () => {
     };
     const err = validateConfig(config)!;
     expect(err).toContain("Invalid endpoint URL");
-    expect(err).toContain("http://localhost:38238/otlp");
+    expect(err).toContain("http://localhost:38238");
   });
 
   it("rejects missing apiKey with actionable fix command", () => {
@@ -396,11 +380,9 @@ describe("validateConfig", () => {
   });
 
   // Regression: the error message must show the correct endpoint example.
-  // Previously it showed /api/v1/otlp which would produce a 404.
   it("shows correct example endpoint in validation error message", () => {
     const config = { ...validConfig, endpoint: "not-a-url" };
     const err = validateConfig(config)!;
-    expect(err).toContain("https://app.manifest.build/otlp");
-    expect(err).not.toContain("/api/v1/otlp");
+    expect(err).toContain("https://app.manifest.build");
   });
 });

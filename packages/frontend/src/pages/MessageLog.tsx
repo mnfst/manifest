@@ -8,14 +8,13 @@ import {
   For,
   type Component,
 } from 'solid-js';
-import { useParams } from '@solidjs/router';
+import { A, useParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
 import Pagination from '../components/Pagination.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import { getMessages, getCustomProviders, type CustomProviderData } from '../services/api.js';
-import { inferProviderFromModel } from '../services/routing-utils.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import Select from '../components/Select.jsx';
 import { isLocalMode } from '../services/local-mode.js';
@@ -271,8 +270,8 @@ const MessageLog: Component = () => {
               when={isLocalMode() || setupCompleted()}
               fallback={
                 <div class="empty-state">
-                  <div class="empty-state__title">No messages recorded</div>
-                  <p>Connect your agent and send a message. Each LLM call gets logged here.</p>
+                  <div class="empty-state__title">No messages yet</div>
+                  <p>Set up your agent and send a message. Every LLM call shows up here.</p>
                   <button
                     class="btn btn--primary btn--sm"
                     style="margin-top: var(--gap-md);"
@@ -294,8 +293,15 @@ const MessageLog: Component = () => {
               <div class="waiting-banner">
                 <i class="bxd bx-florist" />
                 <p>
-                  Waiting for data. Messages will show up within seconds of your agent's first LLM
-                  call.
+                  No messages yet. They appear seconds after your first LLM call. Need a provider?
+                  Head to{' '}
+                  <A
+                    href={`/agents/${params.agentName}/routing`}
+                    style="color: hsl(var(--primary)); text-decoration: underline;"
+                  >
+                    Routing
+                  </A>
+                  .
                 </p>
               </div>
               <div class="demo-dashboard">

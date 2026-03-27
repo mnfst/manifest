@@ -36,8 +36,8 @@ interface CachedKey {
 }
 
 @Injectable()
-export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
-  private readonly logger = new Logger(OtlpAuthGuard.name);
+export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
+  private readonly logger = new Logger(AgentKeyAuthGuard.name);
   private cache = new Map<string, CachedKey>();
   private devContext: { context: IngestionContext; expiresAt: number } | null = null;
   private readonly CACHE_TTL_MS = 5 * 60 * 1000;
@@ -89,7 +89,7 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
     }
 
     if (!authHeader) {
-      this.logger.warn(`OTLP request without auth from ${request.ip}`);
+      this.logger.warn(`Request without auth from ${request.ip}`);
       throw new UnauthorizedException('Authorization header required');
     }
 
@@ -146,7 +146,7 @@ export class OtlpAuthGuard implements CanActivate, OnModuleDestroy {
       .getOne();
 
     if (!keyRecord) {
-      this.logger.warn(`Rejected unknown OTLP key: ${token.substring(0, 8)}...`);
+      this.logger.warn(`Rejected unknown agent key: ${token.substring(0, 8)}...`);
       throw new UnauthorizedException('Invalid API key');
     }
 

@@ -64,9 +64,9 @@ describe("SetupStepVerify", () => {
       expect(container.textContent).not.toContain("openclaw gateway restart");
     });
 
-    it("should show telemetry ready message", () => {
+    it("should show ready message", () => {
       const { container } = render(() => <SetupStepVerify isLocal={true} />);
-      expect(container.textContent).toContain("ready to receive telemetry");
+      expect(container.textContent).toContain("Your agent is ready");
     });
 
     it("should show step number with Start chatting heading", () => {

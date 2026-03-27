@@ -1,47 +1,35 @@
 import { INestApplication } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { v4 as uuid } from 'uuid';
 import request from 'supertest';
-import { createTestApp, TEST_API_KEY } from './helpers';
+import { createTestApp, TEST_API_KEY, TEST_TENANT_ID, TEST_AGENT_ID } from './helpers';
 
 let app: INestApplication;
 
 beforeAll(async () => {
   app = await createTestApp();
 
-  // Seed test data
-  await request(app.getHttpServer())
-    .post('/api/v1/telemetry')
-    .set('x-api-key', TEST_API_KEY)
-    .send({
-      events: [
-        {
-          timestamp: new Date().toISOString(),
-          description: 'Chat message processed',
-          service_type: 'agent',
-          status: 'ok',
-          model: 'claude-opus-4-6',
-          input_tokens: 2000,
-          output_tokens: 1000,
-        },
-        {
-          timestamp: new Date().toISOString(),
-          description: 'Browser scrape failed',
-          service_type: 'browser',
-          status: 'error',
-          model: 'gpt-4o',
-          input_tokens: 500,
-          output_tokens: 0,
-        },
-        {
-          timestamp: new Date().toISOString(),
-          description: 'Voice transcription completed',
-          service_type: 'voice',
-          status: 'ok',
-          model: 'whisper-large',
-          input_tokens: 0,
-          output_tokens: 300,
-        },
-      ],
-    });
+  // Seed test data via direct DB inserts
+  const ds = app.get(DataSource);
+  const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, 'ok', 'claude-opus-4-6', 2000, 1000, 0, 0, 'Chat message processed', 'agent', 'test-agent', 'test-user-001'],
+  );
+
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, 'error', 'gpt-4o', 500, 0, 0, 0, 'Browser scrape failed', 'browser', 'test-agent', 'test-user-001'],
+  );
+
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, 'ok', 'whisper-large', 0, 300, 0, 0, 'Voice transcription completed', 'voice', 'test-agent', 'test-user-001'],
+  );
 });
 
 afterAll(async () => {

@@ -1,9 +1,9 @@
 {
   "id": "manifest",
-  "kind": "observability",
-  "name": "Manifest — Agent Observability",
+  "kind": "routing",
+  "name": "Manifest — Smart LLM Router",
   "version": "5.32.0",
-  "description": "Traces, metrics, and cost tracking for your OpenClaw agent. Zero-config local dashboard included.",
+  "description": "Smart model routing, cost tracking, and usage analytics for your OpenClaw agent. Zero-config local dashboard included.",
   "author": "MNFST Inc.",
   "homepage": "https://manifest.build",
   "configSchema": {

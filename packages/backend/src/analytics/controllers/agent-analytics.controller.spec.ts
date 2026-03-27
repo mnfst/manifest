@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AgentAnalyticsController } from './agent-analytics.controller';
 import { AgentAnalyticsService } from '../services/agent-analytics.service';
-import { OtlpAuthGuard } from '../../otlp/guards/otlp-auth.guard';
+import { AgentKeyAuthGuard } from '../../otlp/guards/agent-key-auth.guard';
 
 describe('AgentAnalyticsController', () => {
   let controller: AgentAnalyticsController;
@@ -45,7 +45,7 @@ describe('AgentAnalyticsController', () => {
         },
       ],
     })
-      .overrideGuard(OtlpAuthGuard)
+      .overrideGuard(AgentKeyAuthGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

@@ -56,6 +56,7 @@ const PROVIDER_PREFIXES: readonly string[] = [
 ];
 
 const DATE_SUFFIX_RE = /-\d{4}-?\d{2}-?\d{2}$/;
+const VERSION_SUFFIX_RE = /-\d{3}$/;
 
 export function stripProviderPrefix(name: string): string {
   for (const prefix of PROVIDER_PREFIXES) {
@@ -85,6 +86,11 @@ export function buildAliasMap(canonicalNames: ReadonlyArray<string>): Map<string
     const bare = stripProviderPrefix(name);
     if (bare !== name && !map.has(bare)) {
       map.set(bare, name);
+    }
+    // Index by bare name without version suffix (e.g. "gemini-2.0-flash-001" → "gemini-2.0-flash")
+    const bareNoVersion = bare.replace(VERSION_SUFFIX_RE, '');
+    if (bareNoVersion !== bare && !map.has(bareNoVersion)) {
+      map.set(bareNoVersion, name);
     }
     for (const variant of buildAnthropicShortModelIdVariants(bare)) {
       if (!map.has(variant)) {

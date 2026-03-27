@@ -4,9 +4,7 @@ import { join, dirname } from 'path';
 import { homedir } from 'os';
 import { randomBytes } from 'crypto';
 import { ManifestConfig } from './config';
-import { PluginLogger } from './telemetry';
-import { initTelemetry, shutdownTelemetry } from './telemetry';
-import { registerHooks, initMetrics } from './hooks';
+import { PluginLogger } from './types';
 import { registerRouting } from './routing';
 import { registerTools } from './tools';
 import { registerCommand } from './command';
@@ -262,17 +260,13 @@ export function registerLocalMode(api: any, config: ManifestConfig, logger: Plug
     return;
   }
 
-  // Override config for local telemetry endpoint
-  const localEndpoint = `http://${host}:${port}/otlp`;
+  // Override config for local routing endpoint
   const localConfig: ManifestConfig = {
     ...config,
     apiKey,
-    endpoint: localEndpoint,
+    endpoint: `http://${host}:${port}`,
   };
 
-  const { tracer, meter } = initTelemetry(localConfig, logger);
-  initMetrics(meter);
-  registerHooks(api, tracer, localConfig, logger);
   registerRouting(api, localConfig, logger);
 
   if (typeof api.registerTool === 'function') {
@@ -280,7 +274,7 @@ export function registerLocalMode(api: any, config: ManifestConfig, logger: Plug
   }
   registerCommand(api, localConfig, logger);
 
-  logger.info(`[manifest] 🦚 View your Manifest Dashboard -> http://${host}:${port}`);
+  logger.info(`[manifest] View your Manifest Dashboard -> http://${host}:${port}`);
 
   api.registerService({
     id: 'manifest-local',
@@ -318,9 +312,6 @@ export function registerLocalMode(api: any, config: ManifestConfig, logger: Plug
           );
         }
       }
-    },
-    stop: async () => {
-      await shutdownTelemetry(logger);
     },
   });
 }

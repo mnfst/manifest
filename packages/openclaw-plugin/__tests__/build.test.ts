@@ -36,18 +36,10 @@ describeIfBuilt("built bundle (dist/index.js)", () => {
     expect(evalCalls).toBeNull();
   });
 
-  it("embeds the version from package.json", () => {
-    expect(bundleContent).toContain(pkg.version);
-  });
-
   it("includes the banner comment", () => {
     expect(bundleContent).toMatch(
-      /^\/\* manifest .* OpenClaw Observability Plugin \*\//,
+      /^\/\* manifest .* OpenClaw LLM Router Plugin \*\//,
     );
-  });
-
-  it("uses BasicTracerProvider instead of NodeTracerProvider", () => {
-    expect(bundleContent).not.toContain("NodeTracerProvider");
   });
 
   it("does not contain readFile references outside local-mode config", () => {
@@ -129,25 +121,6 @@ describeIfBuilt("built bundle (dist/index.js)", () => {
 });
 
 describe("build configuration", () => {
-  it("stubs/inquire.js exists and is a valid module", () => {
-    const stubPath = resolve(__dirname, "../stubs/inquire.js");
-    expect(existsSync(stubPath)).toBe(true);
-
-    const stub = require(stubPath);
-    expect(typeof stub).toBe("function");
-    expect(stub()).toBeNull();
-  });
-
-  it("package.json depends on sdk-trace-base, not sdk-trace-node", () => {
-    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-    const deps = {
-      ...pkg.dependencies,
-      ...pkg.devDependencies,
-    };
-    expect(deps).not.toHaveProperty("@opentelemetry/sdk-trace-node");
-    expect(deps).toHaveProperty("@opentelemetry/sdk-trace-base");
-  });
-
   it("package.json includes backend runtime dependencies", () => {
     const pluginPkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as {
       dependencies?: Record<string, string>;
@@ -175,14 +148,6 @@ describe("build configuration", () => {
     );
   });
 
-  it("build.ts aliases @protobufjs/inquire to the stub", () => {
-    const buildPath = resolve(__dirname, "../build.ts");
-    const buildContent = readFileSync(buildPath, "utf-8");
-
-    expect(buildContent).toContain("@protobufjs/inquire");
-    expect(buildContent).toContain("stubs/inquire.js");
-  });
-
   it("stubs/child_process.js exists and exports a no-op exec", () => {
     const stubPath = resolve(__dirname, "../stubs/child_process.js");
     expect(existsSync(stubPath)).toBe(true);
@@ -197,28 +162,6 @@ describe("build configuration", () => {
 
     expect(buildContent).toContain("child_process");
     expect(buildContent).toMatch(/external.*child_process/s);
-  });
-
-  it("stubs/resources.js exports a Resource class with merge/empty/default", () => {
-    const stubPath = resolve(__dirname, "../stubs/resources.js");
-    expect(existsSync(stubPath)).toBe(true);
-
-    const { Resource } = require(stubPath);
-    const r = new Resource({ "service.name": "test" });
-    expect(r.attributes["service.name"]).toBe("test");
-    expect(Resource.empty().attributes).toEqual({});
-    expect(r.merge(new Resource({ extra: "val" })).attributes).toEqual({
-      "service.name": "test",
-      extra: "val",
-    });
-  });
-
-  it("build.ts aliases @opentelemetry/resources to the stub", () => {
-    const buildPath = resolve(__dirname, "../build.ts");
-    const buildContent = readFileSync(buildPath, "utf-8");
-
-    expect(buildContent).toContain("@opentelemetry/resources");
-    expect(buildContent).toContain("stubs/resources.js");
   });
 
   it("build.ts keeps ./server as external", () => {

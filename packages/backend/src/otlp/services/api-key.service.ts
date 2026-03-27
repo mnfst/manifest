@@ -8,7 +8,7 @@ import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { hashKey, keyPrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
-import { OtlpAuthGuard } from '../guards/otlp-auth.guard';
+import { AgentKeyAuthGuard } from '../guards/agent-key-auth.guard';
 
 @Injectable()
 export class ApiKeyGeneratorService {
@@ -19,7 +19,7 @@ export class ApiKeyGeneratorService {
     private readonly agentRepo: Repository<Agent>,
     @InjectRepository(AgentApiKey)
     private readonly keyRepo: Repository<AgentApiKey>,
-    private readonly otlpAuthGuard: OtlpAuthGuard,
+    private readonly otlpAuthGuard: AgentKeyAuthGuard,
   ) {}
 
   private generateKey(): string {

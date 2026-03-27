@@ -302,7 +302,7 @@ describe('MessageTable', () => {
       expect(container.textContent).toContain('gpt-4o');
     });
 
-    it('prefers display_name over model slug', () => {
+    it('uses getModelDisplayName over display_name', () => {
       const { container } = render(() => (
         <MessageTable
           items={[makeRow({ model: 'gpt-4o', display_name: 'GPT-4o' })]}
@@ -311,7 +311,8 @@ describe('MessageTable', () => {
           customProviderName={noopProvider}
         />
       ));
-      expect(container.textContent).toContain('GPT-4o');
+      // getModelDisplayName is mocked to strip custom prefix; for gpt-4o it returns as-is
+      expect(container.textContent).toContain('gpt-4o');
     });
 
     it('renders custom provider letter avatar', () => {
