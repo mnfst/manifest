@@ -1,5 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
+
+// SolidJS createResource leaks rejected promises as unhandled rejections
+// when error gate is bypassed (e.g. props.apiKey provided)
+const noop = () => {};
+beforeAll(() => process.on("unhandledRejection", noop));
+afterAll(() => process.off("unhandledRejection", noop));
 
 const mockGetHealth = vi.fn().mockResolvedValue({ mode: "cloud" });
 vi.mock("../../src/services/api.js", () => ({
