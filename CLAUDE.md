@@ -496,7 +496,7 @@ Both `manifest` and `manifest-provider` are actively published.
 
 ### Workflow
 
-1. When changing backend, frontend, or a publishable package, run `npx changeset` and select `manifest` with the appropriate bump level
+1. When changing backend, frontend, or `openclaw-plugins/manifest`, run `npx changeset` and select `manifest`. When changing `openclaw-plugins/manifest-provider`, select `manifest-provider`. Both can be included in a single changeset if both are affected.
 2. On merge to `main`, the release workflow (`.github/workflows/release.yml`) opens a "Version Packages" PR
 3. When that PR merges, the workflow publishes to npm using `NPM_TOKEN` secret
 
@@ -524,7 +524,7 @@ Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. C
 
 ### CRITICAL: 100% Line Coverage Required
 
-**Every PR must maintain 100% line coverage across all three packages.** The codebase currently has full line coverage and every PR must preserve it. This means:
+**Every PR must maintain 100% line coverage across all four packages.** The codebase currently has full line coverage and every PR must preserve it. This means:
 
 - All new source files must have corresponding tests with 100% line coverage
 - All modified functions must have tests covering every line, including error paths

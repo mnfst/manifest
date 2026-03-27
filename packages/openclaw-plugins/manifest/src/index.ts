@@ -16,7 +16,7 @@ module.exports = {
 
     const config = api.pluginConfig || {};
     const inner =
-      config && typeof config === 'object' && 'config' in config && typeof config.config === 'object'
+      config && typeof config === 'object' && 'config' in config && config.config != null && typeof config.config === 'object'
         ? (config.config as Record<string, unknown>)
         : (config as Record<string, unknown>);
 

@@ -47,7 +47,7 @@ See [manifest-provider](https://www.npmjs.com/package/manifest-provider).
 
 ## Data
 
-All data stays on your machine:
+Telemetry, dashboard, and configuration data stays on your machine. LLM requests are forwarded to your configured providers (e.g. OpenAI, Anthropic) as part of normal routing.
 
 - **Database**: `~/.openclaw/manifest/manifest.db` (SQLite)
 - **API key**: `~/.openclaw/manifest/config.json`

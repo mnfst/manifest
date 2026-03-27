@@ -157,7 +157,8 @@ Requires `jq` and the `openclaw` CLI.
 | `npm test --workspace=packages/frontend` | Run frontend tests (Vitest) |
 | `npm test --workspace=packages/openclaw-plugins/manifest` | Run manifest plugin tests (Jest) |
 | `npm test --workspace=packages/openclaw-plugins/manifest-provider` | Run provider plugin tests (Jest) |
-| `npm run build:plugin` | Build the OpenClaw plugins |
+| `npm run build:plugin` | Build the manifest (local) plugin |
+| `npm run build:provider` | Build the manifest-provider (cloud) plugin |
 
 ## Working with Individual Packages
 

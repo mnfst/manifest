@@ -86,7 +86,7 @@ npm audit signatures
 
 ## Setup (Local — recommended for evaluation)
 
-No account, no API key, no external calls.
+No account or API key required. Telemetry and dashboard data stay local; LLM requests still go to your configured providers.
 
 ```bash
 openclaw plugins install manifest
@@ -104,6 +104,7 @@ Two commands:
 ```bash
 openclaw plugins install manifest-provider
 openclaw providers setup manifest-provider
+openclaw gateway restart
 ```
 
 The setup wizard prompts for your API key from [app.manifest.build](https://app.manifest.build) → create an account → create an agent → copy the `mnfst_*` key. You can also set `MANIFEST_API_KEY` env var for CI/CD.

@@ -43,7 +43,7 @@
     "publish:plugin": "npm publish --access public --workspace=packages/openclaw-plugins/manifest",
     "publish:provider": "npm publish --access public --workspace=packages/openclaw-plugins/manifest-provider",
     "check:api-prefix": "node scripts/check-api-prefix.js",
-    "lint": "eslint packages/shared/src packages/backend/src packages/frontend/src packages/openclaw-plugins/manifest-provider/src",
+    "lint": "eslint packages/shared/src packages/backend/src packages/frontend/src packages/openclaw-plugins/manifest/src packages/openclaw-plugins/manifest-provider/src",
     "format": "prettier --write 'packages/*/src/**/*.{ts,tsx,css}'",
     "changeset": "changeset",
     "version-packages": "changeset version && node scripts/sync-plugin-version.js",

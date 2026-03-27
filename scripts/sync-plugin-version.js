@@ -11,8 +11,8 @@ for (const { dir, label } of packages) {
   const pluginJsonPath = join(__dirname, '..', 'packages', 'openclaw-plugins', dir, 'openclaw.plugin.json');
 
   if (!existsSync(pkgPath) || !existsSync(pluginJsonPath)) {
-    console.log(`Skipping ${label} — package or manifest not found`);
-    continue;
+    console.error(`ERROR: Missing expected files for ${label}: ${pkgPath} or ${pluginJsonPath}`);
+    process.exit(1);
   }
 
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
