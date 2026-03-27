@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.3
+
+### Patch Changes
+
+- 488e511: Update logo to beta version and adjust logo sizing
+
 ## 5.33.2
 
 ### Patch Changes
