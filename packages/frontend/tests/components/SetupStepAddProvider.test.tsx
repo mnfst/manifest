@@ -61,10 +61,15 @@ describe("SetupStepAddProvider", () => {
     expect(display!.getAttribute("data-prefix")).toBe("mnfst_abc");
   });
 
-  // Accordion order: CLI (expanded), Interactive wizard, Environment variable
-  it("shows CLI method expanded by default", () => {
+  it("shows CLI configuration tab active by default", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    expect(container.querySelector("#method-cli")).not.toBeNull();
+    const activeTab = container.querySelector(".panel__tab--active");
+    expect(activeTab).not.toBeNull();
+    expect(activeTab!.textContent).toBe("CLI configuration");
+  });
+
+  it("shows CLI snippet content by default", () => {
+    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     expect(container.textContent).toContain("models.providers.manifest");
     expect(container.textContent).toContain("openai-completions");
     expect(container.textContent).toContain("openclaw gateway restart");
@@ -96,34 +101,27 @@ describe("SetupStepAddProvider", () => {
     expect(container.textContent).toContain("mnfst_abc...");
   });
 
-  // Accordion: interactive wizard (collapsed by default)
-  it("shows interactive wizard section (collapsed)", () => {
+  it("shows all three tab buttons", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    expect(container.textContent).toContain("Interactive wizard");
-    expect(container.querySelector("#method-onboard")).toBeNull();
+    const tabs = container.querySelectorAll(".panel__tab");
+    expect(tabs.length).toBe(3);
+    expect(tabs[0].textContent).toBe("CLI configuration");
+    expect(tabs[1].textContent).toBe("Interactive wizard");
+    expect(tabs[2].textContent).toBe("Environment variable");
   });
 
-  it("expands onboard method and collapses CLI on click", () => {
+  it("switches to Interactive wizard tab on click", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    const headers = container.querySelectorAll(".setup-method__header");
-    fireEvent.click(headers[1]); // second = onboard
-    expect(container.querySelector("#method-onboard")).not.toBeNull();
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[1]);
     expect(container.textContent).toContain("openclaw onboard");
-    // CLI should be collapsed
-    expect(container.querySelector("#method-cli")).toBeNull();
-  });
-
-  it("onboard section mentions Custom Provider", () => {
-    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    const headers = container.querySelectorAll(".setup-method__header");
-    fireEvent.click(headers[1]);
     expect(container.textContent).toContain("Custom Provider");
   });
 
-  it("onboard section shows field values to copy", () => {
+  it("onboard tab shows field values to copy", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    const headers = container.querySelectorAll(".setup-method__header");
-    fireEvent.click(headers[1]);
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[1]);
     expect(container.textContent).toContain("API Base URL");
     expect(container.textContent).toContain("http://localhost:3001/v1");
     expect(container.textContent).toContain("API Key");
@@ -132,18 +130,10 @@ describe("SetupStepAddProvider", () => {
     expect(container.textContent).toContain("Model ID");
   });
 
-  // Accordion: env var (collapsed by default)
-  it("shows env var section (collapsed)", () => {
+  it("switches to Environment variable tab on click", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    expect(container.textContent).toContain("Environment variable");
-    expect(container.querySelector("#method-env")).toBeNull();
-  });
-
-  it("expands env var method on click", () => {
-    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    const headers = container.querySelectorAll(".setup-method__header");
-    fireEvent.click(headers[2]); // third = env
-    expect(container.querySelector("#method-env")).not.toBeNull();
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[2]);
     expect(container.textContent).toContain("MANIFEST_API_KEY");
   });
 
@@ -151,15 +141,15 @@ describe("SetupStepAddProvider", () => {
     const { container } = render(() => (
       <SetupStepAddProvider {...defaultProps} apiKey="mnfst_real_key" />
     ));
-    const headers = container.querySelectorAll(".setup-method__header");
-    fireEvent.click(headers[2]);
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[2]);
     expect(container.textContent).toContain('MANIFEST_API_KEY="mnfst_real_key"');
   });
 
   it("includes MANIFEST_ENDPOINT in env snippet for non-production baseUrl", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    const headers = container.querySelectorAll(".setup-method__header");
-    fireEvent.click(headers[2]);
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[2]);
     expect(container.textContent).toContain("MANIFEST_ENDPOINT");
   });
 
@@ -167,33 +157,9 @@ describe("SetupStepAddProvider", () => {
     const { container } = render(() => (
       <SetupStepAddProvider {...defaultProps} baseUrl="https://app.manifest.build/v1" />
     ));
-    const headers = container.querySelectorAll(".setup-method__header");
-    fireEvent.click(headers[2]);
-    expect(container.querySelector("#method-env")?.textContent).not.toContain("MANIFEST_ENDPOINT");
-  });
-
-  // General accordion behavior
-  it("collapses open method when clicking its header again", () => {
-    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    const headers = container.querySelectorAll(".setup-method__header");
-    fireEvent.click(headers[0]); // CLI is open, click to close
-    expect(container.querySelector("#method-cli")).toBeNull();
-  });
-
-  it("has aria-expanded on method headers", () => {
-    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    const headers = container.querySelectorAll(".setup-method__header");
-    expect(headers[0].getAttribute("aria-expanded")).toBe("true");  // CLI expanded
-    expect(headers[1].getAttribute("aria-expanded")).toBe("false"); // onboard collapsed
-    expect(headers[2].getAttribute("aria-expanded")).toBe("false"); // env collapsed
-  });
-
-  it("has aria-controls on method headers", () => {
-    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    const headers = container.querySelectorAll(".setup-method__header");
-    expect(headers[0].getAttribute("aria-controls")).toBe("method-cli");
-    expect(headers[1].getAttribute("aria-controls")).toBe("method-onboard");
-    expect(headers[2].getAttribute("aria-controls")).toBe("method-env");
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[2]);
+    expect(container.textContent).not.toContain("MANIFEST_ENDPOINT");
   });
 
   it("has copy buttons for base URL and model", () => {
@@ -222,5 +188,20 @@ describe("SetupStepAddProvider", () => {
   it("does not show recommended badge", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     expect(container.querySelector(".setup-method__badge")).toBeNull();
+  });
+
+  it("uses setup-method-tabs container", () => {
+    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
+    expect(container.querySelector(".setup-method-tabs")).not.toBeNull();
+  });
+
+  it("active tab changes on click", () => {
+    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
+    const tabs = container.querySelectorAll(".panel__tab");
+    expect(tabs[0].classList.contains("panel__tab--active")).toBe(true);
+    expect(tabs[1].classList.contains("panel__tab--active")).toBe(false);
+    fireEvent.click(tabs[1]);
+    expect(tabs[0].classList.contains("panel__tab--active")).toBe(false);
+    expect(tabs[1].classList.contains("panel__tab--active")).toBe(true);
   });
 });

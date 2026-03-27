@@ -1,8 +1,14 @@
-import { createSignal, Show, type Component } from 'solid-js';
+import { createSignal, For, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import ApiKeyDisplay from './ApiKeyDisplay.jsx';
 
 type MethodId = 'cli' | 'onboard' | 'env';
+
+const METHOD_TABS: { id: MethodId; label: string }[] = [
+  { id: 'cli', label: 'CLI configuration' },
+  { id: 'onboard', label: 'Interactive wizard' },
+  { id: 'env', label: 'Environment variable' },
+];
 
 interface Props {
   apiKey: string | null;
@@ -10,31 +16,11 @@ interface Props {
   baseUrl: string;
 }
 
-function ChevronIcon(props: { open: boolean }) {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      class={`setup-method__chevron${props.open ? ' setup-method__chevron--open' : ''}`}
-    >
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  );
-}
-
 const SetupStepAddProvider: Component<Props> = (props) => {
-  const [openMethod, setOpenMethod] = createSignal<MethodId>('cli');
+  const [activeTab, setActiveTab] = createSignal<MethodId>('cli');
 
   const displayKey = () =>
     props.apiKey ?? (props.keyPrefix ? `${props.keyPrefix}...` : 'mnfst_YOUR_KEY');
-
-  const toggle = (id: MethodId) => {
-    setOpenMethod((cur) => (cur === id ? (null as unknown as MethodId) : id));
-  };
 
   const cliSnippet = () => {
     const providerJson = JSON.stringify({
@@ -86,19 +72,23 @@ openclaw gateway restart`;
         </div>
       </div>
 
-      {/* Method 1: Manual CLI configuration */}
-      <div class="setup-method">
-        <button
-          class="setup-method__header"
-          onClick={() => toggle('cli')}
-          aria-expanded={openMethod() === 'cli'}
-          aria-controls="method-cli"
-        >
-          CLI configuration
-          <ChevronIcon open={openMethod() === 'cli'} />
-        </button>
-        <Show when={openMethod() === 'cli'}>
-          <div class="setup-method__body" id="method-cli">
+      <div class="setup-method-tabs">
+        <div class="panel__tabs">
+          <For each={METHOD_TABS}>
+            {(t) => (
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeTab() === t.id }}
+                onClick={() => setActiveTab(t.id)}
+              >
+                {t.label}
+              </button>
+            )}
+          </For>
+        </div>
+
+        <div class="setup-method-tabs__content">
+          <Show when={activeTab() === 'cli'}>
             <p class="setup-method__hint">
               Set the provider config and default model directly via CLI commands.
             </p>
@@ -108,23 +98,9 @@ openclaw gateway restart`;
                 {cliSnippet()}
               </pre>
             </div>
-          </div>
-        </Show>
-      </div>
+          </Show>
 
-      {/* Method 2: Interactive onboarding wizard */}
-      <div class="setup-method">
-        <button
-          class="setup-method__header"
-          onClick={() => toggle('onboard')}
-          aria-expanded={openMethod() === 'onboard'}
-          aria-controls="method-onboard"
-        >
-          Interactive wizard
-          <ChevronIcon open={openMethod() === 'onboard'} />
-        </button>
-        <Show when={openMethod() === 'onboard'}>
-          <div class="setup-method__body" id="method-onboard">
+          <Show when={activeTab() === 'onboard'}>
             <p class="setup-method__hint">
               Run the onboarding wizard and select <strong>Custom Provider</strong> when prompted.
               Then enter the following values:
@@ -162,23 +138,9 @@ openclaw gateway restart`;
                 </span>
               </div>
             </div>
-          </div>
-        </Show>
-      </div>
+          </Show>
 
-      {/* Method 3: Environment variable */}
-      <div class="setup-method">
-        <button
-          class="setup-method__header"
-          onClick={() => toggle('env')}
-          aria-expanded={openMethod() === 'env'}
-          aria-controls="method-env"
-        >
-          Environment variable
-          <ChevronIcon open={openMethod() === 'env'} />
-        </button>
-        <Show when={openMethod() === 'env'}>
-          <div class="setup-method__body" id="method-env">
+          <Show when={activeTab() === 'env'}>
             <p class="setup-method__hint">
               OpenClaw detects this automatically. Add to your shell profile or{' '}
               <code class="api-key-display__code">~/.openclaw/.env</code> for persistence.
@@ -189,8 +151,8 @@ openclaw gateway restart`;
                 {envSnippet()}
               </pre>
             </div>
-          </div>
-        </Show>
+          </Show>
+        </div>
       </div>
     </div>
   );

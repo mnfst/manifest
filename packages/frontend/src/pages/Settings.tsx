@@ -4,7 +4,13 @@ import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
 import SetupStepAddProvider from '../components/SetupStepAddProvider.jsx';
 import { CopyButton } from '../components/SetupStepInstall.jsx';
-import { getAgentKey, deleteAgent, renameAgent, rotateAgentKey } from '../services/api.js';
+import {
+  getAgentKey,
+  deleteAgent,
+  renameAgent,
+  rotateAgentKey,
+  getRoutingStatus,
+} from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { isLocalMode } from '../services/local-mode.js';
@@ -31,6 +37,9 @@ const Settings: Component = () => {
     () => agentName(),
     (n) => getAgentKey(n),
   );
+
+  const [routingStatus] = createResource(() => agentName(), getRoutingStatus);
+  const routingEnabled = () => routingStatus()?.enabled ?? false;
 
   const baseUrl = () => {
     const custom = apiKeyData()?.pluginEndpoint;
@@ -254,21 +263,24 @@ const Settings: Component = () => {
                 keyPrefix={apiKeyData()?.keyPrefix ?? null}
                 baseUrl={baseUrl()}
               />
-              <div style="margin-top: var(--gap-lg); padding-top: var(--gap-lg); border-top: 1px solid hsl(var(--border));">
-                <p style="margin: 0 0 12px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-                  Add at least one LLM provider so Manifest knows where to route requests.
-                </p>
-                <button
-                  class="btn btn--primary btn--sm"
-                  onClick={() =>
-                    navigate(`/agents/${encodeURIComponent(agentName())}/routing`, {
-                      state: { openProviders: true },
-                    })
-                  }
-                >
-                  Go to routing
-                </button>
-              </div>
+              <Show when={!routingEnabled()}>
+                <div style="margin-top: var(--gap-lg); padding-top: var(--gap-lg); border-top: 1px solid hsl(var(--border)); display: flex; align-items: center; justify-content: space-between;">
+                  <p style="margin: 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+                    Add at least one LLM provider so Manifest knows where to route requests.
+                  </p>
+                  <button
+                    class="btn btn--primary btn--sm"
+                    style="flex-shrink: 0; margin-left: 16px;"
+                    onClick={() =>
+                      navigate(`/agents/${encodeURIComponent(agentName())}/routing`, {
+                        state: { openProviders: true },
+                      })
+                    }
+                  >
+                    Go to routing
+                  </button>
+                </div>
+              </Show>
             </div>
           </Show>
         </Show>
