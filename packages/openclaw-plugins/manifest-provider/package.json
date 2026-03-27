@@ -25,7 +25,10 @@
   "openclaw": {
     "extensions": [
       "./dist/index.js"
-    ]
+    ],
+    "compat": {
+      "pluginApi": ">=2026.2.0"
+    }
   },
   "engines": {
     "node": ">=20.0.0"
