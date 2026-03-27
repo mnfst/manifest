@@ -2,12 +2,11 @@ import { createSignal, For, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import ApiKeyDisplay from './ApiKeyDisplay.jsx';
 
-type MethodId = 'cli' | 'onboard' | 'env';
+type MethodId = 'cli' | 'onboard';
 
 const METHOD_TABS: { id: MethodId; label: string }[] = [
   { id: 'cli', label: 'CLI configuration' },
   { id: 'onboard', label: 'Interactive wizard' },
-  { id: 'env', label: 'Environment variable' },
 ];
 
 interface Props {
@@ -35,14 +34,6 @@ openclaw gateway restart`;
   };
 
   const onboardSnippet = () => `openclaw onboard`;
-
-  const envSnippet = () => {
-    const lines = [`export MANIFEST_API_KEY="${displayKey()}"`];
-    if (props.baseUrl && !props.baseUrl.includes('app.manifest.build')) {
-      lines.push(`export MANIFEST_ENDPOINT="${props.baseUrl}"`);
-    }
-    return lines.join('\n');
-  };
 
   return (
     <div>
@@ -137,19 +128,6 @@ openclaw gateway restart`;
                   <CopyButton text="auto" />
                 </span>
               </div>
-            </div>
-          </Show>
-
-          <Show when={activeTab() === 'env'}>
-            <p class="setup-method__hint">
-              OpenClaw detects this automatically. Add to your shell profile or{' '}
-              <code class="api-key-display__code">~/.openclaw/.env</code> for persistence.
-            </p>
-            <div class="setup-method__code">
-              <CopyButton text={envSnippet()} />
-              <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">
-                {envSnippet()}
-              </pre>
             </div>
           </Show>
         </div>

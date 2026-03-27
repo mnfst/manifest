@@ -15,24 +15,17 @@ describe("SetupStepConfigure", () => {
 
   it("shows description", () => {
     const { container } = render(() => <SetupStepConfigure apiKey={null} keyPrefix={null} agentName="test-agent" endpoint={null} />);
-    expect(container.textContent).toContain("Run one of these commands");
+    expect(container.textContent).toContain("Run this command");
   });
 
-  it("shows CLI tab and Environment tab", () => {
-    render(() => <SetupStepConfigure apiKey={null} keyPrefix={null} agentName="test-agent" endpoint={null} />);
-    expect(screen.getByText("OpenClaw CLI")).toBeDefined();
-    expect(screen.getByText("Environment")).toBeDefined();
+  it("shows OpenClaw CLI title", () => {
+    const { container } = render(() => <SetupStepConfigure apiKey={null} keyPrefix={null} agentName="test-agent" endpoint={null} />);
+    expect(container.textContent).toContain("OpenClaw CLI");
   });
 
   it("shows CLI command by default", () => {
     const { container } = render(() => <SetupStepConfigure apiKey={null} keyPrefix={null} agentName="test-agent" endpoint={null} />);
     expect(container.textContent).toContain("openclaw config set");
-  });
-
-  it("shows env command when Environment tab clicked", () => {
-    const { container } = render(() => <SetupStepConfigure apiKey={null} keyPrefix={null} agentName="test-agent" endpoint={null} />);
-    fireEvent.click(screen.getByText("Environment"));
-    expect(container.textContent).toContain("export MANIFEST_API_KEY");
   });
 
   it("shows full API key with warning when provided", () => {
@@ -56,10 +49,4 @@ describe("SetupStepConfigure", () => {
     expect(container.textContent).toContain("2. Configure your agent");
   });
 
-  it("includes endpoint in env command when provided", () => {
-    const { container } = render(() => <SetupStepConfigure apiKey={null} keyPrefix={null} agentName="test-agent" endpoint="http://localhost:3001/otlp" />);
-    fireEvent.click(screen.getByText("Environment"));
-    expect(container.textContent).toContain("MANIFEST_ENDPOINT");
-    expect(container.textContent).toContain("http://localhost:3001/otlp");
-  });
 });

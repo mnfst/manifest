@@ -101,13 +101,12 @@ describe("SetupStepAddProvider", () => {
     expect(container.textContent).toContain("mnfst_abc...");
   });
 
-  it("shows all three tab buttons", () => {
+  it("shows both tab buttons", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
-    expect(tabs.length).toBe(3);
+    expect(tabs.length).toBe(2);
     expect(tabs[0].textContent).toBe("CLI configuration");
     expect(tabs[1].textContent).toBe("Interactive wizard");
-    expect(tabs[2].textContent).toBe("Environment variable");
   });
 
   it("switches to Interactive wizard tab on click", () => {
@@ -128,38 +127,6 @@ describe("SetupStepAddProvider", () => {
     expect(container.textContent).toContain("Endpoint compatibility");
     expect(container.textContent).toContain("OpenAI-compatible");
     expect(container.textContent).toContain("Model ID");
-  });
-
-  it("switches to Environment variable tab on click", () => {
-    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    const tabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(tabs[2]);
-    expect(container.textContent).toContain("MANIFEST_API_KEY");
-  });
-
-  it("env snippet with full key when provided", () => {
-    const { container } = render(() => (
-      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_real_key" />
-    ));
-    const tabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(tabs[2]);
-    expect(container.textContent).toContain('MANIFEST_API_KEY="mnfst_real_key"');
-  });
-
-  it("includes MANIFEST_ENDPOINT in env snippet for non-production baseUrl", () => {
-    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    const tabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(tabs[2]);
-    expect(container.textContent).toContain("MANIFEST_ENDPOINT");
-  });
-
-  it("omits MANIFEST_ENDPOINT for app.manifest.build baseUrl", () => {
-    const { container } = render(() => (
-      <SetupStepAddProvider {...defaultProps} baseUrl="https://app.manifest.build/v1" />
-    ));
-    const tabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(tabs[2]);
-    expect(container.textContent).not.toContain("MANIFEST_ENDPOINT");
   });
 
   it("has copy buttons for base URL and model", () => {
