@@ -154,7 +154,9 @@ packages/
 │   │   ├── layouts/                         # Layout components
 │   │   └── styles/
 │   └── tests/
-├── openclaw-plugin/               # npm: `manifest` — OpenClaw observability plugin (includes embedded server)
+├── openclaw-plugins/
+│   ├── manifest/               # npm: `manifest` — full self-hosted plugin (embedded server + dashboard)
+│   └── manifest-provider/      # npm: `manifest-provider` — cloud-only provider plugin
 └── subscription-capabilities/     # Subscription provider config (not in npm workspaces)
 ```
 
@@ -186,7 +188,7 @@ cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
 cd packages/frontend && npx vite
 
 # Plugin (watch mode, optional)
-cd packages/openclaw-plugin && npx tsx watch build.ts
+cd packages/openclaw-plugins/manifest && npx tsx watch build.ts
 ```
 
 **Note:** `npm run dev` (turbo) starts frontend + plugin but NOT the backend, because the backend's script is `start:dev` not `dev`. Start the backend separately as shown above.
@@ -230,7 +232,7 @@ Then set `DATABASE_URL=postgresql://myuser:mypassword@localhost:5432/manifest_<n
 
 ```bash
 npm run build:plugin
-# or: cd packages/openclaw-plugin && npx tsx build.ts
+# or: cd packages/openclaw-plugins/manifest && npx tsx build.ts
 ```
 
 ```bash
@@ -478,18 +480,19 @@ Version management and npm publishing use [Changesets](https://github.com/change
 
 | Package | npm name | Published |
 |---------|----------|-----------|
-| `packages/openclaw-plugin` | `manifest` | Yes (includes embedded server) |
+| `packages/openclaw-plugins/manifest` | `manifest` | Yes (full self-hosted plugin with embedded server + dashboard) |
+| `packages/openclaw-plugins/manifest-provider` | `manifest-provider` | Yes (lightweight cloud-only provider plugin, ~22KB) |
 | `packages/backend` | `manifest-backend` | No (`private: true`) |
 | `packages/frontend` | `manifest-frontend` | No (`private: true`) |
 
-Only `manifest` is actively published.
+Both `manifest` and `manifest-provider` are actively published.
 
 ### CRITICAL: Every PR Needs a Changeset
 
 **Before creating any PR, you MUST add a changeset.** The `changeset-check` CI job will fail without one.
 
 - **Backend or frontend changes always need a `manifest` changeset.** These packages compile into `manifest`, so any change to `packages/backend/` or `packages/frontend/` must include a changeset bumping `manifest` (patch for fixes, minor for features). CI enforces this.
-- If the PR changes a **publishable package** directly (`openclaw-plugin`): run `npx changeset` and select the appropriate bump level.
+- If the PR changes a **publishable package** directly (`openclaw-plugins/manifest` or `openclaw-plugins/manifest-provider`): run `npx changeset` and select the appropriate bump level. Changes to `manifest-provider` only need a `manifest-provider` changeset (not `manifest`) unless the full plugin is also affected.
 - **Empty changesets** (`npx changeset add --empty`) should only be used for changes that don't affect any publishable package: CI config, docs, tooling, or dev-only scripts.
 - Commit the generated `.changeset/*.md` file as part of the PR.
 
@@ -531,13 +534,15 @@ Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. C
 - Run coverage locally before creating a PR:
   - `cd packages/backend && npx jest --coverage`
   - `cd packages/frontend && npx vitest run --coverage`
-  - `cd packages/openclaw-plugin && npx jest --coverage`
+  - `cd packages/openclaw-plugins/manifest && npx jest --coverage`
+  - `cd packages/openclaw-plugins/manifest-provider && npx jest --coverage`
 
 This applies to:
 
 - New services, guards, controllers, or utilities in `packages/backend/src/`
 - New components or functions in `packages/frontend/src/`
-- New modules in `packages/openclaw-plugin/src/`
+- New modules in `packages/openclaw-plugins/manifest/src/`
+- New modules in `packages/openclaw-plugins/manifest-provider/src/`
 
 ### Coverage Flags
 
@@ -545,7 +550,8 @@ This applies to:
 |------|-------|--------|
 | `backend` | `packages/backend/src/` | Backend (PostgreSQL) |
 | `frontend` | `packages/frontend/src/` | frontend |
-| `plugin` | `packages/openclaw-plugin/src/` | plugin |
+| `plugin` | `packages/openclaw-plugins/manifest/src/` | plugin |
+| `provider-plugin` | `packages/openclaw-plugins/manifest-provider/src/` | provider-plugin |
 
 ### E2E Test Entities
 

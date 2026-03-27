@@ -141,7 +141,8 @@ jobs:
           directory: packages/shared/coverage
           fail_ci_if_error: false
 
-  plugin:
+  provider-plugin:
+    name: Plugin (manifest-provider)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -151,14 +152,35 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build --workspace=packages/shared
-      - run: npm test --workspace=packages/openclaw-plugin -- --coverage --coverageReporters=lcov
-      - name: Upload plugin coverage to Codecov
+      - run: npm test --workspace=packages/openclaw-plugins/manifest-provider -- --coverage --coverageReporters=lcov
+      - name: Upload provider plugin coverage to Codecov
         if: always()
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: plugin
-          directory: packages/openclaw-plugin/coverage
+          directory: packages/openclaw-plugins/manifest-provider/coverage
+          fail_ci_if_error: false
+
+  manifest-plugin:
+    name: Plugin (manifest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace=packages/shared
+      - run: npm test --workspace=packages/openclaw-plugins/manifest -- --coverage --coverageReporters=lcov
+      - name: Upload manifest plugin coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: manifest
+          directory: packages/openclaw-plugins/manifest/coverage
           fail_ci_if_error: false
 
   changeset-check:
@@ -181,6 +203,9 @@ jobs:
       - name: Require manifest changeset for backend/frontend changes
         run: |
           CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+
+          # Backend or frontend changes require a manifest changeset
+          # (manifest bundles the backend server + frontend dashboard)
           if echo "$CHANGED_FILES" | grep -qE '^packages/(backend|frontend)/'; then
             echo "Backend or frontend files changed — checking for manifest changeset..."
             NEW_CHANGESETS=$(git diff --name-only origin/main...HEAD -- '.changeset/*.md' | grep -v README.md || true)
@@ -195,6 +220,23 @@ jobs:
               exit 1
             fi
             echo "Found manifest changeset."
-          else
-            echo "No backend/frontend changes detected — skipping check."
           fi
+
+          # manifest-provider changes require a manifest-provider changeset
+          if echo "$CHANGED_FILES" | grep -qE '^packages/openclaw-plugins/manifest-provider/'; then
+            echo "manifest-provider files changed — checking for manifest-provider changeset..."
+            NEW_CHANGESETS=$(git diff --name-only origin/main...HEAD -- '.changeset/*.md' | grep -v README.md || true)
+            if [ -z "$NEW_CHANGESETS" ]; then
+              echo "::error::manifest-provider files changed but no new changeset found."
+              echo "Run 'npx changeset' and add a patch/minor bump for manifest-provider."
+              exit 1
+            fi
+            if ! grep -l '"manifest-provider"' $NEW_CHANGESETS 2>/dev/null; then
+              echo "::error::manifest-provider files changed but no manifest-provider changeset."
+              echo "Run 'npx changeset' and add a patch/minor bump for manifest-provider."
+              exit 1
+            fi
+            echo "Found manifest-provider changeset."
+          fi
+
+          echo "Changeset check passed."

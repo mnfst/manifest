@@ -7,7 +7,7 @@ const backendSrc = fs.readFileSync(
   'utf8',
 );
 const pluginSrc = fs.readFileSync(
-  'packages/openclaw-plugin/src/constants.ts',
+  'packages/openclaw-plugins/manifest-provider/src/constants.ts',
   'utf8',
 );
 
