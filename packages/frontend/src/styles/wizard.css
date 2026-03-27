@@ -435,3 +435,39 @@
 .setup-checklist__item + .setup-checklist__item {
   margin-top: 8px;
 }
+
+/* ── Onboard wizard fields ─────────────────────────── */
+.setup-onboard-fields {
+  font-size: var(--font-size-sm);
+}
+
+.setup-onboard-fields__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.setup-onboard-fields__row:last-child {
+  border-bottom: none;
+}
+
+.setup-onboard-fields__label {
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+}
+
+.setup-onboard-fields__value {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  word-break: break-all;
+}
+
+.setup-onboard-fields__value .modal-terminal__copy {
+  position: static;
+  flex-shrink: 0;
+}
