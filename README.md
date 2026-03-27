@@ -10,10 +10,11 @@
     Take control of your OpenClaw costs
 </p>
 
-
 ![manifest-gh](https://github.com/user-attachments/assets/7dd74fc2-f7d6-4558-a95a-014ed754a125)
 
 <p align="center">
+  <span><img src="https://img.shields.io/badge/status-beta-yellow" alt="beta" /></span>
+  &nbsp;
   <a href="https://github.com/mnfst/manifest/stargazers"><img src="https://img.shields.io/github/stars/mnfst/manifest?style=flat" alt="GitHub stars" /></a>
   &nbsp;
   <a href="https://www.npmjs.com/package/manifest"><img src="https://img.shields.io/npm/v/manifest?color=cb3837&label=npm" alt="npm version" /></a>
