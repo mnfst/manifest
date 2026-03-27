@@ -1,15 +1,17 @@
 import { HttpException } from '@nestjs/common';
-import { OpenaiOauthController } from './openai-oauth.controller';
-import { OpenaiOauthService } from './openai-oauth.service';
-import { ResolveAgentService } from './resolve-agent.service';
-import { RoutingService } from './routing.service';
+import { OpenaiOauthController } from './oauth/openai-oauth.controller';
+import { OpenaiOauthService } from './oauth/openai-oauth.service';
+import { ResolveAgentService } from './routing-core/resolve-agent.service';
+import { ProviderKeyService } from './routing-core/provider-key.service';
+import { ProviderService } from './routing-core/provider.service';
 import { Request, Response } from 'express';
 
 describe('OpenaiOauthController', () => {
   let controller: OpenaiOauthController;
   let oauthService: jest.Mocked<OpenaiOauthService>;
   let resolveAgent: jest.Mocked<ResolveAgentService>;
-  let routingService: jest.Mocked<RoutingService>;
+  let providerKeyService: jest.Mocked<ProviderKeyService>;
+  let providerService: jest.Mocked<ProviderService>;
 
   beforeEach(() => {
     oauthService = {
@@ -21,12 +23,20 @@ describe('OpenaiOauthController', () => {
       resolve: jest.fn(),
     } as unknown as jest.Mocked<ResolveAgentService>;
 
-    routingService = {
+    providerKeyService = {
       getProviderApiKey: jest.fn(),
-      removeProvider: jest.fn().mockResolvedValue({ notifications: [] }),
-    } as unknown as jest.Mocked<RoutingService>;
+    } as unknown as jest.Mocked<ProviderKeyService>;
 
-    controller = new OpenaiOauthController(oauthService, resolveAgent, routingService);
+    providerService = {
+      removeProvider: jest.fn().mockResolvedValue({ notifications: [] }),
+    } as unknown as jest.Mocked<ProviderService>;
+
+    controller = new OpenaiOauthController(
+      oauthService,
+      resolveAgent,
+      providerKeyService,
+      providerService,
+    );
   });
 
   describe('authorize', () => {
@@ -103,18 +113,18 @@ describe('OpenaiOauthController', () => {
     it('revokes both access and refresh tokens from stored blob', async () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
       const blob = JSON.stringify({ t: 'access-tok', r: 'refresh-tok', e: Date.now() + 3600000 });
-      routingService.getProviderApiKey.mockResolvedValue(blob);
+      providerKeyService.getProviderApiKey.mockResolvedValue(blob);
 
       const result = await controller.revoke('my-agent', { id: 'user-1' } as never);
 
-      expect(routingService.getProviderApiKey).toHaveBeenCalledWith(
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
         'agent-id-1',
         'openai',
         'subscription',
       );
       expect(oauthService.revokeToken).toHaveBeenCalledWith('access-tok');
       expect(oauthService.revokeToken).toHaveBeenCalledWith('refresh-tok');
-      expect(routingService.removeProvider).toHaveBeenCalledWith(
+      expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
         'openai',
         'subscription',
@@ -124,12 +134,12 @@ describe('OpenaiOauthController', () => {
 
     it('returns ok even when no stored token exists', async () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
-      routingService.getProviderApiKey.mockResolvedValue(null);
+      providerKeyService.getProviderApiKey.mockResolvedValue(null);
 
       const result = await controller.revoke('my-agent', { id: 'user-1' } as never);
 
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
-      expect(routingService.removeProvider).toHaveBeenCalledWith(
+      expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
         'openai',
         'subscription',
@@ -139,12 +149,12 @@ describe('OpenaiOauthController', () => {
 
     it('returns ok when token blob is not valid JSON', async () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
-      routingService.getProviderApiKey.mockResolvedValue('not-json');
+      providerKeyService.getProviderApiKey.mockResolvedValue('not-json');
 
       const result = await controller.revoke('my-agent', { id: 'user-1' } as never);
 
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
-      expect(routingService.removeProvider).toHaveBeenCalledWith(
+      expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
         'openai',
         'subscription',

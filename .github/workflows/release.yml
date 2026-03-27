@@ -40,25 +40,42 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
 
-      - name: Create GitHub Release
+      - name: Create GitHub Releases
         if: steps.changesets.outputs.published == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
         run: |
-          VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[0].version')
-          TAG="$(echo "$PUBLISHED_PACKAGES" | jq -r '.[0].name')@${VERSION}"
+          echo "$PUBLISHED_PACKAGES" | jq -c '.[]' | while read -r PKG; do
+            NAME=$(echo "$PKG" | jq -r '.name')
+            VERSION=$(echo "$PKG" | jq -r '.version')
+            TAG="${NAME}@${VERSION}"
 
-          git tag "$TAG" || true
-          git push origin "$TAG"
+            # Determine changelog path based on package name
+            if [ "$NAME" = "manifest" ]; then
+              CHANGELOG_PATH="packages/openclaw-plugins/manifest/CHANGELOG.md"
+            elif [ "$NAME" = "manifest-provider" ]; then
+              CHANGELOG_PATH="packages/openclaw-plugins/manifest-provider/CHANGELOG.md"
+            else
+              echo "Unknown package $NAME — skipping release"
+              continue
+            fi
 
-          BODY=$(awk -v ver="## ${VERSION}" \
-            '$0 == ver { found=1; next } found && /^## / { exit } found { print }' \
-            packages/openclaw-plugin/CHANGELOG.md)
+            git tag "$TAG" 2>/dev/null || true
+            git push origin "$TAG" 2>/dev/null || true
 
-          BODY=$(echo "$BODY" | sed \
-            -e 's/^### Major Changes$/### 💥 Major Changes/' \
-            -e 's/^### Minor Changes$/### ✨ Minor Changes/' \
-            -e 's/^### Patch Changes$/### 🐛 Patch Changes/')
+            BODY=""
+            if [ -f "$CHANGELOG_PATH" ]; then
+              BODY=$(awk -v ver="## ${VERSION}" \
+                '$0 == ver { found=1; next } found && /^## / { exit } found { print }' \
+                "$CHANGELOG_PATH")
 
-          gh release create "$TAG" --title "v${VERSION}" --notes "$BODY" --verify-tag
+              BODY=$(echo "$BODY" | sed \
+                -e 's/^### Major Changes$/### 💥 Major Changes/' \
+                -e 's/^### Minor Changes$/### ✨ Minor Changes/' \
+                -e 's/^### Patch Changes$/### 🐛 Patch Changes/')
+            fi
+
+            gh release create "$TAG" --title "${NAME} v${VERSION}" --notes "${BODY:-No changelog}" --verify-tag
+            echo "Created release $TAG"
+          done

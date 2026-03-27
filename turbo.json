@@ -11,7 +11,11 @@
     },
     "manifest#build": {
       "dependsOn": ["manifest-frontend#build", "manifest-backend#build"],
-      "outputs": ["dist/**", "public/**", "skills/**"]
+      "outputs": ["dist/**", "public/**"]
+    },
+    "manifest-provider#build": {
+      "dependsOn": ["manifest-shared#build"],
+      "outputs": ["dist/**", "skills/**"]
     },
     "test": {
       "cache": false

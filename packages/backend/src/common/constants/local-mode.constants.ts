@@ -1,4 +1,4 @@
-/** Shared constants for local mode — used by LocalAuthGuard, LocalBootstrapService, and OtlpAuthGuard */
+/** Shared constants for local mode — used by LocalAuthGuard, LocalBootstrapService, and AgentKeyAuthGuard */
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
@@ -14,7 +14,10 @@ export const LOCAL_AGENT_NAME = 'local-agent';
 const CONFIG_DIR = join(homedir(), '.openclaw', 'manifest');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
 
-import type { EmailProviderConfig, EmailProviderType } from '../../notifications/services/email-providers/email-provider.interface';
+import type {
+  EmailProviderConfig,
+  EmailProviderType,
+} from '../../notifications/services/email-providers/email-provider.interface';
 
 interface LocalConfigFile {
   apiKey?: string;

@@ -11,7 +11,7 @@ Thanks for your interest in contributing to Manifest! This guide will help you g
 | Frontend  | SolidJS, uPlot, custom CSS theme              |
 | Backend   | NestJS 11, TypeORM, sql.js (local) / PostgreSQL (cloud) |
 | Auth      | Better Auth (auto-login on localhost)          |
-| Telemetry | OTLP HTTP (JSON + Protobuf)                   |
+| Routing   | OpenAI-compatible proxy (`/v1/chat/completions`) |
 | Build     | Turborepo + npm workspaces                    |
 
 The full NestJS + SolidJS stack runs locally backed by sql.js (WASM SQLite). The same codebase also powers the [cloud version](https://app.manifest.build) with PostgreSQL — the only differences are the database driver and auth guard.
@@ -27,9 +27,11 @@ Manifest is a monorepo managed with [Turborepo](https://turbo.build/) and npm wo
 
 ```
 packages/
-├── backend/           # NestJS API server (TypeORM, PostgreSQL, Better Auth)
-├── frontend/          # SolidJS single-page app (Vite, uPlot)
-└── openclaw-plugin/   # OpenClaw observability plugin (npm: manifest)
+├── backend/              # NestJS API server (TypeORM, PostgreSQL, Better Auth)
+├── frontend/             # SolidJS single-page app (Vite, uPlot)
+└── openclaw-plugins/
+    ├── manifest/          # npm: `manifest` — full self-hosted plugin (embedded server + dashboard)
+    └── manifest-provider/ # npm: `manifest-provider` — cloud-only provider plugin
 ```
 
 ## Getting Started
@@ -74,9 +76,9 @@ The frontend runs on `http://localhost:3000` and proxies API requests to the bac
 
 4. With `SEED_DATA=true`, you can log in with `admin@manifest.build` / `manifest`.
 
-## Testing with the OpenClaw Plugin (Dev Mode)
+## Testing with OpenClaw
 
-When developing features that involve the OpenClaw plugin (routing, telemetry, observability), use **dev mode** to point the plugin at your local backend without API key management.
+To test routing against your local backend, add Manifest as a model provider in your OpenClaw config:
 
 1. Build and start the backend in local mode:
 
@@ -86,30 +88,23 @@ MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
   node -r dotenv/config packages/backend/dist/main.js
 ```
 
-2. Configure the plugin with `devMode` enabled:
+2. Create an agent in the dashboard at `http://localhost:38238` and get the API key.
+
+3. Add Manifest as a provider in OpenClaw:
 
 ```bash
-openclaw config set plugins.entries.manifest.config.mode cloud
-openclaw config set plugins.entries.manifest.config.devMode true
-openclaw config set plugins.entries.manifest.config.endpoint http://localhost:38238/otlp
-```
-
-3. Restart the gateway:
-
-```bash
+openclaw config set models.providers.manifest '{"baseUrl":"http://localhost:38238/v1","api":"openai-completions","apiKey":"mnfst_YOUR_KEY","models":[{"id":"auto","name":"Manifest Auto"}]}'
+openclaw config set agents.defaults.model.primary manifest/auto
 openclaw gateway restart
 ```
 
-That's it — no API key needed. Telemetry from your agent flows directly to the local backend. Open `http://localhost:38238` to see the dashboard (you'll see **Local** and **Dev** badges in the header).
+No plugin needed for this. The backend runs standalone and OpenClaw talks to it as a regular model provider.
 
-> **Note:** `devMode` is auto-detected when the endpoint is a loopback address and no `mnfst_*` API key is provided. The old `mode: "dev"` is still accepted for backward compatibility but is deprecated — it maps to `mode: "cloud"` + `devMode: true` internally.
-
-**When to use dev mode:**
+**When to use this:**
 
 - Testing routing, tier assignment, or model resolution
-- Working on OTLP ingestion or telemetry pipelines
-- Debugging the plugin ↔ backend integration
-- Any time you need the full plugin + backend stack running locally
+- Debugging the proxy or message recording
+- Working on the dashboard UI with live data
 
 ## Development Skills
 
@@ -160,8 +155,10 @@ Requires `jq` and the `openclaw` CLI.
 | `npm test --workspace=packages/backend` | Run backend unit tests (Jest) |
 | `npm run test:e2e --workspace=packages/backend` | Run backend e2e tests (Jest + Supertest) |
 | `npm test --workspace=packages/frontend` | Run frontend tests (Vitest) |
-| `npm test --workspace=packages/openclaw-plugin` | Run plugin tests (Jest) |
-| `npm run build:plugin` | Build the OpenClaw plugin |
+| `npm test --workspace=packages/openclaw-plugins/manifest` | Run manifest plugin tests (Jest) |
+| `npm test --workspace=packages/openclaw-plugins/manifest-provider` | Run provider plugin tests (Jest) |
+| `npm run build:plugin` | Build the manifest (local) plugin |
+| `npm run build:provider` | Build the manifest-provider (cloud) plugin |
 
 ## Working with Individual Packages
 
@@ -170,7 +167,7 @@ Requires `jq` and the `openclaw` CLI.
 - **Framework**: NestJS 11 with TypeORM 0.3 and PostgreSQL 16
 - **Auth**: Better Auth (email/password + Google, GitHub, Discord OAuth)
 - **Tests**: Jest for unit tests (`*.spec.ts`), Supertest for e2e tests (`test/`)
-- **Key directories**: `entities/` (data models), `analytics/` (dashboard queries), `otlp/` (telemetry ingestion), `auth/` (session management)
+- **Key directories**: `entities/` (data models), `analytics/` (dashboard queries), `routing/` (proxy, scoring, tier assignment), `auth/` (session management)
 
 ### Frontend (`packages/frontend`)
 
@@ -179,29 +176,33 @@ Requires `jq` and the `openclaw` CLI.
 - **Tests**: Vitest
 - **Key directories**: `pages/` (route components), `components/` (shared UI), `services/` (API client, auth client)
 
-### Plugin (`packages/openclaw-plugin`)
+### Full Plugin (`packages/openclaw-plugins/manifest`)
 
 - **Bundler**: esbuild (zero runtime dependencies)
 - **Build**: `npx tsx build.ts` or `npm run build:plugin` from the root
-- **Watch mode**: `cd packages/openclaw-plugin && npx tsx watch build.ts`
+- **Watch mode**: `cd packages/openclaw-plugins/manifest && npx tsx watch build.ts`
 
-#### Plugin Settings
-
-The plugin exposes 6 user-facing settings via `openclaw.plugin.json`. Cloud mode is the default. Set `mode` to `local` for zero-config local mode.
+The full plugin includes an embedded NestJS server, SQLite database, and dashboard. It starts the server automatically on gateway boot.
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `mode` | `string` | `cloud` | Deployment model: `cloud` exports telemetry to `app.manifest.build` (default). `local` starts an embedded NestJS server backed by sql.js. (`dev` is accepted for backward compatibility but deprecated — use `devMode` instead.) |
-| `devMode` | `boolean` | auto | Development environment flag. Skips API key validation, uses faster metrics interval (10s). Auto-detected when endpoint is a loopback address and no `mnfst_*` API key is provided. |
-| `apiKey` | `string` | env `MANIFEST_API_KEY` | OTLP ingest key (must start with `mnfst_`). Required in cloud mode when `devMode` is false. Auto-generated in local mode. Ignored when `devMode` is true. |
-| `endpoint` | `string` | `https://app.manifest.build/api/v1/otlp` | Base URL for the OTLP exporters. The SDK appends `/v1/traces`, `/v1/metrics`, `/v1/logs` automatically. Only used in cloud mode — local mode overrides this to `http://{host}:{port}/otlp`. |
-| `port` | `number` | `2099` | Bind port for the embedded server (local mode only). Also used for the dashboard URL and the injected OpenAI-compatible provider config. |
-| `host` | `string` | `127.0.0.1` | Bind address for the embedded server (local mode only). |
+| `port` | `number` | `2099` | Embedded server port |
+| `host` | `string` | `127.0.0.1` | Bind address |
 
-Settings are parsed in `src/config.ts` (`parseConfig`) and validated in `validateConfig`. The JSON schema in `openclaw.plugin.json` (package root) is the source of truth — the build copies it to `dist/`. Some internal values are not user-configurable:
+Settings are defined in `openclaw.plugin.json`. The API key is auto-generated and stored in `~/.openclaw/manifest/config.json`.
 
-- **`serviceName`**: Always `"openclaw-gateway"` (hardcoded via `DEFAULTS.SERVICE_NAME` in `src/constants.ts`)
-- **`metricsIntervalMs`**: 10s when `devMode` or local, 30s for cloud production (computed in `src/telemetry.ts`)
+### Provider Plugin (`packages/openclaw-plugins/manifest-provider`)
+
+- **npm**: `manifest-provider` — lightweight cloud-only provider plugin (~22KB)
+- **Bundler**: esbuild (zero runtime dependencies)
+- Registers Manifest as a model provider with interactive auth onboarding. No embedded server or dashboard.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `devMode` | `boolean` | auto | Skips API key validation. Auto-detected when endpoint is a loopback address. |
+| `endpoint` | `string` | `https://app.manifest.build` | Manifest server URL. |
+
+Settings are parsed in `src/config.ts` and validated in `validateConfig`. The JSON schema in `openclaw.plugin.json` is the source of truth.
 
 ## Making Changes
 
@@ -224,7 +225,8 @@ Follow the prompts to select the affected packages and bump type (patch / minor 
 npm test --workspace=packages/backend
 npm run test:e2e --workspace=packages/backend
 npm test --workspace=packages/frontend
-npm test --workspace=packages/openclaw-plugin
+npm test --workspace=packages/openclaw-plugins/manifest
+npm test --workspace=packages/openclaw-plugins/manifest-provider
 ```
 
 6. Verify the production build works:
@@ -243,9 +245,10 @@ This project uses [Changesets](https://github.com/changesets/changesets) for ver
 
 | Package | npm name | Needs changeset? |
 | --- | --- | --- |
-| `packages/openclaw-plugin` | `manifest` | Yes |
-| `packages/backend` | — | Yes — bump `manifest` (backend compiles into the plugin) |
-| `packages/frontend` | — | Yes — bump `manifest` (frontend compiles into the plugin) |
+| `packages/openclaw-plugins/manifest` | `manifest` | Yes |
+| `packages/openclaw-plugins/manifest-provider` | `manifest-provider` | Yes — only when its own code changes |
+| `packages/backend` | — | Yes — bump `manifest` (backend compiles into the full plugin) |
+| `packages/frontend` | — | Yes — bump `manifest` (frontend compiles into the full plugin) |
 
 **Adding a changeset:**
 
@@ -281,7 +284,7 @@ Write clear, concise commit messages that explain **why** the change was made. U
 ## Architecture Notes
 
 - **Single-service deployment**: In production, NestJS serves both the API and the frontend static files from the same port via `@nestjs/serve-static`.
-- **Dev mode**: Vite on `:3000` proxies `/api` and `/otlp` to the backend on `:3001`. CORS is enabled only in development.
+- **Dev mode**: Vite on `:3000` proxies `/api` and `/v1` to the backend on `:3001`. CORS is enabled only in development.
 - **Database**: PostgreSQL 16. Schema changes are managed via TypeORM migrations (`migrationsRun: true` on boot). After modifying an entity, generate a migration with `npm run migration:generate -- src/database/migrations/Name`.
 - **Validation**: Global `ValidationPipe` with `whitelist: true` and `forbidNonWhitelisted: true`.
 - **TypeScript**: Strict mode across all packages.

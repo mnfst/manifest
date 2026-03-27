@@ -19,7 +19,10 @@ flags:
       - packages/frontend/src/
   plugin:
     paths:
-      - packages/openclaw-plugin/src/
+      - packages/openclaw-plugins/manifest-provider/src/
+  manifest:
+    paths:
+      - packages/openclaw-plugins/manifest/src/
   shared:
     paths:
       - packages/shared/src/

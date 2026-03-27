@@ -24,7 +24,7 @@ const SetupWizard: Component<Props> = (props) => {
     if (custom) return custom;
     const host = window.location.hostname;
     if (host === 'app.manifest.build') return null;
-    return `${window.location.origin}/otlp`;
+    return window.location.origin;
   };
 
   const handleOverlayClick = (e: MouseEvent) => {

@@ -8,11 +8,19 @@
   background: rgb(0 0 0 / 0.7);
 }
 
+/* ── Setup Modal header ──────────────────────────── */
+.setup-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--gap-sm);
+}
+
 /* ── Setup Modal nav ─────────────────────────────── */
 .setup-modal__nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: var(--gap-lg);
 }
 
@@ -21,8 +29,17 @@
   width: auto;
 }
 
+.setup-modal__next-hint {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+}
+
 .setup-modal__next {
-  padding: 10px 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  padding: 0 1rem;
   border: none;
   border-radius: var(--radius);
   background: hsl(var(--foreground));

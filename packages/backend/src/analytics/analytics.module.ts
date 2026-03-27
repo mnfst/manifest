@@ -8,6 +8,7 @@ import { ToolExecution } from '../entities/tool-execution.entity';
 import { AgentLog } from '../entities/agent-log.entity';
 import { OtlpModule } from '../otlp/otlp.module';
 import { AggregationService } from './services/aggregation.service';
+import { AgentLifecycleService } from './services/agent-lifecycle.service';
 import { TimeseriesQueriesService } from './services/timeseries-queries.service';
 import { MessagesQueryService } from './services/messages-query.service';
 import { MessageDetailsService } from './services/message-details.service';
@@ -34,6 +35,7 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
   ],
   providers: [
     AggregationService,
+    AgentLifecycleService,
     TimeseriesQueriesService,
     MessagesQueryService,
     MessageDetailsService,

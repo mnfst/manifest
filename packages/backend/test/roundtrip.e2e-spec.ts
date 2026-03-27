@@ -1,6 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createTestApp, TEST_API_KEY } from './helpers';
+import { DataSource } from 'typeorm';
+import { v4 as uuid } from 'uuid';
+import { createTestApp, TEST_API_KEY, TEST_TENANT_ID, TEST_AGENT_ID } from './helpers';
 
 let app: INestApplication;
 
@@ -12,25 +14,14 @@ afterAll(async () => {
   await app.close();
 });
 
-describe('Telemetry ingest-then-query round-trip', () => {
+describe('Proxy data round-trip', () => {
   beforeAll(async () => {
-    await request(app.getHttpServer())
-      .post('/api/v1/telemetry')
-      .set('x-api-key', TEST_API_KEY)
-      .send({
-        events: [
-          {
-            timestamp: new Date().toISOString(),
-            description: 'Roundtrip test query',
-            service_type: 'agent',
-            status: 'ok',
-            model: 'claude-opus-4-6',
-            input_tokens: 1500,
-            output_tokens: 800,
-          },
-        ],
-      })
-      .expect(202);
+    const ds = app.get(DataSource);
+    await ds.query(
+      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, agent_name, user_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, new Date().toISOString(), 'ok', 'claude-opus-4-6', 1500, 800, 0, 0, 'demo-agent', 'test-user-001'],
+    );
   });
 
   it('overview reflects ingested data', async () => {
@@ -56,25 +47,13 @@ describe('Telemetry ingest-then-query round-trip', () => {
 
 describe('Clock skew tolerance', () => {
   beforeAll(async () => {
-    // Post telemetry with a timestamp 30s in the future
+    const ds = app.get(DataSource);
     const futureTs = new Date(Date.now() + 30_000).toISOString();
-    await request(app.getHttpServer())
-      .post('/api/v1/telemetry')
-      .set('x-api-key', TEST_API_KEY)
-      .send({
-        events: [
-          {
-            timestamp: futureTs,
-            description: 'Clock skew test',
-            service_type: 'agent',
-            status: 'ok',
-            model: 'gpt-4o',
-            input_tokens: 500,
-            output_tokens: 200,
-          },
-        ],
-      })
-      .expect(202);
+    await ds.query(
+      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, agent_name, user_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, futureTs, 'ok', 'gpt-4o', 500, 200, 0, 0, 'demo-agent', 'test-user-001'],
+    );
   });
 
   it('future-timestamped data is visible in overview', async () => {

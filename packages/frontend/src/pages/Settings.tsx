@@ -2,11 +2,15 @@ import { createSignal, createResource, Show, For, type Component } from 'solid-j
 import { useParams, useNavigate, useLocation } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
-import SetupStepInstall from '../components/SetupStepInstall.jsx';
-import SetupStepConfigure from '../components/SetupStepConfigure.jsx';
-import SetupStepVerify from '../components/SetupStepVerify.jsx';
+import SetupStepAddProvider from '../components/SetupStepAddProvider.jsx';
 import { CopyButton } from '../components/SetupStepInstall.jsx';
-import { getAgentKey, deleteAgent, renameAgent, rotateAgentKey } from '../services/api.js';
+import {
+  getAgentKey,
+  deleteAgent,
+  renameAgent,
+  rotateAgentKey,
+  getRoutingStatus,
+} from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { isLocalMode } from '../services/local-mode.js';
@@ -34,12 +38,15 @@ const Settings: Component = () => {
     (n) => getAgentKey(n),
   );
 
-  const endpoint = () => {
+  const [routingStatus] = createResource(() => agentName(), getRoutingStatus);
+  const routingEnabled = () => routingStatus()?.enabled ?? false;
+
+  const baseUrl = () => {
     const custom = apiKeyData()?.pluginEndpoint;
     if (custom) return custom;
     const host = window.location.hostname;
-    if (host === 'app.manifest.build') return null;
-    return `${window.location.origin}/otlp`;
+    if (host === 'app.manifest.build') return 'https://app.manifest.build/v1';
+    return `${window.location.origin}/v1`;
   };
 
   const handleSave = async () => {
@@ -191,10 +198,10 @@ const Settings: Component = () => {
         <div class="settings-card">
           <div class="settings-card__row">
             <div class="settings-card__label">
-              <span class="settings-card__label-title">OTLP ingest key</span>
+              <span class="settings-card__label-title">Agent API key</span>
               <span class="settings-card__label-desc">
-                This key authenticates your agent's OTLP telemetry to Manifest. Rotating it
-                generates a new key and immediately invalidates the current one.
+                This key authenticates your agent's requests to Manifest. Rotating it generates a
+                new key and immediately invalidates the current one.
               </span>
             </div>
             <div
@@ -219,7 +226,7 @@ const Settings: Component = () => {
           <Show when={rotatedKey()}>
             <div style="padding: 0 var(--gap-md) var(--gap-md);">
               <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                Copy your new API key now — it won't be shown again.
+                Save this key somewhere safe. You won't see it again.
               </div>
               <div style="display: flex; align-items: center; gap: 8px; background: hsl(var(--muted)); border-radius: var(--radius); padding: 10px 14px; font-family: var(--font-mono); font-size: var(--font-size-sm); word-break: break-all;">
                 {rotatedKey()}
@@ -251,15 +258,29 @@ const Settings: Component = () => {
             }
           >
             <div class="settings-card" style="padding: var(--gap-lg);">
-              <SetupStepInstall stepNumber={1} />
-              <SetupStepConfigure
-                stepNumber={2}
-                apiKey={rotatedKey() ?? apiKeyData()?.apiKey ?? null}
+              <SetupStepAddProvider
+                apiKey={rotatedKey() ?? null}
                 keyPrefix={apiKeyData()?.keyPrefix ?? null}
-                agentName={agentName()}
-                endpoint={endpoint()}
+                baseUrl={baseUrl()}
               />
-              <SetupStepVerify stepNumber={3} />
+              <Show when={!routingEnabled()}>
+                <div style="margin-top: var(--gap-lg); padding-top: var(--gap-lg); border-top: 1px solid hsl(var(--border)); display: flex; align-items: center; justify-content: space-between;">
+                  <p style="margin: 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+                    Add at least one LLM provider so Manifest knows where to route requests.
+                  </p>
+                  <button
+                    class="btn btn--primary btn--sm"
+                    style="flex-shrink: 0; margin-left: 16px;"
+                    onClick={() =>
+                      navigate(`/agents/${encodeURIComponent(agentName())}/routing`, {
+                        state: { openProviders: true },
+                      })
+                    }
+                  >
+                    Go to routing
+                  </button>
+                </div>
+              </Show>
             </div>
           </Show>
         </Show>
@@ -299,7 +320,7 @@ const Settings: Component = () => {
             <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-md);">
               This will permanently delete the{' '}
               <strong style="color: hsl(var(--foreground));">{agentName()}</strong> agent and all
-              its telemetry data. This action cannot be undone.
+              its data. This action cannot be undone.
             </p>
             <label style="display: block; font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: var(--gap-sm);">
               To confirm, type <strong>"{agentName()}"</strong> in the box below

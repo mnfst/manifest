@@ -1,38 +1,29 @@
 import { INestApplication } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { v4 as uuid } from 'uuid';
 import request from 'supertest';
-import { createTestApp, TEST_API_KEY } from './helpers';
+import { createTestApp, TEST_API_KEY, TEST_TENANT_ID, TEST_AGENT_ID } from './helpers';
 
 let app: INestApplication;
 
 beforeAll(async () => {
   app = await createTestApp();
 
-  // Seed test data
-  await request(app.getHttpServer())
-    .post('/api/v1/telemetry')
-    .set('x-api-key', TEST_API_KEY)
-    .send({
-      events: [
-        {
-          timestamp: new Date().toISOString(),
-          description: 'Query 1',
-          service_type: 'agent',
-          status: 'ok',
-          model: 'claude-opus-4-6',
-          input_tokens: 3000,
-          output_tokens: 1500,
-        },
-        {
-          timestamp: new Date().toISOString(),
-          description: 'Query 2',
-          service_type: 'agent',
-          status: 'ok',
-          model: 'gpt-4o',
-          input_tokens: 1000,
-          output_tokens: 500,
-        },
-      ],
-    });
+  // Seed test data via direct DB inserts
+  const ds = app.get(DataSource);
+  const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, 'ok', 'claude-opus-4-6', 3000, 1500, 0, 0, 'Query 1', 'agent', 'test-agent', 'test-user-001'],
+  );
+
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, 'ok', 'gpt-4o', 1000, 500, 0, 0, 'Query 2', 'agent', 'test-agent', 'test-user-001'],
+  );
 });
 
 afterAll(async () => {

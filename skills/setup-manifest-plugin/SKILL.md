@@ -1,40 +1,40 @@
 ---
 name: setup-manifest-plugin
-description: Configure the Manifest OpenClaw plugin (OTLP endpoint + proxy baseUrl). Use when the user says "/setup-manifest-plugin", "setup manifest plugin", "connect manifest to port", "point openclaw to localhost", "switch to cloud mode", or wants to configure the OpenClaw gateway to route through Manifest (local dev or cloud at app.manifest.build). Accepts a port number (required for dev/local, optional for cloud) and optional mode. Resets routing, sets the OTLP endpoint and proxy baseUrl, and restarts the gateway.
+description: Configure Manifest as a model provider in OpenClaw. Use when the user says "/setup-manifest-plugin", "setup manifest", "connect manifest", "point openclaw to localhost", or wants to add Manifest as a model provider. For cloud users, sets up models.providers.manifest directly (no plugin). For local dev, configures the plugin. Accepts a port number and optional mode.
 ---
 
-# Setup Manifest Plugin
+# Setup Manifest
 
-Configure the OpenClaw gateway to route through Manifest — either a local dev server or cloud (`app.manifest.build`).
+Configure OpenClaw to route through Manifest -- either the cloud service or a local dev server.
+
+**Cloud users don't need the plugin.** This skill adds Manifest as a direct model provider in the OpenClaw config.
 
 ## Workflow
 
 ### 1. Determine parameters
 
-- **Port** (required for dev/local, optional for cloud): The port where the Manifest backend is running (e.g., `35166`). In cloud mode without a port, defaults to `https://app.manifest.build`.
+- **Port** (required for dev/local, optional for cloud): The port where the Manifest backend is running. In cloud mode without a port, defaults to `https://app.manifest.build`.
 - **Mode** (optional, default `dev`): `dev`, `local`, or `cloud`
-  - `dev` — Standard development mode, OTLP loopback bypass (no real API key needed)
-  - `local` — Local mode with SQLite, no PostgreSQL, useful for testing local-mode differences
-  - `cloud` — Cloud mode pointing to `app.manifest.build` (or localhost if port is provided for local cloud testing)
-- **Key** (optional): A `mnfst_*` OTLP API key. Required for cloud mode. If mode is `cloud` and no key is provided, use the seeded dev key `mnfst_dev-otlp-key-001`.
+  - `dev` -- Local development, connects to a backend you started manually
+  - `local` -- Configures the plugin for embedded server with SQLite (plugin must be installed separately via `openclaw plugins install manifest`)
+  - `cloud` -- Connects to `app.manifest.build` (or localhost if port is provided)
+- **Key** (optional): A `mnfst_*` API key. Required for cloud mode.
 
-If the user doesn't specify a mode, default to `dev`. If the mode is dev/local and the user doesn't specify a port, ask them. For cloud mode without a port, the script defaults to `app.manifest.build`.
+If the user doesn't specify a mode, default to `dev`. If dev/local and no port, ask them.
 
 ### 2. Run the setup script
 
 ```bash
-# Dev/local (port required):
-bash skills/setup-manifest-plugin/scripts/setup_manifest.sh <PORT> --mode <MODE> [--key <KEY>]
+# Dev (port required):
+bash skills/setup-manifest-plugin/scripts/setup_manifest.sh <PORT> --mode dev [--key <KEY>]
 
-# Cloud (port optional — defaults to app.manifest.build):
+# Cloud (port optional):
 bash skills/setup-manifest-plugin/scripts/setup_manifest.sh --mode cloud --key <KEY>
 ```
 
-The script configures the OTLP endpoint, provider block, default model (`manifest/auto`), and restarts the gateway. Use `--dry-run` to preview changes without modifying anything.
+The script sets the provider config (`models.providers.manifest`), default model (`manifest/auto`), and restarts the gateway. Use `--dry-run` to preview.
 
 ### 3. Show status table
-
-After the script completes, run the diagnostic table:
 
 ```bash
 bash skills/manifest-status/scripts/manifest_status.sh

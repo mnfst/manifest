@@ -1,0 +1,75 @@
+{
+  "name": "manifest-provider",
+  "version": "5.33.1",
+  "description": "Smart LLM router plugin for OpenClaw — picks the best model for each request, balancing quality, speed, and cost",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "author": "MNFST Inc.",
+  "homepage": "https://manifest.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mnfst/manifest",
+    "directory": "packages/openclaw-plugins/manifest-provider"
+  },
+  "bugs": {
+    "url": "https://github.com/mnfst/manifest/issues"
+  },
+  "files": [
+    "dist/index.js",
+    "dist/index.js.map",
+    "openclaw.plugin.json",
+    "skills",
+    "README.md",
+    "LICENSE.md"
+  ],
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ],
+    "compat": {
+      "pluginApi": ">=2026.2.0"
+    }
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "prebuild": "rm -rf dist",
+    "build": "tsx build.ts",
+    "dev": "tsx watch build.ts",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  },
+  "keywords": [
+    "openclaw",
+    "openclaw-plugin",
+    "openclaw-provider",
+    "manifest",
+    "llm-router",
+    "llm-routing",
+    "model-routing",
+    "ai-gateway",
+    "llm-proxy",
+    "smart-routing",
+    "cost-optimization",
+    "ai-agent",
+    "multi-provider",
+    "openai",
+    "anthropic",
+    "claude",
+    "gemini",
+    "deepseek"
+  ],
+  "dependencies": {
+    "manifest-shared": "*"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "@types/jest": "^29.5.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.0"
+  }
+}

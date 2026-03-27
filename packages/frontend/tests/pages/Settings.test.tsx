@@ -11,22 +11,32 @@ vi.mock("@solidjs/router", () => ({
 
 vi.mock("@solidjs/meta", () => ({
   Title: (props: any) => <title>{props.children}</title>,
-  Meta: () => null,
+  Meta: (props: any) => <meta name={props.name ?? ""} content={props.content ?? ""} />,
 }));
 
 const mockGetAgentKey = vi.fn();
 const mockDeleteAgent = vi.fn();
 const mockRenameAgent = vi.fn();
 const mockRotateAgentKey = vi.fn();
+const mockGetRoutingStatus = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getAgentKey: (...args: unknown[]) => mockGetAgentKey(...args),
   deleteAgent: (...args: unknown[]) => mockDeleteAgent(...args),
   renameAgent: (...args: unknown[]) => mockRenameAgent(...args),
   rotateAgentKey: (...args: unknown[]) => mockRotateAgentKey(...args),
+  getRoutingStatus: (...args: unknown[]) => mockGetRoutingStatus(...args),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
+}));
+
+vi.mock("../../src/components/ErrorState.jsx", () => ({
+  default: (props: any) => (
+    <div data-testid="error-state" data-error={String(props.error ?? "")}>
+      {props.title ?? "Something went wrong"}
+    </div>
+  ),
 }));
 
 vi.mock("../../src/components/SetupStepInstall.jsx", () => ({
@@ -34,14 +44,16 @@ vi.mock("../../src/components/SetupStepInstall.jsx", () => ({
   CopyButton: () => <button>Copy</button>,
 }));
 
-vi.mock("../../src/components/SetupStepConfigure.jsx", () => ({
+vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
   default: (props: any) => (
-    <div data-testid="setup-configure" data-endpoint={props.endpoint ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""} data-agent={props.agentName ?? ""} />
+    <div data-testid="setup-add-provider" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""} />
   ),
 }));
 
-vi.mock("../../src/components/SetupStepVerify.jsx", () => ({
-  default: () => <div data-testid="setup-verify" />,
+vi.mock("../../src/components/SetupStepLocalConfigure.jsx", () => ({
+  default: (props: any) => (
+    <div data-testid="setup-local-configure" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""} />
+  ),
 }));
 
 let mockIsLocalMode: boolean | null = false;
@@ -65,6 +77,7 @@ describe("Settings", () => {
     mockDeleteAgent.mockResolvedValue(undefined);
     mockRenameAgent.mockResolvedValue({ renamed: true, name: "new-name" });
     mockRotateAgentKey.mockResolvedValue({ apiKey: "new-key" });
+    mockGetRoutingStatus.mockResolvedValue({ enabled: false });
   });
 
   it("renders Settings heading", () => {
@@ -217,7 +230,7 @@ describe("Settings", () => {
     fireEvent.click(rotateBtn);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("mnfst_new_rotated_key");
-      expect(container.textContent).toContain("won't be shown again");
+      expect(container.textContent).toContain("won't see it again");
     });
   });
 
@@ -265,18 +278,42 @@ describe("Settings", () => {
     expect(container.querySelector(".modal-overlay")).toBeNull();
   });
 
-  it("shows OTLP ingest key label", () => {
+  it("shows agent API key label", () => {
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Agent setup"));
-    expect(container.textContent).toContain("OTLP ingest key");
+    expect(container.textContent).toContain("Agent API key");
   });
 
   it("shows setup steps after loading", async () => {
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
-      expect(container.querySelector('[data-testid="setup-install"]')).not.toBeNull();
+      expect(container.querySelector('[data-testid="setup-add-provider"]')).not.toBeNull();
     });
+  });
+
+  it("shows Go to routing button in setup tab", async () => {
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Go to routing");
+    });
+  });
+
+  it("navigates to routing page when Go to routing is clicked", async () => {
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Go to routing");
+    });
+    const goBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Go to routing"),
+    )!;
+    fireEvent.click(goBtn);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/agents/test-agent/routing",
+      { state: { openProviders: true } },
+    );
   });
 
   it("shows breadcrumb with agent name", () => {
@@ -342,11 +379,13 @@ describe("Settings", () => {
   });
 
   it("uses custom pluginEndpoint when available", async () => {
-    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: "https://custom.endpoint/otlp" });
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: "https://custom.endpoint" });
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
-      expect(container.querySelector('[data-testid="setup-configure"]')).not.toBeNull();
+      const el = container.querySelector('[data-testid="setup-add-provider"]');
+      expect(el).not.toBeNull();
+      expect(el!.getAttribute("data-base-url")).toBe("https://custom.endpoint");
     });
   });
 
@@ -370,7 +409,15 @@ describe("Settings", () => {
     it("shows Agent setup tab content in local mode", () => {
       const { container } = render(() => <Settings />);
       fireEvent.click(screen.getByText("Agent setup"));
-      expect(container.textContent).toContain("OTLP ingest key");
+      expect(container.textContent).toContain("Agent API key");
+    });
+
+    it("shows same add provider step in local mode", async () => {
+      const { container } = render(() => <Settings />);
+      fireEvent.click(screen.getByText("Agent setup"));
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="setup-add-provider"]')).not.toBeNull();
+      });
     });
 
     it("hides Danger zone for default local-agent", () => {

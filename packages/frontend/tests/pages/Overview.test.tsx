@@ -3,10 +3,11 @@ import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 let mockAgentName = "test-agent";
 let mockLocationState: any = null;
+const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
   useLocation: () => ({ pathname: `/agents/${mockAgentName}`, state: mockLocationState }),
-  useNavigate: () => vi.fn(),
+  useNavigate: () => mockNavigate,
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
 }));
 
@@ -62,6 +63,7 @@ vi.mock("../../src/components/SetupModal.jsx", () => ({
     <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} data-agent={props.agentName ?? ""} data-api-key={props.apiKey ?? ""}>
       <button data-testid="setup-close" onClick={() => props.onClose?.()}>Close</button>
       <button data-testid="setup-done" onClick={() => props.onDone?.()}>Done</button>
+      <button data-testid="setup-go-routing" onClick={() => props.onGoToRouting?.()}>Go to routing</button>
     </div>
   ),
 }));
@@ -454,56 +456,53 @@ describe("Overview", () => {
     });
   });
 
+  it("shows routing link in waiting banner after setup completed in cloud mode", async () => {
+    localStorage.setItem("setup_completed_test-agent", "1");
+    mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("No activity yet");
+      const link = container.querySelector('.waiting-banner a');
+      expect(link).not.toBeNull();
+      expect(link!.getAttribute("href")).toBe("/agents/test-agent/routing");
+      expect(link!.textContent).toBe("Routing");
+    });
+  });
+
   describe("local mode", () => {
-    it("should auto-complete setup for local-agent in local mode", async () => {
+    it("should open setup modal for new agent in local mode", async () => {
       mockAgentName = "local-agent";
       mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
-      render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(localStorage.getItem("setup_completed_local-agent")).toBe("1");
-      });
-    });
-
-    it("should auto-complete setup for any agent in local mode", async () => {
-      mockAgentName = "other-agent";
-      mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
-      render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(localStorage.getItem("setup_completed_other-agent")).toBe("1");
-      });
-    });
-
-    it("should not open setup modal for any agent in local mode", async () => {
-      mockAgentName = "other-agent";
-      mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        const modal = container.querySelector('[data-testid="setup-modal"]');
-        expect(modal?.getAttribute("data-open")).toBe("false");
-      });
-    });
-
-    it("should show waiting banner instead of empty state for any agent in local mode", async () => {
-      mockAgentName = "other-agent";
-      mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain("dashboard will update");
-      });
-    });
-
-    it("should still open setup modal for local-agent when not in local mode", async () => {
-      mockAgentName = "local-agent";
-      mockIsLocalMode = false;
       mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         const modal = container.querySelector('[data-testid="setup-modal"]');
         expect(modal?.getAttribute("data-open")).toBe("true");
+      });
+    });
+
+    it("should show empty state with setup button in local mode", async () => {
+      mockAgentName = "other-agent";
+      mockIsLocalMode = true;
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No activity yet");
+      });
+    });
+
+    it("shows routing link in waiting banner after setup completed", async () => {
+      mockAgentName = "local-agent";
+      mockIsLocalMode = true;
+      localStorage.setItem("setup_completed_local-agent", "1");
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No activity yet");
+        const link = container.querySelector('.waiting-banner a');
+        expect(link).not.toBeNull();
+        expect(link!.getAttribute("href")).toBe("/agents/local-agent/routing");
+        expect(link!.textContent).toBe("Routing");
       });
     });
   });
@@ -529,6 +528,19 @@ describe("Overview", () => {
       });
       fireEvent.click(screen.getByTestId("setup-done"));
       expect(localStorage.getItem("setup_completed_test-agent")).toBe("1");
+    });
+
+    it("navigates to routing page on onGoToRouting", async () => {
+      mockGetOverview.mockResolvedValue({ ...overviewData, has_data: false, summary: null });
+      render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(screen.getByTestId("setup-go-routing")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("setup-go-routing"));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        "/agents/test-agent/routing",
+        { state: { openProviders: true } },
+      );
     });
   });
 
@@ -619,20 +631,25 @@ describe("Overview", () => {
     });
   });
 
-  it("renders provider icon in cost_by_model for known providers", async () => {
+  it("renders provider icon and auth badge in cost_by_model for known providers", async () => {
     const dataWithKnownModel = {
       ...overviewData,
       cost_by_model: [
-        { model: "gpt-4o", tokens: 30000, share_pct: 100, estimated_cost: 2.1 },
+        { model: "gpt-4o", tokens: 30000, share_pct: 100, estimated_cost: 2.1, auth_type: "api_key" },
       ],
     };
     mockGetOverview.mockResolvedValue(dataWithKnownModel);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("gpt-4o");
-      // Verify the provider icon SVG is rendered (not just text)
-      const providerIcon = container.querySelector('svg[role="img"], span[role="img"]');
-      expect(providerIcon).not.toBeNull();
+      const panels = container.querySelectorAll(".panel");
+      const costPanel = Array.from(panels).find(p => p.textContent?.includes("Cost by Model"));
+      expect(costPanel).toBeDefined();
+      // Verify the provider icon SVG is rendered (aria-hidden, not role="img")
+      const icon = costPanel!.querySelector('svg[aria-hidden="true"]');
+      expect(icon).not.toBeNull();
+      // Verify auth badge is rendered
+      const keyBadge = costPanel!.querySelector(".provider-auth-badge--key");
+      expect(keyBadge).not.toBeNull();
     });
   });
 

@@ -5,7 +5,7 @@ import { createTestApp, TEST_OTLP_KEY, TEST_API_KEY, TEST_AGENT_ID } from './hel
 import { detectDialect, portableSql } from '../src/common/utils/sql-dialect';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
-import { TierAutoAssignService } from '../src/routing/tier-auto-assign.service';
+import { TierAutoAssignService } from '../src/routing/routing-core/tier-auto-assign.service';
 
 let app: INestApplication;
 
@@ -112,7 +112,7 @@ describe('Proxy E2E — /v1/chat/completions', () => {
         stream: false,
       });
 
-    // The response should NOT be our OtlpAuthGuard 401 (which has a specific format).
+    // The response should NOT be our AgentKeyAuthGuard 401 (which has a specific format).
     // It will be either a provider error (401/403 from OpenAI) or a network error (500).
     // Either way, we passed auth and resolved a model successfully.
     if (res.status === 401) {
