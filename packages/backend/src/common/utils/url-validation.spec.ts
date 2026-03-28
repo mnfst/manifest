@@ -1,4 +1,4 @@
-import { isPrivateIp, validatePublicUrl } from './url-validation';
+import { isPrivateIp, isCloudMetadataIp, validatePublicUrl } from './url-validation';
 
 jest.mock('dns/promises', () => ({
   lookup: jest.fn(),
@@ -86,6 +86,44 @@ describe('isPrivateIp', () => {
   });
 });
 
+describe('isCloudMetadataIp', () => {
+  it('detects 169.254.169.254 as cloud metadata', () => {
+    expect(isCloudMetadataIp('169.254.169.254')).toBe(true);
+  });
+
+  it('detects 169.254.0.1 as link-local (cloud metadata range)', () => {
+    expect(isCloudMetadataIp('169.254.0.1')).toBe(true);
+  });
+
+  it('detects fd00::1 as cloud metadata IPv6', () => {
+    expect(isCloudMetadataIp('fd00::1')).toBe(true);
+  });
+
+  it('detects fe80::1 as cloud metadata IPv6 link-local', () => {
+    expect(isCloudMetadataIp('fe80::1')).toBe(true);
+  });
+
+  it('detects IPv4-mapped metadata IP', () => {
+    expect(isCloudMetadataIp('::ffff:169.254.169.254')).toBe(true);
+  });
+
+  it('allows public IPs', () => {
+    expect(isCloudMetadataIp('8.8.8.8')).toBe(false);
+  });
+
+  it('allows private IPs that are not metadata', () => {
+    expect(isCloudMetadataIp('192.168.1.1')).toBe(false);
+  });
+
+  it('returns false for invalid format', () => {
+    expect(isCloudMetadataIp('not-an-ip')).toBe(false);
+  });
+
+  it('allows public IPv6', () => {
+    expect(isCloudMetadataIp('2001:db8::1')).toBe(false);
+  });
+});
+
 describe('validatePublicUrl', () => {
   const origNodeEnv = process.env['NODE_ENV'];
   const origManifestMode = process.env['MANIFEST_MODE'];
@@ -108,9 +146,16 @@ describe('validatePublicUrl', () => {
     await expect(validatePublicUrl('http://127.0.0.1:8080')).resolves.toBeUndefined();
   });
 
-  it('skips validation in local mode', async () => {
+  it('allows private IPs in local mode', async () => {
     process.env['MANIFEST_MODE'] = 'local';
     await expect(validatePublicUrl('http://127.0.0.1:8080')).resolves.toBeUndefined();
+  });
+
+  it('blocks cloud metadata IPs in local mode', async () => {
+    process.env['MANIFEST_MODE'] = 'local';
+    await expect(validatePublicUrl('http://169.254.169.254/latest/meta-data')).rejects.toThrow(
+      'cloud metadata',
+    );
   });
 
   it('accepts public URL that resolves to public IP', async () => {
