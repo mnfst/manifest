@@ -127,6 +127,8 @@ describe("SetupStepAddProvider", () => {
     expect(container.textContent).toContain("Endpoint compatibility");
     expect(container.textContent).toContain("OpenAI-compatible");
     expect(container.textContent).toContain("Model ID");
+    expect(container.textContent).toContain("Endpoint ID");
+    expect(container.textContent).toContain("manifest");
   });
 
   it("has copy buttons for base URL and model", () => {

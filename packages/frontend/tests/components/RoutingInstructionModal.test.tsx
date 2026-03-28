@@ -75,6 +75,8 @@ describe("RoutingInstructionModal", () => {
     ));
     expect(container.querySelector(".modal-terminal")).not.toBeNull();
     expect(container.textContent).toContain("<provider/model>");
+    expect(container.textContent).toContain("openclaw config unset models.providers.manifest");
+    expect(container.textContent).toContain("openclaw config unset agents.defaults.models.manifest/auto");
   });
 
   it("explains that this restores direct model access in disable mode", () => {
@@ -205,6 +207,8 @@ describe("RoutingInstructionModal", () => {
       <RoutingInstructionModal open={true} mode="disable" agentName="test-agent" onClose={() => {}} />
     ));
     // The disableCmd function interpolates the selected model (or placeholder)
+    expect(container.textContent).toContain("openclaw config unset models.providers.manifest");
+    expect(container.textContent).toContain("openclaw config unset agents.defaults.models.manifest/auto");
     expect(container.textContent).toContain("openclaw config set agents.defaults.model.primary <provider/model>");
     expect(container.textContent).toContain("openclaw gateway restart");
   });
@@ -219,8 +223,10 @@ describe("RoutingInstructionModal", () => {
     await vi.waitFor(() => {
       expect(navigator.clipboard.writeText).toHaveBeenCalled();
     });
-    // Verify the copied text contains the disable command
+    // Verify the copied text contains all four disable commands
     const copiedText = (navigator.clipboard.writeText as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(copiedText).toContain("openclaw config unset models.providers.manifest");
+    expect(copiedText).toContain("openclaw config unset agents.defaults.models.manifest/auto");
     expect(copiedText).toContain("openclaw config set agents.defaults.model.primary");
     expect(copiedText).toContain("openclaw gateway restart");
   });

@@ -55,7 +55,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
   };
 
   const disableCmd = () =>
-    `openclaw config unset models.providers.manifest\nopenclaw config set agents.defaults.model.primary ${modelOrPlaceholder()}\nopenclaw gateway restart`;
+    `openclaw config unset models.providers.manifest\nopenclaw config unset agents.defaults.models.manifest/auto\nopenclaw config set agents.defaults.model.primary ${modelOrPlaceholder()}\nopenclaw gateway restart`;
   const command = () => (isEnable() ? enableCmd() : disableCmd());
 
   const handleModelSelect = (cliValue: string, displayLabel: string) => {
@@ -164,6 +164,12 @@ const RoutingInstructionModal: Component<Props> = (props) => {
                       <span class="modal-terminal__prompt">$</span>
                       <span class="modal-terminal__code">
                         openclaw config unset models.providers.manifest
+                      </span>
+                    </div>
+                    <div style="margin-top: 8px;">
+                      <span class="modal-terminal__prompt">$</span>
+                      <span class="modal-terminal__code">
+                        openclaw config unset agents.defaults.models.manifest/auto
                       </span>
                     </div>
                     <div style="margin-top: 8px;">

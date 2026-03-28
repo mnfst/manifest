@@ -59,7 +59,6 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionAuthMode: 'device_code' as const,
     knownModels: Object.freeze([
       'copilot/claude-opus-4.6',
-      'copilot/claude-opus-4.6-fast',
       'copilot/claude-sonnet-4.6',
       'copilot/claude-haiku-4.5',
       'copilot/gpt-5.4',

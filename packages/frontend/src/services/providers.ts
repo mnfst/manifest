@@ -85,7 +85,6 @@ export const PROVIDERS: ProviderDef[] = [
     subscriptionOnly: true,
     models: [
       { label: 'Claude Opus 4.6', value: 'copilot/claude-opus-4.6' },
-      { label: 'Claude Opus 4.6 (fast)', value: 'copilot/claude-opus-4.6-fast' },
       { label: 'Claude Sonnet 4.6', value: 'copilot/claude-sonnet-4.6' },
       { label: 'Claude Haiku 4.5', value: 'copilot/claude-haiku-4.5' },
       { label: 'GPT-5.4', value: 'copilot/gpt-5.4' },
