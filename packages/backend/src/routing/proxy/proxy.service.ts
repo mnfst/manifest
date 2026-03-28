@@ -69,6 +69,7 @@ export class ProxyService {
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw new BadRequestException('messages array is required');
     }
+    sanitizeNullContent(messages as Record<string, unknown>[]);
 
     await this.enforceLimits(tenantId, agentName);
 
@@ -342,5 +343,12 @@ export class ProxyService {
       },
       meta,
     };
+  }
+}
+
+/** Replace null content fields with empty string to avoid upstream rejections. */
+function sanitizeNullContent(messages: Record<string, unknown>[]): void {
+  for (const msg of messages) {
+    if (msg && typeof msg === 'object' && msg.content === null) msg.content = '';
   }
 }

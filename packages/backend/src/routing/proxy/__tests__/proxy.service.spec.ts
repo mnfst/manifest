@@ -137,6 +137,119 @@ describe('ProxyService', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
+  it('sanitizes null content fields before forwarding', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'simple',
+      model: 'gpt-4o',
+      provider: 'OpenAI',
+      confidence: 0.9,
+      score: 0.5,
+      reason: 'scored',
+    });
+    providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
+    providerClient.forward.mockResolvedValue({
+      response: new Response('{}', { status: 200 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+
+    const body = {
+      messages: [
+        { role: 'assistant', content: null },
+        { role: 'user', content: 'Hello' },
+      ],
+      stream: false,
+    };
+
+    await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'default',
+    });
+
+    // Null content should have been replaced with empty string in-place
+    expect(body.messages[0].content).toBe('');
+    expect(body.messages[1].content).toBe('Hello');
+  });
+
+  it('does not mutate non-null content fields during sanitization', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'simple',
+      model: 'gpt-4o',
+      provider: 'OpenAI',
+      confidence: 0.9,
+      score: 0.5,
+      reason: 'scored',
+    });
+    providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
+    providerClient.forward.mockResolvedValue({
+      response: new Response('{}', { status: 200 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+
+    const body = {
+      messages: [
+        { role: 'system', content: 'You are helpful' },
+        { role: 'user', content: 'Hello' },
+        { role: 'assistant', content: '' },
+      ],
+      stream: false,
+    };
+
+    await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'default',
+    });
+
+    expect(body.messages[0].content).toBe('You are helpful');
+    expect(body.messages[1].content).toBe('Hello');
+    expect(body.messages[2].content).toBe('');
+  });
+
+  it('sanitizes multiple null content fields in a single request', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'simple',
+      model: 'gpt-4o',
+      provider: 'OpenAI',
+      confidence: 0.9,
+      score: 0.5,
+      reason: 'scored',
+    });
+    providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
+    providerClient.forward.mockResolvedValue({
+      response: new Response('{}', { status: 200 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+
+    const body = {
+      messages: [
+        { role: 'assistant', content: null },
+        { role: 'assistant', content: null },
+        { role: 'user', content: 'test' },
+      ],
+      stream: false,
+    };
+
+    await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'default',
+    });
+
+    expect(body.messages[0].content).toBe('');
+    expect(body.messages[1].content).toBe('');
+    expect(body.messages[2].content).toBe('test');
+  });
+
   it('returns synthetic response when no model is resolved', async () => {
     resolveService.resolve.mockResolvedValue({
       tier: 'simple',
