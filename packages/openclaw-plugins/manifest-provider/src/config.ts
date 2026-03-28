@@ -1,17 +1,11 @@
 import { API_KEY_PREFIX, DEFAULTS, ENV } from './constants';
 
 export interface ManifestConfig {
-  mode: 'cloud' | 'local';
   devMode: boolean;
   apiKey: string;
   endpoint: string;
   port: number;
   host: string;
-}
-
-export interface ParseResult {
-  config: ManifestConfig;
-  _deprecatedDevMode: boolean;
 }
 
 function isLoopback(endpoint: string): boolean {
@@ -25,10 +19,6 @@ function isLoopback(endpoint: string): boolean {
 }
 
 export function parseConfig(raw: unknown): ManifestConfig {
-  return parseConfigWithDeprecation(raw).config;
-}
-
-export function parseConfigWithDeprecation(raw: unknown): ParseResult {
   // OpenClaw may pass the full plugin entry { enabled, config: {...} }
   // or just the inner config object. Handle both.
   let obj: Record<string, unknown> =
@@ -36,18 +26,6 @@ export function parseConfigWithDeprecation(raw: unknown): ParseResult {
 
   if (obj.config && typeof obj.config === 'object' && !Array.isArray(obj.config)) {
     obj = obj.config as Record<string, unknown>;
-  }
-
-  // Backward compat: mode: "dev" → mode: "cloud" + devMode: true
-  let _deprecatedDevMode = false;
-  let mode: 'cloud' | 'local';
-  if (obj.mode === 'local') {
-    mode = 'local';
-  } else if (obj.mode === 'dev') {
-    mode = 'cloud';
-    _deprecatedDevMode = true;
-  } else {
-    mode = 'cloud';
   }
 
   const apiKey =
@@ -68,34 +46,29 @@ export function parseConfigWithDeprecation(raw: unknown): ParseResult {
 
   const host = typeof obj.host === 'string' && obj.host.length > 0 ? obj.host : '127.0.0.1';
 
-  // Determine devMode: explicit > deprecated mode: "dev" > auto-detect
+  // Determine devMode: explicit > legacy mode: "dev" > auto-detect
   let devMode: boolean;
   if (typeof obj.devMode === 'boolean') {
     devMode = obj.devMode;
-  } else if (_deprecatedDevMode) {
+  } else if (obj.mode === 'dev') {
+    // Backward compat: legacy mode: "dev" silently enables devMode
     devMode = true;
   } else {
     // Auto-detect: loopback endpoint + no mnfst_ API key
     devMode = isLoopback(endpoint) && !apiKey.startsWith(API_KEY_PREFIX);
   }
 
-  return {
-    config: { mode, devMode, apiKey, endpoint, port, host },
-    _deprecatedDevMode,
-  };
+  return { devMode, apiKey, endpoint, port, host };
 }
 
 export function validateConfig(config: ManifestConfig): string | null {
-  // In local mode, API key is auto-generated — skip validation
-  if (config.mode === 'local') return null;
-
   // devMode requires an endpoint but no API key
   if (config.devMode) {
     if (!config.endpoint.startsWith('http')) {
       return (
         `Invalid endpoint URL '${config.endpoint}'. ` +
         'Must start with http:// or https://. Fix it via:\n' +
-        '  openclaw config set plugins.entries.manifest.config.endpoint http://localhost:<PORT>'
+        '  openclaw config set plugins.entries.manifest-provider.config.endpoint http://localhost:<PORT>'
       );
     }
     return null;
@@ -104,7 +77,7 @@ export function validateConfig(config: ManifestConfig): string | null {
   if (!config.apiKey) {
     return (
       'Missing apiKey. Set it via:\n' +
-      `  openclaw config set plugins.entries.manifest.config.apiKey ${API_KEY_PREFIX}YOUR_KEY\n` +
+      `  openclaw config set plugins.entries.manifest-provider.config.apiKey ${API_KEY_PREFIX}YOUR_KEY\n` +
       `  or export MANIFEST_API_KEY=${API_KEY_PREFIX}YOUR_KEY`
     );
   }
@@ -112,14 +85,14 @@ export function validateConfig(config: ManifestConfig): string | null {
     return (
       'Invalid apiKey format. ' +
       `Keys must start with '${API_KEY_PREFIX}'. Fix it via:\n` +
-      `  openclaw config set plugins.entries.manifest.config.apiKey ${API_KEY_PREFIX}YOUR_KEY`
+      `  openclaw config set plugins.entries.manifest-provider.config.apiKey ${API_KEY_PREFIX}YOUR_KEY`
     );
   }
   if (!config.endpoint.startsWith('http')) {
     return (
       `Invalid endpoint URL '${config.endpoint}'. ` +
       'Must start with http:// or https://. Fix it via:\n' +
-      '  openclaw config set plugins.entries.manifest.config.endpoint https://app.manifest.build\n\n' +
+      '  openclaw config set plugins.entries.manifest-provider.config.endpoint https://app.manifest.build\n\n' +
       'Or run the setup wizard:\n' +
       '  openclaw providers setup manifest'
     );

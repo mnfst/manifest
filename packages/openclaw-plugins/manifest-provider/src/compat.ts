@@ -11,7 +11,7 @@ export function stripOtlpSuffix(endpoint: string, logger: PluginLogger): string 
       `[manifest] Endpoint "${endpoint}" contains a deprecated /otlp suffix.\n` +
         `  The endpoint should now be the base URL (e.g. "${cleaned}").\n` +
         `  Update your config:\n` +
-        `    openclaw config set plugins.entries.manifest.config.endpoint ${cleaned}`,
+        `    openclaw config set plugins.entries.manifest-provider.config.endpoint ${cleaned}`,
     );
   }
   return cleaned;

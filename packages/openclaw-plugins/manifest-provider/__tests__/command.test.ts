@@ -15,7 +15,6 @@ const mockLogger = {
 };
 
 const config: ManifestConfig = {
-  mode: "cloud",
   devMode: true,
   apiKey: "",
   endpoint: "http://localhost:38238/otlp",
@@ -61,7 +60,7 @@ describe("registerCommand", () => {
     const cmd = api.registerCommand.mock.calls[0][0];
     const result = await cmd.handler();
 
-    expect(result).toContain("Mode: cloud");
+    expect(result).toContain("Dev mode:");
     expect(result).toContain("Endpoint reachable: yes");
     expect(result).toContain("Auth valid: yes");
     expect(result).toContain("Agent: test-agent");
@@ -100,10 +99,10 @@ describe("registerCommand", () => {
     const cmd = api.registerCommand.mock.calls[0][0];
     const result = await cmd.execute();
 
-    expect(result.text).toContain("Mode: cloud");
+    expect(result.text).toContain("Dev mode:");
     expect(result.text).toContain("Agent: test-agent");
     expect(result.content).toEqual([
-      { type: "text", text: expect.stringContaining("Mode: cloud") },
+      { type: "text", text: expect.stringContaining("Dev mode:") },
     ]);
   });
 
@@ -178,7 +177,7 @@ describe("registerCommand", () => {
     const cmd = api.registerCommand.mock.calls[0][0];
     const result = await cmd.handler();
 
-    expect(result).toContain("Mode: cloud");
+    expect(result).toContain("Dev mode:");
     expect(result).toContain("Endpoint reachable: yes");
     expect(result).not.toContain("Agent:");
   });
