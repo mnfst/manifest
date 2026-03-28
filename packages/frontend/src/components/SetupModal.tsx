@@ -1,8 +1,7 @@
 import { createResource, Show, type Component } from 'solid-js';
-import { getAgentKey, getHealth } from '../services/api.js';
+import { getAgentKey } from '../services/api.js';
 import ErrorState from './ErrorState.jsx';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
-import SetupStepLocalReady from './SetupStepLocalReady.jsx';
 
 const SetupModal: Component<{
   open: boolean;
@@ -12,20 +11,12 @@ const SetupModal: Component<{
   onDone?: () => void;
   onGoToRouting?: () => void;
 }> = (props) => {
-  const [healthData] = createResource(
-    () => props.open,
-    (open) => (open ? getHealth() : null),
-  );
-  // Health check failure defaults to cloud mode
-  const isLocal = () => (healthData() as { mode?: string })?.mode === 'local';
-
   const [apiKeyData, { refetch: refetchKey }] = createResource(
     () => (props.open ? props.agentName : null),
     (n) => (n ? getAgentKey(n) : null),
   );
 
   const baseUrl = () => {
-    if (isLocal()) return `${window.location.origin}/v1`;
     const custom = apiKeyData()?.pluginEndpoint;
     if (custom) return custom;
     const host = window.location.hostname;
@@ -78,12 +69,7 @@ const SetupModal: Component<{
             </button>
           </div>
           <p class="modal-card__desc">
-            <Show
-              when={isLocal()}
-              fallback="Add Manifest as a model provider, then connect at least one LLM so routing works."
-            >
-              Your local agent is pre-configured. Connect an LLM provider to enable routing.
-            </Show>
+            Add Manifest as a model provider, then connect at least one LLM so routing works.
           </p>
 
           <Show
@@ -97,22 +83,11 @@ const SetupModal: Component<{
               />
             }
           >
-            <Show
-              when={!isLocal()}
-              fallback={
-                <SetupStepLocalReady
-                  apiKey={props.apiKey ?? null}
-                  keyPrefix={apiKeyData()?.keyPrefix ?? null}
-                  baseUrl={baseUrl()}
-                />
-              }
-            >
-              <SetupStepAddProvider
-                apiKey={props.apiKey ?? null}
-                keyPrefix={apiKeyData()?.keyPrefix ?? null}
-                baseUrl={baseUrl()}
-              />
-            </Show>
+            <SetupStepAddProvider
+              apiKey={props.apiKey ?? null}
+              keyPrefix={apiKeyData()?.keyPrefix ?? null}
+              baseUrl={baseUrl()}
+            />
           </Show>
 
           <div class="setup-modal__nav">

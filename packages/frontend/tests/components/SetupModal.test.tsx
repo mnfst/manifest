@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from "vitest";
-import { render, screen, fireEvent } from "@solidjs/testing-library";
+import { render, fireEvent } from "@solidjs/testing-library";
 
 // SolidJS createResource leaks rejected promises as unhandled rejections
 // when error gate is bypassed (e.g. props.apiKey provided)
@@ -7,24 +7,14 @@ const noop = () => {};
 beforeAll(() => process.on("unhandledRejection", noop));
 afterAll(() => process.off("unhandledRejection", noop));
 
-const mockGetHealth = vi.fn().mockResolvedValue({ mode: "cloud" });
 vi.mock("../../src/services/api.js", () => ({
   getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: null }),
-  getHealth: (...args: unknown[]) => mockGetHealth(...args),
 }));
 
 vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
   default: (props: any) => (
     <div data-testid="step-add-provider" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""}>
       Add Provider Step
-    </div>
-  ),
-}));
-
-vi.mock("../../src/components/SetupStepLocalReady.jsx", () => ({
-  default: (props: any) => (
-    <div data-testid="step-local-ready" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""}>
-      Local Ready Step
     </div>
   ),
 }));
@@ -47,7 +37,6 @@ describe("SetupModal", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetHealth.mockResolvedValue({ mode: "cloud" });
   });
 
   it("renders nothing when closed", () => {
@@ -80,7 +69,7 @@ describe("SetupModal", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("shows Add Provider step for cloud mode", () => {
+  it("shows Add Provider step", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
@@ -112,7 +101,7 @@ describe("SetupModal", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("shows cloud description text", () => {
+  it("shows description text", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
@@ -213,50 +202,6 @@ describe("SetupModal", () => {
       const step = container.querySelector('[data-testid="step-add-provider"]');
       expect(step).not.toBeNull();
       expect(step!.getAttribute("data-key")).toBe("mnfst_provided");
-    });
-  });
-
-  describe("local mode", () => {
-    beforeEach(() => {
-      mockGetHealth.mockResolvedValue({ mode: "local" });
-    });
-
-    it("shows Local Ready step", async () => {
-      const { container } = render(() => (
-        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
-      ));
-      await vi.waitFor(() => {
-        expect(container.querySelector('[data-testid="step-local-ready"]')).not.toBeNull();
-      });
-    });
-
-    it("shows local description text", async () => {
-      const { container } = render(() => (
-        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
-      ));
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain("pre-configured");
-      });
-    });
-
-    it("shows Done button in local mode", async () => {
-      const { container } = render(() => (
-        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
-      ));
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain("Done");
-      });
-    });
-
-    it("uses local origin as baseUrl", async () => {
-      const { container } = render(() => (
-        <SetupModal open={true} agentName="local-agent" onClose={onClose} />
-      ));
-      await vi.waitFor(() => {
-        const step = container.querySelector('[data-testid="step-local-ready"]');
-        expect(step).not.toBeNull();
-        expect(step?.getAttribute("data-base-url")).toContain("/v1");
-      });
     });
   });
 });
