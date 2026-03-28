@@ -28,7 +28,7 @@ Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT l
 ### What the plugin does NOT do
 
 - Does not export telemetry, traces, or metrics — the plugin has no OTLP or telemetry code
-- Does not make background network calls — the only network call is a one-time connection verification at startup
+- Does not make background or periodic network calls — network calls happen only at startup (connection verification) and when agent tools are invoked by the user
 - Does not change your default model — `manifest/auto` is added to the allowlist only, you must switch to it manually
 
 ### How routing works
