@@ -192,9 +192,9 @@ describe("SetupModal", () => {
     });
   });
 
-  it("still shows setup content when apiKey prop is provided even if fetch fails", async () => {
+  it("still shows setup content when apiKey prop is provided even if fetch returns null", async () => {
     const { getAgentKey } = await import("../../src/services/api.js");
-    (getAgentKey as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("Fetch failed"));
+    (getAgentKey as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
     const { container } = render(() => (
       <SetupModal open={true} agentName="fail-agent" apiKey="mnfst_provided" onClose={onClose} />
     ));
