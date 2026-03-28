@@ -8,7 +8,7 @@ describe('FixNegativeCosts1773800000000', () => {
     await migration.up({ query } as never);
     expect(query).toHaveBeenCalledTimes(1);
     expect(query).toHaveBeenCalledWith(
-      'UPDATE "agent_message" SET "cost_usd" = NULL WHERE "cost_usd" < 0',
+      'UPDATE "agent_messages" SET "cost_usd" = NULL WHERE "cost_usd" < 0',
     );
   });
 
@@ -16,7 +16,7 @@ describe('FixNegativeCosts1773800000000', () => {
     const query = jest.fn();
     await migration.up({ query } as never);
     const sql = query.mock.calls[0][0] as string;
-    expect(sql).toContain('"agent_message"');
+    expect(sql).toContain('"agent_messages"');
   });
 
   it('sets to NULL (not zero) so unknown costs remain distinguishable', async () => {
