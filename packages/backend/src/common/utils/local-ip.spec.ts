@@ -15,7 +15,48 @@ describe('isLoopbackIp', () => {
   });
 });
 
-describe('isAllowedLocalIp', () => {
+describe('isAllowedLocalIp (default — loopback only)', () => {
+  const origTrustLan = process.env['MANIFEST_TRUST_LAN'];
+
+  beforeEach(() => {
+    delete process.env['MANIFEST_TRUST_LAN'];
+  });
+
+  afterEach(() => {
+    if (origTrustLan === undefined) delete process.env['MANIFEST_TRUST_LAN'];
+    else process.env['MANIFEST_TRUST_LAN'] = origTrustLan;
+  });
+
+  it.each([
+    ['127.0.0.1', true],
+    ['::1', true],
+    ['::ffff:127.0.0.1', true],
+    // Private IPs rejected by default
+    ['10.0.0.1', false],
+    ['192.168.1.100', false],
+    ['172.16.0.1', false],
+    ['::ffff:192.168.1.50', false],
+    // Public IPs
+    ['8.8.8.8', false],
+    ['1.1.1.1', false],
+    ['', false],
+  ])('isAllowedLocalIp(%s) → %s', (ip, expected) => {
+    expect(isAllowedLocalIp(ip)).toBe(expected);
+  });
+});
+
+describe('isAllowedLocalIp (MANIFEST_TRUST_LAN=true)', () => {
+  const origTrustLan = process.env['MANIFEST_TRUST_LAN'];
+
+  beforeEach(() => {
+    process.env['MANIFEST_TRUST_LAN'] = 'true';
+  });
+
+  afterEach(() => {
+    if (origTrustLan === undefined) delete process.env['MANIFEST_TRUST_LAN'];
+    else process.env['MANIFEST_TRUST_LAN'] = origTrustLan;
+  });
+
   it.each([
     // Loopback
     ['127.0.0.1', true],

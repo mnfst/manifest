@@ -6,7 +6,11 @@ import { EmailProviderConfigService } from './services/email-provider-config.ser
 import { NotificationCronService } from './services/notification-cron.service';
 import { LimitCheckService } from './services/limit-check.service';
 import { CreateNotificationRuleDto, UpdateNotificationRuleDto } from './dto/notification-rule.dto';
-import { SetEmailProviderDto, TestEmailProviderDto } from './dto/set-email-provider.dto';
+import {
+  SetEmailProviderDto,
+  TestEmailProviderDto,
+  TestSavedEmailProviderDto,
+} from './dto/set-email-provider.dto';
 
 @Controller('api/v1/notifications')
 export class NotificationsController {
@@ -26,10 +30,7 @@ export class NotificationsController {
   }
 
   @Post('email-provider/test')
-  async testEmailProvider(
-    @CurrentUser() user: AuthUser,
-    @Body() body: TestEmailProviderDto,
-  ) {
+  async testEmailProvider(@CurrentUser() user: AuthUser, @Body() body: TestEmailProviderDto) {
     return this.emailProviderConfigService.testConfig(
       { provider: body.provider, apiKey: body.apiKey, domain: body.domain },
       body.to,
@@ -39,16 +40,13 @@ export class NotificationsController {
   @Post('email-provider/test-saved')
   async testSavedEmailProvider(
     @CurrentUser() user: AuthUser,
-    @Body() body: { to: string },
+    @Body() body: TestSavedEmailProviderDto,
   ) {
     return this.emailProviderConfigService.testSavedConfig(user.id, body.to);
   }
 
   @Post('email-provider')
-  async setEmailProvider(
-    @CurrentUser() user: AuthUser,
-    @Body() body: SetEmailProviderDto,
-  ) {
+  async setEmailProvider(@CurrentUser() user: AuthUser, @Body() body: SetEmailProviderDto) {
     return this.emailProviderConfigService.upsert(user.id, body);
   }
 
@@ -65,34 +63,25 @@ export class NotificationsController {
   }
 
   @Post('notification-email')
-  async setNotificationEmail(
-    @CurrentUser() user: AuthUser,
-    @Body() body: { email: string },
-  ) {
+  async setNotificationEmail(@CurrentUser() user: AuthUser, @Body() body: { email: string }) {
     await this.emailProviderConfigService.setNotificationEmail(user.id, body.email);
     return { saved: true };
   }
 
   @Post('trigger-check')
-  async triggerCheck() {
+  async triggerCheck(@CurrentUser() user: AuthUser) {
     this.logger.log('Manual notification check triggered');
-    const triggered = await this.cronService.checkThresholds();
+    const triggered = await this.cronService.checkThresholds(user.id);
     return { triggered, message: `${triggered} notification(s) triggered` };
   }
 
   @Get()
-  async listRules(
-    @Query('agent_name') agentName: string,
-    @CurrentUser() user: AuthUser,
-  ) {
+  async listRules(@Query('agent_name') agentName: string, @CurrentUser() user: AuthUser) {
     return this.rulesService.listRules(user.id, agentName);
   }
 
   @Post()
-  async createRule(
-    @Body() dto: CreateNotificationRuleDto,
-    @CurrentUser() user: AuthUser,
-  ) {
+  async createRule(@Body() dto: CreateNotificationRuleDto, @CurrentUser() user: AuthUser) {
     const rule = await this.rulesService.createRule(user.id, dto);
     if (rule.action === 'block' || rule.action === 'both') {
       this.limitCheck.invalidateCache(rule.tenant_id, rule.agent_name);
@@ -112,11 +101,8 @@ export class NotificationsController {
   }
 
   @Delete(':id')
-  async deleteRule(
-    @Param('id') id: string,
-    @CurrentUser() user: AuthUser,
-  ) {
-    const rule = await this.rulesService.getRule(id);
+  async deleteRule(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    const rule = await this.rulesService.getOwnedRule(user.id, id);
     await this.rulesService.deleteRule(user.id, id);
     if (rule) {
       this.limitCheck.invalidateCache(rule.tenant_id, rule.agent_name);

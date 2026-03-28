@@ -8,11 +8,10 @@ export interface ManifestConfig {
   host: string;
 }
 
-function isLoopback(endpoint: string): boolean {
+function isValidUrl(endpoint: string): boolean {
   try {
     const url = new URL(endpoint);
-    const host = url.hostname;
-    return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
+    return url.protocol === 'http:' || url.protocol === 'https:';
   } catch {
     return false;
   }
@@ -46,7 +45,7 @@ export function parseConfig(raw: unknown): ManifestConfig {
 
   const host = typeof obj.host === 'string' && obj.host.length > 0 ? obj.host : '127.0.0.1';
 
-  // Determine devMode: explicit > legacy mode: "dev" > auto-detect
+  // Determine devMode: explicit config only (no auto-detection to avoid fail-open auth)
   let devMode: boolean;
   if (typeof obj.devMode === 'boolean') {
     devMode = obj.devMode;
@@ -54,8 +53,7 @@ export function parseConfig(raw: unknown): ManifestConfig {
     // Backward compat: legacy mode: "dev" silently enables devMode
     devMode = true;
   } else {
-    // Auto-detect: loopback endpoint + no mnfst_ API key
-    devMode = isLoopback(endpoint) && !apiKey.startsWith(API_KEY_PREFIX);
+    devMode = false;
   }
 
   return { devMode, apiKey, endpoint, port, host };
@@ -64,10 +62,10 @@ export function parseConfig(raw: unknown): ManifestConfig {
 export function validateConfig(config: ManifestConfig): string | null {
   // devMode requires an endpoint but no API key
   if (config.devMode) {
-    if (!config.endpoint.startsWith('http')) {
+    if (!isValidUrl(config.endpoint)) {
       return (
         `Invalid endpoint URL '${config.endpoint}'. ` +
-        'Must start with http:// or https://. Fix it via:\n' +
+        'Must be a valid http:// or https:// URL. Fix it via:\n' +
         '  openclaw config set plugins.entries.manifest-provider.config.endpoint http://localhost:<PORT>'
       );
     }
@@ -88,10 +86,10 @@ export function validateConfig(config: ManifestConfig): string | null {
       `  openclaw config set plugins.entries.manifest-provider.config.apiKey ${API_KEY_PREFIX}YOUR_KEY`
     );
   }
-  if (!config.endpoint.startsWith('http')) {
+  if (!isValidUrl(config.endpoint)) {
     return (
       `Invalid endpoint URL '${config.endpoint}'. ` +
-      'Must start with http:// or https://. Fix it via:\n' +
+      'Must be a valid http:// or https:// URL. Fix it via:\n' +
       '  openclaw config set plugins.entries.manifest-provider.config.endpoint https://app.manifest.build\n\n' +
       'Or run the setup wizard:\n' +
       '  openclaw providers setup manifest'

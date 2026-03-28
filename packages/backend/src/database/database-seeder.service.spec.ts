@@ -1,4 +1,4 @@
-import { keyPrefix, hashKey } from '../common/utils/hash.util';
+import { keyPrefix, verifyKey } from '../common/utils/hash.util';
 import { DatabaseSeederService } from './database-seeder.service';
 
 // Mock auth.instance before importing the service
@@ -178,14 +178,13 @@ describe('DatabaseSeederService', () => {
 
       await service.onModuleInit();
 
-      expect(mockApiKeyRepo.insert).toHaveBeenCalledWith({
-        id: 'seed-api-key-001',
-        key: null,
-        key_hash: hashKey('dev-api-key-manifest-001'),
-        key_prefix: keyPrefix('dev-api-key-manifest-001'),
-        user_id: 'admin-user-id',
-        name: 'Development API Key',
-      });
+      const insertCall = mockApiKeyRepo.insert.mock.calls[0][0];
+      expect(insertCall.id).toBe('seed-api-key-001');
+      expect(insertCall.key).toBeNull();
+      expect(verifyKey('dev-api-key-manifest-001', insertCall.key_hash)).toBe(true);
+      expect(insertCall.key_prefix).toBe(keyPrefix('dev-api-key-manifest-001'));
+      expect(insertCall.user_id).toBe('admin-user-id');
+      expect(insertCall.name).toBe('Development API Key');
     });
 
     it('should store the correct hashKey hash value', async () => {
@@ -194,8 +193,8 @@ describe('DatabaseSeederService', () => {
       await service.onModuleInit();
 
       const insertCall = mockApiKeyRepo.insert.mock.calls[0][0];
-      expect(insertCall.key_hash).toMatch(/^[0-9a-f]{64}$/);
-      expect(insertCall.key_hash).toBe(hashKey('dev-api-key-manifest-001'));
+      expect(insertCall.key_hash).toMatch(/^[0-9a-f]+:[0-9a-f]+$/);
+      expect(verifyKey('dev-api-key-manifest-001', insertCall.key_hash)).toBe(true);
     });
 
     it('should store the correct key prefix (first 12 chars)', async () => {
@@ -265,16 +264,15 @@ describe('DatabaseSeederService', () => {
 
       await service.onModuleInit();
 
-      expect(mockAgentKeyRepo.insert).toHaveBeenCalledWith({
-        id: 'seed-otlp-key-001',
-        key: null,
-        key_hash: hashKey('mnfst_dev-otlp-key-001'),
-        key_prefix: keyPrefix('mnfst_dev-otlp-key-001'),
-        label: 'Demo OTLP ingest key',
-        tenant_id: 'seed-tenant-001',
-        agent_id: 'seed-agent-001',
-        is_active: true,
-      });
+      const insertCall = mockAgentKeyRepo.insert.mock.calls[0][0];
+      expect(insertCall.id).toBe('seed-otlp-key-001');
+      expect(insertCall.key).toBeNull();
+      expect(verifyKey('mnfst_dev-otlp-key-001', insertCall.key_hash)).toBe(true);
+      expect(insertCall.key_prefix).toBe(keyPrefix('mnfst_dev-otlp-key-001'));
+      expect(insertCall.label).toBe('Demo OTLP ingest key');
+      expect(insertCall.tenant_id).toBe('seed-tenant-001');
+      expect(insertCall.agent_id).toBe('seed-agent-001');
+      expect(insertCall.is_active).toBe(true);
     });
 
     it('should store the correct OTLP key prefix', async () => {

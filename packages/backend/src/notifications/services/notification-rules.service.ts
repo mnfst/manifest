@@ -149,6 +149,15 @@ export class NotificationRulesService {
     );
   }
 
+  async getActiveRulesForUser(userId: string) {
+    return this.ds.query(
+      this.sql(
+        `SELECT * FROM notification_rules WHERE user_id = $1 AND is_active = $2 AND action IN ($3, $4)`,
+      ),
+      [userId, this.dialect === 'sqlite' ? 1 : true, 'notify', 'both'],
+    );
+  }
+
   async getActiveBlockRules(tenantId: string, agentName: string) {
     return this.ds.query(
       this.sql(
@@ -189,6 +198,14 @@ export class NotificationRulesService {
     const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [
       ruleId,
     ]);
+    return rows[0];
+  }
+
+  async getOwnedRule(userId: string, ruleId: string) {
+    const rows = await this.ds.query(
+      this.sql(`SELECT * FROM notification_rules WHERE id = $1 AND user_id = $2`),
+      [ruleId, userId],
+    );
     return rows[0];
   }
 }

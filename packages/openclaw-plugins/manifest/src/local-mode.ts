@@ -1,5 +1,14 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { writeFileSync, existsSync, mkdirSync, readdirSync, renameSync } from 'fs';
+import {
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  renameSync,
+  openSync,
+  closeSync,
+  unlinkSync,
+} from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
 import { randomBytes } from 'crypto';
@@ -9,6 +18,7 @@ import { loadJsonFile } from './json-file';
 const API_KEY_PREFIX = 'mnfst_';
 const CONFIG_DIR = join(homedir(), '.openclaw', 'manifest');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
+const LOCK_FILE = join(CONFIG_DIR, '.config.lock');
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
 const OPENCLAW_CONFIG = join(OPENCLAW_DIR, 'openclaw.json');
 const HEALTH_TIMEOUT_MS = 3000;
@@ -21,22 +31,44 @@ function ensureConfigDir() {
   }
 }
 
+function withFileLock<T>(fn: () => T): T {
+  let fd: number | null = null;
+  try {
+    fd = openSync(LOCK_FILE, 'wx');
+  } catch {
+    // Lock exists or can't be acquired — proceed without lock (best-effort)
+    return fn();
+  }
+  try {
+    return fn();
+  } finally {
+    closeSync(fd);
+    try {
+      unlinkSync(LOCK_FILE);
+    } catch {
+      // Ignore cleanup errors
+    }
+  }
+}
+
 export function loadOrGenerateApiKey(): string {
   ensureConfigDir();
 
-  if (existsSync(CONFIG_FILE)) {
-    const data = loadJsonFile(CONFIG_FILE);
-    if (data.apiKey && data.apiKey.startsWith(API_KEY_PREFIX)) {
-      return data.apiKey;
+  return withFileLock(() => {
+    if (existsSync(CONFIG_FILE)) {
+      const data = loadJsonFile(CONFIG_FILE);
+      if (data.apiKey && data.apiKey.startsWith(API_KEY_PREFIX)) {
+        return data.apiKey;
+      }
     }
-  }
 
-  const key = `${API_KEY_PREFIX}local_${randomBytes(24).toString('hex')}`;
-  const existing = loadJsonFile(CONFIG_FILE);
-  writeFileSync(CONFIG_FILE, JSON.stringify({ ...existing, apiKey: key }, null, 2), {
-    mode: 0o600,
+    const key = `${API_KEY_PREFIX}local_${randomBytes(24).toString('hex')}`;
+    const existing = loadJsonFile(CONFIG_FILE);
+    writeFileSync(CONFIG_FILE, JSON.stringify({ ...existing, apiKey: key }, null, 2), {
+      mode: 0o600,
+    });
+    return key;
   });
-  return key;
 }
 
 function atomicWriteJson(path: string, data: unknown): void {

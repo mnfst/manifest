@@ -59,6 +59,7 @@ import { AddOverrideProvider1773600000000 } from './migrations/1773600000000-Add
 import { AddProviderRegion1773650000000 } from './migrations/1773650000000-AddProviderRegion';
 import { DropSecurityEventTable1773700000000 } from './migrations/1773700000000-DropSecurityEventTable';
 import { FixNegativeCosts1773800000000 } from './migrations/1773800000000-FixNegativeCosts';
+import { AddKeyPrefixIndex1773900000000 } from './migrations/1773900000000-AddKeyPrefixIndex';
 
 const entities = [
   AgentMessage,
@@ -118,6 +119,7 @@ const migrations = [
   AddProviderRegion1773650000000,
   DropSecurityEventTable1773700000000,
   FixNegativeCosts1773800000000,
+  AddKeyPrefixIndex1773900000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -150,7 +152,7 @@ function buildModeServices() {
           url: config.get<string>('app.databaseUrl'),
           entities,
           synchronize: false,
-          migrationsRun: config.get<string>('app.nodeEnv') !== 'production',
+          migrationsRun: ['development', 'test'].includes(config.get<string>('app.nodeEnv') ?? ''),
           migrationsTransactionMode: 'all' as const,
           migrations,
           logging: false,

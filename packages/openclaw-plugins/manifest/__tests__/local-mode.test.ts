@@ -6,6 +6,9 @@ jest.mock("fs", () => ({
   mkdirSync: jest.fn(),
   readdirSync: jest.fn(),
   renameSync: jest.fn(),
+  openSync: jest.fn(),
+  closeSync: jest.fn(),
+  unlinkSync: jest.fn(),
 }));
 
 jest.mock("os", () => ({
@@ -27,7 +30,7 @@ jest.mock("../src/server", () => ({
   version: "1.0.0",
 }));
 
-import { existsSync, writeFileSync, mkdirSync, readdirSync, renameSync } from "fs";
+import { existsSync, writeFileSync, mkdirSync, readdirSync, renameSync, openSync, closeSync, unlinkSync } from "fs";
 import { loadJsonFile } from "../src/json-file";
 import {
   loadOrGenerateApiKey,
@@ -42,6 +45,9 @@ const mockWriteFileSync = writeFileSync as jest.MockedFunction<typeof writeFileS
 const mockMkdirSync = mkdirSync as jest.MockedFunction<typeof mkdirSync>;
 const mockReaddirSync = readdirSync as jest.MockedFunction<typeof readdirSync>;
 const mockRenameSync = renameSync as jest.MockedFunction<typeof renameSync>;
+const mockOpenSync = openSync as jest.MockedFunction<typeof openSync>;
+const mockCloseSync = closeSync as jest.MockedFunction<typeof closeSync>;
+const mockUnlinkSync = unlinkSync as jest.MockedFunction<typeof unlinkSync>;
 const mockLoadJsonFile = loadJsonFile as jest.MockedFunction<typeof loadJsonFile>;
 
 function makeLogger() {
@@ -62,6 +68,11 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockExistsSync.mockReturnValue(false);
   mockLoadJsonFile.mockReturnValue({});
+  // By default, openSync throws (lock can't be acquired) so existing tests
+  // exercise the fallback path. Tests for the lock-acquired path override this.
+  mockOpenSync.mockImplementation(() => {
+    throw new Error("EEXIST");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -132,6 +143,32 @@ describe("loadOrGenerateApiKey", () => {
     const key = loadOrGenerateApiKey();
 
     expect(key).toMatch(/^mnfst_local_/);
+  });
+
+  it("acquires file lock and cleans up on success", () => {
+    mockOpenSync.mockReturnValue(42);
+    mockExistsSync.mockReturnValue(true);
+    mockLoadJsonFile.mockReturnValue({ apiKey: "mnfst_existing_key_123" });
+
+    const key = loadOrGenerateApiKey();
+
+    expect(key).toBe("mnfst_existing_key_123");
+    expect(mockCloseSync).toHaveBeenCalledWith(42);
+    expect(mockUnlinkSync).toHaveBeenCalled();
+  });
+
+  it("cleans up lock even when unlinkSync throws", () => {
+    mockOpenSync.mockReturnValue(42);
+    mockUnlinkSync.mockImplementation(() => {
+      throw new Error("ENOENT");
+    });
+    mockExistsSync.mockReturnValue(true);
+    mockLoadJsonFile.mockReturnValue({ apiKey: "mnfst_existing_key_123" });
+
+    const key = loadOrGenerateApiKey();
+
+    expect(key).toBe("mnfst_existing_key_123");
+    expect(mockCloseSync).toHaveBeenCalledWith(42);
   });
 
   it("merges new key with existing config data", () => {
@@ -947,6 +984,9 @@ describe("registerLocalMode server module load failures", () => {
       mkdirSync: mockMkdirSync,
       readdirSync: mockReaddirSync,
       renameSync: mockRenameSync,
+      openSync: mockOpenSync,
+      closeSync: mockCloseSync,
+      unlinkSync: mockUnlinkSync,
     }));
     jest.doMock("os", () => ({ homedir: () => "/mock-home" }));
     jest.doMock("crypto", () => ({

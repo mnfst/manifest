@@ -12,7 +12,7 @@ import { createHash } from 'crypto';
 import { Request } from 'express';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
-import { hashKey } from '../../common/utils/hash.util';
+import { verifyKey, keyPrefix as computePrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 import {
   LOCAL_TENANT_ID,
@@ -136,14 +136,16 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
       return true;
     }
 
-    const tokenHash = hashKey(token);
-    const keyRecord = await this.keyRepo
+    const prefix = computePrefix(token);
+    const candidates = await this.keyRepo
       .createQueryBuilder('k')
       .leftJoinAndSelect('k.agent', 'a')
       .leftJoinAndSelect('k.tenant', 't')
-      .where('k.key_hash = :tokenHash', { tokenHash })
+      .where('k.key_prefix = :prefix', { prefix })
       .andWhere('k.is_active = true')
-      .getOne();
+      .getMany();
+
+    const keyRecord = candidates.find((c) => verifyKey(token, c.key_hash));
 
     if (!keyRecord) {
       this.logger.warn(`Rejected unknown agent key: ${token.substring(0, 8)}...`);
@@ -158,7 +160,7 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
       .createQueryBuilder()
       .update(AgentApiKey)
       .set({ last_used_at: () => 'CURRENT_TIMESTAMP' })
-      .where('key_hash = :tokenHash', { tokenHash })
+      .where('id = :id', { id: keyRecord.id })
       .execute()
       .catch((err: Error) => this.logger.warn(`Failed to update last_used_at: ${err.message}`));
 
