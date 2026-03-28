@@ -1,7 +1,7 @@
 ---
 name: manifest
 description: Model Router for OpenClaw. Save up to 70% by routing requests to the right model. Choose LLM fallback to avoid API rate limits, set thresholds and reduce token consumption.
-metadata: {"openclaw":{"requires":{"bins":["openclaw"],"env":["MANIFEST_API_KEY"]},"primaryEnv":"MANIFEST_API_KEY","homepage":"https://github.com/mnfst/manifest"}}
+metadata: {"openclaw":{"requires":{"bins":["openclaw"]},"homepage":"https://github.com/mnfst/manifest"}}
 ---
 
 # Manifest — LLM Router & Observability for OpenClaw
@@ -16,55 +16,34 @@ Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT l
 
 ## Security & Privacy
 
-> **TL;DR** — OTLP telemetry collects only metadata (model, tokens, latency, tool names) and never prompt or response text. Routing is **opt-in**: the plugin adds `manifest/auto` to the model allowlist but does not change your default model. Only if you manually select `manifest/auto` as your active model will the last 10 non-system messages be sent to the routing endpoint for tier scoring. To avoid this, use any fixed model. The API key (`mnfst_*`) authenticates your telemetry. In local mode, all data stays on your machine.
+> **TL;DR** — The plugin registers Manifest as a standard OpenAI-compatible provider and exposes three read-only agent tools. It does not export telemetry, read your conversations, or make network calls on its own. When you select `manifest/auto` as your model, OpenClaw sends requests through the Manifest backend proxy (same as any other provider). In local mode, all data stays on your machine and no API key is needed.
 
-### External Endpoints
+### What the plugin does
 
-| Endpoint                            | When                               | Data Sent                                                                                                 |
-| ----------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `{endpoint}/v1/traces`              | Every LLM call (batched 10-30s)    | OTLP spans (see fields below)                                                                             |
-| `{endpoint}/v1/metrics`             | Every 10-30s                       | Counters: request count, token totals, tool call counts — grouped by model/provider                       |
-| `{endpoint}/api/v1/routing/resolve` | Only when user selects `manifest/auto` as active model (opt-in) | Last 10 non-system/non-developer messages (`{role, content}` only)                                        |
+1. **Registers a provider** — adds `manifest` as an OpenAI-compatible provider with the `auto` model
+2. **Injects config** — writes provider entry to `~/.openclaw/openclaw.json` and auth profiles (standard plugin registration, reversed on uninstall)
+3. **Exposes 3 read-only tools** — `manifest_usage`, `manifest_costs`, `manifest_health` (query your own usage data via the Manifest API)
+4. **Registers `/manifest` command** — shows connection status
 
-### OTLP Span Fields
+### What the plugin does NOT do
 
-Exhaustive list of attributes sent per span:
+- Does not export telemetry, traces, or metrics
+- Does not read your conversations or message content
+- Does not make background network calls
+- Does not change your default model — `manifest/auto` is added to the allowlist only
 
-- `openclaw.session.key` — opaque session identifier
-- `openclaw.message.channel` — message channel name
-- `gen_ai.request.model` — model name (e.g. "claude-sonnet-4-20250514")
-- `gen_ai.system` — provider name (e.g. "anthropic")
-- `gen_ai.usage.input_tokens` — integer
-- `gen_ai.usage.output_tokens` — integer
-- `gen_ai.usage.cache_read_input_tokens` — integer
-- `gen_ai.usage.cache_creation_input_tokens` — integer
-- `openclaw.agent.name` — agent identifier
-- `tool.name` — tool name string
-- `tool.success` — boolean
-- `manifest.routing.tier` — routing tier (if routed)
-- `manifest.routing.reason` — routing reason (if routed)
-- Error status: agent errors truncated to 500 chars; tool errors include `event.error.message` untruncated
+### How routing works
 
-**Not collected by OTLP telemetry**: user prompts, assistant responses, tool input/output arguments, file contents, or any message body. OTLP telemetry never sends message content regardless of model selection. Routing (see below) is a separate, opt-in data flow that only activates when the user manually selects `manifest/auto` as their active model.
+When you manually select `manifest/auto` as your model, OpenClaw sends requests to the Manifest backend's `/v1/chat/completions` endpoint — the same way it sends requests to any provider (Anthropic, OpenAI, etc.). The backend picks the optimal model based on conversation complexity. This is standard OpenClaw provider behavior, not a special plugin data flow.
 
-### Routing Data (opt-in only)
+### Credential storage
 
-Routing is **not active by default.** The plugin adds `manifest/auto` to the model allowlist but does not change your default model. Message content is only sent to the routing endpoint if you manually select `manifest/auto` as your active model.
+- **Cloud mode** (`manifest-provider` plugin): API key provided via `openclaw providers setup manifest-provider` or `MANIFEST_API_KEY` env var. The key authenticates with the Manifest backend — standard provider auth.
+- **Local mode** (`manifest` plugin): auto-generated key stored in `~/.openclaw/manifest/config.json` with file mode `0600`. No external service contacted.
 
-When active:
-- Excludes messages with `role: "system"` or `role: "developer"`
-- Sends only `{role, content}` — all other message properties are stripped (`routing.ts:77`)
-- 3-second timeout, non-blocking
-- To stop: switch to any fixed model or disable routing in the dashboard
+### Local mode
 
-### Credential Storage
-
-- **Cloud mode** (`manifest-provider` plugin): API key provided via `openclaw providers setup manifest-provider` or `MANIFEST_API_KEY` env var
-- **Local mode** (`manifest` plugin): auto-generated key stored in `~/.openclaw/manifest/config.json` with file mode `0600`
-
-### Local Mode
-
-All data stays on your machine. No external calls are made in local mode.
+All data stays on your machine. The embedded server runs locally and no external calls are made.
 
 ## Install Provenance
 
@@ -88,7 +67,7 @@ npm audit signatures
 
 ## Setup (Local — recommended for evaluation)
 
-No account or API key required. Telemetry and dashboard data stay local; LLM requests still go to your configured providers.
+No account or API key required. Dashboard data stays local; LLM requests still go to your configured providers.
 
 ```bash
 openclaw plugins install manifest
@@ -113,12 +92,11 @@ The setup wizard prompts for your API key from [app.manifest.build](https://app.
 
 After restart, the plugin registers itself via standard OpenClaw plugin APIs:
 
-- Adds `manifest/auto` to the model allowlist — **your current default model is not changed**; you must manually select `manifest/auto` to enable routing
-- Registers the `manifest` provider in `~/.openclaw/openclaw.json` (standard plugin registration, reversed on uninstall)
-- Starts exporting OTLP telemetry (metadata only — no message content) to `app.manifest.build`
+- Adds `manifest/auto` to the model allowlist — **your current default model is not changed**
+- Registers the `manifest` provider in `~/.openclaw/openclaw.json` (reversed on uninstall)
 - Exposes three read-only agent tools: `manifest_usage`, `manifest_costs`, `manifest_health`
 
-Dashboard at [app.manifest.build](https://app.manifest.build). Telemetry arrives within 10-30 seconds (batched OTLP export).
+Dashboard at [app.manifest.build](https://app.manifest.build).
 
 ### Verify connection
 
@@ -174,11 +152,10 @@ Manifest answers these questions about your OpenClaw agents — via the dashboar
 **Connectivity**
 
 - Is Manifest connected and healthy?
-- Is telemetry flowing correctly?
 
 ## Agent Tools
 
-Three tools are available to the agent in-conversation:
+Three read-only tools are available to the agent in-conversation:
 
 | Tool              | Trigger phrases                                 | What it returns                                                             |
 | ----------------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
@@ -192,7 +169,7 @@ All three tools are read-only — they query the agent's own usage data and neve
 
 ## LLM Routing
 
-Routing only activates when you manually set your model to `manifest/auto`. When active, the router scores each conversation across 23 dimensions and assigns one of 4 tiers:
+Routing only activates when you manually set your model to `manifest/auto`. When active, the Manifest backend scores each conversation across 23 dimensions and assigns one of 4 tiers:
 
 | Tier          | Use case                                | Examples                                                |
 | ------------- | --------------------------------------- | ------------------------------------------------------- |
@@ -219,7 +196,7 @@ Short-circuit rules:
 | **Messages**     | Full paginated message log with filters (status, model, cost range)           |
 | **Routing**      | 4-tier model config, provider connections, enable/disable routing             |
 | **Limits**       | Email alerts and hard spending caps (tokens or cost, per hour/day/week/month) |
-| **Settings**     | Agent rename, delete, OTLP key management                                     |
+| **Settings**     | Agent rename, delete, key management                                          |
 | **Model Prices** | Sortable table of 300+ model prices across all providers                      |
 
 ## Supported Providers
@@ -237,12 +214,10 @@ This removes the plugin, provider config, and auth profiles. After uninstalling,
 
 ## Troubleshooting
 
-**Telemetry not appearing**: The gateway batches OTLP data every 10-30 seconds. Wait, then check `openclaw manifest` for connection status.
-
 **Auth errors in cloud mode**: Verify the API key starts with `mnfst_` and matches the key in the dashboard under Settings → Agent setup.
 
 **Port conflict in local mode**: If port 2099 is busy, the plugin checks if the existing process is Manifest and reuses it. To change the port: `openclaw config set plugins.entries.manifest.config.port <PORT>`.
 
 **Plugin conflicts**: Manifest conflicts with the built-in `diagnostics-otel` plugin. Disable it before enabling Manifest.
 
-**After backend restart**: Always restart the gateway too (`openclaw gateway restart`) — the OTLP pipeline doesn't auto-reconnect.
+**After backend restart**: Always restart the gateway too (`openclaw gateway restart`).
