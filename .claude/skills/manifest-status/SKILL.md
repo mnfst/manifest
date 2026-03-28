@@ -12,7 +12,7 @@ Print the current Manifest configuration. Shows both the direct model provider c
 Run the diagnostic script:
 
 ```bash
-bash skills/manifest-status/scripts/manifest_status.sh
+bash "${CLAUDE_SKILL_DIR}/scripts/manifest_status.sh"
 ```
 
 Output the table exactly as printed by the script. Do not add any extra text, explanation, or suggestions.
