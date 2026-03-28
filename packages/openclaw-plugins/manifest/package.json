@@ -31,9 +31,6 @@
       "./dist/index.js"
     ]
   },
-  "bundleDependencies": [
-    "manifest-shared"
-  ],
   "engines": {
     "node": ">=20.0.0"
   },
@@ -57,7 +54,6 @@
     "embedded-server"
   ],
   "dependencies": {
-    "manifest-shared": "*",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
