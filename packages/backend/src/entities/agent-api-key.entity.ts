@@ -1,12 +1,4 @@
-import {
-  Entity,
-  Column,
-  PrimaryColumn,
-  ManyToOne,
-  OneToOne,
-  JoinColumn,
-  Index,
-} from 'typeorm';
+import { Entity, Column, PrimaryColumn, ManyToOne, OneToOne, JoinColumn, Index } from 'typeorm';
 import { Tenant } from './tenant.entity';
 import { Agent } from './agent.entity';
 import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
@@ -20,7 +12,7 @@ export class AgentApiKey {
   key!: string | null;
 
   @Index({ unique: true })
-  @Column('varchar', { length: 64 })
+  @Column('varchar', { length: 128 })
   key_hash!: string;
 
   @Column('varchar', { length: 12 })
