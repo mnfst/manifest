@@ -25,6 +25,7 @@ export class OpenaiOauthService {
   private callbackServer: Server | null = null;
   private serverReady: Promise<void> | null = null;
   private readonly clientId: string;
+  private readonly useCallbackServer: boolean;
 
   constructor(
     private readonly providerService: ProviderService,
@@ -32,6 +33,7 @@ export class OpenaiOauthService {
     private readonly discoveryService: ModelDiscoveryService,
   ) {
     this.clientId = this.configService.get<string>('OPENAI_OAUTH_CLIENT_ID') ?? DEFAULT_CLIENT_ID;
+    this.useCallbackServer = this.configService.get<string>('MANIFEST_MODE') !== 'cloud';
   }
 
   async generateAuthorizationUrl(
@@ -50,8 +52,7 @@ export class OpenaiOauthService {
       backendUrl: backendUrl ?? '',
       expiresAt: Date.now() + STATE_TTL_MS,
     });
-    // Skip the ephemeral callback server in cloud mode — frontend handles the paste-URL fallback.
-    if (process.env['MANIFEST_MODE'] !== 'cloud') {
+    if (this.useCallbackServer) {
       await this.ensureCallbackServer();
     }
     const params = new URLSearchParams({
