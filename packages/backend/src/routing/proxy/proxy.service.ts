@@ -349,6 +349,6 @@ export class ProxyService {
 /** Replace null content fields with empty string to avoid upstream rejections. */
 function sanitizeNullContent(messages: Record<string, unknown>[]): void {
   for (const msg of messages) {
-    if (msg.content === null) msg.content = '';
+    if (msg && typeof msg === 'object' && msg.content === null) msg.content = '';
   }
 }
