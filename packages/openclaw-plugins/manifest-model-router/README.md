@@ -45,5 +45,5 @@ npm test --workspace=packages/openclaw-plugins/manifest-model-router        # Je
 ## Links
 
 - [Dashboard](https://app.manifest.build)
-- [Documentation](https://docs.manifest.build)
+- [Documentation](https://manifest.build/docs)
 - [GitHub](https://github.com/mnfst/manifest)
