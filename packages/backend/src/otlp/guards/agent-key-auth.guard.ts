@@ -152,10 +152,25 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
     const keyRecord = candidates.find((c) => verifyKey(token, c.key_hash));
 
     if (!keyRecord) {
-      // In local mode, fall back to the first active agent instead of rejecting.
+      // In local mode, gracefully fall back instead of rejecting.
       // This handles stale keys after gateway restarts, race conditions during
       // startup, or keys created on a different server instance.
       if (isLocal) {
+        // If the prefix matched a candidate, we know which agent the caller
+        // intended — use that agent even though the hash didn't verify
+        // (the key was likely rotated).
+        if (candidates.length > 0) {
+          const best = candidates[0];
+          (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
+            tenantId: best.tenant_id,
+            agentId: best.agent_id,
+            agentName: best.agent.name,
+            userId: best.tenant.name,
+          };
+          return true;
+        }
+        // No prefix match — key is from a different server instance.
+        // Try the first active agent, then fall back to LOCAL constants.
         const fallback = await this.resolveDevContext();
         if (fallback) {
           (request as Request & { ingestionContext: IngestionContext }).ingestionContext = fallback;

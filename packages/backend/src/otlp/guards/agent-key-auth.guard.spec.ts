@@ -327,14 +327,18 @@ describe('AgentKeyAuthGuard', () => {
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     });
 
-    it('falls back to first active agent when mnfst_ key is not found in local mode', async () => {
-      mockGetMany.mockResolvedValue([]); // no matching key in DB
-      mockFindOne.mockResolvedValue({
-        tenant_id: 'fb-tenant',
-        agent_id: 'fb-agent',
-        agent: { name: 'my-agent' },
-        tenant: { name: 'local-user-001' },
-      });
+    it('uses prefix-matched agent when mnfst_ key hash fails in local mode', async () => {
+      // Prefix matches a candidate but hash doesn't verify (rotated key)
+      mockGetMany.mockResolvedValue([
+        {
+          id: 'key-stale',
+          tenant_id: 'my-tenant',
+          agent_id: 'my-agent-id',
+          key_hash: 'wrong-hash',
+          agent: { name: 'my-agent' },
+          tenant: { name: 'local-user-001' },
+        },
+      ]);
 
       const { ctx, req } = makeContext(
         { authorization: 'Bearer mnfst_stale-or-unknown-key' },
@@ -344,14 +348,40 @@ describe('AgentKeyAuthGuard', () => {
 
       expect(result).toBe(true);
       expect(req.ingestionContext).toEqual({
+        tenantId: 'my-tenant',
+        agentId: 'my-agent-id',
+        agentName: 'my-agent',
+        userId: 'local-user-001',
+      });
+      // Should NOT call resolveDevContext since prefix matched
+      expect(mockFindOne).not.toHaveBeenCalled();
+    });
+
+    it('falls back to first active agent when no prefix match in local mode', async () => {
+      mockGetMany.mockResolvedValue([]); // no prefix match at all
+      mockFindOne.mockResolvedValue({
+        tenant_id: 'fb-tenant',
+        agent_id: 'fb-agent',
+        agent: { name: 'fallback-agent' },
+        tenant: { name: 'local-user-001' },
+      });
+
+      const { ctx, req } = makeContext(
+        { authorization: 'Bearer mnfst_totally-unknown-key' },
+        '127.0.0.1',
+      );
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
         tenantId: 'fb-tenant',
         agentId: 'fb-agent',
-        agentName: 'my-agent',
+        agentName: 'fallback-agent',
         userId: 'local-user-001',
       });
     });
 
-    it('falls back to LOCAL constants when mnfst_ key not found and no active agents in local mode', async () => {
+    it('falls back to LOCAL constants when no prefix match and no active agents in local mode', async () => {
       mockGetMany.mockResolvedValue([]);
       mockFindOne.mockResolvedValue(null);
 
