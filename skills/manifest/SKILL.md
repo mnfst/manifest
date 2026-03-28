@@ -28,8 +28,8 @@ Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT l
 ### What the plugin does NOT do
 
 - Does not export telemetry, traces, or metrics
-- Does not read your conversations or message content
-- Does not make background network calls
+- Does not read or collect your message content (when you use `manifest/auto`, OpenClaw sends requests through the Manifest backend like any other provider — the backend sees conversation context for routing decisions)
+- Does not make background network calls (the only network call is a one-time connection verification at startup)
 - Does not change your default model — `manifest/auto` is added to the allowlist only
 
 ### How routing works
