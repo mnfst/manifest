@@ -10,7 +10,7 @@ export class ApiKey {
   key!: string | null;
 
   @Index({ unique: true })
-  @Column('varchar', { length: 64 })
+  @Column('varchar', { length: 128 })
   key_hash!: string;
 
   @Column('varchar', { length: 12 })

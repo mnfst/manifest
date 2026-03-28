@@ -60,6 +60,7 @@ import { AddProviderRegion1773650000000 } from './migrations/1773650000000-AddPr
 import { DropSecurityEventTable1773700000000 } from './migrations/1773700000000-DropSecurityEventTable';
 import { FixNegativeCosts1773800000000 } from './migrations/1773800000000-FixNegativeCosts';
 import { AddKeyPrefixIndex1773900000000 } from './migrations/1773900000000-AddKeyPrefixIndex';
+import { WidenKeyHashColumn1774000000000 } from './migrations/1774000000000-WidenKeyHashColumn';
 
 const entities = [
   AgentMessage,
@@ -120,6 +121,7 @@ const migrations = [
   DropSecurityEventTable1773700000000,
   FixNegativeCosts1773800000000,
   AddKeyPrefixIndex1773900000000,
+  WidenKeyHashColumn1774000000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
