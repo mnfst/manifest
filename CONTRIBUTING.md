@@ -108,24 +108,16 @@ No plugin needed for this. The backend runs standalone and OpenClaw talks to it 
 
 ## Development Skills
 
-Three [skills](https://skills.sh) automate common plugin development workflows. Install them to get `/slash-command` shortcuts for managing the OpenClaw gateway, or run the bundled scripts directly from the repo root.
-
-### Install (Claude Code)
-
-```bash
-npx skills add https://github.com/mnfst/manifest --skill manifest-status
-npx skills add https://github.com/mnfst/manifest --skill setup-manifest-plugin
-npx skills add https://github.com/mnfst/manifest --skill uninstall-manifest-plugin
-```
+Development skills live in `.claude/skills/` and are **auto-discovered** by Claude Code for all contributors -- no manual install needed. You can also run the bundled scripts directly from the repo root.
 
 ### Standalone Usage
 
 The scripts work without Claude Code. Run them directly from the repo root:
 
 ```bash
-bash skills/manifest-status/scripts/manifest_status.sh
-bash skills/setup-manifest-plugin/scripts/setup_manifest.sh 38238 --mode local
-bash skills/uninstall-manifest-plugin/scripts/uninstall_manifest.sh
+bash .claude/skills/manifest-status/scripts/manifest_status.sh
+bash .claude/skills/setup-manifest-plugin/scripts/setup_manifest.sh 38238 --mode local
+bash .claude/skills/uninstall-manifest-plugin/scripts/uninstall_manifest.sh
 ```
 
 Requires `jq` and the `openclaw` CLI.
@@ -137,6 +129,7 @@ Requires `jq` and the `openclaw` CLI.
 | `manifest-status` | `/manifest-status` | Prints a diagnostic table of the current plugin configuration (mode, endpoint, keys, default model) |
 | `setup-manifest-plugin` | `/setup-manifest-plugin` | Configures the OpenClaw gateway to route through a local Manifest backend. Accepts a port and optional mode (`local`/`cloud`). Restarts the gateway. |
 | `uninstall-manifest-plugin` | `/uninstall-manifest-plugin` | Removes the Manifest plugin, cleans up auth profiles and local data, detects available providers, and sets the best default model. |
+| `ensure-manifest-docs-consistency` | `/ensure-manifest-docs-consistency` | Audits all Manifest documentation sources for consistency against the codebase. Produces a dissonance report. |
 
 ### Typical Workflow
 

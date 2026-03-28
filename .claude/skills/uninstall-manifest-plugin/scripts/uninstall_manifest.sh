@@ -71,6 +71,11 @@ jq '
     .agents.defaults.model.primary = ""
   else . end)
   |
+  # Remove manifest from global auth.profiles
+  (if .auth?.profiles then
+    .auth.profiles |= with_entries(select(.key | startswith("manifest") | not))
+  else . end)
+  |
   # Remove manifest plugin entry
   (if .plugins?.entries?.manifest then del(.plugins.entries.manifest) else . end)
   |
@@ -87,15 +92,40 @@ else
   log "Updated $CONFIG_FILE"
 fi
 
-# --- Step 3: Remove manifest auth profiles from all agents ---
+# --- Step 3: Remove manifest from agent-level configs ---
 if [[ -d "$AGENTS_DIR" ]]; then
-  log "Cleaning manifest auth profiles from agents..."
-  find "$AGENTS_DIR" -name "auth-profiles.json" -type f | while read -r profile_file; do
-    if jq -e '.profiles["manifest:default"]' "$profile_file" &>/dev/null; then
+  log "Cleaning manifest from agent configs..."
+
+  # Remove manifest from agent models.json files
+  find "$AGENTS_DIR" -name "models.json" -type f | while read -r models_file; do
+    if jq -e '.providers.manifest' "$models_file" &>/dev/null; then
       if $DRY_RUN; then
-        log "[dry-run] Would remove manifest:default from $profile_file"
+        log "[dry-run] Would remove manifest provider from $models_file"
       else
-        jq 'del(.profiles["manifest:default"])' "$profile_file" > "${profile_file}.tmp"
+        jq 'del(.providers.manifest)' "$models_file" > "${models_file}.tmp"
+        mv "${models_file}.tmp" "$models_file"
+        chmod 600 "$models_file"
+        log "Cleaned manifest provider from $models_file"
+      fi
+    fi
+  done
+
+  # Remove all manifest auth profiles, lastGood, and usageStats entries
+  find "$AGENTS_DIR" -name "auth-profiles.json" -type f | while read -r profile_file; do
+    HAS_MANIFEST=$(jq '[
+      (.profiles // {} | keys[] | select(startswith("manifest"))),
+      (if .lastGood?.manifest then "lastGood" else empty end),
+      (.usageStats // {} | keys[] | select(startswith("manifest")))
+    ] | length' "$profile_file" 2>/dev/null || echo "0")
+    if [[ "$HAS_MANIFEST" -gt 0 ]]; then
+      if $DRY_RUN; then
+        log "[dry-run] Would clean manifest entries from $profile_file"
+      else
+        jq '
+          .profiles |= with_entries(select(.key | startswith("manifest") | not))
+          | del(.lastGood.manifest)
+          | .usageStats |= (if . then with_entries(select(.key | startswith("manifest") | not)) else . end)
+        ' "$profile_file" > "${profile_file}.tmp"
         mv "${profile_file}.tmp" "$profile_file"
         chmod 600 "$profile_file"
         log "Cleaned $profile_file"

@@ -16,7 +16,7 @@ Remove Manifest from OpenClaw -- both the model provider config and the plugin (
 ### 1. Run the uninstall script
 
 ```bash
-bash skills/uninstall-manifest-plugin/scripts/uninstall_manifest.sh
+bash "${CLAUDE_SKILL_DIR}/scripts/uninstall_manifest.sh"
 ```
 
 The script removes the provider config, plugin (if installed), auth profiles, and local data, then detects available providers and restarts the gateway. Use `--dry-run` to preview.
@@ -47,7 +47,7 @@ If multiple exist, ask the user which to use as default.
 ### 3. Show status table
 
 ```bash
-bash skills/manifest-status/scripts/manifest_status.sh
+bash .claude/skills/manifest-status/scripts/manifest_status.sh
 ```
 
 Output the table exactly as printed. No extra commentary.

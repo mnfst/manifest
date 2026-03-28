@@ -26,10 +26,10 @@ If the user doesn't specify a mode, default to `dev`. If dev/local and no port, 
 
 ```bash
 # Dev (port required):
-bash skills/setup-manifest-plugin/scripts/setup_manifest.sh <PORT> --mode dev [--key <KEY>]
+bash "${CLAUDE_SKILL_DIR}/scripts/setup_manifest.sh" <PORT> --mode dev [--key <KEY>]
 
 # Cloud (port optional):
-bash skills/setup-manifest-plugin/scripts/setup_manifest.sh --mode cloud --key <KEY>
+bash "${CLAUDE_SKILL_DIR}/scripts/setup_manifest.sh" --mode cloud --key <KEY>
 ```
 
 The script sets the provider config (`models.providers.manifest`), default model (`manifest/auto`), and restarts the gateway. Use `--dry-run` to preview.
@@ -37,7 +37,7 @@ The script sets the provider config (`models.providers.manifest`), default model
 ### 3. Show status table
 
 ```bash
-bash skills/manifest-status/scripts/manifest_status.sh
+bash .claude/skills/manifest-status/scripts/manifest_status.sh
 ```
 
 Output the table exactly as printed. No extra commentary.

@@ -15,7 +15,8 @@ coverage/
 .specify/memory/
 .agent/
 .agents/
-.claude/
+.claude/*
+!.claude/skills/
 .continue/
 .cursor/
 .goose/
