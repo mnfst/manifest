@@ -41,26 +41,14 @@ Manifest is a smart model router for OpenClaw. It sits between your agent and yo
 - Automatic fallbacks: If a model fails, the next one picks up
 - Set limits: Don't exceed your budget
 
-## Quick start
-
-### Cloud version
-
-Go to [app.manifest.build](https://app.manifest.build) and follow the guide.
-
-### Local version
-
+## Setup
 ```bash
 openclaw plugins install manifest
 openclaw gateway restart
 ```
+Dashboard opens at [http://127.0.0.1:2099](http://127.0.0.1:2099). Everything runs locally, no account needed.
 
-Dashboard opens at **http://127.0.0.1:2099**. The plugin starts an embedded server, runs the dashboard locally, and registers itself as a provider automatically. No account or API key needed.
-
-### Cloud vs local
-
-Pick cloud version for quick setup and multi-device access. Pick local version for keeping all your data on your machine or for using local models like Ollama.
-
-Not sure which one to choose? Start with cloud.
+If you want multi-device access or a hosted version, pick [cloud](https://app.manifest.build) version.
 
 ## How it works
 
