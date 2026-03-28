@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.15
+
+### Patch Changes
+
+- 41f3ce2: Unify setup wizard for local and cloud mode — remove separate local-only wizard step
+
 ## 5.33.14
 
 ### Patch Changes
