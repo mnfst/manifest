@@ -35,38 +35,37 @@
 
 ## What is Manifest?
 
-Manifest is a smart model router for OpenClaw. It sits between your agent and your LLM providers, scores each request, and routes it to the cheapest model that can handle it. Simple questions go to fast, cheap models. Hard problems go to expensive ones. You save money without thinking about it.
+Manifest is an open-source LLM router for [OpenClaw](https://openclaw.com). It sits between your agent and your LLM providers, scores each request, and routes it to the cheapest model that can handle it. Simple questions go to fast, cheap models. Hard problems go to expensive ones. You save money without thinking about it.
 
 - Route requests to the right model: Cut costs up to 70%
 - Automatic fallbacks: If a model fails, the next one picks up
-- Set limits: Don't exceed your budget
+- Set limits: Get alerts when usage crosses a threshold
+- Full dashboard: Monitor token usage, costs, and model performance
+
+> Want to get started quickly without self-hosting? Use [Manifest Cloud](https://app.manifest.build) -- no setup needed.
 
 ## Quick start
-
-### Cloud version
-
-Go to [app.manifest.build](https://app.manifest.build) and follow the guide.
-
-### Local version
 
 ```bash
 openclaw plugins install manifest
 openclaw gateway restart
 ```
 
-Dashboard opens at **http://127.0.0.1:2099**. The plugin starts an embedded server, runs the dashboard locally, and registers itself as a provider automatically. No account or API key needed.
+That's it. The plugin starts an embedded server with a local SQLite database, runs the dashboard, and registers itself as a provider. No account, no API key, no external dependencies.
 
-### Cloud vs local
-
-Pick cloud version for quick setup and multi-device access. Pick local version for keeping all your data on your machine or for using local models like Ollama.
-
-Not sure which one to choose? Start with cloud.
+Dashboard opens at **http://127.0.0.1:2099**. Your agent can now use `manifest/auto` as a model.
 
 ## How it works
 
 Every request to `manifest/auto` goes through a 23-dimension scoring algorithm (runs in under 2ms). The scorer picks a tier (simple, standard, complex, or reasoning) and routes to the best model in that tier from your connected providers.
 
 All routing data (tokens, costs, model, duration) is recorded automatically. You see it in the dashboard. No extra setup.
+
+## Privacy
+
+**Local mode**: Everything stays on your machine. No data leaves your network.
+
+**Cloud mode**: Manifest proxies your request to the LLM provider. It records metadata (model name, token counts, latency, cost) but never stores prompt or response content. The proxy is blind to your data by design.
 
 ## Manifest vs OpenRouter
 
