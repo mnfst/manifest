@@ -243,6 +243,58 @@ describe("injectProviderConfig", () => {
     expect(count).toBe(1);
   });
 
+  it("sets model.primary to manifest/auto when no default is configured", () => {
+    const logger = makeLogger();
+    const api = { config: {} };
+    mockLoadJsonFile.mockReturnValue({});
+    mockExistsSync.mockReturnValue(true);
+
+    injectProviderConfig(api, baseUrl, apiKey, logger);
+
+    const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
+    expect(written.agents.defaults.model.primary).toBe("manifest/auto");
+  });
+
+  it("does not overwrite existing model.primary", () => {
+    const logger = makeLogger();
+    const api = { config: {} };
+    mockLoadJsonFile.mockReturnValue({
+      agents: { defaults: { model: { primary: "anthropic/claude-sonnet-4-6" } } },
+    });
+    mockExistsSync.mockReturnValue(true);
+
+    injectProviderConfig(api, baseUrl, apiKey, logger);
+
+    const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
+    expect(written.agents.defaults.model.primary).toBe("anthropic/claude-sonnet-4-6");
+  });
+
+  it("sets runtime config model.primary when empty", () => {
+    const logger = makeLogger();
+    const api = { config: { agents: { defaults: { models: {}, model: {} as Record<string, unknown> } } } };
+    mockLoadJsonFile.mockReturnValue({});
+    mockExistsSync.mockReturnValue(true);
+
+    injectProviderConfig(api, baseUrl, apiKey, logger);
+
+    expect(api.config.agents.defaults.model.primary).toBe("manifest/auto");
+  });
+
+  it("does not overwrite existing runtime config model.primary", () => {
+    const logger = makeLogger();
+    const api = {
+      config: {
+        agents: { defaults: { models: {}, model: { primary: "openai/gpt-4o" } as Record<string, unknown> } },
+      },
+    };
+    mockLoadJsonFile.mockReturnValue({});
+    mockExistsSync.mockReturnValue(true);
+
+    injectProviderConfig(api, baseUrl, apiKey, logger);
+
+    expect(api.config.agents.defaults.model.primary).toBe("openai/gpt-4o");
+  });
+
   it("logs debug message when writeFileSync throws", () => {
     const logger = makeLogger();
     const api = { config: {} };

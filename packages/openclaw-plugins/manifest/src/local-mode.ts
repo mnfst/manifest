@@ -80,6 +80,12 @@ export function injectProviderConfig(
       if (!('manifest/auto' in models)) models['manifest/auto'] = {};
     }
 
+    // Set manifest/auto as default model if no default is configured
+    if (!config.agents.defaults.model) config.agents.defaults.model = {};
+    if (!config.agents.defaults.model.primary) {
+      config.agents.defaults.model.primary = 'manifest/auto';
+    }
+
     atomicWriteJson(OPENCLAW_CONFIG, config);
     logger.debug('[manifest] Wrote provider config to openclaw.json');
   } catch (err: unknown) {
@@ -124,6 +130,12 @@ export function injectProviderConfig(
         if (!rtModels.includes('manifest/auto')) rtModels.push('manifest/auto');
       } else if (typeof rtModels === 'object') {
         if (!('manifest/auto' in rtModels)) rtModels['manifest/auto'] = {};
+      }
+
+      // Set manifest/auto as default model if no default is configured
+      if (!api.config.agents.defaults.model) api.config.agents.defaults.model = {};
+      if (!api.config.agents.defaults.model.primary) {
+        api.config.agents.defaults.model.primary = 'manifest/auto';
       }
     }
   } catch {
