@@ -1,11 +1,13 @@
 {
   "id": "manifest-provider",
   "name": "Manifest LLM Router",
-  "version": "5.33.1",
+  "version": "5.33.2",
   "description": "Smart LLM Router for OpenClaw. Save up to 70% by routing every request to the right model. No coding required.",
   "author": "MNFST Inc.",
   "homepage": "https://manifest.build",
-  "providers": ["manifest"],
+  "providers": [
+    "manifest"
+  ],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -34,5 +36,7 @@
       "advanced": true
     }
   },
-  "skills": ["skills/manifest"]
+  "skills": [
+    "skills/manifest"
+  ]
 }

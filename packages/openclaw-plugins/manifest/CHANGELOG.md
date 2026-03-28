@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.7
+
+### Patch Changes
+
+- 5fee62f: Add bundleDependencies for manifest-shared to fix plugin install failure
+
 ## 5.33.6
 
 ### Patch Changes
