@@ -1,4 +1,3 @@
-import { betterAuth } from 'better-auth';
 import { render } from '@react-email/render';
 import { VerifyEmailEmail } from '../notifications/emails/verify-email';
 import { ResetPasswordEmail } from '../notifications/emails/reset-password';
@@ -54,7 +53,8 @@ function buildTrustedOrigins(): string[] {
 // In local mode, skip Better Auth entirely — LocalAuthGuard handles auth
 const authInstance = isLocalMode
   ? null
-  : betterAuth({
+  : // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('better-auth').betterAuth({
       database: database!,
       baseURL: process.env['BETTER_AUTH_URL'] ?? `http://localhost:${port}`,
       basePath: '/api/auth',
@@ -71,7 +71,13 @@ const authInstance = isLocalMode
         enabled: true,
         minPasswordLength: 8,
         requireEmailVerification: !isDev && !isLocalMode,
-        sendResetPassword: async ({ user, url }) => {
+        sendResetPassword: async ({
+          user,
+          url,
+        }: {
+          user: { name: string; email: string };
+          url: string;
+        }) => {
           const element = ResetPasswordEmail({
             userName: user.name,
             resetUrl: url,
@@ -89,7 +95,13 @@ const authInstance = isLocalMode
       emailVerification: {
         sendOnSignUp: !isLocalMode,
         autoSignInAfterVerification: true,
-        sendVerificationEmail: async ({ user, url }) => {
+        sendVerificationEmail: async ({
+          user,
+          url,
+        }: {
+          user: { name: string; email: string };
+          url: string;
+        }) => {
           const element = VerifyEmailEmail({
             userName: user.name,
             verificationUrl: url,
@@ -125,8 +137,27 @@ const authInstance = isLocalMode
       },
       trustedOrigins: buildTrustedOrigins(),
     });
-export const auth = authInstance as ReturnType<typeof betterAuth> | null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const auth = authInstance as any;
 
-type BetterAuthInstance = ReturnType<typeof betterAuth>;
-export type AuthSession = BetterAuthInstance['$Infer']['Session'];
-export type AuthUser = BetterAuthInstance['$Infer']['Session']['user'];
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AuthSession {
+  session: {
+    id: string;
+    userId: string;
+    token: string;
+    expiresAt: Date;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  user: AuthUser;
+}

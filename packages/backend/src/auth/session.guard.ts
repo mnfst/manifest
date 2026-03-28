@@ -1,7 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { fromNodeHeaders } from 'better-auth/node';
 import { auth } from './auth.instance';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
 
@@ -27,6 +26,8 @@ export class SessionGuard implements CanActivate {
     if (!auth) return true;
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { fromNodeHeaders } = require('better-auth/node');
       const session = await auth.api.getSession({
         headers: fromNodeHeaders(request.headers),
       });
