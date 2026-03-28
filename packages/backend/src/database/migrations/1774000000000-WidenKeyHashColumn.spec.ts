@@ -25,12 +25,14 @@ describe('WidenKeyHashColumn1774000000000', () => {
     expect(queries[1]).toContain('varchar(128)');
   });
 
-  it('reverts key_hash columns to varchar(64)', async () => {
+  it('reverts key_hash columns to varchar(64) with truncation', async () => {
     await migration.down(mockQueryRunner);
     expect(queries).toHaveLength(2);
     expect(queries[0]).toContain('agent_api_keys');
     expect(queries[0]).toContain('varchar(64)');
+    expect(queries[0]).toContain('USING left');
     expect(queries[1]).toContain('api_keys');
     expect(queries[1]).toContain('varchar(64)');
+    expect(queries[1]).toContain('USING left');
   });
 });
