@@ -71,7 +71,7 @@
 
 .modal-terminal__body {
   position: relative;
-  padding: 14px 16px;
+  padding: 14px 44px 14px 16px;
   background: hsl(var(--background));
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
