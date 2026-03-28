@@ -45,13 +45,7 @@ Manifest is a smart model router for OpenClaw. It sits between your agent and yo
 
 ### Cloud version
 
-```bash
-openclaw plugins install manifest-provider
-openclaw providers setup manifest-provider   # prompts for your API key
-openclaw gateway restart
-```
-
-Get your API key at [app.manifest.build](https://app.manifest.build). After setup, `manifest/auto` is available as a model.
+Go to [app.manifest.build](https://app.manifest.build) and follow the guide.
 
 ### Local version
 
@@ -60,13 +54,11 @@ openclaw plugins install manifest
 openclaw gateway restart
 ```
 
-Dashboard opens at **http://127.0.0.1:2099**. The plugin starts an embedded server, runs the dashboard locally, and registers itself as a provider. No account or API key needed.
-
-Open the dashboard, connect a provider, and start chatting. All data stays on your machine.
+Dashboard opens at **http://127.0.0.1:2099**. The plugin starts an embedded server, runs the dashboard locally, and registers itself as a provider automatically. No account or API key needed.
 
 ### Cloud vs local
 
-Pick cloud (`manifest-provider`) for quick setup and multi-device access. Pick local (`manifest`) for keeping all data on your machine or for using local models like Ollama.
+Pick cloud version for quick setup and multi-device access. Pick local version for keeping all your data on your machine or for using local models like Ollama.
 
 Not sure which one to choose? Start with cloud.
 
@@ -80,7 +72,7 @@ All routing data (tokens, costs, model, duration) is recorded automatically. You
 
 |              | Manifest                                     | OpenRouter                                          |
 | ------------ | -------------------------------------------- | --------------------------------------------------- |
-| Architecture | Your providers, your keys. Local or cloud     | Cloud proxy. All traffic goes through their servers |
+| Architecture | Local. Your requests, your providers         | Cloud proxy. All traffic goes through their servers |
 | Cost         | Free                                         | 5% fee on every API call                            |
 | Source code  | MIT, fully open                              | Proprietary                                         |
 | Data privacy | Metadata only (cloud) or fully local         | Prompts and responses pass through a third party    |
@@ -112,6 +104,7 @@ Manifest is open source under the [MIT license](LICENSE). See [CONTRIBUTING.md](
 
 ## Quick links
 
+- [GitHub](https://github.com/mnfst/manifest)
 - [Docs](https://manifest.build/docs)
 - [Discord](https://discord.com/invite/FepAked3W7)
 - [Discussions](https://github.com/mnfst/manifest/discussions)
