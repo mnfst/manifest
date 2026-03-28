@@ -16,7 +16,7 @@ Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT l
 
 ## Security & Privacy
 
-> **TL;DR** — The plugin registers Manifest as a standard OpenAI-compatible provider and exposes three read-only agent tools. It does not export telemetry, read your conversations, or make network calls on its own. When you select `manifest/auto` as your model, OpenClaw sends requests through the Manifest backend proxy (same as any other provider). In local mode, all data stays on your machine and no API key is needed.
+> **TL;DR** — The plugin registers Manifest as a standard OpenAI-compatible provider and exposes three read-only agent tools. It does not export telemetry or make background network calls. When you select `manifest/auto` as your model, OpenClaw routes requests through the Manifest backend — the same way it routes to any other provider like Anthropic or OpenAI. In local mode, all data stays on your machine and no API key is needed.
 
 ### What the plugin does
 
@@ -27,10 +27,9 @@ Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT l
 
 ### What the plugin does NOT do
 
-- Does not export telemetry, traces, or metrics
-- Does not read or collect your message content (when you use `manifest/auto`, OpenClaw sends requests through the Manifest backend like any other provider — the backend sees conversation context for routing decisions)
-- Does not make background network calls (the only network call is a one-time connection verification at startup)
-- Does not change your default model — `manifest/auto` is added to the allowlist only
+- Does not export telemetry, traces, or metrics — the plugin has no OTLP or telemetry code
+- Does not make background or periodic network calls — network calls happen only at startup (connection verification) and when agent tools are invoked by the user
+- Does not change your default model — `manifest/auto` is added to the allowlist only, you must switch to it manually
 
 ### How routing works
 
