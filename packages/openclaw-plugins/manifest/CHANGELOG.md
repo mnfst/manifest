@@ -1,5 +1,12 @@
 # manifest
 
+## 5.33.6
+
+### Patch Changes
+
+- 5d188f7: fix: deactivate routing modal now fully removes manifest provider config from OpenClaw
+- b920e9f: fix: improve routing setup instructions with full provider configuration commands
+
 ## 5.33.5
 
 ### Patch Changes
