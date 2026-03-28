@@ -1,5 +1,12 @@
 # manifest
 
+## 5.33.14
+
+### Patch Changes
+
+- dd6bdd0: fix: remove process.env access in OpenAI OAuth service to eliminate false "credential harvesting" warning during plugin install
+- 7035f6c: Rename plugin from `manifest-provider` to `manifest-model-router`. The npm package name, plugin ID, directory, and all references across CI, docs, and config have been updated.
+
 ## 5.33.13
 
 ### Patch Changes
