@@ -1,4 +1,4 @@
-import { Show, createSignal, createResource, type Component } from 'solid-js';
+import { type Component, Show, createResource, createSignal } from 'solid-js';
 import { CopyButton } from './SetupStepInstall.jsx';
 import ModelSelectDropdown from './ModelSelectDropdown.jsx';
 import { PROVIDERS } from '../services/providers.js';
