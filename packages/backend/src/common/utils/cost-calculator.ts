@@ -30,8 +30,9 @@ export function computeTokenCost(input: CostInput): number | null {
     return null;
   }
 
-  return (
+  const cost =
     input.inputTokens * Number(pricing.input_price_per_token) +
-    input.outputTokens * Number(pricing.output_price_per_token)
-  );
+    input.outputTokens * Number(pricing.output_price_per_token);
+
+  return cost < 0 ? null : cost;
 }

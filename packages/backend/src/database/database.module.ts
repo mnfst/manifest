@@ -58,6 +58,7 @@ import { DropModelPricingTables1773500000000 } from './migrations/1773500000000-
 import { AddOverrideProvider1773600000000 } from './migrations/1773600000000-AddOverrideProvider';
 import { AddProviderRegion1773650000000 } from './migrations/1773650000000-AddProviderRegion';
 import { DropSecurityEventTable1773700000000 } from './migrations/1773700000000-DropSecurityEventTable';
+import { FixNegativeCosts1773800000000 } from './migrations/1773800000000-FixNegativeCosts';
 
 const entities = [
   AgentMessage,
@@ -116,6 +117,7 @@ const migrations = [
   AddOverrideProvider1773600000000,
   AddProviderRegion1773650000000,
   DropSecurityEventTable1773700000000,
+  FixNegativeCosts1773800000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';

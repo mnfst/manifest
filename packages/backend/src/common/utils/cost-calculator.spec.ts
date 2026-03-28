@@ -1,4 +1,4 @@
-import { computeTokenCost, CostInput } from './cost-calculator';
+import { computeTokenCost } from './cost-calculator';
 import { PricingEntry } from '../../model-prices/model-pricing-cache.service';
 
 describe('computeTokenCost', () => {
@@ -134,6 +134,73 @@ describe('computeTokenCost', () => {
     ).toBe(0);
   });
 
+  it('returns null when computed cost would be negative (both prices negative)', () => {
+    const negativePricing: PricingEntry = {
+      model_name: 'bad-model',
+      provider: 'Test',
+      input_price_per_token: -1,
+      output_price_per_token: -1,
+      display_name: null,
+    };
+    expect(
+      computeTokenCost({
+        inputTokens: 100,
+        outputTokens: 50,
+        model: 'bad-model',
+        pricing: negativePricing,
+      }),
+    ).toBeNull();
+  });
+
+  it('returns null when net cost is negative from mixed positive/negative prices', () => {
+    const mixedPricing: PricingEntry = {
+      model_name: 'mixed-model',
+      provider: 'Test',
+      input_price_per_token: -0.01,
+      output_price_per_token: 0.000001,
+      display_name: null,
+    };
+    // -0.01 * 1000 + 0.000001 * 10 = -10 + 0.00001 = -9.99999 < 0
+    expect(
+      computeTokenCost({
+        inputTokens: 1000,
+        outputTokens: 10,
+        model: 'mixed-model',
+        pricing: mixedPricing,
+      }),
+    ).toBeNull();
+  });
+
+  it('returns the computed value when cost is exactly zero (free model)', () => {
+    const freePricing: PricingEntry = {
+      model_name: 'free-model',
+      provider: 'Free',
+      input_price_per_token: 0,
+      output_price_per_token: 0,
+      display_name: null,
+    };
+    // 0 * 500 + 0 * 200 = 0, which is >= 0 so it should return 0
+    expect(
+      computeTokenCost({
+        inputTokens: 500,
+        outputTokens: 200,
+        model: 'free-model',
+        pricing: freePricing,
+      }),
+    ).toBe(0);
+  });
+
+  it('returns null for empty-string model (falsy)', () => {
+    expect(
+      computeTokenCost({
+        inputTokens: 100,
+        outputTokens: 50,
+        model: '' as unknown as string,
+        pricing,
+      }),
+    ).toBeNull();
+  });
+
   it('returns 0 for subscription even when tokens are zero', () => {
     expect(
       computeTokenCost({
@@ -141,6 +208,25 @@ describe('computeTokenCost', () => {
         outputTokens: 0,
         model: 'gpt-4o',
         pricing: undefined,
+        isSubscription: true,
+      }),
+    ).toBe(0);
+  });
+
+  it('subscription check takes priority over negative pricing guard', () => {
+    const negativePricing: PricingEntry = {
+      model_name: 'bad-model',
+      provider: 'Test',
+      input_price_per_token: -1,
+      output_price_per_token: -1,
+      display_name: null,
+    };
+    expect(
+      computeTokenCost({
+        inputTokens: 100,
+        outputTokens: 50,
+        model: 'bad-model',
+        pricing: negativePricing,
         isSubscription: true,
       }),
     ).toBe(0);
