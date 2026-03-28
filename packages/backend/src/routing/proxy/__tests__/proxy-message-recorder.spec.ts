@@ -31,7 +31,7 @@ describe('ProxyMessageRecorder', () => {
   });
 
   describe('recordFallbackSuccess', () => {
-    it('skips insert when usage has zero tokens', async () => {
+    it('records with zero tokens when usage has zero tokens (fallback metadata is still valuable)', async () => {
       await recorder.recordFallbackSuccess(
         ctx,
         'gpt-4o',
@@ -43,10 +43,16 @@ describe('ProxyMessageRecorder', () => {
         'api_key',
         { prompt_tokens: 0, completion_tokens: 0 },
       );
-      expect(insertMock).not.toHaveBeenCalled();
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'ok',
+        input_tokens: 0,
+        output_tokens: 0,
+        fallback_from_model: 'claude-opus',
+      });
     });
 
-    it('skips insert when usage is undefined (defaults to 0/0)', async () => {
+    it('records with zero tokens when usage is undefined (fallback chain succeeded)', async () => {
       await recorder.recordFallbackSuccess(
         ctx,
         'gpt-4o',
@@ -58,7 +64,12 @@ describe('ProxyMessageRecorder', () => {
         'api_key',
         undefined,
       );
-      expect(insertMock).not.toHaveBeenCalled();
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'ok',
+        input_tokens: 0,
+        output_tokens: 0,
+      });
     });
 
     it('inserts when only prompt_tokens is non-zero', async () => {
@@ -195,10 +206,16 @@ describe('ProxyMessageRecorder', () => {
       expect(inserted.cost_usd).toBeNull();
     });
 
-    it('sets null for optional fields when not provided', async () => {
+    it('records with defaults when optional fields are not provided', async () => {
       await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard');
-      // No usage means 0/0 tokens -> early return
-      expect(insertMock).not.toHaveBeenCalled();
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      const inserted = insertMock.mock.calls[0][0];
+      expect(inserted.input_tokens).toBe(0);
+      expect(inserted.output_tokens).toBe(0);
+      expect(inserted.trace_id).toBeNull();
+      expect(inserted.fallback_from_model).toBeNull();
+      expect(inserted.fallback_index).toBeNull();
+      expect(inserted.auth_type).toBeNull();
     });
 
     it('uses current timestamp when timestamp is not provided', async () => {

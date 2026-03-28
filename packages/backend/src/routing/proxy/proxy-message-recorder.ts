@@ -174,7 +174,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
   ): Promise<void> {
     const inputTokens = usage?.prompt_tokens ?? 0;
     const outputTokens = usage?.completion_tokens ?? 0;
-    if (inputTokens === 0 && outputTokens === 0) return;
 
     const costUsd = computeTokenCost({
       inputTokens,
