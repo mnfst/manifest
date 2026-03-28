@@ -1,6 +1,6 @@
 {
   "name": "manifest-provider",
-  "version": "5.33.4",
+  "version": "5.33.5",
   "description": "Smart LLM router plugin for OpenClaw — picks the best model for each request, balancing quality, speed, and cost",
   "main": "dist/index.js",
   "license": "MIT",
