@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.10
+
+### Patch Changes
+
+- 8458afa: Fix local plugin startup diagnostics: validate health response is from Manifest before reusing server, move dashboard URL log to after actual startup, add post-start self-verification
+
 ## 5.33.9
 
 ### Patch Changes
