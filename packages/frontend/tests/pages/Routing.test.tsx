@@ -66,6 +66,8 @@ vi.mock("../../src/services/api.js", () => ({
   setFallbacks: vi.fn().mockResolvedValue([]),
   clearFallbacks: vi.fn().mockResolvedValue(undefined),
   getModelPrices: vi.fn().mockResolvedValue([]),
+  getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_abc123", pluginEndpoint: null }),
+  getHealth: vi.fn().mockResolvedValue({ mode: "cloud" }),
 }));
 
 import Routing from "../../src/pages/Routing";
@@ -505,6 +507,20 @@ describe("Routing — disabled state (no active providers)", () => {
     const enableBtn = await screen.findByText("Enable Routing");
     fireEvent.click(enableBtn);
     expect(screen.getByTestId("provider-modal")).toBeDefined();
+  });
+
+  it("does not show Setup instructions when no providers ever existed", async () => {
+    render(() => <Routing />);
+    await screen.findByText("Enable Routing");
+    expect(screen.queryByText("Setup instructions")).toBeNull();
+  });
+
+  it("shows Setup instructions link when providers exist but all inactive", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: false, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    render(() => <Routing />);
+    expect(await screen.findByText("Setup instructions")).toBeDefined();
   });
 });
 

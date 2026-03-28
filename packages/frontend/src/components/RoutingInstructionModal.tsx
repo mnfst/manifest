@@ -1,13 +1,13 @@
-import { Show, createSignal, type Component } from 'solid-js';
+import { type Component, Show, createResource, createSignal } from 'solid-js';
 import { CopyButton } from './SetupStepInstall.jsx';
 import ModelSelectDropdown from './ModelSelectDropdown.jsx';
 import { PROVIDERS } from '../services/providers.js';
-
-const ENABLE_CMD = `openclaw config set agents.defaults.model.primary manifest/auto\nopenclaw gateway restart`;
+import { getAgentKey, getHealth } from '../services/api.js';
 
 interface Props {
   open: boolean;
   mode: 'enable' | 'disable';
+  agentName: string;
   connectedProvider?: string | null;
   onClose: () => void;
 }
@@ -22,9 +22,41 @@ const RoutingInstructionModal: Component<Props> = (props) => {
   };
   const title = () => (isEnable() ? 'Activate routing' : 'Deactivate routing');
   const modelOrPlaceholder = () => selectedModel() ?? '<provider/model>';
+
+  const [healthData] = createResource(() => (props.open ? true : null), getHealth);
+  const isLocal = () => (healthData() as { mode?: string })?.mode === 'local';
+  const [apiKeyData] = createResource(
+    () => (props.open && isEnable() ? props.agentName : null),
+    (n) => getAgentKey(n),
+  );
+
+  const baseUrl = () => {
+    if (isLocal()) return `${window.location.origin}/v1`;
+    const custom = apiKeyData()?.pluginEndpoint;
+    if (custom) return custom;
+    const host = window.location.hostname;
+    if (host === 'app.manifest.build') return 'https://app.manifest.build/v1';
+    return `${window.location.origin}/v1`;
+  };
+
+  const displayKey = () =>
+    apiKeyData()?.apiKey ??
+    (apiKeyData()?.keyPrefix ? `${apiKeyData()!.keyPrefix}...` : 'mnfst_YOUR_KEY');
+  const isKeyTruncated = () => !apiKeyData()?.apiKey;
+
+  const enableCmd = () => {
+    const providerJson = JSON.stringify({
+      baseUrl: baseUrl(),
+      api: 'openai-completions',
+      apiKey: displayKey(),
+      models: [{ id: 'auto', name: 'Manifest Auto' }],
+    });
+    return `openclaw config set models.providers.manifest '${providerJson}'\nopenclaw config set agents.defaults.model.primary manifest/auto\nopenclaw gateway restart`;
+  };
+
   const disableCmd = () =>
     `openclaw config unset models.providers.manifest\nopenclaw config unset agents.defaults.models.manifest/auto\nopenclaw config set agents.defaults.model.primary ${modelOrPlaceholder()}\nopenclaw gateway restart`;
-  const command = () => (isEnable() ? ENABLE_CMD : disableCmd());
+  const command = () => (isEnable() ? enableCmd() : disableCmd());
 
   const handleModelSelect = (cliValue: string, displayLabel: string) => {
     setSelectedModel(cliValue);
@@ -82,8 +114,15 @@ const RoutingInstructionModal: Component<Props> = (props) => {
               </p>
             </Show>
             <p style="margin: 0 0 16px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-              Run the following command in your agent's terminal to route all requests through
-              Manifest:
+              Run the following commands in your agent's terminal to route all requests through
+              Manifest
+              <Show when={isKeyTruncated()} fallback=":">
+                , replacing{' '}
+                <code style="font-size: var(--font-size-sm); background: hsl(var(--muted)); padding: 1px 4px; border-radius: 3px;">
+                  {displayKey()}
+                </code>{' '}
+                with your full Manifest API key:
+              </Show>
             </p>
           </Show>
 
@@ -147,6 +186,19 @@ const RoutingInstructionModal: Component<Props> = (props) => {
                 }
               >
                 <div>
+                  <span class="modal-terminal__prompt">$</span>
+                  <span class="modal-terminal__code" style="word-break: break-all;">
+                    openclaw config set models.providers.manifest '
+                    {JSON.stringify({
+                      baseUrl: baseUrl(),
+                      api: 'openai-completions',
+                      apiKey: displayKey(),
+                      models: [{ id: 'auto', name: 'Manifest Auto' }],
+                    })}
+                    '
+                  </span>
+                </div>
+                <div style="margin-top: 8px;">
                   <span class="modal-terminal__prompt">$</span>
                   <span class="modal-terminal__code">
                     openclaw config set agents.defaults.model.primary manifest/auto

@@ -72,6 +72,7 @@ const Routing: Component = () => {
     return getTier(tierId)?.fallback_models ?? [];
   };
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
+  const hadRouting = () => (connectedProviders()?.length ?? 0) > 0 && !isEnabled();
   const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
 
   const getTier = (tierId: string): TierAssignment | undefined =>
@@ -321,6 +322,18 @@ const Routing: Component = () => {
         </Show>
       </Show>
 
+      <Show when={hadRouting()}>
+        <div class="routing-footer" style="margin-top: 0;">
+          <div style="flex: 1;" />
+          <button
+            class="routing-footer__instructions"
+            onClick={() => setInstructionModal('disable')}
+          >
+            Setup instructions
+          </button>
+        </div>
+      </Show>
+
       <Show when={dropdownTier()}>
         {(tierId) => (
           <ModelPickerModal
@@ -374,6 +387,7 @@ const Routing: Component = () => {
       <RoutingInstructionModal
         open={instructionModal() !== null}
         mode={instructionModal() ?? 'enable'}
+        agentName={agentName()}
         connectedProvider={instructionProvider()}
         onClose={() => {
           setInstructionModal(null);
