@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.8
+
+### Patch Changes
+
+- c43481d: Remove manifest-shared from dependencies to fix plugin install failure
+
 ## 5.33.7
 
 ### Patch Changes
