@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.13
+
+### Patch Changes
+
+- b3e3491: Plugin only starts embedded server — no config injection, no auto agent/tenant creation. Users create agents and connect providers through the dashboard wizard, same as cloud mode.
+
 ## 5.33.12
 
 ### Patch Changes
