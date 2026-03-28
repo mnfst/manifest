@@ -2,24 +2,12 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
 import { Tenant } from '../entities/tenant.entity';
 import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
-import { hashKey, keyPrefix } from '../common/utils/hash.util';
-import {
-  LOCAL_USER_ID,
-  LOCAL_EMAIL,
-  LOCAL_TENANT_ID,
-  LOCAL_AGENT_ID,
-  LOCAL_AGENT_NAME,
-} from '../common/constants/local-mode.constants';
-import { seedAgentMessages } from './seed-messages';
 
 @Injectable()
 export class LocalBootstrapService implements OnModuleInit {
@@ -36,100 +24,40 @@ export class LocalBootstrapService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.ensureTenantAndAgent();
     await this.fixupRoutingAgentIds();
     await this.recalculateTiersIfNeeded();
-    // Only seed demo messages for local dev (not embedded plugin installs)
-    if (!process.env['MANIFEST_EMBEDDED']) {
-      await seedAgentMessages(this.messageRepo, LOCAL_USER_ID, this.logger, {
-        tenantId: LOCAL_TENANT_ID,
-        agentId: LOCAL_AGENT_ID,
-        agentName: LOCAL_AGENT_NAME,
-      });
-    }
     this.logger.log('Local mode bootstrap complete');
 
-    // Discover models for all active providers in the background
     this.discoverModelsInBackground().catch((err) => {
       this.logger.warn(`Background model discovery failed: ${err}`);
     });
   }
 
   private async discoverModelsInBackground(): Promise<void> {
+    const agents = await this.agentRepo.find({ where: { is_active: true } });
+    if (agents.length === 0) return;
+
     try {
       const { ModelDiscoveryService } = await import('../model-discovery/model-discovery.service');
       const discovery = this.moduleRef.get(ModelDiscoveryService, { strict: false });
-      await discovery.discoverAllForAgent(LOCAL_AGENT_ID);
+      for (const agent of agents) {
+        await discovery.discoverAllForAgent(agent.id);
+      }
       await this.recalculateTiersIfNeeded();
     } catch (err) {
       this.logger.warn(`Model discovery failed: ${err}`);
     }
   }
 
-  private async ensureTenantAndAgent() {
-    const count = await this.tenantRepo.count({ where: { id: LOCAL_TENANT_ID } });
-    if (count === 0) {
-      await this.tenantRepo.insert({
-        id: LOCAL_TENANT_ID,
-        name: LOCAL_USER_ID,
-        organization_name: 'Local',
-        email: LOCAL_EMAIL,
-        is_active: true,
-      });
-
-      await this.agentRepo.insert({
-        id: LOCAL_AGENT_ID,
-        name: LOCAL_AGENT_NAME,
-        description: 'Default local agent',
-        is_active: true,
-        tenant_id: LOCAL_TENANT_ID,
-      });
-      this.logger.log(`Created tenant/agent for local mode`);
-    }
-
-    const apiKey = this.readApiKeyFromConfig();
-    if (apiKey) {
-      await this.registerApiKey(apiKey);
-    }
-  }
-
-  private readApiKeyFromConfig(): string | null {
-    try {
-      const configPath = join(homedir(), '.openclaw', 'manifest', 'config.json');
-      if (!existsSync(configPath)) return null;
-      const data = JSON.parse(readFileSync(configPath, 'utf-8'));
-      return typeof data.apiKey === 'string' ? data.apiKey : null;
-    } catch {
-      return null;
-    }
-  }
-
-  private async registerApiKey(apiKey: string) {
-    const hash = hashKey(apiKey);
-    const existing = await this.agentKeyRepo.count({ where: { key_hash: hash } });
-    if (existing > 0) return;
-
-    await this.agentKeyRepo.upsert(
-      {
-        id: 'local-otlp-key-001',
-        key: null,
-        key_hash: hash,
-        key_prefix: keyPrefix(apiKey),
-        label: 'Local OTLP ingest key',
-        tenant_id: LOCAL_TENANT_ID,
-        agent_id: LOCAL_AGENT_ID,
-        is_active: true,
-      },
-      ['id'],
-    );
-  }
-
   private async fixupRoutingAgentIds() {
     const orphanedProviders = await this.providerRepo.find({
       where: { agent_id: IsNull() as unknown as string },
     });
+    const firstAgent = await this.agentRepo.findOne({ where: { is_active: true } });
+    if (!firstAgent) return;
+
     for (const row of orphanedProviders) {
-      row.agent_id = LOCAL_AGENT_ID;
+      row.agent_id = firstAgent.id;
       await this.providerRepo.save(row);
     }
 
@@ -137,7 +65,7 @@ export class LocalBootstrapService implements OnModuleInit {
       where: { agent_id: IsNull() as unknown as string },
     });
     for (const row of orphanedTiers) {
-      row.agent_id = LOCAL_AGENT_ID;
+      row.agent_id = firstAgent.id;
       await this.tierRepo.save(row);
     }
 
@@ -149,8 +77,11 @@ export class LocalBootstrapService implements OnModuleInit {
   }
 
   private async recalculateTiersIfNeeded() {
+    const firstAgent = await this.agentRepo.findOne({ where: { is_active: true } });
+    if (!firstAgent) return;
+
     const activeProviders = await this.providerRepo.count({
-      where: { agent_id: LOCAL_AGENT_ID, is_active: true },
+      where: { agent_id: firstAgent.id, is_active: true },
     });
     if (activeProviders === 0) return;
 
@@ -158,7 +89,7 @@ export class LocalBootstrapService implements OnModuleInit {
       const { TierAutoAssignService } =
         await import('../routing/routing-core/tier-auto-assign.service');
       const autoAssign = this.moduleRef.get(TierAutoAssignService, { strict: false });
-      await autoAssign.recalculate(LOCAL_AGENT_ID);
+      await autoAssign.recalculate(firstAgent.id);
       this.logger.log('Recalculated tier assignments on startup');
     } catch (err) {
       this.logger.warn(`Failed to recalculate tiers: ${err}`);

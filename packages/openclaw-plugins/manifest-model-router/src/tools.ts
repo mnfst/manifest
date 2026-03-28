@@ -21,7 +21,7 @@ async function callApi(
   const url = `${baseUrl}${path}`;
   try {
     const headers: Record<string, string> = apiKey ? { Authorization: `Bearer ${apiKey}` } : {};
-    const res = await fetch(url, { headers });
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(10_000) });
     if (!res.ok) {
       return {
         content: [{ type: 'text', text: JSON.stringify({ error: `API returned ${res.status}` }) }],

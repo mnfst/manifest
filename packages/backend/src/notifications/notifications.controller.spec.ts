@@ -34,11 +34,20 @@ describe('NotificationsController', () => {
       updateRule: jest.fn().mockResolvedValue({ ...mockRule, is_active: 0 }),
       deleteRule: jest.fn().mockResolvedValue(undefined),
       getRule: jest.fn().mockResolvedValue(mockRule),
+      getOwnedRule: jest.fn().mockResolvedValue(mockRule),
     };
 
     const mockEmailProviderConfigService = {
       getConfig: jest.fn().mockResolvedValue(null),
-      upsert: jest.fn().mockResolvedValue({ provider: 'resend', domain: null, keyPrefix: 're_test1', is_active: true, notificationEmail: null }),
+      upsert: jest
+        .fn()
+        .mockResolvedValue({
+          provider: 'resend',
+          domain: null,
+          keyPrefix: 're_test1',
+          is_active: true,
+          notificationEmail: null,
+        }),
       remove: jest.fn().mockResolvedValue(undefined),
       testConfig: jest.fn().mockResolvedValue({ success: true }),
       testSavedConfig: jest.fn().mockResolvedValue({ success: true }),
@@ -76,7 +85,12 @@ describe('NotificationsController', () => {
   });
 
   it('creates a rule', async () => {
-    const dto = { agent_name: 'my-agent', metric_type: 'tokens' as const, threshold: 100000, period: 'day' as const };
+    const dto = {
+      agent_name: 'my-agent',
+      metric_type: 'tokens' as const,
+      threshold: 100000,
+      period: 'day' as const,
+    };
     const result = await controller.createRule(dto, mockUser);
     expect(rulesService.createRule).toHaveBeenCalledWith('user-1', dto);
     expect(result).toEqual(mockRule);
@@ -102,7 +116,12 @@ describe('NotificationsController', () => {
   });
 
   it('tests email provider config', async () => {
-    const dto = { provider: 'resend', apiKey: 're_testkey123', domain: 'example.com', to: 'test@test.com' } as never;
+    const dto = {
+      provider: 'resend',
+      apiKey: 're_testkey123',
+      domain: 'example.com',
+      to: 'test@test.com',
+    } as never;
     const result = await controller.testEmailProvider(mockUser, dto);
     expect(emailProviderConfigService.testConfig).toHaveBeenCalledWith(
       { provider: 'resend', apiKey: 're_testkey123', domain: 'example.com' },
@@ -123,8 +142,8 @@ describe('NotificationsController', () => {
 
   it('triggers manual notification check', async () => {
     const cronService = module.get(NotificationCronService) as jest.Mocked<NotificationCronService>;
-    const result = await controller.triggerCheck();
-    expect(cronService.checkThresholds).toHaveBeenCalled();
+    const result = await controller.triggerCheck(mockUser);
+    expect(cronService.checkThresholds).toHaveBeenCalledWith('user-1');
     expect(result).toEqual({ triggered: 2, message: '2 notification(s) triggered' });
   });
 
@@ -136,7 +155,10 @@ describe('NotificationsController', () => {
 
   it('saves notification email', async () => {
     const result = await controller.setNotificationEmail(mockUser, { email: 'alerts@test.com' });
-    expect(emailProviderConfigService.setNotificationEmail).toHaveBeenCalledWith('user-1', 'alerts@test.com');
+    expect(emailProviderConfigService.setNotificationEmail).toHaveBeenCalledWith(
+      'user-1',
+      'alerts@test.com',
+    );
     expect(result).toEqual({ saved: true });
   });
 
@@ -180,7 +202,10 @@ describe('NotificationsController', () => {
 
   it('tests saved email provider config', async () => {
     const result = await controller.testSavedEmailProvider(mockUser, { to: 'test@test.com' });
-    expect(emailProviderConfigService.testSavedConfig).toHaveBeenCalledWith('user-1', 'test@test.com');
+    expect(emailProviderConfigService.testSavedConfig).toHaveBeenCalledWith(
+      'user-1',
+      'test@test.com',
+    );
     expect(result).toEqual({ success: true });
   });
 
@@ -196,8 +221,11 @@ describe('NotificationsController', () => {
       rulesService.createRule.mockResolvedValue(blockRule);
 
       const dto = {
-        agent_name: 'my-agent', metric_type: 'tokens' as const,
-        threshold: 100000, period: 'day' as const, action: 'block' as const,
+        agent_name: 'my-agent',
+        metric_type: 'tokens' as const,
+        threshold: 100000,
+        period: 'day' as const,
+        action: 'block' as const,
       };
       await controller.createRule(dto, mockUser);
 
@@ -209,8 +237,11 @@ describe('NotificationsController', () => {
       rulesService.createRule.mockResolvedValue(notifyRule);
 
       const dto = {
-        agent_name: 'my-agent', metric_type: 'tokens' as const,
-        threshold: 100000, period: 'day' as const, action: 'notify' as const,
+        agent_name: 'my-agent',
+        metric_type: 'tokens' as const,
+        threshold: 100000,
+        period: 'day' as const,
+        action: 'notify' as const,
       };
       await controller.createRule(dto, mockUser);
 
@@ -222,8 +253,11 @@ describe('NotificationsController', () => {
       rulesService.createRule.mockResolvedValue(bothRule);
 
       const dto = {
-        agent_name: 'my-agent', metric_type: 'tokens' as const,
-        threshold: 100000, period: 'day' as const, action: 'both' as const,
+        agent_name: 'my-agent',
+        metric_type: 'tokens' as const,
+        threshold: 100000,
+        period: 'day' as const,
+        action: 'both' as const,
       };
       await controller.createRule(dto, mockUser);
 
@@ -239,7 +273,7 @@ describe('NotificationsController', () => {
     });
 
     it('invalidates cache on delete when rule exists', async () => {
-      rulesService.getRule.mockResolvedValue(mockRule);
+      rulesService.getOwnedRule.mockResolvedValue(mockRule);
 
       await controller.deleteRule('rule-1', mockUser);
 
@@ -247,7 +281,7 @@ describe('NotificationsController', () => {
     });
 
     it('does not invalidate cache on delete when rule not found', async () => {
-      rulesService.getRule.mockResolvedValue(undefined);
+      rulesService.getOwnedRule.mockResolvedValue(undefined);
 
       await controller.deleteRule('rule-missing', mockUser);
 

@@ -1,4 +1,12 @@
-import { IsString, IsIn, MinLength, IsOptional, IsEmail, ValidateIf } from 'class-validator';
+import {
+  IsString,
+  IsIn,
+  MinLength,
+  IsOptional,
+  IsEmail,
+  ValidateIf,
+  IsNotEmpty,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class SetEmailProviderDto {
@@ -41,5 +49,12 @@ export class TestEmailProviderDto {
   domain?: string;
 
   @IsEmail()
+  to!: string;
+}
+
+export class TestSavedEmailProviderDto {
+  @IsEmail()
+  @IsNotEmpty()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   to!: string;
 }

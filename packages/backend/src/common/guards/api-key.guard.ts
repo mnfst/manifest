@@ -13,7 +13,7 @@ import { Request } from 'express';
 import { timingSafeEqual } from 'crypto';
 import { ApiKey } from '../../entities/api-key.entity';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import { hashKey } from '../utils/hash.util';
+import { verifyKey, keyPrefix as computePrefix } from '../utils/hash.util';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -46,8 +46,9 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     // Try DB-based API key lookup first (multi-tenant)
-    const hash = hashKey(apiKey);
-    const found = await this.apiKeyRepo.findOne({ where: { key_hash: hash } });
+    const prefix = computePrefix(apiKey);
+    const candidates = await this.apiKeyRepo.find({ where: { key_prefix: prefix } });
+    const found = candidates.find((c) => verifyKey(apiKey, c.key_hash));
 
     if (found) {
       (request as Request & { apiKeyUserId: string }).apiKeyUserId = String(found.user_id);
@@ -55,7 +56,7 @@ export class ApiKeyGuard implements CanActivate {
         .createQueryBuilder()
         .update(ApiKey)
         .set({ last_used_at: () => 'CURRENT_TIMESTAMP' })
-        .where('key_hash = :hash', { hash })
+        .where('id = :id', { id: found.id })
         .execute()
         .catch((err: Error) => this.logger.warn(`Failed to update last_used_at: ${err.message}`));
       return true;

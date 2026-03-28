@@ -26,6 +26,7 @@ function isPrivateIpv4(ipv4: string): boolean {
 
 export function isAllowedLocalIp(ip: string): boolean {
   if (isLoopbackIp(ip)) return true;
+  if (process.env['MANIFEST_TRUST_LAN'] !== 'true') return false;
   const ipv4 = parseIpv4(ip);
   return isPrivateIpv4(ipv4);
 }

@@ -20,13 +20,13 @@ function makeContext(headers: Record<string, string | undefined>): ExecutionCont
 
 describe('ApiKeyGuard', () => {
   let guard: ApiKeyGuard;
-  let mockFindOne: jest.Mock;
+  let mockFind: jest.Mock;
   let mockExecute: jest.Mock;
   let configGet: jest.Mock;
   let reflector: Reflector;
 
   beforeEach(() => {
-    mockFindOne = jest.fn().mockResolvedValue(null);
+    mockFind = jest.fn().mockResolvedValue([]);
     mockExecute = jest.fn().mockResolvedValue({});
     const mockUpdateQb = {
       update: jest.fn().mockReturnThis(),
@@ -46,7 +46,7 @@ describe('ApiKeyGuard', () => {
     reflector = { getAllAndOverride: jest.fn().mockReturnValue(false) } as unknown as Reflector;
     const configService = { get: configGet } as unknown as ConfigService;
     const mockRepo = {
-      findOne: mockFindOne,
+      find: mockFind,
       createQueryBuilder: jest.fn().mockReturnValue(mockUpdateQb),
     } as never;
     guard = new ApiKeyGuard(reflector, configService, mockRepo);
@@ -64,19 +64,36 @@ describe('ApiKeyGuard', () => {
   });
 
   it('returns true when API key hash is found in database', async () => {
-    mockFindOne.mockResolvedValueOnce({ user_id: 'user-123' });
-    const ctx = makeContext({ 'x-api-key': 'valid-db-key' });
+    const rawKey = 'valid-db-key';
+    const storedHash = hashKey(rawKey);
+    mockFind.mockResolvedValueOnce([
+      {
+        id: 'key-1',
+        user_id: 'user-123',
+        key_hash: storedHash,
+        key_prefix: rawKey.substring(0, 12),
+      },
+    ]);
+    const ctx = makeContext({ 'x-api-key': rawKey });
 
     const result = await guard.canActivate(ctx);
     expect(result).toBe(true);
-    expect(mockFindOne).toHaveBeenCalledWith({ where: { key_hash: hashKey('valid-db-key') } });
     expect(mockExecute).toHaveBeenCalled();
   });
 
   it('sets apiKeyUserId on request when DB key matches', async () => {
-    mockFindOne.mockResolvedValueOnce({ user_id: 'user-456' });
+    const rawKey = 'db-key';
+    const storedHash = hashKey(rawKey);
+    mockFind.mockResolvedValueOnce([
+      {
+        id: 'key-1',
+        user_id: 'user-456',
+        key_hash: storedHash,
+        key_prefix: rawKey.substring(0, 12),
+      },
+    ]);
     const request = {
-      headers: { 'x-api-key': 'db-key' },
+      headers: { 'x-api-key': rawKey },
       ip: '127.0.0.1',
       apiKeyUserId: undefined as string | undefined,
     };
@@ -91,7 +108,7 @@ describe('ApiKeyGuard', () => {
   });
 
   it('falls back to env-based API key when DB lookup returns empty', async () => {
-    mockFindOne.mockResolvedValueOnce(null);
+    mockFind.mockResolvedValueOnce([]);
     configGet.mockReturnValue('env-api-key');
     const ctx = makeContext({ 'x-api-key': 'env-api-key' });
 
@@ -100,7 +117,7 @@ describe('ApiKeyGuard', () => {
   });
 
   it('throws when neither DB nor env key matches', async () => {
-    mockFindOne.mockResolvedValueOnce(null);
+    mockFind.mockResolvedValueOnce([]);
     configGet.mockReturnValue('correct-key');
     const ctx = makeContext({ 'x-api-key': 'wrong-key' });
 
@@ -109,7 +126,7 @@ describe('ApiKeyGuard', () => {
   });
 
   it('throws when env key is empty and DB lookup fails', async () => {
-    mockFindOne.mockResolvedValueOnce(null);
+    mockFind.mockResolvedValueOnce([]);
     configGet.mockReturnValue('');
     const ctx = makeContext({ 'x-api-key': 'any-key' });
 
@@ -117,7 +134,7 @@ describe('ApiKeyGuard', () => {
   });
 
   it('rejects keys of different length from env key', async () => {
-    mockFindOne.mockResolvedValueOnce(null);
+    mockFind.mockResolvedValueOnce([]);
     configGet.mockReturnValue('short');
     const ctx = makeContext({ 'x-api-key': 'much-longer-key-value' });
 
@@ -125,9 +142,18 @@ describe('ApiKeyGuard', () => {
   });
 
   it('does not throw when last_used_at update fails', async () => {
-    mockFindOne.mockResolvedValueOnce({ user_id: 'user-789' });
+    const rawKey = 'key-that-triggers-update-fail';
+    const storedHash = hashKey(rawKey);
+    mockFind.mockResolvedValueOnce([
+      {
+        id: 'key-1',
+        user_id: 'user-789',
+        key_hash: storedHash,
+        key_prefix: rawKey.substring(0, 12),
+      },
+    ]);
     mockExecute.mockRejectedValueOnce(new Error('DB write error'));
-    const ctx = makeContext({ 'x-api-key': 'key-that-triggers-update-fail' });
+    const ctx = makeContext({ 'x-api-key': rawKey });
 
     const result = await guard.canActivate(ctx);
     expect(result).toBe(true);
@@ -140,7 +166,7 @@ describe('ApiKeyGuard', () => {
 
     const result = await guard.canActivate(ctx);
     expect(result).toBe(true);
-    expect(mockFindOne).not.toHaveBeenCalled();
+    expect(mockFind).not.toHaveBeenCalled();
   });
 
   it('skips API key validation when request.user is already set', async () => {
@@ -158,6 +184,6 @@ describe('ApiKeyGuard', () => {
 
     const result = await guard.canActivate(ctx);
     expect(result).toBe(true);
-    expect(mockFindOne).not.toHaveBeenCalled();
+    expect(mockFind).not.toHaveBeenCalled();
   });
 });

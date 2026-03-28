@@ -190,9 +190,12 @@ describe("register — devMode path", () => {
     serviceCall.start();
     await new Promise((r) => setTimeout(r, 0));
 
-    // Should not throw — .catch(() => {}) swallows the error
+    // Should not throw — .catch logs at debug level
     expect(api.logger.info).toHaveBeenCalledWith(
       expect.stringContaining("Dev mode routing active"),
+    );
+    expect(api.logger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("[manifest] Connection verify error:"),
     );
   });
 

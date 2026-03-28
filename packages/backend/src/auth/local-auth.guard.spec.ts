@@ -107,18 +107,42 @@ describe('LocalAuthGuard', () => {
     expect(request['user']).toBeUndefined();
   });
 
-  it('auto-authenticates private network IP (192.168.x.x)', async () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-    const { context, request } = createMockContext({ ip: '192.168.1.100' });
+  it('auto-authenticates private network IP when MANIFEST_TRUST_LAN=true', async () => {
+    const origTrustLan = process.env['MANIFEST_TRUST_LAN'];
+    process.env['MANIFEST_TRUST_LAN'] = 'true';
+    try {
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+      const { context, request } = createMockContext({ ip: '192.168.1.100' });
 
-    const result = await guard.canActivate(context);
+      const result = await guard.canActivate(context);
 
-    expect(result).toBe(true);
-    expect(request['user']).toEqual({
-      id: 'local-user-001',
-      name: 'Local User',
-      email: 'local@manifest.local',
-    });
+      expect(result).toBe(true);
+      expect(request['user']).toEqual({
+        id: 'local-user-001',
+        name: 'Local User',
+        email: 'local@manifest.local',
+      });
+    } finally {
+      if (origTrustLan === undefined) delete process.env['MANIFEST_TRUST_LAN'];
+      else process.env['MANIFEST_TRUST_LAN'] = origTrustLan;
+    }
+  });
+
+  it('denies private network IP by default (MANIFEST_TRUST_LAN not set)', async () => {
+    const origTrustLan = process.env['MANIFEST_TRUST_LAN'];
+    delete process.env['MANIFEST_TRUST_LAN'];
+    try {
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+      const { context, request } = createMockContext({ ip: '192.168.1.100' });
+
+      const result = await guard.canActivate(context);
+
+      expect(result).toBe(false);
+      expect(request['user']).toBeUndefined();
+    } finally {
+      if (origTrustLan === undefined) delete process.env['MANIFEST_TRUST_LAN'];
+      else process.env['MANIFEST_TRUST_LAN'] = origTrustLan;
+    }
   });
 
   it('denies public IP requests without API key', async () => {

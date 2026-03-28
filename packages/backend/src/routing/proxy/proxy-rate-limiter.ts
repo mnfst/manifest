@@ -29,33 +29,22 @@ export class ProxyRateLimiter implements OnModuleDestroy {
   }
 
   /**
-   * Check if the user is over the rate limit. Does NOT increment the counter.
-   * Call `recordSuccess()` after a successful provider response to increment.
+   * Check if the user is over the rate limit and increment the counter.
+   * All requests count toward the limit (both successful and failed).
    */
   checkLimit(userId: string): void {
     const now = Date.now();
-    const entry = this.rates.get(userId);
+    let entry = this.rates.get(userId);
 
-    if (!entry || now - entry.windowStart >= RATE_WINDOW_MS) return;
+    if (!entry || now - entry.windowStart >= RATE_WINDOW_MS) {
+      entry = { count: 0, windowStart: now };
+    }
 
     if (entry.count >= RATE_MAX_REQUESTS) {
       throw new HttpException(
         'Rate limit exceeded. Try again later.',
         HttpStatus.TOO_MANY_REQUESTS,
       );
-    }
-  }
-
-  /**
-   * Increment the rate counter after a successful provider response.
-   * Failed upstream responses are not counted against the user's limit.
-   */
-  recordSuccess(userId: string): void {
-    const now = Date.now();
-    let entry = this.rates.get(userId);
-
-    if (!entry || now - entry.windowStart >= RATE_WINDOW_MS) {
-      entry = { count: 0, windowStart: now };
     }
 
     entry.count++;

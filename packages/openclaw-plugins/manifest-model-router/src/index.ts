@@ -86,7 +86,10 @@ module.exports = {
             const agent = check.agentName ? ` (agent: ${check.agentName})` : '';
             logger.info(`[manifest] Connection verified${agent}`);
           })
-          .catch(() => {});
+          .catch((err: unknown) => {
+            const msg = err instanceof Error ? err.message : String(err);
+            logger.debug(`[manifest] Connection verify error: ${msg}`);
+          });
       },
     });
   },
