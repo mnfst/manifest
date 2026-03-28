@@ -321,6 +321,28 @@ describe("RoutingInstructionModal", () => {
     });
   });
 
+  it("copies the enable command with full provider JSON via copy button", async () => {
+    const { container } = render(() => (
+      <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
+    ));
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("openai-completions");
+    });
+    const copyBtn = container.querySelector(".modal-terminal__copy");
+    expect(copyBtn).not.toBeNull();
+    fireEvent.click(copyBtn!);
+    await vi.waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalled();
+    });
+    const calls = (navigator.clipboard.writeText as ReturnType<typeof vi.fn>).mock.calls;
+    const copiedText = calls[calls.length - 1][0];
+    expect(copiedText).toContain("models.providers.manifest");
+    expect(copiedText).toContain("openai-completions");
+    expect(copiedText).toContain("mnfst_abc123");
+    expect(copiedText).toContain("manifest/auto");
+    expect(copiedText).toContain("openclaw gateway restart");
+  });
+
   it("shows mnfst_YOUR_KEY when no keyPrefix or apiKey", async () => {
     mockGetAgentKey.mockResolvedValue({ keyPrefix: null, apiKey: null, pluginEndpoint: null });
     const { container } = render(() => (
