@@ -102,4 +102,22 @@ describe("manifest plugin registration", () => {
 
     expect(registerLocalMode).toHaveBeenCalledWith(api, 2099, "127.0.0.1", api.logger);
   });
+
+  it("logs dashboard URL before starting server", () => {
+    const api = makeApi();
+    plugin.register(api);
+
+    expect(api.logger.info).toHaveBeenCalledWith(
+      expect.stringContaining("http://127.0.0.1:2099"),
+    );
+  });
+
+  it("logs dashboard URL with custom port and host", () => {
+    const api = makeApi({ port: 3099, host: "0.0.0.0" });
+    plugin.register(api);
+
+    expect(api.logger.info).toHaveBeenCalledWith(
+      expect.stringContaining("http://0.0.0.0:3099"),
+    );
+  });
 });
