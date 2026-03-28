@@ -80,33 +80,33 @@ jobs:
             echo "Created release $TAG"
           done
 
-      - name: Publish to ClaHub
+      - name: Publish to ClawHub
         if: steps.changesets.outputs.published == 'true'
         env:
           PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
           CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
         run: |
-          npx clawhub@latest login --token "$CLAWHUB_TOKEN" --no-browser || { echo "ClaHub login failed (non-fatal)"; exit 0; }
+          npx clawhub@latest login --token "$CLAWHUB_TOKEN" --no-browser || { echo "ClawHub login failed (non-fatal)"; exit 0; }
 
           HAS_PROVIDER=$(echo "$PUBLISHED_PACKAGES" | jq '[.[] | select(.name == "manifest-provider")] | length')
           HAS_MANIFEST=$(echo "$PUBLISHED_PACKAGES" | jq '[.[] | select(.name == "manifest")] | length')
           PROVIDER_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest-provider") | .version // empty')
           MANIFEST_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest") | .version // empty')
 
-          # Publish manifest-provider plugin to ClaHub
+          # Publish manifest-provider plugin to ClawHub
           if [ "$HAS_PROVIDER" -gt 0 ]; then
-            echo "Publishing manifest-provider@${PROVIDER_VERSION} to ClaHub..."
+            echo "Publishing manifest-provider@${PROVIDER_VERSION} to ClawHub..."
             npx clawhub@latest package publish packages/openclaw-plugins/manifest-provider \
               --source-repo mnfst/manifest \
-              --source-commit "$GITHUB_SHA" || echo "ClaHub plugin publish failed (non-fatal)"
+              --source-commit "$GITHUB_SHA" || echo "ClawHub plugin publish failed (non-fatal)"
           fi
 
           # Publish skill when manifest or manifest-provider is released
           if [ "$HAS_MANIFEST" -gt 0 ] || [ "$HAS_PROVIDER" -gt 0 ]; then
             SKILL_VERSION="${MANIFEST_VERSION:-$PROVIDER_VERSION}"
-            echo "Publishing manifest-build skill@${SKILL_VERSION} to ClaHub..."
+            echo "Publishing manifest-build skill@${SKILL_VERSION} to ClawHub..."
             npx clawhub@latest publish skills/manifest/SKILL.md \
               --slug manifest-build \
               --version "$SKILL_VERSION" \
-              --changelog "Release ${SKILL_VERSION}" || echo "ClaHub skill publish failed (non-fatal)"
+              --changelog "Release ${SKILL_VERSION}" || echo "ClawHub skill publish failed (non-fatal)"
           fi
