@@ -1,4 +1,4 @@
-# manifest-provider
+# manifest-model-router
 
 Cloud provider plugin for [Manifest](https://manifest.build) — the smart LLM router for [OpenClaw](https://openclaw.ai).
 
@@ -7,8 +7,8 @@ Picks the best model for each request based on a multi-dimension complexity scor
 ## Install
 
 ```bash
-openclaw plugins install manifest-provider
-openclaw providers setup manifest-provider
+openclaw plugins install manifest-model-router
+openclaw providers setup manifest-model-router
 openclaw gateway restart
 ```
 
@@ -19,7 +19,7 @@ You can also set the key via environment variable for CI/CD: `export MANIFEST_AP
 ## What it does
 
 - Registers Manifest as a provider in OpenClaw with the `auto` model
-- Interactive auth onboarding via `openclaw providers setup manifest-provider`
+- Interactive auth onboarding via `openclaw providers setup manifest-model-router`
 - Agent tools: `manifest_usage`, `manifest_costs`, `manifest_health`
 - `/manifest` status command
 
@@ -35,15 +35,15 @@ See the [manifest](https://www.npmjs.com/package/manifest) package.
 
 ## Contributing
 
-This package lives at `packages/openclaw-plugins/manifest-provider/` in the [mnfst/manifest](https://github.com/mnfst/manifest) monorepo.
+This package lives at `packages/openclaw-plugins/manifest-model-router/` in the [mnfst/manifest](https://github.com/mnfst/manifest) monorepo.
 
 ```bash
-npm run build --workspace=packages/openclaw-plugins/manifest-provider   # esbuild bundle
-npm test --workspace=packages/openclaw-plugins/manifest-provider        # Jest tests
+npm run build --workspace=packages/openclaw-plugins/manifest-model-router   # esbuild bundle
+npm test --workspace=packages/openclaw-plugins/manifest-model-router        # Jest tests
 ```
 
 ## Links
 
 - [Dashboard](https://app.manifest.build)
-- [Documentation](https://docs.manifest.build)
+- [Documentation](https://manifest.build/docs)
 - [GitHub](https://github.com/mnfst/manifest)

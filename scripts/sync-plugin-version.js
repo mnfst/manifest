@@ -2,7 +2,7 @@ const { readFileSync, writeFileSync, existsSync } = require('fs');
 const { join } = require('path');
 
 const packages = [
-  { dir: 'manifest-provider', label: 'manifest-provider' },
+  { dir: 'manifest-model-router', label: 'manifest-model-router' },
   { dir: 'manifest', label: 'manifest' },
 ];
 

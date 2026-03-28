@@ -529,7 +529,7 @@ describe("register — missing API key", () => {
     plugin.register(api);
 
     expect(api.logger.info).toHaveBeenCalledWith(
-      expect.stringContaining("manifest-provider.config.apiKey"),
+      expect.stringContaining("manifest-model-router.config.apiKey"),
     );
   });
 });

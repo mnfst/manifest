@@ -54,8 +54,8 @@ jobs:
             # Determine changelog path based on package name
             if [ "$NAME" = "manifest" ]; then
               CHANGELOG_PATH="packages/openclaw-plugins/manifest/CHANGELOG.md"
-            elif [ "$NAME" = "manifest-provider" ]; then
-              CHANGELOG_PATH="packages/openclaw-plugins/manifest-provider/CHANGELOG.md"
+            elif [ "$NAME" = "manifest-model-router" ]; then
+              CHANGELOG_PATH="packages/openclaw-plugins/manifest-model-router/CHANGELOG.md"
             else
               echo "Unknown package $NAME — skipping release"
               continue
@@ -88,20 +88,20 @@ jobs:
         run: |
           npx clawhub@latest login --token "$CLAWHUB_TOKEN" --no-browser || { echo "ClawHub login failed (non-fatal)"; exit 0; }
 
-          HAS_PROVIDER=$(echo "$PUBLISHED_PACKAGES" | jq '[.[] | select(.name == "manifest-provider")] | length')
+          HAS_PROVIDER=$(echo "$PUBLISHED_PACKAGES" | jq '[.[] | select(.name == "manifest-model-router")] | length')
           HAS_MANIFEST=$(echo "$PUBLISHED_PACKAGES" | jq '[.[] | select(.name == "manifest")] | length')
-          PROVIDER_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest-provider") | .version // empty')
+          PROVIDER_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest-model-router") | .version // empty')
           MANIFEST_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest") | .version // empty')
 
-          # Publish manifest-provider plugin to ClawHub
+          # Publish manifest-model-router plugin to ClawHub
           if [ "$HAS_PROVIDER" -gt 0 ]; then
-            echo "Publishing manifest-provider@${PROVIDER_VERSION} to ClawHub..."
-            npx clawhub@latest package publish packages/openclaw-plugins/manifest-provider \
+            echo "Publishing manifest-model-router@${PROVIDER_VERSION} to ClawHub..."
+            npx clawhub@latest package publish packages/openclaw-plugins/manifest-model-router \
               --source-repo mnfst/manifest \
               --source-commit "$GITHUB_SHA" || echo "ClawHub plugin publish failed (non-fatal)"
           fi
 
-          # Publish skill when manifest or manifest-provider is released
+          # Publish skill when manifest or manifest-model-router is released
           if [ "$HAS_MANIFEST" -gt 0 ] || [ "$HAS_PROVIDER" -gt 0 ]; then
             SKILL_VERSION="${MANIFEST_VERSION:-$PROVIDER_VERSION}"
             echo "Publishing manifest-build skill@${SKILL_VERSION} to ClawHub..."

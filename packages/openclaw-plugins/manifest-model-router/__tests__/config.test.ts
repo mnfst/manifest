@@ -295,7 +295,7 @@ describe("validateConfig", () => {
       endpoint: "not-a-url",
     };
     const err = validateConfig(config)!;
-    expect(err).toContain("manifest-provider.config.endpoint");
+    expect(err).toContain("manifest-model-router.config.endpoint");
   });
 
   it("rejects missing apiKey with actionable fix command", () => {
@@ -309,7 +309,7 @@ describe("validateConfig", () => {
   it("uses correct plugin name in missing apiKey error", () => {
     const config = { ...validConfig, apiKey: "" };
     const err = validateConfig(config)!;
-    expect(err).toContain("manifest-provider.config.apiKey");
+    expect(err).toContain("manifest-model-router.config.apiKey");
   });
 
   it("rejects invalid apiKey prefix with actionable fix command", () => {
@@ -322,7 +322,7 @@ describe("validateConfig", () => {
   it("uses correct plugin name in invalid apiKey error", () => {
     const config = { ...validConfig, apiKey: "wrong_prefix" };
     const err = validateConfig(config)!;
-    expect(err).toContain("manifest-provider.config.apiKey");
+    expect(err).toContain("manifest-model-router.config.apiKey");
   });
 
   it("rejects keys with old osk_ prefix", () => {
@@ -342,7 +342,7 @@ describe("validateConfig", () => {
   it("uses correct plugin name in invalid endpoint error", () => {
     const config = { ...validConfig, endpoint: "not-a-url" };
     const err = validateConfig(config)!;
-    expect(err).toContain("manifest-provider.config.endpoint");
+    expect(err).toContain("manifest-model-router.config.endpoint");
   });
 
   it("accepts http endpoint", () => {

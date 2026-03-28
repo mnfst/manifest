@@ -66,7 +66,7 @@ export function validateConfig(config: ManifestConfig): string | null {
       return (
         `Invalid endpoint URL '${config.endpoint}'. ` +
         'Must be a valid http:// or https:// URL. Fix it via:\n' +
-        '  openclaw config set plugins.entries.manifest-provider.config.endpoint http://localhost:<PORT>'
+        '  openclaw config set plugins.entries.manifest-model-router.config.endpoint http://localhost:<PORT>'
       );
     }
     return null;
@@ -75,7 +75,7 @@ export function validateConfig(config: ManifestConfig): string | null {
   if (!config.apiKey) {
     return (
       'Missing apiKey. Set it via:\n' +
-      `  openclaw config set plugins.entries.manifest-provider.config.apiKey ${API_KEY_PREFIX}YOUR_KEY\n` +
+      `  openclaw config set plugins.entries.manifest-model-router.config.apiKey ${API_KEY_PREFIX}YOUR_KEY\n` +
       `  or export MANIFEST_API_KEY=${API_KEY_PREFIX}YOUR_KEY`
     );
   }
@@ -83,14 +83,14 @@ export function validateConfig(config: ManifestConfig): string | null {
     return (
       'Invalid apiKey format. ' +
       `Keys must start with '${API_KEY_PREFIX}'. Fix it via:\n` +
-      `  openclaw config set plugins.entries.manifest-provider.config.apiKey ${API_KEY_PREFIX}YOUR_KEY`
+      `  openclaw config set plugins.entries.manifest-model-router.config.apiKey ${API_KEY_PREFIX}YOUR_KEY`
     );
   }
   if (!isValidUrl(config.endpoint)) {
     return (
       `Invalid endpoint URL '${config.endpoint}'. ` +
       'Must be a valid http:// or https:// URL. Fix it via:\n' +
-      '  openclaw config set plugins.entries.manifest-provider.config.endpoint https://app.manifest.build\n\n' +
+      '  openclaw config set plugins.entries.manifest-model-router.config.endpoint https://app.manifest.build\n\n' +
       'Or run the setup wizard:\n' +
       '  openclaw providers setup manifest'
     );

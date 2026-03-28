@@ -38,7 +38,7 @@ When you manually select `manifest/auto` as your model, OpenClaw sends requests 
 
 ### Credential storage
 
-- **Cloud mode** (`manifest-provider` plugin): API key provided via `openclaw providers setup manifest-provider` or `MANIFEST_API_KEY` env var. The key authenticates with the Manifest backend — standard provider auth.
+- **Cloud mode** (`manifest-model-router` plugin): API key provided via `openclaw providers setup manifest-model-router` or `MANIFEST_API_KEY` env var. The key authenticates with the Manifest backend — standard provider auth.
 - **Local mode** (`manifest` plugin): auto-generated key stored in `~/.openclaw/manifest/config.json` with file mode `0600`. No external service contacted.
 
 ### Local mode
@@ -83,8 +83,8 @@ To expose over Tailscale (requires Tailscale on both devices, only accessible wi
 Two commands:
 
 ```bash
-openclaw plugins install manifest-provider
-openclaw providers setup manifest-provider
+openclaw plugins install manifest-model-router
+openclaw providers setup manifest-model-router
 openclaw gateway restart
 ```
 

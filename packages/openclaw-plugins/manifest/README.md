@@ -39,11 +39,11 @@ openclaw gateway restart
 For cloud routing without the embedded server, use the lightweight provider plugin instead:
 
 ```bash
-openclaw plugins install manifest-provider
-openclaw providers setup manifest-provider
+openclaw plugins install manifest-model-router
+openclaw providers setup manifest-model-router
 ```
 
-See [manifest-provider](https://www.npmjs.com/package/manifest-provider).
+See [manifest-model-router](https://www.npmjs.com/package/manifest-model-router).
 
 ## Data
 

@@ -19,7 +19,7 @@ flags:
       - packages/frontend/src/
   plugin:
     paths:
-      - packages/openclaw-plugins/manifest-provider/src/
+      - packages/openclaw-plugins/manifest-model-router/src/
   manifest:
     paths:
       - packages/openclaw-plugins/manifest/src/
