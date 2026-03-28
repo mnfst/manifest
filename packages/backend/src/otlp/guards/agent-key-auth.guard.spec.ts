@@ -1,4 +1,5 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { createHash } from 'crypto';
 import { AgentKeyAuthGuard } from './agent-key-auth.guard';
 import { hashKey } from '../../common/utils/hash.util';
@@ -19,14 +20,26 @@ function makeContext(headers: Record<string, string | undefined>, ip = '203.0.11
   };
 }
 
+function createMockConfig(overrides: Record<string, string> = {}): ConfigService {
+  const values: Record<string, string> = {
+    'app.manifestMode': 'cloud',
+    'app.nodeEnv': 'test',
+    ...overrides,
+  };
+  return {
+    get: (key: string, fallback?: string) => values[key] ?? fallback,
+  } as unknown as ConfigService;
+}
+
 describe('AgentKeyAuthGuard', () => {
   let guard: AgentKeyAuthGuard;
   let mockGetMany: jest.Mock;
   let mockCreateQueryBuilder: jest.Mock;
   let mockExecute: jest.Mock;
   let mockFindOne: jest.Mock;
+  let mockConfig: ConfigService;
 
-  beforeEach(() => {
+  function buildMockRepo() {
     mockGetMany = jest.fn().mockResolvedValue([]);
     const mockSelectQb = {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
@@ -38,7 +51,6 @@ describe('AgentKeyAuthGuard', () => {
     const mockUpdateQb = {
       update: jest.fn().mockReturnThis(),
       set: jest.fn().mockImplementation((setObj) => {
-        // Invoke raw expression functions for coverage (e.g. () => 'CURRENT_TIMESTAMP')
         if (setObj) {
           for (const val of Object.values(setObj)) {
             if (typeof val === 'function') (val as () => unknown)();
@@ -53,12 +65,22 @@ describe('AgentKeyAuthGuard', () => {
       return alias ? mockSelectQb : mockUpdateQb;
     });
     mockFindOne = jest.fn().mockResolvedValue(null);
-    const mockRepo = {
+    return {
       createQueryBuilder: mockCreateQueryBuilder,
       findOne: mockFindOne,
     } as never;
-    guard = new AgentKeyAuthGuard(mockRepo);
-    guard.clearCache();
+  }
+
+  function createGuard(configOverrides: Record<string, string> = {}) {
+    mockConfig = createMockConfig(configOverrides);
+    const repo = buildMockRepo();
+    const g = new AgentKeyAuthGuard(repo, mockConfig);
+    g.clearCache();
+    return g;
+  }
+
+  beforeEach(() => {
+    guard = createGuard();
   });
 
   afterEach(() => {
@@ -194,7 +216,6 @@ describe('AgentKeyAuthGuard', () => {
     const { ctx: ctx1 } = makeContext({ authorization: `Bearer ${token}` });
     await guard.canActivate(ctx1);
 
-    // First call: one createQueryBuilder('k') for select + one createQueryBuilder() for update
     expect(mockGetMany).toHaveBeenCalledTimes(1);
 
     mockCreateQueryBuilder.mockClear();
@@ -208,18 +229,12 @@ describe('AgentKeyAuthGuard', () => {
   });
 
   describe('loopback bypass in local mode', () => {
-    const origMode = process.env['MANIFEST_MODE'];
-    const origTrustLan = process.env['MANIFEST_TRUST_LAN'];
-
-    afterEach(() => {
-      if (origMode === undefined) delete process.env['MANIFEST_MODE'];
-      else process.env['MANIFEST_MODE'] = origMode;
-      if (origTrustLan === undefined) delete process.env['MANIFEST_TRUST_LAN'];
-      else process.env['MANIFEST_TRUST_LAN'] = origTrustLan;
+    beforeEach(() => {
+      guard.onModuleDestroy();
+      guard = createGuard({ 'app.manifestMode': 'local' });
     });
 
     it('allows loopback requests without auth in local mode', async () => {
-      process.env['MANIFEST_MODE'] = 'local';
       const { ctx, req } = makeContext({}, '127.0.0.1');
       const result = await guard.canActivate(ctx);
 
@@ -234,7 +249,6 @@ describe('AgentKeyAuthGuard', () => {
     });
 
     it('allows ::1 loopback without auth in local mode', async () => {
-      process.env['MANIFEST_MODE'] = 'local';
       const { ctx, req } = makeContext({}, '::1');
       const result = await guard.canActivate(ctx);
 
@@ -248,29 +262,32 @@ describe('AgentKeyAuthGuard', () => {
     });
 
     it('allows private network IPs without auth in local mode when MANIFEST_TRUST_LAN is true', async () => {
-      process.env['MANIFEST_MODE'] = 'local';
+      const origTrustLan = process.env['MANIFEST_TRUST_LAN'];
       process.env['MANIFEST_TRUST_LAN'] = 'true';
-      const { ctx, req } = makeContext({}, '192.168.1.100');
-      const result = await guard.canActivate(ctx);
+      try {
+        const { ctx, req } = makeContext({}, '192.168.1.100');
+        const result = await guard.canActivate(ctx);
 
-      expect(result).toBe(true);
-      expect(req.ingestionContext).toEqual({
-        tenantId: 'local-tenant-001',
-        agentId: 'local-agent-001',
-        agentName: 'local-agent',
-        userId: 'local-user-001',
-      });
-      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+        expect(result).toBe(true);
+        expect(req.ingestionContext).toEqual({
+          tenantId: 'local-tenant-001',
+          agentId: 'local-agent-001',
+          agentName: 'local-agent',
+          userId: 'local-user-001',
+        });
+        expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+      } finally {
+        if (origTrustLan === undefined) delete process.env['MANIFEST_TRUST_LAN'];
+        else process.env['MANIFEST_TRUST_LAN'] = origTrustLan;
+      }
     });
 
     it('still requires auth for public IPs in local mode', async () => {
-      process.env['MANIFEST_MODE'] = 'local';
       const { ctx } = makeContext({}, '8.8.8.8');
       await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
     });
 
     it('allows loopback with non-mnfst token in local mode (dev gateway)', async () => {
-      process.env['MANIFEST_MODE'] = 'local';
       const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
       const result = await guard.canActivate(ctx);
 
@@ -285,54 +302,46 @@ describe('AgentKeyAuthGuard', () => {
     });
 
     it('allows non-mnfst token from private network IP in local mode when MANIFEST_TRUST_LAN is true', async () => {
-      process.env['MANIFEST_MODE'] = 'local';
+      const origTrustLan = process.env['MANIFEST_TRUST_LAN'];
       process.env['MANIFEST_TRUST_LAN'] = 'true';
-      const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '192.168.1.100');
-      const result = await guard.canActivate(ctx);
+      try {
+        const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '192.168.1.100');
+        const result = await guard.canActivate(ctx);
 
-      expect(result).toBe(true);
-      expect(req.ingestionContext).toEqual({
-        tenantId: 'local-tenant-001',
-        agentId: 'local-agent-001',
-        agentName: 'local-agent',
-        userId: 'local-user-001',
-      });
-      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+        expect(result).toBe(true);
+        expect(req.ingestionContext).toEqual({
+          tenantId: 'local-tenant-001',
+          agentId: 'local-agent-001',
+          agentName: 'local-agent',
+          userId: 'local-user-001',
+        });
+        expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+      } finally {
+        if (origTrustLan === undefined) delete process.env['MANIFEST_TRUST_LAN'];
+        else process.env['MANIFEST_TRUST_LAN'] = origTrustLan;
+      }
     });
 
     it('rejects non-mnfst token from public IP in local mode', async () => {
-      process.env['MANIFEST_MODE'] = 'local';
       const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '8.8.8.8');
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     });
+  });
 
-    it('still requires auth for loopback IPs when not in local mode', async () => {
-      process.env['MANIFEST_MODE'] = 'cloud';
-      const { ctx } = makeContext({}, '127.0.0.1');
-      await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
-    });
+  it('still requires auth for loopback IPs when not in local mode', async () => {
+    const { ctx } = makeContext({}, '127.0.0.1');
+    await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+  });
 
-    it('still requires auth when MANIFEST_MODE is unset', async () => {
-      delete process.env['MANIFEST_MODE'];
-      const { ctx } = makeContext({}, '127.0.0.1');
-      await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
-    });
+  it('still requires auth when manifestMode is unset (defaults to cloud)', async () => {
+    const { ctx } = makeContext({}, '127.0.0.1');
+    await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
   });
 
   describe('dev loopback bypass in development mode', () => {
-    const origMode = process.env['MANIFEST_MODE'];
-    const origNodeEnv = process.env['NODE_ENV'];
-
     beforeEach(() => {
-      process.env['MANIFEST_MODE'] = 'cloud';
-      process.env['NODE_ENV'] = 'development';
-    });
-
-    afterEach(() => {
-      if (origMode === undefined) delete process.env['MANIFEST_MODE'];
-      else process.env['MANIFEST_MODE'] = origMode;
-      if (origNodeEnv === undefined) delete process.env['NODE_ENV'];
-      else process.env['NODE_ENV'] = origNodeEnv;
+      guard.onModuleDestroy();
+      guard = createGuard({ 'app.manifestMode': 'cloud', 'app.nodeEnv': 'development' });
     });
 
     it('allows loopback with non-mnfst token in dev mode by resolving first active key', async () => {
@@ -395,13 +404,15 @@ describe('AgentKeyAuthGuard', () => {
     });
 
     it('rejects loopback with non-mnfst token in production mode', async () => {
-      process.env['NODE_ENV'] = 'production';
+      guard.onModuleDestroy();
+      guard = createGuard({ 'app.manifestMode': 'cloud', 'app.nodeEnv': 'production' });
       const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     });
 
     it('rejects loopback with non-mnfst token in test mode', async () => {
-      process.env['NODE_ENV'] = 'test';
+      guard.onModuleDestroy();
+      guard = createGuard({ 'app.manifestMode': 'cloud', 'app.nodeEnv': 'test' });
       const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     });
@@ -426,21 +437,15 @@ describe('AgentKeyAuthGuard', () => {
   });
 
   it('handles request.ip being undefined without crashing', async () => {
-    const origMode = process.env['MANIFEST_MODE'];
-    process.env['MANIFEST_MODE'] = 'local';
-    try {
-      const request: Record<string, unknown> = { headers: {}, ip: undefined };
-      const ctx = {
-        switchToHttp: () => ({
-          getRequest: () => request,
-        }),
-      } as unknown as ExecutionContext;
-      // ip is undefined → falls through to auth required
-      await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
-    } finally {
-      if (origMode === undefined) delete process.env['MANIFEST_MODE'];
-      else process.env['MANIFEST_MODE'] = origMode;
-    }
+    guard.onModuleDestroy();
+    guard = createGuard({ 'app.manifestMode': 'local' });
+    const request: Record<string, unknown> = { headers: {}, ip: undefined };
+    const ctx = {
+      switchToHttp: () => ({
+        getRequest: () => request,
+      }),
+    } as unknown as ExecutionContext;
+    await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
   });
 
   it('does not throw when last_used_at update fails', async () => {
@@ -463,17 +468,12 @@ describe('AgentKeyAuthGuard', () => {
 
     expect(result).toBe(true);
     expect(req.ingestionContext).toBeDefined();
-    // The guard swallows update errors via .catch()
     expect(mockExecute).toHaveBeenCalled();
   });
 
   it('evicts the first cache entry when cache reaches MAX_CACHE_SIZE', async () => {
-    // Fill the cache to MAX_CACHE_SIZE by inserting many valid keys.
-    // The guard has MAX_CACHE_SIZE = 10_000, but we can manipulate the
-    // internal cache directly for a targeted test.
     const internalCache = (guard as any).cache as Map<string, unknown>;
 
-    // Fill to exactly MAX_CACHE_SIZE so the next insert triggers eviction
     const firstFillerHash = testCacheKey('mnfst_filler-0');
     for (let i = 0; i < 10_000; i++) {
       internalCache.set(testCacheKey(`mnfst_filler-${i}`), {
@@ -486,7 +486,6 @@ describe('AgentKeyAuthGuard', () => {
     }
     expect(internalCache.size).toBe(10_000);
 
-    // Now authenticate a new key, which will add to cache and exceed MAX_CACHE_SIZE
     const token = 'mnfst_overflow-key';
     mockGetMany.mockResolvedValue([
       {
@@ -504,16 +503,13 @@ describe('AgentKeyAuthGuard', () => {
     const result = await guard.canActivate(ctx);
 
     expect(result).toBe(true);
-    // The first filler key should have been evicted
     expect(internalCache.has(firstFillerHash)).toBe(false);
-    // The new key should be in the cache (stored as hash)
     expect(internalCache.has(testCacheKey(token))).toBe(true);
   });
 
   it('evictExpired removes entries whose expiresAt has passed', async () => {
     const internalCache = (guard as any).cache as Map<string, unknown>;
 
-    // Insert an expired entry (using hashed keys as the cache now stores hashes)
     const expiredHash = testCacheKey('mnfst_expired-cache');
     const validHash = testCacheKey('mnfst_valid-cache');
     internalCache.set(expiredHash, {
@@ -521,9 +517,8 @@ describe('AgentKeyAuthGuard', () => {
       agentId: 'a',
       agentName: 'n',
       userId: 'u',
-      expiresAt: Date.now() - 1000, // expired 1 second ago
+      expiresAt: Date.now() - 1000,
     });
-    // Insert a valid entry
     internalCache.set(validHash, {
       tenantId: 't2',
       agentId: 'a2',
@@ -534,7 +529,6 @@ describe('AgentKeyAuthGuard', () => {
 
     expect(internalCache.size).toBe(2);
 
-    // Trigger evictExpired by authenticating a new key (evictExpired is called during canActivate)
     const evictToken = 'mnfst_trigger-evict-key';
     mockGetMany.mockResolvedValue([
       {
@@ -551,22 +545,16 @@ describe('AgentKeyAuthGuard', () => {
     const { ctx } = makeContext({ authorization: `Bearer ${evictToken}` });
     await guard.canActivate(ctx);
 
-    // The expired entry should have been removed
     expect(internalCache.has(expiredHash)).toBe(false);
-    // The valid entry should still be there
     expect(internalCache.has(validHash)).toBe(true);
-    // The new key should also be cached (as hash)
     expect(internalCache.has(testCacheKey(evictToken))).toBe(true);
   });
 
   it('periodic timer fires evictExpired', () => {
     jest.useFakeTimers();
 
-    const mockRepo = {
-      createQueryBuilder: mockCreateQueryBuilder,
-      findOne: mockFindOne,
-    } as never;
-    const timedGuard = new AgentKeyAuthGuard(mockRepo);
+    const repo = buildMockRepo();
+    const timedGuard = new AgentKeyAuthGuard(repo, createMockConfig());
 
     const internalCache = (timedGuard as any).cache as Map<string, unknown>;
     internalCache.set(testCacheKey('mnfst_stale'), {
@@ -588,16 +576,12 @@ describe('AgentKeyAuthGuard', () => {
   it('onModuleDestroy stops the periodic cleanup timer', () => {
     jest.useFakeTimers();
 
-    const mockRepo = {
-      createQueryBuilder: mockCreateQueryBuilder,
-      findOne: mockFindOne,
-    } as never;
-    const timedGuard = new AgentKeyAuthGuard(mockRepo);
+    const repo = buildMockRepo();
+    const timedGuard = new AgentKeyAuthGuard(repo, createMockConfig());
 
     const internalCache = (timedGuard as any).cache as Map<string, unknown>;
     timedGuard.onModuleDestroy();
 
-    // After destroy, add an expired entry — timer should not evict it
     internalCache.set(testCacheKey('mnfst_leftover'), {
       tenantId: 't',
       agentId: 'a',
@@ -630,9 +614,7 @@ describe('AgentKeyAuthGuard', () => {
     await guard.canActivate(ctx);
 
     const internalCache = (guard as any).cache as Map<string, unknown>;
-    // The cache must NOT contain the plaintext token as a key
     expect(internalCache.has(token)).toBe(false);
-    // It should contain the SHA-256 hash of the token
     expect(internalCache.has(testCacheKey(token))).toBe(true);
   });
 
@@ -689,7 +671,6 @@ describe('AgentKeyAuthGuard', () => {
     const { ctx: ctx2 } = makeContext({ authorization: `Bearer ${token}` });
     await guard.canActivate(ctx2);
 
-    // Called once for getMany (select)
     expect(mockGetMany).toHaveBeenCalledTimes(1);
   });
 });

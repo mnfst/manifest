@@ -48,15 +48,11 @@ export class VersionCheckService implements OnModuleInit {
 
     try {
       const controller = new AbortController();
-      const timer = setTimeout(
-        () => controller.abort(),
-        VersionCheckService.FETCH_TIMEOUT_MS,
-      );
+      const timer = setTimeout(() => controller.abort(), VersionCheckService.FETCH_TIMEOUT_MS);
 
-      const res = await fetch(
-        'https://registry.npmjs.org/manifest/latest',
-        { signal: controller.signal },
-      );
+      const res = await fetch('https://registry.npmjs.org/manifest/latest', {
+        signal: controller.signal,
+      });
       clearTimeout(timer);
 
       if (!res.ok) return null;
@@ -79,7 +75,7 @@ export class VersionCheckService implements OnModuleInit {
 
   private isEnabled(): boolean {
     if (this.config.get<string>('MANIFEST_MODE') !== 'local') return false;
-    const opt = this.config.get<string>('MANIFEST_TELEMETRY_OPTOUT');
+    const opt = this.config.get<string>('MANIFEST_UPDATE_CHECK_OPTOUT');
     if (opt === '1' || opt === 'true') return false;
     return true;
   }

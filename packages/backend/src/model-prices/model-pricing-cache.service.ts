@@ -58,7 +58,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
       this.cache.set(fullId, pricingEntry);
 
       // For supported providers, also store under canonical name (e.g. "claude-opus-4-6")
-      // so cost lookups work when telemetry sends bare model names
+      // so cost lookups work when ingested messages use bare model names
       if (canonical !== fullId && !this.cache.has(canonical)) {
         this.cache.set(canonical, pricingEntry);
       }

@@ -28,14 +28,16 @@ describe('DatabaseSeederService', () => {
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockApiKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
-  const originalSeedData = process.env['SEED_DATA'];
-  const originalManifestMode = process.env['MANIFEST_MODE'];
+  let configValues: Record<string, string | undefined>;
 
   beforeEach(() => {
-    // Ensure local mode doesn't short-circuit onModuleInit (sql.js CI sets MANIFEST_MODE=local)
-    delete process.env['MANIFEST_MODE'];
     mockDataSource = { query: jest.fn() };
-    mockConfigService = { get: jest.fn() };
+    configValues = { 'app.manifestMode': 'cloud', 'app.nodeEnv': 'development', SEED_DATA: 'true' };
+    mockConfigService = {
+      get: jest
+        .fn()
+        .mockImplementation((key: string, fallback?: string) => configValues[key] ?? fallback),
+    };
     mockTenantRepo = makeMockRepo();
     mockAgentRepo = makeMockRepo();
     mockAgentKeyRepo = makeMockRepo();
@@ -54,30 +56,18 @@ describe('DatabaseSeederService', () => {
 
     jest.clearAllMocks();
 
-    // Default: dev environment with SEED_DATA enabled
-    mockConfigService.get.mockReturnValue('development');
-    process.env['SEED_DATA'] = 'true';
+    // Re-apply default mock after clearAllMocks
+    mockConfigService.get.mockImplementation(
+      (key: string, fallback?: string) => configValues[key] ?? fallback,
+    );
 
     // Default: admin user exists
     mockDataSource.query.mockResolvedValue([{ id: 'admin-user-id' }]);
   });
 
-  afterEach(() => {
-    if (originalSeedData !== undefined) {
-      process.env['SEED_DATA'] = originalSeedData;
-    } else {
-      delete process.env['SEED_DATA'];
-    }
-    if (originalManifestMode !== undefined) {
-      process.env['MANIFEST_MODE'] = originalManifestMode;
-    } else {
-      delete process.env['MANIFEST_MODE'];
-    }
-  });
-
   describe('onModuleInit', () => {
     it('should skip everything in local mode', async () => {
-      process.env['MANIFEST_MODE'] = 'local';
+      configValues['app.manifestMode'] = 'local';
 
       await service.onModuleInit();
 
@@ -93,8 +83,8 @@ describe('DatabaseSeederService', () => {
     });
 
     it('should seed demo data when env is development and SEED_DATA is true', async () => {
-      mockConfigService.get.mockReturnValue('development');
-      process.env['SEED_DATA'] = 'true';
+      configValues['app.nodeEnv'] = 'development';
+      configValues['SEED_DATA'] = 'true';
 
       await service.onModuleInit();
 
@@ -109,8 +99,8 @@ describe('DatabaseSeederService', () => {
     });
 
     it('should seed demo data when env is test and SEED_DATA is true', async () => {
-      mockConfigService.get.mockReturnValue('test');
-      process.env['SEED_DATA'] = 'true';
+      configValues['app.nodeEnv'] = 'test';
+      configValues['SEED_DATA'] = 'true';
 
       await service.onModuleInit();
 
@@ -120,8 +110,8 @@ describe('DatabaseSeederService', () => {
     });
 
     it('should not seed demo data when env is production', async () => {
-      mockConfigService.get.mockReturnValue('production');
-      process.env['SEED_DATA'] = 'true';
+      configValues['app.nodeEnv'] = 'production';
+      configValues['SEED_DATA'] = 'true';
 
       await service.onModuleInit();
 
@@ -134,8 +124,8 @@ describe('DatabaseSeederService', () => {
     });
 
     it('should not seed demo data when SEED_DATA is not true', async () => {
-      mockConfigService.get.mockReturnValue('development');
-      delete process.env['SEED_DATA'];
+      configValues['app.nodeEnv'] = 'development';
+      delete configValues['SEED_DATA'];
 
       await service.onModuleInit();
 
@@ -145,8 +135,8 @@ describe('DatabaseSeederService', () => {
     });
 
     it('should not seed demo data when SEED_DATA is a non-true string', async () => {
-      mockConfigService.get.mockReturnValue('development');
-      process.env['SEED_DATA'] = 'false';
+      configValues['app.nodeEnv'] = 'development';
+      configValues['SEED_DATA'] = 'false';
 
       await service.onModuleInit();
 

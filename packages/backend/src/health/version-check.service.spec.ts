@@ -17,7 +17,7 @@ describe('VersionCheckService', () => {
     global.fetch = mockFetch;
     delete process.env['MANIFEST_PACKAGE_VERSION'];
     delete process.env['MANIFEST_MODE'];
-    delete process.env['MANIFEST_TELEMETRY_OPTOUT'];
+    delete process.env['MANIFEST_UPDATE_CHECK_OPTOUT'];
   });
 
   afterEach(() => {
@@ -175,9 +175,9 @@ describe('VersionCheckService', () => {
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it('does not fetch when telemetry is opted out', async () => {
+    it('does not fetch when update check is opted out', async () => {
       process.env['MANIFEST_MODE'] = 'local';
-      process.env['MANIFEST_TELEMETRY_OPTOUT'] = '1';
+      process.env['MANIFEST_UPDATE_CHECK_OPTOUT'] = '1';
       await service.onModuleInit();
       expect(mockFetch).not.toHaveBeenCalled();
     });
@@ -207,9 +207,9 @@ describe('VersionCheckService', () => {
       // No unhandled rejection — the empty catch callback absorbed it
     });
 
-    it('does not fetch when telemetry optout is set to true string', async () => {
+    it('does not fetch when update check optout is set to true string', async () => {
       process.env['MANIFEST_MODE'] = 'local';
-      process.env['MANIFEST_TELEMETRY_OPTOUT'] = 'true';
+      process.env['MANIFEST_UPDATE_CHECK_OPTOUT'] = 'true';
       await service.onModuleInit();
       expect(mockFetch).not.toHaveBeenCalled();
     });

@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { render } from '@react-email/render';
 import { ThresholdAlertEmail, ThresholdAlertProps } from '../emails/threshold-alert';
 import { sendEmail } from './email-providers/send-email';
@@ -8,6 +9,14 @@ import type { EmailProviderConfig } from './email-providers/email-provider.inter
 @Injectable()
 export class NotificationEmailService {
   private readonly logger = new Logger(NotificationEmailService.name);
+  private readonly fromEmail: string;
+
+  constructor(private readonly configService: ConfigService) {
+    this.fromEmail = this.configService.get<string>(
+      'app.notificationFromEmail',
+      'noreply@manifest.build',
+    );
+  }
 
   async sendThresholdAlert(
     to: string,
@@ -21,7 +30,7 @@ export class NotificationEmailService {
     const subject = `${prefix}: ${props.agentName} exceeded ${props.metricType} threshold`;
 
     if (providerConfig) {
-      const defaultFrom = process.env['NOTIFICATION_FROM_EMAIL'] ?? 'noreply@manifest.build';
+      const defaultFrom = this.fromEmail;
       const from = providerConfig.domain
         ? `Manifest <noreply@${providerConfig.domain}>`
         : `Manifest <${defaultFrom}>`;
@@ -38,7 +47,7 @@ export class NotificationEmailService {
       return sent;
     }
 
-    const from = `Manifest <${process.env['NOTIFICATION_FROM_EMAIL'] ?? 'noreply@manifest.build'}>`;
+    const from = `Manifest <${this.fromEmail}>`;
     const sent = await sendEmail({ to, subject, html, text, from });
     if (sent) {
       this.logger.log(`Threshold alert sent to ${to} for agent ${props.agentName}`);
