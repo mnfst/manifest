@@ -122,7 +122,7 @@ if [[ -d "$AGENTS_DIR" ]]; then
         log "[dry-run] Would clean manifest entries from $profile_file"
       else
         jq '
-          .profiles |= with_entries(select(.key | startswith("manifest") | not))
+          .profiles |= (if . then with_entries(select(.key | startswith("manifest") | not)) else . end)
           | del(.lastGood.manifest)
           | .usageStats |= (if . then with_entries(select(.key | startswith("manifest") | not)) else . end)
         ' "$profile_file" > "${profile_file}.tmp"

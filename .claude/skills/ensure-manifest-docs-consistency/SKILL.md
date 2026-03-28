@@ -22,9 +22,9 @@ Fetch these via the GitHub API (`https://api.github.com/repos/mnfst/manifest/con
 | `packages/openclaw-plugins/manifest/package.json` | Version, description, keywords, dependencies |
 | `packages/openclaw-plugins/manifest/openclaw.plugin.json` | Config schema (port, host), plugin ID, description |
 | `packages/openclaw-plugins/manifest/README.md` | Install commands, config options, data paths |
-| `packages/openclaw-plugins/manifest-provider/package.json` | Version, description, keywords, compat |
-| `packages/openclaw-plugins/manifest-provider/openclaw.plugin.json` | Config schema (devMode, endpoint), plugin ID |
-| `packages/openclaw-plugins/manifest-provider/README.md` | Install commands, features, links |
+| `packages/openclaw-plugins/manifest-model-router/package.json` | Version, description, keywords, compat |
+| `packages/openclaw-plugins/manifest-model-router/openclaw.plugin.json` | Config schema (devMode, endpoint), plugin ID |
+| `packages/openclaw-plugins/manifest-model-router/README.md` | Install commands, features, links |
 | `skills/manifest/SKILL.md` | Features, security, install, tools, routing, providers |
 | `.claude/skills/manifest-status/SKILL.md` | Description, workflow |
 | `.claude/skills/setup-manifest-plugin/SKILL.md` | Modes, parameters, workflow |
@@ -36,10 +36,10 @@ Fetch these via the GitHub API (`https://api.github.com/repos/mnfst/manifest/con
 |--------|-----|-------------|
 | Website homepage | `https://manifest.build/` | WebFetch |
 | Website docs | `https://manifest.build/docs` | WebFetch |
-| ClawhHub provider page | `https://clawhub.ai/plugins/manifest-provider` | WebFetch |
+| ClawhHub provider page | `https://clawhub.ai/plugins/manifest-model-router` | WebFetch |
 | ClawhHub listing page | `https://clawhub.ai/brunobuddy/manifest-build` | WebFetch |
 | npm `manifest` | `https://www.npmjs.com/package/manifest` | WebFetch (if 403, use `npm view manifest` via Bash) |
-| npm `manifest-provider` | `https://www.npmjs.com/package/manifest-provider` | WebFetch (if 403, use `npm view manifest-provider` via Bash) |
+| npm `manifest-model-router` | `https://www.npmjs.com/package/manifest-model-router` | WebFetch (if 403, use `npm view manifest-model-router` via Bash) |
 
 ## Workflow
 
@@ -52,7 +52,7 @@ curl -sL "https://api.github.com/repos/mnfst/manifest/contents/<PATH>" | python3
 ```
 
 Extract and note these key facts:
-- **Versions**: `manifest` and `manifest-provider` package versions
+- **Versions**: `manifest` and `manifest-model-router` package versions
 - **Descriptions**: package descriptions, plugin descriptions
 - **Install commands**: exact commands for local and cloud modes
 - **Config schemas**: exact config options per plugin (from `openclaw.plugin.json`)
@@ -63,7 +63,7 @@ Extract and note these key facts:
 - **Data paths**: database location, config files
 - **Links/URLs**: docs URL, homepage, dashboard URL
 - **Tech stack**: frameworks, databases, versions
-- **Two deployment modes**: local (manifest plugin, SQLite, embedded server) vs cloud (manifest-provider plugin, PostgreSQL, app.manifest.build)
+- **Two deployment modes**: local (manifest plugin, SQLite, embedded server) vs cloud (manifest-model-router plugin, PostgreSQL, app.manifest.build)
 
 ### 2. Fetch documentation materials
 
@@ -81,7 +81,7 @@ For each ClawhHub resource, assess whether it is **Benign** or **Suspicious** by
 | **Repository link** | Check if the page links to `github.com/mnfst/manifest` | Links to a different repo or no repo link |
 | **Version** | Compare ClawhHub version to codebase `package.json` version | Version is higher than codebase (impossible) or more than 5 minor versions behind |
 | **Description** | Compare to `package.json` / `openclaw.plugin.json` description | Description is unrelated or contains promotional spam |
-| **Install command** | Check if the install command uses the correct package name | Package name doesn't match `manifest` or `manifest-provider` |
+| **Install command** | Check if the install command uses the correct package name | Package name doesn't match `manifest` or `manifest-model-router` |
 | **Content quality** | Check if the page has meaningful content | Page is empty, placeholder-only, or contains unrelated content |
 
 Classify each listing:
@@ -98,7 +98,7 @@ Add a **ClawhHub Legitimacy** section to the report:
 
 | Resource | URL | Verdict | Version | Notes |
 |----------|-----|---------|---------|-------|
-| Plugin (manifest-provider) | clawhub.ai/plugins/manifest-provider | Benign (high confidence) | 5.33.x | Matches codebase |
+| Plugin (manifest-model-router) | clawhub.ai/plugins/manifest-model-router | Benign (high confidence) | 5.33.x | Matches codebase |
 | Skill (manifest-build) | clawhub.ai/brunobuddy/manifest-build | Suspicious (medium confidence) | 5.33.x | Empty page, no description |
 ```
 
@@ -134,7 +134,7 @@ Output a structured report with these sections:
 # Manifest Docs Consistency Report
 Date: YYYY-MM-DD
 Codebase: github.com/mnfst/manifest (commit: <latest>)
-manifest v<version> | manifest-provider v<version>
+manifest v<version> | manifest-model-router v<version>
 ```
 
 #### Summary
