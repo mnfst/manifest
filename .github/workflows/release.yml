@@ -86,7 +86,7 @@ jobs:
           PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
           CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
         run: |
-          npx clawhub@latest login --token "$CLAWHUB_TOKEN" --no-browser
+          npx clawhub@latest login --token "$CLAWHUB_TOKEN" --no-browser || { echo "ClaHub login failed (non-fatal)"; exit 0; }
 
           HAS_PROVIDER=$(echo "$PUBLISHED_PACKAGES" | jq '[.[] | select(.name == "manifest-provider")] | length')
           HAS_MANIFEST=$(echo "$PUBLISHED_PACKAGES" | jq '[.[] | select(.name == "manifest")] | length')
