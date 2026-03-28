@@ -51,6 +51,12 @@ describeIfBuilt("built bundle (dist/index.js)", () => {
     expect(existsSync(resolve(__dirname, "../dist/server.js"))).toBe(false);
     expect(existsSync(resolve(__dirname, "../dist/backend"))).toBe(false);
   });
+
+  it("does not contain subscription discovery code", () => {
+    expect(bundleContent).not.toContain("discoverSubscriptionProviders");
+    expect(bundleContent).not.toContain("registerSubscriptionProviders");
+    expect(bundleContent).not.toContain("supportsSubscriptionProvider");
+  });
 });
 
 describe("build configuration", () => {

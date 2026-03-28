@@ -4,8 +4,8 @@ export const ENV = {
   ENDPOINT: 'MANIFEST_ENDPOINT',
 } as const;
 
-// Re-export from shared — single source of truth
-export { API_KEY_PREFIX } from 'manifest-shared';
+// API key prefix — must match backend validation
+export const API_KEY_PREFIX = 'mnfst_';
 
 // Plugin defaults
 export const DEFAULTS = {

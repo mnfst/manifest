@@ -4,7 +4,6 @@ import { registerTools } from './tools';
 import { registerCommand } from './command';
 import { verifyConnection } from './verify';
 import { injectProviderConfig, injectAuthProfile } from './provider-inject';
-import { discoverSubscriptionProviders, registerSubscriptionProviders } from './subscription';
 import { stripOtlpSuffix } from './compat';
 import { runApiKeyAuth, buildModelConfig } from './auth';
 import { ENV } from './constants';
@@ -87,9 +86,6 @@ module.exports = {
       logger.info(`[manifest]   Dashboard: ${baseOrigin}`);
     }
 
-    // Discover subscription providers from OpenClaw auth profiles
-    const subscriptions = discoverSubscriptionProviders(logger);
-
     api.registerService({
       id: 'manifest-routing',
       start: () => {
@@ -108,11 +104,6 @@ module.exports = {
             logger.info(`[manifest] Connection verified${agent}`);
           })
           .catch(() => {});
-
-        // Register subscription providers after startup
-        registerSubscriptionProviders(subscriptions, config.endpoint, effectiveKey, logger).catch(
-          () => {},
-        );
       },
     });
   },

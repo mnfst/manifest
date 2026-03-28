@@ -24,10 +24,6 @@ jest.mock("../src/auth", () => ({
 jest.mock("../src/command", () => ({
   registerCommand: jest.fn(),
 }));
-jest.mock("../src/subscription", () => ({
-  discoverSubscriptionProviders: jest.fn().mockReturnValue([]),
-  registerSubscriptionProviders: jest.fn().mockResolvedValue(undefined),
-}));
 
 import { parseConfigWithDeprecation, validateConfig } from "../src/config";
 import { injectProviderConfig, injectAuthProfile } from "../src/provider-inject";
