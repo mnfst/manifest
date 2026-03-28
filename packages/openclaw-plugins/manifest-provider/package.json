@@ -61,9 +61,7 @@
     "gemini",
     "deepseek"
   ],
-  "dependencies": {
-    "manifest-shared": "*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "esbuild": "^0.25.0",
     "tsx": "^4.19.0",
