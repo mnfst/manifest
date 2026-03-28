@@ -152,6 +152,23 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
     const keyRecord = candidates.find((c) => verifyKey(token, c.key_hash));
 
     if (!keyRecord) {
+      // In local mode, fall back to the first active agent instead of rejecting.
+      // This handles stale keys after gateway restarts, race conditions during
+      // startup, or keys created on a different server instance.
+      if (isLocal) {
+        const fallback = await this.resolveDevContext();
+        if (fallback) {
+          (request as Request & { ingestionContext: IngestionContext }).ingestionContext = fallback;
+          return true;
+        }
+        (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
+          tenantId: LOCAL_TENANT_ID,
+          agentId: LOCAL_AGENT_ID,
+          agentName: LOCAL_AGENT_NAME,
+          userId: LOCAL_USER_ID,
+        };
+        return true;
+      }
       this.logger.warn(`Rejected unknown agent key: ${token.substring(0, 8)}...`);
       throw new UnauthorizedException('Invalid API key');
     }

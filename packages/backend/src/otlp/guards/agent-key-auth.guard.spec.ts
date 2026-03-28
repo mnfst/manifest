@@ -326,6 +326,59 @@ describe('AgentKeyAuthGuard', () => {
       const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '8.8.8.8');
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     });
+
+    it('falls back to first active agent when mnfst_ key is not found in local mode', async () => {
+      mockGetMany.mockResolvedValue([]); // no matching key in DB
+      mockFindOne.mockResolvedValue({
+        tenant_id: 'fb-tenant',
+        agent_id: 'fb-agent',
+        agent: { name: 'my-agent' },
+        tenant: { name: 'local-user-001' },
+      });
+
+      const { ctx, req } = makeContext(
+        { authorization: 'Bearer mnfst_stale-or-unknown-key' },
+        '127.0.0.1',
+      );
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'fb-tenant',
+        agentId: 'fb-agent',
+        agentName: 'my-agent',
+        userId: 'local-user-001',
+      });
+    });
+
+    it('falls back to LOCAL constants when mnfst_ key not found and no active agents in local mode', async () => {
+      mockGetMany.mockResolvedValue([]);
+      mockFindOne.mockResolvedValue(null);
+
+      const { ctx, req } = makeContext(
+        { authorization: 'Bearer mnfst_stale-or-unknown-key' },
+        '127.0.0.1',
+      );
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'local-tenant-001',
+        agentId: 'local-agent-001',
+        agentName: 'local-agent',
+        userId: 'local-user-001',
+      });
+    });
+
+    it('still rejects unknown mnfst_ key from public IP in local mode', async () => {
+      mockGetMany.mockResolvedValue([]);
+
+      const { ctx } = makeContext(
+        { authorization: 'Bearer mnfst_stale-or-unknown-key' },
+        '8.8.8.8',
+      );
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key');
+    });
   });
 
   it('still requires auth for loopback IPs when not in local mode', async () => {
