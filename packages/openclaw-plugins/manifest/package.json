@@ -31,6 +31,9 @@
       "./dist/index.js"
     ]
   },
+  "bundleDependencies": [
+    "manifest-shared"
+  ],
   "engines": {
     "node": ">=20.0.0"
   },
