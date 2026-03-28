@@ -1,7 +1,7 @@
 {
-  "name": "manifest-provider",
+  "name": "manifest-model-router",
   "version": "5.33.4",
-  "description": "Smart LLM router plugin for OpenClaw — picks the best model for each request, balancing quality, speed, and cost",
+  "description": "Smart LLM Router for OpenClaw. Save up to 70% by routing every request to the right model. No coding required",
   "main": "dist/index.js",
   "license": "MIT",
   "author": "MNFST Inc.",
@@ -9,7 +9,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/mnfst/manifest",
-    "directory": "packages/openclaw-plugins/manifest-provider"
+    "directory": "packages/openclaw-plugins/manifest-model-router"
   },
   "bugs": {
     "url": "https://github.com/mnfst/manifest/issues"

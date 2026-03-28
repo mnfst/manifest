@@ -10,7 +10,7 @@ import { ENV } from './constants';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 module.exports = {
-  id: 'manifest-provider',
+  id: 'manifest-model-router',
   name: 'Manifest Provider — Smart LLM Router',
 
   register(api: any) {
@@ -34,7 +34,7 @@ module.exports = {
             'Run the setup wizard:\n' +
             '  openclaw providers setup manifest\n\n' +
             'Or set your key manually:\n' +
-            '  openclaw config set plugins.entries.manifest-provider.config.apiKey mnfst_YOUR_KEY\n' +
+            '  openclaw config set plugins.entries.manifest-model-router.config.apiKey mnfst_YOUR_KEY\n' +
             '  openclaw gateway restart',
         );
       } else {

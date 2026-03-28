@@ -142,7 +142,7 @@ jobs:
           fail_ci_if_error: false
 
   provider-plugin:
-    name: Plugin (manifest-provider)
+    name: Plugin (manifest-model-router)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -152,14 +152,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build --workspace=packages/shared
-      - run: npm test --workspace=packages/openclaw-plugins/manifest-provider -- --coverage --coverageReporters=lcov
+      - run: npm test --workspace=packages/openclaw-plugins/manifest-model-router -- --coverage --coverageReporters=lcov
       - name: Upload provider plugin coverage to Codecov
         if: always()
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: plugin
-          directory: packages/openclaw-plugins/manifest-provider/coverage
+          directory: packages/openclaw-plugins/manifest-model-router/coverage
           fail_ci_if_error: false
 
   manifest-plugin:
@@ -239,21 +239,21 @@ jobs:
             echo "Found manifest changeset."
           fi
 
-          # manifest-provider changes require a manifest-provider changeset
-          if echo "$CHANGED_FILES" | grep -qE '^packages/openclaw-plugins/manifest-provider/'; then
-            echo "manifest-provider files changed — checking for manifest-provider changeset..."
+          # manifest-model-router changes require a manifest-model-router changeset
+          if echo "$CHANGED_FILES" | grep -qE '^packages/openclaw-plugins/manifest-model-router/'; then
+            echo "manifest-model-router files changed — checking for manifest-model-router changeset..."
             NEW_CHANGESETS=$(git diff --name-only origin/main...HEAD -- '.changeset/*.md' | grep -v README.md || true)
             if [ -z "$NEW_CHANGESETS" ]; then
-              echo "::error::manifest-provider files changed but no new changeset found."
-              echo "Run 'npx changeset' and add a patch/minor bump for manifest-provider."
+              echo "::error::manifest-model-router files changed but no new changeset found."
+              echo "Run 'npx changeset' and add a patch/minor bump for manifest-model-router."
               exit 1
             fi
-            if ! grep -l '"manifest-provider"' $NEW_CHANGESETS 2>/dev/null; then
-              echo "::error::manifest-provider files changed but no manifest-provider changeset."
-              echo "Run 'npx changeset' and add a patch/minor bump for manifest-provider."
+            if ! grep -l '"manifest-model-router"' $NEW_CHANGESETS 2>/dev/null; then
+              echo "::error::manifest-model-router files changed but no manifest-model-router changeset."
+              echo "Run 'npx changeset' and add a patch/minor bump for manifest-model-router."
               exit 1
             fi
-            echo "Found manifest-provider changeset."
+            echo "Found manifest-model-router changeset."
           fi
 
           echo "Changeset check passed."

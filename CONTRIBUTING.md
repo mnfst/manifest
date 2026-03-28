@@ -31,7 +31,7 @@ packages/
 ├── frontend/             # SolidJS single-page app (Vite, uPlot)
 └── openclaw-plugins/
     ├── manifest/          # npm: `manifest` — full self-hosted plugin (embedded server + dashboard)
-    └── manifest-provider/ # npm: `manifest-provider` — cloud-only provider plugin
+    └── manifest-model-router/ # npm: `manifest-model-router` — cloud-only provider plugin
 ```
 
 ## Getting Started
@@ -156,9 +156,9 @@ Requires `jq` and the `openclaw` CLI.
 | `npm run test:e2e --workspace=packages/backend` | Run backend e2e tests (Jest + Supertest) |
 | `npm test --workspace=packages/frontend` | Run frontend tests (Vitest) |
 | `npm test --workspace=packages/openclaw-plugins/manifest` | Run manifest plugin tests (Jest) |
-| `npm test --workspace=packages/openclaw-plugins/manifest-provider` | Run provider plugin tests (Jest) |
+| `npm test --workspace=packages/openclaw-plugins/manifest-model-router` | Run provider plugin tests (Jest) |
 | `npm run build:plugin` | Build the manifest (local) plugin |
-| `npm run build:provider` | Build the manifest-provider (cloud) plugin |
+| `npm run build:provider` | Build the manifest-model-router (cloud) plugin |
 
 ## Working with Individual Packages
 
@@ -191,9 +191,9 @@ The full plugin includes an embedded NestJS server, SQLite database, and dashboa
 
 Settings are defined in `openclaw.plugin.json`. The API key is auto-generated and stored in `~/.openclaw/manifest/config.json`.
 
-### Provider Plugin (`packages/openclaw-plugins/manifest-provider`)
+### Provider Plugin (`packages/openclaw-plugins/manifest-model-router`)
 
-- **npm**: `manifest-provider` — lightweight cloud-only provider plugin (~22KB)
+- **npm**: `manifest-model-router` — lightweight cloud-only provider plugin (~22KB)
 - **Bundler**: esbuild (zero runtime dependencies)
 - Registers Manifest as a model provider with interactive auth onboarding. No embedded server or dashboard.
 
@@ -226,7 +226,7 @@ npm test --workspace=packages/backend
 npm run test:e2e --workspace=packages/backend
 npm test --workspace=packages/frontend
 npm test --workspace=packages/openclaw-plugins/manifest
-npm test --workspace=packages/openclaw-plugins/manifest-provider
+npm test --workspace=packages/openclaw-plugins/manifest-model-router
 ```
 
 6. Verify the production build works:
@@ -246,7 +246,7 @@ This project uses [Changesets](https://github.com/changesets/changesets) for ver
 | Package | npm name | Needs changeset? |
 | --- | --- | --- |
 | `packages/openclaw-plugins/manifest` | `manifest` | Yes |
-| `packages/openclaw-plugins/manifest-provider` | `manifest-provider` | Yes — only when its own code changes |
+| `packages/openclaw-plugins/manifest-model-router` | `manifest-model-router` | Yes — only when its own code changes |
 | `packages/backend` | — | Yes — bump `manifest` (backend compiles into the full plugin) |
 | `packages/frontend` | — | Yes — bump `manifest` (frontend compiles into the full plugin) |
 

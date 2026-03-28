@@ -16,7 +16,7 @@
 
 ### Patch Changes
 
-- f369f83: Remove subscription discovery from cloud provider plugin. The manifest-provider plugin no longer scans local auth profiles or sends provider tokens to the backend. This resolves the ClaHub static analysis warning for file-read combined with network-send. Subscription provider management belongs in the self-hosted manifest plugin.
+- f369f83: Remove subscription discovery from cloud provider plugin. The manifest-model-router plugin no longer scans local auth profiles or sends provider tokens to the backend. This resolves the ClaHub static analysis warning for file-read combined with network-send. Subscription provider management belongs in the self-hosted manifest plugin.
 
 ## 5.33.1
 
@@ -28,7 +28,7 @@
 
 ### Minor Changes
 
-- 2362dd7: Split plugin into two packages: `manifest` (full self-hosted with embedded server) and `manifest-provider` (lightweight cloud-only provider). Cloud users now install `manifest-provider` (~22KB) instead of downloading the full 50MB package. Added interactive auth onboarding via OpenClaw's Provider Plugin SDK.
+- 2362dd7: Split plugin into two packages: `manifest` (full self-hosted with embedded server) and `manifest-model-router` (lightweight cloud-only provider). Cloud users now install `manifest-model-router` (~22KB) instead of downloading the full 50MB package. Added interactive auth onboarding via OpenClaw's Provider Plugin SDK.
 
 ## 5.32.0
 

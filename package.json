@@ -31,7 +31,7 @@
     "packages/frontend",
     "packages/backend",
     "packages/openclaw-plugins/manifest",
-    "packages/openclaw-plugins/manifest-provider"
+    "packages/openclaw-plugins/manifest-model-router"
   ],
   "scripts": {
     "dev": "turbo dev",
@@ -39,11 +39,11 @@
     "test": "turbo test",
     "start": "node packages/backend/dist/main.js",
     "build:plugin": "npm run build --workspace=packages/openclaw-plugins/manifest",
-    "build:provider": "npm run build --workspace=packages/openclaw-plugins/manifest-provider",
+    "build:provider": "npm run build --workspace=packages/openclaw-plugins/manifest-model-router",
     "publish:plugin": "npm publish --access public --workspace=packages/openclaw-plugins/manifest",
-    "publish:provider": "npm publish --access public --workspace=packages/openclaw-plugins/manifest-provider",
+    "publish:provider": "npm publish --access public --workspace=packages/openclaw-plugins/manifest-model-router",
     "check:api-prefix": "node scripts/check-api-prefix.js",
-    "lint": "eslint packages/shared/src packages/backend/src packages/frontend/src packages/openclaw-plugins/manifest/src packages/openclaw-plugins/manifest-provider/src",
+    "lint": "eslint packages/shared/src packages/backend/src packages/frontend/src packages/openclaw-plugins/manifest/src packages/openclaw-plugins/manifest-model-router/src",
     "format": "prettier --write 'packages/*/src/**/*.{ts,tsx,css}'",
     "changeset": "changeset",
     "version-packages": "changeset version && node scripts/sync-plugin-version.js",

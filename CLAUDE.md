@@ -8,11 +8,11 @@ When starting the app for development or testing (e.g. `/serve`), **always use `
 
 ## IMPORTANT: Plugin Must Use Cloud+Dev Mode
 
-When configuring the OpenClaw **manifest-provider** plugin to point at a local dev server (e.g. after `/serve` or `/setup-manifest-plugin`), **always use `devMode: true`** — never install the `manifest` plugin for this purpose. The `manifest` plugin starts its own embedded server on port 2099 and ignores the external backend. The `manifest-provider` plugin with `devMode` connects directly to your dev server without starting an embedded server.
+When configuring the OpenClaw **manifest-model-router** plugin to point at a local dev server (e.g. after `/serve` or `/setup-manifest-plugin`), **always use `devMode: true`** — never install the `manifest` plugin for this purpose. The `manifest` plugin starts its own embedded server on port 2099 and ignores the external backend. The `manifest-model-router` plugin with `devMode` connects directly to your dev server without starting an embedded server.
 
 ## Plugin Dev Mode
 
-When testing the OpenClaw plugin integration (routing), use the **manifest-provider** plugin in **dev mode** to connect to a local backend without API key management:
+When testing the OpenClaw plugin integration (routing), use the **manifest-model-router** plugin in **dev mode** to connect to a local backend without API key management:
 
 ```bash
 # 1. Build and start the backend in local mode
@@ -20,9 +20,9 @@ npm run build
 MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
   node -r dotenv/config packages/backend/dist/main.js
 
-# 2. Configure the manifest-provider plugin
-openclaw config set plugins.entries.manifest-provider.config.devMode true
-openclaw config set plugins.entries.manifest-provider.config.endpoint http://localhost:38238
+# 2. Configure the manifest-model-router plugin
+openclaw config set plugins.entries.manifest-model-router.config.devMode true
+openclaw config set plugins.entries.manifest-model-router.config.endpoint http://localhost:38238
 
 # 3. Restart the gateway
 openclaw gateway restart
@@ -35,9 +35,9 @@ No API key needed. The dashboard shows an orange **Dev** badge in the header whe
 If the plugin gets into a bad state (stale config, wrong endpoint, cached errors), reset it fully:
 
 ```bash
-# Reset manifest-provider config to defaults
-openclaw config set plugins.entries.manifest-provider.config.devMode true
-openclaw config set plugins.entries.manifest-provider.config.endpoint http://localhost:<PORT>
+# Reset manifest-model-router config to defaults
+openclaw config set plugins.entries.manifest-model-router.config.devMode true
+openclaw config set plugins.entries.manifest-model-router.config.endpoint http://localhost:<PORT>
 
 # Force restart the gateway (kills existing process and starts fresh)
 openclaw gateway restart
@@ -154,7 +154,7 @@ packages/
 │   └── tests/
 ├── openclaw-plugins/
 │   ├── manifest/               # npm: `manifest` — full self-hosted plugin (embedded server + dashboard)
-│   └── manifest-provider/      # npm: `manifest-provider` — cloud-only provider plugin
+│   └── manifest-model-router/      # npm: `manifest-model-router` — cloud-only provider plugin
 └── subscription-capabilities/     # Subscription provider config (not in npm workspaces)
 ```
 
@@ -479,24 +479,24 @@ Version management and npm publishing use [Changesets](https://github.com/change
 | Package | npm name | Published |
 |---------|----------|-----------|
 | `packages/openclaw-plugins/manifest` | `manifest` | Yes (full self-hosted plugin with embedded server + dashboard) |
-| `packages/openclaw-plugins/manifest-provider` | `manifest-provider` | Yes (lightweight cloud-only provider plugin, ~22KB) |
+| `packages/openclaw-plugins/manifest-model-router` | `manifest-model-router` | Yes (lightweight cloud-only provider plugin, ~22KB) |
 | `packages/backend` | `manifest-backend` | No (`private: true`) |
 | `packages/frontend` | `manifest-frontend` | No (`private: true`) |
 
-Both `manifest` and `manifest-provider` are actively published.
+Both `manifest` and `manifest-model-router` are actively published.
 
 ### CRITICAL: Every PR Needs a Changeset
 
 **Before creating any PR, you MUST add a changeset.** The `changeset-check` CI job will fail without one.
 
 - **Backend or frontend changes always need a `manifest` changeset.** These packages compile into `manifest`, so any change to `packages/backend/` or `packages/frontend/` must include a changeset bumping `manifest` (patch for fixes, minor for features). CI enforces this.
-- If the PR changes a **publishable package** directly (`openclaw-plugins/manifest` or `openclaw-plugins/manifest-provider`): run `npx changeset` and select the appropriate bump level. Changes to `manifest-provider` only need a `manifest-provider` changeset (not `manifest`) unless the full plugin is also affected.
+- If the PR changes a **publishable package** directly (`openclaw-plugins/manifest` or `openclaw-plugins/manifest-model-router`): run `npx changeset` and select the appropriate bump level. Changes to `manifest-model-router` only need a `manifest-model-router` changeset (not `manifest`) unless the full plugin is also affected.
 - **Empty changesets** (`npx changeset add --empty`) should only be used for changes that don't affect any publishable package: CI config, docs, tooling, or dev-only scripts.
 - Commit the generated `.changeset/*.md` file as part of the PR.
 
 ### Workflow
 
-1. When changing backend, frontend, or `openclaw-plugins/manifest`, run `npx changeset` and select `manifest`. When changing `openclaw-plugins/manifest-provider`, select `manifest-provider`. Both can be included in a single changeset if both are affected.
+1. When changing backend, frontend, or `openclaw-plugins/manifest`, run `npx changeset` and select `manifest`. When changing `openclaw-plugins/manifest-model-router`, select `manifest-model-router`. Both can be included in a single changeset if both are affected.
 2. On merge to `main`, the release workflow (`.github/workflows/release.yml`) opens a "Version Packages" PR
 3. When that PR merges, the workflow publishes to npm using `NPM_TOKEN` secret
 
@@ -533,14 +533,14 @@ Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. C
   - `cd packages/backend && npx jest --coverage`
   - `cd packages/frontend && npx vitest run --coverage`
   - `cd packages/openclaw-plugins/manifest && npx jest --coverage`
-  - `cd packages/openclaw-plugins/manifest-provider && npx jest --coverage`
+  - `cd packages/openclaw-plugins/manifest-model-router && npx jest --coverage`
 
 This applies to:
 
 - New services, guards, controllers, or utilities in `packages/backend/src/`
 - New components or functions in `packages/frontend/src/`
 - New modules in `packages/openclaw-plugins/manifest/src/`
-- New modules in `packages/openclaw-plugins/manifest-provider/src/`
+- New modules in `packages/openclaw-plugins/manifest-model-router/src/`
 
 ### Coverage Flags
 
@@ -549,7 +549,7 @@ This applies to:
 | `backend` | `packages/backend/src/` | Backend (PostgreSQL) |
 | `frontend` | `packages/frontend/src/` | frontend |
 | `plugin` | `packages/openclaw-plugins/manifest/src/` | plugin |
-| `provider-plugin` | `packages/openclaw-plugins/manifest-provider/src/` | provider-plugin |
+| `provider-plugin` | `packages/openclaw-plugins/manifest-model-router/src/` | provider-plugin |
 
 ### E2E Test Entities
 

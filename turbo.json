@@ -13,7 +13,7 @@
       "dependsOn": ["manifest-frontend#build", "manifest-backend#build"],
       "outputs": ["dist/**", "public/**"]
     },
-    "manifest-provider#build": {
+    "manifest-model-router#build": {
       "dependsOn": ["manifest-shared#build"],
       "outputs": ["dist/**", "skills/**"]
     },
