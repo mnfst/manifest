@@ -79,3 +79,34 @@ jobs:
             gh release create "$TAG" --title "${NAME} v${VERSION}" --notes "${BODY:-No changelog}" --verify-tag
             echo "Created release $TAG"
           done
+
+      - name: Publish to ClaHub
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+        run: |
+          npx clawhub@latest login --token "$CLAWHUB_TOKEN" --no-browser
+
+          HAS_PROVIDER=$(echo "$PUBLISHED_PACKAGES" | jq '[.[] | select(.name == "manifest-provider")] | length')
+          HAS_MANIFEST=$(echo "$PUBLISHED_PACKAGES" | jq '[.[] | select(.name == "manifest")] | length')
+          PROVIDER_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest-provider") | .version // empty')
+          MANIFEST_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest") | .version // empty')
+
+          # Publish manifest-provider plugin to ClaHub
+          if [ "$HAS_PROVIDER" -gt 0 ]; then
+            echo "Publishing manifest-provider@${PROVIDER_VERSION} to ClaHub..."
+            npx clawhub@latest package publish packages/openclaw-plugins/manifest-provider \
+              --source-repo mnfst/manifest \
+              --source-commit "$GITHUB_SHA" || echo "ClaHub plugin publish failed (non-fatal)"
+          fi
+
+          # Publish skill when manifest or manifest-provider is released
+          if [ "$HAS_MANIFEST" -gt 0 ] || [ "$HAS_PROVIDER" -gt 0 ]; then
+            SKILL_VERSION="${MANIFEST_VERSION:-$PROVIDER_VERSION}"
+            echo "Publishing manifest-build skill@${SKILL_VERSION} to ClaHub..."
+            npx clawhub@latest publish skills/manifest/SKILL.md \
+              --slug manifest-build \
+              --version "$SKILL_VERSION" \
+              --changelog "Release ${SKILL_VERSION}" || echo "ClaHub skill publish failed (non-fatal)"
+          fi
