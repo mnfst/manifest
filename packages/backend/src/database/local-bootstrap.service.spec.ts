@@ -9,7 +9,6 @@ jest.mock('@nestjs/typeorm', () => ({
   InjectRepository: () => () => undefined,
 }));
 
-// Mock fs for config reading (includes writeFileSync/mkdirSync used by local-mode.constants)
 jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(false),
   readFileSync: jest.fn(),
@@ -36,7 +35,6 @@ jest.mock('../model-discovery/model-discovery.service', () => ({
 }));
 
 import { LocalBootstrapService } from './local-bootstrap.service';
-import { existsSync, readFileSync } from 'fs';
 
 function makeMockRepo() {
   return {
@@ -44,6 +42,7 @@ function makeMockRepo() {
     insert: jest.fn().mockResolvedValue({}),
     upsert: jest.fn().mockResolvedValue({}),
     find: jest.fn().mockResolvedValue([]),
+    findOne: jest.fn().mockResolvedValue(null),
     save: jest.fn().mockResolvedValue({}),
     delete: jest.fn().mockResolvedValue({}),
   };
@@ -95,174 +94,58 @@ describe('LocalBootstrapService', () => {
   });
 
   describe('onModuleInit', () => {
-    it('runs full bootstrap sequence', async () => {
+    it('runs bootstrap without creating tenant or agent', async () => {
       await service.onModuleInit();
-      // Wait for background discovery to complete
       await new Promise((r) => setTimeout(r, 10));
 
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { LOCAL_USER_ID } = require('../common/constants/local-mode.constants');
-      const tenantInsertArg = mockTenantRepo.insert.mock.calls[0][0];
-      expect(tenantInsertArg.name).toBe(LOCAL_USER_ID);
-
-      expect(mockTenantRepo.insert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'local-tenant-001',
-          name: 'local-user-001',
-        }),
-      );
-      expect(mockAgentRepo.insert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'local-agent-001',
-          name: 'local-agent',
-          tenant_id: 'local-tenant-001',
-        }),
-      );
-    });
-
-    it('skips tenant/agent when tenant already exists', async () => {
-      mockTenantRepo.count.mockResolvedValue(1);
-
-      await service.onModuleInit();
-
+      // Should NOT auto-create tenant or agent
       expect(mockTenantRepo.insert).not.toHaveBeenCalled();
       expect(mockAgentRepo.insert).not.toHaveBeenCalled();
     });
-  });
 
-  describe('config reading', () => {
-    it('does not register API key when config file missing', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { existsSync } = require('fs');
-      (existsSync as jest.Mock).mockReturnValue(false);
-
+    it('does not seed messages', async () => {
       await service.onModuleInit();
 
-      expect(mockAgentKeyRepo.upsert).not.toHaveBeenCalled();
-    });
-
-    it('returns null when readFileSync throws (catches error in readApiKeyFromConfig)', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { existsSync, readFileSync } = require('fs');
-      (existsSync as jest.Mock).mockReturnValue(true);
-      (readFileSync as jest.Mock).mockImplementation(() => {
-        throw new Error('EACCES: permission denied');
-      });
-
-      await service.onModuleInit();
-
-      // readApiKeyFromConfig returns null on error, so no key registration
-      expect(mockAgentKeyRepo.insert).not.toHaveBeenCalled();
-    });
-
-    it('registers API key when config file exists with apiKey', async () => {
-      (existsSync as jest.Mock).mockReturnValue(true);
-      (readFileSync as jest.Mock).mockReturnValue(
-        JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
-      );
-
-      await service.onModuleInit();
-
-      expect(mockAgentKeyRepo.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'local-otlp-key-001',
-          label: 'Local OTLP ingest key',
-          tenant_id: 'local-tenant-001',
-          agent_id: 'local-agent-001',
-          is_active: true,
-        }),
-        ['id'],
-      );
-    });
-
-    it('skips API key registration when key hash already exists', async () => {
-      (existsSync as jest.Mock).mockReturnValue(true);
-      (readFileSync as jest.Mock).mockReturnValue(
-        JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
-      );
-      mockAgentKeyRepo.count.mockResolvedValue(1);
-
-      await service.onModuleInit();
-
-      expect(mockAgentKeyRepo.upsert).not.toHaveBeenCalled();
-    });
-
-    it('does not register when apiKey is not a string', async () => {
-      (existsSync as jest.Mock).mockReturnValue(true);
-      (readFileSync as jest.Mock).mockReturnValue(JSON.stringify({ apiKey: 12345 }));
-
-      await service.onModuleInit();
-
-      expect(mockAgentKeyRepo.upsert).not.toHaveBeenCalled();
-    });
-
-    it('reconciles API key even when tenant already exists', async () => {
-      (existsSync as jest.Mock).mockReturnValue(true);
-      (readFileSync as jest.Mock).mockReturnValue(
-        JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
-      );
-      mockTenantRepo.count.mockResolvedValue(1);
-
-      await service.onModuleInit();
-
-      expect(mockTenantRepo.insert).not.toHaveBeenCalled();
-      expect(mockAgentKeyRepo.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'local-otlp-key-001',
-          tenant_id: 'local-tenant-001',
-          agent_id: 'local-agent-001',
-        }),
-        ['id'],
-      );
+      expect(mockMessageRepo.insert).not.toHaveBeenCalled();
     });
   });
 
   describe('fixupRoutingAgentIds', () => {
-    it('updates orphaned provider rows to LOCAL_AGENT_ID', async () => {
+    it('skips fixup when no active agents exist', async () => {
+      mockAgentRepo.findOne.mockResolvedValue(null);
+
+      await service.onModuleInit();
+
+      expect(mockProviderRepo.save).not.toHaveBeenCalled();
+      expect(mockTierRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('updates orphaned provider rows to first active agent', async () => {
       const orphanedProvider = { id: 'p1', provider: 'openai', agent_id: null };
+      mockAgentRepo.findOne.mockResolvedValue({ id: 'user-agent-1', is_active: true });
       mockProviderRepo.find.mockResolvedValue([orphanedProvider]);
       mockTierRepo.find.mockResolvedValue([]);
 
       await service.onModuleInit();
 
-      expect(mockProviderRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: expect.anything() },
-      });
-      expect(orphanedProvider.agent_id).toBe('local-agent-001');
+      expect(orphanedProvider.agent_id).toBe('user-agent-1');
       expect(mockProviderRepo.save).toHaveBeenCalledWith(orphanedProvider);
     });
 
-    it('updates orphaned tier rows to LOCAL_AGENT_ID', async () => {
+    it('updates orphaned tier rows to first active agent', async () => {
       const orphanedTier = { id: 't1', tier: 'simple', agent_id: null };
+      mockAgentRepo.findOne.mockResolvedValue({ id: 'user-agent-1', is_active: true });
       mockProviderRepo.find.mockResolvedValue([]);
       mockTierRepo.find.mockResolvedValue([orphanedTier]);
 
       await service.onModuleInit();
 
-      expect(mockTierRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: expect.anything() },
-      });
-      expect(orphanedTier.agent_id).toBe('local-agent-001');
+      expect(orphanedTier.agent_id).toBe('user-agent-1');
       expect(mockTierRepo.save).toHaveBeenCalledWith(orphanedTier);
     });
 
-    it('updates both orphaned providers and tiers', async () => {
-      const provider1 = { id: 'p1', provider: 'openai', agent_id: null };
-      const provider2 = { id: 'p2', provider: 'anthropic', agent_id: null };
-      const tier1 = { id: 't1', tier: 'simple', agent_id: null };
-      mockProviderRepo.find.mockResolvedValue([provider1, provider2]);
-      mockTierRepo.find.mockResolvedValue([tier1]);
-
-      await service.onModuleInit();
-
-      expect(provider1.agent_id).toBe('local-agent-001');
-      expect(provider2.agent_id).toBe('local-agent-001');
-      expect(tier1.agent_id).toBe('local-agent-001');
-      expect(mockProviderRepo.save).toHaveBeenCalledTimes(2);
-      expect(mockTierRepo.save).toHaveBeenCalledTimes(1);
-    });
-
     it('does nothing when no orphaned rows exist', async () => {
+      mockAgentRepo.findOne.mockResolvedValue({ id: 'user-agent-1', is_active: true });
       mockProviderRepo.find.mockResolvedValue([]);
       mockTierRepo.find.mockResolvedValue([]);
 
@@ -274,16 +157,25 @@ describe('LocalBootstrapService', () => {
   });
 
   describe('recalculateTiersIfNeeded', () => {
-    it('recalculates tiers when active providers exist on startup', async () => {
+    it('skips when no active agents exist', async () => {
+      mockAgentRepo.findOne.mockResolvedValue(null);
+
+      await service.onModuleInit();
+
+      expect(mockRecalculate).not.toHaveBeenCalled();
+    });
+
+    it('recalculates tiers when active providers exist', async () => {
+      mockAgentRepo.findOne.mockResolvedValue({ id: 'user-agent-1', is_active: true });
       mockProviderRepo.count.mockResolvedValue(2);
 
       await service.onModuleInit();
 
-      expect(mockModuleRef.get).toHaveBeenCalled();
-      expect(mockRecalculate).toHaveBeenCalledWith('local-agent-001');
+      expect(mockRecalculate).toHaveBeenCalledWith('user-agent-1');
     });
 
-    it('skips tier recalculation when no active providers', async () => {
+    it('skips when no active providers', async () => {
+      mockAgentRepo.findOne.mockResolvedValue({ id: 'user-agent-1', is_active: true });
       mockProviderRepo.count.mockResolvedValue(0);
 
       await service.onModuleInit();
@@ -291,7 +183,8 @@ describe('LocalBootstrapService', () => {
       expect(mockRecalculate).not.toHaveBeenCalled();
     });
 
-    it('handles tier recalculation failure gracefully', async () => {
+    it('handles failure gracefully', async () => {
+      mockAgentRepo.findOne.mockResolvedValue({ id: 'user-agent-1', is_active: true });
       mockProviderRepo.count.mockResolvedValue(1);
       mockModuleRef.get.mockImplementation((token) => {
         const name = typeof token === 'function' ? token.name : String(token);
@@ -308,62 +201,39 @@ describe('LocalBootstrapService', () => {
     });
   });
 
-  describe('seed messages', () => {
-    const originalEmbedded = process.env['MANIFEST_EMBEDDED'];
-
-    afterEach(() => {
-      if (originalEmbedded !== undefined) {
-        process.env['MANIFEST_EMBEDDED'] = originalEmbedded;
-      } else {
-        delete process.env['MANIFEST_EMBEDDED'];
-      }
-    });
-
-    it('seeds messages when MANIFEST_EMBEDDED is not set', async () => {
-      delete process.env['MANIFEST_EMBEDDED'];
-      await service.onModuleInit();
-
-      // seedAgentMessages calls messageRepo.count then insert
-      expect(mockMessageRepo.insert).toHaveBeenCalled();
-    });
-
-    it('skips seed messages when MANIFEST_EMBEDDED is set', async () => {
-      process.env['MANIFEST_EMBEDDED'] = '1';
-      await service.onModuleInit();
-
-      // seedAgentMessages should not be called, so no insert on messageRepo
-      expect(mockMessageRepo.insert).not.toHaveBeenCalled();
-    });
-  });
-
   describe('background model discovery', () => {
-    it('calls discoverAllForAgent in background after bootstrap', async () => {
+    it('discovers models for active agents', async () => {
+      mockAgentRepo.find.mockResolvedValue([
+        { id: 'agent-1', is_active: true },
+        { id: 'agent-2', is_active: true },
+      ]);
+
       await service.onModuleInit();
-      // Wait for background promise to resolve
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(mockDiscoverAllForAgent).toHaveBeenCalledWith('local-agent-001');
+      expect(mockDiscoverAllForAgent).toHaveBeenCalledWith('agent-1');
+      expect(mockDiscoverAllForAgent).toHaveBeenCalledWith('agent-2');
     });
 
-    it('handles background discovery failure gracefully', async () => {
+    it('skips discovery when no active agents', async () => {
+      mockAgentRepo.find.mockResolvedValue([]);
+
+      await service.onModuleInit();
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockDiscoverAllForAgent).not.toHaveBeenCalled();
+    });
+
+    it('handles discovery failure gracefully', async () => {
+      mockAgentRepo.find.mockResolvedValue([{ id: 'agent-1', is_active: true }]);
       mockDiscoverAllForAgent.mockRejectedValue(new Error('network error'));
 
       await expect(service.onModuleInit()).resolves.not.toThrow();
-      // Wait for background promise to settle
       await new Promise((r) => setTimeout(r, 10));
     });
 
-    it('recalculates tiers after successful discovery', async () => {
-      mockProviderRepo.count.mockResolvedValue(1);
-
-      await service.onModuleInit();
-      await new Promise((r) => setTimeout(r, 10));
-
-      // recalculate should be called: once in onModuleInit and once after discovery
-      expect(mockRecalculate).toHaveBeenCalledWith('local-agent-001');
-    });
-
-    it('handles moduleRef.get failure for ModelDiscoveryService gracefully', async () => {
+    it('handles moduleRef.get failure gracefully', async () => {
+      mockAgentRepo.find.mockResolvedValue([{ id: 'agent-1', is_active: true }]);
       mockModuleRef.get.mockImplementation((token) => {
         const name = typeof token === 'function' ? token.name : String(token);
         if (name === 'ModelDiscoveryService') {
@@ -379,9 +249,7 @@ describe('LocalBootstrapService', () => {
       await new Promise((r) => setTimeout(r, 10));
     });
 
-    it('handles outer .catch when discoverModelsInBackground rejects unexpectedly', async () => {
-      // Override the private method to reject, triggering the outer .catch on line 52
-
+    it('handles outer .catch when discoverModelsInBackground rejects', async () => {
       jest
         .spyOn(service as any, 'discoverModelsInBackground')
         .mockRejectedValue(new Error('unexpected rejection'));

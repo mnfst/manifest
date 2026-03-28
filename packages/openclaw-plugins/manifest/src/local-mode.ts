@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { writeFileSync, existsSync, mkdirSync, readdirSync, renameSync } from 'fs';
-import { join, dirname } from 'path';
+import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 import { homedir } from 'os';
 import { randomBytes } from 'crypto';
 import { PluginLogger } from './types';
@@ -9,8 +9,6 @@ import { loadJsonFile } from './json-file';
 const API_KEY_PREFIX = 'mnfst_';
 const CONFIG_DIR = join(homedir(), '.openclaw', 'manifest');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
-const OPENCLAW_DIR = join(homedir(), '.openclaw');
-const OPENCLAW_CONFIG = join(OPENCLAW_DIR, 'openclaw.json');
 const HEALTH_TIMEOUT_MS = 3000;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -39,141 +37,6 @@ export function loadOrGenerateApiKey(): string {
   return key;
 }
 
-function atomicWriteJson(path: string, data: unknown): void {
-  const dir = dirname(path);
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true, mode: 0o700 });
-  }
-  const tmp = `${path}.tmp.${process.pid}`;
-  writeFileSync(tmp, JSON.stringify(data, null, 2), { mode: 0o600 });
-  renameSync(tmp, path);
-}
-
-export function injectProviderConfig(
-  api: any,
-  baseUrl: string,
-  apiKey: string,
-  logger: PluginLogger,
-): void {
-  const providerConfig = {
-    baseUrl,
-    api: 'openai-completions',
-    apiKey,
-    models: [{ id: 'auto', name: 'auto' }],
-  };
-
-  try {
-    const config = loadJsonFile(OPENCLAW_CONFIG);
-
-    if (!config.models) config.models = {};
-    if (!config.models.providers) config.models.providers = {};
-    config.models.providers.manifest = providerConfig;
-
-    if (!config.agents) config.agents = {};
-    if (!config.agents.defaults) config.agents.defaults = {};
-    if (!config.agents.defaults.models) config.agents.defaults.models = {};
-
-    const models = config.agents.defaults.models;
-    if (Array.isArray(models)) {
-      if (!models.includes('manifest/auto')) models.push('manifest/auto');
-    } else if (typeof models === 'object') {
-      if (!('manifest/auto' in models)) models['manifest/auto'] = {};
-    }
-
-    // Set manifest/auto as default model if no default is configured
-    if (!config.agents.defaults.model) config.agents.defaults.model = {};
-    if (!config.agents.defaults.model.primary) {
-      config.agents.defaults.model.primary = 'manifest/auto';
-    }
-
-    atomicWriteJson(OPENCLAW_CONFIG, config);
-    logger.debug('[manifest] Wrote provider config to openclaw.json');
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    logger.debug(`[manifest] Could not write openclaw.json: ${msg}`);
-  }
-
-  try {
-    const agentsDir = join(OPENCLAW_DIR, 'agents');
-    if (existsSync(agentsDir)) {
-      const agentDirs = readdirSync(agentsDir, { withFileTypes: true }).filter((d) =>
-        d.isDirectory(),
-      );
-
-      for (const dir of agentDirs) {
-        const modelsPath = join(agentsDir, dir.name, 'agent', 'models.json');
-        if (!existsSync(modelsPath)) continue;
-
-        const data = loadJsonFile(modelsPath);
-        if (!data.providers?.manifest) continue;
-
-        delete data.providers.manifest;
-        atomicWriteJson(modelsPath, data);
-      }
-    }
-  } catch {
-    // Stale model cleanup is best-effort
-  }
-
-  try {
-    if (api.config) {
-      if (!api.config.models) api.config.models = {};
-      if (!api.config.models.providers) api.config.models.providers = {};
-      api.config.models.providers.manifest = providerConfig;
-
-      if (!api.config.agents) api.config.agents = {};
-      if (!api.config.agents.defaults) api.config.agents.defaults = {};
-      if (!api.config.agents.defaults.models) api.config.agents.defaults.models = {};
-
-      const rtModels = api.config.agents.defaults.models;
-      if (Array.isArray(rtModels)) {
-        if (!rtModels.includes('manifest/auto')) rtModels.push('manifest/auto');
-      } else if (typeof rtModels === 'object') {
-        if (!('manifest/auto' in rtModels)) rtModels['manifest/auto'] = {};
-      }
-
-      // Set manifest/auto as default model if no default is configured
-      if (!api.config.agents.defaults.model) api.config.agents.defaults.model = {};
-      if (!api.config.agents.defaults.model.primary) {
-        api.config.agents.defaults.model.primary = 'manifest/auto';
-      }
-    }
-  } catch {
-    // Runtime config injection is best-effort
-  }
-}
-
-export function injectAuthProfile(apiKey: string, logger: PluginLogger): void {
-  const agentsDir = join(OPENCLAW_DIR, 'agents');
-  if (!existsSync(agentsDir)) return;
-
-  const profileEntry = { type: 'api_key', provider: 'manifest', key: apiKey };
-
-  try {
-    const agentDirs = readdirSync(agentsDir, { withFileTypes: true }).filter((d) =>
-      d.isDirectory(),
-    );
-
-    for (const dir of agentDirs) {
-      const profilePath = join(agentsDir, dir.name, 'agent', 'auth-profiles.json');
-      if (!existsSync(dirname(profilePath))) continue;
-
-      const data = loadJsonFile(profilePath);
-      if (!data.version) data.version = 1;
-      if (!data.profiles) data.profiles = {};
-
-      const existing = data.profiles['manifest:default'];
-      if (existing && existing.key === apiKey) continue;
-
-      data.profiles['manifest:default'] = profileEntry;
-      atomicWriteJson(profilePath, data);
-    }
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    logger.debug(`[manifest] Auth profile injection error: ${msg}`);
-  }
-}
-
 export async function checkExistingServer(host: string, port: number): Promise<boolean> {
   try {
     const res = await fetch(`http://${host}:${port}/api/v1/health`, {
@@ -193,13 +56,9 @@ export async function checkExistingServer(host: string, port: number): Promise<b
 }
 
 export function registerLocalMode(api: any, port: number, host: string, logger: PluginLogger) {
-  const apiKey = loadOrGenerateApiKey();
   const dbPath = join(CONFIG_DIR, 'manifest.db');
 
   logger.debug('[manifest] Starting embedded server...');
-
-  injectProviderConfig(api, `http://${host}:${port}/v1`, apiKey, logger);
-  injectAuthProfile(apiKey, logger);
 
   let serverModule: {
     start: (opts: Record<string, unknown>) => Promise<unknown>;
