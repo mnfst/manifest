@@ -23,7 +23,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
   const title = () => (isEnable() ? 'Activate routing' : 'Deactivate routing');
   const modelOrPlaceholder = () => selectedModel() ?? '<provider/model>';
   const disableCmd = () =>
-    `openclaw config set agents.defaults.model.primary ${modelOrPlaceholder()}\nopenclaw gateway restart`;
+    `openclaw config unset models.providers.manifest\nopenclaw config unset agents.defaults.models.manifest/auto\nopenclaw config set agents.defaults.model.primary ${modelOrPlaceholder()}\nopenclaw gateway restart`;
   const command = () => (isEnable() ? ENABLE_CMD : disableCmd());
 
   const handleModelSelect = (cliValue: string, displayLabel: string) => {
@@ -100,7 +100,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
             <ModelSelectDropdown selectedValue={selectedModel()} onSelect={handleModelSelect} />
 
             <p style="margin: 14px 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-              2. Run this command in your agent's terminal to restore direct model access:
+              2. Run these commands in your agent's terminal to restore direct model access:
             </p>
           </Show>
 
@@ -122,6 +122,18 @@ const RoutingInstructionModal: Component<Props> = (props) => {
                 fallback={
                   <>
                     <div>
+                      <span class="modal-terminal__prompt">$</span>
+                      <span class="modal-terminal__code">
+                        openclaw config unset models.providers.manifest
+                      </span>
+                    </div>
+                    <div style="margin-top: 8px;">
+                      <span class="modal-terminal__prompt">$</span>
+                      <span class="modal-terminal__code">
+                        openclaw config unset agents.defaults.models.manifest/auto
+                      </span>
+                    </div>
+                    <div style="margin-top: 8px;">
                       <span class="modal-terminal__prompt">$</span>
                       <span class="modal-terminal__code">
                         openclaw config set agents.defaults.model.primary {modelOrPlaceholder()}
