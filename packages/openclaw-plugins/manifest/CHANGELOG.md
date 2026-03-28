@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.11
+
+### Patch Changes
+
+- a40111d: Set embedded server to production mode, skip seed data for plugin installs, and show dashboard URL on registration
+
 ## 5.33.10
 
 ### Patch Changes
